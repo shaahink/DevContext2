@@ -10,7 +10,7 @@ public sealed class CliSmokeTests
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tests", "fixtures", "MinimalApiProject"));
 
-        var (exitCode, output) = await RunCliAsync($"\"{fixturePath}\" --dry-run");
+        var (exitCode, output) = await RunCliAsync($"analyze --dry-run \"{fixturePath}\"");
 
         Assert.Equal(0, exitCode);
         Assert.Contains("DependencyExtractor", output, StringComparison.OrdinalIgnoreCase);
