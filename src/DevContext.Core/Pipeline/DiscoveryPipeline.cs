@@ -14,6 +14,7 @@ public sealed class DiscoveryPipeline
     private readonly IReadOnlyDictionary<string, IContextRenderer> _renderers;
     private readonly ArchitectureStyleDetector _styleDetector;
     private readonly ILogger<DiscoveryPipeline> _logger;
+    private readonly IReadOnlyList<string> _validationWarnings;
 
     /// <summary>Creates a new discovery pipeline with the given extractors, pruners, compressors, and renderers.</summary>
     public DiscoveryPipeline(
@@ -29,19 +30,24 @@ public sealed class DiscoveryPipeline
         _renderers = renderers;
         _logger = logger;
         _styleDetector = new ArchitectureStyleDetector();
-        ValidateExtractors();
+        _validationWarnings = ValidateExtractors();
     }
 
-    private void ValidateExtractors()
+    /// <summary>Validation warnings from extractor configuration checks.</summary>
+    public IReadOnlyList<string> ValidationWarnings => _validationWarnings;
+
+    private IReadOnlyList<string> ValidateExtractors()
     {
+        var warnings = new List<string>();
+
         foreach (var extractor in _extractors)
         {
             if ((extractor.Stage == ExecutionStage.Stage1Sequential || extractor.Stage == ExecutionStage.Stage2Parallel)
                 && extractor.Capabilities.ReadsSignals.Length > 0)
             {
-                _logger.LogWarning(
-                    "Extractor {Name} (Stage {Stage}) reads signals {Signals} but Generic extractors must not read architecture signals.",
-                    extractor.Name, extractor.Stage, string.Join(", ", extractor.Capabilities.ReadsSignals));
+                var msg = $"Extractor {extractor.Name} (Stage {extractor.Stage}) reads signals {string.Join(", ", extractor.Capabilities.ReadsSignals)} but Generic extractors must not read architecture signals.";
+                warnings.Add(msg);
+                _logger.LogWarning("{Warning}", msg);
             }
         }
 
@@ -60,17 +66,22 @@ public sealed class DiscoveryPipeline
                 var matchingReaders = readers.Where(r => r.Signal == write.Signal).ToList();
                 if (matchingReaders.Count > 0)
                 {
-                    _logger.LogWarning(
-                        "Stage {Stage}: {Writer} writes signal '{Signal}' which is also read by {Readers}. This may cause races.",
-                        group.Key, write.Extractor, write.Signal, string.Join(", ", matchingReaders.Select(r => r.Extractor)));
+                    var msg = $"Stage {group.Key}: {write.Extractor} writes signal '{write.Signal}' which is also read by {string.Join(", ", matchingReaders.Select(r => r.Extractor))}. This may cause races.";
+                    warnings.Add(msg);
+                    _logger.LogWarning("{Warning}", msg);
                 }
             }
         }
+
+        return warnings;
     }
 
     /// <summary>Runs the full discovery pipeline and returns the rendered context.</summary>
     public async Task<RenderedContext> RunAsync(DiscoveryContext context, CancellationToken ct = default)
     {
+        if (context.Options.Profile == ExtractionProfile.Debug && _validationWarnings.Count > 0)
+            _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
+
         if (context.Options.DryRun)
             return await RunDryRunAsync(context, ct);
 
@@ -142,6 +153,14 @@ public sealed class DiscoveryPipeline
         {
             var status = willRun ? "✓" : "✗";
             sb.AppendLine($"| {status} | {name} | {tier} | {cat} | {desc} |");
+        }
+
+        if (_validationWarnings.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("### Validation Warnings");
+            foreach (var w in _validationWarnings)
+                sb.AppendLine($"- ⚠ {w}");
         }
 
         var rendered = new RenderedContext(sb.ToString(), 0, [], TimeSpan.Zero, "2.0");

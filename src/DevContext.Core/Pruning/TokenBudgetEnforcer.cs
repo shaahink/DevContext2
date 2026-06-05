@@ -13,33 +13,37 @@ public sealed class TokenBudgetEnforcer : IPruner
         var budget = model.Budget.MaxTokens - model.Budget.SafetyMargin;
         if (budget <= 0) return default;
 
-        var surviving = model.Types.Values
+        var candidates = model.Types.Values
             .Where(t => !t.IsPruned)
             .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
             .ToList();
 
         var usedTokens = 0;
+        var keptCount = 0;
         var prunedCount = 0;
-        foreach (var type in surviving)
+        var minimumSafeTypes = budget < 100 ? 0 : 5;
+
+        foreach (var type in candidates)
         {
             ct.ThrowIfCancellationRequested();
 
             var typeTokens = EstimateTokenCost(type);
-            if (usedTokens + typeTokens > budget)
+            if (keptCount < minimumSafeTypes || usedTokens + typeTokens <= budget)
+            {
+                usedTokens += typeTokens;
+                keptCount++;
+            }
+            else
             {
                 type.IsPruned = true;
                 prunedCount++;
                 model.PrunedTypeIds.Add(type.Id);
             }
-            else
-            {
-                usedTokens += typeTokens;
-            }
         }
 
         if (prunedCount > 0)
         {
-            model.PruningNotes.Add($"TokenBudgetEnforcer: pruned {prunedCount} types (budget {budget} exceeded by {surviving.Sum(t => EstimateTokenCost(t)) - budget} tokens)");
+            model.PruningNotes.Add($"TokenBudgetEnforcer: kept {keptCount} types ({prunedCount} pruned for budget {budget})");
         }
 
         return default;
@@ -56,6 +60,6 @@ public sealed class TokenBudgetEnforcer : IPruner
                         + type.Attributes.Sum(a => a.Length)
                         + (type.SourceBody?.Length ?? 0);
 
-        return Math.Max(1, charCount / 4);
+        return Math.Max(1, charCount / 3);
     }
 }

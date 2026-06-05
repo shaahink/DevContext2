@@ -17,6 +17,10 @@ public sealed class GoldenExtractionTests
             "MinimalApiProject", "architecture", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("GET", result.Content);
+        Assert.Contains("/orders", result.Content);
+        Assert.Contains("CreateOrderHandler", result.Content);
     }
 
     [Fact]
@@ -26,6 +30,10 @@ public sealed class GoldenExtractionTests
             "MinimalApiProject", "architecture", "json");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("\"schemaVersion\": \"2.0\"", result.Content);
+        Assert.Contains("\"style\": \"MinimalApi\"", result.Content);
+        Assert.Contains("EndpointDetection", result.Content);
     }
 
     [Fact]
@@ -35,6 +43,9 @@ public sealed class GoldenExtractionTests
             "MinimalApiProject", "debug-endpoint", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("GET", result.Content);
+        Assert.Contains("CreateOrderHandler", result.Content);
     }
 
     [Fact]
@@ -44,6 +55,9 @@ public sealed class GoldenExtractionTests
             "MinimalApiProject", "add-similar-feature", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("CreateOrderHandler", result.Content);
+        Assert.Contains("Order", result.Content);
     }
 
     [Fact]
@@ -53,6 +67,10 @@ public sealed class GoldenExtractionTests
             "CleanArchProject", "architecture", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("GetProductsHandler", result.Content);
+        Assert.Contains("AppDbContext", result.Content);
+        Assert.Contains("Product", result.Content);
     }
 
     [Fact]
@@ -62,6 +80,9 @@ public sealed class GoldenExtractionTests
             "CleanArchProject", "architecture", "json");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("\"schemaVersion\": \"2.0\"", result.Content);
+        Assert.Contains("\"style\"", result.Content);
     }
 
     [Fact]
@@ -71,6 +92,9 @@ public sealed class GoldenExtractionTests
             "CleanArchProject", "debug-endpoint", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("GetProductsHandler", result.Content);
+        Assert.Contains("AppDbContext", result.Content);
     }
 
     [Fact]
@@ -80,5 +104,8 @@ public sealed class GoldenExtractionTests
             "CleanArchProject", "add-similar-feature", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
+
+        Assert.Contains("GetProductsHandler", result.Content);
+        Assert.Contains("Product", result.Content);
     }
 }

@@ -23,9 +23,31 @@ public static class ServiceRegistration
         foreach (var extractor in extractors)
             services.AddSingleton(extractor);
 
-        RegisterPruners(services);
-        RegisterCompressors(services);
-        RegisterRenderers(services);
+        // Pruners, compressors, and renderers are registered manually rather than via
+        // assembly scanning. Unlike extractors (which follow the "implement + mark + test"
+        // extensibility model via IDiscoveryExtractor + [DiscoveryAssembly] + [ExtractorOrder]),
+        // these components are few (4 pruners, 6 compressors, 2 renderers) and their
+        // order/selection is tightly coupled to pipeline configuration.
+        // If the count grows significantly, consider adding [PrunerOrder], [CompressorOrder],
+        // and [RendererFormat] attributes with scanning similar to ExtractorRegistry.
+
+        // Pruners (ordered by pipeline execution)
+        services.AddSingleton<IPruner>(_ => new PathProximityPruner());
+        services.AddSingleton<IPruner>(_ => new CallReachabilityPruner());
+        services.AddSingleton<IPruner>(_ => new PatternRelevancePruner());
+        services.AddSingleton<IPruner>(_ => new TokenBudgetEnforcer());
+
+        // Compressors (ordered by pipeline execution)
+        services.AddSingleton<ICompressionStrategy>(_ => new TrivialMemberCompressor());
+        services.AddSingleton<ICompressionStrategy>(_ => new BoilerplateCompressor());
+        services.AddSingleton<ICompressionStrategy>(_ => new StructuralDeduplicator());
+        services.AddSingleton<ICompressionStrategy>(_ => new NamespaceGrouper());
+        services.AddSingleton<ICompressionStrategy>(_ => new LlmFriendlyFormatter());
+        services.AddSingleton<ICompressionStrategy>(_ => new AggressiveTruncator());
+
+        // Renderers (keyed by format)
+        services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
+        services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
 
         services.AddSingleton<DiscoveryPipeline>(sp =>
         {
@@ -38,29 +60,5 @@ public static class ServiceRegistration
         });
 
         return services;
-    }
-
-    private static void RegisterPruners(IServiceCollection services)
-    {
-        services.AddSingleton<IPruner>(_ => new PathProximityPruner());
-        services.AddSingleton<IPruner>(_ => new CallReachabilityPruner());
-        services.AddSingleton<IPruner>(_ => new PatternRelevancePruner());
-        services.AddSingleton<IPruner>(_ => new TokenBudgetEnforcer());
-    }
-
-    private static void RegisterCompressors(IServiceCollection services)
-    {
-        services.AddSingleton<ICompressionStrategy>(_ => new TrivialMemberCompressor());
-        services.AddSingleton<ICompressionStrategy>(_ => new BoilerplateCompressor());
-        services.AddSingleton<ICompressionStrategy>(_ => new StructuralDeduplicator());
-        services.AddSingleton<ICompressionStrategy>(_ => new NamespaceGrouper());
-        services.AddSingleton<ICompressionStrategy>(_ => new LlmFriendlyFormatter());
-        services.AddSingleton<ICompressionStrategy>(_ => new AggressiveTruncator());
-    }
-
-    private static void RegisterRenderers(IServiceCollection services)
-    {
-        services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
-        services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
     }
 }

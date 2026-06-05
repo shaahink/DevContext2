@@ -25,7 +25,7 @@ public sealed class JsonContextRenderer : IContextRenderer
         var estimatedTokens = Math.Max(1, json.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            json, estimatedTokens, [], sw.Elapsed, "2.0"));
+            json, estimatedTokens, model.PruningNotes.Select(n => new CompressionResult("Pruning", 0, 0, [n])).ToArray(), sw.Elapsed, "2.0"));
     }
 
     private static DevContextOutput BuildOutput(DiscoveryModel model, RenderOptions options)
@@ -56,6 +56,12 @@ public sealed class JsonContextRenderer : IContextRenderer
             TypesSummary = new TypesOutput(total, inOutput, prunedPercent),
             Detections = [.. model.Detections.OrderBy(d => d.GetType().Name).ThenBy(d => d.SourceFile).ThenBy(d => d.LineNumber)],
             Diagnostics = options.IncludeDiagnostics ? [.. model.Diagnostics] : null,
+            PruningSummary = model.PruningNotes.Count > 0
+                ? string.Join("; ", model.PruningNotes)
+                : null,
+            PruningNotes = options.IncludeDiagnostics && model.PruningNotes.Count > 0
+                ? [.. model.PruningNotes]
+                : null,
             Profile = null,
             MaxTokens = options.EstimatedTokens,
         };

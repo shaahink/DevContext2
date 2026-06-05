@@ -5,19 +5,31 @@ namespace DevContext.Core.Utilities;
 /// <summary>
 /// Scans assemblies for <see cref="DiscoveryAssemblyAttribute"/> and discovers all
 /// <see cref="IDiscoveryExtractor"/> implementations, sorted by <see cref="ExtractorOrderAttribute"/>.
-/// Replaces hardcoded registration lists so that adding an extractor requires only
-/// "implement IDiscoveryExtractor, mark assembly with [DiscoveryAssembly], add test."
 /// </summary>
+/// <remarks>
+/// Enables the "implement + mark + test" workflow:
+///   implement <see cref="IDiscoveryExtractor"/>,
+///   mark the assembly with <c>[DiscoveryAssembly]</c>,
+///   add a test.
+///
+/// All discovered extractors must have a parameterless constructor since the registry
+/// uses <see cref="Activator.CreateInstance(System.Type)"/> to instantiate them.
+/// </remarks>
 public static class ExtractorRegistry
 {
     /// <summary>
-    /// Discovers all IDiscoveryExtractor implementations across assemblies
-    /// marked with [DiscoveryAssembly].
+    /// Discovers all <see cref="IDiscoveryExtractor"/> implementations across assemblies
+    /// marked with <see cref="DiscoveryAssemblyAttribute"/>.
     /// </summary>
+    /// <returns>A read-only list of extractors sorted by <see cref="ExtractorOrderAttribute.Order"/>,
+    /// or an empty list if no assemblies are marked with <c>[DiscoveryAssembly]</c>.</returns>
     public static IReadOnlyList<IDiscoveryExtractor> DiscoverExtractors()
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.GetCustomAttribute<DiscoveryAssemblyAttribute>() != null);
+
+        if (!assemblies.Any())
+            return Array.Empty<IDiscoveryExtractor>();
 
         var extractors = new List<IDiscoveryExtractor>();
 
@@ -46,10 +58,20 @@ public static class ExtractorRegistry
     }
 
     /// <summary>
-    /// Discovers all IDiscoveryExtractor implementations from a specific assembly.
+    /// Discovers all <see cref="IDiscoveryExtractor"/> implementations from a specific assembly.
+    /// The assembly must be marked with <see cref="DiscoveryAssemblyAttribute"/>.
     /// </summary>
+    /// <param name="assembly">The assembly to scan.</param>
+    /// <returns>A read-only list of extractors sorted by <see cref="ExtractorOrderAttribute.Order"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="assembly"/>
+    /// is not marked with <c>[DiscoveryAssembly]</c>.</exception>
     public static IReadOnlyList<IDiscoveryExtractor> DiscoverExtractors(Assembly assembly)
     {
+        if (assembly.GetCustomAttribute<DiscoveryAssemblyAttribute>() is null)
+            throw new InvalidOperationException(
+                $"Assembly '{assembly.GetName().Name}' is not marked with [DiscoveryAssemblyAttribute]. " +
+                "Only assemblies decorated with this attribute contain discovery extractors.");
+
         var extractors = new List<IDiscoveryExtractor>();
 
         var types = assembly.GetTypes()

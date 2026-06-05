@@ -247,6 +247,15 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine($"| {diag.Level} | {diag.Source} | {diag.Message} |");
 
         sb.AppendLine();
+
+        if (model.PruningNotes.Count > 0)
+        {
+            sb.AppendLine("### Pruning notes");
+            sb.AppendLine();
+            foreach (var note in model.PruningNotes)
+                sb.AppendLine($"- {note}");
+            sb.AppendLine();
+        }
     }
 
     private static void AppendFooter(StringBuilder sb, DiscoveryModel model,
@@ -256,16 +265,20 @@ public sealed class MarkdownRenderer : IContextRenderer
         var typesSurviving = model.Types.Values.Count(t => !t.IsPruned);
         var prunedCount = typesTotal - typesSurviving;
 
-        var pruningSummary = model.PruningNotes
-            .GroupBy(n => n.Contains("budget") ? "budget" : n.Contains("distance") ? "distance" : n.Contains("not reachable") ? "unreachable" : "other")
-            .Select(g => $"{g.Count()} pruned by {g.Key}");
+        var compressionCount = model.PruningNotes.Count(n =>
+            n.Contains("TrivialMember") || n.Contains("Boilerplate") ||
+            n.Contains("Deduplicator") || n.Contains("NamespaceGrouper") ||
+            n.Contains("LlmFriendly") || n.Contains("AggressiveTruncator") ||
+            n.Contains("kept") || n.Contains("TokenBudget"));
 
-        var notes = string.Join("; ", pruningSummary);
+        var pruningDetail = compressionCount > 0
+            ? $" | Compressed: {compressionCount} strategies"
+            : "";
 
         sb.AppendLine("---");
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
-            + (notes.Length > 0 ? $" | {notes}" : "")
+            + pruningDetail
             + " | Schema v2.0*");
     }
 }
