@@ -14,9 +14,9 @@ public sealed class LayerClassifier : IDiscoveryExtractor
     public ExecutionStage Stage => ExecutionStage.Stage2Parallel;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
-        [ArchitectureSignals.Keys.MediatR, ArchitectureSignals.Keys.EfCore], [],
+        [], [],
         ["context.Analysis.ProjectLayerMap"],
-        "Classifies each project into an ArchitectureLayer using path heuristics and package signals");
+        "Classifies each project into an ArchitectureLayer using path heuristics and package references (not signals)");
     /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
     /// <summary>Classifies each project's layer based on path patterns and package references.</summary>
