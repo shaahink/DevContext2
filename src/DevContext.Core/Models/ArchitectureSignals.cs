@@ -22,21 +22,21 @@ public sealed class ArchitectureSignals
 
     public static class Keys
     {
-        public const string MinimalApis      = "minimal-apis";
-        public const string Controllers      = "controllers";
-        public const string MediatR          = "mediatr";
-        public const string EfCore           = "efcore";
-        public const string MassTransit      = "masstransit";
-        public const string Aspire           = "aspire";
-        public const string FastEndpoints    = "fast-endpoints";
-        public const string Dapper           = "dapper";
-        public const string Blazor           = "blazor";
-        public const string WpfMvvm          = "wpf-mvvm";
-        public const string SignalR          = "signalr";
-        public const string Grpc             = "grpc";
-        public const string Scrutor          = "scrutor";
-        public const string Refit            = "refit";
+        public const string MinimalApis = "minimal-apis";
+        public const string Controllers = "controllers";
+        public const string MediatR = "mediatr";
+        public const string EfCore = "efcore";
+        public const string MassTransit = "masstransit";
+        public const string Aspire = "aspire";
+        public const string FastEndpoints = "fast-endpoints";
+        public const string Dapper = "dapper";
+        public const string Blazor = "blazor";
+        public const string WpfMvvm = "wpf-mvvm";
+        public const string SignalR = "signalr";
+        public const string Grpc = "grpc";
+        public const string Scrutor = "scrutor";
+        public const string Refit = "refit";
         public const string FluentValidation = "fluentvalidation";
-        public const string Hangfire         = "hangfire";
+        public const string Hangfire = "hangfire";
     }
 }

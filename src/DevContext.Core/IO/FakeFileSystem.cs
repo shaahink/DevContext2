@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.IO;
 
 public sealed class FakeFileSystem : IFileSystem
 {

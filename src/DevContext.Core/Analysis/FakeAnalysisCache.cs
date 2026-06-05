@@ -3,7 +3,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.Analysis;
 
 public sealed class FakeAnalysisCache : IAnalysisCache
 {

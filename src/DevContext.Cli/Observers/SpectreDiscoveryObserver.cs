@@ -94,8 +94,10 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     {
         var indented = new string(' ', _indent * 2) + message;
         _log.Enqueue(indented);
-        _status?.Status(Spectre.Console.Markup.Escape(indented));
-        AnsiConsole.WriteLine(indented);
+        if (_status != null)
+            _status.Status(Spectre.Console.Markup.Escape(indented));
+        else
+            AnsiConsole.WriteLine(indented);
     }
 
     public IEnumerable<string> GetLog() => _log;

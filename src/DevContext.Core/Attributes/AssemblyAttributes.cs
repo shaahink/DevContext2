@@ -1,4 +1,4 @@
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.Attributes;
 
 [AttributeUsage(AttributeTargets.Assembly)]
 public sealed class DiscoveryAssemblyAttribute : Attribute;

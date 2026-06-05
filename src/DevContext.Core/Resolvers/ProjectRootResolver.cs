@@ -1,4 +1,4 @@
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.Resolvers;
 
 public sealed class ProjectRootResolver
 {

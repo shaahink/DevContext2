@@ -1,4 +1,4 @@
-using DevContext.Core.Utilities;
+using DevContext.Core.Attributes;
 
 [assembly: InternalsVisibleTo("DevContext.Core.Tests")]
 [assembly: InternalsVisibleTo("DevContext.Roslyn.Tests")]

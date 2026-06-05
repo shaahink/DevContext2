@@ -9,21 +9,13 @@ public sealed class PipelineTests
         fs.AddFile(@"src\Program.cs", "");
         fs.AddFile(@"src\MyApp.csproj", "<Project />");
 
-        var cache = new FakeAnalysisCache(fs);
-        var observer = new RecordingDiscoveryObserver();
-
-        var ctx = new DiscoveryContext
-        {
-            RootPath = "src",
-            Options = new ExtractionOptions { DryRun = true },
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
-            Observer = observer,
-            FileSystem = fs,
-            Cache = cache,
-            Analysis = new SharedAnalysisContext(),
-            Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
-        };
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath("src")
+            .WithOptions(new ExtractionOptions { DryRun = true });
+        var built = builder.BuildWithRecording();
+        var ctx = built.Context;
+        var observer = built.Recording;
 
         var extractors = new List<IDiscoveryExtractor>
         {
@@ -61,23 +53,13 @@ public sealed class PipelineTests
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"", ""{GUID}""
 ");
 
-        var cache = new FakeAnalysisCache(fs);
-        var analysis = new SharedAnalysisContext();
-        var observer = new RecordingDiscoveryObserver();
         var loggerFactory = LoggerFactory.Create(b => { });
-
-        var ctx = new DiscoveryContext
-        {
-            RootPath = "src",
-            Options = new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
-            Observer = observer,
-            FileSystem = fs,
-            Cache = cache,
-            Analysis = analysis,
-            Logger = loggerFactory.CreateLogger("Test"),
-            RoslynWorkspace = new MockRoslynProvider()
-        };
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath("src");
+        var built = builder.BuildWithRecording();
+        var ctx = built.Context;
+        var observer = built.Recording;
 
         var extractors = new List<IDiscoveryExtractor>
         {
@@ -114,5 +96,3 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
         Assert.True(earlyOrder < normalOrder);
     }
 }
-
-

@@ -10,5 +10,5 @@ public sealed record FeatureSignal(
 {
     public static FeatureSignal CreateDetected(string key, float confidence = 1.0f,
         string via = "PackageReference", params string[] evidence)
-        => new(key, true, confidence, via, [..evidence]);
+        => new(key, true, confidence, via, [.. evidence]);
 }

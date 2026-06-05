@@ -1,4 +1,4 @@
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.IO;
 
 public sealed class RealFileSystem : IFileSystem
 {

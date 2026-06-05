@@ -11,8 +11,8 @@ public sealed class TypeDiscovery
     public required TypeKind Kind { get; init; }
     public required Microsoft.CodeAnalysis.Accessibility Accessibility { get; init; }
     public required ArchitectureLayer Layer { get; init; }
-    public ImmutableArray<MethodSignature> Methods { get; init; } = [];
-    public ImmutableArray<PropertySignature> Properties { get; init; } = [];
+    public ImmutableArray<MethodSignature> Methods { get; set; } = [];
+    public ImmutableArray<PropertySignature> Properties { get; set; } = [];
     public ImmutableArray<string> BaseTypes { get; init; } = [];
     public ImmutableArray<string> ImplementedInterfaces { get; init; } = [];
     public ImmutableArray<string> Attributes { get; init; } = [];

@@ -9,37 +9,65 @@ public static class ServiceRegistration
         services.AddSingleton<IFileSystem>(_ => new RealFileSystem());
         services.AddSingleton<IAnalysisCache>(sp => new AnalysisCache(sp.GetRequiredService<IFileSystem>()));
 
-        services.AddSingleton<IDiscoveryExtractor>(sp =>
-            new FileTreeExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(sp =>
-            new SolutionDiscoveryExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(sp =>
-            new ProjectStructureExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new FileTreeExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new SolutionDiscoveryExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new ProjectStructureExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new SyntaxStructureExtractor());
 
-        services.AddSingleton<IPruner>(_ => new NullPruner());
-        services.AddSingleton<ICompressionStrategy>(_ => new NullCompressor());
-        services.AddSingleton<IContextRenderer>(sp => new MarkdownRenderer());
-        services.AddSingleton<IContextRenderer>(sp => new JsonContextRenderer());
+        services.AddSingleton<ArchitectureStyleDetector>();
 
-        services.AddSingleton<DiscoveryPipeline>();
+        services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
+        services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
+
+        services.AddSingleton<DiscoveryPipeline>(sp =>
+        {
+            var extractors = sp.GetServices<IDiscoveryExtractor>().ToArray();
+            var pruners = sp.GetServices<IPruner>().ToArray();
+            var compressors = sp.GetServices<ICompressionStrategy>().ToArray();
+            var renderers = sp.GetServices<IContextRenderer>().ToDictionary(r => r.Format, r => r);
+            var logger = sp.GetRequiredService<ILogger<DiscoveryPipeline>>();
+            return new DiscoveryPipeline(extractors, pruners, compressors, renderers, logger);
+        });
 
         return services;
     }
 }
 
-public sealed class NullPruner : IPruner
+public sealed class ArchitectureStyleDetector
 {
-    public string Name => "NullPruner";
-    public int Order => 100;
-    public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct) => default;
-}
+    public (ArchitectureStyle Style, float Confidence) Detect(DiscoveryModel model)
+    {
+        var signals = model.Architecture.All;
+        float maxConfidence = 0;
+        var style = ArchitectureStyle.Unknown;
 
-public sealed class NullCompressor : ICompressionStrategy
-{
-    public string Name => "NullCompressor";
-    public int Order => 100;
-    public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
-        => new(new CompressionResult(Name, 0, 0, []));
+        if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected && ma.Confidence > maxConfidence)
+        {
+            maxConfidence = ma.Confidence;
+            style = ArchitectureStyle.MinimalApi;
+        }
+
+        if (model.Projects.Length > 4 && signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
+        {
+            var combined = mr.Confidence * 1.2f;
+            if (combined > maxConfidence)
+            {
+                maxConfidence = combined;
+                style = ArchitectureStyle.CleanArchitecture;
+            }
+        }
+
+        if (model.Projects.Length > 2 && signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
+        {
+            if (style == ArchitectureStyle.Unknown && ef.Confidence > 0.5f)
+            {
+                style = ArchitectureStyle.NLayer;
+                maxConfidence = ef.Confidence;
+            }
+        }
+
+        return (style, Math.Min(maxConfidence, 1.0f));
+    }
 }
 
 public sealed class MarkdownRenderer : IContextRenderer

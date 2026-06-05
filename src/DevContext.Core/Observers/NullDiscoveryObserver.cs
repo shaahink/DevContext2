@@ -1,4 +1,4 @@
-namespace DevContext.Core.Utilities;
+namespace DevContext.Core.Observers;
 
 public sealed class NullDiscoveryObserver : IDiscoveryObserver
 {

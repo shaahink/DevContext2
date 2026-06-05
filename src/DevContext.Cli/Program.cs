@@ -194,65 +194,55 @@ static async Task<int> RunAnalyze(List<string> args)
     var loggerFactory = LoggerFactory.Create(b =>
         b.AddSerilog(dispose: true));
 
-    var roslynProvider = new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
-        rootResult.SolutionFilePath ?? rootPath,
-        fs,
-        loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
-
-    var observer = new SpectreDiscoveryObserver();
-
-    var ctx = new DiscoveryContext
+    IRoslynWorkspaceProvider roslynProvider;
+    if (!noRoslyn && rootResult.SolutionFilePath != null)
     {
-        RootPath = rootResult.RootPath,
-        Options = options,
-        ActiveScenario = scenario,
-        Observer = observer,
-        FileSystem = fs,
-        Cache = cache,
-        Analysis = sharedAnalysis,
-        Logger = loggerFactory.CreateLogger("DevContext"),
-        RoslynWorkspace = roslynProvider
-    };
-
-    var extractors = new List<IDiscoveryExtractor>
+        roslynProvider = new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
+            rootResult.SolutionFilePath,
+            fs,
+            loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
+    }
+    else
     {
-        new FileTreeExtractor(),
-        new SolutionDiscoveryExtractor(),
-        new ProjectStructureExtractor()
-    };
+        roslynProvider = new NullRoslynProvider();
+    }
 
-    var pipeline = new DiscoveryPipeline(
-        extractors, [], [], new Dictionary<string, IContextRenderer>
-        {
-            ["markdown"] = new MarkdownRenderer(),
-            ["json"] = new JsonContextRenderer()
-        },
-        loggerFactory.CreateLogger<DiscoveryPipeline>());
+    var services = new ServiceCollection();
+    services.AddDevContextServices(rootPath);
+    services.AddSingleton(loggerFactory.CreateLogger<DiscoveryPipeline>());
+    var serviceProvider = services.BuildServiceProvider();
+    var pipeline = serviceProvider.GetRequiredService<DiscoveryPipeline>();
 
     var sw = Stopwatch.StartNew();
     RenderedContext result = null!;
 
     AnsiConsole.Status()
-        .Start("DevContext Analysis...", statusCtx =>
+        .Start(dryRun ? "DevContext Dry Run..." : "DevContext Analysis...", statusCtx =>
         {
-            var spectreObserver = new SpectreDiscoveryObserver(statusCtx);
-            var spectreCtx = new DiscoveryContext
+            var observer = new SpectreDiscoveryObserver(dryRun ? null : statusCtx);
+
+            var ctx = new DiscoveryContext
             {
-                RootPath = ctx.RootPath,
-                Options = ctx.Options,
-                ActiveScenario = ctx.ActiveScenario,
-                Observer = spectreObserver,
-                FileSystem = ctx.FileSystem,
-                Cache = ctx.Cache,
-                Analysis = ctx.Analysis,
-                Logger = ctx.Logger,
-                RoslynWorkspace = ctx.RoslynWorkspace
+                RootPath = rootResult.RootPath,
+                Options = options,
+                ActiveScenario = scenario,
+                Observer = observer,
+                FileSystem = fs,
+                Cache = cache,
+                Analysis = sharedAnalysis,
+                Logger = loggerFactory.CreateLogger("DevContext"),
+                RoslynWorkspace = roslynProvider
             };
 
-            result = pipeline.RunAsync(spectreCtx).GetAwaiter().GetResult();
+            result = pipeline.RunAsync(ctx).GetAwaiter().GetResult();
         });
 
-    if (!dryRun)
+    if (dryRun)
+    {
+        AnsiConsole.MarkupLine("[yellow]Dry Run Plan[/]");
+        AnsiConsole.WriteLine(result.Content);
+    }
+    else
     {
         if (opts.TryGetValue("o", out var outputFile) || opts.TryGetValue("output", out outputFile))
         {
@@ -340,4 +330,10 @@ static Serilog.ILogger CreateLogger(Serilog.Events.LogEventLevel level)
         .WriteTo.Console(
             outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
         .CreateLogger();
+}
+
+public sealed class NullRoslynProvider : IRoslynWorkspaceProvider
+{
+    public Task<IRoslynWorkspace?> GetWorkspaceAsync(CancellationToken ct)
+        => Task.FromResult<IRoslynWorkspace?>(null);
 }
