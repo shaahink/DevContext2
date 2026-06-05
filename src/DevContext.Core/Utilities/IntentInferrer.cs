@@ -1,0 +1,26 @@
+namespace DevContext.Core.Utilities;
+
+public static class IntentInferrer
+{
+    private static readonly (string[] Keywords, string Scenario, ExtractionProfile Profile)[] Rules =
+    [
+        (["debug", "why", "failing", "error", "exception", "500"], "debug-endpoint", ExtractionProfile.Debug),
+        (["add", "implement", "similar", "like", "crud", "new endpoint"], "add-similar-feature", ExtractionProfile.Focused),
+        (["middleware", "pipeline", "cross-cutting", "filter", "interceptor"], "modify-middleware", ExtractionProfile.Focused),
+        (["event", "message", "publish", "consume", "queue", "bus"], "trace-message-flow", ExtractionProfile.Focused),
+        (["architecture", "overview", "structure", "layers", "map"], "architecture", ExtractionProfile.Quick),
+        (["di", "injection", "reflect", "activator", "register"], "harden-di", ExtractionProfile.Debug),
+    ];
+
+    public static (string Scenario, ExtractionProfile Profile) Infer(string task)
+    {
+        var lower = task.ToLowerInvariant();
+        var best = Rules
+            .Select(r => (r.Scenario, r.Profile, Score: r.Keywords.Count(k => lower.Contains(k))))
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .FirstOrDefault();
+
+        return best.Score > 0 ? (best.Scenario, best.Profile) : ("architecture", ExtractionProfile.Quick);
+    }
+}
