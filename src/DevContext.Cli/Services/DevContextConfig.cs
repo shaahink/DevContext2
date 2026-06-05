@@ -26,11 +26,30 @@ public sealed record DevContextConfig
     public static DevContextConfig? Load(string configPath)
     {
         if (!File.Exists(configPath)) return null;
-        var json = File.ReadAllText(configPath);
-        return JsonSerializer.Deserialize<DevContextConfig>(json, new JsonSerializerOptions
+        try
         {
-            PropertyNameCaseInsensitive = true
-        });
+            var json = File.ReadAllText(configPath);
+            return JsonSerializer.Deserialize<DevContextConfig>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    public IReadOnlyList<string> Validate()
+    {
+        var errors = new List<string>();
+        if (MaxOutputTokens is < 100 or > 100000)
+            errors.Add($"maxOutputTokens must be between 100 and 100000");
+        if (DefaultProfile is not null and not ("quick" or "focused" or "debug" or "full"))
+            errors.Add($"defaultProfile must be one of: quick, focused, debug, full");
+        if (DefaultScenario is not null && !ScenarioRegistry.BuiltIn.ContainsKey(DefaultScenario))
+            errors.Add($"defaultScenario '{DefaultScenario}' is not a registered scenario");
+        return errors;
     }
 
     public static string DefaultPath => Path.Combine(Environment.CurrentDirectory, "devcontext.json");

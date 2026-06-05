@@ -134,9 +134,9 @@ public sealed class RendererTests
         var result = await renderer.RenderAsync(model, options, default);
 
         Assert.Contains("typesSummary", result.Content);
-        Assert.Contains("\"total\": 2", result.Content);
-        Assert.Contains("\"active\": 1", result.Content);
-        Assert.Contains("\"pruned\": 1", result.Content);
+        Assert.Contains("\"found\": 2", result.Content);
+        Assert.Contains("\"inOutput\": 1", result.Content);
+        Assert.Contains("\"prunedPercent\": 50", result.Content);
     }
 
     [Fact]

@@ -7,8 +7,8 @@ namespace DevContext.Core.Extractors.Generic;
 [ExtractorOrder(45)]
 public sealed class DiRegistrationExtractor : IDiscoveryExtractor
 {
-    private static readonly ImmutableArray<string> LifetimeMethods =
-        ["AddSingleton", "AddScoped", "AddTransient"];
+    private static readonly ImmutableHashSet<string> LifetimeMethods =
+        ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, "AddSingleton", "AddScoped", "AddTransient");
 
     public string Name => "DiRegistrationExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
@@ -54,11 +54,11 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
 
                 if (LifetimeMethods.Contains(methodName))
                 {
-                    var lifetime = methodName switch
+                    var lifetime = methodName.ToLowerInvariant() switch
                     {
-                        "AddSingleton" => "Singleton",
-                        "AddScoped" => "Scoped",
-                        "AddTransient" => "Transient",
+                        "addsingleton" => "Singleton",
+                        "addscoped" => "Scoped",
+                        "addtransient" => "Transient",
                         _ => "Unknown",
                     };
 

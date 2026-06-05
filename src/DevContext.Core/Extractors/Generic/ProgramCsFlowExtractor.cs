@@ -82,11 +82,12 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 }
                 else if (isAppTarget && MapMethods.Contains(methodName))
                 {
+                    var order = mapRegistrations.Count + 1;
                     mapRegistrations.Add((methodName, methodName, lineNumber));
 
                     model.Detections.Add(new MiddlewareDetection(
                         MiddlewareType: methodName,
-                        PipelineOrder: 100 + mapRegistrations.Count,
+                        PipelineOrder: order,
                         Kind: MiddlewareKind.MapX)
                     {
                         ExtractorName = Name,

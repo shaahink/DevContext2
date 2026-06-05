@@ -19,6 +19,7 @@ public sealed class TokenBudgetEnforcer : IPruner
             .ToList();
 
         var usedTokens = 0;
+        var prunedCount = 0;
         foreach (var type in surviving)
         {
             ct.ThrowIfCancellationRequested();
@@ -27,13 +28,18 @@ public sealed class TokenBudgetEnforcer : IPruner
             if (usedTokens + typeTokens > budget)
             {
                 type.IsPruned = true;
-                model.PruningNotes.Add($"Pruned '{type.Id}' by TokenBudgetEnforcer (budget exceeded: {usedTokens}+{typeTokens}>{budget})");
+                prunedCount++;
                 model.PrunedTypeIds.Add(type.Id);
             }
             else
             {
                 usedTokens += typeTokens;
             }
+        }
+
+        if (prunedCount > 0)
+        {
+            model.PruningNotes.Add($"TokenBudgetEnforcer: pruned {prunedCount} types (budget {budget} exceeded by {surviving.Sum(t => EstimateTokenCost(t)) - budget} tokens)");
         }
 
         return default;

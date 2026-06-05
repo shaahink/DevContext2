@@ -39,8 +39,8 @@
 
 | Order | Type | Kind |
 |-------|------|------|
-| 101 | MapGet | MapX |
-| 102 | MapPost | MapX |
+| 1 | MapGet | MapX |
+| 2 | MapPost | MapX |
 
 ### DI registrations
 

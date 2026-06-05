@@ -7,9 +7,13 @@ public static class GoldenTestHelper
     private static readonly System.Text.RegularExpressions.Regex TimingPattern =
         new(@"\*Generated in [\d.]+ms", System.Text.RegularExpressions.RegexOptions.Compiled);
 
+    private static readonly System.Text.RegularExpressions.Regex GeneratedAtPattern =
+        new(@"""generatedAt"":\s*""[^""]+""", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     public static string NormalizeOutput(string content)
     {
         content = TimingPattern.Replace(content, "*Generated in {elapsed}ms");
+        content = GeneratedAtPattern.Replace(content, "\"generatedAt\": \"{timestamp}\"");
         return content
             .Replace("\r\n", "\n")
             .Trim();

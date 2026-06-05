@@ -121,6 +121,13 @@ static async Task<int> RunAnalyze(List<string> args)
 
     var config = DevContextConfig.Load(DevContextConfig.DefaultPath);
 
+    if (config is not null)
+    {
+        var errors = config.Validate();
+        foreach (var error in errors)
+            AnsiConsole.MarkupLine($"[yellow]Config warning: {error}[/]");
+    }
+
     var around = new List<string>();
     if (opts.TryGetValue("a", out var a)) around.Add(a);
     if (opts.TryGetValue("around", out var aroundVal)) around.Add(aroundVal);

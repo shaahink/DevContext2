@@ -1,9 +1,10 @@
 {
   "schemaVersion": "2.0",
+  "generatedAt": "{timestamp}",
   "solution": {
     "name": "MinimalApiProject",
     "filePath": "MinimalApiProject.sln",
-    "projects": [
+    "projectPaths": [
       "src\\Api\\Api.csproj",
       "src\\Core\\Core.csproj",
       "src\\Infrastructure\\Infrastructure.csproj"
@@ -11,73 +12,112 @@
   },
   "architecture": {
     "style": "MinimalApi",
-    "confidence": 1,
-    "detectedVia": "ArchitectureStyleDetector"
+    "confidence": 1
   },
   "signals": [
     {
       "key": "dapper",
       "confidence": 1,
-      "detectedVia": "PackageReference"
-    },
-    {
-      "key": "minimal-apis",
-      "confidence": 1,
-      "detectedVia": "PackageReference"
-    },
-    {
-      "key": "mediatr",
-      "confidence": 1,
-      "detectedVia": "PackageReference"
+      "detected": true
     },
     {
       "key": "efcore",
       "confidence": 1,
-      "detectedVia": "PackageReference"
+      "detected": true
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 1,
+      "detected": true
     }
   ],
+  "projects": {
+    "count": 3,
+    "names": [
+      "Api",
+      "Core",
+      "Infrastructure"
+    ]
+  },
   "typesSummary": {
-    "total": 7,
-    "active": 5,
-    "pruned": 2
+    "found": 7,
+    "inOutput": 5,
+    "prunedPercent": 28.6
   },
   "detections": [
     {
-      "type": "MediatRHandlerDetection",
-      "sourceFile": "src\\Api\\Handlers\\CreateOrderHandler.cs",
-      "lineNumber": 6,
-      "confidence": 1
-    },
-    {
-      "type": "EndpointDetection",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 15,
-      "confidence": 1
-    },
-    {
-      "type": "EndpointDetection",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 9,
-      "confidence": 1
-    },
-    {
       "type": "DiRegistrationDetection",
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Program).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "extractorName": "DiRegistrationExtractor",
       "sourceFile": "src\\Api\\Program.cs",
       "lineNumber": 5,
       "confidence": 0.7
     },
     {
-      "type": "MiddlewareDetection",
+      "type": "EndpointDetection",
+      "httpMethod": "GET",
+      "routeTemplate": "/orders",
+      "handlerType": "async (IMediator mediator) =\u003E\n{\n    var orders = await mediator.Send(new GetOrdersQuery());\n    return Results.Ok(orders);\n}",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/orders",
+      "handlerType": "async (CreateOrderCommand cmd, IMediator mediator) =\u003E\n{\n    var id = await mediator.Send(cmd);\n    return Results.Created($\u0022/orders/{id}\u0022, id);\n}",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "extractorName": "EndpointExtractor",
       "sourceFile": "src\\Api\\Program.cs",
       "lineNumber": 15,
       "confidence": 1
     },
     {
+      "type": "MediatRHandlerDetection",
+      "requestType": "CreateOrderCommand",
+      "responseType": "int",
+      "handlerType": "CreateOrderHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "src\\Api\\Handlers\\CreateOrderHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
       "type": "MiddlewareDetection",
+      "middlewareType": "MapGet",
+      "pipelineOrder": 1,
+      "kind": 1,
+      "extractorName": "ProgramCsFlowExtractor",
       "sourceFile": "src\\Api\\Program.cs",
       "lineNumber": 9,
       "confidence": 1
+    },
+    {
+      "middlewareType": "MapPost",
+      "pipelineOrder": 2,
+      "kind": 1,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 1
     }
   ],
-  "diagnostics": []
+  "maxTokens": 8000
 }

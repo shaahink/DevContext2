@@ -30,9 +30,14 @@ public sealed class JsonContextRenderer : IContextRenderer
 
     private static DevContextOutput BuildOutput(DiscoveryModel model, RenderOptions options)
     {
+        var total = model.Types.Count;
+        var inOutput = model.Types.Values.Count(t => !t.IsPruned);
+        var prunedPercent = total > 0 ? Math.Round((double)(total - inOutput) / total * 100, 1) : 0;
+
         return new DevContextOutput
         {
             SchemaVersion = "2.0",
+            GeneratedAt = DateTime.UtcNow,
             Solution = model.Solution is not null
                 ? new SolutionOutput(
                     model.Solution.Name,
@@ -41,83 +46,18 @@ public sealed class JsonContextRenderer : IContextRenderer
                 : null,
             Architecture = new ArchitectureOutput(
                 model.DetectedStyle.ToString(),
-                model.StyleConfidence,
-                model.StyleDetectedVia ?? ""),
+                model.StyleConfidence),
             Signals = [.. model.Architecture.All
-                .Where(kvp => kvp.Value.Detected)
-                .Select(kvp => new SignalOutput(kvp.Key, kvp.Value.Confidence, kvp.Value.DetectedVia))],
-            TypesSummary = new TypesSummaryOutput(
-                model.Types.Count,
-                model.Types.Values.Count(t => !t.IsPruned),
-                model.Types.Values.Count(t => t.IsPruned)),
-            Detections = [.. model.Detections.Select(ToDetectionOutput)],
-            Diagnostics = options.IncludeDiagnostics
-                ? [.. model.Diagnostics.Select(d => new DiagnosticOutput(d.Level.ToString(), d.Source, d.Message))]
-                : [],
+                .OrderBy(kvp => kvp.Key)
+                .Select(kvp => new SignalOutput(kvp.Key, kvp.Value.Confidence, kvp.Value.Detected))],
+            Projects = new ProjectsOutput(
+                model.Projects.Length,
+                [.. model.Projects.OrderBy(p => p.Name).Select(p => p.Name)]),
+            TypesSummary = new TypesOutput(total, inOutput, prunedPercent),
+            Detections = [.. model.Detections.OrderBy(d => d.GetType().Name).ThenBy(d => d.SourceFile).ThenBy(d => d.LineNumber)],
+            Diagnostics = options.IncludeDiagnostics ? [.. model.Diagnostics] : null,
+            Profile = null,
+            MaxTokens = options.EstimatedTokens,
         };
     }
-
-    private static DetectionOutput ToDetectionOutput(Detection detection)
-    {
-        return new DetectionOutput(
-            detection.GetType().Name,
-            detection.SourceFile,
-            detection.LineNumber,
-            detection.Confidence);
-    }
-
-    private sealed record DevContextOutput
-    {
-        [JsonPropertyName("schemaVersion")]
-        public string SchemaVersion { get; init; } = "2.0";
-
-        [JsonPropertyName("solution")]
-        public SolutionOutput? Solution { get; init; }
-
-        [JsonPropertyName("architecture")]
-        public ArchitectureOutput Architecture { get; init; } = new("Unknown", 0, "");
-
-        [JsonPropertyName("signals")]
-        public IReadOnlyList<SignalOutput> Signals { get; init; } = [];
-
-        [JsonPropertyName("typesSummary")]
-        public TypesSummaryOutput TypesSummary { get; init; } = new(0, 0, 0);
-
-        [JsonPropertyName("detections")]
-        public IReadOnlyList<DetectionOutput> Detections { get; init; } = [];
-
-        [JsonPropertyName("diagnostics")]
-        public IReadOnlyList<DiagnosticOutput> Diagnostics { get; init; } = [];
-    }
-
-    private sealed record SolutionOutput(
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("filePath")] string FilePath,
-        [property: JsonPropertyName("projects")] IReadOnlyList<string> Projects);
-
-    private sealed record ArchitectureOutput(
-        [property: JsonPropertyName("style")] string Style,
-        [property: JsonPropertyName("confidence")] float Confidence,
-        [property: JsonPropertyName("detectedVia")] string DetectedVia);
-
-    private sealed record SignalOutput(
-        [property: JsonPropertyName("key")] string Key,
-        [property: JsonPropertyName("confidence")] float Confidence,
-        [property: JsonPropertyName("detectedVia")] string DetectedVia);
-
-    private sealed record TypesSummaryOutput(
-        [property: JsonPropertyName("total")] int Total,
-        [property: JsonPropertyName("active")] int Active,
-        [property: JsonPropertyName("pruned")] int Pruned);
-
-    private sealed record DetectionOutput(
-        [property: JsonPropertyName("type")] string Type,
-        [property: JsonPropertyName("sourceFile")] string SourceFile,
-        [property: JsonPropertyName("lineNumber")] int LineNumber,
-        [property: JsonPropertyName("confidence")] float Confidence);
-
-    private sealed record DiagnosticOutput(
-        [property: JsonPropertyName("level")] string Level,
-        [property: JsonPropertyName("source")] string Source,
-        [property: JsonPropertyName("message")] string Message);
 }

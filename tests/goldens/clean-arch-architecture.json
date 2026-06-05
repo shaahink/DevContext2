@@ -1,9 +1,10 @@
 {
   "schemaVersion": "2.0",
+  "generatedAt": "{timestamp}",
   "solution": {
     "name": "CleanArch",
     "filePath": "CleanArch.sln",
-    "projects": [
+    "projectPaths": [
       "src\\Domain\\Domain.csproj",
       "src\\Application\\Application.csproj",
       "src\\Infrastructure\\Infrastructure.csproj",
@@ -12,74 +13,122 @@
   },
   "architecture": {
     "style": "MinimalApi",
-    "confidence": 0.8,
-    "detectedVia": "ArchitectureStyleDetector"
+    "confidence": 0.8
   },
   "signals": [
     {
-      "key": "minimal-apis",
-      "confidence": 0.8,
-      "detectedVia": "ProjectSdk"
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
     },
     {
       "key": "mediatr",
       "confidence": 1,
-      "detectedVia": "PackageReference"
+      "detected": true
     },
     {
-      "key": "efcore",
-      "confidence": 1,
-      "detectedVia": "PackageReference"
+      "key": "minimal-apis",
+      "confidence": 0.8,
+      "detected": true
     }
   ],
+  "projects": {
+    "count": 4,
+    "names": [
+      "Application",
+      "Domain",
+      "Infrastructure",
+      "Web"
+    ]
+  },
   "typesSummary": {
-    "total": 4,
-    "active": 4,
-    "pruned": 0
+    "found": 4,
+    "inOutput": 4,
+    "prunedPercent": 0
   },
   "detections": [
     {
-      "type": "EfEntityDetection",
-      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
-      "lineNumber": 12,
-      "confidence": 0.8
-    },
-    {
-      "type": "EfEntityDetection",
-      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
-      "lineNumber": 6,
-      "confidence": 1
-    },
-    {
-      "type": "MediatRHandlerDetection",
-      "sourceFile": "src\\Application\\Handlers\\GetProductsHandler.cs",
-      "lineNumber": 8,
-      "confidence": 1
-    },
-    {
-      "type": "EndpointDetection",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 13,
-      "confidence": 1
-    },
-    {
       "type": "DiRegistrationDetection",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 8,
-      "confidence": 0.7
-    },
-    {
-      "type": "DiRegistrationDetection",
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "extractorName": "DiRegistrationExtractor",
       "sourceFile": "src\\Web\\Program.cs",
       "lineNumber": 7,
       "confidence": 0.7
     },
     {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\n    options.UseSqlServer(builder.Configuration.GetConnectionString(\u0022Default\u0022))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "type": "EfEntityDetection",
+      "entityType": "Product",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 12,
+      "confidence": 0.8
+    },
+    {
+      "type": "EndpointDetection",
+      "httpMethod": "GET",
+      "routeTemplate": "/products",
+      "handlerType": "async (IMediator mediator) =\u003E\n{\n    var products = await mediator.Send(new GetProductsQuery());\n    return Results.Ok(products);\n}",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "type": "MediatRHandlerDetection",
+      "requestType": "GetProductsQuery",
+      "responseType": "List\u003CProduct\u003E",
+      "handlerType": "GetProductsHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "src\\Application\\Handlers\\GetProductsHandler.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
       "type": "MiddlewareDetection",
+      "middlewareType": "MapGet",
+      "pipelineOrder": 1,
+      "kind": 1,
+      "extractorName": "ProgramCsFlowExtractor",
       "sourceFile": "src\\Web\\Program.cs",
       "lineNumber": 13,
       "confidence": 1
     }
   ],
-  "diagnostics": []
+  "maxTokens": 8000
 }

@@ -35,7 +35,7 @@
 
 | Order | Type | Kind |
 |-------|------|------|
-| 101 | MapGet | MapX |
+| 1 | MapGet | MapX |
 
 ### DI registrations
 

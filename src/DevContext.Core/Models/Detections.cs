@@ -1,6 +1,20 @@
+using System.Text.Json.Serialization;
+using DevContext.Core.Extractors.Specific;
+
 namespace DevContext.Core.Models;
 
 /// <summary>Base record for all detection types extracted from the codebase.</summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(EndpointDetection), "EndpointDetection")]
+[JsonDerivedType(typeof(MediatRHandlerDetection), "MediatRHandlerDetection")]
+[JsonDerivedType(typeof(EfEntityDetection), "EfEntityDetection")]
+[JsonDerivedType(typeof(BackgroundWorkerDetection), "BackgroundWorkerDetection")]
+[JsonDerivedType(typeof(MiddlewareDetection), "MiddlewareDetection")]
+[JsonDerivedType(typeof(IndirectWiringDetection), "IndirectWiringDetection")]
+[JsonDerivedType(typeof(MessageConsumerDetection), "MessageConsumerDetection")]
+[JsonDerivedType(typeof(DiRegistrationDetection), "DiRegistrationDetection")]
+[JsonDerivedType(typeof(AspireResourceDetection), "AspireResourceDetection")]
+[JsonDerivedType(typeof(AspireRelationshipDetection), "AspireRelationshipDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>

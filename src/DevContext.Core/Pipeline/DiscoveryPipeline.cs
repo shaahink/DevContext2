@@ -29,6 +29,43 @@ public sealed class DiscoveryPipeline
         _renderers = renderers;
         _logger = logger;
         _styleDetector = new ArchitectureStyleDetector();
+        ValidateExtractors();
+    }
+
+    private void ValidateExtractors()
+    {
+        foreach (var extractor in _extractors)
+        {
+            if ((extractor.Stage == ExecutionStage.Stage1Sequential || extractor.Stage == ExecutionStage.Stage2Parallel)
+                && extractor.Capabilities.ReadsSignals.Length > 0)
+            {
+                _logger.LogWarning(
+                    "Extractor {Name} (Stage {Stage}) reads signals {Signals} but Generic extractors must not read architecture signals.",
+                    extractor.Name, extractor.Stage, string.Join(", ", extractor.Capabilities.ReadsSignals));
+            }
+        }
+
+        var stageGroups = _extractors.GroupBy(e => e.Stage);
+        foreach (var group in stageGroups)
+        {
+            var writers = group.Where(e => e.Capabilities.WritesSignals.Length > 0)
+                .SelectMany(e => e.Capabilities.WritesSignals.Select(s => (Signal: s, Extractor: e.Name)))
+                .ToList();
+            var readers = group.Where(e => e.Capabilities.ReadsSignals.Length > 0)
+                .SelectMany(e => e.Capabilities.ReadsSignals.Select(s => (Signal: s, Extractor: e.Name)))
+                .ToList();
+
+            foreach (var write in writers)
+            {
+                var matchingReaders = readers.Where(r => r.Signal == write.Signal).ToList();
+                if (matchingReaders.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "Stage {Stage}: {Writer} writes signal '{Signal}' which is also read by {Readers}. This may cause races.",
+                        group.Key, write.Extractor, write.Signal, string.Join(", ", matchingReaders.Select(r => r.Extractor)));
+                }
+            }
+        }
     }
 
     /// <summary>Runs the full discovery pipeline and returns the rendered context.</summary>
