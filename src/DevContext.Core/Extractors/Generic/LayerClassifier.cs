@@ -1,19 +1,23 @@
 namespace DevContext.Core.Extractors.Generic;
 
+/// <summary>Classifies each project into an <see cref="ArchitectureLayer"/> using path heuristics and package signals.</summary>
 [ExtractorOrder(15)]
 public sealed class LayerClassifier : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "LayerClassifier";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Generic;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MediatR, ArchitectureSignals.Keys.EfCore], [],
         ["context.Analysis.ProjectLayerMap"],
         "Classifies each project into an ArchitectureLayer using path heuristics and package signals");
-
+    /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
-
+    /// <summary>Classifies each project's layer based on path patterns and package references.</summary>
     public ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var map = new Dictionary<string, ArchitectureLayer>(StringComparer.OrdinalIgnoreCase);

@@ -1,5 +1,6 @@
 namespace DevContext.Core.Compression;
 
+/// <summary>Removes boilerplate and designer-generated types (auto-generated, T4, .g.cs, DI extensions).</summary>
 public sealed class BoilerplateCompressor : ICompressionStrategy
 {
     private static readonly ImmutableArray<string> DesignerIndicators =
@@ -19,7 +20,9 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
         "Use",
     ];
 
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "BoilerplateCompressor";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 20;
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)

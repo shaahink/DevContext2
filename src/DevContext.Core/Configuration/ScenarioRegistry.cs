@@ -1,7 +1,9 @@
 namespace DevContext.Core.Configuration;
 
+/// <summary>Registry of built-in scenarios defining extraction, pruning, and compression configurations.</summary>
 public static class ScenarioRegistry
 {
+    /// <summary>Gets the dictionary of built-in scenarios keyed by name.</summary>
     public static IReadOnlyDictionary<string, Scenario> BuiltIn { get; } =
         new Dictionary<string, Scenario>
         {

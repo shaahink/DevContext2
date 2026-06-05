@@ -1,5 +1,6 @@
 namespace DevContext.Core.Configuration;
 
+/// <summary>Infers the most likely scenario and extraction profile from a user's task description using keyword matching.</summary>
 public static class IntentInferrer
 {
     private static readonly (string[] Keywords, string Scenario, ExtractionProfile Profile)[] Rules =
@@ -12,6 +13,7 @@ public static class IntentInferrer
         (["di", "injection", "reflect", "activator", "register"], "harden-di", ExtractionProfile.Debug),
     ];
 
+    /// <summary>Infers the scenario and profile from a task description by matching keywords.</summary>
     public static (string Scenario, ExtractionProfile Profile) Infer(string task)
     {
         var lower = task.ToLowerInvariant();

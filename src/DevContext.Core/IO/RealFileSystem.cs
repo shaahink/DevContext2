@@ -1,5 +1,6 @@
 namespace DevContext.Core.IO;
 
+/// <summary>Real implementation of <see cref="IFileSystem"/> that delegates to System.IO.</summary>
 public sealed class RealFileSystem : IFileSystem
 {
     public async ValueTask<string> ReadAllTextAsync(string path, CancellationToken ct = default)

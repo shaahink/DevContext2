@@ -42,7 +42,8 @@ public static class ServiceRegistration
         services.AddSingleton<IDiscoveryExtractor>(_ => new DependencyExtractor());
         services.AddSingleton<IDiscoveryExtractor>(_ => new LayerClassifier());
         services.AddSingleton<IDiscoveryExtractor>(_ => new SyntaxStructureExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(_ => new ArchitectureStyleDetector());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new ProgramCsFlowExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new DiRegistrationExtractor());
     }
 
     private static void RegisterSpecificExtractors(IServiceCollection services)

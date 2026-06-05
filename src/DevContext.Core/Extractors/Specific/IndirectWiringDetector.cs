@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Detects indirect wiring patterns (Activator.CreateInstance, DynamicProxy, service locator, reflection scanning).</summary>
 [ExtractorOrder(50)]
 public sealed class IndirectWiringDetector : IDiscoveryExtractor
 {
@@ -13,17 +14,20 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
     private static readonly ImmutableArray<string> ReflectionScanPatterns =
         ["GetTypes", "GetExportedTypes", "GetReferencedAssemblies", "LoadFrom", "LoadFile"];
 
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "IndirectWiringDetector";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], ["indirect-wiring-detections"],
         ["model.Detections"],
         "Detects indirect wiring patterns like Activator.CreateInstance, Castle DynamicProxy, service locator, and reflection scanning");
-
+    /// <summary>Only runs for debug-endpoint and harden-di scenarios.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.ActiveScenario.Name is "debug" or "harden-di";
+        => context.ActiveScenario.Name is "debug-endpoint" or "harden-di";
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

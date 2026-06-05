@@ -1,16 +1,21 @@
 namespace DevContext.Core.Extractors.Generic;
 
+/// <summary>Walks the file tree, discovers .cs, .csproj, and .sln files, and registers them in the analysis context and cache.</summary>
 [ExtractorOrder(-100)]
 public sealed class FileTreeExtractor : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "FileTreeExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Generic;
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], [],
         ["SharedAnalysisContext.AllSourceFiles", "IAnalysisCache path registration"],
         "Walks the file tree and registers all source file paths in the cache");
-
+    /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

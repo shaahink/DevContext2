@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace DevContext.Core.Analysis;
 
+/// <summary>Real implementation of <see cref="IAnalysisCache"/> that caches file reads, syntax trees, and XML documents.</summary>
 public sealed class AnalysisCache : IAnalysisCache
 {
     private readonly IFileSystem _fs;
@@ -13,13 +14,16 @@ public sealed class AnalysisCache : IAnalysisCache
     private readonly ConcurrentDictionary<string, Lazy<Task<XDocument>>> _xmlCache = new();
     private readonly ConcurrentDictionary<string, byte> _knownPaths = new();
 
+    /// <summary>Creates an analysis cache backed by the given file system.</summary>
     public AnalysisCache(IFileSystem fs)
     {
         _fs = fs;
     }
 
+    /// <summary>Gets the list of all registered file paths known to the cache.</summary>
     public IReadOnlyList<string> KnownFilePaths => _knownPaths.Keys.ToList();
 
+    /// <summary>Registers a file path so it appears in <see cref="KnownFilePaths"/>.</summary>
     public void RegisterPath(string filePath)
     {
         _knownPaths.TryAdd(filePath, 0);

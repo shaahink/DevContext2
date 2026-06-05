@@ -1,8 +1,11 @@
 namespace DevContext.Core.Compression;
 
+/// <summary>Removes trivial members (parameterless constructors, ToString, Equals, GetHashCode, auto-properties).</summary>
 public sealed class TrivialMemberCompressor : ICompressionStrategy
 {
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "TrivialMemberCompressor";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 10;
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)

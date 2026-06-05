@@ -1,8 +1,11 @@
 namespace DevContext.Core.Pruning;
 
+/// <summary>Enforces the token budget by pruning lowest-scoring types when the estimated token count exceeds the budget.</summary>
 public sealed class TokenBudgetEnforcer : IPruner
 {
+    /// <summary>Gets the name of this pruner.</summary>
     public string Name => "TokenBudgetEnforcer";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 40;
 
     public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

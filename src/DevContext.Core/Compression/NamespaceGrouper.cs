@@ -1,8 +1,11 @@
 namespace DevContext.Core.Compression;
 
+/// <summary>Groups types by namespace and tags them with group membership information.</summary>
 public sealed class NamespaceGrouper : ICompressionStrategy
 {
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "NamespaceGrouper";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 40;
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)

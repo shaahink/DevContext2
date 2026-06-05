@@ -2,9 +2,12 @@ using System.Collections.Concurrent;
 
 namespace DevContext.Core.Observers;
 
+/// <summary>Records all pipeline events and diagnostics into in-memory collections for test verification.</summary>
 public sealed class RecordingDiscoveryObserver : IDiscoveryObserver
 {
+    /// <summary>List of event strings recorded during pipeline execution.</summary>
     public List<string> Events { get; } = [];
+    /// <summary>Bag of diagnostic entries recorded during pipeline execution.</summary>
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
 
     public void OnPipelineStarted(DiscoveryContext context)

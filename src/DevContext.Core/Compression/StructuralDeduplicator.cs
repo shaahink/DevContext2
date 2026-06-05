@@ -2,9 +2,12 @@ using System.Text;
 
 namespace DevContext.Core.Compression;
 
+/// <summary>Deduplicates types that have identical structural shapes (same methods and properties).</summary>
 public sealed class StructuralDeduplicator : ICompressionStrategy
 {
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "StructuralDeduplicator";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 30;
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)

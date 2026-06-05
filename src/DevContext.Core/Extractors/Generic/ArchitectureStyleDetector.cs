@@ -1,21 +1,14 @@
 namespace DevContext.Core.Extractors.Generic;
 
-[ExtractorOrder(50)]
-public sealed class ArchitectureStyleDetector : IDiscoveryExtractor
+/// <summary>
+/// Analyzes sealed architecture signals and project structure to determine
+/// the overall architecture style. Called by the pipeline between Stage 2 and 3
+/// (after signals are sealed, before Specific extractors run).
+/// This is NOT an IDiscoveryExtractor — it is invoked directly by the orchestrator.
+/// </summary>
+public sealed class ArchitectureStyleDetector
 {
-    public string Name => "ArchitectureStyleDetector";
-    public ExtractorTier Tier => ExtractorTier.Fast;
-    public ExtractorCategory Category => ExtractorCategory.Generic;
-
-    public ExtractorCapabilities Capabilities => new(
-        [ArchitectureSignals.Keys.MediatR, ArchitectureSignals.Keys.MinimalApis, ArchitectureSignals.Keys.EfCore],
-        [],
-        ["model.DetectedStyle", "model.StyleConfidence", "model.StyleDetectedVia"],
-        "Analyzes sealed signals and project structure to determine architecture style");
-
-    public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
-
-    public ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    public (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
     {
         var signals = model.Architecture.All;
         float maxConfidence = 0;
@@ -30,21 +23,18 @@ public sealed class ArchitectureStyleDetector : IDiscoveryExtractor
             via = $"Signal:{ArchitectureSignals.Keys.MinimalApis}";
         }
 
-        if (projectCount > 3
-            && signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
+        if (projectCount > 4 && signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
         {
-            var layerNamesExist = HasLayerNamedFolders(context.Analysis.AllProjectFiles);
             var combined = mr.Confidence * 1.2f;
-            if (combined > maxConfidence && layerNamesExist)
+            if (combined > maxConfidence)
             {
                 maxConfidence = combined;
                 style = ArchitectureStyle.CleanArchitecture;
-                via = $"Signal:{ArchitectureSignals.Keys.MediatR}+LayerFolders";
+                via = $"Signal:{ArchitectureSignals.Keys.MediatR}";
             }
         }
 
-        if (projectCount > 2
-            && signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
+        if (projectCount > 2 && signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
         {
             if (style == ArchitectureStyle.Unknown && ef.Confidence > 0.5f)
             {
@@ -54,27 +44,6 @@ public sealed class ArchitectureStyleDetector : IDiscoveryExtractor
             }
         }
 
-        model.DetectedStyle = style;
-        model.StyleConfidence = Math.Min(maxConfidence, 1.0f);
-        model.StyleDetectedVia = via;
-        return default;
-    }
-
-    private static bool HasLayerNamedFolders(IReadOnlyList<string> projectFiles)
-    {
-        var layerKeywords = new[] { "domain", "application", "infrastructure", "presentation", "api" };
-        var anyMatch = false;
-
-        foreach (var proj in projectFiles)
-        {
-            var dirName = Path.GetFileName(Path.GetDirectoryName(proj)) ?? "";
-            var lower = dirName.ToLowerInvariant();
-            if (layerKeywords.Any(k => lower.Contains(k)))
-            {
-                anyMatch = true;
-            }
-        }
-
-        return anyMatch;
+        return (style, Math.Min(maxConfidence, 1.0f), via);
     }
 }

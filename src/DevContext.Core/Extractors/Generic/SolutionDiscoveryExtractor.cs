@@ -1,15 +1,20 @@
 namespace DevContext.Core.Extractors.Generic;
 
+/// <summary>Parses .sln and .slnx files to discover solution structure and project references.</summary>
 [ExtractorOrder(-50)]
 public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "SolutionDiscovery";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Generic;
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], [], ["model.Solution"],
         "Parses .sln and .slnx files to discover solution structure");
-
+    /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

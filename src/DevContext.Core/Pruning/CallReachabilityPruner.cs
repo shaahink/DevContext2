@@ -1,8 +1,11 @@
 namespace DevContext.Core.Pruning;
 
+/// <summary>Prunes types that are not call-reachable from method-level focus points in the call graph.</summary>
 public sealed class CallReachabilityPruner : IPruner
 {
+    /// <summary>Gets the name of this pruner.</summary>
     public string Name => "CallReachabilityPruner";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 20;
 
     public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

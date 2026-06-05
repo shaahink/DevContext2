@@ -1,5 +1,6 @@
 namespace DevContext.Core.Models;
 
+/// <summary>Identifies the logical layer of a project or type within the application architecture.</summary>
 public enum ArchitectureLayer
 {
     Unknown,
@@ -13,6 +14,7 @@ public enum ArchitectureLayer
     Testing
 }
 
+/// <summary>Identifies the overall architectural style detected from project structure and signals.</summary>
 public enum ArchitectureStyle
 {
     Unknown,

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "2.0",
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0,
+    "detectedVia": "ArchitectureStyleDetector"
+  },
+  "signals": [],
+  "typesSummary": {
+    "total": 0,
+    "active": 0,
+    "pruned": 0
+  },
+  "detections": [],
+  "diagnostics": []
+}

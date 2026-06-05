@@ -4,20 +4,24 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Detects minimal API endpoint registrations (MapGet, MapPost, etc.) via syntax tree analysis.</summary>
 [ExtractorOrder(10)]
 public sealed class EndpointExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> MapMethods = ["MapGet", "MapPost", "MapPut", "MapDelete", "MapPatch"];
 
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "EndpointExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MinimalApis], ["endpoint-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect minimal API endpoint registrations");
-
+    /// <summary>Only runs when the MinimalApis signal has been detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MinimalApis);
 

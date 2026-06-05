@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace DevContext.Core.Analysis;
 
+/// <summary>In-memory implementation of <see cref="IAnalysisCache"/> for testing, backed by <see cref="IFileSystem"/>.</summary>
 public sealed class FakeAnalysisCache : IAnalysisCache
 {
     private readonly IFileSystem _fs;
@@ -13,13 +14,16 @@ public sealed class FakeAnalysisCache : IAnalysisCache
     private readonly ConcurrentDictionary<string, Lazy<Task<XDocument>>> _xmlCache = new();
     private readonly ConcurrentBag<string> _knownPaths = [];
 
+    /// <summary>Creates a fake analysis cache backed by the given file system.</summary>
     public FakeAnalysisCache(IFileSystem fs)
     {
         _fs = fs;
     }
 
+    /// <summary>Gets the list of all registered file paths known to the cache.</summary>
     public IReadOnlyList<string> KnownFilePaths => _knownPaths.ToList();
 
+    /// <summary>Registers a file path so it appears in <see cref="KnownFilePaths"/>.</summary>
     public void RegisterPath(string filePath) => _knownPaths.Add(filePath);
 
     public ValueTask<string> GetTextAsync(string filePath, CancellationToken ct = default)

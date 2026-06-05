@@ -1,8 +1,11 @@
 namespace DevContext.Core.Pruning;
 
+/// <summary>Prunes types whose directory distance from focus points exceeds the configured maximum.</summary>
 public sealed class PathProximityPruner : IPruner
 {
+    /// <summary>Gets the name of this pruner.</summary>
     public string Name => "PathProximityPruner";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 10;
 
     public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

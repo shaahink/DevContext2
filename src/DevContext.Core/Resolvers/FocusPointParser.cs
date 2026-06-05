@@ -1,7 +1,9 @@
 namespace DevContext.Core.Resolvers;
 
+/// <summary>Parses user-provided focus point strings (file paths, type:method, etc.) into structured focus points.</summary>
 public static class FocusPointParser
 {
+    /// <summary>Parses a focus point from a user-provided input string.</summary>
     public static FocusPoint? Parse(string input, IFileSystem fs)
     {
         if (string.IsNullOrWhiteSpace(input))

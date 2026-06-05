@@ -16,6 +16,7 @@ internal sealed record AspireRelationshipDetection(
     string RelationshipType
 ) : Detection;
 
+/// <summary>Detects .NET Aspire resource patterns (AddProject, AddRedis, etc.) and service relationships in AppHost projects.</summary>
 [ExtractorOrder(60)]
 public sealed class AspireExtractor : IDiscoveryExtractor
 {
@@ -31,15 +32,18 @@ public sealed class AspireExtractor : IDiscoveryExtractor
     private static readonly ImmutableArray<string> AspireProjectFiles =
         ["AppHost", "Aspire"];
 
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "AspireExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.Aspire], ["aspire-resource-detections"],
         ["model.Detections"],
         "Walks AppHost project files to detect Aspire resource patterns and service relationships");
-
+    /// <summary>Only runs when the Aspire signal has been detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.Aspire);
 

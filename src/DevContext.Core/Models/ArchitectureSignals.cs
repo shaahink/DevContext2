@@ -2,11 +2,13 @@ using System.Collections.Concurrent;
 
 namespace DevContext.Core.Models;
 
+/// <summary>Thread-safe collection of architecture feature signals that can be sealed after Stage 2.</summary>
 public sealed class ArchitectureSignals
 {
     private readonly ConcurrentDictionary<string, FeatureSignal> _signals = new();
     private volatile bool _sealed;
 
+    /// <summary>Registers a signal, replacing existing signals only if the new confidence is higher. Throws if signals are sealed.</summary>
     public void Register(FeatureSignal signal)
     {
         if (_sealed) throw new InvalidOperationException(
@@ -15,11 +17,15 @@ public sealed class ArchitectureSignals
             (_, existing) => signal.Confidence >= existing.Confidence ? signal : existing);
     }
 
+    /// <summary>Returns true if a signal with the given key exists and is detected.</summary>
     public bool Has(string key) => _signals.TryGetValue(key, out var s) && s.Detected;
+    /// <summary>Gets a signal by key, or null if not found.</summary>
     public FeatureSignal? Get(string key) => _signals.GetValueOrDefault(key);
+    /// <summary>Gets all registered signals.</summary>
     public IReadOnlyDictionary<string, FeatureSignal> All => _signals;
     internal void Seal() => _sealed = true;
 
+    /// <summary>Well-known signal keys used throughout the discovery pipeline.</summary>
     public static class Keys
     {
         public const string MinimalApis = "minimal-apis";

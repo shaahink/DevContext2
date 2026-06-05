@@ -2,9 +2,12 @@ using System.Text.RegularExpressions;
 
 namespace DevContext.Core.Compression;
 
+/// <summary>Formats source bodies for LLM consumption by normalizing whitespace and condensing doc comments.</summary>
 public sealed class LlmFriendlyFormatter : ICompressionStrategy
 {
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "LlmFriendlyFormatter";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 50;
 
     private static readonly Regex DocCommentRegex = new(

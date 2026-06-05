@@ -5,18 +5,22 @@ using ModelsTypeKind = DevContext.Core.Models.TypeKind;
 
 namespace DevContext.Core.Extractors.Generic;
 
+/// <summary>Walks syntax trees of all .cs files to discover type declarations and their members.</summary>
 [ExtractorOrder(20)]
 public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "SyntaxStructureExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Generic;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], [],
         ["model.Types"],
         "Walks syntax trees of all .cs files to discover type declarations");
-
+    /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)

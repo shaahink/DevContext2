@@ -5,18 +5,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Walks syntax trees to build a BFS-depth-limited call graph for Debug and Full extraction profiles.</summary>
 [ExtractorOrder(30)]
 public sealed class CallGraphExtractor : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "CallGraphExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Deep;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], ["call-graph"],
         ["model.CallEdges", "context.Analysis.CallGraph"],
         "Walks syntax trees using Roslyn to build a BFS-depth-limited call graph");
-
+    /// <summary>Only runs in Debug or Full extraction profile.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
 

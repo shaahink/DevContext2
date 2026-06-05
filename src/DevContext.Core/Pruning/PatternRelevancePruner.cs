@@ -1,8 +1,11 @@
 namespace DevContext.Core.Pruning;
 
+/// <summary>Boosts relevance scores for types that appear in detections (endpoints, handlers, entities).</summary>
 public sealed class PatternRelevancePruner : IPruner
 {
+    /// <summary>Gets the name of this pruner.</summary>
     public string Name => "PatternRelevancePruner";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 30;
 
     private static readonly ImmutableArray<(Type DetectionType, string FieldName, float Boost)> BoostRules =

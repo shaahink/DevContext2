@@ -4,21 +4,25 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Detects MVC controller actions and their route templates via syntax tree analysis.</summary>
 [ExtractorOrder(25)]
 public sealed class ControllerActionExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> HttpVerbs =
         ["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"];
 
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "ControllerActionExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.Controllers], ["endpoint-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect MVC controller actions and their route templates");
-
+    /// <summary>Only runs when the Controllers signal has been detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.Controllers);
 

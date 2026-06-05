@@ -1,8 +1,11 @@
 namespace DevContext.Core.Compression;
 
+/// <summary>Aggressively truncates type source bodies that exceed the per-type character cap.</summary>
 public sealed class AggressiveTruncator : ICompressionStrategy
 {
+    /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "AggressiveTruncator";
+    /// <summary>Gets the execution order.</summary>
     public int Order => 60;
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)

@@ -4,21 +4,25 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Detects MediatR handlers and marker interfaces (IRequest, ICommand, IQuery) via syntax tree analysis.</summary>
 [ExtractorOrder(20)]
 public sealed class MediatRExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> RequestMarkers =
         ["IRequest", "ICommand", "IQuery"];
 
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "MediatRExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MediatR], ["mediatr-handler-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect MediatR handlers and marker interfaces");
-
+    /// <summary>Only runs when the MediatR signal has been detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MediatR);
 

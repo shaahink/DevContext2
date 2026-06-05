@@ -1,18 +1,28 @@
 namespace DevContext.Core.Models;
 
+/// <summary>Base record for all detection types extracted from the codebase.</summary>
 public abstract record Detection
 {
+    /// <summary>Name of the extractor that produced this detection.</summary>
     public required string ExtractorName { get; init; }
+    /// <summary>Source file where the detection was found.</summary>
     public required string SourceFile { get; init; }
+    /// <summary>Line number in the source file.</summary>
     public required int LineNumber { get; init; }
+    /// <summary>Confidence level of this detection (0.0 to 1.0).</summary>
     public float Confidence { get; init; } = 1.0f;
 }
 
+/// <summary>Categorizes a MediatR handler as a Command, Query, or Notification handler.</summary>
 public enum MediatRKind { Command, Query, Notification }
+/// <summary>Describes the kind of background worker.</summary>
 public enum BackgroundWorkerKind { HostedService, BackgroundService, TimedJob }
+/// <summary>Describes how middleware is registered.</summary>
 public enum MiddlewareKind { UseX, MapX, CustomClass }
+/// <summary>Describes the kind of indirect wiring detected.</summary>
 public enum IndirectWiringKind { ReflectionActivation, DynamicProxy, ManualServiceLocator }
 
+/// <summary>Detection for an HTTP endpoint (controller action or minimal API).</summary>
 public sealed record EndpointDetection(
     string HttpMethod,
     string RouteTemplate,
@@ -22,6 +32,7 @@ public sealed record EndpointDetection(
     ImmutableArray<string> ParameterTypes
 ) : Detection;
 
+/// <summary>Detection for a MediatR handler implementation.</summary>
 public sealed record MediatRHandlerDetection(
     string RequestType,
     string ResponseType,
@@ -29,6 +40,7 @@ public sealed record MediatRHandlerDetection(
     MediatRKind Kind
 ) : Detection;
 
+/// <summary>Detection for an EF Core entity and its DbSet registration.</summary>
 public sealed record EfEntityDetection(
     string EntityType,
     string DbContextType,
@@ -36,18 +48,21 @@ public sealed record EfEntityDetection(
     ImmutableArray<string> KeyProperties
 ) : Detection;
 
+/// <summary>Detection for a background worker (hosted service, etc.).</summary>
 public sealed record BackgroundWorkerDetection(
     string ServiceType,
     string ImplementationType,
     BackgroundWorkerKind Kind
 ) : Detection;
 
+/// <summary>Detection for registered middleware in the pipeline.</summary>
 public sealed record MiddlewareDetection(
     string MiddlewareType,
     int PipelineOrder,
     MiddlewareKind Kind
 ) : Detection;
 
+/// <summary>Detection for indirect wiring patterns (reflection, service locator, dynamic proxy).</summary>
 public sealed record IndirectWiringDetection(
     IndirectWiringKind Kind,
     string CallerType,
@@ -55,8 +70,16 @@ public sealed record IndirectWiringDetection(
     string? TargetType
 ) : Detection;
 
+/// <summary>Detection for a message bus consumer registration.</summary>
 public sealed record MessageConsumerDetection(
     string MessageType,
     string ConsumerType,
     string BusKind
+) : Detection;
+
+public sealed record DiRegistrationDetection(
+    string ServiceType,
+    string ImplementationType,
+    string Lifetime,
+    ImmutableArray<string> ExtensionsUsed
 ) : Detection;

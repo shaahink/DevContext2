@@ -1,5 +1,6 @@
 namespace DevContext.Core.Observers;
 
+/// <summary>No-op implementation of <see cref="IDiscoveryObserver"/> that ignores all events.</summary>
 public sealed class NullDiscoveryObserver : IDiscoveryObserver
 {
     public void OnPipelineStarted(DiscoveryContext context) { }

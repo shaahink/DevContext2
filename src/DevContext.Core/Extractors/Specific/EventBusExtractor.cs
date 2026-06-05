@@ -4,19 +4,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
+/// <summary>Detects message bus consumers and bus registration patterns (MassTransit, NServiceBus).</summary>
 [ExtractorOrder(40)]
 public sealed class EventBusExtractor : IDiscoveryExtractor
 {
+    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "EventBusExtractor";
+    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
+    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-
+    /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MassTransit, "nservicebus"],
         ["message-consumer-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect message bus consumers and bus registrations");
-
+    /// <summary>Only runs when MassTransit or NServiceBus signals are detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MassTransit)
             || currentModel.Architecture.Has("nservicebus");

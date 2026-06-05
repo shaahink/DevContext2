@@ -4,8 +4,12 @@ namespace DevContext.Core.Tests;
 
 public static class GoldenTestHelper
 {
+    private static readonly System.Text.RegularExpressions.Regex TimingPattern =
+        new(@"\*Generated in [\d.]+ms", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     public static string NormalizeOutput(string content)
     {
+        content = TimingPattern.Replace(content, "*Generated in {elapsed}ms");
         return content
             .Replace("\r\n", "\n")
             .Trim();
@@ -83,6 +87,86 @@ public static class GoldenTestHelper
 
         var result = await pipeline.RunAsync(ctx);
         return result.Content;
+    }
+
+    public static async Task<RenderedContext> RunPipelineOnFixtureWithAllExtractors(
+        string fixtureDir, string scenario = "architecture", string format = "markdown")
+    {
+        var fs = new FakeFileSystem();
+        var fixturePath = GetFixturePath(fixtureDir);
+
+        if (Directory.Exists(fixturePath))
+        {
+            foreach (var file in Directory.EnumerateFiles(fixturePath, "*", SearchOption.AllDirectories))
+            {
+                var relative = Path.GetRelativePath(fixturePath, file);
+                var content = await File.ReadAllTextAsync(file);
+                fs.AddFile(relative, content);
+            }
+        }
+
+        var cache = new FakeAnalysisCache(fs);
+        var loggerFactory = LoggerFactory.Create(b => { });
+
+        var ctx = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath("")
+            .WithOptions(new ExtractionOptions
+            {
+                MaxOutputTokens = 8000,
+                OutputFormat = format == "json" ? OutputFormat.Json : OutputFormat.Markdown
+            })
+            .WithScenario(ScenarioRegistry.BuiltIn[scenario])
+            .Build();
+
+        var extractors = new List<IDiscoveryExtractor>
+        {
+            new FileTreeExtractor(),
+            new SolutionDiscoveryExtractor(),
+            new ProjectStructureExtractor(),
+            new DependencyExtractor(),
+            new SyntaxStructureExtractor(),
+            new LayerClassifier(),
+            new EndpointExtractor(),
+            new MediatRExtractor(),
+            new ControllerActionExtractor(),
+            new EfCoreExtractor(),
+            new EventBusExtractor(),
+            new CallGraphExtractor(),
+            new SourceBodyExtractor(),
+            new IndirectWiringDetector(),
+            new AspireExtractor(),
+        };
+
+        var pruners = new List<IPruner>
+        {
+            new PathProximityPruner(),
+            new CallReachabilityPruner(),
+            new PatternRelevancePruner(),
+            new TokenBudgetEnforcer(),
+        };
+
+        var compressors = new List<ICompressionStrategy>
+        {
+            new TrivialMemberCompressor(),
+            new BoilerplateCompressor(),
+            new StructuralDeduplicator(),
+            new NamespaceGrouper(),
+            new LlmFriendlyFormatter(),
+            new AggressiveTruncator(),
+        };
+
+        var pipeline = new DiscoveryPipeline(
+            extractors, pruners, compressors,
+            new Dictionary<string, IContextRenderer>
+            {
+                ["markdown"] = new MarkdownRenderer(),
+                ["json"] = new JsonContextRenderer(),
+            },
+            loggerFactory.CreateLogger<DiscoveryPipeline>());
+
+        var result = await pipeline.RunAsync(ctx);
+        return result;
     }
 
     private static string GetFixturePath(string fixtureName)

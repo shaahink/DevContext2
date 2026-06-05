@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace DevContext.Core.Rendering;
 
+/// <summary>Renders the discovery model as a structured JSON document.</summary>
 public sealed class JsonContextRenderer : IContextRenderer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -12,6 +13,7 @@ public sealed class JsonContextRenderer : IContextRenderer
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
+    /// <summary>Gets the format identifier ("json").</summary>
     public string Format => "json";
 
     public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)

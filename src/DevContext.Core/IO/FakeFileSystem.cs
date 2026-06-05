@@ -2,11 +2,13 @@ using System.Collections.Concurrent;
 
 namespace DevContext.Core.IO;
 
+/// <summary>In-memory implementation of <see cref="IFileSystem"/> for testing, backed by concurrent dictionaries.</summary>
 public sealed class FakeFileSystem : IFileSystem
 {
     private readonly ConcurrentDictionary<string, string> _files = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _dirs = new(StringComparer.OrdinalIgnoreCase) { "" };
 
+    /// <summary>Adds a file with the given path and content to the fake file system.</summary>
     public void AddFile(string path, string content)
     {
         var full = path.Replace('/', '\\');

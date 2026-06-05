@@ -1,5 +1,6 @@
 namespace DevContext.Core.Models;
 
+/// <summary>Describes a method signature including name, return type, parameters, and modifiers.</summary>
 public sealed record MethodSignature(
     string Name,
     string ReturnType,

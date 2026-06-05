@@ -3,17 +3,28 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Pipeline;
 
+/// <summary>Orchestrates the discovery pipeline: extraction, signal sealing, pruning, compression, and rendering.</summary>
 public sealed class DiscoveryPipeline
 {
     private readonly IReadOnlyList<IDiscoveryExtractor> _extractors;
     private readonly IReadOnlyList<IPruner> _pruners;
     private readonly IReadOnlyList<ICompressionStrategy> _compressionStrategies;
     private readonly IReadOnlyDictionary<string, IContextRenderer> _renderers;
+    private readonly ArchitectureStyleDetector _styleDetector;
     private readonly ILogger<DiscoveryPipeline> _logger;
 
+    private static readonly HashSet<string> Stage1ExtractorNames =
+    [
+        "FileTreeExtractor",
+        "SolutionDiscovery",
+        "ProjectStructure"
+    ];
+
+    /// <summary>Creates a new discovery pipeline with the given extractors, pruners, compressors, and renderers.</summary>
     public DiscoveryPipeline(
         IReadOnlyList<IDiscoveryExtractor> extractors,
         IReadOnlyList<IPruner> pruners,
@@ -26,8 +37,10 @@ public sealed class DiscoveryPipeline
         _compressionStrategies = compressionStrategies;
         _renderers = renderers;
         _logger = logger;
+        _styleDetector = new ArchitectureStyleDetector();
     }
 
+    /// <summary>Runs the full discovery pipeline and returns the rendered context.</summary>
     public async Task<RenderedContext> RunAsync(DiscoveryContext context, CancellationToken ct = default)
     {
         if (context.Options.DryRun)
@@ -36,17 +49,30 @@ public sealed class DiscoveryPipeline
         var model = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = context.Options.MaxOutputTokens } };
         context.Observer.OnPipelineStarted(context);
 
+        // Stage 1: Sequential discovery + cache warmup (FileTree, Solution, ProjectStructure)
         await RunStage1Async(context, model, ct);
+
+        // Stage 2: Parallel Generic extractors (Dependency, SyntaxStructure, LayerClassifier)
+        // Note: model.Projects is fully populated by Stage 1 before parallel Stage 2 begins
         await RunStage2Async(context, model, ct);
 
+        // Seal signals — no more signal writes after this point
         model.Architecture.Seal();
-        model.DetectedStyle = DetermineStyle(model);
         context.Observer.OnSignalsSealed(model.Architecture.All);
 
+        // Architecture style detection: runs after signals sealed (between Stage 2 and 3 per design)
+        ApplyArchitectureStyle(model);
+
+        // Stage 3: Sequential Specific extractors (signal-gated)
         await RunStage3Async(context, model, ct);
+
+        // Stage 4: Sequential pruning
         await RunPruningAsync(context, model, ct);
+
+        // Stage 5: Sequential compression
         await RunCompressionAsync(context, model, ct);
 
+        // Stage 6: Render
         var format = context.Options.OutputFormat.ToString().ToLowerInvariant();
         if (!_renderers.TryGetValue(format, out var renderer))
             throw new InvalidOperationException($"No renderer registered for format: {format}");
@@ -64,29 +90,30 @@ public sealed class DiscoveryPipeline
 
     private async Task<RenderedContext> RunDryRunAsync(DiscoveryContext context, CancellationToken ct)
     {
-        var model = new DiscoveryModel();
-        await RunStage1Async(context, model, ct);
+        await RunStage1Async(context, new DiscoveryModel(), ct);
 
-        var plan = new List<(string Name, ExtractorTier Tier, ExtractorCategory Cat, bool WillRun)>();
+        var plan = new List<(string Name, ExtractorTier Tier, ExtractorCategory Cat, bool WillRun, string Description)>();
         foreach (var ext in _extractors.OrderBy(GetOrder))
         {
             var willRun = !context.Options.ExcludeExtractors.Contains(ext.Name)
-                          && ext.ShouldRun(context, model);
-            plan.Add((ext.Name, ext.Tier, ext.Category, willRun));
+                          && ext.ShouldRun(context, new DiscoveryModel());
+            plan.Add((ext.Name, ext.Tier, ext.Category, willRun, ext.Capabilities.Description));
         }
 
         var sb = new StringBuilder();
         sb.AppendLine("## Dry Run Plan");
         sb.AppendLine($"**Root**: {context.RootPath}");
         sb.AppendLine($"**Scenario**: {context.ActiveScenario.DisplayName}");
+        sb.AppendLine($"**Profile**: {context.Options.Profile}");
+        sb.AppendLine($"**Max tokens**: {context.Options.MaxOutputTokens}");
         sb.AppendLine();
         sb.AppendLine("### Extractors");
-        sb.AppendLine("| Status | Name | Tier | Category |");
-        sb.AppendLine("|---|---|---|---|");
-        foreach (var (name, tier, cat, willRun) in plan)
+        sb.AppendLine("| Status | Name | Tier | Category | Description |");
+        sb.AppendLine("|---|---|---|---|---|");
+        foreach (var (name, tier, cat, willRun, desc) in plan)
         {
             var status = willRun ? "✓" : "✗";
-            sb.AppendLine($"| {status} | {name} | {tier} | {cat} |");
+            sb.AppendLine($"| {status} | {name} | {tier} | {cat} | {desc} |");
         }
 
         var rendered = new RenderedContext(sb.ToString(), 0, [], TimeSpan.Zero, "2.0");
@@ -94,17 +121,20 @@ public sealed class DiscoveryPipeline
         return rendered;
     }
 
+    /// <summary>
+    /// Stage 1: Sequential — FileTreeExtractor, SolutionDiscoveryExtractor, ProjectStructureExtractor.
+    /// These populate the analysis context and cache, establishing the data that Stage 2 reads.
+    /// </summary>
     private async Task RunStage1Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
         ctx.Observer.OnStageStarted(PipelineStage.DiscoveryAndCacheWarmup);
         var sw = Stopwatch.StartNew();
 
         var stage1Extractors = _extractors
-            .Where(e => e.Category == ExtractorCategory.Generic)
+            .Where(e => Stage1ExtractorNames.Contains(e.Name))
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
-            .Where(e => e is FileTreeExtractor or SolutionDiscoveryExtractor)
             .ToList();
 
         foreach (var extractor in stage1Extractors)
@@ -112,21 +142,21 @@ public sealed class DiscoveryPipeline
             ct.ThrowIfCancellationRequested();
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
-            try
-            {
-                await extractor.ExtractAsync(ctx, model, ct);
-            }
+            try { await extractor.ExtractAsync(ctx, model, ct); }
             catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message);
-            }
+            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.DiscoveryAndCacheWarmup, sw.Elapsed);
     }
 
+    /// <summary>
+    /// Stage 2: Parallel — all remaining Fast/Generic extractors.
+    /// model.Projects is fully populated by Stage 1, so DependencyExtractor, SyntaxStructureExtractor,
+    /// and LayerClassifier can read it safely.
+    /// ArchitectureStyleDetector is NOT included here — it runs post-seal.
+    /// </summary>
     private async Task RunStage2Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
         ctx.Observer.OnStageStarted(PipelineStage.GenericExtraction);
@@ -135,30 +165,40 @@ public sealed class DiscoveryPipeline
         var eligible = _extractors
             .Where(e => e.Tier == ExtractorTier.Fast && e.Category == ExtractorCategory.Generic)
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
+            .Where(e => e.Name != "ArchitectureStyleDetector")
+            .Where(e => !Stage1ExtractorNames.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
-            .Where(e => e is not FileTreeExtractor and not SolutionDiscoveryExtractor)
             .ToList();
 
         await Parallel.ForEachAsync(eligible, ct, async (extractor, innerCt) =>
         {
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
-            try
-            {
-                await extractor.ExtractAsync(ctx, model, innerCt);
-            }
+            try { await extractor.ExtractAsync(ctx, model, innerCt); }
             catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message);
-            }
+            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
         });
 
         ctx.Observer.OnStageCompleted(PipelineStage.GenericExtraction, sw.Elapsed);
     }
 
+    /// <summary>
+    /// Architecture style detection runs after signals are sealed (between Stage 2 and 3 per design).
+    /// </summary>
+    private static void ApplyArchitectureStyle(DiscoveryModel model)
+    {
+        var detector = new ArchitectureStyleDetector();
+        var (style, confidence, via) = detector.Detect(model);
+        model.DetectedStyle = style;
+        model.StyleConfidence = confidence;
+        model.StyleDetectedVia = "ArchitectureStyleDetector";
+    }
+
+    /// <summary>
+    /// Stage 3: Sequential — all Specific extractors (signal-gated).
+    /// </summary>
     private async Task RunStage3Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
         ctx.Observer.OnStageStarted(PipelineStage.SpecificExtraction);
@@ -176,15 +216,9 @@ public sealed class DiscoveryPipeline
             ct.ThrowIfCancellationRequested();
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
-            try
-            {
-                await extractor.ExtractAsync(ctx, model, ct);
-            }
+            try { await extractor.ExtractAsync(ctx, model, ct); }
             catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message);
-            }
+            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
         }
 
@@ -222,41 +256,6 @@ public sealed class DiscoveryPipeline
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.Compression, sw.Elapsed);
-    }
-
-    private static ArchitectureStyle DetermineStyle(DiscoveryModel model)
-    {
-        var signals = model.Architecture.All;
-        float maxConfidence = 0;
-        var style = ArchitectureStyle.Unknown;
-
-        if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected && ma.Confidence > maxConfidence)
-        {
-            maxConfidence = ma.Confidence;
-            style = ArchitectureStyle.MinimalApi;
-        }
-
-        if (model.Projects.Length > 4 && signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
-        {
-            var combined = mr.Confidence * 1.2f;
-            if (combined > maxConfidence)
-            {
-                maxConfidence = combined;
-                style = ArchitectureStyle.CleanArchitecture;
-            }
-        }
-
-        if (model.Projects.Length > 2 && signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
-        {
-            if (style == ArchitectureStyle.Unknown && ef.Confidence > 0.5f)
-            {
-                style = ArchitectureStyle.NLayer;
-                maxConfidence = ef.Confidence;
-            }
-        }
-
-        model.StyleConfidence = Math.Min(maxConfidence, 1.0f);
-        return style;
     }
 
     internal static int GetOrder(IDiscoveryExtractor extractor)

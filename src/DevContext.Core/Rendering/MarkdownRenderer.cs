@@ -2,8 +2,10 @@ using System.Text;
 
 namespace DevContext.Core.Rendering;
 
+/// <summary>Renders the discovery model as a human-readable Markdown document.</summary>
 public sealed class MarkdownRenderer : IContextRenderer
 {
+    /// <summary>Gets the format identifier ("markdown").</summary>
     public string Format => "markdown";
 
     public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
