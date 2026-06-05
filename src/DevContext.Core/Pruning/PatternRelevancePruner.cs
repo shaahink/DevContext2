@@ -1,11 +1,8 @@
 namespace DevContext.Core.Pruning;
 
-/// <summary>Boosts relevance scores for types that appear in detections (endpoints, handlers, entities).</summary>
 public sealed class PatternRelevancePruner : IPruner
 {
-    /// <summary>Gets the name of this pruner.</summary>
     public string Name => "PatternRelevancePruner";
-    /// <summary>Gets the execution order.</summary>
     public int Order => 30;
 
     private static readonly ImmutableArray<(Type DetectionType, string FieldName, float Boost)> BoostRules =
@@ -13,39 +10,99 @@ public sealed class PatternRelevancePruner : IPruner
         (typeof(EndpointDetection), nameof(EndpointDetection.HandlerType), 5.0f),
         (typeof(MediatRHandlerDetection), nameof(MediatRHandlerDetection.HandlerType), 4.0f),
         (typeof(EfEntityDetection), nameof(EfEntityDetection.EntityType), 3.0f),
+        (typeof(DiRegistrationDetection), nameof(DiRegistrationDetection.ImplementationType), 2.0f),
+        (typeof(BackgroundWorkerDetection), nameof(BackgroundWorkerDetection.ImplementationType), 2.0f),
+        (typeof(MessageConsumerDetection), nameof(MessageConsumerDetection.ConsumerType), 3.0f),
     ];
+
+    private static readonly string[] TestPrefixes = ["When_", "Test_", "Mock_", "Fake_", "Stub_"];
+    private static readonly string[] TestSuffixes = ["Tests", "Test", "Fixture", "Mock", "Stub",
+        "Spec", "Specs", "Should"];
+    private static readonly string[] TestNamespaceSegments = [".Tests", ".UnitTests",
+        ".IntegrationTests", ".FunctionalTests", ".TestHelpers", ".Specs"];
 
     public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var detectionsByTypeName = BuildDetectionLookup(model);
         var typeNamesWithAnyDetection = CollectTypeNamesWithDetections(model);
+        var testProjectNames = CollectTestProjectNames(model);
 
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
 
+            // Apply relevance boosts for types referenced by detections
+            if (detectionsByTypeName.TryGetValue(type.Name, out var typeDetections))
+            {
+                foreach (var (kind, name) in typeDetections)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    var boost = GetBoost(kind, name);
+                    if (boost > 0.0f)
+                    {
+                        type.RelevanceScore += boost;
+                        model.AddProvenance(type.Id, new InclusionReason(
+                            $"Pattern '{kind.Name}' on '{name}' (+{boost:F1})", Name, boost));
+                    }
+                }
+            }
+
+            // Skip pruning for types referenced by any detection
             if (typeNamesWithAnyDetection.Contains(type.Name))
             {
                 type.IsPruned = false;
+                continue;
             }
 
-            if (!detectionsByTypeName.TryGetValue(type.Name, out var typeDetections)) continue;
-
-            foreach (var (kind, name) in typeDetections)
+            // Mark test/internal noise types for pruning if not otherwise relevant
+            if (IsTestOrNoiseType(type, testProjectNames))
             {
-                ct.ThrowIfCancellationRequested();
-
-                var boost = GetBoost(kind, name);
-                if (boost > 0.0f)
-                {
-                    type.RelevanceScore += boost;
-                    model.AddProvenance(type.Id, new InclusionReason(
-                        $"Pattern '{kind.Name}' on '{name}' (+{boost:F1})", Name, boost));
-                }
+                type.IsPruned = true;
+                model.PruningNotes.Add($"PatternRelevancePruner: pruned test type '{type.Id}'");
+                continue;
             }
         }
 
         return default;
+    }
+
+    private static FrozenSet<string> CollectTestProjectNames(DiscoveryModel model)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var project in model.Projects)
+        {
+            if (project.Name.EndsWith("Tests", StringComparison.OrdinalIgnoreCase)
+                || project.Name.EndsWith("Test", StringComparison.OrdinalIgnoreCase)
+                || project.Name.EndsWith("Specs", StringComparison.OrdinalIgnoreCase))
+            {
+                names.Add(project.Name);
+            }
+        }
+        return names.ToFrozenSet();
+    }
+
+    private static bool IsTestOrNoiseType(TypeDiscovery type, FrozenSet<string> testProjectNames)
+    {
+        // Type name patterns
+        var name = type.Name;
+        foreach (var prefix in TestPrefixes)
+            if (name.StartsWith(prefix, StringComparison.Ordinal)) return true;
+        foreach (var suffix in TestSuffixes)
+            if (name.EndsWith(suffix, StringComparison.Ordinal)) return true;
+
+        // Namespace patterns
+        var ns = type.Namespace;
+        foreach (var segment in TestNamespaceSegments)
+            if (ns.Contains(segment, StringComparison.OrdinalIgnoreCase)) return true;
+
+        // Project name patterns (if available via file path)
+        var path = type.FilePath;
+        if (path.Contains("\\Tests\\", StringComparison.OrdinalIgnoreCase)
+            || path.Contains("/Tests/", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 
     private static FrozenDictionary<string, ImmutableArray<(Type Kind, string Name)>> BuildDetectionLookup(DiscoveryModel model)
@@ -81,6 +138,7 @@ public sealed class PatternRelevancePruner : IPruner
             MiddlewareDetection mw => (mw.MiddlewareType, typeof(MiddlewareDetection)),
             IndirectWiringDetection iw when iw.TargetType is not null => (iw.TargetType, typeof(IndirectWiringDetection)),
             MessageConsumerDetection mc => (mc.ConsumerType, typeof(MessageConsumerDetection)),
+            DiRegistrationDetection dr => (dr.ImplementationType, typeof(DiRegistrationDetection)),
             _ => null,
         };
     }

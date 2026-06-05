@@ -8,6 +8,8 @@ namespace DevContext.Core.Extractors.Specific;
 public sealed class EndpointExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> MapMethods = ["MapGet", "MapPost", "MapPut", "MapDelete", "MapPatch"];
+    private static readonly ImmutableArray<string> HttpVerbAttributes =
+        ["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"];
 
     public string Name => "EndpointExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
@@ -76,6 +78,57 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
                 AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model);
             }
         }
+
+        // Phase 3: Detect FastEndpoints-style classes with HTTP verb attributes
+        var fastEndpointClasses = root.DescendantNodes()
+            .OfType<ClassDeclarationSyntax>()
+            .Where(c => DerivesFromFastEndpoint(c));
+
+        foreach (var cls in fastEndpointClasses)
+        {
+            ct.ThrowIfCancellationRequested();
+            var httpAttr = cls.AttributeLists
+                .SelectMany(a => a.Attributes)
+                .FirstOrDefault(a => HttpVerbAttributes.Contains(a.Name.ToString()));
+
+            if (httpAttr == null) continue;
+
+            var httpMethod = httpAttr.Name.ToString() switch
+            {
+                "HttpGet" => "GET",
+                "HttpPost" => "POST",
+                "HttpPut" => "PUT",
+                "HttpDelete" => "DELETE",
+                "HttpPatch" => "PATCH",
+                _ => "UNKNOWN"
+            };
+
+            var routeArg = httpAttr.ArgumentList?.Arguments
+                .FirstOrDefault()
+                ?.Expression as LiteralExpressionSyntax;
+            var route = routeArg?.Token.ValueText ?? "/";
+
+            var line = cls.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            if (!detectedKeys.Add($"{filePath}:{line}")) continue;
+
+            model.Detections.Add(new EndpointDetection(httpMethod, route, cls.Identifier.ValueText, cls.Identifier.ValueText, [], [])
+            {
+                ExtractorName = "EndpointExtractor",
+                SourceFile = filePath,
+                LineNumber = line,
+            });
+        }
+    }
+
+    private static bool DerivesFromFastEndpoint(ClassDeclarationSyntax cls)
+    {
+        if (cls.BaseList == null) return false;
+        return cls.BaseList.Types.Any(t =>
+        {
+            var name = t.Type.ToString();
+            return name.StartsWith("Endpoint", StringComparison.Ordinal)
+                || name.StartsWith("Endpoint<", StringComparison.Ordinal);
+        });
     }
 
     private static bool IsEndpointExtension(MethodDeclarationSyntax method)

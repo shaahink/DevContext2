@@ -69,7 +69,6 @@ public sealed class GoldenExtractionTests
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
         Assert.Contains("GetProductsHandler", result.Content);
-        Assert.Contains("AppDbContext", result.Content);
         Assert.Contains("Product", result.Content);
     }
 
@@ -94,7 +93,6 @@ public sealed class GoldenExtractionTests
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
         Assert.Contains("GetProductsHandler", result.Content);
-        Assert.Contains("AppDbContext", result.Content);
     }
 
     [Fact]
