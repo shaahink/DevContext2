@@ -14,6 +14,8 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
     public ExtractorTier Tier => ExtractorTier.Deep;
     /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
+    /// <summary>Gets the execution stage.</summary>
+    public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], [],

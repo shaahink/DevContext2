@@ -26,6 +26,8 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     public ExtractorTier Tier => ExtractorTier.Fast;
     /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Generic;
+    /// <summary>Gets the execution stage.</summary>
+    public ExecutionStage Stage => ExecutionStage.Stage2Parallel;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [], [.. PackageSignalMap.Values],

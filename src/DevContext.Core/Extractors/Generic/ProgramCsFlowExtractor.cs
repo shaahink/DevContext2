@@ -13,6 +13,8 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
     public string Name => "ProgramCsFlowExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
     public ExtractorCategory Category => ExtractorCategory.Generic;
+    /// <summary>Gets the execution stage.</summary>
+    public ExecutionStage Stage => ExecutionStage.Stage2Parallel;
 
     public ExtractorCapabilities Capabilities => new(
         [], ["middleware-detections", "background-worker-detections"],

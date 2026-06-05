@@ -1,9 +1,7 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using DevContext.Core.Extractors.Generic;
-using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Pipeline;
 
@@ -16,13 +14,6 @@ public sealed class DiscoveryPipeline
     private readonly IReadOnlyDictionary<string, IContextRenderer> _renderers;
     private readonly ArchitectureStyleDetector _styleDetector;
     private readonly ILogger<DiscoveryPipeline> _logger;
-
-    private static readonly HashSet<string> Stage1ExtractorNames =
-    [
-        "FileTreeExtractor",
-        "SolutionDiscovery",
-        "ProjectStructure"
-    ];
 
     /// <summary>Creates a new discovery pipeline with the given extractors, pruners, compressors, and renderers.</summary>
     public DiscoveryPipeline(
@@ -122,8 +113,9 @@ public sealed class DiscoveryPipeline
     }
 
     /// <summary>
-    /// Stage 1: Sequential — FileTreeExtractor, SolutionDiscoveryExtractor, ProjectStructureExtractor.
+    /// Stage 1: Sequential — all extractors with ExecutionStage.Stage1Sequential.
     /// These populate the analysis context and cache, establishing the data that Stage 2 reads.
+    /// Extractors declare their stage via the Stage property; the pipeline has no hardcoded names.
     /// </summary>
     private async Task RunStage1Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
@@ -131,7 +123,7 @@ public sealed class DiscoveryPipeline
         var sw = Stopwatch.StartNew();
 
         var stage1Extractors = _extractors
-            .Where(e => Stage1ExtractorNames.Contains(e.Name))
+            .Where(e => e.Stage == ExecutionStage.Stage1Sequential)
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
@@ -152,10 +144,8 @@ public sealed class DiscoveryPipeline
     }
 
     /// <summary>
-    /// Stage 2: Parallel — all remaining Fast/Generic extractors.
-    /// model.Projects is fully populated by Stage 1, so DependencyExtractor, SyntaxStructureExtractor,
-    /// and LayerClassifier can read it safely.
-    /// ArchitectureStyleDetector is NOT included here — it runs post-seal.
+    /// Stage 2: Parallel — all extractors with ExecutionStage.Stage2Parallel.
+    /// model.Projects and analysis context are fully populated by Stage 1 before this runs.
     /// </summary>
     private async Task RunStage2Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
@@ -163,10 +153,8 @@ public sealed class DiscoveryPipeline
         var sw = Stopwatch.StartNew();
 
         var eligible = _extractors
-            .Where(e => e.Tier == ExtractorTier.Fast && e.Category == ExtractorCategory.Generic)
+            .Where(e => e.Stage == ExecutionStage.Stage2Parallel)
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => e.Name != "ArchitectureStyleDetector")
-            .Where(e => !Stage1ExtractorNames.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
             .ToList();
@@ -197,7 +185,7 @@ public sealed class DiscoveryPipeline
     }
 
     /// <summary>
-    /// Stage 3: Sequential — all Specific extractors (signal-gated).
+    /// Stage 3: Sequential — all extractors with ExecutionStage.Stage3Sequential (signal-gated Specific + Deep).
     /// </summary>
     private async Task RunStage3Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
@@ -205,7 +193,7 @@ public sealed class DiscoveryPipeline
         var sw = Stopwatch.StartNew();
 
         var eligible = _extractors
-            .Where(e => e.Category == ExtractorCategory.Specific)
+            .Where(e => e.Stage == ExecutionStage.Stage3Sequential)
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)

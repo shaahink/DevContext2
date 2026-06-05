@@ -22,6 +22,8 @@ public interface IDiscoveryExtractor
     ExtractorTier Tier { get; }
     /// <summary>Gets whether this is a Generic (signal-producing) or Specific (signal-gated) extractor.</summary>
     ExtractorCategory Category { get; }
+    /// <summary>Gets the execution stage within the pipeline for ordering and concurrency control.</summary>
+    ExecutionStage Stage { get; }
     /// <summary>Describes the signals this extractor reads/writes and model fields it populates.</summary>
     ExtractorCapabilities Capabilities { get; }
     /// <summary>Determines whether this extractor should run given the current context and model state.</summary>
