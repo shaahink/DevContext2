@@ -136,6 +136,8 @@ public static class GoldenTestHelper
             new SourceBodyExtractor(),
             new IndirectWiringDetector(),
             new AspireExtractor(),
+            new ProgramCsFlowExtractor(),
+            new DiRegistrationExtractor(),
         };
 
         var pruners = new List<IPruner>

@@ -33,7 +33,7 @@ public sealed class FakeFileSystem : IFileSystem
         foreach (var kvp in _files)
         {
             ct.ThrowIfCancellationRequested();
-            if (kvp.Key.StartsWith(rootNorm + "\\", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(rootNorm) || kvp.Key.StartsWith(rootNorm + "\\", StringComparison.OrdinalIgnoreCase))
             {
                 if (isAll || MatchPattern(Path.GetFileName(kvp.Key), pattern))
                     yield return kvp.Key;

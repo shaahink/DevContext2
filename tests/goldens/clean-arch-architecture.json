@@ -1,16 +1,85 @@
 {
   "schemaVersion": "2.0",
+  "solution": {
+    "name": "CleanArch",
+    "filePath": "CleanArch.sln",
+    "projects": [
+      "src\\Domain\\Domain.csproj",
+      "src\\Application\\Application.csproj",
+      "src\\Infrastructure\\Infrastructure.csproj",
+      "src\\Web\\Web.csproj"
+    ]
+  },
   "architecture": {
-    "style": "Unknown",
-    "confidence": 0,
+    "style": "MinimalApi",
+    "confidence": 0.8,
     "detectedVia": "ArchitectureStyleDetector"
   },
-  "signals": [],
+  "signals": [
+    {
+      "key": "minimal-apis",
+      "confidence": 0.8,
+      "detectedVia": "ProjectSdk"
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    }
+  ],
   "typesSummary": {
-    "total": 0,
-    "active": 0,
+    "total": 4,
+    "active": 4,
     "pruned": 0
   },
-  "detections": [],
+  "detections": [
+    {
+      "type": "EfEntityDetection",
+      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 12,
+      "confidence": 0.8
+    },
+    {
+      "type": "EfEntityDetection",
+      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "type": "MediatRHandlerDetection",
+      "sourceFile": "src\\Application\\Handlers\\GetProductsHandler.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "type": "EndpointDetection",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 7,
+      "confidence": 0.7
+    },
+    {
+      "type": "MiddlewareDetection",
+      "sourceFile": "src\\Web\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    }
+  ],
   "diagnostics": []
 }

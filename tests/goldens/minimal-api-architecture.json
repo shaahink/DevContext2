@@ -1,16 +1,83 @@
 {
   "schemaVersion": "2.0",
+  "solution": {
+    "name": "MinimalApiProject",
+    "filePath": "MinimalApiProject.sln",
+    "projects": [
+      "src\\Api\\Api.csproj",
+      "src\\Core\\Core.csproj",
+      "src\\Infrastructure\\Infrastructure.csproj"
+    ]
+  },
   "architecture": {
-    "style": "Unknown",
-    "confidence": 0,
+    "style": "MinimalApi",
+    "confidence": 1,
     "detectedVia": "ArchitectureStyleDetector"
   },
-  "signals": [],
+  "signals": [
+    {
+      "key": "dapper",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detectedVia": "PackageReference"
+    }
+  ],
   "typesSummary": {
-    "total": 0,
-    "active": 0,
-    "pruned": 0
+    "total": 7,
+    "active": 5,
+    "pruned": 2
   },
-  "detections": [],
+  "detections": [
+    {
+      "type": "MediatRHandlerDetection",
+      "sourceFile": "src\\Api\\Handlers\\CreateOrderHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "type": "EndpointDetection",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "type": "EndpointDetection",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "type": "MiddlewareDetection",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "type": "MiddlewareDetection",
+      "sourceFile": "src\\Api\\Program.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    }
+  ],
   "diagnostics": []
 }
