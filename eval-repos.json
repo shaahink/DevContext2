@@ -1,0 +1,37 @@
+{
+  "repos": [
+    {
+      "name": "TodoApi",
+      "url": "https://github.com/davidfowl/TodoApi.git",
+      "ref": "583c8e9e8c0e9f5c1c9b5e8c9e8c0e9f5c1c9b5e",
+      "description": "Minimal API example by David Fowler",
+      "entryPoints": ["Program.cs"],
+      "expectedSignals": ["minimal-apis", "efcore"],
+      "expectedEndpointCount": 5,
+      "profile": "focused",
+      "scenarios": ["architecture", "debug-endpoint"]
+    },
+    {
+      "name": "CleanArchitecture",
+      "url": "https://github.com/ardalis/CleanArchitecture.git",
+      "ref": "847b7e5c8e0e9f5c1c9b5e8c9e8c0e9f5c1c9b5e",
+      "description": "Clean Architecture template by Steve Smith",
+      "entryPoints": ["src/Web/Program.cs"],
+      "expectedSignals": ["mediatr", "efcore", "controllers"],
+      "expectedEndpointCount": 10,
+      "profile": "focused",
+      "scenarios": ["architecture", "debug-endpoint"]
+    },
+    {
+      "name": "eShop",
+      "url": "https://github.com/dotnet/eShop.git",
+      "ref": "9c1b5e8c9e8c0e9f5c1c9b5e8c9e8c0e9f5c1c9b",
+      "description": "Reference .NET e-commerce application",
+      "entryPoints": ["src/Web/Program.cs"],
+      "expectedSignals": ["aspire", "mediatr", "efcore"],
+      "expectedEndpointCount": 20,
+      "profile": "focused",
+      "scenarios": ["architecture", "trace-message-flow"]
+    }
+  ]
+}

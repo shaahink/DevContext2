@@ -54,6 +54,7 @@ static void PrintHelp()
     AnsiConsole.MarkupLine("      --verbose             Info-level logging");
     AnsiConsole.MarkupLine("      --trace               Debug-level logging");
     AnsiConsole.MarkupLine("      --dry-run             Plan only");
+    AnsiConsole.MarkupLine("      --metrics             Emit structured per-extractor timing report after run");
 }
 
 static (string? path, Dictionary<string, string> opts) ParseArgs(List<string> args)
@@ -166,6 +167,7 @@ static async Task<int> RunAnalyze(List<string> args)
     var noRoslyn = opts.ContainsKey("no-roslyn") || config?.Profiles?.GetValueOrDefault(profileName)?.NoRoslyn == true;
     var includeProvenance = opts.ContainsKey("include-provenance");
     var includeDiagnostics = opts.ContainsKey("include-diagnostics");
+    var emitMetrics = opts.ContainsKey("metrics");
 
     var options = new ExtractionOptions
     {
@@ -223,17 +225,22 @@ static async Task<int> RunAnalyze(List<string> args)
     var sw = Stopwatch.StartNew();
     RenderedContext result = null!;
 
+    var metricsObserver = emitMetrics ? new MetricsDiscoveryObserver() : null;
+
     AnsiConsole.Status()
         .Start(dryRun ? "DevContext Dry Run..." : "DevContext Analysis...", statusCtx =>
         {
-            var observer = new SpectreDiscoveryObserver(dryRun ? null : statusCtx);
+            var spectreObserver = new SpectreDiscoveryObserver(dryRun ? null : statusCtx);
+            var compositeObserver = emitMetrics && metricsObserver != null
+                ? new CompositeDiscoveryObserver(spectreObserver, metricsObserver)
+                : (IDiscoveryObserver)spectreObserver;
 
             var ctx = new DiscoveryContext
             {
                 RootPath = rootResult.RootPath,
                 Options = options,
                 ActiveScenario = scenario,
-                Observer = observer,
+                Observer = compositeObserver,
                 FileSystem = fs,
                 Cache = cache,
                 Analysis = sharedAnalysis,
@@ -261,6 +268,12 @@ static async Task<int> RunAnalyze(List<string> args)
             AnsiConsole.WriteLine();
             AnsiConsole.WriteLine(result.Content);
         }
+    }
+
+    if (emitMetrics && metricsObserver != null)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.WriteLine(metricsObserver.GetMetricsSummary());
     }
 
     var totalMs = sw.ElapsedMilliseconds;
