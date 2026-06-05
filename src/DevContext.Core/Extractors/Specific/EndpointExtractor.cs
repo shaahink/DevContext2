@@ -4,171 +4,158 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
 
-/// <summary>Detects minimal API endpoint registrations (MapGet, MapPost, etc.) via syntax tree analysis.</summary>
 [ExtractorOrder(10)]
 public sealed class EndpointExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> MapMethods = ["MapGet", "MapPost", "MapPut", "MapDelete", "MapPatch"];
 
-    /// <summary>Gets the name of this extractor.</summary>
     public string Name => "EndpointExtractor";
-    /// <summary>Gets the execution tier.</summary>
     public ExtractorTier Tier => ExtractorTier.Fast;
-    /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
-    /// <summary>Gets the execution stage.</summary>
     public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
-    /// <summary>Describes the signals and model fields this extractor uses.</summary>
+
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MinimalApis], ["endpoint-detections"],
         ["model.Detections"],
-        "Walks syntax trees to detect minimal API endpoint registrations");
-    /// <summary>Only runs when the MinimalApis signal has been detected.</summary>
+        "Detects minimal API endpoints via direct Map* calls and extension method bodies");
+
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MinimalApis);
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var programFiles = context.Analysis.AllSourceFiles
-            .Where(f => Path.GetFileName(f).Equals("Program.cs", StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        var detectedKeys = new HashSet<string>();
 
-        foreach (var filePath in programFiles)
+        foreach (var filePath in context.Analysis.AllSourceFiles)
         {
             ct.ThrowIfCancellationRequested();
+            await ScanFile(filePath, context, model, detectedKeys, ct);
+        }
+    }
 
-            SyntaxTree syntaxTree;
-            try
-            {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
-            }
-            catch
-            {
-                model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}");
-                continue;
-            }
-
-            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-            foreach (var invocation in invocations)
-            {
-                var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
-                if (memberAccess == null) continue;
-
-                var methodName = memberAccess.Name.Identifier.ValueText;
-                if (!MapMethods.Contains(methodName)) continue;
-
-                var httpMethod = methodName switch
-                {
-                    "MapGet" => "GET",
-                    "MapPost" => "POST",
-                    "MapPut" => "PUT",
-                    "MapDelete" => "DELETE",
-                    "MapPatch" => "PATCH",
-                    _ => "UNKNOWN",
-                };
-
-                var routeArg = invocation.ArgumentList.Arguments
-                    .FirstOrDefault(a => a.Expression is LiteralExpressionSyntax)
-                    ?.Expression as LiteralExpressionSyntax;
-                var routeTemplate = routeArg?.Token.ValueText ?? "/";
-
-                var handlerArg = invocation.ArgumentList.Arguments
-                    .LastOrDefault()
-                    ?.Expression;
-                var handlerInfo = handlerArg?.ToString() ?? "?";
-
-                var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                model.Detections.Add(new EndpointDetection(
-                    httpMethod,
-                    routeTemplate,
-                    handlerInfo,
-                    "<lambda>",
-                    [],
-                    [])
-                {
-                    ExtractorName = Name,
-                    SourceFile = filePath,
-                    LineNumber = lineNumber,
-                });
-            }
+    private static async Task ScanFile(
+        string filePath, DiscoveryContext context, DiscoveryModel model,
+        HashSet<string> detectedKeys, CancellationToken ct)
+    {
+        SyntaxTree syntaxTree;
+        try
+        {
+            syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+        }
+        catch
+        {
+            return;
         }
 
-        if (programFiles.Count == 0)
+        var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+        var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+        // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
+        foreach (var invocation in allInvocations)
         {
-            await foreach (var filePath in EnumerateSourceFilesAsync(context, ct))
+            ct.ThrowIfCancellationRequested();
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
+            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model);
+        }
+
+        // Phase 2: Find extension methods that take IEndpointRouteBuilder/WebApplication
+        // and scan their bodies for Map* calls (catches MapTodoEndpoints, etc.)
+        var extMethods = root.DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
+            .Where(m => IsEndpointExtension(m));
+
+        foreach (var extMethod in extMethods)
+        {
+            var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            foreach (var invocation in extInvocations)
             {
                 ct.ThrowIfCancellationRequested();
-
-                SyntaxTree syntaxTree;
-                try
-                {
-                    syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
-                }
-                catch
-                {
-                    continue;
-                }
-
-                var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-                var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-                foreach (var invocation in invocations)
-                {
-                    var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
-                    if (memberAccess == null) continue;
-
-                    var methodName = memberAccess.Name.Identifier.ValueText;
-                    if (!MapMethods.Contains(methodName)) continue;
-
-                    var httpMethod = methodName switch
-                    {
-                        "MapGet" => "GET",
-                        "MapPost" => "POST",
-                        "MapPut" => "PUT",
-                        "MapDelete" => "DELETE",
-                        "MapPatch" => "PATCH",
-                        _ => "UNKNOWN",
-                    };
-
-                    var routeArg = invocation.ArgumentList.Arguments
-                        .FirstOrDefault(a => a.Expression is LiteralExpressionSyntax)
-                        ?.Expression as LiteralExpressionSyntax;
-                    var routeTemplate = routeArg?.Token.ValueText ?? "/";
-
-                    var handlerArg = invocation.ArgumentList.Arguments
-                        .LastOrDefault()
-                        ?.Expression;
-                    var handlerInfo = handlerArg?.ToString() ?? "?";
-
-                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                    model.Detections.Add(new EndpointDetection(
-                        httpMethod,
-                        routeTemplate,
-                        handlerInfo,
-                        "<lambda>",
-                        [],
-                        [])
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
+                if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+                if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
+                AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model);
             }
         }
     }
 
-    private static async IAsyncEnumerable<string> EnumerateSourceFilesAsync(
-        DiscoveryContext context, [EnumeratorCancellation] CancellationToken ct)
+    private static bool IsEndpointExtension(MethodDeclarationSyntax method)
     {
-        foreach (var file in context.Analysis.AllSourceFiles)
+        if (method.ParameterList.Parameters.Count == 0) return false;
+        var firstType = method.ParameterList.Parameters[0].Type?.ToString() ?? "";
+        return firstType.Contains("WebApplication")
+            || firstType.Contains("IEndpointRouteBuilder")
+            || firstType.Contains("RouteGroupBuilder");
+    }
+
+    private static void AddEndpoint(
+        InvocationExpressionSyntax invocation,
+        MemberAccessExpressionSyntax memberAccess,
+        string filePath,
+        HashSet<string> detectedKeys,
+        DiscoveryModel model)
+    {
+        var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+        if (!detectedKeys.Add($"{filePath}:{line}")) return;
+
+        var methodName = memberAccess.Name.Identifier.ValueText;
+        var httpMethod = methodName switch
         {
-            ct.ThrowIfCancellationRequested();
-            yield return file;
+            "MapGet" => "GET",
+            "MapPost" => "POST",
+            "MapPut" => "PUT",
+            "MapDelete" => "DELETE",
+            "MapPatch" => "PATCH",
+            _ => "UNKNOWN",
+        };
+
+        var routeArg = invocation.ArgumentList.Arguments
+            .FirstOrDefault(a => a.Expression is LiteralExpressionSyntax)
+            ?.Expression as LiteralExpressionSyntax;
+        var routeTemplate = routeArg?.Token.ValueText ?? "/";
+
+        var handlerArg = FindHandler(invocation);
+        var handlerInfo = handlerArg?.ToString() ?? "?";
+        var handlerMethod = handlerArg switch
+        {
+            LambdaExpressionSyntax => "<lambda>",
+            AnonymousMethodExpressionSyntax => "<anonymous>",
+            IdentifierNameSyntax id => id.Identifier.ValueText,
+            MemberAccessExpressionSyntax ma => ma.Name.Identifier.ValueText,
+            _ => "<lambda>"
+        };
+
+        model.Detections.Add(new EndpointDetection(httpMethod, routeTemplate, handlerInfo, handlerMethod, [], [])
+        {
+            ExtractorName = "EndpointExtractor",
+            SourceFile = filePath,
+            LineNumber = line,
+        });
+    }
+
+    private static ExpressionSyntax? FindHandler(InvocationExpressionSyntax invocation)
+    {
+        var args = invocation.ArgumentList.Arguments;
+        if (args.Count == 0) return null;
+
+        // If there's only one argument, it's the handler (no route string)
+        if (args.Count == 1)
+        {
+            var expr = args[0].Expression;
+            if (expr is LambdaExpressionSyntax or AnonymousMethodExpressionSyntax
+                or IdentifierNameSyntax or MemberAccessExpressionSyntax)
+                return expr;
+            return null;
         }
+
+        // Handler is the last argument that looks like a delegate
+        for (int i = args.Count - 1; i >= 0; i--)
+        {
+            var expr = args[i].Expression;
+            if (expr is LambdaExpressionSyntax or AnonymousMethodExpressionSyntax
+                or IdentifierNameSyntax or MemberAccessExpressionSyntax)
+                return expr;
+        }
+
+        return args[^1].Expression;
     }
 }
