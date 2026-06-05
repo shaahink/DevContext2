@@ -5,7 +5,6 @@ namespace DevContext.Core.Rendering;
 /// <summary>Renders the discovery model as a human-readable Markdown document.</summary>
 public sealed class MarkdownRenderer : IContextRenderer
 {
-    /// <summary>Gets the format identifier ("markdown").</summary>
     public string Format => "markdown";
 
     public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
@@ -13,44 +12,44 @@ public sealed class MarkdownRenderer : IContextRenderer
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        AppendHeader(sb, model, options);
+        AppendHeader(sb, model);
         AppendArchitecture(sb, model);
         AppendSignals(sb, model);
         AppendProjects(sb, model);
-        AppendProfileAndTokens(sb, model);
+        AppendProfileAndTokens(sb, model, options);
         sb.AppendLine("---");
 
         AppendArchitectureOverview(sb, model);
-        AppendEntrySection(sb, model);
+        AppendEndpoints(sb, model);
+        AppendMediatRHandlers(sb, model);
+        AppendNonObviousWiring(sb, model);
         AppendRelatedTypesByLayer(sb, model);
 
         if (options.IncludeDiagnostics)
-        {
             AppendDiagnostics(sb, model);
-        }
 
-        AppendFooter(sb, model, sw, options);
+        AppendFooter(sb, model, sw);
 
         var content = sb.ToString();
         var estimatedTokens = Math.Max(1, content.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, estimatedTokens, [], sw.Elapsed, "2.0"));
+            content, estimatedTokens, model.PruningNotes.Select(n => new CompressionResult("Pruning", 0, 0, [n])).ToArray(), sw.Elapsed, "2.0"));
     }
 
-    private static void AppendHeader(StringBuilder sb, DiscoveryModel model, RenderOptions options)
+    private static void AppendHeader(StringBuilder sb, DiscoveryModel model)
     {
-        var scenarioName = "Unknown";
-        var entryName = model.Solution?.Name ?? "Unknown";
+        var scenarioName = "Architecture Overview";
+        var entryName = model.Solution?.Name ?? "project";
 
-        sb.AppendLine($"## DevContext \u2014 {scenarioName} on {entryName}");
+        sb.AppendLine($"## DevContext -- {scenarioName} on {entryName}");
         sb.AppendLine();
     }
 
     private static void AppendArchitecture(StringBuilder sb, DiscoveryModel model)
     {
         var style = model.DetectedStyle != ArchitectureStyle.Unknown
-            ? $"{model.DetectedStyle} ({model.StyleConfidence:P0})"
+            ? $"{model.DetectedStyle} ({model.StyleConfidence:P0} confidence)"
             : "Not detected";
 
         sb.AppendLine($"**Architecture**: {style}");
@@ -58,15 +57,14 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendSignals(StringBuilder sb, DiscoveryModel model)
     {
-        var signals = model.Architecture.All;
+        var signals = model.Architecture.All.Values.Where(s => s.Detected).ToList();
         if (signals.Count == 0)
         {
             sb.AppendLine("**Signals**: none");
             return;
         }
 
-        var signalList = string.Join(", ",
-            signals.Where(s => s.Value.Detected).Select(s => s.Key));
+        var signalList = string.Join(" \u00b7 ", signals.Select(s => s.Key));
         sb.AppendLine($"**Signals**: {signalList}");
     }
 
@@ -77,12 +75,13 @@ public sealed class MarkdownRenderer : IContextRenderer
             ? string.Join(", ", model.Projects.Select(p => p.Name))
             : "none";
 
-        sb.AppendLine($"**Projects**: {count} \u2014 {names}");
+        sb.AppendLine($"**Projects**: {count} -- {names}");
     }
 
-    private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model)
+    private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine($"**Profile**: {model.Budget.MaxTokens} | **Tokens**: {model.Budget.MaxTokens - model.Budget.SafetyMargin}/{model.Budget.MaxTokens}");
+        var activeTypes = model.Types.Values.Count(t => !t.IsPruned);
+        sb.AppendLine($"**Profile**: focused | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
         sb.AppendLine();
     }
 
@@ -98,22 +97,17 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        var layerGroups = model.Projects
-            .GroupBy(InferProjectLayer)
-            .OrderBy(g => g.Key.ToString());
-
-        foreach (var group in layerGroups)
+        foreach (var project in model.Projects)
         {
-            var projectList = string.Join(", ", group.Select(p => p.Name));
-            sb.AppendLine($"- **{group.Key}**: {projectList}");
+            sb.AppendLine($"- {project.Name}");
         }
 
         sb.AppendLine();
     }
 
-    private static void AppendEntrySection(StringBuilder sb, DiscoveryModel model)
+    private static void AppendEndpoints(StringBuilder sb, DiscoveryModel model)
     {
-        sb.AppendLine("## Entry section with endpoints");
+        sb.AppendLine("## Endpoints");
         sb.AppendLine();
 
         var endpoints = model.Detections.OfType<EndpointDetection>().ToList();
@@ -124,28 +118,89 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        sb.AppendLine("| Method | Route | Handler |");
-        sb.AppendLine("|--------|-------|---------|");
+        sb.AppendLine("| Method | Route | Handler | Auth |");
+        sb.AppendLine("|--------|-------|---------|------|");
         foreach (var ep in endpoints)
         {
-            sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {ep.HandlerType} |");
+            var auth = ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
+            sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {ep.HandlerType}.{ep.HandlerMethod} | {auth} |");
         }
 
         sb.AppendLine();
     }
 
-    private static ArchitectureLayer InferProjectLayer(ProjectInfo project)
+    private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
-        var lower = project.Name.ToLowerInvariant();
-        if (lower.Contains("domain")) return ArchitectureLayer.Domain;
-        if (lower.Contains("application")) return ArchitectureLayer.Application;
-        if (lower.Contains("infrastructure")) return ArchitectureLayer.Infrastructure;
-        if (lower.Contains("persistence")) return ArchitectureLayer.Persistence;
-        if (lower.Contains("presentation") || lower.Contains("ui") || lower.Contains("web")) return ArchitectureLayer.Presentation;
-        if (lower.Contains("api")) return ArchitectureLayer.Api;
-        if (lower.Contains("shared") || lower.Contains("common")) return ArchitectureLayer.Shared;
-        if (lower.Contains("test") || lower.Contains("spec")) return ArchitectureLayer.Testing;
-        return ArchitectureLayer.Unknown;
+        var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
+        if (handlers.Count == 0) return;
+
+        sb.AppendLine("## MediatR Handlers");
+        sb.AppendLine();
+
+        sb.AppendLine("| Kind | Request | Response | Handler |");
+        sb.AppendLine("|------|---------|----------|---------|");
+        foreach (var h in handlers)
+        {
+            sb.AppendLine($"| {h.Kind} | {h.RequestType} | {h.ResponseType} | {h.HandlerType} |");
+        }
+
+        sb.AppendLine();
+    }
+
+    private static void AppendNonObviousWiring(StringBuilder sb, DiscoveryModel model)
+    {
+        var wiring = model.Detections.OfType<IndirectWiringDetection>().ToList();
+        var workers = model.Detections.OfType<BackgroundWorkerDetection>().ToList();
+        var middleware = model.Detections.OfType<MiddlewareDetection>().ToList();
+        var diRegs = model.Detections.OfType<DiRegistrationDetection>().ToList();
+
+        if (wiring.Count == 0 && workers.Count == 0 && middleware.Count == 0 && diRegs.Count == 0)
+            return;
+
+        sb.AppendLine("## Non-obvious wiring");
+        sb.AppendLine();
+
+        if (wiring.Count > 0)
+        {
+            sb.AppendLine("### Indirect wiring");
+            sb.AppendLine();
+            sb.AppendLine("| Kind | Caller | Target |");
+            sb.AppendLine("|------|--------|--------|");
+            foreach (var w in wiring)
+                sb.AppendLine($"| {w.Kind} | {w.CallerType}.{w.CallerMethod} | {w.TargetType ?? "unknown"} |");
+            sb.AppendLine();
+        }
+
+        if (workers.Count > 0)
+        {
+            sb.AppendLine("### Background workers");
+            sb.AppendLine();
+            foreach (var w in workers)
+                sb.AppendLine($"- {w.ImplementationType} ({w.Kind})");
+            sb.AppendLine();
+        }
+
+        if (middleware.Count > 0)
+        {
+            sb.AppendLine("### Middleware pipeline");
+            sb.AppendLine();
+            sb.AppendLine("| Order | Type | Kind |");
+            sb.AppendLine("|-------|------|------|");
+            foreach (var m in middleware.OrderBy(m => m.PipelineOrder))
+                sb.AppendLine($"| {m.PipelineOrder} | {m.MiddlewareType} | {m.Kind} |");
+            sb.AppendLine();
+        }
+
+        if (diRegs.Count > 0)
+        {
+            sb.AppendLine("### DI registrations");
+            sb.AppendLine();
+            sb.AppendLine("| Lifetime | Service | Implementation |");
+            sb.AppendLine("|----------|---------|----------------|");
+            foreach (var d in diRegs)
+                sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {d.ImplementationType} |");
+            sb.AppendLine();
+        }
     }
 
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)
@@ -168,9 +223,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         if (!hasContent)
-        {
             sb.AppendLine("No types discovered.");
-        }
 
         sb.AppendLine();
     }
@@ -191,25 +244,28 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine("| Level | Source | Message |");
         sb.AppendLine("|-------|--------|---------|");
         foreach (var diag in diagnostics)
-        {
             sb.AppendLine($"| {diag.Level} | {diag.Source} | {diag.Message} |");
-        }
 
         sb.AppendLine();
     }
 
     private static void AppendFooter(StringBuilder sb, DiscoveryModel model,
-        System.Diagnostics.Stopwatch sw, RenderOptions options)
+        System.Diagnostics.Stopwatch sw)
     {
         var typesTotal = model.Types.Count;
         var typesSurviving = model.Types.Values.Count(t => !t.IsPruned);
         var prunedCount = typesTotal - typesSurviving;
-        var compressNotes = string.Join("; ", model.PruningNotes);
 
-        sb.AppendLine($"---");
+        var pruningSummary = model.PruningNotes
+            .GroupBy(n => n.Contains("budget") ? "budget" : n.Contains("distance") ? "distance" : n.Contains("not reachable") ? "unreachable" : "other")
+            .Select(g => $"{g.Count()} pruned by {g.Key}");
+
+        var notes = string.Join("; ", pruningSummary);
+
+        sb.AppendLine("---");
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
-            + (compressNotes.Length > 0 ? $" | {compressNotes}" : "")
-            + $" | Schema v2.0*");
+            + (notes.Length > 0 ? $" | {notes}" : "")
+            + " | Schema v2.0*");
     }
 }

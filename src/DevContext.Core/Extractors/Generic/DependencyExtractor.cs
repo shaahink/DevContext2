@@ -66,6 +66,15 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                 try
                 {
                     var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
+
+                    // Detect minimal APIs from project SDK
+                    var sdk = doc.Root?.Attribute("Sdk")?.Value;
+                    if (sdk == "Microsoft.NET.Sdk.Web")
+                    {
+                        model.Architecture.Register(FeatureSignal.CreateDetected(
+                            ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk));
+                    }
+
                     var packageRefs = doc.Descendants("PackageReference")
                         .Select(r => r.Attribute("Include")?.Value ?? r.Attribute("Update")?.Value ?? "")
                         .Where(v => !string.IsNullOrEmpty(v));
