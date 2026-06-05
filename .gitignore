@@ -7,3 +7,4 @@ nupkg/
 *.DotSettings.user
 .DS_Store
 Thumbs.db
+eval-repos/
