@@ -1,3 +1,9 @@
+using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Extractors.Specific;
+using DevContext.Core.Pruning;
+using DevContext.Core.Compression;
+using DevContext.Core.Rendering;
+
 namespace DevContext.Cli.Services;
 
 public static class ServiceRegistration
@@ -9,15 +15,11 @@ public static class ServiceRegistration
         services.AddSingleton<IFileSystem>(_ => new RealFileSystem());
         services.AddSingleton<IAnalysisCache>(sp => new AnalysisCache(sp.GetRequiredService<IFileSystem>()));
 
-        services.AddSingleton<IDiscoveryExtractor>(_ => new FileTreeExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(_ => new SolutionDiscoveryExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(_ => new ProjectStructureExtractor());
-        services.AddSingleton<IDiscoveryExtractor>(_ => new SyntaxStructureExtractor());
-
-        services.AddSingleton<ArchitectureStyleDetector>();
-
-        services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
-        services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
+        RegisterGenericExtractors(services);
+        RegisterSpecificExtractors(services);
+        RegisterPruners(services);
+        RegisterCompressors(services);
+        RegisterRenderers(services);
 
         services.AddSingleton<DiscoveryPipeline>(sp =>
         {
@@ -31,127 +33,52 @@ public static class ServiceRegistration
 
         return services;
     }
-}
 
-public sealed class ArchitectureStyleDetector
-{
-    public (ArchitectureStyle Style, float Confidence) Detect(DiscoveryModel model)
+    private static void RegisterGenericExtractors(IServiceCollection services)
     {
-        var signals = model.Architecture.All;
-        float maxConfidence = 0;
-        var style = ArchitectureStyle.Unknown;
-
-        if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected && ma.Confidence > maxConfidence)
-        {
-            maxConfidence = ma.Confidence;
-            style = ArchitectureStyle.MinimalApi;
-        }
-
-        if (model.Projects.Length > 4 && signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
-        {
-            var combined = mr.Confidence * 1.2f;
-            if (combined > maxConfidence)
-            {
-                maxConfidence = combined;
-                style = ArchitectureStyle.CleanArchitecture;
-            }
-        }
-
-        if (model.Projects.Length > 2 && signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
-        {
-            if (style == ArchitectureStyle.Unknown && ef.Confidence > 0.5f)
-            {
-                style = ArchitectureStyle.NLayer;
-                maxConfidence = ef.Confidence;
-            }
-        }
-
-        return (style, Math.Min(maxConfidence, 1.0f));
+        services.AddSingleton<IDiscoveryExtractor>(_ => new FileTreeExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new SolutionDiscoveryExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new ProjectStructureExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new DependencyExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new LayerClassifier());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new SyntaxStructureExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new ArchitectureStyleDetector());
     }
-}
 
-public sealed class MarkdownRenderer : IContextRenderer
-{
-    public string Format => "markdown";
-
-    public async ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
+    private static void RegisterSpecificExtractors(IServiceCollection services)
     {
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine("# DevContext Analysis");
-        sb.AppendLine();
-
-        if (model.Solution != null)
-        {
-            sb.AppendLine($"**Solution**: {model.Solution.Name}");
-            sb.AppendLine($"**Projects**: {model.Projects.Length}");
-        }
-
-        if (model.DetectedStyle != ArchitectureStyle.Unknown)
-        {
-            sb.AppendLine($"**Architecture**: {model.DetectedStyle} ({model.StyleConfidence:P0} confidence)");
-        }
-
-        var signals = model.Architecture.All.Values.Where(s => s.Detected).ToList();
-        if (signals.Count > 0)
-        {
-            sb.AppendLine($"**Signals**: {string.Join(" · ", signals.Select(s => s.Key))}");
-        }
-
-        sb.AppendLine($"**Types found**: {model.Types.Count}");
-        var nonPruned = model.Types.Count(t => !t.Value.IsPruned);
-        sb.AppendLine($"**Types in output**: {nonPruned}");
-        sb.AppendLine($"**Detections**: {model.Detections.Count}");
-
-        if (options.IncludeDiagnostics && model.Diagnostics.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("## Diagnostics");
-            foreach (var diag in model.Diagnostics)
-            {
-                sb.AppendLine($"- [{diag.Level}] {diag.Source}: {diag.Message}");
-            }
-        }
-
-        var estimatedTokens = sb.Length / 4;
-        return new RenderedContext(sb.ToString(), estimatedTokens, [], TimeSpan.Zero, "2.0");
+        services.AddSingleton<IDiscoveryExtractor>(_ => new EndpointExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new ControllerActionExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new MediatRExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new EfCoreExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new EventBusExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new AspireExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new IndirectWiringDetector());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new CallGraphExtractor());
+        services.AddSingleton<IDiscoveryExtractor>(_ => new SourceBodyExtractor());
     }
-}
 
-public sealed class JsonContextRenderer : IContextRenderer
-{
-    public string Format => "json";
-
-    public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
+    private static void RegisterPruners(IServiceCollection services)
     {
-        var obj = new
-        {
-            schemaVersion = "2.0",
-            solution = model.Solution == null ? null : new
-            {
-                name = model.Solution.Name,
-                filePath = model.Solution.FilePath,
-                projects = model.Solution.ProjectPaths
-            },
-            architecture = model.DetectedStyle == ArchitectureStyle.Unknown ? null : new
-            {
-                style = model.DetectedStyle.ToString(),
-                confidence = model.StyleConfidence
-            },
-            signals = model.Architecture.All.Values
-                .Where(s => s.Detected)
-                .Select(s => new { key = s.Key, confidence = s.Confidence })
-                .ToList(),
-            typesFound = model.Types.Count,
-            typesInOutput = model.Types.Count(t => !t.Value.IsPruned),
-            detections = model.Detections.Count
-        };
+        services.AddSingleton<IPruner>(_ => new PathProximityPruner());
+        services.AddSingleton<IPruner>(_ => new CallReachabilityPruner());
+        services.AddSingleton<IPruner>(_ => new PatternRelevancePruner());
+        services.AddSingleton<IPruner>(_ => new TokenBudgetEnforcer());
+    }
 
-        var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
+    private static void RegisterCompressors(IServiceCollection services)
+    {
+        services.AddSingleton<ICompressionStrategy>(_ => new TrivialMemberCompressor());
+        services.AddSingleton<ICompressionStrategy>(_ => new BoilerplateCompressor());
+        services.AddSingleton<ICompressionStrategy>(_ => new StructuralDeduplicator());
+        services.AddSingleton<ICompressionStrategy>(_ => new NamespaceGrouper());
+        services.AddSingleton<ICompressionStrategy>(_ => new LlmFriendlyFormatter());
+        services.AddSingleton<ICompressionStrategy>(_ => new AggressiveTruncator());
+    }
 
-        var estimatedTokens = json.Length / 4;
-        return new ValueTask<RenderedContext>(new RenderedContext(json, estimatedTokens, [], TimeSpan.Zero, "2.0"));
+    private static void RegisterRenderers(IServiceCollection services)
+    {
+        services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
+        services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
     }
 }

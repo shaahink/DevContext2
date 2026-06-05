@@ -1,0 +1,213 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace DevContext.Core.Extractors.Specific;
+
+[ExtractorOrder(30)]
+public sealed class EfCoreExtractor : IDiscoveryExtractor
+{
+    public string Name => "EfCoreExtractor";
+    public ExtractorTier Tier => ExtractorTier.Fast;
+    public ExtractorCategory Category => ExtractorCategory.Specific;
+
+    public ExtractorCapabilities Capabilities => new(
+        [ArchitectureSignals.Keys.EfCore], ["ef-entity-detections"],
+        ["model.Detections"],
+        "Walks syntax trees to detect EF Core DbContext, DbSet properties, and entity configurations");
+
+    public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.EfCore);
+
+    public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    {
+        foreach (var filePath in context.Analysis.AllSourceFiles)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            SyntaxTree syntaxTree;
+            try
+            {
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            }
+            catch
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}");
+                continue;
+            }
+
+            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+
+            foreach (var classDecl in classes)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                if (!DerivesFromDbContext(classDecl)) continue;
+
+                var dbContextType = classDecl.Identifier.ValueText;
+                var lineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                var dbSetProperties = classDecl.Members
+                    .OfType<PropertyDeclarationSyntax>()
+                    .Where(p => p.Type is GenericNameSyntax gns
+                        && gns.Identifier.ValueText == "DbSet"
+                        && gns.TypeArgumentList.Arguments.Count == 1)
+                    .ToList();
+
+                foreach (var dbSetProp in dbSetProperties)
+                {
+                    var entityType = ((GenericNameSyntax)dbSetProp.Type).TypeArgumentList.Arguments[0].ToString();
+                    var isAggregate = HasOwnDbSet(entityType, classDecl) || IsAggregateRootPattern(entityType);
+
+                    var keyProps = FindKeyProperties(entityType);
+
+                    var detection = new EfEntityDetection(
+                        EntityType: entityType,
+                        DbContextType: dbContextType,
+                        IsAggregate: isAggregate,
+                        KeyProperties: keyProps)
+                    {
+                        ExtractorName = Name,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                    };
+
+                    model.Detections.Add(detection);
+                }
+
+                DetectOnModelCreatingOverrides(classDecl, filePath, dbContextType, model, Name, ct);
+            }
+        }
+
+        await DetectMigrationsFolder(context, model, Name, ct).ConfigureAwait(false);
+    }
+
+    private static bool DerivesFromDbContext(ClassDeclarationSyntax classDecl)
+    {
+        if (classDecl.BaseList == null) return false;
+
+        foreach (var baseType in classDecl.BaseList.Types)
+        {
+            var typeName = baseType.Type.ToString();
+            if (typeName == "DbContext") return true;
+
+            var baseName = typeName.Split('<')[0];
+            if (baseName == "DbContext") return true;
+        }
+
+        return false;
+    }
+
+    private static void DetectOnModelCreatingOverrides(
+        ClassDeclarationSyntax classDecl,
+        string filePath,
+        string dbContextType,
+        DiscoveryModel model,
+        string extractorName,
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        foreach (var member in classDecl.Members)
+        {
+            if (member is MethodDeclarationSyntax method
+                && method.Identifier.ValueText == "OnModelCreating"
+                && method.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword))
+                && method.Modifiers.Any(m => m.IsKind(SyntaxKind.OverrideKeyword)))
+            {
+                var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                model.Detections.Add(new EfEntityDetection(
+                    EntityType: "<OnModelCreating>",
+                    DbContextType: dbContextType,
+                    IsAggregate: false,
+                    KeyProperties: [])
+                {
+                    ExtractorName = extractorName,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                    Confidence = 0.8f,
+                });
+            }
+        }
+    }
+
+    private static bool HasOwnDbSet(string entityType, ClassDeclarationSyntax dbContextClass)
+    {
+        return dbContextClass.Members
+            .OfType<PropertyDeclarationSyntax>()
+            .Any(p => p.Type is GenericNameSyntax gns
+                && gns.Identifier.ValueText == "DbSet"
+                && gns.TypeArgumentList.Arguments.Count == 1
+                && gns.TypeArgumentList.Arguments[0].ToString() == entityType);
+    }
+
+    private static bool IsAggregateRootPattern(string entityType)
+    {
+        return entityType.EndsWith("Aggregate")
+            || entityType.EndsWith("Root")
+            || entityType.Contains("AggregateRoot");
+    }
+
+    private static ImmutableArray<string> FindKeyProperties(string entityType)
+    {
+        if (entityType.Contains("Id")) return [entityType + "Id"];
+
+        return ["Id"];
+    }
+
+    private static async ValueTask DetectMigrationsFolder(
+        DiscoveryContext context,
+        DiscoveryModel model,
+        string extractorName,
+        CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        foreach (var filePath in context.Analysis.AllSourceFiles)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (!filePath.Contains("Migrations", StringComparison.OrdinalIgnoreCase)
+                || !filePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            SyntaxTree syntaxTree;
+            try
+            {
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            }
+            catch
+            {
+                continue;
+            }
+
+            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+
+            foreach (var classDecl in classes)
+            {
+                if (classDecl.BaseList != null
+                    && classDecl.BaseList.Types.Any(t => t.Type.ToString().Contains("Migration")))
+                {
+                    var lineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                    model.Detections.Add(new EfEntityDetection(
+                        EntityType: "<Migration>",
+                        DbContextType: classDecl.Identifier.ValueText,
+                        IsAggregate: false,
+                        KeyProperties: [])
+                    {
+                        ExtractorName = extractorName,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                        Confidence = 0.9f,
+                    });
+                }
+            }
+        }
+    }
+}

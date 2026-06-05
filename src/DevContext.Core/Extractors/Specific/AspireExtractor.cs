@@ -1,0 +1,139 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace DevContext.Core.Extractors.Specific;
+
+internal sealed record AspireResourceDetection(
+    string ResourceType,
+    string ResourceName,
+    string? Relationship
+) : Detection;
+
+internal sealed record AspireRelationshipDetection(
+    string SourceResource,
+    string TargetResource,
+    string RelationshipType
+) : Detection;
+
+[ExtractorOrder(60)]
+public sealed class AspireExtractor : IDiscoveryExtractor
+{
+    private static readonly ImmutableArray<string> ResourceMethods =
+        ["AddProject", "AddRedis", "AddPostgres", "AddSqlServer", "AddRabbitMQ",
+         "AddAzureServiceBus", "AddCosmosDB", "AddMongoDB", "AddElasticsearch",
+         "AddSeq", "AddKeycloak", "AddMySql", "AddMariaDB", "AddOracle",
+         "AddKafka", "AddMilvus", "AddQdrant", "AddWeaviate", "AddNeo4j"];
+
+    private static readonly ImmutableArray<string> RelationshipMethods =
+        ["WithReference", "WithEnvironment", "DependsOn"];
+
+    private static readonly ImmutableArray<string> AspireProjectFiles =
+        ["AppHost", "Aspire"];
+
+    public string Name => "AspireExtractor";
+    public ExtractorTier Tier => ExtractorTier.Fast;
+    public ExtractorCategory Category => ExtractorCategory.Specific;
+
+    public ExtractorCapabilities Capabilities => new(
+        [ArchitectureSignals.Keys.Aspire], ["aspire-resource-detections"],
+        ["model.Detections"],
+        "Walks AppHost project files to detect Aspire resource patterns and service relationships");
+
+    public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.Aspire);
+
+    public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    {
+        var appHostFiles = context.Analysis.AllSourceFiles
+            .Where(f => AspireProjectFiles.Any(p =>
+                f.Contains(p, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        foreach (var filePath in appHostFiles)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            SyntaxTree syntaxTree;
+            try
+            {
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            }
+            catch
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}");
+                continue;
+            }
+
+            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+            foreach (var invocation in invocations)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
+                if (memberAccess == null) continue;
+
+                var methodName = memberAccess.Name.Identifier.ValueText;
+
+                if (ResourceMethods.Contains(methodName))
+                {
+                    var resourceType = methodName[3..];
+                    var resourceName = ExtractResourceName(invocation);
+                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                    model.Detections.Add(new AspireResourceDetection(
+                        ResourceType: resourceType,
+                        ResourceName: resourceName,
+                        Relationship: null)
+                    {
+                        ExtractorName = Name,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                    });
+                }
+
+                if (RelationshipMethods.Contains(methodName))
+                {
+                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                    var args = invocation.ArgumentList.Arguments;
+                    var source = args.Count > 0 ? args[0].Expression.ToString() : "?";
+                    var target = args.Count > 1 ? args[1].Expression.ToString() : "?";
+
+                    model.Detections.Add(new AspireRelationshipDetection(
+                        SourceResource: source,
+                        TargetResource: target,
+                        RelationshipType: methodName)
+                    {
+                        ExtractorName = Name,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                        Confidence = 0.8f,
+                    });
+                }
+            }
+        }
+
+        if (appHostFiles.Count == 0)
+        {
+            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+                "No AppHost or Aspire project files found despite Aspire signal being set");
+        }
+    }
+
+    private static string ExtractResourceName(InvocationExpressionSyntax invocation)
+    {
+        if (invocation.ArgumentList.Arguments.Count == 0) return "?";
+        var firstArg = invocation.ArgumentList.Arguments[0].Expression;
+
+        if (firstArg is LiteralExpressionSyntax lit)
+            return lit.Token.ValueText;
+
+        if (firstArg is IdentifierNameSyntax ins)
+            return ins.Identifier.ValueText;
+
+        return firstArg.ToString();
+    }
+}
