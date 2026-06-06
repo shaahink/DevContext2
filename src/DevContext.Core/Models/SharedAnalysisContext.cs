@@ -1,6 +1,15 @@
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Models;
+
+/// <summary>Cached pre-parsed syntax nodes for a single file.</summary>
+public sealed record FileSyntaxNodes(
+    ImmutableArray<TypeDeclarationSyntax> TypeDeclarations,
+    ImmutableArray<InvocationExpressionSyntax> Invocations
+);
 
 /// <summary>Aggregates analysis data shared across pipeline stages.</summary>
 public sealed class SharedAnalysisContext
@@ -20,6 +29,15 @@ public sealed class SharedAnalysisContext
         = FrozenDictionary<string, ArchitectureLayer>.Empty;
     /// <summary>Call graph mapping methods to their call edges.</summary>
     public CallGraph? CallGraph { get; set; }
+    /// <summary>Shared cache of pre-parsed syntax nodes per file. Populated once, read by all Stage 2 extractors.</summary>
+    public ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>> SyntaxNodeCache { get; } = new();
+
+    /// <summary>Gets or lazily populates the parsed syntax nodes for a given file path.</summary>
+    public async Task<FileSyntaxNodes> GetOrParseSyntaxNodesAsync(string filePath, Func<Task<FileSyntaxNodes>> factory)
+    {
+        var lazy = SyntaxNodeCache.GetOrAdd(filePath, _ => new Lazy<Task<FileSyntaxNodes>>(factory));
+        return await lazy.Value;
+    }
 }
 
 /// <summary>Represents the dependency graph of projects within the solution.</summary>

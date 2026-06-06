@@ -54,8 +54,8 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
 
                 if (!IsController(classDecl)) continue;
 
-                var controllerRoute = ExtractControllerRoute(classDecl);
                 var controllerName = classDecl.Identifier.ValueText;
+                var controllerRoute = ExtractControllerRoute(classDecl, controllerName);
 
                 foreach (var member in classDecl.Members)
                 {
@@ -133,7 +133,8 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         return null;
     }
 
-    private static string? ExtractControllerRoute(ClassDeclarationSyntax classDecl)
+    private static string? ExtractControllerRoute(ClassDeclarationSyntax classDecl,
+        string controllerName)
     {
         foreach (var attr in classDecl.AttributeLists.SelectMany(a => a.Attributes))
         {
@@ -144,7 +145,10 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             }
         }
 
-        return null;
+        // Convention fallback: ControllerName → /ControllerName
+        if (controllerName.EndsWith("Controller", StringComparison.Ordinal))
+            return "/" + controllerName[..^10];
+        return "/" + controllerName;
     }
 
     private static string? ExtractActionRoute(MethodDeclarationSyntax method)

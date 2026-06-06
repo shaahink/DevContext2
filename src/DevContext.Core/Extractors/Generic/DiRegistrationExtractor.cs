@@ -29,20 +29,26 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         {
             ct.ThrowIfCancellationRequested();
 
-            SyntaxTree syntaxTree;
+            // Use shared syntax node cache — populated first by SyntaxStructureExtractor
+            FileSyntaxNodes nodes;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                var tree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                nodes = await context.Analysis.GetOrParseSyntaxNodesAsync(filePath, async () =>
+                {
+                    var root = await tree.GetRootAsync(ct).ConfigureAwait(false);
+                    return new FileSyntaxNodes(
+                        [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()],
+                        [.. root.DescendantNodes().OfType<InvocationExpressionSyntax>()]
+                    );
+                });
             }
             catch
             {
                 continue;
             }
 
-            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-            foreach (var invocation in invocations)
+            foreach (var invocation in nodes.Invocations)
             {
                 if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
                     continue;

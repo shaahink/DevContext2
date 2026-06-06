@@ -42,12 +42,17 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 continue;
             }
 
-            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var typeDeclarations = root.DescendantNodes()
-                .OfType<TypeDeclarationSyntax>()
-                .ToList();
+            // Use shared syntax node cache — first extractor to access a file populates it
+            var nodes = await context.Analysis.GetOrParseSyntaxNodesAsync(filePath, async () =>
+            {
+                var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+                return new FileSyntaxNodes(
+                    [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()],
+                    [.. root.DescendantNodes().OfType<InvocationExpressionSyntax>()]
+                );
+            });
 
-            foreach (var typeDecl in typeDeclarations)
+            foreach (var typeDecl in nodes.TypeDeclarations)
             {
                 var typeDiscovery = CreateTypeDiscovery(typeDecl, filePath);
                 if (typeDiscovery == null) continue;
