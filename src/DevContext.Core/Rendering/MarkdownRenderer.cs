@@ -41,7 +41,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (options.IncludeDiagnostics)
             AppendDiagnostics(sb, model);
 
-        AppendFooter(sb, model, sw);
+        AppendFooter(sb, model, options, sw);
 
         var content = sb.ToString();
         var estimatedTokens = Math.Max(1, content.Length / 4);
@@ -127,7 +127,27 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             var type = model.Types.Values.FirstOrDefault(t =>
                 t.Name == focus.TypeName || t.Id.EndsWith("." + focus.TypeName, StringComparison.Ordinal));
-            if (type is null) continue;
+            if (type is null)
+            {
+                // Show unresolved focus point with Levenshtein suggestions
+                sb.AppendLine($"⚠ `--around {focus.TypeName}` not found.");
+                if (focus.TypeName is not null)
+                {
+                    var matches = model.Types.Values
+                        .Select(t => t.Name)
+                        .Distinct()
+                        .Select(n => (Name: n, Dist: LevenshteinDistance(focus.TypeName, n)))
+                        .Where(x => x.Dist <= 3 && x.Dist > 0)
+                        .OrderBy(x => x.Dist)
+                        .Take(3)
+                        .Select(x => $"`{x.Name}`")
+                        .ToList();
+                    if (matches.Count > 0)
+                        sb.AppendLine($"  Did you mean: {string.Join(", ", matches)}?");
+                }
+                sb.AppendLine();
+                continue;
+            }
 
             sb.AppendLine($"### `{type.Name}` ({type.Kind}, {type.Layer})");
             sb.AppendLine($"> `{type.Namespace}.{type.Name}` — {type.FilePath}");
@@ -251,6 +271,19 @@ public sealed class MarkdownRenderer : IContextRenderer
     {
         if (options.RequiredSections.IsDefaultOrEmpty) return true;
         return options.RequiredSections.Contains(sectionName);
+    }
+
+    private static int LevenshteinDistance(string a, string b)
+    {
+        var lenA = a.Length;
+        var lenB = b.Length;
+        var d = new int[lenA + 1, lenB + 1];
+        for (var i = 0; i <= lenA; i++) d[i, 0] = i;
+        for (var j = 0; j <= lenB; j++) d[0, j] = j;
+        for (var i = 1; i <= lenA; i++)
+            for (var j = 1; j <= lenB; j++)
+                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
+        return d[lenA, lenB];
     }
 
     private static string FormatAuth(EndpointDetection ep)
@@ -553,7 +586,7 @@ public sealed class MarkdownRenderer : IContextRenderer
     }
 
     private static void AppendFooter(StringBuilder sb, DiscoveryModel model,
-        System.Diagnostics.Stopwatch sw)
+        RenderOptions options, System.Diagnostics.Stopwatch sw)
     {
         var typesTotal = model.Types.Count;
         var typesSurviving = model.Types.Values.Count(t => !t.IsPruned);
@@ -579,5 +612,12 @@ public sealed class MarkdownRenderer : IContextRenderer
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
             + compressionText
             + " | Schema v2.0*");
+
+        // Usage hints (only when output is broad and no focus points)
+        if (typesSurviving > 50 && options.FocusPoints.IsDefaultOrEmpty)
+        {
+            sb.AppendLine();
+            sb.AppendLine("> 💡 Narrow this output with `--around TypeName` or `--around TypeName:MethodName` for focused context.");
+        }
     }
 }

@@ -133,6 +133,15 @@ public sealed class DiscoveryPipeline
         // Stage 3: Sequential Specific extractors (signal-gated)
         await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
 
+        // Profile-scenario mismatch warning
+        if (context.ActiveScenario.Name is "debug-endpoint" or "trace-message-flow"
+            && context.Options.Profile < ExtractionProfile.Debug)
+        {
+            model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
+                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from call graph. " +
+                $"Re-run with '--profile debug' to enable call graph (current: {context.Options.Profile}).");
+        }
+
         // Stage 4: Sequential pruning
         await RunPruningAsync(context, model, ct);
 
