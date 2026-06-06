@@ -640,6 +640,42 @@ public sealed class ExtractorTests
     }
 
     [Fact]
+    public async Task DependencyExtractor_DetectsSignalFromNLog()
+    {
+        // NLog is tracked as a signal but may not appear in common web projects
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup>
+                <PackageReference Include="NLog" Version="5.0.0" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                    [new PackageReferenceInfo("NLog", "5.0.0")])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.NLog));
+    }
+
+    [Fact]
     public async Task DependencyExtractor_DetectsFastEndpointsPackage()
     {
         var fs = new FakeFileSystem();
