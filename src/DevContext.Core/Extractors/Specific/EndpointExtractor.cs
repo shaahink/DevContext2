@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using DevContext.Core.Constants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,9 +9,8 @@ namespace DevContext.Core.Extractors.Specific;
 [ExtractorOrder(10)]
 public sealed class EndpointExtractor : IDiscoveryExtractor
 {
-    private static readonly ImmutableArray<string> MapMethods = ["MapGet", "MapPost", "MapPut", "MapDelete", "MapPatch"];
-    private static readonly ImmutableArray<string> HttpVerbAttributes =
-        ["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"];
+    private static readonly ImmutableArray<string> MapMethods = HttpConstants.MapMethods;
+    private static readonly ImmutableArray<string> HttpVerbAttributes = HttpConstants.HttpVerbAttributes;
 
     public string Name => "EndpointExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
@@ -224,15 +224,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         if (!detectedKeys.Add($"{filePath}:{line}")) return;
 
         var methodName = memberAccess.Name.Identifier.ValueText;
-        var httpMethod = methodName switch
-        {
-            "MapGet" => "GET",
-            "MapPost" => "POST",
-            "MapPut" => "PUT",
-            "MapDelete" => "DELETE",
-            "MapPatch" => "PATCH",
-            _ => "UNKNOWN",
-        };
+        var httpMethod = HttpConstants.MapMethodToVerb.TryGetValue(methodName, out var verb) ? verb : "UNKNOWN";
 
         var routeArg = invocation.ArgumentList.Arguments
             .FirstOrDefault(a => a.Expression is LiteralExpressionSyntax)

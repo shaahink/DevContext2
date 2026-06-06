@@ -12,4 +12,5 @@ global using DevContext.Core.Observers;
 global using DevContext.Core.Attributes;
 global using DevContext.Core.Pruning;
 global using DevContext.Core.Compression;
+global using DevContext.Core.Constants;
 global using Microsoft.Extensions.Logging;

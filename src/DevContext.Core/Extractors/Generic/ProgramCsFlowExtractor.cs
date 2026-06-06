@@ -1,3 +1,4 @@
+using DevContext.Core.Constants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,8 +8,9 @@ namespace DevContext.Core.Extractors.Generic;
 [ExtractorOrder(40)]
 public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
 {
+    // Base Map* methods from HttpConstants, plus middleware-specific ones
     private static readonly ImmutableArray<string> MapMethods =
-        ["MapGet", "MapPost", "MapPut", "MapDelete", "MapPatch", "MapGrpcService", "MapHub", "MapBlazorHub"];
+        [.. HttpConstants.MapMethods, "MapGrpcService", "MapHub", "MapBlazorHub"];
 
     public string Name => "ProgramCsFlowExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
