@@ -144,6 +144,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             : routeTemplate;
         fullRoute = NormalizeRoute(fullRoute);
 
+        var authAttributes = ExtractAuthFromChain(invocation);
         var handlerArg = FindHandler(invocation);
         var handlerInfo = handlerArg?.ToString() ?? "?";
         var handlerMethod = handlerArg switch
