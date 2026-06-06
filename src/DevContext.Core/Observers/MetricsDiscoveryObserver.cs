@@ -8,7 +8,6 @@ public sealed class MetricsDiscoveryObserver : IDiscoveryObserver
     private readonly Stopwatch _pipelineSw = new();
     private readonly ConcurrentDictionary<string, ExtractorMetrics> _extractorMetrics = new();
     private readonly ConcurrentQueue<string> _eventLog = new();
-    private PipelineStage _currentStage;
     private int _lastTypeCount;
     private int _lastDetCount;
 
@@ -38,7 +37,6 @@ public sealed class MetricsDiscoveryObserver : IDiscoveryObserver
 
     public void OnStageStarted(PipelineStage stage)
     {
-        _currentStage = stage;
         _eventLog.Enqueue($"StageStarted:{stage}");
     }
 

@@ -48,7 +48,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         AnsiConsole.Status()
             .Start(settings.DryRun ? "Planning analysis..." : "Analyzing project...", statusCtx =>
             {
-                var spectreObserver = new SpectreDiscoveryObserver(settings.DryRun ? null : statusCtx);
+                var spectreObserver = new SpectreDiscoveryObserver();
                 var observer = metricsObserver is not null
                     ? new CompositeDiscoveryObserver(spectreObserver, metricsObserver)
                     : (IDiscoveryObserver)spectreObserver;

@@ -43,8 +43,9 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     );
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                context.Logger.LogWarning(ex, "Failed to parse syntax for DI registrations: {Path}", filePath);
                 continue;
             }
 

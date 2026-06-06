@@ -4,16 +4,14 @@ namespace DevContext.Cli.Observers;
 
 public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 {
-    private readonly StatusContext? _status;
     private readonly ConcurrentQueue<string> _log = new();
     private readonly ConcurrentQueue<string> _pendingLines = new();
     private readonly bool _isInteractive;
     private int _indent;
     private bool _inParallelStage;
 
-    public SpectreDiscoveryObserver(StatusContext? status = null)
+    public SpectreDiscoveryObserver()
     {
-        _status = status;
         _isInteractive = AnsiConsole.Profile.Capabilities.Interactive;
     }
 
@@ -127,10 +125,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
         var indented = new string(' ', _indent * 2) + message;
         _log.Enqueue(indented);
         if (!_isInteractive) return;
-        if (_status != null)
-            _status.Status(Spectre.Console.Markup.Escape(indented));
-        else
-            AnsiConsole.WriteLine(indented);
+        AnsiConsole.WriteLine(indented);
     }
 
     public IEnumerable<string> GetLog() => _log;

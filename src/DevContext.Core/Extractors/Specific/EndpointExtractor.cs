@@ -46,8 +46,9 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         {
             syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
         }
-        catch
+        catch (Exception ex)
         {
+            context.Logger.LogWarning(ex, "Failed to parse syntax tree: {Path}", filePath);
             return;
         }
 

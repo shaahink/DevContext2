@@ -36,8 +36,9 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             {
                 syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
             }
-            catch
+            catch (Exception ex)
             {
+                context.Logger.LogWarning(ex, "Failed to parse syntax tree: {Path}", filePath);
                 model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse syntax tree: {filePath}");
                 continue;
             }
