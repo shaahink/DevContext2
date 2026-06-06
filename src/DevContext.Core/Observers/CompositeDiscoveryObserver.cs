@@ -18,8 +18,9 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
     public void OnExtractorStarted(string name, ExtractorTier tier)
     { foreach (var o in _inner) o.OnExtractorStarted(name, tier); }
 
-    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason)
-    { foreach (var o in _inner) o.OnExtractorCompleted(name, elapsed, skipped, skipReason); }
+    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
+        int typesAdded = 0, int detectionsAdded = 0)
+    { foreach (var o in _inner) o.OnExtractorCompleted(name, elapsed, skipped, skipReason, typesAdded, detectionsAdded); }
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
     { foreach (var o in _inner) o.OnSignalsSealed(signals); }

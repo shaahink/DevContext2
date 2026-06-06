@@ -10,7 +10,8 @@ public interface IDiscoveryObserver
     /// <summary>Called when an individual extractor starts.</summary>
     void OnExtractorStarted(string name, ExtractorTier tier);
     /// <summary>Called when an extractor completes (or is skipped).</summary>
-    void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason);
+    void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
+        int typesAdded = 0, int detectionsAdded = 0);
     /// <summary>Called when architecture signals are sealed (no more writes allowed).</summary>
     void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals);
     /// <summary>Called when a pruner finishes processing.</summary>

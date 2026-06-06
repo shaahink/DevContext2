@@ -30,7 +30,8 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
         WriteLine($"{name}...");
     }
 
-    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason)
+    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
+        int typesAdded = 0, int detectionsAdded = 0)
     {
         _indent--;
         var ms = elapsed.TotalMilliseconds;

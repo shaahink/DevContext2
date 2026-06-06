@@ -19,8 +19,9 @@ public sealed class RecordingDiscoveryObserver : IDiscoveryObserver
     public void OnExtractorStarted(string name, ExtractorTier tier)
         => Events.Add($"ExtractorStarted:{name}:{tier}");
 
-    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason)
-        => Events.Add($"ExtractorCompleted:{name}:{elapsed.TotalMilliseconds:F0}ms:skipped={skipped}");
+    public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
+        int typesAdded = 0, int detectionsAdded = 0)
+        => Events.Add($"ExtractorCompleted:{name}:{elapsed.TotalMilliseconds:F0}ms:skipped={skipped}:t+={typesAdded}:d+={detectionsAdded}");
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
         => Events.Add($"SignalsSealed:{signals.Count} signals");

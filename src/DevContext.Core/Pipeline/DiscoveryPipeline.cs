@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Observers;
 
 namespace DevContext.Core.Pipeline;
 
@@ -190,10 +191,16 @@ public sealed class DiscoveryPipeline
             ct.ThrowIfCancellationRequested();
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
+            var typesBefore = model.Types.Count;
+            var detsBefore = model.Detections.Count;
             try { await extractor.ExtractAsync(ctx, model, ct); }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
+            var typesAdded = model.Types.Count - typesBefore;
+            var detsAdded = model.Detections.Count - detsBefore;
+            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
+            if (ctx.Observer is MetricsDiscoveryObserver mdo)
+                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.DiscoveryAndCacheWarmup, sw.Elapsed);
@@ -219,10 +226,16 @@ public sealed class DiscoveryPipeline
         {
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
+            var typesBefore = model.Types.Count;
+            var detsBefore = model.Detections.Count;
             try { await extractor.ExtractAsync(ctx, model, innerCt); }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
+            var typesAdded = model.Types.Count - typesBefore;
+            var detsAdded = model.Detections.Count - detsBefore;
+            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
+            if (ctx.Observer is MetricsDiscoveryObserver mdo)
+                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         });
 
         ctx.Observer.OnStageCompleted(PipelineStage.GenericExtraction, sw.Elapsed);
@@ -260,10 +273,16 @@ public sealed class DiscoveryPipeline
             ct.ThrowIfCancellationRequested();
             ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
             var esw = Stopwatch.StartNew();
+            var typesBefore = model.Types.Count;
+            var detsBefore = model.Detections.Count;
             try { await extractor.ExtractAsync(ctx, model, ct); }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null);
+            var typesAdded = model.Types.Count - typesBefore;
+            var detsAdded = model.Detections.Count - detsBefore;
+            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
+            if (ctx.Observer is MetricsDiscoveryObserver mdo)
+                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.SpecificExtraction, sw.Elapsed);
