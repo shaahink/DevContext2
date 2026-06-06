@@ -174,4 +174,64 @@ public sealed class RendererTests
         Assert.Contains("signals", result.Content);
         Assert.Contains(ArchitectureSignals.Keys.MinimalApis, result.Content);
     }
+
+    [Fact]
+    public async Task MarkdownRenderer_EndpointTable_ShowsSourceColumn()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EndpointDetection("GET", "/api/products", "<Program>", "<lambda>", [], [])
+        {
+            ExtractorName = "EndpointExtractor",
+            SourceFile = @"C:\repo\src\MyApp\Program.cs",
+            LineNumber = 5,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Source", result.Content);
+        Assert.Contains("Program.cs:5", result.Content);
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_EndpointTable_ShowsGroupPrefix()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EndpointDetection("GET", "/api/products", "ProductsHandler", "HandleAsync", [], [], "/api")
+        {
+            ExtractorName = "EndpointExtractor",
+            SourceFile = @"C:\repo\src\MyApp\Endpoints.cs",
+            LineNumber = 10,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Group", result.Content);
+        Assert.Contains("/api", result.Content);
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_EndpointTable_TruncatesLongLambda()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EndpointDetection(
+            "GET", "/api/products",
+            "async (IMediator mediator, ILogger logger, IConfiguration config) => { var products = await mediator.Send(new GetProductsQuery()); return Results.Ok(products); }",
+            "<lambda>", [], [])
+        {
+            ExtractorName = "EndpointExtractor",
+            SourceFile = @"C:\repo\src\MyApp\Program.cs",
+            LineNumber = 5,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        // Should truncate the long lambda with file:line reference
+        Assert.Contains("Program.cs:5", result.Content);
+    }
 }
