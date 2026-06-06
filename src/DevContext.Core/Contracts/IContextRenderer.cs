@@ -6,7 +6,8 @@ public sealed record RenderOptions(
     bool IncludeDiagnostics,
     int EstimatedTokens,
     string? ScenarioDisplayName = null,
-    ImmutableArray<string> RequiredSections = default
+    ImmutableArray<string> RequiredSections = default,
+    ImmutableArray<FocusPoint> FocusPoints = default
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

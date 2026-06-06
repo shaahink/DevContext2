@@ -151,7 +151,8 @@ public sealed class DiscoveryPipeline
             context.Options.IncludeDiagnostics,
             model.Budget.MaxTokens,
             context.ActiveScenario.DisplayName,
-            context.ActiveScenario.RequiredSections);
+            context.ActiveScenario.RequiredSections,
+            context.Analysis.FocusPoints.ToImmutableArray());
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
         context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);

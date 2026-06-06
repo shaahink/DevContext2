@@ -21,6 +21,8 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         if (ShouldRender("Architecture overview", options))
             AppendArchitectureOverview(sb, model);
+        if (options.FocusPoints is { Length: > 0 })
+            AppendEntryPoints(sb, model, options);
         if (ShouldRender("Endpoints", options))
             AppendEndpoints(sb, model);
         if (ShouldRender("Call graph", options))
@@ -114,6 +116,55 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         sb.AppendLine();
+    }
+
+    private static void AppendEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
+    {
+        sb.AppendLine("## Entry points");
+        sb.AppendLine();
+
+        foreach (var focus in options.FocusPoints)
+        {
+            var type = model.Types.Values.FirstOrDefault(t =>
+                t.Name == focus.TypeName || t.Id.EndsWith("." + focus.TypeName, StringComparison.Ordinal));
+            if (type is null) continue;
+
+            sb.AppendLine($"### `{type.Name}` ({type.Kind}, {type.Layer})");
+            sb.AppendLine($"> `{type.Namespace}.{type.Name}` — {type.FilePath}");
+            sb.AppendLine();
+
+            if (type.ImplementedInterfaces.Length > 0)
+                sb.AppendLine($"**Implements**: {string.Join(", ", type.ImplementedInterfaces.Select(i => $"`{i}`"))}");
+
+            if (type.BaseTypes.Length > 0 && type.BaseTypes[0] != "object")
+                sb.AppendLine($"**Extends**: `{type.BaseTypes[0]}`");
+
+            var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
+            if (ctors.Any() && ctors[0].ParameterTypes.Length > 0)
+            {
+                var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
+                sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
+            }
+
+            var publicMethods = type.Methods
+                .Where(m => m.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
+                    && m.Name != ".ctor" && m.Name != type.Name)
+                .Take(8)
+                .ToList();
+            if (publicMethods.Any())
+            {
+                sb.AppendLine();
+                sb.AppendLine("**Methods**:");
+                foreach (var method in publicMethods)
+                {
+                    var paramStr = string.Join(", ", method.ParameterTypes.Zip(
+                        method.ParameterNames, (t, n) => $"{t} {n}"));
+                    sb.AppendLine($"- `{method.ReturnType} {method.Name}({paramStr})`");
+                }
+            }
+
+            sb.AppendLine();
+        }
     }
 
     private static void AppendEndpoints(StringBuilder sb, DiscoveryModel model)
