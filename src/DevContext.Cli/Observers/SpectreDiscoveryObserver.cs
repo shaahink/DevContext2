@@ -7,12 +7,14 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     private readonly StatusContext? _status;
     private readonly ConcurrentQueue<string> _log = new();
     private readonly ConcurrentQueue<string> _pendingLines = new();
+    private readonly bool _isInteractive;
     private int _indent;
     private bool _inParallelStage;
 
     public SpectreDiscoveryObserver(StatusContext? status = null)
     {
         _status = status;
+        _isInteractive = AnsiConsole.Profile.Capabilities.Interactive;
     }
 
     public void OnPipelineStarted(DiscoveryContext context)
@@ -91,6 +93,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnPipelineCompleted(DiscoveryModel model)
     {
+        if (!_isInteractive) return;
         var pruned = model.Types.Count(t => !t.Value.IsPruned);
         var total = model.Types.Count;
         var pct = total > 0 ? (total - pruned) * 100 / total : 0;
@@ -107,6 +110,11 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnDiagnostic(DiagnosticEntry entry)
     {
+        if (!_isInteractive)
+        {
+            System.Console.Error.WriteLine($"[{entry.Level}] {entry.Source}: {entry.Message}");
+            return;
+        }
         WriteLine($"[{entry.Level}] {entry.Source}: {entry.Message}");
     }
 
@@ -114,6 +122,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     {
         var indented = new string(' ', _indent * 2) + message;
         _log.Enqueue(indented);
+        if (!_isInteractive) return;
         if (_status != null)
             _status.Status(Spectre.Console.Markup.Escape(indented));
         else
