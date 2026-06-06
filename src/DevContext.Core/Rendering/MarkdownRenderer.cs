@@ -163,6 +163,26 @@ public sealed class MarkdownRenderer : IContextRenderer
         return $"{ep.HandlerType}.{handler}";
     }
 
+    private static string FormatImplementation(string implementationType, ImmutableArray<string> extensionsUsed)
+    {
+        // Filter unresolvable extension args
+        if (implementationType == "?" || string.IsNullOrEmpty(implementationType))
+            return extensionsUsed.Length > 0
+                ? $"({string.Join(", ", extensionsUsed.Take(3))})"
+                : "-";
+
+        // Truncate delegate bodies (lambdas with => or { )
+        if (implementationType.Length > 80)
+        {
+            var firstLine = implementationType.Split('\n')[0];
+            return firstLine.Length > 60
+                ? firstLine[..57] + "..."
+                : firstLine + "...";
+        }
+
+        return implementationType;
+    }
+
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
         var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
@@ -229,10 +249,15 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             sb.AppendLine("### DI registrations");
             sb.AppendLine();
-            sb.AppendLine("| Lifetime | Service | Implementation |");
-            sb.AppendLine("|----------|---------|----------------|");
+            sb.AppendLine("| Lifetime | Service | Implementation | Source |");
+            sb.AppendLine("|----------|---------|----------------|--------|");
             foreach (var d in diRegs)
-                sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {d.ImplementationType} |");
+            {
+                // Skip ? implementations — unresolvable extension args are noise
+                var impl = FormatImplementation(d.ImplementationType, d.ExtensionsUsed);
+                var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
+                sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
+            }
             sb.AppendLine();
         }
     }
