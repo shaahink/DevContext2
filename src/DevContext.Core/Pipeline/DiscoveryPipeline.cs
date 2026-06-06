@@ -273,13 +273,13 @@ public sealed class DiscoveryPipeline
     {
         ctx.Observer.OnStageStarted(PipelineStage.Pruning);
         var sw = Stopwatch.StartNew();
-        var before = model.Types.Count;
 
         foreach (var pruner in _pruners.OrderBy(p => p.Order))
         {
             ct.ThrowIfCancellationRequested();
+            var before = model.Types.Values.Count(t => !t.IsPruned);
             await pruner.PruneAsync(ctx, model, ct);
-            var after = model.Types.Count(t => !t.Value.IsPruned);
+            var after = model.Types.Values.Count(t => !t.IsPruned);
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
 
