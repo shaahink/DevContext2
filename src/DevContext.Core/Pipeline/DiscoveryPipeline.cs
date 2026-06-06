@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Observers;
+using DevContext.Core.Resolvers;
 
 namespace DevContext.Core.Pipeline;
 
@@ -95,6 +96,24 @@ public sealed class DiscoveryPipeline
         // Stage 2: Parallel Generic extractors (Dependency, SyntaxStructure, LayerClassifier)
         // Note: model.Projects is fully populated by Stage 1 before parallel Stage 2 begins
         await RunStage2Async(context, model, ct);
+
+        // Resolve Type/Method focus points now that model.Types is populated
+        var unresolvedCount = context.Analysis.UnresolvedFocusPoints.Count;
+        if (unresolvedCount > 0)
+        {
+            var resolved = FocusPointResolver.Resolve(context.Analysis.UnresolvedFocusPoints, model);
+            var failedToResolve = resolved
+                .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method
+                    && string.IsNullOrEmpty(fp.FilePath))
+                .ToList();
+
+            foreach (var failed in failedToResolve)
+                model.AddDiagnostic(DiagnosticLevel.Warning, "FocusPointResolver",
+                    $"--around {failed.TypeName}: type not found in {model.Types.Count} scanned types. "
+                    + "Falling back to folder-level proximity.");
+
+            context.Analysis.FocusPoints = resolved;
+        }
 
         // Seal signals — no more signal writes after this point
         context.Observer.OnStageStarted(PipelineStage.SignalSealing);

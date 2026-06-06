@@ -164,7 +164,11 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             .Select(fp => fp!)
             .ToImmutableArray();
 
-        return new SharedAnalysisContext { FocusPoints = focusPoints };
+        return new SharedAnalysisContext
+        {
+            UnresolvedFocusPoints = focusPoints,
+            FocusPoints = focusPoints
+        };
     }
 
     private DiscoveryPipeline BuildPipeline(IAnalysisCache cache)

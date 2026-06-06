@@ -11,6 +11,8 @@ public sealed class SharedAnalysisContext
     public IReadOnlyList<string> AllProjectFiles { get; set; } = [];
     /// <summary>Focus points extracted from user input to guide extraction.</summary>
     public IReadOnlyList<FocusPoint> FocusPoints { get; set; } = [];
+    /// <summary>Raw unresolved focus points as parsed from user input (before type resolution).</summary>
+    public IReadOnlyList<FocusPoint> UnresolvedFocusPoints { get; set; } = [];
     /// <summary>Project dependency graph showing project-to-project references.</summary>
     public ProjectDependencyGraph? ProjectGraph { get; set; }
     /// <summary>Maps project names to their inferred architecture layer.</summary>
