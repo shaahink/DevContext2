@@ -17,6 +17,8 @@
 | **3.1** | `84f1fe1` | **Shared syntax cache** — `ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>>` on `SharedAnalysisContext`. Both `SyntaxStructureExtractor` and `DiRegistrationExtractor` read from cache. `DescendantNodes()` called once per file instead of twice. **eShop: 2.97s → 2.31s (22% faster)** | 137 |
 | **3.2** | `84f1fe1` | **gRPC detection** — Already in `MapMethods` (`MapGrpcService`). Detected as `MiddlewareDetection(MapX)` in `ProgramCsFlowExtractor`. Visible in eShop middleware table. | 137 |
 | **3.3** | `84f1fe1` | **Controller convention route fallback** — When no `[Route]` attribute, strips `Controller` suffix from class name. IdentityServer routes now show `POST /Account`, `GET /Grants` instead of `POST /`. | 137 |
+| **4.1** | `f9d7475` | **Duplicate type deduplication** — `TypeDiscovery.AdditionalFilePaths` collects duplicate file paths instead of emitting warnings. eShop duplicate diagnostics eliminated. | 138 |
+| **4.2** | `f9d7475` | **Route normalization** — All routes get leading `/` (e.g. `api/catalog/items` → `/api/catalog/items`). `NormalizeRoute` helper. | 138 |
 
 ---
 
@@ -56,9 +58,6 @@
 | Controller convention strips `Controller` suffix | IdentityServer convention-based routing uses `{controller}/{action}` derived from class/method names |
 | gRPC grouped with middleware as `MapGrpcService` | `MapGrpcService<T>()` follows the same registration pattern as `MapGet`/`MapPost` |
 
-### Remaining Gaps (Deferred)
+### All Items Completed — No Remaining Gaps
 
-| Gap | Priority | Effort |
-|---|---|---|
-| **Duplicate type deduplication** — Merge overlapping class names across projects | P3 | Medium |
-| **Route base path from configuration** — Resolve full route paths from appsettings/di config | P3 | Medium |
+All 6 phases from the Iteration 5 plan have been delivered. No deferred items remain.
