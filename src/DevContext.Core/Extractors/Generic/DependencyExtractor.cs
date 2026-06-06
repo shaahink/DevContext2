@@ -19,6 +19,15 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["Refit"] = ArchitectureSignals.Keys.Refit,
         ["Microsoft.Aspire"] = ArchitectureSignals.Keys.Aspire,
         ["FastEndpoints"] = ArchitectureSignals.Keys.FastEndpoints,
+        ["Serilog"] = ArchitectureSignals.Keys.Serilog,
+        ["Polly"] = ArchitectureSignals.Keys.Polly,
+        ["AutoMapper"] = ArchitectureSignals.Keys.AutoMapper,
+        ["Swashbuckle.AspNetCore"] = ArchitectureSignals.Keys.Swagger,
+        ["Microsoft.AspNetCore.Identity"] = ArchitectureSignals.Keys.Identity,
+        ["NLog"] = ArchitectureSignals.Keys.NLog,
+        ["Quartz"] = ArchitectureSignals.Keys.Quartz,
+        ["StackExchange.Redis"] = ArchitectureSignals.Keys.Redis,
+        ["AspNetCore.HealthChecks"] = ArchitectureSignals.Keys.HealthChecks,
     }.ToFrozenDictionary();
 
     /// <summary>Gets the name of this extractor.</summary>

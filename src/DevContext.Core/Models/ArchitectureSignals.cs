@@ -44,5 +44,14 @@ public sealed class ArchitectureSignals
         public const string Refit = "refit";
         public const string FluentValidation = "fluentvalidation";
         public const string Hangfire = "hangfire";
+        public const string Serilog = "serilog";
+        public const string Polly = "polly";
+        public const string AutoMapper = "automapper";
+        public const string Swagger = "swagger";
+        public const string Identity = "identity";
+        public const string NLog = "nlog";
+        public const string Quartz = "quartz";
+        public const string Redis = "redis";
+        public const string HealthChecks = "healthchecks";
     }
 }

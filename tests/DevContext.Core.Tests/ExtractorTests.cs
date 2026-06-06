@@ -582,6 +582,64 @@ public sealed class ExtractorTests
     }
 
     [Fact]
+    public async Task DependencyExtractor_DetectsCommonLibrarySignals()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup>
+                <PackageReference Include="Serilog" Version="4.0.0" />
+                <PackageReference Include="AutoMapper" Version="13.0.0" />
+                <PackageReference Include="Polly" Version="8.0.0" />
+                <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
+                <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+                <PackageReference Include="Quartz" Version="3.0.0" />
+                <PackageReference Include="StackExchange.Redis" Version="2.0.0" />
+                <PackageReference Include="AspNetCore.HealthChecks" Version="8.0.0" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                    [
+                        new PackageReferenceInfo("Serilog", "4.0.0"),
+                        new PackageReferenceInfo("AutoMapper", "13.0.0"),
+                        new PackageReferenceInfo("Polly", "8.0.0"),
+                        new PackageReferenceInfo("Swashbuckle.AspNetCore", "7.0.0"),
+                        new PackageReferenceInfo("Microsoft.AspNetCore.Identity", "2.2.0"),
+                        new PackageReferenceInfo("Quartz", "3.0.0"),
+                        new PackageReferenceInfo("StackExchange.Redis", "2.0.0"),
+                        new PackageReferenceInfo("AspNetCore.HealthChecks", "8.0.0"),
+                    ])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Serilog));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.AutoMapper));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Polly));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Swagger));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Identity));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Quartz));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Redis));
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.HealthChecks));
+    }
+
+    [Fact]
     public async Task DependencyExtractor_DetectsFastEndpointsPackage()
     {
         var fs = new FakeFileSystem();
