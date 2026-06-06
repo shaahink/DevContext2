@@ -15,7 +15,8 @@ public sealed class RendererTests
 
         Assert.NotNull(result.Content);
         Assert.Contains("Architecture overview", result.Content);
-        Assert.Contains("Related types grouped by layer", result.Content);
+        // Library mode (no detections): uses namespace-grouped output
+        Assert.Contains("Types by namespace", result.Content);
         Assert.Contains("Schema v2.0", result.Content);
         Assert.Equal("2.0", result.SchemaVersion);
     }
@@ -173,6 +174,43 @@ public sealed class RendererTests
 
         Assert.Contains("signals", result.Content);
         Assert.Contains(ArchitectureSignals.Keys.MinimalApis, result.Content);
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_LibraryMode_ShowsNamespaceSummary()
+    {
+        var model = new DiscoveryModel();
+        model.Types.TryAdd("Lib.Services.MyService", new TypeDiscovery
+        {
+            Id = "Lib.Services.MyService",
+            Name = "MyService",
+            Namespace = "Lib.Services",
+            FilePath = @"C:\repo\src\Lib\Services\MyService.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Unknown,
+        });
+        model.Types.TryAdd("Lib.Services.InternalHelper", new TypeDiscovery
+        {
+            Id = "Lib.Services.InternalHelper",
+            Name = "InternalHelper",
+            Namespace = "Lib.Services",
+            FilePath = @"C:\repo\src\Lib\Services\InternalHelper.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Internal,
+            Layer = ArchitectureLayer.Unknown,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        // In library mode (no detections), output should show namespace group
+        Assert.Contains("Types by namespace", result.Content);
+        Assert.Contains("Lib.Services", result.Content);
+        Assert.Contains("MyService", result.Content);
+        // Should mention 2 types, 1 public
+        Assert.Contains("2 types (1 public)", result.Content);
     }
 
     [Fact]

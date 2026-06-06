@@ -239,27 +239,75 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)
     {
-        sb.AppendLine("## Related types grouped by layer");
-        sb.AppendLine();
+        var hasDetections = model.Detections.Count > 0;
 
-        var typedTypes = model.Types.Values
-            .Where(t => !t.IsPruned)
-            .GroupBy(t => t.Layer)
-            .OrderBy(g => g.Key.ToString());
-
-        var hasContent = false;
-
-        foreach (var group in typedTypes)
+        if (hasDetections)
         {
-            var typeList = string.Join(", ", group.Select(t => t.Name));
-            sb.AppendLine($"- **{group.Key}**: {typeList}");
-            hasContent = true;
+            sb.AppendLine("## Related types grouped by layer");
+            sb.AppendLine();
+
+            var typedTypes = model.Types.Values
+                .Where(t => !t.IsPruned)
+                .GroupBy(t => t.Layer)
+                .OrderBy(g => g.Key.ToString());
+
+            var hasContent = false;
+
+            foreach (var group in typedTypes)
+            {
+                var typeList = string.Join(", ", group.Select(t => t.Name));
+                sb.AppendLine($"- **{group.Key}**: {typeList}");
+                hasContent = true;
+            }
+
+            if (!hasContent)
+                sb.AppendLine("No types discovered.");
+
+            sb.AppendLine();
         }
+        else
+        {
+            // Library mode: no detections — emit a compact namespace-summary instead of flat wall
+            sb.AppendLine("## Types by namespace");
+            sb.AppendLine();
 
-        if (!hasContent)
-            sb.AppendLine("No types discovered.");
+            var hasContent = false;
+            var survivingTypes = model.Types.Values.Where(t => !t.IsPruned).ToList();
 
-        sb.AppendLine();
+            foreach (var nsGroup in survivingTypes
+                .GroupBy(t => t.Namespace)
+                .OrderBy(g => g.Key))
+            {
+                var types = nsGroup.ToList();
+                var publicCount = types.Count(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public);
+                var totalCount = types.Count;
+                var publicTypes = types
+                    .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
+                    .Select(t => t.Name)
+                    .ToList();
+
+                sb.Append($"- **{nsGroup.Key}** — {totalCount} types");
+                if (publicCount > 0 && publicCount < totalCount)
+                    sb.Append($" ({publicCount} public)");
+                sb.AppendLine();
+
+                if (publicCount > 0 && publicTypes.Count <= 10)
+                {
+                    sb.AppendLine($"  Public: {string.Join(", ", publicTypes)}");
+                }
+                else if (publicCount > 10)
+                {
+                    var sample = string.Join(", ", publicTypes.Take(10));
+                    sb.AppendLine($"  Public ({publicCount}): {sample} ...");
+                }
+                hasContent = true;
+            }
+
+            if (!hasContent)
+                sb.AppendLine("No types discovered.");
+
+            sb.AppendLine();
+        }
     }
 
     private static void AppendDiagnostics(StringBuilder sb, DiscoveryModel model)
