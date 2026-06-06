@@ -5,7 +5,8 @@ public sealed record RenderOptions(
     bool IncludeProvenance,
     bool IncludeDiagnostics,
     int EstimatedTokens,
-    string? ScenarioDisplayName = null
+    string? ScenarioDisplayName = null,
+    ImmutableArray<string> RequiredSections = default
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

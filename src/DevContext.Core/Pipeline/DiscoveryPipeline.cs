@@ -150,7 +150,8 @@ public sealed class DiscoveryPipeline
             context.Options.IncludeProvenance,
             context.Options.IncludeDiagnostics,
             model.Budget.MaxTokens,
-            context.ActiveScenario.DisplayName);
+            context.ActiveScenario.DisplayName,
+            context.ActiveScenario.RequiredSections);
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
         context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);
@@ -309,6 +310,27 @@ public sealed class DiscoveryPipeline
             await pruner.PruneAsync(ctx, model, ct);
             var after = model.Types.Values.Count(t => !t.IsPruned);
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
+        }
+
+        // Enforce MaxSurvivingTypes per scenario configuration
+        var maxSurviving = ctx.ActiveScenario.Pruning.MaxSurvivingTypes;
+        if (maxSurviving > 0)
+        {
+            var surviving = model.Types.Values.Where(t => !t.IsPruned)
+                .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
+                .ToList();
+
+            if (surviving.Count > maxSurviving)
+            {
+                var keep = surviving.Take(maxSurviving).ToHashSet();
+                foreach (var type in surviving.Skip(maxSurviving))
+                {
+                    type.IsPruned = true;
+                    model.PrunedTypeIds.Add(type.Id);
+                }
+                ctx.Observer.OnPrunerCompleted("ScenarioBudget", surviving.Count, maxSurviving);
+                model.PruningNotes.Add($"ScenarioBudget: kept {maxSurviving} types ({surviving.Count - maxSurviving} pruned for scenario limit of {maxSurviving})");
+            }
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.Pruning, sw.Elapsed);

@@ -14,7 +14,7 @@ public static class ScenarioRegistry
                 Description = "High-level architecture map with layers and signals",
                 Pruning = new PruningConfig { MaxSurvivingTypes = 30 },
                 Compression = new CompressionConfig { AggressiveTruncation = false },
-                RequiredSections = ["Architecture overview", "Related types"]
+                RequiredSections = ["Architecture overview", "Endpoints", "MediatR Handlers", "Non-obvious wiring", "Related types"]
             },
             ["debug-endpoint"] = new()
             {

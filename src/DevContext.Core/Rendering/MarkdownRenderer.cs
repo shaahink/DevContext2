@@ -19,11 +19,18 @@ public sealed class MarkdownRenderer : IContextRenderer
         AppendProfileAndTokens(sb, model, options);
         sb.AppendLine("---");
 
-        AppendArchitectureOverview(sb, model);
-        AppendEndpoints(sb, model);
-        AppendMediatRHandlers(sb, model);
-        AppendNonObviousWiring(sb, model);
-        AppendRelatedTypesByLayer(sb, model);
+        if (ShouldRender("Architecture overview", options))
+            AppendArchitectureOverview(sb, model);
+        if (ShouldRender("Endpoints", options))
+            AppendEndpoints(sb, model);
+        if (ShouldRender("Call graph", options))
+            AppendCallGraphAvailability(sb, model);
+        if (ShouldRender("MediatR Handlers", options))
+            AppendMediatRHandlers(sb, model);
+        if (ShouldRender("Non-obvious wiring", options))
+            AppendNonObviousWiring(sb, model);
+        if (ShouldRender("Related types", options))
+            AppendRelatedTypesByLayer(sb, model);
 
         if (options.IncludeDiagnostics)
             AppendDiagnostics(sb, model);
@@ -129,7 +136,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         sb.AppendLine(header);
         sb.AppendLine(sep);
-        foreach (var ep in endpoints)
+        foreach (var ep in endpoints.Where(e => !IsFrameworkEndpoint(e)))
         {
             var auth = ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
             var handler = FormatHandler(ep);
@@ -147,6 +154,27 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         sb.AppendLine();
+    }
+
+    private static bool ShouldRender(string sectionName, RenderOptions options)
+    {
+        if (options.RequiredSections.IsDefaultOrEmpty) return true;
+        return options.RequiredSections.Contains(sectionName);
+    }
+
+    private static bool IsFrameworkEndpoint(EndpointDetection ep)
+    {
+        // Filter routes from known framework/infrastructure files
+        var fileName = Path.GetFileName(ep.SourceFile);
+        if (fileName is "OpenApi.Extensions.cs" or "Extensions.cs")
+            return true;
+
+        // Filter known framework route patterns
+        var route = ep.RouteTemplate;
+        if (route is "/" or "/health" or "/alive")
+            return true;
+
+        return false;
     }
 
     private static string FormatHandler(EndpointDetection ep)
@@ -181,6 +209,14 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         return implementationType;
+    }
+
+    private static void AppendCallGraphAvailability(StringBuilder sb, DiscoveryModel model)
+    {
+        sb.AppendLine("## Call graph");
+        sb.AppendLine();
+        sb.AppendLine("Not available in focused profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.");
+        sb.AppendLine();
     }
 
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
@@ -238,10 +274,26 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             sb.AppendLine("### Middleware pipeline");
             sb.AppendLine();
-            sb.AppendLine("| Order | Type | Kind |");
-            sb.AppendLine("|-------|------|------|");
-            foreach (var m in middleware.OrderBy(m => m.PipelineOrder))
-                sb.AppendLine($"| {m.PipelineOrder} | {m.MiddlewareType} | {m.Kind} |");
+
+            var grouped = middleware
+                .GroupBy(m => m.MiddlewareType)
+                .Select(g => new
+                {
+                    Type = g.Key,
+                    Count = g.Count(),
+                    Kind = g.First().Kind,
+                    Sources = g.Select(m => Path.GetFileName(m.SourceFile)).Distinct()
+                })
+                .OrderBy(m => m.Count)
+                .ToList();
+
+            sb.AppendLine("| Type | Kind | Count | Sources |");
+            sb.AppendLine("|------|------|-------|---------|");
+            foreach (var m in grouped)
+            {
+                var sources = string.Join(", ", m.Sources);
+                sb.AppendLine($"| {m.Type} | {m.Kind} | {m.Count} | {sources} |");
+            }
             sb.AppendLine();
         }
 
