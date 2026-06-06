@@ -214,6 +214,46 @@ public sealed class RendererTests
     }
 
     [Fact]
+    public async Task MarkdownRenderer_ShowsEfEntitiesSection()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EfEntityDetection("Product", "CatalogContext", true, ["Id"])
+        {
+            ExtractorName = "EfCoreExtractor",
+            SourceFile = "CatalogContext.cs",
+            LineNumber = 5,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Data model", result.Content);
+        Assert.Contains("Product", result.Content);
+        Assert.Contains("CatalogContext", result.Content);
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_ShowsMessageConsumersSection()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new MessageConsumerDetection("OrderCreated", "OrderCreatedConsumer", "MassTransit")
+        {
+            ExtractorName = "EventBusExtractor",
+            SourceFile = "OrderCreatedConsumer.cs",
+            LineNumber = 10,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Message consumers", result.Content);
+        Assert.Contains("OrderCreated", result.Content);
+        Assert.Contains("OrderCreatedConsumer", result.Content);
+    }
+
+    [Fact]
     public async Task MarkdownRenderer_EndpointTable_ShowsSourceColumn()
     {
         var model = new DiscoveryModel();

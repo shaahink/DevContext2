@@ -68,7 +68,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                     continue;
                 }
 
-                // Signal fallback: detect controllers from base type inheritance
+                // Signal fallback: detect controllers from base type inheritance and EF Core DbContext
                 if (typeDiscovery.BaseTypes.Any(b =>
                     b is "ControllerBase" or "Controller" or "ApiController"
                     || b.StartsWith("Controller<", StringComparison.Ordinal)))
