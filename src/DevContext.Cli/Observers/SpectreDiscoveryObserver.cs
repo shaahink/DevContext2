@@ -56,8 +56,12 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
     {
-        var detected = signals.Values.Where(s => s.Detected).Select(s => s.Key);
-        WriteLine($"Signals sealed: {string.Join(", ", detected)}");
+        var detected = signals.Values.Where(s => s.Detected).Select(s => s.Key).ToList();
+        var count = detected.Count;
+        var detail = count > 0
+            ? $"{count} detected: {string.Join(", ", detected)}"
+            : "none detected";
+        WriteLine($"[bold]Signals sealed[/] — {detail}");
     }
 
     public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
