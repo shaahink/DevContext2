@@ -16,10 +16,11 @@ public sealed class RealPatternEndpointTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/{id}" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/{id}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/" && e.HttpMethod == "POST");
         Assert.Equal(3, endpoints.Count);
+        Assert.All(endpoints, e => Assert.Equal("/orders", e.GroupPrefix));
     }
 
     [Fact]

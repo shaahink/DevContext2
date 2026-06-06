@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,13 +56,51 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
         var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
+        // Phase 1b pre-scan: MapGroup chain detection — resolve group prefixes
+        var groupPrefixes = new Dictionary<string, string>();
+        foreach (var invocation in allInvocations)
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax groupAccess) continue;
+            if (groupAccess.Name.Identifier.ValueText != "MapGroup") continue;
+
+            var prefixArg = invocation.ArgumentList.Arguments.FirstOrDefault();
+            var prefix = prefixArg?.Expression is LiteralExpressionSyntax lit
+                ? lit.Token.ValueText
+                : null;
+            if (prefix is null) continue;
+
+            var variableName = FindAssignedVariable(invocation);
+            if (variableName is null) continue;
+
+            groupPrefixes[variableName] = prefix;
+        }
+
+        // Resolve multi-level chains
+        foreach (var key in groupPrefixes.Keys.ToList())
+        {
+            var resolved = groupPrefixes[key];
+            foreach (var (varName, varPrefix) in groupPrefixes)
+            {
+                if (resolved != varPrefix && resolved.Contains(varName))
+                    resolved = resolved.Replace(varName, varPrefix);
+            }
+            groupPrefixes[key] = resolved;
+        }
+
         // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
         foreach (var invocation in allInvocations)
         {
             ct.ThrowIfCancellationRequested();
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
             if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
-            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model);
+
+            // Check if this is a call on a MapGroup variable (e.g. api.MapGet(...))
+            var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
+                && groupPrefixes.TryGetValue(groupVar.Identifier.ValueText, out var gp)
+                ? gp
+                : null;
+
+            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix);
         }
 
         // Phase 2: Find extension methods that take IEndpointRouteBuilder/WebApplication
@@ -198,7 +237,8 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         MemberAccessExpressionSyntax memberAccess,
         string filePath,
         HashSet<string> detectedKeys,
-        DiscoveryModel model)
+        DiscoveryModel model,
+        string? groupPrefix = null)
     {
         var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
         if (!detectedKeys.Add($"{filePath}:{line}")) return;
@@ -219,6 +259,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             ?.Expression as LiteralExpressionSyntax;
         var routeTemplate = routeArg?.Token.ValueText ?? "/";
 
+        // Combine group prefix if present
+        var fullRoute = groupPrefix is not null
+            ? $"{groupPrefix}/{routeTemplate}".Replace("//", "/")
+            : routeTemplate;
+
         var handlerArg = FindHandler(invocation);
         var handlerInfo = handlerArg?.ToString() ?? "?";
         var handlerMethod = handlerArg switch
@@ -230,12 +275,27 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             _ => "<lambda>"
         };
 
-        model.Detections.Add(new EndpointDetection(httpMethod, routeTemplate, handlerInfo, handlerMethod, [], [])
+        model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, [], [], groupPrefix)
         {
             ExtractorName = "EndpointExtractor",
             SourceFile = filePath,
             LineNumber = line,
         });
+    }
+
+    private static string? FindAssignedVariable(InvocationExpressionSyntax invocation)
+    {
+        // Case 1: var x = app.MapGroup(...)
+        if (invocation.Parent is EqualsValueClauseSyntax eq
+            && eq.Parent is VariableDeclaratorSyntax decl)
+            return decl.Identifier.ValueText;
+
+        // Case 2: x = app.MapGroup(...) (assignment to existing variable)
+        if (invocation.Parent is AssignmentExpressionSyntax assign
+            && assign.Left is IdentifierNameSyntax id)
+            return id.Identifier.ValueText;
+
+        return null;
     }
 
     private static ExpressionSyntax? FindHandler(InvocationExpressionSyntax invocation)

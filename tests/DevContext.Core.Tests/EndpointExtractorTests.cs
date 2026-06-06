@@ -89,8 +89,9 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/{id}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos/" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos/{id}" && e.HttpMethod == "GET");
+        Assert.All(endpoints, e => Assert.Equal("/todos", e.GroupPrefix));
     }
 
     [Fact]
