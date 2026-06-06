@@ -265,8 +265,7 @@ public sealed class DiscoveryPipeline
             var typesAdded = model.Types.Count - typesBefore;
             var detsAdded = model.Detections.Count - detsBefore;
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            if (ctx.Observer is MetricsDiscoveryObserver mdo)
-                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
+            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.DiscoveryAndCacheWarmup, sw.Elapsed);
@@ -300,8 +299,7 @@ public sealed class DiscoveryPipeline
             var typesAdded = model.Types.Count - typesBefore;
             var detsAdded = model.Detections.Count - detsBefore;
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            if (ctx.Observer is MetricsDiscoveryObserver mdo)
-                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
+            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         });
 
         ctx.Observer.OnStageCompleted(PipelineStage.GenericExtraction, sw.Elapsed);
@@ -347,8 +345,7 @@ public sealed class DiscoveryPipeline
             var typesAdded = model.Types.Count - typesBefore;
             var detsAdded = model.Detections.Count - detsBefore;
             ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            if (ctx.Observer is MetricsDiscoveryObserver mdo)
-                mdo.RecordExtractorMetrics(extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
+            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.SpecificExtraction, sw.Elapsed);
@@ -392,6 +389,16 @@ public sealed class DiscoveryPipeline
     {
         var attr = extractor.GetType().GetCustomAttribute<ExtractorOrderAttribute>(false);
         return attr?.Order ?? 100;
+    }
+
+    private static void RecordMetrics(IDiscoveryObserver observer, string name,
+        ExtractorTier tier, ExtractorCategory category, TimeSpan elapsed,
+        bool skipped, int typesAdded, int detectionsAdded)
+    {
+        if (observer is MetricsDiscoveryObserver mdo)
+            mdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
+        else if (observer is CompositeDiscoveryObserver cdo)
+            cdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
     }
 
     private static List<string> SuggestTypeNames(string? input, IEnumerable<TypeDiscovery> types, int maxDistance = 3)

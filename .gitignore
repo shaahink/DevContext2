@@ -9,5 +9,6 @@ nupkg/
 Thumbs.db
 eval-repos/
 eval-results/fresh-develop-*
+eval-results/DEVELOP-*-ITERATION-PLAN.md
 .claude/
 .opencode/

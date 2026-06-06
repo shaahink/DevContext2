@@ -42,4 +42,12 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
 
     public void OnDiagnostic(DiagnosticEntry entry)
     { foreach (var o in _inner) o.OnDiagnostic(entry); }
+
+    internal void RecordExtractorMetrics(string name, ExtractorTier tier, ExtractorCategory category,
+        TimeSpan elapsed, bool skipped, int typesAdded, int detectionsAdded)
+    {
+        foreach (var o in _inner)
+            if (o is MetricsDiscoveryObserver mdo)
+                mdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
+    }
 }
