@@ -172,49 +172,90 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine("## Endpoints");
         sb.AppendLine();
 
-        var endpoints = model.Detections.OfType<EndpointDetection>().ToList();
-        if (endpoints.Count == 0)
+        var allEndpoints = model.Detections.OfType<EndpointDetection>()
+            .Where(e => !IsFrameworkEndpoint(e))
+            .ToList();
+
+        if (allEndpoints.Count == 0)
         {
             sb.AppendLine("No endpoints detected.");
             sb.AppendLine();
             return;
         }
 
-        var hasGroupPrefix = endpoints.Any(e => e.GroupPrefix is not null);
-        var header = "| Method | Route | Handler | Auth | Source |";
-        var sep = "|--------|-------|---------|------|--------|";
-        if (hasGroupPrefix)
+        var hasGroupPrefix = allEndpoints.Any(e => e.GroupPrefix is not null);
+
+        // Build project lookup from source file paths
+        var projectByDir = model.Projects
+            .Select(p => (Dir: Path.GetDirectoryName(p.FilePath) ?? "", Name: p.Name))
+            .Where(p => !string.IsNullOrEmpty(p.Dir))
+            .OrderByDescending(p => p.Dir.Length)
+            .ToList();
+
+        string ProjectForFile(string filePath) =>
+            projectByDir.FirstOrDefault(kv => filePath.StartsWith(kv.Dir, StringComparison.OrdinalIgnoreCase)).Name
+            ?? Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "?";
+
+        // Group endpoints by project
+        var byProject = allEndpoints.GroupBy(ep => ProjectForFile(ep.SourceFile)).OrderBy(g => g.Key);
+
+        // Collect MediatR handler types for linkage
+        var mediatRTypes = model.Detections.OfType<MediatRHandlerDetection>()
+            .Select(m => m.HandlerType)
+            .ToHashSet();
+
+        var header = hasGroupPrefix
+            ? "| Method | Route | Group | Handler | Auth | Source |"
+            : "| Method | Route | Handler | Auth | Source |";
+        var sep = hasGroupPrefix
+            ? "|--------|-------|-------|---------|------|--------|"
+            : "|--------|-------|---------|------|--------|";
+
+        foreach (var projectGroup in byProject)
         {
-            header = "| Method | Route | Group | Handler | Auth | Source |";
-            sep = "|--------|-------|-------|---------|------|--------|";
-        }
+            sb.AppendLine($"**{projectGroup.Key}** ({projectGroup.Count()} endpoints)");
+            sb.AppendLine(header);
+            sb.AppendLine(sep);
 
-        sb.AppendLine(header);
-        sb.AppendLine(sep);
-        foreach (var ep in endpoints.Where(e => !IsFrameworkEndpoint(e)))
-        {
-            var auth = ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
-            var handler = FormatHandler(ep);
-            var source = $"{Path.GetFileName(ep.SourceFile)}:{ep.LineNumber}";
-
-            if (hasGroupPrefix)
+            foreach (var ep in projectGroup)
             {
-                var group = ep.GroupPrefix ?? "-";
-                sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {group} | {handler} | {auth} | {source} |");
-            }
-            else
-            {
-                sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {handler} | {auth} | {source} |");
-            }
-        }
+                var auth = FormatAuth(ep);
+                var handler = FormatHandler(ep);
 
-        sb.AppendLine();
+                // C3: MediatR linkage — check if handler type is a known MediatR handler
+                if (mediatRTypes.Contains(ep.HandlerType))
+                {
+                    var mediatR = model.Detections.OfType<MediatRHandlerDetection>()
+                        .FirstOrDefault(m => m.HandlerType == ep.HandlerType);
+                    if (mediatR is not null)
+                        handler += $" → `{mediatR.RequestType}`";
+                }
+
+                var source = $"{Path.GetFileName(ep.SourceFile)}:{ep.LineNumber}";
+
+                if (hasGroupPrefix)
+                {
+                    var group = ep.GroupPrefix ?? "-";
+                    sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {group} | {handler} | {auth} | {source} |");
+                }
+                else
+                {
+                    sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {handler} | {auth} | {source} |");
+                }
+            }
+            sb.AppendLine();
+        }
     }
 
     private static bool ShouldRender(string sectionName, RenderOptions options)
     {
         if (options.RequiredSections.IsDefaultOrEmpty) return true;
         return options.RequiredSections.Contains(sectionName);
+    }
+
+    private static string FormatAuth(EndpointDetection ep)
+    {
+        return ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
     }
 
     private static bool IsFrameworkEndpoint(EndpointDetection ep)
