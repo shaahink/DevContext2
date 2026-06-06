@@ -56,36 +56,8 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
         var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-        // Phase 1b pre-scan: MapGroup chain detection — resolve group prefixes
-        var groupPrefixes = new Dictionary<string, string>();
-        foreach (var invocation in allInvocations)
-        {
-            if (invocation.Expression is not MemberAccessExpressionSyntax groupAccess) continue;
-            if (groupAccess.Name.Identifier.ValueText != "MapGroup") continue;
-
-            var prefixArg = invocation.ArgumentList.Arguments.FirstOrDefault();
-            var prefix = prefixArg?.Expression is LiteralExpressionSyntax lit
-                ? lit.Token.ValueText
-                : null;
-            if (prefix is null) continue;
-
-            var variableName = FindAssignedVariable(invocation);
-            if (variableName is null) continue;
-
-            groupPrefixes[variableName] = prefix;
-        }
-
-        // Resolve multi-level chains
-        foreach (var key in groupPrefixes.Keys.ToList())
-        {
-            var resolved = groupPrefixes[key];
-            foreach (var (varName, varPrefix) in groupPrefixes)
-            {
-                if (resolved != varPrefix && resolved.Contains(varName))
-                    resolved = resolved.Replace(varName, varPrefix);
-            }
-            groupPrefixes[key] = resolved;
-        }
+        // Phase 1b pre-scan: MapGroup + NewVersionedApi chain detection — resolve group prefixes
+        var groupPrefixes = ExtractGroupPrefixes(root);
 
         // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
         foreach (var invocation in allInvocations)
@@ -111,13 +83,21 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
         foreach (var extMethod in extMethods)
         {
+            // Scan for MapGroup calls within the extension method body for prefix resolution
+            var extGroupPrefixes = ExtractGroupPrefixes(extMethod);
             var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (var invocation in extInvocations)
             {
                 ct.ThrowIfCancellationRequested();
                 if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
                 if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
-                AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model);
+
+                var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
+                    && extGroupPrefixes.TryGetValue(groupVar.Identifier.ValueText, out var gp)
+                    ? gp
+                    : null;
+
+                AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix);
             }
         }
 
@@ -283,15 +263,58 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         });
     }
 
+    private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)
+    {
+        var prefixes = new Dictionary<string, string>();
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            if (memberAccess.Name.Identifier.ValueText != "MapGroup") continue;
+
+            var prefixArg = invocation.ArgumentList.Arguments.FirstOrDefault();
+            var prefix = prefixArg?.Expression is LiteralExpressionSyntax lit
+                ? lit.Token.ValueText
+                : null;
+            if (prefix is null) continue;
+
+            var variableName = FindAssignedVariable(invocation);
+            if (variableName is null) continue;
+
+            prefixes[variableName] = prefix;
+        }
+
+        // Resolve multi-level chains
+        foreach (var key in prefixes.Keys.ToList())
+        {
+            var resolved = prefixes[key];
+            foreach (var (varName, varPrefix) in prefixes)
+            {
+                if (resolved != varPrefix && resolved.Contains(varName))
+                    resolved = resolved.Replace(varName, varPrefix);
+            }
+            prefixes[key] = resolved;
+        }
+
+        return prefixes;
+    }
+
     private static string? FindAssignedVariable(InvocationExpressionSyntax invocation)
     {
-        // Case 1: var x = app.MapGroup(...)
-        if (invocation.Parent is EqualsValueClauseSyntax eq
+        // Walk up chained calls: app.MapGroup("x").HasApiVersion(1,0) → outermost invocation
+        var outermost = invocation;
+        while (outermost.Parent is MemberAccessExpressionSyntax chainAccess
+            && chainAccess.Parent is InvocationExpressionSyntax chainInvocation)
+        {
+            outermost = chainInvocation;
+        }
+
+        // Case 1: var x = outer.MapGroup(...) or var x = outer.MapGroup(...).Chain(...)
+        if (outermost.Parent is EqualsValueClauseSyntax eq
             && eq.Parent is VariableDeclaratorSyntax decl)
             return decl.Identifier.ValueText;
 
-        // Case 2: x = app.MapGroup(...) (assignment to existing variable)
-        if (invocation.Parent is AssignmentExpressionSyntax assign
+        // Case 2: x = outer.MapGroup(...) (assignment to existing variable)
+        if (outermost.Parent is AssignmentExpressionSyntax assign
             && assign.Left is IdentifierNameSyntax id)
             return id.Identifier.ValueText;
 

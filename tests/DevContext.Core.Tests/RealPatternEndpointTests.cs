@@ -139,6 +139,36 @@ public sealed class RealPatternEndpointTests
     }
 
     [Fact]
+    public async Task VersionedApi_WithMapGroup_DetectsRoutesWithPrefix()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile("CatalogApi.cs", """
+            using Asp.Versioning;
+
+            public static class CatalogApi
+            {
+                public static IEndpointRouteBuilder MapCatalogApi(this IEndpointRouteBuilder app)
+                {
+                    var vApi = app.NewVersionedApi("Catalog");
+                    var api = vApi.MapGroup("api/catalog").HasApiVersion(1, 0);
+                    api.MapGet("/items", () => Results.Ok(new[] { "item" }));
+                    api.MapGet("/items/{id:int}", (int id) => Results.Ok(id));
+                    api.MapPost("/items", (CreateItem cmd) => Results.Created());
+                    return app;
+                }
+            }
+            """);
+
+        var result = await RunOnFilesAsync(fs);
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+
+        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items/{id:int}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items" && e.HttpMethod == "POST");
+        Assert.All(endpoints, e => Assert.Equal("api/catalog", e.GroupPrefix));
+    }
+
+    [Fact]
     public async Task MiddlewareAndEndpoints_InSameFile_DetectedSeparately()
     {
         var result = await RunOnSourceAsync("Program.cs", """
