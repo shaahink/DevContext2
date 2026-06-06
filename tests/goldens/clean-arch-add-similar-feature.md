@@ -1,4 +1,4 @@
-## DevContext -- Architecture Overview on CleanArch
+## DevContext -- Add Similar Feature on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore
@@ -6,13 +6,6 @@
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 4 in output
 
 ---
-## Architecture overview
-
-- Web
-- Infrastructure
-- Domain
-- Application
-
 ## Endpoints
 
 | Method | Route | Handler | Auth | Source |
@@ -24,22 +17,6 @@
 | Kind | Request | Response | Handler |
 |------|---------|----------|---------|
 | Command | GetProductsQuery | List<Product> | GetProductsHandler |
-
-## Non-obvious wiring
-
-### Middleware pipeline
-
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
-
-### DI registrations
-
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddDbContext | options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) |
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) |
 
 ## Related types grouped by layer
 

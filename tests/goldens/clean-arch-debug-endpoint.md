@@ -1,4 +1,4 @@
-## DevContext -- Architecture Overview on CleanArch
+## DevContext -- Debug Endpoint on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore
@@ -6,18 +6,15 @@
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 4 in output
 
 ---
-## Architecture overview
-
-- Web
-- Infrastructure
-- Domain
-- Application
-
 ## Endpoints
 
 | Method | Route | Handler | Auth | Source |
 |--------|-------|---------|------|--------|
 | GET | /products | λ Program.cs:13 | - | Program.cs:13 |
+
+## Call graph
+
+Not available in focused profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
 
 ## MediatR Handlers
 
@@ -25,27 +22,29 @@
 |------|---------|----------|---------|
 | Command | GetProductsQuery | List<Product> | GetProductsHandler |
 
+## Data model (EF Core)
+
+### `AppDbContext`
+
+| Entity | Aggregate root | Key properties |
+|--------|---------------|----------------|
+| `<OnModelCreating>` | — | — |
+| `Product` | ✓ | Id |
+
 ## Non-obvious wiring
 
 ### Middleware pipeline
 
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
+| Type | Kind | Count | Sources |
+|------|------|-------|---------|
+| MapGet | MapX | 1 | Program.cs |
 
 ### DI registrations
 
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddDbContext | options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) |
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) |
-
-## Related types grouped by layer
-
-- **Application**: GetProductsHandler, GetProductsQuery
-- **Domain**: Product
-- **Infrastructure**: AppDbContext
+| Lifetime | Service | Implementation | Source |
+|----------|---------|----------------|--------|
+| Extension | AddDbContext | options =>... | Program.cs:8 |
+| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
 ---
 *Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−5%) | Schema v2.0*

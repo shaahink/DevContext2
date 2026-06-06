@@ -1,4 +1,4 @@
-## DevContext -- Architecture Overview on MinimalApiProject
+## DevContext -- Debug Endpoint on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
@@ -6,18 +6,16 @@
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
 
 ---
-## Architecture overview
-
-- Infrastructure
-- Api
-- Core
-
 ## Endpoints
 
 | Method | Route | Handler | Auth | Source |
 |--------|-------|---------|------|--------|
 | POST | /orders | λ Program.cs:15 | - | Program.cs:15 |
 | GET | /orders | λ Program.cs:9 | - | Program.cs:9 |
+
+## Call graph
+
+Not available in focused profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
 
 ## MediatR Handlers
 
@@ -29,22 +27,16 @@
 
 ### Middleware pipeline
 
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
-| 2 | MapPost | MapX |
+| Type | Kind | Count | Sources |
+|------|------|-------|---------|
+| MapPost | MapX | 1 | Program.cs |
+| MapGet | MapX | 1 | Program.cs |
 
 ### DI registrations
 
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) |
-
-## Related types grouped by layer
-
-- **Api**: Order, CreateOrderCommand, CreateOrderHandler
-- **Infrastructure**: OrderRepository
-- **Unknown**: IOrderRepository
+| Lifetime | Service | Implementation | Source |
+|----------|---------|----------------|--------|
+| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ---
 *Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−11%) · StructuralDeduplicator(−14%) | Schema v2.0*

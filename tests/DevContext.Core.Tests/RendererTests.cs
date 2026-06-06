@@ -272,4 +272,79 @@ public sealed class RendererTests
         // Should truncate the long lambda with file:line reference
         Assert.Contains("Program.cs:5", result.Content);
     }
+
+    [Fact]
+    public async Task MarkdownRenderer_RendersEfEntitiesSection()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EfEntityDetection("Order", "OrderingContext", true, ["Id"])
+        {
+            ExtractorName = "EfCoreExtractor",
+            SourceFile = @"C:\repo\src\Ordering\OrderingContext.cs",
+            LineNumber = 10,
+        });
+        model.Detections.Add(new EfEntityDetection("OrderItem", "OrderingContext", false, ["Id", "OrderId"])
+        {
+            ExtractorName = "EfCoreExtractor",
+            SourceFile = @"C:\repo\src\Ordering\OrderingContext.cs",
+            LineNumber = 15,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Data model (EF Core)", result.Content);
+        Assert.Contains("OrderingContext", result.Content);
+        Assert.Contains("`Order`", result.Content);
+        Assert.Contains("`OrderItem`", result.Content);
+        Assert.Contains("✓", result.Content); // Order is aggregate root
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_RendersMessageConsumersSection()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new MessageConsumerDetection("OrderPlacedEvent", "OrderPlacedConsumer", "MassTransit")
+        {
+            ExtractorName = "EventBusExtractor",
+            SourceFile = @"C:\repo\src\Consumers\OrderPlacedConsumer.cs",
+            LineNumber = 5,
+        });
+
+        var options = new RenderOptions(false, false, 8000);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Message consumers", result.Content);
+        Assert.Contains("MassTransit", result.Content);
+        Assert.Contains("`OrderPlacedEvent`", result.Content);
+        Assert.Contains("`OrderPlacedConsumer`", result.Content);
+    }
+
+    [Fact]
+    public async Task MarkdownRenderer_RequiredSections_FiltersOutput()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new EndpointDetection("GET", "/api/test", "TestHandler", "Handle", [], [])
+        {
+            ExtractorName = "EndpointExtractor",
+            SourceFile = @"C:\repo\src\Program.cs",
+            LineNumber = 1,
+        });
+        model.Detections.Add(new EfEntityDetection("Product", "AppDbContext", false, [])
+        {
+            ExtractorName = "EfCoreExtractor",
+            SourceFile = @"C:\repo\src\AppDbContext.cs",
+            LineNumber = 1,
+        });
+
+        // Only show endpoints — suppress data model
+        var options = new RenderOptions(false, false, 8000, RequiredSections: ["Endpoints"]);
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("Endpoints", result.Content);
+        Assert.DoesNotContain("Data model", result.Content);
+    }
 }

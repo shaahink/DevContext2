@@ -203,6 +203,29 @@ public sealed class EndpointExtractorTests
         Assert.NotEmpty(endpoints);
     }
 
+    [Fact]
+    public async Task RequireAuthorization_Chain_PopulatesAuthAttributes()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            app.MapGet("/secret", () => "secret").RequireAuthorization();
+            app.MapGet("/admin", () => "admin").RequireAuthorization("AdminPolicy");
+            app.MapGet("/public", () => "public").AllowAnonymous();
+            app.Run();
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        var secret = endpoints.Single(e => e.RouteTemplate == "/secret");
+        var admin = endpoints.Single(e => e.RouteTemplate == "/admin");
+        var pub = endpoints.Single(e => e.RouteTemplate == "/public");
+
+        Assert.Contains("[Authorize]", secret.AuthAttributes);
+        Assert.Contains("[Authorize(AdminPolicy)]", admin.AuthAttributes);
+        Assert.Contains("[AllowAnonymous]", pub.AuthAttributes);
+    }
+
     private static async Task<DiscoveryModel> RunExtractorOnSourceAsync(string fileName, string source)
     {
         var fs = new FakeFileSystem();

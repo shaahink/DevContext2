@@ -29,16 +29,16 @@
 
 ### Middleware pipeline
 
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
-| 2 | MapPost | MapX |
+| Type | Kind | Count | Sources |
+|------|------|-------|---------|
+| MapPost | MapX | 1 | Program.cs |
+| MapGet | MapX | 1 | Program.cs |
 
 ### DI registrations
 
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) |
+| Lifetime | Service | Implementation | Source |
+|----------|---------|----------------|--------|
+| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ## Related types grouped by layer
 

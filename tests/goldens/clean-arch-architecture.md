@@ -25,21 +25,29 @@
 |------|---------|----------|---------|
 | Command | GetProductsQuery | List<Product> | GetProductsHandler |
 
+## Data model (EF Core)
+
+### `AppDbContext`
+
+| Entity | Aggregate root | Key properties |
+|--------|---------------|----------------|
+| `<OnModelCreating>` | — | — |
+| `Product` | ✓ | Id |
+
 ## Non-obvious wiring
 
 ### Middleware pipeline
 
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
+| Type | Kind | Count | Sources |
+|------|------|-------|---------|
+| MapGet | MapX | 1 | Program.cs |
 
 ### DI registrations
 
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddDbContext | options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) |
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) |
+| Lifetime | Service | Implementation | Source |
+|----------|---------|----------------|--------|
+| Extension | AddDbContext | options =>... | Program.cs:8 |
+| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
 ## Related types grouped by layer
 

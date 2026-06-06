@@ -304,4 +304,60 @@ public sealed class PrunerTests
         Assert.True(orderService.RelevanceScore > 0);
         Assert.False(order.IsPruned);
     }
+
+    [Fact]
+    public async Task TokenBudgetEnforcer_MaxSurvivingTypes_CapsAtScenarioLimit()
+    {
+        var model = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = 100_000 } };
+        for (int i = 0; i < 10; i++)
+        {
+            model.Types.TryAdd($"MyApp.Type{i}", new TypeDiscovery
+            {
+                Id = $"MyApp.Type{i}",
+                Name = $"Type{i}",
+                Namespace = "MyApp",
+                FilePath = $@"C:\repo\src\Type{i}.cs",
+                Kind = TypeKind.Class,
+                Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Domain,
+            });
+        }
+
+        // debug-endpoint scenario has MaxSurvivingTypes = 20, but here we use a small budget scenario
+        var scenario = ScenarioRegistry.BuiltIn["debug-endpoint"]; // MaxSurvivingTypes = 20 (>10 types, so no cap)
+        var builder = new DiscoveryContextBuilder()
+            .WithRootPath(@"C:\repo")
+            .WithScenario(scenario);
+        var (ctx, _) = builder.BuildWithRecording();
+
+        var pruner = new TokenBudgetEnforcer();
+        await pruner.PruneAsync(ctx, model, default);
+
+        // debug-endpoint has MaxSurvivingTypes=20 and we have 10 types → all survive
+        var surviving = model.Types.Values.Count(t => !t.IsPruned);
+        Assert.Equal(10, surviving);
+
+        // Now create a model with 50 types and use debug-endpoint (MaxSurvivingTypes=20)
+        var model2 = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = 100_000 } };
+        for (int i = 0; i < 50; i++)
+        {
+            model2.Types.TryAdd($"MyApp.Big{i}", new TypeDiscovery
+            {
+                Id = $"MyApp.Big{i}",
+                Name = $"Big{i}",
+                Namespace = "MyApp",
+                FilePath = $@"C:\repo\src\Big{i}.cs",
+                Kind = TypeKind.Class,
+                Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Domain,
+            });
+        }
+
+        var pruner2 = new TokenBudgetEnforcer();
+        await pruner2.PruneAsync(ctx, model2, default);
+
+        var surviving2 = model2.Types.Values.Count(t => !t.IsPruned);
+        Assert.Equal(20, surviving2); // capped at MaxSurvivingTypes=20
+        Assert.Contains(model2.PruningNotes, n => n.Contains("capped at 20 types"));
+    }
 }

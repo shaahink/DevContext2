@@ -155,12 +155,38 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             _ => "<lambda>"
         };
 
-        model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, [], [], groupPrefix)
+        var authAttrs = ExtractAuthFromChain(invocation);
+        model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, authAttrs, [], groupPrefix)
         {
             ExtractorName = "EndpointExtractor",
             SourceFile = filePath,
             LineNumber = line,
         });
+    }
+
+    private static ImmutableArray<string> ExtractAuthFromChain(InvocationExpressionSyntax mapInvocation)
+    {
+        var auth = new List<string>();
+        SyntaxNode node = mapInvocation;
+
+        while (node.Parent is MemberAccessExpressionSyntax ma && ma.Parent is InvocationExpressionSyntax chainInvoke)
+        {
+            var methodName = ma.Name.Identifier.ValueText;
+            if (methodName == "RequireAuthorization")
+            {
+                var policyArg = chainInvoke.ArgumentList.Arguments.FirstOrDefault();
+                auth.Add(policyArg?.Expression is LiteralExpressionSyntax lit
+                    ? $"[Authorize({lit.Token.ValueText})]"
+                    : "[Authorize]");
+            }
+            else if (methodName == "AllowAnonymous")
+            {
+                auth.Add("[AllowAnonymous]");
+            }
+            node = chainInvoke;
+        }
+
+        return [.. auth];
     }
 
     private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)

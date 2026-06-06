@@ -46,6 +46,26 @@ public sealed class TokenBudgetEnforcer : IPruner
             model.PruningNotes.Add($"TokenBudgetEnforcer: kept {keptCount} types ({prunedCount} pruned for budget {budget})");
         }
 
+        // Enforce scenario-level type count cap after token budget pass
+        var maxTypes = context.ActiveScenario.Pruning.MaxSurvivingTypes;
+        if (maxTypes > 0)
+        {
+            var survivors = model.Types.Values
+                .Where(t => !t.IsPruned)
+                .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
+                .ToList();
+
+            if (survivors.Count > maxTypes)
+            {
+                foreach (var type in survivors.Skip(maxTypes))
+                {
+                    type.IsPruned = true;
+                    model.PrunedTypeIds.Add(type.Id);
+                }
+                model.PruningNotes.Add($"TokenBudgetEnforcer: capped at {maxTypes} types (scenario limit)");
+            }
+        }
+
         return default;
     }
 

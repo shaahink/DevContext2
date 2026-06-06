@@ -27,6 +27,10 @@ public sealed class MarkdownRenderer : IContextRenderer
             AppendCallGraphAvailability(sb, model);
         if (ShouldRender("MediatR Handlers", options))
             AppendMediatRHandlers(sb, model);
+        if (ShouldRender("Data model", options))
+            AppendEfEntities(sb, model);
+        if (ShouldRender("Message consumers", options))
+            AppendMessageConsumers(sb, model);
         if (ShouldRender("Non-obvious wiring", options))
             AppendNonObviousWiring(sb, model);
         if (ShouldRender("Related types", options))
@@ -234,6 +238,45 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine($"| {h.Kind} | {h.RequestType} | {h.ResponseType} | {h.HandlerType} |");
         }
 
+        sb.AppendLine();
+    }
+
+    private static void AppendEfEntities(StringBuilder sb, DiscoveryModel model)
+    {
+        var entities = model.Detections.OfType<EfEntityDetection>().ToList();
+        if (entities.Count == 0) return;
+
+        sb.AppendLine("## Data model (EF Core)");
+        sb.AppendLine();
+
+        var byContext = entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key);
+        foreach (var group in byContext)
+        {
+            sb.AppendLine($"### `{group.Key}`");
+            sb.AppendLine();
+            sb.AppendLine("| Entity | Aggregate root | Key properties |");
+            sb.AppendLine("|--------|---------------|----------------|");
+            foreach (var e in group.OrderBy(e => e.EntityType))
+            {
+                var keys = e.KeyProperties.Length > 0 ? string.Join(", ", e.KeyProperties) : "—";
+                var agg = e.IsAggregate ? "✓" : "—";
+                sb.AppendLine($"| `{e.EntityType}` | {agg} | {keys} |");
+            }
+            sb.AppendLine();
+        }
+    }
+
+    private static void AppendMessageConsumers(StringBuilder sb, DiscoveryModel model)
+    {
+        var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
+        if (consumers.Count == 0) return;
+
+        sb.AppendLine("## Message consumers");
+        sb.AppendLine();
+        sb.AppendLine("| Bus | Message type | Consumer |");
+        sb.AppendLine("|-----|-------------|---------|");
+        foreach (var c in consumers.OrderBy(c => c.BusKind).ThenBy(c => c.MessageType))
+            sb.AppendLine($"| {c.BusKind} | `{c.MessageType}` | `{c.ConsumerType}` |");
         sb.AppendLine();
     }
 

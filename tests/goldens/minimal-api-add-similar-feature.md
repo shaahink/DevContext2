@@ -1,4 +1,4 @@
-## DevContext -- Architecture Overview on MinimalApiProject
+## DevContext -- Add Similar Feature on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
@@ -6,12 +6,6 @@
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
 
 ---
-## Architecture overview
-
-- Infrastructure
-- Api
-- Core
-
 ## Endpoints
 
 | Method | Route | Handler | Auth | Source |
@@ -24,21 +18,6 @@
 | Kind | Request | Response | Handler |
 |------|---------|----------|---------|
 | Command | CreateOrderCommand | int | CreateOrderHandler |
-
-## Non-obvious wiring
-
-### Middleware pipeline
-
-| Order | Type | Kind |
-|-------|------|------|
-| 1 | MapGet | MapX |
-| 2 | MapPost | MapX |
-
-### DI registrations
-
-| Lifetime | Service | Implementation |
-|----------|---------|----------------|
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) |
 
 ## Related types grouped by layer
 
