@@ -122,8 +122,12 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             "quick" => ExtractionProfile.Quick,
             "debug" => ExtractionProfile.Debug,
             "full" => ExtractionProfile.Full,
+            "focused" => ExtractionProfile.Focused,
             _ => ExtractionProfile.Focused
         };
+
+        if (profileName.ToLowerInvariant() is not ("quick" or "debug" or "full" or "focused"))
+            AnsiConsole.MarkupLine($"[yellow]Warning: unknown profile '{settings.Profile}'. Defaulting to 'focused'.[/]");
 
         return (scenarioName, profile);
     }
@@ -149,7 +153,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 _ => OutputFormat.Markdown
             },
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
-                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea"]
+                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
+            ExcludeExtractors = scenario.DisableExtractors,
         };
 
         return (scenario, options);

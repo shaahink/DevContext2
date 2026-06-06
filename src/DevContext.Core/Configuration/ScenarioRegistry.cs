@@ -14,7 +14,7 @@ public static class ScenarioRegistry
                 Description = "High-level architecture map with layers and signals",
                 Pruning = new PruningConfig { MaxSurvivingTypes = 30 },
                 Compression = new CompressionConfig { AggressiveTruncation = false },
-                RequiredSections = ["Architecture overview", "Endpoints", "MediatR Handlers", "Data model", "Non-obvious wiring", "Related types"]
+                RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.Endpoints, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
             },
             ["debug-endpoint"] = new()
             {
@@ -23,7 +23,7 @@ public static class ScenarioRegistry
                 Description = "Detailed view of a specific endpoint with call graph",
                 Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 20 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
-                RequiredSections = ["Endpoints", "Call graph", "MediatR Handlers", "Data model", "Non-obvious wiring"]
+                RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.NonObviousWiring]
             },
             ["add-similar-feature"] = new()
             {
@@ -32,7 +32,7 @@ public static class ScenarioRegistry
                 Description = "Context for implementing a new feature similar to existing ones",
                 Pruning = new PruningConfig { MaxPathDistance = 2, MaxSurvivingTypes = 40 },
                 Compression = new CompressionConfig(),
-                RequiredSections = ["Endpoints", "MediatR Handlers", "Related types"]
+                RequiredSections = [SectionNames.Endpoints, SectionNames.MediatRHandlers, SectionNames.RelatedTypes]
             },
             ["modify-middleware"] = new()
             {
@@ -41,7 +41,7 @@ public static class ScenarioRegistry
                 Description = "Focus on pipeline and middleware registration",
                 Pruning = new PruningConfig { EnablePatternBoost = true, MaxSurvivingTypes = 25 },
                 Compression = new CompressionConfig { RemoveTrivialMembers = true },
-                RequiredSections = ["Architecture overview", "Non-obvious wiring"]
+                RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.NonObviousWiring]
             },
             ["trace-message-flow"] = new()
             {
@@ -50,7 +50,7 @@ public static class ScenarioRegistry
                 Description = "Event/message flow through the system",
                 Pruning = new PruningConfig { MaxCallDepth = 5, MaxSurvivingTypes = 30 },
                 Compression = new CompressionConfig(),
-                RequiredSections = ["MediatR Handlers", "Message consumers", "Data model"]
+                RequiredSections = [SectionNames.MediatRHandlers, SectionNames.MessageConsumers, SectionNames.DataModel]
             },
             ["harden-di"] = new()
             {
@@ -59,7 +59,7 @@ public static class ScenarioRegistry
                 Description = "Find indirect wiring, reflection, and service locator patterns",
                 Pruning = new PruningConfig { EnablePatternBoost = true, MaxSurvivingTypes = 50 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
-                RequiredSections = ["Non-obvious wiring", "Related types"]
+                RequiredSections = [SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
             }
         }.ToFrozenDictionary();
 }

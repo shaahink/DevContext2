@@ -19,23 +19,23 @@ public sealed class MarkdownRenderer : IContextRenderer
         AppendProfileAndTokens(sb, model, options);
         sb.AppendLine("---");
 
-        if (ShouldRender("Architecture overview", options))
+        if (ShouldRender(SectionNames.ArchitectureOverview, options))
             AppendArchitectureOverview(sb, model);
         if (options.FocusPoints is { Length: > 0 })
             AppendEntryPoints(sb, model, options);
-        if (ShouldRender("Endpoints", options))
+        if (ShouldRender(SectionNames.Endpoints, options))
             AppendEndpoints(sb, model);
-        if (ShouldRender("Call graph", options))
+        if (ShouldRender(SectionNames.CallGraph, options))
             AppendCallGraphAvailability(sb, model);
-        if (ShouldRender("MediatR Handlers", options))
+        if (ShouldRender(SectionNames.MediatRHandlers, options))
             AppendMediatRHandlers(sb, model);
-        if (ShouldRender("Data model", options))
+        if (ShouldRender(SectionNames.DataModel, options))
             AppendEfEntities(sb, model);
-        if (ShouldRender("Message consumers", options))
+        if (ShouldRender(SectionNames.MessageConsumers, options))
             AppendMessageConsumers(sb, model);
-        if (ShouldRender("Non-obvious wiring", options))
+        if (ShouldRender(SectionNames.NonObviousWiring, options))
             AppendNonObviousWiring(sb, model);
-        if (ShouldRender("Related types", options))
+        if (ShouldRender(SectionNames.RelatedTypes, options))
             AppendRelatedTypesByLayer(sb, model);
 
         if (options.IncludeDiagnostics)
@@ -273,18 +273,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         return options.RequiredSections.Contains(sectionName);
     }
 
-    private static int LevenshteinDistance(string a, string b)
-    {
-        var lenA = a.Length;
-        var lenB = b.Length;
-        var d = new int[lenA + 1, lenB + 1];
-        for (var i = 0; i <= lenA; i++) d[i, 0] = i;
-        for (var j = 0; j <= lenB; j++) d[0, j] = j;
-        for (var i = 1; i <= lenA; i++)
-            for (var j = 1; j <= lenB; j++)
-                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
-        return d[lenA, lenB];
-    }
+    private static int LevenshteinDistance(string a, string b) => StringHelpers.LevenshteinDistance(a, b);
 
     private static string FormatAuth(EndpointDetection ep)
     {

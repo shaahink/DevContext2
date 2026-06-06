@@ -14,7 +14,6 @@ public sealed class DiscoveryPipeline
     private readonly IReadOnlyList<IPruner> _pruners;
     private readonly IReadOnlyList<ICompressionStrategy> _compressionStrategies;
     private readonly IReadOnlyDictionary<string, IContextRenderer> _renderers;
-    private readonly ArchitectureStyleDetector _styleDetector;
     private readonly ILogger<DiscoveryPipeline> _logger;
     private readonly IReadOnlyList<string> _validationWarnings;
 
@@ -31,7 +30,6 @@ public sealed class DiscoveryPipeline
         _compressionStrategies = compressionStrategies;
         _renderers = renderers;
         _logger = logger;
-        _styleDetector = new ArchitectureStyleDetector();
         _validationWarnings = ValidateExtractors();
     }
 
@@ -392,24 +390,5 @@ public sealed class DiscoveryPipeline
             .ToList();
     }
 
-    private static int LevenshteinDistance(string a, string b)
-    {
-        var lenA = a.Length;
-        var lenB = b.Length;
-        var d = new int[lenA + 1, lenB + 1];
-
-        for (var i = 0; i <= lenA; i++) d[i, 0] = i;
-        for (var j = 0; j <= lenB; j++) d[0, j] = j;
-
-        for (var i = 1; i <= lenA; i++)
-        {
-            for (var j = 1; j <= lenB; j++)
-            {
-                var cost = a[i - 1] == b[j - 1] ? 0 : 1;
-                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-            }
-        }
-
-        return d[lenA, lenB];
-    }
+    private static int LevenshteinDistance(string a, string b) => StringHelpers.LevenshteinDistance(a, b);
 }
