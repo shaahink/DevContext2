@@ -7,7 +7,8 @@ public sealed record RenderOptions(
     int EstimatedTokens,
     string? ScenarioDisplayName = null,
     ImmutableArray<string> RequiredSections = default,
-    ImmutableArray<FocusPoint> FocusPoints = default
+    ImmutableArray<FocusPoint> FocusPoints = default,
+    CallGraph? CallGraph = null
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

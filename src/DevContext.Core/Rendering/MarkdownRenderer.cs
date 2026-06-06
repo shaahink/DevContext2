@@ -26,7 +26,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (ShouldRender(SectionNames.Endpoints, options))
             AppendEndpoints(sb, model);
         if (ShouldRender(SectionNames.CallGraph, options))
-            AppendCallGraphAvailability(sb, model);
+            AppendCallGraphAvailability(sb, model, options);
         if (ShouldRender(SectionNames.MediatRHandlers, options))
             AppendMediatRHandlers(sb, model);
         if (ShouldRender(SectionNames.DataModel, options))
@@ -331,12 +331,52 @@ public sealed class MarkdownRenderer : IContextRenderer
         return implementationType;
     }
 
-    private static void AppendCallGraphAvailability(StringBuilder sb, DiscoveryModel model)
+    private static void AppendCallGraphAvailability(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
+        if (options.CallGraph is null || options.CallGraph.Edges.Count == 0)
+        {
+            sb.AppendLine("## Call graph");
+            sb.AppendLine();
+            sb.AppendLine("Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.");
+            sb.AppendLine();
+            return;
+        }
+
+        // Determine which caller keys to focus on
+        var callerKeys = options.FocusPoints.IsDefaultOrEmpty
+            ? options.CallGraph.Edges.Keys.Take(5).ToList()
+            : options.FocusPoints
+                .Select(f => options.CallGraph.Edges.Keys.FirstOrDefault(k =>
+                    k.StartsWith(f.TypeName ?? "", StringComparison.OrdinalIgnoreCase)))
+                .Where(k => k is not null)
+                .Cast<string>()
+                .DefaultIfEmpty(options.CallGraph.Edges.Keys.FirstOrDefault() ?? "")
+                .Take(3)
+                .ToList();
+
+        // If no focus matches, show first few callers
+        if (callerKeys.Count == 0 || callerKeys.All(string.IsNullOrEmpty))
+            callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
+
         sb.AppendLine("## Call graph");
         sb.AppendLine();
-        sb.AppendLine("Not available in focused profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.");
-        sb.AppendLine();
+
+        foreach (var callerKey in callerKeys)
+        {
+            if (!options.CallGraph.Edges.TryGetValue(callerKey, out var edges)) continue;
+
+            var parts = callerKey.Split('.');
+            var callerType = parts.Length > 1 ? string.Join(".", parts[..^1]) : callerKey;
+            var callerMethod = parts.Length > 0 ? parts[^1] : callerKey;
+
+            sb.AppendLine($"**{callerType}.{callerMethod}**");
+            foreach (var edge in edges.Take(10))
+            {
+                var location = edge.CallSiteLocation is not null ? $" `({edge.CallSiteLocation})`" : "";
+                sb.AppendLine($"├─ `{edge.CalleeType}.{edge.CalleeMethod}`{location}");
+            }
+            sb.AppendLine();
+        }
     }
 
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
