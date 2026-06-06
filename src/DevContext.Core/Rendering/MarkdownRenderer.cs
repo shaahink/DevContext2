@@ -118,15 +118,49 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        sb.AppendLine("| Method | Route | Handler | Auth |");
-        sb.AppendLine("|--------|-------|---------|------|");
+        var hasGroupPrefix = endpoints.Any(e => e.GroupPrefix is not null);
+        var header = "| Method | Route | Handler | Auth | Source |";
+        var sep = "|--------|-------|---------|------|--------|";
+        if (hasGroupPrefix)
+        {
+            header = "| Method | Route | Group | Handler | Auth | Source |";
+            sep = "|--------|-------|-------|---------|------|--------|";
+        }
+
+        sb.AppendLine(header);
+        sb.AppendLine(sep);
         foreach (var ep in endpoints)
         {
             var auth = ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
-            sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {ep.HandlerType}.{ep.HandlerMethod} | {auth} |");
+            var handler = FormatHandler(ep);
+            var source = $"{Path.GetFileName(ep.SourceFile)}:{ep.LineNumber}";
+
+            if (hasGroupPrefix)
+            {
+                var group = ep.GroupPrefix ?? "-";
+                sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {group} | {handler} | {auth} | {source} |");
+            }
+            else
+            {
+                sb.AppendLine($"| {ep.HttpMethod} | {ep.RouteTemplate} | {handler} | {auth} | {source} |");
+            }
         }
 
         sb.AppendLine();
+    }
+
+    private static string FormatHandler(EndpointDetection ep)
+    {
+        var handler = ep.HandlerMethod;
+        if (handler is "<lambda>" or "<anonymous>")
+        {
+            var handlerText = ep.HandlerType;
+            // Truncate very long lambda bodies to a compact reference
+            if (handlerText.Length > 80)
+                return $"λ {Path.GetFileName(ep.SourceFile)}:{ep.LineNumber}";
+            return handlerText.Length > 40 ? handlerText[..37] + "..." : handlerText;
+        }
+        return $"{ep.HandlerType}.{handler}";
     }
 
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)

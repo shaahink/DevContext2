@@ -14,18 +14,10 @@
 
 ## Endpoints
 
-| Method | Route | Handler | Auth |
-|--------|-------|---------|------|
-| POST | /orders | async (CreateOrderCommand cmd, IMediator mediator) =>
-{
-    var id = await mediator.Send(cmd);
-    return Results.Created($"/orders/{id}", id);
-}.<lambda> | - |
-| GET | /orders | async (IMediator mediator) =>
-{
-    var orders = await mediator.Send(new GetOrdersQuery());
-    return Results.Ok(orders);
-}.<lambda> | - |
+| Method | Route | Handler | Auth | Source |
+|--------|-------|---------|------|--------|
+| POST | /orders | λ Program.cs:15 | - | Program.cs:15 |
+| GET | /orders | λ Program.cs:9 | - | Program.cs:9 |
 
 ## MediatR Handlers
 

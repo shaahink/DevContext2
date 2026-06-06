@@ -15,13 +15,9 @@
 
 ## Endpoints
 
-| Method | Route | Handler | Auth |
-|--------|-------|---------|------|
-| GET | /products | async (IMediator mediator) =>
-{
-    var products = await mediator.Send(new GetProductsQuery());
-    return Results.Ok(products);
-}.<lambda> | - |
+| Method | Route | Handler | Auth | Source |
+|--------|-------|---------|------|--------|
+| GET | /products | λ Program.cs:13 | - | Program.cs:13 |
 
 ## MediatR Handlers
 
