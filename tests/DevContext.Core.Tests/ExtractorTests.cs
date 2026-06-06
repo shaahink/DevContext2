@@ -452,6 +452,80 @@ public sealed class ExtractorTests
     }
 
     [Fact]
+    public async Task EndpointExtractor_DetectsFastEndpointsEndpoint_WhenSignalPresent()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\Endpoints\CreateOrderEndpoint.cs", """
+            using FastEndpoints;
+
+            public class CreateOrderEndpoint : Endpoint<CreateOrderRequest, CreateOrderResponse>
+            {
+                public override void Configure()
+                {
+                    Post("/api/orders");
+                    AllowAnonymous();
+                }
+                public override async Task HandleAsync(CreateOrderRequest req, CancellationToken ct)
+                {
+                    await SendAsync(new CreateOrderResponse());
+                }
+            }
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Endpoints\CreateOrderEndpoint.cs"];
+
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.FastEndpoints));
+
+        var extractor = new EndpointExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var detection = Assert.Single(model.Detections.OfType<EndpointDetection>());
+        Assert.Equal("POST", detection.HttpMethod);
+        Assert.Equal("/api/orders", detection.RouteTemplate);
+    }
+
+    [Fact]
+    public async Task EndpointExtractor_DetectsFastEndpointsEndpoint_WithHttpAttribute()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\Endpoints\GetOrdersEndpoint.cs", """
+            using FastEndpoints;
+
+            [HttpGet("/api/orders")]
+            public class GetOrdersEndpoint : EndpointWithoutRequest
+            {
+                public override async Task HandleAsync(CancellationToken ct)
+                {
+                    await SendAsync(new List<Order>());
+                }
+            }
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Endpoints\GetOrdersEndpoint.cs"];
+
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.FastEndpoints));
+
+        var extractor = new EndpointExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var detection = Assert.Single(model.Detections.OfType<EndpointDetection>());
+        Assert.Equal("GET", detection.HttpMethod);
+        Assert.Equal("/api/orders", detection.RouteTemplate);
+    }
+
+    [Fact]
     public async Task EndpointExtractor_DoesNotRunWhenSignalAbsent()
     {
         var fs = new FakeFileSystem();

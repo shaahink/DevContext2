@@ -17,12 +17,15 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
 
     public ExtractorCapabilities Capabilities => new(
-        [ArchitectureSignals.Keys.MinimalApis], ["endpoint-detections"],
+        [ArchitectureSignals.Keys.MinimalApis, ArchitectureSignals.Keys.FastEndpoints, ArchitectureSignals.Keys.Controllers],
+        ["endpoint-detections"],
         ["model.Detections"],
-        "Detects minimal API endpoints via direct Map* calls and extension method bodies");
+        "Detects HTTP endpoints: Minimal API Map* calls, FastEndpoints, MVC controllers");
 
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => currentModel.Architecture.Has(ArchitectureSignals.Keys.MinimalApis);
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.MinimalApis)
+        || currentModel.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints)
+        || currentModel.Architecture.Has(ArchitectureSignals.Keys.Controllers);
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
@@ -118,6 +121,55 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
                 LineNumber = line,
             });
         }
+
+        // Phase 4: FastEndpoints Configure() method pattern
+        // Classes deriving from Endpoint<T> define Configure() with HTTP verb method calls like Post("/route")
+        foreach (var cls in fastEndpointClasses)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var configure = cls.Members
+                .OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault(m => m.Identifier.Text == "Configure");
+            if (configure is null) continue;
+
+            foreach (var invocation in configure.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            {
+                var methodName = (invocation.Expression as IdentifierNameSyntax)?.Identifier.Text
+                              ?? (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.Text;
+
+                if (methodName is not ("Get" or "Post" or "Put" or "Delete" or "Patch" or "Options"))
+                    continue;
+
+                var httpMethod = methodName switch
+                {
+                    "Get" => "GET",
+                    "Post" => "POST",
+                    "Put" => "PUT",
+                    "Delete" => "DELETE",
+                    "Patch" => "PATCH",
+                    "Options" => "OPTIONS",
+                    _ => "UNKNOWN",
+                };
+
+                var routeArg = invocation.ArgumentList.Arguments.FirstOrDefault();
+                var route = routeArg?.Expression is LiteralExpressionSyntax lit
+                    ? lit.Token.ValueText
+                    : "<dynamic>";
+
+                var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                if (!detectedKeys.Add($"{filePath}:{line}")) continue;
+
+                model.Detections.Add(new EndpointDetection(
+                    httpMethod, route,
+                    cls.Identifier.ValueText, "HandleAsync", [], [])
+                {
+                    ExtractorName = "EndpointExtractor",
+                    SourceFile = filePath,
+                    LineNumber = line,
+                });
+            }
+        }
     }
 
     private static bool DerivesFromFastEndpoint(ClassDeclarationSyntax cls)
@@ -126,8 +178,9 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         return cls.BaseList.Types.Any(t =>
         {
             var name = t.Type.ToString();
-            return name.StartsWith("Endpoint", StringComparison.Ordinal)
-                || name.StartsWith("Endpoint<", StringComparison.Ordinal);
+            return name == "EndpointWithoutRequest"
+                || name.StartsWith("Endpoint<", StringComparison.Ordinal)
+                || name.StartsWith("Endpoint", StringComparison.Ordinal);
         });
     }
 

@@ -18,6 +18,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["Scrutor"] = ArchitectureSignals.Keys.Scrutor,
         ["Refit"] = ArchitectureSignals.Keys.Refit,
         ["Microsoft.Aspire"] = ArchitectureSignals.Keys.Aspire,
+        ["FastEndpoints"] = ArchitectureSignals.Keys.FastEndpoints,
     }.ToFrozenDictionary();
 
     /// <summary>Gets the name of this extractor.</summary>
