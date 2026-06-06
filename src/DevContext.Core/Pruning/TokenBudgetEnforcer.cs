@@ -53,13 +53,17 @@ public sealed class TokenBudgetEnforcer : IPruner
     {
         var charCount = (type.Name?.Length ?? 0)
                         + (type.Namespace?.Length ?? 0)
-                        + type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length + m.ParameterTypes.Sum(p => p.Length))
+                        + type.Methods.Sum(m => m.Name.Length
+                            + m.ReturnType.Length
+                            + m.ParameterTypes.Sum(p => p.Length)
+                            + m.ParameterNames.Sum(p => p.Length))
                         + type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length)
                         + type.BaseTypes.Sum(b => b.Length)
                         + type.ImplementedInterfaces.Sum(i => i.Length)
                         + type.Attributes.Sum(a => a.Length)
                         + (type.SourceBody?.Length ?? 0);
 
-        return Math.Max(1, charCount / 3);
+        // Use chars/4 (matching the renderer's estimation) to avoid underestimation
+        return Math.Max(1, charCount / 4);
     }
 }
