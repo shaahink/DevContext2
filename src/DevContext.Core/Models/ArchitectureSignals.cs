@@ -53,5 +53,6 @@ public sealed class ArchitectureSignals
         public const string Quartz = "quartz";
         public const string Redis = "redis";
         public const string HealthChecks = "healthchecks";
+        public const string NServiceBus = "nservicebus";
     }
 }

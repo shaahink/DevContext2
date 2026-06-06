@@ -18,14 +18,14 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
     public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
-        [ArchitectureSignals.Keys.MassTransit, "nservicebus"],
+        [ArchitectureSignals.Keys.MassTransit, ArchitectureSignals.Keys.NServiceBus],
         ["message-consumer-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect message bus consumers and bus registrations");
     /// <summary>Only runs when MassTransit or NServiceBus signals are detected.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MassTransit)
-            || currentModel.Architecture.Has("nservicebus");
+            || currentModel.Architecture.Has(ArchitectureSignals.Keys.NServiceBus);
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
@@ -92,7 +92,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
         if (model.Architecture.Has(ArchitectureSignals.Keys.MassTransit))
             return "MassTransit";
 
-        if (model.Architecture.Has("nservicebus"))
+        if (model.Architecture.Has(ArchitectureSignals.Keys.NServiceBus))
             return "NServiceBus";
 
         return "Unknown";
