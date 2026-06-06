@@ -13,6 +13,8 @@ public sealed class TypeDiscovery
     public required string Namespace { get; init; }
     /// <summary>Source file path where the type is declared.</summary>
     public required string FilePath { get; init; }
+    /// <summary>Additional file paths where this type appears (duplicates across projects).</summary>
+    public List<string> AdditionalFilePaths { get; set; } = [];
     /// <summary>Kind of the type (Class, Interface, Struct, Record, Enum, Delegate).</summary>
     public required TypeKind Kind { get; init; }
     /// <summary>Accessibility level of the type.</summary>

@@ -59,8 +59,11 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
                 if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery))
                 {
-                    model.AddDiagnostic(DiagnosticLevel.Warning, Name,
-                        $"Duplicate type id skipped: {typeDiscovery.Id}");
+                    // Merge duplicates — collect additional file paths instead of just warning
+                    if (model.Types.TryGetValue(typeDiscovery.Id, out var existing))
+                    {
+                        existing.AdditionalFilePaths.Add(filePath);
+                    }
                     continue;
                 }
 

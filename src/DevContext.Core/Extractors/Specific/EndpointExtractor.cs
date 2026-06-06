@@ -239,10 +239,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             ?.Expression as LiteralExpressionSyntax;
         var routeTemplate = routeArg?.Token.ValueText ?? "/";
 
-        // Combine group prefix if present
+        // Combine group prefix if present, then normalize leading slash
         var fullRoute = groupPrefix is not null
             ? $"{groupPrefix}/{routeTemplate}".Replace("//", "/")
             : routeTemplate;
+        fullRoute = NormalizeRoute(fullRoute);
 
         var handlerArg = FindHandler(invocation);
         var handlerInfo = handlerArg?.ToString() ?? "?";
@@ -346,5 +347,13 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         }
 
         return args[^1].Expression;
+    }
+
+    private static string NormalizeRoute(string route)
+    {
+        if (string.IsNullOrEmpty(route) || route == "/") return route;
+        if (!route.StartsWith('/'))
+            route = "/" + route;
+        return route;
     }
 }

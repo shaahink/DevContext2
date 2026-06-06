@@ -159,6 +159,24 @@ public sealed class EndpointExtractorTests
     }
 
     [Fact]
+    public async Task Route_NormalizedToLeadingSlash()
+    {
+        // Routes without leading slash should be normalized
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            app.MapGet("api/items", () => Results.Ok(new[] { "item" }));
+            app.MapPost("/api/orders", () => Results.Created());
+            app.Run();
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/items" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/orders" && e.HttpMethod == "POST");
+    }
+
+    [Fact]
     public async Task FullPipeline_MinimalApiFixture_ProducesEndpoints()
     {
         var fixturePath = Path.GetFullPath(Path.Combine(

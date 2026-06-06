@@ -162,9 +162,9 @@ public sealed class RealPatternEndpointTests
         var result = await RunOnFilesAsync(fs);
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
 
-        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items/{id:int}" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "api/catalog/items" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items/{id:int}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items" && e.HttpMethod == "POST");
         Assert.All(endpoints, e => Assert.Equal("api/catalog", e.GroupPrefix));
     }
 
