@@ -97,6 +97,22 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                                 extraSignalKey, confidence: 1.0f, via: "PackageReference", pkgName));
                         }
                     }
+
+                    // Also check ProjectReference elements for signal-bearing projects
+                    var projectRefs = doc.Descendants("ProjectReference")
+                        .Select(r => r.Attribute("Include")?.Value ?? "")
+                        .Where(v => !string.IsNullOrEmpty(v))
+                        .Select(v => Path.GetFileNameWithoutExtension(v))
+                        .Where(v => !string.IsNullOrEmpty(v));
+
+                    foreach (var projName in projectRefs)
+                    {
+                        if (PackageSignalMap.TryGetValue(projName, out var projSignalKey))
+                        {
+                            model.Architecture.Register(FeatureSignal.CreateDetected(
+                                projSignalKey, confidence: 0.9f, via: "ProjectReference", projName));
+                        }
+                    }
                 }
                 catch
                 {

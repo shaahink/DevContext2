@@ -676,6 +676,42 @@ public sealed class ExtractorTests
     }
 
     [Fact]
+    public async Task DependencyExtractor_DetectsSignalFromProjectReference()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup>
+                <ProjectReference Include="..\AutoMapper\AutoMapper.csproj" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp.Tests", @"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj", "C#", ["net10.0"], [],
+                    [])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.AutoMapper),
+            "AutoMapper signal should be detected via ProjectReference");
+    }
+
+    [Fact]
     public async Task DependencyExtractor_DetectsFastEndpointsPackage()
     {
         var fs = new FakeFileSystem();
