@@ -108,9 +108,15 @@ public sealed class DiscoveryPipeline
                 .ToList();
 
             foreach (var failed in failedToResolve)
+            {
+                var didYouMean = SuggestTypeNames(failed.TypeName, model.Types.Values);
+                var suggestion = didYouMean.Count > 0
+                    ? $" Did you mean: {string.Join(", ", didYouMean.Take(3))}?"
+                    : "";
                 model.AddDiagnostic(DiagnosticLevel.Warning, "FocusPointResolver",
-                    $"--around {failed.TypeName}: type not found in {model.Types.Count} scanned types. "
+                    $"--around {failed.TypeName}: type not found in {model.Types.Count} scanned types.{suggestion} "
                     + "Falling back to folder-level proximity.");
+            }
 
             context.Analysis.FocusPoints = resolved;
         }
@@ -351,5 +357,42 @@ public sealed class DiscoveryPipeline
     {
         var attr = extractor.GetType().GetCustomAttribute<ExtractorOrderAttribute>(false);
         return attr?.Order ?? 100;
+    }
+
+    private static List<string> SuggestTypeNames(string? input, IEnumerable<TypeDiscovery> types, int maxDistance = 3)
+    {
+        if (string.IsNullOrEmpty(input)) return [];
+
+        return types
+            .Select(t => t.Name)
+            .Distinct()
+            .Select(name => (Name: name, Distance: LevenshteinDistance(input, name)))
+            .Where(x => x.Distance <= maxDistance && x.Distance > 0)
+            .OrderBy(x => x.Distance)
+            .ThenBy(x => x.Name)
+            .Select(x => x.Name)
+            .Take(3)
+            .ToList();
+    }
+
+    private static int LevenshteinDistance(string a, string b)
+    {
+        var lenA = a.Length;
+        var lenB = b.Length;
+        var d = new int[lenA + 1, lenB + 1];
+
+        for (var i = 0; i <= lenA; i++) d[i, 0] = i;
+        for (var j = 0; j <= lenB; j++) d[0, j] = j;
+
+        for (var i = 1; i <= lenA; i++)
+        {
+            for (var j = 1; j <= lenB; j++)
+            {
+                var cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+            }
+        }
+
+        return d[lenA, lenB];
     }
 }
