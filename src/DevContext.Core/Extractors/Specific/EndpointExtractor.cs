@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using DevContext.Core.Constants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,7 +9,6 @@ namespace DevContext.Core.Extractors.Specific;
 public sealed class EndpointExtractor : IDiscoveryExtractor
 {
     private static readonly ImmutableArray<string> MapMethods = HttpConstants.MapMethods;
-    private static readonly ImmutableArray<string> HttpVerbAttributes = HttpConstants.HttpVerbAttributes;
 
     public string Name => "EndpointExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
@@ -101,106 +99,14 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             }
         }
 
-        // Phase 3: Detect FastEndpoints-style classes with HTTP verb attributes
+        // Phase 3+4: FastEndpoints-style class detection
         var fastEndpointClasses = root.DescendantNodes()
             .OfType<ClassDeclarationSyntax>()
-            .Where(c => DerivesFromFastEndpoint(c));
+            .Where(c => FastEndpointsHelper.DerivesFromFastEndpoint(c))
+            .ToList();
 
-        foreach (var cls in fastEndpointClasses)
-        {
-            ct.ThrowIfCancellationRequested();
-            var httpAttr = cls.AttributeLists
-                .SelectMany(a => a.Attributes)
-                .FirstOrDefault(a => HttpVerbAttributes.Contains(a.Name.ToString()));
-
-            if (httpAttr == null) continue;
-
-            var httpMethod = httpAttr.Name.ToString() switch
-            {
-                "HttpGet" => "GET",
-                "HttpPost" => "POST",
-                "HttpPut" => "PUT",
-                "HttpDelete" => "DELETE",
-                "HttpPatch" => "PATCH",
-                _ => "UNKNOWN"
-            };
-
-            var routeArg = httpAttr.ArgumentList?.Arguments
-                .FirstOrDefault()
-                ?.Expression as LiteralExpressionSyntax;
-            var route = routeArg?.Token.ValueText ?? "/";
-
-            var line = cls.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-            if (!detectedKeys.Add($"{filePath}:{line}")) continue;
-
-            model.Detections.Add(new EndpointDetection(httpMethod, route, cls.Identifier.ValueText, cls.Identifier.ValueText, [], [])
-            {
-                ExtractorName = "EndpointExtractor",
-                SourceFile = filePath,
-                LineNumber = line,
-            });
-        }
-
-        // Phase 4: FastEndpoints Configure() method pattern
-        // Classes deriving from Endpoint<T> define Configure() with HTTP verb method calls like Post("/route")
-        foreach (var cls in fastEndpointClasses)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var configure = cls.Members
-                .OfType<MethodDeclarationSyntax>()
-                .FirstOrDefault(m => m.Identifier.Text == "Configure");
-            if (configure is null) continue;
-
-            foreach (var invocation in configure.DescendantNodes().OfType<InvocationExpressionSyntax>())
-            {
-                var methodName = (invocation.Expression as IdentifierNameSyntax)?.Identifier.Text
-                              ?? (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.Text;
-
-                if (methodName is not ("Get" or "Post" or "Put" or "Delete" or "Patch" or "Options"))
-                    continue;
-
-                var httpMethod = methodName switch
-                {
-                    "Get" => "GET",
-                    "Post" => "POST",
-                    "Put" => "PUT",
-                    "Delete" => "DELETE",
-                    "Patch" => "PATCH",
-                    "Options" => "OPTIONS",
-                    _ => "UNKNOWN",
-                };
-
-                var routeArg = invocation.ArgumentList.Arguments.FirstOrDefault();
-                var route = routeArg?.Expression is LiteralExpressionSyntax lit
-                    ? lit.Token.ValueText
-                    : "<dynamic>";
-
-                var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                if (!detectedKeys.Add($"{filePath}:{line}")) continue;
-
-                model.Detections.Add(new EndpointDetection(
-                    httpMethod, route,
-                    cls.Identifier.ValueText, "HandleAsync", [], [])
-                {
-                    ExtractorName = "EndpointExtractor",
-                    SourceFile = filePath,
-                    LineNumber = line,
-                });
-            }
-        }
-    }
-
-    private static bool DerivesFromFastEndpoint(ClassDeclarationSyntax cls)
-    {
-        if (cls.BaseList == null) return false;
-        return cls.BaseList.Types.Any(t =>
-        {
-            var name = t.Type.ToString();
-            return name == "EndpointWithoutRequest"
-                || name.StartsWith("Endpoint<", StringComparison.Ordinal)
-                || name.StartsWith("Endpoint", StringComparison.Ordinal);
-        });
+        FastEndpointsHelper.DetectClassAttributeEndpoints(fastEndpointClasses, filePath, detectedKeys, model);
+        FastEndpointsHelper.DetectConfigureMethodEndpoints(fastEndpointClasses, filePath, detectedKeys, model);
     }
 
     private static bool IsEndpointExtension(MethodDeclarationSyntax method)

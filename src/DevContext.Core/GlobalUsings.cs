@@ -13,4 +13,5 @@ global using DevContext.Core.Attributes;
 global using DevContext.Core.Pruning;
 global using DevContext.Core.Compression;
 global using DevContext.Core.Constants;
+global using DevContext.Core.Extractors;
 global using Microsoft.Extensions.Logging;
