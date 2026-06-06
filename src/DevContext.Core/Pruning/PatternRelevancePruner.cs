@@ -64,7 +64,54 @@ public sealed class PatternRelevancePruner : IPruner
             }
         }
 
+        // Library-mode relevance scoring: when no web signals are present, boost public API surface
+        if (!HasWebSignals(model))
+        {
+            ApplyLibraryModeScoring(model, testProjectNames);
+            model.PruningNotes.Add("PatternRelevancePruner: library mode active — boosting public API, penalizing test types");
+        }
+
         return default;
+    }
+
+    private static bool HasWebSignals(DiscoveryModel model)
+    {
+        return model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis)
+            || model.Architecture.Has(ArchitectureSignals.Keys.Controllers)
+            || model.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints)
+            || model.Architecture.Has(ArchitectureSignals.Keys.MediatR);
+    }
+
+    private static void ApplyLibraryModeScoring(DiscoveryModel model, FrozenSet<string> testProjectNames)
+    {
+        // Collect types that are base types/interfaces of other surviving types
+        var referencedAsBase = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+        {
+            foreach (var iface in type.ImplementedInterfaces)
+                referencedAsBase.Add(iface);
+            foreach (var baseType in type.BaseTypes)
+                referencedAsBase.Add(baseType);
+        }
+
+        foreach (var type in model.Types.Values)
+        {
+            // Penalize test project types
+            if (testProjectNames.Count > 0
+                && testProjectNames.Any(p => type.FilePath.Contains(p, StringComparison.OrdinalIgnoreCase)))
+            {
+                type.RelevanceScore -= 0.5f;
+                continue;
+            }
+
+            // Boost public types (public API surface)
+            if (type.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
+                type.RelevanceScore += 0.3f;
+
+            // Boost types used as base types or interfaces by other types
+            if (referencedAsBase.Contains(type.Id) || referencedAsBase.Contains(type.Name))
+                type.RelevanceScore += 0.4f;
+        }
     }
 
     private static FrozenSet<string> CollectTestProjectNames(DiscoveryModel model)
@@ -96,10 +143,11 @@ public sealed class PatternRelevancePruner : IPruner
         foreach (var segment in TestNamespaceSegments)
             if (ns.Contains(segment, StringComparison.OrdinalIgnoreCase)) return true;
 
-        // Project name patterns (if available via file path)
-        var path = type.FilePath;
-        if (path.Contains("\\Tests\\", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/Tests/", StringComparison.OrdinalIgnoreCase))
+        // File path — check if file belongs to a test project by name
+        var fileName = Path.GetFileNameWithoutExtension(type.FilePath);
+        if (fileName.StartsWith("When_", StringComparison.Ordinal)
+            || fileName.StartsWith("Test_", StringComparison.Ordinal)
+            || fileName.StartsWith("Bug_", StringComparison.Ordinal))
             return true;
 
         return false;
