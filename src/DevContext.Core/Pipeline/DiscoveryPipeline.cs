@@ -91,11 +91,10 @@ public sealed class DiscoveryPipeline
         context.Observer.OnPipelineStarted(context);
 
         // Stage 1: Sequential discovery + cache warmup (FileTree, Solution, ProjectStructure)
-        await RunStage1Async(context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct);
 
         // Stage 2: Parallel Generic extractors (Dependency, SyntaxStructure, LayerClassifier)
-        // Note: model.Projects is fully populated by Stage 1 before parallel Stage 2 begins
-        await RunStage2Async(context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage2Parallel, PipelineStage.GenericExtraction, true, context, model, ct);
 
         // Resolve Type/Method focus points now that model.Types is populated
         var unresolvedCount = context.Analysis.UnresolvedFocusPoints.Count;
@@ -132,7 +131,7 @@ public sealed class DiscoveryPipeline
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
 
         // Stage 3: Sequential Specific extractors (signal-gated)
-        await RunStage3Async(context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
 
         // Stage 4: Sequential pruning
         await RunPruningAsync(context, model, ct);
@@ -161,7 +160,7 @@ public sealed class DiscoveryPipeline
 
     private async Task<RenderedContext> RunDryRunAsync(DiscoveryContext context, CancellationToken ct)
     {
-        await RunStage1Async(context, new DiscoveryModel(), ct);
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, new DiscoveryModel(), ct);
 
         var stage1 = new List<(string Name, string Description, bool WillRun)>();
         var stage2 = new List<(string Name, string Description, bool WillRun)>();
@@ -235,74 +234,54 @@ public sealed class DiscoveryPipeline
         return rendered;
     }
 
-    /// <summary>
-    /// Stage 1: Sequential — all extractors with ExecutionStage.Stage1Sequential.
-    /// These populate the analysis context and cache, establishing the data that Stage 2 reads.
-    /// Extractors declare their stage via the Stage property; the pipeline has no hardcoded names.
-    /// </summary>
-    private async Task RunStage1Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
+    /// <summary>Runs a stage of the pipeline: filters extractors by ExecutionStage, executes them sequentially or in parallel.</summary>
+    private async Task RunStageAsync(ExecutionStage execStage, PipelineStage stage, bool parallel,
+        DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
-        ctx.Observer.OnStageStarted(PipelineStage.DiscoveryAndCacheWarmup);
-        var sw = Stopwatch.StartNew();
-
-        var stage1Extractors = _extractors
-            .Where(e => e.Stage == ExecutionStage.Stage1Sequential)
-            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => e.ShouldRun(ctx, model))
-            .OrderBy(GetOrder)
-            .ToList();
-
-        foreach (var extractor in stage1Extractors)
-        {
-            ct.ThrowIfCancellationRequested();
-            ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
-            var esw = Stopwatch.StartNew();
-            var typesBefore = model.Types.Count;
-            var detsBefore = model.Detections.Count;
-            try { await extractor.ExtractAsync(ctx, model, ct); }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            var typesAdded = model.Types.Count - typesBefore;
-            var detsAdded = model.Detections.Count - detsBefore;
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
-        }
-
-        ctx.Observer.OnStageCompleted(PipelineStage.DiscoveryAndCacheWarmup, sw.Elapsed);
-    }
-
-    /// <summary>
-    /// Stage 2: Parallel — all extractors with ExecutionStage.Stage2Parallel.
-    /// model.Projects and analysis context are fully populated by Stage 1 before this runs.
-    /// </summary>
-    private async Task RunStage2Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
-    {
-        ctx.Observer.OnStageStarted(PipelineStage.GenericExtraction);
+        ctx.Observer.OnStageStarted(stage);
         var sw = Stopwatch.StartNew();
 
         var eligible = _extractors
-            .Where(e => e.Stage == ExecutionStage.Stage2Parallel)
+            .Where(e => e.Stage == execStage)
             .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
             .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
             .ToList();
 
-        await Parallel.ForEachAsync(eligible, ct, async (extractor, innerCt) =>
+        if (parallel)
         {
-            ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
-            var esw = Stopwatch.StartNew();
-            var typesBefore = model.Types.Count;
-            var detsBefore = model.Detections.Count;
-            try { await extractor.ExtractAsync(ctx, model, innerCt); }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            var typesAdded = model.Types.Count - typesBefore;
-            var detsAdded = model.Detections.Count - detsBefore;
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
-        });
+            await Parallel.ForEachAsync(eligible, ct, async (extractor, innerCt) =>
+            {
+                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, innerCt);
+                ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
+                RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
+            });
+        }
+        else
+        {
+            foreach (var extractor in eligible)
+            {
+                ct.ThrowIfCancellationRequested();
+                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, ct);
+                ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
+                RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
+            }
+        }
 
-        ctx.Observer.OnStageCompleted(PipelineStage.GenericExtraction, sw.Elapsed);
+        ctx.Observer.OnStageCompleted(stage, sw.Elapsed);
+    }
+
+    private static async Task<(int TypesAdded, int DetsAdded, TimeSpan Elapsed)> RunSingleExtractorAsync(
+        DiscoveryContext ctx, DiscoveryModel model, IDiscoveryExtractor extractor, CancellationToken ct)
+    {
+        ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
+        var esw = Stopwatch.StartNew();
+        var typesBefore = model.Types.Count;
+        var detsBefore = model.Detections.Count;
+        try { await extractor.ExtractAsync(ctx, model, ct); }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
+        return (model.Types.Count - typesBefore, model.Detections.Count - detsBefore, esw.Elapsed);
     }
 
     /// <summary>
@@ -315,40 +294,6 @@ public sealed class DiscoveryPipeline
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = "ArchitectureStyleDetector";
-    }
-
-    /// <summary>
-    /// Stage 3: Sequential — all extractors with ExecutionStage.Stage3Sequential (signal-gated Specific + Deep).
-    /// </summary>
-    private async Task RunStage3Async(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
-    {
-        ctx.Observer.OnStageStarted(PipelineStage.SpecificExtraction);
-        var sw = Stopwatch.StartNew();
-
-        var eligible = _extractors
-            .Where(e => e.Stage == ExecutionStage.Stage3Sequential)
-            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => e.ShouldRun(ctx, model))
-            .OrderBy(GetOrder)
-            .ToList();
-
-        foreach (var extractor in eligible)
-        {
-            ct.ThrowIfCancellationRequested();
-            ctx.Observer.OnExtractorStarted(extractor.Name, extractor.Tier);
-            var esw = Stopwatch.StartNew();
-            var typesBefore = model.Types.Count;
-            var detsBefore = model.Detections.Count;
-            try { await extractor.ExtractAsync(ctx, model, ct); }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
-            var typesAdded = model.Types.Count - typesBefore;
-            var detsAdded = model.Detections.Count - detsBefore;
-            ctx.Observer.OnExtractorCompleted(extractor.Name, esw.Elapsed, false, null, typesAdded, detsAdded);
-            RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, esw.Elapsed, false, typesAdded, detsAdded);
-        }
-
-        ctx.Observer.OnStageCompleted(PipelineStage.SpecificExtraction, sw.Elapsed);
     }
 
     private async Task RunPruningAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
