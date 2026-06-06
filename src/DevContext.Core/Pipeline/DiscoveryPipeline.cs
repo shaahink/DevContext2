@@ -296,6 +296,7 @@ public sealed class DiscoveryPipeline
         {
             ct.ThrowIfCancellationRequested();
             var result = await strategy.CompressAsync(model, options, ct);
+            model.AppliedCompressions.Add(result);
             ctx.Observer.OnCompressionApplied(result);
         }
 

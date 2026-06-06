@@ -55,4 +55,4 @@
 - **Unknown**: IOrderRepository
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Schema v2.0*
+*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−11%) · StructuralDeduplicator(−14%) | Schema v2.0*

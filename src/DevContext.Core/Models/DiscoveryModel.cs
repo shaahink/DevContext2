@@ -33,6 +33,8 @@ public sealed class DiscoveryModel
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
     /// <summary>Token budget configuration for the model.</summary>
     public TokenBudget Budget { get; internal set; } = TokenBudget.Default;
+    /// <summary>Compression results recorded sequentially during the compression stage.</summary>
+    public List<CompressionResult> AppliedCompressions { get; } = [];
 
     /// <summary>Records a provenance reason for why a specific item was included.</summary>
     public void AddProvenance(string itemId, InclusionReason reason)

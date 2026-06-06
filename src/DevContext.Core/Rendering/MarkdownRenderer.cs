@@ -34,7 +34,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var estimatedTokens = Math.Max(1, content.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, estimatedTokens, model.PruningNotes.Select(n => new CompressionResult("Pruning", 0, 0, [n])).ToArray(), sw.Elapsed, "2.0"));
+            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "2.0"));
     }
 
     private static void AppendHeader(StringBuilder sb, DiscoveryModel model)
@@ -265,20 +265,25 @@ public sealed class MarkdownRenderer : IContextRenderer
         var typesSurviving = model.Types.Values.Count(t => !t.IsPruned);
         var prunedCount = typesTotal - typesSurviving;
 
-        var compressionCount = model.PruningNotes.Count(n =>
-            n.Contains("TrivialMember") || n.Contains("Boilerplate") ||
-            n.Contains("Deduplicator") || n.Contains("NamespaceGrouper") ||
-            n.Contains("LlmFriendly") || n.Contains("AggressiveTruncator") ||
-            n.Contains("kept") || n.Contains("TokenBudget"));
+        var compressionSummary = model.AppliedCompressions
+            .Where(r => r.TokensBefore != r.TokensAfter)
+            .Select(r =>
+            {
+                var pct = r.TokensBefore > 0
+                    ? (r.TokensBefore - r.TokensAfter) * 100 / r.TokensBefore
+                    : 0;
+                return $"{r.StrategyName}(−{pct}%)";
+            })
+            .ToList();
 
-        var pruningDetail = compressionCount > 0
-            ? $" | Compressed: {compressionCount} strategies"
+        var compressionText = compressionSummary.Count > 0
+            ? $" | Compression: {string.Join(" · ", compressionSummary)}"
             : "";
 
         sb.AppendLine("---");
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
-            + pruningDetail
+            + compressionText
             + " | Schema v2.0*");
     }
 }
