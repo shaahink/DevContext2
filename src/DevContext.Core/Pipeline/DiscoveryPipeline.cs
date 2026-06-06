@@ -163,12 +163,27 @@ public sealed class DiscoveryPipeline
     {
         await RunStage1Async(context, new DiscoveryModel(), ct);
 
-        var plan = new List<(string Name, ExtractorTier Tier, ExtractorCategory Cat, bool WillRun, string Description)>();
+        var stage1 = new List<(string Name, string Description, bool WillRun)>();
+        var stage2 = new List<(string Name, string Description, bool WillRun)>();
+        var stage3 = new List<(string Name, string Description, ImmutableArray<string> RequiredSignals)>();
+
         foreach (var ext in _extractors.OrderBy(GetOrder))
         {
             var willRun = !context.Options.ExcludeExtractors.Contains(ext.Name)
                           && ext.ShouldRun(context, new DiscoveryModel());
-            plan.Add((ext.Name, ext.Tier, ext.Category, willRun, ext.Capabilities.Description));
+
+            switch (ext.Stage)
+            {
+                case ExecutionStage.Stage1Sequential:
+                    stage1.Add((ext.Name, ext.Capabilities.Description, willRun));
+                    break;
+                case ExecutionStage.Stage2Parallel:
+                    stage2.Add((ext.Name, ext.Capabilities.Description, willRun));
+                    break;
+                case ExecutionStage.Stage3Sequential:
+                    stage3.Add((ext.Name, ext.Capabilities.Description, ext.Capabilities.ReadsSignals));
+                    break;
+            }
         }
 
         var sb = new StringBuilder();
@@ -178,14 +193,34 @@ public sealed class DiscoveryPipeline
         sb.AppendLine($"**Profile**: {context.Options.Profile}");
         sb.AppendLine($"**Max tokens**: {context.Options.MaxOutputTokens}");
         sb.AppendLine();
-        sb.AppendLine("### Extractors");
-        sb.AppendLine("| Status | Name | Tier | Category | Description |");
-        sb.AppendLine("|---|---|---|---|---|");
-        foreach (var (name, tier, cat, willRun, desc) in plan)
+
+        sb.AppendLine("### Stage 1 (sequential)");
+        sb.AppendLine("| Status | Name | Description |");
+        sb.AppendLine("|---|---|---|");
+        foreach (var (name, desc, willRun) in stage1)
+            sb.AppendLine($"| {(willRun ? "✓" : "✗")} | {name} | {desc} |");
+
+        sb.AppendLine();
+        sb.AppendLine("### Stage 2 (parallel)");
+        sb.AppendLine("| Status | Name | Description |");
+        sb.AppendLine("|---|---|---|");
+        foreach (var (name, desc, willRun) in stage2)
+            sb.AppendLine($"| {(willRun ? "✓" : "✗")} | {name} | {desc} |");
+
+        sb.AppendLine();
+        sb.AppendLine("### Stage 3 (conditional, after signal detection)");
+        sb.AppendLine("| Status | Name | Requires | Description |");
+        sb.AppendLine("|---|---|---|---|");
+        foreach (var (name, desc, signals) in stage3)
         {
-            var status = willRun ? "✓" : "✗";
-            sb.AppendLine($"| {status} | {name} | {tier} | {cat} | {desc} |");
+            var requires = signals.Length > 0
+                ? string.Join(" OR ", signals)
+                : "(always runs)";
+            sb.AppendLine($"| ? | {name} | {requires} | {desc} |");
         }
+        sb.AppendLine();
+        sb.AppendLine("*Stage 3 extractors run conditionally based on Stage 2 signal results. "
+            + "Use --scenario or configure signals in devcontext.json to control which run.*");
 
         if (_validationWarnings.Count > 0)
         {
