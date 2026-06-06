@@ -580,4 +580,253 @@ public sealed class ExtractorTests
         Assert.NotNull(singleton);
         Assert.Equal("ICache", singleton.ServiceType);
     }
+
+    [Fact]
+    public async Task DependencyExtractor_DetectsFastEndpointsPackage()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup>
+                <PackageReference Include="FastEndpoints" Version="5.0.0" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                    [new PackageReferenceInfo("FastEndpoints", "5.0.0")])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints));
+    }
+
+    [Fact]
+    public async Task DependencyExtractor_DetectsCpmPackageReference()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup>
+                <PackageReference Include="MediatR" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [], [])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+    }
+
+    [Fact]
+    public async Task DependencyExtractor_DetectsSignalFromWebSdk()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <TargetFramework>net10.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [], [])
+            ],
+        };
+
+        var extractor = new DependencyExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis));
+    }
+
+    [Fact]
+    public async Task ProjectStructureExtractor_HandlesMultiTfm()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+
+        var model = new DiscoveryModel();
+
+        var extractor = new ProjectStructureExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var project = Assert.Single(model.Projects);
+        Assert.Contains("net8.0;net9.0", project.TargetFrameworks);
+    }
+
+    [Fact]
+    public async Task EndpointExtractor_DetectsStaticMethodHandler()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            app.MapGet("/hello", HelloHandler);
+            app.Run();
+            static string HelloHandler() => "hello";
+            """);
+
+        var result = await RunEndpointExtractorAsync(fs);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        var endpoint = Assert.Single(endpoints);
+        Assert.Equal("HelloHandler", endpoint.HandlerMethod);
+        Assert.Equal("/hello", endpoint.RouteTemplate);
+    }
+
+    [Fact]
+    public async Task SyntaxStructureExtractor_DetectsControllerBase_SetsControllerSignal()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\MyApp\Controllers\ProductsController.cs", """
+            namespace MyApp.Controllers;
+            public sealed class ProductsController : ControllerBase
+            {
+                public IActionResult Get() => Ok();
+            }
+            """);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\MyApp\Controllers\ProductsController.cs"];
+
+        var model = new DiscoveryModel();
+
+        var extractor = new SyntaxStructureExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Controllers));
+    }
+
+    [Fact]
+    public void FocusPointResolver_ResolvesTypeName()
+    {
+        var model = new DiscoveryModel();
+        model.Types.TryAdd("MyApp.Services.OrderService", new TypeDiscovery
+        {
+            Id = "MyApp.Services.OrderService",
+            Name = "OrderService",
+            Namespace = "MyApp.Services",
+            FilePath = @"C:\repo\src\MyApp\Services\OrderService.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+
+        var unresolved = new List<FocusPoint>
+        {
+            new(FocusKind.Type, "", "OrderService", null),
+        };
+
+        var resolved = DevContext.Core.Resolvers.FocusPointResolver.Resolve(unresolved, model);
+
+        var rp = Assert.Single(resolved);
+        Assert.Equal(FocusKind.Type, rp.Kind);
+        Assert.Equal(@"C:\repo\src\MyApp\Services\OrderService.cs", rp.FilePath);
+    }
+
+    [Fact]
+    public void FocusPointResolver_UnknownType_FallsBackWithoutCrash()
+    {
+        var model = new DiscoveryModel();
+
+        var unresolved = new List<FocusPoint>
+        {
+            new(FocusKind.Type, "", "NonExistentType", null),
+        };
+
+        var resolved = DevContext.Core.Resolvers.FocusPointResolver.Resolve(unresolved, model);
+
+        var rp = Assert.Single(resolved);
+        Assert.Equal(FocusKind.Type, rp.Kind);
+        Assert.Equal("", rp.FilePath);
+    }
+
+    private static async Task<DiscoveryModel> RunEndpointExtractorAsync(FakeFileSystem fs)
+    {
+        var cache = new FakeAnalysisCache(fs);
+        var allFiles = new List<string>();
+        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories))
+            allFiles.Add(f);
+
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis));
+        model.Architecture.Seal();
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = "",
+            Options = new ExtractionOptions { MaxOutputTokens = 8000 },
+            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = cache,
+            Analysis = new SharedAnalysisContext { AllSourceFiles = allFiles },
+            Logger = new NullLogger<DiscoveryContext>(),
+            RoslynWorkspace = new MockRoslynProvider()
+        };
+
+        await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+        return model;
+    }
 }

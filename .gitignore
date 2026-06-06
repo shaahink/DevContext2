@@ -8,3 +8,6 @@ nupkg/
 .DS_Store
 Thumbs.db
 eval-repos/
+eval-results/fresh-develop-*
+.claude/
+.opencode/

@@ -166,6 +166,98 @@ public sealed class PrunerTests
     }
 
     [Fact]
+    public async Task PatternRelevancePruner_LibraryMode_BoostsPublicTypes()
+    {
+        // No web signals present — library mode should activate
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("MyApp.Tests", @"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj", "C#", ["net10.0"], [], [])
+            ],
+        };
+        model.Types.TryAdd("MyApp.Services.PublicService", new TypeDiscovery
+        {
+            Id = "MyApp.Services.PublicService",
+            Name = "PublicService",
+            Namespace = "MyApp.Services",
+            FilePath = @"C:\repo\src\MyApp\Services\PublicService.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+        model.Types.TryAdd("MyApp.Tests.MyServiceTests", new TypeDiscovery
+        {
+            Id = "MyApp.Tests.MyServiceTests",
+            Name = "MyServiceTests",
+            Namespace = "MyApp.Tests",
+            FilePath = @"C:\repo\src\MyApp.Tests\MyServiceTests.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Internal,
+            Layer = ArchitectureLayer.Testing,
+        });
+
+        var builder = new DiscoveryContextBuilder()
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        var pruner = new PatternRelevancePruner();
+        await pruner.PruneAsync(ctx, model, default);
+
+        var publicService = model.Types["MyApp.Services.PublicService"];
+        var testType = model.Types["MyApp.Tests.MyServiceTests"];
+
+        // Public type should get a boost (library mode)
+        Assert.True(publicService.RelevanceScore > 0, "Public type should be boosted in library mode");
+        // Test type in a test project should be penalized
+        Assert.True(testType.RelevanceScore < 0, "Test type should be penalized in library mode");
+        // Public type should have higher score than test type
+        Assert.True(publicService.RelevanceScore > testType.RelevanceScore);
+    }
+
+    [Fact]
+    public async Task PatternRelevancePruner_LibraryMode_SkipsWhenWebSignalsPresent()
+    {
+        // Web signals present — library mode should NOT activate
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 1.0f, "test"));
+        model.Architecture.Seal();
+
+        model.Types.TryAdd("MyApp.Services.PublicService", new TypeDiscovery
+        {
+            Id = "MyApp.Services.PublicService",
+            Name = "PublicService",
+            Namespace = "MyApp.Services",
+            FilePath = @"C:\repo\src\MyApp\Services\PublicService.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+        model.Types.TryAdd("MyApp.Tests.MyServiceTests", new TypeDiscovery
+        {
+            Id = "MyApp.Tests.MyServiceTests",
+            Name = "MyServiceTests",
+            Namespace = "MyApp.Tests",
+            FilePath = @"C:\repo\src\MyApp\Tests\MyServiceTests.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Testing,
+        });
+
+        var builder = new DiscoveryContextBuilder()
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+
+        var pruner = new PatternRelevancePruner();
+        await pruner.PruneAsync(ctx, model, default);
+
+        // With web signals, scores should remain 0 (no library mode boost)
+        var publicService = model.Types["MyApp.Services.PublicService"];
+        var testType = model.Types["MyApp.Tests.MyServiceTests"];
+
+        Assert.Equal(0, publicService.RelevanceScore);
+    }
+
+    [Fact]
     public async Task CallReachabilityPruner_BoostsReachableTypes()
     {
         var model = new DiscoveryModel();
