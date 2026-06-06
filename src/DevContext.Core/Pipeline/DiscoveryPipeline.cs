@@ -149,7 +149,8 @@ public sealed class DiscoveryPipeline
         var renderOptions = new RenderOptions(
             context.Options.IncludeProvenance,
             context.Options.IncludeDiagnostics,
-            model.Budget.MaxTokens);
+            model.Budget.MaxTokens,
+            context.ActiveScenario.DisplayName);
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
         context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);

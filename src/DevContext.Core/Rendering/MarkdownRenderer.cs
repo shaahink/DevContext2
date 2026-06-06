@@ -12,7 +12,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        AppendHeader(sb, model);
+        AppendHeader(sb, model, options);
         AppendArchitecture(sb, model);
         AppendSignals(sb, model);
         AppendProjects(sb, model);
@@ -37,9 +37,9 @@ public sealed class MarkdownRenderer : IContextRenderer
             content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "2.0"));
     }
 
-    private static void AppendHeader(StringBuilder sb, DiscoveryModel model)
+    private static void AppendHeader(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        var scenarioName = "Architecture Overview";
+        var scenarioName = options.ScenarioDisplayName ?? "Architecture Overview";
         var entryName = model.Solution?.Name ?? "project";
 
         sb.AppendLine($"## DevContext -- {scenarioName} on {entryName}");

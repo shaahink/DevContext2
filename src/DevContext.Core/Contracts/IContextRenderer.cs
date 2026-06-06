@@ -4,7 +4,8 @@ namespace DevContext.Core.Contracts;
 public sealed record RenderOptions(
     bool IncludeProvenance,
     bool IncludeDiagnostics,
-    int EstimatedTokens
+    int EstimatedTokens,
+    string? ScenarioDisplayName = null
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>
