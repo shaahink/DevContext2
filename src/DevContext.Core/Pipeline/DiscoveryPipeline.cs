@@ -97,11 +97,14 @@ public sealed class DiscoveryPipeline
         await RunStage2Async(context, model, ct);
 
         // Seal signals — no more signal writes after this point
+        context.Observer.OnStageStarted(PipelineStage.SignalSealing);
+        var sealSw = Stopwatch.StartNew();
         model.Architecture.Seal();
         context.Observer.OnSignalsSealed(model.Architecture.All);
 
         // Architecture style detection: runs after signals sealed (between Stage 2 and 3 per design)
         ApplyArchitectureStyle(model);
+        context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
 
         // Stage 3: Sequential Specific extractors (signal-gated)
         await RunStage3Async(context, model, ct);
@@ -113,6 +116,8 @@ public sealed class DiscoveryPipeline
         await RunCompressionAsync(context, model, ct);
 
         // Stage 6: Render
+        context.Observer.OnStageStarted(PipelineStage.Rendering);
+        var renderSw = Stopwatch.StartNew();
         var format = context.Options.OutputFormat.ToString().ToLowerInvariant();
         if (!_renderers.TryGetValue(format, out var renderer))
             throw new InvalidOperationException($"No renderer registered for format: {format}");
@@ -123,6 +128,7 @@ public sealed class DiscoveryPipeline
             model.Budget.MaxTokens);
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
+        context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);
         context.Observer.OnRenderCompleted(rendered);
         context.Observer.OnPipelineCompleted(model);
         return rendered;

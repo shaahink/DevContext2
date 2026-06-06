@@ -6,7 +6,9 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 {
     private readonly StatusContext? _status;
     private readonly ConcurrentQueue<string> _log = new();
+    private readonly ConcurrentQueue<string> _pendingLines = new();
     private int _indent;
+    private bool _inParallelStage;
 
     public SpectreDiscoveryObserver(StatusContext? status = null)
     {
@@ -20,6 +22,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnStageStarted(PipelineStage stage)
     {
+        _inParallelStage = stage == PipelineStage.GenericExtraction;
         _indent++;
         WriteLine($"Stage: {stage}");
     }
@@ -27,7 +30,11 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     public void OnExtractorStarted(string name, ExtractorTier tier)
     {
         _indent++;
-        WriteLine($"{name}...");
+        var line = $"  ∟ {name}...";
+        if (_inParallelStage)
+            _pendingLines.Enqueue(line);
+        else
+            WriteLine(line);
     }
 
     public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
@@ -36,7 +43,13 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
         _indent--;
         var ms = elapsed.TotalMilliseconds;
         var note = skipped ? $" (skipped: {skipReason})" : "";
-        WriteLine($"{name} done [{ms:F0}ms]{note}");
+        var impact = (typesAdded > 0 || detectionsAdded > 0)
+            ? $" (+{typesAdded}t +{detectionsAdded}d)" : "";
+        var line = $"  ∟ [dim]{name}[/] ✓ {ms:F0}ms{note}{impact}";
+        if (_inParallelStage)
+            _pendingLines.Enqueue(line);
+        else
+            WriteLine(line);
     }
 
     public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
@@ -61,6 +74,12 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed)
     {
+        if (_inParallelStage)
+        {
+            while (_pendingLines.TryDequeue(out var line))
+                WriteLine(line);
+            _inParallelStage = false;
+        }
         _indent--;
         WriteLine($"Stage completed [{elapsed.TotalMilliseconds:F0}ms]");
     }
