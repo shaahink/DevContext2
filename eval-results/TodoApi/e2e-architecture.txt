@@ -1,0 +1,57 @@
+Analyzing project...
+Output written to C:\Code\DevContext2\eval-results\TodoApi\e2e-architecture.md
+
+╭─Metrics──────────────────────────────────────────────────────╮
+│ ## Metrics Report                                            │
+│                                                              │
+│ **Total time**: 672ms                                        │
+│                                                              │
+│                                                              │
+│ ### Pipeline Events                                          │
+│ - PipelineStarted:C:\Code\DevContext2\eval-repos\TodoApi     │
+│ - StageStarted:DiscoveryAndCacheWarmup                       │
+│ - ExtractorCompleted:FileTreeExtractor:21ms:+0t+0d           │
+│ - ExtractorCompleted:SolutionDiscovery:15ms:+0t+0d           │
+│ - ExtractorCompleted:ProjectStructure:34ms:+0t+0d            │
+│ - StageCompleted:DiscoveryAndCacheWarmup:90ms                │
+│ - StageStarted:GenericExtraction                             │
+│ - ExtractorCompleted:LayerClassifier:23ms:+0t+0d             │
+│ - ExtractorCompleted:DependencyExtractor:24ms:+0t+0d         │
+│ - ExtractorCompleted:ProgramCsFlowExtractor:236ms:+0t+19d    │
+│ - ExtractorCompleted:DiRegistrationExtractor:404ms:+42t+38d  │
+│ - ExtractorCompleted:SyntaxStructureExtractor:421ms:+43t+38d │
+│ - StageCompleted:GenericExtraction:426ms                     │
+│ - StageStarted:SignalSealing                                 │
+│ - SignalsSealed:minimal-apis(100%)                           │
+│ - StageCompleted:SignalSealing:7ms                           │
+│ - StageStarted:SpecificExtraction                            │
+│ - ExtractorCompleted:EndpointExtractor:59ms:+0t+11d          │
+│ - StageCompleted:SpecificExtraction:60ms                     │
+│ - StageStarted:Pruning                                       │
+│ - PrunerCompleted:PathProximityPruner:43->43                 │
+│ - PrunerCompleted:CallReachabilityPruner:43->43              │
+│ - PrunerCompleted:PatternRelevancePruner:43->37              │
+│ - PrunerCompleted:TokenBudgetEnforcer:37->37                 │
+│ - StageCompleted:Pruning:36ms                                │
+│ - StageStarted:Compression                                   │
+│ - CompressionApplied:TrivialMemberCompressor:688->675        │
+│ - CompressionApplied:BoilerplateCompressor:625->592          │
+│ - CompressionApplied:StructuralDeduplicator:642->568         │
+│ - CompressionApplied:NamespaceGrouper:568->568               │
+│ - CompressionApplied:LlmFriendlyFormatter:568->568           │
+│ - CompressionApplied:AggressiveTruncator:568->568            │
+│ - StageCompleted:Compression:21ms                            │
+│ - StageStarted:Rendering                                     │
+│ - StageCompleted:Rendering:22ms                              │
+│ - RenderCompleted:1195tokens:21ms                            │
+│ - PipelineCompleted:43types:49detections                     │
+│                                                              │
+╰──────────────────────────────────────────────────────────────╯
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │     TodoApp.sln      │
+│   Time   │        788ms         │
+│  Tokens  │ ~1195 (budget 20000) │
+│ Version  │        v2.0.0        │
+╰──────────┴──────────────────────╯

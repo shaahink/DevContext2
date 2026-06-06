@@ -9,6 +9,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     private readonly bool _isInteractive;
     private int _indent;
     private bool _inParallelStage;
+    private int _extractorDepth;
 
     public SpectreDiscoveryObserver()
     {
@@ -29,7 +30,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnExtractorStarted(string name, ExtractorTier tier)
     {
-        _indent++;
+        Interlocked.Increment(ref _extractorDepth);
         var line = $"  ∟ {name}...";
         if (_inParallelStage)
             _pendingLines.Enqueue(line);
@@ -40,7 +41,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
         int typesAdded = 0, int detectionsAdded = 0)
     {
-        _indent--;
+        Interlocked.Decrement(ref _extractorDepth);
         var ms = elapsed.TotalMilliseconds;
         var note = skipped ? $" (skipped: {skipReason})" : "";
         var impact = (typesAdded > 0 || detectionsAdded > 0)
@@ -122,7 +123,8 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     private void WriteLine(string message)
     {
-        var indented = new string(' ', _indent * 2) + message;
+        var depth = Math.Max(0, _indent + _extractorDepth);
+        var indented = new string(' ', depth * 2) + message;
         _log.Enqueue(indented);
         if (!_isInteractive) return;
         AnsiConsole.WriteLine(indented);

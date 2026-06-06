@@ -1,0 +1,57 @@
+Analyzing project...
+Output written to 
+C:\Code\DevContext2\eval-results\AutoMapper\e2e-architecture.md
+
+╭─Metrics────────────────────────────────────────────────────────╮
+│ ## Metrics Report                                              │
+│                                                                │
+│ **Total time**: 2356ms                                         │
+│                                                                │
+│                                                                │
+│ ### Pipeline Events                                            │
+│ - PipelineStarted:C:\Code\DevContext2\eval-repos\AutoMapper    │
+│ - StageStarted:DiscoveryAndCacheWarmup                         │
+│ - ExtractorCompleted:FileTreeExtractor:22ms:+0t+0d             │
+│ - ExtractorCompleted:SolutionDiscovery:6ms:+0t+0d              │
+│ - ExtractorCompleted:ProjectStructure:20ms:+0t+0d              │
+│ - StageCompleted:DiscoveryAndCacheWarmup:69ms                  │
+│ - StageStarted:GenericExtraction                               │
+│ - ExtractorCompleted:LayerClassifier:26ms:+0t+0d               │
+│ - ExtractorCompleted:DependencyExtractor:26ms:+0t+0d           │
+│ - ExtractorCompleted:ProgramCsFlowExtractor:199ms:+1t+0d       │
+│ - ExtractorCompleted:DiRegistrationExtractor:2194ms:+2712t+0d  │
+│ - ExtractorCompleted:SyntaxStructureExtractor:2201ms:+2713t+0d │
+│ - StageCompleted:GenericExtraction:2203ms                      │
+│ - StageStarted:SignalSealing                                   │
+│ - SignalsSealed:automapper(90%)                                │
+│ - StageCompleted:SignalSealing:6ms                             │
+│ - StageStarted:SpecificExtraction                              │
+│ - StageCompleted:SpecificExtraction:1ms                        │
+│ - StageStarted:Pruning                                         │
+│ - PrunerCompleted:PathProximityPruner:2713->2713               │
+│ - PrunerCompleted:CallReachabilityPruner:2713->2713            │
+│ - PrunerCompleted:PatternRelevancePruner:2713->562             │
+│ - PrunerCompleted:TokenBudgetEnforcer:562->459                 │
+│ - StageCompleted:Pruning:32ms                                  │
+│ - StageStarted:Compression                                     │
+│ - CompressionApplied:TrivialMemberCompressor:13355->10548      │
+│ - CompressionApplied:BoilerplateCompressor:9462->9352          │
+│ - CompressionApplied:StructuralDeduplicator:10438->7573        │
+│ - CompressionApplied:NamespaceGrouper:7573->7573               │
+│ - CompressionApplied:LlmFriendlyFormatter:7573->7573           │
+│ - CompressionApplied:AggressiveTruncator:7573->7573            │
+│ - StageCompleted:Compression:25ms                              │
+│ - StageStarted:Rendering                                       │
+│ - StageCompleted:Rendering:11ms                                │
+│ - RenderCompleted:1211tokens:10ms                              │
+│ - PipelineCompleted:2713types:0detections                      │
+│                                                                │
+╰────────────────────────────────────────────────────────────────╯
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   AutoMapper.slnx    │
+│   Time   │        2480ms        │
+│  Tokens  │ ~1211 (budget 20000) │
+│ Version  │        v2.0.0        │
+╰──────────┴──────────────────────╯

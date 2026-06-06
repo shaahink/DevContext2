@@ -1,0 +1,62 @@
+Analyzing project...
+Output written to 
+C:\Code\DevContext2\eval-results\eShop\e2e-modify-middleware.md
+
+╭─Metrics──────────────────────────────────────────────────────────────────────╮
+│ ## Metrics Report                                                            │
+│                                                                              │
+│ **Total time**: 1956ms                                                       │
+│                                                                              │
+│                                                                              │
+│ ### Pipeline Events                                                          │
+│ - PipelineStarted:C:\Code\DevContext2\eval-repos\eShop                       │
+│ - StageStarted:DiscoveryAndCacheWarmup                                       │
+│ - ExtractorCompleted:FileTreeExtractor:69ms:+0t+0d                           │
+│ - ExtractorCompleted:SolutionDiscovery:38ms:+0t+0d                           │
+│ - ExtractorCompleted:ProjectStructure:29ms:+0t+0d                            │
+│ - StageCompleted:DiscoveryAndCacheWarmup:156ms                               │
+│ - StageStarted:GenericExtraction                                             │
+│ - ExtractorCompleted:LayerClassifier:25ms:+0t+0d                             │
+│ - ExtractorCompleted:DependencyExtractor:26ms:+0t+0d                         │
+│ - ExtractorCompleted:ProgramCsFlowExtractor:218ms:+5t+22d                    │
+│ - ExtractorCompleted:DiRegistrationExtractor:1188ms:+516t+121d               │
+│ - ExtractorCompleted:SyntaxStructureExtractor:1189ms:+517t+121d              │
+│ - StageCompleted:GenericExtraction:1191ms                                    │
+│ - StageStarted:SignalSealing                                                 │
+│ -                                                                            │
+│ SignalsSealed:controllers(90%),minimal-apis(100%),mediatr(100%),fluentvalida │
+│ tion(100%)                                                                   │
+│ - StageCompleted:SignalSealing:13ms                                          │
+│ - StageStarted:SpecificExtraction                                            │
+│ - ExtractorCompleted:EndpointExtractor:365ms:+0t+30d                         │
+│ - ExtractorCompleted:MediatRExtractor:73ms:+0t+18d                           │
+│ - ExtractorCompleted:ControllerActionExtractor:70ms:+0t+14d                  │
+│ - StageCompleted:SpecificExtraction:510ms                                    │
+│ - StageStarted:Pruning                                                       │
+│ - PrunerCompleted:PathProximityPruner:517->517                               │
+│ - PrunerCompleted:CallReachabilityPruner:517->517                            │
+│ - PrunerCompleted:PatternRelevancePruner:517->488                            │
+│ - PrunerCompleted:TokenBudgetEnforcer:488->439                               │
+│ - StageCompleted:Pruning:35ms                                                │
+│ - StageStarted:Compression                                                   │
+│ - CompressionApplied:TrivialMemberCompressor:14912->13059                    │
+│ - CompressionApplied:BoilerplateCompressor:11442->11291                      │
+│ - CompressionApplied:StructuralDeduplicator:12909->9503                      │
+│ - CompressionApplied:NamespaceGrouper:9503->9503                             │
+│ - CompressionApplied:LlmFriendlyFormatter:9503->9503                         │
+│ - CompressionApplied:AggressiveTruncator:9503->9503                          │
+│ - StageCompleted:Compression:25ms                                            │
+│ - StageStarted:Rendering                                                     │
+│ - StageCompleted:Rendering:18ms                                              │
+│ - RenderCompleted:6613tokens:17ms                                            │
+│ - PipelineCompleted:517types:183detections                                   │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      eShop.slnx      │
+│   Time   │        2081ms        │
+│  Tokens  │ ~6613 (budget 20000) │
+│ Version  │        v2.0.0        │
+╰──────────┴──────────────────────╯

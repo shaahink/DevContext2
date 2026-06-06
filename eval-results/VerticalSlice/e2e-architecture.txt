@@ -1,0 +1,59 @@
+Analyzing project...
+Output written to 
+C:\Code\DevContext2\eval-results\VerticalSlice\e2e-architecture.md
+
+╭─Metrics──────────────────────────────────────────────────────────────────────╮
+│ ## Metrics Report                                                            │
+│                                                                              │
+│ **Total time**: 5581ms                                                       │
+│                                                                              │
+│                                                                              │
+│ ### Pipeline Events                                                          │
+│ - PipelineStarted:C:\Code\DevContext2\eval-repos\VerticalSlice               │
+│ - StageStarted:DiscoveryAndCacheWarmup                                       │
+│ - ExtractorCompleted:FileTreeExtractor:83ms:+0t+0d                           │
+│ - ExtractorCompleted:SolutionDiscovery:69ms:+0t+0d                           │
+│ - ExtractorCompleted:ProjectStructure:362ms:+0t+0d                           │
+│ - StageCompleted:DiscoveryAndCacheWarmup:542ms                               │
+│ - StageStarted:GenericExtraction                                             │
+│ - ExtractorCompleted:LayerClassifier:33ms:+0t+0d                             │
+│ - ExtractorCompleted:DependencyExtractor:33ms:+0t+0d                         │
+│ - ExtractorCompleted:ProgramCsFlowExtractor:316ms:+1t+4d                     │
+│ - ExtractorCompleted:DiRegistrationExtractor:4873ms:+380t+35d                │
+│ - ExtractorCompleted:SyntaxStructureExtractor:4896ms:+381t+35d               │
+│ - StageCompleted:GenericExtraction:4901ms                                    │
+│ - StageStarted:SignalSealing                                                 │
+│ -                                                                            │
+│ SignalsSealed:minimal-apis(80%),fluentvalidation(100%),fast-endpoints(100%)  │
+│ - StageCompleted:SignalSealing:11ms                                          │
+│ - StageStarted:SpecificExtraction                                            │
+│ - ExtractorCompleted:EndpointExtractor:42ms:+0t+23d                          │
+│ - StageCompleted:SpecificExtraction:44ms                                     │
+│ - StageStarted:Pruning                                                       │
+│ - PrunerCompleted:PathProximityPruner:381->381                               │
+│ - PrunerCompleted:CallReachabilityPruner:381->381                            │
+│ - PrunerCompleted:PatternRelevancePruner:381->318                            │
+│ - PrunerCompleted:TokenBudgetEnforcer:318->318                               │
+│ - StageCompleted:Pruning:32ms                                                │
+│ - StageStarted:Compression                                                   │
+│ - CompressionApplied:TrivialMemberCompressor:9940->9758                      │
+│ - CompressionApplied:BoilerplateCompressor:7425->7034                        │
+│ - CompressionApplied:StructuralDeduplicator:9367->5374                       │
+│ - CompressionApplied:NamespaceGrouper:5374->5374                             │
+│ - CompressionApplied:LlmFriendlyFormatter:5374->5374                         │
+│ - CompressionApplied:AggressiveTruncator:5374->5374                          │
+│ - StageCompleted:Compression:21ms                                            │
+│ - StageStarted:Rendering                                                     │
+│ - StageCompleted:Rendering:19ms                                              │
+│ - RenderCompleted:2302tokens:19ms                                            │
+│ - PipelineCompleted:381types:58detections                                    │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ Clean.Architecture.slnx │
+│   Time   │         5721ms          │
+│  Tokens  │  ~2302 (budget 20000)   │
+│ Version  │         v2.0.0          │
+╰──────────┴─────────────────────────╯
