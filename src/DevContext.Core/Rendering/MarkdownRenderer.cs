@@ -21,7 +21,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
             AppendArchitectureOverview(sb, model);
-        if (options.FocusPoints is { Length: > 0 })
+        if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
             AppendEntryPoints(sb, model, options);
         if (ShouldRender(SectionNames.Endpoints, options))
             AppendEndpoints(sb, model);
@@ -120,6 +120,8 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
+        if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
+
         sb.AppendLine("## Entry points");
         sb.AppendLine();
 

@@ -8,6 +8,7 @@
 ---
 ## Endpoints
 
+**Api** (2 endpoints)
 | Method | Route | Handler | Auth | Source |
 |--------|-------|---------|------|--------|
 | POST | /orders | λ Program.cs:15 | - | Program.cs:15 |

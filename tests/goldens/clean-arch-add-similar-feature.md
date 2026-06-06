@@ -8,6 +8,7 @@
 ---
 ## Endpoints
 
+**Web** (1 endpoints)
 | Method | Route | Handler | Auth | Source |
 |--------|-------|---------|------|--------|
 | GET | /products | λ Program.cs:13 | - | Program.cs:13 |

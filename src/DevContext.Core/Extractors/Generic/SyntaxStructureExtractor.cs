@@ -190,7 +190,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
         return typeDecl.BaseList.Types
             .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
-            .Where(t => t.Declaration is not InterfaceDeclarationSyntax && t.Declaration is not null)
+            .Where(t => IsBaseType(t.Declaration, t.TypeName))
             .Select(t => t.TypeName)
             .ToImmutableArray();
     }
@@ -201,9 +201,25 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
         return typeDecl.BaseList.Types
             .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
-            .Where(t => t.Declaration is InterfaceDeclarationSyntax)
+            .Where(t => IsInterface(t.Declaration, t.TypeName))
             .Select(t => t.TypeName)
             .ToImmutableArray();
+    }
+
+    private static bool IsBaseType(BaseTypeDeclarationSyntax? decl, string typeName)
+    {
+        if (decl is InterfaceDeclarationSyntax) return false;
+        if (decl is not null) return true; // Class, Struct, Record — all are base types
+        // Fallback: type not declared in this file — use naming convention
+        return !typeName.StartsWith("I");
+    }
+
+    private static bool IsInterface(BaseTypeDeclarationSyntax? decl, string typeName)
+    {
+        if (decl is InterfaceDeclarationSyntax) return true;
+        if (decl is not null) return false;
+        // Fallback: type not declared in this file — use naming convention
+        return typeName.StartsWith("I");
     }
 
     /// <summary>Resolves a base type syntax to its declaration by walking into namespace members or type declarations.</summary>
