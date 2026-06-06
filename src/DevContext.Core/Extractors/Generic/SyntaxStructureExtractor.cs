@@ -189,8 +189,9 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         if (typeDecl.BaseList == null) return [];
 
         return typeDecl.BaseList.Types
-            .Select(t => t.Type.ToString())
-            .Where(t => !t.StartsWith("I"))
+            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
+            .Where(t => t.Declaration is not InterfaceDeclarationSyntax && t.Declaration is not null)
+            .Select(t => t.TypeName)
             .ToImmutableArray();
     }
 
@@ -199,9 +200,24 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         if (typeDecl.BaseList == null) return [];
 
         return typeDecl.BaseList.Types
-            .Select(t => t.Type.ToString())
-            .Where(t => t.StartsWith("I"))
+            .Select(t => (TypeName: t.Type.ToString(), Declaration: ResolveTypeDeclaration(t)))
+            .Where(t => t.Declaration is InterfaceDeclarationSyntax)
+            .Select(t => t.TypeName)
             .ToImmutableArray();
+    }
+
+    /// <summary>Resolves a base type syntax to its declaration by walking into namespace members or type declarations.</summary>
+    private static BaseTypeDeclarationSyntax? ResolveTypeDeclaration(BaseTypeSyntax baseType)
+    {
+        var typeName = baseType.Type.ToString();
+        // Search current file for the type declaration
+        var root = baseType.SyntaxTree.GetCompilationUnitRoot();
+        // Look through namespace members and top-level types for a matching declaration
+        var candidate = root.DescendantNodes()
+            .OfType<BaseTypeDeclarationSyntax>()
+            .FirstOrDefault(t => t.Identifier.ValueText == typeName
+                || typeName.StartsWith(t.Identifier.ValueText + "<", StringComparison.Ordinal));
+        return candidate;
     }
 
     private static ImmutableArray<string> ExtractAttributes(TypeDeclarationSyntax typeDecl)
