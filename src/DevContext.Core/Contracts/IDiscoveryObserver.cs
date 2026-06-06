@@ -26,4 +26,9 @@ public interface IDiscoveryObserver
     void OnPipelineCompleted(DiscoveryModel model);
     /// <summary>Called when a diagnostic entry is recorded.</summary>
     void OnDiagnostic(DiagnosticEntry entry);
+
+    /// <summary>Records extractor metrics for the given extractor. Default no-op — override in implementations that track metrics.</summary>
+    void RecordExtractorMetrics(string name, ExtractorTier tier, ExtractorCategory category,
+        TimeSpan elapsed, bool skipped, int typesAdded, int detectionsAdded)
+    { }
 }

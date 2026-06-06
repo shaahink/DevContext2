@@ -340,10 +340,7 @@ public sealed class DiscoveryPipeline
         ExtractorTier tier, ExtractorCategory category, TimeSpan elapsed,
         bool skipped, int typesAdded, int detectionsAdded)
     {
-        if (observer is MetricsDiscoveryObserver mdo)
-            mdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
-        else if (observer is CompositeDiscoveryObserver cdo)
-            cdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
+        observer.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
     }
 
     private static List<string> SuggestTypeNames(string? input, IEnumerable<TypeDiscovery> types, int maxDistance = 3)
