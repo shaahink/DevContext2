@@ -98,6 +98,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         {
             var typeName = baseType.Type.ToString();
             if (typeName is "ControllerBase" or "Controller") return true;
+            if (typeName.StartsWith("Controller<", StringComparison.Ordinal)) return true;
         }
 
         foreach (var attr in classDecl.AttributeLists.SelectMany(a => a.Attributes))

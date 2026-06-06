@@ -19,9 +19,9 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
     public ExecutionStage Stage => ExecutionStage.Stage2Parallel;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
-        [], [],
+        [], [ArchitectureSignals.Keys.Controllers],
         ["model.Types"],
-        "Walks syntax trees of all .cs files to discover type declarations");
+        "Walks syntax trees of all .cs files to discover type declarations and emits controller signal fallback");
     /// <summary>Determines whether this extractor should run.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
 
@@ -56,6 +56,17 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 {
                     model.AddDiagnostic(DiagnosticLevel.Warning, Name,
                         $"Duplicate type id skipped: {typeDiscovery.Id}");
+                    continue;
+                }
+
+                // Signal fallback: detect controllers from base type inheritance
+                if (typeDiscovery.BaseTypes.Any(b =>
+                    b is "ControllerBase" or "Controller" or "ApiController"
+                    || b.StartsWith("Controller<", StringComparison.Ordinal)))
+                {
+                    model.Architecture.Register(FeatureSignal.CreateDetected(
+                        ArchitectureSignals.Keys.Controllers, 0.9f, "SyntaxPattern",
+                        $"Class {typeDiscovery.Name} derives from {string.Join(", ", typeDiscovery.BaseTypes)}"));
                 }
             }
         }
