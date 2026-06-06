@@ -3,7 +3,7 @@
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: controllers · minimal-apis · mediatr · fluentvalidation
 **Projects**: 24 -- Basket.API, Catalog.API, ClientApp, eShop.AppHost, eShop.ServiceDefaults, EventBus, EventBusRabbitMQ, HybridApp, Identity.API, IntegrationEventLogEF, Ordering.API, Ordering.Domain, Ordering.Infrastructure, OrderProcessor, PaymentProcessor, WebApp, WebAppComponents, WebhookClient, Webhooks.API, Basket.UnitTests, Catalog.FunctionalTests, ClientApp.UnitTests, Ordering.FunctionalTests, Ordering.UnitTests
-**Profile**: focused | **Tokens**: ~20000 (budget 20000) | **Types**: 212 in output
+**Profile**: focused | **Tokens**: ~20000 (budget 20000) | **Types**: 253 in output
 
 ---
 ## Architecture overview
@@ -111,44 +111,63 @@
 
 | Order | Type | Kind |
 |-------|------|------|
-| 1 | UseExceptionHandler | UseX |
-| 1 | UseDefaultOpenApi | UseX |
 | 1 | UseDefaultOpenApi | UseX |
 | 1 | UseExceptionHandler | UseX |
 | 1 | UseStaticFiles | UseX |
+| 1 | UseExceptionHandler | UseX |
+| 1 | UseDefaultOpenApi | UseX |
 | 1 | UseStatusCodePages | UseX |
 | 1 | MapGrpcService | MapX |
 | 2 | UseHsts | UseX |
-| 2 | UseHsts | UseX |
 | 2 | UseCookiePolicy | UseX |
+| 2 | UseHsts | UseX |
 | 2 | UseDefaultOpenApi | UseX |
 | 3 | UseAntiforgery | UseX |
-| 3 | UseAntiforgery | UseX |
 | 3 | UseRouting | UseX |
+| 3 | UseAntiforgery | UseX |
 | 4 | UseStaticFiles | UseX |
-| 4 | UseHttpsRedirection | UseX |
 | 4 | UseIdentityServer | UseX |
-| 5 | UseStaticFiles | UseX |
+| 4 | UseHttpsRedirection | UseX |
 | 5 | UseAuthorization | UseX |
+| 5 | UseStaticFiles | UseX |
 
 ### DI registrations
 
 | Lifetime | Service | Implementation |
 |----------|---------|----------------|
-| Singleton | IBasketRepository | RedisBasketRepository |
-| Extension | AddOptions | ? |
-| Singleton | WebAppComponents.Services.IProductImageUrlProvider | ProductImageUrlProvider |
-| Extension | AddHttpClient | o => o.BaseAddress = new(MobileBffHost) |
-| Extension | AddMauiBlazorWebView | ? |
-| Extension | AddHealthChecks | ? |
-| Extension | AddCheck | "self" |
+| Extension | AddRazorComponents | ? |
+| Extension | AddInteractiveServerComponents | ? |
+| Transient | IRedirectService | RedirectService |
+| Transient | ILoginService<ApplicationUser> | EFLoginService |
+| Transient | IProfileService | ProfileService |
+| Extension | AddIdentityServer | options =>
+{
+    //options.IssuerUri = "null";
+    options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
+
+    options.Events.RaiseErrorEvents = true;
+    options.Events.RaiseInformationEvents = true;
+    options.Events.RaiseFailureEvents = true;
+    options.Events.RaiseSuccessEvents = true;
+
+    // TODO: Remove this line in production.
+    options.KeyManagement.Enabled = false;
+} |
+| Extension | AddInMemoryIdentityResources | Config.GetResources() |
+| Extension | AddInMemoryApiScopes | Config.GetApiScopes() |
+| Extension | AddInMemoryApiResources | Config.GetApis() |
+| Extension | AddInMemoryClients | Config.GetClients(builder.Configuration) |
+| Extension | AddAspNetIdentity | ? |
+| Extension | AddDeveloperSigningCredential | ? |
+| Extension | AddIdentity | ? |
+| Extension | AddEntityFrameworkStores | ? |
+| Extension | AddDefaultTokenProviders | ? |
+| Extension | AddMigration | ? |
+| Extension | AddControllersWithViews | ? |
+| Singleton | sp => (RabbitMQEventBus)sp.GetRequiredService<IEventBus>() | sp => (RabbitMQEventBus)sp.GetRequiredService<IEventBus>() |
+| Singleton | IEventBus | RabbitMQEventBus |
+| Singleton | RabbitMQTelemetry | RabbitMQTelemetry |
 | Extension | AddOpenTelemetry | ? |
-| Extension | AddServiceDiscovery | ? |
-| Extension | AddHttpClient | o => o.BaseAddress = new("http://webhooks-api") |
-| Extension | AddApiVersion | 1.0 |
-| Extension | AddAuthToken | ? |
-| Singleton | HooksRepository | HooksRepository |
-| Extension | AddOptions | ? |
 | Extension | AddHttpClient | o => o.BaseAddress = new("https+http://ordering-api") |
 | Extension | AddApiVersion | 1.0 |
 | Extension | AddAuthToken | ? |
@@ -164,22 +183,7 @@
 | Scoped | BasketState | BasketState |
 | Extension | AddHttpForwarderWithServiceDiscovery | ? |
 | Extension | AddKeyedTransient | typeof(T) |
-| Scoped | ICatalogAI | CatalogAI |
-| Extension | AddOptions | ? |
-| Transient | ICatalogIntegrationEventService | CatalogIntegrationEventService |
-| Transient | IIntegrationEventLogService | IntegrationEventLogService<CatalogContext> |
-| Extension | AddMigration | ? |
-| Extension | AddDbContext | ? |
-| Extension | AddRazorComponents | ? |
-| Extension | AddInteractiveServerComponents | ? |
-| Extension | AddApiVersioning | options =>
-{
-    // Include "api-supported-versions" and "api-deprecated-versions" headers in all responses
-    options.ReportApiVersions = true;
-} |
-| Extension | AddProblemDetails | ? |
-| Extension | AddRazorComponents | ? |
-| Extension | AddInteractiveServerComponents | ? |
+| Extension | AddHttpContextAccessor | ? |
 | Transient | SettingsView | SettingsView |
 | Transient | ProfileView | ProfileView |
 | Transient | MapView | MapView |
@@ -263,11 +267,12 @@
 | Singleton | IDialogService | DialogService |
 | Singleton | INavigationService | MauiNavigationService |
 | Singleton | ISettingsService | SettingsService |
-| Extension | AddGrpc | ? |
-| Transient | IWebhooksSender | WebhooksSender |
-| Transient | IWebhooksRetriever | WebhooksRetriever |
-| Transient | IGrantUrlTesterService | GrantUrlTesterService |
-| Extension | AddMigration | ? |
+| Extension | AddHttpClient | o => o.BaseAddress = new("http://webhooks-api") |
+| Extension | AddApiVersion | 1.0 |
+| Extension | AddAuthToken | ? |
+| Singleton | HooksRepository | HooksRepository |
+| Extension | AddOptions | ? |
+| Singleton | IBasketRepository | RedisBasketRepository |
 | Extension | AddHostedService | ? |
 | Extension | AddOptions | ? |
 | Extension | AddApiVersioning | options =>
@@ -275,77 +280,72 @@
     // Include "api-supported-versions" and "api-deprecated-versions" headers in all responses
     options.ReportApiVersions = true;
 } |
+| Extension | AddRazorComponents | ? |
+| Extension | AddInteractiveServerComponents | ? |
+| Extension | AddOptions | ? |
 | Extension | AddApiVersioning | options =>
 {
     // Include "api-supported-versions" and "api-deprecated-versions" headers in all responses
     options.ReportApiVersions = true;
 } |
 | Extension | AddProblemDetails | ? |
-| Transient | IRedirectService | RedirectService |
-| Transient | ILoginService<ApplicationUser> | EFLoginService |
-| Transient | IProfileService | ProfileService |
-| Extension | AddIdentityServer | options =>
-{
-    //options.IssuerUri = "null";
-    options.Authentication.CookieLifetime = TimeSpan.FromHours(2);
-
-    options.Events.RaiseErrorEvents = true;
-    options.Events.RaiseInformationEvents = true;
-    options.Events.RaiseFailureEvents = true;
-    options.Events.RaiseSuccessEvents = true;
-
-    // TODO: Remove this line in production.
-    options.KeyManagement.Enabled = false;
-} |
-| Extension | AddInMemoryIdentityResources | Config.GetResources() |
-| Extension | AddInMemoryApiScopes | Config.GetApiScopes() |
-| Extension | AddInMemoryApiResources | Config.GetApis() |
-| Extension | AddInMemoryClients | Config.GetClients(builder.Configuration) |
-| Extension | AddAspNetIdentity | ? |
-| Extension | AddDeveloperSigningCredential | ? |
-| Extension | AddIdentity | ? |
-| Extension | AddEntityFrameworkStores | ? |
-| Extension | AddDefaultTokenProviders | ? |
-| Extension | AddMigration | ? |
-| Extension | AddControllersWithViews | ? |
-| Singleton | sp => (RabbitMQEventBus)sp.GetRequiredService<IEventBus>() | sp => (RabbitMQEventBus)sp.GetRequiredService<IEventBus>() |
-| Singleton | IEventBus | RabbitMQEventBus |
-| Singleton | RabbitMQTelemetry | RabbitMQTelemetry |
+| Extension | AddHealthChecks | ? |
+| Extension | AddCheck | "self" |
 | Extension | AddOpenTelemetry | ? |
-| Extension | AddHttpContextAccessor | ? |
+| Extension | AddServiceDiscovery | ? |
+| Extension | AddApiVersioning | options =>
+{
+    // Include "api-supported-versions" and "api-deprecated-versions" headers in all responses
+    options.ReportApiVersions = true;
+} |
+| Extension | AddProblemDetails | ? |
+| Transient | IWebhooksSender | WebhooksSender |
+| Transient | IWebhooksRetriever | WebhooksRetriever |
+| Transient | IGrantUrlTesterService | GrantUrlTesterService |
+| Extension | AddMigration | ? |
+| Scoped | ICatalogAI | CatalogAI |
+| Extension | AddOptions | ? |
+| Transient | ICatalogIntegrationEventService | CatalogIntegrationEventService |
+| Transient | IIntegrationEventLogService | IntegrationEventLogService<CatalogContext> |
+| Extension | AddMigration | ? |
+| Extension | AddDbContext | ? |
+| Singleton | WebAppComponents.Services.IProductImageUrlProvider | ProductImageUrlProvider |
+| Extension | AddHttpClient | o => o.BaseAddress = new(MobileBffHost) |
+| Extension | AddMauiBlazorWebView | ? |
+| Extension | AddGrpc | ? |
 
 ## Related types grouped by layer
 
-- **Api**: OrderStatusChangedToCancelledIntegrationEvent, CreateOrderCommand, OrderStockRejectedIntegrationEvent, SetStockRejectedOrderStatusCommandHandler, PaginatedItems, OrderStatusChangedToPaidIntegrationEvent, ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler, OrderStatusChangedToPaidIntegrationEventHandler, EFLoginService, GracePeriodConfirmedIntegrationEvent, SetStockConfirmedOrderStatusCommandHandler, IRedirectService, RedirectService, OrderStartedIntegrationEventHandler, ILoginService, OrderingApiTrace, IdentifiedCommandHandler, IBasketRepository, OrderPaymentSucceededIntegrationEventHandler, CatalogAI, CatalogItem, Config, OrderStatusChangedToStockConfirmedDomainEventHandler, UsersSeed, UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler, ServerCallContextIdentityExtensions, ProfileService, CreateOrderCommandHandler, OrderingContextSeed, OrderStatusChangedToPaidDomainEventHandler, OrderDraftDTO, CatalogTypeEntityTypeConfiguration, OrderingIntegrationEventService, OrderStatusChangedToAwaitingValidationDomainEventHandler, ICatalogIntegrationEventService, LoggingBehavior, BasketItem, OrderStockItem, IdentifiedCommand, OrderPaymentFailedIntegrationEventHandler, CreateOrderCommandValidator, LinqSelectExtensions, CatalogIntegrationEventService, CatalogItemEntityTypeConfiguration, IIdentityService, IOrderQueries, CatalogApi, CancelOrderIdentifiedCommandHandler, CatalogContext, OrderStockRejectedIntegrationEventHandler, Initial, RedisBasketRepository, BasketService, CreateOrderDraftCommandHandler, ApplicationDbContextModelSnapshot, OrderStockConfirmedIntegrationEventHandler, OrderCancelledDomainEventHandler, SetAwaitingValidationOrderStatusCommandHandler, ShipOrderCommandHandler, CancelOrderCommandHandler, SetPaidOrderStatusCommandHandler, OrderShippedDomainEventHandler
-- **Domain**: ClientRequestEntityTypeConfiguration, OrderDetailViewModel, OrderShippedDomainEvent, BasketViewModel, IViewModelBase, IRepository, CustomerBasket, PaymentMethodEntityTypeConfiguration, ViewModelBase, AuthorizeRequest, Address, OrderStatusChangedToPaidDomainEvent, IAggregateRoot, LoginViewModel, PaymentMethod, MapViewModel, CancelOrderCommand, OrderEntityTypeConfiguration, IBuyerRepository, OrderItem, MainViewModel, IUnitOfWork, SettingsViewModel, OrderItemEntityTypeConfiguration, BuyerEntityTypeConfiguration, Buyer, CatalogViewModel, BasketItem, IdentityService, CheckoutViewModel, CatalogItemViewModel, ProfileViewModel
+- **Api**: OrderStatusChangedToCancelledIntegrationEvent, CreateOrderCommand, OrderStockRejectedIntegrationEvent, SetStockRejectedOrderStatusCommandHandler, PaginatedItems, ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler, OrderStatusChangedToPaidIntegrationEventHandler, EFLoginService, GracePeriodConfirmedIntegrationEvent, SetStockConfirmedOrderStatusCommandHandler, IRedirectService, RedirectService, OrderStartedIntegrationEventHandler, ILoginService, OrderingApiTrace, IdentifiedCommandHandler, IBasketRepository, OrderPaymentSucceededIntegrationEventHandler, CatalogAI, CatalogItem, Config, OrderStatusChangedToStockConfirmedDomainEventHandler, UsersSeed, UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler, ServerCallContextIdentityExtensions, ProfileService, CreateOrderCommandHandler, OrderingContextSeed, OrderStatusChangedToPaidDomainEventHandler, OrderDraftDTO, CatalogTypeEntityTypeConfiguration, OrderingIntegrationEventService, OrderStatusChangedToAwaitingValidationDomainEventHandler, ICatalogIntegrationEventService, LoggingBehavior, BasketItem, OrderStockItem, IdentifiedCommand, OrderPaymentFailedIntegrationEventHandler, CreateOrderCommandValidator, LinqSelectExtensions, CatalogIntegrationEventService, CatalogItemEntityTypeConfiguration, IIdentityService, IOrderQueries, CatalogApi, CancelOrderIdentifiedCommandHandler, CatalogContext, OrderStockRejectedIntegrationEventHandler, Initial, RedisBasketRepository, BasketService, CreateOrderDraftCommandHandler, ApplicationDbContextModelSnapshot, OrderStockConfirmedIntegrationEventHandler, IOrderingIntegrationEventService, CatalogBrandEntityTypeConfiguration, OrderQueries, GracePeriodConfirmedIntegrationEventHandler, AddPhoneNumberViewModel, OrderCancelledDomainEventHandler, OrderStatusChangedToAwaitingValidationIntegrationEvent, ICatalogAI, SetAwaitingValidationOrderStatusCommandHandler, ShipOrderCommandHandler, CancelOrderCommandHandler, SetPaidOrderStatusCommandHandler, OrderShippedDomainEventHandler
+- **Domain**: ClientRequestEntityTypeConfiguration, OrderDetailViewModel, OrderShippedDomainEvent, BasketViewModel, IViewModelBase, IRepository, CustomerBasket, PaymentMethodEntityTypeConfiguration, ViewModelBase, AuthorizeRequest, Address, IAggregateRoot, LoginViewModel, PaymentMethod, MapViewModel, CancelOrderCommand, OrderEntityTypeConfiguration, IBuyerRepository, OrderItem, MainViewModel, IUnitOfWork, SettingsViewModel, OrderItemEntityTypeConfiguration, BuyerEntityTypeConfiguration, Buyer, CatalogViewModel, BasketItem, IdentityService, CheckoutViewModel, Order, CatalogItemViewModel, IOrderRepository, UserInfo, IdentityMockService, ObservableCollectionEx, OrderStatusChangedToStockConfirmedDomainEvent, CardTypeEntityTypeConfiguration, Entity, ProfileViewModel, OrderStatusChangedToAwaitingValidationDomainEvent
 - **Infrastructure**: BuyerRepository, RequestManager, OrderRepository, MediatorExtension, IRequestManager
-- **Presentation**: DiagnosticsViewModel, LoggedOutViewModel, ProductPriceChangedIntegrationEventHandler, WebhookData, IProductImageUrlProvider, CatalogService, OrderStatusNotificationService, MessageProcessor, Extensions, WebhookEndpoints, WebHooksApi, IWebhooksSender, OrderingService, BasketState, LoginViewModel, BasketQuantity, IBasketState, GrantUrlTesterService, ProcessConsentResult, RouteHandlerBuilderExtensions, OrderStatusChangedToSubmittedIntegrationEventHandler, GrantsController, WebhooksRetriever, BasketStateChangedSubscription, OrderStatusChangedToAwaitingValidationIntegrationEvent, AccountController, BasketService, ConsentController, OrderStatusChangedToCancelledIntegrationEventHandler, AccountOptions, ICatalogService, DeviceController, LogoutViewModel, ExternalController, LogOutService, HooksRepository, WebhooksSender
-- **Unknown**: HttpRequestExceptionEx, WebNavigatedEventArgsConverter, SettingsService, MainActivity, BadgeView, VisualElementExtensions, IOpenUrlService, ServiceAuthenticationException, DeleteBasketRequest, MauiAuthenticationBrowser, IAppEnvironmentService, OrderStatusChangedToStockConfirmedIntegrationEventHandler, DialogService, IEventBusBuilder, GetBasketRequest, WebNavigatingEventArgsConverter, IBasketService, MapView, ContentPageBase, GenericTypeExtensions, CustomTabbedPage, INavigationService, Program, CatalogServices, ItemsToHeightConverter, ThemeEffects, UpdateBasketRequest, DeleteBasketResponse, CatalogMockService, ILocationService, OrdersApi, MigrateDbContextExtensions, OrderService, RabbitMQTelemetry, BasketMockService, AddForwardHeadersSubscriber, AppDelegate, ISettingsService, HasCountConverter, EventBusBuilder, IIntegrationEventHandler, Extensions, LocationService, IIntegrationEventLogService, App, BasketClient, FadeToAnimation, FadeOutAnimation, BasketItem, SecuritySchemeDefinitionsTransformer, IntegrationEventLogEntry, IntegrationEventLogService, IOrderService, AppEnvironmentService, ITheme, DictionaryExtensions, App, Basket, IValidity, FixUriService, MigrationHostedService, FadeInAnimation, AppShell, ConfigurationExtensions, IsNotNullOrEmptyRule, EventBusSubscriptionInfo, ICommandExtensions, IDbSeeder, IEventBus, Theme, MauiNavigationService, ProductImageUrlProvider, BasketService, CatalogView, OpenUrlService, RabbitMQEventBus
+- **Presentation**: DiagnosticsViewModel, LoggedOutViewModel, ProductPriceChangedIntegrationEventHandler, WebhookData, IProductImageUrlProvider, CatalogService, OrderStatusNotificationService, MessageProcessor, Extensions, WebhookEndpoints, WebHooksApi, IWebhooksSender, OrderingService, BasketState, LoginViewModel, IBasketState, GrantUrlTesterService, ProcessConsentResult, RouteHandlerBuilderExtensions, OrderStatusChangedToSubmittedIntegrationEventHandler, GrantsController, WebhooksRetriever, BasketStateChangedSubscription, OrderStatusChangedToAwaitingValidationIntegrationEvent, AccountController, BasketService, ConsentController, OrderStatusChangedToCancelledIntegrationEventHandler, AccountOptions, ICatalogService, DeviceController, LogoutViewModel, OrderStatusChangedToShippedIntegrationEventHandler, OrderStatusChangedToAwaitingValidationIntegrationEventHandler, IGrantUrlTesterService, SecurityHeadersAttribute, ExternalController, App, ChatState, ItemHelper, LogOutService, HooksRepository, AuthenticationEndpoints, HomeController, WebhooksSender
+- **Unknown**: HttpRequestExceptionEx, WebNavigatedEventArgsConverter, SettingsService, MainActivity, BadgeView, VisualElementExtensions, IOpenUrlService, ServiceAuthenticationException, DeleteBasketRequest, MauiAuthenticationBrowser, IAppEnvironmentService, OrderStatusChangedToStockConfirmedIntegrationEventHandler, DialogService, IEventBusBuilder, GetBasketRequest, WebNavigatingEventArgsConverter, IBasketService, MapView, ContentPageBase, GenericTypeExtensions, CustomTabbedPage, INavigationService, Program, CatalogServices, ItemsToHeightConverter, ThemeEffects, UpdateBasketRequest, DeleteBasketResponse, CatalogMockService, ILocationService, OrdersApi, MigrateDbContextExtensions, RabbitMQTelemetry, BasketMockService, AddForwardHeadersSubscriber, ISettingsService, HasCountConverter, EventBusBuilder, IIntegrationEventHandler, Extensions, LocationService, IIntegrationEventLogService, App, BasketClient, FadeToAnimation, FadeOutAnimation, BasketItem, SecuritySchemeDefinitionsTransformer, IntegrationEventLogEntry, IntegrationEventLogService, IOrderService, AppEnvironmentService, ITheme, DictionaryExtensions, App, Basket, IValidity, FixUriService, MigrationHostedService, FadeInAnimation, AppShell, ConfigurationExtensions, IsNotNullOrEmptyRule, EventBusSubscriptionInfo, ICommandExtensions, IDbSeeder, IEventBus, Theme, HttpClientAuthorizationDelegatingHandler, AnimationBase, FirstValidationErrorConverter, IDialogService, DoubleConverter, OpenApiOptionsExtensions, IValidationRule, RequestProvider, ActivityExtensions, CustomerBasketResponse, MauiNavigationService, UriHelper, StoryBoard, BasketReflection, OrderMockService, ProductImageUrlProvider, HostEnvironmentExtensions, BeginAnimation, BasketService, IFixUriService, ClaimsPrincipalExtensions, EventBusBuilderExtensions, ResilientTransaction, EventBusOptions, CatalogView, OpenUrlService, RabbitMQEventBus
 
 ## Diagnostics
 
 | Level | Source | Message |
 |-------|--------|---------|
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.RemoveHiLoAndIndexCatalogName |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.Initial |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Webhooks.API.Migrations.Initial |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: global.Extensions |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.UseEnumForOrderStatus |
+| Info | CallReachabilityPruner | CallGraph not available; skipping reachability analysis. |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.HybridApp.Program |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.HybridApp.Program |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.HybridApp.AppDelegate |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.ClientApp.Program |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.ClientApp.AppDelegate |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.Initial |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: global.Extensions |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.UseEnumForOrderStatus |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.Outbox |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Identity.API.Data.Migrations.InitialMigration |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Webhooks.API.Migrations.Initial |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: global.Extensions |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.EventBus.Abstractions.IIntegrationEventHandler |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.Outbox |
+| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.RemoveHiLoAndIndexCatalogName |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.FixOrderitemseqSchema |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.Initial |
-| Info | CallReachabilityPruner | CallGraph not available; skipping reachability analysis. |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Identity.API.Data.Migrations.InitialMigration |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.Catalog.API.Infrastructure.Migrations.Outbox |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: global.Extensions |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: global.Program |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: Ordering.Infrastructure.Migrations.Outbox |
-| Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.EventBus.Abstractions.IIntegrationEventHandler |
 | Warning | SyntaxStructureExtractor | Duplicate type id skipped: eShop.ServiceDefaults.Extensions |
 
 ### Pruning notes
@@ -379,7 +379,7 @@
 - PatternRelevancePruner: pruned test type 'eShop.Basket.UnitTests.Helpers.TestServerCallContext'
 - PatternRelevancePruner: pruned test type 'ClientApp.UnitTests.Mocks.MockSettingsService'
 - PatternRelevancePruner: pruned test type 'ClientApp.UnitTests.Services.OrdersServiceTests'
-- TokenBudgetEnforcer: kept 352 types (136 pruned for budget 19500)
+- TokenBudgetEnforcer: kept 439 types (49 pruned for budget 19500)
 
 ---
-*Generated in 38.6ms | 517 types (212 active, 305 pruned) | Compression: TrivialMemberCompressor(−12%) · BoilerplateCompressor(−1%) · StructuralDeduplicator(−22%) | Schema v2.0*
+*Generated in 25.6ms | 517 types (253 active, 264 pruned) | Compression: TrivialMemberCompressor(−12%) · BoilerplateCompressor(−1%) · StructuralDeduplicator(−26%) | Schema v2.0*
