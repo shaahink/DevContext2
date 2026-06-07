@@ -10,6 +10,7 @@ Thumbs.db
 eval-repos/
 eval-results/**/fresh-develop-*
 eval-results/**/full-eval-*
+eval-results/**/FULL-EVALUATION-*
 eval-results/DEVELOP-*-ITERATION-PLAN.md
 .claude/
 .opencode/
