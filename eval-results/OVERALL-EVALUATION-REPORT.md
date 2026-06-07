@@ -73,3 +73,23 @@ See the per-run .md for exact exports used in analysis.
 
 This provides data for next iteration of extractors, pruning heuristics, etc.
 
+## Full Evaluation Assessment Snapshot (see eval-results/FULL-EVALUATION-ASSESSMENT.md for complete report)
+
+**State after Iteration 6 work on develop**:
+- Endpoint detection + rich rendering (per-project grouping, Group/Source/Auth columns, truncation, MediatR linkage, framework filtering) is mature and verified on fresh runs (TodoApi, Vertical, eShop quick, AutoMapper library).
+- New sections: EF entities, Message Consumers, CallGraph (debug + --around), Entry points for focus.
+- Scenario/profile support via RequiredSections, profile-gated CallGraph, scenario DisplayName.
+- Metrics fully working (impact columns even under Composite).
+- Pruning effective (library mode + incremental counts + caps).
+- Evaluation expanded to 6 repos + user has COMBINED-BENCHMARK-REPORT, OUTPUT-QUALITY-ASSESSMENT, multiple iteration docs, and ADRs.
+- 144 tests (2 goldens failing on trivial "profile" wording — easy fix).
+
+**Key remaining** (aligns with user's own quality assessment):
+- Goldens brittle.
+- Scenario differentiation still limited.
+- Duplicate tree-walking cost (SyntaxStructure dominant).
+- Some framework noise and handler data artifacts.
+- Architecture scoring on mixed monorepos.
+
+Fresh CLI artifacts + full synthesis in eval-results/FULL-EVALUATION-ASSESSMENT.md.
+OVERALL will be lightly appended with this snapshot.
