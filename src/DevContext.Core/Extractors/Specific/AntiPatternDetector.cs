@@ -112,20 +112,25 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static void DetectNewOutsideDI(SyntaxNode root, string filePath, DiscoveryModel model)
     {
+        if (IsTestFile(filePath)) return;
+
         foreach (var objCreation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
         {
-            // Skip if inside a constructor, field initializer, or DI registration (lambdas)
             if (IsInConstructorOrDI(objCreation)) continue;
 
             var typeName = objCreation.Type.ToString();
-            // Skip framework types, primitives, records in method bodies (they're often DTOs)
             if (typeName is "ArgumentNullException" or "InvalidOperationException" or "NotSupportedException"
                 or "List" or "Dictionary" or "ConcurrentDictionary" or "StringBuilder"
                 or "CancellationTokenSource" or "JsonSerializerOptions" or "DbContextOptionsBuilder"
-                or "SqliteConnection")
+                or "SqliteConnection" or "DbSet" or "ConfigurationBuilder" or "LoggerConfiguration"
+                or "Exception" or "AggregateException" or "SqlException")
                 continue;
 
-            // Only flag if the type name looks like a service/handler/manager
+            if (typeName.EndsWith("Mock", StringComparison.Ordinal)
+                || typeName.EndsWith("MockService", StringComparison.Ordinal)
+                || typeName.EndsWith("Test", StringComparison.Ordinal))
+                continue;
+
             if (!IsLikelyService(typeName)) continue;
 
             var line = objCreation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
@@ -163,6 +168,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static void DetectUnboundedCollections(SyntaxNode root, string filePath, DiscoveryModel model)
     {
+        if (IsTestFile(filePath)) return;
+
         foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>())
         {
             var fieldType = field.Declaration.Type.ToString();
@@ -244,6 +251,14 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static string Truncate(string text, int maxLen) =>
         text.Length <= maxLen ? text : text[..(maxLen - 3)] + "...";
+
+    private static bool IsTestFile(string filePath)
+    {
+        var lower = filePath.ToLowerInvariant();
+        return lower.Contains("\\test") || lower.Contains("\\tests\\") || lower.Contains("/tests/")
+            || lower.EndsWith("test.cs", StringComparison.OrdinalIgnoreCase)
+            || lower.EndsWith("tests.cs", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static async IAsyncEnumerable<string> EnumerateSourceFilesAsync(
         DiscoveryContext context, [EnumeratorCancellation] CancellationToken ct)

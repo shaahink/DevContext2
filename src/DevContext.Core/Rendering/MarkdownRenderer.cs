@@ -232,11 +232,44 @@ public sealed class MarkdownRenderer : IContextRenderer
     {
         if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
 
-        var typesWithBodies = options.FocusPoints
-            .Select(f => model.Types.Values.FirstOrDefault(t =>
-                t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal)))
-            .Where(t => t is not null && t.SourceBody is not null)
-            .Cast<TypeDiscovery>()
+        // Collect types from focus points (entry points)
+        var typeSet = new HashSet<string>();
+        foreach (var f in options.FocusPoints)
+        {
+            foreach (var t in model.Types.Values)
+            {
+                if (t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
+                {
+                    typeSet.Add(t.Id);
+                    break;
+                }
+            }
+        }
+
+        // Also collect types from call graph chain (visited nodes)
+        if (options.CallGraph is not null)
+        {
+            foreach (var kv in options.CallGraph.Edges)
+            {
+                foreach (var edge in kv.Value)
+                {
+                    if (typeSet.Count >= 5) break;
+                    foreach (var t in model.Types.Values)
+                    {
+                        if (t.Id == edge.CalleeType || t.Id.EndsWith("." + edge.CalleeType))
+                        {
+                            typeSet.Add(t.Id);
+                            break;
+                        }
+                    }
+                }
+                if (typeSet.Count >= 5) break;
+            }
+        }
+
+        var typesWithBodies = model.Types.Values
+            .Where(t => typeSet.Contains(t.Id) && t.SourceBody is not null)
+            .Take(5)
             .ToList();
 
         if (typesWithBodies.Count == 0) return;
@@ -246,9 +279,14 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         foreach (var type in typesWithBodies)
         {
+            if (type.SourceBody is null) continue;
             sb.AppendLine($"### {type.Name}.cs");
             sb.AppendLine("```csharp");
             sb.AppendLine(type.SourceBody);
+
+            if (type.SourceBody.Length >= 5000)
+                sb.AppendLine($"// ... [{type.SourceBody.Length} total chars]");
+
             sb.AppendLine("```");
             sb.AppendLine();
         }

@@ -258,23 +258,27 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         {
             var methodName = memberAccess.Name.Identifier.ValueText;
             var target = memberAccess.Expression.ToString();
-            var resolved = ResolveType(target, fieldMap, diMap, interfaceImplMap, fqnMap);
+            var resolved = ResolveType(target, callerType, fieldMap, diMap, interfaceImplMap, fqnMap);
             return (resolved, methodName);
         }
 
         if (invocation.Expression is IdentifierNameSyntax simpleName)
         {
-            var resolved = ResolveType("this", fieldMap, diMap, interfaceImplMap, fqnMap);
+            var resolved = ResolveType("this", callerType, fieldMap, diMap, interfaceImplMap, fqnMap);
             return (resolved, simpleName.Identifier.ValueText);
         }
 
         return ("unknown", invocation.Expression?.ToString() ?? "?");
     }
 
-    private static string ResolveType(string target, Dictionary<string, string> fieldMap,
+    private static string ResolveType(string target, string callerType, Dictionary<string, string> fieldMap,
         Dictionary<string, string> diMap, Dictionary<string, string> interfaceImplMap,
         Dictionary<string, string> fqnMap)
     {
+        // Same-class method calls and base calls resolve to the containing type
+        if (target is "this" or "base")
+            return callerType;
+
         var fieldName = target.StartsWith("this.", StringComparison.Ordinal)
             ? target["this.".Length..]
             : target;
