@@ -290,8 +290,20 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         {
             var methodName = memberAccess.Name.Identifier.ValueText;
             var target = memberAccess.Expression.ToString();
-            var resolved = ResolveType(target, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
-            return (resolved, methodName);
+
+            // Handle chained calls: db.Todos.Where(...) — walk to root identifier
+            if (memberAccess.Expression is MemberAccessExpressionSyntax chained)
+            {
+                var rootId = WalkToRootIdentifier(chained);
+                if (!string.IsNullOrEmpty(rootId))
+                {
+                    var resolved = ResolveType(rootId, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
+                    return (resolved, methodName);
+                }
+            }
+
+            var resolvedSimple = ResolveType(target, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
+            return (resolvedSimple, methodName);
         }
 
         if (invocation.Expression is IdentifierNameSyntax simpleName)
@@ -301,6 +313,22 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         }
 
         return ("unknown", invocation.Expression?.ToString() ?? "?");
+    }
+
+    /// <summary>Walks a member access chain to find the root identifier.
+    /// e.g. 'db.Todos.Where(predicate)' → root 'db', or 'this._repo.Orders' → root '_repo'.</summary>
+    private static string? WalkToRootIdentifier(ExpressionSyntax expr)
+    {
+        while (expr is MemberAccessExpressionSyntax ma)
+        {
+            expr = ma.Expression;
+        }
+        return expr switch
+        {
+            IdentifierNameSyntax id => id.Identifier.ValueText,
+            ThisExpressionSyntax => "this",
+            _ => expr.ToString()
+        };
     }
 
     private static string ResolveType(string target, string callerType, Dictionary<string, string> fieldMap,

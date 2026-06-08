@@ -40,6 +40,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (ShouldRender(SectionNames.NonObviousWiring, options))
             AppendNonObviousWiring(sb, model);
         AppendAntiPatterns(sb, model);
+        AppendEventFlow(sb, model);
         if (ShouldRender(SectionNames.RelatedTypes, options))
             AppendRelatedTypesByLayer(sb, model);
 
@@ -205,6 +206,29 @@ public sealed class MarkdownRenderer : IContextRenderer
             {
                 var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
                 sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
+
+                // Cross-reference with DI registrations
+                var diRegs = model.Detections.OfType<DiRegistrationDetection>()
+                    .Where(d => !d.ServiceType.StartsWith("Add") && d.ServiceType != "?")
+                    .GroupBy(d => d.ServiceType)
+                    .ToDictionary(g => g.Key.Trim(), g => g.First());
+
+                var resolved = new List<string>();
+                foreach (var paramType in ctors[0].ParameterTypes)
+                {
+                    var trimmed = paramType.Trim();
+                    if (diRegs.TryGetValue(trimmed, out var reg))
+                    {
+                        var source = $"{Path.GetFileName(reg.SourceFile)}:{reg.LineNumber}";
+                        resolved.Add($"`{trimmed}` → `{reg.ImplementationType}` ({source})");
+                    }
+                    else if (trimmed.StartsWith("ILogger"))
+                    {
+                        resolved.Add($"`{trimmed}` → framework-provided");
+                    }
+                }
+                if (resolved.Count > 0)
+                    sb.AppendLine($"**Resolved to**: {string.Join(", ", resolved)}");
             }
 
             var publicMethods = type.Methods
@@ -662,6 +686,54 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine($"| {p.Severity} | {p.Pattern} | {p.Description} | {source} |");
         }
         sb.AppendLine();
+    }
+
+    private static void AppendEventFlow(StringBuilder sb, DiscoveryModel model)
+    {
+        var flows = model.Detections.OfType<EventFlowDetection>().ToList();
+        if (flows.Count == 0) return;
+
+        var busKind = flows.First().BusKind;
+
+        sb.AppendLine(busKind == "in-memory"
+            ? "## Event flow (in-memory bus)"
+            : "## Event flow");
+        sb.AppendLine();
+
+        // Group by event type
+        var byEvent = flows.Where(f => f.Kind != "Handler")
+            .GroupBy(f => f.EventType)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        if (byEvent.Count > 0)
+        {
+            sb.AppendLine("| Event | Direction | Target | Source |");
+            sb.AppendLine("|-------|-----------|--------|--------|");
+            foreach (var group in byEvent)
+            {
+                foreach (var flow in group)
+                {
+                    var direction = flow.Kind == "Subscribe" ? "← subscribed" : "→ published";
+                    var source = flow.SourceFile is not null && flow.LineNumber > 0
+                        ? $"{Path.GetFileName(flow.SourceFile)}:{flow.LineNumber}"
+                        : "-";
+                    sb.AppendLine($"| `{flow.EventType}` | {direction} | `{flow.Target}` | {source} |");
+                }
+            }
+            sb.AppendLine();
+        }
+
+        // Show handler implementations via IEventHandler<T>
+        var handlers = flows.Where(f => f.Kind == "Handler").ToList();
+        if (handlers.Count > 0)
+        {
+            sb.AppendLine("### IEventHandler implementations");
+            sb.AppendLine();
+            foreach (var h in handlers)
+                sb.AppendLine($"- `{h.EventType}` → `{h.Target}`");
+            sb.AppendLine();
+        }
     }
 
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)
