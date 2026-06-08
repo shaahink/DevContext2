@@ -8,7 +8,8 @@ public sealed record RenderOptions(
     string? ScenarioDisplayName = null,
     ImmutableArray<string> RequiredSections = default,
     ImmutableArray<FocusPoint> FocusPoints = default,
-    CallGraph? CallGraph = null
+    CallGraph? CallGraph = null,
+    ProjectDependencyGraph? ProjectGraph = null
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

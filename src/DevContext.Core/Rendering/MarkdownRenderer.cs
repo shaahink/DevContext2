@@ -1,4 +1,5 @@
 using System.Text;
+using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Rendering;
 
@@ -20,9 +21,12 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine("---");
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
-            AppendArchitectureOverview(sb, model);
+            AppendArchitectureOverview(sb, model, options);
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
+        {
             AppendEntryPoints(sb, model, options);
+            AppendSourceBodies(sb, model, options);
+        }
         if (ShouldRender(SectionNames.Endpoints, options))
             AppendEndpoints(sb, model);
         if (ShouldRender(SectionNames.CallGraph, options))
@@ -35,6 +39,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             AppendMessageConsumers(sb, model);
         if (ShouldRender(SectionNames.NonObviousWiring, options))
             AppendNonObviousWiring(sb, model);
+        AppendAntiPatterns(sb, model);
         if (ShouldRender(SectionNames.RelatedTypes, options))
             AppendRelatedTypesByLayer(sb, model);
 
@@ -98,7 +103,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine();
     }
 
-    private static void AppendArchitectureOverview(StringBuilder sb, DiscoveryModel model)
+    private static void AppendArchitectureOverview(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         sb.AppendLine("## Architecture overview");
         sb.AppendLine();
@@ -110,12 +115,46 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        foreach (var project in model.Projects)
+        // Render project dependency graph if available
+        if (options.ProjectGraph is not null && options.ProjectGraph.AdjacencyList.Count > 0)
         {
-            sb.AppendLine($"- {project.Name}");
+            var graph = options.ProjectGraph.AdjacencyList;
+            var roots = graph.Keys
+                .Where(k => !graph.Values.Any(v => v.Contains(k)))
+                .OrderBy(k => k)
+                .ToList();
+
+            if (roots.Count == 0) roots = graph.Keys.OrderBy(k => k).ToList();
+
+            var visited = new HashSet<string>();
+            foreach (var root in roots)
+            {
+                RenderProjectTree(sb, root, graph, visited, "", true);
+            }
+        }
+        else
+        {
+            foreach (var project in model.Projects)
+                sb.AppendLine($"- {project.Name}");
         }
 
         sb.AppendLine();
+    }
+
+    private static void RenderProjectTree(StringBuilder sb, string project,
+        IReadOnlyDictionary<string, ImmutableArray<string>> graph,
+        HashSet<string> visited, string indent, bool isLast)
+    {
+        if (!visited.Add(project)) return;
+
+        var connector = isLast ? "└── " : "├── ";
+        sb.AppendLine($"{indent}{connector}{project}");
+
+        var deps = graph.TryGetValue(project, out var d) ? d : ImmutableArray<string>.Empty;
+        var childIndent = indent + (isLast ? "    " : "│   ");
+
+        for (int i = 0; i < deps.Length; i++)
+            RenderProjectTree(sb, deps[i], graph, visited, childIndent, i == deps.Length - 1);
     }
 
     private static void AppendEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -185,6 +224,32 @@ public sealed class MarkdownRenderer : IContextRenderer
                 }
             }
 
+            sb.AppendLine();
+        }
+    }
+
+    private static void AppendSourceBodies(StringBuilder sb, DiscoveryModel model, RenderOptions options)
+    {
+        if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
+
+        var typesWithBodies = options.FocusPoints
+            .Select(f => model.Types.Values.FirstOrDefault(t =>
+                t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal)))
+            .Where(t => t is not null && t.SourceBody is not null)
+            .Cast<TypeDiscovery>()
+            .ToList();
+
+        if (typesWithBodies.Count == 0) return;
+
+        sb.AppendLine("## Source code");
+        sb.AppendLine();
+
+        foreach (var type in typesWithBodies)
+        {
+            sb.AppendLine($"### {type.Name}.cs");
+            sb.AppendLine("```csharp");
+            sb.AppendLine(type.SourceBody);
+            sb.AppendLine("```");
             sb.AppendLine();
         }
     }
@@ -354,28 +419,52 @@ public sealed class MarkdownRenderer : IContextRenderer
                 .Take(3)
                 .ToList();
 
-        // If no focus matches, show first few callers
         if (callerKeys.Count == 0 || callerKeys.All(string.IsNullOrEmpty))
             callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
 
         sb.AppendLine("## Call graph");
         sb.AppendLine();
 
+        var visited = new HashSet<string>();
+        var maxDepth = 5;
+
         foreach (var callerKey in callerKeys)
         {
-            if (!options.CallGraph.Edges.TryGetValue(callerKey, out var edges)) continue;
+            if (!options.CallGraph.Edges.TryGetValue(callerKey, out _)) continue;
 
             var parts = callerKey.Split('.');
             var callerType = parts.Length > 1 ? string.Join(".", parts[..^1]) : callerKey;
             var callerMethod = parts.Length > 0 ? parts[^1] : callerKey;
 
             sb.AppendLine($"**{callerType}.{callerMethod}**");
-            foreach (var edge in edges.Take(10))
-            {
-                var location = edge.CallSiteLocation is not null ? $" `({edge.CallSiteLocation})`" : "";
-                sb.AppendLine($"├─ `{edge.CalleeType}.{edge.CalleeMethod}`{location}");
-            }
+            visited.Clear();
+            visited.Add(callerKey);
+            RenderCallGraphNode(sb, options.CallGraph, callerKey, "", visited, 0, maxDepth);
             sb.AppendLine();
+        }
+    }
+
+    private static void RenderCallGraphNode(StringBuilder sb, CallGraph graph, string callerKey,
+        string indent, HashSet<string> visited, int depth, int maxDepth)
+    {
+        if (depth >= maxDepth) return;
+        if (!graph.Edges.TryGetValue(callerKey, out var edges)) return;
+
+        var edgeList = edges.Take(12).ToList();
+        for (int i = 0; i < edgeList.Count; i++)
+        {
+            var edge = edgeList[i];
+            var isLast = i == edgeList.Count - 1;
+            var connector = isLast ? "└─ " : "├─ ";
+            var location = edge.CallSiteLocation is not null ? $" `({edge.CallSiteLocation})`" : "";
+            sb.AppendLine($"{indent}{connector}`{edge.CalleeType}.{edge.CalleeMethod}`{location}");
+
+            var calleeKey = $"{edge.CalleeType}.{edge.CalleeMethod}";
+            if (visited.Add(calleeKey))
+            {
+                var childIndent = indent + (isLast ? "   " : "│  ");
+                RenderCallGraphNode(sb, graph, calleeKey, childIndent, visited, depth + 1, maxDepth);
+            }
         }
     }
 
@@ -511,6 +600,30 @@ public sealed class MarkdownRenderer : IContextRenderer
             }
             sb.AppendLine();
         }
+    }
+
+    private static void AppendAntiPatterns(StringBuilder sb, DiscoveryModel model)
+    {
+        var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
+        if (patterns.Count == 0) return;
+
+        sb.AppendLine("## Anti-patterns detected");
+        sb.AppendLine();
+        sb.AppendLine("| Severity | Pattern | Description | Source |");
+        sb.AppendLine("|----------|---------|-------------|--------|");
+
+        var bySeverity = patterns
+            .OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 })
+            .ThenBy(p => p.Pattern)
+            .Take(40)
+            .ToList();
+
+        foreach (var p in bySeverity)
+        {
+            var source = $"{Path.GetFileName(p.SourceFile)}:{p.LineNumber}";
+            sb.AppendLine($"| {p.Severity} | {p.Pattern} | {p.Description} | {source} |");
+        }
+        sb.AppendLine();
     }
 
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)

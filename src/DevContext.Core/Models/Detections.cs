@@ -15,6 +15,7 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(DiRegistrationDetection), "DiRegistrationDetection")]
 [JsonDerivedType(typeof(AspireResourceDetection), "AspireResourceDetection")]
 [JsonDerivedType(typeof(AspireRelationshipDetection), "AspireRelationshipDetection")]
+[JsonDerivedType(typeof(AntiPatternDetection), "AntiPatternDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>

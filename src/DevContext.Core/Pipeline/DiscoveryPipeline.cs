@@ -160,7 +160,8 @@ public sealed class DiscoveryPipeline
             context.ActiveScenario.DisplayName,
             context.ActiveScenario.RequiredSections,
             context.Analysis.FocusPoints.ToImmutableArray(),
-            context.Analysis.CallGraph);
+            context.Analysis.CallGraph,
+            context.Analysis.ProjectGraph);
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
         context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);

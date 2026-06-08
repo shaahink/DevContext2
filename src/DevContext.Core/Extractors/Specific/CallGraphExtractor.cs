@@ -31,6 +31,48 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         var maxDepth = context.ActiveScenario.Pruning.MaxCallDepth;
         var allEdges = new ConcurrentBag<CallEdge>();
 
+        // Build DI resolution map: interface/abstract type → concrete implementation
+        // Key: short type name, Value: short implementation name
+        var diMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        {
+            if (!string.IsNullOrEmpty(di.ImplementationType)
+                && di.ImplementationType != "?"
+                && !di.ImplementationType.StartsWith("sp =>")
+                && !di.ImplementationType.StartsWith("_ =>")
+                && !di.ImplementationType.StartsWith("(")
+                && !di.ImplementationType.Contains("GetRequiredService"))
+            {
+                var svcShort = StripGenerics(di.ServiceType);
+                var implShort = StripGenerics(di.ImplementationType);
+                diMap[svcShort] = implShort;
+            }
+        }
+
+        // Build interface→implementation map from model.Types (fallback when DI map misses)
+        var interfaceImplMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in model.Types)
+        {
+            var type = kv.Value;
+            if (type.ImplementedInterfaces is { Length: > 0 })
+            {
+                foreach (var iface in type.ImplementedInterfaces)
+                {
+                    var ifaceShort = StripGenerics(iface);
+                    if (!interfaceImplMap.ContainsKey(ifaceShort))
+                        interfaceImplMap[ifaceShort] = type.Name;
+                }
+            }
+        }
+
+        // Build short-name → fully-qualified-name map from model.Types
+        var fqnMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var kv in model.Types)
+        {
+            if (!fqnMap.ContainsKey(kv.Value.Name))
+                fqnMap[kv.Value.Name] = kv.Key;
+        }
+
         await foreach (var filePath in EnumerateSourceFilesAsync(context, ct))
         {
             ct.ThrowIfCancellationRequested();
@@ -54,13 +96,32 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                 var callerType = GetTypeFullName(typeDecl);
                 if (string.IsNullOrEmpty(callerType)) continue;
 
+                // Build field map for this type: fieldName → declaredType
+                var fieldMap = BuildFieldMap(typeDecl, diMap);
+
                 foreach (var methodDecl in typeDecl.Members.OfType<MethodDeclarationSyntax>())
                 {
                     var callerMethod = methodDecl.Identifier.ValueText;
 
                     foreach (var invocation in methodDecl.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var (calleeType, calleeMethod) = ResolveCallee(invocation);
+                        var (calleeType, calleeMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap);
+                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                        allEdges.Add(new CallEdge(
+                            callerType, callerMethod,
+                            calleeType, calleeMethod,
+                            $"{filePath}:{lineNumber}"));
+                    }
+                }
+
+                foreach (var ctorDecl in typeDecl.Members.OfType<ConstructorDeclarationSyntax>())
+                {
+                    var callerMethod = ctorDecl.Identifier.ValueText;
+
+                    foreach (var invocation in ctorDecl.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                    {
+                        var (calleeType, calleeMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap);
                         var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 
                         allEdges.Add(new CallEdge(
@@ -167,21 +228,82 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         return startKeys;
     }
 
-    private static (string Type, string Method) ResolveCallee(InvocationExpressionSyntax invocation)
+    private static Dictionary<string, string> BuildFieldMap(TypeDeclarationSyntax typeDecl, Dictionary<string, string> diMap)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var field in typeDecl.Members.OfType<FieldDeclarationSyntax>())
+        {
+            var fieldType = field.Declaration.Type.ToString();
+            foreach (var variable in field.Declaration.Variables)
+            {
+                map[variable.Identifier.ValueText] = fieldType;
+            }
+        }
+
+        foreach (var prop in typeDecl.Members.OfType<PropertyDeclarationSyntax>())
+        {
+            var propType = prop.Type.ToString();
+            map[prop.Identifier.ValueText] = propType;
+        }
+
+        return map;
+    }
+
+    private static (string Type, string Method) ResolveCallee(InvocationExpressionSyntax invocation,
+        string callerType, Dictionary<string, string> fieldMap, Dictionary<string, string> diMap,
+        Dictionary<string, string> interfaceImplMap, Dictionary<string, string> fqnMap)
     {
         if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
         {
             var methodName = memberAccess.Name.Identifier.ValueText;
             var target = memberAccess.Expression.ToString();
-            return (target, methodName);
+            var resolved = ResolveType(target, fieldMap, diMap, interfaceImplMap, fqnMap);
+            return (resolved, methodName);
         }
 
         if (invocation.Expression is IdentifierNameSyntax simpleName)
         {
-            return ("this", simpleName.Identifier.ValueText);
+            var resolved = ResolveType("this", fieldMap, diMap, interfaceImplMap, fqnMap);
+            return (resolved, simpleName.Identifier.ValueText);
         }
 
         return ("unknown", invocation.Expression?.ToString() ?? "?");
+    }
+
+    private static string ResolveType(string target, Dictionary<string, string> fieldMap,
+        Dictionary<string, string> diMap, Dictionary<string, string> interfaceImplMap,
+        Dictionary<string, string> fqnMap)
+    {
+        var fieldName = target.StartsWith("this.", StringComparison.Ordinal)
+            ? target["this.".Length..]
+            : target;
+
+        if (fieldMap.TryGetValue(fieldName, out var declaredType))
+        {
+            var shortType = StripGenerics(declaredType);
+
+            // Try DI map (e.g. IBacktestCommandService → BacktestOrchestrator from AddSingleton)
+            if (diMap.TryGetValue(shortType, out var impl))
+                shortType = impl;
+            // Fallback: interface→implementation from type hierarchy
+            else if (interfaceImplMap.TryGetValue(shortType, out var impl2))
+                shortType = impl2;
+
+            // Resolve to fully qualified name
+            if (fqnMap.TryGetValue(shortType, out var fqn))
+                return fqn;
+
+            return shortType;
+        }
+
+        return target;
+    }
+
+    private static string StripGenerics(string typeName)
+    {
+        var idx = typeName.IndexOf('<');
+        return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
     }
 
     private static string GetTypeFullName(TypeDeclarationSyntax typeDecl)
