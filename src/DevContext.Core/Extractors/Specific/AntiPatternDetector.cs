@@ -22,17 +22,16 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
         {
-            ct.ThrowIfCancellationRequested();
-
             SyntaxTree syntaxTree;
             try
             {
                 syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
             }
-            catch
+            catch (Exception ex)
             {
+                model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}: {ex.Message}");
                 continue;
             }
 
@@ -50,7 +49,6 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
     {
         foreach (var assignment in root.DescendantNodes().OfType<AssignmentExpressionSyntax>())
         {
-            // Pattern: _ = SomeAsyncMethod(...)
             if (assignment.Left.ToString() == "_" &&
                 assignment.Right is InvocationExpressionSyntax inv)
             {
@@ -68,18 +66,39 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
             }
         }
 
-        // Pattern: _ = Task.Run(...) — fire-and-forget task
+        // Pattern: bare expression-statement calling Task.Run, Task.Factory.StartNew, or ContinueWith
         foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            if (inv.Expression.ToString().Contains(".ContinueWith") &&
-                inv.Parent is ExpressionStatementSyntax &&
-                inv.Parent.Parent is BlockSyntax)
+            if (inv.Parent is not ExpressionStatementSyntax exprStmt) continue;
+            if (inv == exprStmt.Expression && inv.Parent?.Parent is not (BlockSyntax or ArrowExpressionClauseSyntax or CompilationUnitSyntax))
+                continue;
+
+            var exprStr = inv.Expression.ToString();
+            var isTaskRun = exprStr.Contains("Task.Run") || exprStr.Contains("Task.Factory.StartNew");
+            var isContinueWith = exprStr.Contains(".ContinueWith");
+
+            if (!isTaskRun && !isContinueWith) continue;
+
+            if (isTaskRun)
+            {
+                var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                model.Detections.Add(new AntiPatternDetection(
+                    "FireAndForget",
+                    $"`{Truncate(exprStr, 60)}` without await — task runs unobserved. Exceptions may be lost in thread pool.",
+                    "high", "Task.Run")
+                {
+                    ExtractorName = "AntiPatternDetector",
+                    SourceFile = filePath,
+                    LineNumber = line
+                });
+            }
+            else
             {
                 var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 model.Detections.Add(new AntiPatternDetection(
                     "FireAndForget",
                     "ContinueWith without await — unobserved task continuation.",
-                    "medium", "ContinueWith")
+                    "high", "ContinueWith")
                 {
                     ExtractorName = "AntiPatternDetector",
                     SourceFile = filePath,
@@ -91,28 +110,30 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static void DetectServiceScopeFactory(SyntaxNode root, string filePath, DiscoveryModel model)
     {
+        if (ExtractorHelpers.IsTestFile(filePath)) return;
+
         foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            var expr = inv.Expression.ToString();
-            if (expr.Contains("CreateScope") || expr.Contains("_scopeFactory") || expr.Contains("scopeFactory"))
+            if (inv.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            var methodName = memberAccess.Name.Identifier.ValueText;
+            if (methodName is not ("CreateScope" or "CreateAsyncScope")) continue;
+
+            var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            model.Detections.Add(new AntiPatternDetection(
+                "ServiceLocator",
+                $"IServiceScopeFactory.{methodName}() — manual service location. Prefer constructor injection.",
+                "high", "IServiceScopeFactory")
             {
-                var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                model.Detections.Add(new AntiPatternDetection(
-                    "ServiceLocator",
-                    $"IServiceScopeFactory usage: `{Truncate(expr, 80)}` — manual service location. Prefer constructor injection.",
-                    "high", "IServiceScopeFactory")
-                {
-                    ExtractorName = "AntiPatternDetector",
-                    SourceFile = filePath,
-                    LineNumber = line
-                });
-            }
+                ExtractorName = "AntiPatternDetector",
+                SourceFile = filePath,
+                LineNumber = line
+            });
         }
     }
 
     private static void DetectNewOutsideDI(SyntaxNode root, string filePath, DiscoveryModel model)
     {
-        if (IsTestFile(filePath)) return;
+        if (ExtractorHelpers.IsTestFile(filePath)) return;
 
         foreach (var objCreation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
         {
@@ -148,6 +169,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static void DetectCancellationTokenNone(SyntaxNode root, string filePath, DiscoveryModel model)
     {
+        var severity = ExtractorHelpers.IsTestFile(filePath) ? "low" : "medium";
+
         foreach (var memberAccess in root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
         {
             if (memberAccess.ToString().EndsWith("CancellationToken.None"))
@@ -156,7 +179,44 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                 model.Detections.Add(new AntiPatternDetection(
                     "CancellationTokenNone",
                     "`CancellationToken.None` used — operation cannot be cancelled.",
-                    "medium", "CancellationToken.None")
+                    severity, "CancellationToken.None")
+                {
+                    ExtractorName = "AntiPatternDetector",
+                    SourceFile = filePath,
+                    LineNumber = line
+                });
+            }
+        }
+
+        // default(CancellationToken) — semantically equivalent to None
+        foreach (var defaultExpr in root.DescendantNodes().OfType<DefaultExpressionSyntax>())
+        {
+            if (defaultExpr.Type.ToString() is "CancellationToken" or "System.Threading.CancellationToken")
+            {
+                var line = defaultExpr.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                model.Detections.Add(new AntiPatternDetection(
+                    "CancellationTokenNone",
+                    "`default(CancellationToken)` — semantically equivalent to None. Operation cannot be cancelled.",
+                    severity, "default(CancellationToken)")
+                {
+                    ExtractorName = "AntiPatternDetector",
+                    SourceFile = filePath,
+                    LineNumber = line
+                });
+            }
+        }
+
+        // new CancellationToken() — default value, same as None
+        foreach (var objCreation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            if (objCreation.Type.ToString() is "CancellationToken" or "System.Threading.CancellationToken"
+                && objCreation.ArgumentList?.Arguments.Count is 0 or null)
+            {
+                var line = objCreation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                model.Detections.Add(new AntiPatternDetection(
+                    "CancellationTokenNone",
+                    "`new CancellationToken()` — default token, same as None. Operation cannot be cancelled.",
+                    severity, "new CancellationToken()")
                 {
                     ExtractorName = "AntiPatternDetector",
                     SourceFile = filePath,
@@ -168,7 +228,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static void DetectUnboundedCollections(SyntaxNode root, string filePath, DiscoveryModel model)
     {
-        if (IsTestFile(filePath)) return;
+        if (ExtractorHelpers.IsTestFile(filePath)) return;
 
         foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>())
         {
@@ -219,7 +279,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                 or ArrowExpressionClauseSyntax);
 
         // In constructor or field init: OK
-        if (ancestor is ConstructorDeclarationSyntax or FieldDeclarationSyntax or PropertyDeclarationSyntax)
+        if (ancestor is ConstructorDeclarationSyntax or FieldDeclarationSyntax or PropertyDeclarationSyntax or ArrowExpressionClauseSyntax)
             return true;
 
         // In lambda (DI registration): OK
@@ -251,30 +311,4 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static string Truncate(string text, int maxLen) =>
         text.Length <= maxLen ? text : text[..(maxLen - 3)] + "...";
-
-    private static bool IsTestFile(string filePath)
-    {
-        var lower = filePath.ToLowerInvariant();
-        return lower.Contains("\\test") || lower.Contains("\\tests\\") || lower.Contains("/tests/")
-            || lower.EndsWith("test.cs", StringComparison.OrdinalIgnoreCase)
-            || lower.EndsWith("tests.cs", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static async IAsyncEnumerable<string> EnumerateSourceFilesAsync(
-        DiscoveryContext context, [EnumeratorCancellation] CancellationToken ct)
-    {
-        foreach (var file in context.Analysis.AllSourceFiles)
-        {
-            ct.ThrowIfCancellationRequested();
-            yield return file;
-        }
-    }
 }
-
-/// <summary>Detection for an anti-pattern found in the codebase.</summary>
-public sealed record AntiPatternDetection(
-    string Pattern,
-    string Description,
-    string Severity,
-    string TargetType
-) : Detection;

@@ -119,8 +119,9 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {csprojPath}: {ex.Message}");
                 }
             }
         }

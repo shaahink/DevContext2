@@ -99,3 +99,11 @@ public sealed record DiRegistrationDetection(
     string Lifetime,
     ImmutableArray<string> ExtensionsUsed
 ) : Detection;
+
+/// <summary>Detection for an anti-pattern found in the codebase.</summary>
+public sealed record AntiPatternDetection(
+    string Pattern,
+    string Description,
+    string Severity,
+    string TargetType
+) : Detection;

@@ -27,7 +27,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -78,16 +78,6 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                         $"Class {typeDiscovery.Name} derives from {string.Join(", ", typeDiscovery.BaseTypes)}"));
                 }
             }
-        }
-    }
-
-    private static async IAsyncEnumerable<string> EnumerateSourceFilesAsync(
-        DiscoveryContext context, [EnumeratorCancellation] CancellationToken ct)
-    {
-        foreach (var file in context.Analysis.AllSourceFiles)
-        {
-            ct.ThrowIfCancellationRequested();
-            yield return file;
         }
     }
 
