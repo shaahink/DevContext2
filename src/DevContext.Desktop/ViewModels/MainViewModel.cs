@@ -66,7 +66,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _hasOutput;
     [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
-    [ObservableProperty] private bool _isHumanView = true;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    private bool _isHumanView = true;
 
     // ── Section-based dual-view ─────────────────────────────────────────────────
     public ObservableCollection<SectionGroupViewModel> SectionGroups { get; } = [];
@@ -299,6 +301,7 @@ public partial class MainViewModel : ObservableObject
                 _rawContent = result.Content ?? "";
                 OutputText = _rawContent;
                 PopulateSections(_rawContent);
+                OnPropertyChanged(nameof(DisplayText));
                 var tokens = _rawContent.Length / 4;
                 StatsText = $"~{tokens:N0} tokens  ·  {result.ElapsedMs / 1000.0:F1}s";
                 HasOutput = true;

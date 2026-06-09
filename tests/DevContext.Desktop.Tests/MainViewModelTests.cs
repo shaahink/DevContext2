@@ -423,4 +423,19 @@ public class MainViewModelTests
         if (vm.AnalyzeCommand.CanExecute(null))
             await vm.AnalyzeCommand.ExecuteAsync(null);
     }
+
+    [Fact]
+    public async Task AnalyzeAsync_populates_DisplayText_after_success()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Section header\n**content**", ElapsedMs = 100 }));
+
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.NotEmpty(vm.DisplayText);
+        Assert.Contains("Section header", vm.DisplayText);
+    }
 }
