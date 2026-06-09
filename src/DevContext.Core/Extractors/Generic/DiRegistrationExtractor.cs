@@ -115,9 +115,18 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                         .Select(a => a.Expression?.ToString() ?? "?")
                         .ToImmutableArray();
 
+                    // For generic extensions like AddHostedService<T>, extract T from type arguments
+                    var implType = argTypes.Length > 0 ? argTypes[0] : "?";
+                    if (implType == "?" && invocation.Expression is MemberAccessExpressionSyntax ma
+                        && ma.Name is GenericNameSyntax genericName)
+                    {
+                        var typeArgs = genericName.TypeArgumentList.Arguments;
+                        implType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
+                    }
+
                     model.Detections.Add(new DiRegistrationDetection(
                         ServiceType: methodName,
-                        ImplementationType: argTypes.Length > 0 ? argTypes[0] : "?",
+                        ImplementationType: implType,
                         Lifetime: "Extension",
                         ExtensionsUsed: [methodName])
                     {

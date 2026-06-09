@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DevContext Configuration",
+  "description": "Schema for devcontext.json — persistent configuration for the DevContext CLI tool",
+  "type": "object",
+  "properties": {
+    "defaultProfile": {
+      "type": "string",
+      "enum": ["quick", "focused", "debug", "full"],
+      "description": "Default extraction profile when --profile is not specified"
+    },
+    "defaultScenario": {
+      "type": "string",
+      "enum": ["architecture", "debug-endpoint", "add-similar-feature", "modify-middleware", "trace-message-flow", "harden-di"],
+      "description": "Default scenario when --scenario is not specified"
+    },
+    "maxOutputTokens": {
+      "type": "integer",
+      "minimum": 500,
+      "maximum": 100000,
+      "default": 8000,
+      "description": "Token budget for output"
+    },
+    "excludePatterns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [".git", "bin", "obj"],
+      "description": "Directory/file patterns to exclude from analysis"
+    },
+    "entryPaths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Restrict analysis to specific subdirectories"
+    },
+    "profiles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "profile": { "type": "string", "enum": ["quick", "focused", "debug", "full"] },
+          "maxOutputTokens": { "type": "integer" },
+          "noRoslyn": { "type": "boolean" }
+        }
+      },
+      "description": "Custom named profiles that override defaults"
+    }
+  }
+}

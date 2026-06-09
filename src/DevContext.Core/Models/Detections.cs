@@ -15,6 +15,8 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(DiRegistrationDetection), "DiRegistrationDetection")]
 [JsonDerivedType(typeof(AspireResourceDetection), "AspireResourceDetection")]
 [JsonDerivedType(typeof(AspireRelationshipDetection), "AspireRelationshipDetection")]
+[JsonDerivedType(typeof(AntiPatternDetection), "AntiPatternDetection")]
+[JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -97,4 +99,12 @@ public sealed record DiRegistrationDetection(
     string ImplementationType,
     string Lifetime,
     ImmutableArray<string> ExtensionsUsed
+) : Detection;
+
+/// <summary>Detection for an anti-pattern found in the codebase.</summary>
+public sealed record AntiPatternDetection(
+    string Pattern,
+    string Description,
+    string Severity,
+    string TargetType
 ) : Detection;

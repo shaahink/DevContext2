@@ -16,7 +16,7 @@
 
 ## Call graph
 
-Not available in focused profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
+Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
 
 ## MediatR Handlers
 
@@ -40,4 +40,4 @@ Not available in focused profile. Re-run with `--profile debug` to enable call g
 | Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−11%) · StructuralDeduplicator(−14%) | Schema v2.0*
+*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0*

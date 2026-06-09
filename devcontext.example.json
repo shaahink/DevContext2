@@ -1,0 +1,20 @@
+{
+  "$schema": "https://devcontext.dev/schemas/v2/config.json",
+  "defaultProfile": "focused",
+  "defaultScenario": "debug-endpoint",
+  "maxOutputTokens": 8000,
+  "excludePatterns": [".git", "bin", "obj", "node_modules", ".vs", "Migrations"],
+  "entryPaths": ["src/Api"],
+  "profiles": {
+    "quick": {
+      "profile": "quick",
+      "maxOutputTokens": 2000,
+      "noRoslyn": true
+    },
+    "ci": {
+      "profile": "focused",
+      "maxOutputTokens": 6000,
+      "includeDiagnostics": true
+    }
+  }
+}

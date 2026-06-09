@@ -27,7 +27,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -60,11 +60,6 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
                 if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery))
                 {
-                    // Merge duplicates — collect additional file paths instead of just warning
-                    if (model.Types.TryGetValue(typeDiscovery.Id, out var existing))
-                    {
-                        existing.AdditionalFilePaths.Add(filePath);
-                    }
                     continue;
                 }
 
@@ -78,16 +73,6 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                         $"Class {typeDiscovery.Name} derives from {string.Join(", ", typeDiscovery.BaseTypes)}"));
                 }
             }
-        }
-    }
-
-    private static async IAsyncEnumerable<string> EnumerateSourceFilesAsync(
-        DiscoveryContext context, [EnumeratorCancellation] CancellationToken ct)
-    {
-        foreach (var file in context.Analysis.AllSourceFiles)
-        {
-            ct.ThrowIfCancellationRequested();
-            yield return file;
         }
     }
 
@@ -110,7 +95,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             _ => ModelsTypeKind.Class,
         };
 
-        var methods = ExtractMethods(typeDecl);
+        var methods = ExtractMethods(typeDecl).Concat(ExtractConstructors(typeDecl)).ToImmutableArray();
         var properties = ExtractProperties(typeDecl);
         var baseTypes = ExtractBaseTypes(typeDecl);
         var interfaces = ExtractInterfaces(typeDecl);
@@ -164,6 +149,31 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         }
 
         return methods.ToImmutableArray();
+    }
+
+    private static ImmutableArray<MethodSignature> ExtractConstructors(TypeDeclarationSyntax typeDecl)
+    {
+        var ctors = new List<MethodSignature>();
+        foreach (var ctor in typeDecl.Members.OfType<ConstructorDeclarationSyntax>())
+        {
+            var paramTypes = ctor.ParameterList.Parameters
+                .Select(p => p.Type?.ToString() ?? "var")
+                .ToImmutableArray();
+            var paramNames = ctor.ParameterList.Parameters
+                .Select(p => p.Identifier.ValueText)
+                .ToImmutableArray();
+
+            ctors.Add(new MethodSignature(
+                ctor.Identifier.ValueText,
+                "ctor",
+                paramTypes,
+                paramNames,
+                GetAccessibility(ctor.Modifiers),
+                ctor.Modifiers.Any(SyntaxKind.StaticKeyword),
+                false));
+        }
+
+        return ctors.ToImmutableArray();
     }
 
     private static ImmutableArray<PropertySignature> ExtractProperties(TypeDeclarationSyntax typeDecl)

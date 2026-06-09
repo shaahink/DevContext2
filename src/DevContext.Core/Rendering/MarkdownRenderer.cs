@@ -1,4 +1,5 @@
 using System.Text;
+using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Rendering;
 
@@ -20,9 +21,12 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine("---");
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
-            AppendArchitectureOverview(sb, model);
+            AppendArchitectureOverview(sb, model, options);
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
+        {
             AppendEntryPoints(sb, model, options);
+            AppendSourceBodies(sb, model, options);
+        }
         if (ShouldRender(SectionNames.Endpoints, options))
             AppendEndpoints(sb, model);
         if (ShouldRender(SectionNames.CallGraph, options))
@@ -35,6 +39,8 @@ public sealed class MarkdownRenderer : IContextRenderer
             AppendMessageConsumers(sb, model);
         if (ShouldRender(SectionNames.NonObviousWiring, options))
             AppendNonObviousWiring(sb, model);
+        AppendAntiPatterns(sb, model);
+        AppendEventFlow(sb, model);
         if (ShouldRender(SectionNames.RelatedTypes, options))
             AppendRelatedTypesByLayer(sb, model);
 
@@ -98,7 +104,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine();
     }
 
-    private static void AppendArchitectureOverview(StringBuilder sb, DiscoveryModel model)
+    private static void AppendArchitectureOverview(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         sb.AppendLine("## Architecture overview");
         sb.AppendLine();
@@ -110,12 +116,46 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        foreach (var project in model.Projects)
+        // Render project dependency graph if available
+        if (options.ProjectGraph is not null && options.ProjectGraph.AdjacencyList.Count > 0)
         {
-            sb.AppendLine($"- {project.Name}");
+            var graph = options.ProjectGraph.AdjacencyList;
+            var roots = graph.Keys
+                .Where(k => !graph.Values.Any(v => v.Contains(k)))
+                .OrderBy(k => k)
+                .ToList();
+
+            if (roots.Count == 0) roots = graph.Keys.OrderBy(k => k).ToList();
+
+            var visited = new HashSet<string>();
+            foreach (var root in roots)
+            {
+                RenderProjectTree(sb, root, graph, visited, "", true);
+            }
+        }
+        else
+        {
+            foreach (var project in model.Projects)
+                sb.AppendLine($"- {project.Name}");
         }
 
         sb.AppendLine();
+    }
+
+    private static void RenderProjectTree(StringBuilder sb, string project,
+        IReadOnlyDictionary<string, ImmutableArray<string>> graph,
+        HashSet<string> visited, string indent, bool isLast)
+    {
+        if (!visited.Add(project)) return;
+
+        var connector = isLast ? "└── " : "├── ";
+        sb.AppendLine($"{indent}{connector}{project}");
+
+        var deps = graph.TryGetValue(project, out var d) ? d : ImmutableArray<string>.Empty;
+        var childIndent = indent + (isLast ? "    " : "│   ");
+
+        for (int i = 0; i < deps.Length; i++)
+            RenderProjectTree(sb, deps[i], graph, visited, childIndent, i == deps.Length - 1);
     }
 
     private static void AppendEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -166,6 +206,29 @@ public sealed class MarkdownRenderer : IContextRenderer
             {
                 var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
                 sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
+
+                // Cross-reference with DI registrations
+                var diRegs = model.Detections.OfType<DiRegistrationDetection>()
+                    .Where(d => !d.ServiceType.StartsWith("Add") && d.ServiceType != "?")
+                    .GroupBy(d => d.ServiceType)
+                    .ToDictionary(g => g.Key.Trim(), g => g.First());
+
+                var resolved = new List<string>();
+                foreach (var paramType in ctors[0].ParameterTypes)
+                {
+                    var trimmed = paramType.Trim();
+                    if (diRegs.TryGetValue(trimmed, out var reg))
+                    {
+                        var source = $"{Path.GetFileName(reg.SourceFile)}:{reg.LineNumber}";
+                        resolved.Add($"`{trimmed}` → `{reg.ImplementationType}` ({source})");
+                    }
+                    else if (trimmed.StartsWith("ILogger"))
+                    {
+                        resolved.Add($"`{trimmed}` → framework-provided");
+                    }
+                }
+                if (resolved.Count > 0)
+                    sb.AppendLine($"**Resolved to**: {string.Join(", ", resolved)}");
             }
 
             var publicMethods = type.Methods
@@ -185,6 +248,70 @@ public sealed class MarkdownRenderer : IContextRenderer
                 }
             }
 
+            sb.AppendLine();
+        }
+    }
+
+    private static void AppendSourceBodies(StringBuilder sb, DiscoveryModel model, RenderOptions options)
+    {
+        if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
+
+        // Collect types from focus points (entry points)
+        var typeSet = new HashSet<string>();
+        foreach (var f in options.FocusPoints)
+        {
+            foreach (var t in model.Types.Values)
+            {
+                if (t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
+                {
+                    typeSet.Add(t.Id);
+                    break;
+                }
+            }
+        }
+
+        // Also collect types from call graph chain (visited nodes)
+        if (options.CallGraph is not null)
+        {
+            foreach (var kv in options.CallGraph.Edges)
+            {
+                foreach (var edge in kv.Value)
+                {
+                    if (typeSet.Count >= 5) break;
+                    foreach (var t in model.Types.Values)
+                    {
+                        if (t.Id == edge.CalleeType || t.Id.EndsWith("." + edge.CalleeType))
+                        {
+                            typeSet.Add(t.Id);
+                            break;
+                        }
+                    }
+                }
+                if (typeSet.Count >= 5) break;
+            }
+        }
+
+        var typesWithBodies = model.Types.Values
+            .Where(t => typeSet.Contains(t.Id) && t.SourceBody is not null)
+            .Take(5)
+            .ToList();
+
+        if (typesWithBodies.Count == 0) return;
+
+        sb.AppendLine("## Source code");
+        sb.AppendLine();
+
+        foreach (var type in typesWithBodies)
+        {
+            if (type.SourceBody is null) continue;
+            sb.AppendLine($"### {type.Name}.cs");
+            sb.AppendLine("```csharp");
+            sb.AppendLine(type.SourceBody);
+
+            if (type.SourceBody.Length >= 5000)
+                sb.AppendLine($"// ... [{type.SourceBody.Length} total chars]");
+
+            sb.AppendLine("```");
             sb.AppendLine();
         }
     }
@@ -354,28 +481,52 @@ public sealed class MarkdownRenderer : IContextRenderer
                 .Take(3)
                 .ToList();
 
-        // If no focus matches, show first few callers
         if (callerKeys.Count == 0 || callerKeys.All(string.IsNullOrEmpty))
             callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
 
         sb.AppendLine("## Call graph");
         sb.AppendLine();
 
+        var visited = new HashSet<string>();
+        var maxDepth = 5;
+
         foreach (var callerKey in callerKeys)
         {
-            if (!options.CallGraph.Edges.TryGetValue(callerKey, out var edges)) continue;
+            if (!options.CallGraph.Edges.TryGetValue(callerKey, out _)) continue;
 
             var parts = callerKey.Split('.');
             var callerType = parts.Length > 1 ? string.Join(".", parts[..^1]) : callerKey;
             var callerMethod = parts.Length > 0 ? parts[^1] : callerKey;
 
             sb.AppendLine($"**{callerType}.{callerMethod}**");
-            foreach (var edge in edges.Take(10))
-            {
-                var location = edge.CallSiteLocation is not null ? $" `({edge.CallSiteLocation})`" : "";
-                sb.AppendLine($"├─ `{edge.CalleeType}.{edge.CalleeMethod}`{location}");
-            }
+            visited.Clear();
+            visited.Add(callerKey);
+            RenderCallGraphNode(sb, options.CallGraph, callerKey, "", visited, 0, maxDepth);
             sb.AppendLine();
+        }
+    }
+
+    private static void RenderCallGraphNode(StringBuilder sb, CallGraph graph, string callerKey,
+        string indent, HashSet<string> visited, int depth, int maxDepth)
+    {
+        if (depth >= maxDepth) return;
+        if (!graph.Edges.TryGetValue(callerKey, out var edges)) return;
+
+        var edgeList = edges.Take(12).ToList();
+        for (int i = 0; i < edgeList.Count; i++)
+        {
+            var edge = edgeList[i];
+            var isLast = i == edgeList.Count - 1;
+            var connector = isLast ? "└─ " : "├─ ";
+            var location = edge.CallSiteLocation is not null ? $" `({edge.CallSiteLocation})`" : "";
+            sb.AppendLine($"{indent}{connector}`{edge.CalleeType}.{edge.CalleeMethod}`{location}");
+
+            var calleeKey = $"{edge.CalleeType}.{edge.CalleeMethod}";
+            if (visited.Add(calleeKey))
+            {
+                var childIndent = indent + (isLast ? "   " : "│  ");
+                RenderCallGraphNode(sb, graph, calleeKey, childIndent, visited, depth + 1, maxDepth);
+            }
         }
     }
 
@@ -509,6 +660,78 @@ public sealed class MarkdownRenderer : IContextRenderer
                 var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
                 sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
             }
+            sb.AppendLine();
+        }
+    }
+
+    private static void AppendAntiPatterns(StringBuilder sb, DiscoveryModel model)
+    {
+        var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
+        if (patterns.Count == 0) return;
+
+        sb.AppendLine("## Anti-patterns detected");
+        sb.AppendLine();
+        sb.AppendLine("| Severity | Pattern | Description | Source |");
+        sb.AppendLine("|----------|---------|-------------|--------|");
+
+        var bySeverity = patterns
+            .OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 })
+            .ThenBy(p => p.Pattern)
+            .Take(40)
+            .ToList();
+
+        foreach (var p in bySeverity)
+        {
+            var source = $"{Path.GetFileName(p.SourceFile)}:{p.LineNumber}";
+            sb.AppendLine($"| {p.Severity} | {p.Pattern} | {p.Description} | {source} |");
+        }
+        sb.AppendLine();
+    }
+
+    private static void AppendEventFlow(StringBuilder sb, DiscoveryModel model)
+    {
+        var flows = model.Detections.OfType<EventFlowDetection>().ToList();
+        if (flows.Count == 0) return;
+
+        var busKind = flows.First().BusKind;
+
+        sb.AppendLine(busKind == "in-memory"
+            ? "## Event flow (in-memory bus)"
+            : "## Event flow");
+        sb.AppendLine();
+
+        // Group by event type
+        var byEvent = flows.Where(f => f.Kind != "Handler")
+            .GroupBy(f => f.EventType)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        if (byEvent.Count > 0)
+        {
+            sb.AppendLine("| Event | Direction | Target | Source |");
+            sb.AppendLine("|-------|-----------|--------|--------|");
+            foreach (var group in byEvent)
+            {
+                foreach (var flow in group)
+                {
+                    var direction = flow.Kind == "Subscribe" ? "← subscribed" : "→ published";
+                    var source = flow.SourceFile is not null && flow.LineNumber > 0
+                        ? $"{Path.GetFileName(flow.SourceFile)}:{flow.LineNumber}"
+                        : "-";
+                    sb.AppendLine($"| `{flow.EventType}` | {direction} | `{flow.Target}` | {source} |");
+                }
+            }
+            sb.AppendLine();
+        }
+
+        // Show handler implementations via IEventHandler<T>
+        var handlers = flows.Where(f => f.Kind == "Handler").ToList();
+        if (handlers.Count > 0)
+        {
+            sb.AppendLine("### IEventHandler implementations");
+            sb.AppendLine();
+            foreach (var h in handlers)
+                sb.AppendLine($"- `{h.EventType}` → `{h.Target}`");
             sb.AppendLine();
         }
     }
