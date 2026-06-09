@@ -60,6 +60,9 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
                 if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery))
                 {
+                    // Merge partial class fields and methods
+                    if (model.Types.TryGetValue(typeDiscovery.Id, out var existing))
+                        MergePartialType(existing, typeDiscovery);
                     continue;
                 }
 
@@ -313,5 +316,28 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             return ArchitectureLayer.Domain;
 
         return ArchitectureLayer.Unknown;
+    }
+
+    private static void MergePartialType(TypeDiscovery existing, TypeDiscovery other)
+    {
+        existing.Methods = existing.Methods.AddRange(other.Methods);
+        existing.Properties = existing.Properties.AddRange(other.Properties);
+
+        var mergedBaseTypes = existing.BaseTypes
+            .Union(other.BaseTypes)
+            .Distinct()
+            .ToImmutableArray();
+        // Can't reassign init-only property directly — use reflection as workaround
+        var baseTypeProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.BaseTypes));
+        if (baseTypeProp?.SetMethod != null)
+            baseTypeProp.SetValue(existing, mergedBaseTypes);
+
+        var mergedInterfaces = existing.ImplementedInterfaces
+            .Union(other.ImplementedInterfaces)
+            .Distinct()
+            .ToImmutableArray();
+        var ifaceProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.ImplementedInterfaces));
+        if (ifaceProp?.SetMethod != null)
+            ifaceProp.SetValue(existing, mergedInterfaces);
     }
 }
