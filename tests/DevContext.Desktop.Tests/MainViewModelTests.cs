@@ -541,10 +541,49 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(1, callCount);
 
-        // Change scenario — should trigger re-analysis
-        vm.SelectedScenario = vm.Scenarios[2]; // Different from default Scenarios[0]
-
+        vm.SelectedScenario = vm.Scenarios[2];
         await Task.Delay(200);
         Assert.Equal(2, callCount);
+    }
+
+    [Fact]
+    public async Task Token_budget_is_captured_at_analysis_start()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        vm.MaxTokens = 5000;
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "data", ElapsedMs = 10 }));
+
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(5000, vm.BudgetTokens);
+    }
+
+    [Fact]
+    public async Task Debounce_prevents_rapid_reanalysis_on_slider()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var callCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                callCount++;
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, callCount); // initial
+
+        // Rapidly change tokens — debounce should collapse to 1 re-analysis
+        vm.MaxTokens = 4000;
+        vm.MaxTokens = 3000;
+        vm.MaxTokens = 2000;
+        vm.MaxTokens = 1000;
+
+        await Task.Delay(700); // wait for debounce + re-analysis
+        Assert.Equal(2, callCount); // only 1 additional call (debounced)
     }
 }

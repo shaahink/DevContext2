@@ -19,6 +19,7 @@ public partial class MainViewModel : ObservableObject
     private string _rawContent = "";
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _validateCts;
+    private CancellationTokenSource? _maxTokensDebounceCts;
     private bool _isInitializing = true;
 
     // ── Form fields ────────────────────────────────────────────────────────────
@@ -198,7 +199,7 @@ public partial class MainViewModel : ObservableObject
     }
     partial void OnSelectedProfileChanged(string value)         => OnAnalysisOptionChanged();
     partial void OnSelectedFormatChanged(string value)          => OnAnalysisOptionChanged();
-    partial void OnMaxTokensChanged(int value)                  => OnAnalysisOptionChanged();
+    partial void OnMaxTokensChanged(int value)                  => DebouncedReanalyze();
     partial void OnAroundChanged(string value)                  => OnAnalysisOptionChanged();
     partial void OnIncludeProvenanceChanged(bool value)         => OnAnalysisOptionChanged();
     partial void OnIncludeDiagnosticsChanged(bool value)        => OnAnalysisOptionChanged();
@@ -211,6 +212,28 @@ public partial class MainViewModel : ObservableObject
             return;
 
         AnalyzeCommand.Execute(null);
+    }
+
+    private void DebouncedReanalyze()
+    {
+        if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        _maxTokensDebounceCts?.Cancel();
+        _maxTokensDebounceCts?.Dispose();
+        _maxTokensDebounceCts = new CancellationTokenSource();
+        var ct = _maxTokensDebounceCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(500, ct);
+                if (!ct.IsCancellationRequested)
+                    AnalyzeCommand.Execute(null);
+            }
+            catch (OperationCanceledException) { }
+        }, ct);
     }
 
     // ── Commands ───────────────────────────────────────────────────────────────
@@ -232,6 +255,7 @@ public partial class MainViewModel : ObservableObject
 
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
+        var capturedBudget = MaxTokens;
 
         IsAnalyzing = true;
         IsProgressVisible = true;
@@ -276,7 +300,7 @@ public partial class MainViewModel : ObservableObject
             Scenario = SelectedScenario.Value,
             Profile = SelectedProfile,
             Around = Around,
-            MaxTokens = MaxTokens,
+            MaxTokens = capturedBudget,
             Format = SelectedFormat,
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
@@ -309,7 +333,7 @@ public partial class MainViewModel : ObservableObject
                 IsProgressIndeterminate = false;
                 ProgressValue = 100;
                 ProgressText = "Done";
-                BudgetTokens = MaxTokens;
+                BudgetTokens = capturedBudget;
                 TotalTokens = tokens;
 
                 // Clean up clone if auto-clean
