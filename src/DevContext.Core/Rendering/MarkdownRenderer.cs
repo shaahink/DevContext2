@@ -671,20 +671,41 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         sb.AppendLine("## Anti-patterns detected");
         sb.AppendLine();
-        sb.AppendLine("| Severity | Pattern | Description | Source |");
-        sb.AppendLine("|----------|---------|-------------|--------|");
 
-        var bySeverity = patterns
-            .OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 })
-            .ThenBy(p => p.Pattern)
-            .Take(40)
+        // Group by source file for compact readability
+        var byFile = patterns
+            .GroupBy(p => Path.GetFileName(p.SourceFile))
+            .OrderByDescending(g => g.Count())
             .ToList();
 
-        foreach (var p in bySeverity)
+        if (byFile.Count == 1)
         {
-            var source = $"{Path.GetFileName(p.SourceFile)}:{p.LineNumber}";
-            sb.AppendLine($"| {p.Severity} | {p.Pattern} | {p.Description} | {source} |");
+            // Single file — flat table
+            AppendAntiPatternTable(sb, patterns);
         }
+        else
+        {
+            foreach (var fileGroup in byFile)
+            {
+                var grouped = fileGroup
+                    .OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 })
+                    .ToList();
+
+                sb.AppendLine($"### {fileGroup.Key} ({grouped.Count})");
+                sb.AppendLine();
+                AppendAntiPatternTable(sb, grouped);
+            }
+        }
+    }
+
+    private static void AppendAntiPatternTable(StringBuilder sb, List<AntiPatternDetection> patterns)
+    {
+        sb.AppendLine("| Severity | Pattern | Description |");
+        sb.AppendLine("|----------|---------|-------------|");
+
+        foreach (var p in patterns.OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 }).Take(40))
+            sb.AppendLine($"| {p.Severity} | {p.Pattern} | {p.Description} |");
+
         sb.AppendLine();
     }
 
