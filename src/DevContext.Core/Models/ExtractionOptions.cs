@@ -34,8 +34,8 @@ public sealed record ExtractionOptions
     public int MaxProjects { get; init; } = 150;
 }
 
-/// <summary>Defines the breadth and depth of extraction (Quick, Focused, Debug, Full).</summary>
-public enum ExtractionProfile { Quick, Focused, Debug, Full }
+/// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>
+public enum ExtractionProfile { Focused, Debug, Full }
 /// <summary>Supported output formats.</summary>
 public enum OutputFormat { Markdown, Json }
 /// <summary>How entry paths are resolved to focus points.</summary>

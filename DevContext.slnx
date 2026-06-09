@@ -11,7 +11,5 @@
   <Folder Name="/tests/">
     <Project Path="tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj" />
     <Project Path="tests/DevContext.Desktop.Tests/DevContext.Desktop.Tests.csproj" />
-    <Project Path="tests/DevContext.Integration/DevContext.Integration.csproj" />
-    <Project Path="tests/DevContext.Roslyn.Tests/DevContext.Roslyn.Tests.csproj" />
   </Folder>
 </Solution>

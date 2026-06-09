@@ -52,7 +52,6 @@ public class AnalysisService : IAnalysisService
 
         var profile = opts.Profile.ToLowerInvariant() switch
         {
-            "quick" => ExtractionProfile.Quick,
             "debug" => ExtractionProfile.Debug,
             "full" => ExtractionProfile.Full,
             _ => ExtractionProfile.Focused,

@@ -32,7 +32,7 @@ public partial class MainViewModel : ObservableObject
     // ── Profile / format selection ─────────────────────────────────────────────
     [ObservableProperty]
     [NotifyPropertyChangedFor(
-        nameof(IsProfileQuick), nameof(IsProfileFocused),
+        nameof(IsProfileFocused),
         nameof(IsProfileDebug), nameof(IsProfileFull))]
     private string _selectedProfile = "focused";
 
@@ -42,7 +42,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ScenarioItem _selectedScenario = null!;
 
-    public bool IsProfileQuick   => SelectedProfile == "quick";
     public bool IsProfileFocused => SelectedProfile == "focused";
     public bool IsProfileDebug   => SelectedProfile == "debug";
     public bool IsProfileFull    => SelectedProfile == "full";
@@ -85,7 +84,7 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(IAnalysisService svc)
     {
         _svc = svc;
-        SelectedScenario = Scenarios[1];
+        SelectedScenario = Scenarios[0];
         LoadSettings();
         RefreshRecent();
         _isInitializing = false;

@@ -161,7 +161,6 @@
                                         <UniformGrid Rows="1"/>
                                     </ItemsPanelTemplate>
                                 </ListBox.ItemsPanel>
-                                <ListBoxItem Content="Quick" Tag="quick"/>
                                 <ListBoxItem Content="Focused" Tag="focused"/>
                                 <ListBoxItem Content="Debug" Tag="debug"/>
                                 <ListBoxItem Content="Full" Tag="full"/>

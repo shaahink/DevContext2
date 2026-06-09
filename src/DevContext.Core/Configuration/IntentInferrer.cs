@@ -9,7 +9,7 @@ public static class IntentInferrer
         (["add", "implement", "similar", "like", "crud", "new endpoint"], "add-similar-feature", ExtractionProfile.Focused),
         (["middleware", "pipeline", "cross-cutting", "filter", "interceptor"], "modify-middleware", ExtractionProfile.Focused),
         (["event", "message", "publish", "consume", "queue", "bus"], "trace-message-flow", ExtractionProfile.Focused),
-        (["architecture", "overview", "structure", "layers", "map"], "architecture", ExtractionProfile.Quick),
+        (["architecture", "overview", "structure", "layers", "map"], "architecture", ExtractionProfile.Focused),
         (["di", "injection", "reflect", "activator", "register"], "harden-di", ExtractionProfile.Debug),
     ];
 
@@ -23,6 +23,6 @@ public static class IntentInferrer
             .OrderByDescending(x => x.Score)
             .FirstOrDefault();
 
-        return best.Score > 0 ? (best.Scenario, best.Profile) : ("architecture", ExtractionProfile.Quick);
+        return best.Score > 0 ? (best.Scenario, best.Profile) : ("architecture", ExtractionProfile.Focused);
     }
 }

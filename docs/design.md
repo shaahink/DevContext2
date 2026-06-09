@@ -848,7 +848,7 @@ Options:
                          Accepts: folder | file | TypeName | TypeName:MethodName
   -s, --scenario <N>     architecture | debug-endpoint | add-similar-feature |
                           modify-middleware | trace-message-flow | harden-di
-  -p, --profile <N>      quick | focused | debug | full
+  -p, --profile <N>      focused | debug | full
   -t, --task <TEXT>      Free-text intent → inferred scenario + profile
       --max-tokens <N>   Token cap (default 8000)
   -o, --output <FILE>    Write to file (default stdout)
@@ -920,7 +920,7 @@ internal static class IntentInferrer
   "excludePatterns": [".git", "bin", "obj", "Migrations"],
   "entryPaths": ["src/Api"],
   "profiles": {
-    "quick": { "profile": "quick", "maxOutputTokens": 2000, "noRoslyn": true }
+    "quick": { "profile": "focused", "maxOutputTokens": 2000, "noRoslyn": true }
   }
 }
 ```

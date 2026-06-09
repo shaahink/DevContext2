@@ -131,7 +131,6 @@ Real output from real codebases — see exactly what each scenario produces:
 
 | Profile | Details |
 |---|---|
-| `quick` | Fast scan, minimal output (~2000 tokens) |
 | `focused` | Balanced extraction with pruning (default) |
 | `debug` | Adds call graph extraction (BFS from entry points) |
 | `full` | Full analysis with source body extraction |
@@ -149,7 +148,7 @@ Arguments:
 Options:
   -s, --scenario <NAME>   architecture | debug-endpoint | add-similar-feature |
                           modify-middleware | trace-message-flow | harden-di
-  -p, --profile <NAME>    quick | focused | debug | full
+  -p, --profile <NAME>    focused | debug | full
   -a, --around <PATH>     Focus on a specific type/method (e.g. OrdersController:CreateOrder)
   -t, --task <TEXT>       Free-text intent → auto-selects scenario + profile
       --max-tokens <N>    Token budget (default 8000)
@@ -255,7 +254,7 @@ Create `devcontext.json` in your project root for persistent settings:
   "excludePatterns": [".git", "bin", "obj", "Migrations"],
   "entryPaths": ["src/Api"],
   "profiles": {
-    "quick": { "profile": "quick", "maxOutputTokens": 2000, "noRoslyn": true }
+    "quick": { "profile": "focused", "maxOutputTokens": 2000, "noRoslyn": true }
   }
 }
 ```

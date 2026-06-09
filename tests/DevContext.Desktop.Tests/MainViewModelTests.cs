@@ -80,16 +80,14 @@ public class MainViewModelTests
     // ══ Computed properties ════════════════════════════════════════════════════
 
     [Theory]
-    [InlineData("quick", true, false, false, false)]
-    [InlineData("focused", false, true, false, false)]
-    [InlineData("debug", false, false, true, false)]
-    [InlineData("full", false, false, false, true)]
-    public void Profile_computed_flags(string profile, bool quick, bool focused, bool debug, bool full)
+    [InlineData("focused", true, false, false)]
+    [InlineData("debug", false, true, false)]
+    [InlineData("full", false, false, true)]
+    public void Profile_computed_flags(string profile, bool focused, bool debug, bool full)
     {
         var vm = CreateVm();
         vm.SelectedProfile = profile;
 
-        Assert.Equal(quick, vm.IsProfileQuick);
         Assert.Equal(focused, vm.IsProfileFocused);
         Assert.Equal(debug, vm.IsProfileDebug);
         Assert.Equal(full, vm.IsProfileFull);
@@ -174,7 +172,6 @@ public class MainViewModelTests
 
         vm.SelectedProfile = "debug";
 
-        Assert.Contains(nameof(vm.IsProfileQuick), changedProps);
         Assert.Contains(nameof(vm.IsProfileFocused), changedProps);
         Assert.Contains(nameof(vm.IsProfileDebug), changedProps);
         Assert.Contains(nameof(vm.IsProfileFull), changedProps);

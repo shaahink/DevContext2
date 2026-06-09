@@ -4,6 +4,10 @@ All notable changes to DevContext are documented here.
 
 ## v2.0.0 (unreleased)
 
+### Removed
+
+- **`Quick` profile removed** — Was byte-for-byte identical to `Focused` (no extractor checked for it). Collapsed into `Focused`. Profiles are now: `focused`, `debug`, `full`. Validated by running all 6 scenarios at both profiles against fixture projects (0 diff). (ExtractionOptions, IntentInferrer, CLI, Desktop, Docs)
+
 ### Added
 
 - **Desktop UI (Avalonia)** — Native cross-platform desktop app with resizable split layout, SegmentedControl for profile/format selection, ToggleSwitch advanced options, and StatusBar with progress. Catppuccin Latte light theme. F5 keyboard shortcut for Analyze. Auto-reanalyze when options change. (DevContext.Desktop)
@@ -49,6 +53,10 @@ All notable changes to DevContext are documented here.
 - **Dead code removed** — `TypeDiscovery.AdditionalFilePaths` removed (populated but never read).
 
 ### Changed
+
+- **Desktop default scenario** — Changed from `debug-endpoint` to `architecture` to match CLI default. Users switching between interfaces now get consistent behavior. (MainViewModel)
+- **Removed empty test projects** — `DevContext.Roslyn.Tests` and `DevContext.Integration` (0 .cs files) removed from solution.
+- **Deleted 0-byte placeholder** — `eval-results/DEVELOP-ASSESSMENT-ITERATION-PLAN.md`.
 
 - **Anti-pattern severity normalized** — All fire-and-forget patterns now severity `"high"` (was `"medium"` for `ContinueWith`). `CancellationTokenNone` downgraded to `"low"` in test files.
 - **ServiceLocator detection uses AST** — `DetectServiceScopeFactory` now matches on exact member name (`CreateScope`/`CreateAsyncScope`) instead of `string.Contains`.

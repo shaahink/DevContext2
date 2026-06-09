@@ -13,7 +13,7 @@ Create a `devcontext.json` at your project root for persistent settings:
   "excludePatterns": [".git", "bin", "obj", "Migrations"],
   "entryPaths": ["src/Api"],
   "profiles": {
-    "quick": { "profile": "quick", "maxOutputTokens": 2000, "noRoslyn": true }
+    "quick": { "profile": "focused", "maxOutputTokens": 2000, "noRoslyn": true }
   }
 }
 ```
@@ -22,7 +22,7 @@ Create a `devcontext.json` at your project root for persistent settings:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `defaultProfile` | string | `"focused"` | Profile to use when `--profile` is not specified. One of: `quick`, `focused`, `debug`, `full`. |
+| `defaultProfile` | string | `"focused"` | Profile to use when `--profile` is not specified. One of: `focused`, `debug`, `full`. |
 | `defaultScenario` | string | `"architecture"` | Scenario to use when `--scenario` is not specified. |
 | `maxOutputTokens` | int | `8000` | Token budget for output. Pruning and compression work to stay under this. |
 | `excludePatterns` | string[] | `[".git","bin","obj"]` | Directory/file patterns to exclude from analysis. |
@@ -40,7 +40,7 @@ Arguments:
 Options:
   -s, --scenario <NAME>   architecture | debug-endpoint | add-similar-feature |
                           modify-middleware | trace-message-flow | harden-di
-  -p, --profile <NAME>    quick | focused | debug | full
+  -p, --profile <NAME>    focused | debug | full
   -a, --around <PATH>     Focus on a specific type/method
   -t, --task <TEXT>       Free-text intent → auto-selects scenario + profile
       --max-tokens <N>    Token budget (default 8000)
@@ -70,7 +70,6 @@ Options:
 
 | Profile | Details |
 |---|---|
-| `quick` | Fast scan, minimal output (~2000 tokens), no call graph |
 | `focused` | Balanced extraction with pruning (default). Good for most use cases |
 | `debug` | Adds call graph extraction (BFS from entry points). Use when you need flow tracing |
 | `full` | Full analysis with source body extraction. Adds type source code to output |
