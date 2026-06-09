@@ -192,10 +192,8 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedScenarioChanged(ScenarioItem value)
     {
         if (_isInitializing) return;
-        if (HasOutput)
-            ResetToScenarioDefaults();
-        else
-            OnAnalysisOptionChanged();
+        ResetToScenarioDefaults();
+        OnAnalysisOptionChanged();
     }
     partial void OnSelectedProfileChanged(string value)         => OnAnalysisOptionChanged();
     partial void OnSelectedFormatChanged(string value)          => OnAnalysisOptionChanged();

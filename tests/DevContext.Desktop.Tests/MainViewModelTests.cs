@@ -521,6 +521,30 @@ public class MainViewModelTests
         // Wait for async re-analysis to complete
         await Task.Delay(200);
 
+            Assert.Equal(2, callCount);
+    }
+
+    [Fact]
+    public async Task Changing_scenario_triggers_reanalysis_and_resets_defaults()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var callCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                callCount++;
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "## Keep\nkeep\n## Drop\ndrop", ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, callCount);
+
+        // Change scenario — should trigger re-analysis
+        vm.SelectedScenario = vm.Scenarios[2]; // Different from default Scenarios[0]
+
+        await Task.Delay(200);
         Assert.Equal(2, callCount);
     }
 }
