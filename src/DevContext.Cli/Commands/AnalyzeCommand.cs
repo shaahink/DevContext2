@@ -145,6 +145,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             DryRun = settings.DryRun,
             IncludeProvenance = settings.IncludeProvenance,
             IncludeDiagnostics = settings.IncludeDiagnostics,
+            TokenView = settings.TokenView,
             OutputFormat = settings.Format?.ToLowerInvariant() switch
             {
                 "json" => OutputFormat.Json,

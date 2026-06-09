@@ -63,4 +63,8 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Emit structured per-extractor timing report")]
     [CommandOption("--metrics")]
     public bool Metrics { get; set; }
+
+    [Description("Show per-section token accounting table in HTML comments")]
+    [CommandOption("--token-view")]
+    public bool TokenView { get; set; }
 }

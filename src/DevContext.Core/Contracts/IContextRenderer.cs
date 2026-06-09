@@ -9,7 +9,18 @@ public sealed record RenderOptions(
     ImmutableArray<string> RequiredSections = default,
     ImmutableArray<FocusPoint> FocusPoints = default,
     CallGraph? CallGraph = null,
-    ProjectDependencyGraph? ProjectGraph = null
+    ProjectDependencyGraph? ProjectGraph = null,
+    bool TokenView = false,
+    bool FullSections = false
+);
+
+/// <summary>Per-section token accounting record produced during rendering.</summary>
+public sealed record SectionTokenRecord(
+    string SectionName,
+    int RawTokens,
+    int CompressedTokens,
+    bool WasTruncated,
+    string? TruncationReason = null
 );
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>
@@ -18,7 +29,8 @@ public sealed record RenderedContext(
     int EstimatedTokens,
     IReadOnlyList<CompressionResult> AppliedCompressions,
     TimeSpan ElapsedTotal,
-    string SchemaVersion
+    string SchemaVersion,
+    IReadOnlyList<SectionTokenRecord>? SectionTokens = null
 );
 
 /// <summary>Renders a discovery model into a specific output format (e.g. markdown, JSON).</summary>

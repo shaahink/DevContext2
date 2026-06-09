@@ -12,48 +12,130 @@ public sealed class MarkdownRenderer : IContextRenderer
     {
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sectionTokens = new List<SectionTokenRecord>();
 
+        var preLen = sb.Length;
         AppendHeader(sb, model, options);
         AppendArchitecture(sb, model);
         AppendSignals(sb, model);
         AppendProjects(sb, model);
         AppendProfileAndTokens(sb, model, options);
+        TrackSection(sectionTokens, "Header", preLen, sb.Length);
         sb.AppendLine("---");
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
+        {
+            preLen = sb.Length;
             AppendArchitectureOverview(sb, model, options);
+            TrackSection(sectionTokens, "Architecture overview", preLen, sb.Length);
+        }
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
         {
+            preLen = sb.Length;
             AppendEntryPoints(sb, model, options);
+            TrackSection(sectionTokens, "Entry points", preLen, sb.Length);
+
+            preLen = sb.Length;
             AppendSourceBodies(sb, model, options);
+            TrackSection(sectionTokens, "Source code", preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.Endpoints, options))
+        {
+            preLen = sb.Length;
             AppendEndpoints(sb, model);
+            TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
+        }
         if (ShouldRender(SectionNames.CallGraph, options))
+        {
+            preLen = sb.Length;
             AppendCallGraphAvailability(sb, model, options);
+            TrackSection(sectionTokens, "Call graph", preLen, sb.Length);
+        }
         if (ShouldRender(SectionNames.MediatRHandlers, options))
+        {
+            preLen = sb.Length;
             AppendMediatRHandlers(sb, model);
+            TrackSection(sectionTokens, "MediatR Handlers", preLen, sb.Length);
+        }
         if (ShouldRender(SectionNames.DataModel, options))
+        {
+            preLen = sb.Length;
             AppendEfEntities(sb, model);
+            TrackSection(sectionTokens, "Data model", preLen, sb.Length);
+        }
         if (ShouldRender(SectionNames.MessageConsumers, options))
+        {
+            preLen = sb.Length;
             AppendMessageConsumers(sb, model);
+            TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
+        }
         if (ShouldRender(SectionNames.NonObviousWiring, options))
+        {
+            preLen = sb.Length;
             AppendNonObviousWiring(sb, model);
+            TrackSection(sectionTokens, "Non-obvious wiring", preLen, sb.Length);
+        }
+
+        preLen = sb.Length;
         AppendAntiPatterns(sb, model);
+        TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
+
+        preLen = sb.Length;
         AppendEventFlow(sb, model);
+        TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
+
         if (ShouldRender(SectionNames.RelatedTypes, options))
+        {
+            preLen = sb.Length;
             AppendRelatedTypesByLayer(sb, model);
+            TrackSection(sectionTokens, "Related types", preLen, sb.Length);
+        }
 
         if (options.IncludeDiagnostics)
+        {
+            preLen = sb.Length;
             AppendDiagnostics(sb, model);
+            TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
+        }
 
         AppendFooter(sb, model, options, sw);
+
+        if (options.TokenView)
+            AppendTokenAccounting(sb, sectionTokens);
 
         var content = sb.ToString();
         var estimatedTokens = Math.Max(1, content.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "2.0"));
+            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "2.0",
+            SectionTokens: sectionTokens.Count > 0 ? sectionTokens : null));
+    }
+
+    private static void TrackSection(List<SectionTokenRecord> records, string name, int prevLength, int currentLength)
+    {
+        var chars = currentLength - prevLength;
+        var tokens = Math.Max(1, chars / 4);
+        records.Add(new SectionTokenRecord(name, tokens, tokens, false));
+    }
+
+    private static void AppendTokenAccounting(StringBuilder sb, List<SectionTokenRecord> sections)
+    {
+        sb.AppendLine();
+        sb.AppendLine("<!-- TOKEN ACCOUNTING (strip before sending to LLM)");
+        sb.AppendLine("┌────────────────────────────────┬──────────┬──────────┬──────────┐");
+        sb.AppendLine("│ Section                        │  Tokens  │  Pct     │ Trunc?   │");
+        sb.AppendLine("├────────────────────────────────┼──────────┼──────────┼──────────┤");
+        var total = sections.Sum(s => s.CompressedTokens);
+        foreach (var s in sections)
+        {
+            var pct = total > 0 ? s.CompressedTokens * 100 / total : 0;
+            var trunc = s.WasTruncated ? "Yes" : "No";
+            sb.AppendLine($"│ {s.SectionName,-30} │ {s.CompressedTokens,8:N0} │ {pct,7}% │ {trunc,-8} │");
+        }
+        sb.AppendLine("├────────────────────────────────┼──────────┼──────────┼──────────┤");
+        sb.AppendLine($"│ {"TOTAL",-30} │ {total,8:N0} │ {"100%",7} │ {sections.Count(s => s.WasTruncated),8} truncated │");
+        sb.AppendLine("└────────────────────────────────┴──────────┴──────────┴──────────┘");
+        sb.AppendLine("-->");
     }
 
     private static void AppendHeader(StringBuilder sb, DiscoveryModel model, RenderOptions options)

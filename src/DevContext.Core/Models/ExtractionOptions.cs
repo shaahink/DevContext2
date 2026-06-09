@@ -30,6 +30,8 @@ public sealed record ExtractionOptions
     public bool IncludeDiagnostics { get; init; } = false;
     /// <summary>If true, runs a dry-run plan without full extraction.</summary>
     public bool DryRun { get; init; } = false;
+    /// <summary>Whether to emit a per-section token accounting table.</summary>
+    public bool TokenView { get; init; } = false;
     /// <summary>Maximum number of projects to analyze.</summary>
     public int MaxProjects { get; init; } = 150;
 }
