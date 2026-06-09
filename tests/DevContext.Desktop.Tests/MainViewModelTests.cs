@@ -431,11 +431,96 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Section header\n**content**", ElapsedMs = 100 }));
+            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Header\ncontent", ElapsedMs = 100 }));
 
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotEmpty(vm.DisplayText);
-        Assert.Contains("Section header", vm.DisplayText);
+        Assert.Contains("Header", vm.DisplayText);
+    }
+
+    [Fact]
+    public async Task Toggling_section_updates_DisplayText_in_Llm_view()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AnalysisResult
+            {
+                Success = true,
+                Content = "## Keep\nkeep content\n## Drop\ndrop content",
+                ElapsedMs = 100
+            }));
+
+        await ExecuteAnalyzeCommand(vm);
+
+        // Switch to LLM view so DisplayText reads from LlmViewText
+        vm.IsHumanView = false;
+        var beforeToggle = vm.DisplayText;
+
+        // Find the "Drop" section and uncheck it
+        var dropSection = vm.SectionGroups.SelectMany(g => g.Children)
+            .FirstOrDefault(s => s.Name.Contains("Drop"));
+        Assert.NotNull(dropSection);
+        dropSection.IsIncluded = false;
+
+        var afterToggle = vm.DisplayText;
+        Assert.NotEqual(beforeToggle, afterToggle);
+        Assert.DoesNotContain("drop content", afterToggle);
+    }
+
+    [Fact]
+    public async Task Toggling_section_updates_token_total()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AnalysisResult
+            {
+                Success = true,
+                Content = "## Section A\nsome long text here for tokens\n\n## Section B\nmore text here too",
+                ElapsedMs = 100
+            }));
+
+        await ExecuteAnalyzeCommand(vm);
+
+        var beforeTotal = vm.SelectedTokenTotal;
+        Assert.True(beforeTotal > 0);
+
+        // Uncheck all sections
+        foreach (var group in vm.SectionGroups)
+        foreach (var section in group.Children)
+            section.IsIncluded = false;
+
+        Assert.Equal(0, vm.SelectedTokenTotal);
+    }
+
+    [Fact]
+    public async Task Changing_profile_triggers_reanalysis_when_output_exists()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var callCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                callCount++;
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+            });
+
+        // First analysis
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, callCount);
+
+        // Change profile — should trigger re-analysis
+        vm.SelectedProfile = "debug";
+
+        // Wait for async re-analysis to complete
+        await Task.Delay(200);
+
+        Assert.Equal(2, callCount);
     }
 }

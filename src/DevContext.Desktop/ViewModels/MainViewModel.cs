@@ -416,6 +416,7 @@ public partial class MainViewModel : ObservableObject
             {
                 RecalcTokenTotal();
                 OnPropertyChanged(nameof(LlmViewText));
+                OnPropertyChanged(nameof(DisplayText));
             };
 
             sections.Add(section);
