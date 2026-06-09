@@ -28,15 +28,16 @@ public static class Program
             bridge.HandleMessage(message);
         });
 
-        // Load from file:// URL for proper script/CDN support
+        // Load from wwwroot relative to the binary directory
+        // Photino.NET supports relative paths from the working directory
         var htmlPath = Path.Combine(wwwroot, "index.html");
         if (File.Exists(htmlPath))
         {
-            window.Load($"file:///{htmlPath.Replace('\\', '/')}");
+            window.Load("wwwroot/index.html");
         }
         else
         {
-            window.LoadRawString("<h1>404 - index.html not found</h1>");
+            window.LoadRawString("<h1>404 - index.html not found at " + htmlPath + "</h1>");
         }
         window.WaitForClose();
     }
