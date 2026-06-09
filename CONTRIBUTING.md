@@ -12,9 +12,13 @@ dotnet build
 
 # Run tests
 dotnet test tests/DevContext.Core.Tests
+dotnet test tests/DevContext.Desktop.Tests
 
 # Run against a project
 dotnet run --project src/DevContext.Cli -- analyze ../MyProject --scenario architecture
+
+# Run the desktop app
+dotnet run --project src/DevContext.Desktop
 
 # Check formatting
 dotnet format --verify-no-changes
@@ -27,17 +31,19 @@ src/
   DevContext.Core/     # Core library: contracts, extractors, pipeline, pruning, rendering
   DevContext.Roslyn/   # Roslyn workspace integration (loaded on demand)
   DevContext.Cli/      # CLI composition root: commands, DI wiring, observers
+  DevContext.Desktop/  # Avalonia desktop app: direct engine, ViewModels, control themes
 tests/
-  DevContext.Core.Tests/  # Unit + golden tests (~144 tests)
-  DevContext.Roslyn.Tests/ # In-memory Roslyn compilation tests
-  DevContext.Integration/  # End-to-end against real repos
+  DevContext.Core.Tests/     # Unit + golden tests (~144 tests)
+  DevContext.Desktop.Tests/  # ViewModel + XAML headless tests (~33 tests)
+  DevContext.Roslyn.Tests/   # In-memory Roslyn compilation tests
+  DevContext.Integration/    # End-to-end against real repos
 ```
 
 ## Making Changes
 
 1. Create a branch from `develop`: `git checkout -b feature/your-feature develop`
 2. Make changes, following existing code conventions
-3. Ensure `dotnet test` passes (144+ tests)
+3. Ensure `dotnet test` passes (176+ tests)
 4. Update golden tests if output format changed: `$env:UPDATE_GOLDENS = "1"; dotnet test`
 5. Ensure `dotnet format --verify-no-changes` passes
 6. Push and open a PR against `develop`

@@ -6,6 +6,14 @@ All notable changes to DevContext are documented here.
 
 ### Added
 
+- **Desktop UI (Avalonia)** — Native cross-platform desktop app with resizable split layout, SegmentedControl for profile/format selection, ToggleSwitch advanced options, and StatusBar with progress. Catppuccin Latte light theme. F5 keyboard shortcut for Analyze. Auto-reanalyze when options change. (DevContext.Desktop)
+
+- **Direct engine integration** — Desktop app runs DiscoveryPipeline in-process instead of spawning the CLI. Real CancellationToken support flows through all pipeline stages. Custom DesktopProgressObserver reports stage transitions (Discovering → Extracting → Pruning → Compressing → Rendering). No temp files, no process overhead. (AnalysisService)
+
+- **Embedded Material Design icons** — 13 StreamGeometry icon paths embedded directly in App.axaml resources. Zero NuGet icon dependencies. Icons for scenarios (Sitemap, Magnify, PlusCircle, Cog, Message, ShieldCheck), toolbar actions (Copy, Save), browse buttons (FolderOpen, FileDocument), app branding (CodeBraces), and placeholder (TextBox).
+
+- **SegmentedControl pattern** — Custom ListBox-based ControlTheme with UniformGrid items, blue selected state, and hover/pressed feedback. Replaces RadioButton pills. Two instances: 4-option Profile (Quick / Focused / Debug / Full) and 2-option Format (Markdown / JSON).
+
 - **Event flow tracing** — New `InMemoryEventBusExtractor` detects `IEventBus.Subscribe<T>()`, `IEventBus.PublishAsync<T>()`, and `IEventHandler<T>` implementations. New `## Event flow` section in output shows publisher → event → handler → DB relationships for in-memory buses. (InMemoryEventBusExtractor)
 
 - **Anti-pattern detection** — New `AntiPatternDetector` flags 5 patterns: fire-and-forget tasks (`_ = AsyncMethod()`), `IServiceScopeFactory` usage (service locator), `new` outside constructor/DI, `CancellationToken.None`, and unbounded `ConcurrentDictionary`/`ConcurrentQueue` without eviction. Output filtered to exclude test files and mock types. (AntiPatternDetector)
@@ -49,8 +57,11 @@ All notable changes to DevContext are documented here.
 
 ### Architecture
 
+- **Desktop test project** — New `tests/DevContext.Desktop.Tests/` with 33 tests: 31 ViewModel unit tests (NSubstitute), 1 ServiceRegistration DI test, 1 headless Avalonia XAML resource resolution test.
+- **IAnalysisService interface** — Extracted for testability. ViewModel accepts `IAnalysisService` via constructor.
 - **11 ADRs** covering all design decisions: Roslyn separation, pipeline stage ordering, signal sealing, typed detection hierarchy, parse-once cache, async-first IO, stable JSON schema, and more.
 - **Shared** `ExtractorHelpers` for `EnumerateSourceFilesAsync` and `IsTestFile`.
+- **4 projects**: `DevContext.Core`, `DevContext.Roslyn`, `DevContext.Cli`, `DevContext.Desktop`.
 
 ### Known Limitations
 

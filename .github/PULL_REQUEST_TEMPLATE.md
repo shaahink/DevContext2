@@ -13,7 +13,7 @@
 
 ## Checklist
 - [ ] `dotnet build` succeeds with 0 warnings
-- [ ] `dotnet test` passes (144+ tests)
+- [ ] `dotnet test` passes (176+ tests)
 - [ ] Golden tests updated if output format changed (`$env:UPDATE_GOLDENS = "1"; dotnet test`)
 - [ ] `dotnet format --verify-no-changes` passes
 - [ ] XML docs added for new public APIs

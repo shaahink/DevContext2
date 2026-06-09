@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
-[![Tests](https://img.shields.io/badge/tests-144%20passing-brightgreen)](tests/DevContext.Core.Tests)
+[![Tests](https://img.shields.io/badge/tests-176%20passing-brightgreen)](tests/)
 
 **DevContext** is a static analysis CLI tool that extracts structured context from .NET codebases for use with LLMs (Large Language Models). It analyzes your project's architecture, endpoints, dependencies, data models, and middleware pipeline — then prunes and compresses the output to fit a token budget.
 
@@ -93,9 +93,8 @@ devcontext . --scenario debug-endpoint --around CreateOrderHandler
 # Save to file
 devcontext . --scenario architecture --format markdown -o output.md
 
-# Desktop UI (cross-platform)
-dotnet run --project src/DevContext.Desktop
-```
+# Desktop UI
+devcontext desktop
 
 # See what extractors would run
 devcontext . --dry-run
@@ -237,6 +236,9 @@ Three projects:
 - **`DevContext.Core`** — Contracts, pipeline, extractors, pruning, compression, rendering. Zero Spectre/Serilog dependencies.
 - **`DevContext.Roslyn`** — Roslyn workspace integration (loaded on demand for deep analysis).
 - **`DevContext.Cli`** — Composition root. Spectre.Console CLI, DI wiring, Serilog logging.
+- **`DevContext.Desktop`** — Native Avalonia desktop app. Runs the DiscoveryPipeline in-process for real cancellation and progress. SegmentedControl UI with resizable split layout.
+
+The desktop app talks to the engine directly — no CLI process spawn, no temp files, real CancellationToken support.
 
 ---
 
@@ -266,11 +268,15 @@ Create `devcontext.json` in your project root for persistent settings:
 # Build
 dotnet build
 
-# Test (144+ tests)
+# Test (176+ tests)
 dotnet test tests/DevContext.Core.Tests
+dotnet test tests/DevContext.Desktop.Tests
 
 # Run against a benchmark repo
 dotnet run --project src/DevContext.Cli -- analyze eval-repos/TodoApi --scenario architecture
+
+# Run the desktop app
+dotnet run --project src/DevContext.Desktop
 
 # Format
 dotnet format --verify-no-changes
@@ -293,10 +299,12 @@ src/DevContext.Core/       # Core library (~73 files)
 
 src/DevContext.Roslyn/     # Roslyn workspace integration
 src/DevContext.Cli/        # CLI commands, Spectre.Console observer
+src/DevContext.Desktop/    # Avalonia desktop app, direct engine integration
 
-tests/DevContext.Core.Tests/  # ~144 tests across 30+ test files
-eval-repos/                   # Cloned benchmark repos (gitignored)
-docs/                         # ADRs, iteration docs, benchmark reports
+tests/DevContext.Core.Tests/     # ~144 unit + golden tests
+tests/DevContext.Desktop.Tests/  # ~33 UI + ViewModel tests (headless Avalonia)
+eval-repos/                      # Cloned benchmark repos (gitignored)
+docs/                            # ADRs, iteration docs, benchmark reports
 ```
 
 ---

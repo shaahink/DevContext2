@@ -1,7 +1,7 @@
 # DevContext v2 — Authoritative Design Document
 
 **Status**: Design reference for Phase 0 implementation  
-**Target**: .NET 9 · C# 13 · `dotnet tool install -g DevContext.Cli`  
+**Target**: .NET 10 · C# 13 · `dotnet tool install -g DevContext.Cli`  
 **Positioning**: Static analysis CLI — pure code discovery, no LLM calls, no runtime agents  
 **Revision notes**: Incorporates signal registry fix, shared analysis cache, async I/O, typed detections, ShouldRun timing fix, Provenance thread-safety fix, ProjectRootResolver, ExtractorCapabilities, typed detection hierarchy
 
@@ -14,7 +14,8 @@ DevContext.sln
 ├── src/
 │   ├── DevContext.Core/          # Contracts, pipeline, generic extractors. Zero Roslyn/Spectre deps.
 │   ├── DevContext.Roslyn/        # Roslyn workspace, semantic extractors. Loaded at runtime via abstraction.
-│   └── DevContext.Cli/           # Composition root. Spectre.Console, command wiring, DI, rendering.
+│   ├── DevContext.Cli/           # Composition root. Spectre.Console, command wiring, DI, rendering.
+│   └── DevContext.Desktop/       # Native Avalonia desktop app. In-process DiscoveryPipeline, ViewModels, ControlThemes.
 ├── tests/
 │   ├── DevContext.Core.Tests/    # Unit + golden tests with fakes.
 │   ├── DevContext.Roslyn.Tests/  # In-memory Roslyn compilations (Microsoft.CodeAnalysis.Testing).
