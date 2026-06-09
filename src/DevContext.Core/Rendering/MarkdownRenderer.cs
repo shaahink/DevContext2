@@ -540,6 +540,20 @@ public sealed class MarkdownRenderer : IContextRenderer
         return implementationType;
     }
 
+    private static string FormatDiShape(DiRegistrationDetection d)
+    {
+        return d.Shape switch
+        {
+            DiRegistrationShape.ForwardingAlias => $"{d.ImplementationType} (alias)",
+            DiRegistrationShape.InlineFactory when d.FactorySummary is not null => d.FactorySummary,
+            DiRegistrationShape.InlineFactory => FormatImplementation(d.ImplementationType, d.ExtensionsUsed),
+            DiRegistrationShape.DirectBinding => d.ServiceType == d.ImplementationType
+                ? d.ImplementationType
+                : $"{d.ServiceType} → {d.ImplementationType}",
+            _ => FormatImplementation(d.ImplementationType, d.ExtensionsUsed),
+        };
+    }
+
     private static void AppendCallGraphAvailability(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         if (options.CallGraph is null || options.CallGraph.Edges.Count == 0)
@@ -738,7 +752,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             foreach (var d in diRegs)
             {
                 // Skip ? implementations — unresolvable extension args are noise
-                var impl = FormatImplementation(d.ImplementationType, d.ExtensionsUsed);
+                var impl = FormatDiShape(d);
                 var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
                 sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
             }
