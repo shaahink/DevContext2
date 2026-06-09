@@ -172,5 +172,19 @@
         <Style Selector="Button.RecentItem:pointerover">
             <Setter Property="Background" Value="{StaticResource Surface0Brush}"/>
         </Style>
+
+        <!-- ══ ViewTab (Human/LLM toggle) ═══════════════════════════════════════════ -->
+        <Style Selector="Button.ViewTab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource Overlay0Brush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+        <Style Selector="Button.ViewTab:pointerover">
+            <Setter Property="Background" Value="{StaticResource Surface1Brush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        </Style>
     </Application.Styles>
 </Application>

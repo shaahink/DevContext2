@@ -44,10 +44,16 @@
                            VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="2"
                            IsVisible="{Binding HasOutput}"
-                           Text="{Binding StatsText}"
                            FontSize="11"
                            Foreground="{StaticResource Overlay0Brush}"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center">
+                    <Run Text="{Binding StatsText}"/>
+                    <Run Text="  ·  "/>
+                    <Run Text="{Binding TotalTokens, StringFormat='{}{0:N0}'}"/>
+                    <Run Text=" / "/>
+                    <Run Text="{Binding BudgetTokens, StringFormat='{}{0:N0}'}"/>
+                    <Run Text=" tokens"/>
+                </TextBlock>
             </Grid>
         </Border>
 
@@ -260,13 +266,23 @@
                         BorderBrush="{StaticResource Surface0Brush}"
                         BorderThickness="0,0,0,1"
                         Padding="12,6">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0"
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2"
+                                    IsVisible="{Binding HasOutput}">
+                            <Button Content="Human" FontSize="11" Padding="8,3"
+                                    Classes="ViewTab"
+                                    Click="OnSwitchToHuman"/>
+                            <Button Content="LLM" FontSize="11" Padding="8,3"
+                                    Classes="ViewTab"
+                                    Click="OnSwitchToLlm"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1"
                                    Text="{Binding StatsText}"
                                    IsVisible="{Binding HasOutput}"
                                    FontSize="11"
                                    Foreground="{StaticResource Overlay0Brush}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center"
+                                   Margin="12,0,0,0"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                             <Button Theme="{StaticResource IconButton}"
                                     IsEnabled="{Binding HasOutput}"
@@ -294,10 +310,34 @@
                 </Border>
 
                 <!-- Output content -->
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" RowDefinitions="Auto,*">
+                    <!-- Section toggle bar -->
+                    <ItemsControl Grid.Row="0"
+                                  ItemsSource="{Binding Sections}"
+                                  IsVisible="{Binding HasOutput}"
+                                  Margin="12,6,12,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsIncluded}"
+                                          FontSize="11"
+                                          Margin="0,0,12,4">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Name}" FontSize="11"/>
+                                        <TextBlock Text="{Binding CompressedTokens, StringFormat='({0} tok)'}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource Overlay0Brush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <!-- Placeholder -->
-                    <StackPanel IsVisible="{Binding !HasOutput}"
+                    <StackPanel Grid.Row="1" IsVisible="{Binding !HasOutput}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Spacing="12">
@@ -321,9 +361,9 @@
                     </StackPanel>
 
                     <!-- Output text -->
-                    <TextBox IsVisible="{Binding HasOutput}"
+                    <TextBox Grid.Row="1" IsVisible="{Binding HasOutput}"
                              IsReadOnly="True"
-                             Text="{Binding OutputText}"
+                             Text="{Binding DisplayText}"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
                              FontFamily="Cascadia Code,Consolas,Courier New,monospace"

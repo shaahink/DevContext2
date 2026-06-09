@@ -62,6 +62,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _hasOutput;
     [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
+    [ObservableProperty] private bool _isHumanView = true;
 
     // ── Section-based dual-view ─────────────────────────────────────────────────
     public ObservableCollection<SectionViewModel> Sections { get; } = [];
@@ -77,6 +78,8 @@ public partial class MainViewModel : ObservableObject
     public float BudgetUtilisation => BudgetTokens > 0
         ? (float)TotalTokens / BudgetTokens
         : 0;
+
+    public string DisplayText => IsHumanView ? HumanViewText : LlmViewText;
 
     public string LlmViewText
     {

@@ -102,6 +102,16 @@ public partial class MainWindow : Window
             await cb.SetTextAsync(vm.LlmViewText);
     }
 
+    private void OnSwitchToHuman(object? sender, RoutedEventArgs e)
+    {
+        if (VM is { } vm) vm.IsHumanView = true;
+    }
+
+    private void OnSwitchToLlm(object? sender, RoutedEventArgs e)
+    {
+        if (VM is { } vm) vm.IsHumanView = false;
+    }
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (VM is not { RawContent: { Length: > 0 } content } vm) return;
