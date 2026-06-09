@@ -64,7 +64,7 @@ public sealed class GitCloneService
             var psi = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = $"ls-remote --heads --exit-code \"{url}\" {branch}",
+                Arguments = $"ls-remote --exit-code \"{url}\" {branch}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

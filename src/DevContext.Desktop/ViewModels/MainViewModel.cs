@@ -110,7 +110,7 @@ public partial class MainViewModel : ObservableObject
     public string HumanViewText => _rawContent;
 
     public string AnalyzeButtonText
-        => IsGitHubUrl && GitRepoStatus == RepoStatus.Valid
+        => IsGitHubUrl
             ? (IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
             : HasOutput
                 ? (IsAnalyzing ? "Analyzing..." : $"Analyze (~{SelectedTokenTotal:N0} tok)")
