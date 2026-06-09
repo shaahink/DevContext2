@@ -1,5 +1,9 @@
 # DevContext — .NET Codebase Analysis for LLM Context
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
+[![Tests](https://img.shields.io/badge/tests-144%20passing-brightgreen)](tests/DevContext.Core.Tests)
+
 **DevContext** is a static analysis CLI tool that extracts structured context from .NET codebases for use with LLMs (Large Language Models). It analyzes your project's architecture, endpoints, dependencies, data models, and middleware pipeline — then prunes and compresses the output to fit a token budget.
 
 ```bash
@@ -7,6 +11,57 @@
 dotnet tool install -g DevContext.Cli
 devcontext . --scenario architecture --max-tokens 8000
 ```
+
+## Table of Contents
+
+- [Why DevContext?](#why-devcontext)
+- [Before vs After](#before-vs-after)
+- [Quick Start](#quick-start)
+- [Example Scenarios](#example-scenarios)
+- [Scenarios](#scenarios)
+- [Profiles](#profiles)
+- [Output Sections](#output-sections)
+- [Command Reference](#command-reference)
+- [Signals](#signals-detected-architecture-features)
+- [Configuration](#configuration)
+- [Architecture](#architecture)
+- [Development](#development)
+- [License](#license)
+
+---
+
+## Before vs After
+
+**Before**: You dump source files into an LLM. It gets 50,000 tokens of noise. You spend half your budget on `using` directives and closing braces.
+
+**After**: DevContext produces a structured, pruned, 8,000-token overview that an LLM can immediately act on:
+
+```markdown
+## Call graph — depth-5 BFS trace
+
+BacktestController.Start
+  → BacktestOrchestrator.StartAsync
+    → BacktestOrchestrator.Start
+      → BacktestOrchestrator.RunAsync
+        → repo.SaveAsync               ← DB write
+        → IServiceScopeFactory.CreateScope  ← SERVICE LOCATOR (flagged)
+        → EnqueueLog → PushProgress    ← SSE streaming
+
+## Anti-patterns detected
+| Severity | Pattern | Description | Source |
+|---|---|---|---|
+| high | FireAndForget | _ = RunAsync(cfg) — task never awaited | BacktestOrchestrator.cs:85 |
+| high | ServiceLocator | IServiceScopeFactory.CreateScope() | BacktestOrchestrator.cs:117 |
+
+## Event flow (in-memory bus)
+BarEvaluated  → BarEvaluationHandler  → SQLite (BarEvaluations)
+EquityUpdated → EquityPersistenceHandler → SQLite (EquitySnapshots)
+TradeClosed   → TradePersistenceHandler → SQLite (TradeResults)
+```
+
+The LLM sees: project structure → entry point with resolved DI → full source code → call graph depth-5 → anti-patterns → event flow → data model — all in a single structured document under the token budget.
+
+Read the [full example](docs/examples/debug-endpoint.md) to see what a real run produces.
 
 ---
 
@@ -41,6 +96,18 @@ devcontext . --scenario architecture --format markdown -o output.md
 # See what extractors would run
 devcontext . --dry-run
 ```
+
+---
+
+## Example Scenarios
+
+Real output from real codebases — see exactly what each scenario produces:
+
+| Example | Scenario | Profile | What it shows |
+|---|---|---|---|
+| [Debug an endpoint](docs/examples/debug-endpoint.md) | `debug-endpoint` | `full` | Call graph, anti-patterns, event flow, source code, DI cross-reference |
+| [Architecture overview](docs/examples/architecture.md) | `architecture` | `focused` | Project tree, endpoints, MediatR handlers, EF entities, 37 anti-patterns found |
+| [DI hardening audit](docs/examples/harden-di.md) | `harden-di` | `focused` | Service locator, reflection activation, unbounded collections |
 
 ---
 
@@ -131,15 +198,18 @@ Each signal gates scenario-specific extractors — no point scanning for MediatR
 | Section | Content | Example |
 |---|---|---|
 | Header | Scenario name, architecture style, signals, project count, token budget | `MinimalApi (100%) · controllers · mediatr · efcore` |
-| Architecture overview | Project list by name | `- Catalog.API / - Ordering.API / - WebApp` |
-| Entry points | Inline type definition for `--around` focus | Constructor deps, implemented interfaces, public methods |
+| Architecture overview | Project dependency tree (ASCII) | `└── Web ── Application ── Domain<br>    └── Infrastructure` |
+| Entry points | Inline type definition for `--around` focus + DI cross-reference | `**Depends on**: IBacktestCommandService command`<br>`**Resolved to**: BacktestOrchestrator (Program.cs:25)` |
 | Endpoints | Per-project grouped HTTP endpoints with routes, handler chains, auth | `POST /api/orders → CreateOrderCommand` |
-| Call graph | BFS call tree from focused handler (debug profile) | `CreateOrderHandler.Handle ├─ _repo.Add └─ _eventService.Publish` |
+| Call graph | BFS call tree from focused handler (depth 5+) | `CreateOrderHandler.Handle ├─ _repo.Add └─ _eventService.Publish` |
+| Source code | Full type declarations for entry point + call chain types | `BacktestController.cs (97 lines)`, `BacktestOrchestrator.cs (227 lines)` |
 | MediatR Handlers | Command/query handlers with request/response types | `CreateOrderCommand → bool → CreateOrderCommandHandler` |
 | Data model (EF Core) | Per-DbContext entities, aggregate roots, key properties | `OrderingContext: Order, OrderItem, Buyer` |
 | Message consumers | Event bus subscribers | `MassTransit · OrderCreated · EmailConsumer` |
+| Event flow | Publisher → event → handler → DB for in-memory buses | `EquityUpdated → EquityPersistenceHandler → SQLite` |
 | Middleware pipeline | Deduplicated middleware with source and count | `UseAuthorization ×3 (Program.cs)` |
 | DI registrations | Compact service registrations with source attribution | `Scoped · IOrderRepository · OrderRepository · Extensions.cs:16` |
+| Anti-patterns detected | FireAndForget, ServiceLocator, CancellationTokenNone, NewOutsideDI, UnboundedCollections | `high · FireAndForget · _ = RunAsync() · BacktestOrchestrator.cs:85` |
 | Related types | Surviving types grouped by architecture layer | `Api: CreateOrderHandler, Api: OrderController` |
 
 ---
