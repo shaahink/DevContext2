@@ -116,7 +116,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 RecordDeclarationSyntax r => GetAccessibility(r.Modifiers),
                 _ => Accessibility.Public,
             },
-            Layer = InferLayer(namespaceName, filePath),
+            Layer = InferLayer(namespaceName, filePath, name, baseTypes, interfaces),
             Methods = methods,
             Properties = properties,
             BaseTypes = baseTypes,
@@ -263,8 +263,18 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         return Accessibility.Public;
     }
 
-    private static ArchitectureLayer InferLayer(string namespaceName, string filePath)
+    private static ArchitectureLayer InferLayer(string namespaceName, string filePath,
+        string typeName, ImmutableArray<string> baseTypes, ImmutableArray<string> interfaces)
     {
+        // 1. Base type / interface signals (highest confidence)
+        if (interfaces.Any(i => i.Contains("IHostedService") || i.Contains("IEventHandler")))
+            return ArchitectureLayer.Application;
+        if (baseTypes.Any(b => b.Contains("DbContext")) || interfaces.Any(i => i.Contains("IRepository")))
+            return ArchitectureLayer.Infrastructure;
+        if (baseTypes.Any(b => b.Contains("ControllerBase") || b.Contains("Controller")))
+            return ArchitectureLayer.Presentation;
+
+        // 2. Namespace heuristics
         var lowerNs = namespaceName.ToLowerInvariant();
         if (lowerNs.Contains("presentation") || lowerNs.Contains("ui") || lowerNs.Contains("web"))
             return ArchitectureLayer.Presentation;
@@ -277,6 +287,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         if (lowerNs.Contains("infrastructure") || lowerNs.Contains("data") || lowerNs.Contains("persistence"))
             return ArchitectureLayer.Infrastructure;
 
+        // 3. File path heuristics
         var lowerPath = filePath.ToLowerInvariant();
         if (lowerPath.Contains("\\domain\\") || lowerPath.Contains("/domain/"))
             return ArchitectureLayer.Domain;
@@ -288,6 +299,18 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             return ArchitectureLayer.Api;
         if (lowerPath.Contains("\\presentation\\") || lowerPath.Contains("/presentation/"))
             return ArchitectureLayer.Presentation;
+
+        // 4. Naming convention heuristics
+        var lowerName = typeName.ToLowerInvariant();
+        if (lowerName.EndsWith("handler") || lowerName.EndsWith("service") || lowerName.EndsWith("orchestrator")
+            || lowerName.EndsWith("worker") || lowerName.EndsWith("manager"))
+            return ArchitectureLayer.Application;
+        if (lowerName.EndsWith("repository") || lowerName.EndsWith("datastore") || lowerName.EndsWith("dbcontext"))
+            return ArchitectureLayer.Infrastructure;
+        if (lowerName.EndsWith("controller") || lowerName.EndsWith("endpoint") || lowerName.EndsWith("page"))
+            return ArchitectureLayer.Presentation;
+        if (lowerName.EndsWith("entity") || lowerName.EndsWith("aggregate") || lowerName.EndsWith("valueobject"))
+            return ArchitectureLayer.Domain;
 
         return ArchitectureLayer.Unknown;
     }
