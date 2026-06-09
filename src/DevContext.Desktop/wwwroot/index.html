@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevContext</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{surface:'#1e1e2e',panel:'#181825',accent:'#89b4fa',danger:'#f38ba8',success:'#a6e3a1',warn:'#f9e2af',muted:'#6c7086'}}}} </script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;overflow:hidden}
+    .dark body,.dark{background:#1e1e2e;color:#cdd6f4}
+    .sidebar{width:330px;min-width:280px;max-width:420px;resize:horizontal;overflow:hidden}
+    .sidebar::-webkit-resizer{display:none}
+    .prose pre{background:#11111b!important;border:1px solid #313244;border-radius:8px;padding:16px;overflow-x:auto}
+    .prose code{color:#fab387;font-size:.85em}
+    .prose table{border-collapse:collapse;width:100%;font-size:.85em}
+    .prose th,.prose td{border:1px solid #313244;padding:6px 10px;text-align:left}
+    .prose th{background:#181825}
+    .prose td{background:#1e1e2e}
+    .prose tr:nth-child(even) td{background:#181825}
+    @media(max-width:768px){.sidebar{width:100%!important;min-width:100%;resize:none;border-right:none!important;border-bottom:1px solid #313244}}
+    .stage-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;transition:all .3s}
+    .stage-dot.pending{background:#313244}
+    .stage-dot.active{background:#89b4fa;animation:pulse 1s infinite}
+    .stage-dot.done{background:#a6e3a1}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    #output h2{border-bottom:1px solid #313244;padding-bottom:8px;margin-top:24px;margin-bottom:12px;font-size:1.2em;color:#89b4fa}
+    #output h3{margin-top:16px;margin-bottom:8px;font-size:1em;color:#cdd6f4}
+    .hljs{background:transparent!important}
+    .prose a{color:#89b4fa}
+  </style>
+</head>
+<body>
+<div class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+  <!-- LEFT PANEL: Settings -->
+  <aside id="sidebar" class="sidebar bg-panel border-r border-gray-700 flex-shrink-0 flex flex-col overflow-y-auto" style="border-right-color:#313244">
+    <div class="p-4 border-b border-gray-700 flex items-center justify-between" style="border-bottom-color:#313244">
+      <h1 class="text-lg font-bold text-accent tracking-tight">DevContext</h1>
+      <span id="version" class="text-xs text-muted">v2.0.0</span>
+    </div>
+
+    <div class="p-4 flex flex-col gap-3 flex-1">
+
+      <!-- PROJECT PATH -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Project Path</label>
+        <div class="flex gap-1 mt-1">
+          <input id="path" type="text" placeholder="C:\Code\MyProject\MyApp.sln" class="flex-1 bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-accent transition" autofocus>
+          <button onclick="pickFolder()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 rounded text-sm transition" title="Browse folder">📁</button>
+          <button onclick="pickFile()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 rounded text-sm transition" title="Browse .sln/.csproj">📄</button>
+        </div>
+        <div id="recent" class="hidden mt-1"></div>
+        <p id="path-status" class="text-xs mt-1 h-4"></p>
+      </div>
+
+      <!-- SCENARIO -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Scenario</label>
+        <select id="scenario" class="w-full bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm mt-1 outline-none focus:border-accent transition">
+          <option value="architecture">🏗 Architecture — full overview</option>
+          <option value="debug-endpoint" selected>🔍 Debug Endpoint — trace one handler</option>
+          <option value="add-similar-feature">➕ Add Similar Feature — pattern copy</option>
+          <option value="modify-middleware">🔧 Modify Middleware — pipeline audit</option>
+          <option value="trace-message-flow">📨 Trace Message Flow — event bus</option>
+          <option value="harden-di">🛡 Harden DI — security audit</option>
+        </select>
+      </div>
+
+      <!-- PROFILE -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Profile</label>
+        <div class="flex gap-1 mt-1" id="profile-group">
+          <button data-p="quick" onclick="setProfile('quick')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Quick</button>
+          <button data-p="focused" onclick="setProfile('focused')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition bg-accent text-gray-900">Focused</button>
+          <button data-p="debug" onclick="setProfile('debug')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Debug</button>
+          <button data-p="full" onclick="setProfile('full')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Full</button>
+        </div>
+      </div>
+
+      <!-- AROUND / FOCUS -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Focus Type/Method (--around)</label>
+        <input id="around" type="text" placeholder="e.g. BacktestController:Start" class="w-full bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm mt-1 outline-none focus:border-accent transition">
+      </div>
+
+      <!-- MAX TOKENS -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Max Tokens: <span id="token-val" class="text-accent">8000</span></label>
+        <input id="tokens" type="range" min="500" max="50000" step="100" value="8000" class="w-full mt-1 accent-accent" oninput="document.getElementById('token-val').textContent=this.value">
+      </div>
+
+      <!-- FORMAT TOGGLE -->
+      <div>
+        <label class="text-xs text-muted font-medium uppercase tracking-wider">Format</label>
+        <div class="flex gap-1 mt-1" id="format-group">
+          <button data-f="markdown" onclick="setFormat('markdown')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition bg-accent text-gray-900">Markdown</button>
+          <button data-f="json" onclick="setFormat('json')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">JSON</button>
+        </div>
+      </div>
+
+      <!-- ADVANCED TOGGLE -->
+      <details class="text-xs">
+        <summary class="text-muted cursor-pointer hover:text-gray-200 transition">▶ Advanced Options</summary>
+        <div class="mt-2 space-y-2 pl-2">
+          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-provenance" type="checkbox" class="accent-accent"><span class="text-gray-400">Include provenance</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-diagnostics" type="checkbox" class="accent-accent"><span class="text-gray-400">Include diagnostics</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-noroslyn" type="checkbox" class="accent-accent"><span class="text-gray-400">No Roslyn (faster, no call graph)</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-dryrun" type="checkbox" class="accent-accent"><span class="text-gray-400">Dry run (plan only)</span></label>
+        </div>
+      </details>
+
+      <!-- EXECUTE -->
+      <button id="execute-btn" onclick="execute()" class="w-full bg-accent hover:bg-blue-300 text-gray-900 font-semibold py-2.5 rounded-lg text-sm mt-2 transition flex items-center justify-center gap-2">
+        <span id="btn-text">▶ Analyze</span>
+      </button>
+
+      <!-- PROGRESS -->
+      <div id="progress-area" class="hidden space-y-1.5 mt-1">
+        <div class="text-xs text-muted font-medium uppercase">Progress</div>
+        <div id="stages" class="text-xs space-y-1"></div>
+        <div id="progress-bar" class="w-full h-1 bg-gray-700 rounded overflow-hidden hidden"><div id="progress-fill" class="h-full bg-accent rounded transition-all duration-300" style="width:0%"></div></div>
+        <div id="progress-extras" class="text-xs text-muted"></div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL: Output -->
+  <main class="flex-1 flex flex-col overflow-hidden bg-surface">
+    
+    <!-- Output header bar -->
+    <div id="output-bar" class="hidden flex items-center justify-between px-5 py-2 border-b border-gray-700 bg-panel" style="border-bottom-color:#313244">
+      <div id="stats" class="flex gap-4 text-xs text-muted"></div>
+      <div class="flex gap-2">
+        <button onclick="copyOutput()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">📋 Copy</button>
+        <button onclick="saveOutput()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">💾 Save</button>
+        <button id="theme-btn" onclick="toggleTheme()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">🌙</button>
+      </div>
+    </div>
+
+    <!-- Output content -->
+    <div class="flex-1 overflow-y-auto p-5">
+      <div id="output" class="prose prose-invert max-w-none text-sm leading-relaxed"></div>
+      <div id="placeholder" class="flex flex-col items-center justify-center h-full text-muted">
+        <div class="text-5xl mb-4">📋</div>
+        <p class="text-lg font-medium">Select a project and press <span class="text-accent">Analyze</span></p>
+        <p class="text-sm mt-1">Structured .NET context for LLMs — in seconds.</p>
+      </div>
+    </div>
+
+    <!-- Bottom toast -->
+    <div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm shadow-lg z-50 transition-all"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
