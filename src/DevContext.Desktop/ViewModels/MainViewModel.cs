@@ -69,7 +69,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isHumanView = true;
 
     // ── Section-based dual-view ─────────────────────────────────────────────────
-    public ObservableCollection<SectionViewModel> Sections { get; } = [];
+    public ObservableCollection<SectionGroupViewModel> SectionGroups { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
+    private int _selectedTokenTotal;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
@@ -89,7 +93,10 @@ public partial class MainViewModel : ObservableObject
     {
         get
         {
-            var parts = Sections.Where(s => s.IsIncluded).Select(s => s.FullText);
+            var parts = SectionGroups
+                .SelectMany(g => g.Children)
+                .Where(s => s.IsIncluded)
+                .Select(s => s.FullText);
             return string.Join(Environment.NewLine, parts);
         }
     }
@@ -99,7 +106,9 @@ public partial class MainViewModel : ObservableObject
     public string AnalyzeButtonText
         => IsGitHubUrl && GitRepoStatus == RepoStatus.Valid
             ? (IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
-            : (IsAnalyzing ? "Analyzing..." : "Analyze");
+            : HasOutput
+                ? (IsAnalyzing ? "Analyzing..." : $"Analyze (~{SelectedTokenTotal:N0} tok)")
+                : (IsAnalyzing ? "Analyzing..." : "Analyze");
 
     // ── GitHub repo analysis ────────────────────────────────────────────────────
     public bool IsGitAvailable => _git.IsGitAvailable;
@@ -176,7 +185,14 @@ public partial class MainViewModel : ObservableObject
     }
 
     // ── Auto-reanalyze on option change ────────────────────────────────────────
-    partial void OnSelectedScenarioChanged(ScenarioItem value)  => OnAnalysisOptionChanged();
+    partial void OnSelectedScenarioChanged(ScenarioItem value)
+    {
+        if (_isInitializing) return;
+        if (HasOutput)
+            ResetToScenarioDefaults();
+        else
+            OnAnalysisOptionChanged();
+    }
     partial void OnSelectedProfileChanged(string value)         => OnAnalysisOptionChanged();
     partial void OnSelectedFormatChanged(string value)          => OnAnalysisOptionChanged();
     partial void OnMaxTokensChanged(int value)                  => OnAnalysisOptionChanged();
@@ -371,14 +387,14 @@ public partial class MainViewModel : ObservableObject
 
     private void PopulateSections(string output)
     {
-        Sections.Clear();
+        SectionGroups.Clear();
 
-        // Split by ## section headers
+        var sections = new List<SectionViewModel>();
+
         var parts = output.Split("## ");
-        foreach (var part in parts.Skip(1)) // Skip content before first ##
+        foreach (var part in parts.Skip(1))
         {
             if (string.IsNullOrWhiteSpace(part)) continue;
-
             var newlineIdx = part.IndexOf('\n');
             var name = newlineIdx > 0 ? part[..newlineIdx].Trim() : part.Trim();
             var fullText = "## " + part;
@@ -390,13 +406,75 @@ public partial class MainViewModel : ObservableObject
                 FullText = fullText,
                 RawTokens = tokens,
                 CompressedTokens = tokens,
+                Category = CategorizeSection(name),
             };
 
-            section.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LlmViewText));
-            Sections.Add(section);
+            section.PropertyChanged += (_, _) =>
+            {
+                RecalcTokenTotal();
+                OnPropertyChanged(nameof(LlmViewText));
+            };
+
+            sections.Add(section);
         }
 
+        // Group by category
+        var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
+        foreach (var cat in categoryOrder)
+        {
+            var children = sections.Where(s => s.Category == cat).ToList();
+            if (children.Count == 0) continue;
+
+            var group = new SectionGroupViewModel
+            {
+                Name = cat,
+                IsExpanded = cat != "Debug",
+            };
+            group.Children.AddRange(children);
+            group.PropertyChanged += (_, _) => RecalcTokenTotal();
+            SectionGroups.Add(group);
+        }
+
+        TotalTokens = sections.Sum(s => s.CompressedTokens);
+        RecalcTokenTotal();
         OnPropertyChanged(nameof(LlmViewText));
         OnPropertyChanged(nameof(HumanViewText));
+    }
+
+    private void RecalcTokenTotal()
+    {
+        SelectedTokenTotal = SectionGroups
+            .SelectMany(g => g.Children)
+            .Where(s => s.IsIncluded)
+            .Sum(s => s.CompressedTokens);
+    }
+
+    private static string CategorizeSection(string name)
+    {
+        var lower = name.ToLowerInvariant();
+        if (lower.Contains("endpoint") || lower.Contains("call graph") || lower.Contains("mediatr") || lower.Contains("handler"))
+            return "API";
+        if (lower.Contains("architecture") || lower.Contains("project") || lower.Contains("di regist") || lower.Contains("non-obvious") || lower.Contains("middleware") || lower.Contains("signal"))
+            return "Architecture";
+        if (lower.Contains("data model") || lower.Contains("entity") || lower.Contains("message consumer") || lower.Contains("event flow"))
+            return "Data";
+        if (lower.Contains("anti-pattern") || lower.Contains("related type") || lower.Contains("entry point"))
+            return "Analysis";
+        if (lower.Contains("diagnostic") || lower.Contains("pruning") || lower.Contains("source code") || lower.Contains("hotpath"))
+            return "Debug";
+        return "Other";
+    }
+
+    [RelayCommand]
+    private void ResetToScenarioDefaults()
+    {
+        foreach (var group in SectionGroups)
+        foreach (var section in group.Children)
+        {
+            // Always include unless it's Debug/Diagnostics category
+            section.IsIncluded = section.Category != "Debug";
+        }
+        RecalcTokenTotal();
+        OnPropertyChanged(nameof(LlmViewText));
     }
 }

@@ -342,30 +342,81 @@
 
                 <!-- Output content -->
                 <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                    <!-- Section toggle bar -->
-                    <ItemsControl Grid.Row="0"
-                                  ItemsSource="{Binding Sections}"
-                                  IsVisible="{Binding HasOutput}"
-                                  Margin="12,6,12,0">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <CheckBox IsChecked="{Binding IsIncluded}"
-                                          FontSize="11"
-                                          Margin="0,0,12,4">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{Binding Name}" FontSize="11"/>
-                                        <TextBlock Text="{Binding CompressedTokens, StringFormat='({0} tok)'}"
-                                                   FontSize="10"
-                                                   Foreground="{StaticResource Overlay0Brush}"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </CheckBox>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <!-- Section toggle bar (grouped) -->
+                    <Border Grid.Row="0"
+                            IsVisible="{Binding HasOutput}"
+                            Background="{StaticResource BaseBrush}"
+                            BorderBrush="{StaticResource Surface0Brush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="12,6">
+                        <StackPanel Spacing="6">
+                            <!-- Token bar -->
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock Grid.Column="0" FontSize="11"
+                                           Foreground="{StaticResource Overlay0Brush}"
+                                           VerticalAlignment="Center">
+                                    <Run Text="{Binding SelectedTokenTotal, StringFormat='{}{0:N0}'}"/>
+                                    <Run Text=" / "/>
+                                    <Run Text="{Binding BudgetTokens, StringFormat='{}{0:N0}'}"/>
+                                    <Run Text=" tokens"/>
+                                </TextBlock>
+                                <ProgressBar Grid.Column="1" Height="4"
+                                             Minimum="0" Maximum="{Binding BudgetTokens}"
+                                             Value="{Binding SelectedTokenTotal}"
+                                             Margin="8,0" CornerRadius="2"
+                                             Foreground="{StaticResource BlueBrush}"
+                                             VerticalAlignment="Center"/>
+                                <Button Grid.Column="2" FontSize="10" Padding="6,2"
+                                        Command="{Binding ResetToScenarioDefaultsCommand}"
+                                        Classes="ViewTab"
+                                        VerticalAlignment="Center">
+                                    Reset to scenario defaults
+                                </Button>
+                            </Grid>
+                            <!-- Grouped sections -->
+                            <ItemsControl ItemsSource="{Binding SectionGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,4">
+                                            <!-- Group header -->
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <ToggleButton IsChecked="{Binding IsExpanded}"
+                                                              FontSize="10" FontWeight="SemiBold"
+                                                              Foreground="{StaticResource Overlay0Brush}"
+                                                              Background="Transparent"
+                                                              BorderThickness="0"
+                                                              Padding="0,2"
+                                                              Content="{Binding Name, StringFormat='▾ {0}'}"/>
+                                                <TextBlock FontSize="10" Foreground="{StaticResource Overlay0Brush}"
+                                                           VerticalAlignment="Center"
+                                                           Text="{Binding TotalTokens, StringFormat='({0:N0} tok)'}"/>
+                                            </StackPanel>
+                                            <!-- Children -->
+                                            <StackPanel IsVisible="{Binding IsExpanded}" Margin="16,2,0,0">
+                                                <ItemsControl ItemsSource="{Binding Children}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <CheckBox IsChecked="{Binding IsIncluded}"
+                                                                      FontSize="11"
+                                                                      Margin="0,0,0,2">
+                                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                    <TextBlock Text="{Binding Name}" FontSize="11"/>
+                                                                    <TextBlock Text="{Binding CompressedTokens, StringFormat='({0} tok)'}"
+                                                                               FontSize="10"
+                                                                               Foreground="{StaticResource Overlay0Brush}"
+                                                                               VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </CheckBox>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Placeholder -->
                     <StackPanel Grid.Row="1" IsVisible="{Binding !HasOutput}"
