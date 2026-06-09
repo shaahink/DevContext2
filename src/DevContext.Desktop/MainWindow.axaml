@@ -314,7 +314,7 @@
                                    Foreground="{StaticResource Overlay0Brush}"
                                    VerticalAlignment="Center"
                                    Margin="12,0,0,0"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
                             <Button Theme="{StaticResource IconButton}"
                                     IsEnabled="{Binding HasOutput}"
                                     ToolTip.Tip="Copy to clipboard  (Ctrl+Shift+C)"
