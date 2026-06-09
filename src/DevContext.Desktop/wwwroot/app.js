@@ -9,7 +9,7 @@ function call(type, data = {}) {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     const handler = (e) => {
       try {
-        const msg = JSON.parse(e);
+        const msg = typeof e === 'string' ? JSON.parse(e) : JSON.parse(e.data || e);
         if (msg.type === 'reply' && msg.data?.id === id) { window.removeEventListener('message', handler); resolve(msg.data.data); }
         if (msg.type === 'error' && msg.data?.id === id) { window.removeEventListener('message', handler); reject(msg.data.error); }
         if (msg.type === 'error' && !msg.data?.id) { showToast(msg.data?.error || 'Unknown error', 'error'); reject(msg.data?.error); }
@@ -18,8 +18,13 @@ function call(type, data = {}) {
       } catch {}
     };
     window.addEventListener('message', handler);
+    const msg = JSON.stringify({ id, type, data });
     if (window.external && typeof window.external.sendMessage === 'function')
-      window.external.sendMessage(JSON.stringify({ id, type, data }));
+      window.external.sendMessage(msg);
+    else if (window.chrome && window.chrome.webview && window.chrome.webview.postMessage)
+      window.chrome.webview.postMessage(msg);
+    else
+      console.warn('No bridge API available for message:', type);
   });
 }
 

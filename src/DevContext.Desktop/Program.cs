@@ -7,6 +7,11 @@ public static class Program
 {
     public static void Main(string[] args)
     {
+        var baseDir = AppContext.BaseDirectory;
+        var wwwroot = Path.Combine(baseDir, "wwwroot");
+        if (!Directory.Exists(wwwroot))
+            wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
         var window = new PhotinoWindow()
             .SetTitle("DevContext")
             .SetUseOsDefaultSize(false)
@@ -23,7 +28,16 @@ public static class Program
             bridge.HandleMessage(message);
         });
 
-        window.Load("wwwroot/index.html");
+        // Load from file:// URL for proper script/CDN support
+        var htmlPath = Path.Combine(wwwroot, "index.html");
+        if (File.Exists(htmlPath))
+        {
+            window.Load($"file:///{htmlPath.Replace('\\', '/')}");
+        }
+        else
+        {
+            window.LoadRawString("<h1>404 - index.html not found</h1>");
+        }
         window.WaitForClose();
     }
 }
