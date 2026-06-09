@@ -282,6 +282,13 @@
                                 <PathIcon Data="{StaticResource IconContentSave}"
                                            Width="18" Height="18"/>
                             </Button>
+                            <Button Theme="{StaticResource IconButton}"
+                                    IsEnabled="{Binding HasOutput}"
+                                    ToolTip.Tip="Copy LLM output (excluded sections stripped)"
+                                    Click="OnCopyLlm">
+                                <PathIcon Data="{StaticResource IconCodeBraces}"
+                                           Width="18" Height="18"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>

@@ -63,6 +63,32 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
 
+    // ── Section-based dual-view ─────────────────────────────────────────────────
+    public ObservableCollection<SectionViewModel> Sections { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
+    private int _totalTokens;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
+    private int _budgetTokens = 8000;
+
+    public float BudgetUtilisation => BudgetTokens > 0
+        ? (float)TotalTokens / BudgetTokens
+        : 0;
+
+    public string LlmViewText
+    {
+        get
+        {
+            var parts = Sections.Where(s => s.IsIncluded).Select(s => s.FullText);
+            return string.Join(Environment.NewLine, parts);
+        }
+    }
+
+    public string HumanViewText => _rawContent;
+
     public string AnalyzeButtonText => IsAnalyzing ? "Analyzing..." : "Analyze";
     public string RawContent => _rawContent;
 
@@ -173,12 +199,15 @@ public partial class MainViewModel : ObservableObject
             {
                 _rawContent = result.Content ?? "";
                 OutputText = _rawContent;
+                PopulateSections(_rawContent);
                 var tokens = _rawContent.Length / 4;
                 StatsText = $"~{tokens:N0} tokens  ·  {result.ElapsedMs / 1000.0:F1}s";
                 HasOutput = true;
                 IsProgressIndeterminate = false;
                 ProgressValue = 100;
                 ProgressText = "Done";
+                BudgetTokens = MaxTokens;
+                TotalTokens = tokens;
             }
             else
             {
@@ -251,5 +280,36 @@ public partial class MainViewModel : ObservableObject
         RecentPaths.Clear();
         foreach (var p in _svc.LoadRecent().Take(6))
             RecentPaths.Add(p);
+    }
+
+    private void PopulateSections(string output)
+    {
+        Sections.Clear();
+
+        // Split by ## section headers
+        var parts = output.Split("## ");
+        foreach (var part in parts.Skip(1)) // Skip content before first ##
+        {
+            if (string.IsNullOrWhiteSpace(part)) continue;
+
+            var newlineIdx = part.IndexOf('\n');
+            var name = newlineIdx > 0 ? part[..newlineIdx].Trim() : part.Trim();
+            var fullText = "## " + part;
+            var tokens = Math.Max(1, fullText.Length / 4);
+
+            var section = new SectionViewModel
+            {
+                Name = name,
+                FullText = fullText,
+                RawTokens = tokens,
+                CompressedTokens = tokens,
+            };
+
+            section.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LlmViewText));
+            Sections.Add(section);
+        }
+
+        OnPropertyChanged(nameof(LlmViewText));
+        OnPropertyChanged(nameof(HumanViewText));
     }
 }

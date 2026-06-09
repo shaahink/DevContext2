@@ -96,6 +96,12 @@ public partial class MainWindow : Window
             await cb.SetTextAsync(text);
     }
 
+    private async void OnCopyLlm(object? sender, RoutedEventArgs e)
+    {
+        if (VM is { } vm && Clipboard is { } cb)
+            await cb.SetTextAsync(vm.LlmViewText);
+    }
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (VM is not { RawContent: { Length: > 0 } content } vm) return;
