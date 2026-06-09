@@ -93,6 +93,10 @@ devcontext . --scenario debug-endpoint --around CreateOrderHandler
 # Save to file
 devcontext . --scenario architecture --format markdown -o output.md
 
+# Desktop UI (cross-platform)
+dotnet run --project src/DevContext.Desktop
+```
+
 # See what extractors would run
 devcontext . --dry-run
 ```
