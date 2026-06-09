@@ -72,22 +72,27 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     var args = invocation.ArgumentList.Arguments;
                     string serviceType;
                     string implementationType;
+                    DiRegistrationShape shape = DiRegistrationShape.DirectBinding;
+                    string? factorySummary = null;
 
                     if (args.Count >= 2)
                     {
                         serviceType = args[0].Expression?.ToString() ?? "?";
                         implementationType = args[1].Expression?.ToString() ?? "?";
+                        (shape, factorySummary) = ClassifyShape(args[1].Expression);
                     }
                     else if (args.Count == 1)
                     {
                         serviceType = args[0].Expression?.ToString() ?? "?";
                         implementationType = serviceType;
+                        (shape, factorySummary) = ClassifyShape(args[0].Expression);
                     }
                     else if (memberAccess.Name is GenericNameSyntax genericName)
                     {
                         var typeArgs = genericName.TypeArgumentList.Arguments;
                         serviceType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
                         implementationType = typeArgs.Count >= 2 ? typeArgs[1].ToString() : serviceType;
+                        shape = typeArgs.Count >= 2 ? DiRegistrationShape.DirectBinding : DiRegistrationShape.SelfRegistration;
                     }
                     else
                     {
@@ -101,7 +106,9 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                         ServiceType: serviceType,
                         ImplementationType: implementationType,
                         Lifetime: lifetime,
-                        ExtensionsUsed: extensions)
+                        ExtensionsUsed: extensions,
+                        Shape: shape,
+                        FactorySummary: factorySummary)
                     {
                         ExtractorName = Name,
                         SourceFile = filePath,
@@ -186,5 +193,73 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
 
         return extensions.ToImmutableArray();
+    }
+
+    private static (DiRegistrationShape Shape, string? Summary) ClassifyShape(ExpressionSyntax? expr)
+    {
+        if (expr is not LambdaExpressionSyntax lambda)
+            return (DiRegistrationShape.DirectBinding, null);
+
+        var body = lambda.Body;
+
+        // Expression body: sp => sp.GetRequiredService<T>()
+        if (body is ExpressionSyntax exprBody)
+        {
+            if (exprBody is InvocationExpressionSyntax inv
+                && inv.Expression is MemberAccessExpressionSyntax ma
+                && (ma.Name.Identifier.ValueText == "GetRequiredService"
+                    || ma.Name.Identifier.ValueText == "GetService"))
+            {
+                return (DiRegistrationShape.ForwardingAlias,
+                    $"alias → {ma.Name.Identifier.ValueText}");
+            }
+
+            var summary = BuildFactorySummary(exprBody);
+            return (DiRegistrationShape.InlineFactory, summary);
+        }
+
+        // Block body: sp => { ... }
+        if (body is BlockSyntax block)
+        {
+            var summary = BuildFactorySummary(block);
+            return (DiRegistrationShape.InlineFactory, summary);
+        }
+
+        return (DiRegistrationShape.InlineFactory, "[factory]");
+    }
+
+    private static string? BuildFactorySummary(SyntaxNode body)
+    {
+        // Check if body itself is an object creation
+        if (body is ObjectCreationExpressionSyntax bodyCreation)
+        {
+            var typeName = bodyCreation.Type.ToString();
+            return $"[factory: new {typeName}]";
+        }
+
+        // Walk descendants for object creations
+        foreach (var creation in body.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            var typeName = creation.Type.ToString();
+            var deps = creation.ArgumentList?.Arguments
+                .Select(a => a.Expression.ToString())
+                .Where(s => !s.StartsWith("sp.") && !s.StartsWith("\""))
+                .ToList() ?? [];
+
+            if (deps.Count > 0)
+                return $"[factory: new {typeName}({string.Join(", ", deps.Take(3))})]";
+
+            return $"[factory: new {typeName}]";
+        }
+
+        // Detect File.ReadAllText, File.Exists patterns
+        if (body.ToString().Contains("File.ReadAllText") || body.ToString().Contains("File.Exists"))
+            return "[factory: reads from disk]";
+
+        // Detect foreach bulk registration
+        if (body.ToString().Contains("foreach"))
+            return "[factory: bulk registration]";
+
+        return "[factory]";
     }
 }

@@ -94,11 +94,26 @@ public sealed record MessageConsumerDetection(
     string BusKind
 ) : Detection;
 
+/// <summary>Classification of how a DI registration binds service to implementation.</summary>
+public enum DiRegistrationShape
+{
+    /// <summary>AddScoped&lt;IFoo, Foo&gt;() — explicit interface-to-implementation mapping.</summary>
+    DirectBinding,
+    /// <summary>AddSingleton&lt;Foo&gt;() — self-registration, no interface.</summary>
+    SelfRegistration,
+    /// <summary>sp => sp.GetRequiredService&lt;Foo&gt;() — pure alias, no factory logic.</summary>
+    ForwardingAlias,
+    /// <summary>sp => new Foo(...) or sp => { ... } — has real factory logic.</summary>
+    InlineFactory,
+}
+
 public sealed record DiRegistrationDetection(
     string ServiceType,
     string ImplementationType,
     string Lifetime,
-    ImmutableArray<string> ExtensionsUsed
+    ImmutableArray<string> ExtensionsUsed,
+    DiRegistrationShape Shape = DiRegistrationShape.DirectBinding,
+    string? FactorySummary = null
 ) : Detection;
 
 /// <summary>Detection for an anti-pattern found in the codebase.</summary>

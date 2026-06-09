@@ -22,6 +22,8 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
+        var implicitPublishCount = 0;
+
         // Phase 1: Find all IEventHandler<T> implementations
         var eventHandlers = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var type in model.Types.Values)
@@ -95,6 +97,11 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
                                 LineNumber = line
                             });
                         }
+                        else
+                        {
+                            // Implicit generic — cannot resolve type without semantic model
+                            implicitPublishCount++;
+                        }
                     }
                 }
             }
@@ -112,12 +119,12 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
             });
         }
 
-        if (eventHandlers.Count > 0 || model.Detections.OfType<EventFlowDetection>().Any())
+        if (eventHandlers.Count > 0 || model.Detections.OfType<EventFlowDetection>().Any() || implicitPublishCount > 0)
         {
             var pubCount = model.Detections.OfType<EventFlowDetection>().Count(d => d.Kind == "Publish");
             var subCount = model.Detections.OfType<EventFlowDetection>().Count(d => d.Kind == "Subscribe");
             model.AddDiagnostic(DiagnosticLevel.Info, Name,
-                $"Found {eventHandlers.Count} handlers, {subCount} subscriptions, {pubCount} publications");
+                $"Found {eventHandlers.Count} handlers, {subCount} subscriptions, {pubCount} explicit publications{(implicitPublishCount > 0 ? $", {implicitPublishCount} implicit (unresolved)" : "")}");
         }
     }
 
