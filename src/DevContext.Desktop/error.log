@@ -1,5 +1,0 @@
-Unhandled exception. System.ArgumentException: Startup Parameters Are Not Valid: 
-An initial URL or HTML string must be supplied in StartUrl or StartString for the browser control to naviage to.
-
-   at Photino.NET.PhotinoWindow.WaitForClose()
-   at DevContext.Desktop.Program.Main(String[] args) in C:\Code\DevContext2\src\DevContext.Desktop\Program.cs:line 41
