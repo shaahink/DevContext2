@@ -1,161 +1,169 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevContext</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{surface:'#1e1e2e',panel:'#181825',accent:'#89b4fa',danger:'#f38ba8',success:'#a6e3a1',warn:'#f9e2af',muted:'#6c7086'}}}} </script>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;overflow:hidden}
-    .dark body,.dark{background:#1e1e2e;color:#cdd6f4}
-    .sidebar{width:330px;min-width:280px;max-width:420px;resize:horizontal;overflow:hidden}
-    .sidebar::-webkit-resizer{display:none}
-    .prose pre{background:#11111b!important;border:1px solid #313244;border-radius:8px;padding:16px;overflow-x:auto}
-    .prose code{color:#fab387;font-size:.85em}
-    .prose table{border-collapse:collapse;width:100%;font-size:.85em}
-    .prose th,.prose td{border:1px solid #313244;padding:6px 10px;text-align:left}
-    .prose th{background:#181825}
-    .prose td{background:#1e1e2e}
-    .prose tr:nth-child(even) td{background:#181825}
-    @media(max-width:768px){.sidebar{width:100%!important;min-width:100%;resize:none;border-right:none!important;border-bottom:1px solid #313244}}
-    .stage-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;transition:all .3s}
-    .stage-dot.pending{background:#313244}
-    .stage-dot.active{background:#89b4fa;animation:pulse 1s infinite}
-    .stage-dot.done{background:#a6e3a1}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-    #output h2{border-bottom:1px solid #313244;padding-bottom:8px;margin-top:24px;margin-bottom:12px;font-size:1.2em;color:#89b4fa}
-    #output h3{margin-top:16px;margin-bottom:8px;font-size:1em;color:#cdd6f4}
-    .hljs{background:transparent!important}
-    .prose a{color:#89b4fa}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevContext</title>
+<style>
+:root { --bg: #1e1e2e; --panel: #181825; --text: #cdd6f4; --muted: #6c7086; --accent: #89b4fa; --accent2: #45475a; --danger: #f38ba8; --success: #a6e3a1; --warn: #f9e2af; --border: #313244; --radius: 8px; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; display: flex; height: 100vh; }
+#sidebar { width: 330px; min-width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+#sidebar h1 { color: var(--accent); font-size: 1.2em; padding: 16px; border-bottom: 1px solid var(--border); margin: 0; }
+.form-section { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label { font-size: 10px; text-transform: uppercase; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+.field input, .field select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 13px; outline: none; transition: border 0.2s; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.path-row { display: flex; gap: 4px; }
+.path-row input { flex: 1; }
+.path-row button { background: var(--accent2); color: var(--text); border: none; border-radius: 6px; padding: 7px 10px; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+.path-row button:hover { background: #585b70; }
+.pill-group { display: flex; gap: 3px; }
+.pill { flex: 1; padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); font-size: 11px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.pill:hover { border-color: var(--accent); }
+.pill.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.slider-row { display: flex; align-items: center; gap: 8px; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.slider-row span { font-size: 12px; color: var(--accent); min-width: 50px; text-align: right; }
+.btn-main { width: 100%; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+.btn-main:hover { background: #b4cfff; }
+.btn-main:disabled { background: var(--accent2); color: var(--muted); cursor: not-allowed; }
+details { cursor: pointer; }
+details summary { color: var(--muted); font-size: 12px; padding: 4px 0; }
+details summary:hover { color: var(--text); }
+.check-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 2px 0; }
+.check-row input[type=checkbox] { accent-color: var(--accent); }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#header-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--panel); min-height: 40px; }
+#header-bar.hidden { display: none; }
+#stats { display: flex; gap: 16px; font-size: 11px; color: var(--muted); }
+#header-btns { display: flex; gap: 4px; }
+#header-btns button { background: var(--accent2); color: var(--text); border: none; border-radius: 5px; padding: 5px 10px; font-size: 11px; cursor: pointer; }
+#header-btns button:hover { background: #585b70; }
+#output { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; }
+#placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); }
+#placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+#placeholder p { font-size: 16px; }
+#placeholder .accent { color: var(--accent); }
+#progress { padding: 8px 0; display: none; flex-direction: column; gap: 4px; }
+#progress.show { display: flex; }
+.progress-steps { display: flex; gap: 2px; }
+.progress-step { flex: 1; text-align: center; font-size: 10px; color: var(--muted); padding: 3px 2px; border-radius: 3px; background: var(--bg); transition: all 0.3s; }
+.progress-step.done { background: var(--success); color: var(--bg); }
+.progress-step.active { background: var(--accent2); color: var(--text); }
+.progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); width: 0; transition: width 0.3s; }
+.progress-info { font-size: 10px; color: var(--muted); }
+.recent-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.recent-row .chip { background: var(--bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+.recent-row .chip:hover { border-color: var(--accent); }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 8px; font-size: 13px; z-index: 100; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.error { background: var(--danger); color: var(--bg); }
+.toast.success { background: var(--success); color: var(--bg); }
+/* Output markdown styling */
+#output h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; margin: 20px 0 10px; font-size: 1.1em; color: var(--accent); }
+#output h3 { margin: 14px 0 6px; font-size: 1em; }
+#output table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 8px 0; }
+#output th, #output td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+#output th { background: var(--panel); }
+#output tr:nth-child(even) td { background: rgba(205,214,244,0.03); }
+#output code { background: var(--panel); padding: 1px 4px; border-radius: 3px; font-size: 12px; color: #fab387; }
+#output pre { background: #11111b; border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; font-size: 12px; line-height: 1.5; margin: 8px 0; }
+#output pre code { background: none; padding: 0; color: var(--text); }
+#output a { color: var(--accent); }
+/* Responsive */
+@media (max-width: 768px) { body { flex-direction: column; } #sidebar { width: 100%; min-width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); } }
+</style>
 </head>
 <body>
-<div class="flex flex-col md:flex-row h-screen overflow-hidden">
-
-  <!-- LEFT PANEL: Settings -->
-  <aside id="sidebar" class="sidebar bg-panel border-r border-gray-700 flex-shrink-0 flex flex-col overflow-y-auto" style="border-right-color:#313244">
-    <div class="p-4 border-b border-gray-700 flex items-center justify-between" style="border-bottom-color:#313244">
-      <h1 class="text-lg font-bold text-accent tracking-tight">DevContext</h1>
-      <span id="version" class="text-xs text-muted">v2.0.0</span>
+<div id="sidebar">
+  <h1>DevContext <span style="font-size:11px;color:var(--muted);">v2.0.0</span></h1>
+  <div class="form-section">
+    <div class="field">
+      <label>Project Path</label>
+      <div class="path-row">
+        <input id="path" type="text" placeholder="C:\Code\MyProject" autofocus>
+        <button onclick="pickFolder()">📁</button>
+        <button onclick="pickFile()">📄</button>
+      </div>
+      <div id="path-status" style="font-size:10px;height:14px"></div>
+      <div id="recent" class="recent-row"></div>
     </div>
-
-    <div class="p-4 flex flex-col gap-3 flex-1">
-
-      <!-- PROJECT PATH -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Project Path</label>
-        <div class="flex gap-1 mt-1">
-          <input id="path" type="text" placeholder="C:\Code\MyProject\MyApp.sln" class="flex-1 bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-accent transition" autofocus>
-          <button onclick="pickFolder()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 rounded text-sm transition" title="Browse folder">📁</button>
-          <button onclick="pickFile()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 rounded text-sm transition" title="Browse .sln/.csproj">📄</button>
-        </div>
-        <div id="recent" class="hidden mt-1"></div>
-        <p id="path-status" class="text-xs mt-1 h-4"></p>
-      </div>
-
-      <!-- SCENARIO -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Scenario</label>
-        <select id="scenario" class="w-full bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm mt-1 outline-none focus:border-accent transition">
-          <option value="architecture">🏗 Architecture — full overview</option>
-          <option value="debug-endpoint" selected>🔍 Debug Endpoint — trace one handler</option>
-          <option value="add-similar-feature">➕ Add Similar Feature — pattern copy</option>
-          <option value="modify-middleware">🔧 Modify Middleware — pipeline audit</option>
-          <option value="trace-message-flow">📨 Trace Message Flow — event bus</option>
-          <option value="harden-di">🛡 Harden DI — security audit</option>
-        </select>
-      </div>
-
-      <!-- PROFILE -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Profile</label>
-        <div class="flex gap-1 mt-1" id="profile-group">
-          <button data-p="quick" onclick="setProfile('quick')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Quick</button>
-          <button data-p="focused" onclick="setProfile('focused')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition bg-accent text-gray-900">Focused</button>
-          <button data-p="debug" onclick="setProfile('debug')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Debug</button>
-          <button data-p="full" onclick="setProfile('full')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">Full</button>
-        </div>
-      </div>
-
-      <!-- AROUND / FOCUS -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Focus Type/Method (--around)</label>
-        <input id="around" type="text" placeholder="e.g. BacktestController:Start" class="w-full bg-surface text-gray-200 border border-gray-600 rounded px-3 py-2 text-sm mt-1 outline-none focus:border-accent transition">
-      </div>
-
-      <!-- MAX TOKENS -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Max Tokens: <span id="token-val" class="text-accent">8000</span></label>
-        <input id="tokens" type="range" min="500" max="50000" step="100" value="8000" class="w-full mt-1 accent-accent" oninput="document.getElementById('token-val').textContent=this.value">
-      </div>
-
-      <!-- FORMAT TOGGLE -->
-      <div>
-        <label class="text-xs text-muted font-medium uppercase tracking-wider">Format</label>
-        <div class="flex gap-1 mt-1" id="format-group">
-          <button data-f="markdown" onclick="setFormat('markdown')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition bg-accent text-gray-900">Markdown</button>
-          <button data-f="json" onclick="setFormat('json')" class="flex-1 px-3 py-1.5 rounded text-xs font-medium transition">JSON</button>
-        </div>
-      </div>
-
-      <!-- ADVANCED TOGGLE -->
-      <details class="text-xs">
-        <summary class="text-muted cursor-pointer hover:text-gray-200 transition">▶ Advanced Options</summary>
-        <div class="mt-2 space-y-2 pl-2">
-          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-provenance" type="checkbox" class="accent-accent"><span class="text-gray-400">Include provenance</span></label>
-          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-diagnostics" type="checkbox" class="accent-accent"><span class="text-gray-400">Include diagnostics</span></label>
-          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-noroslyn" type="checkbox" class="accent-accent"><span class="text-gray-400">No Roslyn (faster, no call graph)</span></label>
-          <label class="flex items-center gap-2 cursor-pointer"><input id="opt-dryrun" type="checkbox" class="accent-accent"><span class="text-gray-400">Dry run (plan only)</span></label>
-        </div>
-      </details>
-
-      <!-- EXECUTE -->
-      <button id="execute-btn" onclick="execute()" class="w-full bg-accent hover:bg-blue-300 text-gray-900 font-semibold py-2.5 rounded-lg text-sm mt-2 transition flex items-center justify-center gap-2">
-        <span id="btn-text">▶ Analyze</span>
-      </button>
-
-      <!-- PROGRESS -->
-      <div id="progress-area" class="hidden space-y-1.5 mt-1">
-        <div class="text-xs text-muted font-medium uppercase">Progress</div>
-        <div id="stages" class="text-xs space-y-1"></div>
-        <div id="progress-bar" class="w-full h-1 bg-gray-700 rounded overflow-hidden hidden"><div id="progress-fill" class="h-full bg-accent rounded transition-all duration-300" style="width:0%"></div></div>
-        <div id="progress-extras" class="text-xs text-muted"></div>
-      </div>
-
+    <div class="field">
+      <label>Scenario</label>
+      <select id="scenario">
+        <option value="architecture">🏗 Architecture</option>
+        <option value="debug-endpoint" selected>🔍 Debug Endpoint</option>
+        <option value="add-similar-feature">➕ Add Similar Feature</option>
+        <option value="modify-middleware">🔧 Modify Middleware</option>
+        <option value="trace-message-flow">📨 Trace Message Flow</option>
+        <option value="harden-di">🛡 Harden DI</option>
+      </select>
     </div>
-  </aside>
-
-  <!-- RIGHT PANEL: Output -->
-  <main class="flex-1 flex flex-col overflow-hidden bg-surface">
-    
-    <!-- Output header bar -->
-    <div id="output-bar" class="hidden flex items-center justify-between px-5 py-2 border-b border-gray-700 bg-panel" style="border-bottom-color:#313244">
-      <div id="stats" class="flex gap-4 text-xs text-muted"></div>
-      <div class="flex gap-2">
-        <button onclick="copyOutput()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">📋 Copy</button>
-        <button onclick="saveOutput()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">💾 Save</button>
-        <button id="theme-btn" onclick="toggleTheme()" class="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition">🌙</button>
+    <div class="field">
+      <label>Profile</label>
+      <div id="profile-group" class="pill-group">
+        <button class="pill" data-p="quick" onclick="setProfile('quick')">Quick</button>
+        <button class="pill active" data-p="focused" onclick="setProfile('focused')">Focused</button>
+        <button class="pill" data-p="debug" onclick="setProfile('debug')">Debug</button>
+        <button class="pill" data-p="full" onclick="setProfile('full')">Full</button>
       </div>
     </div>
-
-    <!-- Output content -->
-    <div class="flex-1 overflow-y-auto p-5">
-      <div id="output" class="prose prose-invert max-w-none text-sm leading-relaxed"></div>
-      <div id="placeholder" class="flex flex-col items-center justify-center h-full text-muted">
-        <div class="text-5xl mb-4">📋</div>
-        <p class="text-lg font-medium">Select a project and press <span class="text-accent">Analyze</span></p>
-        <p class="text-sm mt-1">Structured .NET context for LLMs — in seconds.</p>
+    <div class="field">
+      <label>Around / Focus</label>
+      <input id="around" type="text" placeholder="BacktestController:Start">
+    </div>
+    <div class="field">
+      <label>Max Tokens: <span id="token-val" style="color:var(--accent)">8000</span></label>
+      <div class="slider-row">
+        <input id="tokens" type="range" min="500" max="50000" step="100" value="8000" oninput="document.getElementById('token-val').textContent=this.value">
       </div>
     </div>
-
-    <!-- Bottom toast -->
-    <div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm shadow-lg z-50 transition-all"></div>
-  </main>
+    <div class="field">
+      <label>Format</label>
+      <div id="format-group" class="pill-group">
+        <button class="pill active" data-f="markdown" onclick="setFormat('markdown')">Markdown</button>
+        <button class="pill" data-f="json" onclick="setFormat('json')">JSON</button>
+      </div>
+    </div>
+    <details class="field">
+      <summary>▶ Advanced Options</summary>
+      <div style="padding: 4px 0 0 4px; display:flex; flex-direction:column;gap:2px">
+        <label class="check-row"><input id="opt-provenance" type="checkbox"> Include provenance</label>
+        <label class="check-row"><input id="opt-diagnostics" type="checkbox"> Include diagnostics</label>
+        <label class="check-row"><input id="opt-noroslyn" type="checkbox"> No Roslyn (faster, no call graph)</label>
+        <label class="check-row"><input id="opt-dryrun" type="checkbox"> Dry run (plan only)</label>
+      </div>
+    </details>
+    <button id="execute-btn" class="btn-main" onclick="execute()">▶ Analyze</button>
+    <div id="progress">
+      <div class="progress-steps" id="psteps"></div>
+      <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+      <div class="progress-info" id="pinfo"></div>
+    </div>
+  </div>
 </div>
+
+<div id="main">
+  <div id="header-bar" class="hidden">
+    <div id="stats"></div>
+    <div id="header-btns">
+      <button onclick="copyOutput()">📋 Copy</button>
+      <button onclick="saveOutput()">💾 Save</button>
+    </div>
+  </div>
+  <div id="output">
+    <div id="placeholder">
+      <div class="icon">📋</div>
+      <p>Select a project and press <span class="accent">Analyze</span></p>
+      <p style="font-size:13px;margin-top:4px">Structured .NET context for LLMs — in seconds</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script src="app.js"></script>
 </body>

@@ -28,17 +28,25 @@ public static class Program
             bridge.HandleMessage(message);
         });
 
-        // Load from wwwroot relative to the binary directory
-        // Photino.NET supports relative paths from the working directory
+        // Read HTML and inject JS inline so everything works from LoadRawString
         var htmlPath = Path.Combine(wwwroot, "index.html");
+        var jsPath = Path.Combine(wwwroot, "app.js");
         if (File.Exists(htmlPath))
         {
-            window.Load("wwwroot/index.html");
+            var html = File.ReadAllText(htmlPath);
+            if (File.Exists(jsPath))
+            {
+                var js = File.ReadAllText(jsPath);
+                html = html.Replace("<script src=\"app.js\"></script>",
+                    "<script>" + js + "</script>");
+            }
+            window.LoadRawString(html);
         }
         else
         {
-            window.LoadRawString("<h1>404 - index.html not found at " + htmlPath + "</h1>");
+            window.LoadRawString("<h1 style='color:white'>404 - index.html not found</h1>");
         }
+
         window.WaitForClose();
     }
 }
