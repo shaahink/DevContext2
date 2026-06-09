@@ -345,11 +345,13 @@
                     <!-- Section toggle bar (grouped) -->
                     <Border Grid.Row="0"
                             IsVisible="{Binding HasOutput}"
+                            MaxHeight="200"
                             Background="{StaticResource BaseBrush}"
                             BorderBrush="{StaticResource Surface0Brush}"
                             BorderThickness="0,0,0,1"
                             Padding="12,6">
-                        <StackPanel Spacing="6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="6">
                             <!-- Token bar -->
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <TextBlock Grid.Column="0" FontSize="11"
@@ -416,6 +418,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
+                        </ScrollViewer>
                     </Border>
 
                     <!-- Placeholder -->
