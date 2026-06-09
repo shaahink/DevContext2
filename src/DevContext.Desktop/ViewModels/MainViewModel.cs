@@ -417,7 +417,7 @@ public partial class MainViewModel : ObservableObject
             section.PropertyChanged += (_, _) =>
             {
                 RecalcTokenTotal();
-                OnPropertyChanged(nameof(LlmViewText));
+                if (IsHumanView) IsHumanView = false; // Auto-switch to LLM view to show effect
                 RefreshDisplayText();
             };
 
