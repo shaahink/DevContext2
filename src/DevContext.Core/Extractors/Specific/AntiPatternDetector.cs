@@ -42,11 +42,18 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
             DetectNewOutsideDI(root, filePath, model);
             DetectCancellationTokenNone(root, filePath, model);
             DetectUnboundedCollections(root, filePath, model);
+            DetectAsyncVoid(root, filePath, model);
         }
+
+        DetectCaptiveDependency(model);
     }
 
     private static void DetectFireAndForget(SyntaxNode root, string filePath, DiscoveryModel model)
     {
+        var isTestFile = ExtractorHelpers.IsTestFile(filePath);
+        var severity = isTestFile ? "low" : "high";
+        var suffix = isTestFile ? " [test file — likely intentional]" : "";
+
         foreach (var assignment in root.DescendantNodes().OfType<AssignmentExpressionSyntax>())
         {
             if (assignment.Left.ToString() == "_" &&
@@ -56,8 +63,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                 var line = assignment.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 model.Detections.Add(new AntiPatternDetection(
                     "FireAndForget",
-                    $"Discard assignment to `{methodName}` — task is never awaited. Exceptions may be lost.",
-                    "high", methodName)
+                    $"Discard assignment to `{methodName}` — task is never awaited. Exceptions may be lost.{suffix}",
+                    severity, methodName)
                 {
                     ExtractorName = "AntiPatternDetector",
                     SourceFile = filePath,
@@ -311,4 +318,77 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     private static string Truncate(string text, int maxLen) =>
         text.Length <= maxLen ? text : text[..(maxLen - 3)] + "...";
+
+    private static void DetectAsyncVoid(SyntaxNode root, string filePath, DiscoveryModel model)
+    {
+        foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        {
+            if (!method.Modifiers.Any(SyntaxKind.AsyncKeyword))
+                continue;
+
+            if (method.ReturnType is not PredefinedTypeSyntax rt
+                || !rt.Keyword.IsKind(SyntaxKind.VoidKeyword))
+                continue;
+
+            // Skip event handler signatures: (object sender, XxxEventArgs e)
+            if (method.ParameterList.Parameters.Count >= 2
+                && method.ParameterList.Parameters[1].Type?.ToString().Contains("EventArgs") == true)
+                continue;
+
+            var line = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            model.Detections.Add(new AntiPatternDetection(
+                "AsyncVoid",
+                $"`{method.Identifier.ValueText}` is async void — exceptions are unobservable and crash the process.",
+                "high", method.Identifier.ValueText)
+            {
+                ExtractorName = "AntiPatternDetector",
+                SourceFile = filePath,
+                LineNumber = line
+            });
+        }
+    }
+
+    private static void DetectCaptiveDependency(DiscoveryModel model)
+    {
+        // Build lifetime map from DI registrations
+        var lifetimeMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        {
+            if (di.Lifetime is "Singleton" or "Scoped" or "Transient"
+                && !string.IsNullOrEmpty(di.ServiceType) && di.ServiceType != "?"
+                && !di.ServiceType.StartsWith("Add"))
+            {
+                var svc = di.ServiceType.Trim();
+                lifetimeMap[svc] = di.Lifetime;
+            }
+        }
+
+        // Check types for CaptiveDependency: Singleton → Scoped dependency
+        foreach (var type in model.Types.Values)
+        {
+            var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
+            if (!ctors.Any()) continue;
+
+            foreach (var paramType in ctors[0].ParameterTypes)
+            {
+                var trimmed = paramType.Trim();
+                if (lifetimeMap.TryGetValue(trimmed, out var depLifetime)
+                    && depLifetime == "Scoped"
+                    && lifetimeMap.TryGetValue(type.Name, out var selfLifetime)
+                    && selfLifetime == "Singleton")
+                {
+                    model.Detections.Add(new AntiPatternDetection(
+                        "CaptiveDependency",
+                        $"`{type.Name}` (Singleton) depends on `{trimmed}` (Scoped). This causes scoped services to live as long as the singleton — a Captive Dependency.",
+                        "high", type.Name)
+                    {
+                        ExtractorName = "AntiPatternDetector",
+                        SourceFile = type.FilePath ?? "",
+                        LineNumber = 0
+                    });
+                    break;
+                }
+            }
+        }
+    }
 }
