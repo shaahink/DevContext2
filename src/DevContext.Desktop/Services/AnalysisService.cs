@@ -85,16 +85,18 @@ public class AnalysisService : IAnalysisService
         };
 
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDevContextServices(rootResult.RootPath);
-        services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         var sp = services.BuildServiceProvider();
         var pipeline = sp.GetRequiredService<DiscoveryPipeline>();
+
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
         var roslyn = opts.NoRoslyn || rootResult.SolutionFilePath is null
             ? (IRoslynWorkspaceProvider)new NullRoslynProvider()
             : new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
                 rootResult.SolutionFilePath, fs,
-                NullLoggerFactory.Instance.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
+                loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
 
         var observer = new DesktopProgressObserver(progress);
 
@@ -107,7 +109,7 @@ public class AnalysisService : IAnalysisService
             FileSystem = fs,
             Cache = cache,
             Analysis = analysis,
-            Logger = NullLoggerFactory.Instance.CreateLogger("DevContext"),
+            Logger = loggerFactory.CreateLogger("DevContext"),
             RoslynWorkspace = roslyn,
             CancellationToken = ct,
         };
