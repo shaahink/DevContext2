@@ -32,6 +32,8 @@ public sealed record ExtractionOptions
     public bool DryRun { get; init; } = false;
     /// <summary>Whether to emit a per-section token accounting table.</summary>
     public bool TokenView { get; init; } = false;
+    /// <summary>Per-section token budgets for smart truncation. Empty = no section-level limits.</summary>
+    public ImmutableArray<SectionBudget> SectionBudgets { get; init; } = [];
     /// <summary>Maximum number of projects to analyze.</summary>
     public int MaxProjects { get; init; } = 150;
 }
