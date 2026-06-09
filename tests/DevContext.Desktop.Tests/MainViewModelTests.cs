@@ -379,7 +379,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task AnalyzeAsync_resets_progress_state_before_starting()
+    public async Task AnalyzeAsync_hides_progress_after_completion()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
@@ -389,7 +389,7 @@ public class MainViewModelTests
 
         await ExecuteAnalyzeCommand(vm);
 
-        Assert.True(vm.IsProgressVisible);
+        Assert.False(vm.IsProgressVisible);
     }
 
     // ══ Progress reporting ═════════════════════════════════════════════════════

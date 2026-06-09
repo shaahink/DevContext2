@@ -66,9 +66,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _hasOutput;
     [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayText))]
-    private bool _isHumanView = true;
+    [ObservableProperty] private bool _isHumanView = true;
+
+    partial void OnIsHumanViewChanged(bool value) => RefreshDisplayText();
 
     // ── Section-based dual-view ─────────────────────────────────────────────────
     public ObservableCollection<SectionGroupViewModel> SectionGroups { get; } = [];
@@ -89,7 +89,9 @@ public partial class MainViewModel : ObservableObject
         ? (float)TotalTokens / BudgetTokens
         : 0;
 
-    public string DisplayText => IsHumanView ? HumanViewText : LlmViewText;
+    [ObservableProperty] private string _displayText = "";
+
+    public void RefreshDisplayText() => DisplayText = IsHumanView ? HumanViewText : LlmViewText;
 
     public string LlmViewText
     {
@@ -301,7 +303,7 @@ public partial class MainViewModel : ObservableObject
                 _rawContent = result.Content ?? "";
                 OutputText = _rawContent;
                 PopulateSections(_rawContent);
-                OnPropertyChanged(nameof(DisplayText));
+                RefreshDisplayText();
                 var tokens = _rawContent.Length / 4;
                 StatsText = $"~{tokens:N0} tokens  ·  {result.ElapsedMs / 1000.0:F1}s";
                 HasOutput = true;
@@ -338,6 +340,8 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsAnalyzing = false;
+            IsProgressVisible = false;
+            IsProgressIndeterminate = false;
             SaveSettings();
             _cts?.Dispose();
             _cts = null;
@@ -416,7 +420,7 @@ public partial class MainViewModel : ObservableObject
             {
                 RecalcTokenTotal();
                 OnPropertyChanged(nameof(LlmViewText));
-                OnPropertyChanged(nameof(DisplayText));
+                RefreshDisplayText();
             };
 
             sections.Add(section);
