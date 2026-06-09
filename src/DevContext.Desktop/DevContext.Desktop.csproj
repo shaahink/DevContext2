@@ -4,19 +4,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>DevContext.Desktop</RootNamespace>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Ensures CLI + all dependencies are in the output folder for child process launch -->
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Photino.NET" Version="3.1.*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Avalonia" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
   </ItemGroup>
 
 </Project>

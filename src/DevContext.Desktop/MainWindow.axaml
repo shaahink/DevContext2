@@ -1,0 +1,334 @@
+<Window xmlns="https://github.com/avaloniaui"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         x:Class="DevContext.Desktop.MainWindow"
+         Title="DevContext"
+         Width="1100" Height="720"
+         MinWidth="700" MinHeight="500"
+         WindowStartupLocation="CenterScreen"
+         Background="{StaticResource BaseBrush}"
+         FontFamily="{StaticResource InterFont}"
+         KeyDown="OnWindowKeyDown"
+         Opened="OnWindowOpened">
+
+    <DockPanel>
+
+        <!-- ══ STATUS BAR ═════════════════════════════════════════════════════════ -->
+        <Border DockPanel.Dock="Bottom"
+                Background="{StaticResource CrustBrush}"
+                BorderBrush="{StaticResource Surface0Brush}"
+                BorderThickness="0,1,0,0"
+                Height="28"
+                Padding="12,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <ProgressBar Grid.Column="0"
+                             IsVisible="{Binding IsProgressVisible}"
+                             Value="{Binding ProgressValue}"
+                             IsIndeterminate="{Binding IsProgressIndeterminate}"
+                             Maximum="100"
+                             Width="140" Height="4"
+                             CornerRadius="2"
+                             Foreground="{StaticResource BlueBrush}"
+                             Margin="0,0,8,0"
+                             VerticalAlignment="Center">
+                    <ProgressBar.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                        </Transitions>
+                    </ProgressBar.Transitions>
+                </ProgressBar>
+                <TextBlock Grid.Column="1"
+                           IsVisible="{Binding IsProgressVisible}"
+                           Text="{Binding ProgressText}"
+                           FontSize="11"
+                           Foreground="{StaticResource Overlay0Brush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2"
+                           IsVisible="{Binding HasOutput}"
+                           Text="{Binding StatsText}"
+                           FontSize="11"
+                           Foreground="{StaticResource Overlay0Brush}"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" MinWidth="280" MaxWidth="440"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Config panel ──────────────────────────────────────────────── -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource MantleBrush}"
+                    BorderBrush="{StaticResource Surface0Brush}"
+                    BorderThickness="0,0,1,0"
+                    MinWidth="280" MaxWidth="440">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="16" Margin="16">
+
+                        <!-- App header -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PathIcon Data="{StaticResource IconCodeBraces}"
+                                       Width="20" Height="20"
+                                       Foreground="{StaticResource BlueBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="DevContext"
+                                       FontSize="16" FontWeight="Bold"
+                                       Foreground="{StaticResource BlueBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="v2.0.0"
+                                       FontSize="10"
+                                       Foreground="{StaticResource Overlay0Brush}"
+                                       VerticalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- 1. Project -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="PROJECT" Classes="SectionLabel"/>
+                            <Grid ColumnDefinitions="*,8,32,4,32">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ProjectPath}"
+                                         Watermark="Path to .sln, .csproj, or folder"
+                                         FontSize="12"/>
+                                <Button Grid.Column="2"
+                                        Theme="{StaticResource IconButton}"
+                                        ToolTip.Tip="Browse folder"
+                                        Click="OnPickFolder">
+                                    <PathIcon Data="{StaticResource IconFolderOpen}"
+                                               Width="18" Height="18"/>
+                                </Button>
+                                <Button Grid.Column="4"
+                                        Theme="{StaticResource IconButton}"
+                                        ToolTip.Tip="Browse .sln / .csproj"
+                                        Click="OnPickFile">
+                                    <PathIcon Data="{StaticResource IconFileDocument}"
+                                               Width="18" Height="18"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- 2. Recent -->
+                        <StackPanel Spacing="4"
+                                    IsVisible="{Binding RecentPaths.Count}">
+                            <TextBlock Text="RECENT" Classes="SectionLabel"/>
+                            <ListBox ItemsSource="{Binding RecentPaths}"
+                                     MaxHeight="120"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     BorderThickness="0"
+                                     Background="Transparent">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding}"
+                                                Classes="RecentItem"
+                                                Command="{Binding $parent[Window].DataContext.SelectRecentCommand}"
+                                                CommandParameter="{Binding}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+
+                        <!-- 3. Scenario -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="SCENARIO" Classes="SectionLabel"/>
+                            <ComboBox ItemsSource="{Binding Scenarios}"
+                                      SelectedItem="{Binding SelectedScenario}"
+                                      HorizontalAlignment="Stretch"
+                                      FontSize="12">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <PathIcon Data="{Binding Value, Converter={StaticResource ScenarioIconConverter}}"
+                                                       Width="16" Height="16"
+                                                       Foreground="{StaticResource Overlay0Brush}"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 4. Profile -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="PROFILE" Classes="SectionLabel"/>
+                            <ListBox x:Name="ProfileListBox"
+                                     Theme="{StaticResource SegmentedControl}"
+                                     SelectionChanged="OnProfileSelectionChanged">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBoxItem Content="Quick" Tag="quick"/>
+                                <ListBoxItem Content="Focused" Tag="focused"/>
+                                <ListBoxItem Content="Debug" Tag="debug"/>
+                                <ListBoxItem Content="Full" Tag="full"/>
+                            </ListBox>
+                        </StackPanel>
+
+                        <!-- 5. Focus -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="SYMBOL FOCUS" Classes="SectionLabel"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="(optional)"
+                                           FontSize="10"
+                                           Foreground="{StaticResource Surface2Brush}"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,0,0,1"/>
+                            </StackPanel>
+                            <TextBox Text="{Binding Around}"
+                                     Watermark="Namespace.Class:Method"
+                                     FontSize="12"
+                                     Margin="0,-2,0,0"/>
+                        </StackPanel>
+
+                        <!-- 6. Tokens -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Classes="SectionLabel">
+                                <Run Text="MAX TOKENS"/>
+                                <Run Text="  "/>
+                                <Run Text="{Binding MaxTokens, StringFormat={}{0:N0}}"
+                                     Foreground="{StaticResource BlueBrush}"/>
+                            </TextBlock>
+                            <Slider Minimum="500" Maximum="50000"
+                                    TickFrequency="500" IsSnapToTickEnabled="True"
+                                    Value="{Binding MaxTokens}"/>
+                        </StackPanel>
+
+                        <!-- 7. Format -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="OUTPUT FORMAT" Classes="SectionLabel"/>
+                            <ListBox x:Name="FormatListBox"
+                                     Theme="{StaticResource SegmentedControl}"
+                                     SelectionChanged="OnFormatSelectionChanged">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBoxItem Content="Markdown" Tag="markdown"/>
+                                <ListBoxItem Content="JSON" Tag="json"/>
+                            </ListBox>
+                        </StackPanel>
+
+                        <!-- 8. Advanced -->
+                        <Expander Header="Advanced Options"
+                                  FontSize="12"
+                                  Foreground="{StaticResource Overlay0Brush}">
+                            <StackPanel Spacing="8" Margin="4,8,0,0">
+                                <ToggleSwitch Content="Include provenance"
+                                              IsChecked="{Binding IncludeProvenance}"
+                                              FontSize="12"
+                                              OnContent="" OffContent=""/>
+                                <ToggleSwitch Content="Include diagnostics"
+                                              IsChecked="{Binding IncludeDiagnostics}"
+                                              FontSize="12"
+                                              OnContent="" OffContent=""/>
+                                <ToggleSwitch Content="Skip Roslyn  (faster, no call graph)"
+                                              IsChecked="{Binding NoRoslyn}"
+                                              FontSize="12"
+                                              OnContent="" OffContent=""/>
+                                <ToggleSwitch Content="Dry run  (plan only)"
+                                              IsChecked="{Binding DryRun}"
+                                              FontSize="12"
+                                              OnContent="" OffContent=""/>
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- 9. Analyze -->
+                        <Button Content="{Binding AnalyzeButtonText}"
+                                Command="{Binding AnalyzeCommand}"
+                                Theme="{StaticResource PrimaryButton}"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ── GridSplitter ──────────────────────────────────────────────── -->
+            <GridSplitter Grid.Column="1"
+                          Background="{StaticResource Surface0Brush}"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <!-- ── Output panel ──────────────────────────────────────────────── -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,*">
+
+                <!-- Output toolbar (always visible) -->
+                <Border Grid.Row="0"
+                        Background="{StaticResource MantleBrush}"
+                        BorderBrush="{StaticResource Surface0Brush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding StatsText}"
+                                   IsVisible="{Binding HasOutput}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource Overlay0Brush}"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                            <Button Theme="{StaticResource IconButton}"
+                                    IsEnabled="{Binding HasOutput}"
+                                    ToolTip.Tip="Copy to clipboard  (Ctrl+Shift+C)"
+                                    Click="OnCopy">
+                                <PathIcon Data="{StaticResource IconContentCopy}"
+                                           Width="18" Height="18"/>
+                            </Button>
+                            <Button Theme="{StaticResource IconButton}"
+                                    IsEnabled="{Binding HasOutput}"
+                                    ToolTip.Tip="Save to file"
+                                    Click="OnSave">
+                                <PathIcon Data="{StaticResource IconContentSave}"
+                                           Width="18" Height="18"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Output content -->
+                <Grid Grid.Row="1">
+
+                    <!-- Placeholder -->
+                    <StackPanel IsVisible="{Binding !HasOutput}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="12">
+                        <StackPanel.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                            </Transitions>
+                        </StackPanel.Transitions>
+                        <PathIcon Data="{StaticResource IconTextBox}"
+                                   Width="56" Height="56"
+                                   Foreground="{StaticResource Surface1Brush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Select a project and press Analyze"
+                                   FontSize="15"
+                                   Foreground="{StaticResource Overlay0Brush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Structured .NET context for LLMs — in seconds"
+                                   FontSize="12"
+                                   Foreground="{StaticResource Surface2Brush}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Output text -->
+                    <TextBox IsVisible="{Binding HasOutput}"
+                             IsReadOnly="True"
+                             Text="{Binding OutputText}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             FontFamily="Cascadia Code,Consolas,Courier New,monospace"
+                             FontSize="12.5"
+                             Foreground="{StaticResource TextBrush}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="20"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</Window>

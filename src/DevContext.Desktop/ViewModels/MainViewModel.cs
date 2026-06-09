@@ -1,0 +1,256 @@
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DevContext.Desktop.Services;
+
+namespace DevContext.Desktop.ViewModels;
+
+public record ScenarioItem(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
+public partial class MainViewModel : ObservableObject
+{
+    private readonly IAnalysisService _svc;
+    private string _rawContent = "";
+    private CancellationTokenSource? _cts;
+    private bool _isInitializing = true;
+
+    // ── Form fields ────────────────────────────────────────────────────────────
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AnalyzeCommand))]
+    private string _projectPath = "";
+
+    [ObservableProperty] private string _around = "";
+    [ObservableProperty] private int _maxTokens = 8000;
+    [ObservableProperty] private bool _includeProvenance;
+    [ObservableProperty] private bool _includeDiagnostics;
+    [ObservableProperty] private bool _noRoslyn;
+    [ObservableProperty] private bool _dryRun;
+
+    // ── Profile / format selection ─────────────────────────────────────────────
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(
+        nameof(IsProfileQuick), nameof(IsProfileFocused),
+        nameof(IsProfileDebug), nameof(IsProfileFull))]
+    private string _selectedProfile = "focused";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFormatMarkdown), nameof(IsFormatJson))]
+    private string _selectedFormat = "markdown";
+
+    [ObservableProperty] private ScenarioItem _selectedScenario = null!;
+
+    public bool IsProfileQuick   => SelectedProfile == "quick";
+    public bool IsProfileFocused => SelectedProfile == "focused";
+    public bool IsProfileDebug   => SelectedProfile == "debug";
+    public bool IsProfileFull    => SelectedProfile == "full";
+    public bool IsFormatMarkdown => SelectedFormat == "markdown";
+    public bool IsFormatJson     => SelectedFormat == "json";
+
+    // ── Analysis state ─────────────────────────────────────────────────────────
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AnalyzeButtonText))]
+    private bool _isAnalyzing;
+
+    [ObservableProperty] private bool _isProgressVisible;
+    [ObservableProperty] private bool _isProgressIndeterminate;
+    [ObservableProperty] private double _progressValue;
+    [ObservableProperty] private string _progressText = "";
+
+    // ── Output ─────────────────────────────────────────────────────────────────
+    [ObservableProperty] private bool _hasOutput;
+    [ObservableProperty] private string _outputText = "";
+    [ObservableProperty] private string _statsText = "";
+
+    public string AnalyzeButtonText => IsAnalyzing ? "Analyzing..." : "Analyze";
+    public string RawContent => _rawContent;
+
+    // ── Collections ────────────────────────────────────────────────────────────
+    public ObservableCollection<string> RecentPaths { get; } = [];
+
+    public List<ScenarioItem> Scenarios { get; } =
+    [
+        new("architecture",          "Architecture"),
+        new("debug-endpoint",        "Debug Endpoint"),
+        new("add-similar-feature",   "Add Similar Feature"),
+        new("modify-middleware",     "Modify Middleware"),
+        new("trace-message-flow",    "Trace Message Flow"),
+        new("harden-di",             "Harden DI"),
+    ];
+
+    public MainViewModel() : this(new AnalysisService()) { }
+
+    public MainViewModel(IAnalysisService svc)
+    {
+        _svc = svc;
+        SelectedScenario = Scenarios[1];
+        LoadSettings();
+        RefreshRecent();
+        _isInitializing = false;
+    }
+
+    // ── Auto-reanalyze on option change ────────────────────────────────────────
+    partial void OnSelectedScenarioChanged(ScenarioItem value)  => OnAnalysisOptionChanged();
+    partial void OnSelectedProfileChanged(string value)         => OnAnalysisOptionChanged();
+    partial void OnSelectedFormatChanged(string value)          => OnAnalysisOptionChanged();
+    partial void OnMaxTokensChanged(int value)                  => OnAnalysisOptionChanged();
+    partial void OnAroundChanged(string value)                  => OnAnalysisOptionChanged();
+    partial void OnIncludeProvenanceChanged(bool value)         => OnAnalysisOptionChanged();
+    partial void OnIncludeDiagnosticsChanged(bool value)        => OnAnalysisOptionChanged();
+    partial void OnNoRoslynChanged(bool value)                  => OnAnalysisOptionChanged();
+    partial void OnDryRunChanged(bool value)                    => OnAnalysisOptionChanged();
+
+    private void OnAnalysisOptionChanged()
+    {
+        if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        AnalyzeCommand.Execute(null);
+    }
+
+    // ── Commands ───────────────────────────────────────────────────────────────
+    [RelayCommand]
+    private void SetProfile(string profile) => SelectedProfile = profile;
+
+    [RelayCommand]
+    private void SetFormat(string format) => SelectedFormat = format;
+
+    [RelayCommand]
+    private void SelectRecent(string path) => ProjectPath = path;
+
+    private bool CanAnalyze() => !string.IsNullOrWhiteSpace(ProjectPath);
+
+    [RelayCommand(CanExecute = nameof(CanAnalyze))]
+    private async Task AnalyzeAsync()
+    {
+        CancelPrevious();
+
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
+        IsAnalyzing = true;
+        IsProgressVisible = true;
+        IsProgressIndeterminate = true;
+        ProgressValue = 0;
+        ProgressText = "Starting...";
+        HasOutput = false;
+        OutputText = "";
+        StatsText = "";
+        _rawContent = "";
+
+        _svc.AddRecent(ProjectPath);
+        RefreshRecent();
+
+        var opts = new AnalysisOptions
+        {
+            ProjectPath = ProjectPath,
+            Scenario = SelectedScenario.Value,
+            Profile = SelectedProfile,
+            Around = Around,
+            MaxTokens = MaxTokens,
+            Format = SelectedFormat,
+            IncludeProvenance = IncludeProvenance,
+            IncludeDiagnostics = IncludeDiagnostics,
+            NoRoslyn = NoRoslyn,
+            DryRun = DryRun,
+        };
+
+        var progress = new Progress<AnalysisProgress>(p =>
+        {
+            ProgressText = p.Text;
+            if (p.Value.HasValue)
+            {
+                IsProgressIndeterminate = false;
+                ProgressValue = p.Value.Value;
+            }
+        });
+
+        try
+        {
+            var result = await _svc.AnalyzeAsync(opts, progress, ct);
+            if (result.Success)
+            {
+                _rawContent = result.Content ?? "";
+                OutputText = _rawContent;
+                var tokens = _rawContent.Length / 4;
+                StatsText = $"~{tokens:N0} tokens  ·  {result.ElapsedMs / 1000.0:F1}s";
+                HasOutput = true;
+                IsProgressIndeterminate = false;
+                ProgressValue = 100;
+                ProgressText = "Done";
+            }
+            else
+            {
+                ProgressText = "Error";
+                OutputText = result.Error ?? "Analysis failed.";
+                HasOutput = true;
+                IsProgressIndeterminate = false;
+                ProgressValue = 0;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            ProgressText = "Cancelled";
+        }
+        catch (Exception ex)
+        {
+            ProgressText = "Error";
+            OutputText = ex.Message;
+            HasOutput = true;
+            IsProgressIndeterminate = false;
+        }
+        finally
+        {
+            IsAnalyzing = false;
+            SaveSettings();
+            _cts?.Dispose();
+            _cts = null;
+        }
+    }
+
+    private void CancelPrevious()
+    {
+        if (_cts is { } cts)
+        {
+            cts.Cancel();
+            cts.Dispose();
+            _cts = null;
+        }
+    }
+
+    // ── Settings helpers ───────────────────────────────────────────────────────
+    private void LoadSettings()
+    {
+        var s = _svc.LoadSettings();
+        SelectedScenario = Scenarios.FirstOrDefault(sc => sc.Value == s.LastScenario) ?? Scenarios[1];
+        SelectedProfile = s.LastProfile ?? "focused";
+        SelectedFormat = s.LastFormat ?? "markdown";
+        if (s.LastTokens > 0) MaxTokens = s.LastTokens;
+        Around = s.LastAround ?? "";
+        IncludeProvenance = s.IncludeProvenance;
+        IncludeDiagnostics = s.IncludeDiagnostics;
+        NoRoslyn = s.NoRoslyn;
+    }
+
+    private void SaveSettings() =>
+        _svc.SaveSettings(new AppSettings
+        {
+            LastScenario = SelectedScenario.Value,
+            LastProfile = SelectedProfile,
+            LastFormat = SelectedFormat,
+            LastTokens = MaxTokens,
+            LastAround = Around,
+            IncludeProvenance = IncludeProvenance,
+            IncludeDiagnostics = IncludeDiagnostics,
+            NoRoslyn = NoRoslyn,
+        });
+
+    private void RefreshRecent()
+    {
+        RecentPaths.Clear();
+        foreach (var p in _svc.LoadRecent().Take(6))
+            RecentPaths.Add(p);
+    }
+}
