@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DevContext.Cli.Observers;
 using DevContext.Cli.Services;
 using DevContext.Cli.Settings;
+using DevContext.Core.Services;
 
 namespace DevContext.Cli.Commands;
 
@@ -27,8 +28,50 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var config = DevContextConfig.Load(DevContextConfig.DefaultPath);
         ShowConfigWarnings(config);
 
+        var inputPath = settings.Path ?? ".";
+
+        // GitHub repo support: clone if URL detected
+        var gitClonePath = null as string;
+        var repoUrl = RepoUrl.Parse(settings.Repo ?? inputPath);
+        if (repoUrl is { IsValid: true })
+        {
+            var git = new GitCloneService();
+            if (!git.IsGitAvailable)
+            {
+                AnsiConsole.MarkupLine("[red]Git is not installed. Install git to clone GitHub repos.[/]");
+                return 1;
+            }
+
+            var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
+            var status = await git.ValidateAsync(repoUrl, ct);
+            if (status != RepoStatus.Valid)
+            {
+                var msg = status switch
+                {
+                    RepoStatus.NotFound => "Repository not found",
+                    RepoStatus.Private => "Private repository (not supported)",
+                    RepoStatus.NetworkError => "Network error — check connection",
+                    RepoStatus.RateLimited => "Rate limited — try again later",
+                    _ => "Unknown error"
+                };
+                AnsiConsole.MarkupLine($"[red]{msg}[/]");
+                return 1;
+            }
+
+            gitClonePath = repoUrl.ClonePath;
+            var branch = settings.Ref ?? repoUrl.Ref;
+            var cloneResult = await git.CloneAsync(repoUrl, gitClonePath, branch, null, ct);
+            if (cloneResult is null)
+            {
+                AnsiConsole.MarkupLine("[red]Clone failed[/]");
+                return 1;
+            }
+
+            inputPath = gitClonePath;
+        }
+
         var resolver = new ProjectRootResolver();
-        var rootResult = await resolver.ResolveAsync(settings.Path ?? ".", _fs, ct);
+        var rootResult = await resolver.ResolveAsync(inputPath, _fs, ct);
 
         var resolved = ResolveScenarioAndProfile(settings, config);
         if (resolved is null) return 1;
@@ -72,6 +115,14 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         await WriteOutput(settings, result);
         ShowMetrics(metricsObserver);
         ShowSummary(sw, rootResult, options, result);
+
+        // Clean up clone if auto-clean
+        if (gitClonePath is not null)
+        {
+            var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
+            if (cleanup == "auto")
+                GitCloneService.Cleanup(gitClonePath);
+        }
 
         return 0;
     }

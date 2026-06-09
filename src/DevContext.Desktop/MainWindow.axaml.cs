@@ -112,6 +112,16 @@ public partial class MainWindow : Window
         if (VM is { } vm) vm.IsHumanView = false;
     }
 
+    private async void OnPasteGitHub(object? sender, RoutedEventArgs e)
+    {
+        if (Clipboard is { } cb)
+        {
+            var text = await cb.GetTextAsync();
+            if (!string.IsNullOrWhiteSpace(text) && VM is { } vm)
+                vm.ProjectPath = text.Trim();
+        }
+    }
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (VM is not { RawContent: { Length: > 0 } content } vm) return;

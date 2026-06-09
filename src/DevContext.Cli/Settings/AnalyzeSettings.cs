@@ -67,4 +67,20 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Show per-section token accounting table in HTML comments")]
     [CommandOption("--token-view")]
     public bool TokenView { get; set; }
+
+    [Description("GitHub repo URL to clone and analyze")]
+    [CommandOption("--repo")]
+    public string? Repo { get; set; }
+
+    [Description("Branch or tag to check out (default: repo default)")]
+    [CommandOption("--ref")]
+    public string? Ref { get; set; }
+
+    [Description("Clone cleanup: auto (default), session, 24h, keep")]
+    [CommandOption("--cleanup")]
+    public string? Cleanup { get; set; }
+
+    [Description("Keep cloned repo after analysis")]
+    [CommandOption("--keep")]
+    public bool Keep { get; set; }
 }

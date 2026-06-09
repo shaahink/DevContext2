@@ -93,10 +93,10 @@
                         <!-- 1. Project -->
                         <StackPanel Spacing="4">
                             <TextBlock Text="PROJECT" Classes="SectionLabel"/>
-                            <Grid ColumnDefinitions="*,8,32,4,32">
+                            <Grid ColumnDefinitions="*,8,32,4,32,4,32">
                                 <TextBox Grid.Column="0"
                                          Text="{Binding ProjectPath}"
-                                         Watermark="Path to .sln, .csproj, or folder"
+                                         Watermark="Path, .sln, .csproj, or github.com/user/repo"
                                          FontSize="12"/>
                                 <Button Grid.Column="2"
                                         Theme="{StaticResource IconButton}"
@@ -112,7 +112,38 @@
                                     <PathIcon Data="{StaticResource IconFileDocument}"
                                                Width="18" Height="18"/>
                                 </Button>
+                                <Button Grid.Column="6"
+                                        Theme="{StaticResource IconButton}"
+                                        ToolTip.Tip="Paste GitHub URL"
+                                        Click="OnPasteGitHub">
+                                    <PathIcon Data="{StaticResource IconCodeBraces}"
+                                               Width="18" Height="18"/>
+                                </Button>
                             </Grid>
+                            <!-- GitHub status pill -->
+                            <Border IsVisible="{Binding IsGitHubUrl}"
+                                    Background="{StaticResource Surface0Brush}"
+                                    CornerRadius="4" Padding="8,4"
+                                    Margin="0,2,0,0">
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontSize="11"
+                                               Foreground="{StaticResource BlueBrush}"
+                                               Text="{Binding GitRepoDisplay}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="Cleanup:" FontSize="10"
+                                                   Foreground="{StaticResource Overlay0Brush}"
+                                                   VerticalAlignment="Center"/>
+                                        <ComboBox SelectedItem="{Binding CloneCleanup}"
+                                                  FontSize="10"
+                                                  MinWidth="100">
+                                            <ComboBoxItem Content="Auto-clean" Tag="auto"/>
+                                            <ComboBoxItem Content="Keep for session" Tag="session"/>
+                                            <ComboBoxItem Content="Cache 24h" Tag="24h"/>
+                                            <ComboBoxItem Content="Keep permanently" Tag="keep"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
 
                         <!-- 2. Recent -->

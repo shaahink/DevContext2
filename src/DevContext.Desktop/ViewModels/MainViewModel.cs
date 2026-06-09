@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DevContext.Core.Models;
+using DevContext.Core.Services;
 using DevContext.Desktop.Services;
 
 namespace DevContext.Desktop.ViewModels;
@@ -13,8 +15,10 @@ public record ScenarioItem(string Value, string Label)
 public partial class MainViewModel : ObservableObject
 {
     private readonly IAnalysisService _svc;
+    private readonly GitCloneService _git = new();
     private string _rawContent = "";
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _validateCts;
     private bool _isInitializing = true;
 
     // ── Form fields ────────────────────────────────────────────────────────────
@@ -92,7 +96,59 @@ public partial class MainViewModel : ObservableObject
 
     public string HumanViewText => _rawContent;
 
-    public string AnalyzeButtonText => IsAnalyzing ? "Analyzing..." : "Analyze";
+    public string AnalyzeButtonText
+        => IsGitHubUrl && GitRepoStatus == RepoStatus.Valid
+            ? (IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
+            : (IsAnalyzing ? "Analyzing..." : "Analyze");
+
+    // ── GitHub repo analysis ────────────────────────────────────────────────────
+    public bool IsGitAvailable => _git.IsGitAvailable;
+
+    private RepoUrl? _gitRepoUrl;
+    private RepoStatus _gitRepoStatus = RepoStatus.None;
+
+    public bool IsGitHubUrl => _gitRepoUrl is { IsValid: true };
+    public string GitRepoDisplay => _gitRepoUrl?.ToDisplay() ?? "";
+    public RepoStatus GitRepoStatus => _gitRepoStatus;
+
+    [ObservableProperty] private string _cloneCleanup = "auto";
+
+    partial void OnProjectPathChanged(string value)
+    {
+        if (_isInitializing) return;
+        ValidateGitHubUrl(value);
+    }
+
+    private async void ValidateGitHubUrl(string path)
+    {
+        _validateCts?.Cancel();
+        _validateCts?.Dispose();
+
+        var url = RepoUrl.Parse(path);
+        _gitRepoUrl = url;
+        _gitRepoStatus = url is null ? RepoStatus.None : RepoStatus.Checking;
+
+        OnPropertyChanged(nameof(IsGitHubUrl));
+        OnPropertyChanged(nameof(GitRepoDisplay));
+        OnPropertyChanged(nameof(GitRepoStatus));
+        OnPropertyChanged(nameof(AnalyzeButtonText));
+
+        if (url is not { IsValid: true }) return;
+        if (!_git.IsGitAvailable)
+        {
+            _gitRepoStatus = RepoStatus.NoGit;
+            OnPropertyChanged(nameof(GitRepoStatus));
+            return;
+        }
+
+        _validateCts = new CancellationTokenSource();
+        var status = await _git.ValidateAsync(url, _validateCts.Token);
+        _gitRepoStatus = status;
+
+        OnPropertyChanged(nameof(GitRepoStatus));
+        OnPropertyChanged(nameof(GitRepoDisplay));
+        OnPropertyChanged(nameof(AnalyzeButtonText));
+    }
     public string RawContent => _rawContent;
 
     // ── Collections ────────────────────────────────────────────────────────────
@@ -171,6 +227,30 @@ public partial class MainViewModel : ObservableObject
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
 
+        var workingPath = ProjectPath;
+
+        // Clone from GitHub if this is a repo URL
+        if (_gitRepoUrl is { IsValid: true } repo)
+        {
+            ProgressText = "Cloning from GitHub...";
+            var clonePath = repo.ClonePath;
+
+            var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
+                new Progress<string>(msg => ProgressText = msg), ct);
+
+            if (cloneResult is null)
+            {
+                ProgressText = "Error";
+                OutputText = $"Failed to clone {repo.ToDisplay()}. Check the URL, branch, or network connection.";
+                HasOutput = true;
+                IsAnalyzing = false;
+                IsProgressIndeterminate = false;
+                return;
+            }
+
+            workingPath = cloneResult;
+        }
+
         var opts = new AnalysisOptions
         {
             ProjectPath = ProjectPath,
@@ -211,6 +291,10 @@ public partial class MainViewModel : ObservableObject
                 ProgressText = "Done";
                 BudgetTokens = MaxTokens;
                 TotalTokens = tokens;
+
+                // Clean up clone if auto-clean
+                if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
+                    GitCloneService.Cleanup(gitRepo.ClonePath);
             }
             else
             {
