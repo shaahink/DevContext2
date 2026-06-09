@@ -67,6 +67,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
     [ObservableProperty] private bool _isHumanView = true;
+    [ObservableProperty] private bool _isSectionPanelVisible = true;
 
     partial void OnIsHumanViewChanged(bool value) => RefreshDisplayText();
 

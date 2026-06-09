@@ -112,6 +112,11 @@ public partial class MainWindow : Window
         if (VM is { } vm) vm.IsHumanView = false;
     }
 
+    private void OnToggleSectionPanel(object? sender, RoutedEventArgs e)
+    {
+        if (VM is { } vm) vm.IsSectionPanelVisible = !vm.IsSectionPanelVisible;
+    }
+
     private async void OnPasteGitHub(object? sender, RoutedEventArgs e)
     {
         if (Clipboard is { } cb)

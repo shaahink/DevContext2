@@ -306,6 +306,9 @@
                             <Button Content="LLM" FontSize="11" Padding="8,3"
                                     Classes="ViewTab"
                                     Click="OnSwitchToLlm"/>
+                            <Button Content="Sections ▾" FontSize="10" Padding="6,3"
+                                    Classes="ViewTab"
+                                    Click="OnToggleSectionPanel"/>
                         </StackPanel>
                         <TextBlock Grid.Column="1"
                                    Text="{Binding StatsText}"
@@ -344,7 +347,7 @@
                 <Grid Grid.Row="1" RowDefinitions="Auto,*">
                     <!-- Section toggle bar (grouped) -->
                     <Border Grid.Row="0"
-                            IsVisible="{Binding HasOutput}"
+                            IsVisible="{Binding IsSectionPanelVisible}"
                             MaxHeight="200"
                             Background="{StaticResource BaseBrush}"
                             BorderBrush="{StaticResource Surface0Brush}"
