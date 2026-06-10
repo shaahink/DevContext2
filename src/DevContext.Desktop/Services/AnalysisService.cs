@@ -64,6 +64,7 @@ public class AnalysisService : IAnalysisService
             MaxOutputTokens = opts.MaxTokens,
             AllowRoslyn = !opts.NoRoslyn,
             DryRun = opts.DryRun,
+            IncludeAntiPatterns = opts.IncludeAntiPatterns,
             IncludeProvenance = opts.IncludeProvenance,
             IncludeDiagnostics = opts.IncludeDiagnostics,
             OutputFormat = opts.Format == "json" ? OutputFormat.Json : OutputFormat.Markdown,
@@ -213,6 +214,7 @@ public record AnalysisOptions
     public bool IncludeDiagnostics { get; init; }
     public bool NoRoslyn { get; init; }
     public bool DryRun { get; init; }
+    public bool IncludeAntiPatterns { get; init; }
 }
 
 public record AnalysisResult

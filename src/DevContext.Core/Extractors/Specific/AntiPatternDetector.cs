@@ -17,7 +17,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         ["model.Detections"],
         "Detects fire-and-forget tasks, IServiceScopeFactory, new outside DI, CancellationToken.None, unbounded collections");
 
-    public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
+    public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
+        => context.Options.IncludeAntiPatterns;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

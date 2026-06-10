@@ -270,6 +270,10 @@
                                               IsChecked="{Binding DryRun}"
                                               FontSize="12"
                                               OnContent="" OffContent=""/>
+                                <ToggleSwitch Content="Include anti-pattern detection"
+                                              IsChecked="{Binding IncludeAntiPatterns}"
+                                              FontSize="12"
+                                              OnContent="" OffContent=""/>
                             </StackPanel>
                         </Expander>
 

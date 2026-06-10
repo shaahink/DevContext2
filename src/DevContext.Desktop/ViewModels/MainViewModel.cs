@@ -35,6 +35,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _includeDiagnostics;
     [ObservableProperty] private bool _noRoslyn;
     [ObservableProperty] private bool _dryRun;
+    [ObservableProperty] private bool _includeAntiPatterns;
 
     // ── Profile / format selection ─────────────────────────────────────────────
     [ObservableProperty]
@@ -216,7 +217,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnIncludeProvenanceChanged(bool value) => OnAnalysisOptionChanged();
     partial void OnIncludeDiagnosticsChanged(bool value) => OnAnalysisOptionChanged();
     partial void OnNoRoslynChanged(bool value) => OnAnalysisOptionChanged();
-    partial void OnDryRunChanged(bool value) => OnAnalysisOptionChanged();
+    partial void OnDryRunChanged(bool value)                    => OnAnalysisOptionChanged();
+    partial void OnIncludeAntiPatternsChanged(bool value)        => OnAnalysisOptionChanged();
 
     private void OnAnalysisOptionChanged()
     {
@@ -319,6 +321,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
             DryRun = DryRun,
+            IncludeAntiPatterns = IncludeAntiPatterns,
         };
 
         var progress = new Progress<AnalysisProgress>(p =>

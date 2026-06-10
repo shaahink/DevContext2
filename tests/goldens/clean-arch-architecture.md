@@ -1,8 +1,8 @@
-## DevContext -- Architecture Overview on CleanArch
+## DevContext — Architecture Overview on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore
-**Projects**: 4 -- Web, Infrastructure, Domain, Application
+**Projects**: 4 — Web, Infrastructure, Domain, Application
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 4 in output
 
 ---
@@ -47,8 +47,9 @@
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|
-| Extension | AddDbContext | options =>... | Program.cs:8 |
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
+| Extension | AddDbContext | AddDbContext → options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) | Program.cs:8 |
+| Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
 ## Related types grouped by layer
 
@@ -57,4 +58,4 @@
 - **Infrastructure**: AppDbContext
 
 ---
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0*
+*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0.0*

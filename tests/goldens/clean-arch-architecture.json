@@ -55,6 +55,7 @@
       "extensionsUsed": [
         "AddMediatR"
       ],
+      "shape": 0,
       "extractorName": "DiRegistrationExtractor",
       "sourceFile": "src\\Web\\Program.cs",
       "lineNumber": 7,
@@ -62,11 +63,12 @@
     },
     {
       "serviceType": "AddDbContext",
-      "implementationType": "options =\u003E\n    options.UseSqlServer(builder.Configuration.GetConnectionString(\u0022Default\u0022))",
+      "implementationType": "options =\u003E\r\n    options.UseSqlServer(builder.Configuration.GetConnectionString(\u0022Default\u0022))",
       "lifetime": "Extension",
       "extensionsUsed": [
         "AddDbContext"
       ],
+      "shape": 0,
       "extractorName": "DiRegistrationExtractor",
       "sourceFile": "src\\Web\\Program.cs",
       "lineNumber": 8,
@@ -99,7 +101,7 @@
       "type": "EndpointDetection",
       "httpMethod": "GET",
       "routeTemplate": "/products",
-      "handlerType": "async (IMediator mediator) =\u003E\n{\n    var products = await mediator.Send(new GetProductsQuery());\n    return Results.Ok(products);\n}",
+      "handlerType": "async (IMediator mediator) =\u003E\r\n{\r\n    var products = await mediator.Send(new GetProductsQuery());\r\n    return Results.Ok(products);\r\n}",
       "handlerMethod": "\u003Clambda\u003E",
       "authAttributes": [],
       "parameterTypes": [],

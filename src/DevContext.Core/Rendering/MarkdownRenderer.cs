@@ -114,6 +114,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void TrackSection(List<SectionTokenRecord> records, string name, int prevLength, int currentLength)
     {
+        if (currentLength <= prevLength) return; // skip empty sections
         var chars = currentLength - prevLength;
         var tokens = Math.Max(1, chars / 4);
         records.Add(new SectionTokenRecord(name, tokens, tokens, false));

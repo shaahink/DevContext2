@@ -197,6 +197,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             IncludeProvenance = settings.IncludeProvenance,
             IncludeDiagnostics = settings.IncludeDiagnostics,
             TokenView = settings.TokenView,
+            IncludeAntiPatterns = settings.IncludeAntiPatterns,
             OutputFormat = settings.Format?.ToLowerInvariant() switch
             {
                 "json" => OutputFormat.Json,

@@ -68,6 +68,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--token-view")]
     public bool TokenView { get; set; }
 
+    [Description("Include anti-pattern detection in output")]
+    [CommandOption("--include-anti-patterns")]
+    public bool IncludeAntiPatterns { get; set; }
+
     [Description("GitHub repo URL to clone and analyze")]
     [CommandOption("--repo")]
     public string? Repo { get; set; }

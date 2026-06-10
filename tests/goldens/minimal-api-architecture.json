@@ -58,6 +58,7 @@
       "extensionsUsed": [
         "AddMediatR"
       ],
+      "shape": 0,
       "extractorName": "DiRegistrationExtractor",
       "sourceFile": "src\\Api\\Program.cs",
       "lineNumber": 5,
@@ -67,7 +68,7 @@
       "type": "EndpointDetection",
       "httpMethod": "GET",
       "routeTemplate": "/orders",
-      "handlerType": "async (IMediator mediator) =\u003E\n{\n    var orders = await mediator.Send(new GetOrdersQuery());\n    return Results.Ok(orders);\n}",
+      "handlerType": "async (IMediator mediator) =\u003E\r\n{\r\n    var orders = await mediator.Send(new GetOrdersQuery());\r\n    return Results.Ok(orders);\r\n}",
       "handlerMethod": "\u003Clambda\u003E",
       "authAttributes": [],
       "parameterTypes": [],
@@ -79,7 +80,7 @@
     {
       "httpMethod": "POST",
       "routeTemplate": "/orders",
-      "handlerType": "async (CreateOrderCommand cmd, IMediator mediator) =\u003E\n{\n    var id = await mediator.Send(cmd);\n    return Results.Created($\u0022/orders/{id}\u0022, id);\n}",
+      "handlerType": "async (CreateOrderCommand cmd, IMediator mediator) =\u003E\r\n{\r\n    var id = await mediator.Send(cmd);\r\n    return Results.Created($\u0022/orders/{id}\u0022, id);\r\n}",
       "handlerMethod": "\u003Clambda\u003E",
       "authAttributes": [],
       "parameterTypes": [],

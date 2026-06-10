@@ -1,8 +1,8 @@
-## DevContext -- Architecture Overview on MinimalApiProject
+## DevContext — Architecture Overview on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
-**Projects**: 3 -- Infrastructure, Api, Core
+**Projects**: 3 — Infrastructure, Api, Core
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
 
 ---
@@ -39,13 +39,12 @@
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
+| Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ## Related types grouped by layer
 
 - **Api**: Order, CreateOrderCommand, CreateOrderHandler
-- **Infrastructure**: OrderRepository
-- **Unknown**: IOrderRepository
+- **Infrastructure**: OrderRepository, IOrderRepository
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0*
+*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0.0*

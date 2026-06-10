@@ -1,8 +1,8 @@
-## DevContext -- Debug Endpoint on MinimalApiProject
+## DevContext — Debug Endpoint on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
-**Projects**: 3 -- Infrastructure, Api, Core
+**Projects**: 3 — Infrastructure, Api, Core
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
 
 ---
@@ -37,7 +37,7 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|
-| Extension | AddMediatR | cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
+| Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0*
+*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0.0*

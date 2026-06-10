@@ -1,8 +1,8 @@
-## DevContext -- Add Similar Feature on CleanArch
+## DevContext — Add Similar Feature on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore
-**Projects**: 4 -- Web, Infrastructure, Domain, Application
+**Projects**: 4 — Web, Infrastructure, Domain, Application
 **Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 4 in output
 
 ---
@@ -26,4 +26,4 @@
 - **Infrastructure**: AppDbContext
 
 ---
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0*
+*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0.0*
