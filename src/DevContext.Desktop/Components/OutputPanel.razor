@@ -1,0 +1,115 @@
+@inject MainViewModel VM
+
+@implements IDisposable
+
+@code {
+    protected override void OnInitialized()
+    {
+        VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
+    }
+    public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+}
+
+<section class="output-panel">
+    @if (!VM.HasOutput && !VM.IsAnalyzing)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">&#x1F4CB;</div>
+            <p class="empty-title">Choose a project, then Analyse</p>
+            <p class="empty-sub">Structured, token-budgeted context ready to paste into any LLM</p>
+        </div>
+    }
+    else
+    {
+        <div class="output-toolbar">
+            <div class="tabs">
+                <button class="tab @(VM.IsHumanView ? "active" : "")" @onclick="() => VM.IsHumanView = true">Human</button>
+                <button class="tab @(VM.IsHumanView ? "" : "active")" @onclick="() => VM.IsHumanView = false">LLM</button>
+
+                @if (VM.SectionGroups.Count > 1)
+                {
+                    <button class="btn-sections" @onclick="ToggleSections">
+                        Sections
+                        @if (VM.SectionGroups.SelectMany(g => g.Children).Count(s => !s.IsIncluded) > 0)
+                        {
+                            <span class="badge">@VM.SectionGroups.SelectMany(g => g.Children).Count(s => !s.IsIncluded) off</span>
+                        }
+                    </button>
+                }
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn-icon" title="Copy to clipboard" @onclick="Copy">&#x1F4CB;</button>
+                <button class="btn-icon" title="Save to file" @onclick="Save">&#x1F4BE;</button>
+                <button class="btn-icon" title="Copy for LLM (excluding deselected sections)" @onclick="CopyLlm">&#x1F4E4;</button>
+            </div>
+        </div>
+
+        @if (IsSectionsOpen && VM.SectionGroups.Count > 1)
+        {
+            <div class="sections-drawer">
+                <div class="section-budget">
+                    <div class="budget-bar-wrapper">
+                        <div class="budget-bar">
+                            <div class="budget-fill @BudgetState" style="width: @(Math.Min(100, BudgetPct))%"></div>
+                        </div>
+                        <span class="budget-text @(VM.SelectedTokenTotal > VM.BudgetTokens ? "danger" : "")">
+                            @VM.SelectedTokenTotal.ToString("N0") / @VM.BudgetTokens.ToString("N0") tokens
+                        </span>
+                    </div>
+                    <button class="btn-text" @onclick="() => VM.ResetToScenarioDefaultsCommand.Execute(null)">
+                        Reset to defaults
+                    </button>
+                </div>
+                @foreach (var group in VM.SectionGroups)
+                {
+                    <details open>
+                        <summary>
+                            <label><input type="checkbox" checked="@group.IsIncluded"
+                                      @onchange="@(e => ToggleGroup(group, (bool)(e.Value ?? false)))" />
+                                @group.Name
+                            </label>
+                            <span class="group-tokens">@group.TotalTokens.ToString("N0") tok</span>
+                        </summary>
+                        @foreach (var section in group.Children)
+                        {
+                            <label class="section-row" style="padding-left:20px">
+                                <input type="checkbox" checked="@section.IsIncluded"
+                                       @onchange="@(e => section.IsIncluded = (bool)(e.Value ?? false))" />
+                                @section.Name
+                                <span class="section-tokens">@section.CompressedTokens.ToString("N0") tok</span>
+                            </label>
+                        }
+                    </details>
+                }
+            </div>
+        }
+
+        <pre class="output-text @(VM.IsHumanView ? "" : "llm-view")"><code>@VM.DisplayText</code></pre>
+
+        @if (VM.IsAnalyzing)
+        {
+            <div class="loading-overlay">
+                <div class="spinner"></div>
+                <p>@VM.ProgressText</p>
+            </div>
+        }
+    }
+</section>
+
+@code {
+    private bool IsSectionsOpen;
+    private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
+    private async void Copy() { /* bridge */ }
+    private async void Save() { /* bridge */ }
+    private async void CopyLlm() { /* bridge */ }
+
+    private void ToggleGroup(SectionGroupViewModel group, bool value)
+    {
+        foreach (var child in group.Children)
+            child.IsIncluded = value;
+    }
+
+    private double BudgetPct => VM.BudgetTokens > 0 ? (double)VM.SelectedTokenTotal / VM.BudgetTokens * 100 : 0;
+    private string BudgetState => VM.SelectedTokenTotal > VM.BudgetTokens ? "danger"
+        : VM.SelectedTokenTotal >= VM.BudgetTokens * 0.85 ? "warning" : "normal";
+}

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevContext.Core.Models;
@@ -243,8 +242,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 try
                 {
                     await Task.Delay(500, ct).ConfigureAwait(false);
-                    if (!ct.IsCancellationRequested)
+                if (!ct.IsCancellationRequested)
+                {
+                    var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                    if (dispatcher != null)
+                        dispatcher.Invoke(() => OnAnalysisOptionChanged());
+                    else
                         OnAnalysisOptionChanged();
+                }
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception) { /* best effort */ }

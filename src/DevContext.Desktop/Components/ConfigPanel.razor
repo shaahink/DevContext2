@@ -1,0 +1,158 @@
+@inject MainViewModel VM
+
+@implements IDisposable
+
+@code {
+    private string _selectedScenario = "architecture";
+
+    protected override void OnInitialized()
+    {
+        _selectedScenario = VM.SelectedScenario?.Value ?? "architecture";
+        VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
+    }
+
+    private void OnScenarioChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "architecture";
+        _selectedScenario = val;
+        VM.SelectedScenario = VM.Scenarios.First(s => s.Value == val);
+    }
+
+    private void OnTokensInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v))
+            VM.MaxTokens = Math.Clamp(v, 500, 50000);
+    }
+
+    public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+}
+
+<aside class="config-panel">
+    <header class="config-header">
+        <h1 class="app-title">DevContext <span class="version">v2.0.0</span></h1>
+    </header>
+
+    <nav class="config-sections">
+        <section class="config-group">
+            <h2 class="group-label">Source</h2>
+            <div class="source-row">
+                <input class="input" placeholder="Path, .sln, .csproj, or github.com/user/repo"
+                       @bind="VM.ProjectPath" @bind:event="oninput" />
+            </div>
+
+            @if (VM.IsGitHubUrl)
+            {
+                <div class="github-pill">
+                    <span class="pill-text">@VM.GitRepoDisplay</span>
+                    <select class="cleanup-select" @bind="VM.CloneCleanup">
+                        <option value="24h">Cache 24h</option>
+                        <option value="auto">Auto-clean</option>
+                        <option value="session">Keep for session</option>
+                        <option value="keep">Keep permanently</option>
+                    </select>
+                </div>
+            }
+
+            @if (VM.RecentPaths.Count > 0)
+            {
+                <div class="recent-list">
+                    @foreach (var path in VM.RecentPaths)
+                    {
+                        <button class="chip" title="@path"
+                                @onclick="() => VM.SelectRecentCommand.Execute(path)">
+                            @(path.Contains('/') ? path.Split('/').Last() : System.IO.Path.GetFileName(path.TrimEnd('\\')))
+                        </button>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="config-group">
+            <h2 class="group-label">Shape the context</h2>
+
+            <label class="field-label">Scenario</label>
+            <select class="input select" value="@_selectedScenario" @onchange="OnScenarioChanged">
+                @foreach (var s in VM.Scenarios)
+                {
+                    <option value="@s.Value">@s.Label</option>
+                }
+            </select>
+
+            <label class="field-label">Profile</label>
+            <div class="segmented">
+                @foreach (var p in new[] { ("focused", "Focused"), ("debug", "Debug"), ("full", "Full") })
+                {
+                    <button class="seg-option @(VM.SelectedProfile == p.Item1 ? "active" : "")"
+                            @onclick="() => VM.SetProfileCommand.Execute(p.Item1)">
+                        @p.Item2
+                    </button>
+                }
+            </div>
+
+            <label class="field-label">Token budget</label>
+            <div class="token-slider">
+                <input type="range" min="500" max="50000" step="500"
+                       @bind="VM.MaxTokens" @bind:event="oninput" />
+                <input type="number" class="input token-input" min="500" max="50000"
+                       value="@VM.MaxTokens" @onchange="OnTokensInput" />
+            </div>
+
+            <label class="field-label">Symbol focus <span class="hint">(optional)</span></label>
+            <input class="input" placeholder="Namespace.Class:Method"
+                   @bind="VM.Around" @bind:event="oninput" />
+        </section>
+
+        <section class="config-group">
+            <h2 class="group-label">Output</h2>
+
+            <label class="field-label">Format</label>
+            <div class="segmented">
+                @foreach (var f in new[] { ("markdown", "Markdown"), ("json", "JSON") })
+                {
+                    <button class="seg-option @(VM.SelectedFormat == f.Item1 ? "active" : "")"
+                            @onclick="() => VM.SetFormatCommand.Execute(f.Item1)">
+                        @f.Item2
+                    </button>
+                }
+            </div>
+
+            <details class="advanced">
+                <summary class="advanced-summary">Advanced</summary>
+                <div class="advanced-body">
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@VM.IncludeProvenance"
+                               @onchange="@(e => VM.IncludeProvenance = (bool)(e.Value ?? false))" />
+                        Include provenance
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@VM.IncludeDiagnostics"
+                               @onchange="@(e => VM.IncludeDiagnostics = (bool)(e.Value ?? false))" />
+                        Include diagnostics
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@VM.NoRoslyn"
+                               @onchange="@(e => VM.NoRoslyn = (bool)(e.Value ?? false))" />
+                        Skip Roslyn (faster, no call graph)
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@VM.DryRun"
+                               @onchange="@(e => VM.DryRun = (bool)(e.Value ?? false))" />
+                        Dry run (plan only)
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@VM.IncludeAntiPatterns"
+                               @onchange="@(e => VM.IncludeAntiPatterns = (bool)(e.Value ?? false))" />
+                        Include anti-pattern detection
+                    </label>
+                </div>
+            </details>
+        </section>
+    </nav>
+
+    <footer class="config-footer">
+        <button class="btn-primary" @onclick="() => VM.AnalyzeCommand.Execute(null)"
+                disabled="@(string.IsNullOrWhiteSpace(VM.ProjectPath))">
+            @VM.AnalyzeButtonText
+        </button>
+    </footer>
+</aside>
