@@ -64,18 +64,24 @@ public partial class MainWindow : Window
 
     private async void OnPickFolder(object? sender, RoutedEventArgs e)
     {
-        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        try
         {
-            Title = "Select .NET project folder",
-            AllowMultiple = false,
-        });
-        if (folders.Count > 0 && VM is { } vm)
-            vm.ProjectPath = folders[0].Path.LocalPath;
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select .NET project folder",
+                AllowMultiple = false,
+            });
+            if (folders.Count > 0 && VM is { } vm)
+                vm.ProjectPath = folders[0].Path.LocalPath;
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnPickFolder failed: {ex.Message}"); }
     }
 
     private async void OnPickFile(object? sender, RoutedEventArgs e)
     {
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        try
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Select solution or project file",
             AllowMultiple = false,
@@ -89,18 +95,28 @@ public partial class MainWindow : Window
         });
         if (files.Count > 0 && VM is { } vm)
             vm.ProjectPath = files[0].Path.LocalPath;
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnPickFile failed: {ex.Message}"); }
     }
 
     private async void OnCopy(object? sender, RoutedEventArgs e)
     {
-        if (VM is { RawContent: { Length: > 0 } text } && Clipboard is { } cb)
-            await cb.SetTextAsync(text);
+        try
+        {
+            if (VM is { RawContent: { Length: > 0 } text } && Clipboard is { } cb)
+                await cb.SetTextAsync(text);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnCopy failed: {ex.Message}"); }
     }
 
     private async void OnCopyLlm(object? sender, RoutedEventArgs e)
     {
-        if (VM is { } vm && Clipboard is { } cb)
-            await cb.SetTextAsync(vm.LlmViewText);
+        try
+        {
+            if (VM is { } vm && Clipboard is { } cb)
+                await cb.SetTextAsync(vm.LlmViewText);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnCopyLlm failed: {ex.Message}"); }
     }
 
     private void OnSwitchToHuman(object? sender, RoutedEventArgs e)
@@ -120,29 +136,35 @@ public partial class MainWindow : Window
 
     private async void OnPasteGitHub(object? sender, RoutedEventArgs e)
     {
-        if (Clipboard is { } cb)
+        try
         {
-            var text = await cb.GetTextAsync();
-            if (!string.IsNullOrWhiteSpace(text) && VM is { } vm)
-                vm.ProjectPath = text.Trim();
+            if (Clipboard is { } cb)
+            {
+                var text = await cb.GetTextAsync();
+                if (!string.IsNullOrWhiteSpace(text) && VM is { } vm)
+                    vm.ProjectPath = text.Trim();
+            }
         }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnPasteGitHub failed: {ex.Message}"); }
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
-        if (VM is not { RawContent: { Length: > 0 } content } vm) return;
-
-        var ext = vm.SelectedFormat == "json" ? "json" : "md";
-        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        try
         {
-            Title = "Save output",
-            DefaultExtension = ext,
-            FileTypeChoices = ext == "json"
-                ? [new FilePickerFileType("JSON") { Patterns = ["*.json"] }]
-                : [new FilePickerFileType("Markdown") { Patterns = ["*.md"] }],
-        });
-
-        if (file is not null)
-            await File.WriteAllTextAsync(file.Path.LocalPath, content);
+            if (VM is not { RawContent: { Length: > 0 } content } vm) return;
+            var ext = vm.SelectedFormat == "json" ? "json" : "md";
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save output",
+                DefaultExtension = ext,
+                FileTypeChoices = ext == "json"
+                    ? [new FilePickerFileType("JSON") { Patterns = ["*.json"] }]
+                    : [new FilePickerFileType("Markdown") { Patterns = ["*.md"] }],
+            });
+            if (file is not null)
+                await File.WriteAllTextAsync(file.Path.LocalPath, content);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"OnSave failed: {ex.Message}"); }
     }
 }

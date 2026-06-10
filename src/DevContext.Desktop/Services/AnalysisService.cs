@@ -45,7 +45,7 @@ public class AnalysisService : IAnalysisService
         var fs = new RealFileSystem();
 
         var resolver = new ProjectRootResolver();
-        var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct);
+        var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct).ConfigureAwait(false);
 
         if (!ScenarioRegistry.BuiltIn.TryGetValue(opts.Scenario, out var scenario))
             return new AnalysisResult { Success = false, Error = $"Unknown scenario: {opts.Scenario}" };
@@ -117,7 +117,7 @@ public class AnalysisService : IAnalysisService
         RenderedContext result;
         try
         {
-            result = await pipeline.RunAsync(ctx, ct);
+            result = await pipeline.RunAsync(ctx, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {

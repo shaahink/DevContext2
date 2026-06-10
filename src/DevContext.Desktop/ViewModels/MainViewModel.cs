@@ -1,8 +1,7 @@
 using System.Collections.ObjectModel;
-
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
 using DevContext.Core.Models;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
@@ -14,7 +13,7 @@ public record ScenarioItem(string Value, string Label)
     public override string ToString() => Label;
 }
 
-public partial class MainViewModel : ObservableObject
+public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalysisService _svc;
     private readonly GitCloneService _git = new();
@@ -22,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _validateCts;
     private CancellationTokenSource? _maxTokensDebounceCts;
+    private readonly object _ctsLock = new();
     private bool _isInitializing = true;
 
     // ── Form fields ────────────────────────────────────────────────────────────
@@ -128,15 +128,15 @@ public partial class MainViewModel : ObservableObject
     public string GitRepoDisplay => _gitRepoUrl?.ToDisplay() ?? "";
     public RepoStatus GitRepoStatus => _gitRepoStatus;
 
-    [ObservableProperty] private string _cloneCleanup = "auto";
+    [ObservableProperty] private string _cloneCleanup = "24h"; // default: cache 24h for GitHub repos
 
     partial void OnProjectPathChanged(string value)
     {
         if (_isInitializing) return;
-        ValidateGitHubUrl(value);
+        _ = ValidateGitHubUrlAsync(value);
     }
 
-    private async void ValidateGitHubUrl(string path)
+    private async Task ValidateGitHubUrlAsync(string path)
     {
         _validateCts?.Cancel();
         _validateCts?.Dispose();
@@ -158,13 +158,23 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        _validateCts = new CancellationTokenSource();
-        var status = await _git.ValidateAsync(url, _validateCts.Token);
-        _gitRepoStatus = status;
-
-        OnPropertyChanged(nameof(GitRepoStatus));
-        OnPropertyChanged(nameof(GitRepoDisplay));
-        OnPropertyChanged(nameof(AnalyzeButtonText));
+        try
+        {
+            _validateCts = new CancellationTokenSource();
+            var status = await _git.ValidateAsync(url, _validateCts.Token).ConfigureAwait(true);
+            _gitRepoStatus = status;
+        }
+        catch (OperationCanceledException) { return; }
+        catch (Exception)
+        {
+            _gitRepoStatus = RepoStatus.NetworkError;
+        }
+        finally
+        {
+            OnPropertyChanged(nameof(GitRepoStatus));
+            OnPropertyChanged(nameof(GitRepoDisplay));
+            OnPropertyChanged(nameof(AnalyzeButtonText));
+        }
     }
     public string RawContent => _rawContent;
 
@@ -227,15 +237,16 @@ public partial class MainViewModel : ObservableObject
         var ct = _maxTokensDebounceCts.Token;
 
         _ = Task.Run(async () =>
-        {
-            try
             {
-                await Task.Delay(500, ct);
-                if (!ct.IsCancellationRequested)
-                    AnalyzeCommand.Execute(null);
-            }
-            catch (OperationCanceledException) { }
-        }, ct);
+                try
+                {
+                    await Task.Delay(500, ct).ConfigureAwait(false);
+                    if (!ct.IsCancellationRequested)
+                        OnAnalysisOptionChanged();
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception) { /* best effort */ }
+            }, ct);
     }
 
     // ── Commands ───────────────────────────────────────────────────────────────
@@ -277,11 +288,10 @@ public partial class MainViewModel : ObservableObject
         // Clone from GitHub if this is a repo URL
         if (_gitRepoUrl is { IsValid: true } repo)
         {
-            ProgressText = "Cloning from GitHub...";
             var clonePath = repo.ClonePath;
 
             var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
-                new Progress<string>(msg => ProgressText = msg), ct);
+                new Progress<CloneProgress>(p => ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
 
             if (cloneResult is null)
             {
@@ -290,6 +300,7 @@ public partial class MainViewModel : ObservableObject
                 HasOutput = true;
                 IsAnalyzing = false;
                 IsProgressIndeterminate = false;
+                IsProgressVisible = false;
                 return;
             }
 
@@ -322,7 +333,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var result = await _svc.AnalyzeAsync(opts, progress, ct);
+            var result = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
             if (result.Success)
             {
                 _rawContent = result.Content ?? "";
@@ -509,5 +520,19 @@ public partial class MainViewModel : ObservableObject
             }
         RecalcTokenTotal();
         OnPropertyChanged(nameof(LlmViewText));
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+        _validateCts?.Cancel();
+        _validateCts?.Dispose();
+        _validateCts = null;
+        _maxTokensDebounceCts?.Cancel();
+        _maxTokensDebounceCts?.Dispose();
+        _maxTokensDebounceCts = null;
+        _git.Dispose();
     }
 }

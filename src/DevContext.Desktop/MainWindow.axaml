@@ -136,10 +136,10 @@
                                         <ComboBox SelectedItem="{Binding CloneCleanup}"
                                                   FontSize="10"
                                                   MinWidth="100">
-                                            <ComboBoxItem Content="Auto-clean" Tag="auto"/>
-                                            <ComboBoxItem Content="Keep for session" Tag="session"/>
-                                            <ComboBoxItem Content="Cache 24h" Tag="24h"/>
-                                            <ComboBoxItem Content="Keep permanently" Tag="keep"/>
+                                        <ComboBoxItem Content="Cache 24h" Tag="24h"/>
+                                        <ComboBoxItem Content="Auto-clean" Tag="auto"/>
+                                        <ComboBoxItem Content="Keep for session" Tag="session"/>
+                                        <ComboBoxItem Content="Keep permanently" Tag="keep"/>
                                         </ComboBox>
                                     </StackPanel>
                                 </StackPanel>

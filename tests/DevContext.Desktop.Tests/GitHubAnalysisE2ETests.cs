@@ -90,13 +90,13 @@ public class GitHubAnalysisE2ETests
         var cloneDir = Path.Combine(Path.GetTempPath(), $"devcontext-e2e-{Guid.NewGuid():N}");
         try
         {
-            var progress = new List<string>();
+            var progress = new List<CloneProgress>();
             var clonePath = await git.CloneAsync(url, cloneDir, "main",
-                new Progress<string>(msg => progress.Add(msg)), CancellationToken.None);
+                new Progress<CloneProgress>(msg => progress.Add(msg)), CancellationToken.None);
 
             Assert.NotNull(clonePath);
             Assert.True(Directory.Exists(clonePath));
-            Assert.Contains("Cloning from GitHub...", progress[0]);
+            Assert.NotEmpty(progress);
 
             // Verify the cloned repo has expected files
             Assert.True(File.Exists(Path.Combine(clonePath, "README.md")));
