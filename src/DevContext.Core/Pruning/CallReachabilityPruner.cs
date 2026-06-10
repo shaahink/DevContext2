@@ -36,9 +36,8 @@ public sealed class CallReachabilityPruner : IPruner
         {
             ct.ThrowIfCancellationRequested();
 
-            if (reachable.ContainsKey(type.Name))
+            if (reachable.TryGetValue(type.Name, out var depth))
             {
-                var depth = reachable[type.Name];
                 var boost = Math.Max(0.0f, 10.0f - depth * 2.0f);
                 type.RelevanceScore += boost;
                 model.AddProvenance(type.Id, new InclusionReason(

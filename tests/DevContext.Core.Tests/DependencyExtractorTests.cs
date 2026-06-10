@@ -1,6 +1,3 @@
-using DevContext.Core.Extractors.Generic;
-using DevContext.Core.Extractors.Specific;
-
 namespace DevContext.Core.Tests;
 
 public sealed class DependencyExtractorTests

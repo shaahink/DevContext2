@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using ModelsTypeKind = DevContext.Core.Models.TypeKind;
 
 namespace DevContext.Core.Extractors.Generic;

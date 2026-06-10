@@ -25,13 +25,13 @@ public sealed record ExtractionOptions
     /// <summary>Desired output format (markdown or json).</summary>
     public OutputFormat OutputFormat { get; init; } = OutputFormat.Markdown;
     /// <summary>Whether to include provenance tracking in the output.</summary>
-    public bool IncludeProvenance { get; init; } = false;
+    public bool IncludeProvenance { get; init; }
     /// <summary>Whether to include diagnostics in the output.</summary>
-    public bool IncludeDiagnostics { get; init; } = false;
+    public bool IncludeDiagnostics { get; init; }
     /// <summary>If true, runs a dry-run plan without full extraction.</summary>
-    public bool DryRun { get; init; } = false;
+    public bool DryRun { get; init; }
     /// <summary>Whether to emit a per-section token accounting table.</summary>
-    public bool TokenView { get; init; } = false;
+    public bool TokenView { get; init; }
     /// <summary>Per-section token budgets for smart truncation. Empty = no section-level limits.</summary>
     public ImmutableArray<SectionBudget> SectionBudgets { get; init; } = [];
     /// <summary>Maximum number of projects to analyze.</summary>

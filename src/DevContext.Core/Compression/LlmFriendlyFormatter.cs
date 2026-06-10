@@ -3,15 +3,14 @@ using System.Text.RegularExpressions;
 namespace DevContext.Core.Compression;
 
 /// <summary>Formats source bodies for LLM consumption by normalizing whitespace and condensing doc comments.</summary>
-public sealed class LlmFriendlyFormatter : ICompressionStrategy
+public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
 {
     /// <summary>Gets the name of this compression strategy.</summary>
     public string Name => "LlmFriendlyFormatter";
     /// <summary>Gets the execution order.</summary>
     public int Order => 50;
 
-    private static readonly Regex DocCommentRegex = new(
-        @"^\s*///\s*(.*?)$", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly Regex DocCommentRegex = MyRegex();
 
     private static readonly Regex SummaryTagRegex = new(
         @"<summary>(.*?)</summary>",
@@ -101,4 +100,7 @@ public sealed class LlmFriendlyFormatter : ICompressionStrategy
 
         return Math.Max(1, chars / 4);
     }
+
+    [GeneratedRegex(@"^\s*///\s*(.*?)$", RegexOptions.Multiline | RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
 }

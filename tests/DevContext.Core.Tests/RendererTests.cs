@@ -1,5 +1,3 @@
-using DevContext.Core.Rendering;
-
 namespace DevContext.Core.Tests;
 
 public sealed class RendererTests
@@ -393,11 +391,11 @@ public sealed class RendererTests
     {
         var model = new DiscoveryModel();
         model.Detections.Add(new AntiPatternDetection("FireAndForget", "desc1", "high", "t1")
-            { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 1 });
+        { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 1 });
         model.Detections.Add(new AntiPatternDetection("FireAndForget", "desc2", "high", "t2")
-            { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 2 });
+        { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 2 });
         model.Detections.Add(new AntiPatternDetection("ServiceLocator", "desc3", "high", "t3")
-            { ExtractorName = "a", SourceFile = @"\tests\TestFile.cs", LineNumber = 1 });
+        { ExtractorName = "a", SourceFile = @"\tests\TestFile.cs", LineNumber = 1 });
 
         var renderer = new MarkdownRenderer();
         var options = new RenderOptions(false, false, 8000);

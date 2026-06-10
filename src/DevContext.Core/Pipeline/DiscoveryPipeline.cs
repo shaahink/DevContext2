@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+
 using DevContext.Core.Extractors.Generic;
-using DevContext.Core.Observers;
-using DevContext.Core.Resolvers;
 
 namespace DevContext.Core.Pipeline;
 
@@ -304,7 +303,7 @@ public sealed class DiscoveryPipeline
     private static void ApplyArchitectureStyle(DiscoveryModel model)
     {
         var detector = new ArchitectureStyleDetector();
-        var (style, confidence, via) = detector.Detect(model);
+        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = "ArchitectureStyleDetector";

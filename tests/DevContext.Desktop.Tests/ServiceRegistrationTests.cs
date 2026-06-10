@@ -1,7 +1,7 @@
 using DevContext.Cli.Services;
 using DevContext.Core.Pipeline;
+
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace DevContext.Desktop.Tests;
 

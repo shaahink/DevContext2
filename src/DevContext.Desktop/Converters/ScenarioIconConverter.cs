@@ -11,13 +11,13 @@ public class ScenarioIconConverter : IValueConverter
 
         var key = scenario switch
         {
-            "architecture"        => "IconSitemap",
-            "debug-endpoint"      => "IconMagnify",
+            "architecture" => "IconSitemap",
+            "debug-endpoint" => "IconMagnify",
             "add-similar-feature" => "IconPlusCircle",
-            "modify-middleware"   => "IconCog",
-            "trace-message-flow"  => "IconMessage",
-            "harden-di"           => "IconShieldCheck",
-            _                     => "IconHelpCircle",
+            "modify-middleware" => "IconCog",
+            "trace-message-flow" => "IconMessage",
+            "harden-di" => "IconShieldCheck",
+            _ => "IconHelpCircle",
         };
 
         return App.Current?.Resources[key];

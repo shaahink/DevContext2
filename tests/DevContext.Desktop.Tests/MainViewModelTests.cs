@@ -1,6 +1,6 @@
-using System.ComponentModel;
 using DevContext.Desktop.Services;
 using DevContext.Desktop.ViewModels;
+
 using NSubstitute;
 
 namespace DevContext.Desktop.Tests;
@@ -491,8 +491,8 @@ public class MainViewModelTests
 
         // Uncheck all sections
         foreach (var group in vm.SectionGroups)
-        foreach (var section in group.Children)
-            section.IsIncluded = false;
+            foreach (var section in group.Children)
+                section.IsIncluded = false;
 
         Assert.Equal(0, vm.SelectedTokenTotal);
     }
@@ -521,7 +521,7 @@ public class MainViewModelTests
         // Wait for async re-analysis to complete
         await Task.Delay(200);
 
-            Assert.Equal(2, callCount);
+        Assert.Equal(2, callCount);
     }
 
     [Fact]

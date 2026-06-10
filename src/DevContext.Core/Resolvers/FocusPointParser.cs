@@ -11,7 +11,7 @@ public static class FocusPointParser
 
         // Type:Method pattern
         var colonParts = input.Split(':');
-        if (colonParts.Length == 2 && !input.Contains("\\") && !input.Contains("/"))
+        if (colonParts.Length == 2 && !input.Contains('\\') && !input.Contains('/'))
         {
             return new FocusPoint(FocusKind.Method, "", colonParts[0], colonParts[1]);
         }
@@ -29,7 +29,7 @@ public static class FocusPointParser
         }
 
         // Type name (no path separators)
-        if (!input.Contains("\\") && !input.Contains("/"))
+        if (!input.Contains('\\') && !input.Contains('/'))
         {
             return new FocusPoint(FocusKind.Type, "", input, null);
         }

@@ -108,7 +108,7 @@ public sealed class MetricsDiscoveryObserver : IDiscoveryObserver
         sb.AppendLine($"**Total time**: {_pipelineSw.Elapsed.TotalMilliseconds:F0}ms");
         sb.AppendLine();
 
-        if (_extractorMetrics.Count > 0)
+        if (!_extractorMetrics.IsEmpty)
         {
             sb.AppendLine("### Extractors");
             sb.AppendLine("| Name | Tier | Category | Time | Types+ | Dets+ |");

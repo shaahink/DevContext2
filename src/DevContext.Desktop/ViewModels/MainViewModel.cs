@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
 using DevContext.Core.Models;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
@@ -48,10 +50,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ScenarioItem _selectedScenario = null!;
 
     public bool IsProfileFocused => SelectedProfile == "focused";
-    public bool IsProfileDebug   => SelectedProfile == "debug";
-    public bool IsProfileFull    => SelectedProfile == "full";
+    public bool IsProfileDebug => SelectedProfile == "debug";
+    public bool IsProfileFull => SelectedProfile == "full";
     public bool IsFormatMarkdown => SelectedFormat == "markdown";
-    public bool IsFormatJson     => SelectedFormat == "json";
+    public bool IsFormatJson => SelectedFormat == "json";
 
     // ── Analysis state ─────────────────────────────────────────────────────────
     [ObservableProperty]
@@ -197,14 +199,14 @@ public partial class MainViewModel : ObservableObject
         ResetToScenarioDefaults();
         OnAnalysisOptionChanged();
     }
-    partial void OnSelectedProfileChanged(string value)         => OnAnalysisOptionChanged();
-    partial void OnSelectedFormatChanged(string value)          => OnAnalysisOptionChanged();
-    partial void OnMaxTokensChanged(int value)                  => DebouncedReanalyze();
-    partial void OnAroundChanged(string value)                  => OnAnalysisOptionChanged();
-    partial void OnIncludeProvenanceChanged(bool value)         => OnAnalysisOptionChanged();
-    partial void OnIncludeDiagnosticsChanged(bool value)        => OnAnalysisOptionChanged();
-    partial void OnNoRoslynChanged(bool value)                  => OnAnalysisOptionChanged();
-    partial void OnDryRunChanged(bool value)                    => OnAnalysisOptionChanged();
+    partial void OnSelectedProfileChanged(string value) => OnAnalysisOptionChanged();
+    partial void OnSelectedFormatChanged(string value) => OnAnalysisOptionChanged();
+    partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
+    partial void OnAroundChanged(string value) => OnAnalysisOptionChanged();
+    partial void OnIncludeProvenanceChanged(bool value) => OnAnalysisOptionChanged();
+    partial void OnIncludeDiagnosticsChanged(bool value) => OnAnalysisOptionChanged();
+    partial void OnNoRoslynChanged(bool value) => OnAnalysisOptionChanged();
+    partial void OnDryRunChanged(bool value) => OnAnalysisOptionChanged();
 
     private void OnAnalysisOptionChanged()
     {
@@ -500,11 +502,11 @@ public partial class MainViewModel : ObservableObject
     private void ResetToScenarioDefaults()
     {
         foreach (var group in SectionGroups)
-        foreach (var section in group.Children)
-        {
-            // Always include unless it's Debug/Diagnostics category
-            section.IsIncluded = section.Category != "Debug";
-        }
+            foreach (var section in group.Children)
+            {
+                // Always include unless it's Debug/Diagnostics category
+                section.IsIncluded = section.Category != "Debug";
+            }
         RecalcTokenTotal();
         OnPropertyChanged(nameof(LlmViewText));
     }

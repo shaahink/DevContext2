@@ -1,18 +1,18 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
+
 using DevContext.Cli.Services;
 using DevContext.Core.Analysis;
 using DevContext.Core.Configuration;
 using DevContext.Core.Contracts;
 using DevContext.Core.IO;
 using DevContext.Core.Models;
-using DevContext.Core.Observers;
 using DevContext.Core.Pipeline;
 using DevContext.Core.Resolvers;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DevContext.Desktop.Services;
 
@@ -45,7 +45,7 @@ public class AnalysisService : IAnalysisService
         var fs = new RealFileSystem();
 
         var resolver = new ProjectRootResolver();
-        var rootResult = await resolver.ResolveAsync(opts.ProjectPath, fs, ct);
+        var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct);
 
         if (!ScenarioRegistry.BuiltIn.TryGetValue(opts.Scenario, out var scenario))
             return new AnalysisResult { Success = false, Error = $"Unknown scenario: {opts.Scenario}" };
@@ -189,7 +189,8 @@ public class AnalysisService : IAnalysisService
 
         public void OnExtractorStarted(string name, ExtractorTier tier) { }
         public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
-            int typesAdded = 0, int detectionsAdded = 0) { }
+            int typesAdded = 0, int detectionsAdded = 0)
+        { }
         public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals) { }
         public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter) { }
         public void OnCompressionApplied(CompressionResult result) { }

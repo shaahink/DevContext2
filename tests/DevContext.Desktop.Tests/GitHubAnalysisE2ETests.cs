@@ -2,6 +2,7 @@ using DevContext.Core.Models;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
 using DevContext.Desktop.ViewModels;
+
 using NSubstitute;
 
 namespace DevContext.Desktop.Tests;

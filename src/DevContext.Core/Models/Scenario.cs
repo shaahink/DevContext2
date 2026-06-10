@@ -27,7 +27,7 @@ public sealed record CompressionConfig
     /// <summary>Whether to format source bodies for LLM consumption.</summary>
     public bool FormatForLlm { get; init; } = true;
     /// <summary>Whether to aggressively truncate source bodies.</summary>
-    public bool AggressiveTruncation { get; init; } = false;
+    public bool AggressiveTruncation { get; init; }
     /// <summary>Character cap per type source body.</summary>
     public int PerTypeCharCap { get; init; } = 3000;
 }

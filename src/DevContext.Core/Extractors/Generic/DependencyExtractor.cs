@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 namespace DevContext.Core.Extractors.Generic;
 
 /// <summary>Detects NuGet package references to emit architecture signals and builds the project dependency graph.</summary>

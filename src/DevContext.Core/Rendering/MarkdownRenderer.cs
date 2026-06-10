@@ -1,4 +1,5 @@
 using System.Text;
+
 using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Rendering;
@@ -284,7 +285,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                 sb.AppendLine($"**Extends**: `{type.BaseTypes[0]}`");
 
             var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
-            if (ctors.Any() && ctors[0].ParameterTypes.Length > 0)
+            if (ctors.Count != 0 && ctors[0].ParameterTypes.Length > 0)
             {
                 var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
                 sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
@@ -318,7 +319,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                     && m.Name != ".ctor" && m.Name != type.Name)
                 .Take(8)
                 .ToList();
-            if (publicMethods.Any())
+            if (publicMethods.Count != 0)
             {
                 sb.AppendLine();
                 sb.AppendLine("**Methods**:");
@@ -855,7 +856,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)
     {
-        var hasDetections = model.Detections.Count > 0;
+        var hasDetections = !model.Detections.IsEmpty;
 
         if (hasDetections)
         {

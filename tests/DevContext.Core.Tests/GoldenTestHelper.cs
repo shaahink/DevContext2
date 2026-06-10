@@ -1,11 +1,9 @@
-using System.Text.Json;
-
 namespace DevContext.Core.Tests;
 
-public static class GoldenTestHelper
+public static partial class GoldenTestHelper
 {
     private static readonly System.Text.RegularExpressions.Regex TimingPattern =
-        new(@"\*Generated in [\d.]+ms", System.Text.RegularExpressions.RegexOptions.Compiled);
+        MyRegex();
 
     private static readonly System.Text.RegularExpressions.Regex GeneratedAtPattern =
         new(@"""generatedAt"":\s*""[^""]+""", System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -196,6 +194,9 @@ public static class GoldenTestHelper
         Directory.CreateDirectory(defaultFixture);
         return defaultFixture;
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"\*Generated in [\d.]+ms", System.Text.RegularExpressions.RegexOptions.Compiled)]
+    private static partial System.Text.RegularExpressions.Regex MyRegex();
 }
 
 [CollectionDefinition("Golden tests")]

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Models;

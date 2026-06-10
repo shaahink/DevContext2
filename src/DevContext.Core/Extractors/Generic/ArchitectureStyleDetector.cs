@@ -7,7 +7,7 @@ namespace DevContext.Core.Extractors.Generic;
 /// </summary>
 public sealed class ArchitectureStyleDetector
 {
-    public (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
+    public static (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
     {
         var signals = model.Architecture.All;
         var projectCount = model.Projects.Length;

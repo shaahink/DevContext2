@@ -1,4 +1,5 @@
 using Avalonia;
+
 using DevContext.Desktop;
 
 BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

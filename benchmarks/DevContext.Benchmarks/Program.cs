@@ -1,15 +1,17 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+
+using DevContext.Core.Analysis;
+using DevContext.Core.Configuration;
 using DevContext.Core.Contracts;
 using DevContext.Core.Extractors.Generic;
-using DevContext.Core.Models;
-using DevContext.Core.Pipeline;
-using DevContext.Core.Utilities;
-using DevContext.Core.Analysis;
 using DevContext.Core.IO;
-using DevContext.Core.Configuration;
+using DevContext.Core.Models;
 using DevContext.Core.Observers;
+using DevContext.Core.Pipeline;
+
 using Microsoft.Extensions.Logging;
 
 var summary = BenchmarkRunner.Run<DevContextBenchmarks>();

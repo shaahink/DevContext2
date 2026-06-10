@@ -1,6 +1,6 @@
 using System.Diagnostics;
+
 using DevContext.Cli.Observers;
-using DevContext.Cli.Services;
 using DevContext.Cli.Settings;
 using DevContext.Core.Services;
 
@@ -71,7 +71,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         var resolver = new ProjectRootResolver();
-        var rootResult = await resolver.ResolveAsync(inputPath, _fs, ct);
+        var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
 
         var resolved = ResolveScenarioAndProfile(settings, config);
         if (resolved is null) return 1;
@@ -146,7 +146,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             AnsiConsole.MarkupLine($"[yellow]Config: {error}[/]");
     }
 
-    private (string Scenario, ExtractionProfile Profile)? ResolveScenarioAndProfile(
+    private static (string Scenario, ExtractionProfile Profile)? ResolveScenarioAndProfile(
         AnalyzeSettings settings, DevContextConfig? config)
     {
         string? scenarioName = null;
@@ -181,7 +181,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         return (scenarioName, profile);
     }
 
-    private (Scenario Scenario, ExtractionOptions Options) BuildOptions(
+    private static (Scenario Scenario, ExtractionOptions Options) BuildOptions(
         AnalyzeSettings settings, DevContextConfig? config,
         ProjectRootResult rootResult, (string name, ExtractionProfile profile) resolved)
     {

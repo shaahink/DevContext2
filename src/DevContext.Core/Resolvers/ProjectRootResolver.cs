@@ -4,7 +4,7 @@ namespace DevContext.Core.Resolvers;
 public sealed class ProjectRootResolver
 {
     /// <summary>Resolves the project root, finding .sln or .csproj files by walking up and down the directory tree.</summary>
-    public async Task<ProjectRootResult> ResolveAsync(string inputPath, IFileSystem fs, CancellationToken ct = default)
+    public static async Task<ProjectRootResult> ResolveAsync(string inputPath, IFileSystem fs, CancellationToken ct = default)
     {
         var fullPath = fs.GetFullPath(inputPath);
 

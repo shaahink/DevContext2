@@ -1,7 +1,3 @@
-using DevContext.Core.Extractors.Specific;
-using DevContext.Core.Models;
-using System.Collections.Immutable;
-
 namespace DevContext.Core.Tests;
 
 public sealed class AntiPatternDetectorTests

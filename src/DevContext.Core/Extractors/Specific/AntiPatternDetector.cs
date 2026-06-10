@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Immutable;
 
 namespace DevContext.Core.Extractors.Specific;
 
@@ -367,7 +366,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         foreach (var type in model.Types.Values)
         {
             var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
-            if (!ctors.Any()) continue;
+            if (ctors.Count == 0) continue;
 
             foreach (var paramType in ctors[0].ParameterTypes)
             {

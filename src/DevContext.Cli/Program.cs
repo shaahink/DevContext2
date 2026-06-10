@@ -1,6 +1,4 @@
-﻿using DevContext.Cli.Commands;
-using DevContext.Cli.Services;
-using Spectre.Console.Cli;
+using DevContext.Cli.Commands;
 
 var services = new ServiceCollection();
 services.AddSingleton<IFileSystem>(_ => new RealFileSystem());
