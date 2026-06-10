@@ -296,7 +296,7 @@ public partial class MainViewModel : ObservableObject
 
         var opts = new AnalysisOptions
         {
-            ProjectPath = ProjectPath,
+            ProjectPath = workingPath,
             Scenario = SelectedScenario.Value,
             Profile = SelectedProfile,
             Around = Around,
