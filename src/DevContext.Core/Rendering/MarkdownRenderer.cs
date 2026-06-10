@@ -143,7 +143,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var scenarioName = options.ScenarioDisplayName ?? "Architecture Overview";
         var entryName = model.Solution?.Name ?? "project";
 
-        sb.AppendLine($"## DevContext -- {scenarioName} on {entryName}");
+        sb.AppendLine($"## DevContext — {scenarioName} on {entryName}");
         sb.AppendLine();
     }
 
@@ -176,13 +176,13 @@ public sealed class MarkdownRenderer : IContextRenderer
             ? string.Join(", ", model.Projects.Select(p => p.Name))
             : "none";
 
-        sb.AppendLine($"**Projects**: {count} -- {names}");
+        sb.AppendLine($"**Projects**: {count} — {names}");
     }
 
     private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         var activeTypes = model.Types.Values.Count(t => !t.IsPruned);
-        sb.AppendLine($"**Profile**: focused | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
+        sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
         sb.AppendLine();
     }
 
@@ -982,7 +982,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
             + compressionText
-            + " | Schema v2.0*");
+            + " | Schema v2.0.0*");
 
         // Usage hints (only when output is broad and no focus points)
         if (typesSurviving > 50 && options.FocusPoints.IsDefaultOrEmpty)

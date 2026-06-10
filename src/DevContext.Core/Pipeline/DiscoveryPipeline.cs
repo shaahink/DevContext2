@@ -158,6 +158,7 @@ public sealed class DiscoveryPipeline
             context.Options.IncludeDiagnostics,
             model.Budget.MaxTokens,
             context.ActiveScenario.DisplayName,
+            ProfileDisplayName: context.Options.Profile.ToString().ToLowerInvariant(),
             context.ActiveScenario.RequiredSections,
             context.Analysis.FocusPoints.ToImmutableArray(),
             context.Analysis.CallGraph,

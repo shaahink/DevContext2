@@ -16,7 +16,7 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("-s|--scenario")]
     public string? Scenario { get; set; }
 
-    [Description("Profile: quick | focused | debug | full")]
+    [Description("Profile: focused | debug | full")]
     [CommandOption("-p|--profile")]
     public string? Profile { get; set; }
 

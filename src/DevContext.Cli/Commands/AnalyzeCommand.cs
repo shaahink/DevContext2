@@ -38,7 +38,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             var git = new GitCloneService();
             if (!git.IsGitAvailable)
             {
-                AnsiConsole.MarkupLine("[red]Git is not installed. Install git to clone GitHub repos.[/]");
+                AnsiConsole.MarkupLine("[red]Git is not installed. Install Git to clone GitHub repositories.[/]");
                 return 1;
             }
 

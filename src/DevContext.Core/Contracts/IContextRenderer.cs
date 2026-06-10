@@ -6,6 +6,7 @@ public sealed record RenderOptions(
     bool IncludeDiagnostics,
     int EstimatedTokens,
     string? ScenarioDisplayName = null,
+    string? ProfileDisplayName = null,
     ImmutableArray<string> RequiredSections = default,
     ImmutableArray<FocusPoint> FocusPoints = default,
     CallGraph? CallGraph = null,

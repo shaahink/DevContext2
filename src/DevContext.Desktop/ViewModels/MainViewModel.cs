@@ -328,7 +328,7 @@ public partial class MainViewModel : ObservableObject
                 PopulateSections(_rawContent);
                 RefreshDisplayText();
                 var tokens = _rawContent.Length / 4;
-                StatsText = $"~{tokens:N0} tokens  ·  {result.ElapsedMs / 1000.0:F1}s";
+                StatsText = $"~{tokens:N0} tokens · {result.ElapsedMs / 1000.0:F1}s";
                 HasOutput = true;
                 IsProgressIndeterminate = false;
                 ProgressValue = 100;
@@ -351,7 +351,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            ProgressText = "Cancelled";
+            ProgressText = "Canceled";
         }
         catch (Exception ex)
         {

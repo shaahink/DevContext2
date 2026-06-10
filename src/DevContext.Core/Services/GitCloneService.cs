@@ -147,7 +147,7 @@ public sealed class GitCloneService
             var branchArg = branch ?? repo.Ref ?? "";
 
             if (Directory.Exists(targetPath))
-                Directory.Delete(targetPath, true);
+                DeleteDirectoryRobust(targetPath);
 
             Directory.CreateDirectory(targetPath);
             progress?.Report("Cloning from GitHub...");
@@ -196,9 +196,23 @@ public sealed class GitCloneService
     {
         try
         {
-            if (Directory.Exists(localPath))
-                Directory.Delete(localPath, true);
+            DeleteDirectoryRobust(localPath);
         }
         catch { /* best effort */ }
+    }
+
+    private static void DeleteDirectoryRobust(string path)
+    {
+        if (!Directory.Exists(path)) return;
+
+        // Remove read-only attribute from all files (git marks packs as read-only on Windows)
+        foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+        {
+            var attrs = File.GetAttributes(file);
+            if ((attrs & FileAttributes.ReadOnly) != 0)
+                File.SetAttributes(file, attrs & ~FileAttributes.ReadOnly);
+        }
+
+        Directory.Delete(path, true);
     }
 }

@@ -262,11 +262,11 @@
                                               IsChecked="{Binding IncludeDiagnostics}"
                                               FontSize="12"
                                               OnContent="" OffContent=""/>
-                                <ToggleSwitch Content="Skip Roslyn  (faster, no call graph)"
+                                <ToggleSwitch                                               Content="Skip Roslyn (faster, no call graph)"
                                               IsChecked="{Binding NoRoslyn}"
                                               FontSize="12"
                                               OnContent="" OffContent=""/>
-                                <ToggleSwitch Content="Dry run  (plan only)"
+                                <ToggleSwitch                                               Content="Dry run (plan only)"
                                               IsChecked="{Binding DryRun}"
                                               FontSize="12"
                                               OnContent="" OffContent=""/>
@@ -320,7 +320,7 @@
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
                             <Button Theme="{StaticResource IconButton}"
                                     IsEnabled="{Binding HasOutput}"
-                                    ToolTip.Tip="Copy to clipboard  (Ctrl+Shift+C)"
+                                    ToolTip.Tip="Copy to clipboard (Ctrl+Shift+C)"
                                     Click="OnCopy">
                                 <PathIcon Data="{StaticResource IconContentCopy}"
                                            Width="18" Height="18"/>
@@ -334,7 +334,7 @@
                             </Button>
                             <Button Theme="{StaticResource IconButton}"
                                     IsEnabled="{Binding HasOutput}"
-                                    ToolTip.Tip="Copy LLM output (excluded sections stripped)"
+                                    ToolTip.Tip="Copy LLM output (excluding deselected sections)"
                                     Click="OnCopyLlm">
                                 <PathIcon Data="{StaticResource IconCodeBraces}"
                                            Width="18" Height="18"/>
