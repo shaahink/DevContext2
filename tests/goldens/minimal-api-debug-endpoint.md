@@ -1,4 +1,4 @@
-## DevContext — Debug Endpoint on MinimalApiProject
+## DevContext — Deep Dive on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore

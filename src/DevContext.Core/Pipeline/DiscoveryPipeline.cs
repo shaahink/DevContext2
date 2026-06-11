@@ -131,12 +131,12 @@ public sealed class DiscoveryPipeline
         await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
 
         // Profile-scenario mismatch warning
-        if (context.ActiveScenario.Name is "debug-endpoint" or "trace-message-flow"
+        if (context.ActiveScenario.Name is "deep-dive"
             && context.Options.Profile < ExtractionProfile.Debug)
         {
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
                 $"Scenario '{context.ActiveScenario.DisplayName}' benefits from call graph. " +
-                $"Re-run with '--profile debug' to enable call graph (current: {context.Options.Profile}).");
+                "Re-run with '--profile debug' to enable call graph.");
         }
 
         // Stage 4: Sequential pruning

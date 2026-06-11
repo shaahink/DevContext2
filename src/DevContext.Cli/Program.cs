@@ -16,7 +16,7 @@ app.Configure(config =>
     config.AddCommand<AnalyzeCommand>("analyze")
         .WithDescription("Analyze a .NET project and produce structured context")
         .WithExample(new[] { "analyze", "." })
-        .WithExample(new[] { "analyze", "./src/MyApp.sln", "--scenario", "architecture" })
+        .WithExample(new[] { "analyze", "./src/MyApp.sln", "--scenario", "overview" })
         .WithExample(new[] { "analyze", "--task", "debug why is this endpoint failing" });
 
     config.AddCommand<InitCommand>("init")

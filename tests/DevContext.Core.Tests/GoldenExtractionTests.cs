@@ -14,7 +14,7 @@ public sealed class GoldenExtractionTests
     public async Task MinimalApiProject_ArchitectureScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "MinimalApiProject", "architecture", "markdown");
+            "MinimalApiProject", "overview", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -27,7 +27,7 @@ public sealed class GoldenExtractionTests
     public async Task MinimalApiProject_ArchitectureScenario_ProducesJson()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "MinimalApiProject", "architecture", "json");
+            "MinimalApiProject", "overview", "json");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -40,7 +40,7 @@ public sealed class GoldenExtractionTests
     public async Task MinimalApiProject_DebugEndpointScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "MinimalApiProject", "debug-endpoint", "markdown");
+            "MinimalApiProject", "deep-dive", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -52,7 +52,7 @@ public sealed class GoldenExtractionTests
     public async Task MinimalApiProject_AddSimilarFeatureScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "MinimalApiProject", "add-similar-feature", "markdown");
+            "MinimalApiProject", "overview", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -64,7 +64,7 @@ public sealed class GoldenExtractionTests
     public async Task CleanArchProject_ArchitectureScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "CleanArchProject", "architecture", "markdown");
+            "CleanArchProject", "overview", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -76,7 +76,7 @@ public sealed class GoldenExtractionTests
     public async Task CleanArchProject_ArchitectureScenario_ProducesJson()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "CleanArchProject", "architecture", "json");
+            "CleanArchProject", "overview", "json");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -88,7 +88,7 @@ public sealed class GoldenExtractionTests
     public async Task CleanArchProject_DebugEndpointScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "CleanArchProject", "debug-endpoint", "markdown");
+            "CleanArchProject", "deep-dive", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
@@ -99,7 +99,7 @@ public sealed class GoldenExtractionTests
     public async Task CleanArchProject_AddSimilarFeatureScenario_ProducesMarkdown()
     {
         var result = await GoldenTestHelper.RunPipelineOnFixtureWithAllExtractors(
-            "CleanArchProject", "add-similar-feature", "markdown");
+            "CleanArchProject", "overview", "markdown");
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 

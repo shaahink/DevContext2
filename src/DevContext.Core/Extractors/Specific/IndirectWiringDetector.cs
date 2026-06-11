@@ -28,7 +28,7 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
         "Detects indirect wiring patterns like Activator.CreateInstance, Castle DynamicProxy, service locator, and reflection scanning");
     /// <summary>Only runs for debug-endpoint and harden-di scenarios.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.ActiveScenario.Name is "debug-endpoint" or "harden-di";
+        => context.ActiveScenario.Name is "deep-dive" or "audit";
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

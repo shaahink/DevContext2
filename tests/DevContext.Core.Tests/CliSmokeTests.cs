@@ -26,9 +26,9 @@ public sealed class CliSmokeTests
         var (exitCode, output) = await RunCliAsync("scenarios");
 
         Assert.Equal(0, exitCode);
-        Assert.Contains("architecture", output, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("debug-endpoint", output, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("harden-di", output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("overview", output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("deep-dive", output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("audit", output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

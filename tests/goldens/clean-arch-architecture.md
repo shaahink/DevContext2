@@ -1,4 +1,4 @@
-## DevContext — Architecture Overview on CleanArch
+## DevContext — Overview on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore

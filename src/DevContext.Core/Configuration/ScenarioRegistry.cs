@@ -7,59 +7,32 @@ public static class ScenarioRegistry
     public static IReadOnlyDictionary<string, Scenario> BuiltIn { get; } =
         new Dictionary<string, Scenario>
         {
-            ["architecture"] = new()
+            ["overview"] = new()
             {
-                Name = "architecture",
-                DisplayName = "Architecture Overview",
-                Description = "High-level architecture map with layers and signals",
-                Pruning = new PruningConfig { MaxSurvivingTypes = 30 },
+                Name = "overview",
+                DisplayName = "Overview",
+                Description = "High-level architecture map, endpoints, handlers, data model, and wiring",
+                Pruning = new PruningConfig { MaxPathDistance = 2, MaxSurvivingTypes = 40 },
                 Compression = new CompressionConfig { AggressiveTruncation = false },
                 RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.Endpoints, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
             },
-            ["debug-endpoint"] = new()
+            ["deep-dive"] = new()
             {
-                Name = "debug-endpoint",
-                DisplayName = "Debug Endpoint",
-                Description = "Detailed view of a specific endpoint with call graph",
-                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 20 },
+                Name = "deep-dive",
+                DisplayName = "Deep Dive",
+                Description = "Detailed endpoint view with call graph, event flow, and anti-patterns",
+                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
-                RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.NonObviousWiring]
+                RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.MessageConsumers, SectionNames.NonObviousWiring]
             },
-            ["add-similar-feature"] = new()
+            ["audit"] = new()
             {
-                Name = "add-similar-feature",
-                DisplayName = "Add Similar Feature",
-                Description = "Context for implementing a new feature similar to existing ones",
-                Pruning = new PruningConfig { MaxPathDistance = 2, MaxSurvivingTypes = 40 },
-                Compression = new CompressionConfig(),
-                RequiredSections = [SectionNames.Endpoints, SectionNames.MediatRHandlers, SectionNames.RelatedTypes]
-            },
-            ["modify-middleware"] = new()
-            {
-                Name = "modify-middleware",
-                DisplayName = "Modify Middleware",
-                Description = "Focus on pipeline and middleware registration",
-                Pruning = new PruningConfig { EnablePatternBoost = true, MaxSurvivingTypes = 25 },
-                Compression = new CompressionConfig { RemoveTrivialMembers = true },
-                RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.NonObviousWiring]
-            },
-            ["trace-message-flow"] = new()
-            {
-                Name = "trace-message-flow",
-                DisplayName = "Trace Message Flow",
-                Description = "Event/message flow through the system",
-                Pruning = new PruningConfig { MaxCallDepth = 5, MaxSurvivingTypes = 30 },
-                Compression = new CompressionConfig(),
-                RequiredSections = [SectionNames.MediatRHandlers, SectionNames.MessageConsumers, SectionNames.DataModel]
-            },
-            ["harden-di"] = new()
-            {
-                Name = "harden-di",
-                DisplayName = "Harden DI",
-                Description = "Find indirect wiring, reflection, and service locator patterns",
+                Name = "audit",
+                DisplayName = "Audit",
+                Description = "Find indirect wiring, service locators, reflection, and middleware issues",
                 Pruning = new PruningConfig { EnablePatternBoost = true, MaxSurvivingTypes = 50 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
-                RequiredSections = [SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
+                RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
             }
         }.ToFrozenDictionary();
 }

@@ -206,7 +206,7 @@ public class AnalysisService : IAnalysisService
 public record AnalysisOptions
 {
     public string ProjectPath { get; init; } = "";
-    public string Scenario { get; init; } = "architecture";
+    public string Scenario { get; init; } = "overview";
     public string Profile { get; init; } = "focused";
     public string Around { get; init; } = "";
     public int MaxTokens { get; init; } = 8000;
@@ -230,7 +230,7 @@ public record AnalysisProgress(string Text, double? Value);
 
 public class AppSettings
 {
-    public string? LastScenario { get; set; } = "debug-endpoint";
+    public string? LastScenario { get; set; } = "overview";
     public string? LastProfile { get; set; } = "focused";
     public string? LastFormat { get; set; } = "markdown";
     public int LastTokens { get; set; } = 8000;

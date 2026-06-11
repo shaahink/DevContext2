@@ -242,7 +242,7 @@ public sealed class ExtractorTests
         {
             RootPath = "",
             Options = new ExtractionOptions { MaxOutputTokens = 8000 },
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
             FileSystem = fs,
             Cache = cache,

@@ -1,4 +1,4 @@
-## DevContext — Debug Endpoint on CleanArch
+## DevContext — Deep Dive on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore

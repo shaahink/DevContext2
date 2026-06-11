@@ -14,7 +14,7 @@ public sealed class InitCommand : Command
         var config = new
         {
             defaultProfile = "focused",
-            defaultScenario = "debug-endpoint",
+            defaultScenario = "overview",
             maxOutputTokens = 6000,
             excludePatterns = new[] { ".git", "bin", "obj", "Migrations" },
             entryPaths = new[] { "src/Api" }

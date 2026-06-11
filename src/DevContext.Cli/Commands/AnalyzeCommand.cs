@@ -158,7 +158,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             settings.Profile ??= inferredProf.ToString().ToLowerInvariant();
         }
 
-        scenarioName ??= settings.Scenario ?? config?.DefaultScenario ?? "architecture";
+        scenarioName ??= settings.Scenario ?? config?.DefaultScenario ?? "overview";
 
         if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioName, out _))
         {

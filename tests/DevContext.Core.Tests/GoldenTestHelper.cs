@@ -39,7 +39,7 @@ public static partial class GoldenTestHelper
         Assert.Equal(expected, normalized);
     }
 
-    public static async Task<string> RunPipelineOnFixture(string fixtureDir, string scenario = "architecture")
+    public static async Task<string> RunPipelineOnFixture(string fixtureDir, string scenario = "overview")
     {
         var fs = new FakeFileSystem();
         var fixturePath = GetFixturePath(fixtureDir);
@@ -92,7 +92,7 @@ public static partial class GoldenTestHelper
     }
 
     public static async Task<RenderedContext> RunPipelineOnFixtureWithAllExtractors(
-        string fixtureDir, string scenario = "architecture", string format = "markdown")
+        string fixtureDir, string scenario = "overview", string format = "markdown")
     {
         var fs = new FakeFileSystem();
         var fixturePath = GetFixturePath(fixtureDir);
