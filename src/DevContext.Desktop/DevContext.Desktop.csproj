@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <RootNamespace>DevContext.Desktop</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <NuGetAuditMode>direct</NuGetAuditMode>
-    <WindowsSdkPackageVersion>10.0.26100.47</WindowsSdkPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
