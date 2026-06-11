@@ -5,10 +5,9 @@ public sealed class ScenarioRegistryTests
     [Fact]
     public void BuiltIn_ContainsAllScenarios()
     {
-        Assert.Equal(3, ScenarioRegistry.BuiltIn.Count);
+        Assert.Equal(2, ScenarioRegistry.BuiltIn.Count);
         Assert.Contains("overview", ScenarioRegistry.BuiltIn.Keys);
         Assert.Contains("deep-dive", ScenarioRegistry.BuiltIn.Keys);
-        Assert.Contains("audit", ScenarioRegistry.BuiltIn.Keys);
     }
 
     [Fact]
@@ -30,9 +29,9 @@ public sealed class ScenarioRegistryTests
     }
 
     [Fact]
-    public void AuditScenario_HasPatternBoost()
+    public void DeepDiveScenario_DisplayName_IsTrace()
     {
-        var scenario = ScenarioRegistry.BuiltIn["audit"];
-        Assert.True(scenario.Pruning.EnablePatternBoost);
+        var scenario = ScenarioRegistry.BuiltIn["deep-dive"];
+        Assert.Equal("Trace", scenario.DisplayName);
     }
 }

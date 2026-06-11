@@ -35,7 +35,6 @@ public class MainViewModelTests
     [Fact]
     public void Constructor_loads_settings()
     {
-        _settings.LastProfile = "full";
         _settings.LastFormat = "json";
         _settings.LastTokens = 4000;
         _settings.LastAround = "MyClass:Method";
@@ -45,7 +44,6 @@ public class MainViewModelTests
 
         var vm = CreateVm();
 
-        Assert.Equal("full", vm.SelectedProfile);
         Assert.Equal("json", vm.SelectedFormat);
         Assert.Equal(4000, vm.MaxTokens);
         Assert.Equal("MyClass:Method", vm.Around);
@@ -71,27 +69,134 @@ public class MainViewModelTests
     public void Constructor_initializes_scenarios()
     {
         var vm = CreateVm();
-        Assert.Equal(3, vm.Scenarios.Count);
+        Assert.Equal(2, vm.Scenarios.Count);
         Assert.Contains(vm.Scenarios, s => s.Value == "overview");
         Assert.Contains(vm.Scenarios, s => s.Value == "deep-dive");
-        Assert.Contains(vm.Scenarios, s => s.Value == "audit");
+    }
+
+    // ══ Sections ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void Constructor_initializes_sections()
+    {
+        var vm = CreateVm();
+        Assert.Equal(9, vm.Sections.Count);
+        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
+        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints);
+        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph);
+        Assert.Contains(vm.Sections, s => s.Key == "__source__");
+    }
+
+    [Fact]
+    public void Sections_default_to_overview_preset()
+    {
+        var vm = CreateVm();
+        // Overview: architecture true, call graph false, source false
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
+        Assert.False(vm.Sections.First(s => s.Key == "__source__").IsEnabled);
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.NonObviousWiring).IsEnabled);
+    }
+
+    [Fact]
+    public void Sections_default_to_trace_preset_when_scenario_is_deep_dive()
+    {
+        var vm = CreateVm();
+        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
+    }
+
+    [Fact]
+    public void IsTraceMode_true_when_deep_dive_selected()
+    {
+        var vm = CreateVm();
+        Assert.False(vm.IsTraceMode);
+
+        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+        Assert.True(vm.IsTraceMode);
+    }
+
+    [Theory]
+    [InlineData("__source__", true, "full")]
+    [InlineData(DevContext.Core.Constants.SectionNames.CallGraph, true, "debug")]
+    [InlineData("__source__", false, "focused")]
+    public void DerivedProfile_reflects_section_state(string sectionKey, bool enable, string expectedProfile)
+    {
+        var vm = CreateVm();
+        // Reset all to false first
+        foreach (var s in vm.Sections)
+            s.IsEnabled = false;
+        // Enable only the section under test
+        vm.SetSectionEnabled(sectionKey, enable);
+
+        Assert.Equal(expectedProfile, vm.DerivedProfile);
+    }
+
+    [Fact]
+    public void DerivedProfile_full_when_source_and_call_graph_both_on()
+    {
+        var vm = CreateVm();
+        foreach (var s in vm.Sections)
+            s.IsEnabled = false;
+        vm.SetSectionEnabled("__source__", true);
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
+
+        Assert.Equal("full", vm.DerivedProfile);
+    }
+
+    [Fact]
+    public void SetSectionEnabled_updates_section_and_triggers_change()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        // Simulate output so reanalysis triggers
+        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
+
+        var tcs = new TaskCompletionSource<AnalysisResult>();
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(tcs.Task);
+
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
+
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
+
+        tcs.SetResult(new AnalysisResult { Success = true, Content = "ok" });
+    }
+
+    [Fact]
+    public void LoadSettings_restores_active_sections()
+    {
+        _settings.LastActiveSections = new List<string> { DevContext.Core.Constants.SectionNames.CallGraph, "__source__" };
+
+        var vm = CreateVm();
+
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
+        Assert.True(vm.Sections.First(s => s.Key == "__source__").IsEnabled);
+        // Sections not in the list should default to false
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+    }
+
+    // ══ Task / intent ══════════════════════════════════════════════════════════
+
+    [Fact]
+    public void Constructor_loads_last_task()
+    {
+        _settings.LastTask = "trace the order handler";
+        var vm = CreateVm();
+        Assert.Equal("trace the order handler", vm.Task);
+    }
+
+    [Fact]
+    public void Task_field_initially_empty()
+    {
+        var vm = CreateVm();
+        Assert.Equal("", vm.Task);
     }
 
     // ══ Computed properties ════════════════════════════════════════════════════
-
-    [Theory]
-    [InlineData("focused", true, false, false)]
-    [InlineData("debug", false, true, false)]
-    [InlineData("full", false, false, true)]
-    public void Profile_computed_flags(string profile, bool focused, bool debug, bool full)
-    {
-        var vm = CreateVm();
-        vm.SelectedProfile = profile;
-
-        Assert.Equal(focused, vm.IsProfileFocused);
-        Assert.Equal(debug, vm.IsProfileDebug);
-        Assert.Equal(full, vm.IsProfileFull);
-    }
 
     [Theory]
     [InlineData("markdown", true, false)]
@@ -113,14 +218,6 @@ public class MainViewModelTests
     }
 
     // ══ Commands ═══════════════════════════════════════════════════════════════
-
-    [Fact]
-    public void SetProfileCommand_changes_profile()
-    {
-        var vm = CreateVm();
-        vm.SetProfileCommand.Execute("debug");
-        Assert.Equal("debug", vm.SelectedProfile);
-    }
 
     [Fact]
     public void SetFormatCommand_changes_format()
@@ -164,20 +261,6 @@ public class MainViewModelTests
     // ══ Property change notifications ══════════════════════════════════════════
 
     [Fact]
-    public void SelectedProfile_change_notifies_computed_properties()
-    {
-        var vm = CreateVm();
-        var changedProps = new List<string>();
-        vm.PropertyChanged += (_, e) => changedProps.Add(e.PropertyName!);
-
-        vm.SelectedProfile = "debug";
-
-        Assert.Contains(nameof(vm.IsProfileFocused), changedProps);
-        Assert.Contains(nameof(vm.IsProfileDebug), changedProps);
-        Assert.Contains(nameof(vm.IsProfileFull), changedProps);
-    }
-
-    [Fact]
     public void SelectedFormat_change_notifies_computed_properties()
     {
         var vm = CreateVm();
@@ -209,7 +292,7 @@ public class MainViewModelTests
     {
         var vm = CreateVm();
         // Set output without path
-        typeof(MainViewModel).GetProperty(nameof(vm.HasOutput))?.SetValue(vm, true);
+        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
 
         Assert.False(vm.IsAnalyzing);
 
@@ -224,7 +307,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
         // Set HasOutput to simulate previous analysis completed
-        typeof(MainViewModel).GetProperty(nameof(vm.HasOutput))?.SetValue(vm, true);
+        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
 
         // Set up mock before option change triggers re-analysis
         var tcs = new TaskCompletionSource<AnalysisResult>();
@@ -234,11 +317,11 @@ public class MainViewModelTests
         var triggered = false;
         vm.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(vm.IsAnalyzing) && vm.IsAnalyzing)
+            if (e.PropertyName == nameof(MainViewModel.IsAnalyzing) && vm.IsAnalyzing)
                 triggered = true;
         };
 
-        vm.SelectedProfile = "quick"; // triggers re-analysis
+        vm.SelectedFormat = "json"; // triggers re-analysis
 
         Assert.True(triggered);
 
@@ -251,11 +334,6 @@ public class MainViewModelTests
     [Fact]
     public void Option_changes_during_initialization_do_not_trigger()
     {
-        // The constructor sets _isInitializing = true during LoadSettings
-        // and false at the end. We verify this by checking that the
-        // test VM created via constructor doesn't have IsAnalyzing = true
-
-        _settings.LastProfile = "full";
         _settings.LastFormat = "json";
 
         var vm = CreateVm();
@@ -263,7 +341,6 @@ public class MainViewModelTests
         // LoadSettings ran during construction with _isInitializing=true
         // so no analysis should have been triggered
         Assert.False(vm.IsAnalyzing);
-        Assert.Equal("full", vm.SelectedProfile);
         Assert.Equal("json", vm.SelectedFormat);
     }
 
@@ -498,33 +575,6 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task Changing_profile_triggers_reanalysis_when_output_exists()
-    {
-        var vm = CreateVm();
-        vm.ProjectPath = "C:\\Test";
-
-        var callCount = 0;
-        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(_ =>
-            {
-                callCount++;
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
-            });
-
-        // First analysis
-        await ExecuteAnalyzeCommand(vm);
-        Assert.Equal(1, callCount);
-
-        // Change profile — should trigger re-analysis
-        vm.SelectedProfile = "debug";
-
-        // Wait for async re-analysis to complete
-        await Task.Delay(200);
-
-        Assert.Equal(2, callCount);
-    }
-
-    [Fact]
     public async Task Changing_scenario_triggers_reanalysis_and_resets_defaults()
     {
         var vm = CreateVm();
@@ -541,7 +591,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(1, callCount);
 
-        vm.SelectedScenario = vm.Scenarios[2];
+        vm.SelectedScenario = vm.Scenarios[1]; // Switch to Trace
         await Task.Delay(200);
         Assert.Equal(2, callCount);
     }
@@ -585,5 +635,70 @@ public class MainViewModelTests
 
         await Task.Delay(700); // wait for debounce + re-analysis
         Assert.Equal(2, callCount); // only 1 additional call (debounced)
+    }
+
+    // ══ Section data flows into AnalysisOptions ════════════════════════════════
+
+    [Fact]
+    public async Task AnalyzeAsync_passes_active_sections_to_AnalysisOptions()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        AnalysisOptions? capturedOpts = null;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                capturedOpts = callInfo.Arg<AnalysisOptions>();
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.NotNull(capturedOpts);
+        Assert.NotEmpty(capturedOpts.ActiveSections);
+        Assert.Contains(DevContext.Core.Constants.SectionNames.ArchitectureOverview, capturedOpts.ActiveSections);
+        Assert.DoesNotContain(DevContext.Core.Constants.SectionNames.CallGraph, capturedOpts.ActiveSections);
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_passes_derived_profile_to_AnalysisOptions()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        AnalysisOptions? capturedOpts = null;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                capturedOpts = callInfo.Arg<AnalysisOptions>();
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.NotNull(capturedOpts);
+        Assert.Equal("focused", capturedOpts.Profile); // default: no call graph, no source
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_passes_task_to_AnalysisOptions()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        vm.Task = "debug the failing endpoint";
+
+        AnalysisOptions? capturedOpts = null;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                capturedOpts = callInfo.Arg<AnalysisOptions>();
+                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.NotNull(capturedOpts);
+        Assert.Equal("debug the failing endpoint", capturedOpts.Task);
     }
 }

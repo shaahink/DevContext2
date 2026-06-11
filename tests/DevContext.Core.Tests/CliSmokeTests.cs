@@ -28,7 +28,6 @@ public sealed class CliSmokeTests
         Assert.Equal(0, exitCode);
         Assert.Contains("overview", output, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("deep-dive", output, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("audit", output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

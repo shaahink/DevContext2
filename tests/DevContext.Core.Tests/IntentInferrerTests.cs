@@ -6,8 +6,8 @@ public sealed class IntentInferrerTests
     [InlineData("debug why is this endpoint failing", "deep-dive")]
     [InlineData("add new crud endpoint for orders", "overview")]
     [InlineData("architecture overview structure", "overview")]
-    [InlineData("di injection reflection", "audit")]
-    [InlineData("middleware pipeline interceptor", "audit")]
+    [InlineData("di injection reflection", "overview")]
+    [InlineData("middleware pipeline interceptor", "overview")]
     [InlineData("event message publish bus", "deep-dive")]
     [InlineData("trace call graph", "deep-dive")]
     public void Infer_KeywordMatching_ReturnsExpectedScenario(string task, string expected)
