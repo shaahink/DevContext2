@@ -289,7 +289,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             .AddRow("[bold]Solution[/]", label.EscapeMarkup())
             .AddRow("[bold]Time[/]", $"{sw.ElapsedMilliseconds}ms")
             .AddRow("[bold]Tokens[/]", $"~{result.EstimatedTokens} (budget {options.MaxOutputTokens})")
-            .AddRow("[bold]Version[/]", "v2.0.0");
+            .AddRow("[bold]Version[/]", $"v{DevContextVersion.Display}");
 
         AnsiConsole.Write(summary);
     }

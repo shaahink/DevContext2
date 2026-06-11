@@ -1,6 +1,6 @@
 # DevContext v2.1 — Combined Benchmark Report
 
-**Generated**: 2026-06-11 | **Branch**: `docs-refresh` (on `fix-crash-and-gaps`)  
+**Generated**: 2026-06-11 | **Branch**: `main` (v2.1.0)  
 **Tests**: 221 passing (157 Core + 64 Desktop)
 
 ---

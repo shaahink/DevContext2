@@ -5,6 +5,8 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>devcontext</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Core\DevContext.Core.csproj" />

@@ -2,7 +2,7 @@
 
 All notable changes to DevContext are documented here.
 
-## v2.1.0 (unreleased)
+## v2.1.0 (2026-06-11)
 
 ### UI Simplification
 
@@ -36,7 +36,7 @@ All notable changes to DevContext are documented here.
 
 ---
 
-## v2.0.0 (unreleased)
+## v2.0.0 (2026-06-10)
 
 ### Removed
 
