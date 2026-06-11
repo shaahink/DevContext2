@@ -47,9 +47,6 @@ public partial class MainWindow
             WebView.CoreWebView2InitializationCompleted += OnCoreWebView2Ready;
             WebView.NavigationCompleted += (_, _) => Log("Navigation completed");
 
-            var env = CoreWebView2Environment.CreateAsync().GetAwaiter().GetResult();
-            WebView.EnsureCoreWebView2Async(env).GetAwaiter().GetResult();
-
             var htmlPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html");
             if (File.Exists(htmlPath))
             {
