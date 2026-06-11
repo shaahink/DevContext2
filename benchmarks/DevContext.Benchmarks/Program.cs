@@ -110,7 +110,7 @@ public sealed class BenchmarkMarkdownRenderer : IContextRenderer
     public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
     {
         var text = $"# Benchmark\nTypes: {model.Types.Count}\n";
-        return new ValueTask<RenderedContext>(new RenderedContext(text, text.Length / 4, [], TimeSpan.Zero, "2.0"));
+        return new ValueTask<RenderedContext>(new RenderedContext(text, text.Length / 4, [], TimeSpan.Zero, "1.0"));
     }
 }
 
@@ -120,6 +120,6 @@ public sealed class BenchmarkJsonRenderer : IContextRenderer
     public ValueTask<RenderedContext> RenderAsync(DiscoveryModel model, RenderOptions options, CancellationToken ct)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(new { types = model.Types.Count });
-        return new ValueTask<RenderedContext>(new RenderedContext(json, json.Length / 4, [], TimeSpan.Zero, "2.0"));
+        return new ValueTask<RenderedContext>(new RenderedContext(json, json.Length / 4, [], TimeSpan.Zero, "1.0"));
     }
 }

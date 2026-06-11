@@ -7,7 +7,7 @@ namespace DevContext.Core.Models;
 /// </summary>
 public sealed record DevContextOutput
 {
-    public string SchemaVersion { get; init; } = "2.0";
+    public string SchemaVersion { get; init; } = "1.0";
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
     public SolutionOutput? Solution { get; init; }
     public ArchitectureOutput? Architecture { get; init; }

@@ -31,7 +31,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("\"schemaVersion\": \"2.0\"", result.Content);
+        Assert.Contains("\"schemaVersion\": \"1.0\"", result.Content);
         Assert.Contains("\"style\": \"MinimalApi\"", result.Content);
         Assert.Contains("EndpointDetection", result.Content);
     }
@@ -80,7 +80,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("\"schemaVersion\": \"2.0\"", result.Content);
+        Assert.Contains("\"schemaVersion\": \"1.0\"", result.Content);
         Assert.Contains("\"style\"", result.Content);
     }
 

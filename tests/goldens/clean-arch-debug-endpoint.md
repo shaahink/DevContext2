@@ -29,7 +29,6 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 
 | Entity | Aggregate root | Key properties |
 |--------|---------------|----------------|
-| `<OnModelCreating>` | — | — |
 | `Product` | — | Id |
 | `Product` | ✓ | Id |
 
@@ -45,9 +44,8 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|
-| Extension | AddDbContext | AddDbContext → options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) | Program.cs:8 |
+| Extension | AddDbContext | AddDbContext → options =>... | Program.cs:8 |
 | Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
 ---
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0.0*
+*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v1.0*

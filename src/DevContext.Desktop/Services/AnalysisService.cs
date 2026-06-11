@@ -166,7 +166,7 @@ public class AnalysisService : IAnalysisService
         var path = Path.Combine(_dataDir, "settings.json");
         if (!File.Exists(path)) return new AppSettings();
         try { return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path)) ?? new AppSettings(); }
-        catch { return new AppSettings(); }
+        catch (Exception ex) { Serilog.Log.Warning(ex, "Failed to load settings, using defaults"); return new AppSettings(); }
     }
 
     public void SaveSettings(AppSettings s)
@@ -187,7 +187,7 @@ public class AnalysisService : IAnalysisService
         var p = Path.Combine(_dataDir, "recent.json");
         if (!File.Exists(p)) return [];
         try { return JsonSerializer.Deserialize<string[]>(File.ReadAllText(p)) ?? []; }
-        catch { return []; }
+        catch (Exception ex) { Serilog.Log.Warning(ex, "Failed to load recent paths"); return []; }
     }
 
     public void AddRecent(string path)

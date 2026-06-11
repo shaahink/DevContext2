@@ -32,7 +32,6 @@
 
 | Entity | Aggregate root | Key properties |
 |--------|---------------|----------------|
-| `<OnModelCreating>` | — | — |
 | `Product` | — | Id |
 | `Product` | ✓ | Id |
 
@@ -48,15 +47,14 @@
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|
-| Extension | AddDbContext | AddDbContext → options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")) | Program.cs:8 |
+| Extension | AddDbContext | AddDbContext → options =>... | Program.cs:8 |
 | Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
-## Related types grouped by layer
+## Related types
 
 - **Application**: GetProductsHandler, GetProductsQuery
 - **Domain**: Product
 - **Infrastructure**: AppDbContext
 
 ---
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v2.0.0*
+*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v1.0*

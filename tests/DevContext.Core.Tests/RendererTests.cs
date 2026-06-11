@@ -15,8 +15,8 @@ public sealed class RendererTests
         Assert.Contains("Architecture overview", result.Content);
         // Library mode (no detections): uses namespace-grouped output
         Assert.Contains("Types by namespace", result.Content);
-        Assert.Contains("Schema v2.0", result.Content);
-        Assert.Equal("2.0", result.SchemaVersion);
+        Assert.Contains("Schema v1.0", result.Content);
+        Assert.Equal("1.0", result.SchemaVersion);
     }
 
     [Fact]
@@ -97,8 +97,8 @@ public sealed class RendererTests
 
         Assert.NotNull(result.Content);
         Assert.Contains("schemaVersion", result.Content);
-        Assert.Contains("2.0", result.Content);
-        Assert.Equal("2.0", result.SchemaVersion);
+        Assert.Contains("1.0", result.Content);
+        Assert.Equal("1.0", result.SchemaVersion);
     }
 
     [Fact]

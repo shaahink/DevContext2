@@ -32,7 +32,7 @@ public static class Program
             e.SetObserved();
         };
 
-        Log.Information("DevContext Desktop v2.0.0 starting");
+        Log.Information("DevContext Desktop v{Version} starting", DevContext.Cli.DevContextVersion.Display);
 
         try
         {

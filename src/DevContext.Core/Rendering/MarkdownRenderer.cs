@@ -108,7 +108,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var estimatedTokens = Math.Max(1, content.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "2.0",
+            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0",
             SectionTokens: sectionTokens.Count > 0 ? sectionTokens : null));
     }
 
@@ -402,7 +402,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendEndpoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine("## Endpoints");
+        sb.AppendLine($"## {SectionNames.Endpoints}");
         sb.AppendLine();
 
         var allEndpoints = model.Detections.OfType<EndpointDetection>()
@@ -575,15 +575,15 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static string FormatDiShape(DiRegistrationDetection d)
     {
+        var impl = FormatImplementation(d.ImplementationType, d.ExtensionsUsed);
         return d.Shape switch
         {
-            DiRegistrationShape.ForwardingAlias => $"{d.ImplementationType} (alias)",
+            DiRegistrationShape.ForwardingAlias => $"{impl} (alias)",
             DiRegistrationShape.InlineFactory when d.FactorySummary is not null => d.FactorySummary,
-            DiRegistrationShape.InlineFactory => FormatImplementation(d.ImplementationType, d.ExtensionsUsed),
             DiRegistrationShape.DirectBinding => d.ServiceType == d.ImplementationType
-                ? d.ImplementationType
-                : $"{d.ServiceType} → {d.ImplementationType}",
-            _ => FormatImplementation(d.ImplementationType, d.ExtensionsUsed),
+                ? impl
+                : $"{d.ServiceType} → {impl}",
+            _ => impl,
         };
     }
 
@@ -591,7 +591,7 @@ public sealed class MarkdownRenderer : IContextRenderer
     {
         if (options.CallGraph is null || options.CallGraph.Edges.Count == 0)
         {
-            sb.AppendLine("## Call graph");
+        sb.AppendLine($"## {SectionNames.CallGraph}");
             sb.AppendLine();
             sb.AppendLine("Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.");
             sb.AppendLine();
@@ -664,7 +664,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
         if (handlers.Count == 0) return;
 
-        sb.AppendLine("## MediatR Handlers");
+        sb.AppendLine($"## {SectionNames.MediatRHandlers}");
         sb.AppendLine();
 
         sb.AppendLine("| Kind | Request | Response | Handler |");
@@ -679,25 +679,39 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendEfEntities(StringBuilder sb, DiscoveryModel model)
     {
-        var entities = model.Detections.OfType<EfEntityDetection>().ToList();
-        if (entities.Count == 0) return;
+        var entities = model.Detections.OfType<EfEntityDetection>()
+            .Where(e => e.DbContextType != "Migrations" && e.EntityType != "<OnModelCreating>")
+            .ToList();
+        var migrationCount = model.Detections.OfType<EfEntityDetection>()
+            .Count(e => e.DbContextType == "Migrations");
 
-        sb.AppendLine("## Data model (EF Core)");
+        if (entities.Count == 0 && migrationCount == 0) return;
+
+        sb.AppendLine($"## {SectionNames.DataModel} (EF Core)");
         sb.AppendLine();
 
-        var byContext = entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key);
-        foreach (var group in byContext)
+        if (entities.Count > 0)
         {
-            sb.AppendLine($"### `{group.Key}`");
-            sb.AppendLine();
-            sb.AppendLine("| Entity | Aggregate root | Key properties |");
-            sb.AppendLine("|--------|---------------|----------------|");
-            foreach (var e in group.OrderBy(e => e.EntityType))
+            var byContext = entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key);
+            foreach (var group in byContext)
             {
-                var keys = e.KeyProperties.Length > 0 ? string.Join(", ", e.KeyProperties) : "—";
-                var agg = e.IsAggregate ? "✓" : "—";
-                sb.AppendLine($"| `{e.EntityType}` | {agg} | {keys} |");
+                sb.AppendLine($"### `{group.Key}`");
+                sb.AppendLine();
+                sb.AppendLine("| Entity | Aggregate root | Key properties |");
+                sb.AppendLine("|--------|---------------|----------------|");
+                foreach (var e in group.OrderBy(e => e.EntityType))
+                {
+                    var keys = e.KeyProperties.Length > 0 ? string.Join(", ", e.KeyProperties) : "—";
+                    var agg = e.IsAggregate ? "✓" : "—";
+                    sb.AppendLine($"| `{e.EntityType}` | {agg} | {keys} |");
+                }
+                sb.AppendLine();
             }
+        }
+
+        if (migrationCount > 0)
+        {
+            sb.AppendLine($"**{migrationCount} EF Core migrations found.**");
             sb.AppendLine();
         }
     }
@@ -707,7 +721,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
         if (consumers.Count == 0) return;
 
-        sb.AppendLine("## Message consumers");
+        sb.AppendLine($"## {SectionNames.MessageConsumers}");
         sb.AppendLine();
         sb.AppendLine("| Bus | Message type | Consumer |");
         sb.AppendLine("|-----|-------------|---------|");
@@ -726,7 +740,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (wiring.Count == 0 && workers.Count == 0 && middleware.Count == 0 && diRegs.Count == 0)
             return;
 
-        sb.AppendLine("## Non-obvious wiring");
+        sb.AppendLine($"## {SectionNames.NonObviousWiring}");
         sb.AppendLine();
 
         if (wiring.Count > 0)
@@ -798,7 +812,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
         if (patterns.Count == 0) return;
 
-        sb.AppendLine("## Anti-patterns detected");
+        sb.AppendLine($"## {SectionNames.AntiPatterns}");
         sb.AppendLine();
 
         // Group by source file for compact readability
@@ -892,7 +906,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         if (hasDetections)
         {
-            sb.AppendLine("## Related types grouped by layer");
+            sb.AppendLine($"## {SectionNames.RelatedTypes}");
             sb.AppendLine();
 
             var typedTypes = model.Types.Values
@@ -1015,7 +1029,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
             + compressionText
-            + " | Schema v2.0.0*");
+            + " | Schema v1.0*");
 
         // Usage hints (only when output is broad and no focus points)
         if (typesSurviving > 50 && options.FocusPoints.IsDefaultOrEmpty)

@@ -41,10 +41,10 @@
 |----------|---------|----------------|--------|
 | Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
-## Related types grouped by layer
+## Related types
 
 - **Api**: Order, CreateOrderCommand, CreateOrderHandler
 - **Infrastructure**: OrderRepository, IOrderRepository
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v2.0.0*
+*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v1.0*
