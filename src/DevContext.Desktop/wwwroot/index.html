@@ -24,8 +24,12 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
-        // Refresh Lucide icons whenever Blazor re-renders the DOM
-        new MutationObserver(() => lucide.createIcons()).observe(document.body, { childList: true, subtree: true });
+        // Refresh Lucide icons — guarded against CDN load failure
+        try {
+            new MutationObserver(function(mutations, observer) {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }).observe(document.body, { childList: true, subtree: true });
+        } catch(e) { console.error('Lucide observer setup failed:', e); }
     </script>
 </body>
 </html>
