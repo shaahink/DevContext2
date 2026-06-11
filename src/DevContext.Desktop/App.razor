@@ -1,0 +1,21 @@
+@inject MainViewModel VM
+
+<ErrorBoundary>
+    <ChildContent>
+        <div class="app @(VM.HasOutput ? "has-output" : "") @(VM.IsAnalyzing ? "is-loading" : "")">
+            <main class="main">
+                <ConfigPanel />
+                <div class="splitter"></div>
+                <OutputPanel />
+            </main>
+            <StatusBar />
+        </div>
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div style="padding:40px;font-family:sans-serif;">
+            <h2 style="color:#d20f39">Something went wrong</h2>
+            <pre style="font-size:12px;white-space:pre-wrap;color:#4c4f69">@ex.Message
+@ex.StackTrace</pre>
+        </div>
+    </ErrorContent>
+</ErrorBoundary>

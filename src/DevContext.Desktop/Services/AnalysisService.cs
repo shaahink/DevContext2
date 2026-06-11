@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 
 using DevContext.Cli.Services;

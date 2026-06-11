@@ -1,25 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <RootNamespace>DevContext.Desktop</RootNamespace>
     <Nullable>enable</Nullable>
-    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <UseWPF>true</UseWPF>
     <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.2.*" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.*" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.*" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.*" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
   </ItemGroup>
-
 </Project>
