@@ -183,12 +183,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public List<ScenarioItem> Scenarios { get; } =
     [
-        new("architecture",          "Architecture"),
-        new("debug-endpoint",        "Debug Endpoint"),
-        new("add-similar-feature",   "Add Similar Feature"),
-        new("modify-middleware",     "Modify Middleware"),
-        new("trace-message-flow",    "Trace Message Flow"),
-        new("harden-di",             "Harden DI"),
+        new("overview",   "Overview"),
+        new("deep-dive",  "Deep Dive"),
+        new("audit",      "Audit"),
     ];
 
     public MainViewModel() : this(new AnalysisService()) { }

@@ -6,7 +6,7 @@ public sealed class DiscoveryContextBuilder
     private FakeAnalysisCache? _cache;
     private SharedAnalysisContext _analysis = new();
     private ExtractionOptions _options = new();
-    private Scenario _scenario = ScenarioRegistry.BuiltIn["architecture"];
+    private Scenario _scenario = ScenarioRegistry.BuiltIn["overview"];
     private IDiscoveryObserver _observer = new NullDiscoveryObserver();
     private ILogger _logger = new NullLogger<DiscoveryContext>();
     private IRoslynWorkspaceProvider _roslyn = new MockRoslynProvider();

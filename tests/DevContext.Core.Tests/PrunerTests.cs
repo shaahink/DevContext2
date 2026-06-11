@@ -324,7 +324,7 @@ public sealed class PrunerTests
         }
 
         // debug-endpoint scenario has MaxSurvivingTypes = 20, but here we use a small budget scenario
-        var scenario = ScenarioRegistry.BuiltIn["debug-endpoint"]; // MaxSurvivingTypes = 20 (>10 types, so no cap)
+        var scenario = ScenarioRegistry.BuiltIn["deep-dive"]; // MaxSurvivingTypes = 25
         var builder = new DiscoveryContextBuilder()
             .WithRootPath(@"C:\repo")
             .WithScenario(scenario);
@@ -333,7 +333,7 @@ public sealed class PrunerTests
         var pruner = new TokenBudgetEnforcer();
         await pruner.PruneAsync(ctx, model, default);
 
-        // debug-endpoint has MaxSurvivingTypes=20 and we have 10 types → all survive
+        // deep-dive has MaxSurvivingTypes=25 and we have 10 types → all survive
         var surviving = model.Types.Values.Count(t => !t.IsPruned);
         Assert.Equal(10, surviving);
 
@@ -357,7 +357,7 @@ public sealed class PrunerTests
         await pruner2.PruneAsync(ctx, model2, default);
 
         var surviving2 = model2.Types.Values.Count(t => !t.IsPruned);
-        Assert.Equal(20, surviving2); // capped at MaxSurvivingTypes=20
-        Assert.Contains(model2.PruningNotes, n => n.Contains("capped at 20 types"));
+        Assert.Equal(25, surviving2); // capped at deep-dive MaxSurvivingTypes=25
+        Assert.Contains(model2.PruningNotes, n => n.Contains("capped at 25 types"));
     }
 }

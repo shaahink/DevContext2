@@ -29,7 +29,7 @@ public class MainViewModelTests
     public void Constructor_sets_default_scenario()
     {
         var vm = CreateVm();
-        Assert.Equal("debug-endpoint", vm.SelectedScenario.Value);
+        Assert.Equal("overview", vm.SelectedScenario.Value);
     }
 
     [Fact]
@@ -71,10 +71,10 @@ public class MainViewModelTests
     public void Constructor_initializes_scenarios()
     {
         var vm = CreateVm();
-        Assert.Equal(6, vm.Scenarios.Count);
-        Assert.Contains(vm.Scenarios, s => s.Value == "architecture");
-        Assert.Contains(vm.Scenarios, s => s.Value == "debug-endpoint");
-        Assert.Contains(vm.Scenarios, s => s.Value == "trace-message-flow");
+        Assert.Equal(3, vm.Scenarios.Count);
+        Assert.Contains(vm.Scenarios, s => s.Value == "overview");
+        Assert.Contains(vm.Scenarios, s => s.Value == "deep-dive");
+        Assert.Contains(vm.Scenarios, s => s.Value == "audit");
     }
 
     // ══ Computed properties ════════════════════════════════════════════════════

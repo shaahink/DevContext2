@@ -54,7 +54,7 @@ public sealed class FileTreeExtractorTests
         {
             RootPath = "src",
             Options = options ?? new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
             FileSystem = fs,
             Cache = cache,

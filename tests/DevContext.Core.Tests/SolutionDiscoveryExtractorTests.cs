@@ -20,7 +20,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
         {
             RootPath = @"C:\project",
             Options = new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
             FileSystem = fs,
             Cache = cache,
@@ -50,7 +50,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
         {
             RootPath = "src",
             Options = new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
             FileSystem = fs,
             Cache = cache,

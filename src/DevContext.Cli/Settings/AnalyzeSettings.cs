@@ -12,7 +12,7 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("-a|--around")]
     public string[]? Around { get; set; }
 
-    [Description("Analysis scenario: architecture | debug-endpoint | add-similar-feature | modify-middleware | trace-message-flow | harden-di")]
+    [Description("Analysis scenario: overview | deep-dive | audit")]
     [CommandOption("-s|--scenario")]
     public string? Scenario { get; set; }
 

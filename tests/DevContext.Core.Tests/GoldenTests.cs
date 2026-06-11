@@ -26,7 +26,7 @@ public sealed class GoldenTests
         {
             RootPath = "",
             Options = new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = observer,
             FileSystem = fs,
             Cache = cache,
@@ -70,7 +70,7 @@ public sealed class GoldenTests
         {
             RootPath = "",
             Options = new ExtractionOptions(),
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = observer,
             FileSystem = fs,
             Cache = cache,

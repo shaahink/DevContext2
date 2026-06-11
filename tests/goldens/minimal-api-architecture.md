@@ -1,4 +1,4 @@
-## DevContext — Architecture Overview on MinimalApiProject
+## DevContext — Overview on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore

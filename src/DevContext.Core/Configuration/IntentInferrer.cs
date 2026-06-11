@@ -5,15 +5,12 @@ public static class IntentInferrer
 {
     private static readonly (string[] Keywords, string Scenario, ExtractionProfile Profile)[] Rules =
     [
-        (["debug", "why", "failing", "error", "exception", "500"], "debug-endpoint", ExtractionProfile.Debug),
-        (["add", "implement", "similar", "like", "crud", "new endpoint"], "add-similar-feature", ExtractionProfile.Focused),
-        (["middleware", "pipeline", "cross-cutting", "filter", "interceptor"], "modify-middleware", ExtractionProfile.Focused),
-        (["event", "message", "publish", "consume", "queue", "bus"], "trace-message-flow", ExtractionProfile.Focused),
-        (["architecture", "overview", "structure", "layers", "map"], "architecture", ExtractionProfile.Focused),
-        (["di", "injection", "reflect", "activator", "register"], "harden-di", ExtractionProfile.Debug),
+        (["debug", "why", "failing", "error", "exception", "500", "trace", "call graph"], "deep-dive", ExtractionProfile.Debug),
+        (["add", "implement", "similar", "like", "crud", "new endpoint", "architecture", "overview", "structure", "layers", "map"], "overview", ExtractionProfile.Focused),
+        (["di", "injection", "reflect", "activator", "register", "middleware", "pipeline", "audit", "wiring"], "audit", ExtractionProfile.Debug),
+        (["event", "message", "publish", "consume", "queue", "bus"], "deep-dive", ExtractionProfile.Focused),
     ];
 
-    /// <summary>Infers the scenario and profile from a task description by matching keywords.</summary>
     public static (string Scenario, ExtractionProfile Profile) Infer(string task)
     {
         var lower = task.ToLowerInvariant();
@@ -23,6 +20,6 @@ public static class IntentInferrer
             .OrderByDescending(x => x.Score)
             .FirstOrDefault();
 
-        return best.Score > 0 ? (best.Scenario, best.Profile) : ("architecture", ExtractionProfile.Focused);
+        return best.Score > 0 ? (best.Scenario, best.Profile) : ("overview", ExtractionProfile.Focused);
     }
 }
