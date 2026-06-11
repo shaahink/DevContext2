@@ -1,6 +1,6 @@
 # CLI Reference
 
-## `devcontext [PATH] [OPTIONS]`
+## `devcontext analyze [PATH] [OPTIONS]`
 
 Analyze a .NET project and output structured context for LLMs.
 
@@ -8,7 +8,7 @@ Analyze a .NET project and output structured context for LLMs.
 
 | Argument | Description |
 |----------|-------------|
-| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, directory, or `github.com/user/repo` URL. Defaults to `.` (current directory) |
+| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, directory, or `github.com/user/repo` URL. Required positional argument. |
 
 ---
 
@@ -59,13 +59,13 @@ Focus analysis on a specific file, type, or method. Repeatable.
 
 ```
 # Focus on a single controller
-devcontext . --around FeedController
+devcontext analyze . --around FeedController
 
 # Trace a specific endpoint method
-devcontext . --scenario trace --around FeedController:SiteFeed
+devcontext analyze . --scenario trace --around FeedController:SiteFeed
 
 # Multiple entry points
-devcontext . --around FeedController --around UploadFileController
+devcontext analyze . --around FeedController --around UploadFileController
 ```
 
 **How filtering works**: `--around` uses **directory proximity** pruning — types within `MaxPathDistance` directory hops of the focus point's file are kept. The endpoints table is also filtered to nearby source files. This means `--around FeedController` includes nearby controllers in the same directory, not JUST FeedController.
@@ -85,10 +85,10 @@ Pass a free-text description of what you want and DevContext auto-selects mode +
 
 ```
 # Let the tool figure out the best mode
-devcontext . --task "trace the failing order handler"
+devcontext analyze . --task "trace the failing order handler"
 # → Auto-selects: Trace mode + Debug profile
 
-devcontext . --task "architecture overview"
+devcontext analyze . --task "architecture overview"
 # → Auto-selects: Overview mode + Focused profile
 ```
 

@@ -4,7 +4,7 @@
 
 **Command**:
 ```bash
-devcontext . --scenario overview
+devcontext analyze . --scenario overview
 ```
 
 ---

@@ -5,10 +5,10 @@
 **Command**:
 ```bash
 # Check for DI issues across the codebase
-devcontext . --scenario overview --profile debug
+devcontext analyze . --scenario overview --profile debug
 
 # Or focus the intent
-devcontext . --task "di injection wiring middleware pipeline"
+devcontext analyze . --task "di injection wiring middleware pipeline"
 ```
 
 ---

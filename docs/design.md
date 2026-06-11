@@ -1,5 +1,7 @@
 # DevContext v2 — Authoritative Design Document
 
+> **Note**: This document describes the original v2 design with 6 scenarios. The current implementation (v1.0) has been simplified to 2 modes (Overview/Trace) with 9 section checkboxes. See [README.md](../README.md) and [CLI reference](cli-reference.md) for the current interface. The extractors, pipeline, and data model described here remain accurate. Scenario names mentioned here (`architecture`, `debug-endpoint`, etc.) correspond to different extractor configurations in the current 2-mode system.
+
 **Status**: Design reference for Phase 0 implementation  
 **Target**: .NET 10 · C# 13 · `dotnet tool install -g DevContext.Cli`  
 **Positioning**: Static analysis CLI — pure code discovery, no LLM calls, no runtime agents  

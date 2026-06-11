@@ -52,7 +52,7 @@ public class DevContextBenchmarks
         {
             RootPath = "src",
             Options = new ExtractionOptions { MaxOutputTokens = 8000, AllowRoslyn = false },
-            ActiveScenario = ScenarioRegistry.BuiltIn["architecture"],
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
             FileSystem = _fs,
             Cache = _cache,

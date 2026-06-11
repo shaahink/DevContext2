@@ -9,7 +9,7 @@
 ```bash
 # Quick start
 dotnet tool install -g DevContext.Cli
-devcontext . --scenario overview --max-tokens 8000
+devcontext analyze . --scenario overview --max-tokens 8000
 ```
 
 ## Table of Contents
@@ -103,7 +103,7 @@ FullTextSearchWriterJob · ThumbnailsServiceJob · DraftsJob ...
 dotnet tool install -g DevContext.Cli
 
 # Run from any .NET project/solution directory (Overview mode)
-devcontext .
+devcontext analyze .
 
 # Trace a specific entry point with natural language intent
 devcontext . --task "trace the order submission handler"

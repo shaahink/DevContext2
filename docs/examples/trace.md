@@ -5,10 +5,10 @@
 **Command**:
 ```bash
 # Trace a specific controller's RSS feed endpoint
-devcontext . --scenario trace --around FeedController:SiteFeed
+devcontext analyze . --scenario trace --around FeedController:SiteFeed
 
 # Or let the intent auto-select the right mode
-devcontext . --task "trace the RSS feed generation"
+devcontext analyze . --task "trace the RSS feed generation"
 ```
 
 ---

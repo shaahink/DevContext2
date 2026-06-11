@@ -5,13 +5,13 @@
 **Command**:
 ```bash
 # Debug a failing endpoint
-devcontext . --task "debug why is this endpoint returning 500"
+devcontext analyze . --task "debug why is this endpoint returning 500"
 
 # Architecture overview
-devcontext . --task "architecture overview of the blog platform"
+devcontext analyze . --task "architecture overview of the blog platform"
 
 # DI audit
-devcontext . --task "di injection wiring middleware pipeline"
+devcontext analyze . --task "di injection wiring middleware pipeline"
 ```
 
 ---

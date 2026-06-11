@@ -45,21 +45,15 @@ foreach ($repo in $config.repos) {
 
             Write-Host "  Running $($repo.profile)/$scenario [$format]..." -ForegroundColor Gray
 
-            $psi = @{
-                "--profile" = $repo.profile
-                "--scenario" = $scenario
-                "--format" = $format
-                "--max-tokens" = "8000"
-                "--metrics" = $true
-                "-o" = $outputFile
-            }
-
-            $args = @()
-            foreach ($key in $psi.Keys) {
-                $args += $key
-                $args += $psi[$key]
-            }
-            $args += $repoDir
+            $args = @(
+                "analyze", $repoDir,
+                "--profile", $repo.profile,
+                "--scenario", $scenario,
+                "--format", $format,
+                "--max-tokens", "8000",
+                "--metrics",
+                "-o", $outputFile
+            )
 
             $result = & dotnet run --project (Join-Path $rootDir $CliProject) -- $args 2>&1
             $exitCode = $LASTEXITCODE
@@ -78,7 +72,7 @@ foreach ($repo in $config.repos) {
 
     # Dry-run with metrics
     $dryRunOutput = Join-Path $repoOutput "dry-run.txt"
-    $dryArgs = @("--dry-run", "--metrics", $repoDir)
+    $dryArgs = @("analyze", $repoDir, "--dry-run", "--metrics")
     $dryResult = & dotnet run --project (Join-Path $rootDir $CliProject) -- $dryArgs 2>&1
     $dryResult | Out-File -FilePath $dryRunOutput -Encoding utf8
     Write-Host "  ✓ Dry-run complete" -ForegroundColor Green
