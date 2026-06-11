@@ -420,19 +420,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
             var result = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
             if (result.Success)
             {
-                // Offload ALL post-analysis work to thread pool: section parsing + string building
+                // Offload section parsing to thread pool (pure computation, no UI mutation)
                 var rawContent = result.Content ?? "";
                 var elapsedMs = result.ElapsedMs;
                 var captured = capturedBudget;
+                List<SectionGroupViewModel> newGroups = null!;
+                string llmText = "";
+                int sectionTotal = 0, sectionSelected = 0;
 
                 await System.Threading.Tasks.Task.Run(() =>
                 {
-                    PopulateSections(rawContent);
-                    RebuildLlmViewText();
+                    (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionData(rawContent);
                 }).ConfigureAwait(true);
 
-                // Batch all UI property updates — set fields directly, fire once
+                // Apply section data to UI-bound collections + batch all property updates
 #pragma warning disable MVVMTK0034
+                SectionGroups.Clear();
+                foreach (var g in newGroups)
+                    SectionGroups.Add(g);
+
+                _cachedLlmViewText = llmText;
                 _rawContent = rawContent;
                 _outputText = rawContent;
                 var tokens = rawContent.Length / 4;
@@ -442,8 +449,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 _progressValue = 100;
                 _progressText = "Done";
                 _budgetTokens = captured;
-                _totalTokens = tokens;
-                _displayText = IsHumanView ? rawContent : _cachedLlmViewText;
+                _totalTokens = sectionTotal;
+                _selectedTokenTotal = sectionSelected;
+                _displayText = IsHumanView ? rawContent : llmText;
 #pragma warning restore MVVMTK0034
 
                 // Single notification to refresh all bindings
@@ -546,11 +554,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RecentPaths.Add(p);
     }
 
-    private void PopulateSections(string output)
+    private (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionData(string output)
     {
-        SectionGroups.Clear();
-
-        var sections = new List<SectionViewModel>();
+        var sectionVms = new List<SectionViewModel>();
 
         var parts = output.Split("## ");
         foreach (var part in parts.Skip(1))
@@ -573,19 +579,20 @@ public partial class MainViewModel : ObservableObject, IDisposable
             section.PropertyChanged += (_, _) =>
             {
                 RecalcTokenTotal();
-                if (IsHumanView) IsHumanView = false; // Auto-switch to LLM view to show effect
+                if (IsHumanView) IsHumanView = false;
                 RebuildLlmViewText();
                 RefreshDisplayText();
             };
 
-            sections.Add(section);
+            sectionVms.Add(section);
         }
 
         // Group by category
+        var groups = new List<SectionGroupViewModel>();
         var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
         foreach (var cat in categoryOrder)
         {
-            var children = sections.Where(s => s.Category == cat).ToList();
+            var children = sectionVms.Where(s => s.Category == cat).ToList();
             if (children.Count == 0) continue;
 
             var group = new SectionGroupViewModel
@@ -595,11 +602,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
             };
             group.Children.AddRange(children);
             group.PropertyChanged += (_, _) => RecalcTokenTotal();
-            SectionGroups.Add(group);
+            groups.Add(group);
         }
 
-        TotalTokens = sections.Sum(s => s.CompressedTokens);
-        RecalcTokenTotal();
+        var totalTokens = sectionVms.Sum(s => s.CompressedTokens);
+        var selectedTokens = sectionVms.Where(s => s.IsIncluded).Sum(s => s.CompressedTokens);
+        var llmText = string.Join(Environment.NewLine,
+            sectionVms.Where(s => s.IsIncluded).Select(s => s.FullText));
+
+        return (groups, llmText, totalTokens, selectedTokens);
+    }
+
+    private void PopulateSections(string output)
+    {
+        var (groups, llmText, _, _) = BuildSectionData(output);
+        _cachedLlmViewText = llmText;
+
+        SectionGroups.Clear();
+        foreach (var g in groups)
+            SectionGroups.Add(g);
+
         OnPropertyChanged(nameof(LlmViewText));
         OnPropertyChanged(nameof(HumanViewText));
     }
