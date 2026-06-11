@@ -312,11 +312,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _maxTokensDebounceCts = new CancellationTokenSource();
         var ct = _maxTokensDebounceCts.Token;
 
-        _ = Task.Run(async () =>
+        _ = System.Threading.Tasks.Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(500, ct).ConfigureAwait(false);
+                    await System.Threading.Tasks.Task.Delay(500, ct).ConfigureAwait(false);
                 if (!ct.IsCancellationRequested)
                 {
                     var dispatcher = System.Windows.Application.Current?.Dispatcher;
