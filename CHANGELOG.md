@@ -2,9 +2,9 @@
 
 All notable changes to DevContext are documented here.
 
-## v2.1.0 (2026-06-11)
+## v1.0.0 (2026-06-11)
 
-### UI Simplification
+Initial public release.
 
 - **Two-mode UI replaces 6-scenario × 3-profile matrix** — Modes: Overview (whole-codebase) and Trace (entry-point focused). Profile derived automatically from section checkboxes (Call graph → Debug, Source code → Full, neither → Focused).
 - **Section checkboxes** — 9 explicit section toggles replacing opaque profile names. Users see exactly what goes into output.
@@ -36,7 +36,7 @@ All notable changes to DevContext are documented here.
 
 ---
 
-## v2.0.0 (2026-06-10)
+### Initial Technical Foundation
 
 ### Removed
 

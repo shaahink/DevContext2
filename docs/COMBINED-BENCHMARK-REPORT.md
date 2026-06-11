@@ -1,6 +1,6 @@
-# DevContext v2.1 — Combined Benchmark Report
+# DevContext v1.0 — Combined Benchmark Report
 
-**Generated**: 2026-06-11 | **Branch**: `main` (v2.1.0)  
+**Generated**: 2026-06-11 | **Version**: v1.0.0  
 **Tests**: 221 passing (157 Core + 64 Desktop)
 
 ---
@@ -89,17 +89,18 @@
 
 ---
 
-## v2.0 → v2.1 Improvements
+## Detection Coverage
 
-| Metric | v2.0 (DntSite) | v2.1 (DntSite) | Improvement |
-|--------|---------------|----------------|-------------|
-| Architecture classification | MinimalApi (80%) ❌ | **ControllerBased (80%)** ✅ | Fixed misclassification |
-| Controller endpoints | 13 | **70** | **5.4×** more |
-| Background workers | 0 | **24** | All DNTScheduler jobs found |
-| DI registrations | 1 | **83** | `AutoInjectAllServices` bulk pattern detected |
-| `--audit` scenario | Available | **Deprecated** (maps to overview with warning) | Simplified UX |
-| UI freeze | Yes | **Fixed** (batched notifications + thread-pool offloading) | Sub-100ms render |
-| Crash logging | None | **Dual file logs** + global exception handlers | `crash.log` + `devcontext.log` |
+| Dimension | DntSite (1,289 types) |
+|-----------|----------------------|
+| Architecture classification | ControllerBased (80%) |
+| Controller endpoints detected | 70 (all 10 controllers) |
+| Background workers detected | 24 (23 DNTScheduler + 1 BackgroundService) |
+| DI registrations detected | 83 (incl. `AutoInjectAllServices` bulk pattern) |
+| Indirect wiring detections | 12 (service locators, reflection activation) |
+| Middleware pipeline entries | 11 (full pipeline in order) |
+| EF Core entities | BaseEntity + 30 migrations grouped |
+
 
 ---
 

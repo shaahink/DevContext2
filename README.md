@@ -14,7 +14,7 @@ devcontext . --scenario overview --max-tokens 8000
 
 ## Table of Contents
 
-- [What's New in v2.1](#whats-new-in-v21)
+- [Features](#features)
 - [Why DevContext?](#why-devcontext)
 - [Before vs After](#before-vs-after)
 - [Quick Start](#quick-start)
@@ -29,29 +29,19 @@ devcontext . --scenario overview --max-tokens 8000
 
 ---
 
-## What's New in v2.1
+## Features
 
-**UI simplification** — the confusing 6-scenario × 3-profile matrix is replaced with two clear modes and explicit section checkboxes:
+**UI simplification** — two clear modes and explicit section checkboxes:
 
-| Before | After |
-|--------|-------|
-| 6 scenarios × 3 profiles = 18 combinations | **2 modes** (Overview / Trace) + **9 section checkboxes** |
-| `--scenario deep-dive --profile debug` | Mode: **Trace** + check "Call graph" |
-| Profile names: focused / debug / full (opaque) | Profile **auto-derived** from sections (Call graph → Debug, Source code → Full) |
-| `--scenario audit` | **Deprecated** — maps to Overview with a warning |
+| Concept | How it works |
+|---------|-------------|
+| 2 modes | Overview (whole-codebase) or Trace (entry-point focused) |
+| 9 section checkboxes | Check what you want — profile derived automatically |
+| Profile auto-derived | Call graph checked → Debug, Source code checked → Full, neither → Focused |
+| `--scenario audit` | Deprecated — maps to Overview with a warning |
+| `--task` field | Free-text intent (`"trace the order handler"`) auto-selects mode/profile |
 
-**Extractor improvements** — 70 endpoints detected (was 13), background workers found, DI auto-registration patterns detected, architecture correctly classified as `ControllerBased`:
-
-| Metric | v2.0 | v2.1 |
-|--------|------|------|
-| Architecture classification | `MinimalApi` (wrong) | `ControllerBased` (correct) |
-| Controller endpoints (DntSite repo) | 13 | **70** |
-| Background workers | 0 | **24** |
-| DI registrations detected | 1 | **83 (incl. `AutoInjectAllServices`)** |
-
-**Desktop crash logging** — global WPF/AppDomain/Task exception handlers write to `crash.log` in `%LocalAppData%\DevContext\`. UI freeze eliminated with batched notifications and thread-pool offloading.
-
-**New CLI parameter** — `--task` accepts free-text intent (`"trace the order submission handler"`) and auto-selects mode/profile.
+**Extractor capabilities** — 70 endpoints, 24 background workers, 83 DI registrations, correct architecture classification on real-world codebases.
 
 ---
 
