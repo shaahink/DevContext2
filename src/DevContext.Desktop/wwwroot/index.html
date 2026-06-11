@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="app">Loading...</div>
@@ -23,6 +24,8 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
+        // Refresh Lucide icons whenever Blazor re-renders the DOM
+        new MutationObserver(() => lucide.createIcons()).observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>
