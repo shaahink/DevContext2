@@ -19,20 +19,11 @@ public static class ScenarioRegistry
             ["deep-dive"] = new()
             {
                 Name = "deep-dive",
-                DisplayName = "Deep Dive",
-                Description = "Detailed endpoint view with call graph, event flow, and anti-patterns",
+                DisplayName = "Trace",
+                Description = "Entry-point focused: call graph, handler chain, event flow",
                 Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
                 RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.MessageConsumers, SectionNames.NonObviousWiring]
-            },
-            ["audit"] = new()
-            {
-                Name = "audit",
-                DisplayName = "Audit",
-                Description = "Find indirect wiring, service locators, reflection, and middleware issues",
-                Pruning = new PruningConfig { EnablePatternBoost = true, MaxSurvivingTypes = 50 },
-                Compression = new CompressionConfig { AggressiveTruncation = true },
-                RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.NonObviousWiring, SectionNames.RelatedTypes]
             }
         }.ToFrozenDictionary();
 }

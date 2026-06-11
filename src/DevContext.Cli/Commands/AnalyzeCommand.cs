@@ -160,6 +160,14 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         scenarioName ??= settings.Scenario ?? config?.DefaultScenario ?? "overview";
 
+        // Backward-compat aliases
+        if (scenarioName == "trace") scenarioName = "deep-dive";
+        if (scenarioName == "audit")
+        {
+            AnsiConsole.MarkupLine("[yellow]Warning: 'audit' scenario is deprecated. Use 'overview' instead.[/]");
+            scenarioName = "overview";
+        }
+
         if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioName, out _))
         {
             AnsiConsole.MarkupLine($"[red]Unknown scenario: {scenarioName}[/]");

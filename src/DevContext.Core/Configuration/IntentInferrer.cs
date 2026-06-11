@@ -7,7 +7,7 @@ public static class IntentInferrer
     [
         (["debug", "why", "failing", "error", "exception", "500", "trace", "call graph"], "deep-dive", ExtractionProfile.Debug),
         (["add", "implement", "similar", "like", "crud", "new endpoint", "architecture", "overview", "structure", "layers", "map"], "overview", ExtractionProfile.Focused),
-        (["di", "injection", "reflect", "activator", "register", "middleware", "pipeline", "audit", "wiring"], "audit", ExtractionProfile.Debug),
+        (["di", "injection", "reflect", "activator", "register", "middleware", "pipeline", "wiring"], "overview", ExtractionProfile.Debug),
         (["event", "message", "publish", "consume", "queue", "bus"], "deep-dive", ExtractionProfile.Focused),
     ];
 
