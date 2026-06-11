@@ -23,15 +23,17 @@ public sealed class ArchitectureStyleDetector
         ScoreModularMonolith(signals, projectNames, scores);
         ScoreMicroservices(signals, projectCount, scores);
 
-        // Demote MinimalApi when controllers signal is stronger
+        // When controllers are dominant over minimal-apis, classify as ControllerBased
         if (signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrlSignal) && ctrlSignal.Detected
             && signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var maSignal) && maSignal.Detected
             && ctrlSignal.Confidence >= maSignal.Confidence
             && scores.TryGetValue(ArchitectureStyle.MinimalApi, out var maScore))
         {
             scores.Remove(ArchitectureStyle.MinimalApi);
-            // Controller-based web app
-            scores[ArchitectureStyle.MinimalApi] = (maScore.Score * 0.6f, $"Signal:{ArchitectureSignals.Keys.Controllers}+minimal-apis (controller-dominant web app)");
+            // Use NLayer confidence as base, or fall back to a moderate score
+            var baseScore = scores.TryGetValue(ArchitectureStyle.NLayer, out var nlScore)
+                ? nlScore.Score : maScore.Score * 0.8f;
+            scores[ArchitectureStyle.ControllerBased] = (baseScore, $"Signal:{ArchitectureSignals.Keys.Controllers}+minimal-apis (controller-dominant web app)");
         }
 
         if (scores.Count == 0)

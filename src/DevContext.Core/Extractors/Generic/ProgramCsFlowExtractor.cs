@@ -26,7 +26,13 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var programFiles = context.Analysis.AllSourceFiles
-            .Where(f => Path.GetFileName(f).Equals("Program.cs", StringComparison.OrdinalIgnoreCase))
+            .Where(f =>
+            {
+                var name = Path.GetFileName(f);
+                return name.Equals("Program.cs", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("SchedulersConfig.cs", StringComparison.OrdinalIgnoreCase)
+                    || name.Contains("Scheduler", StringComparison.OrdinalIgnoreCase);
+            })
             .ToList();
 
         foreach (var filePath in programFiles)

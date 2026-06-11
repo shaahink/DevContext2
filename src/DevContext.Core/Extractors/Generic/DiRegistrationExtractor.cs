@@ -180,7 +180,9 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
         }
 
         var target = expr.ToString();
-        return target == "Services" || target.EndsWith(".Services");
+        return string.Equals(target, "Services", StringComparison.OrdinalIgnoreCase)
+            || target.EndsWith(".Services", StringComparison.OrdinalIgnoreCase)
+            || target.EndsWith(".services", StringComparison.Ordinal);
     }
 
     private static ImmutableArray<string> ExtractExtensionMethods(InvocationExpressionSyntax invocation)

@@ -24,5 +24,6 @@ public enum ArchitectureStyle
     VerticalSlices,
     ModularMonolith,
     MinimalApi,
-    Microservices
+    Microservices,
+    ControllerBased
 }
