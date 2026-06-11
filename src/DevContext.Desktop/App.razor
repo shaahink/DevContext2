@@ -1,0 +1,10 @@
+@inject MainViewModel VM
+
+<div class="app @(VM.HasOutput ? "has-output" : "") @(VM.IsAnalyzing ? "is-loading" : "")">
+    <main class="main">
+        <ConfigPanel />
+        <div class="splitter"></div>
+        <OutputPanel />
+    </main>
+    <StatusBar />
+</div>
