@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <NuGetAuditMode>direct</NuGetAuditMode>
+    <WindowsSdkPackageVersion>10.0.26100.47</WindowsSdkPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
