@@ -1,4 +1,4 @@
-## DevContext — Deep Dive on CleanArch
+## DevContext — Trace on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
 **Signals**: minimal-apis · mediatr · efcore
