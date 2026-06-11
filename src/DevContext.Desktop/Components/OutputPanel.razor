@@ -34,6 +34,7 @@
         : VM.SelectedTokenTotal >= VM.BudgetTokens * 0.85 ? "warning" : "normal";
 
     private string DisplayOutput => SelectedTab == "human" ? VM.HumanViewText : VM.LlmViewText;
+    private string DisplayHtml => SelectedTab == "human" ? VM.HumanViewHtml : "";
 }
 
 <section class="output-panel">
@@ -99,7 +100,14 @@
             </div>
         }
 
-        <pre class="output-text"><code>@DisplayOutput</code></pre>
+        @if (SelectedTab == "human")
+        {
+            <div class="output-rendered">@((MarkupString)DisplayHtml)</div>
+        }
+        else
+        {
+            <pre class="output-text"><code>@DisplayOutput</code></pre>
+        }
 
         @if (VM.IsAnalyzing)
         {

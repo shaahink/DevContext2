@@ -114,6 +114,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public string HumanViewText => _rawContent;
 
+    private string? _humanViewHtml;
+    public string HumanViewHtml => _humanViewHtml ??= RenderHtml(_rawContent);
+
+    private static string RenderHtml(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown)) return "";
+        try { return Markdig.Markdown.ToHtml(markdown); }
+        catch { return $"<pre>{System.Net.WebUtility.HtmlEncode(markdown)}</pre>"; }
+    }
+
     public string AnalyzeButtonText
         => IsGitHubUrl
             ? (IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
@@ -369,6 +379,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OutputText = "";
         StatsText = "";
         _rawContent = "";
+        _humanViewHtml = null;
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
@@ -450,6 +461,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 _cachedLlmViewText = llmText;
                 _rawContent = rawContent;
+                _humanViewHtml = null;
                 _outputText = rawContent;
                 var tokens = rawContent.Length / 4;
                 _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
