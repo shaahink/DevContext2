@@ -80,7 +80,10 @@ Nine checkboxes that control which sections appear in the output. Your profile i
 | Endpoints | HTTP endpoint table with routes, auth, source | — |
 | MediatR Handlers | Command/query handler list | — |
 | Data model | EF Core entities, migrations summary | — |
-| DI / Wiring | Middleware pipeline, background workers, DI registrations | — |
+| DI registrations | Service registration table with lifetimes, types, sources | — |
+| Background workers | HostedService / scheduled job listing | — |
+| Middleware pipeline | Ordered HTTP middleware pipeline | — |
+| Indirect wiring | Service locator, reflection activation, dynamic proxies | — |
 | Call graph | BFS call tree from entry points | → **Debug** profile (+Roslyn, slower) |
 | Message consumers | Event bus / in-memory consumers | — |
 | Related types | Surviving types by layer | — |

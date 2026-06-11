@@ -70,11 +70,36 @@ public sealed class MarkdownRenderer : IContextRenderer
             AppendMessageConsumers(sb, model);
             TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
         }
-        if (ShouldRender(SectionNames.NonObviousWiring, options))
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.IndirectWiring, options))
         {
             preLen = sb.Length;
-            AppendNonObviousWiring(sb, model);
-            TrackSection(sectionTokens, "Non-obvious wiring", preLen, sb.Length);
+            var rendered = AppendIndirectWiring(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Indirect wiring", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.BackgroundWorkers, options))
+        {
+            preLen = sb.Length;
+            var rendered = AppendBackgroundWorkers(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Background workers", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.MiddlewarePipeline, options))
+        {
+            preLen = sb.Length;
+            var rendered = AppendMiddlewarePipeline(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Middleware pipeline", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.DiRegistrations, options))
+        {
+            preLen = sb.Length;
+            var rendered = AppendDiRegistrations(sb, model);
+            if (rendered) TrackSection(sectionTokens, "DI registrations", preLen, sb.Length);
         }
 
         preLen = sb.Length;
@@ -730,81 +755,82 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine();
     }
 
-    private static void AppendNonObviousWiring(StringBuilder sb, DiscoveryModel model)
+    private static bool AppendIndirectWiring(StringBuilder sb, DiscoveryModel model)
     {
         var wiring = model.Detections.OfType<IndirectWiringDetection>().ToList();
+        if (wiring.Count == 0) return false;
+
+        sb.AppendLine($"## {SectionNames.IndirectWiring}");
+        sb.AppendLine();
+        sb.AppendLine("| Kind | Caller | Target |");
+        sb.AppendLine("|------|--------|--------|");
+        foreach (var w in wiring)
+            sb.AppendLine($"| {w.Kind} | {w.CallerType}.{w.CallerMethod} | {w.TargetType ?? "unknown"} |");
+        sb.AppendLine();
+        return true;
+    }
+
+    private static bool AppendBackgroundWorkers(StringBuilder sb, DiscoveryModel model)
+    {
         var workers = model.Detections.OfType<BackgroundWorkerDetection>().ToList();
+        if (workers.Count == 0) return false;
+
+        sb.AppendLine($"## {SectionNames.BackgroundWorkers}");
+        sb.AppendLine();
+        foreach (var w in workers)
+            sb.AppendLine($"- {w.ImplementationType} ({w.Kind})");
+        sb.AppendLine();
+        return true;
+    }
+
+    private static bool AppendMiddlewarePipeline(StringBuilder sb, DiscoveryModel model)
+    {
         var middleware = model.Detections.OfType<MiddlewareDetection>().ToList();
-        var diRegs = model.Detections.OfType<DiRegistrationDetection>().ToList();
+        if (middleware.Count == 0) return false;
 
-        if (wiring.Count == 0 && workers.Count == 0 && middleware.Count == 0 && diRegs.Count == 0)
-            return;
-
-        sb.AppendLine($"## {SectionNames.NonObviousWiring}");
+        sb.AppendLine($"## {SectionNames.MiddlewarePipeline}");
         sb.AppendLine();
 
-        if (wiring.Count > 0)
-        {
-            sb.AppendLine("### Indirect wiring");
-            sb.AppendLine();
-            sb.AppendLine("| Kind | Caller | Target |");
-            sb.AppendLine("|------|--------|--------|");
-            foreach (var w in wiring)
-                sb.AppendLine($"| {w.Kind} | {w.CallerType}.{w.CallerMethod} | {w.TargetType ?? "unknown"} |");
-            sb.AppendLine();
-        }
-
-        if (workers.Count > 0)
-        {
-            sb.AppendLine("### Background workers");
-            sb.AppendLine();
-            foreach (var w in workers)
-                sb.AppendLine($"- {w.ImplementationType} ({w.Kind})");
-            sb.AppendLine();
-        }
-
-        if (middleware.Count > 0)
-        {
-            sb.AppendLine("### Middleware pipeline");
-            sb.AppendLine();
-
-            var grouped = middleware
-                .GroupBy(m => m.MiddlewareType)
-                .Select(g => new
-                {
-                    Type = g.Key,
-                    Count = g.Count(),
-                    Kind = g.First().Kind,
-                    Sources = g.Select(m => Path.GetFileName(m.SourceFile)).Distinct()
-                })
-                .OrderBy(m => m.Count)
-                .ToList();
-
-            sb.AppendLine("| Type | Kind | Count | Sources |");
-            sb.AppendLine("|------|------|-------|---------|");
-            foreach (var m in grouped)
+        var grouped = middleware
+            .GroupBy(m => m.MiddlewareType)
+            .Select(g => new
             {
-                var sources = string.Join(", ", m.Sources);
-                sb.AppendLine($"| {m.Type} | {m.Kind} | {m.Count} | {sources} |");
-            }
-            sb.AppendLine();
-        }
+                Type = g.Key,
+                Count = g.Count(),
+                Kind = g.First().Kind,
+                Sources = g.Select(m => Path.GetFileName(m.SourceFile)).Distinct()
+            })
+            .OrderBy(m => m.Count)
+            .ToList();
 
-        if (diRegs.Count > 0)
+        sb.AppendLine("| Type | Kind | Count | Sources |");
+        sb.AppendLine("|------|------|-------|---------|");
+        foreach (var m in grouped)
         {
-            sb.AppendLine("### DI registrations");
-            sb.AppendLine();
-            sb.AppendLine("| Lifetime | Service | Implementation | Source |");
-            sb.AppendLine("|----------|---------|----------------|--------|");
-            foreach (var d in diRegs)
-            {
-                // Skip ? implementations — unresolvable extension args are noise
-                var impl = FormatDiShape(d);
-                var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
-                sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
-            }
-            sb.AppendLine();
+            var sources = string.Join(", ", m.Sources);
+            sb.AppendLine($"| {m.Type} | {m.Kind} | {m.Count} | {sources} |");
         }
+        sb.AppendLine();
+        return true;
+    }
+
+    private static bool AppendDiRegistrations(StringBuilder sb, DiscoveryModel model)
+    {
+        var diRegs = model.Detections.OfType<DiRegistrationDetection>().ToList();
+        if (diRegs.Count == 0) return false;
+
+        sb.AppendLine($"## {SectionNames.DiRegistrations}");
+        sb.AppendLine();
+        sb.AppendLine("| Lifetime | Service | Implementation | Source |");
+        sb.AppendLine("|----------|---------|----------------|--------|");
+        foreach (var d in diRegs)
+        {
+            var impl = FormatDiShape(d);
+            var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
+            sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
+        }
+        sb.AppendLine();
+        return true;
     }
 
     private static void AppendAntiPatterns(StringBuilder sb, DiscoveryModel model)

@@ -35,15 +35,13 @@
 | `Product` | — | Id |
 | `Product` | ✓ | Id |
 
-## Non-obvious wiring
-
-### Middleware pipeline
+## Middleware pipeline
 
 | Type | Kind | Count | Sources |
 |------|------|-------|---------|
 | MapGet | MapX | 1 | Program.cs |
 
-### DI registrations
+## DI registrations
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|

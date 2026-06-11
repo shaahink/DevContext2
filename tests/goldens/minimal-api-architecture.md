@@ -26,16 +26,14 @@
 |------|---------|----------|---------|
 | Command | CreateOrderCommand | int | CreateOrderHandler |
 
-## Non-obvious wiring
-
-### Middleware pipeline
+## Middleware pipeline
 
 | Type | Kind | Count | Sources |
 |------|------|-------|---------|
 | MapPost | MapX | 1 | Program.cs |
 | MapGet | MapX | 1 | Program.cs |
 
-### DI registrations
+## DI registrations
 
 | Lifetime | Service | Implementation | Source |
 |----------|---------|----------------|--------|

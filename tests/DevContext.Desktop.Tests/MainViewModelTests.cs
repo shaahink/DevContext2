@@ -80,7 +80,7 @@ public class MainViewModelTests
     public void Constructor_initializes_sections()
     {
         var vm = CreateVm();
-        Assert.Equal(9, vm.Sections.Count);
+        Assert.Equal(12, vm.Sections.Count);
         Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
         Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints);
         Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph);
@@ -95,7 +95,7 @@ public class MainViewModelTests
         Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
         Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
         Assert.False(vm.Sections.First(s => s.Key == "__source__").IsEnabled);
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.NonObviousWiring).IsEnabled);
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.DiRegistrations).IsEnabled);
     }
 
     [Fact]
@@ -633,7 +633,7 @@ public class MainViewModelTests
         vm.MaxTokens = 2000;
         vm.MaxTokens = 1000;
 
-        await Task.Delay(700); // wait for debounce + re-analysis
+        await Task.Delay(1000); // wait for debounce + re-analysis
         Assert.Equal(2, callCount); // only 1 additional call (debounced)
     }
 

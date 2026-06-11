@@ -15,7 +15,7 @@ public sealed class ScenarioRegistryTests
     {
         var scenario = ScenarioRegistry.BuiltIn["overview"];
         Assert.Equal("overview", scenario.Name);
-        Assert.Equal(6, scenario.RequiredSections.Length);
+        Assert.Equal(7, scenario.RequiredSections.Length);
         Assert.Contains("Architecture overview", scenario.RequiredSections);
         Assert.Contains("Related types", scenario.RequiredSections);
         Assert.Contains("Endpoints", scenario.RequiredSections);

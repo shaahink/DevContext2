@@ -190,7 +190,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         new() { Key = DevContext.Core.Constants.SectionNames.Endpoints,            Label = "Endpoints" },
         new() { Key = DevContext.Core.Constants.SectionNames.MediatRHandlers,      Label = "MediatR Handlers" },
         new() { Key = DevContext.Core.Constants.SectionNames.DataModel,            Label = "Data model" },
-        new() { Key = DevContext.Core.Constants.SectionNames.NonObviousWiring,     Label = "DI / Wiring" },
+        new() { Key = DevContext.Core.Constants.SectionNames.DiRegistrations,      Label = "DI registrations" },
+        new() { Key = DevContext.Core.Constants.SectionNames.BackgroundWorkers,    Label = "Background workers" },
+        new() { Key = DevContext.Core.Constants.SectionNames.MiddlewarePipeline,   Label = "Middleware pipeline" },
+        new() { Key = DevContext.Core.Constants.SectionNames.IndirectWiring,       Label = "Indirect wiring" },
         new() { Key = DevContext.Core.Constants.SectionNames.CallGraph,            Label = "Call graph", Hint = "+call graph, needs Roslyn" },
         new() { Key = DevContext.Core.Constants.SectionNames.MessageConsumers,     Label = "Message consumers" },
         new() { Key = DevContext.Core.Constants.SectionNames.RelatedTypes,         Label = "Related types" },
@@ -227,7 +230,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.NonObviousWiring, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, true);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, false);
@@ -239,7 +245,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.NonObviousWiring, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, false);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
             SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, true);
