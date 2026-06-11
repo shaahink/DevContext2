@@ -58,18 +58,32 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
 
                 var controllerName = classDecl.Identifier.ValueText;
                 var controllerRoute = ExtractControllerRoute(classDecl, controllerName);
+                var hasActionToken = controllerRoute?.Contains("[action]", StringComparison.OrdinalIgnoreCase) == true;
 
                 foreach (var member in classDecl.Members)
                 {
                     if (member is not MethodDeclarationSyntax method) continue;
 
                     var actionRoutes = ExtractActionRoutes(method);
-                    if (actionRoutes.Length == 0 && !HasHttpVerbAttribute(method))
+                    var hasVerb = HasHttpVerbAttribute(method);
+
+                    // Skip methods that have neither [Route] nor HTTP verb attributes,
+                    // unless the controller uses [action] token convention routing
+                    if (actionRoutes.Length == 0 && !hasVerb && !hasActionToken)
                         continue;
+
+                    // Skip methods that are [NonAction] decorated
+                    if (HasNonActionAttribute(method)) continue;
 
                     var httpMethod = ExtractHttpMethod(method);
                     if (httpMethod == null && actionRoutes.Length == 0)
-                        continue;
+                    {
+                        // Convention-routed actions rely on method name for HTTP verb inference
+                        if (hasActionToken)
+                            httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
+                        else
+                            continue;
+                    }
 
                     // Infer verb from method name when only [Route] is present
                     if (httpMethod == null && actionRoutes.Length > 0)
@@ -136,7 +150,10 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         foreach (var attr in classDecl.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (attrName == "ApiController" || attrName == "ApiControllerAttribute") return true;
+            if (attrName == "ApiController"
+                || attrName == "ApiControllerAttribute"
+                || attrName.EndsWith(".ApiController", StringComparison.Ordinal)
+                || attrName.EndsWith(".ApiControllerAttribute", StringComparison.Ordinal)) return true;
         }
 
         return false;
@@ -149,6 +166,16 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             var attrName = attr.Name.ToString();
             var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
             if (HttpVerbs.Contains(name)) return true;
+        }
+        return false;
+    }
+
+    private static bool HasNonActionAttribute(MethodDeclarationSyntax method)
+    {
+        foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
+        {
+            var attrName = attr.Name.ToString();
+            if (attrName is "NonAction" or "NonActionAttribute") return true;
         }
         return false;
     }
@@ -186,13 +213,21 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         return null;
     }
 
+    private static bool IsRouteAttribute(string attrName)
+    {
+        return attrName == "Route"
+            || attrName == "RouteAttribute"
+            || attrName.EndsWith(".Route", StringComparison.Ordinal)
+            || attrName.EndsWith(".RouteAttribute", StringComparison.Ordinal);
+    }
+
     private static string? ExtractControllerRoute(ClassDeclarationSyntax classDecl,
         string controllerName)
     {
         foreach (var attr in classDecl.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (attrName is "Route" or "RouteAttribute")
+            if (IsRouteAttribute(attrName))
             {
                 var template = ExtractRouteTemplate(attr);
                 return template ?? GetConventionControllerRoute(controllerName);
@@ -215,7 +250,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (attrName is "Route" or "RouteAttribute")
+            if (IsRouteAttribute(attrName))
             {
                 var template = ExtractRouteTemplate(attr);
                 if (template is not null)
