@@ -1,10 +1,20 @@
 @inject MainViewModel VM
 
-<div class="app @(VM.HasOutput ? "has-output" : "") @(VM.IsAnalyzing ? "is-loading" : "")">
-    <main class="main">
-        <ConfigPanel />
-        <div class="splitter"></div>
-        <OutputPanel />
-    </main>
-    <StatusBar />
-</div>
+<ErrorBoundary>
+    <ChildContent>
+        <div class="app @(VM.HasOutput ? "has-output" : "") @(VM.IsAnalyzing ? "is-loading" : "")">
+            <main class="main">
+                <ConfigPanel />
+                <div class="splitter"></div>
+                <OutputPanel />
+            </main>
+            <StatusBar />
+        </div>
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div style="padding:40px;font-family:sans-serif;color:#d20f39;">
+            <h2>Something went wrong</h2>
+            <pre style="font-size:12px;white-space:pre-wrap;">@ex.Message</pre>
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
