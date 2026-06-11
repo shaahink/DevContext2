@@ -142,7 +142,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             : routeTemplate;
         fullRoute = NormalizeRoute(fullRoute);
 
-        var authAttributes = ExtractAuthFromChain(invocation);
+        var authAttrs = ExtractAuthFromChain(invocation);
         var handlerArg = FindHandler(invocation);
         var handlerInfo = handlerArg?.ToString() ?? "?";
         var handlerMethod = handlerArg switch
@@ -154,7 +154,6 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             _ => "<lambda>"
         };
 
-        var authAttrs = ExtractAuthFromChain(invocation);
         model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, authAttrs, [], groupPrefix)
         {
             ExtractorName = "EndpointExtractor",
