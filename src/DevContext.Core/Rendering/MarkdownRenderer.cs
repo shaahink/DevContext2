@@ -287,7 +287,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                     var matches = model.Types.Values
                         .Select(t => t.Name)
                         .Distinct()
-                        .Select(n => (Name: n, Dist: LevenshteinDistance(focus.TypeName, n)))
+                        .Select(n => (Name: n, Dist: StringHelpers.LevenshteinDistance(focus.TypeName, n)))
                         .Where(x => x.Dist <= 3 && x.Dist > 0)
                         .OrderBy(x => x.Dist)
                         .Take(3)
@@ -534,8 +534,6 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (options.RequiredSections.IsDefaultOrEmpty) return true;
         return options.RequiredSections.Contains(sectionName);
     }
-
-    private static int LevenshteinDistance(string a, string b) => StringHelpers.LevenshteinDistance(a, b);
 
     private static string FormatAuth(EndpointDetection ep)
     {

@@ -41,8 +41,6 @@ public sealed record Scenario
     public required string DisplayName { get; init; }
     /// <summary>Optional description of the scenario's purpose.</summary>
     public string? Description { get; init; }
-    /// <summary>Extractors to explicitly enable for this scenario.</summary>
-    public ImmutableArray<string> EnableExtractors { get; init; } = [];
     /// <summary>Extractors to explicitly disable for this scenario.</summary>
     public ImmutableArray<string> DisableExtractors { get; init; } = [];
     /// <summary>Pruning configuration for this scenario.</summary>

@@ -302,7 +302,6 @@ public sealed class DiscoveryPipeline
     /// </summary>
     private static void ApplyArchitectureStyle(DiscoveryModel model)
     {
-        var detector = new ArchitectureStyleDetector();
         var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
@@ -384,7 +383,7 @@ public sealed class DiscoveryPipeline
         return types
             .Select(t => t.Name)
             .Distinct()
-            .Select(name => (Name: name, Distance: LevenshteinDistance(input, name)))
+            .Select(name => (Name: name, Distance: StringHelpers.LevenshteinDistance(input, name)))
             .Where(x => x.Distance <= maxDistance && x.Distance > 0)
             .OrderBy(x => x.Distance)
             .ThenBy(x => x.Name)
@@ -392,6 +391,4 @@ public sealed class DiscoveryPipeline
             .Take(3)
             .ToList();
     }
-
-    private static int LevenshteinDistance(string a, string b) => StringHelpers.LevenshteinDistance(a, b);
 }

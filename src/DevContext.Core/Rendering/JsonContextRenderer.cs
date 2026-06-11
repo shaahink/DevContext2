@@ -62,7 +62,6 @@ public sealed class JsonContextRenderer : IContextRenderer
             PruningNotes = options.IncludeDiagnostics && model.PruningNotes.Count > 0
                 ? [.. model.PruningNotes]
                 : null,
-            Profile = null,
             MaxTokens = options.EstimatedTokens,
         };
     }

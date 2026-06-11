@@ -18,7 +18,6 @@ public sealed record DevContextOutput
     public IReadOnlyList<DiagnosticEntry>? Diagnostics { get; init; }
     public string? PruningSummary { get; init; }
     public IReadOnlyList<string>? PruningNotes { get; init; }
-    public string? Profile { get; init; }
     public int MaxTokens { get; init; }
 }
 
