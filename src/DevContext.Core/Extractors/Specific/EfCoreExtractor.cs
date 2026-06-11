@@ -65,10 +65,9 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 {
                     var entityType = ((GenericNameSyntax)dbSetProp.Type).TypeArgumentList.Arguments[0].ToString();
                     var isAggregate = HasOwnDbSet(entityType, classDecl) || IsAggregateRootPattern(entityType);
-
                     var keyProps = FindKeyProperties(entityType);
 
-                    var detection = new EfEntityDetection(
+                    model.Detections.Add(new EfEntityDetection(
                         EntityType: entityType,
                         DbContextType: dbContextType,
                         IsAggregate: isAggregate,
@@ -77,12 +76,13 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                         ExtractorName = Name,
                         SourceFile = filePath,
                         LineNumber = lineNumber,
-                    };
-
-                    model.Detections.Add(detection);
+                    });
                 }
 
-                DetectOnModelCreatingOverrides(classDecl, filePath, dbContextType, model, Name, ct);
+                DetectOnModelCreatingOverrides(classDecl, filePath, dbContextType, model, Name, ct, context);
+
+                // Detect entities via modelBuilder.Entity<T>() in OnModelCreating
+                DetectEntitiesFromOnModelCreating(classDecl, filePath, dbContextType, model, context, ct);
             }
         }
 
@@ -111,7 +111,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         string dbContextType,
         DiscoveryModel model,
         string extractorName,
-        CancellationToken ct)
+        CancellationToken ct,
+        DiscoveryContext context)
     {
         ct.ThrowIfCancellationRequested();
 
@@ -135,6 +136,19 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     LineNumber = lineNumber,
                     Confidence = 0.8f,
                 });
+
+                // Detect ApplyConfigurationsFromAssembly pattern
+                foreach (var inv in method.Body!.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                {
+                    if (inv.Expression is MemberAccessExpressionSyntax ma
+                        && ma.Name.Identifier.ValueText == "ApplyConfigurationsFromAssembly")
+                    {
+                        var arg = inv.ArgumentList.Arguments.FirstOrDefault()
+                            ?.Expression?.ToString() ?? "?";
+                        model.AddDiagnostic(DiagnosticLevel.Info, extractorName,
+                            $"{dbContextType} uses ApplyConfigurationsFromAssembly({arg}) for entity discovery.");
+                    }
+                }
             }
         }
     }
@@ -161,6 +175,84 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         if (entityType.Contains("Id")) return [entityType + "Id"];
 
         return ["Id"];
+    }
+
+    private static void DetectEntitiesFromOnModelCreating(
+        ClassDeclarationSyntax classDecl,
+        string filePath,
+        string dbContextType,
+        DiscoveryModel model,
+        DiscoveryContext context,
+        CancellationToken ct)
+    {
+        foreach (var member in classDecl.Members)
+        {
+            if (member is not MethodDeclarationSyntax method
+                || method.Identifier.ValueText != "OnModelCreating"
+                || method.Body == null)
+                continue;
+
+            var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            foreach (var inv in method.Body.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            {
+                ct.ThrowIfCancellationRequested();
+
+                if (inv.Expression is not MemberAccessExpressionSyntax ma) continue;
+
+                var methodName = ma.Name.Identifier.ValueText;
+
+                // modelBuilder.Entity<T>() or builder.Entity<T>()
+                if ((methodName == "Entity"
+                     || methodName == "RegisterAllDerivedEntities")
+                    && inv.Expression is MemberAccessExpressionSyntax ma2
+                    && (ma2.Expression.ToString().Contains("modelBuilder")
+                        || ma2.Expression.ToString().Contains("builder")))
+                {
+                    // Try generic type argument or string argument
+                    if (ma.Name is GenericNameSyntax gns
+                        && gns.TypeArgumentList.Arguments.Count > 0)
+                    {
+                        var entityTypeName = gns.TypeArgumentList.Arguments[0].ToString();
+                        // Skip if it's a generic parameter from the enclosing method
+                        if (entityTypeName.Length < 2 || entityTypeName[0] is 'T' or 't') continue;
+
+                        var keyProps = FindKeyProperties(entityTypeName);
+                        model.Detections.Add(new EfEntityDetection(
+                            EntityType: entityTypeName,
+                            DbContextType: dbContextType,
+                            IsAggregate: IsAggregateRootPattern(entityTypeName),
+                            KeyProperties: keyProps)
+                        {
+                            ExtractorName = "EfCoreExtractor",
+                            SourceFile = filePath,
+                            LineNumber = lineNumber,
+                            Confidence = 0.7f,
+                        });
+                    }
+                    else if (inv.ArgumentList.Arguments.Count > 0)
+                    {
+                        var arg = inv.ArgumentList.Arguments[0].Expression;
+                        if (arg is TypeOfExpressionSyntax tof)
+                        {
+                            var entityTypeName = tof.Type.ToString();
+                            var keyProps = FindKeyProperties(entityTypeName);
+                            model.Detections.Add(new EfEntityDetection(
+                                EntityType: entityTypeName,
+                                DbContextType: dbContextType,
+                                IsAggregate: IsAggregateRootPattern(entityTypeName),
+                                KeyProperties: keyProps)
+                            {
+                                ExtractorName = "EfCoreExtractor",
+                                SourceFile = filePath,
+                                LineNumber = lineNumber,
+                                Confidence = 0.7f,
+                            });
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static async ValueTask DetectMigrationsFolder(
@@ -202,8 +294,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     var lineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 
                     model.Detections.Add(new EfEntityDetection(
-                        EntityType: "<Migration>",
-                        DbContextType: classDecl.Identifier.ValueText,
+                        EntityType: classDecl.Identifier.ValueText,
+                        DbContextType: "Migrations",
                         IsAggregate: false,
                         KeyProperties: [])
                     {

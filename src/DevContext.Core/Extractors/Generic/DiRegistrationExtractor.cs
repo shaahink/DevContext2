@@ -142,6 +142,23 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                         Confidence = 0.7f,
                     });
                 }
+                else if (methodName.StartsWith("Auto") || methodName.StartsWith("Scan"))
+                {
+                    // Bulk auto-registration patterns: AutoInjectAllServices, Scan, RegisterAssemblyTypes, etc.
+                    model.Detections.Add(new DiRegistrationDetection(
+                        ServiceType: methodName,
+                        ImplementationType: "*",
+                        Lifetime: "Bulk",
+                        ExtensionsUsed: [methodName],
+                        Shape: DiRegistrationShape.InlineFactory,
+                        FactorySummary: "[bulk auto-registration]")
+                    {
+                        ExtractorName = Name,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                        Confidence = 0.6f,
+                    });
+                }
             }
         }
     }

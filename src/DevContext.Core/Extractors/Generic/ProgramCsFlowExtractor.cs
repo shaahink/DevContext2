@@ -152,12 +152,24 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 continue;
 
             var methodName = memberAccess.Name.Identifier.ValueText;
-            if (methodName != "AddHostedService") continue;
+            if (methodName != "AddHostedService" && methodName != "AddDNTScheduler")
+                continue;
 
             var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
             var implementationType = "?";
 
+            if (methodName == "AddDNTScheduler")
+            {
+                // Extract job types from options.AddJob<T>() calls in the lambda
+                if (invocation.ArgumentList.Arguments.Count > 0)
+                {
+                    var arg = invocation.ArgumentList.Arguments[0].Expression;
+                    ExtractSchedulerJobs(arg, model, filePath, extractorName);
+                }
+                continue; // DNTScheduler is detected via individual jobs
+            }
+
+            // AddHostedService<T> detection
             if (invocation.ArgumentList.Arguments.Count > 0)
             {
                 var arg = invocation.ArgumentList.Arguments[0].Expression;
@@ -180,6 +192,41 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 SourceFile = filePath,
                 LineNumber = lineNumber,
             });
+        }
+    }
+
+    private static void ExtractSchedulerJobs(
+        ExpressionSyntax lambda,
+        DiscoveryModel model,
+        string filePath,
+        string extractorName)
+    {
+        foreach (var inv in lambda.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (inv.Expression is not MemberAccessExpressionSyntax ma)
+                continue;
+
+            if (ma.Name.Identifier.ValueText != "AddJob"
+                && ma.Name.Identifier.ValueText != "AddScheduledTask")
+                continue;
+
+            // Extract generic type argument from AddJob<T>()
+            if (ma.Name is GenericNameSyntax gns
+                && gns.TypeArgumentList.Arguments.Count > 0)
+            {
+                var jobType = gns.TypeArgumentList.Arguments[0].ToString();
+                var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                model.Detections.Add(new BackgroundWorkerDetection(
+                    ServiceType: "DNTScheduler",
+                    ImplementationType: jobType,
+                    Kind: BackgroundWorkerKind.HostedService)
+                {
+                    ExtractorName = extractorName,
+                    SourceFile = filePath,
+                    LineNumber = line,
+                });
+            }
         }
     }
 

@@ -10,6 +10,9 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
     private static readonly ImmutableArray<string> HttpVerbs =
         ["HttpGet", "HttpPost", "HttpPut", "HttpDelete", "HttpPatch"];
 
+    private static readonly ImmutableArray<string> VerbNamePrefixes =
+        ["Get", "Post", "Put", "Delete", "Patch"];
+
     /// <summary>Gets the name of this extractor.</summary>
     public string Name => "ControllerActionExtractor";
     /// <summary>Gets the execution tier.</summary>
@@ -60,30 +63,60 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
                 {
                     if (member is not MethodDeclarationSyntax method) continue;
 
+                    var actionRoutes = ExtractActionRoutes(method);
+                    if (actionRoutes.Length == 0 && !HasHttpVerbAttribute(method))
+                        continue;
+
                     var httpMethod = ExtractHttpMethod(method);
-                    if (httpMethod == null) continue;
+                    if (httpMethod == null && actionRoutes.Length == 0)
+                        continue;
 
-                    var actionRoute = ExtractActionRoute(method);
-                    var combinedRoute = CombineRoutes(controllerRoute, actionRoute);
+                    // Infer verb from method name when only [Route] is present
+                    if (httpMethod == null && actionRoutes.Length > 0)
+                        httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
+
                     var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
                     var authAttrs = ExtractAuthAttributes(method);
                     var paramTypes = method.ParameterList.Parameters
                         .Select(p => p.Type?.ToString() ?? "?")
                         .ToImmutableArray();
 
-                    model.Detections.Add(new EndpointDetection(
-                        HttpMethod: httpMethod,
-                        RouteTemplate: combinedRoute,
-                        HandlerType: controllerName,
-                        HandlerMethod: method.Identifier.ValueText,
-                        AuthAttributes: authAttrs,
-                        ParameterTypes: paramTypes)
+                    if (actionRoutes.Length == 0)
                     {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
+                        // Action has [HttpGet] etc. but no [Route] — combine with controller route
+                        var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, null);
+                        model.Detections.Add(new EndpointDetection(
+                            HttpMethod: httpMethod!,
+                            RouteTemplate: combinedRoute,
+                            HandlerType: controllerName,
+                            HandlerMethod: method.Identifier.ValueText,
+                            AuthAttributes: authAttrs,
+                            ParameterTypes: paramTypes)
+                        {
+                            ExtractorName = Name,
+                            SourceFile = filePath,
+                            LineNumber = lineNumber,
+                        });
+                    }
+                    else
+                    {
+                        foreach (var actionRoute in actionRoutes)
+                        {
+                            var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, actionRoute);
+                            model.Detections.Add(new EndpointDetection(
+                                HttpMethod: httpMethod!,
+                                RouteTemplate: combinedRoute,
+                                HandlerType: controllerName,
+                                HandlerMethod: method.Identifier.ValueText,
+                                AuthAttributes: authAttrs,
+                                ParameterTypes: paramTypes)
+                            {
+                                ExtractorName = Name,
+                                SourceFile = filePath,
+                                LineNumber = lineNumber,
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -107,6 +140,27 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         }
 
         return false;
+    }
+
+    private static bool HasHttpVerbAttribute(MethodDeclarationSyntax method)
+    {
+        foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
+        {
+            var attrName = attr.Name.ToString();
+            var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
+            if (HttpVerbs.Contains(name)) return true;
+        }
+        return false;
+    }
+
+    private static string InferHttpVerbFromMethodName(string methodName)
+    {
+        foreach (var prefix in VerbNamePrefixes)
+        {
+            if (methodName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return prefix.ToUpperInvariant();
+        }
+        return "GET"; // ASP.NET default for [ApiController] actions
     }
 
     private static string? ExtractHttpMethod(MethodDeclarationSyntax method)
@@ -140,28 +194,35 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             var attrName = attr.Name.ToString();
             if (attrName is "Route" or "RouteAttribute")
             {
-                return ExtractRouteTemplate(attr);
+                var template = ExtractRouteTemplate(attr);
+                return template ?? GetConventionControllerRoute(controllerName);
             }
         }
 
-        // Convention fallback: ControllerName → /ControllerName
-        if (controllerName.EndsWith("Controller", StringComparison.Ordinal))
-            return "/" + controllerName[..^10];
-        return "/" + controllerName;
+        return GetConventionControllerRoute(controllerName);
     }
 
-    private static string? ExtractActionRoute(MethodDeclarationSyntax method)
+    private static string GetConventionControllerRoute(string controllerName)
     {
+        if (controllerName.EndsWith("Controller", StringComparison.Ordinal))
+            return controllerName[..^10];
+        return controllerName;
+    }
+
+    private static ImmutableArray<string> ExtractActionRoutes(MethodDeclarationSyntax method)
+    {
+        var routes = new List<string>();
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
             if (attrName is "Route" or "RouteAttribute")
             {
-                return ExtractRouteTemplate(attr);
+                var template = ExtractRouteTemplate(attr);
+                if (template is not null)
+                    routes.Add(template);
             }
         }
-
-        return null;
+        return routes.ToImmutableArray();
     }
 
     private static string? ExtractRouteTemplate(AttributeSyntax attr)
@@ -185,15 +246,33 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         return arg.Expression.ToString();
     }
 
-    private static string CombineRoutes(string? controllerRoute, string? actionRoute)
+    private static string CombineRoutes(string controllerName, string actionName,
+        string? controllerRoute, string? actionRoute)
     {
-        var controller = controllerRoute?.Trim('/') ?? "";
-        var action = actionRoute?.Trim('/') ?? "";
+        // Expand tokens in controller and action routes
+        var ctrl = ExpandRouteTokens(controllerRoute ?? "[controller]", controllerName, actionName);
+        var act = ExpandRouteTokens(actionRoute ?? "", controllerName, actionName);
 
-        if (string.IsNullOrEmpty(controller)) return "/" + action;
-        if (string.IsNullOrEmpty(action)) return "/" + controller;
+        // Absolute action route overrides controller route entirely
+        if (act.StartsWith('/') || act.StartsWith("~/"))
+            return act.TrimStart('~');
 
-        return "/" + controller + "/" + action;
+        ctrl = ctrl.Trim('/');
+        act = act.Trim('/');
+
+        if (string.IsNullOrEmpty(ctrl)) return "/" + act;
+        if (string.IsNullOrEmpty(act)) return "/" + ctrl;
+
+        return "/" + ctrl + "/" + act;
+    }
+
+    private static string ExpandRouteTokens(string template, string controllerName, string actionName)
+    {
+        var shortName = controllerName.EndsWith("Controller", StringComparison.Ordinal)
+            ? controllerName[..^10] : controllerName;
+        return template
+            .Replace("[controller]", shortName, StringComparison.OrdinalIgnoreCase)
+            .Replace("[action]", actionName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static ImmutableArray<string> ExtractAuthAttributes(MethodDeclarationSyntax method)
