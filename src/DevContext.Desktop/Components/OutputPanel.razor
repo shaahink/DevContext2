@@ -17,12 +17,16 @@
     private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
     private void ToggleGroup(SectionGroupViewModel group, bool value) { foreach (var c in group.Children) c.IsIncluded = value; }
 
-    private async Task Copy() => await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.HumanViewText);
-    private async Task CopyLlm() => await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.LlmViewText);
+    private async Task Copy() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.HumanViewText); } catch { } }
+    private async Task CopyLlm() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.LlmViewText); } catch { } }
     private async Task Save()
     {
-        var ext = VM.SelectedFormat == "json" ? "json" : "md";
-        await JS.InvokeVoidAsync("saveFile", $"devcontext-output.{ext}", VM.RawContent);
+        try
+        {
+            var ext = VM.SelectedFormat == "json" ? "json" : "md";
+            await JS.InvokeVoidAsync("saveFile", $"devcontext-output.{ext}", VM.RawContent);
+        }
+        catch { }
     }
 
     private double BudgetPct => VM.BudgetTokens > 0 ? (double)VM.SelectedTokenTotal / VM.BudgetTokens * 100 : 0;

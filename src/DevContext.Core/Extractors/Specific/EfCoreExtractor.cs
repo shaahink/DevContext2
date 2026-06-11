@@ -138,7 +138,9 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 });
 
                 // Detect ApplyConfigurationsFromAssembly pattern
-                foreach (var inv in method.Body!.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                if (method.Body is not null)
+                {
+                    foreach (var inv in method.Body.DescendantNodes().OfType<InvocationExpressionSyntax>())
                 {
                     if (inv.Expression is MemberAccessExpressionSyntax ma
                         && ma.Name.Identifier.ValueText == "ApplyConfigurationsFromAssembly")
@@ -151,6 +153,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 }
             }
         }
+    }
     }
 
     private static bool HasOwnDbSet(string entityType, ClassDeclarationSyntax dbContextClass)

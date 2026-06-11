@@ -169,9 +169,18 @@ public class AnalysisService : IAnalysisService
         catch { return new AppSettings(); }
     }
 
-    public void SaveSettings(AppSettings s) =>
-        File.WriteAllText(Path.Combine(_dataDir, "settings.json"),
-            JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
+    public void SaveSettings(AppSettings s)
+    {
+        try
+        {
+            File.WriteAllText(Path.Combine(_dataDir, "settings.json"),
+                JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to save settings");
+        }
+    }
 
     public string[] LoadRecent()
     {
@@ -183,12 +192,19 @@ public class AnalysisService : IAnalysisService
 
     public void AddRecent(string path)
     {
-        var recent = LoadRecent()
-            .Where(r => !r.Equals(path, StringComparison.OrdinalIgnoreCase))
-            .Take(9)
-            .Prepend(path)
-            .ToArray();
-        File.WriteAllText(Path.Combine(_dataDir, "recent.json"), JsonSerializer.Serialize(recent));
+        try
+        {
+            var recent = LoadRecent()
+                .Where(r => !r.Equals(path, StringComparison.OrdinalIgnoreCase))
+                .Take(9)
+                .Prepend(path)
+                .ToArray();
+            File.WriteAllText(Path.Combine(_dataDir, "recent.json"), JsonSerializer.Serialize(recent));
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to save recent paths");
+        }
     }
 
     private sealed class DesktopProgressObserver : IDiscoveryObserver

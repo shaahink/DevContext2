@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using DevContext.Core.Models;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
+using Serilog;
 
 namespace DevContext.Desktop.ViewModels;
 
@@ -327,7 +328,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 }
                 }
                 catch (OperationCanceledException) { }
-                catch (Exception) { /* best effort */ }
+                catch (Exception ex) { Log.Error(ex, "Debounced reanalysis failed"); }
             }, ct);
     }
 
@@ -419,11 +420,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (result.Success)
             {
                 _rawContent = result.Content ?? "";
+
+                // Heavy string processing off the UI thread
+                var rawContent = _rawContent;
+                var elapsedMs = result.ElapsedMs;
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    PopulateSections(rawContent);
+                }).ConfigureAwait(true);
+
                 OutputText = _rawContent;
-                PopulateSections(_rawContent);
                 RefreshDisplayText();
                 var tokens = _rawContent.Length / 4;
-                StatsText = $"~{tokens:N0} tokens · {result.ElapsedMs / 1000.0:F1}s";
+                StatsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                 HasOutput = true;
                 IsProgressIndeterminate = false;
                 ProgressValue = 100;
@@ -431,9 +440,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 BudgetTokens = capturedBudget;
                 TotalTokens = tokens;
 
-                // Clean up clone if auto-clean
+                // Clean up clone off UI thread
                 if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
-                    GitCloneService.Cleanup(gitRepo.ClonePath);
+                {
+                    var clonePath = gitRepo.ClonePath;
+                    await System.Threading.Tasks.Task.Run(() =>
+                        GitCloneService.Cleanup(clonePath)).ConfigureAwait(false);
+                }
             }
             else
             {
@@ -450,6 +463,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Analysis failed");
             ProgressText = "Error";
             OutputText = ex.Message;
             HasOutput = true;
@@ -460,7 +474,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IsAnalyzing = false;
             IsProgressVisible = false;
             IsProgressIndeterminate = false;
-            SaveSettings();
+            // SaveSettings off UI thread (synchronous file I/O)
+            _ = System.Threading.Tasks.Task.Run(SaveSettings);
             _cts?.Dispose();
             _cts = null;
         }
