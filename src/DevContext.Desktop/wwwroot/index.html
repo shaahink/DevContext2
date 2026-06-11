@@ -13,5 +13,16 @@
 <body>
     <div id="app">Loading...</div>
     <script src="_framework/blazor.webview.js"></script>
+    <script>
+        window.saveFile = (filename, content) => {
+            var blob = new Blob([content], { type: 'text/plain' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+    </script>
 </body>
 </html>
