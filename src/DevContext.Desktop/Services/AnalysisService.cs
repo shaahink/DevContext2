@@ -48,15 +48,41 @@ public class AnalysisService : IAnalysisService
         var resolver = new ProjectRootResolver();
         var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct).ConfigureAwait(false);
 
-        if (!ScenarioRegistry.BuiltIn.TryGetValue(opts.Scenario, out var scenario))
-            return new AnalysisResult { Success = false, Error = $"Unknown scenario: {opts.Scenario}" };
+        // --task overrides scenario/profile via intent inference
+        var scenarioKey = opts.Scenario;
+        var profileStr = opts.Profile;
+        if (!string.IsNullOrWhiteSpace(opts.Task))
+        {
+            var (inferredScenario, inferredProfile) = IntentInferrer.Infer(opts.Task);
+            scenarioKey = inferredScenario;
+            profileStr = inferredProfile.ToString().ToLowerInvariant();
+        }
 
-        var profile = opts.Profile.ToLowerInvariant() switch
+        // audit is a deprecated alias
+        if (scenarioKey == "audit") scenarioKey = "overview";
+        if (scenarioKey == "trace") scenarioKey = "deep-dive";
+
+        if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioKey, out var scenarioBase))
+            return new AnalysisResult { Success = false, Error = $"Unknown scenario: {scenarioKey}" };
+
+        var profile = profileStr.ToLowerInvariant() switch
         {
             "debug" => ExtractionProfile.Debug,
             "full" => ExtractionProfile.Full,
             _ => ExtractionProfile.Focused,
         };
+
+        // Build effective scenario: filter RequiredSections to what user selected.
+        // If ActiveSections is empty, use the scenario defaults unchanged.
+        var scenario = opts.ActiveSections.Length > 0
+            ? scenarioBase with
+            {
+                RequiredSections = scenarioBase.RequiredSections
+                    .Where(s => opts.ActiveSections.Contains(s))
+                    .Concat(opts.ActiveSections.Where(s => !scenarioBase.RequiredSections.Contains(s)))
+                    .ToImmutableArray()
+            }
+            : scenarioBase;
 
         var options = new ExtractionOptions
         {
@@ -207,7 +233,7 @@ public record AnalysisOptions
 {
     public string ProjectPath { get; init; } = "";
     public string Scenario { get; init; } = "overview";
-    public string Profile { get; init; } = "focused";
+    public string Profile { get; init; } = "focused";       // derived by VM; kept for plumbing
     public string Around { get; init; } = "";
     public int MaxTokens { get; init; } = 8000;
     public string Format { get; init; } = "markdown";
@@ -216,6 +242,8 @@ public record AnalysisOptions
     public bool NoRoslyn { get; init; }
     public bool DryRun { get; init; }
     public bool IncludeAntiPatterns { get; init; }
+    public string Task { get; init; } = "";                 // natural language intent
+    public ImmutableArray<string> ActiveSections { get; init; } = [];  // section names to include; empty = use scenario defaults
 }
 
 public record AnalysisResult
@@ -238,4 +266,6 @@ public class AppSettings
     public bool IncludeProvenance { get; set; }
     public bool IncludeDiagnostics { get; set; }
     public bool NoRoslyn { get; set; }
+    public string? LastTask { get; set; } = "";
+    public List<string>? LastActiveSections { get; set; }
 }

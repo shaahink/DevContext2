@@ -3,19 +3,17 @@
 @implements IDisposable
 
 @code {
-    private string _selectedScenario = "architecture";
-
     protected override void OnInitialized()
     {
-        _selectedScenario = VM.SelectedScenario?.Value ?? "architecture";
-        VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
+        VM.PropertyChanged += OnVmChanged;
     }
 
-    private void OnScenarioChanged(ChangeEventArgs e)
+    private void OnVmChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+
+    private void OnScenarioChanged(string value)
     {
-        var val = e.Value?.ToString() ?? "architecture";
-        _selectedScenario = val;
-        VM.SelectedScenario = VM.Scenarios.First(s => s.Value == val);
+        VM.SelectedScenario = VM.Scenarios.First(s => s.Value == value);
     }
 
     private void OnTokensInput(ChangeEventArgs e)
@@ -24,15 +22,26 @@
             VM.MaxTokens = Math.Clamp(v, 500, 50000);
     }
 
-    public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+    private void OnSectionChanged(string key, ChangeEventArgs e)
+    {
+        var enabled = (bool)(e.Value ?? false);
+        VM.SetSectionEnabled(key, enabled);
+    }
+
+    public void Dispose() => VM.PropertyChanged -= OnVmChanged;
 }
 
 <aside class="config-panel">
     <header class="config-header">
-        <h1 class="app-title"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2z"/></svg> DevContext <span class="version">v2.0.0</span></h1>
+        <h1 class="app-title">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 1 1 2-2 2 2 0 0 1-2-2V5h-2V3h2z"/></svg>
+            DevContext <span class="version">v2.0.0</span>
+        </h1>
     </header>
 
     <nav class="config-sections">
+
+        @* ── Source ─────────────────────────────────────────────── *@
         <section class="config-group">
             <h2 class="group-label">Source</h2>
             <div class="source-row">
@@ -67,41 +76,90 @@
             }
         </section>
 
+        @* ── Intent (optional task field) ─────────────────────── *@
         <section class="config-group">
-            <h2 class="group-label">Shape the context</h2>
+            <h2 class="group-label">Intent <span class="hint">(optional)</span></h2>
+            <input class="input" placeholder="e.g. trace the order submission handler"
+                   @bind="VM.Task" @bind:event="oninput" />
+            <p class="field-hint">Fills in mode and sections automatically when provided.</p>
+        </section>
 
-            <label class="field-label">Scenario</label>
-            <select class="input select" value="@_selectedScenario" @onchange="OnScenarioChanged">
+        @* ── Mode ──────────────────────────────────────────────── *@
+        <section class="config-group">
+            <h2 class="group-label">Mode</h2>
+            <div class="segmented">
                 @foreach (var s in VM.Scenarios)
                 {
-                    <option value="@s.Value">@s.Label</option>
-                }
-            </select>
-
-            <label class="field-label">Profile</label>
-            <div class="segmented">
-                @foreach (var p in new[] { ("focused", "Focused"), ("debug", "Debug"), ("full", "Full") })
-                {
-                    <button class="seg-option @(VM.SelectedProfile == p.Item1 ? "active" : "")"
-                            @onclick="() => VM.SetProfileCommand.Execute(p.Item1)">
-                        @p.Item2
+                    <button class="seg-option @(VM.SelectedScenario?.Value == s.Value ? "active" : "")"
+                            @onclick="() => OnScenarioChanged(s.Value)">
+                        @s.Label
                     </button>
                 }
             </div>
+            <p class="field-hint">
+                @if (VM.IsTraceMode)
+                {
+                    <span>Focused on a specific entry point. Set a symbol below for best results.</span>
+                }
+                else
+                {
+                    <span>Whole-codebase architecture map.</span>
+                }
+            </p>
+        </section>
 
-            <label class="field-label">Token budget</label>
+        @* ── Focus point (prominent in Trace, secondary in Overview) ── *@
+        @if (VM.IsTraceMode)
+        {
+            <section class="config-group">
+                <h2 class="group-label">Entry point</h2>
+                <input class="input" placeholder="Controller:Action or Namespace.Class:Method"
+                       @bind="VM.Around" @bind:event="oninput" />
+                <p class="field-hint">The type or method to trace from. Leave empty to scan all entry points.</p>
+            </section>
+        }
+
+        @* ── Sections ───────────────────────────────────────────── *@
+        <section class="config-group">
+            <h2 class="group-label">Sections</h2>
+            <div class="section-list">
+                @foreach (var section in VM.Sections)
+                {
+                    <label class="toggle-label">
+                        <input type="checkbox" checked="@section.IsEnabled"
+                               @onchange="(e) => OnSectionChanged(section.Key, e)" />
+                        @section.Label
+                        @if (section.Hint is not null)
+                        {
+                            <span class="section-hint">@section.Hint</span>
+                        }
+                    </label>
+                }
+            </div>
+        </section>
+
+        @* ── Token budget ─────────────────────────────────────────── *@
+        <section class="config-group">
+            <h2 class="group-label">Token budget</h2>
             <div class="token-slider">
                 <input type="range" min="500" max="50000" step="500"
                        @bind="VM.MaxTokens" @bind:event="oninput" />
                 <input type="number" class="input token-input" min="500" max="50000"
                        value="@VM.MaxTokens" @onchange="OnTokensInput" />
             </div>
-
-            <label class="field-label">Symbol focus <span class="hint">(optional)</span></label>
-            <input class="input" placeholder="Namespace.Class:Method"
-                   @bind="VM.Around" @bind:event="oninput" />
         </section>
 
+        @* ── Symbol focus (secondary position in Overview mode) ──── *@
+        @if (!VM.IsTraceMode)
+        {
+            <section class="config-group">
+                <h2 class="group-label">Symbol focus <span class="hint">(optional)</span></h2>
+                <input class="input" placeholder="Namespace.Class:Method"
+                       @bind="VM.Around" @bind:event="oninput" />
+            </section>
+        }
+
+        @* ── Output ────────────────────────────────────────────────── *@
         <section class="config-group">
             <h2 class="group-label">Output</h2>
 
@@ -147,6 +205,7 @@
                 </div>
             </details>
         </section>
+
     </nav>
 
     <footer class="config-footer">

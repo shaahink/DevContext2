@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,6 +7,14 @@ using DevContext.Core.Services;
 using DevContext.Desktop.Services;
 
 namespace DevContext.Desktop.ViewModels;
+
+public sealed class SectionToggle
+{
+    public string Key { get; init; } = "";      // matches SectionNames constant value
+    public string Label { get; init; } = "";
+    public string? Hint { get; init; }          // shown next to checkbox for expensive sections
+    public bool IsEnabled { get; set; } = true;
+}
 
 public record ScenarioItem(string Value, string Label)
 {
@@ -29,6 +38,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private string _projectPath = "";
 
     [ObservableProperty] private string _around = "";
+    [ObservableProperty] private string _task = "";
     [ObservableProperty] private int _maxTokens = 8000;
     [ObservableProperty] private bool _includeProvenance;
     [ObservableProperty] private bool _includeDiagnostics;
@@ -36,22 +46,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _dryRun;
     [ObservableProperty] private bool _includeAntiPatterns;
 
-    // ── Profile / format selection ─────────────────────────────────────────────
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(
-        nameof(IsProfileFocused),
-        nameof(IsProfileDebug), nameof(IsProfileFull))]
-    private string _selectedProfile = "focused";
-
+    // ── Format selection ───────────────────────────────────────────────────────
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFormatMarkdown), nameof(IsFormatJson))]
     private string _selectedFormat = "markdown";
 
     [ObservableProperty] private ScenarioItem _selectedScenario = null!;
 
-    public bool IsProfileFocused => SelectedProfile == "focused";
-    public bool IsProfileDebug => SelectedProfile == "debug";
-    public bool IsProfileFull => SelectedProfile == "full";
     public bool IsFormatMarkdown => SelectedFormat == "markdown";
     public bool IsFormatJson => SelectedFormat == "json";
 
@@ -181,11 +182,85 @@ public partial class MainViewModel : ObservableObject, IDisposable
     // ── Collections ────────────────────────────────────────────────────────────
     public ObservableCollection<string> RecentPaths { get; } = [];
 
+    public List<SectionToggle> Sections { get; } =
+    [
+        new() { Key = DevContext.Core.Constants.SectionNames.ArchitectureOverview, Label = "Architecture overview" },
+        new() { Key = DevContext.Core.Constants.SectionNames.Endpoints,            Label = "Endpoints" },
+        new() { Key = DevContext.Core.Constants.SectionNames.MediatRHandlers,      Label = "MediatR Handlers" },
+        new() { Key = DevContext.Core.Constants.SectionNames.DataModel,            Label = "Data model" },
+        new() { Key = DevContext.Core.Constants.SectionNames.NonObviousWiring,     Label = "DI / Wiring" },
+        new() { Key = DevContext.Core.Constants.SectionNames.CallGraph,            Label = "Call graph", Hint = "+call graph, needs Roslyn" },
+        new() { Key = DevContext.Core.Constants.SectionNames.MessageConsumers,     Label = "Message consumers" },
+        new() { Key = DevContext.Core.Constants.SectionNames.RelatedTypes,         Label = "Related types" },
+        new() { Key = "__source__",                                                Label = "Source code", Hint = "adds full C# bodies, +2k\u201312k tokens" },
+    ];
+
+    public bool IsTraceMode => SelectedScenario?.Value == "deep-dive";
+
+    public string DerivedProfile
+    {
+        get
+        {
+            var sourceOn = Sections.FirstOrDefault(s => s.Key == "__source__")?.IsEnabled == true;
+            var callGraphOn = Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph)?.IsEnabled == true;
+            if (sourceOn) return "full";
+            if (callGraphOn) return "debug";
+            return "focused";
+        }
+    }
+
+    public void SetSectionEnabled(string key, bool enabled)
+    {
+        var section = Sections.FirstOrDefault(s => s.Key == key);
+        if (section is null) return;
+        section.IsEnabled = enabled;
+        OnAnalysisOptionChanged();
+    }
+
+    private void ApplyScenarioSectionDefaults()
+    {
+        if (IsTraceMode)
+        {
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.NonObviousWiring, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, false);
+            SetSectionEnabledSilent("__source__", false);
+        }
+        else
+        {
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.NonObviousWiring, true);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
+            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, true);
+            SetSectionEnabledSilent("__source__", false);
+        }
+    }
+
+    private void SetSectionEnabledSilent(string key, bool enabled)
+    {
+        var section = Sections.FirstOrDefault(s => s.Key == key);
+        if (section is not null) section.IsEnabled = enabled;
+    }
+
+    private ImmutableArray<string> GetActiveSections()
+        => Sections
+            .Where(s => s.IsEnabled && s.Key != "__source__")
+            .Select(s => s.Key)
+            .ToImmutableArray();
+
     public List<ScenarioItem> Scenarios { get; } =
     [
         new("overview",   "Overview"),
-        new("deep-dive",  "Deep Dive"),
-        new("audit",      "Audit"),
+        new("deep-dive",  "Trace"),
     ];
 
     public MainViewModel() : this(new AnalysisService()) { }
@@ -203,11 +278,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedScenarioChanged(ScenarioItem value)
     {
         if (_isInitializing) return;
+        ApplyScenarioSectionDefaults();
+        OnPropertyChanged(nameof(IsTraceMode));
         ResetToScenarioDefaults();
         OnAnalysisOptionChanged();
     }
-    partial void OnSelectedProfileChanged(string value) => OnAnalysisOptionChanged();
     partial void OnSelectedFormatChanged(string value) => OnAnalysisOptionChanged();
+    partial void OnTaskChanged(string value) => OnAnalysisOptionChanged();
+
     partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
     partial void OnAroundChanged(string value) => OnAnalysisOptionChanged();
     partial void OnIncludeProvenanceChanged(bool value) => OnAnalysisOptionChanged();
@@ -254,9 +332,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // ── Commands ───────────────────────────────────────────────────────────────
-    [RelayCommand]
-    private void SetProfile(string profile) => SelectedProfile = profile;
-
     [RelayCommand]
     private void SetFormat(string format) => SelectedFormat = format;
 
@@ -315,7 +390,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             ProjectPath = workingPath,
             Scenario = SelectedScenario.Value,
-            Profile = SelectedProfile,
+            Profile = DerivedProfile,
             Around = Around,
             MaxTokens = capturedBudget,
             Format = SelectedFormat,
@@ -324,6 +399,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             NoRoslyn = NoRoslyn,
             DryRun = DryRun,
             IncludeAntiPatterns = IncludeAntiPatterns,
+            Task = Task,
+            ActiveSections = GetActiveSections(),
         };
 
         var progress = new Progress<AnalysisProgress>(p =>
@@ -403,27 +480,39 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void LoadSettings()
     {
         var s = _svc.LoadSettings();
-        SelectedScenario = Scenarios.FirstOrDefault(sc => sc.Value == s.LastScenario) ?? Scenarios[1];
-        SelectedProfile = s.LastProfile ?? "focused";
+        SelectedScenario = Scenarios.FirstOrDefault(sc => sc.Value == s.LastScenario) ?? Scenarios[0];
         SelectedFormat = s.LastFormat ?? "markdown";
         if (s.LastTokens > 0) MaxTokens = s.LastTokens;
         Around = s.LastAround ?? "";
         IncludeProvenance = s.IncludeProvenance;
         IncludeDiagnostics = s.IncludeDiagnostics;
         NoRoslyn = s.NoRoslyn;
+        Task = s.LastTask ?? "";
+
+        if (s.LastActiveSections is { Count: > 0 })
+        {
+            foreach (var section in Sections)
+                section.IsEnabled = s.LastActiveSections.Contains(section.Key);
+        }
+        else
+        {
+            ApplyScenarioSectionDefaults();
+        }
     }
 
     private void SaveSettings() =>
         _svc.SaveSettings(new AppSettings
         {
             LastScenario = SelectedScenario.Value,
-            LastProfile = SelectedProfile,
+            LastProfile = DerivedProfile,
             LastFormat = SelectedFormat,
             LastTokens = MaxTokens,
             LastAround = Around,
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
+            LastTask = Task,
+            LastActiveSections = Sections.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
         });
 
     private void RefreshRecent()
