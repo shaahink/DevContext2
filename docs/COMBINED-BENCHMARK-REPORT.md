@@ -1,169 +1,114 @@
-# DevContext v2 — Combined Benchmark Report
+# DevContext v2.1 — Combined Benchmark Report
 
-**Generated**: 2026-06-06  
-**Branch**: develop  
-**Tests**: 144 passing · 0 warnings · format clean  
-
----
-
-## 1. Benchmark Matrix
-
-| Repo | Type | Source | Signals Expected |
-|---|---|---|---|
-| **eShop** | Microservice (24 proj) | dotnet/eShop | controllers, minimal-apis, mediatr, efcore, fluentvalidation |
-| **TodoApi** | Minimal API (7 proj) | dotnet/TodoApi | minimal-apis, efcore |
-| **VerticalSlice** | FastEndpoints (22 proj) | ardalis/CleanArchitecture | minimal-apis, fluentvalidation, fast-endpoints, efcore |
-| **AutoMapper** | Library (6 proj) | AutoMapper/AutoMapper | automapper |
-| **AspireShop** | Aspire app (5 proj) | dotnet/aspire-samples | minimal-apis, efcore, aspire |
-| **BlazorSignalR** | Blazor + SignalR | dotnet/blazor-samples | minimal-apis |
+**Generated**: 2026-06-11 | **Branch**: `docs-refresh` (on `fix-crash-and-gaps`)  
+**Tests**: 221 passing (157 Core + 64 Desktop)
 
 ---
 
-## 2. Results Per Repo
+## Benchmarked Repos
 
-### eShop (Reference Microservice)
-
-**Command**: `--profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 4.1s |
-| Types found | 517 |
-| Types in output | 28 (95% pruned) |
-| Detections | 183 |
-| Endpoints | 30 HTTP + 14 controller |
-| MediatR handlers | 18 |
-| DI registrations | 121 |
-| Signals | controllers, minimal-apis, mediatr, efcore, fluentvalidation |
-| Architecture | MinimalApi (100%) |
-
-**Scenarios tested**: architecture (28 types), debug-endpoint (20 types), trace-message-flow (MediatR + Data model sections)
-
-**Key output features**: Per-project endpoint grouping (Catalog.API 16 end., Identity.API 14, Ordering.API 7, Webhooks.API 4, WebhookClient 2), Data model section with EF entities, middleware dedup with counts, compact DI table with Source attribution.
-
-### TodoApi (Minimal API Reference)
-
-**Command**: `--scenario debug-endpoint --around TodoApi --profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 1.8s |
-| Types found | 43 |
-| Types in output | 20 (MaxSurviving=20 enforced) |
-| Endpoints | 11 |
-| Entry points | TodoApi class shown with namespace, deps, methods |
-| Signals | minimal-apis, efcore |
-
-### VerticalSlice (FastEndpoints)
-
-**Command**: `--profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 1.7s |
-| Types found | 381 |
-| Types in output | 25 |
-| Endpoints | 23 (FastEndpoints) |
-| Signals | minimal-apis, efcore, fluentvalidation, fast-endpoints (100%) |
-| Architecture | MinimalApi (80%) |
-
-### AutoMapper (Library Mode)
-
-**Command**: `--profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 2.5s |
-| Types found | 2713 |
-| Types in output | 167 (94% pruned) |
-| Detections | 0 (library mode) |
-| Signals | automapper (90%) — via ProjectReference |
-| Output format | Compact namespace summary (34 namespaces, 34 public types listed) |
-
-### AspireShop (Aspire + Minimal APIs)
-
-**Command**: `--profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 0.43s |
-| Types found | 22 |
-| Types in output | 22 |
-| Detections | 38 |
-| Signals | minimal-apis (100%), efcore (100%) |
-
-### BlazorSignalR (Blazor + SignalR)
-
-**Command**: `--profile focused --max-tokens 20000`
-
-| Metric | Value |
-|---|---|
-| Runtime | 0.36s |
-| Types found | 1 |
-| Types in output | 1 |
-| Detections | 12 |
-| Signals | minimal-apis (80%) |
-| Output format | All sections rendered (RequiredSections enforcement) |
+| # | Repo | Description | Types | Size |
+|---|------|-------------|-------|------|
+| 1 | **DntSite** | Persian community/blog platform — Blazor SSR + 10 API controllers + SQLite + 23 DNTScheduler jobs | 1,289 types | Large real-world |
+| 2 | **MinimalApiProject** | Test fixture — minimal API with MediatR + EF Core | ~20 types | Small fixture |
+| 3 | **CleanArchProject** | Test fixture — Clean Architecture template | ~15 types | Small fixture |
 
 ---
 
-## 3. Feature Coverage Matrix
+## DntSite Results (Real-World ~1,289 Types)
 
-| Feature | eShop | TodoApi | VerticalSlice | AutoMapper | AspireShop | BlazorSignalR |
-|---|---|---|---|---|---|---|
-| Endpoint detection | ✅ 30+14 | ✅ 11 | ✅ 23 FE | N/A | ✅ minimal | N/A |
-| MediatR handlers | ✅ 18 | ✅ 0 | ✅ 0 | N/A | ✅ 0 | N/A |
-| Per-project grouping | ✅ 6 groups | ✅ 3 groups | ✅ 3 groups | N/A | ✅ 2 groups | N/A |
-| Auth attributes | ✅ (on controllers) | ✅ (method-level) | ✅ | N/A | ✅ | N/A |
-| Entry points (--around) | ✅ | ✅ | ✅ | N/A | ✅ | N/A |
-| Data model (EF) | ✅ 7 DbContexts | N/A | N/A | N/A | ✅ | N/A |
-| Middleware dedup | ✅ grouped | ✅ 6 items | ✅ | N/A | ✅ | ✅ |
-| Library mode | N/A | N/A | N/A | ✅ compact | N/A | N/A |
-| RequiredSections | ✅ enforced | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MaxSurvivingTypes | ✅ 30 | ✅ 20 | ✅ 25 | N/A | ✅ 30 | ✅ 20 |
-| Profile warning | ✅ | ✅ | N/A | N/A | N/A | N/A |
-| --around hint | ✅ | ✅ | ✅ | N/A | ✅ | N/A |
+### Accuracy
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Architecture classification | **ControllerBased (80%)** | ✅ Correct! Previously misclassified as MinimalApi |
+| Signals detected | controllers (90%), minimal-apis (80%), efcore (100%) | ✅ All 3 correct |
+| Endpoints found | **70** | ✅ All 10 controllers detected (was 13 in v2.0) |
+| EF entities found | 2 (ApplicationDbContext) + 30 migrations grouped | Entities from `OnModelCreating` detected |
+| Background workers | **24** | ✅ All 23 DNTScheduler jobs + 1 BackgroundService |
+| DI registrations | **83** | ✅ `AutoInjectAllServices` bulk pattern detected |
+| Indirect wiring issues | 12 | ManualServiceLocator + ReflectionActivation |
+| Middleware entries | 11 | ✅ Full pipeline in order |
+
+### Performance
+
+| Scenario | Profile | Time | Tokens | Total Detections | Active Types |
+|----------|---------|------|--------|-----------------|-------------|
+| Overview | focused (default) | **8.3s** | 6,273 | 186 | 12 |
+| Overview | debug | 23.2s | 6,272 | — | 12 |
+| Trace (`FeedController`) | focused | **13.0s** | 5,990 | 198 | 11 |
+| Trace (`FeedController`) | debug | ~18s | — | — | — |
+
+### Pipeline Breakdown (Overview / Focused)
+
+| Stage | Time | Dominant Extractor |
+|-------|------|--------------------|
+| Discovery & Cache Warmup | 136ms | FileTreeExtractor (68ms) |
+| Generic Extraction | 5,403ms | DiRegistrationExtractor (5,395ms) + SyntaxStructureExtractor (5,398ms) |
+| Signal Sealing | 9ms | — |
+| Specific Extraction | 2,373ms | EndpointExtractor (1,234ms) |
+| Pruning | 50ms | 1,289 → 40 types |
+| Compression | 12ms | StructuralDeduplicator (−51%) |
+| Rendering | 31ms | 6,273 tokens output |
+
+**Bottleneck**: DiRegistrationExtractor + SyntaxStructureExtractor consume ~67% of total time (5.4s parallel). These parse every `.cs` file's syntax tree and walk invocation chains.
+
+### Extractor Detection Counts (Overview / Focused)
+
+| Extractor | Detections |
+|-----------|-----------|
+| ControllerActionExtractor | **69** (up from 12 in v2.0) |
+| DiRegistrationExtractor | **83** (up from 12 in v2.0) |
+| ProgramCsFlowExtractor | 39 (up from 11 in v2.0) |
+| EfCoreExtractor | 33 |
+| IndirectWiringDetector | 12 (Trace mode) |
+| EndpointExtractor | 1 (Minimal API endpoint) |
+| InMemoryEventBusExtractor | 0 |
 
 ---
 
-## 4. Signal Detection Summary
+## Fixture Results
 
-| Signal | eShop | TodoApi | Vertical | AutoMapper | AspireShop | Blazor |
-|---|---|---|---|---|---|---|
-| minimal-apis | ✅ 100% | ✅ 100% | ✅ 80% | — | ✅ 100% | ✅ 80% |
-| controllers | ✅ 90% | — | — | — | — | — |
-| mediatr | ✅ 100% | — | — | — | — | — |
-| efcore | ✅ 100% | ✅ 100% | ✅ 100% | — | ✅ 100% | — |
-| fluentvalidation | ✅ 100% | — | ✅ 100% | — | — | — |
-| fast-endpoints | — | — | ✅ 100% | — | — | — |
-| automapper | — | — | — | ✅ 90% | — | — |
+### MinimalApiProject
 
-**Strongest profile**: eShop (5 simultaneous signals, 183 detections, 44 endpoints)
-**Library mode**: AutoMapper (0 endpoints, compact namespace summary)
+| Metric | Value |
+|--------|-------|
+| Time | 606ms |
+| Tokens | 381 |
+| Architecture | MinimalApi (100%) ✅ |
+| Signals | dapper, minimal-apis, mediatr, efcore |
 
----
+### CleanArchProject
 
-## 5. Performance Benchmarks
-
-| Repo | Runtime | Types/s | Bottleneck |
-|---|---|---|---|
-| eShop | 4.1s | 126 | SyntaxStructure + DiRegistration (parallel) |
-| TodoApi | 0.8s | 54 | Fast pipeline |
-| VerticalSlice | 1.7s | 224 | SyntaxStructure + DiRegistration |
-| AutoMapper | 2.5s | 1085 | Shared cache reduces walk time |
-| AspireShop | 0.43s | 51 | Small codebase |
-| BlazorSignalR | 0.36s | 3 | Tiny codebase |
+| Metric | Value |
+|--------|-------|
+| Time | 516ms |
+| Tokens | 458 |
+| Architecture | CleanArchitecture (100%) ✅ |
+| Signals | minimal-apis, mediatr, efcore |
 
 ---
 
-## 6. Key Findings
+## v2.0 → v2.1 Improvements
 
-1. **eShop** is the most comprehensive test — covers 5 signals, 44 endpoints, 183 detections. All features (per-project grouping, EF section, middleware dedup, auth attributes) render correctly.
+| Metric | v2.0 (DntSite) | v2.1 (DntSite) | Improvement |
+|--------|---------------|----------------|-------------|
+| Architecture classification | MinimalApi (80%) ❌ | **ControllerBased (80%)** ✅ | Fixed misclassification |
+| Controller endpoints | 13 | **70** | **5.4×** more |
+| Background workers | 0 | **24** | All DNTScheduler jobs found |
+| DI registrations | 1 | **83** | `AutoInjectAllServices` bulk pattern detected |
+| `--audit` scenario | Available | **Deprecated** (maps to overview with warning) | Simplified UX |
+| UI freeze | Yes | **Fixed** (batched notifications + thread-pool offloading) | Sub-100ms render |
+| Crash logging | None | **Dual file logs** + global exception handlers | `crash.log` + `devcontext.log` |
 
-2. **AutoMapper library mode** works correctly — 0 detections, 94% pruned, namespace-summary instead of flat wall. automapper(90%) signal fires via ProjectReference detection.
+---
 
-3. **Per-project endpoint grouping** makes eShop output much more readable. `Catalog.API` (16 endpoints), `Identity.API` (14), `Ordering.API` (7), `Webhooks.API` (4), `WebhookClient` (2) — each grouped with project header.
+## Known Limitations
 
-4. **Scenario enforcement** working across all repos — `architecture` includes all sections, `debug-endpoint` (20 types), `trace-message-flow` (MediatR + Data model).
-
-5. **3 bug fixes deployed during this iteration**: `_indent` crash fix, `MaxSurvivingTypes` enforcement, `Scenario.DisableExtractors` wiring, dead `_styleDetector` removal.
+| Limitation | Impact |
+|-----------|--------|
+| DiRegistrationExtractor + SyntaxStructureExtractor consume 67% of pipeline time | Large repos may take 10s+ |
+| EF entities from `ApplyConfigurationsFromAssembly` not statically detectable | Entity count shows 2 instead of 30+ (entities defined in separate EfConfig files) |
+| Migrations listed as individual rows under "Migrations" group | 30 migration rows in output; could be summarized |
+| No Blazor-specific extraction | `.razor` files, SSR components, interactive server setup not detected |
+| `--around` filtering is proximity-based (not exact-match) | `--around FeedController` shows nearby controllers too |
