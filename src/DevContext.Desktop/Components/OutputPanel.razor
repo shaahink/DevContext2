@@ -1,4 +1,5 @@
 @inject MainViewModel VM
+@inject IJSRuntime JS
 
 @implements IDisposable
 
@@ -8,13 +9,46 @@
         VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
     }
     public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+
+    private async Task Copy() => await JS.InvokeVoidAsync("blazorCopy", VM.HumanViewText);
+    private async Task CopyLlm() => await JS.InvokeVoidAsync("blazorCopy", VM.LlmViewText);
+    private async Task Save()
+    {
+        var ext = VM.SelectedFormat == "json" ? "json" : "md";
+        await JS.InvokeVoidAsync("blazorSaveFile", $"devcontext-output.{ext}", VM.RawContent);
+    }
+
+    private bool IsSectionsOpen;
+    private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
+
+    private void ToggleGroup(SectionGroupViewModel group, bool value)
+    {
+        foreach (var child in group.Children) child.IsIncluded = value;
+    }
+
+    private double BudgetPct => VM.BudgetTokens > 0 ? (double)VM.SelectedTokenTotal / VM.BudgetTokens * 100 : 0;
+    private string BudgetState => VM.SelectedTokenTotal > VM.BudgetTokens ? "danger"
+        : VM.SelectedTokenTotal >= VM.BudgetTokens * 0.85 ? "warning" : "normal";
+
+    private string SelectedTab = "human";
+
+    private void SelectTab(string tab)
+    {
+        SelectedTab = tab;
+        if (tab == "llm") VM.IsHumanView = false;
+        else VM.IsHumanView = true;
+    }
+
+    private string DisplayOutput => SelectedTab == "human" ? VM.HumanViewText
+        : SelectedTab == "llm" ? VM.LlmViewText
+        : VM.HumanViewText;
 }
 
 <section class="output-panel">
     @if (!VM.HasOutput && !VM.IsAnalyzing)
     {
         <div class="empty-state">
-            <div class="empty-icon">&#x1F4CB;</div>
+            <i data-lucide="file-text" style="width:48px;height:48px;opacity:0.3"></i>
             <p class="empty-title">Choose a project, then Analyse</p>
             <p class="empty-sub">Structured, token-budgeted context ready to paste into any LLM</p>
         </div>
@@ -23,24 +57,34 @@
     {
         <div class="output-toolbar">
             <div class="tabs">
-                <button class="tab @(VM.IsHumanView ? "active" : "")" @onclick="() => VM.IsHumanView = true">Human</button>
-                <button class="tab @(VM.IsHumanView ? "" : "active")" @onclick="() => VM.IsHumanView = false">LLM</button>
-
+                <button class="tab @(SelectedTab == "human" ? "active" : "")" @onclick='() => SelectTab("human")'>
+                    Human
+                </button>
+                <button class="tab @(SelectedTab == "llm" ? "active" : "")" @onclick='() => SelectTab("llm")'>
+                    LLM
+                </button>
                 @if (VM.SectionGroups.Count > 1)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
+                        <i data-lucide="panel-right" style="width:14px;height:14px"></i>
                         Sections
                         @if (VM.SectionGroups.SelectMany(g => g.Children).Count(s => !s.IsIncluded) > 0)
                         {
-                            <span class="badge">@VM.SectionGroups.SelectMany(g => g.Children).Count(s => !s.IsIncluded) off</span>
+                            <span class="badge">@VM.SectionGroups.SelectMany(g => g.Children).Count(s => !s.IsIncluded)</span>
                         }
                     </button>
                 }
             </div>
             <div class="toolbar-actions">
-                <button class="btn-icon" title="Copy to clipboard" @onclick="Copy">&#x1F4CB;</button>
-                <button class="btn-icon" title="Save to file" @onclick="Save">&#x1F4BE;</button>
-                <button class="btn-icon" title="Copy for LLM (excluding deselected sections)" @onclick="CopyLlm">&#x1F4E4;</button>
+                <button class="btn-icon" title="Copy to clipboard" @onclick="Copy">
+                    <i data-lucide="copy" style="width:18px;height:18px"></i>
+                </button>
+                <button class="btn-icon" title="Save to file" @onclick="Save">
+                    <i data-lucide="download" style="width:18px;height:18px"></i>
+                </button>
+                <button class="btn-icon" title="Copy for LLM (excluding deselected sections)" @onclick="CopyLlm">
+                    <i data-lucide="copy-check" style="width:18px;height:18px"></i>
+                </button>
             </div>
         </div>
 
@@ -84,7 +128,7 @@
             </div>
         }
 
-        <pre class="output-text @(VM.IsHumanView ? "" : "llm-view")"><code>@VM.DisplayText</code></pre>
+        <pre class="output-text"><code>@DisplayOutput</code></pre>
 
         @if (VM.IsAnalyzing)
         {
@@ -95,21 +139,3 @@
         }
     }
 </section>
-
-@code {
-    private bool IsSectionsOpen;
-    private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
-    private async void Copy() { /* bridge */ }
-    private async void Save() { /* bridge */ }
-    private async void CopyLlm() { /* bridge */ }
-
-    private void ToggleGroup(SectionGroupViewModel group, bool value)
-    {
-        foreach (var child in group.Children)
-            child.IsIncluded = value;
-    }
-
-    private double BudgetPct => VM.BudgetTokens > 0 ? (double)VM.SelectedTokenTotal / VM.BudgetTokens * 100 : 0;
-    private string BudgetState => VM.SelectedTokenTotal > VM.BudgetTokens ? "danger"
-        : VM.SelectedTokenTotal >= VM.BudgetTokens * 0.85 ? "warning" : "normal";
-}

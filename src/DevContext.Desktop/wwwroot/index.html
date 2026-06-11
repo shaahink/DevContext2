@@ -9,9 +9,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="app">Loading...</div>
+    <script src="interop.js"></script>
     <script src="_framework/blazor.webview.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var observer = new MutationObserver(function() { lucide.createIcons(); });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
 </body>
 </html>
