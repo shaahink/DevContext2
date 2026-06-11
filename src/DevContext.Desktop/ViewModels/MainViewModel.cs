@@ -97,18 +97,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private string _displayText = "";
 
+    private string _cachedLlmViewText = "";
+
     public void RefreshDisplayText() => DisplayText = IsHumanView ? HumanViewText : LlmViewText;
 
-    public string LlmViewText
+    public string LlmViewText => _cachedLlmViewText;
+
+    private void RebuildLlmViewText()
     {
-        get
-        {
-            var parts = SectionGroups
-                .SelectMany(g => g.Children)
-                .Where(s => s.IsIncluded)
-                .Select(s => s.FullText);
-            return string.Join(Environment.NewLine, parts);
-        }
+        var parts = SectionGroups
+            .SelectMany(g => g.Children)
+            .Where(s => s.IsIncluded)
+            .Select(s => s.FullText);
+        _cachedLlmViewText = string.Join(Environment.NewLine, parts);
     }
 
     public string HumanViewText => _rawContent;
@@ -419,26 +420,34 @@ public partial class MainViewModel : ObservableObject, IDisposable
             var result = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
             if (result.Success)
             {
-                _rawContent = result.Content ?? "";
-
-                // Heavy string processing off the UI thread
-                var rawContent = _rawContent;
+                // Offload ALL post-analysis work to thread pool: section parsing + string building
+                var rawContent = result.Content ?? "";
                 var elapsedMs = result.ElapsedMs;
+                var captured = capturedBudget;
+
                 await System.Threading.Tasks.Task.Run(() =>
                 {
                     PopulateSections(rawContent);
+                    RebuildLlmViewText();
                 }).ConfigureAwait(true);
 
-                OutputText = _rawContent;
-                RefreshDisplayText();
-                var tokens = _rawContent.Length / 4;
-                StatsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
-                HasOutput = true;
-                IsProgressIndeterminate = false;
-                ProgressValue = 100;
-                ProgressText = "Done";
-                BudgetTokens = capturedBudget;
-                TotalTokens = tokens;
+                // Batch all UI property updates — set fields directly, fire once
+#pragma warning disable MVVMTK0034
+                _rawContent = rawContent;
+                _outputText = rawContent;
+                var tokens = rawContent.Length / 4;
+                _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+                _hasOutput = true;
+                _isProgressIndeterminate = false;
+                _progressValue = 100;
+                _progressText = "Done";
+                _budgetTokens = captured;
+                _totalTokens = tokens;
+                _displayText = IsHumanView ? rawContent : _cachedLlmViewText;
+#pragma warning restore MVVMTK0034
+
+                // Single notification to refresh all bindings
+                OnPropertyChanged(string.Empty);
 
                 // Clean up clone off UI thread
                 if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
@@ -565,6 +574,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             {
                 RecalcTokenTotal();
                 if (IsHumanView) IsHumanView = false; // Auto-switch to LLM view to show effect
+                RebuildLlmViewText();
                 RefreshDisplayText();
             };
 
@@ -628,6 +638,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 section.IsIncluded = section.Category != "Debug";
             }
         RecalcTokenTotal();
+        RebuildLlmViewText();
         OnPropertyChanged(nameof(LlmViewText));
     }
 

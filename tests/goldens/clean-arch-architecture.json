@@ -88,6 +88,18 @@
       "confidence": 1
     },
     {
+      "entityType": "Product",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
       "entityType": "\u003COnModelCreating\u003E",
       "dbContextType": "AppDbContext",
       "isAggregate": false,

@@ -30,6 +30,7 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 | Entity | Aggregate root | Key properties |
 |--------|---------------|----------------|
 | `<OnModelCreating>` | — | — |
+| `Product` | — | Id |
 | `Product` | ✓ | Id |
 
 ## Non-obvious wiring

@@ -33,6 +33,7 @@
 | Entity | Aggregate root | Key properties |
 |--------|---------------|----------------|
 | `<OnModelCreating>` | — | — |
+| `Product` | — | Id |
 | `Product` | ✓ | Id |
 
 ## Non-obvious wiring
