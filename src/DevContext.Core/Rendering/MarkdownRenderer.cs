@@ -43,7 +43,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (ShouldRender(SectionNames.Endpoints, options))
         {
             preLen = sb.Length;
-            AppendEndpoints(sb, model);
+            AppendEndpoints(sb, model, options);
             TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.CallGraph, options))
@@ -400,23 +400,47 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
-    private static void AppendEndpoints(StringBuilder sb, DiscoveryModel model)
+    private static void AppendEndpoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         sb.AppendLine("## Endpoints");
         sb.AppendLine();
 
         var allEndpoints = model.Detections.OfType<EndpointDetection>()
-            .Where(e => !IsFrameworkEndpoint(e))
-            .ToList();
+            .Where(e => !IsFrameworkEndpoint(e));
 
-        if (allEndpoints.Count == 0)
+        // When focus points are present, filter endpoints to those near focus files
+        if (!options.FocusPoints.IsDefaultOrEmpty)
+        {
+            var focusDirs = options.FocusPoints
+                .Where(fp => fp.FilePath is not null)
+                .Select(fp => Path.GetDirectoryName(fp.FilePath)?.Replace('\\', '/') ?? "")
+                .Where(d => d.Length > 0)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (focusDirs.Count > 0)
+            {
+                allEndpoints = allEndpoints.Where(e =>
+                {
+                    if (e.SourceFile is null) return true;
+                    var dir = Path.GetDirectoryName(e.SourceFile)?.Replace('\\', '/') ?? "";
+                    return focusDirs.Any(fd =>
+                        dir.StartsWith(fd, StringComparison.OrdinalIgnoreCase)
+                        || fd.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
+                        || AreSiblingDirectories(dir, fd));
+                });
+            }
+        }
+
+        var endpoints = allEndpoints.ToList();
+
+        if (endpoints.Count == 0)
         {
             sb.AppendLine("No endpoints detected.");
             sb.AppendLine();
             return;
         }
 
-        var hasGroupPrefix = allEndpoints.Any(e => e.GroupPrefix is not null);
+        var hasGroupPrefix = endpoints.Any(e => e.GroupPrefix is not null);
 
         // Build project lookup from source file paths
         var projectByDir = model.Projects
@@ -430,7 +454,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             ?? Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "?";
 
         // Group endpoints by project
-        var byProject = allEndpoints.GroupBy(ep => ProjectForFile(ep.SourceFile)).OrderBy(g => g.Key);
+        var byProject = endpoints.GroupBy(ep => ProjectForFile(ep.SourceFile)).OrderBy(g => g.Key);
 
         // Collect MediatR handler types for linkage
         var mediatRTypes = model.Detections.OfType<MediatRHandlerDetection>()
@@ -491,6 +515,13 @@ public sealed class MarkdownRenderer : IContextRenderer
     private static string FormatAuth(EndpointDetection ep)
     {
         return ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
+    }
+
+    private static bool AreSiblingDirectories(string dirA, string dirB)
+    {
+        var parentA = Path.GetDirectoryName(dirA)?.Replace('\\', '/') ?? "";
+        var parentB = Path.GetDirectoryName(dirB)?.Replace('\\', '/') ?? "";
+        return string.Equals(parentA, parentB, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsFrameworkEndpoint(EndpointDetection ep)
