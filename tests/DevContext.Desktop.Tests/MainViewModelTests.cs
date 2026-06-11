@@ -701,4 +701,136 @@ public class MainViewModelTests
         Assert.NotNull(capturedOpts);
         Assert.Equal("debug the failing endpoint", capturedOpts.Task);
     }
+
+    // ══ Section data parsing ══════════════════════════════════════════════════
+
+[Fact]
+public async Task PopulateSections_parses_markdown_into_groups()
+{
+    var vm = CreateVm();
+    vm.ProjectPath = "C:\\Test";
+
+    var content = "## Architecture overview\narch content\n\n"
+                + "## Endpoints\nep content\n\n"
+                + "## Data model (EF Core)\ndata content\n\n"
+                + "## Call graph\ncall content\n\n"
+                + "## Non-obvious wiring\nwire content\n\n"
+                + "## Anti-patterns\nanti content";
+
+    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+
+    await ExecuteAnalyzeCommand(vm);
+
+    Assert.NotEmpty(vm.SectionGroups);
+    Assert.True(vm.TotalTokens > 0);
+    Assert.True(vm.SelectedTokenTotal > 0);
+    Assert.NotEmpty(vm.LlmViewText);
+    Assert.NotEqual("", vm.LlmViewText);
+}
+
+[Fact]
+public async Task PopulateSections_categorizes_correctly()
+{
+    var vm = CreateVm();
+    vm.ProjectPath = "C:\\Test";
+
+    var content = "## Endpoints\nep content\n\n"
+                + "## Architecture overview\narch content";
+
+    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+
+    await ExecuteAnalyzeCommand(vm);
+
+    var apiGroup = vm.SectionGroups.FirstOrDefault(g => g.Name == "API");
+    var archGroup = vm.SectionGroups.FirstOrDefault(g => g.Name == "Architecture");
+    Assert.NotNull(apiGroup);
+    Assert.NotNull(archGroup);
+    Assert.Single(apiGroup.Children);
+    Assert.Single(archGroup.Children);
+    Assert.Equal("Endpoints", apiGroup.Children[0].Name);
+    Assert.Equal("Architecture overview", archGroup.Children[0].Name);
+}
+
+[Fact]
+public async Task LlmViewText_excludes_disabled_sections()
+{
+    var vm = CreateVm();
+    vm.ProjectPath = "C:\\Test";
+
+    var content = "## Keep\nkeep content\n\n## Drop\ndrop content";
+
+    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+
+    await ExecuteAnalyzeCommand(vm);
+
+    var before = vm.LlmViewText;
+    Assert.Contains("keep content", before);
+    Assert.Contains("drop content", before);
+
+    // Toggle off "Drop"
+    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop"));
+    drop.IsIncluded = false;
+
+    var after = vm.LlmViewText;
+    Assert.Contains("keep content", after);
+    Assert.DoesNotContain("drop content", after);
+}
+
+// ══ PropertyChanged batching ══════════════════════════════════════════════
+
+[Fact]
+public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
+{
+    var vm = CreateVm();
+    vm.ProjectPath = "C:\\Test";
+
+    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Test\ncontent", ElapsedMs = 10 }));
+
+    var events = new List<string?>();
+    vm.PropertyChanged += (_, e) => events.Add(e.PropertyName);
+
+    await ExecuteAnalyzeCommand(vm);
+
+    // A single batched notification (empty/null PropertyName) must fire
+    var batched = events.Where(e => string.IsNullOrEmpty(e)).ToList();
+    Assert.Single(batched);
+
+    // Fields set exclusively in the batch block must NOT appear as individual events
+    var batchExclusive = new[] { "DisplayText", "StatsText", "HasOutput", "BudgetTokens", "OutputText", "SelectedTokenTotal" };
+    foreach (var field in batchExclusive)
+    {
+        var perField = events.Where(e => e == field).ToList();
+        Assert.Empty(perField);
+    }
+}
+
+[Fact]
+public async Task AnalyzeAsync_CollectionChanged_fires_on_UI_bound_groups()
+{
+    var vm = CreateVm();
+    vm.ProjectPath = "C:\\Test";
+
+    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new AnalysisResult
+        {
+            Success = true,
+            Content = "## Section A\nA\n\n## Section B\nB\n\n## Section C\nC",
+            ElapsedMs = 10
+        }));
+
+    var collectionEvents = new List<string>();
+    vm.SectionGroups.CollectionChanged += (_, e) =>
+        collectionEvents.Add(e.Action.ToString());
+
+    await ExecuteAnalyzeCommand(vm);
+
+    Assert.NotEmpty(collectionEvents);
+    Assert.Equal("Reset", collectionEvents[0]);  // Clear first, then Adds
+    var adds = collectionEvents.Skip(1).Where(a => a == "Add").Count();
+    Assert.True(adds >= 1);
+}
 }
