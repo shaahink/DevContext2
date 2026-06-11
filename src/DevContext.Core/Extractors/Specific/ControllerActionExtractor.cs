@@ -165,7 +165,8 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         {
             var attrName = attr.Name.ToString();
             var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
-            if (HttpVerbs.Contains(name)) return true;
+            foreach (var verb in HttpVerbs)
+                if (name == verb || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
         }
         return false;
     }
@@ -196,17 +197,23 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         {
             var attrName = attr.Name.ToString();
 
-            if (HttpVerbs.Contains(attrName))
+            foreach (var verb in HttpVerbs)
             {
-                return attrName[4..].ToUpperInvariant();
+                if (attrName == verb || attrName.EndsWith("." + verb, StringComparison.Ordinal))
+                {
+                    return verb[4..].ToUpperInvariant();
+                }
             }
 
             var genericIndex = attrName.IndexOf('<');
             if (genericIndex > 0)
             {
                 var baseName = attrName[..genericIndex];
-                if (HttpVerbs.Contains(baseName))
-                    return baseName[4..].ToUpperInvariant();
+                foreach (var verb in HttpVerbs)
+                {
+                    if (baseName == verb || baseName.EndsWith("." + verb, StringComparison.Ordinal))
+                        return verb[4..].ToUpperInvariant();
+                }
             }
         }
 
