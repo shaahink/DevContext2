@@ -1,99 +1,124 @@
 # Example: Architecture Overview of a Multi-Project Solution
 
-**Scenario**: `architecture` — Get a comprehensive structural overview of any .NET solution.
+**Mode**: Overview — Get a comprehensive structural overview of any .NET solution.
 
 **Command**:
 ```bash
-devcontext analyze ./eShop.slnx --scenario architecture --profile focused
+devcontext . --scenario overview
 ```
 
 ---
 
 ## What the output looks like
 
+### Architecture Classification
+
+```markdown
+## DevContext — Overview on project
+
+**Architecture**: ControllerBased (80% confidence)
+**Signals**: controllers · efcore · minimal-apis
+**Projects**: 3 — DntSite.Web, DntSite.Web.Common.BlazorSsr, DntSite.Tests
+**Profile**: focused | **Tokens**: ~6,273 (budget 8000) | **Types**: 12 in output
+```
+
 ### Project Dependency Tree
 
 ```markdown
-└── Web.Shopping.HttpAggregator
-└── Auxiliary
-└── Ordering.API
-    ├── Ordering.Domain
-    └── Ordering.Infrastructure
-        ├── EventBus
-        └── EventBusRabbitMQ
-└── Webhooks.API
-├── Identity.API
-├── WebhookClient
-├── WebStatus
-├── Catalog.API
-├── Basket.API
-├── Payment.API
-├── Web.Shopping.HttpAggregator
-├── OrderProcessor.Worker
-└── Ordering.SignalrHub
+└── DntSite.Tests
+    └── DntSite.Web
+        └── DntSite.Web.Common.BlazorSsr
 ```
 
-### Detected Architecture Signals
+### Endpoints (70 found)
 
+```markdown
+| Method | Route | Handler | Auth | Source |
+|--------|-------|---------|------|--------|
+| GET | /Feed | FeedController.Index | - | FeedController.cs:15 |
+| GET | /blog/rss.xml | FeedController.SiteFeed | - | FeedController.cs:92 |
+| GET | /rss.xml | FeedController.SiteFeed | - | FeedController.cs:92 |
+| GET | /atom.xml | FeedController.SiteFeed | - | FeedController.cs:92 |
+| GET | /llms.txt | FeedController.LlmsTxt | - | FeedController.cs:103 |
+| GET | /llms-full.txt | FeedController.LlmsFull | - | FeedController.cs:106 |
+| GET | /ProjectsFeeds/ProjectsNews | ProjectsFeedsController.ProjectsNews | - | ProjectsFeedsController.cs:17 |
+| GET | /Exports/{type}/{name}.pdf | ExportsController.Get | - | ExportsController.cs:13 |
+| GET | /File/Avatar | FileController.Avatar | - | FileController.cs:18 |
+| POST | /UploadFile | UploadFileController.ImageUpload | - | UploadFileController.cs:18 |
+| GET | /sitemap.xml | SitemapController.Get | - | SitemapController.cs:12 |
+| POST | /Fts | FtsController.Log | - | FtsController.cs:48 |
+| GET | /Welcome | WelcomeController.Log | - | WelcomeController.cs:12 |
+| ... | ... | ... | ... | ... |
 ```
-controllers · minimal-apis · mediatr · efcore · fluentvalidation
+
+### Data Model (EF Core)
+
+```markdown
+### ApplicationDbContext
+
+| Entity | Aggregate root | Key properties |
+|--------|---------------|----------------|
+| BaseEntity | — | Id |
+| <OnModelCreating> | — | — |
+
+### Migrations (30 found)
+
+| V2024_04_19_1424 | V2024_05_18_1347 | ... | V2026_06_03_1205 |
 ```
 
-### Endpoints (16 in Catalog.API alone)
+### Background Workers (24 found)
 
-| Method | Route | Handler | Source |
-|---|---|---|---|
-| GET | /api/catalog/items | GetAllItems.GetAllItems | CatalogApi.cs:26 |
-| GET | /api/catalog/items/{id:int} | GetItemById.GetItemById | CatalogApi.cs:36 |
-| POST | /api/catalog/items | CreateItem.CreateItem | CatalogApi.cs:103 |
-| PUT | /api/catalog/items/{id:int} | UpdateItem.UpdateItem | CatalogApi.cs:98 |
-| DELETE | /api/catalog/items/{id:int} | DeleteItemById.DeleteItemById | CatalogApi.cs:107 |
+```markdown
+### Background workers
 
-### MediatR Handlers
+- DotNetVersionCheckJob (HostedService)
+- BackupDatabaseJob (HostedService)
+- DailyNewsletterJob (HostedService)
+- FullTextSearchWriterJob (HostedService)
+- DraftsJob (HostedService)
+- AIDailyNewsJob (HostedService)
+...and 18 more
+```
 
-| Kind | Request | Response | Handler |
-|---|---|---|---|
-| Command | CreateOrderCommand | bool | CreateOrderCommandHandler |
-| Command | CancelOrderCommand | bool | CancelOrderCommandHandler |
-| Command | ShipOrderCommand | bool | ShipOrderCommandHandler |
+### DI Registrations
 
-### EF Core Data Model
+```markdown
+### DI registrations
 
-**OrderingContext**:
-
-| Entity | Aggregate Root | Key Properties |
-|---|---|---|
-| Order | ✓ | Id |
-| OrderItem | | Id |
-| Buyer | ✓ | Id |
-| CardType | ✓ | Id |
+| Lifetime | Service | Implementation | Source |
+|----------|---------|----------------|--------|
+| Bulk | AutoInjectAllServices | [bulk auto-registration] | ServicesRegistry.cs:23 |
+| Singleton | IXmlRepository → DataProtectionKeyService | DataProtectionConfig.cs:18 |
+| Singleton | AuditableEntitiesInterceptor | DbContextConfig.cs:32 |
+| Scoped | AuthenticationStateProvider → IdentityRevalidatingAuthenticationStateProvider | AuthenticationConfig.cs:21 |
+| ... | ... | ... | ... |
+```
 
 ### Middleware Pipeline
 
+```markdown
 | Type | Kind | Count | Sources |
-|---|---|---|---|
-| UseRouting | UseX | 1 | Program.cs |
+|------|------|-------|---------|
+| UseForwardedHeaders | UseX | 1 | Program.cs |
+| UseExceptionHandler | UseX | 1 | Program.cs |
+| UseAntiDos | UseX | 1 | Program.cs |
+| UseCsp | UseX | 1 | Program.cs |
+| UseHttpsRedirection | UseX | 1 | Program.cs |
 | UseAuthentication | UseX | 1 | Program.cs |
-
-### Anti-Patterns Detected
-
-| Severity | Pattern | Description | Source |
-|---|---|---|---|
-| high | FireAndForget | Discard assignment to `NotifyAsync` | HooksRepository.cs:18 |
-| high | FireAndForget | `_ = Task.Factory.StartNew(...)` without await | RabbitMQEventBus.cs:229 |
-| high | ServiceLocator | IServiceScopeFactory.CreateScope() | MigrateDbContextExtensions.cs:33 |
-| high | ServiceLocator | IServiceScopeFactory.CreateAsyncScope() | RabbitMQEventBus.cs:190 |
-| medium | CancellationTokenNone | `CancellationToken.None` | App.xaml.cs:120 |
-| medium | NewOutsideDI | `new ExternalProvider(...)` | AccountController.cs:223 |
-| medium | UnboundedCollection | `ConcurrentDictionary<...> _onChangeSubscriptions` | HooksRepository.cs:8 |
+| UseAuthorization | UseX | 1 | Program.cs |
+| UseAntiforgery | UseX | 1 | Program.cs |
+| UseOutputCache | UseX | 1 | Program.cs |
+| UseRequestTimeouts | UseX | 1 | Program.cs |
+```
 
 ---
 
-## What this tells you
+## What this tells the LLM
 
-In 30 seconds, an LLM can see:
-
-- **Architecture**: 18+ microservices with Domain/API/Infrastructure layering
-- **Communication patterns**: MediatR for in-process commands, RabbitMQ for cross-service events
-- **Data layer**: EF Core per service, SQLite in some, PostgreSQL in others
-- **Issues**: Fire-and-forget in the event bus (`RabbitMQEventBus.cs:229`), service locator in infrastructure code, unbounded collections in `HooksRepository`
+- **20 extractors ran**, producing 186 detections from 1,289 types
+- All 10 controllers are found with their routes, not just the ones using `[HttpGet]`/`[HttpPost]` attributes
+- 24 scheduled jobs (DNTScheduler) are detected and listed
+- `AutoInjectAllServices` pattern is recognized as bulk DI registration
+- 30 EF Core migrations are grouped together under a single entry
+- Middleware pipeline is fully captured in order
+- Architecture is correctly identified as `ControllerBased`, not MinimalApi

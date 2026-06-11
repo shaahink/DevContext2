@@ -7,76 +7,112 @@ Create a `devcontext.json` at your project root for persistent settings:
 ```json
 {
   "$schema": "https://devcontext.dev/schemas/v2/config.json",
-  "defaultProfile": "focused",
-  "defaultScenario": "debug-endpoint",
+  "defaultScenario": "overview",
   "maxOutputTokens": 6000,
   "excludePatterns": [".git", "bin", "obj", "Migrations"],
-  "entryPaths": ["src/Api"],
-  "profiles": {
-    "quick": { "profile": "focused", "maxOutputTokens": 2000, "noRoslyn": true }
-  }
+  "entryPaths": ["src/Api"]
 }
 ```
 
-### Fields
+---
+
+## Fields
 
 | Field | Type | Default | Description |
-|---|---|---|---|
-| `defaultProfile` | string | `"focused"` | Profile to use when `--profile` is not specified. One of: `focused`, `debug`, `full`. |
-| `defaultScenario` | string | `"architecture"` | Scenario to use when `--scenario` is not specified. |
-| `maxOutputTokens` | int | `8000` | Token budget for output. Pruning and compression work to stay under this. |
-| `excludePatterns` | string[] | `[".git","bin","obj"]` | Directory/file patterns to exclude from analysis. |
-| `entryPaths` | string[] | `[]` | Restrict analysis to specific subdirectories. |
-| `profiles` | object | `{}` | Custom named profiles that override defaults. |
+|-------|------|---------|-------------|
+| `defaultScenario` | `string` | `"overview"` | Default mode: `"overview"` or `"deep-dive"` (engine key). Alias `"trace"` maps to `"deep-dive"`. `"audit"` deprecated. |
+| `maxOutputTokens` | `int` | `8000` | Token budget for pruning. Range: 500–50000 |
+| `excludePatterns` | `string[]` | `[".git", "bin", "obj", ".vs", "node_modules", ".idea"]` | File/directory patterns to exclude from file tree scanning |
+| `entryPaths` | `string[]` | `[]` | Directories or files to limit analysis to (e.g., `["src/Api"]`) |
 
-## CLI Reference
+---
+
+## Mode & Profile
+
+### Mode (Scenario)
+
+Two modes with backward-compatible engine keys:
+
+| Mode | Engine key | Best for |
+|------|-----------|----------|
+| Overview | `overview` | Broad architecture map, endpoints, entities, wiring |
+| Trace | `deep-dive` | Entry-point focused with call graph, handler chains |
+
+- `trace` is accepted as a CLI alias for `deep-dive`
+- `audit` is deprecated — maps to `overview` with a warning
+
+### Profile (Auto-Derived)
+
+Profile is automatically derived from which sections are selected. You can still pass `--profile` explicitly for backward compatibility:
+
+| Profile | When automatically selected |
+|---------|---------------------------|
+| `focused` | Default — no call graph or source code sections checked |
+| `debug` | Call graph section is checked |
+| `full` | Source code section is checked |
+
+---
+
+## CLI Flags vs Config
+
+CLI flags override `devcontext.json`:
 
 ```bash
-devcontext [PATH] [OPTIONS]
-
-Arguments:
-  [PATH]                  Root path (.sln, .csproj, or directory)
-
-Options:
-  -s, --scenario <NAME>   architecture | debug-endpoint | add-similar-feature |
-                          modify-middleware | trace-message-flow | harden-di
-  -p, --profile <NAME>    focused | debug | full
-  -a, --around <PATH>     Focus on a specific type/method
-  -t, --task <TEXT>       Free-text intent → auto-selects scenario + profile
-      --max-tokens <N>    Token budget (default 8000)
-  -o, --output <FILE>     Write to file (default stdout)
-      --format <FMT>      markdown (default) | json
-      --include-provenance Show why each type was included
-      --include-diagnostics Show pruning notes and warnings
-      --no-roslyn         Disable Roslyn workspace loading
-      --metrics           Show extraction performance metrics
-      --dry-run           Plan extractors without running
-      --verbose           Info-level logging
-      --trace             Debug-level logging
+# Config says maxOutputTokens: 6000, but CLI overrides
+devcontext . --max-tokens 12000
 ```
 
-## Scenarios
+The `--task` flag also overrides the config's `defaultScenario` and `defaultProfile`:
 
-| Scenario | Best for | Key sections |
-|---|---|---|
-| `architecture` | New team members, codebase overview, PR context | All sections |
-| `debug-endpoint` | Debugging a failing endpoint, understanding a handler | Entry points, Endpoints, Call graph, Data model, Anti-patterns, Event flow |
-| `add-similar-feature` | Copying an existing pattern for a new feature | Entry points, Endpoints, Related types |
-| `modify-middleware` | Adding/modifying middleware, understanding pipeline | Architecture overview, Non-obvious wiring |
-| `trace-message-flow` | Tracing events through the system | MediatR Handlers, Data model, Event flow |
-| `harden-di` | Security audit, DI hardening | Entry points, Non-obvious wiring, Anti-patterns |
+```bash
+devcontext . --task "trace the order handler"
+# Auto-selects: scenario=deep-dive, profile=debug
+# Overrides any defaultScenario/defaultProfile in config
+```
 
-## Profiles
+---
 
-| Profile | Details |
-|---|---|
-| `focused` | Balanced extraction with pruning (default). Good for most use cases |
-| `debug` | Adds call graph extraction (BFS from entry points). Use when you need flow tracing |
-| `full` | Full analysis with source body extraction. Adds type source code to output |
+## Exclude Patterns
 
-## Environment Variables
+Control which files and directories are skipped during file tree discovery:
 
-| Variable | Description |
-|---|---|
-| `DEVCONTEXT_CONFIG` | Path to devcontext.json (default: `./devcontext.json`) |
-| `UPDATE_GOLDENS` | Set to `1` to auto-update golden test files during `dotnet test` |
+```json
+{
+  "excludePatterns": [
+    ".git",
+    "bin",
+    "obj",
+    ".vs",
+    "node_modules",
+    ".idea",
+    "Migrations",
+    "wwwroot/lib",
+    "Generated"
+  ]
+}
+```
+
+Patterns are matched against file/directory names (case-insensitive substring match).
+
+---
+
+## Desktop Settings
+
+The Desktop app persists settings in `%LocalAppData%\DevContext\settings.json`:
+
+```json
+{
+  "lastScenario": "overview",
+  "lastProfile": "focused",
+  "lastFormat": "markdown",
+  "lastTokens": 8000,
+  "lastAround": "",
+  "lastTask": "",
+  "includeProvenance": false,
+  "includeDiagnostics": false,
+  "noRoslyn": false,
+  "lastActiveSections": ["Architecture overview", "Endpoints", "MediatR Handlers", "Data model", "DI / Wiring", "Related types"]
+}
+```
+
+Recent project paths are stored in `%LocalAppData%\DevContext\recent.json`.
