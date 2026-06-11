@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>.icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}</style>
 </head>
 <body>
     <div id="app">Loading...</div>
@@ -24,12 +24,6 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
-        // Refresh Lucide icons — guarded against CDN load failure
-        try {
-            new MutationObserver(function(mutations, observer) {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }).observe(document.body, { childList: true, subtree: true });
-        } catch(e) { console.error('Lucide observer setup failed:', e); }
     </script>
 </body>
 </html>
