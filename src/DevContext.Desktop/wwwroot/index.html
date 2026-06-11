@@ -12,6 +12,10 @@
 <body>
     <div id="app"><div class="empty-state" style="margin-top:40vh"><p>Loading...</p></div></div>
     <script>
+// Debug: catch JS errors
+window.onerror = function(m,s,l,c,e) { document.getElementById('app').innerHTML = '<div style="padding:40px;color:#d20f39;font-family:sans-serif"><h2>JavaScript Error</h2><pre>'+m+'\n'+s+' line '+l+'</pre></div>'; };
+</script>
+    <script>
 // ── State ────────────────────────────────────────────────────
 let state = null, selectedTab = 'human';
 

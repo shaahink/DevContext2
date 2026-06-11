@@ -45,7 +45,11 @@ public partial class MainWindow
             _vm.PropertyChanged += (_, e) => Dispatcher.Invoke(() => SyncState(e.PropertyName));
 
             WebView.CoreWebView2InitializationCompleted += OnCoreWebView2Ready;
-            WebView.NavigationCompleted += (_, _) => Log("Navigation completed");
+            WebView.NavigationCompleted += (_, _) =>
+            {
+                Log("Navigation completed");
+                Dispatcher.Invoke(() => SyncAllState());
+            };
 
             var htmlPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html");
             if (File.Exists(htmlPath))
@@ -71,7 +75,6 @@ public partial class MainWindow
     {
         Log("CoreWebView2 ready");
         WebView.CoreWebView2.WebMessageReceived += OnWebMessage;
-        SyncAllState();
     }
 
     private void SyncState(string? propertyName)
