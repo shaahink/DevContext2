@@ -2,6 +2,40 @@
 
 All notable changes to DevContext are documented here.
 
+## v2.1.0 (unreleased)
+
+### UI Simplification
+
+- **Two-mode UI replaces 6-scenario × 3-profile matrix** — Modes: Overview (whole-codebase) and Trace (entry-point focused). Profile derived automatically from section checkboxes (Call graph → Debug, Source code → Full, neither → Focused).
+- **Section checkboxes** — 9 explicit section toggles replacing opaque profile names. Users see exactly what goes into output.
+- **Intent field** — `--task` natural language input in Desktop UI auto-selects mode and profile. (ConfigPanel.razor, MainViewModel)
+- **`audit` scenario deprecated** — Maps to `overview` with a deprecation warning. Removed from `ScenarioRegistry`.
+- **`trace` CLI alias** — Accepted as alias for `deep-dive` (engine key unchanged for backward compat).
+
+### Extractor Improvements
+
+- **Controller endpoints now fully detected** — `ControllerActionExtractor` handles bare `[Route(...)]` attributes without HTTP verb, infers verb from method name, expands `[controller]/[action]` tokens, supports multiple `[Route]` per action, and handles fully-qualified attribute names (`Microsoft.AspNetCore.Mvc.Route`). Real-world test: 13→70 endpoints on DntSite repo (5.4× improvement).
+- **Architecture correctly classified** — New `ControllerBased` style. `ArchitectureStyleDetector` now demotes `MinimalApi` when controllers signal is stronger. Previously misclassified controller-heavy projects as MinimalApi.
+- **Background workers detected** — `ProgramCsFlowExtractor` now scans scheduler config files (not just `Program.cs`) and detects `AddDNTScheduler` with individual job types. Real-world test: 0→24 background workers on DntSite.
+- **DI auto-registration patterns** — `DiRegistrationExtractor` now detects `AutoInjectAllServices`, `Scan`, and similar bulk registration patterns. Also fixed case-insensitive `services.*` chain matching (previously missed lowercase `services`). Real-world test: 1→83 DI registrations.
+- **EF Core entities from `OnModelCreating`** — `EfCoreExtractor` now walks `modelBuilder.Entity<T>()` calls in `OnModelCreating` to find entities even when no `DbSet<T>` properties exist. `ApplyConfigurationsFromAssembly` pattern also detected.
+- **Migration classes grouped** — Migrations now shown under a single "Migrations" group instead of 30 separate tables.
+- **Endpoint table filtering** — `AppendEndpoints` now respects `--around` focus points, showing only endpoints within proximity of the entry point.
+
+### Desktop App
+
+- **Crash logging** — Global WPF/AppDomain/Task exception handlers write to `crash.log` in `%LocalAppData%\DevContext\`. Serilog file sink with rolling daily logs + error-only crash log.
+- **UI freeze eliminated** — `PopulateSections` split into pure computation (thread-pool) and collection mutation (UI thread). Batched property notifications — single `OnPropertyChanged(string.Empty)` instead of ~30 per-field events. Cached `LlmViewText` avoids recomputing 70K+ character strings on every render.
+- **JS interop safety** — Copy/Save clipboard operations wrapped in try/catch.
+- **File I/O off UI thread** — `SaveSettings` and `GitCloneService.Cleanup` run on thread pool.
+
+### Tests
+
+- **221 tests** (157 Core + 64 Desktop). Added 5 regression tests for batching, cache invalidation, section parsing, and collection notification counts.
+- Golden tests regenerated to reflect new output format.
+
+---
+
 ## v2.0.0 (unreleased)
 
 ### Removed
