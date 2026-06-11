@@ -555,7 +555,7 @@ public sealed record ExtractionOptions
     public int MaxProjects { get; init; } = 150;   // auto-disables Deep above this
 }
 
-public enum ExtractionProfile { Quick, Focused, Debug, Full }
+public enum ExtractionProfile { Focused, Debug, Full }
 public enum OutputFormat { Markdown, Json }
 public enum EntryResolutionMode { Auto, FileOnly, FolderOnly, TypeMethod }
 ```

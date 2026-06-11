@@ -33,17 +33,15 @@ src/
   DevContext.Cli/      # CLI composition root: commands, DI wiring, observers
   DevContext.Desktop/  # Avalonia desktop app: direct engine, ViewModels, control themes
 tests/
-  DevContext.Core.Tests/     # Unit + golden tests (~144 tests)
-  DevContext.Desktop.Tests/  # ViewModel + XAML headless tests (~33 tests)
-  DevContext.Roslyn.Tests/   # In-memory Roslyn compilation tests
-  DevContext.Integration/    # End-to-end against real repos
+  DevContext.Core.Tests/     # Unit + golden tests (~157 tests)
+  DevContext.Desktop.Tests/  # ViewModel tests (~64 tests)
 ```
 
 ## Making Changes
 
 1. Create a branch from `develop`: `git checkout -b feature/your-feature develop`
 2. Make changes, following existing code conventions
-3. Ensure `dotnet test` passes (176+ tests)
+3. Ensure `dotnet test` passes (221+ tests)
 4. Update golden tests if output format changed: `$env:UPDATE_GOLDENS = "1"; dotnet test`
 5. Ensure `dotnet format --verify-no-changes` passes
 6. Push and open a PR against `develop`
