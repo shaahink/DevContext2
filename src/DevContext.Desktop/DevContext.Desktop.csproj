@@ -13,5 +13,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.*" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.*" />
   </ItemGroup>
 </Project>

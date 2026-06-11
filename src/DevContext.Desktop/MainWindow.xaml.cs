@@ -1,29 +1,23 @@
-using System.IO;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
 using DevContext.Desktop.ViewModels;
+using Serilog;
 
 namespace DevContext.Desktop;
 
 public partial class MainWindow
 {
-    private readonly string _logPath;
-
     public MainWindow()
     {
-        _logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DevContext", "blazor.log");
-        Directory.CreateDirectory(Path.GetDirectoryName(_logPath)!);
-        Log("Starting DevContext Desktop (Blazor Hybrid)...");
+        Log.Information("Initializing MainWindow...");
 
         try
         {
             var version = CoreWebView2Environment.GetAvailableBrowserVersionString();
-            Log($"WebView2 runtime: {version ?? "NOT FOUND"}");
             if (string.IsNullOrEmpty(version))
             {
+                Log.Warning("WebView2 runtime not found");
                 MessageBox.Show("WebView2 runtime is required.\n\nClick OK to open the download page.",
                     "WebView2 Runtime Required", MessageBoxButton.OK, MessageBoxImage.Information);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -34,6 +28,7 @@ public partial class MainWindow
                 Application.Current.Shutdown();
                 return;
             }
+            Log.Information("WebView2 runtime version: {Version}", version);
 
             InitializeComponent();
 
@@ -42,20 +37,14 @@ public partial class MainWindow
             services.AddSingleton<MainViewModel>();
             Resources["services"] = services.BuildServiceProvider();
 
-            Log("Initialized successfully");
+            Log.Information("MainWindow initialized successfully");
         }
         catch (Exception ex)
         {
-            Log($"FATAL: {ex}");
+            Log.Fatal(ex, "Failed to initialize MainWindow");
             MessageBox.Show($"Failed to start:\n\n{ex.Message}", "Startup Error",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Application.Current.Shutdown();
         }
-    }
-
-    private void Log(string msg)
-    {
-        try { File.AppendAllText(_logPath, $"{DateTime.Now:HH:mm:ss.fff} {msg}\n"); }
-        catch { /* best effort */ }
     }
 }
