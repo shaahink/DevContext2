@@ -16,6 +16,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\DevContext.Core\DevContext.Core.csproj" />
     <ProjectReference Include="..\DevContext.Roslyn\DevContext.Roslyn.csproj" />
     <PackageReference Include="Spectre.Console" Version="0.56.0" />
