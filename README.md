@@ -1,11 +1,10 @@
-# DevContext — .NET Codebase Analysis for LLM Context
+# DevContext — .NET codebase context for humans and LLMs
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
 [![CI](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml/badge.svg)](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-233%20passing-brightgreen)](tests/)
 
-**DevContext** is a static analysis CLI and desktop tool that extracts structured context from .NET codebases for use with LLMs. It discovers endpoints, background workers, EF Core entities, DI registrations, middleware pipelines, call graphs, and anti-patterns — then prunes and compresses the output to fit a token budget.
+**DevContext is the answer to "what IS this .NET solution?"** — point it at a folder, repo URL, `.sln`, or `.csproj`; it reads the code once, models it, and produces the most relevant context for whatever you're doing — sized for an LLM prompt, readable by a human, and honest about how it got there.
 
 | | CLI | Desktop |
 |---|-----|---------|
@@ -13,275 +12,109 @@
 | **Requires** | [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Nothing — self-contained `.exe` |
 | **Download** | `dotnet tool install -g DevContext.Cli` | [GitHub Releases](https://github.com/shaahink/DevContext2/releases) |
 
+## The 30-second demo
+
 ```bash
-# Quick start
 dotnet tool install -g DevContext.Cli
-devcontext analyze . --scenario overview --max-tokens 8000
+devcontext analyze . --focus DiscoveryPipeline:RunAsync --depth 3
 ```
 
-## Table of Contents
+```
+## DevContext — Slice on DevContext2
 
-- [Features](#features)
-- [Why DevContext?](#why-devcontext)
-- [Before vs After](#before-vs-after)
-- [Quick Start](#quick-start)
-- [Desktop UI](#desktop-ui)
-- [CLI Reference](docs/cli-reference.md)
-- [Example Scenarios](#example-scenarios)
-- [Output Sections](#output-sections)
-- [Configuration](#configuration)
-- [Architecture](#architecture)
-- [Development](#development)
-- [License](#license)
+**Architecture**: CleanArchitecture (100% confidence)
+**Signals**: controllers · efcore · mediatr · minimal-apis
+**Projects**: 4 — DevContext.Cli, DevContext.Core, DevContext.Desktop, DevContext.Roslyn
+**Types**: 38 in output
 
----
-
-## Features
-
-**UI simplification** — two clear modes and explicit section checkboxes:
-
-| Concept | How it works |
-|---------|-------------|
-| 2 modes | Overview (whole-codebase) or Trace (entry-point focused) |
-| 9 section checkboxes | Check what you want — profile derived automatically |
-| Profile auto-derived | Call graph checked → Debug, Source code checked → Full, neither → Focused |
-| `--scenario audit` | Deprecated — maps to Overview with a warning |
-| `--task` field | Free-text intent (`"trace the order handler"`) auto-selects mode/profile |
-
-**Extractor capabilities** — 70 endpoints, 24 background workers, 83 DI registrations, correct architecture classification on real-world codebases.
-
----
-
-## Why DevContext?
-
-LLMs need focused, structured context to be useful for coding tasks. Pointing an LLM at an entire codebase wastes tokens on irrelevant details and buries what matters. DevContext solves this by:
-
-- **Discovering** what's in your codebase (endpoints, handlers, entities, DI wiring, background workers, middleware)
-- **Pruning** irrelevant types (test noise, unrelated code, framework internals)
-- **Compressing** output to fit within a token budget
-- **Scoping** by entry point (`--around`) or natural-language intent (`--task`)
-
-The tool is pure static analysis — no LLM calls, no runtime agents, no network access.
-
----
-
-## Before vs After
-
-**Before**: You dump source files into an LLM. It gets 50,000 tokens of noise. You spend half your budget on `using` directives and closing braces.
-
-**After**: DevContext produces a structured, pruned, 8,000-token overview that an LLM can immediately act on:
-
-```markdown
-## Endpoints (70 found)
-
+## Endpoints
 | Method | Route | Handler | Source |
 |--------|-------|---------|--------|
-| GET | /Feed | FeedController.Index | FeedController.cs:15 |
-| GET | /blog/rss.xml | FeedController.SiteFeed | FeedController.cs:92 |
-| GET | /rss.xml | FeedController.SiteFeed | FeedController.cs:92 |
-| ... | ... | ... | ... |
-| GET | /Exports/{type}/{name}.pdf | ExportsController.Get | ExportsController.cs:13 |
-
-## Background workers (24 found)
-
-DotNetVersionCheckJob · BackupDatabaseJob · DailyNewsletterJob
-FullTextSearchWriterJob · ThumbnailsServiceJob · DraftsJob ...
-
-## DI registrations
-
-| Bulk | AutoInjectAllServices | [bulk auto-registration] | ServicesRegistry.cs:23 |
-| Singleton | IXmlRepository → DataProtectionKeyService | DataProtectionConfig.cs:18 |
-
-## Anti-patterns detected
-| Severity | Pattern | Description | Source |
-|---|---|---|---|
-| high | ServiceLocator | IServiceScopeFactory.CreateScope() | BacktestOrchestrator.cs:117 |
+| POST | /api/analyze | AnalyzeController.Analyze | AnalyzeController.cs:15 |
+| GET  | /api/health  | HealthController.Check  | HealthController.cs:8  |
+  [...]
+analyzed 412 files · 38 types kept of 167 · 7,842/8,000 tokens · 1.9s stage2 ×3.1 stage3 ×2.4
 ```
 
-**Architecture**: ControllerBased (80%) · **Signals**: controllers · efcore · **Projects**: 3  
-**24 background jobs** · **70 endpoints** · **83 DI registrations** · all in ~6,000 tokens
+## There are exactly two situations
 
----
+1. **You don't know the repo** → `devcontext analyze .` produces an orientation map (architecture, endpoints, data model, DI wiring). No starting point exists — by definition — so DevContext shows you the whole picture.
+2. **You know where you're standing** → `devcontext analyze . --focus TypeName:Method` slices from that point *down the wiring* (endpoint → handler → MediatR → entities → events). The **Depth** dial controls how far to follow.
 
-## Quick Start
+That's the entire surface. No natural-language input, no query-box pretense — just Focus + Depth, with smart defaults and visual adjustment after.
 
-**Requires**: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+## How it decides what to show
 
+DevContext doesn't delete. Every type gets three normalized scores ∈ [0,1]:
+
+| Score | Meaning |
+|-------|---------|
+| **RoleScore** | How load-bearing is this type? Endpoint (1.0) > MediatR handler (0.8) > DI registration (0.35) |
+| **FocusScore** | How close to your focus point? Path distance + call-graph reachability via BFS |
+| **FinalScore** | Weighted blend per mode: overview (0.7×Role + 0.3×Focus), slice (0.35×Role + 0.65×Focus) |
+
+The highest-scoring types fill the token budget. Everything past the line is listed in the cut list: *"12 types pruned: …"*. You can turn the dial after analysis (`--max-tokens`, section checkboxes) and immediately see what enters and leaves — no re-analysis. Run `--stats` to see the full scoring funnel, extractor timing, cache hits, and parallel speedup.
+
+→ [Full design philosophy](docs/DESIGN-PHILOSOPHY.md)
+
+## What it extracts
+
+| Detection | What it finds |
+|-----------|---------------|
+| **Endpoints** | Minimal API `Map*` calls, FastEndpoints, MVC controller actions |
+| **MediatR handlers** | `IRequestHandler<T,Q>`, commands, queries, notifications |
+| **Message consumers** | MassTransit `IConsumer<T>`, NServiceBus, in-memory `IEventHandler<T>` |
+| **EF Core entities** | DbContext, DbSet properties, aggregate roots, key properties |
+| **DI registrations** | `AddSingleton`/`AddScoped`/`AddTransient`, extension methods, factory delegates |
+| **Background workers** | `IHostedService`, `BackgroundService`, Quartz jobs |
+| **Middleware pipeline** | `Use*` calls in Program.cs, registration order |
+| **Indirect wiring** | `Activator.CreateInstance`, service locator, reflection scanning |
+| **Aspire resources** | `AddProject`, `AddRedis`, `AddPostgres`, `WithReference` |
+| **Anti-patterns** | Fire-and-forget, `IServiceScopeFactory`, `new` outside DI, `CancellationToken.None` |
+| **Event flow** | Publish/Subscribe pairs, handler implementations |
+| **Architecture style** | Evidence-based: Microservices, CleanArchitecture, NLayer, MinimalApi, VerticalSlices |
+
+## Quickstart
+
+**CLI:**
 ```bash
-# Install as a .NET global tool
 dotnet tool install -g DevContext.Cli
-
-# Run from any .NET project/solution directory (Overview mode)
-devcontext analyze .
-
-# Trace a specific entry point with natural language intent
-devcontext analyze . --task "trace the order submission handler"
-
-# Focus on a specific type or method
-devcontext analyze . --around FeedController
-
-# Save to file
-devcontext analyze . --scenario overview --format markdown -o output.md
-
-# See extractor timing (debug profile for call graph)
-devcontext . --scenario trace --profile debug --around FeedController:Posts
-
-# Plan only — see what extractors would run
-devcontext analyze . --dry-run
+devcontext analyze .                              # Overview map (no focus)
+devcontext analyze . --focus OrderService         # Slice from a type
+devcontext analyze . --focus "GET /api/orders"    # Slice from an endpoint route
+devcontext analyze . --focus Foo:Bar --depth 3    # With explicit depth
+devcontext analyze . --stats                      # Full nerd view (timing, funnel, cache)
+devcontext analyze . --format json --strict       # JSON output with runReport
 ```
 
----
+**Desktop:** Download `DevContext.Desktop.zip` from [Releases](https://github.com/shaahink/DevContext2/releases), unzip, run `DevContext.Desktop.exe`. Three tabs after analysis: Human (HTML), LLM (markdown), Stats (timing waterfall, extractor grid, token funnel, parallel speedup). Section checkboxes and token slider re-render instantly — no re-analysis.
 
-## Desktop UI
+## Honest roadmap
 
-DevContext includes a Windows desktop app for interactive analysis. Download from [GitHub Releases](https://github.com/shaahink/DevContext2/releases) (`DevContext.Desktop.zip`) — unzip anywhere, run `DevContext.Desktop.exe`. No .NET SDK required. WebView2 runtime auto-installs on first launch.
+**What's solid today:**
+- Full .NET static analysis — endpoints, entities, DI, handlers, events, anti-patterns
+- Score-then-budget ranking with inspectable cut list
+- Analyze-once-render-many (Plan 1): snapshot + lens, sub-100ms re-renders
+- `--stats` everywhere + Stats tab on desktop
+- Self-validating output (`--strict` mode, eval suite over real repos)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Source  [path/to/project or github.com/user/repo]           │
-│                                                             │
-│  Intent  [trace the order submission handler]  (optional)    │
-│                                                             │
-│  Mode    [ Overview ]  [ Trace ]                             │
-│                                                             │
-│  Entry point  [FeedController]        (Trace mode)           │
-│                                                             │
-│  Sections                                                    │
-│    ☑ Architecture overview     ☐ Call graph (+Roslyn)        │
-│    ☑ Endpoints                 ☐ Message consumers          │
-│    ☑ MediatR Handlers          ☐ Source code (+tokens)      │
-│    ☑ Data model                ...                          │
-│    ☑ DI / Wiring                                            │
-│                                                             │
-│  Token budget  [━━━━━━━━━━○━━━━] 8000                        │
-│                                                             │
-│  Symbol focus  [Namespace.Class:Method]   (Overview mode)    │
-│                                                             │
-│  Output  [ Markdown ] [ JSON ]     ▸ Advanced                │
-│                                                             │
-│  [         Clone & Analyze         ]                         │
-└─────────────────────────────────────────────────────────────┘
-```
+**Known limits (tracked as aspirational eval checks):**
+- Architecture-style detection on hybrid repos (Aspire microservices, VerticalSlice) — currently biased toward per-service endpoint style rather than topology. [Issue](docs/DETECTION-GUIDE.md#5-architecture-style-detection-the-known-weak-spot)
+- `<dynamic>` route placeholders in FastEndpoints — route resolution needs improvement
+- AutoMapper library-mode type retention — scoring weights tuned for web apps, not pure libraries
 
-See the [Desktop UI guide](docs/desktop-ui.md) for full details.
-
----
-
-## Example Scenarios
-
-| Example | Mode | Entry point | What it shows |
-|---------|------|-------------|---------------|
-| [Architecture overview](docs/examples/architecture.md) | Overview | — | Project tree, 70 endpoints, entities, DI wiring, middleware |
-| [Trace an endpoint](docs/examples/trace.md) | Trace | `FeedController:SiteFeed` | Call graph, entry point details, source code, anti-patterns |
-| [DI hardening audit](docs/examples/harden-di.md) | Overview + Debug | — | Service locators, reflection activation, manual wiring detection |
-| [Intent inference](docs/examples/intent.md) | Auto | — | How `--task` auto-selects mode and profile from natural language |
-
----
-
-## Output Sections
-
-| Section | Content | Gated by |
-|---------|---------|----------|
-| Header | Architecture style, signals, projects, token budget | Always |
-| Architecture overview | Project dependency tree (ASCII) | `☑ Architecture overview` |
-| Entry points | Inline type definition for `--around` focus | When focus point provided |
-| Endpoints | Per-project HTTP endpoint table with routes, auth, source locations | `☑ Endpoints` |
-| Call graph | BFS call tree from entry points | `☑ Call graph` (+ profile: debug) |
-| MediatR Handlers | Command/query handlers with request/response types | `☑ MediatR Handlers` |
-| Data model (EF Core) | Per-DbContext entities, aggregate roots, migrations summary | `☑ Data model` |
-| Message consumers | Event bus / in-memory event consumers | `☑ Message consumers` |
-| Non-obvious wiring | Indirect wiring, middleware pipeline, DI registrations, background workers | `☑ DI / Wiring` |
-| Anti-patterns | FireAndForget, ServiceLocator, CaptiveDependencies, etc. | When detected |
-| Source code | Full type declarations for entry point + call chain | `☑ Source code` (+ profile: full) |
-| Related types | Surviving types grouped by layer | `☑ Related types` |
-| Diagnostics | Pruning notes, warnings, pipeline events | `--include-diagnostics` |
-
----
-
-## Configuration
-
-Create `devcontext.json` in your project root for persistent settings:
-
-```json
-{
-  "$schema": "./devcontext.schema.json",
-  "defaultScenario": "overview",
-  "maxOutputTokens": 6000,
-  "excludePatterns": [".git", "bin", "obj", "Migrations"],
-  "entryPaths": ["src/Api"]
-}
-```
-
-See the [configuration guide](docs/configuration.md) for all available options.
-
----
-
-## Architecture
-
-```
-CLI (Spectre.Console) / Desktop (Blazor Hybrid + WPF)
-  → ProjectRootResolver: finds .sln / walk-up / folder mode
-  → DiscoveryPipeline:
-      Stage 1 — File tree, solution, project structure
-      Stage 2 — Generic extractors (parallel): dependencies, syntax, DI, middleware
-      [Signals sealed — controllers, efcore, mediatr, etc.]
-      Stage 3 — Specific extractors (sequential): endpoints, controllers, EF Core, call graph, etc.
-      Stage 4 — Pruning: path proximity → call reachability → pattern relevance → token budget
-      Stage 5 — Compression: trivial member → boilerplate → deduplication → namespace grouping
-      Stage 6 — Render: markdown or JSON
-```
-
-Four projects:
-- **`DevContext.Core`** — Contracts, pipeline, extractors, pruning, compression, rendering. Zero UI dependencies.
-- **`DevContext.Roslyn`** — Roslyn workspace integration (loaded on demand for deep analysis).
-- **`DevContext.Cli`** — CLI tool. Spectre.Console + Serilog. `dotnet tool install -g DevContext.Cli`.
-- **`DevContext.Desktop`** — Desktop app. Blazor Hybrid on WPF. In-process engine for real cancellation and progress.
-
----
+**Deliberately deferred:**
+- **Beyond .NET** — the pipeline is language-agnostic by design; TS/other languages are roadmap-only.
+- **LLM-value benchmark** — an honest harness measuring "does an LLM answer codebase questions better with DevContext output than with a raw file dump?" stays out of the README until it exists.
+- **Persistent snapshot cache** — serialize `AnalysisSnapshot` to disk keyed by content hash for instant re-open.
 
 ## Development
 
 ```bash
-# Build
-dotnet build
-
-# Test (233 tests)
-dotnet test tests/DevContext.Core.Tests
-dotnet test tests/DevContext.Desktop.Tests
-
-# Run CLI against a local project
-dotnet run --project src/DevContext.Cli -- analyze C:\path\to\project --scenario overview
-
-# Run the desktop app
-dotnet run --project src/DevContext.Desktop
-
-# Regenerate golden test files after output format changes
-$env:UPDATE_GOLDENS=1; dotnet test tests/DevContext.Core.Tests
+dotnet build DevContext.slnx
+dotnet test                                      # 288 tests
+$env:UPDATE_GOLDENS=1; dotnet test               # Regenerate goldens
 ```
-
-### Project structure
-
-```
-src/DevContext.Core/       # Core library
-  Contracts/               # All interfaces (IDiscoveryExtractor, IObserver, etc.)
-  Extractors/              # Generic (always run) + Specific (signal-gated, 20 total)
-  Models/                  # Data model (signals, detections, types, scenarios)
-  Pipeline/                # DiscoveryPipeline orchestrator
-  Pruning/                 # 4 pruning strategies
-  Compression/             # 6 compression strategies
-  Rendering/               # Markdown + JSON renderers
-  Resolvers/               # Focus point parser, project root resolver
-
-src/DevContext.Roslyn/     # Roslyn workspace integration
-src/DevContext.Cli/        # CLI commands, Spectre.Console observer
-src/DevContext.Desktop/    # Blazor Hybrid desktop app
-
-tests/DevContext.Core.Tests/     # 157 unit + golden tests
-tests/DevContext.Desktop.Tests/  # 64 ViewModel tests
-docs/                            # ADRs, configuration, examples, benchmarks
-```
-
----
 
 ## License
 
