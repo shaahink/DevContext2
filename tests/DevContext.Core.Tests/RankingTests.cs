@@ -2,6 +2,14 @@ namespace DevContext.Core.Tests;
 
 public sealed class RankingTests
 {
+    private static readonly RunReport DefaultReport = new()
+    {
+        Stages = [], Extractors = [], Scorers = [], Compressions = [],
+        Cache = new(0, 0, 0, 0), Corpus = new(0, 0, 0),
+        Funnel = new(0, 0, 0, 0, 0, 0),
+        Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),
+        TotalWall = TimeSpan.Zero,
+    };
     /// <summary>overview: endpoint handler at path distance 3 outranks plain POCO at distance 0</summary>
     [Fact]
     public void Overview_EndpointHandlerOutranksPlainPoco()
@@ -162,7 +170,7 @@ public sealed class RankingTests
                 FocusPoints = [new FocusPoint(FocusKind.Type, @"C:\repo\App\Focused\Type.cs", "Type", null)],
             },
             Scenario = ScenarioRegistry.BuiltIn["deep-dive"],
-            Options = new ExtractionOptions(),
+            Options = new ExtractionOptions(), Report = DefaultReport,
         };
 
         var request = new RenderRequest { Format = "markdown", MaxTokens = 100 }; // tiny budget
@@ -270,7 +278,7 @@ public sealed class RankingTests
             Model = model,
             Analysis = new SharedAnalysisContext(),
             Scenario = ScenarioRegistry.BuiltIn["overview"],
-            Options = new ExtractionOptions(),
+            Options = new ExtractionOptions(), Report = DefaultReport,
         };
 
         var request = new RenderRequest { Format = "markdown", MaxTokens = 8000 };
@@ -306,7 +314,7 @@ public sealed class RankingTests
             Model = model,
             Analysis = new SharedAnalysisContext(),
             Scenario = ScenarioRegistry.BuiltIn["overview"],
-            Options = new ExtractionOptions(),
+            Options = new ExtractionOptions(), Report = DefaultReport,
         };
 
         var request = new RenderRequest { Format = "markdown", MaxTokens = 8000 };

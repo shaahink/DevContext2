@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 
+using DevContext.Core.Analysis;
 using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Observers;
 using DevContext.Core.Validation;
 
 namespace DevContext.Core.Pipeline;
@@ -85,6 +87,10 @@ public sealed class DiscoveryPipeline
         var model = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = context.Options.MaxOutputTokens } };
         context.Observer.OnPipelineStarted(context);
 
+        // Snapshot the collector if present in the observer chain
+        var collector = (context.Observer as CompositeDiscoveryObserver)?.GetInner()
+            .OfType<RunReportCollector>().FirstOrDefault();
+
         // Stage 1: Sequential discovery + cache warmup
         await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct);
 
@@ -144,12 +150,34 @@ public sealed class DiscoveryPipeline
 
         context.Observer.OnPipelineCompleted(model);
 
+        if (collector is not null)
+        {
+            collector.SetCorpusFileCounts(
+                context.Analysis.AllSourceFiles?.Count ?? 0,
+                context.Analysis.AllSourceFiles?.Count ?? 0);
+
+            if (context.Cache is AnalysisCache ac)
+                collector.SetCacheStats(ac.GetStats());
+        }
+
         return new AnalysisSnapshot
         {
             Model = model,
             Analysis = context.Analysis,
             Scenario = context.ActiveScenario,
             Options = context.Options,
+            Report = collector?.Build() ?? new RunReport
+            {
+                Stages = [],
+                Extractors = [],
+                Scorers = [],
+                Compressions = [],
+                Cache = new(0, 0, 0, 0),
+                Corpus = new(0, 0, 0),
+                Funnel = new(model.Types.Count, 0, model.Types.Count, 0, 0, 0),
+                Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),
+                TotalWall = TimeSpan.Zero,
+            },
         };
     }
 
@@ -431,12 +459,37 @@ public sealed class DiscoveryPipeline
         ctx.Observer.OnStageStarted(stage);
         var sw = Stopwatch.StartNew();
 
-        var eligible = _extractors
+        var stageExtractors = _extractors
             .Where(e => e.Stage == execStage)
-            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => e.ShouldRun(ctx, model))
             .OrderBy(GetOrder)
             .ToList();
+
+        var excludedByName = stageExtractors
+            .Where(e => ctx.Options.ExcludeExtractors.Contains(e.Name))
+            .ToList();
+
+        var excludedBySignal = stageExtractors
+            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
+            .Where(e => !e.ShouldRun(ctx, model))
+            .ToList();
+
+        var eligible = stageExtractors
+            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
+            .Where(e => e.ShouldRun(ctx, model))
+            .ToList();
+
+        // Report skipped extractors
+        foreach (var ext in excludedByName)
+            ctx.Observer.OnExtractorCompleted(ext.Name, TimeSpan.Zero, true, "excluded by scenario");
+
+        foreach (var ext in excludedBySignal)
+        {
+            var signals = ext.Capabilities.ReadsSignals;
+            var reason = signals.Length > 0
+                ? $"signal gate: needs {string.Join(" or ", signals)}"
+                : "gated by ShouldRun";
+            ctx.Observer.OnExtractorCompleted(ext.Name, TimeSpan.Zero, true, reason);
+        }
 
         if (parallel)
         {

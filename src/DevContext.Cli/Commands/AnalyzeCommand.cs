@@ -143,10 +143,14 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         RenderedContext result = null!;
         var sw = Stopwatch.StartNew();
 
+        var collector = new RunReportCollector();
+        collector.SetBudget(options.MaxOutputTokens);
+
         var spectreObserver = new SpectreDiscoveryObserver();
-        var observer = metricsObserver is not null
-            ? new CompositeDiscoveryObserver(spectreObserver, metricsObserver)
-            : (IDiscoveryObserver)spectreObserver;
+        var inner = new List<IDiscoveryObserver> { spectreObserver };
+        if (metricsObserver is not null) inner.Add(metricsObserver);
+        inner.Add(collector);
+        var observer = new CompositeDiscoveryObserver([.. inner]);
 
         var ctx = new DiscoveryContext
         {

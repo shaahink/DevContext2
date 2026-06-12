@@ -9,6 +9,7 @@ using DevContext.Core.Configuration;
 using DevContext.Core.Contracts;
 using DevContext.Core.IO;
 using DevContext.Core.Models;
+using DevContext.Core.Observers;
 using DevContext.Core.Pipeline;
 using DevContext.Core.Resolvers;
 
@@ -118,7 +119,9 @@ public class AnalysisService : IAnalysisService
                 rootResult.SolutionFilePath, fs,
                 loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
 
-        var observer = new DesktopProgressObserver(progress);
+        var collector = new RunReportCollector();
+        collector.SetBudget(opts.MaxTokens);
+        var observer = new CompositeDiscoveryObserver(new DesktopProgressObserver(progress), collector);
 
         var ctx = new DiscoveryContext
         {

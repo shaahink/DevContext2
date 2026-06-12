@@ -7,4 +7,5 @@ public sealed record AnalysisSnapshot
     public required SharedAnalysisContext Analysis { get; init; }
     public required Scenario Scenario { get; init; }
     public required ExtractionOptions Options { get; init; }
+    public required RunReport Report { get; init; }
 }

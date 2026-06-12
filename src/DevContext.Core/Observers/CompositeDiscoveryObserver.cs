@@ -47,7 +47,18 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
         TimeSpan elapsed, bool skipped, int typesAdded, int detectionsAdded)
     {
         foreach (var o in _inner)
+        {
             if (o is MetricsDiscoveryObserver mdo)
                 mdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
+            if (o is RunReportCollector rrc)
+                rrc.AccumulateCpuTime("", elapsed);
+        }
     }
+
+    /// <summary>Returns all inner observers.</summary>
+    public IDiscoveryObserver[] GetInner() => _inner;
+    public bool HasCollector => _inner.Any(o => o is RunReportCollector);
+
+    /// <summary>Returns the first RunReportCollector among inner observers, or throws.</summary>
+    public RunReportCollector GetCollector() => (RunReportCollector)_inner.First(o => o is RunReportCollector);
 }
