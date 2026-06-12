@@ -1,160 +1,166 @@
-# Plan 2 — Unified Focus + Depth UX
+# Plan 2 — Focus + Depth: Entry-Point Slicing, No Query Pretense
 
 > Implements P4 (and part of P6) of `docs/DESIGN-PHILOSOPHY.md`. Depends on Plan 1's types
-> (`AnalysisSnapshot`, `RenderRequest`) but can be executed before Plan 3.
-> Goal: the user expresses **Focus** (optional: a type/method, or free text that names one)
-> and **Depth** (overview ↔ deep). Scenario, profile, sections, and pruning config are
-> *derived*, and the derivation is always shown. One resolver in Core, used by both CLI and
-> desktop — today's duplicated remapping logic disappears.
+> (`AnalysisSnapshot`, `RenderRequest`); independent of Plan 3.
+>
+> **Product model (this is the spec):** DevContext is static analysis with smart,
+> controllable filtering — NOT a query system. There are exactly two situations:
+> 1. **Unknown repo** → orientation map (no starting point exists).
+> 2. **Known starting point** → slice from a focus *down the wiring*
+>    (endpoint → handler → MediatR → entities/events), with a depth dial.
+> Everything else is filtering (sections, budget, noise) — smart defaults first, visual
+> adjustment after (Plan 1's lens). There is no natural-language input anywhere: the
+> `--task` keyword-inference feature is removed because pseudo-NLU sets query-system
+> expectations the tool doesn't honor (P7: genuine).
 
 ## Ground rules
 
 - Branch off the Plan 1 result. Build + test per phase. Razor comments are `@* *@`.
-- Backward compatibility: every existing CLI flag keeps working this release. `--scenario`,
-  `--profile`, `--around`, `--task` are not removed — they become inputs to the resolver.
-  `trace`/`audit` remain silent aliases. Deprecation messaging only, no breakage.
+- CLI compatibility for one release: `--scenario`, `--profile`, `--around`, `--task` keep
+  *parsing* — `--around` aliases `--focus`, scenario/profile become hidden expert overrides,
+  `--task` prints a deprecation pointing at `--focus` (and is otherwise ignored).
+  `trace`/`audit` remain silent aliases.
 - The `__source__` sentinel ≠ a `SectionNames` entry (see Plan 1 ground rules).
 
 ## Phase 0 — Recon
 
-Read: `src/DevContext.Core/Configuration/IntentInferrer.cs`, `ScenarioRegistry.cs`,
-`src/DevContext.Core/Resolvers/FocusPointParser.cs`, `FocusPointResolver` (in Pipeline or
-Resolvers — locate it), `StringHelpers.LevenshteinDistance`,
-`AnalyzeCommand.ResolveScenarioAndProfile` + `BuildSharedAnalysis`,
-`AnalysisService.AnalyzeAsync` lines that remap scenario/profile,
-`MainViewModel` scenario/section-defaults members (`ApplyScenarioSectionDefaults`,
-`SelectedScenario`, `IsTraceMode`, `DerivedProfile`), `Components/ConfigPanel.razor`.
+Read: `Configuration/IntentInferrer.cs` (to be deleted) + its tests, `ScenarioRegistry.cs`,
+`Resolvers/FocusPointParser.cs`, `FocusPointResolver` (locate it), `Models/Detections.cs`
+(`EndpointDetection` fields), `StringHelpers`, `AnalyzeCommand` (`ResolveScenarioAndProfile`,
+`BuildSharedAnalysis`), `AnalysisService.AnalyzeAsync` (scenario/profile remapping lines),
+`MainViewModel` (`ApplyScenarioSectionDefaults`, `SelectedScenario`, `IsTraceMode`,
+`DerivedProfile`, the Task/Around properties), `Components/ConfigPanel.razor`.
+Grep `IntentInferrer` and `"trace"` / `"audit"` string literals solution-wide; list call sites.
 
-## Phase 1 — `AnalysisIntentResolver` in Core
+## Phase 1 — `AnalysisIntentResolver` in Core (small and total)
 
-New file `src/DevContext.Core/Configuration/AnalysisIntentResolver.cs`:
+New `src/DevContext.Core/Configuration/AnalysisIntentResolver.cs`:
 
 ```csharp
 public sealed record IntentInput
 {
-    public string? Task { get; init; }          // free text ("why does checkout 500?")
-    public string? Focus { get; init; }         // explicit TypeName[:Method] (from --around / UI picker)
-    public string? ExplicitScenario { get; init; }  // expert override (--scenario)
-    public string? ExplicitProfile { get; init; }   // expert override (--profile)
+    public string? Focus { get; init; }             // type | Type:Method | endpoint route text
+    public int? Depth { get; init; }                // --depth; null = scenario default
+    public string? ExplicitScenario { get; init; }  // hidden expert override
+    public string? ExplicitProfile { get; init; }   // hidden expert override
 }
 
 public sealed record ResolvedIntent
 {
-    public required Scenario Scenario { get; init; }
+    public required Scenario Scenario { get; init; }       // with Depth applied to Pruning config
     public required ExtractionProfile Profile { get; init; }
     public required ImmutableArray<FocusPoint> FocusPoints { get; init; } // unresolved; pipeline resolves
-    public required ImmutableArray<string> FocusCandidateNames { get; init; } // mined from Task text
-    public required string Explanation { get; init; }   // human sentence, always shown
+    public required string Explanation { get; init; }      // one sentence, always shown
     public ImmutableArray<string> Warnings { get; init; } = [];
-}
-
-public static class AnalysisIntentResolver
-{
-    public static ResolvedIntent Resolve(IntentInput input, IFileSystem fs);
 }
 ```
 
-Resolution rules, in order (encode exactly; these are the product spec):
+Rules — encode exactly, in order; this is the whole derivation:
 
-1. **Aliases:** `trace` → `deep-dive`, `audit` → `overview` (warning: "'audit' is deprecated,
-   using overview"). Unknown scenario → error surface (return is fine; callers decide exit).
-2. **Focus collection:** explicit `Focus` parses via `FocusPointParser`. Additionally, mine
-   `Task` text for focus candidates: tokens matching `[A-Z][A-Za-z0-9_]{2,}` (PascalCase
-   identifiers), minus a stop-list of common words (`I`, `The`, `Why`, HTTP verbs, …). These go
-   into `FocusCandidateNames` only — they are *resolved against the model after Stage 2* (see
-   Phase 2), not trusted blindly.
-3. **Depth/scenario:** `ExplicitScenario` wins if set. Else: any focus (explicit or mined) →
-   `deep-dive`; else `IntentInferrer` keyword rules on `Task` (keep the existing rule table —
-   move it inside the resolver, keep `IntentInferrer.Infer` as a delegating shim for tests);
-   else `overview`.
-4. **Profile:** `ExplicitProfile` wins. Else derive: `deep-dive` → `Debug` (call graph is the
-   point); `overview` → `Focused`. (`Full` is only ever explicit or section-derived in the UI.)
-5. **Explanation:** one sentence, e.g.
-   `Interpreted as: Trace around OrderService (from task text), call graph on, ~25 types max.`
-   or `Interpreted as: Overview (no focus given).` Include a hint when it matters:
-   deep-dive without any focus → warning `"deep-dive without a focus behaves like overview —
-   add --around TypeName or name a type in --task"`.
+1. Aliases: `trace`→`deep-dive`, `audit`→`overview` (deprecation warning). Unknown explicit
+   scenario → error result.
+2. Scenario: `ExplicitScenario` if set; else **focus present → `deep-dive`, absent →
+   `overview`**. That is the entire mode logic. No keyword rules.
+3. Depth: if `Depth` is set, override `Scenario.Pruning.MaxCallDepth` (and scale
+   `MaxPathDistance`: depth ≤ 2 ⇒ 1, else 2) via `with`-clone. Range-check 1–10.
+4. Profile: `ExplicitProfile` if set; else `deep-dive` → `Debug` (call graph on),
+   `overview` → `Focused`.
+5. Focus parsing: try `FocusPointParser` (Type[:Method]) first. If the text contains `/` or
+   starts with an HTTP verb (`GET|POST|PUT|PATCH|DELETE `, case-insensitive), classify as
+   **endpoint focus**: emit `FocusPoint { Kind = FocusKind.Endpoint, Route = ..., HttpMethod = ... }`
+   (new fields/kind — resolved in Phase 2).
+6. Explanation: `"Overview map (no focus)."` or
+   `"Slicing from OrderService, depth 5, call graph on."` or
+   `"Slicing from GET /api/orders → handler resolved after scan."`
+   Warning when explicit `deep-dive` has no focus: `"deep-dive without --focus behaves like
+   overview — give a starting point"`.
 
-Unit tests (new file in `DevContext.Core.Tests`): one test per rule above plus alias cases,
-PascalCase mining cases (positive + stop-list), and explanation snapshot cases. ≥ 12 tests.
+**Delete `IntentInferrer.cs` and its tests** (grep call sites first — `AnalyzeCommand`,
+`AnalysisService`, tests). Resolver unit tests: ≥ 10 (aliases, derivation both ways, depth
+override + clamping, endpoint classification incl. bare `/orders` and `get /orders`,
+explanation snapshots, deep-dive-no-focus warning).
 
-## Phase 2 — Task-derived focus resolution in the pipeline
+## Phase 2 — Endpoint focus resolution in the pipeline
 
-`DiscoveryPipeline` already resolves `UnresolvedFocusPoints` after Stage 2 via
-`FocusPointResolver.Resolve` with Levenshtein "did you mean". Extend:
+`FocusPointResolver` runs after Stage 2; endpoint detections appear in Stage 3. So endpoint
+focus resolves **after Stage 3** (verify the pipeline still has a sequencing point before
+scoring — it does: scoring runs last):
 
-1. `SharedAnalysisContext` gains `ImmutableArray<string> FocusCandidateNames`.
-2. After Stage 2 (same place focus points resolve today): for each candidate name, exact-match
-   against `model.Types` (then case-insensitive, then Levenshtein ≤ 2). Matches become real
-   `FocusPoint`s appended to `Analysis.FocusPoints`; non-matches produce an Info diagnostic
-   (`"task mentioned 'OrderServce' — no matching type; nearest: OrderService"`), not a warning
-   spam (task text legitimately contains non-type PascalCase words).
-3. If candidates produced ≥ 1 focus point and scenario was inferred as `overview` *only because
-   no focus was known at resolve time*, do **not** silently flip scenario mid-run — instead add
-   diagnostic `"task names OrderService — consider --scenario deep-dive"`. (Keeps the run
-   deterministic w.r.t. the printed Explanation.)
+1. Add `FocusKind.Endpoint`. After Stage 3, match endpoint focus points against
+   `EndpointDetection`s: exact route match first, then normalized
+   (`StringHelpers.NormalizeRoute`), then substring; filter by HTTP verb when given.
+   On match: rewrite the focus point to the handler — `TypeName = HandlerType,
+   MethodName = HandlerMethod, Kind = Method` — so existing path/graph scoring works
+   untouched. Ambiguity (n > 1): take all matches, add Info diagnostic listing them.
+   No match: Warning diagnostic with 3 nearest routes (Levenshtein on normalized route).
+2. Type/method focus keeps resolving after Stage 2 exactly as today (did-you-mean intact).
+3. Tests: route exact/normalized/substring/verb-filtered/ambiguous/missing — ≥ 6, fixture
+   style copied from existing extractor tests.
 
 ## Phase 3 — CLI adoption
 
-`AnalyzeCommand`:
+1. Delete `ResolveScenarioAndProfile` from `AnalyzeCommand`; build `IntentInput`, call the
+   resolver, print `Explanation` (dim) + `Warnings` (yellow) before the spinner.
+2. `AnalyzeSettings`: `--focus` (primary, repeatable like `--around` today; `--around` stays
+   as alias — check Spectre's multi-name option support, else keep two properties feeding one
+   list), `--depth <N>` (new), `--task` marked `[Obsolete]`-equivalent in help + runtime
+   deprecation message, `--scenario`/`--profile` help text suffixed
+   `"(advanced — derived from --focus)"`.
+3. `ScenariosCommand`: list `overview` and `deep-dive` only (display name "Slice" is clearer
+   than "Trace" — decide once, update `DisplayName` in the registry and goldens deliberately),
+   each with a one-line "when" (`no starting point` / `requires --focus`).
 
-1. Delete `ResolveScenarioAndProfile`; build `IntentInput` from settings
-   (`Task`, first `--around` stays `Focus`-equivalent — pass all `--around` values through
-   `FocusPointParser` as today and the *resolver* only handles the scenario/profile/derivation
-   logic) and call `AnalysisIntentResolver.Resolve`.
-2. Print `resolved.Explanation` before the status spinner (dim style:
-   `AnsiConsole.MarkupLine($"[dim]{...}[/]")`), and each `resolved.Warnings` in yellow.
-3. Add `--focus` as the documented alias of `--around` in `AnalyzeSettings` (Spectre supports
-   multiple option names on one property: `[CommandOption("--focus|--around")]` — verify
-   against the existing attribute usage and keep `--around` listed in help as deprecated).
-4. Help text (`AnalyzeSettings` descriptions): `--scenario`/`--profile` get
-   `"(advanced — usually derived from --focus/--task)"` suffixes.
-5. `ScenariosCommand`: drop `trace` from the listing (it's an alias), show `deep-dive` with
-   display name `Trace` and a `"requires a focus point"` note.
+## Phase 4 — Registry + duplication cleanup
 
-## Phase 4 — Registry cleanup
-
-`ScenarioRegistry`: delete the duplicated `"trace"` entry (the alias now lives in the resolver).
-Grep for `"trace"` string literals across the solution first — tests, desktop scenario lists,
-docs — and update each. `AnalysisService` deletes its own remapping lines (`audit`→`overview`,
-`trace`→`deep-dive`) and calls the resolver instead — this removes the CLI/desktop duplication.
+Delete the `"trace"` entry from `ScenarioRegistry` (alias lives in the resolver). Delete the
+scenario/profile remapping lines from `AnalysisService` — it builds `IntentInput` and calls
+the resolver too (one derivation, two front-ends). Update every `"trace"`/`"audit"` literal
+found in Phase 0 recon.
 
 ## Phase 5 — Desktop adoption
 
-`ConfigPanel.razor` + `MainViewModel`:
+1. **Remove the Intent/Task text field** from `ConfigPanel.razor` and the `Task` plumbing
+   from `MainViewModel`/`AnalysisOptions`/`AppSettings` (keep the `AppSettings.LastTask`
+   property reading-tolerant so old settings.json files still deserialize; just stop writing
+   it). Grep `Task` bindings in all `.razor` files first — note `Task` is also the BCL type;
+   grep for `VM.Task` / `LastTask` / `opts.Task` specifically.
+2. **Focus picker** replaces the Entry-point field: one input bound to `Around`/`Focus` with
+   autocomplete from the previous snapshot — suggestions = type names + `Type:Method` pairs +
+   endpoint routes (`GET /api/orders`), sourced from `_snapshot.Model` (types by `FinalScore`,
+   endpoints from detections), capped ~500. Plain Razor dropdown, no JS library.
+3. Mode toggle (Overview/Slice) = display of the derived mode, user-overridable (override ⇒
+   `ExplicitScenario`). Show `Explanation` under the row (small, dim, monospace).
+4. **Noise visibility** (the "visual filter" half of the product model): in the section
+   drawer, add an "Excluded types: N — show" disclosure backed by `RenderPlan.Excluded`
+   (Plan 1) grouped by reason (`test project`, `budget`, `scenario cap`), each group
+   re-includable as a render-input change (re-render only, no re-analysis). If
+   `RenderPlan`/`RerenderAsync` from Plan 1 isn't merged yet, stop and report — this phase
+   depends on it.
+5. Profile stays fully derived (no control). Grep `SelectedProfile|IsProfile|SetProfileCommand`
+   across `.razor` + tests before deleting any leftovers.
 
-1. The Intent text field and Entry-point field merge conceptually into a **question row**:
-   one text input "What do you want to know?" (binds to `Task`) and a **focus picker** input
-   (binds to `Around`) with autocomplete: after any analysis, `_snapshot.Model.Types` provides
-   type names; expose `ImmutableArray<string> KnownTypeNames` on the VM (top ~500 by
-   `FinalScore`, alphabetical) and wire a simple `<datalist>`-style suggestion dropdown in
-   Razor (no JS library — keep it dependency-free).
-2. Mode toggle (Overview/Trace) stays, but becomes a *display of the derived depth* that the
-   user can override: when the resolver derives a different value than the toggle shows,
-   update the toggle and show the Explanation line under the question row (small, dim,
-   monospace — this is the P3 transparency string). VM: replace scenario-resolution code with
-   `AnalysisIntentResolver.Resolve` and bind `IntentExplanation` (new `[ObservableProperty]`).
-3. Section checkboxes remain the expert layer (unchanged behavior; with Plan 1 they're
-   render-side anyway). Profile remains fully derived (no UI control) — if any
-   `SelectedProfile`/`IsProfileX`/`SetProfileCommand` members still exist, grep all `.razor` +
-   tests before removing.
-4. Settings: `AppSettings.LastScenario`/`LastProfile` keep loading (back-compat with existing
-   settings.json on disk) but saving writes the derived values.
-
-Desktop tests: update VM tests for the new derivation path; add tests:
-"task naming a type flips mode to Trace and sets explanation",
-"explicit mode override sticks", "focus autocomplete list populates after analysis".
+Desktop tests: focus suggestions populate after analysis (types + routes), mode derives from
+focus presence, override sticks, excluded-group re-include triggers re-render not re-analysis,
+old settings.json with `LastTask` still loads.
 
 ## Phase 6 — Verification
 
-- Unit: resolver tests green; full `dotnet test`.
-- CLI matrix (manual, record outputs in PR):
+- Full `dotnet test` + `eval/gates.ps1`.
+- CLI matrix (record outputs in PR):
   `analyze .` → Overview, explanation printed;
-  `analyze . --task "why does DiscoveryPipeline throw"` → Trace around DiscoveryPipeline;
-  `analyze . --around DiscoveryPipeline` → Trace;
-  `analyze . --scenario trace` → works, no `trace` in `scenarios` listing;
-  `analyze . --scenario audit` → deprecation warning, runs overview;
-  `analyze . --scenario deep-dive` (no focus) → warning hint.
-- Desktop: question box drives mode + explanation; autocomplete appears after first analysis.
-- Docs: update `docs/cli-reference.md` and `docs/desktop-ui.md` to the Focus+Depth vocabulary
-  (lead with `--task`/`--focus`; scenario/profile in an "Advanced" subsection).
+  `analyze . --focus DiscoveryPipeline` → Slice, depth default;
+  `analyze . --focus DiscoveryPipeline:RunAsync --depth 3` → depth honored (visible in stats);
+  `analyze . --focus "GET /api/orders"` on an eval repo with endpoints → resolves to handler
+  (diagnostic shows the resolution);
+  `analyze . --around X` → identical to `--focus X`;
+  `analyze . --task "anything"` → deprecation message, behaves as no-focus overview;
+  `analyze . --scenario trace` → works silently; `--scenario audit` → deprecation;
+  `--scenario deep-dive` without focus → warning hint.
+- Desktop: picker autocompletes routes after first analysis; excluded-types disclosure
+  re-includes without re-analysis.
+- Docs: `cli-reference.md` + `desktop-ui.md` rewritten around the two situations
+  (map / slice) + filtering; scenario/profile in an "Advanced" footnote. Remove the `--task`
+  section from `cli-reference.md` and the `--task` override paragraph from
+  `configuration.md`; delete `examples/intent.md` and fix `--task` usages in the other
+  `examples/*.md` to `--focus` equivalents (grep `--task` across `docs/` — zero hits outside
+  deprecation notes when done).

@@ -108,7 +108,7 @@ Structure (write it; placeholder GIF noted for the maintainer):
    build (actions workflow exists), NuGet version, license. No coverage badge unless coverage
    is actually wired.
 2. **The 30-second demo:** `dotnet tool install -g DevContext.Cli` →
-   `devcontext analyze https://github.com/dotnet/eShop --task "how do orders flow"` → trimmed
+   `devcontext analyze https://github.com/dotnet/eShop --focus "POST /api/orders"` → trimmed
    real output block (run it, paste it, trim honestly with `[...]`). `[demo.gif placeholder —
    maintainer records: desktop analyze + section toggle + stats tab]`.
 3. **What it extracts:** the detection table (12 types) condensed to one scannable list.

@@ -99,14 +99,19 @@ alias). Desktop: a third **Stats** tab rendered from the same `RunReport` — ti
 token funnel bar, extractor grid — in the terminal aesthetic. JSON output embeds the report so
 CI can track analysis performance over time. → **Plan 3**
 
-### P4 — One question, coherent knobs
+### P4 — Two situations, one dial (we are not a query system)
 
-**Philosophy.** The user has one thing in their head: *"I want to understand X"* where X is
-either the whole solution or a specific place in it. Every control must map to that sentence.
-Two real inputs exist: **Focus** (optional — a type, method, or free-text task that names one)
-and **Depth** (how far from the focus to look). Everything else — scenario, profile, section
-defaults, pruning distances — is *derived* and visible as a derivation ("interpreted as: trace
-around `OrderService`, call graph on"), never a third synonym the user must reconcile.
+**Philosophy.** There are exactly two user situations: **"I don't know this repo"** →
+orientation map (no starting point exists, by definition), and **"I know where I'm standing"**
+→ slice from a focus point *down the wiring* (endpoint → handler → MediatR → entities →
+events) — the wiring map is the asset and this is the move it enables. The focus can be a
+type, a method, or an endpoint route. The only other primary input is **Depth** (how far down
+to follow). Everything else — scenario, profile, section defaults, pruning distances — is
+*derived*, and the derivation is always shown ("Slicing from `GET /api/orders`, depth 5").
+Deliberately absent: natural-language input. DevContext is static analysis with smart,
+controllable filtering — initially automatic, then visually adjustable — not a query engine;
+a free-text "ask your repo" box would be pseudo-NLU that sets expectations the tool doesn't
+honor, which P7 (genuine) forbids.
 
 **Today.** Four overlapping vocabularies: `--scenario overview|deep-dive|trace` (with `trace` a
 registry-level duplicate of `deep-dive` and `audit` a deprecated alias remapped in *two* places —
@@ -120,15 +125,17 @@ nothing tells the user that.
 *question* (focus/depth). Inference is silent. Scenario/profile resolution logic is duplicated
 between CLI and desktop.
 
-**Bridge.** A single **`AnalysisIntent` resolver in Core** used by both front-ends: input
-`(task?, focus?, scenario?, explicit overrides)` → output `(Scenario, Profile, FocusPoints,
-Explanation)`. Rules: focus present → deep-dive defaults; no focus → overview; `--task` text is
-mined for type-name candidates and resolved against the model (the `FocusPointResolver` +
-Levenshtein "did you mean" machinery already exists — point it at intent words too). The
-explanation string is printed/displayed on every run. `trace` and `audit` survive only as silent
-aliases inside the resolver; `--profile` survives as an expert escape hatch but leaves the docs'
-front page. Desktop: one "What do you want to know?" input + an optional focus picker that
-autocompletes from the previous snapshot's type list. → **Plan 2**
+**Bridge.** A single **`AnalysisIntentResolver` in Core** used by both front-ends, with one
+total rule: focus present → slice config; absent → overview config; `--depth` overrides the
+preset's distances. **`--task` and `IntentInferrer` are removed** (deprecation message for one
+release) — even the LLM-agent-as-caller case is better served by the agent passing `--focus`
+itself. Focus grows instead: `--focus` accepts `Type`, `Type:Method`, or an endpoint route
+(`GET /api/orders` resolves to its handler via the existing detections, then walks the wiring).
+The explanation string is printed/displayed on every run. `trace`/`audit` survive only as
+silent aliases; `--scenario`/`--profile` become hidden expert overrides. Desktop: a focus
+picker autocompleting types, methods, *and routes* from the previous snapshot — plus the
+noise side of "controllable filtering": the excluded-types list (tests, budget cuts) is a
+visible, re-includable filter group in the lens, not a silent score. → **Plan 2**
 
 ### P5 — Never read twice, cancel anywhere, parallel where it pays
 
@@ -210,7 +217,7 @@ step and is performed by the maintainer, not an agent. → **Plan 4**
 | D1 | Budget scoring **during**, enforcement **at render**; cut list always inspectable | Serves unattended *and* attended use without re-analysis (P2) |
 | D2 | Immutable `AnalysisSnapshot` + cheap `RenderPlan` lens between analyze and render | Kills re-analysis-on-toggle, the UI lag, and the markdown re-parsing in one move (P1) |
 | D3 | `RunReport` is part of every pipeline result; CLI `--stats`, desktop Stats tab | Nerdy transparency is the brand, and it regression-tests the architecture (P3) |
-| D4 | User-facing model is **Focus + Depth**; scenario/profile become derived + expert flags; one shared `AnalysisIntent` resolver in Core | Ends the scenario/profile/task/around vocabulary soup and the CLI/desktop duplication (P4) |
+| D4 | User-facing model is **Focus + Depth** (focus = type, method, or endpoint route); scenario/profile become derived + hidden expert flags; one shared resolver in Core; **`--task`/NL intent inference removed** — DevContext is static analysis with controllable filtering, not a query system | Ends the vocabulary soup and CLI/desktop duplication; no pseudo-NLU (P4, P7) |
 | D5 | Desktop stays **WPF + BlazorWebView (WebView2)** | HTML is already the human output format; evergreen runtime keeps the zip small; remaining lag is data-flow, fixed by D2 (P6) |
 | D6 | Parallelize the independent subset of Stage 3 via declared capabilities; fix CLI sync-over-async | Measured win, surfaced in RunReport (P5) |
 | D7 | Repo order: tests → docs → README → history reset → release; history reset is maintainer-manual | Make claims true before making them loud (P7) |
