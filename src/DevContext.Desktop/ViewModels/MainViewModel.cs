@@ -42,7 +42,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private string _projectPath = "";
 
     [ObservableProperty] private string _around = "";
-    [ObservableProperty] private string _task = "";
     [ObservableProperty] private int _maxTokens = 8000;
     [ObservableProperty] private bool _includeProvenance;
     [ObservableProperty] private bool _includeDiagnostics;
@@ -303,7 +302,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OnAnalysisInputChanged();
     }
     partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
-    partial void OnTaskChanged(string value) => OnAnalysisInputChanged();
 
     partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
     partial void OnAroundChanged(string value) => OnAnalysisInputChanged();
@@ -428,7 +426,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             NoRoslyn = NoRoslyn,
             DryRun = DryRun,
             IncludeAntiPatterns = IncludeAntiPatterns,
-            Task = Task,
             ActiveSections = GetActiveSections(),
         };
 
@@ -585,7 +582,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         IncludeProvenance = s.IncludeProvenance;
         IncludeDiagnostics = s.IncludeDiagnostics;
         NoRoslyn = s.NoRoslyn;
-        Task = s.LastTask ?? "";
 
         if (s.LastActiveSections is { Count: > 0 })
         {
@@ -609,7 +605,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
-            LastTask = Task,
             LastActiveSections = Sections.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
         });
 

@@ -285,8 +285,7 @@ public record AnalysisOptions
     public bool NoRoslyn { get; init; }
     public bool DryRun { get; init; }
     public bool IncludeAntiPatterns { get; init; }
-    public string Task { get; init; } = "";                 // natural language intent
-    public ImmutableArray<string> ActiveSections { get; init; } = [];  // section names to include; empty = use scenario defaults
+    public ImmutableArray<string> ActiveSections { get; init; } = [];
 }
 
 public record AnalysisResult
@@ -310,6 +309,5 @@ public class AppSettings
     public bool IncludeProvenance { get; set; }
     public bool IncludeDiagnostics { get; set; }
     public bool NoRoslyn { get; set; }
-    public string? LastTask { get; set; } = "";
     public List<string>? LastActiveSections { get; set; }
 }

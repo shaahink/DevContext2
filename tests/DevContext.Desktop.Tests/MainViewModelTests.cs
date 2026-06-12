@@ -190,21 +190,6 @@ public class MainViewModelTests
 
     // ══ Task / intent ══════════════════════════════════════════════════════════
 
-    [Fact]
-    public void Constructor_loads_last_task()
-    {
-        _settings.LastTask = "trace the order handler";
-        var vm = CreateVm();
-        Assert.Equal("trace the order handler", vm.Task);
-    }
-
-    [Fact]
-    public void Task_field_initially_empty()
-    {
-        var vm = CreateVm();
-        Assert.Equal("", vm.Task);
-    }
-
     // ══ Computed properties ════════════════════════════════════════════════════
 
     [Theory]
@@ -715,11 +700,11 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task AnalyzeAsync_passes_task_to_AnalysisOptions()
+    public async Task AnalyzeAsync_passes_scenario_to_AnalysisOptions()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
-        vm.Task = "debug the failing endpoint";
+        vm.SelectedScenario = vm.Scenarios[1]; // deep-dive
 
         AnalysisOptions? capturedOpts = null;
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
@@ -732,7 +717,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotNull(capturedOpts);
-        Assert.Equal("debug the failing endpoint", capturedOpts.Task);
+        Assert.Equal("deep-dive", capturedOpts.Scenario);
     }
 
     // ══ Section data parsing ══════════════════════════════════════════════════

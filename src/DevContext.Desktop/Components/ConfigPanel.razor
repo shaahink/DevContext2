@@ -77,14 +77,6 @@
             }
         </section>
 
-        @* ── Intent (optional task field) ─────────────────────── *@
-        <section class="config-group">
-            <h2 class="group-label">Intent <span class="hint">(optional)</span></h2>
-            <input class="input" placeholder="e.g. trace the order submission handler"
-                   @bind="VM.Task" @bind:event="oninput" />
-            <p class="field-hint">Fills in mode and sections automatically when provided.</p>
-        </section>
-
         @* ── Mode ──────────────────────────────────────────────── *@
         <section class="config-group">
             <h2 class="group-label">Mode</h2>
@@ -109,35 +101,15 @@
             </p>
         </section>
 
-        @* ── Focus point (prominent in Trace, secondary in Overview) ── *@
-        @if (VM.IsTraceMode)
-        {
-            <section class="config-group">
-                <h2 class="group-label">Entry point</h2>
-                <input class="input" placeholder="Controller:Action or Namespace.Class:Method"
-                       @bind="VM.Around" @bind:event="oninput" />
-                <p class="field-hint">The type or method to trace from. Leave empty to scan all entry points.</p>
-            </section>
-        }
+        @* ── Focus point (always visible) ── *@
+        <section class="config-group">
+            <h2 class="group-label">Focus <span class="hint">(optional)</span></h2>
+            <input class="input" placeholder="TypeName, Type:Method, or GET /api/route"
+                   @bind="VM.Around" @bind:event="oninput" />
+            <p class="field-hint">The starting point to slice from. Leave empty for overview map.</p>
+        </section>
 
         @* ── Sections ───────────────────────────────────────────── *@
-        <section class="config-group">
-            <h2 class="group-label">Sections</h2>
-            <div class="section-list">
-                @foreach (var section in VM.Sections)
-                {
-                    <label class="toggle-label">
-                        <input type="checkbox" checked="@section.IsEnabled"
-                               @onchange="(e) => OnSectionChanged(section.Key, e)" />
-                        @section.Label
-                        @if (section.Hint is not null)
-                        {
-                            <span class="section-hint">@section.Hint</span>
-                        }
-                    </label>
-                }
-            </div>
-        </section>
 
         @* ── Token budget ─────────────────────────────────────────── *@
         <section class="config-group">
@@ -149,16 +121,6 @@
                        value="@VM.MaxTokens" @onchange="OnTokensInput" />
             </div>
         </section>
-
-        @* ── Symbol focus (secondary position in Overview mode) ──── *@
-        @if (!VM.IsTraceMode)
-        {
-            <section class="config-group">
-                <h2 class="group-label">Symbol focus <span class="hint">(optional)</span></h2>
-                <input class="input" placeholder="Namespace.Class:Method"
-                       @bind="VM.Around" @bind:event="oninput" />
-            </section>
-        }
 
         @* ── Output ────────────────────────────────────────────────── *@
         <section class="config-group">
