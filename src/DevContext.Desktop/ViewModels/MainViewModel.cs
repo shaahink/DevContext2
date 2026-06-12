@@ -30,7 +30,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _validateCts;
     private CancellationTokenSource? _maxTokensDebounceCts;
-    private readonly object _ctsLock = new();
     private bool _isInitializing = true;
 
     // ── Form fields ────────────────────────────────────────────────────────────
@@ -69,7 +68,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     // ── Output ─────────────────────────────────────────────────────────────────
     [ObservableProperty] private bool _hasOutput;
-    [ObservableProperty] private string _outputText = "";
     [ObservableProperty] private string _statsText = "";
     [ObservableProperty] private bool _isHumanView = true;
     [ObservableProperty] private bool _isSectionPanelVisible = true;
@@ -77,7 +75,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnIsHumanViewChanged(bool value) => RefreshDisplayText();
 
     // ── Section-based dual-view ─────────────────────────────────────────────────
-    public ObservableCollection<SectionGroupViewModel> SectionGroups { get; } = [];
+    public ImmutableArray<SectionGroupViewModel> SectionGroups { get; private set; }
+        = ImmutableArray<SectionGroupViewModel>.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
@@ -371,7 +370,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ProgressValue = 0;
         ProgressText = "Starting...";
         HasOutput = false;
-        OutputText = "";
         StatsText = "";
         _rawContent = "";
         _humanViewHtml = null;
@@ -392,7 +390,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (cloneResult is null)
             {
                 ProgressText = "Error";
-                OutputText = $"Failed to clone {repo.ToDisplay()}. Check the URL, branch, or network connection.";
+                _rawContent = $"Failed to clone {repo.ToDisplay()}...";
                 HasOutput = true;
                 IsAnalyzing = false;
                 IsProgressIndeterminate = false;
@@ -450,14 +448,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 // Apply section data to UI-bound collections + batch all property updates
 #pragma warning disable MVVMTK0034
-                SectionGroups.Clear();
-                foreach (var g in newGroups)
-                    SectionGroups.Add(g);
+                SectionGroups = newGroups.ToImmutableArray();
 
                 _cachedLlmViewText = llmText;
                 _rawContent = rawContent;
                 _humanViewHtml = result.HtmlContent;
-                _outputText = rawContent;
                 var tokens = rawContent.Length / 4;
                 _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                 _hasOutput = true;
@@ -484,7 +479,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             else
             {
                 ProgressText = "Error";
-                OutputText = result.Error ?? "Analysis failed.";
+                _rawContent = result.Error ?? "Analysis failed.";
                 HasOutput = true;
                 IsProgressIndeterminate = false;
                 ProgressValue = 0;
@@ -498,7 +493,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Analysis failed");
             ProgressText = "Error";
-            OutputText = ex.Message;
+            _rawContent = ex.Message;
             HasOutput = true;
             IsProgressIndeterminate = false;
         }
@@ -627,19 +622,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             sectionVms.Where(s => s.IsIncluded).Select(s => s.FullText));
 
         return (groups, llmText, totalTokens, selectedTokens);
-    }
-
-    private void PopulateSections(string output)
-    {
-        var (groups, llmText, _, _) = BuildSectionData(output);
-        _cachedLlmViewText = llmText;
-
-        SectionGroups.Clear();
-        foreach (var g in groups)
-            SectionGroups.Add(g);
-
-        OnPropertyChanged(nameof(LlmViewText));
-        OnPropertyChanged(nameof(HumanViewText));
     }
 
     private void RecalcTokenTotal()

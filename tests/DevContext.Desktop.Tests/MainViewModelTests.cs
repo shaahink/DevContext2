@@ -387,7 +387,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.True(vm.HasOutput);
-        Assert.Equal("analysis output", vm.OutputText);
+        Assert.Equal("analysis output", vm.RawContent);
         Assert.Contains("tokens", vm.StatsText);
         Assert.Contains("0.2s", vm.StatsText);
         Assert.Equal("Done", vm.ProgressText);
@@ -405,7 +405,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.True(vm.HasOutput);
-        Assert.Equal("Something went wrong", vm.OutputText);
+        Assert.Equal("Something went wrong", vm.RawContent);
         Assert.Equal("Error", vm.ProgressText);
     }
 
@@ -421,7 +421,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.True(vm.HasOutput);
-        Assert.Equal("Boom", vm.OutputText);
+        Assert.Equal("Boom", vm.RawContent);
         Assert.Equal("Error", vm.ProgressText);
     }
 
@@ -447,7 +447,7 @@ public class MainViewModelTests
         var secondTask = (Task)vm.AnalyzeCommand.ExecuteAsync(null)!;
         await secondTask;
 
-        Assert.Equal("restarted", vm.OutputText);
+        Assert.Equal("restarted", vm.RawContent);
         Assert.False(vm.IsAnalyzing);
 
         // Clean up orphaned first task
@@ -800,7 +800,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
     Assert.Single(batched);
 
     // Fields set exclusively in the batch block must NOT appear as individual events
-    var batchExclusive = new[] { "DisplayText", "StatsText", "HasOutput", "BudgetTokens", "OutputText", "SelectedTokenTotal" };
+    var batchExclusive = new[] { "DisplayText", "StatsText", "HasOutput", "BudgetTokens", "SelectedTokenTotal" };
     foreach (var field in batchExclusive)
     {
         var perField = events.Where(e => e == field).ToList();
@@ -808,29 +808,5 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
     }
 }
 
-[Fact]
-public async Task AnalyzeAsync_CollectionChanged_fires_on_UI_bound_groups()
-{
-    var vm = CreateVm();
-    vm.ProjectPath = "C:\\Test";
 
-    _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new AnalysisResult
-        {
-            Success = true,
-            Content = "## Section A\nA\n\n## Section B\nB\n\n## Section C\nC",
-            ElapsedMs = 10
-        }));
-
-    var collectionEvents = new List<string>();
-    vm.SectionGroups.CollectionChanged += (_, e) =>
-        collectionEvents.Add(e.Action.ToString());
-
-    await ExecuteAnalyzeCommand(vm);
-
-    Assert.NotEmpty(collectionEvents);
-    Assert.Equal("Reset", collectionEvents[0]);  // Clear first, then Adds
-    var adds = collectionEvents.Skip(1).Where(a => a == "Add").Count();
-    Assert.True(adds >= 1);
-}
 }

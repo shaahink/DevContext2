@@ -171,6 +171,72 @@ public sealed class DiscoveryPipeline
         return rendered;
     }
 
+    /// <summary>Runs the pipeline once and renders all registered formats.</summary>
+    public async Task<IReadOnlyDictionary<string, RenderedContext>> RunAllFormatsAsync(DiscoveryContext context, CancellationToken ct)
+    {
+        var model = new DiscoveryModel();
+        var budgets = new Dictionary<string, TokenBudget>();
+        ct.ThrowIfCancellationRequested();
+
+        // Stages 1-5 (identical for all formats)
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage2Parallel, PipelineStage.GenericExtraction, false, context, model, ct);
+
+        // Focus point resolution
+        var unresolvedCount = context.Analysis.UnresolvedFocusPoints.Count;
+        if (unresolvedCount > 0)
+        {
+            var resolved = FocusPointResolver.Resolve(context.Analysis.UnresolvedFocusPoints, model);
+            var failedToResolve = resolved
+                .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method && string.IsNullOrEmpty(fp.FilePath))
+                .ToList();
+            foreach (var failed in failedToResolve)
+            {
+                var didYouMean = SuggestTypeNames(failed.TypeName, model.Types.Values);
+                var suggestion = didYouMean.Count > 0 ? $" Did you mean: {string.Join(", ", didYouMean.Take(3))}?" : "";
+                model.AddDiagnostic(DiagnosticLevel.Warning, "FocusPointResolver",
+                    $"--around {failed.TypeName}: type not found. {suggestion}");
+            }
+            context.Analysis.FocusPoints = resolved;
+        }
+
+        // Signal sealing + architecture detection
+        model.Architecture.Seal();
+        ApplyArchitectureStyle(model);
+        var sealSw = Stopwatch.StartNew();
+        context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
+        await RunPruningAsync(context, model, ct);
+        await RunCompressionAsync(context, model, ct);
+
+        // Stage 6: Render ALL formats from the same model
+        context.Observer.OnStageStarted(PipelineStage.Rendering);
+        var renderSw = Stopwatch.StartNew();
+        var results = new Dictionary<string, RenderedContext>();
+
+        var renderOptions = new RenderOptions(
+            context.Options.IncludeProvenance,
+            context.Options.IncludeDiagnostics,
+            model.Budget.MaxTokens,
+            context.ActiveScenario.DisplayName,
+            ProfileDisplayName: context.Options.Profile.ToString().ToLowerInvariant(),
+            context.ActiveScenario.RequiredSections,
+            context.Analysis.FocusPoints.ToImmutableArray(),
+            context.Analysis.CallGraph,
+            context.Analysis.ProjectGraph,
+            TokenView: context.Options.TokenView);
+
+        foreach (var (format, renderer) in _renderers)
+        {
+            var rendered = await renderer.RenderAsync(model, renderOptions, ct);
+            results[format] = rendered;
+        }
+
+        context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);
+        context.Observer.OnPipelineCompleted(model);
+        return results;
+    }
+
     private async Task<RenderedContext> RunDryRunAsync(DiscoveryContext context, CancellationToken ct)
     {
         await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, new DiscoveryModel(), ct);

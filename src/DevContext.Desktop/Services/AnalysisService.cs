@@ -144,29 +144,12 @@ public class AnalysisService : IAnalysisService
         };
 
         var sw = Stopwatch.StartNew();
-        RenderedContext result;
-        string? htmlContent = null;
+        Dictionary<string, RenderedContext> results;
         try
         {
-            // Run markdown renderer
-            result = await pipeline.RunAsync(ctx, ct).ConfigureAwait(false);
-
-            // Run HTML renderer for Human View (warm cache — extraction already done)
-            var htmlContext = new DiscoveryContext
-            {
-                RootPath = ctx.RootPath,
-                Options = options with { OutputFormat = OutputFormat.Html },
-                ActiveScenario = ctx.ActiveScenario,
-                Observer = ctx.Observer,
-                FileSystem = ctx.FileSystem,
-                Cache = ctx.Cache,
-                Analysis = ctx.Analysis,
-                Logger = ctx.Logger,
-                RoslynWorkspace = ctx.RoslynWorkspace,
-                CancellationToken = ct,
-            };
-            var htmlResult = await pipeline.RunAsync(htmlContext, ct).ConfigureAwait(false);
-            htmlContent = htmlResult.Content;
+            // Single pipeline run, all formats rendered from the same model
+            results = new Dictionary<string, RenderedContext>(
+                await pipeline.RunAllFormatsAsync(ctx, ct));
         }
         catch (OperationCanceledException)
         {
@@ -174,11 +157,14 @@ public class AnalysisService : IAnalysisService
         }
         sw.Stop();
 
+        var md = results.GetValueOrDefault("markdown") ?? results.Values.First();
+        var html = results.GetValueOrDefault("html");
+
         return new AnalysisResult
         {
             Success = true,
-            Content = result.Content,
-            HtmlContent = htmlContent,
+            Content = md.Content,
+            HtmlContent = html?.Content,
             ElapsedMs = sw.ElapsedMilliseconds,
         };
     }

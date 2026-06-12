@@ -78,7 +78,7 @@
             <div class="tabs">
                 <button class="@(SelectedTab=="human"?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
                 <button class="@(SelectedTab=="llm"?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
-                @if (VM.SectionGroups.Count > 1)
+                @if (VM.SectionGroups.Length > 1)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
                         <svg class="icon" viewBox="0 0 24 24"><rect x="15" y="3" width="6" height="18" rx="2"/><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/></svg> Sections
@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        @if (IsSectionsOpen && VM.SectionGroups.Count > 1)
+        @if (IsSectionsOpen && VM.SectionGroups.Length > 1)
         {
             <div class="sections-drawer">
                 <div class="section-budget">
