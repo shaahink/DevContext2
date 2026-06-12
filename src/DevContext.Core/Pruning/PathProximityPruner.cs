@@ -38,11 +38,6 @@ public sealed class PathProximityPruner : IPruner
             type.PathProximityScore = minDistance == 0
                 ? 1.0f
                 : Math.Max(0.0f, 1.0f - (float)minDistance / Math.Max(maxDistance, 1));
-
-            if (minDistance > maxDistance)
-            {
-                type.IsPruned = true;
-            }
         }
 
         return default;

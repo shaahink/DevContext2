@@ -39,4 +39,10 @@ public sealed class TypeDiscovery
     public float PathProximityScore { get; set; }
     /// <summary>Relevance score based on detection patterns and call graph reachability.</summary>
     public float RelevanceScore { get; set; }
+    /// <summary>Combined ranking score used by RenderPlan to order types for inclusion.</summary>
+    public double FinalScore { get; set; }
+    /// <summary>Reason why this type was excluded, only set by hard-irrelevance rules.</summary>
+    public string? ExclusionReason { get; set; }
+    /// <summary>Scorer says this type should never be shown (test/mock noise).</summary>
+    public bool IsHardExcluded { get; set; }
 }

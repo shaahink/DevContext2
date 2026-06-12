@@ -13,8 +13,8 @@ public enum PipelineStage
     SignalSealing,
     /// <summary>Specific (stage 3) extraction.</summary>
     SpecificExtraction,
-    /// <summary>Pruning stage.</summary>
-    Pruning,
+    /// <summary>Scoring stage.</summary>
+    Scoring,
     /// <summary>Compression stage.</summary>
     Compression,
     /// <summary>Rendering stage.</summary>

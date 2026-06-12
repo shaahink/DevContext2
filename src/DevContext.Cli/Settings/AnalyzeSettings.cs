@@ -87,4 +87,8 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Keep cloned repo after analysis")]
     [CommandOption("--keep")]
     public bool Keep { get; set; }
+
+    [Description("Fail with exit code 2 on any self-check invariant violation")]
+    [CommandOption("--strict")]
+    public bool Strict { get; set; }
 }

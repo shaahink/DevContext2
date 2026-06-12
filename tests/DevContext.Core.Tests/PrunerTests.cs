@@ -47,6 +47,7 @@ public sealed class PrunerTests
         Assert.False(controller.IsPruned);
 
         Assert.True(product.PathProximityScore < 1.0f);
+        Assert.False(product.IsPruned);
     }
 
     [Fact]

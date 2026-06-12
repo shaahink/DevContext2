@@ -231,7 +231,7 @@ public class AnalysisService : IAnalysisService
                 PipelineStage.GenericExtraction => "Extracting structure...",
                 PipelineStage.SignalSealing => "Sealing signals...",
                 PipelineStage.SpecificExtraction => "Deep analysis...",
-                PipelineStage.Pruning => "Pruning...",
+                PipelineStage.Scoring => "Scoring...",
                 PipelineStage.Compression => "Compressing...",
                 PipelineStage.Rendering => "Rendering output...",
                 _ => $"Stage: {stage}"

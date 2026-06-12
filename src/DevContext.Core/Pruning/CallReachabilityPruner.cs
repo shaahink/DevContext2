@@ -43,12 +43,6 @@ public sealed class CallReachabilityPruner : IPruner
                 model.AddProvenance(type.Id, new InclusionReason(
                     $"Call-reachable at depth {depth} (+{boost:F1})", Name, boost));
             }
-            else if (type.PathProximityScore == 0.0f)
-            {
-                type.IsPruned = true;
-                model.PrunedTypeIds.Add(type.Id);
-                model.PruningNotes.Add($"Pruned '{type.Id}' by {Name} (not call-reachable from focus methods)");
-            }
         }
 
         return default;

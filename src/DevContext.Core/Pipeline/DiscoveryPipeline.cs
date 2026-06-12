@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 
 using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Validation;
 
 namespace DevContext.Core.Pipeline;
 
@@ -139,8 +140,8 @@ public sealed class DiscoveryPipeline
                 "Re-run with '--profile debug' to enable call graph.");
         }
 
-        // Stage 4: Sequential pruning
-        await RunPruningAsync(context, model, ct);
+        // Stage 4: Sequential scoring
+        await RunScoringAsync(context, model, ct);
 
         // Stage 5: Sequential compression
         await RunCompressionAsync(context, model, ct);
@@ -165,6 +166,10 @@ public sealed class DiscoveryPipeline
             TokenView: context.Options.TokenView);
 
         var rendered = await renderer.RenderAsync(model, renderOptions, ct);
+
+        // Self-check invariants after rendering
+        rendered = RunSelfChecks(rendered, model, renderOptions, model);
+
         context.Observer.OnStageCompleted(PipelineStage.Rendering, renderSw.Elapsed);
         context.Observer.OnRenderCompleted(rendered);
         context.Observer.OnPipelineCompleted(model);
@@ -206,7 +211,7 @@ public sealed class DiscoveryPipeline
         var sealSw = Stopwatch.StartNew();
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
         await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
-        await RunPruningAsync(context, model, ct);
+        await RunScoringAsync(context, model, ct);
         await RunCompressionAsync(context, model, ct);
 
         // Stage 6: Render ALL formats from the same model
@@ -229,6 +234,7 @@ public sealed class DiscoveryPipeline
         foreach (var (format, renderer) in _renderers)
         {
             var rendered = await renderer.RenderAsync(model, renderOptions, ct);
+            rendered = RunSelfChecks(rendered, model, renderOptions, model);
             results[format] = rendered;
         }
 
@@ -374,9 +380,27 @@ public sealed class DiscoveryPipeline
         model.StyleDetectedVia = "ArchitectureStyleDetector";
     }
 
-    private async Task RunPruningAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
+    /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>
+    private static RenderedContext RunSelfChecks(RenderedContext rendered, DiscoveryModel model, RenderOptions renderOptions, DiscoveryModel diagnosticsTarget)
     {
-        ctx.Observer.OnStageStarted(PipelineStage.Pruning);
+        var results = OutputSelfCheck.Check(rendered, model, renderOptions);
+        var failures = ImmutableArray.CreateBuilder<string>();
+        foreach (var result in results)
+        {
+            if (result.Passed)
+                diagnosticsTarget.AddDiagnostic(DiagnosticLevel.Info, "SelfCheck", $"{result.CheckId}: {result.Detail}");
+            else
+            {
+                diagnosticsTarget.AddDiagnostic(DiagnosticLevel.Warning, "SelfCheck", $"{result.CheckId}: {result.Detail}");
+                failures.Add($"{result.CheckId}: {result.Detail}");
+            }
+        }
+        return rendered with { SelfCheckFailures = failures.ToImmutable() };
+    }
+
+    private async Task RunScoringAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
+    {
+        ctx.Observer.OnStageStarted(PipelineStage.Scoring);
         var sw = Stopwatch.StartNew();
 
         foreach (var pruner in _pruners.OrderBy(p => p.Order))
@@ -388,28 +412,13 @@ public sealed class DiscoveryPipeline
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
 
-        // Enforce MaxSurvivingTypes per scenario configuration
-        var maxSurviving = ctx.ActiveScenario.Pruning.MaxSurvivingTypes;
-        if (maxSurviving > 0)
+        // Compute FinalScore = PathProximityScore + RelevanceScore for all types
+        foreach (var type in model.Types.Values)
         {
-            var surviving = model.Types.Values.Where(t => !t.IsPruned)
-                .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
-                .ToList();
-
-            if (surviving.Count > maxSurviving)
-            {
-                var keep = surviving.Take(maxSurviving).ToHashSet();
-                foreach (var type in surviving.Skip(maxSurviving))
-                {
-                    type.IsPruned = true;
-                    model.PrunedTypeIds.Add(type.Id);
-                }
-                ctx.Observer.OnPrunerCompleted("ScenarioBudget", surviving.Count, maxSurviving);
-                model.PruningNotes.Add($"ScenarioBudget: kept {maxSurviving} types ({surviving.Count - maxSurviving} pruned for scenario limit of {maxSurviving})");
-            }
+            type.FinalScore = type.PathProximityScore + type.RelevanceScore;
         }
 
-        ctx.Observer.OnStageCompleted(PipelineStage.Pruning, sw.Elapsed);
+        ctx.Observer.OnStageCompleted(PipelineStage.Scoring, sw.Elapsed);
     }
 
     private async Task RunCompressionAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)

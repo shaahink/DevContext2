@@ -66,7 +66,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
     {
         var pct = itemsBefore > 0 ? (itemsBefore - itemsAfter) * 100 / itemsBefore : 0;
-        WriteLine($"{name}: {itemsBefore} -> {itemsAfter} types ({pct}% pruned)");
+        WriteLine($"{name}: {itemsBefore} -> {itemsAfter} types ({pct}%");
     }
 
     public void OnCompressionApplied(CompressionResult result)

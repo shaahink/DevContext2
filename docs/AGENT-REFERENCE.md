@@ -212,3 +212,15 @@ develop ← integration, feature branches merge here
 git tag -a v1.0.5 -m "Release notes"
 git push origin v1.0.5
 ```
+
+## Session Gate
+
+**Before finishing any session**, run the self-validation gate script:
+
+```powershell
+.\eval\gates.ps1
+```
+
+This builds the solution, runs fast unit tests (excluding Eval and CliSmoke),
+runs the eval expectation suite, and exercises the CLI with `--strict` mode.
+A session that ends on `GATE: FAIL` is not done — fix or report the blocker.

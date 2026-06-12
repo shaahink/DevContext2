@@ -28,7 +28,6 @@ public static class ServiceRegistration
         services.AddSingleton<IPruner>(_ => new PathProximityPruner());
         services.AddSingleton<IPruner>(_ => new CallReachabilityPruner());
         services.AddSingleton<IPruner>(_ => new PatternRelevancePruner());
-        services.AddSingleton<IPruner>(_ => new TokenBudgetEnforcer());
 
         // Compressors (ordered by pipeline execution)
         services.AddSingleton<ICompressionStrategy>(_ => new TrivialMemberCompressor());

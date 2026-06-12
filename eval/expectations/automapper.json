@@ -1,0 +1,12 @@
+{
+  "repo": "eval-repos/AutoMapper",
+  "checks": [
+    { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "NLayer", "status": "expected", "note": "AutoMapper has distinct src/test directories classified as layers" },
+    { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "expected" },
+    { "id": "endpoint-count", "type": "json-range", "path": "$.detections.length", "min": 1, "max": 1000, "status": "expected" },
+    { "id": "detection-di",   "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 1, "max": 500, "status": "expected" },
+    { "id": "di-no-multiline-lambda", "type": "output-not-contains", "format": "markdown", "value": "=>\n", "status": "expected", "note": "DI table rows must not contain multi-line lambda bodies" },
+    { "id": "types-named",    "type": "json-range", "path": "$.typesSummary.found", "min": 100, "max": 50000, "status": "expected" },
+    { "id": "analysis-time",  "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}

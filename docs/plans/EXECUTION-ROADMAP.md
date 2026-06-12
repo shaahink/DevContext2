@@ -35,7 +35,7 @@ You are executing a pre-written implementation plan in this repo. Rules:
 1. Before any edit, read in full: docs/DESIGN-PHILOSOPHY.md and docs/plans/<PLAN-FILE>.
    If the work touches extractors, scoring, or pruning, also read docs/DETECTION-GUIDE.md
    — it is binding.
-2. Task: <PROMPT FROM THE TABLE ROW>
+2. Task: 01
 3. Execute the plan EXACTLY as written, phase by phase, in order. Do not expand scope, do
    not refactor neighboring code, do not start the next plan. The plan's "Ground rules"
    override your defaults.

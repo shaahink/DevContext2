@@ -113,6 +113,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             });
 
         await WriteOutput(settings, result);
+        if (settings.Strict && HandleStrictMode(result))
+            return 2;
         ShowMetrics(metricsObserver);
         ShowSummary(sw, rootResult, options, result);
 
@@ -206,6 +208,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             IncludeDiagnostics = settings.IncludeDiagnostics,
             TokenView = settings.TokenView,
             IncludeAntiPatterns = settings.IncludeAntiPatterns,
+            Strict = settings.Strict,
             OutputFormat = settings.Format?.ToLowerInvariant() switch
             {
                 "json" => OutputFormat.Json,
@@ -293,5 +296,30 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             .AddRow("[bold]Version[/]", $"v{DevContextVersion.Display}");
 
         AnsiConsole.Write(summary);
+    }
+
+    private static bool HandleStrictMode(RenderedContext result)
+    {
+        var failures = result.SelfCheckFailures;
+        if (failures.Length == 0)
+            return false;
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .Title("[red]Self-Check Failures[/]")
+            .AddColumn("Check")
+            .AddColumn("Detail");
+
+        foreach (var failure in failures)
+        {
+            var parts = failure.Split(": ", 2);
+            var check = parts.Length > 0 ? parts[0] : failure;
+            var detail = parts.Length > 1 ? parts[1] : "";
+            table.AddRow($"[red]{check.EscapeMarkup()}[/]", detail.EscapeMarkup());
+        }
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(table);
+        AnsiConsole.MarkupLine($"[red]Strict mode: {failures.Length} self-check failure(s) detected. Exit code 2.[/]");
+        return true;
     }
 }

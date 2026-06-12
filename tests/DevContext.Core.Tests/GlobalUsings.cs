@@ -15,5 +15,6 @@ global using DevContext.Core.Pruning;
 global using DevContext.Core.Rendering;
 global using DevContext.Core.Resolvers;
 global using DevContext.Core.Utilities;
+global using DevContext.Core.Validation;
 
 global using Microsoft.Extensions.Logging;

@@ -137,7 +137,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
             new NullLogger<DiscoveryPipeline>());
 
         var stageField = typeof(DiscoveryPipeline)
-            .GetMethod("RunPruningAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            .GetMethod("RunScoringAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         Assert.NotNull(stageField);
         var task = (Task)stageField.Invoke(pipeline, [ctx, model, CancellationToken.None])!;

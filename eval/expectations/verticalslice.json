@@ -1,0 +1,13 @@
+{
+  "repo": "eval-repos/VerticalSlice",
+  "checks": [
+    { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "VerticalSlices", "status": "aspirational", "note": "iteration-4: misdetected — got MinimalApi instead of VerticalSlices" },
+    { "id": "mediatr-signal", "type": "signal-present", "value": "mediatr", "status": "aspirational", "note": "iteration-4: MediatR not detected in CleanArchitecture — handler pattern present but extractor signal gate may exclude it" },
+    { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "aspirational", "note": "iteration-4: <dynamic> placeholders appear in route templates" },
+    { "id": "endpoint-count", "type": "json-range", "path": "$.detections.length", "min": 2, "max": 300, "status": "expected" },
+    { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 40, "status": "expected" },
+    { "id": "detection-mediatr", "type": "detection-count", "detectionType": "MediatRHandlerDetection", "min": 0, "max": 100, "status": "expected" },
+    { "id": "detection-ef",   "type": "detection-count", "detectionType": "EfEntityDetection", "min": 1, "max": 50, "status": "expected" },
+    { "id": "analysis-time",  "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

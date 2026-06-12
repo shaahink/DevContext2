@@ -32,7 +32,11 @@ public sealed record RenderedContext(
     TimeSpan ElapsedTotal,
     string SchemaVersion,
     IReadOnlyList<SectionTokenRecord>? SectionTokens = null
-);
+)
+{
+    /// <summary>Self-check invariant failures collected after rendering. Empty when no failures.</summary>
+    public ImmutableArray<string> SelfCheckFailures { get; init; } = [];
+}
 
 /// <summary>Renders a discovery model into a specific output format (e.g. markdown, JSON).</summary>
 public interface IContextRenderer

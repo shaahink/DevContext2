@@ -5,6 +5,7 @@ namespace DevContext.Core.Tests;
 public sealed class CliSmokeTests
 {
     [Fact]
+    [Trait("Category", "CliSmoke")]
     public async Task DryRun_OnMinimalApiFixture_ShowsExpectedExtractors()
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
@@ -21,6 +22,7 @@ public sealed class CliSmokeTests
     }
 
     [Fact]
+    [Trait("Category", "CliSmoke")]
     public async Task ScenariosCommand_ListsAllScenarios()
     {
         var (exitCode, output) = await RunCliAsync("scenarios");
@@ -31,6 +33,7 @@ public sealed class CliSmokeTests
     }
 
     [Fact]
+    [Trait("Category", "CliSmoke")]
     public async Task VersionCommand_ReturnsVersion()
     {
         var (exitCode, output) = await RunCliAsync("version");

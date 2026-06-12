@@ -28,6 +28,8 @@ public sealed record ExtractionOptions
     public bool TokenView { get; init; }
     /// <summary>Include anti-pattern detection in output (disabled by default).</summary>
     public bool IncludeAntiPatterns { get; init; }
+    /// <summary>If true, any failed self-check invariant returns exit code 2.</summary>
+    public bool Strict { get; init; }
 }
 
 /// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>

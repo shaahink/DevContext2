@@ -1,0 +1,1063 @@
+﻿Analyzing project...
+
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-06-12T18:41:11.0696865Z",
+  "solution": {
+    "name": "TodoApp",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.sln",
+    "projectPaths": [
+      "Todo.Api\\Todo.Api.csproj",
+      "Todo.Api.Tests\\Todo.Api.Tests.csproj",
+      "Todo.Web\\Server\\Todo.Web.Server.csproj",
+      "Todo.Web\\Client\\Todo.Web.Client.csproj",
+      "Todo.Web\\Shared\\Todo.Web.Shared.csproj",
+      "TodoApp.AppHost\\TodoApp.AppHost.csproj",
+      "TodoApp.ServiceDefaults\\TodoApp.ServiceDefaults.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "MinimalApi",
+    "confidence": 1
+  },
+  "signals": [
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 7,
+    "names": [
+      "Todo.Api",
+      "Todo.Api.Tests",
+      "Todo.Web.Client",
+      "Todo.Web.Server",
+      "Todo.Web.Shared",
+      "TodoApp.AppHost",
+      "TodoApp.ServiceDefaults"
+    ]
+  },
+  "typesSummary": {
+    "found": 43,
+    "inOutput": 28,
+    "prunedPercent": 34.9
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "dbContextOptionsBuilder.Options",
+      "implementationType": "dbContextOptionsBuilder.Options",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\DbContextExtensions
+.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "serviceType": "s =\u003E 
+s.GetRequiredService\u003CDbContextOptions\u003CTContext\u003E\u003E()",
+      "implementationType": "s =\u003E 
+s.GetRequiredService\u003CDbContextOptions\u003CTContext\u003E\u003E()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 2,
+      "factorySummary": "alias \u2192 GetRequiredService",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\DbContextExtensions
+.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContextFactory",
+      "implementationType": "TodoDbContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContextFactory"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\TodoApplication.cs"
+,
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDbContextOptions",
+      "implementationType": "o =\u003E o.UseSqlite(_sqliteConnection)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContextOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\TodoApplication.cs"
+,
+      "lineNumber": 41,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IDataProtectionProvider",
+      "implementationType": "EphemeralDataProtectionProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\TodoApplication.cs"
+,
+      "lineNumber": 56,
+      "confidence": 1
+    },
+    {
+      "serviceType": "TokenService",
+      "implementationType": "TokenService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api.Tests\\TodoApplication.cs"
+,
+      "lineNumber": 58,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IAuthorizationHandler",
+      "implementationType": "CheckCurrentUserAuthHandler",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Authorization\\CheckCurre
+ntUserAuthHandler.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CurrentUser",
+      "implementationType": "CurrentUser",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Authorization\\CurrentUse
+rExtensions.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IClaimsTransformation",
+      "implementationType": "ClaimsTransformation",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Authorization\\CurrentUse
+rExtensions.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddRateLimiter",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRateLimiter"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Extensions\\RateLimitExte
+nsions.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "TokenBucketRateLimiterOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Extensions\\RateLimitExte
+nsions.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "RateLimiterOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Extensions\\RateLimitExte
+nsions.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDataProtection",
+      "implementationType": "o =\u003E o.ApplicationDiscriminator = 
+\u0022TodoApp\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDataProtection"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthentication",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthentication"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddBearerToken",
+      "implementationType": "IdentityConstants.BearerScheme",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddBearerToken"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthorizationBuilder",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthorizationBuilder"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCurrentUserHandler",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCurrentUserHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddIdentityCore",
+      "implementationType": "TodoUser",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddIdentityCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddEntityFrameworkStores",
+      "implementationType": "TodoDbContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddEntityFrameworkStores"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiEndpoints",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiEndpoints"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddSqlite",
+      "implementationType": "connectionString",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddSqlite"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCurrentUser",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCurrentUser"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenApi",
+      "implementationType": "options =\u003E 
+options.AddBearerTokenAuthentication()",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenApi"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRateLimiting",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRateLimiting"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 33,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpLogging",
+      "implementationType": "o =\u003E\r\n{\r\n    if 
+(builder.Environment.IsDevelopment())\r\n    {\r\n        o.CombineLogs = 
+true;\r\n        o.LoggingFields = HttpLoggingFields.ResponseBody | 
+HttpLoggingFields.ResponseHeaders;\r\n    }\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "client =\u003E\r\n{\r\n    client.BaseAddress = new
+Uri(builder.HostEnvironment.BaseAddress);\r\n\r\n    // The cookie auth stack 
+detects this header and avoids redirects for unauthenticated\r\n    // 
+requests\r\n    
+client.DefaultRequestHeaders.TryAddWithoutValidation(\u0022X-Requested-With\u002
+2, \u0022XMLHttpRequest\u0022);\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Client\\Program.cs",
+      "lineNumber": 6,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthentication",
+      "implementationType": "CookieAuthenticationDefaults.AuthenticationScheme",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthentication"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Authentication\\A
+uthenticationExtensions.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "ExternalProviders",
+      "implementationType": "ExternalProviders",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Authentication\\A
+uthenticationExtensions.cs",
+      "lineNumber": 81,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AuthenticationStateProvider",
+      "implementationType": "HttpAuthenticationStateProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Authentication\\A
+uthenticationExtensions.cs",
+      "lineNumber": 84,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddHttpContextAccessor",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpContextAccessor"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Authentication\\A
+uthenticationExtensions.cs",
+      "lineNumber": 85,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "Auth0Constants.AuthenticationScheme",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Authentication\\A
+uthenticationExtensions.cs",
+      "lineNumber": 91,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthorizationBuilder",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthorizationBuilder"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 10,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDataProtection",
+      "implementationType": "o =\u003E o.ApplicationDiscriminator = 
+\u0022TodoApp\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDataProtection"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "TodoClient",
+      "implementationType": "TodoClient",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddRazorComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRazorComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInteractiveWebAssemblyComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInteractiveWebAssemblyComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpForwarderWithServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpForwarderWithServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "client =\u003E\r\n{\r\n    client.BaseAddress = 
+new(\u0022http://todoapi\u0022);\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 25,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.ServiceDefaults\\Extensions
+.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.ServiceDefaults\\Extensions
+.cs",
+      "lineNumber": 52,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.ServiceDefaults\\Extensions
+.cs",
+      "lineNumber": 79,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHealthChecks",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHealthChecks"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.ServiceDefaults\\Extensions
+.cs",
+      "lineNumber": 94,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCheck",
+      "implementationType": "\u0022self\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCheck"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\TodoApp.ServiceDefaults\\Extensions
+.cs",
+      "lineNumber": 94,
+      "confidence": 0.7
+    },
+    {
+      "type": "EfEntityDetection",
+      "entityType": "Initial",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Migrations\\2022112307123
+4_Initial.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "RemoveIsAdmin",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Migrations\\2022112316505
+1_RemoveIsAdmin.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "ForeignKeyChange",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Migrations\\2023071403243
+1_ForeignKeyChange.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "type": "EndpointDetection",
+      "httpMethod": "GET",
+      "routeTemplate": "/todos/",
+      "handlerType": "async (TodoDbContext db, CurrentUser owner) =\u003E\r\n
+{\r\n            return await db.Todos.Where(todo =\u003E todo.OwnerId == 
+owner.Id).Select(t =\u003E t.AsTodoItem()).AsNoTracking().ToListAsync();\r\n
+}",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/todos",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Todos\\TodoApi.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/todos/{id}",
+      "handlerType": "async Task\u003CResults\u003COk\u003CTodoItem\u003E, 
+NotFound\u003E\u003E (TodoDbContext db, int id, CurrentUser owner) =\u003E\r\n
+{\r\n            return await db.Todos.FindAsync(id) switch\r\n            {\r\n
+Todo todo when todo.OwnerId == owner.Id || owner.IsAdmin =\u003E 
+TypedResults.Ok(todo.AsTodoItem()),\r\n                _ =\u003E 
+TypedResults.NotFound()\r\n            };\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/todos",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Todos\\TodoApi.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/todos/",
+      "handlerType": "async Task\u003CCreated\u003CTodoItem\u003E\u003E 
+(TodoDbContext db, TodoItem newTodo, CurrentUser owner) =\u003E\r\n        {\r\n
+var todo = new Todo\r\n            {\r\n                Title = 
+newTodo.Title,\r\n                OwnerId = owner.Id\r\n            };\r\n\r\n
+db.Todos.Add(todo);\r\n            await db.SaveChangesAsync();\r\n\r\n
+return TypedResults.Created($\u0022/todos/{todo.Id}\u0022, 
+todo.AsTodoItem());\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/todos",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Todos\\TodoApi.cs",
+      "lineNumber": 38,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/todos/{id}",
+      "handlerType": "async Task\u003CResults\u003COk, NotFound, 
+BadRequest\u003E\u003E (TodoDbContext db, int id, TodoItem todo, CurrentUser 
+owner) =\u003E\r\n        {\r\n            if (id != todo.Id)\r\n            
+{\r\n                return TypedResults.BadRequest();\r\n            }\r\n\r\n
+var rowsAffected = await db.Todos.Where(t =\u003E t.Id == id \u0026\u0026 
+(t.OwnerId == owner.Id || owner.IsAdmin))\r\n
+.ExecuteUpdateAsync(updates =\u003E\r\n
+updates.SetProperty(t =\u003E t.IsComplete, todo.IsComplete)\r\n
+.SetProperty(t =\u003E t.Title, todo.Title));\r\n\r\n            return 
+rowsAffected == 0 ? TypedResults.NotFound() : TypedResults.Ok();\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/todos",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Todos\\TodoApi.cs",
+      "lineNumber": 52,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/todos/{id}",
+      "handlerType": "async Task\u003CResults\u003CNotFound, Ok\u003E\u003E 
+(TodoDbContext db, int id, CurrentUser owner) =\u003E\r\n        {\r\n
+var rowsAffected = await db.Todos.Where(t =\u003E t.Id == id \u0026\u0026 
+(t.OwnerId == owner.Id || owner.IsAdmin))\r\n
+.ExecuteDeleteAsync();\r\n\r\n            return rowsAffected == 0 ? 
+TypedResults.NotFound() : TypedResults.Ok();\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/todos",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Todos\\TodoApi.cs",
+      "lineNumber": 67,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/users/token/{provider}",
+      "handlerType": "async 
+Task\u003CResults\u003COk\u003CAccessTokenResponse\u003E, SignInHttpResult, 
+ValidationProblem\u003E\u003E (string provider, ExternalUserInfo userInfo, 
+UserManager\u003CTodoUser\u003E userManager, SignInManager\u003CTodoUser\u003E 
+signInManager, IDataProtectionProvider dataProtectionProvider) =\u003E\r\n
+{\r\n            var protector = 
+dataProtectionProvider.CreateProtector(provider);\r\n\r\n            var 
+providerKey = protector.Unprotect(userInfo.ProviderKey);\r\n\r\n            var 
+user = await userManager.FindByLoginAsync(provider, providerKey);\r\n\r\n
+var result = IdentityResult.Success;\r\n\r\n            if (user is null)\r\n
+{\r\n                user = new TodoUser() { UserName = userInfo.Username 
+};\r\n\r\n                result = await userManager.CreateAsync(user);\r\n\r\n
+if (result.Succeeded)\r\n                {\r\n                    result = await
+userManager.AddLoginAsync(user, new UserLoginInfo(provider, providerKey, 
+displayName: null));\r\n                }\r\n            }\r\n\r\n            if
+(result.Succeeded)\r\n            {\r\n                var principal = await 
+signInManager.CreateUserPrincipalAsync(user);\r\n\r\n                return 
+TypedResults.SignIn(principal);\r\n            }\r\n\r\n            return 
+TypedResults.ValidationProblem(result.Errors.ToDictionary(e =\u003E e.Code, e 
+=\u003E new[] { e.Description }));\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/users",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Users\\UsersApi.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/auth/register",
+      "handlerType": "async (UserInfo userInfo, AuthClient client) =\u003E\r\n
+{\r\n            // Retrieve the access token given the user info\r\n
+var token = await client.CreateUserAsync(userInfo);\r\n\r\n            if (token
+is null)\r\n            {\r\n                return Results.Unauthorized();\r\n
+}\r\n\r\n            return SignIn(userInfo, token);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/auth",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\AuthApi.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/auth/login",
+      "handlerType": "async (UserInfo userInfo, AuthClient client) =\u003E\r\n
+{\r\n            // Retrieve the access token give the user info\r\n            
+var token = await client.GetTokenAsync(userInfo);\r\n\r\n            if (token 
+is null)\r\n            {\r\n                return Results.Unauthorized();\r\n
+}\r\n\r\n            return SignIn(userInfo, token);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/auth",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\AuthApi.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/auth/logout",
+      "handlerType": "async (HttpContext context) =\u003E\r\n        {\r\n
+await 
+context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);\r\n\r\n
+// TODO: Support remote logout\r\n            // If this is an external login 
+then use it\r\n            //var result = await context.AuthenticateAsync();\r\n
+//if (result.Properties?.GetExternalProvider() is string providerName)\r\n
+//{\r\n            //    await context.SignOutAsync(providerName, new() { 
+RedirectUri = \u0022/\u0022 });\r\n            //}\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [
+        "[Authorize]"
+      ],
+      "parameterTypes": [],
+      "groupPrefix": "/auth",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\AuthApi.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/auth/login/{provider}",
+      "handlerType": "(string provider) =\u003E\r\n        {\r\n            // 
+Trigger the external login flow by issuing a challenge with the provider 
+name.\r\n            // This name maps to the registered authentication scheme 
+names in AuthenticationExtensions.cs\r\n            return 
+Results.Challenge(\r\n                properties: new() { RedirectUri = 
+$\u0022/auth/signin/{provider}\u0022 },\r\n                
+authenticationSchemes: [provider]);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/auth",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\AuthApi.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/auth/signin/{provider}",
+      "handlerType": "async (string provider, AuthClient client, HttpContext 
+context, IDataProtectionProvider dataProtectionProvider) =\u003E\r\n        
+{\r\n            // Grab the login information from the external login dance\r\n
+var result = await 
+context.AuthenticateAsync(AuthenticationSchemes.ExternalScheme);\r\n\r\n
+if (result.Succeeded)\r\n            {\r\n                var principal = 
+result.Principal;\r\n\r\n                var id = 
+principal.FindFirstValue(ClaimTypes.NameIdentifier)!;\r\n\r\n                // 
+TODO: We should have the user pick a user name to complete the external login 
+dance\r\n                // for now we\u0027ll prefer the email address\r\n
+var name = (principal.FindFirstValue(ClaimTypes.Email) ?? 
+principal.Identity?.Name)!;\r\n\r\n                // Protect the user id so it 
+for transport\r\n                var protector = 
+dataProtectionProvider.CreateProtector(provider);\r\n\r\n                var 
+token = await client.GetOrCreateUserAsync(provider, new() { Username = name, 
+ProviderKey = protector.Protect(id) });\r\n\r\n                if (token is not 
+null)\r\n                {\r\n                    // Write the login cookie\r\n
+await SignIn(id, name, token, provider).ExecuteAsync(context);\r\n
+}\r\n            }\r\n\r\n            // Delete the external cookie\r\n
+await context.SignOutAsync(AuthenticationSchemes.ExternalScheme);\r\n\r\n
+// TODO: Handle the failure somehow\r\n\r\n            return 
+Results.Redirect(\u0022/\u0022);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/auth",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\AuthApi.cs",
+      "lineNumber": 64,
+      "confidence": 1
+    },
+    {
+      "type": "MiddlewareDetection",
+      "middlewareType": "UseHttpLogging",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseRateLimiter",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Api\\Program.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseWebAssemblyDebugging",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseHsts",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseHttpsRedirection",
+      "pipelineOrder": 3,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAntiforgery",
+      "pipelineOrder": 4,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\TodoApi\\Todo.Web\\Server\\Program.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    }
+  ],
+  "diagnostics": [
+    {
+      "level": 0,
+      "source": "CallReachabilityPruner",
+      "message": "CallGraph not available; skipping reachability analysis.",
+      "timestamp": "2026-06-12T18:41:11.0358656+00:00"
+    },
+    {
+      "level": 0,
+      "source": "ProgramCsFlowExtractor",
+      "message": "Orphan pattern: \u0027AddAuthentication\u0027 at line 14 in 
+Program.cs has no corresponding \u0027UseAuthentication\u0027 call",
+      "timestamp": "2026-06-12T18:41:10.2490706+00:00"
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.TodoApplication\u0027; PatternRelevancePruner: pruned test 
+type \u0027TodoApi.Tests.TodoApiTests\u0027; PatternRelevancePruner: pruned test
+type \u0027TodoApi.Tests.DbContextExtensions\u0027; PatternRelevancePruner: 
+pruned test type \u0027TodoApi.Tests.AuthToken\u0027; PatternRelevancePruner: 
+pruned test type \u0027TodoApi.Tests.UserApiTests\u0027; PatternRelevancePruner:
+pruned test type \u0027TodoApi.Tests.AuthHandler\u0027",
+  "pruningNotes": [
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.TodoApplication\u0027",
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.TodoApiTests\u0027",
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.DbContextExtensions\u0027",
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.AuthToken\u0027",
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.UserApiTests\u0027",
+    "PatternRelevancePruner: pruned test type 
+\u0027TodoApi.Tests.AuthHandler\u0027"
+  ],
+  "maxTokens": 8000
+}
+Γò¡ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓò«
+Γöé  Metric  Γöé        Value        Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé Solution Γöé     TodoApp.sln     Γöé
+Γöé   Time   Γöé       1518ms        Γöé
+Γöé  Tokens  Γöé ~9154 (budget 8000) Γöé
+Γöé Version  Γöé v1.0.5-preview.0.11 Γöé
+Γò░ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓò»

@@ -48,18 +48,12 @@ public sealed class PatternRelevancePruner : IPruner
                 }
             }
 
-            // Skip pruning for types referenced by any detection
-            if (typeNamesWithAnyDetection.Contains(type.Name))
-            {
-                type.IsPruned = false;
-                continue;
-            }
-
-            // Mark test/internal noise types for pruning if not otherwise relevant
+            // Mark test/internal noise types as hard-excluded (not just low-scored)
             if (IsTestOrNoiseType(type, testProjectNames))
             {
-                type.IsPruned = true;
-                model.PruningNotes.Add($"PatternRelevancePruner: pruned test type '{type.Id}'");
+                type.IsHardExcluded = true;
+                type.ExclusionReason = "test/mock noise";
+                model.PruningNotes.Add($"PatternRelevancePruner: excluded test type '{type.Id}'");
                 continue;
             }
         }

@@ -1,0 +1,14 @@
+{
+  "repo": "eval-repos/TodoApi",
+  "checks": [
+    { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "MinimalApi", "status": "expected", "note": "TodoApi is a Minimal API reference" },
+    { "id": "efcore-signal",  "type": "signal-present", "value": "efcore", "status": "expected" },
+    { "id": "minimal-signal", "type": "signal-present", "value": "minimal-apis", "status": "expected" },
+    { "id": "endpoint-count", "type": "json-range", "path": "$.detections.length", "min": 10, "max": 200, "status": "expected" },
+    { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "expected" },
+    { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 20, "status": "expected" },
+    { "id": "detection-ef",   "type": "detection-count", "detectionType": "EfEntityDetection", "min": 1, "max": 15, "status": "expected" },
+    { "id": "detection-di",   "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 1, "max": 200, "status": "expected" },
+    { "id": "analysis-time",  "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}
