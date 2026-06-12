@@ -24,7 +24,7 @@ public class MainViewModelTests
         _svc.LoadRecent().Returns(_recent);
 
         _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new RenderResult { Content = "", HtmlContent = "", Sections = [], EstimatedTokens = 0 }));
+            .Returns(Task.FromResult(new RenderResult { Content = "analysis output", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 50 }));
     }
 
     private MainViewModel CreateVm() => new(_svc);
