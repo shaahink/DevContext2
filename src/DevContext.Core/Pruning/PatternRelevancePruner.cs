@@ -1,19 +1,25 @@
 namespace DevContext.Core.Pruning;
 
+/// <summary>Computes RoleScore ∈ [0,1] based on the type's architectural roles (endpoint, entity, DI, etc).
+/// Applies veto/penalty rules: test-project types are hard-excluded, name-pattern matches get RoleScore forced to 0,
+/// detection-bearing types are never hard-excluded.</summary>
 public sealed class PatternRelevancePruner : IPruner
 {
     public string Name => "PatternRelevancePruner";
     public int Order => 30;
 
-    private static readonly ImmutableArray<(Type DetectionType, string FieldName, float Boost)> BoostRules =
-    [
-        (typeof(EndpointDetection), nameof(EndpointDetection.HandlerType), 5.0f),
-        (typeof(MediatRHandlerDetection), nameof(MediatRHandlerDetection.HandlerType), 4.0f),
-        (typeof(EfEntityDetection), nameof(EfEntityDetection.EntityType), 3.0f),
-        (typeof(DiRegistrationDetection), nameof(DiRegistrationDetection.ImplementationType), 2.0f),
-        (typeof(BackgroundWorkerDetection), nameof(BackgroundWorkerDetection.ImplementationType), 2.0f),
-        (typeof(MessageConsumerDetection), nameof(MessageConsumerDetection.ConsumerType), 3.0f),
-    ];
+    /// <summary>How load-bearing is this role for understanding the app — used in RoleScore max.</summary>
+    private static readonly Dictionary<Type, double> RoleWeights = new()
+    {
+        [typeof(EndpointDetection)] = 1.0,
+        [typeof(MediatRHandlerDetection)] = 0.8,
+        [typeof(MessageConsumerDetection)] = 0.7,
+        [typeof(EfEntityDetection)] = 0.6,
+        [typeof(BackgroundWorkerDetection)] = 0.5,
+        [typeof(MiddlewareDetection)] = 0.5,
+        [typeof(IndirectWiringDetection)] = 0.5,
+        [typeof(DiRegistrationDetection)] = 0.35,
+    };
 
     private static readonly string[] TestPrefixes = ["When_", "Test_", "Mock_", "Fake_", "Stub_"];
     private static readonly string[] TestSuffixes = ["Tests", "Test", "Fixture", "Mock", "Stub",
@@ -24,41 +30,59 @@ public sealed class PatternRelevancePruner : IPruner
     public ValueTask PruneAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var detectionsByTypeName = BuildDetectionLookup(model);
-        var typeNamesWithAnyDetection = CollectTypeNamesWithDetections(model);
         var testProjectNames = CollectTestProjectNames(model);
 
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
 
-            // Apply relevance boosts for types referenced by detections
+            // Compute RoleScore from detections
             if (detectionsByTypeName.TryGetValue(type.Name, out var typeDetections))
             {
-                foreach (var (kind, name) in typeDetections)
-                {
-                    ct.ThrowIfCancellationRequested();
+                var distinctRoles = typeDetections
+                    .Select(d => d.Kind)
+                    .Distinct()
+                    .ToList();
 
-                    var boost = GetBoost(kind, name);
-                    if (boost > 0.0f)
+                var maxWeight = distinctRoles.Max(r => RoleWeights.TryGetValue(r, out var w) ? w : 0);
+                var additionalBonus = 0.1 * (distinctRoles.Count - 1);
+                type.RoleScore = Math.Min(1.0, maxWeight + additionalBonus);
+
+                foreach (var (kind, _) in typeDetections)
+                {
+                    if (RoleWeights.TryGetValue(kind, out var w) && w > 0)
                     {
-                        type.RelevanceScore += boost;
                         model.AddProvenance(type.Id, new InclusionReason(
-                            $"Pattern '{kind.Name}' on '{name}' (+{boost:F1})", Name, boost));
+                            $"Role '{kind.Name}' (+{w:F2})", Name, (float)w));
                     }
                 }
             }
 
-            // Mark test/internal noise types as hard-excluded (not just low-scored)
-            if (IsTestOrNoiseType(type, testProjectNames))
+            // Floor: detection-bearing types are never hard-excluded
+            var hasDetection = detectionsByTypeName.ContainsKey(type.Name);
+
+            // Veto: types in test projects are hard-excluded
+            if (testProjectNames.Count > 0
+                && testProjectNames.Any(p => type.FilePath.Contains(p, StringComparison.OrdinalIgnoreCase)))
             {
-                type.IsHardExcluded = true;
-                type.ExclusionReason = "test/mock noise";
-                model.PruningNotes.Add($"PatternRelevancePruner: excluded test type '{type.Id}'");
-                continue;
+                if (!hasDetection)
+                {
+                    type.IsHardExcluded = true;
+                    type.ExclusionReason = "test project";
+                    model.PruningNotes.Add($"PatternRelevancePruner: excluded test-project type '{type.Id}'");
+                    continue;
+                }
+            }
+
+            // Penalty: name-pattern matches get RoleScore forced to 0 (not hard-excluded)
+            if (IsTestOrNoiseName(type) && !hasDetection)
+            {
+                type.RoleScore = 0;
+                model.PruningNotes.Add($"PatternRelevancePruner: penalized name-pattern type '{type.Id}' (RoleScore=0)");
             }
         }
 
-        // Library-mode relevance scoring: when no web signals are present, boost public API surface
+        // Library-mode scoring: when no web signals, boost public API surface
         if (!HasWebSignals(model))
         {
             ApplyLibraryModeScoring(model, testProjectNames);
@@ -78,7 +102,6 @@ public sealed class PatternRelevancePruner : IPruner
 
     private static void ApplyLibraryModeScoring(DiscoveryModel model, FrozenSet<string> testProjectNames)
     {
-        // Collect types that are base types/interfaces of other surviving types
         var referencedAsBase = new HashSet<string>(StringComparer.Ordinal);
         foreach (var type in model.Types.Values)
         {
@@ -94,17 +117,19 @@ public sealed class PatternRelevancePruner : IPruner
             if (testProjectNames.Count > 0
                 && testProjectNames.Any(p => type.FilePath.Contains(p, StringComparison.OrdinalIgnoreCase)))
             {
-                type.RelevanceScore -= 0.5f;
+                type.RoleScore = Math.Max(0, type.RoleScore - 0.5);
                 continue;
             }
 
-            // Boost public types (public API surface)
+            // Additive library scores, capped at 1.0
+            var added = 0.0;
             if (type.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
-                type.RelevanceScore += 0.3f;
-
-            // Boost types used as base types or interfaces by other types
+                added += 0.4;
             if (referencedAsBase.Contains(type.Id) || referencedAsBase.Contains(type.Name))
-                type.RelevanceScore += 0.4f;
+                added += 0.6;
+
+            if (added > 0)
+                type.RoleScore = Math.Min(1.0, type.RoleScore + added);
         }
     }
 
@@ -123,21 +148,18 @@ public sealed class PatternRelevancePruner : IPruner
         return names.ToFrozenSet();
     }
 
-    private static bool IsTestOrNoiseType(TypeDiscovery type, FrozenSet<string> testProjectNames)
+    private static bool IsTestOrNoiseName(TypeDiscovery type)
     {
-        // Type name patterns
         var name = type.Name;
         foreach (var prefix in TestPrefixes)
             if (name.StartsWith(prefix, StringComparison.Ordinal)) return true;
         foreach (var suffix in TestSuffixes)
             if (name.EndsWith(suffix, StringComparison.Ordinal)) return true;
 
-        // Namespace patterns
         var ns = type.Namespace;
         foreach (var segment in TestNamespaceSegments)
             if (ns.Contains(segment, StringComparison.OrdinalIgnoreCase)) return true;
 
-        // File path — check if file belongs to a test project by name
         var fileName = Path.GetFileNameWithoutExtension(type.FilePath);
         if (fileName.StartsWith("When_", StringComparison.Ordinal)
             || fileName.StartsWith("Test_", StringComparison.Ordinal)
@@ -163,7 +185,7 @@ public sealed class PatternRelevancePruner : IPruner
                 lookup[typeName] = builder;
             }
 
-            builder.Add((detection.GetType(), typeName));
+            builder.Add((kind, typeName));
         }
 
         return lookup.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutable());
@@ -183,30 +205,5 @@ public sealed class PatternRelevancePruner : IPruner
             DiRegistrationDetection dr => (dr.ImplementationType, typeof(DiRegistrationDetection)),
             _ => null,
         };
-    }
-
-    private static FrozenSet<string> CollectTypeNamesWithDetections(DiscoveryModel model)
-    {
-        var names = new HashSet<string>();
-
-        foreach (var detection in model.Detections)
-        {
-            if (GetTypeNameEntry(detection) is { } entry)
-            {
-                names.Add(entry.TypeName);
-            }
-        }
-
-        return names.ToFrozenSet();
-    }
-
-    private static float GetBoost(Type kind, string name)
-    {
-        foreach (var (dt, _, boost) in BoostRules)
-        {
-            if (dt == kind) return boost;
-        }
-
-        return 0.0f;
     }
 }

@@ -9,7 +9,11 @@ public sealed record PruningConfig
     public int MaxCallDepth { get; init; } = 3;
     /// <summary>Whether to boost relevance scores for types that appear in detections.</summary>
     public bool EnablePatternBoost { get; init; } = true;
-    /// <summary>Maximum number of types to retain after pruning.</summary>
+    /// <summary>Weight given to RoleScore when computing FinalScore (RoleWeight * RoleScore + FocusWeight * FocusScore).</summary>
+    public double RoleWeight { get; init; } = 0.7;
+    /// <summary>Weight given to FocusScore when computing FinalScore. Overview = 0.3, deep-dive = 0.65.</summary>
+    public double FocusWeight { get; init; } = 0.3;
+    /// <summary>Maximum number of types to retain after scoring.</summary>
     public int MaxSurvivingTypes { get; init; } = 50;
 }
 

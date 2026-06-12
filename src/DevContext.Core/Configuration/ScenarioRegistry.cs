@@ -12,7 +12,7 @@ public static class ScenarioRegistry
                 Name = "overview",
                 DisplayName = "Overview",
                 Description = "High-level architecture map, endpoints, handlers, data model, and wiring",
-                Pruning = new PruningConfig { MaxPathDistance = 2, MaxSurvivingTypes = 40 },
+                Pruning = new PruningConfig { MaxPathDistance = 2, MaxSurvivingTypes = 40, RoleWeight = 0.7, FocusWeight = 0.3 },
                 Compression = new CompressionConfig { AggressiveTruncation = false },
                 RequiredSections = [SectionNames.ArchitectureOverview, SectionNames.Endpoints, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.DiRegistrations, SectionNames.MiddlewarePipeline, SectionNames.RelatedTypes]
             },
@@ -21,7 +21,7 @@ public static class ScenarioRegistry
                 Name = "deep-dive",
                 DisplayName = "Trace",
                 Description = "Entry-point focused: call graph, handler chain, event flow",
-                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25 },
+                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25, RoleWeight = 0.35, FocusWeight = 0.65 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
                 RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.MessageConsumers, SectionNames.DiRegistrations, SectionNames.BackgroundWorkers, SectionNames.MiddlewarePipeline]
             },
@@ -30,7 +30,7 @@ public static class ScenarioRegistry
                 Name = "trace",
                 DisplayName = "Trace",
                 Description = "Entry-point focused: call graph, handler chain, event flow (alias for deep-dive)",
-                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25 },
+                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25, RoleWeight = 0.35, FocusWeight = 0.65 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
                 RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.MessageConsumers, SectionNames.DiRegistrations, SectionNames.BackgroundWorkers, SectionNames.MiddlewarePipeline]
             }

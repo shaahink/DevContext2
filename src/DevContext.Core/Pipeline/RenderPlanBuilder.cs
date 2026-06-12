@@ -15,7 +15,22 @@ public static class RenderPlanBuilder
             ? scenario.RequiredSections
             : request.Sections;
 
-        // 2. Order candidates by FinalScore desc, then name for stable tie-break
+        // 2. Identify pinned types: explicit focus types always included (exempt from caps)
+        var pinnedIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var fp in snapshot.Analysis.FocusPoints)
+        {
+            if (fp.TypeName is null) continue;
+            foreach (var type in model.Types.Values)
+            {
+                if (string.Equals(type.Name, fp.TypeName, StringComparison.Ordinal)
+                    || type.Id.EndsWith("." + fp.TypeName, StringComparison.Ordinal))
+                {
+                    pinnedIds.Add(type.Id);
+                }
+            }
+        }
+
+        // 3. Order candidates by FinalScore desc, then name for stable tie-break
         var candidates = model.Types.Values
             .OrderByDescending(t => t.FinalScore)
             .ThenBy(t => t.Name)
@@ -27,8 +42,23 @@ public static class RenderPlanBuilder
         var maxTypes = scenario.Pruning.MaxSurvivingTypes;
         var usedTokens = 0;
 
+        // Pin: explicit focus types always included, exempt from caps
         foreach (var type in candidates)
         {
+            if (!pinnedIds.Contains(type.Id)) continue;
+            if (type.IsHardExcluded) continue;
+
+            var pinTokens = EstimateTokenCost(type);
+            included.Add(type.Id);
+            usedTokens += pinTokens;
+        }
+
+        // Budget pass: include remaining types in score order
+        foreach (var type in candidates)
+        {
+            if (pinnedIds.Contains(type.Id)) continue; // already included
+
+            // Floor: detection-bearing types are never hard-excluded (may still lose to budget)
             if (type.IsHardExcluded)
             {
                 excluded.Add(new PlannedExclusion(type.Id, type.Name, type.FinalScore,

@@ -41,8 +41,12 @@ public sealed class TypeDiscovery
     public float RelevanceScore { get; set; }
     /// <summary>Combined ranking score used by RenderPlan to order types for inclusion.</summary>
     public double FinalScore { get; set; }
+    /// <summary>Focus proximity score ∈ [0,1] encompassing path distance and call-graph reachability.</summary>
+    public double FocusScore { get; set; }
+    /// <summary>Role importance score ∈ [0,1] based on the type's architectural roles (endpoint, entity, DI, etc).</summary>
+    public double RoleScore { get; set; }
     /// <summary>Reason why this type was excluded, only set by hard-irrelevance rules.</summary>
     public string? ExclusionReason { get; set; }
-    /// <summary>Scorer says this type should never be shown (test/mock noise).</summary>
+    /// <summary>Scorer says this type should never be shown (test project noise).</summary>
     public bool IsHardExcluded { get; set; }
 }

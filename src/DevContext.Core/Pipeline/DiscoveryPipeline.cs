@@ -517,10 +517,15 @@ public sealed class DiscoveryPipeline
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
 
-        // Compute FinalScore = PathProximityScore + RelevanceScore for all types
+        // Compute FocusScore + RoleScore → FinalScore with scenario-owned weights
+        var hasFocus = ctx.Analysis.FocusPoints.Count > 0;
         foreach (var type in model.Types.Values)
         {
-            type.FinalScore = type.PathProximityScore + type.RelevanceScore;
+            if (hasFocus)
+                type.FinalScore = ctx.ActiveScenario.Pruning.RoleWeight * type.RoleScore
+                                  + ctx.ActiveScenario.Pruning.FocusWeight * type.FocusScore;
+            else
+                type.FinalScore = type.RoleScore;
         }
 
         ctx.Observer.OnStageCompleted(PipelineStage.Scoring, sw.Elapsed);

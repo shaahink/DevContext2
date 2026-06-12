@@ -1,6 +1,6 @@
 namespace DevContext.Core.Pruning;
 
-/// <summary>Prunes types whose directory distance from focus points exceeds the configured maximum.</summary>
+/// <summary>Computes path-proximity score for every type based on directory distance from focus points. Score ∈ [0,1].</summary>
 public sealed class PathProximityPruner : IPruner
 {
     /// <summary>Gets the name of this pruner.</summary>
@@ -13,19 +13,11 @@ public sealed class PathProximityPruner : IPruner
         var focusPoints = context.Analysis.FocusPoints;
         var maxDistance = context.ActiveScenario.Pruning.MaxPathDistance;
 
-        if (focusPoints.Count == 0)
-        {
-            foreach (var type in model.Types.Values)
-            {
-                type.PathProximityScore = 0.5f;
-            }
-
-            return default;
-        }
-
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
+
+            if (focusPoints.Count == 0) continue; // no focus — path component stays 0
 
             var minDistance = int.MaxValue;
 

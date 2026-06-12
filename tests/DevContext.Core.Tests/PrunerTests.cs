@@ -44,14 +44,12 @@ public sealed class PrunerTests
         var product = model.Types["MyApp.Domain.Product"];
 
         Assert.Equal(1.0f, controller.PathProximityScore);
-        Assert.False(controller.IsPruned);
 
         Assert.True(product.PathProximityScore < 1.0f);
-        Assert.False(product.IsPruned);
     }
 
     [Fact]
-    public async Task PathProximityPruner_AssignsDefaultScoreWhenNoFocus()
+    public async Task PathProximityPruner_NoFocus_LeavesScoreAtZero()
     {
         var model = new DiscoveryModel();
         model.Types.TryAdd("MyApp.Models.Product", new TypeDiscovery
@@ -75,7 +73,7 @@ public sealed class PrunerTests
         await pruner.PruneAsync(ctx, model, default);
 
         var type = model.Types["MyApp.Models.Product"];
-        Assert.Equal(0.5f, type.PathProximityScore);
+        Assert.Equal(0f, type.PathProximityScore); // no focus → stays 0
     }
 
     [Fact]
@@ -162,8 +160,7 @@ public sealed class PrunerTests
         await pruner.PruneAsync(ctx, model, default);
 
         var handler = model.Types["MyApp.Handlers.CreateOrderHandler"];
-        Assert.True(handler.RelevanceScore > 0);
-        Assert.False(handler.IsPruned);
+        Assert.True(handler.RoleScore > 0);
     }
 
     [Fact]
@@ -208,11 +205,9 @@ public sealed class PrunerTests
         var testType = model.Types["MyApp.Tests.MyServiceTests"];
 
         // Public type should get a boost (library mode)
-        Assert.True(publicService.RelevanceScore > 0, "Public type should be boosted in library mode");
+        Assert.True(publicService.RoleScore > 0, "Public type should be boosted in library mode");
         // Test type in a test project should be penalized
-        Assert.True(testType.RelevanceScore < 0, "Test type should be penalized in library mode");
-        // Public type should have higher score than test type
-        Assert.True(publicService.RelevanceScore > testType.RelevanceScore);
+        Assert.True(testType.RoleScore < publicService.RoleScore, "Test type should have lower score than public type");
     }
 
     [Fact]
@@ -253,9 +248,8 @@ public sealed class PrunerTests
 
         // With web signals, scores should remain 0 (no library mode boost)
         var publicService = model.Types["MyApp.Services.PublicService"];
-        var testType = model.Types["MyApp.Tests.MyServiceTests"];
 
-        Assert.Equal(0, publicService.RelevanceScore);
+        Assert.Equal(0, publicService.RoleScore);
     }
 
     [Fact]
@@ -300,10 +294,8 @@ public sealed class PrunerTests
         await pruner.PruneAsync(ctx, model, default);
 
         var orderService = model.Types["MyApp.Services.OrderService"];
-        var order = model.Types["MyApp.Domain.Order"];
 
-        Assert.True(orderService.RelevanceScore > 0);
-        Assert.False(order.IsPruned);
+        Assert.True(orderService.FocusScore > 0);
     }
 
     [Fact]
