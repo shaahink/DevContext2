@@ -88,29 +88,49 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         RenderedContext result = null!;
         var sw = Stopwatch.StartNew();
 
-        AnsiConsole.Status()
-            .Start(settings.DryRun ? "Planning analysis..." : "Analyzing project...", statusCtx =>
-            {
-                var spectreObserver = new SpectreDiscoveryObserver();
-                var observer = metricsObserver is not null
-                    ? new CompositeDiscoveryObserver(spectreObserver, metricsObserver)
-                    : (IDiscoveryObserver)spectreObserver;
+        var spectreObserver = new SpectreDiscoveryObserver();
+        var observer = metricsObserver is not null
+            ? new CompositeDiscoveryObserver(spectreObserver, metricsObserver)
+            : (IDiscoveryObserver)spectreObserver;
 
-                var ctx = new DiscoveryContext
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.RootPath,
+            Options = options,
+            ActiveScenario = scenario,
+            Observer = observer,
+            FileSystem = _fs,
+            Cache = cache,
+            Analysis = analysis,
+            Logger = _loggerFactory.CreateLogger("DevContext"),
+            RoslynWorkspace = roslyn
+        };
+
+        if (settings.DryRun)
+        {
+            result = await pipeline.RunAsync(ctx, ct);
+        }
+        else
+        {
+            AnalysisSnapshot snapshot = null!;
+            await AnsiConsole.Status()
+                .StartAsync("Analyzing project...", async statusCtx =>
                 {
-                    RootPath = rootResult.RootPath,
-                    Options = options,
-                    ActiveScenario = scenario,
-                    Observer = observer,
-                    FileSystem = _fs,
-                    Cache = cache,
-                    Analysis = analysis,
-                    Logger = _loggerFactory.CreateLogger("DevContext"),
-                    RoslynWorkspace = roslyn
-                };
+                    snapshot = await pipeline.AnalyzeAsync(ctx, ct);
 
-                result = pipeline.RunAsync(ctx, ct).GetAwaiter().GetResult();
-            });
+                    var request = new RenderRequest
+                    {
+                        Format = options.OutputFormat.ToString().ToLowerInvariant(),
+                        MaxTokens = options.MaxOutputTokens,
+                        Sections = scenario.RequiredSections,
+                        IncludeProvenance = options.IncludeProvenance,
+                        IncludeDiagnostics = options.IncludeDiagnostics,
+                        TokenView = options.TokenView,
+                    };
+
+                    result = await pipeline.RenderAsync(snapshot, request, ct);
+                });
+        }
 
         await WriteOutput(settings, result);
         if (settings.Strict && HandleStrictMode(result))
