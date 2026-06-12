@@ -72,6 +72,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--metrics")]
     public bool Metrics { get; set; }
 
+    [Description("Show full RunReport statistics (--metrics is an alias)")]
+    [CommandOption("--stats")]
+    public bool Stats { get; set; }
+
     [Description("Show per-section token accounting table in HTML comments")]
     [CommandOption("--token-view")]
     public bool TokenView { get; set; }

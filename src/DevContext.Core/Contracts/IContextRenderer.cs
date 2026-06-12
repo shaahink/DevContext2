@@ -31,6 +31,8 @@ public sealed record RenderOptions(
 {
     /// <summary>The RenderPlan lens applied during this render. May be null for legacy paths.</summary>
     public RenderPlan? Plan { get; init; }
+    /// <summary>The RunReport from the analysis phase. Populated in JSON output.</summary>
+    public RunReport? Report { get; init; }
 }
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

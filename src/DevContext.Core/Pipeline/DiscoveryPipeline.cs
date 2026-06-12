@@ -199,6 +199,7 @@ public sealed class DiscoveryPipeline
             TokenView: request.TokenView)
         {
             Plan = plan,
+            Report = snapshot.Report,
         };
 
         if (!_renderers.TryGetValue(request.Format, out var renderer))

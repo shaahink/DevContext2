@@ -7,7 +7,7 @@ namespace DevContext.Core.Models;
 /// </summary>
 public sealed record DevContextOutput
 {
-    public string SchemaVersion { get; init; } = "1.0";
+    public string SchemaVersion { get; init; } = "1.1";
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
     public SolutionOutput? Solution { get; init; }
     public ArchitectureOutput? Architecture { get; init; }
@@ -19,6 +19,7 @@ public sealed record DevContextOutput
     public string? PruningSummary { get; init; }
     public IReadOnlyList<string>? PruningNotes { get; init; }
     public int MaxTokens { get; init; }
+    public RunReport? RunReport { get; init; }
 }
 
 public sealed record SolutionOutput(string Name, string FilePath, IReadOnlyList<string> ProjectPaths);

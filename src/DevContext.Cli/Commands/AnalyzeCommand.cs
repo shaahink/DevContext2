@@ -141,6 +141,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var metricsObserver = settings.Metrics ? new MetricsDiscoveryObserver() : null;
 
         RenderedContext result = null!;
+        AnalysisSnapshot? snapshot = null;
         var sw = Stopwatch.StartNew();
 
         var collector = new RunReportCollector();
@@ -171,11 +172,11 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
         else
         {
-            AnalysisSnapshot snapshot = null!;
+            AnalysisSnapshot capturedSnapshot = null!;
             await AnsiConsole.Status()
                 .StartAsync("Analyzing project...", async statusCtx =>
                 {
-                    snapshot = await pipeline.AnalyzeAsync(ctx, ct);
+                    capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
 
                     var request = new RenderRequest
                     {
@@ -187,13 +188,26 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         TokenView = options.TokenView,
                     };
 
-                    result = await pipeline.RenderAsync(snapshot, request, ct);
+                    result = await pipeline.RenderAsync(capturedSnapshot, request, ct);
                 });
+            snapshot = capturedSnapshot;
         }
 
         await WriteOutput(settings, result);
         if (settings.Strict && HandleStrictMode(result))
             return 2;
+
+        // Summary line (always, not part of file output)
+        if (snapshot?.Report is { } report)
+        {
+            var summary = RunReportFormatter.Summary(report);
+            if (!settings.DryRun)
+                AnsiConsole.MarkupLine($"[dim]{summary}[/]");
+        }
+
+        if (settings.Stats || settings.Metrics)
+            ShowStats(snapshot?.Report);
+
         ShowMetrics(metricsObserver);
         ShowSummary(sw, rootResult, options, result);
 
@@ -268,6 +282,89 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             .Header("Metrics")
             .Border(BoxBorder.Rounded);
         AnsiConsole.Write(panel);
+    }
+
+    private static void ShowStats(RunReport? report)
+    {
+        if (report is null) return;
+
+        AnsiConsole.WriteLine();
+
+        // Stage waterfall
+        var waterfall = new Table()
+            .Border(TableBorder.Rounded)
+            .Title("Stage Timing")
+            .AddColumn("Stage")
+            .AddColumn(new TableColumn("Time").RightAligned())
+            .AddColumn(new TableColumn("Bar").LeftAligned());
+
+        var totalMs = report.TotalWall.TotalMilliseconds;
+        foreach (var stage in report.Stages)
+        {
+            var barLen = totalMs > 0 ? (int)(stage.Elapsed.TotalMilliseconds / totalMs * 40) : 0;
+            waterfall.AddRow(stage.Stage, $"{stage.Elapsed.TotalMilliseconds:F0}ms",
+                new string('\u2588', Math.Min(barLen, 40)));
+        }
+        waterfall.AddRow("[bold]Total[/]", $"[bold]{totalMs:F0}ms[/]", "");
+        AnsiConsole.Write(waterfall);
+
+        // Extractor table
+        if (report.Extractors.Length > 0)
+        {
+            AnsiConsole.WriteLine();
+            var extractorTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Extractors")
+                .AddColumn("Name")
+                .AddColumn(new TableColumn("Time").RightAligned())
+                .AddColumn(new TableColumn("+Types").RightAligned())
+                .AddColumn(new TableColumn("+Dets").RightAligned())
+                .AddColumn("Status");
+
+            foreach (var ex in report.Extractors.Take(25))
+            {
+                var status = ex.Skipped
+                    ? $"[dim]skipped: {ex.SkipReason ?? "?"}[/]"
+                    : "[green]ran[/]";
+                var name = ex.Skipped ? $"[dim]{ex.Name}[/]" : ex.Name;
+                extractorTable.AddRow(name, $"{ex.Elapsed.TotalMilliseconds:F0}ms",
+                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status);
+            }
+            AnsiConsole.Write(extractorTable);
+        }
+
+        // Scorer funnel
+        if (report.Scorers.Length > 0)
+        {
+            AnsiConsole.WriteLine();
+            var scorerTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Scorer Funnel")
+                .AddColumn("Scorer")
+                .AddColumn(new TableColumn("Before").RightAligned())
+                .AddColumn(new TableColumn("After").RightAligned())
+                .AddColumn(new TableColumn("Delta").RightAligned());
+
+            foreach (var sc in report.Scorers)
+            {
+                var delta = sc.TypesBefore > 0
+                    ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
+                    : 0;
+                scorerTable.AddRow(sc.Name, sc.TypesBefore.ToString(),
+                    sc.TypesAfter.ToString(), $"{delta}%");
+            }
+            AnsiConsole.Write(scorerTable);
+        }
+
+        // Cache + corpus chips
+        var cachePct = report.Cache.TextHits > 0
+            ? (double)(report.Cache.TextHits + report.Cache.SyntaxTreeHits) /
+              (report.Cache.TextHits + report.Cache.TextMisses +
+               report.Cache.SyntaxTreeHits + report.Cache.SyntaxTreeMisses) * 100
+            : 0;
+
+        var chips = $"cache {cachePct:F0}% hit · {report.Corpus.CSharpFiles} files · {report.Corpus.Projects} projects";
+        AnsiConsole.MarkupLine($"[dim]{chips}[/]");
     }
 
     private static void ShowSummary(Stopwatch sw, ProjectRootResult root, ExtractionOptions options, RenderedContext result)

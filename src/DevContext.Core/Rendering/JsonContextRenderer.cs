@@ -36,7 +36,7 @@ public sealed class JsonContextRenderer : IContextRenderer
 
         return new DevContextOutput
         {
-            SchemaVersion = "1.0",
+            SchemaVersion = "1.1",
             GeneratedAt = DateTime.UtcNow,
             Solution = model.Solution is not null
                 ? new SolutionOutput(
@@ -63,6 +63,7 @@ public sealed class JsonContextRenderer : IContextRenderer
                 ? [.. model.PruningNotes]
                 : null,
             MaxTokens = options.EstimatedTokens,
+            RunReport = options.Report,
         };
     }
 }
