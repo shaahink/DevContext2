@@ -25,7 +25,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
             if (string.IsNullOrEmpty(type.SourceBody)) continue;
 
             var body = type.SourceBody;
@@ -88,7 +88,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
         var chars = 0;
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
             chars += type.Name?.Length ?? 0;
             chars += type.Namespace?.Length ?? 0;
             chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);

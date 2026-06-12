@@ -77,8 +77,8 @@ public sealed class CompressorTests
         var compressor = new BoilerplateCompressor();
         var result = await compressor.CompressAsync(model, options, default);
 
-        Assert.True(model.Types["MyApp.Designer.DesignerType"].IsPruned);
-        Assert.False(model.Types["MyApp.Services.RealService"].IsPruned);
+        Assert.True(model.Types["MyApp.Designer.DesignerType"].IsHardExcluded);
+        Assert.False(model.Types["MyApp.Services.RealService"].IsHardExcluded);
         Assert.NotEmpty(result.Notes);
     }
 
@@ -107,7 +107,7 @@ public sealed class CompressorTests
         var compressor = new BoilerplateCompressor();
         var result = await compressor.CompressAsync(model, options, default);
 
-        Assert.True(model.Types["MyApp.Startup.ServiceExtensions"].IsPruned);
+        Assert.True(model.Types["MyApp.Startup.ServiceExtensions"].IsHardExcluded);
     }
 
     [Fact]
@@ -175,13 +175,13 @@ public sealed class CompressorTests
         var compressor = new StructuralDeduplicator();
         var result = await compressor.CompressAsync(model, options, default);
 
-        var pruned = model.Types.Values.Count(t => t.IsPruned);
+        var pruned = model.Types.Values.Count(t => t.IsHardExcluded);
         Assert.Equal(1, pruned);
 
         var category = model.Types["MyApp.Models.Category"];
         Assert.Contains(category.Tags, t => t.StartsWith("similar-types:"));
 
-        Assert.False(model.Types["MyApp.Services.RealService"].IsPruned);
+        Assert.False(model.Types["MyApp.Services.RealService"].IsHardExcluded);
     }
 
     [Fact]

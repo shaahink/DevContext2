@@ -3,7 +3,7 @@
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
 **Projects**: 3 — Infrastructure, Api, Core
-**Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
+**Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 7 in output
 
 ---
 ## Endpoints
@@ -38,4 +38,4 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 | Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
 
 ---
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v1.0*
+*Generated in {elapsed}ms | 7 types (7 active, 0 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v1.0*

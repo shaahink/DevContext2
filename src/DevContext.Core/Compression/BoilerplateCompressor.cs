@@ -33,22 +33,24 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
 
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
 
             if (IsDesignerFile(type.FilePath))
             {
-                type.IsPruned = true;
+                type.IsHardExcluded = true;
+                type.ExclusionReason = "designer-generated file";
                 model.PrunedTypeIds.Add(type.Id);
                 trimmedCount++;
-                notes.Add($"Pruned designer-generated type '{type.Id}' from '{Path.GetFileName(type.FilePath)}'");
+                notes.Add($"Excluded designer-generated type '{type.Id}' from '{Path.GetFileName(type.FilePath)}'");
             }
 
             if (IsDiExtensionType(type))
             {
-                type.IsPruned = true;
+                type.IsHardExcluded = true;
+                type.ExclusionReason = "DI extension type";
                 model.PrunedTypeIds.Add(type.Id);
                 trimmedCount++;
-                notes.Add($"Pruned DI extension type '{type.Id}'");
+                notes.Add($"Excluded DI extension type '{type.Id}'");
             }
         }
 

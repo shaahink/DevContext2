@@ -16,7 +16,7 @@ public sealed class TrivialMemberCompressor : ICompressionStrategy
 
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
 
             var originalMethods = type.Methods;
             var filteredMethods = originalMethods.Where(m => !IsTrivialMethod(m)).ToImmutableArray();
@@ -61,7 +61,7 @@ public sealed class TrivialMemberCompressor : ICompressionStrategy
         var chars = 0;
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
             chars += type.Name?.Length ?? 0;
             chars += type.Namespace?.Length ?? 0;
             chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);

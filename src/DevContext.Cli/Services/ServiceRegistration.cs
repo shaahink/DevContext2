@@ -35,7 +35,6 @@ public static class ServiceRegistration
         services.AddSingleton<ICompressionStrategy>(_ => new StructuralDeduplicator());
         services.AddSingleton<ICompressionStrategy>(_ => new NamespaceGrouper());
         services.AddSingleton<ICompressionStrategy>(_ => new LlmFriendlyFormatter());
-        services.AddSingleton<ICompressionStrategy>(_ => new AggressiveTruncator());
 
         // Renderers (keyed by format)
         services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());

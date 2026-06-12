@@ -20,7 +20,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
 
             var key = ComputeShapeKey(type);
             if (!groups.TryGetValue(key, out var bucket))
@@ -43,7 +43,8 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
             for (var i = 1; i < bucket.Count; i++)
             {
                 var duplicate = bucket[i];
-                duplicate.IsPruned = true;
+                duplicate.IsHardExcluded = true;
+                duplicate.ExclusionReason = $"deduplicated (same shape as {bucket[0].Id})";
                 model.PrunedTypeIds.Add(duplicate.Id);
                 prunedCount++;
             }
@@ -92,7 +93,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
         var chars = 0;
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned) continue;
+            if (type.IsPruned || type.IsHardExcluded) continue;
             chars += type.Name?.Length ?? 0;
             chars += type.Namespace?.Length ?? 0;
             chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);

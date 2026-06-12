@@ -46,8 +46,8 @@
   },
   "typesSummary": {
     "found": 7,
-    "inOutput": 5,
-    "prunedPercent": 28.6
+    "inOutput": 7,
+    "prunedPercent": 0
   },
   "detections": [
     {
