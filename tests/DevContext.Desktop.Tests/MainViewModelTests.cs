@@ -367,6 +367,7 @@ public class MainViewModelTests
 
         await ExecuteAnalyzeCommand(vm);
 
+        await Task.Delay(50); // fire-and-forget SaveSettings
         _svc.Received(1).SaveSettings(Arg.Any<AppSettings>());
     }
 

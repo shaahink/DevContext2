@@ -13,21 +13,29 @@ DevContext is a static analysis tool for .NET codebases. It scans a project, ext
 ```
 User input (path/task) 
   → ProjectRootResolver (finds .sln, walks up, or uses folder)
-  → DiscoveryPipeline (6 stages, ~20 extractors)
-    Stage 1: DISCOVERY — FileTreeExtractor, SolutionDiscovery, ProjectStructureExtractor
+  → DiscoveryPipeline (ANALYZE phase — produces immutable AnalysisSnapshot)
+    Stage 1: DISCOVERY (sequential) — FileTreeExtractor, SolutionDiscovery, ProjectStructureExtractor
       → Populates: AllSourceFiles, AllProjectFiles, model.Solution, model.Projects
     Stage 2: GENERIC (parallel) — DependencyExtractor, SyntaxStructureExtractor, 
              LayerClassifier, DiRegistrationExtractor, ProgramCsFlowExtractor
       → Populates: model.Types, model.Detections, Architecture signals
     [Signal Sealing] — ArchitectureStyleDetector runs, no more signal writes
-    Stage 3: SPECIFIC (sequential, signal-gated) — EndpointExtractor,
+    Stage 3: SPECIFIC (parallel, signal-gated, mutually independent) — EndpointExtractor,
              ControllerActionExtractor, EfCoreExtractor, CallGraphExtractor, et al.
       → Populates: EndpointDetection, EfEntityDetection, et al.
-    Stage 4: PRUNING — PathProximityPruner → CallReachabilityPruner → 
-             PatternRelevancePruner → TokenBudgetEnforcer
-    Stage 5: COMPRESSION — 6 compressors (trivial members, boilerplate, dedup, etc.)
-    Stage 6: RENDERING — MarkdownRenderer (CLI/LLM view) or HtmlContextRenderer (Desktop Human view)
-  → Output: ~6,000 tokens of structured context
+    Stage 4: SCORING — PathProximityPruner → CallReachabilityPruner → 
+             PatternRelevancePruner (score only, no destruction)
+      → Computes: FinalScore, IsHardExcluded, ExclusionReason on every TypeDiscovery
+    Stage 5: COMPRESSION — 5 compressors (trivial members, boilerplate, dedup, namespace, LLM formatting)
+      → Runs over all non-hard-excluded types. AggressiveTruncator moved to render-time.
+  → AnalysisSnapshot (immutable: model, scenario, options, analysis context)
+
+  → DiscoveryPipeline (RENDER phase — cheap, repeatable, driven by RenderRequest lens)
+    RenderPlanBuilder: ranks types by FinalScore, enforces budget+cap via IncludedTypeIds,
+                       tracks excluded types with reasons (visible in cut list)
+    Stage 6: RENDERING — MarkdownRenderer / JsonContextRenderer / HtmlContextRenderer
+      → Uses RenderPlan.IncludedTypeIds + PerTypeCharCap for filtering and truncation
+  → RenderedContext: content + tokens + sections + self-check results
 ```
 
 ### Key contracts
@@ -38,15 +46,20 @@ User input (path/task)
 | `IDiscoveryObserver` | Same | Pipeline lifecycle callbacks. Desktop uses `DesktopProgressObserver`, CLI uses `SpectreDiscoveryObserver`. |
 | `IContextRenderer` | Same | `MarkdownRenderer`, `JsonContextRenderer`, `HtmlContextRenderer`. `RenderAsync(model, options, ct)` → `RenderedContext`. |
 | `IAnalysisCache` | `src/DevContext.Core/Analysis/` | Parse-once cache. Syntax trees, XML docs, file text keyed by path. |
+| `IAnalysisService` | `src/DevContext.Desktop/Services/` | Desktop facade: `AnalyzeAsync(opts)` → `SnapshotResult`, `RenderAsync(snapshot, request)` → `RenderResult`. |
 
 ### Models
 
 | Model | Location | Key Fields |
 |-------|----------|------------|
 | `DiscoveryModel` | `src/DevContext.Core/Models/` | `Types: ConcurrentDictionary<string, TypeDiscovery>`, `Detections: ConcurrentBag<Detection>`, `Architecture: FeatureSignals`, `Projects: ImmutableArray<ProjectInfo>` |
-| `Detection` (base) | Same | `SourceFile`, `LineNumber`, `Confidence`, `ExtractorName`. 12 derived types. |
+| `TypeDiscovery` | Same | `Id`, `Name`, `Namespace`, `FilePath`, `FinalScore`, `IsHardExcluded`, `ExclusionReason`, `PathProximityScore`, `RelevanceScore`, `SourceBody` |
+| `AnalysisSnapshot` | `src/DevContext.Core/Pipeline/` | Immutable analyze result: `Model`, `Analysis`, `Scenario`, `Options` |
+| `RenderRequest` | Same | Lens: `Format`, `MaxTokens`, `Sections`, `IncludeProvenance`, `IncludeDiagnostics` |
+| `RenderPlan` | Same | Computed lens: `IncludedTypeIds`, `Excluded: PlannedExclusion[]`, `PerTypeCharCap`, `EstimatedTokens` |
+| `Detection` (base) | `src/DevContext.Core/Models/` | `SourceFile`, `LineNumber`, `Confidence`, `ExtractorName`. 12 derived types. |
 | `ExtractionOptions` | Same | `Profile`, `MaxOutputTokens`, `AllowRoslyn`, `ExcludeExtractors`, `ExcludePatterns` |
-| `RenderOptions` | `src/DevContext.Core/Contracts/` | `IncludeDiagnostics`, `RequiredSections`, `FocusPoints`, `CallGraph`, `ProjectGraph` |
+| `RenderOptions` | `src/DevContext.Core/Contracts/` | `IncludeDiagnostics`, `RequiredSections`, `FocusPoints`, `CallGraph`, `ProjectGraph`, `Plan` |
 
 ---
 
