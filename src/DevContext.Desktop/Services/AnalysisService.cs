@@ -49,46 +49,40 @@ public class AnalysisService : IAnalysisService
         var resolver = new ProjectRootResolver();
         var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct).ConfigureAwait(false);
 
-        // --task overrides scenario/profile via intent inference
-        var scenarioKey = opts.Scenario;
-        var profileStr = opts.Profile;
-        if (!string.IsNullOrWhiteSpace(opts.Task))
+        // Build IntentInput and resolve via shared resolver
+        var intentInput = new IntentInput
         {
-            var (inferredScenario, inferredProfile) = IntentInferrer.Infer(opts.Task);
-            scenarioKey = inferredScenario;
-            profileStr = inferredProfile.ToString().ToLowerInvariant();
-        }
-
-        // audit is a deprecated alias
-        if (scenarioKey == "audit") scenarioKey = "overview";
-        if (scenarioKey == "trace") scenarioKey = "deep-dive";
-
-        if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioKey, out var scenarioBase))
-            return new SnapshotResult { Success = false, Error = $"Unknown scenario: {scenarioKey}" };
-
-        var profile = profileStr.ToLowerInvariant() switch
-        {
-            "debug" => ExtractionProfile.Debug,
-            "full" => ExtractionProfile.Full,
-            _ => ExtractionProfile.Focused,
+            Focus = opts.Around,
+            Depth = null, // desktop doesn't expose --depth yet
+            ExplicitScenario = opts.Scenario,
+            ExplicitProfile = opts.Profile,
         };
 
+        ResolvedIntent resolvedIntent;
+        try
+        {
+            resolvedIntent = AnalysisIntentResolver.Resolve(intentInput);
+        }
+        catch (ArgumentException ex)
+        {
+            return new SnapshotResult { Success = false, Error = ex.Message };
+        }
+
         // Build effective scenario: filter RequiredSections to what user selected.
-        // If ActiveSections is empty, use the scenario defaults unchanged.
         var scenario = opts.ActiveSections.Length > 0
-            ? scenarioBase with
+            ? resolvedIntent.Scenario with
             {
-                RequiredSections = scenarioBase.RequiredSections
+                RequiredSections = resolvedIntent.Scenario.RequiredSections
                     .Where(s => opts.ActiveSections.Contains(s))
-                    .Concat(opts.ActiveSections.Where(s => !scenarioBase.RequiredSections.Contains(s)))
+                    .Concat(opts.ActiveSections.Where(s => !resolvedIntent.Scenario.RequiredSections.Contains(s)))
                     .ToImmutableArray()
             }
-            : scenarioBase;
+            : resolvedIntent.Scenario;
 
         var options = new ExtractionOptions
         {
             EntryPaths = rootResult.EntryCandidates,
-            Profile = profile,
+            Profile = resolvedIntent.Profile,
             MaxOutputTokens = opts.MaxTokens,
             AllowRoslyn = !opts.NoRoslyn,
             DryRun = opts.DryRun,
@@ -104,14 +98,10 @@ public class AnalysisService : IAnalysisService
 
         var cache = new AnalysisCache(fs);
 
-        var focusPoints = !string.IsNullOrWhiteSpace(opts.Around)
-            ? [FocusPointParser.Parse(opts.Around, fs)!]
-            : ImmutableArray<FocusPoint>.Empty;
-
         var analysis = new SharedAnalysisContext
         {
-            UnresolvedFocusPoints = focusPoints,
-            FocusPoints = focusPoints,
+            UnresolvedFocusPoints = resolvedIntent.FocusPoints,
+            FocusPoints = resolvedIntent.FocusPoints,
         };
 
         var services = new ServiceCollection();

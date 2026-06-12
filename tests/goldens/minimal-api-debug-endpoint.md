@@ -1,4 +1,4 @@
-## DevContext — Trace on MinimalApiProject
+## DevContext — Slice on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore

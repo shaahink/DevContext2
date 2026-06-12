@@ -8,19 +8,27 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandArgument(0, "[PATH]")]
     public string? Path { get; set; }
 
-    [Description("Entry point. Repeatable. Accepts: folder | file | TypeName | TypeName:MethodName")]
+    [Description("Focus point. Repeatable. Accepts: TypeName | TypeName:MethodName | GET /route")]
+    [CommandOption("-f|--focus")]
+    public string[]? Focus { get; set; }
+
+    [Description("Graph depth from focus point (1-10)")]
+    [CommandOption("--depth")]
+    public int? Depth { get; set; }
+
+    [Description("Entry point (alias for --focus)")]
     [CommandOption("-a|--around")]
     public string[]? Around { get; set; }
 
-    [Description("Analysis scenario: overview | deep-dive")]
+    [Description("Analysis scenario: overview | deep-dive (advanced — derived from --focus)")]
     [CommandOption("-s|--scenario")]
     public string? Scenario { get; set; }
 
-    [Description("Profile: focused | debug | full")]
+    [Description("Profile: focused | debug | full (advanced — derived from --focus)")]
     [CommandOption("-p|--profile")]
     public string? Profile { get; set; }
 
-    [Description("Free-text intent -> inferred scenario + profile")]
+    [Description("Free-text intent (deprecated — use --focus instead)")]
     [CommandOption("-t|--task")]
     public string? Task { get; set; }
 

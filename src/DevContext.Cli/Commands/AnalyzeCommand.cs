@@ -73,13 +73,68 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var resolver = new ProjectRootResolver();
         var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
 
-        var resolved = ResolveScenarioAndProfile(settings, config);
-        if (resolved is null) return 1;
+        // Build IntentInput from settings
+        var focusInput = settings.Focus ?? settings.Around;
+        var focusText = focusInput is { Length: > 0 } ? focusInput[0] : null;
+        var intentInput = new IntentInput
+        {
+            Focus = focusText ?? settings.Task,
+            Depth = settings.Depth,
+            ExplicitScenario = settings.Scenario ?? config?.DefaultScenario,
+            ExplicitProfile = settings.Profile ?? config?.DefaultProfile,
+        };
 
-        var (scenario, options) = BuildOptions(settings, config, rootResult, resolved.Value);
+        ResolvedIntent resolvedIntent;
+        try
+        {
+            resolvedIntent = AnalysisIntentResolver.Resolve(intentInput);
+        }
+        catch (ArgumentException ex)
+        {
+            AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+            return 1;
+        }
+
+        // Print explanation and warnings
+        AnsiConsole.MarkupLine($"[dim]{resolvedIntent.Explanation}[/]");
+        foreach (var warning in resolvedIntent.Warnings)
+            AnsiConsole.MarkupLine($"[yellow]{warning}[/]");
+
+        // --task deprecation
+        if (!string.IsNullOrWhiteSpace(settings.Task))
+            AnsiConsole.MarkupLine("[yellow]--task is deprecated. Use --focus instead.[/]");
+
+        var options = new ExtractionOptions
+        {
+            EntryPaths = rootResult.EntryCandidates,
+            Profile = resolvedIntent.Profile,
+            MaxOutputTokens = settings.MaxTokens ?? config?.MaxOutputTokens ?? 8000,
+            AllowRoslyn = !settings.NoRoslyn,
+            DryRun = settings.DryRun,
+            IncludeProvenance = settings.IncludeProvenance,
+            IncludeDiagnostics = settings.IncludeDiagnostics,
+            TokenView = settings.TokenView,
+            IncludeAntiPatterns = settings.IncludeAntiPatterns,
+            Strict = settings.Strict,
+            OutputFormat = settings.Format?.ToLowerInvariant() switch
+            {
+                "json" => OutputFormat.Json,
+                "html" => OutputFormat.Html,
+                _ => OutputFormat.Markdown
+            },
+            ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
+                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
+            ExcludeExtractors = resolvedIntent.Scenario.DisableExtractors,
+        };
+
+        var scenario = resolvedIntent.Scenario;
 
         var cache = new AnalysisCache(_fs);
-        var analysis = BuildSharedAnalysis(settings);
+        var analysis = new SharedAnalysisContext
+        {
+            UnresolvedFocusPoints = resolvedIntent.FocusPoints,
+            FocusPoints = resolvedIntent.FocusPoints,
+        };
         var pipeline = BuildPipeline(cache);
         var roslyn = BuildRoslynProvider(settings, rootResult);
 
@@ -166,97 +221,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         if (config is null) return;
         foreach (var error in config.Validate())
             AnsiConsole.MarkupLine($"[yellow]Config: {error}[/]");
-    }
-
-    private static (string Scenario, ExtractionProfile Profile)? ResolveScenarioAndProfile(
-        AnalyzeSettings settings, DevContextConfig? config)
-    {
-        string? scenarioName = null;
-
-        if (settings.Task is not null)
-        {
-            var (inferredScen, inferredProf) = IntentInferrer.Infer(settings.Task);
-            scenarioName = inferredScen;
-            settings.Profile ??= inferredProf.ToString().ToLowerInvariant();
-        }
-
-        scenarioName ??= settings.Scenario ?? config?.DefaultScenario ?? "overview";
-
-        // Backward-compat aliases
-        if (scenarioName == "trace") scenarioName = "deep-dive";
-        if (scenarioName == "audit")
-        {
-            AnsiConsole.MarkupLine("[yellow]Warning: 'audit' scenario is deprecated. Use 'overview' instead.[/]");
-            scenarioName = "overview";
-        }
-
-        if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioName, out _))
-        {
-            AnsiConsole.MarkupLine($"[red]Unknown scenario: {scenarioName}[/]");
-            AnsiConsole.MarkupLine($"Available: {string.Join(", ", ScenarioRegistry.BuiltIn.Keys)}");
-            return null;
-        }
-
-        var profileName = settings.Profile ?? config?.DefaultProfile ?? "focused";
-        var profile = profileName.ToLowerInvariant() switch
-        {
-            "debug" => ExtractionProfile.Debug,
-            "full" => ExtractionProfile.Full,
-            _ => ExtractionProfile.Focused
-        };
-
-        if (profileName.ToLowerInvariant() is not ("debug" or "full" or "focused"))
-            AnsiConsole.MarkupLine($"[yellow]Warning: unknown profile '{settings.Profile}'. Defaulting to 'focused'.[/]");
-
-        return (scenarioName, profile);
-    }
-
-    private static (Scenario Scenario, ExtractionOptions Options) BuildOptions(
-        AnalyzeSettings settings, DevContextConfig? config,
-        ProjectRootResult rootResult, (string name, ExtractionProfile profile) resolved)
-    {
-        var scenario = ScenarioRegistry.BuiltIn[resolved.name];
-
-        var options = new ExtractionOptions
-        {
-            EntryPaths = rootResult.EntryCandidates,
-            Profile = resolved.profile,
-            MaxOutputTokens = settings.MaxTokens ?? config?.MaxOutputTokens ?? 8000,
-            AllowRoslyn = !settings.NoRoslyn,
-            DryRun = settings.DryRun,
-            IncludeProvenance = settings.IncludeProvenance,
-            IncludeDiagnostics = settings.IncludeDiagnostics,
-            TokenView = settings.TokenView,
-            IncludeAntiPatterns = settings.IncludeAntiPatterns,
-            Strict = settings.Strict,
-            OutputFormat = settings.Format?.ToLowerInvariant() switch
-            {
-                "json" => OutputFormat.Json,
-                "html" => OutputFormat.Html,
-                _ => OutputFormat.Markdown
-            },
-            ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
-                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
-            ExcludeExtractors = scenario.DisableExtractors,
-        };
-
-        return (scenario, options);
-    }
-
-    private static SharedAnalysisContext BuildSharedAnalysis(AnalyzeSettings settings)
-    {
-        var fs = new RealFileSystem();
-        var focusPoints = (settings.Around ?? [])
-            .Select(a => FocusPointParser.Parse(a, fs))
-            .Where(fp => fp is not null)
-            .Select(fp => fp!)
-            .ToImmutableArray();
-
-        return new SharedAnalysisContext
-        {
-            UnresolvedFocusPoints = focusPoints,
-            FocusPoints = focusPoints
-        };
     }
 
     private DiscoveryPipeline BuildPipeline(IAnalysisCache cache)
