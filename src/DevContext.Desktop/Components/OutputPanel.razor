@@ -6,6 +6,7 @@
 @code {
     private bool IsSectionsOpen;
     private string SelectedTab = "human";
+    private bool _showWelcome;
     private string? _toastMessage;
     private System.Threading.CancellationTokenSource? _toastCts;
 
@@ -53,7 +54,7 @@
 }
 
 <section class="output-panel">
-    @if (!VM.HasOutput && !VM.IsAnalyzing)
+    @if ((!VM.HasOutput && !VM.IsAnalyzing) || _showWelcome)
     {
         <div class="empty-state">
             <div class="empty-hero">
@@ -89,6 +90,7 @@
                 }
             </div>
             <div class="toolbar-actions">
+                <button class="btn-icon" title="What is this?" @onclick="() => _showWelcome = !_showWelcome">?</button>
                 <button class="btn-icon" title="Copy to clipboard" @onclick="Copy"><svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 <button class="btn-icon" title="Save to file" @onclick="Save"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                 <button class="btn-icon" title="Copy for LLM" @onclick="CopyLlm"><svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/><polyline points="14 15 17 18 22 13"/></svg></button>

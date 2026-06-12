@@ -145,7 +145,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderArchitectureOverview(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine($"<section class='dc-section' id='dc-architecture'>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.ArchitectureOverview}'>");
         sb.AppendLine("<h2 class='dc-h2'>Architecture overview</h2>");
         if (model.Projects.Length == 0)
         {
@@ -202,7 +202,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
             .Where(e => !e.SourceFile?.EndsWith("ChangePasswordEndpoint.cs") is not false).ToList();
         if (endpoints.Count == 0) return;
 
-        sb.AppendLine("<section class='dc-section'>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.Endpoints}'>");
         sb.AppendLine($"<h2 class='dc-h2'>Endpoints ({endpoints.Count} found)</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'>");
         sb.AppendLine("<thead><tr><th>Method</th><th>Route</th><th>Handler</th><th>Source</th></tr></thead><tbody>");
@@ -225,7 +225,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         if (options.CallGraph is null || options.CallGraph.Edges.Count == 0)
         {
-            sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Call graph</h2>");
+            sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.CallGraph}'><h2 class='dc-h2'>Call graph</h2>");
             sb.AppendLine("<p class='dc-note'>Not available in current profile. Use Trace mode with an entry point and Debug profile.</p>");
             sb.AppendLine("</section>");
             return;
@@ -276,8 +276,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
         if (handlers.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'>");
-        sb.AppendLine($"<h2 class='dc-h2'>MediatR Handlers ({handlers.Count})</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MediatRHandlers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Request</th><th>Response</th><th>Handler</th></tr></thead><tbody>");
         foreach (var h in handlers.OrderBy(h => h.Kind.ToString()).ThenBy(h => h.HandlerType))
             sb.AppendLine($"<tr><td class='dc-kind'>{System.Net.WebUtility.HtmlEncode(h.Kind.ToString())}</td><td><code>{System.Net.WebUtility.HtmlEncode(h.RequestType ?? "?")}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(h.ResponseType ?? "?")}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(h.HandlerType)}</code></td></tr>");
@@ -291,8 +290,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var migrationCount = model.Detections.OfType<EfEntityDetection>().Count(e => e.DbContextType == "Migrations");
         if (entities.Count == 0 && migrationCount == 0) return;
 
-        sb.AppendLine("<section class='dc-section'>");
-        sb.AppendLine("<h2 class='dc-h2'>Data model (EF Core)</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.DataModel}'>");
         if (entities.Count > 0)
         {
             foreach (var group in entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key))
@@ -317,8 +315,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
         if (consumers.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'>");
-        sb.AppendLine($"<h2 class='dc-h2'>Message consumers ({consumers.Count})</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MessageConsumers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Bus</th><th>Message</th><th>Consumer</th></tr></thead><tbody>");
         foreach (var c in consumers.OrderBy(c => c.BusKind).ThenBy(c => c.MessageType))
             sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(c.BusKind)}</td><td><code>{System.Net.WebUtility.HtmlEncode(c.MessageType)}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(c.ConsumerType)}</code></td></tr>");
@@ -329,7 +326,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var wiring = model.Detections.OfType<IndirectWiringDetection>().ToList();
         if (wiring.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Indirect wiring</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.IndirectWiring}'><h2 class='dc-h2'>Indirect wiring</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Caller</th><th>Target</th></tr></thead><tbody>");
         foreach (var w in wiring)
             sb.AppendLine($"<tr><td class='dc-wiring-{w.Kind.ToString().ToLowerInvariant()}'>{System.Net.WebUtility.HtmlEncode(w.Kind.ToString())}</td><td><code>{System.Net.WebUtility.HtmlEncode(w.CallerType)}.{System.Net.WebUtility.HtmlEncode(w.CallerMethod)}</code></td><td>{System.Net.WebUtility.HtmlEncode(w.TargetType ?? "unknown")}</td></tr>");
@@ -340,8 +337,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var workers = model.Detections.OfType<BackgroundWorkerDetection>().ToList();
         if (workers.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'>");
-        sb.AppendLine($"<h2 class='dc-h2'>Background workers ({workers.Count})</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.BackgroundWorkers}'>");
         sb.AppendLine("<ul class='dc-worker-list'>");
         foreach (var w in workers)
             sb.AppendLine($"<li><span class='dc-worker-kind'>{System.Net.WebUtility.HtmlEncode(w.Kind.ToString())}</span> <code>{System.Net.WebUtility.HtmlEncode(w.ImplementationType)}</code></li>");
@@ -356,7 +352,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
             .Select(g => new { Type = g.Key, Count = g.Count(), Kind = g.First().Kind, Sources = g.Select(m => System.IO.Path.GetFileName(m.SourceFile)).Distinct() })
             .OrderBy(m => m.Count).ToList();
 
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Middleware pipeline</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MiddlewarePipeline}'><h2 class='dc-h2'>Middleware pipeline</h2>");
         sb.AppendLine("<ol class='dc-pipeline'>");
         foreach (var m in grouped)
         {
@@ -370,7 +366,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var regs = model.Detections.OfType<DiRegistrationDetection>().ToList();
         if (regs.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>DI registrations</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.DiRegistrations}'><h2 class='dc-h2'>DI registrations</h2>");
         sb.AppendLine("<div class='dc-di-grid'>");
         foreach (var d in regs)
         {
@@ -395,7 +391,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
         if (patterns.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Anti-patterns detected</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-antipatterns'><h2 class='dc-h2'>Anti-patterns detected</h2>");
         foreach (var g in patterns.GroupBy(p => System.IO.Path.GetFileName(p.SourceFile)).OrderBy(g => g.Key))
         {
             sb.AppendLine($"<details class='dc-ap-file'><summary>{System.Net.WebUtility.HtmlEncode(g.Key)} ({g.Count()})</summary><ul class='dc-ap-list'>");
@@ -410,7 +406,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var events = model.Detections.OfType<EventFlowDetection>().ToList();
         if (events.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Event flow</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-eventflow'><h2 class='dc-h2'>Event flow</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Event</th><th>Direction</th><th>Target</th></tr></thead><tbody>");
         foreach (var e in events.OrderBy(e => e.EventType))
             sb.AppendLine($"<tr><td><code>{System.Net.WebUtility.HtmlEncode(e.EventType)}</code></td><td>{System.Net.WebUtility.HtmlEncode(e.Kind)}</td><td><code>{System.Net.WebUtility.HtmlEncode(e.Target)}</code></td></tr>");
@@ -421,7 +417,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var types = model.Types.Values.Where(t => !t.IsPruned).ToList();
         if (types.Count == 0) return;
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Related types</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.RelatedTypes}'><h2 class='dc-h2'>Related types</h2>");
         sb.AppendLine("<div class='dc-types-grid'>");
         foreach (var group in types.GroupBy(t => t.Layer).OrderBy(g => g.Key))
         {
@@ -435,7 +431,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderDiagnostics(StringBuilder sb, DiscoveryModel model)
     {
-        sb.AppendLine("<section class='dc-section'><h2 class='dc-h2'>Diagnostics</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-diagnostics'><h2 class='dc-h2'>Diagnostics</h2>");
         if (model.Diagnostics.IsEmpty) { sb.AppendLine("<p>No diagnostics recorded.</p></section>"); return; }
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Level</th><th>Source</th><th>Message</th></tr></thead><tbody>");
         foreach (var d in model.Diagnostics)
