@@ -6,7 +6,7 @@ Create a `devcontext.json` at your project root for persistent settings:
 
 ```json
 {
-  "$schema": "https://devcontext.dev/schemas/v2/config.json",
+  "$schema": "./devcontext.schema.json",
   "defaultScenario": "overview",
   "maxOutputTokens": 6000,
   "excludePatterns": [".git", "bin", "obj", "Migrations"],

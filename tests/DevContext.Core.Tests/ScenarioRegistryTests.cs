@@ -5,9 +5,10 @@ public sealed class ScenarioRegistryTests
     [Fact]
     public void BuiltIn_ContainsAllScenarios()
     {
-        Assert.Equal(2, ScenarioRegistry.BuiltIn.Count);
+        Assert.Equal(3, ScenarioRegistry.BuiltIn.Count);
         Assert.Contains("overview", ScenarioRegistry.BuiltIn.Keys);
         Assert.Contains("deep-dive", ScenarioRegistry.BuiltIn.Keys);
+        Assert.Contains("trace", ScenarioRegistry.BuiltIn.Keys);
     }
 
     [Fact]

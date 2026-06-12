@@ -7,6 +7,13 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+    <Authors>Shaahin</Authors>
+    <Description>Static analysis CLI and desktop tool that extracts structured context from .NET codebases for use with LLMs. Discovers endpoints, background workers, EF Core entities, DI registrations, middleware pipelines, call graphs, and anti-patterns — prunes and compresses to fit a token budget.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/shaahink/DevContext2</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/shaahink/DevContext2</RepositoryUrl>
+    <PackageTags>dotnet;static-analysis;llm;context;cli;ai;code-analysis</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Core\DevContext.Core.csproj" />

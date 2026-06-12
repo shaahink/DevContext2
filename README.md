@@ -98,6 +98,8 @@ FullTextSearchWriterJob · ThumbnailsServiceJob · DraftsJob ...
 
 ## Quick Start
 
+**Requires**: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+
 ```bash
 # Install as a .NET global tool
 dotnet tool install -g DevContext.Cli
@@ -106,19 +108,19 @@ dotnet tool install -g DevContext.Cli
 devcontext analyze .
 
 # Trace a specific entry point with natural language intent
-devcontext . --task "trace the order submission handler"
+devcontext analyze . --task "trace the order submission handler"
 
 # Focus on a specific type or method
-devcontext . --around FeedController
+devcontext analyze . --around FeedController
 
 # Save to file
-devcontext . --scenario overview --format markdown -o output.md
+devcontext analyze . --scenario overview --format markdown -o output.md
 
 # See extractor timing (debug profile for call graph)
 devcontext . --scenario trace --profile debug --around FeedController:Posts
 
 # Plan only — see what extractors would run
-devcontext . --dry-run
+devcontext analyze . --dry-run
 ```
 
 ---
@@ -195,7 +197,7 @@ Create `devcontext.json` in your project root for persistent settings:
 
 ```json
 {
-  "$schema": "https://devcontext.dev/schemas/v2/config.json",
+  "$schema": "./devcontext.schema.json",
   "defaultScenario": "overview",
   "maxOutputTokens": 6000,
   "excludePatterns": [".git", "bin", "obj", "Migrations"],

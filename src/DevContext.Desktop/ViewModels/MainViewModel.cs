@@ -153,6 +153,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         _validateCts?.Cancel();
         _validateCts?.Dispose();
+        _validateCts = new CancellationTokenSource();
+        var ct = _validateCts.Token;
 
         var url = RepoUrl.Parse(path);
         _gitRepoUrl = url;
@@ -173,8 +175,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            _validateCts = new CancellationTokenSource();
-            var status = await _git.ValidateAsync(url, _validateCts.Token).ConfigureAwait(true);
+            var status = await _git.ValidateAsync(url, ct).ConfigureAwait(true);
+            ct.ThrowIfCancellationRequested();
             _gitRepoStatus = status;
         }
         catch (OperationCanceledException) { return; }

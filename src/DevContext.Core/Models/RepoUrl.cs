@@ -15,6 +15,10 @@ public sealed record RepoUrl(string Owner, string Repo, string? Ref)
 
         var url = input.Trim();
 
+        // Shorthand with protocol prefix: "github.com/user/repo" (no https://)
+        if (url.StartsWith("github.com/", StringComparison.OrdinalIgnoreCase))
+            url = "https://" + url;
+
         // Shorthand: "user/repo"
         if (url.Count(c => c == '/') == 1 && !url.Contains("://") && !url.Contains(' '))
         {

@@ -19,13 +19,13 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore
-      run: dotnet restore
-
+      run: dotnet restore src/DevContext.Cli
     - name: Build
-      run: dotnet build --no-restore -c Release
-
-    - name: Test
-      run: dotnet test --no-build -c Release --verbosity normal
+      run: dotnet build src/DevContext.Cli --no-restore -c Release
+    - name: Test Core
+      run: dotnet test tests/DevContext.Core.Tests --no-restore -c Release
+    - name: Test Desktop
+      run: dotnet test tests/DevContext.Desktop.Tests --no-restore -c Release
 
     - name: Format check
       run: dotnet format --verify-no-changes --no-restore

@@ -48,10 +48,10 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             {
                 var msg = status switch
                 {
-                    RepoStatus.NotFound => "Repository not found",
-                    RepoStatus.Private => "Private repository (not supported)",
-                    RepoStatus.NetworkError => "Network error — check connection",
-                    RepoStatus.RateLimited => "Rate limited — try again later",
+                    RepoStatus.NotFound => "Repository not found. Check the URL or ensure the repo is public.",
+                    RepoStatus.Private => "Private repositories require authentication. Clone the repo locally and run DevContext on the local path.",
+                    RepoStatus.NetworkError => "Network error — check your connection or try again later.",
+                    RepoStatus.RateLimited => "GitHub API rate limit exceeded. Wait a few minutes or use a local path instead of a URL.",
                     _ => "Unknown error"
                 };
                 AnsiConsole.MarkupLine($"[red]{msg}[/]");
