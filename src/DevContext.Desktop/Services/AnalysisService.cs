@@ -19,7 +19,8 @@ namespace DevContext.Desktop.Services;
 
 public interface IAnalysisService
 {
-    Task<AnalysisResult> AnalyzeAsync(AnalysisOptions opts, IProgress<AnalysisProgress>? progress = null, CancellationToken ct = default);
+    Task<SnapshotResult> AnalyzeAsync(AnalysisOptions opts, IProgress<AnalysisProgress>? progress = null, CancellationToken ct = default);
+    Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default);
     AppSettings LoadSettings();
     void SaveSettings(AppSettings s);
     string[] LoadRecent();
@@ -38,7 +39,7 @@ public class AnalysisService : IAnalysisService
         Directory.CreateDirectory(_dataDir);
     }
 
-    public async Task<AnalysisResult> AnalyzeAsync(
+    public async Task<SnapshotResult> AnalyzeAsync(
         AnalysisOptions opts,
         IProgress<AnalysisProgress>? progress = null,
         CancellationToken ct = default)
@@ -63,7 +64,7 @@ public class AnalysisService : IAnalysisService
         if (scenarioKey == "trace") scenarioKey = "deep-dive";
 
         if (!ScenarioRegistry.BuiltIn.TryGetValue(scenarioKey, out var scenarioBase))
-            return new AnalysisResult { Success = false, Error = $"Unknown scenario: {scenarioKey}" };
+            return new SnapshotResult { Success = false, Error = $"Unknown scenario: {scenarioKey}" };
 
         var profile = profileStr.ToLowerInvariant() switch
         {
@@ -144,28 +145,40 @@ public class AnalysisService : IAnalysisService
         };
 
         var sw = Stopwatch.StartNew();
-        Dictionary<string, RenderedContext> results;
         try
         {
-            // Single pipeline run, all formats rendered from the same model
-            results = new Dictionary<string, RenderedContext>(
-                await pipeline.RunAllFormatsAsync(ctx, ct));
+            var snapshot = await pipeline.AnalyzeAsync(ctx, ct);
+            sw.Stop();
+            return new SnapshotResult
+            {
+                Success = true,
+                Snapshot = snapshot,
+                ElapsedMs = sw.ElapsedMilliseconds,
+            };
         }
         catch (OperationCanceledException)
         {
-            return new AnalysisResult { Success = false, Error = "Cancelled" };
+            return new SnapshotResult { Success = false, Error = "Cancelled" };
         }
-        sw.Stop();
+    }
 
-        var md = results.GetValueOrDefault("markdown") ?? results.Values.First();
-        var html = results.GetValueOrDefault("html");
+    public async Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDevContextServices(".");
+        var sp = services.BuildServiceProvider();
+        var pipeline = sp.GetRequiredService<DiscoveryPipeline>();
 
-        return new AnalysisResult
+        var md = await pipeline.RenderAsync(snapshot, request with { Format = "markdown" }, ct);
+        var html = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+
+        return new RenderResult
         {
-            Success = true,
             Content = md.Content,
-            HtmlContent = html?.Content,
-            ElapsedMs = sw.ElapsedMilliseconds,
+            HtmlContent = html.Content,
+            EstimatedTokens = md.EstimatedTokens,
+            Sections = md.Sections,
         };
     }
 
@@ -251,6 +264,22 @@ public class AnalysisService : IAnalysisService
         public void OnPipelineCompleted(DiscoveryModel model) { }
         public void OnDiagnostic(DiagnosticEntry entry) { }
     }
+}
+
+public record SnapshotResult
+{
+    public bool Success { get; init; }
+    public AnalysisSnapshot? Snapshot { get; init; }
+    public string? Error { get; init; }
+    public long ElapsedMs { get; init; }
+}
+
+public record RenderResult
+{
+    public string? Content { get; init; }
+    public string? HtmlContent { get; init; }
+    public int EstimatedTokens { get; init; }
+    public ImmutableArray<SectionStat> Sections { get; init; } = [];
 }
 
 public record AnalysisOptions

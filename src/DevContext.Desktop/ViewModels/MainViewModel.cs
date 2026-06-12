@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DevContext.Core.Contracts;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
 using Serilog;
@@ -26,8 +28,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalysisService _svc;
     private readonly GitCloneService _git = new();
+    private AnalysisSnapshot? _snapshot;
     private string _rawContent = "";
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _renderCts;
     private CancellationTokenSource? _validateCts;
     private CancellationTokenSource? _maxTokensDebounceCts;
     private bool _isInitializing = true;
@@ -223,7 +227,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var section = Sections.FirstOrDefault(s => s.Key == key);
         if (section is null) return;
         section.IsEnabled = enabled;
-        OnAnalysisOptionChanged();
+        OnRenderInputChanged();
     }
 
     private void ApplyScenarioSectionDefaults()
@@ -296,25 +300,33 @@ public partial class MainViewModel : ObservableObject, IDisposable
         ApplyScenarioSectionDefaults();
         OnPropertyChanged(nameof(IsTraceMode));
         ResetToScenarioDefaults();
-        OnAnalysisOptionChanged();
+        OnAnalysisInputChanged();
     }
-    partial void OnSelectedFormatChanged(string value) => OnAnalysisOptionChanged();
-    partial void OnTaskChanged(string value) => OnAnalysisOptionChanged();
+    partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
+    partial void OnTaskChanged(string value) => OnAnalysisInputChanged();
 
     partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
-    partial void OnAroundChanged(string value) => OnAnalysisOptionChanged();
-    partial void OnIncludeProvenanceChanged(bool value) => OnAnalysisOptionChanged();
-    partial void OnIncludeDiagnosticsChanged(bool value) => OnAnalysisOptionChanged();
-    partial void OnNoRoslynChanged(bool value) => OnAnalysisOptionChanged();
-    partial void OnDryRunChanged(bool value)                    => OnAnalysisOptionChanged();
-    partial void OnIncludeAntiPatternsChanged(bool value)        => OnAnalysisOptionChanged();
+    partial void OnAroundChanged(string value) => OnAnalysisInputChanged();
+    partial void OnIncludeProvenanceChanged(bool value) => OnRenderInputChanged();
+    partial void OnIncludeDiagnosticsChanged(bool value) => OnRenderInputChanged();
+    partial void OnNoRoslynChanged(bool value) => OnAnalysisInputChanged();
+    partial void OnDryRunChanged(bool value)                    => OnAnalysisInputChanged();
+    partial void OnIncludeAntiPatternsChanged(bool value)        => OnAnalysisInputChanged();
 
-    private void OnAnalysisOptionChanged()
+    private void OnAnalysisInputChanged()
     {
         if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
         AnalyzeCommand.Execute(null);
+    }
+
+    private void OnRenderInputChanged()
+    {
+        if (_isInitializing || !HasOutput || _snapshot is null || string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        _ = RerenderAsync();
     }
 
     private void DebouncedReanalyze()
@@ -336,9 +348,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 {
                     var dispatcher = System.Windows.Application.Current?.Dispatcher;
                     if (dispatcher != null)
-                        dispatcher.Invoke(() => OnAnalysisOptionChanged());
+                        dispatcher.Invoke(() => OnRenderInputChanged());
                     else
-                        OnAnalysisOptionChanged();
+                        OnRenderInputChanged();
                 }
                 }
                 catch (OperationCanceledException) { }
@@ -359,6 +371,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private async Task AnalyzeAsync()
     {
         CancelPrevious();
+        CancelRender();
 
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
@@ -373,6 +386,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         StatsText = "";
         _rawContent = "";
         _humanViewHtml = null;
+        _snapshot = null;
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
@@ -430,39 +444,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            var result = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
-            if (result.Success)
+            var snapResult = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
+            if (snapResult.Success && snapResult.Snapshot is not null)
             {
-                // Offload section parsing to thread pool (pure computation, no UI mutation)
-                var rawContent = result.Content ?? "";
-                var elapsedMs = result.ElapsedMs;
-                var captured = capturedBudget;
-                List<SectionGroupViewModel> newGroups = null!;
-                string llmText = "";
-                int sectionTotal = 0, sectionSelected = 0;
+                _snapshot = snapResult.Snapshot;
+                var elapsedMs = snapResult.ElapsedMs;
 
-                await System.Threading.Tasks.Task.Run(() =>
-                {
-                    (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionData(rawContent);
-                }).ConfigureAwait(true);
+                // Initial render from the snapshot
+                await RerenderAsync(ct).ConfigureAwait(true);
 
-                // Apply section data to UI-bound collections + batch all property updates
 #pragma warning disable MVVMTK0034
-                SectionGroups = newGroups.ToImmutableArray();
-
-                _cachedLlmViewText = llmText;
-                _rawContent = rawContent;
-                _humanViewHtml = result.HtmlContent;
-                var tokens = rawContent.Length / 4;
-                _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+                _statsText = $"~{_totalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                 _hasOutput = true;
                 _isProgressIndeterminate = false;
                 _progressValue = 100;
                 _progressText = "Done";
-                _budgetTokens = captured;
-                _totalTokens = sectionTotal;
-                _selectedTokenTotal = sectionSelected;
-                _displayText = IsHumanView ? rawContent : llmText;
+                _budgetTokens = capturedBudget;
 #pragma warning restore MVVMTK0034
 
                 // Single notification to refresh all bindings
@@ -479,7 +476,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             else
             {
                 ProgressText = "Error";
-                _rawContent = result.Error ?? "Analysis failed.";
+                _rawContent = snapResult.Error ?? "Analysis failed.";
                 HasOutput = true;
                 IsProgressIndeterminate = false;
                 ProgressValue = 0;
@@ -517,6 +514,64 @@ public partial class MainViewModel : ObservableObject, IDisposable
             cts.Dispose();
             _cts = null;
         }
+    }
+
+    private async Task RerenderAsync(CancellationToken ct = default)
+    {
+        if (_snapshot is null) return;
+
+        CancelRender();
+        _renderCts = new CancellationTokenSource();
+        var renderCt = CancellationTokenSource.CreateLinkedTokenSource(ct, _renderCts.Token).Token;
+
+        try
+        {
+            var request = new RenderRequest
+            {
+                Format = SelectedFormat,
+                MaxTokens = MaxTokens,
+                Sections = GetActiveSections(),
+                IncludeProvenance = IncludeProvenance,
+                IncludeDiagnostics = IncludeDiagnostics,
+                TokenView = false,
+            };
+
+            var renderResult = await _svc.RenderAsync(_snapshot, request, renderCt).ConfigureAwait(true);
+
+            var rawContent = renderResult.Content ?? "";
+
+            var (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionDataFromStat(renderResult.Sections);
+
+#pragma warning disable MVVMTK0034
+            SectionGroups = newGroups.ToImmutableArray();
+
+            _cachedLlmViewText = llmText;
+            _rawContent = rawContent;
+            _humanViewHtml = renderResult.HtmlContent;
+            _totalTokens = sectionTotal;
+            _selectedTokenTotal = sectionSelected;
+            _displayText = IsHumanView ? rawContent : llmText;
+#pragma warning restore MVVMTK0034
+
+            OnPropertyChanged(string.Empty);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Re-render failed");
+        }
+        finally
+        {
+            _renderCts?.Dispose();
+            _renderCts = null;
+        }
+    }
+
+    private void CancelRender()
+    {
+        _renderCts?.Cancel();
+        _renderCts?.Dispose();
+        _renderCts = null;
     }
 
     // ── Settings helpers ───────────────────────────────────────────────────────
@@ -565,26 +620,20 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RecentPaths.Add(p);
     }
 
-    private (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionData(string output)
+    private (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionDataFromStat(
+        ImmutableArray<SectionStat> sections)
     {
         var sectionVms = new List<SectionViewModel>();
 
-        var parts = output.Split("## ");
-        foreach (var part in parts.Skip(1))
+        foreach (var stat in sections)
         {
-            if (string.IsNullOrWhiteSpace(part)) continue;
-            var newlineIdx = part.IndexOf('\n');
-            var name = newlineIdx > 0 ? part[..newlineIdx].Trim() : part.Trim();
-            var fullText = "## " + part;
-            var tokens = Math.Max(1, fullText.Length / 4);
-
             var section = new SectionViewModel
             {
-                Name = name,
-                FullText = fullText,
-                RawTokens = tokens,
-                CompressedTokens = tokens,
-                Category = CategorizeSection(name),
+                Name = stat.Name,
+                FullText = "",
+                RawTokens = stat.Tokens,
+                CompressedTokens = stat.Tokens,
+                Category = CategorizeSection(stat.Name),
             };
 
             section.PropertyChanged += (_, _) =>
@@ -598,7 +647,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             sectionVms.Add(section);
         }
 
-        // Group by category
         var groups = new List<SectionGroupViewModel>();
         var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
         foreach (var cat in categoryOrder)
@@ -667,6 +715,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
+        _renderCts?.Cancel();
+        _renderCts?.Dispose();
+        _renderCts = null;
         _validateCts?.Cancel();
         _validateCts?.Dispose();
         _validateCts = null;

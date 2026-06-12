@@ -1,3 +1,6 @@
+using DevContext.Core.Configuration;
+using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 using DevContext.Desktop.Services;
 using DevContext.Desktop.ViewModels;
 
@@ -19,6 +22,9 @@ public class MainViewModelTests
 
         _svc.LoadSettings().Returns(_settings);
         _svc.LoadRecent().Returns(_recent);
+
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "", HtmlContent = "", Sections = [], EstimatedTokens = 0 }));
     }
 
     private MainViewModel CreateVm() => new(_svc);
@@ -155,7 +161,7 @@ public class MainViewModelTests
         // Simulate output so reanalysis triggers
         typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
 
-        var tcs = new TaskCompletionSource<AnalysisResult>();
+        var tcs = new TaskCompletionSource<SnapshotResult>();
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(tcs.Task);
 
@@ -163,7 +169,7 @@ public class MainViewModelTests
 
         Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
 
-        tcs.SetResult(new AnalysisResult { Success = true, Content = "ok" });
+        tcs.SetResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() } });
     }
 
     [Fact]
@@ -310,7 +316,7 @@ public class MainViewModelTests
         typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
 
         // Set up mock before option change triggers re-analysis
-        var tcs = new TaskCompletionSource<AnalysisResult>();
+        var tcs = new TaskCompletionSource<SnapshotResult>();
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(tcs.Task);
 
@@ -326,7 +332,7 @@ public class MainViewModelTests
         Assert.True(triggered);
 
         // Clean up
-        tcs.SetResult(new AnalysisResult { Success = true, Content = "ok" });
+        tcs.SetResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() } });
         // Wait for the async re-analysis to complete
         await Task.Delay(100);
     }
@@ -352,7 +358,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
 
-        var result = new AnalysisResult { Success = true, Content = "output", ElapsedMs = 100 };
+        var result = new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 100 };
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(result));
 
@@ -368,7 +374,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "ok" }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() } }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -382,7 +388,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "analysis output", ElapsedMs = 200 }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 200 }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -400,7 +406,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = false, Error = "Something went wrong" }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = false, Error = "Something went wrong" }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -416,7 +422,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns<Task<AnalysisResult>>(_ => throw new InvalidOperationException("Boom"));
+            .Returns<Task<SnapshotResult>>(_ => throw new InvalidOperationException("Boom"));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -431,7 +437,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
 
-        var tcs = new TaskCompletionSource<AnalysisResult>();
+        var tcs = new TaskCompletionSource<SnapshotResult>();
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(tcs.Task);
 
@@ -441,7 +447,7 @@ public class MainViewModelTests
 
         // Reconfigure for second call
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "restarted", ElapsedMs = 10 }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
         // Start second (cancels first internally via CancelPrevious)
         var secondTask = (Task)vm.AnalyzeCommand.ExecuteAsync(null)!;
@@ -462,7 +468,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "ok" }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() } }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -483,7 +489,7 @@ public class MainViewModelTests
             {
                 // Capture state at the moment AnalyzeAsync is called
                 progressTextBefore = vm.ProgressText;
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok" });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() } });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -508,7 +514,7 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Header\ncontent", ElapsedMs = 100 }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 100 }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -523,10 +529,9 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult
+            .Returns(Task.FromResult(new SnapshotResult()
             {
                 Success = true,
-                Content = "## Keep\nkeep content\n## Drop\ndrop content",
                 ElapsedMs = 100
             }));
 
@@ -554,10 +559,9 @@ public class MainViewModelTests
         vm.ProjectPath = "C:\\Test";
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult
+            .Returns(Task.FromResult(new SnapshotResult()
             {
                 Success = true,
-                Content = "## Section A\nsome long text here for tokens\n\n## Section B\nmore text here too",
                 ElapsedMs = 100
             }));
 
@@ -585,7 +589,7 @@ public class MainViewModelTests
             .Returns(_ =>
             {
                 callCount++;
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "## Keep\nkeep\n## Drop\ndrop", ElapsedMs = 10 });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -604,7 +608,7 @@ public class MainViewModelTests
         vm.MaxTokens = 5000;
 
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "data", ElapsedMs = 10 }));
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(5000, vm.BudgetTokens);
@@ -621,7 +625,7 @@ public class MainViewModelTests
             .Returns(_ =>
             {
                 callCount++;
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -650,7 +654,7 @@ public class MainViewModelTests
             .Returns(callInfo =>
             {
                 capturedOpts = callInfo.Arg<AnalysisOptions>();
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -672,7 +676,7 @@ public class MainViewModelTests
             .Returns(callInfo =>
             {
                 capturedOpts = callInfo.Arg<AnalysisOptions>();
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -693,7 +697,7 @@ public class MainViewModelTests
             .Returns(callInfo =>
             {
                 capturedOpts = callInfo.Arg<AnalysisOptions>();
-                return Task.FromResult(new AnalysisResult { Success = true, Content = "ok", ElapsedMs = 10 });
+                return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
         await ExecuteAnalyzeCommand(vm);
@@ -710,15 +714,8 @@ public async Task PopulateSections_parses_markdown_into_groups()
     var vm = CreateVm();
     vm.ProjectPath = "C:\\Test";
 
-    var content = "## Architecture overview\narch content\n\n"
-                + "## Endpoints\nep content\n\n"
-                + "## Data model (EF Core)\ndata content\n\n"
-                + "## Call graph\ncall content\n\n"
-                + "## Non-obvious wiring\nwire content\n\n"
-                + "## Anti-patterns\nanti content";
-
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+        .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
     await ExecuteAnalyzeCommand(vm);
 
@@ -735,11 +732,8 @@ public async Task PopulateSections_categorizes_correctly()
     var vm = CreateVm();
     vm.ProjectPath = "C:\\Test";
 
-    var content = "## Endpoints\nep content\n\n"
-                + "## Architecture overview\narch content";
-
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+        .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
     await ExecuteAnalyzeCommand(vm);
 
@@ -759,10 +753,8 @@ public async Task LlmViewText_excludes_disabled_sections()
     var vm = CreateVm();
     vm.ProjectPath = "C:\\Test";
 
-    var content = "## Keep\nkeep content\n\n## Drop\ndrop content";
-
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = content, ElapsedMs = 10 }));
+        .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
     await ExecuteAnalyzeCommand(vm);
 
@@ -788,7 +780,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
     vm.ProjectPath = "C:\\Test";
 
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new AnalysisResult { Success = true, Content = "## Test\ncontent", ElapsedMs = 10 }));
+        .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
     var events = new List<string?>();
     vm.PropertyChanged += (_, e) => events.Add(e.PropertyName);
