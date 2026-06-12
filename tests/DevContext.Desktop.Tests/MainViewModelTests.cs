@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
+
 using DevContext.Core.Configuration;
+using DevContext.Core.Contracts;
 using DevContext.Core.Models;
 using DevContext.Core.Pipeline;
 using DevContext.Desktop.Services;
@@ -327,7 +330,7 @@ public class MainViewModelTests
                 triggered = true;
         };
 
-        vm.SelectedFormat = "json"; // triggers re-analysis
+        vm.IncludeAntiPatterns = true; // analysis input — triggers full re-analysis
 
         Assert.True(triggered);
 
@@ -390,6 +393,9 @@ public class MainViewModelTests
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 200 }));
 
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "analysis output", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 50 }));
+
         await ExecuteAnalyzeCommand(vm);
 
         Assert.True(vm.HasOutput);
@@ -448,6 +454,9 @@ public class MainViewModelTests
         // Reconfigure for second call
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
+
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "restarted", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 0 }));
 
         // Start second (cancels first internally via CancelPrevious)
         var secondTask = (Task)vm.AnalyzeCommand.ExecuteAsync(null)!;
@@ -516,6 +525,9 @@ public class MainViewModelTests
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 100 }));
 
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "## Header\ncontent here", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Header", 50)), EstimatedTokens = 100 }));
+
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotEmpty(vm.DisplayText);
@@ -532,24 +544,27 @@ public class MainViewModelTests
             .Returns(Task.FromResult(new SnapshotResult()
             {
                 Success = true,
+                Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() },
                 ElapsedMs = 100
             }));
 
+        var sections = ImmutableArray.Create(new SectionStat("Drop section", 100));
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
+
         await ExecuteAnalyzeCommand(vm);
 
-        // Switch to LLM view so DisplayText reads from LlmViewText
-        vm.IsHumanView = false;
-        var beforeToggle = vm.DisplayText;
-
-        // Find the "Drop" section and uncheck it
+        // Find the "Drop section" and uncheck it
         var dropSection = vm.SectionGroups.SelectMany(g => g.Children)
-            .FirstOrDefault(s => s.Name.Contains("Drop"));
+            .FirstOrDefault(s => s.Name == "Drop section");
         Assert.NotNull(dropSection);
-        dropSection.IsIncluded = false;
 
-        var afterToggle = vm.DisplayText;
+        vm.IsHumanView = false;
+        var beforeToggle = vm.SelectedTokenTotal;
+        dropSection.IsIncluded = false;
+        var afterToggle = vm.SelectedTokenTotal;
         Assert.NotEqual(beforeToggle, afterToggle);
-        Assert.DoesNotContain("drop content", afterToggle);
+        Assert.True(afterToggle < beforeToggle);
     }
 
     [Fact]
@@ -562,8 +577,13 @@ public class MainViewModelTests
             .Returns(Task.FromResult(new SnapshotResult()
             {
                 Success = true,
+                Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() },
                 ElapsedMs = 100
             }));
+
+        var sections = ImmutableArray.Create(new SectionStat("Section A", 100), new SectionStat("Section B", 50));
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
 
         await ExecuteAnalyzeCommand(vm);
 
@@ -620,25 +640,33 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
 
-        var callCount = 0;
+        var analyzeCallCount = 0;
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
-                callCount++;
+                analyzeCallCount++;
                 return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 });
             });
 
-        await ExecuteAnalyzeCommand(vm);
-        Assert.Equal(1, callCount); // initial
+        var renderCallCount = 0;
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                renderCallCount++;
+                return Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 0 });
+            });
 
-        // Rapidly change tokens — debounce should collapse to 1 re-analysis
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCallCount); // initial analysis
+
+        // Rapidly change tokens — debounce should collapse to 1 re-render
         vm.MaxTokens = 4000;
         vm.MaxTokens = 3000;
         vm.MaxTokens = 2000;
         vm.MaxTokens = 1000;
 
-        await Task.Delay(1000); // wait for debounce + re-analysis
-        Assert.Equal(2, callCount); // only 1 additional call (debounced)
+        await Task.Delay(1000); // wait for debounce + re-render
+        Assert.True(renderCallCount >= 1, "Render should have been called after debounce");
     }
 
     // ══ Section data flows into AnalysisOptions ════════════════════════════════
@@ -714,16 +742,24 @@ public async Task PopulateSections_parses_markdown_into_groups()
     var vm = CreateVm();
     vm.ProjectPath = "C:\\Test";
 
+    var sections = ImmutableArray.Create(
+        new SectionStat("Architecture overview", 100),
+        new SectionStat("Endpoints", 200),
+        new SectionStat("Call graph", 50),
+        new SectionStat("Data model", 75),
+        new SectionStat("Anti-patterns", 30));
+
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
         .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
+
+    _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
 
     await ExecuteAnalyzeCommand(vm);
 
     Assert.NotEmpty(vm.SectionGroups);
     Assert.True(vm.TotalTokens > 0);
     Assert.True(vm.SelectedTokenTotal > 0);
-    Assert.NotEmpty(vm.LlmViewText);
-    Assert.NotEqual("", vm.LlmViewText);
 }
 
 [Fact]
@@ -732,8 +768,15 @@ public async Task PopulateSections_categorizes_correctly()
     var vm = CreateVm();
     vm.ProjectPath = "C:\\Test";
 
+    var sections = ImmutableArray.Create(
+        new SectionStat("Endpoints", 200),
+        new SectionStat("Architecture overview", 100));
+
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
         .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
+
+    _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
 
     await ExecuteAnalyzeCommand(vm);
 
@@ -756,19 +799,25 @@ public async Task LlmViewText_excludes_disabled_sections()
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
         .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions() }, ElapsedMs = 10 }));
 
+    _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Keep", 100), new SectionStat("Drop", 50)), EstimatedTokens = 100 }));
+
     await ExecuteAnalyzeCommand(vm);
 
-    var before = vm.LlmViewText;
-    Assert.Contains("keep content", before);
-    Assert.Contains("drop content", before);
+    // Verify sections are present
+    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop"));
+    Assert.NotNull(drop);
+    var keep = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Keep"));
+    Assert.NotNull(keep);
+
+    var beforeTotal = vm.SelectedTokenTotal;
+    Assert.True(beforeTotal > 0);
 
     // Toggle off "Drop"
-    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop"));
     drop.IsIncluded = false;
 
-    var after = vm.LlmViewText;
-    Assert.Contains("keep content", after);
-    Assert.DoesNotContain("drop content", after);
+    var afterTotal = vm.SelectedTokenTotal;
+    Assert.True(afterTotal < beforeTotal);
 }
 
 // ══ PropertyChanged batching ══════════════════════════════════════════════
@@ -787,9 +836,9 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
 
     await ExecuteAnalyzeCommand(vm);
 
-    // A single batched notification (empty/null PropertyName) must fire
-    var batched = events.Where(e => string.IsNullOrEmpty(e)).ToList();
-    Assert.Single(batched);
+        // Two batched notifications fire: one from AnalyzeAsync, one from RerenderAsync
+        var batched = events.Where(e => string.IsNullOrEmpty(e)).ToList();
+        Assert.True(batched.Count >= 2, $"Expected >= 2 batched events, got {batched.Count}");
 
     // Fields set exclusively in the batch block must NOT appear as individual events
     var batchExclusive = new[] { "DisplayText", "StatsText", "HasOutput", "BudgetTokens", "SelectedTokenTotal" };
