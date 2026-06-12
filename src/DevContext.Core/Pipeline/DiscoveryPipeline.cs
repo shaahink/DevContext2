@@ -76,6 +76,111 @@ public sealed class DiscoveryPipeline
         return warnings;
     }
 
+    /// <summary>Runs extraction, scoring, and compression — returns an immutable snapshot.</summary>
+    public async Task<AnalysisSnapshot> AnalyzeAsync(DiscoveryContext context, CancellationToken ct = default)
+    {
+        if (context.Options.Profile == ExtractionProfile.Debug && _validationWarnings.Count > 0)
+            _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
+
+        var model = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = context.Options.MaxOutputTokens } };
+        context.Observer.OnPipelineStarted(context);
+
+        // Stage 1: Sequential discovery + cache warmup
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct);
+
+        // Stage 2: Parallel Generic extractors
+        await RunStageAsync(ExecutionStage.Stage2Parallel, PipelineStage.GenericExtraction, true, context, model, ct);
+
+        // Resolve Type/Method focus points
+        var unresolvedCount = context.Analysis.UnresolvedFocusPoints.Count;
+        if (unresolvedCount > 0)
+        {
+            var resolved = FocusPointResolver.Resolve(context.Analysis.UnresolvedFocusPoints, model);
+            var failedToResolve = resolved
+                .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method
+                    && string.IsNullOrEmpty(fp.FilePath))
+                .ToList();
+
+            foreach (var failed in failedToResolve)
+            {
+                var didYouMean = SuggestTypeNames(failed.TypeName, model.Types.Values);
+                var suggestion = didYouMean.Count > 0
+                    ? $" Did you mean: {string.Join(", ", didYouMean.Take(3))}?"
+                    : "";
+                model.AddDiagnostic(DiagnosticLevel.Warning, "FocusPointResolver",
+                    $"--around {failed.TypeName}: type not found in {model.Types.Count} scanned types.{suggestion} "
+                    + "Falling back to folder-level proximity.");
+            }
+
+            context.Analysis.FocusPoints = resolved;
+        }
+
+        // Seal signals
+        context.Observer.OnStageStarted(PipelineStage.SignalSealing);
+        var sealSw = Stopwatch.StartNew();
+        model.Architecture.Seal();
+        context.Observer.OnSignalsSealed(model.Architecture.All);
+
+        ApplyArchitectureStyle(model);
+        context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
+
+        // Stage 3: Sequential Specific extractors
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
+
+        // Profile-scenario mismatch warning
+        if (context.ActiveScenario.Name is "deep-dive"
+            && context.Options.Profile < ExtractionProfile.Debug)
+        {
+            model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
+                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from call graph. " +
+                "Re-run with '--profile debug' to enable call graph.");
+        }
+
+        // Stage 4: Sequential scoring
+        await RunScoringAsync(context, model, ct);
+
+        // Stage 5: Sequential compression
+        await RunCompressionAsync(context, model, ct);
+
+        context.Observer.OnPipelineCompleted(model);
+
+        return new AnalysisSnapshot
+        {
+            Model = model,
+            Analysis = context.Analysis,
+            Scenario = context.ActiveScenario,
+            Options = context.Options,
+        };
+    }
+
+    /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
+    public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
+    {
+        var plan = RenderPlanBuilder.Build(snapshot, request);
+
+        var opts = new RenderOptions(
+            request.IncludeProvenance,
+            request.IncludeDiagnostics,
+            plan.EstimatedTokens,
+            snapshot.Scenario.DisplayName,
+            ProfileDisplayName: snapshot.Options.Profile.ToString().ToLowerInvariant(),
+            plan.Sections,
+            snapshot.Analysis.FocusPoints.ToImmutableArray(),
+            snapshot.Analysis.CallGraph,
+            snapshot.Analysis.ProjectGraph,
+            TokenView: request.TokenView)
+        {
+            Plan = plan,
+        };
+
+        if (!_renderers.TryGetValue(request.Format, out var renderer))
+            throw new InvalidOperationException($"No renderer registered for format: {request.Format}");
+
+        var rendered = await renderer.RenderAsync(snapshot.Model, opts, ct);
+        rendered = RunSelfChecks(rendered, snapshot.Model, opts, snapshot.Model);
+        return rendered;
+    }
+
     /// <summary>Runs the full discovery pipeline and returns the rendered context.</summary>
     public async Task<RenderedContext> RunAsync(DiscoveryContext context, CancellationToken ct = default)
     {

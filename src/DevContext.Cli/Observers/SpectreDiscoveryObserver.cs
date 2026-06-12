@@ -97,7 +97,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
     public void OnPipelineCompleted(DiscoveryModel model)
     {
         if (!_isInteractive) return;
-        var pruned = model.Types.Count(t => !t.Value.IsPruned);
+        var pruned = model.Types.Count(t => !t.Value.IsHardExcluded);
         var total = model.Types.Count;
         var pct = total > 0 ? (total - pruned) * 100 / total : 0;
 

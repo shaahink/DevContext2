@@ -227,7 +227,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
         if (startKeys.Count == 0)
         {
-            foreach (var type in model.Types.Values.Where(t => !t.IsPruned))
+            foreach (var type in model.Types.Values.Where(t => !t.IsHardExcluded))
             {
                 foreach (var method in type.Methods)
                     startKeys.Add($"{type.Id}.{method.Name}");

@@ -28,7 +28,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
     {
         var perTypeCap = context.ActiveScenario.Compression.PerTypeCharCap;
         var fileGroups = model.Types.Values
-            .Where(t => !t.IsPruned)
+            .Where(t => !t.IsHardExcluded)
             .GroupBy(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
 
         foreach (var group in fileGroups)

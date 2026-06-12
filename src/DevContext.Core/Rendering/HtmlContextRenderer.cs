@@ -415,7 +415,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderRelatedTypes(StringBuilder sb, DiscoveryModel model)
     {
-        var types = model.Types.Values.Where(t => !t.IsPruned).ToList();
+        var types = model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
         if (types.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.RelatedTypes}'><h2 class='dc-h2'>Related types</h2>");
         sb.AppendLine("<div class='dc-types-grid'>");
@@ -450,7 +450,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderFooter(StringBuilder sb, DiscoveryModel model, System.Diagnostics.Stopwatch sw)
     {
-        var active = model.Types.Values.Count(t => !t.IsPruned);
+        var active = model.Types.Values.Count(t => !t.IsHardExcluded);
         var total = model.Types.Count;
         sb.AppendLine("<footer class='dc-footer'>");
         sb.AppendLine($"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.0");

@@ -31,7 +31,7 @@ public sealed class JsonContextRenderer : IContextRenderer
     private static DevContextOutput BuildOutput(DiscoveryModel model, RenderOptions options)
     {
         var total = model.Types.Count;
-        var inOutput = model.Types.Values.Count(t => !t.IsPruned);
+        var inOutput = model.Types.Values.Count(t => !t.IsHardExcluded);
         var prunedPercent = total > 0 ? Math.Round((double)(total - inOutput) / total * 100, 1) : 0;
 
         return new DevContextOutput

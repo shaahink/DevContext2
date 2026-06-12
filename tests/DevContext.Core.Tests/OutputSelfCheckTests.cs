@@ -419,7 +419,7 @@ public sealed class OutputSelfCheckTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
-            IsPruned = true
+            IsHardExcluded = true
         };
         model.Types["t1"] = type;
         model.PrunedTypeIds.Add("t1");
@@ -445,10 +445,10 @@ public sealed class OutputSelfCheckTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
-            // IsPruned stays false by default
+            // IsHardExcluded stays false by default
         };
         model.Types["t1"] = type;
-        // PrunedTypeIds has "t1" but type.IsPruned is false — creates imbalance
+        // PrunedTypeIds has "t1" but type.IsHardExcluded is false — creates imbalance
         model.PrunedTypeIds.Add("t1");
 
         var rendered = new RenderedContext("", 0, [], TimeSpan.Zero, "1.0");

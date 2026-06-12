@@ -257,7 +257,7 @@ public static partial class OutputSelfCheck
 
         var total = model.Types.Count;
         var pruned = model.PrunedTypeIds.Count;
-        var included = model.Types.Values.Count(t => !t.IsPruned);
+        var included = model.Types.Values.Count(t => !t.IsHardExcluded);
 
         // TODO(Plan 3): once explicit included/excluded tracking lands, tighten this check.
         // Currently pre-Plan-1/3: total should equal included + pruned (all pruned IDs reference known types).

@@ -124,7 +124,7 @@ public sealed class RendererTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
-            IsPruned = true,
+            IsHardExcluded = true,
         });
 
         var options = new RenderOptions(false, false, 8000);

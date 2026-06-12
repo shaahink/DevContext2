@@ -208,7 +208,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        var activeTypes = model.Types.Values.Count(t => !t.IsPruned);
+        var activeTypes = model.Types.Values.Count(t => !t.IsHardExcluded);
         sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
         sb.AppendLine();
     }
@@ -415,9 +415,17 @@ public sealed class MarkdownRenderer : IContextRenderer
         foreach (var type in typesWithBodies)
         {
             if (type.SourceBody is null) continue;
+
+            var body = type.SourceBody;
+            var cap = options.Plan?.PerTypeCharCap ?? int.MaxValue;
+            if (cap > 0 && body.Length > cap)
+            {
+                body = TruncateBody(body, cap);
+            }
+
             sb.AppendLine($"### {type.Name}.cs");
             sb.AppendLine("```csharp");
-            sb.AppendLine(type.SourceBody);
+            sb.AppendLine(body);
 
             if (type.SourceBody.Length >= 5000)
                 sb.AppendLine($"// ... [{type.SourceBody.Length} total chars]");
@@ -938,7 +946,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine();
 
             var typedTypes = model.Types.Values
-                .Where(t => !t.IsPruned)
+                .Where(t => !t.IsHardExcluded)
                 .GroupBy(t => t.Layer)
                 .OrderBy(g => g.Key.ToString());
 
@@ -963,7 +971,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine();
 
             var hasContent = false;
-            var survivingTypes = model.Types.Values.Where(t => !t.IsPruned).ToList();
+            var survivingTypes = model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
 
             foreach (var nsGroup in survivingTypes
                 .GroupBy(t => t.Namespace)
@@ -1035,7 +1043,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         RenderOptions options, System.Diagnostics.Stopwatch sw)
     {
         var typesTotal = model.Types.Count;
-        var typesSurviving = model.Types.Values.Count(t => !t.IsPruned);
+        var typesSurviving = model.Types.Values.Count(t => !t.IsHardExcluded);
         var prunedCount = typesTotal - typesSurviving;
 
         var compressionSummary = model.AppliedCompressions
@@ -1065,5 +1073,43 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine();
             sb.AppendLine("> 💡 Narrow this output with `--around TypeName` or `--around TypeName:MethodName` for focused context.");
         }
+    }
+
+    private static string TruncateBody(string body, int charCap)
+    {
+        var lines = body.Split('\n');
+        var result = new List<string>(lines.Length);
+        var charCount = 0;
+
+        foreach (var line in lines)
+        {
+            var lineLength = line.Length + 1;
+
+            if (charCount + lineLength <= charCap)
+            {
+                result.Add(line);
+                charCount += lineLength;
+                continue;
+            }
+
+            var remaining = charCap - charCount;
+            if (remaining > 3)
+            {
+                result.Add(line[..Math.Min(remaining - 3, line.Length)]);
+            }
+
+            // Count remaining non-empty lines
+            var remainingLines = 0;
+            for (var i = lines.Length - 1; i >= result.Count; i--)
+            {
+                if (!string.IsNullOrWhiteSpace(lines[i]))
+                    remainingLines++;
+            }
+
+            result.Add($"// ... [{remainingLines} lines]");
+            break;
+        }
+
+        return string.Join("\n", result);
     }
 }

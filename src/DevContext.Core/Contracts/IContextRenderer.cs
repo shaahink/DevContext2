@@ -1,4 +1,18 @@
+using DevContext.Core.Pipeline;
+
 namespace DevContext.Core.Contracts;
+
+/// <summary>Per-section token accounting record produced during rendering.</summary>
+public sealed record SectionTokenRecord(
+    string SectionName,
+    int RawTokens,
+    int CompressedTokens,
+    bool WasTruncated,
+    string? TruncationReason = null
+);
+
+/// <summary>Lightweight section stat exposed to the desktop for token accounting.</summary>
+public sealed record SectionStat(string Name, int Tokens);
 
 /// <summary>Options that control how a renderer produces output.</summary>
 public sealed record RenderOptions(
@@ -13,16 +27,11 @@ public sealed record RenderOptions(
     ProjectDependencyGraph? ProjectGraph = null,
     bool TokenView = false,
     bool FullSections = false
-);
-
-/// <summary>Per-section token accounting record produced during rendering.</summary>
-public sealed record SectionTokenRecord(
-    string SectionName,
-    int RawTokens,
-    int CompressedTokens,
-    bool WasTruncated,
-    string? TruncationReason = null
-);
+)
+{
+    /// <summary>The RenderPlan lens applied during this render. May be null for legacy paths.</summary>
+    public RenderPlan? Plan { get; init; }
+}
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>
 public sealed record RenderedContext(
@@ -36,6 +45,8 @@ public sealed record RenderedContext(
 {
     /// <summary>Self-check invariant failures collected after rendering. Empty when no failures.</summary>
     public ImmutableArray<string> SelfCheckFailures { get; init; } = [];
+    /// <summary>Per-section token counts for desktop section display.</summary>
+    public ImmutableArray<SectionStat> Sections { get; init; } = [];
 }
 
 /// <summary>Renders a discovery model into a specific output format (e.g. markdown, JSON).</summary>
