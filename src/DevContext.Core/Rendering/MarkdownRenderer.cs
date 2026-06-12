@@ -133,7 +133,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var estimatedTokens = Math.Max(1, content.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0",
+            content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1",
             SectionTokens: sectionTokens.Count > 0 ? sectionTokens : null));
     }
 
@@ -1065,7 +1065,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
             + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
             + compressionText
-            + " | Schema v1.0*");
+            + " | Schema v1.1*");
 
         // Usage hints (only when output is broad and no focus points)
         if (typesSurviving > 50 && options.FocusPoints.IsDefaultOrEmpty)

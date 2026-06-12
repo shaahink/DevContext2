@@ -46,4 +46,4 @@ Not available in current profile. Re-run with `--profile debug` to enable call g
 | Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
 
 ---
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v1.0*
+*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v1.1*

@@ -25,7 +25,7 @@ public sealed class JsonContextRenderer : IContextRenderer
         var estimatedTokens = Math.Max(1, json.Length / 4);
 
         return new ValueTask<RenderedContext>(new RenderedContext(
-            json, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0"));
+            json, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1"));
     }
 
     private static DevContextOutput BuildOutput(DiscoveryModel model, RenderOptions options)

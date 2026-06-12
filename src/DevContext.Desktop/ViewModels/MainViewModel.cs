@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using DevContext.Core.Contracts;
 using DevContext.Core.Models;
 using DevContext.Core.Pipeline;
+using DevContext.Core.Rendering;
 using DevContext.Core.Services;
 using DevContext.Desktop.Services;
 using Serilog;
@@ -100,6 +101,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _displayText = "";
 
     private string _cachedLlmViewText = "";
+    private string _statsHtml = "";
+
+    public string StatsHtml => _statsHtml;
 
     public void RefreshDisplayText() => DisplayText = IsHumanView ? HumanViewText : LlmViewText;
 
@@ -449,6 +453,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 // Initial render from the snapshot
                 await RerenderAsync(ct).ConfigureAwait(true);
+
+                _statsHtml = _snapshot?.Report is { } r
+                    ? RunReportHtmlRenderer.Render(r) : "";
 
 #pragma warning disable MVVMTK0034
                 _statsText = $"~{_totalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";

@@ -78,6 +78,7 @@
             <div class="tabs">
                 <button class="@(SelectedTab=="human"?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
                 <button class="@(SelectedTab=="llm"?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
+                <button class="@(SelectedTab=="stats"?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
                 @if (VM.SectionGroups.Length > 1)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
@@ -130,6 +131,10 @@
         @if (SelectedTab == "human")
         {
             <div class="output-rendered">@((MarkupString)DisplayHtml)</div>
+        }
+        else if (SelectedTab == "stats")
+        {
+            <div class="output-rendered">@((MarkupString)VM.StatsHtml)</div>
         }
         else
         {

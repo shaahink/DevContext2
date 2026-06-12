@@ -69,7 +69,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var final = sb.ToString();
         var tokens = Math.Max(1, final.Length / 4);
         return new ValueTask<RenderedContext>(new RenderedContext(
-            final, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0"));
+            final, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1"));
     }
 
     private static string? BuildNav(List<(string Id, string Label)> links)
@@ -453,7 +453,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var active = model.Types.Values.Count(t => !t.IsHardExcluded);
         var total = model.Types.Count;
         sb.AppendLine("<footer class='dc-footer'>");
-        sb.AppendLine($"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.0");
+        sb.AppendLine($"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.1");
         sb.AppendLine("</footer>");
     }
 }
