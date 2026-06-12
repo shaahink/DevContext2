@@ -236,11 +236,13 @@ public sealed class MarkdownRenderer : IContextRenderer
 
             if (roots.Count == 0) roots = graph.Keys.OrderBy(k => k).ToList();
 
+            sb.AppendLine("```text");
             var visited = new HashSet<string>();
             foreach (var root in roots)
             {
                 RenderProjectTree(sb, root, graph, visited, "", true);
             }
+            sb.AppendLine("```");
         }
         else
         {
@@ -642,6 +644,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var visited = new HashSet<string>();
         var maxDepth = 5;
 
+        sb.AppendLine("```text");
         foreach (var callerKey in callerKeys)
         {
             if (!options.CallGraph.Edges.TryGetValue(callerKey, out _)) continue;
@@ -656,6 +659,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             RenderCallGraphNode(sb, options.CallGraph, callerKey, "", visited, 0, maxDepth);
             sb.AppendLine();
         }
+        sb.AppendLine("```");
     }
 
     private static void RenderCallGraphNode(StringBuilder sb, CallGraph graph, string callerKey,

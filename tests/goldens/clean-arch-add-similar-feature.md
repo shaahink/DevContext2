@@ -8,10 +8,12 @@
 ---
 ## Architecture overview
 
+```text
 └── Web
     ├── Application
     │   └── Domain
     └── Infrastructure
+```
 
 ## Endpoints
 

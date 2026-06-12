@@ -447,10 +447,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 List<SectionGroupViewModel> newGroups = null!;
                 string llmText = "";
                 int sectionTotal = 0, sectionSelected = 0;
+                string htmlText = "";
 
                 await System.Threading.Tasks.Task.Run(() =>
                 {
                     (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionData(rawContent);
+                    htmlText = RenderHtml(rawContent);
                 }).ConfigureAwait(true);
 
                 // Apply section data to UI-bound collections + batch all property updates
@@ -461,7 +463,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 _cachedLlmViewText = llmText;
                 _rawContent = rawContent;
-                _humanViewHtml = null;
+                _humanViewHtml = htmlText;
                 _outputText = rawContent;
                 var tokens = rawContent.Length / 4;
                 _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";

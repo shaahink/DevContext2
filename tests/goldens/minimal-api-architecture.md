@@ -8,9 +8,11 @@
 ---
 ## Architecture overview
 
+```text
 └── Api
     └── Core
 └── Infrastructure
+```
 
 ## Endpoints
 
