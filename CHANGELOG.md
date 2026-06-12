@@ -31,7 +31,7 @@ Initial public release.
 
 ### Tests
 
-- **221 tests** (157 Core + 64 Desktop). Added 5 regression tests for batching, cache invalidation, section parsing, and collection notification counts.
+- **233 tests** (169 Core + 64 Desktop). Added 5 regression tests for batching, cache invalidation, section parsing, and collection notification counts.
 - Golden tests regenerated to reflect new output format.
 
 ---

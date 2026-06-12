@@ -1,7 +1,7 @@
 # DevContext v1.0 — Combined Benchmark Report
 
 **Generated**: 2026-06-11 | **Version**: v1.0.0  
-**Tests**: 221 passing (157 Core + 64 Desktop)
+**Tests**: 233 passing (169 Core + 64 Desktop)
 
 ---
 

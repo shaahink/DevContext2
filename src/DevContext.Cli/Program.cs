@@ -1,3 +1,4 @@
+using DevContext.Cli;
 using DevContext.Cli.Commands;
 
 var services = new ServiceCollection();
@@ -11,7 +12,7 @@ var app = new CommandApp(registrar);
 app.Configure(config =>
 {
     config.Settings.ApplicationName = "devcontext";
-    config.Settings.ApplicationVersion = "2.0.0";
+    config.Settings.ApplicationVersion = DevContextVersion.Display;
 
     config.AddCommand<AnalyzeCommand>("analyze")
         .WithDescription("Analyze a .NET project and produce structured context")

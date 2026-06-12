@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
 [![CI](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml/badge.svg)](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-221%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-233%20passing-brightgreen)](tests/)
 
 **DevContext** is a static analysis CLI and desktop tool that extracts structured context from .NET codebases for use with LLMs. It discovers endpoints, background workers, EF Core entities, DI registrations, middleware pipelines, call graphs, and anti-patterns — then prunes and compresses the output to fit a token budget.
 
@@ -245,7 +245,7 @@ Four projects:
 # Build
 dotnet build
 
-# Test (221 tests)
+# Test (233 tests)
 dotnet test tests/DevContext.Core.Tests
 dotnet test tests/DevContext.Desktop.Tests
 
