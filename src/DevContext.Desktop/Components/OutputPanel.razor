@@ -6,6 +6,8 @@
 @code {
     private bool IsSectionsOpen;
     private string SelectedTab = "human";
+    private string? _toastMessage;
+    private System.Threading.CancellationTokenSource? _toastCts;
 
     protected override void OnInitialized()
     {
@@ -17,16 +19,29 @@
     private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
     private void ToggleGroup(SectionGroupViewModel group, bool value) { foreach (var c in group.Children) c.IsIncluded = value; }
 
-    private async Task Copy() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.HumanViewText); } catch { } }
-    private async Task CopyLlm() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.LlmViewText); } catch { } }
+    private async Task Copy() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.HumanViewText); ShowToast("Copied!"); } catch { } }
+    private async Task CopyLlm() { try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", VM.LlmViewText); ShowToast("Copied LLM view!"); } catch { } }
     private async Task Save()
     {
         try
         {
             var ext = VM.SelectedFormat == "json" ? "json" : "md";
             await JS.InvokeVoidAsync("saveFile", $"devcontext-output.{ext}", VM.RawContent);
+            ShowToast("Saved!");
         }
         catch { }
+    }
+
+    private async void ShowToast(string message)
+    {
+        _toastCts?.Cancel();
+        _toastCts = new System.Threading.CancellationTokenSource();
+        _toastMessage = message;
+        StateHasChanged();
+        try { await Task.Delay(2000, _toastCts.Token); }
+        catch (OperationCanceledException) { return; }
+        _toastMessage = null;
+        StateHasChanged();
     }
 
     private double BudgetPct => VM.BudgetTokens > 0 ? (double)VM.SelectedTokenTotal / VM.BudgetTokens * 100 : 0;
@@ -41,9 +56,19 @@
     @if (!VM.HasOutput && !VM.IsAnalyzing)
     {
         <div class="empty-state">
-            <svg class="icon" viewBox="0 0 24 24" style="width:48px;height:48px;opacity:0.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-            <p class="empty-title">Choose a project, then Analyse</p>
-            <p class="empty-sub">Structured, token-budgeted context ready to paste into any LLM</p>
+            <div class="empty-hero">
+                <svg class="icon" viewBox="0 0 24 24" style="width:56px;height:56px;opacity:0.25"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <h2 class="empty-title">Structured context for LLMs</h2>
+                <p class="empty-desc">DevContext analyzes your .NET codebase and produces a pruned, token-budgeted document ready to paste into any LLM.</p>
+            </div>
+            <div class="empty-features">
+                <div class="empty-feat"><span class="feat-icon">&check;</span> Discover endpoints, workers, entities, DI wiring, middleware</div>
+                <div class="empty-feat"><span class="feat-icon">&check;</span> Prune to fit your token budget (500&ndash;50,000)</div>
+                <div class="empty-feat"><span class="feat-icon">&check;</span> Natural language intent &mdash; type what you need</div>
+                <div class="empty-feat"><span class="feat-icon">&check;</span> GitHub URL support &mdash; clone &amp; analyze in one click</div>
+                <div class="empty-feat"><span class="feat-icon">&check;</span> Human view (rendered) and LLM view (raw) tabs</div>
+            </div>
+            <p class="empty-hint">Enter a project path or GitHub URL in the sidebar, then click Analyze.</p>
         </div>
     }
     else
@@ -113,5 +138,9 @@
         {
             <div class="loading-overlay"><div class="spinner"></div><p>@VM.ProgressText</p></div>
         }
+    }
+    @if (_toastMessage is not null)
+    {
+        <div class="toast">@_toastMessage</div>
     }
 </section>
