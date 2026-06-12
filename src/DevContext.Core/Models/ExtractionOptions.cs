@@ -33,4 +33,4 @@ public sealed record ExtractionOptions
 /// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>
 public enum ExtractionProfile { Focused, Debug, Full }
 /// <summary>Supported output formats.</summary>
-public enum OutputFormat { Markdown, Json }
+public enum OutputFormat { Markdown, Json, Html }

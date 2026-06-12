@@ -41,6 +41,7 @@ public static class ServiceRegistration
         // Renderers (keyed by format)
         services.AddSingleton<IContextRenderer>(_ => new MarkdownRenderer());
         services.AddSingleton<IContextRenderer>(_ => new JsonContextRenderer());
+        services.AddSingleton<IContextRenderer>(_ => new HtmlContextRenderer());
 
         services.AddSingleton<DiscoveryPipeline>(sp =>
         {

@@ -115,14 +115,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public string HumanViewText => _rawContent;
 
     private string? _humanViewHtml;
-    public string HumanViewHtml => _humanViewHtml ??= RenderHtml(_rawContent);
-
-    private static string RenderHtml(string markdown)
-    {
-        if (string.IsNullOrEmpty(markdown)) return "";
-        try { return Markdig.Markdown.ToHtml(markdown); }
-        catch { return $"<pre>{System.Net.WebUtility.HtmlEncode(markdown)}</pre>"; }
-    }
+    public string HumanViewHtml => _humanViewHtml ?? "";
 
     public string AnalyzeButtonText
         => IsGitHubUrl
@@ -449,12 +442,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 List<SectionGroupViewModel> newGroups = null!;
                 string llmText = "";
                 int sectionTotal = 0, sectionSelected = 0;
-                string htmlText = "";
 
                 await System.Threading.Tasks.Task.Run(() =>
                 {
                     (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionData(rawContent);
-                    htmlText = RenderHtml(rawContent);
                 }).ConfigureAwait(true);
 
                 // Apply section data to UI-bound collections + batch all property updates
@@ -465,7 +456,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 _cachedLlmViewText = llmText;
                 _rawContent = rawContent;
-                _humanViewHtml = htmlText;
+                _humanViewHtml = result.HtmlContent;
                 _outputText = rawContent;
                 var tokens = rawContent.Length / 4;
                 _statsText = $"~{tokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
