@@ -100,7 +100,6 @@ public sealed class GoldenTests
         Assert.Contains(observer.Events, e => e.StartsWith("ExtractorCompleted"));
         Assert.Contains(observer.Events, e => e.StartsWith("SignalsSealed"));
         Assert.Contains(observer.Events, e => e.StartsWith("StageCompleted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("RenderCompleted"));
         Assert.Contains(observer.Events, e => e.StartsWith("PipelineCompleted"));
     }
 }

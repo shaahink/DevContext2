@@ -166,18 +166,18 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             RoslynWorkspace = roslyn
         };
 
-        if (settings.DryRun)
-        {
-            result = await pipeline.RunAsync(ctx, ct);
-        }
-        else
-        {
-            AnalysisSnapshot capturedSnapshot = null!;
-            await AnsiConsole.Status()
-                .StartAsync("Analyzing project...", async statusCtx =>
-                {
-                    capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
+        await AnsiConsole.Status()
+            .StartAsync("Analyzing project...", async statusCtx =>
+            {
+                var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
+                snapshot = capturedSnapshot;
 
+                if (capturedSnapshot.IsDryRun)
+                {
+                    result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+                }
+                else
+                {
                     var request = new RenderRequest
                     {
                         Format = options.OutputFormat.ToString().ToLowerInvariant(),
@@ -189,15 +189,13 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     };
 
                     result = await pipeline.RenderAsync(capturedSnapshot, request, ct);
-                });
-            snapshot = capturedSnapshot;
-        }
+                }
+            });
 
         await WriteOutput(settings, result);
         if (settings.Strict && HandleStrictMode(result))
             return 2;
 
-        // Summary line (always, not part of file output)
         if (snapshot?.Report is { } report)
         {
             var summary = RunReportFormatter.Summary(report);

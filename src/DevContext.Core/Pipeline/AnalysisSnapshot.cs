@@ -8,4 +8,6 @@ public sealed record AnalysisSnapshot
     public required Scenario Scenario { get; init; }
     public required ExtractionOptions Options { get; init; }
     public required RunReport Report { get; init; }
+    public bool IsDryRun { get; init; }
+    public string? DryRunContent { get; init; }
 }

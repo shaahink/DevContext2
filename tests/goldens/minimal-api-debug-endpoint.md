@@ -3,7 +3,7 @@
 **Architecture**: MinimalApi (100% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
 **Projects**: 3 — Infrastructure, Api, Core
-**Profile**: focused | **Tokens**: ~8000 (budget 8000) | **Types**: 5 in output
+**Profile**: focused | **Tokens**: ~642 (budget 8000) | **Types**: 5 in output
 
 ---
 ## Endpoints

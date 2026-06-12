@@ -144,5 +144,37 @@
       "confidence": 1
     }
   ],
-  "maxTokens": 8000
+  "maxTokens": 607,
+  "runReport": {
+    "stages": [],
+    "extractors": [],
+    "scorers": [],
+    "compressions": [],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 0,
+      "syntaxTreeHits": 0,
+      "syntaxTreeMisses": 0
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 0,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 4,
+      "typesHardExcluded": 0,
+      "typesIncluded": 4,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 0
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:00",
+      "stage2CpuSum": "00:00:00",
+      "stage3Wall": "00:00:00",
+      "stage3CpuSum": "00:00:00"
+    },
+    "totalWall": "00:00:00"
+  }
 }

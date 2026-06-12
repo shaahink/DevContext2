@@ -80,7 +80,14 @@ public class DevContextBenchmarks
     [Benchmark]
     public async Task FullPipeline()
     {
-        await _pipeline.RunAsync(_context);
+        var snapshot = await _pipeline.AnalyzeAsync(_context);
+        var request = new RenderRequest
+        {
+            Format = _context.Options.OutputFormat.ToString().ToLowerInvariant(),
+            MaxTokens = _context.Options.MaxOutputTokens,
+            Sections = _context.ActiveScenario.RequiredSections,
+        };
+        await _pipeline.RenderAsync(snapshot, request);
     }
 
     [Benchmark]
