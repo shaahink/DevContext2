@@ -209,6 +209,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             OutputFormat = settings.Format?.ToLowerInvariant() switch
             {
                 "json" => OutputFormat.Json,
+                "html" => OutputFormat.Html,
                 _ => OutputFormat.Markdown
             },
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()

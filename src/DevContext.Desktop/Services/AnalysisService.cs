@@ -94,7 +94,9 @@ public class AnalysisService : IAnalysisService
             IncludeAntiPatterns = opts.IncludeAntiPatterns,
             IncludeProvenance = opts.IncludeProvenance,
             IncludeDiagnostics = opts.IncludeDiagnostics,
-            OutputFormat = opts.Format == "json" ? OutputFormat.Json : OutputFormat.Markdown,
+            OutputFormat = opts.Format == "json" ? OutputFormat.Json
+                : opts.Format == "html" ? OutputFormat.Html
+                : OutputFormat.Markdown,
             ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
             ExcludeExtractors = scenario.DisableExtractors,
         };
