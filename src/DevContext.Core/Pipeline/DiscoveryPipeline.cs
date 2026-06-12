@@ -124,8 +124,8 @@ public sealed class DiscoveryPipeline
         ApplyArchitectureStyle(model);
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
 
-        // Stage 3: Sequential Specific extractors
-        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
+        // Stage 3: Parallel Specific extractors (signal-gated, mutually independent)
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, true, context, model, ct);
 
         // Profile-scenario mismatch warning
         if (context.ActiveScenario.Name is "deep-dive"
@@ -233,8 +233,8 @@ public sealed class DiscoveryPipeline
         ApplyArchitectureStyle(model);
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
 
-        // Stage 3: Sequential Specific extractors (signal-gated)
-        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
+        // Stage 3: Parallel Specific extractors (signal-gated, mutually independent)
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, true, context, model, ct);
 
         // Profile-scenario mismatch warning
         if (context.ActiveScenario.Name is "deep-dive"
@@ -315,7 +315,7 @@ public sealed class DiscoveryPipeline
         ApplyArchitectureStyle(model);
         var sealSw = Stopwatch.StartNew();
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
-        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, false, context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, true, context, model, ct);
         await RunScoringAsync(context, model, ct);
         await RunCompressionAsync(context, model, ct);
 

@@ -23,7 +23,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnStageStarted(PipelineStage stage)
     {
-        _inParallelStage = stage == PipelineStage.GenericExtraction;
+        _inParallelStage = stage is PipelineStage.GenericExtraction or PipelineStage.SpecificExtraction;
         _indent++;
         WriteLine($"Stage: {stage}");
     }
