@@ -15,101 +15,80 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var sectionTokens = new List<SectionTokenRecord>();
+        var navLinks = new List<(string Id, string Label)>();
 
         sb.AppendLine("<article class='dc-report'>");
         var preLen = sb.Length;
         RenderHeader(sb, model, options);
         TrackSection(sectionTokens, "Header", preLen, sb.Length);
 
-        if (ShouldRender(SectionNames.ArchitectureOverview, options))
-        {
-            preLen = sb.Length;
-            RenderArchitectureOverview(sb, model, options);
-            TrackSection(sectionTokens, "Architecture overview", preLen, sb.Length);
-        }
+        // Build nav while rendering sections
+        RenderSection(sb, options, SectionNames.ArchitectureOverview, "Architecture overview", navLinks,
+            () => RenderArchitectureOverview(sb, model, options));
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
-        {
-            preLen = sb.Length;
-            RenderEntryPoints(sb, model, options);
-            TrackSection(sectionTokens, "Entry points", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.Endpoints, options))
-        {
-            preLen = sb.Length;
-            RenderEndpoints(sb, model);
-            TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.CallGraph, options))
-        {
-            preLen = sb.Length;
-            RenderCallGraph(sb, model, options);
-            TrackSection(sectionTokens, "Call graph", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.MediatRHandlers, options))
-        {
-            preLen = sb.Length;
-            RenderMediatRHandlers(sb, model);
-            TrackSection(sectionTokens, "MediatR Handlers", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.DataModel, options))
-        {
-            preLen = sb.Length;
-            RenderDataModel(sb, model);
-            TrackSection(sectionTokens, "Data model", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.MessageConsumers, options))
-        {
-            preLen = sb.Length;
-            RenderMessageConsumers(sb, model);
-            TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.IndirectWiring, options))
-        {
-            preLen = sb.Length;
-            RenderIndirectWiring(sb, model);
-            TrackSection(sectionTokens, "Indirect wiring", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.BackgroundWorkers, options))
-        {
-            preLen = sb.Length;
-            RenderBackgroundWorkers(sb, model);
-            TrackSection(sectionTokens, "Background workers", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.MiddlewarePipeline, options))
-        {
-            preLen = sb.Length;
-            RenderMiddlewarePipeline(sb, model);
-            TrackSection(sectionTokens, "Middleware pipeline", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.DiRegistrations, options))
-        {
-            preLen = sb.Length;
-            RenderDiRegistrations(sb, model);
-            TrackSection(sectionTokens, "DI registrations", preLen, sb.Length);
-        }
+            RenderSection(sb, options, "entry-points", "Entry points", navLinks,
+                () => RenderEntryPoints(sb, model, options));
+        RenderSection(sb, options, SectionNames.Endpoints, "Endpoints", navLinks,
+            () => RenderEndpoints(sb, model));
+        RenderSection(sb, options, SectionNames.CallGraph, "Call graph", navLinks,
+            () => RenderCallGraph(sb, model, options));
+        RenderSection(sb, options, SectionNames.MediatRHandlers, "MediatR Handlers", navLinks,
+            () => RenderMediatRHandlers(sb, model));
+        RenderSection(sb, options, SectionNames.DataModel, "Data model", navLinks,
+            () => RenderDataModel(sb, model));
+        RenderSection(sb, options, SectionNames.MessageConsumers, "Message consumers", navLinks,
+            () => RenderMessageConsumers(sb, model));
+        RenderSection(sb, options, SectionNames.IndirectWiring, "Indirect wiring", navLinks,
+            () => RenderIndirectWiring(sb, model));
+        RenderSection(sb, options, SectionNames.BackgroundWorkers, "Background workers", navLinks,
+            () => RenderBackgroundWorkers(sb, model));
+        RenderSection(sb, options, SectionNames.MiddlewarePipeline, "Middleware pipeline", navLinks,
+            () => RenderMiddlewarePipeline(sb, model));
+        RenderSection(sb, options, SectionNames.DiRegistrations, "DI registrations", navLinks,
+            () => RenderDiRegistrations(sb, model));
         RenderAntiPatterns(sb, model);
         RenderEventFlow(sb, model);
-        if (ShouldRender(SectionNames.RelatedTypes, options))
-        {
-            preLen = sb.Length;
-            RenderRelatedTypes(sb, model);
-            TrackSection(sectionTokens, "Related types", preLen, sb.Length);
-        }
+        RenderSection(sb, options, SectionNames.RelatedTypes, "Related types", navLinks,
+            () => RenderRelatedTypes(sb, model));
         if (options.IncludeDiagnostics)
-        {
-            preLen = sb.Length;
-            RenderDiagnostics(sb, model);
-            TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
-        }
+            RenderSection(sb, options, "diagnostics", "Diagnostics", navLinks,
+                () => RenderDiagnostics(sb, model));
 
         RenderFooter(sb, model, sw);
 
+        // Insert nav after header if there are links
+        var navHtml = BuildNav(navLinks);
+        var content = sb.ToString();
+        if (navHtml is not null)
+            content = content.Replace("</header>", $"</header>{navHtml}");
+
+        sb.Clear();
+        sb.Append(content);
         sb.AppendLine("</article>");
 
-        var content = sb.ToString();
-        var tokens = Math.Max(1, content.Length / 4);
+        var final = sb.ToString();
+        var tokens = Math.Max(1, final.Length / 4);
         return new ValueTask<RenderedContext>(new RenderedContext(
-            content, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0"));
+            final, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.0"));
+    }
+
+    private static string? BuildNav(List<(string Id, string Label)> links)
+    {
+        if (links.Count <= 1) return null;
+        var sb = new StringBuilder();
+        sb.AppendLine("<nav class='dc-nav'><span class='dc-nav-title'>Jump to:</span>");
+        foreach (var (id, label) in links)
+            sb.AppendLine($"<a href='#dc-{id}'>{System.Net.WebUtility.HtmlEncode(label)}</a>");
+        sb.AppendLine("</nav>");
+        return sb.ToString();
+    }
+
+    private static void RenderSection(StringBuilder sb, RenderOptions options, string sectionId, string label,
+        List<(string, string)> navLinks, Action render)
+    {
+        if (!ShouldRender(sectionId, options)) return;
+        render();
+        navLinks.Add((sectionId, label));
     }
 
     private static void TrackSection(List<SectionTokenRecord> records, string name, int prevLength, int currentLength)
@@ -166,7 +145,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderArchitectureOverview(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine("<section class='dc-section'>");
+        sb.AppendLine($"<section class='dc-section' id='dc-architecture'>");
         sb.AppendLine("<h2 class='dc-h2'>Architecture overview</h2>");
         if (model.Projects.Length == 0)
         {
@@ -205,7 +184,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine("<section class='dc-section'>");
+        sb.AppendLine("<section class='dc-section' id='dc-entry-points'>");
         sb.AppendLine("<h2 class='dc-h2'>Entry points</h2>");
         foreach (var fp in options.FocusPoints)
         {

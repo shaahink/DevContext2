@@ -389,7 +389,21 @@ body {
 .dc-badge { padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 10px; }
 .dc-badge-style { background: var(--accent); color: #fff; }
 .dc-meta-text { white-space: nowrap; }
-.dc-section { margin: 20px 0; }
+
+/* Nav bar */
+.dc-nav {
+    display: flex; flex-wrap: wrap; gap: 2px; align-items: center;
+    padding: 6px 0 10px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg-base); z-index: 10;
+}
+.dc-nav-title { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-right: 6px; }
+.dc-nav a {
+    font-size: 10.5px; color: var(--accent); text-decoration: none;
+    padding: 2px 8px; border-radius: 3px;
+}
+.dc-nav a:hover { background: var(--bg-sunken); }
+
+.dc-section { scroll-margin-top: 40px; } /* so nav doesn't cover section headers */
 .dc-h2 { font-size: 15px; font-weight: 700; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); color: var(--text-accent); }
 .dc-h3 { font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--text-primary); }
 .dc-h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin: 0 0 4px; }
