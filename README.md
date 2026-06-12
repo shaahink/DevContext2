@@ -134,7 +134,7 @@ devcontext analyze . --dry-run
 
 ## Desktop UI
 
-DevContext includes a Windows desktop app (self-contained portable `.exe`) for interactive analysis. Download from [GitHub Releases](https://github.com/shaahink/DevContext2/releases) — no .NET SDK required. WebView2 runtime auto-installs on first launch.
+DevContext includes a Windows desktop app for interactive analysis. Download from [GitHub Releases](https://github.com/shaahink/DevContext2/releases) (`DevContext.Desktop.zip`) — unzip anywhere, run `DevContext.Desktop.exe`. No .NET SDK required. WebView2 runtime auto-installs on first launch.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

@@ -8,8 +8,8 @@ public static class DevContextVersion
 
     private static string GetDisplay()
     {
-        var attr = typeof(DevContextVersion).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        var assembly = Assembly.GetEntryAssembly() ?? typeof(DevContextVersion).Assembly;
+        var attr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         if (attr is null) return "0.0.0";
         var version = attr.InformationalVersion;
         var plus = version.IndexOf('+');

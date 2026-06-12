@@ -57,13 +57,16 @@ jobs:
       run: dotnet restore src/DevContext.Desktop
 
     - name: Publish
-      run: dotnet publish src/DevContext.Desktop -c Release -r win-x64 --self-contained true -o publish/desktop
+      run: dotnet publish src/DevContext.Desktop -c Release -r win-x64 --self-contained -o publish/desktop
+
+    - name: Zip
+      run: Compress-Archive -Path publish/desktop/* -DestinationPath publish/DevContext.Desktop.zip
 
     - name: Upload Desktop artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DevContext.Desktop.exe
-        path: publish/desktop/DevContext.Desktop.exe
+        name: DevContext.Desktop.zip
+        path: publish/DevContext.Desktop.zip
 
   release:
     needs: [cli, desktop]
@@ -81,5 +84,5 @@ jobs:
       with:
         files: |
           artifacts/nuget-package/*.nupkg
-          artifacts/DevContext.Desktop.exe/DevContext.Desktop.exe
+          artifacts/DevContext.Desktop.zip/DevContext.Desktop.zip
         generate_release_notes: true
