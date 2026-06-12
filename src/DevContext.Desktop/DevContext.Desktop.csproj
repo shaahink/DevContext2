@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <NuGetAuditMode>direct</NuGetAuditMode>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
@@ -13,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.*" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.*" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.*" />
   </ItemGroup>

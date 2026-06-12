@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
@@ -8,6 +11,13 @@ namespace DevContext.Desktop;
 
 public partial class MainWindow
 {
+    private static readonly string BootstrapperUrl =
+        "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+
+    private static readonly string UserDataDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "DevContext", "WebView2");
+
     public MainWindow()
     {
         Log.Information("Initializing MainWindow...");
@@ -17,18 +27,14 @@ public partial class MainWindow
             var version = CoreWebView2Environment.GetAvailableBrowserVersionString();
             if (string.IsNullOrEmpty(version))
             {
-                Log.Warning("WebView2 runtime not found");
-                MessageBox.Show("WebView2 runtime is required.\n\nClick OK to open the download page.",
-                    "WebView2 Runtime Required", MessageBoxButton.OK, MessageBoxImage.Information);
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "https://developer.microsoft.com/microsoft-edge/webview2/",
-                    UseShellExecute = true
-                })?.Dispose();
-                Application.Current.Shutdown();
-                return;
+                Log.Warning("WebView2 runtime not found — downloading Evergreen bootstrapper...");
+                InstallWebView2Sync();
+                Log.Information("WebView2 runtime installed successfully");
             }
-            Log.Information("WebView2 runtime version: {Version}", version);
+            else
+            {
+                Log.Information("WebView2 runtime version: {Version}", version);
+            }
 
             InitializeComponent();
 
@@ -46,5 +52,38 @@ public partial class MainWindow
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Application.Current.Shutdown();
         }
+    }
+
+    private static void InstallWebView2Sync()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "DevContext");
+        Directory.CreateDirectory(tempDir);
+        var installer = Path.Combine(tempDir, "MicrosoftEdgeWebview2Setup.exe");
+
+        // Download the Evergreen bootstrapper (~2 MB)
+        using var client = new HttpClient();
+        using var response = client.GetAsync(BootstrapperUrl).GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+        using var fs = new FileStream(installer, FileMode.Create, FileAccess.Write);
+        response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
+        fs.Close();
+
+        // Run the bootstrapper silently — it installs WebView2 Evergreen Runtime
+        var psi = new ProcessStartInfo
+        {
+            FileName = installer,
+            Arguments = "/silent /install",
+            UseShellExecute = true,
+            CreateNoWindow = true,
+        };
+
+        var process = Process.Start(psi)!;
+        process.WaitForExit();
+
+        // Clean up
+        try { File.Delete(installer); } catch { /* best effort */ }
+
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException($"WebView2 installation failed with exit code {process.ExitCode}");
     }
 }

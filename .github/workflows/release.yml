@@ -5,9 +5,8 @@ on:
     tags: ['v*']
 
 jobs:
-  release:
+  cli:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -19,24 +18,66 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore
-      run: dotnet restore
+      run: dotnet restore src/DevContext.Cli
 
     - name: Build
-      run: dotnet build -c Release
+      run: dotnet build src/DevContext.Cli --no-restore -c Release
 
-    - name: Test
-      run: dotnet test -c Release --no-build
+    - name: Test Core
+      run: dotnet test tests/DevContext.Core.Tests --no-restore -c Release
 
     - name: Pack
-      run: dotnet pack src/DevContext.Cli -c Release -o nupkg
+      run: dotnet pack src/DevContext.Cli -c Release --no-build -o nupkg
 
     - name: Push to NuGet
+      if: env.NUGET_API_KEY != ''
       run: dotnet nuget push nupkg/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
+    - name: Upload CLI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: nupkg/*.nupkg
+
+  desktop:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore
+      run: dotnet restore src/DevContext.Desktop
+
+    - name: Publish
+      run: dotnet publish src/DevContext.Desktop -c Release -r win-x64 --self-contained true -o publish/desktop
+
+    - name: Upload Desktop artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DevContext.Desktop.exe
+        path: publish/desktop/DevContext.Desktop.exe
+
+  release:
+    needs: [cli, desktop]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: '*'
+        path: artifacts
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: nupkg/*.nupkg
+        files: |
+          artifacts/nuget-package/*.nupkg
+          artifacts/DevContext.Desktop.exe/DevContext.Desktop.exe
         generate_release_notes: true

@@ -2,9 +2,16 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
+[![CI](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml/badge.svg)](https://github.com/shaahink/DevContext2/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-221%20passing-brightgreen)](tests/)
 
 **DevContext** is a static analysis CLI and desktop tool that extracts structured context from .NET codebases for use with LLMs. It discovers endpoints, background workers, EF Core entities, DI registrations, middleware pipelines, call graphs, and anti-patterns — then prunes and compresses the output to fit a token budget.
+
+| | CLI | Desktop |
+|---|-----|---------|
+| **Platform** | Linux, macOS, Windows | Windows 10+ (build 19041+) |
+| **Requires** | [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Nothing — self-contained `.exe` |
+| **Download** | `dotnet tool install -g DevContext.Cli` | [GitHub Releases](https://github.com/shaahink/DevContext2/releases) |
 
 ```bash
 # Quick start
@@ -127,7 +134,7 @@ devcontext analyze . --dry-run
 
 ## Desktop UI
 
-DevContext includes a cross-platform desktop app (Blazor Hybrid on WPF) for interactive analysis:
+DevContext includes a Windows desktop app (self-contained portable `.exe`) for interactive analysis. Download from [GitHub Releases](https://github.com/shaahink/DevContext2/releases) — no .NET SDK required. WebView2 runtime auto-installs on first launch.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

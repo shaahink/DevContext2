@@ -4,12 +4,13 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: ['**']
+  schedule:
+    - cron: '0 0 * * 1'  # weekly Monday
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
 
@@ -20,13 +21,15 @@ jobs:
 
     - name: Restore
       run: dotnet restore src/DevContext.Cli
+
     - name: Build
       run: dotnet build src/DevContext.Cli --no-restore -c Release
+
     - name: Test Core
       run: dotnet test tests/DevContext.Core.Tests --no-restore -c Release
+
     - name: Test Desktop
       run: dotnet test tests/DevContext.Desktop.Tests --no-restore -c Release
 
     - name: Format check
       run: dotnet format --verify-no-changes --no-restore
-      continue-on-error: true
