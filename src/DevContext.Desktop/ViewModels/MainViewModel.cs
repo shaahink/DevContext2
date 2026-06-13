@@ -189,14 +189,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         };
         _output.PropertyChanged += (_, e) =>
         {
+            // Forward key property changes to VM so Razor bindings update
+            if (e.PropertyName is null) return;
+
             if (e.PropertyName is nameof(OutputViewModel.IsAnalyzing) or nameof(OutputViewModel.HasOutput))
                 OnPropertyChanged(nameof(AnalyzeButtonText));
-            if (e.PropertyName is nameof(OutputViewModel.IsAnalyzing)
-                or nameof(OutputViewModel.HasOutput)
-                or nameof(OutputViewModel.IsProgressVisible)
-                or nameof(OutputViewModel.ProgressText)
-                or nameof(OutputViewModel.StatsText))
-                OnPropertyChanged(e.PropertyName);
+
+            // Bubble through: any output property change should refresh the UI
+            OnPropertyChanged(e.PropertyName);
         };
         _isInitializing = false;
     }
