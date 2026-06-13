@@ -38,7 +38,7 @@ public sealed class AspireExtractor : IDiscoveryExtractor
     /// <summary>Gets the extractor category.</summary>
     public ExtractorCategory Category => ExtractorCategory.Specific;
     /// <summary>Gets the execution stage.</summary>
-    public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
+    public ExecutionStage Stage => ExecutionStage.Stage3Specific;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.Aspire], ["aspire-resource-detections"],

@@ -11,7 +11,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     public string Name => "EndpointExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
     public ExtractorCategory Category => ExtractorCategory.Specific;
-    public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
+    public ExecutionStage Stage => ExecutionStage.Stage3Specific;
 
     public ExtractorCapabilities Capabilities => new(
         [ArchitectureSignals.Keys.MinimalApis, ArchitectureSignals.Keys.FastEndpoints, ArchitectureSignals.Keys.Controllers],

@@ -100,7 +100,7 @@ public sealed class DiscoveryPipeline
         SealSignals(context, model);
         ApplyArchitectureStyle(model);
 
-        await RunStageAsync(ExecutionStage.Stage3Sequential, PipelineStage.SpecificExtraction, true, context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
@@ -200,7 +200,7 @@ public sealed class DiscoveryPipeline
                 case ExecutionStage.Stage2Parallel:
                     stage2.Add((ext.Name, ext.Capabilities.Description, willRun));
                     break;
-                case ExecutionStage.Stage3Sequential:
+                case ExecutionStage.Stage3Specific:
                     stage3.Add((ext.Name, ext.Capabilities.Description, ext.Capabilities.ReadsSignals));
                     break;
             }

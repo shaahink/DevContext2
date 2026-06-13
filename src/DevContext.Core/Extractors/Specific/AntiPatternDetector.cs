@@ -11,7 +11,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
     public string Name => "AntiPatternDetector";
     public ExtractorTier Tier => ExtractorTier.Fast;
     public ExtractorCategory Category => ExtractorCategory.Specific;
-    public ExecutionStage Stage => ExecutionStage.Stage3Sequential;
+    public ExecutionStage Stage => ExecutionStage.Stage3Specific;
     public ExtractorCapabilities Capabilities => new(
         [], [],
         ["model.Detections"],

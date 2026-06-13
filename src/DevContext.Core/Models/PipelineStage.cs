@@ -35,6 +35,6 @@ public enum ExecutionStage
     Stage1Sequential,
     /// <summary>Parallel: all remaining Generic extractors consuming Stage 1 data.</summary>
     Stage2Parallel,
-    /// <summary>Sequential: Specific extractors gated by sealed architecture signals.</summary>
-    Stage3Sequential
+    /// <summary>Parallel: Specific extractors gated by sealed architecture signals.</summary>
+    Stage3Specific
 }
