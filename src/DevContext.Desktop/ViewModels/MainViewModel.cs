@@ -369,14 +369,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private bool CanAnalyze() => !string.IsNullOrWhiteSpace(ProjectPath);
 
-    [RelayCommand(CanExecute = nameof(CanAnalyze))]
+    [RelayCommand(CanExecute = nameof(CanAnalyze), AllowConcurrentExecutions = true)]
     private async Task AnalyzeAsync()
     {
         CancelPrevious();
         CancelRender();
 
         _cts = new CancellationTokenSource();
-        var ct = _cts.Token;
+        var myCts = _cts;
+        var ct = myCts.Token;
         var capturedBudget = MaxTokens;
 
         IsAnalyzing = true;
@@ -481,6 +482,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
             else
             {
+                if (ct.IsCancellationRequested) return;
                 ProgressText = "Error";
                 _rawContent = snapResult.Error ?? "Analysis failed.";
                 HasOutput = true;
@@ -490,10 +492,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
+            if (ct.IsCancellationRequested) return;
             ProgressText = "Canceled";
         }
         catch (Exception ex)
         {
+            if (ct.IsCancellationRequested) return;
             Log.Error(ex, "Analysis failed");
             ProgressText = "Error";
             _rawContent = ex.Message;
@@ -505,10 +509,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IsAnalyzing = false;
             IsProgressVisible = false;
             IsProgressIndeterminate = false;
-            // SaveSettings off UI thread (synchronous file I/O)
             _ = System.Threading.Tasks.Task.Run(SaveSettings);
-            _cts?.Dispose();
-            _cts = null;
+            if (_cts == myCts)
+            {
+                _cts?.Dispose();
+                _cts = null;
+            }
         }
     }
 

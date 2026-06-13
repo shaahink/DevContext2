@@ -844,5 +844,113 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
     }
 }
 
+    // ══ Phase 1: Supersede / re-entrancy ═══════════════════════════════════════
+
+    [Fact]
+    public async Task Rapid_supersede_leaves_final_runs_output_not_cancelled()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var firstTcs = new TaskCompletionSource<SnapshotResult>();
+        var secondTcs = new TaskCompletionSource<SnapshotResult>();
+
+        _svc.ClearReceivedCalls();
+
+        // First call: will be superseded, returns cancelled result
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(
+                _ => firstTcs.Task,
+                _ => secondTcs.Task
+            );
+
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "rendered", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 50 }));
+
+        // Start first analysis (runs via command)
+        var firstTask = Task.Run(() => ExecuteAnalyzeCommand(vm));
+
+        // Let first run start
+        await Task.Delay(200);
+
+        // Start second analysis
+        var secondTask = Task.Run(() => ExecuteAnalyzeCommand(vm));
+
+        // Let second run start and become the active one
+        await Task.Delay(200);
+
+        // Complete the first (now cancelled) run
+        firstTcs.SetResult(new SnapshotResult { Success = false, Error = "Cancelled" });
+
+        // Complete the second run
+        secondTcs.SetResult(new SnapshotResult
+        {
+            Success = true,
+            Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport },
+            ElapsedMs = 100
+        });
+
+        await Task.WhenAll(firstTask, secondTask);
+
+        // The final output should be from the second run (not "Cancelled" or "Error")
+        Assert.True(vm.HasOutput);
+        Assert.NotEqual("Cancelled", vm.ProgressText);
+        Assert.NotEqual("Error", vm.ProgressText);
+    }
+
+    [Fact]
+    public async Task Third_run_can_still_cancel_second_run_no_zombie()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var run2Tcs = new TaskCompletionSource<SnapshotResult>();
+        var run3Tcs = new TaskCompletionSource<SnapshotResult>();
+        var callCount = 0;
+
+        _svc.ClearReceivedCalls();
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callCount++;
+                if (callCount == 1) return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 100 });
+                if (callCount == 2) return run2Tcs.Task;
+                return run3Tcs.Task;
+            });
+
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "rendered", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 50 }));
+
+        // First run: completes normally
+        await ExecuteAnalyzeCommand(vm);
+        Assert.True(vm.HasOutput);
+
+        // Second run: will be superseded
+        var run2Task = Task.Run(() => ExecuteAnalyzeCommand(vm));
+        await Task.Delay(200);
+
+        // Third run: should cancel second run
+        var run3Task = Task.Run(() => ExecuteAnalyzeCommand(vm));
+        await Task.Delay(200);
+
+        // Complete the cancelled second run
+        run2Tcs.SetResult(new SnapshotResult { Success = false, Error = "Cancelled" });
+
+        // Complete the third run
+        run3Tcs.SetResult(new SnapshotResult
+        {
+            Success = true,
+            Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport },
+            ElapsedMs = 200
+        });
+
+        await Task.WhenAll(run2Task, run3Task);
+
+        // Third run's output should be visible, not the cancelled second
+        Assert.True(vm.HasOutput);
+        Assert.NotEqual("Cancelled", vm.ProgressText);
+    }
+
 
 }
