@@ -86,11 +86,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void RebuildLlmViewText()
     {
-        var parts = _sections.SectionGroups
-            .SelectMany(g => g.Children)
-            .Where(s => s.IsIncluded)
-            .Select(s => s.FullText);
-        _output.LlmViewText = string.Join(Environment.NewLine, parts);
+        // The LLM view is the raw content; no per-section filtering needed
+        _output.LlmViewText = _output.RawContent;
     }
 
     public string AnalyzeButtonText
@@ -408,7 +405,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             _output.RawContent = rawContent;
             _output.HumanViewHtml = renderResult.HtmlContent ?? "";
-            _output.LlmViewText = llmText;
+            _output.LlmViewText = rawContent;
             _sections.BudgetTokens = MaxTokens;
 
             if (renderCt.IsCancellationRequested) return;
