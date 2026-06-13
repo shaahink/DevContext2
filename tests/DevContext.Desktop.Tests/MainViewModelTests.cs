@@ -171,7 +171,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
         // Simulate output so reanalysis triggers
-        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
+        vm.Output.HasOutput = true;
 
         var tcs = new TaskCompletionSource<SnapshotResult>();
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
@@ -295,7 +295,7 @@ public class MainViewModelTests
     {
         var vm = CreateVm();
         // Set output without path
-        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
+        vm.Output.HasOutput = true;
 
         Assert.False(vm.IsAnalyzing);
 
@@ -310,7 +310,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
         // Set HasOutput to simulate previous analysis completed
-        typeof(MainViewModel).GetProperty(nameof(MainViewModel.HasOutput))?.SetValue(vm, true);
+        vm.Output.HasOutput = true;
 
         // Set up mock before option change triggers re-analysis
         var tcs = new TaskCompletionSource<SnapshotResult>();
@@ -525,8 +525,8 @@ public class MainViewModelTests
 
         await ExecuteAnalyzeCommand(vm);
 
-        Assert.NotEmpty(vm.DisplayText);
-        Assert.Contains("Header", vm.DisplayText);
+        Assert.NotEmpty(vm.Output.RawContent);
+        Assert.Contains("Header", vm.Output.RawContent);
     }
 
     [Fact]
@@ -554,7 +554,7 @@ public class MainViewModelTests
             .FirstOrDefault(s => s.Name == "Drop section");
         Assert.NotNull(dropSection);
 
-        vm.IsHumanView = false;
+        vm.Output.SelectedTab = OutputViewModel.OutputTab.Llm;
         var beforeToggle = vm.SelectedTokenTotal;
         dropSection.IsIncluded = false;
         var afterToggle = vm.SelectedTokenTotal;
@@ -836,7 +836,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         Assert.True(batched.Count >= 2, $"Expected >= 2 batched events, got {batched.Count}");
 
     // Fields set exclusively in the batch block must NOT appear as individual events
-    var batchExclusive = new[] { "DisplayText", "StatsText", "HasOutput", "BudgetTokens", "SelectedTokenTotal" };
+    var batchExclusive = new[] { "BudgetTokens", "SelectedTokenTotal" };
     foreach (var field in batchExclusive)
     {
         var perField = events.Where(e => e == field).ToList();

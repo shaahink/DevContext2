@@ -22,13 +22,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IAnalysisService _svc;
     private readonly GitCloneService _git = new();
     private readonly SectionSelectionModel _sections = new();
+    private readonly OutputViewModel _output = new();
     private AnalysisSnapshot? _snapshot;
-    private string _rawContent = "";
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _renderCts;
     private CancellationTokenSource? _validateCts;
     private CancellationTokenSource? _maxTokensDebounceCts;
     private bool _isInitializing = true;
+
+    // ── Output (forwarded from OutputViewModel) ───────────────────────────────
+    public OutputViewModel Output => _output;
+    public bool HasOutput => _output.HasOutput;
+    public bool IsAnalyzing => _output.IsAnalyzing;
+    public bool IsProgressVisible => _output.IsProgressVisible;
+    public string ProgressText => _output.ProgressText;
+    public string StatsText => _output.StatsText;
+    public string StatsHtml => _output.StatsHtml;
+    public string HumanViewText => _output.RawContent;
+    public string LlmViewText => _output.LlmViewText;
+    public string HumanViewHtml => _output.HumanViewHtml;
+    public string RawContent => _output.RawContent;
 
     // ── Section selection (forwarded from SectionSelectionModel) ───────────────
     public SectionSelectionModel SectionSelection => _sections;
@@ -67,33 +80,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public bool IsFormatJson => SelectedFormat == "json";
 
     // ── Analysis state ─────────────────────────────────────────────────────────
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AnalyzeButtonText))]
-    private bool _isAnalyzing;
-
-    [ObservableProperty] private bool _isProgressVisible;
-    [ObservableProperty] private bool _isProgressIndeterminate;
-    [ObservableProperty] private double _progressValue;
-    [ObservableProperty] private string _progressText = "";
-
-    // ── Output ─────────────────────────────────────────────────────────────────
-    [ObservableProperty] private bool _hasOutput;
-    [ObservableProperty] private string _statsText = "";
-    [ObservableProperty] private bool _isHumanView = true;
-    [ObservableProperty] private bool _isSectionPanelVisible = true;
-
-    partial void OnIsHumanViewChanged(bool value) => RefreshDisplayText();
-
-    [ObservableProperty] private string _displayText = "";
-
-    private string _cachedLlmViewText = "";
-    private string _statsHtml = "";
-
-    public string StatsHtml => _statsHtml;
-
-    public void RefreshDisplayText() => DisplayText = IsHumanView ? HumanViewText : LlmViewText;
-
-    public string LlmViewText => _cachedLlmViewText;
+    // State lives on OutputViewModel; subscribe to bubble up AnalyzeButtonText notification.
+    // Subscribe in constructor.
 
     private void RebuildLlmViewText()
     {
@@ -101,20 +89,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
             .SelectMany(g => g.Children)
             .Where(s => s.IsIncluded)
             .Select(s => s.FullText);
-        _cachedLlmViewText = string.Join(Environment.NewLine, parts);
+        _output.LlmViewText = string.Join(Environment.NewLine, parts);
     }
-
-    public string HumanViewText => _rawContent;
-
-    private string? _humanViewHtml;
-    public string HumanViewHtml => _humanViewHtml ?? "";
 
     public string AnalyzeButtonText
         => IsGitHubUrl
-            ? (IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
+            ? (_output.IsAnalyzing ? "Cloning & Analyzing..." : "Clone & Analyze")
             : HasOutput
-                ? (IsAnalyzing ? "Analyzing..." : $"Analyze (~{SelectedTokenTotal:N0} tok)")
-                : (IsAnalyzing ? "Analyzing..." : "Analyze");
+                ? (_output.IsAnalyzing ? "Analyzing..." : $"Analyze (~{SelectedTokenTotal:N0} tok)")
+                : (_output.IsAnalyzing ? "Analyzing..." : "Analyze");
 
     // ── GitHub repo analysis ────────────────────────────────────────────────────
     public bool IsGitAvailable => _git.IsGitAvailable;
@@ -176,7 +159,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(AnalyzeButtonText));
         }
     }
-    public string RawContent => _rawContent;
 
     // ── Collections ────────────────────────────────────────────────────────────
     public ObservableCollection<string> RecentPaths { get; } = [];
@@ -205,7 +187,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sections.OnSectionChanged = () =>
         {
             RebuildLlmViewText();
-            RefreshDisplayText();
+        };
+        _output.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(OutputViewModel.IsAnalyzing) or nameof(OutputViewModel.HasOutput))
+                OnPropertyChanged(nameof(AnalyzeButtonText));
+            if (e.PropertyName is nameof(OutputViewModel.IsAnalyzing)
+                or nameof(OutputViewModel.HasOutput)
+                or nameof(OutputViewModel.IsProgressVisible)
+                or nameof(OutputViewModel.ProgressText)
+                or nameof(OutputViewModel.StatsText))
+                OnPropertyChanged(e.PropertyName);
         };
         _isInitializing = false;
     }
@@ -294,15 +286,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var ct = myCts.Token;
         var capturedBudget = MaxTokens;
 
-        IsAnalyzing = true;
-        IsProgressVisible = true;
-        IsProgressIndeterminate = true;
-        ProgressValue = 0;
-        ProgressText = "Starting...";
-        HasOutput = false;
-        StatsText = "";
-        _rawContent = "";
-        _humanViewHtml = null;
+        _output.IsAnalyzing = true;
+        _output.IsProgressVisible = true;
+        _output.ProgressText = "Starting...";
+        _output.HasOutput = false;
+        _output.StatsText = "";
+        _output.RawContent = "";
+        _output.HumanViewHtml = "";
         _snapshot = null;
 
         _svc.AddRecent(ProjectPath);
@@ -316,16 +306,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
             var clonePath = repo.ClonePath;
 
             var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
-                new Progress<CloneProgress>(p => ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
+                new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
 
             if (cloneResult is null)
             {
-                ProgressText = "Error";
-                _rawContent = $"Failed to clone {repo.ToDisplay()}...";
-                HasOutput = true;
-                IsAnalyzing = false;
-                IsProgressIndeterminate = false;
-                IsProgressVisible = false;
+                _output.ProgressText = "Error";
+                _output.RawContent = $"Failed to clone {repo.ToDisplay()}...";
+                _output.HasOutput = true;
+                _output.IsAnalyzing = false;
+                _output.IsProgressVisible = false;
                 return;
             }
 
@@ -350,12 +339,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         var progress = new Progress<AnalysisProgress>(p =>
         {
-            ProgressText = p.Text;
-            if (p.Value.HasValue)
-            {
-                IsProgressIndeterminate = false;
-                ProgressValue = p.Value.Value;
-            }
+            _output.ProgressText = p.Text;
         });
 
         try
@@ -371,19 +355,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 if (ct.IsCancellationRequested) return;
 
-                _statsHtml = _snapshot?.Report is { } r
+                _output.StatsHtml = _snapshot?.Report is { } r
                     ? RunReportHtmlRenderer.Render(r) : "";
 
-#pragma warning disable MVVMTK0034
-                _statsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
-                _hasOutput = true;
-                _isProgressIndeterminate = false;
-                _progressValue = 100;
-                _progressText = "Done";
+                _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+                _output.HasOutput = true;
+                _output.ProgressText = "Done";
                 _sections.BudgetTokens = capturedBudget;
-#pragma warning restore MVVMTK0034
 
-                // Single notification to refresh all bindings
                 OnPropertyChanged(string.Empty);
 
                 // Clean up clone off UI thread
@@ -397,32 +376,28 @@ public partial class MainViewModel : ObservableObject, IDisposable
             else
             {
                 if (ct.IsCancellationRequested) return;
-                ProgressText = "Error";
-                _rawContent = snapResult.Error ?? "Analysis failed.";
-                HasOutput = true;
-                IsProgressIndeterminate = false;
-                ProgressValue = 0;
+                _output.ProgressText = "Error";
+                _output.RawContent = snapResult.Error ?? "Analysis failed.";
+                _output.HasOutput = true;
             }
         }
         catch (OperationCanceledException)
         {
             if (ct.IsCancellationRequested) return;
-            ProgressText = "Canceled";
+            _output.ProgressText = "Canceled";
         }
         catch (Exception ex)
         {
             if (ct.IsCancellationRequested) return;
             Log.Error(ex, "Analysis failed");
-            ProgressText = "Error";
-            _rawContent = ex.Message;
-            HasOutput = true;
-            IsProgressIndeterminate = false;
+            _output.ProgressText = "Error";
+            _output.RawContent = ex.Message;
+            _output.HasOutput = true;
         }
         finally
         {
-            IsAnalyzing = false;
-            IsProgressVisible = false;
-            IsProgressIndeterminate = false;
+            _output.IsAnalyzing = false;
+            _output.IsProgressVisible = false;
             _ = System.Threading.Tasks.Task.Run(SaveSettings);
             if (_cts == myCts)
             {
@@ -473,24 +448,18 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             if (renderCt.IsCancellationRequested) return;
 
-            _cachedLlmViewText = llmText;
-            _rawContent = rawContent;
-            _humanViewHtml = renderResult.HtmlContent;
+            _output.RawContent = rawContent;
+            _output.HumanViewHtml = renderResult.HtmlContent ?? "";
+            _output.LlmViewText = llmText;
             _sections.BudgetTokens = MaxTokens;
-#pragma warning disable MVVMTK0034
-            _displayText = IsHumanView ? rawContent : llmText;
-#pragma warning restore MVVMTK0034
 
             if (renderCt.IsCancellationRequested) return;
 
-            // Update stats from render result
-            _statsHtml = _snapshot?.Report is { } r
+            _output.StatsHtml = _snapshot?.Report is { } r
                 ? RunReportHtmlRenderer.Render(r) : "";
-#pragma warning disable MVVMTK0034
-            _statsText = _snapshot?.Report is { } report
+            _output.StatsText = _snapshot?.Report is { } report
                 ? RunReportFormatter.Summary(report, renderResult.RenderFunnel)
                 : "";
-#pragma warning restore MVVMTK0034
 
             OnPropertyChanged(string.Empty);
         }

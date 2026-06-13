@@ -1,11 +1,11 @@
 @inject MainViewModel VM
 @inject IJSRuntime JS
+@using DevContext.Desktop.ViewModels
 
 @implements IDisposable
 
 @code {
     private bool IsSectionsOpen;
-    private string SelectedTab = "human";
     private bool _showWelcome;
     private string? _toastMessage;
     private System.Threading.CancellationTokenSource? _toastCts;
@@ -23,7 +23,16 @@
     private void OnVmChanged(object? _, System.ComponentModel.PropertyChangedEventArgs e)
         => InvokeAsync(StateHasChanged);
 
-    private void SelectTab(string tab) { SelectedTab = tab; VM.IsHumanView = tab == "human"; }
+    private void SelectTab(string tab)
+    {
+        VM.Output.SelectedTab = tab switch
+        {
+            "human" => OutputViewModel.OutputTab.Human,
+            "llm" => OutputViewModel.OutputTab.Llm,
+            "stats" => OutputViewModel.OutputTab.Stats,
+            _ => OutputViewModel.OutputTab.Human
+        };
+    }
     private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;
     private void ToggleGroup(SectionGroupViewModel group, bool value) { foreach (var c in group.Children) c.IsIncluded = value; }
 
@@ -56,8 +65,9 @@
     private string BudgetState => VM.SelectedTokenTotal > VM.BudgetTokens ? "danger"
         : VM.SelectedTokenTotal >= VM.BudgetTokens * 0.85 ? "warning" : "normal";
 
-    private string DisplayOutput => SelectedTab == "human" ? VM.HumanViewText : VM.LlmViewText;
-    private string DisplayHtml => SelectedTab == "human" ? VM.HumanViewHtml : "";
+    private bool IsTabHuman => VM.Output.SelectedTab == OutputViewModel.OutputTab.Human;
+    private bool IsTabLlm => VM.Output.SelectedTab == OutputViewModel.OutputTab.Llm;
+    private bool IsTabStats => VM.Output.SelectedTab == OutputViewModel.OutputTab.Stats;
 }
 
 <section class="output-panel">
@@ -83,9 +93,9 @@
     {
         <div class="output-toolbar">
             <div class="tabs">
-                <button class="@(SelectedTab=="human"?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
-                <button class="@(SelectedTab=="llm"?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
-                <button class="@(SelectedTab=="stats"?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
+                <button class="@(IsTabHuman?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
+                <button class="@(IsTabLlm?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
+                <button class="@(IsTabStats?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
                 @if (VM.SectionGroups.Length > 1)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
@@ -135,17 +145,17 @@
             </div>
         }
 
-        @if (SelectedTab == "human")
+        @if (IsTabHuman)
         {
-            <div class="output-rendered">@((MarkupString)DisplayHtml)</div>
+            <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
         }
-        else if (SelectedTab == "stats")
+        else if (IsTabStats)
         {
             <div class="output-rendered">@((MarkupString)VM.StatsHtml)</div>
         }
         else
         {
-            <pre class="output-text"><code>@DisplayOutput</code></pre>
+            <pre class="output-text"><code>@VM.LlmViewText</code></pre>
         }
 
         @if (VM.IsAnalyzing)
