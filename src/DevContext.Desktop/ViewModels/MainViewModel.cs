@@ -12,14 +12,6 @@ using Serilog;
 
 namespace DevContext.Desktop.ViewModels;
 
-public sealed class SectionToggle
-{
-    public string Key { get; init; } = "";      // matches SectionNames constant value
-    public string Label { get; init; } = "";
-    public string? Hint { get; init; }          // shown next to checkbox for expensive sections
-    public bool IsEnabled { get; set; } = true;
-}
-
 public record ScenarioItem(string Value, string Label)
 {
     public override string ToString() => Label;
@@ -29,6 +21,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalysisService _svc;
     private readonly GitCloneService _git = new();
+    private readonly SectionSelectionModel _sections = new();
     private AnalysisSnapshot? _snapshot;
     private string _rawContent = "";
     private CancellationTokenSource? _cts;
@@ -36,6 +29,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private CancellationTokenSource? _validateCts;
     private CancellationTokenSource? _maxTokensDebounceCts;
     private bool _isInitializing = true;
+
+    // ── Section selection (forwarded from SectionSelectionModel) ───────────────
+    public SectionSelectionModel SectionSelection => _sections;
+    public ImmutableArray<SectionGroupViewModel> SectionGroups => _sections.SectionGroups;
+    public List<SectionToggle> Sections => _sections.Sections;
+    public int SelectedTokenTotal => _sections.SelectedTokenTotal;
+    public int TotalTokens => _sections.TotalTokens;
+    public int BudgetTokens => _sections.BudgetTokens;
+    public float BudgetUtilisation => _sections.BudgetUtilisation;
+    public bool IsTraceMode => _sections.IsTraceMode;
+    public string DerivedProfile => _sections.DerivedProfile;
+
+    private ImmutableArray<string> GetActiveSections() => _sections.GetActiveSections();
 
     // ── Form fields ────────────────────────────────────────────────────────────
     [ObservableProperty]
@@ -78,26 +84,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnIsHumanViewChanged(bool value) => RefreshDisplayText();
 
-    // ── Section-based dual-view ─────────────────────────────────────────────────
-    public ImmutableArray<SectionGroupViewModel> SectionGroups { get; private set; }
-        = ImmutableArray<SectionGroupViewModel>.Empty;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
-    private int _selectedTokenTotal;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
-    private int _totalTokens;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BudgetUtilisation))]
-    private int _budgetTokens = 8000;
-
-    public float BudgetUtilisation => BudgetTokens > 0
-        ? (float)TotalTokens / BudgetTokens
-        : 0;
-
     [ObservableProperty] private string _displayText = "";
 
     private string _cachedLlmViewText = "";
@@ -111,7 +97,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void RebuildLlmViewText()
     {
-        var parts = SectionGroups
+        var parts = _sections.SectionGroups
             .SelectMany(g => g.Children)
             .Where(s => s.IsIncluded)
             .Select(s => s.FullText);
@@ -195,89 +181,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     // ── Collections ────────────────────────────────────────────────────────────
     public ObservableCollection<string> RecentPaths { get; } = [];
 
-    public List<SectionToggle> Sections { get; } =
-    [
-        new() { Key = DevContext.Core.Constants.SectionNames.ArchitectureOverview, Label = "Architecture overview" },
-        new() { Key = DevContext.Core.Constants.SectionNames.Endpoints,            Label = "Endpoints" },
-        new() { Key = DevContext.Core.Constants.SectionNames.MediatRHandlers,      Label = "MediatR Handlers" },
-        new() { Key = DevContext.Core.Constants.SectionNames.DataModel,            Label = "Data model" },
-        new() { Key = DevContext.Core.Constants.SectionNames.DiRegistrations,      Label = "DI registrations" },
-        new() { Key = DevContext.Core.Constants.SectionNames.BackgroundWorkers,    Label = "Background workers" },
-        new() { Key = DevContext.Core.Constants.SectionNames.MiddlewarePipeline,   Label = "Middleware pipeline" },
-        new() { Key = DevContext.Core.Constants.SectionNames.IndirectWiring,       Label = "Indirect wiring" },
-        new() { Key = DevContext.Core.Constants.SectionNames.CallGraph,            Label = "Call graph", Hint = "+call graph, needs Roslyn" },
-        new() { Key = DevContext.Core.Constants.SectionNames.MessageConsumers,     Label = "Message consumers" },
-        new() { Key = DevContext.Core.Constants.SectionNames.RelatedTypes,         Label = "Related types" },
-        new() { Key = "__source__",                                                Label = "Source code", Hint = "adds full C# bodies, +2k\u201312k tokens" },
-    ];
-
-    public bool IsTraceMode => SelectedScenario?.Value == "deep-dive";
-
-    public string DerivedProfile
-    {
-        get
-        {
-            var sourceOn = Sections.FirstOrDefault(s => s.Key == "__source__")?.IsEnabled == true;
-            var callGraphOn = Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph)?.IsEnabled == true;
-            if (sourceOn) return "full";
-            if (callGraphOn) return "debug";
-            return "focused";
-        }
-    }
-
     public void SetSectionEnabled(string key, bool enabled)
     {
-        var section = Sections.FirstOrDefault(s => s.Key == key);
-        if (section is null) return;
-        section.IsEnabled = enabled;
+        _sections.SetSectionEnabled(key, enabled);
         OnRenderInputChanged();
     }
-
-    private void ApplyScenarioSectionDefaults()
-    {
-        if (IsTraceMode)
-        {
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, false);
-            SetSectionEnabledSilent("__source__", false);
-        }
-        else
-        {
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, true);
-            SetSectionEnabledSilent("__source__", false);
-        }
-    }
-
-    private void SetSectionEnabledSilent(string key, bool enabled)
-    {
-        var section = Sections.FirstOrDefault(s => s.Key == key);
-        if (section is not null) section.IsEnabled = enabled;
-    }
-
-    private ImmutableArray<string> GetActiveSections()
-        => Sections
-            .Where(s => s.IsEnabled && s.Key != "__source__")
-            .Select(s => s.Key)
-            .ToImmutableArray();
 
     public List<ScenarioItem> Scenarios { get; } =
     [
@@ -293,6 +201,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         SelectedScenario = Scenarios[0];
         LoadSettings();
         RefreshRecent();
+        _sections.CompleteInitialization();
+        _sections.OnSectionChanged = () =>
+        {
+            RebuildLlmViewText();
+            RefreshDisplayText();
+        };
         _isInitializing = false;
     }
 
@@ -300,7 +214,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedScenarioChanged(ScenarioItem value)
     {
         if (_isInitializing) return;
-        ApplyScenarioSectionDefaults();
+        _sections.SelectedScenarioValue = value.Value;
         OnPropertyChanged(nameof(IsTraceMode));
         ResetToScenarioDefaults();
         OnAnalysisInputChanged();
@@ -461,12 +375,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
                     ? RunReportHtmlRenderer.Render(r) : "";
 
 #pragma warning disable MVVMTK0034
-                _statsText = $"~{_totalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+                _statsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                 _hasOutput = true;
                 _isProgressIndeterminate = false;
                 _progressValue = 100;
                 _progressText = "Done";
-                _budgetTokens = capturedBudget;
+                _sections.BudgetTokens = capturedBudget;
 #pragma warning restore MVVMTK0034
 
                 // Single notification to refresh all bindings
@@ -555,19 +469,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             var rawContent = renderResult.Content ?? "";
 
-            var (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionDataFromStat(renderResult.Sections);
+            var (_, llmText, _, _) = _sections.BuildSectionDataFromStat(renderResult.Sections);
 
             if (renderCt.IsCancellationRequested) return;
-
-#pragma warning disable MVVMTK0034
-            SectionGroups = newGroups.ToImmutableArray();
 
             _cachedLlmViewText = llmText;
             _rawContent = rawContent;
             _humanViewHtml = renderResult.HtmlContent;
-            _totalTokens = sectionTotal;
-            _selectedTokenTotal = sectionSelected;
-            _budgetTokens = MaxTokens;
+            _sections.BudgetTokens = MaxTokens;
+#pragma warning disable MVVMTK0034
             _displayText = IsHumanView ? rawContent : llmText;
 #pragma warning restore MVVMTK0034
 
@@ -620,12 +530,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
         if (s.LastActiveSections is { Count: > 0 })
         {
-            foreach (var section in Sections)
-                section.IsEnabled = s.LastActiveSections.Contains(section.Key);
+            _sections.LoadSectionDefaults(s.LastActiveSections);
         }
         else
         {
-            ApplyScenarioSectionDefaults();
+            _sections.ApplyScenarioSectionDefaults();
         }
     }
 
@@ -640,7 +549,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
-            LastActiveSections = Sections.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
+            LastActiveSections = _sections.Sections.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
         });
 
     private void RefreshRecent()
@@ -650,92 +559,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RecentPaths.Add(p);
     }
 
-    private (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionDataFromStat(
-        ImmutableArray<SectionStat> sections)
-    {
-        var sectionVms = new List<SectionViewModel>();
-
-        foreach (var stat in sections)
-        {
-            var section = new SectionViewModel
-            {
-                Name = stat.Name,
-                FullText = "",
-                RawTokens = stat.Tokens,
-                CompressedTokens = stat.Tokens,
-                Category = CategorizeSection(stat.Name),
-            };
-
-            section.PropertyChanged += (_, _) =>
-            {
-                RecalcTokenTotal();
-                if (IsHumanView) IsHumanView = false;
-                RebuildLlmViewText();
-                RefreshDisplayText();
-            };
-
-            sectionVms.Add(section);
-        }
-
-        var groups = new List<SectionGroupViewModel>();
-        var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
-        foreach (var cat in categoryOrder)
-        {
-            var children = sectionVms.Where(s => s.Category == cat).ToList();
-            if (children.Count == 0) continue;
-
-            var group = new SectionGroupViewModel
-            {
-                Name = cat,
-                IsExpanded = cat != "Debug",
-            };
-            group.Children.AddRange(children);
-            group.PropertyChanged += (_, _) => RecalcTokenTotal();
-            groups.Add(group);
-        }
-
-        var totalTokens = sectionVms.Sum(s => s.CompressedTokens);
-        var selectedTokens = sectionVms.Where(s => s.IsIncluded).Sum(s => s.CompressedTokens);
-        var llmText = string.Join(Environment.NewLine,
-            sectionVms.Where(s => s.IsIncluded).Select(s => s.FullText));
-
-        return (groups, llmText, totalTokens, selectedTokens);
-    }
-
-    private void RecalcTokenTotal()
-    {
-        SelectedTokenTotal = SectionGroups
-            .SelectMany(g => g.Children)
-            .Where(s => s.IsIncluded)
-            .Sum(s => s.CompressedTokens);
-    }
-
-    private static string CategorizeSection(string name)
-    {
-        var lower = name.ToLowerInvariant();
-        if (lower.Contains("endpoint") || lower.Contains("call graph") || lower.Contains("mediatr") || lower.Contains("handler"))
-            return "API";
-        if (lower.Contains("architecture") || lower.Contains("project") || lower.Contains("di regist") || lower.Contains("non-obvious") || lower.Contains("middleware") || lower.Contains("signal"))
-            return "Architecture";
-        if (lower.Contains("data model") || lower.Contains("entity") || lower.Contains("message consumer") || lower.Contains("event flow"))
-            return "Data";
-        if (lower.Contains("anti-pattern") || lower.Contains("related type") || lower.Contains("entry point"))
-            return "Analysis";
-        if (lower.Contains("diagnostic") || lower.Contains("pruning") || lower.Contains("source code") || lower.Contains("hotpath"))
-            return "Debug";
-        return "Other";
-    }
-
     [RelayCommand]
     private void ResetToScenarioDefaults()
     {
-        foreach (var group in SectionGroups)
-            foreach (var section in group.Children)
-            {
-                // Always include unless it's Debug/Diagnostics category
-                section.IsIncluded = section.Category != "Debug";
-            }
-        RecalcTokenTotal();
+        _sections.ResetToDefaults();
         RebuildLlmViewText();
         OnPropertyChanged(nameof(LlmViewText));
     }
