@@ -7,6 +7,7 @@ using DevContext.Core.Models;
 using DevContext.Core.Pipeline;
 using DevContext.Core.Rendering;
 using DevContext.Core.Services;
+using DevContext.Desktop.Helpers;
 using DevContext.Desktop.Services;
 using Serilog;
 
@@ -23,11 +24,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly GitCloneService _git = new();
     private readonly SectionSelectionModel _sections = new();
     private readonly OutputViewModel _output = new();
+    private readonly CancellableOperation _analyzeOp = new();
+    private readonly CancellableOperation _renderOp = new();
+    private readonly CancellableOperation _validateOp = new();
+    private readonly Debouncer _tokenDebouncer = new(500);
     private AnalysisSnapshot? _snapshot;
-    private CancellationTokenSource? _cts;
-    private CancellationTokenSource? _renderCts;
-    private CancellationTokenSource? _validateCts;
-    private CancellationTokenSource? _maxTokensDebounceCts;
     private bool _isInitializing = true;
 
     // ── Output (forwarded from OutputViewModel) ───────────────────────────────
@@ -119,10 +120,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task ValidateGitHubUrlAsync(string path)
     {
-        _validateCts?.Cancel();
-        _validateCts?.Dispose();
-        _validateCts = new CancellationTokenSource();
-        var ct = _validateCts.Token;
+        _validateOp.Cancel();
+        var ct = _validateOp.Begin();
 
         var url = RepoUrl.Parse(path);
         _gitRepoUrl = url;
@@ -242,28 +241,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
-        _maxTokensDebounceCts?.Cancel();
-        _maxTokensDebounceCts?.Dispose();
-        _maxTokensDebounceCts = new CancellationTokenSource();
-        var ct = _maxTokensDebounceCts.Token;
-
-        _ = System.Threading.Tasks.Task.Run(async () =>
-            {
-                try
-                {
-                    await System.Threading.Tasks.Task.Delay(500, ct).ConfigureAwait(false);
-                if (!ct.IsCancellationRequested)
-                {
-                    var dispatcher = System.Windows.Application.Current?.Dispatcher;
-                    if (dispatcher != null)
-                        dispatcher.Invoke(() => OnRenderInputChanged());
-                    else
-                        OnRenderInputChanged();
-                }
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex) { Log.Error(ex, "Debounced reanalysis failed"); }
-            }, ct);
+        _tokenDebouncer.Invoke(() => OnRenderInputChanged());
     }
 
     // ── Commands ───────────────────────────────────────────────────────────────
@@ -278,12 +256,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanAnalyze), AllowConcurrentExecutions = true)]
     private async Task AnalyzeAsync()
     {
-        CancelPrevious();
-        CancelRender();
-
-        _cts = new CancellationTokenSource();
-        var myCts = _cts;
-        var ct = myCts.Token;
+        _analyzeOp.Cancel();
+        _renderOp.Cancel();
+        var ct = _analyzeOp.Begin();
         var capturedBudget = MaxTokens;
 
         _output.IsAnalyzing = true;
@@ -399,21 +374,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _output.IsAnalyzing = false;
             _output.IsProgressVisible = false;
             _ = System.Threading.Tasks.Task.Run(SaveSettings);
-            if (_cts == myCts)
-            {
-                _cts?.Dispose();
-                _cts = null;
-            }
-        }
-    }
-
-    private void CancelPrevious()
-    {
-        if (_cts is { } cts)
-        {
-            cts.Cancel();
-            cts.Dispose();
-            _cts = null;
         }
     }
 
@@ -421,10 +381,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_snapshot is null) return;
 
-        CancelRender();
-        var cts = new CancellationTokenSource();
-        _renderCts = cts;
-        var renderCt = CancellationTokenSource.CreateLinkedTokenSource(ct, cts.Token).Token;
+        _renderOp.Cancel();
+        var renderCt = _renderOp.Link(ct);
 
         try
         {
@@ -468,21 +426,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Re-render failed");
         }
-        finally
-        {
-            if (_renderCts == cts)
-            {
-                _renderCts?.Dispose();
-                _renderCts = null;
-            }
-        }
-    }
-
-    private void CancelRender()
-    {
-        _renderCts?.Cancel();
-        _renderCts?.Dispose();
-        _renderCts = null;
     }
 
     // ── Settings helpers ───────────────────────────────────────────────────────
@@ -538,18 +481,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = null;
-        _renderCts?.Cancel();
-        _renderCts?.Dispose();
-        _renderCts = null;
-        _validateCts?.Cancel();
-        _validateCts?.Dispose();
-        _validateCts = null;
-        _maxTokensDebounceCts?.Cancel();
-        _maxTokensDebounceCts?.Dispose();
-        _maxTokensDebounceCts = null;
+        _analyzeOp.Dispose();
+        _renderOp.Dispose();
+        _validateOp.Dispose();
+        _tokenDebouncer.Dispose();
         _git.Dispose();
     }
 }
