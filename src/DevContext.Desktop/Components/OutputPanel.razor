@@ -52,6 +52,7 @@
     private async void ShowToast(string message)
     {
         _toastCts?.Cancel();
+        _toastCts?.Dispose();
         _toastCts = new System.Threading.CancellationTokenSource();
         _toastMessage = message;
         StateHasChanged();
