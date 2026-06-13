@@ -567,6 +567,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _humanViewHtml = renderResult.HtmlContent;
             _totalTokens = sectionTotal;
             _selectedTokenTotal = sectionSelected;
+            _budgetTokens = MaxTokens;
             _displayText = IsHumanView ? rawContent : llmText;
 #pragma warning restore MVVMTK0034
 

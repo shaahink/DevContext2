@@ -168,16 +168,21 @@ public class AnalysisService : IAnalysisService
     {
         var pipeline = GetPipeline(".");
 
-        var md = await pipeline.RenderAsync(snapshot, request with { Format = "markdown" }, ct);
-        var html = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+        var format = request.Format ?? "markdown";
+        var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
+
+        // Render HTML only for markdown format (human view); JSON needs no HTML companion
+        var htmlContent = format == "markdown"
+            ? (await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct)).Content
+            : null;
 
         return new RenderResult
         {
-            Content = md.Content,
-            HtmlContent = html.Content,
-            EstimatedTokens = md.EstimatedTokens,
-            Sections = md.Sections,
-            RenderFunnel = md.RenderFunnel,
+            Content = rendered.Content,
+            HtmlContent = htmlContent,
+            EstimatedTokens = rendered.EstimatedTokens,
+            Sections = rendered.Sections,
+            RenderFunnel = rendered.RenderFunnel,
         };
     }
 

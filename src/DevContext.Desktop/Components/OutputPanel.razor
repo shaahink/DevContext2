@@ -12,9 +12,16 @@
 
     protected override void OnInitialized()
     {
-        VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
+        VM.PropertyChanged += OnVmChanged;
     }
-    public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+    public void Dispose()
+    {
+        VM.PropertyChanged -= OnVmChanged;
+        _toastCts?.Dispose();
+    }
+
+    private void OnVmChanged(object? _, System.ComponentModel.PropertyChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
 
     private void SelectTab(string tab) { SelectedTab = tab; VM.IsHumanView = tab == "human"; }
     private void ToggleSections() => IsSectionsOpen = !IsSectionsOpen;

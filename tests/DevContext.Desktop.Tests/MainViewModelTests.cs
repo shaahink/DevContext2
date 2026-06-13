@@ -952,5 +952,86 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         Assert.NotEqual("Cancelled", vm.ProgressText);
     }
 
+    // ══ Phase 2: Output correctness ═══════════════════════════════════════════
+
+    [Fact]
+    public async Task Json_format_produces_json_content()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        vm.SelectedFormat = "json";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new SnapshotResult
+            {
+                Success = true,
+                Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport },
+                ElapsedMs = 100
+            }));
+
+        // Capture format passed to RenderAsync
+        string? capturedFormat = null;
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var req = callInfo.Arg<RenderRequest>();
+                capturedFormat = req.Format;
+                return Task.FromResult(new RenderResult
+                {
+                    Content = capturedFormat == "json" ? "{\"test\":true}" : "# markdown",
+                    HtmlContent = null,
+                    Sections = [],
+                    EstimatedTokens = 50
+                });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.Equal("json", capturedFormat);
+        Assert.Contains("{\"test\":true}", vm.RawContent);
+    }
+
+    [Fact]
+    public async Task Budget_tokens_updates_after_slider_rerender()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        vm.MaxTokens = 4000;
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new SnapshotResult
+            {
+                Success = true,
+                Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport },
+                ElapsedMs = 100
+            }));
+
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var req = callInfo.Arg<RenderRequest>();
+                return Task.FromResult(new RenderResult
+                {
+                    Content = "content",
+                    HtmlContent = "<html/>",
+                    Sections = ImmutableArray.Create(new SectionStat("Test", 100)),
+                    EstimatedTokens = req.MaxTokens
+                });
+            });
+
+        // First analysis: budget at 4000
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(4000, vm.BudgetTokens);
+
+        // Change MaxTokens to simulate slider: triggers rerender
+        vm.MaxTokens = 6000;
+
+        // Wait for debounce + rerender
+        await Task.Delay(800);
+
+        // Budget should now reflect the slider value
+        Assert.Equal(6000, vm.BudgetTokens);
+    }
+
 
 }

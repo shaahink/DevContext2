@@ -5,9 +5,12 @@
 @code {
     protected override void OnInitialized()
     {
-        VM.PropertyChanged += (_, _) => InvokeAsync(StateHasChanged);
+        VM.PropertyChanged += OnVmChanged;
     }
-    public void Dispose() => VM.PropertyChanged -= (_, _) => InvokeAsync(StateHasChanged);
+    public void Dispose() => VM.PropertyChanged -= OnVmChanged;
+
+    private void OnVmChanged(object? _, System.ComponentModel.PropertyChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
 }
 
 <footer class="status-bar">
