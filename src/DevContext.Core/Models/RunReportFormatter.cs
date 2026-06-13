@@ -4,13 +4,14 @@ namespace DevContext.Core.Models;
 public static class RunReportFormatter
 {
     /// <summary>Produces a compact one-line summary: "analyzed N files · M types kept of O · X/Y tokens · Zs".</summary>
-    public static string Summary(RunReport report)
+    public static string Summary(RunReport report, TokenFunnel? renderFunnel = null)
     {
-        var files = report.Corpus.CSharpFiles;
-        var kept = report.Funnel.TypesIncluded;
-        var total = report.Funnel.TypesDiscovered;
-        var tokens = report.Funnel.RenderedEstimatedTokens;
-        var budget = report.Funnel.Budget;
+        var funnel = renderFunnel ?? report.Funnel;
+        var files = report.Corpus.TotalFiles > 0 ? report.Corpus.TotalFiles : report.Corpus.CSharpFiles;
+        var kept = funnel.TypesIncluded;
+        var total = funnel.TypesDiscovered;
+        var tokens = renderFunnel is not null ? renderFunnel.RenderedEstimatedTokens : funnel.RenderedEstimatedTokens;
+        var budget = funnel.Budget;
         var elapsed = report.TotalWall.TotalSeconds;
 
         var speedup = "";

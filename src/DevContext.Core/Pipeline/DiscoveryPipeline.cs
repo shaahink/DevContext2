@@ -116,9 +116,8 @@ public sealed class DiscoveryPipeline
 
         if (collector is not null)
         {
-            collector.SetCorpusFileCounts(
-                context.Analysis.AllSourceFiles?.Count ?? 0,
-                context.Analysis.AllSourceFiles?.Count ?? 0);
+            var csharpFiles = context.Analysis.AllSourceFiles?.Count ?? 0;
+            collector.SetCorpusFileCounts(0, csharpFiles);
 
             if (context.Cache is AnalysisCache ac)
                 collector.SetCacheStats(ac.GetStats());
@@ -301,6 +300,18 @@ public sealed class DiscoveryPipeline
 
         var rendered = await renderer.RenderAsync(snapshot.Model, opts, ct);
         rendered = RunSelfChecks(rendered, snapshot.Model, opts, snapshot.Model);
+
+        rendered = rendered with
+        {
+            RenderFunnel = new TokenFunnel(
+                snapshot.Model.Types.Count,
+                snapshot.Model.Types.Values.Count(t => t.IsHardExcluded),
+                plan.IncludedTypeIds.Length,
+                plan.EstimatedTokens,
+                rendered.EstimatedTokens,
+                request.MaxTokens),
+        };
+
         return rendered;
     }
 

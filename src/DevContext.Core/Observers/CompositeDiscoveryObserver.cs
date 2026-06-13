@@ -48,10 +48,8 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
     {
         foreach (var o in _inner)
         {
-            if (o is MetricsDiscoveryObserver mdo)
-                mdo.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
             if (o is RunReportCollector rrc)
-                rrc.AccumulateCpuTime("", elapsed);
+                rrc.RecordExtractorMetrics(name, tier, category, elapsed, skipped, typesAdded, detectionsAdded);
         }
     }
 

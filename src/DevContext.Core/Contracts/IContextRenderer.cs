@@ -1,3 +1,4 @@
+using DevContext.Core.Models;
 using DevContext.Core.Pipeline;
 
 namespace DevContext.Core.Contracts;
@@ -49,6 +50,8 @@ public sealed record RenderedContext(
     public ImmutableArray<string> SelfCheckFailures { get; init; } = [];
     /// <summary>Per-section token counts for desktop section display.</summary>
     public ImmutableArray<SectionStat> Sections { get; init; } = [];
+    /// <summary>Token funnel computed during render from the plan and output. Null on legacy paths.</summary>
+    public TokenFunnel? RenderFunnel { get; init; }
 }
 
 /// <summary>Renders a discovery model into a specific output format (e.g. markdown, JSON).</summary>

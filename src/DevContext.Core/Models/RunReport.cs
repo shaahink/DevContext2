@@ -14,7 +14,7 @@ public sealed record RunReport
     public required TimeSpan TotalWall { get; init; }
 }
 
-public sealed record StageStat(string Stage, TimeSpan Elapsed);
+public sealed record StageStat(string Stage, TimeSpan Elapsed, int Ordinal = 0);
 public sealed record ExtractorStat(string Name, string Tier, string Category, string Stage,
     TimeSpan Elapsed, int TypesAdded, int DetectionsAdded, bool Skipped, string? SkipReason);
 public sealed record ScorerStat(string Name, int TypesBefore, int TypesAfter);

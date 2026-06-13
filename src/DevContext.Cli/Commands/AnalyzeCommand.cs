@@ -138,8 +138,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var pipeline = BuildPipeline(cache);
         var roslyn = BuildRoslynProvider(settings, rootResult);
 
-        var metricsObserver = settings.Metrics ? new MetricsDiscoveryObserver() : null;
-
         RenderedContext result = null!;
         AnalysisSnapshot? snapshot = null;
         var sw = Stopwatch.StartNew();
@@ -149,7 +147,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         var spectreObserver = new SpectreDiscoveryObserver();
         var inner = new List<IDiscoveryObserver> { spectreObserver };
-        if (metricsObserver is not null) inner.Add(metricsObserver);
         inner.Add(collector);
         var observer = new CompositeDiscoveryObserver([.. inner]);
 
@@ -198,7 +195,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         if (snapshot?.Report is { } report)
         {
-            var summary = RunReportFormatter.Summary(report);
+            var summary = RunReportFormatter.Summary(report, result.RenderFunnel);
             if (!settings.DryRun)
                 AnsiConsole.MarkupLine($"[dim]{summary}[/]");
         }
@@ -206,7 +203,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         if (settings.Stats || settings.Metrics)
             ShowStats(snapshot?.Report);
 
-        ShowMetrics(metricsObserver);
         ShowSummary(sw, rootResult, options, result);
 
         // Clean up clone if auto-clean
@@ -269,17 +265,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine(result.Content);
-    }
-
-    private static void ShowMetrics(MetricsDiscoveryObserver? metrics)
-    {
-        if (metrics is null) return;
-        AnsiConsole.WriteLine();
-        var content = new Markup(metrics.GetMetricsSummary().EscapeMarkup());
-        var panel = new Panel(content)
-            .Header("Metrics")
-            .Border(BoxBorder.Rounded);
-        AnsiConsole.Write(panel);
     }
 
     private static void ShowStats(RunReport? report)
