@@ -43,8 +43,8 @@
 
 ## Related types
 
-- **Api**: Order, CreateOrderCommand, CreateOrderHandler
-- **Infrastructure**: OrderRepository, IOrderRepository
+- **Api**: CreateOrderHandler, CreateOrderCommand, Order
+- **Infrastructure**: IOrderRepository, OrderRepository
 
 ---
 *Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v1.1*

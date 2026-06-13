@@ -15,12 +15,16 @@ public sealed class MarkdownRenderer : IContextRenderer
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var sectionTokens = new List<SectionTokenRecord>();
 
+        var includedIds = options.Plan is { } plan
+            ? new HashSet<string>(plan.IncludedTypeIds, StringComparer.Ordinal)
+            : null;
+
         var preLen = sb.Length;
         AppendHeader(sb, model, options);
         AppendArchitecture(sb, model);
         AppendSignals(sb, model);
         AppendProjects(sb, model);
-        AppendProfileAndTokens(sb, model, options);
+        AppendProfileAndTokens(sb, model, options, includedIds);
         TrackSection(sectionTokens, "Header", preLen, sb.Length);
         sb.AppendLine("---");
 
@@ -113,18 +117,18 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (ShouldRender(SectionNames.RelatedTypes, options))
         {
             preLen = sb.Length;
-            AppendRelatedTypesByLayer(sb, model);
+            AppendRelatedTypesByLayer(sb, model, includedIds, options);
             TrackSection(sectionTokens, "Related types", preLen, sb.Length);
         }
 
         if (options.IncludeDiagnostics)
         {
             preLen = sb.Length;
-            AppendDiagnostics(sb, model);
+            AppendDiagnostics(sb, model, options);
             TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
         }
 
-        AppendFooter(sb, model, options, sw);
+        AppendFooter(sb, model, options, sw, includedIds);
 
         if (options.TokenView)
             AppendTokenAccounting(sb, sectionTokens);
@@ -206,9 +210,11 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine($"**Projects**: {count} — {names}");
     }
 
-    private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options)
+    private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options, HashSet<string>? includedIds)
     {
-        var activeTypes = model.Types.Values.Count(t => !t.IsHardExcluded);
+        var activeTypes = includedIds is not null
+            ? includedIds.Count
+            : model.Types.Values.Count(t => !t.IsHardExcluded);
         sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
         sb.AppendLine();
     }
@@ -936,7 +942,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
-    private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model)
+    private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model, HashSet<string>? includedIds, RenderOptions options)
     {
         var hasDetections = !model.Detections.IsEmpty;
 
@@ -945,8 +951,19 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine($"## {SectionNames.RelatedTypes}");
             sb.AppendLine();
 
-            var typedTypes = model.Types.Values
-                .Where(t => !t.IsHardExcluded)
+            IEnumerable<TypeDiscovery> surviving = includedIds is not null
+                ? model.Types.Values.Where(t => includedIds.Contains(t.Id))
+                : model.Types.Values.Where(t => !t.IsHardExcluded);
+
+            // Build rank lookup from plan order; lower index = higher rank
+            var rankByType = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (options.Plan is { } plan)
+            {
+                for (var i = 0; i < plan.IncludedTypeIds.Length; i++)
+                    rankByType[plan.IncludedTypeIds[i]] = i;
+            }
+
+            var typedTypes = surviving
                 .GroupBy(t => t.Layer)
                 .OrderBy(g => g.Key.ToString());
 
@@ -954,7 +971,10 @@ public sealed class MarkdownRenderer : IContextRenderer
 
             foreach (var group in typedTypes)
             {
-                var typeList = string.Join(", ", group.Select(t => t.Name));
+                var ordered = rankByType.Count > 0
+                    ? group.OrderBy(t => rankByType.TryGetValue(t.Id, out var r) ? r : int.MaxValue).ThenBy(t => t.Name)
+                    : group.OrderBy(t => t.Name);
+                var typeList = string.Join(", ", ordered.Select(t => t.Name));
                 sb.AppendLine($"- **{group.Key}**: {typeList}");
                 hasContent = true;
             }
@@ -966,12 +986,13 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
         else
         {
-            // Library mode: no detections — emit a compact namespace-summary instead of flat wall
             sb.AppendLine("## Types by namespace");
             sb.AppendLine();
 
             var hasContent = false;
-            var survivingTypes = model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
+            var survivingTypes = includedIds is not null
+                ? model.Types.Values.Where(t => includedIds.Contains(t.Id)).ToList()
+                : model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
 
             foreach (var nsGroup in survivingTypes
                 .GroupBy(t => t.Namespace)
@@ -1009,25 +1030,39 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
-    private static void AppendDiagnostics(StringBuilder sb, DiscoveryModel model)
+    private static void AppendDiagnostics(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         sb.AppendLine("## Diagnostics");
         sb.AppendLine();
 
         var diagnostics = model.Diagnostics.ToList();
-        if (diagnostics.Count == 0)
+        if (diagnostics.Count == 0 && model.PruningNotes.Count == 0 && options.Plan?.Excluded.IsDefaultOrEmpty != false)
         {
             sb.AppendLine("No diagnostics recorded.");
             sb.AppendLine();
             return;
         }
 
-        sb.AppendLine("| Level | Source | Message |");
-        sb.AppendLine("|-------|--------|---------|");
-        foreach (var diag in diagnostics)
-            sb.AppendLine($"| {diag.Level} | {diag.Source} | {diag.Message} |");
+        if (diagnostics.Count > 0)
+        {
+            sb.AppendLine("| Level | Source | Message |");
+            sb.AppendLine("|-------|--------|---------|");
+            foreach (var diag in diagnostics)
+                sb.AppendLine($"| {diag.Level} | {diag.Source} | {diag.Message} |");
 
-        sb.AppendLine();
+            sb.AppendLine();
+        }
+
+        if (options.Plan is { Excluded.Length: > 0 } plan)
+        {
+            sb.AppendLine("### Budget cuts (what almost made it)");
+            sb.AppendLine();
+            sb.AppendLine("| Type | Score | Reason |");
+            sb.AppendLine("|------|-------|--------|");
+            foreach (var ex in plan.Excluded.OrderByDescending(e => e.Score).Take(20))
+                sb.AppendLine($"| `{ex.TypeName}` | {ex.Score:F3} | {ex.Reason} |");
+            sb.AppendLine();
+        }
 
         if (model.PruningNotes.Count > 0)
         {
@@ -1040,10 +1075,12 @@ public sealed class MarkdownRenderer : IContextRenderer
     }
 
     private static void AppendFooter(StringBuilder sb, DiscoveryModel model,
-        RenderOptions options, System.Diagnostics.Stopwatch sw)
+        RenderOptions options, System.Diagnostics.Stopwatch sw, HashSet<string>? includedIds)
     {
         var typesTotal = model.Types.Count;
-        var typesSurviving = model.Types.Values.Count(t => !t.IsHardExcluded);
+        var typesSurviving = includedIds is not null
+            ? includedIds.Count
+            : model.Types.Values.Count(t => !t.IsHardExcluded);
         var prunedCount = typesTotal - typesSurviving;
 
         var compressionSummary = model.AppliedCompressions

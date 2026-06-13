@@ -17,6 +17,10 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var sectionTokens = new List<SectionTokenRecord>();
         var navLinks = new List<(string Id, string Label)>();
 
+        var includedIds = options.Plan is { } plan
+            ? new HashSet<string>(plan.IncludedTypeIds, StringComparer.Ordinal)
+            : null;
+
         sb.AppendLine("<article class='dc-report'>");
         var preLen = sb.Length;
         RenderHeader(sb, model, options);
@@ -49,12 +53,12 @@ public sealed class HtmlContextRenderer : IContextRenderer
         RenderAntiPatterns(sb, model);
         RenderEventFlow(sb, model);
         RenderSection(sb, options, SectionNames.RelatedTypes, "Related types", navLinks,
-            () => RenderRelatedTypes(sb, model));
+            () => RenderRelatedTypes(sb, model, includedIds));
         if (options.IncludeDiagnostics)
             RenderSection(sb, options, "diagnostics", "Diagnostics", navLinks,
-                () => RenderDiagnostics(sb, model));
+                () => RenderDiagnostics(sb, model, options));
 
-        RenderFooter(sb, model, sw);
+        RenderFooter(sb, model, sw, includedIds);
 
         // Insert nav after header if there are links
         var navHtml = BuildNav(navLinks);
@@ -413,9 +417,11 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine("</tbody></table></div></section>");
     }
 
-    private static void RenderRelatedTypes(StringBuilder sb, DiscoveryModel model)
+    private static void RenderRelatedTypes(StringBuilder sb, DiscoveryModel model, HashSet<string>? includedIds)
     {
-        var types = model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
+        var types = includedIds is not null
+            ? model.Types.Values.Where(t => includedIds.Contains(t.Id)).ToList()
+            : model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
         if (types.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.RelatedTypes}'><h2 class='dc-h2'>Related types</h2>");
         sb.AppendLine("<div class='dc-types-grid'>");
@@ -429,14 +435,29 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine("</div></section>");
     }
 
-    private static void RenderDiagnostics(StringBuilder sb, DiscoveryModel model)
+    private static void RenderDiagnostics(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         sb.AppendLine($"<section class='dc-section' id='dc-diagnostics'><h2 class='dc-h2'>Diagnostics</h2>");
-        if (model.Diagnostics.IsEmpty) { sb.AppendLine("<p>No diagnostics recorded.</p></section>"); return; }
-        sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Level</th><th>Source</th><th>Message</th></tr></thead><tbody>");
-        foreach (var d in model.Diagnostics)
-            sb.AppendLine($"<tr class='dc-diag-{d.Level.ToString().ToLowerInvariant()}'><td class='dc-diag-level'>{System.Net.WebUtility.HtmlEncode(d.Level.ToString())}</td><td>{System.Net.WebUtility.HtmlEncode(d.Source)}</td><td>{System.Net.WebUtility.HtmlEncode(d.Message)}</td></tr>");
-        sb.AppendLine("</tbody></table></div>");
+        if (model.Diagnostics.IsEmpty && model.PruningNotes.Count == 0 && options.Plan?.Excluded.IsDefaultOrEmpty != false)
+        {
+            sb.AppendLine("<p>No diagnostics recorded.</p></section>"); return;
+        }
+
+        if (!model.Diagnostics.IsEmpty)
+        {
+            sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Level</th><th>Source</th><th>Message</th></tr></thead><tbody>");
+            foreach (var d in model.Diagnostics)
+                sb.AppendLine($"<tr class='dc-diag-{d.Level.ToString().ToLowerInvariant()}'><td class='dc-diag-level'>{System.Net.WebUtility.HtmlEncode(d.Level.ToString())}</td><td>{System.Net.WebUtility.HtmlEncode(d.Source)}</td><td>{System.Net.WebUtility.HtmlEncode(d.Message)}</td></tr>");
+            sb.AppendLine("</tbody></table></div>");
+        }
+
+        if (options.Plan is { Excluded.Length: > 0 } plan)
+        {
+            sb.AppendLine("<details class='dc-budget-cuts'><summary>Budget cuts — what almost made it</summary><ul>");
+            foreach (var ex in plan.Excluded.OrderByDescending(e => e.Score).Take(20))
+                sb.AppendLine($"<li><code>{System.Net.WebUtility.HtmlEncode(ex.TypeName)}</code> ({ex.Score:F3}) — {System.Net.WebUtility.HtmlEncode(ex.Reason)}</li>");
+            sb.AppendLine("</ul></details>");
+        }
 
         if (model.PruningNotes.Count > 0)
         {
@@ -448,9 +469,11 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine("</section>");
     }
 
-    private static void RenderFooter(StringBuilder sb, DiscoveryModel model, System.Diagnostics.Stopwatch sw)
+    private static void RenderFooter(StringBuilder sb, DiscoveryModel model, System.Diagnostics.Stopwatch sw, HashSet<string>? includedIds)
     {
-        var active = model.Types.Values.Count(t => !t.IsHardExcluded);
+        var active = includedIds is not null
+            ? includedIds.Count
+            : model.Types.Values.Count(t => !t.IsHardExcluded);
         var total = model.Types.Count;
         sb.AppendLine("<footer class='dc-footer'>");
         sb.AppendLine($"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.1");

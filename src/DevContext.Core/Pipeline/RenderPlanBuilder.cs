@@ -38,7 +38,7 @@ public static class RenderPlanBuilder
 
         var included = ImmutableArray.CreateBuilder<string>();
         var excluded = ImmutableArray.CreateBuilder<PlannedExclusion>();
-        var budget = request.MaxTokens - SafetyMargin;
+        var budget = Math.Max(0, request.MaxTokens - SafetyMargin);
         var maxTypes = scenario.Pruning.MaxSurvivingTypes;
         var usedTokens = 0;
 
@@ -46,7 +46,12 @@ public static class RenderPlanBuilder
         foreach (var type in candidates)
         {
             if (!pinnedIds.Contains(type.Id)) continue;
-            if (type.IsHardExcluded) continue;
+            if (type.IsHardExcluded)
+            {
+                excluded.Add(new PlannedExclusion(type.Id, type.Name, type.FinalScore,
+                    "focus pin vetoed: " + (type.ExclusionReason ?? "test project")));
+                continue;
+            }
 
             var pinTokens = EstimateTokenCost(type);
             included.Add(type.Id);
@@ -68,7 +73,7 @@ public static class RenderPlanBuilder
 
             var typeTokens = EstimateTokenCost(type);
 
-            var underBudget = budget <= 0 || usedTokens + typeTokens <= budget;
+            var underBudget = budget > 0 && usedTokens + typeTokens <= budget;
             var underCap = maxTypes <= 0 || included.Count < maxTypes;
 
             if (underBudget && underCap)

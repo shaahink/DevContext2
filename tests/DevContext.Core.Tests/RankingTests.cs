@@ -324,4 +324,181 @@ public sealed class RankingTests
         Assert.DoesNotContain("App.Tests.UnitTest", plan.IncludedTypeIds);
         Assert.Contains(plan.Excluded, e => e.TypeId == "App.Tests.UnitTest" && e.Reason == "test project");
     }
+
+    /// <summary>A smaller --max-tokens budget produces fewer included types.</summary>
+    [Fact]
+    public void SmallerBudget_ProducesFewerIncludedTypes()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        for (var i = 0; i < 50; i++)
+        {
+            model.Types.TryAdd($"App.Type{i}", new TypeDiscovery
+            {
+                Id = $"App.Type{i}", Name = $"Type{i}",
+                Namespace = "App", FilePath = $@"C:\repo\App\Type{i}.cs",
+                Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Application,
+                FinalScore = 1.0 - i * 0.0001,
+                Methods = [new MethodSignature("DoWork", "void", ["string","int","bool","decimal","long","double","float"], ["a","b","c","d","e","f","g"], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+                SourceBody = new string('x', 200), // ~50 tokens each
+            });
+        }
+
+        var snapshot = new AnalysisSnapshot
+        {
+            Model = model,
+            Analysis = new SharedAnalysisContext(),
+            Scenario = ScenarioRegistry.BuiltIn["overview"],
+            Options = new ExtractionOptions(), Report = DefaultReport,
+        };
+
+        var planLarge = RenderPlanBuilder.Build(snapshot, new RenderRequest { Format = "markdown", MaxTokens = 8000 });
+        var planSmall = RenderPlanBuilder.Build(snapshot, new RenderRequest { Format = "markdown", MaxTokens = 2000 });
+
+        Assert.True(planSmall.IncludedTypeIds.Length < planLarge.IncludedTypeIds.Length,
+            $"Small budget ({planSmall.IncludedTypeIds.Length}) must include fewer types than large ({planLarge.IncludedTypeIds.Length})");
+    }
+
+    /// <summary>Same snapshot + same request = same plan (determinism).</summary>
+    [Fact]
+    public void RenderPlan_IsDeterministic()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        for (var i = 0; i < 20; i++)
+        {
+            model.Types.TryAdd($"App.Type{i}", new TypeDiscovery
+            {
+                Id = $"App.Type{i}", Name = $"Type{i}",
+                Namespace = "App", FilePath = $@"C:\repo\App\Type{i}.cs",
+                Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Application,
+                FinalScore = 10.0 - i,
+                Methods = [new MethodSignature("DoWork", "void", [], [], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+            });
+        }
+
+        var snapshot = new AnalysisSnapshot
+        {
+            Model = model,
+            Analysis = new SharedAnalysisContext(),
+            Scenario = ScenarioRegistry.BuiltIn["overview"],
+            Options = new ExtractionOptions(), Report = DefaultReport,
+        };
+
+        var request = new RenderRequest { Format = "markdown", MaxTokens = 5000 };
+
+        var plan1 = RenderPlanBuilder.Build(snapshot, request);
+        var plan2 = RenderPlanBuilder.Build(snapshot, request);
+
+        Assert.True(plan1.IncludedTypeIds.SequenceEqual(plan2.IncludedTypeIds), "IncludedTypeIds must be identical");
+        Assert.True(plan1.Excluded.SequenceEqual(plan2.Excluded), "Excluded must be identical");
+        Assert.Equal(plan1.EstimatedTokens, plan2.EstimatedTokens);
+    }
+
+    /// <summary>Pinned-but-hard-excluded types are routed to Excluded with veto reason, not silently dropped.</summary>
+    [Fact]
+    public void PinVetoedType_GoesToExcludedNotSilent()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("App.Tests", @"C:\repo\src\App.Tests\App.Tests.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Architecture.Seal();
+
+        // A pinned type that is hard-excluded (test project)
+        model.Types.TryAdd("App.Tests.TestService", new TypeDiscovery
+        {
+            Id = "App.Tests.TestService", Name = "TestService",
+            Namespace = "App.Tests", FilePath = @"C:\repo\src\App.Tests\TestService.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Testing,
+            IsHardExcluded = true, ExclusionReason = "test project",
+            FinalScore = 999.0, // Very high score
+        });
+
+        // A normal type to ensure the plan is not empty
+        model.Types.TryAdd("App.Production.Service", new TypeDiscovery
+        {
+            Id = "App.Production.Service", Name = "Service",
+            Namespace = "App.Production", FilePath = @"C:\repo\src\App\Service.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            FinalScore = 50.0,
+            Methods = [new MethodSignature("Handle", "void", ["string"], ["req"], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+        });
+
+        var snapshot = new AnalysisSnapshot
+        {
+            Model = model,
+            Analysis = new SharedAnalysisContext
+            {
+                FocusPoints = [new FocusPoint(FocusKind.Type, @"C:\repo\src\App.Tests\TestService.cs", "TestService", null)],
+            },
+            Scenario = ScenarioRegistry.BuiltIn["overview"],
+            Options = new ExtractionOptions(), Report = DefaultReport,
+        };
+
+        var request = new RenderRequest { Format = "markdown", MaxTokens = 8000 };
+
+        var plan = RenderPlanBuilder.Build(snapshot, request);
+
+        // The pinned test type should NOT be included
+        Assert.DoesNotContain("App.Tests.TestService", plan.IncludedTypeIds);
+
+        // BUT it must appear in Excluded with the veto reason
+        var vetoed = plan.Excluded.FirstOrDefault(e => e.TypeId == "App.Tests.TestService");
+        Assert.NotNull(vetoed);
+        Assert.Contains("vetoed", vetoed.Reason);
+    }
+
+    /// <summary>Excluded list contains expected types with reasons.</summary>
+    [Fact]
+    public void CutList_RendersExcludedTypesWithReasons()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        model.Types.TryAdd("App.Kept.Type", new TypeDiscovery
+        {
+            Id = "App.Kept.Type", Name = "Type",
+            Namespace = "App.Kept", FilePath = @"C:\repo\App\Kept\Type.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            FinalScore = 100.0,
+            Methods = [new MethodSignature("Work", "void", [], [], Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+        });
+
+        model.Types.TryAdd("App.Cut.Type", new TypeDiscovery
+        {
+            Id = "App.Cut.Type", Name = "CutType",
+            Namespace = "App.Cut", FilePath = @"C:\repo\App\Cut\Type.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+            FinalScore = 0.01, // Very low score
+            Methods = [new MethodSignature("BigMethod", "string",
+                ImmutableArray.Create("a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t"),
+                ImmutableArray.Create("x1","x2","x3","x4","x5","x6","x7","x8","x9","x10","x11","x12","x13","x14","x15","x16","x17","x18","x19","x20"),
+                Microsoft.CodeAnalysis.Accessibility.Public, false, false)],
+            SourceBody = new string('x', 4000),
+        });
+
+        var snapshot = new AnalysisSnapshot
+        {
+            Model = model,
+            Analysis = new SharedAnalysisContext(),
+            Scenario = ScenarioRegistry.BuiltIn["overview"],
+            Options = new ExtractionOptions(), Report = DefaultReport,
+        };
+
+        var request = new RenderRequest { Format = "markdown", MaxTokens = 800 };
+
+        var plan = RenderPlanBuilder.Build(snapshot, request);
+
+        Assert.Contains("App.Kept.Type", plan.IncludedTypeIds);
+        Assert.Contains(plan.Excluded, e => e.TypeId == "App.Cut.Type" && e.Reason == "budget");
+    }
 }
