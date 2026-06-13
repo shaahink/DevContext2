@@ -295,7 +295,7 @@ public sealed class PrunerTests
 
         var orderService = model.Types["MyApp.Services.OrderService"];
 
-        Assert.True(orderService.FocusScore > 0);
+        Assert.True(orderService.GraphProximity > 0);
     }
 
     [Fact]

@@ -38,14 +38,13 @@ public sealed class CallReachabilityPruner : IPruner
         // BFS from seed types
         var depths = BfsTypeDepths(typeGraph, seedTypes, maxDepth, ct);
 
-        // Apply graph proximity: FocusScore = max(pathProximity, graphProximity)
+        // Apply graph proximity: store on each type for later combination in RunScoringAsync
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
 
             double graphProximity = 0.0;
 
-            // Try matching by full Id first, then by short Name, then by just-before-last-dot
             if (depths.TryGetValue(type.Id, out var depth))
             {
                 graphProximity = 1.0 / (1.0 + depth);
@@ -56,7 +55,6 @@ public sealed class CallReachabilityPruner : IPruner
             }
             else
             {
-                // Try matching by the portion of Id that matches the callee type name
                 foreach (var kv in depths)
                 {
                     if (type.Id.EndsWith("." + kv.Key, StringComparison.Ordinal)
@@ -68,13 +66,13 @@ public sealed class CallReachabilityPruner : IPruner
                 }
             }
 
+            type.GraphProximity = graphProximity;
+
             if (graphProximity > 0)
             {
                 model.AddProvenance(type.Id, new InclusionReason(
                     $"Call-reachable at depth via type-collapsed graph (+{graphProximity:F2})", Name, (float)graphProximity));
             }
-
-            type.FocusScore = Math.Max(type.PathProximityScore, graphProximity);
         }
 
         return default;

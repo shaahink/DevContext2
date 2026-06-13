@@ -37,6 +37,8 @@ public sealed class TypeDiscovery
     public bool IsPruned { get; set; }
     /// <summary>Proximity score based on directory distance from focus points (0.0 to 1.0).</summary>
     public float PathProximityScore { get; set; }
+    /// <summary>Reachability score computed by CallReachabilityPruner via BFS over the type-collapsed call graph (0.0 to 1.0).</summary>
+    public double GraphProximity { get; set; }
     /// <summary>Relevance score based on detection patterns and call graph reachability.</summary>
     public float RelevanceScore { get; set; }
     /// <summary>Combined ranking score used by RenderPlan to order types for inclusion.</summary>

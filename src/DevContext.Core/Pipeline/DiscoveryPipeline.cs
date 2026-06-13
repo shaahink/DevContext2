@@ -446,8 +446,11 @@ public sealed class DiscoveryPipeline
         foreach (var type in model.Types.Values)
         {
             if (hasFocus)
+            {
+                type.FocusScore = Math.Max(type.PathProximityScore, type.GraphProximity);
                 type.FinalScore = ctx.ActiveScenario.Pruning.RoleWeight * type.RoleScore
                                   + ctx.ActiveScenario.Pruning.FocusWeight * type.FocusScore;
+            }
             else
                 type.FinalScore = type.RoleScore;
         }

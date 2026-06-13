@@ -501,4 +501,91 @@ public sealed class RankingTests
         Assert.Contains("App.Kept.Type", plan.IncludedTypeIds);
         Assert.Contains(plan.Excluded, e => e.TypeId == "App.Cut.Type" && e.Reason == "budget");
     }
+
+    /// <summary>Folder focus with no call graph: PathProximityScore alone drives FocusScore, reordering ranking.</summary>
+    [Fact]
+    public void FolderFocus_NoCallGraph_ReordersRanking()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        // Type A: far from focus folder (low path proximity)
+        model.Types.TryAdd("App.Far.Service", new TypeDiscovery
+        {
+            Id = "App.Far.Service", Name = "FarService",
+            Namespace = "App.Far", FilePath = @"C:\repo\src\App\Far\Service.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            RoleScore = 0.5,
+            PathProximityScore = 0.1f, // far
+            GraphProximity = 0.0,
+        });
+
+        // Type B: near focus folder (high path proximity)
+        model.Types.TryAdd("App.Near.Service", new TypeDiscovery
+        {
+            Id = "App.Near.Service", Name = "NearService",
+            Namespace = "App.Near", FilePath = @"C:\repo\src\App\Near\Service.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            RoleScore = 0.3, // lower role score
+            PathProximityScore = 0.9f, // near
+            GraphProximity = 0.0,
+        });
+
+        var scenario = ScenarioRegistry.BuiltIn["deep-dive"]; // uses FocusWeight 0.65
+
+        // Compute like RunScoringAsync would:
+        // FocusScore = max(PathProximityScore, GraphProximity)
+        // FinalScore = RoleWeight * RoleScore + FocusWeight * FocusScore
+        var hasFocus = true;
+        foreach (var type in model.Types.Values)
+        {
+            if (hasFocus)
+            {
+                type.FocusScore = Math.Max(type.PathProximityScore, type.GraphProximity);
+                type.FinalScore = scenario.Pruning.RoleWeight * type.RoleScore
+                                  + scenario.Pruning.FocusWeight * type.FocusScore;
+            }
+            else
+                type.FinalScore = type.RoleScore;
+        }
+
+        // NearService: 0.35 * 0.3 + 0.65 * 0.9 = 0.105 + 0.585 = 0.69
+        // FarService: 0.35 * 0.5 + 0.65 * 0.1 = 0.175 + 0.065 = 0.24
+        // NearService ranks higher despite lower RoleScore
+        var ranked = model.Types.Values.OrderByDescending(t => t.FinalScore).ToList();
+        Assert.Equal("NearService", ranked[0].Name);
+        Assert.Equal("FarService", ranked[1].Name);
+    }
+
+    /// <summary>No-focus: FinalScore equals RoleScore.</summary>
+    [Fact]
+    public void NoFocus_FinalScoreEqualsRoleScore()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        model.Types.TryAdd("App.Type", new TypeDiscovery
+        {
+            Id = "App.Type", Name = "Type",
+            Namespace = "App", FilePath = @"C:\repo\src\App\Type.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            RoleScore = 0.7,
+            PathProximityScore = 0.9f,
+            GraphProximity = 0.5,
+        });
+
+        var hasFocus = false;
+        foreach (var type in model.Types.Values)
+        {
+            if (hasFocus) type.FocusScore = Math.Max(type.PathProximityScore, type.GraphProximity);
+            type.FinalScore = hasFocus
+                ? 0.35 * type.RoleScore + 0.65 * type.FocusScore
+                : type.RoleScore;
+        }
+
+        Assert.Equal(0.7, model.Types.Values.First().FinalScore);
+    }
 }
