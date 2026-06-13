@@ -417,7 +417,7 @@ public sealed class DiscoveryPipeline
         var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
-        model.StyleDetectedVia = "ArchitectureStyleDetector";
+        model.StyleDetectedVia = via ?? "ArchitectureStyleDetector";
     }
 
     /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>

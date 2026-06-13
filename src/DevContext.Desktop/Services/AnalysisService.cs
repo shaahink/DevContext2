@@ -31,6 +31,8 @@ public interface IAnalysisService
 public class AnalysisService : IAnalysisService
 {
     private readonly string _dataDir;
+    private ServiceProvider? _serviceProvider;
+    private DiscoveryPipeline? _cachedPipeline;
 
     public AnalysisService()
     {
@@ -40,6 +42,18 @@ public class AnalysisService : IAnalysisService
         Directory.CreateDirectory(_dataDir);
     }
 
+    private DiscoveryPipeline GetPipeline(string rootPath)
+    {
+        if (_cachedPipeline is not null) return _cachedPipeline;
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDevContextServices(rootPath);
+        _serviceProvider = services.BuildServiceProvider();
+        _cachedPipeline = _serviceProvider.GetRequiredService<DiscoveryPipeline>();
+        return _cachedPipeline;
+    }
+
     public async Task<SnapshotResult> AnalyzeAsync(
         AnalysisOptions opts,
         IProgress<AnalysisProgress>? progress = null,
@@ -47,7 +61,6 @@ public class AnalysisService : IAnalysisService
     {
         var fs = new RealFileSystem();
 
-        var resolver = new ProjectRootResolver();
         var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct).ConfigureAwait(false);
 
         // Build IntentInput and resolve via shared resolver
@@ -105,13 +118,9 @@ public class AnalysisService : IAnalysisService
             FocusPoints = resolvedIntent.FocusPoints,
         };
 
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDevContextServices(rootResult.RootPath);
-        var sp = services.BuildServiceProvider();
-        var pipeline = sp.GetRequiredService<DiscoveryPipeline>();
+        var pipeline = GetPipeline(rootResult.RootPath);
 
-        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        var loggerFactory = _serviceProvider!.GetRequiredService<ILoggerFactory>();
 
         var roslyn = opts.NoRoslyn || rootResult.SolutionFilePath is null
             ? (IRoslynWorkspaceProvider)new NullRoslynProvider()
@@ -157,11 +166,7 @@ public class AnalysisService : IAnalysisService
 
     public async Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDevContextServices(".");
-        var sp = services.BuildServiceProvider();
-        var pipeline = sp.GetRequiredService<DiscoveryPipeline>();
+        var pipeline = GetPipeline(".");
 
         var md = await pipeline.RenderAsync(snapshot, request with { Format = "markdown" }, ct);
         var html = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
@@ -172,6 +177,7 @@ public class AnalysisService : IAnalysisService
             HtmlContent = html.Content,
             EstimatedTokens = md.EstimatedTokens,
             Sections = md.Sections,
+            RenderFunnel = md.RenderFunnel,
         };
     }
 
@@ -273,6 +279,7 @@ public record RenderResult
     public string? HtmlContent { get; init; }
     public int EstimatedTokens { get; init; }
     public ImmutableArray<SectionStat> Sections { get; init; } = [];
+    public TokenFunnel? RenderFunnel { get; init; }
 }
 
 public record AnalysisOptions

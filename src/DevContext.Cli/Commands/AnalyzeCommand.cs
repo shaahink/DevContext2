@@ -70,7 +70,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             inputPath = gitClonePath;
         }
 
-        var resolver = new ProjectRootResolver();
         var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
 
         // Build IntentInput from settings

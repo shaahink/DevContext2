@@ -454,6 +454,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 // Initial render from the snapshot
                 await RerenderAsync(ct).ConfigureAwait(true);
 
+                if (ct.IsCancellationRequested) return;
+
                 _statsHtml = _snapshot?.Report is { } r
                     ? RunReportHtmlRenderer.Render(r) : "";
 
@@ -525,8 +527,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (_snapshot is null) return;
 
         CancelRender();
-        _renderCts = new CancellationTokenSource();
-        var renderCt = CancellationTokenSource.CreateLinkedTokenSource(ct, _renderCts.Token).Token;
+        var cts = new CancellationTokenSource();
+        _renderCts = cts;
+        var renderCt = CancellationTokenSource.CreateLinkedTokenSource(ct, cts.Token).Token;
 
         try
         {
@@ -542,9 +545,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             var renderResult = await _svc.RenderAsync(_snapshot, request, renderCt).ConfigureAwait(true);
 
+            if (renderCt.IsCancellationRequested) return;
+
             var rawContent = renderResult.Content ?? "";
 
             var (newGroups, llmText, sectionTotal, sectionSelected) = BuildSectionDataFromStat(renderResult.Sections);
+
+            if (renderCt.IsCancellationRequested) return;
 
 #pragma warning disable MVVMTK0034
             SectionGroups = newGroups.ToImmutableArray();
@@ -557,6 +564,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _displayText = IsHumanView ? rawContent : llmText;
 #pragma warning restore MVVMTK0034
 
+            if (renderCt.IsCancellationRequested) return;
+
+            // Update stats from render result
+            _statsHtml = _snapshot?.Report is { } r
+                ? RunReportHtmlRenderer.Render(r) : "";
+#pragma warning disable MVVMTK0034
+            _statsText = _snapshot?.Report is { } report
+                ? RunReportFormatter.Summary(report, renderResult.RenderFunnel)
+                : "";
+#pragma warning restore MVVMTK0034
+
             OnPropertyChanged(string.Empty);
         }
         catch (OperationCanceledException) { }
@@ -566,8 +584,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         finally
         {
-            _renderCts?.Dispose();
-            _renderCts = null;
+            if (_renderCts == cts)
+            {
+                _renderCts?.Dispose();
+                _renderCts = null;
+            }
         }
     }
 
