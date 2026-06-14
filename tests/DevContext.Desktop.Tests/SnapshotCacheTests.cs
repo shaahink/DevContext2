@@ -16,7 +16,7 @@ public class SnapshotCacheTests
         TotalWall = TimeSpan.Zero,
     };
 
-    private static AnalysisSnapshot MakeSnapshot(string label = "test") =>
+    private static AnalysisSnapshot MakeSnapshot() =>
         new()
         {
             Model = new DiscoveryModel(),
@@ -54,13 +54,13 @@ public class SnapshotCacheTests
         var keyA = MakeKey(path: "C:\\a");
         var keyB = MakeKey(path: "C:\\b");
         var keyC = MakeKey(path: "C:\\c");
-        cache.Set(keyA, MakeSnapshot("a"));
-        cache.Set(keyB, MakeSnapshot("b"));
+        cache.Set(keyA, MakeSnapshot());
+        cache.Set(keyB, MakeSnapshot());
 
         // Access A to make it recently-used; B is now least-recently-used
         Assert.True(cache.TryGet(keyA, out _));
 
-        cache.Set(keyC, MakeSnapshot("c"));
+        cache.Set(keyC, MakeSnapshot());
 
         Assert.True(cache.TryGet(keyA, out _));  // A still present (was recently used)
         Assert.False(cache.TryGet(keyB, out _)); // B evicted (LRU)
@@ -72,8 +72,8 @@ public class SnapshotCacheTests
     {
         var cache = new SnapshotCache(2);
         var key = MakeKey();
-        var snap1 = MakeSnapshot("first");
-        var snap2 = MakeSnapshot("second");
+        var snap1 = MakeSnapshot();
+        var snap2 = MakeSnapshot();
         cache.Set(key, snap1);
         cache.Set(key, snap2);
         Assert.True(cache.TryGet(key, out var retrieved));
@@ -81,7 +81,7 @@ public class SnapshotCacheTests
 
         // capacity is 2; only one key so eviction shouldn't fire
         var keyB = MakeKey(path: "C:\\b");
-        cache.Set(keyB, MakeSnapshot("b"));
+        cache.Set(keyB, MakeSnapshot());
         Assert.True(cache.TryGet(key, out _));
         Assert.True(cache.TryGet(keyB, out _));
     }
@@ -123,11 +123,22 @@ public class SnapshotCacheTests
     }
 
     [Fact]
-    public void Render_params_are_excluded_from_key_equality()
+    public void Identical_keys_are_equal()
     {
         var key = new AnalysisKey("C:\\test", "overview", "Foo", "focused", true, true, true);
         var same = new AnalysisKey("C:\\test", "overview", "Foo", "focused", true, true, true);
         Assert.Equal(key, same);
         Assert.Equal(key.GetHashCode(), same.GetHashCode());
+    }
+
+    [Fact]
+    public void Keys_differing_in_Profile_are_not_equal()
+    {
+        var baseKey = new AnalysisKey("C:\\test", "overview", "Foo", "focused", false, false, false);
+        var debugProfile = new AnalysisKey("C:\\test", "overview", "Foo", "debug", false, false, false);
+        var fullProfile = new AnalysisKey("C:\\test", "overview", "Foo", "full", false, false, false);
+        Assert.NotEqual(baseKey, debugProfile);
+        Assert.NotEqual(baseKey, fullProfile);
+        Assert.NotEqual(debugProfile, fullProfile);
     }
 }

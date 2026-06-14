@@ -154,7 +154,7 @@ public sealed class DiscoveryPipeline
 
         var resolved = FocusPointResolver.Resolve(context.Analysis.UnresolvedFocusPoints, model);
         var failedToResolve = resolved
-            .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method or FocusKind.Endpoint
+            .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method
                 && string.IsNullOrEmpty(fp.FilePath))
             .ToList();
 
@@ -207,8 +207,10 @@ public sealed class DiscoveryPipeline
 
             if (match is not null)
             {
+                var handler = model.Types.Values.FirstOrDefault(t =>
+                    t.Name == match.HandlerType || t.Id.EndsWith("." + match.HandlerType, StringComparison.Ordinal));
                 resolved.Add(new FocusPoint(FocusKind.Method,
-                    match.HandlerType, match.HandlerType, match.HandlerMethod));
+                    handler?.FilePath ?? "", match.HandlerType, match.HandlerMethod));
             }
             else
             {

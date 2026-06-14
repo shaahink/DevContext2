@@ -1,3 +1,5 @@
+using DevContext.Core.Constants;
+
 namespace DevContext.Core.Tests;
 
 public sealed class RendererTests
@@ -398,10 +400,29 @@ public sealed class RendererTests
         { ExtractorName = "a", SourceFile = @"\tests\TestFile.cs", LineNumber = 1 });
 
         var renderer = new MarkdownRenderer();
-        var options = new RenderOptions(false, false, 8000);
+        var options = new RenderOptions(false, false, 8000, RequiredSections: ["Endpoints", "Call graph"]);
         var result = await renderer.RenderAsync(model, options, default);
 
         Assert.Contains("### Worker.cs (2)", result.Content);
         Assert.Contains("### TestFile.cs (1)", result.Content);
+    }
+
+    [Fact]
+    public async Task AntiPatterns_and_EventFlow_render_with_non_empty_RequiredSections()
+    {
+        var model = new DiscoveryModel();
+        model.Detections.Add(new AntiPatternDetection("FireAndForget", "Never awaited", "high", "MyType")
+        { ExtractorName = "ap", SourceFile = @"\src\B.cs", LineNumber = 5 });
+        model.Detections.Add(new EventFlowDetection("OrderPlaced", "OrderHandler", "Subscribe", "RabbitMQ")
+        { ExtractorName = "ef", SourceFile = @"\src\C.cs", LineNumber = 10 });
+
+        // RequiredSections that do NOT contain "Anti-patterns detected" or "Event flow"
+        var options = new RenderOptions(false, false, 8000, RequiredSections: ["Endpoints", "Call graph"]);
+
+        var renderer = new MarkdownRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains(SectionNames.AntiPatterns, result.Content);
+        Assert.Contains(SectionNames.EventFlow, result.Content);
     }
 }

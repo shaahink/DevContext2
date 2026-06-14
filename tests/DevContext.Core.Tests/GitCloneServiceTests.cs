@@ -5,20 +5,42 @@ namespace DevContext.Core.Tests;
 public sealed class GitCloneServiceTests
 {
     [Fact]
-    public void IsCloneStale_returns_true_when_directory_missing()
-    {
-        var nonexistentPath = Path.Combine(Path.GetTempPath(), $"devcontext-test-{Guid.NewGuid()}");
-        Assert.True(GitCloneService.IsCloneStale(nonexistentPath));
-    }
-
-    [Fact]
-    public void IsCloneStale_returns_false_for_fresh_directory()
+    public void DecideCloneAction_returns_Reuse_for_24h_with_fresh_directory()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), $"devcontext-test-{Guid.NewGuid()}");
         Directory.CreateDirectory(tempPath);
         try
         {
-            Assert.False(GitCloneService.IsCloneStale(tempPath));
+            Assert.Equal(GitCloneService.CloneAction.Reuse,
+                GitCloneService.DecideCloneAction(tempPath, "24h"));
+        }
+        finally
+        {
+            Directory.Delete(tempPath, true);
+        }
+    }
+
+    [Fact]
+    public void DecideCloneAction_returns_Clone_for_24h_with_missing_directory()
+    {
+        var nonexistentPath = Path.Combine(Path.GetTempPath(), $"devcontext-test-{Guid.NewGuid()}");
+        Assert.Equal(GitCloneService.CloneAction.Clone,
+            GitCloneService.DecideCloneAction(nonexistentPath, "24h"));
+    }
+
+    [Fact]
+    public void DecideCloneAction_returns_Clone_for_auto_session_keep_regardless()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"devcontext-test-{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempPath);
+        try
+        {
+            Assert.Equal(GitCloneService.CloneAction.Clone,
+                GitCloneService.DecideCloneAction(tempPath, "auto"));
+            Assert.Equal(GitCloneService.CloneAction.Clone,
+                GitCloneService.DecideCloneAction(tempPath, "session"));
+            Assert.Equal(GitCloneService.CloneAction.Clone,
+                GitCloneService.DecideCloneAction(tempPath, "keep"));
         }
         finally
         {

@@ -161,4 +161,14 @@ public sealed class AnalysisIntentResolverTests
         });
         Assert.Equal(2, result.FocusPoints.Length);
     }
+
+    [Fact]
+    public void Task_routing_yields_no_focus_points()
+    {
+        // After A7, --task is no longer routed into Focus
+        var result = AnalysisIntentResolver.Resolve(new IntentInput { Focus = null });
+        Assert.Equal("overview", result.Scenario.Name);
+        Assert.Empty(result.FocusPoints);
+        Assert.Contains("Overview map", result.Explanation);
+    }
 }

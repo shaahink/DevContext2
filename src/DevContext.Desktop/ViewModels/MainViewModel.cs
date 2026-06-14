@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevContext.Core.Contracts;
@@ -323,20 +324,30 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             var clonePath = repo.ClonePath;
 
-            var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
-                new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
-
-            if (cloneResult is null)
+            if (GitCloneService.DecideCloneAction(clonePath, CloneCleanup) == GitCloneService.CloneAction.Reuse)
             {
-                _output.ProgressText = "Error";
-                _output.RawContent = $"Failed to clone {repo.ToDisplay()}...";
-                _output.HasOutput = true;
-                _output.IsAnalyzing = false;
-                _output.IsProgressVisible = false;
-                return;
+                workingPath = clonePath;
             }
+            else
+            {
+                if (CloneCleanup == "24h" && Directory.Exists(clonePath))
+                    GitCloneService.Cleanup(clonePath);
 
-            workingPath = cloneResult;
+                var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
+                    new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
+
+                if (cloneResult is null)
+                {
+                    _output.ProgressText = "Error";
+                    _output.RawContent = $"Failed to clone {repo.ToDisplay()}...";
+                    _output.HasOutput = true;
+                    _output.IsAnalyzing = false;
+                    _output.IsProgressVisible = false;
+                    return;
+                }
+
+                workingPath = cloneResult;
+            }
         }
 
         var opts = new AnalysisOptions

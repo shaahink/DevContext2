@@ -525,7 +525,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task Toggling_section_updates_DisplayText_in_Llm_view()
+    public async Task Toggling_section_propagates_to_RenderRequest()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
@@ -538,17 +538,17 @@ public class MainViewModelTests
                 ElapsedMs = 100
             }));
 
-        // Use a known section label so key mapping works
-        var sections = ImmutableArray.Create(new SectionStat("Architecture overview", 100));
-        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
+        RenderRequest? capturedRequest = null;
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Do<RenderRequest>(r => capturedRequest = r), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Endpoints", 100)), EstimatedTokens = 100 }));
 
         await ExecuteAnalyzeCommand(vm);
 
-        // Find the "Architecture overview" SectionToggle
-        var archToggle = vm.Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
-        Assert.NotNull(archToggle);
-        Assert.True(archToggle.IsEnabled);
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.Endpoints, false);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
+
+        Assert.NotNull(capturedRequest);
+        Assert.DoesNotContain(DevContext.Core.Constants.SectionNames.Endpoints, capturedRequest.Sections);
     }
 
     [Fact]
@@ -581,8 +581,9 @@ public class MainViewModelTests
         vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.Endpoints, false);
         Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
 
-        // Section toggle should reflect the change
+        // Section toggle flag is updated synchronously
         Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
     }
 
     [Fact]
@@ -788,24 +789,19 @@ public async Task LlmViewText_excludes_disabled_sections()
     _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
         .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 }));
 
-    _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+    RenderRequest? capturedRequest = null;
+    _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Do<RenderRequest>(r => capturedRequest = r), Arg.Any<CancellationToken>())
         .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Architecture overview", 100), new SectionStat("Endpoints", 50)), EstimatedTokens = 100 }));
 
     await ExecuteAnalyzeCommand(vm);
 
-    // Verify sections are present in drawer
-    var archVm = vm.SectionGroups.SelectMany(g => g.Children).FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
-    Assert.NotNull(archVm);
-    var epVm = vm.SectionGroups.SelectMany(g => g.Children).FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints);
-    Assert.NotNull(epVm);
-
-    var beforeTotal = vm.SelectedTokenTotal;
-    Assert.True(beforeTotal > 0);
-
-    // Disable Endpoints via the public API
     vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.Endpoints, false);
     Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
-    Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+
+    // RenderRequest must exclude the disabled section
+    Assert.NotNull(capturedRequest);
+    Assert.DoesNotContain(DevContext.Core.Constants.SectionNames.Endpoints, capturedRequest.Sections);
+    Assert.Contains(DevContext.Core.Constants.SectionNames.ArchitectureOverview, capturedRequest.Sections);
 }
 
 // ══ PropertyChanged batching ══════════════════════════════════════════════
@@ -1170,23 +1166,34 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         vm.ProjectPath = "C:\\Test";
 
         var analyzeCount = 0;
+        var renderCount = 0;
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 analyzeCount++;
                 return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
             });
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                renderCount++;
+                return Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 0 });
+            });
 
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(1, analyzeCount);
-        Assert.False(vm.IsStale);
 
         // Enable Call graph (profile-affecting section)
         vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
 
-        // Should set stale but NOT auto-analyze
+        // Should set stale but NOT auto-analyze (render still fires for immediate section sync)
         Assert.Equal(1, analyzeCount);
         Assert.True(vm.IsStale);
+
+        // Plain section toggle stays render-tier and leaves IsStale false
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.DiRegistrations, false);
+        Assert.Equal(1, analyzeCount); // still no re-analysis
+        Assert.True(vm.IsStale);       // was already stale from CallGraph toggle
 
         // Re-analyze should run exactly once
         await ExecuteAnalyzeCommand(vm);

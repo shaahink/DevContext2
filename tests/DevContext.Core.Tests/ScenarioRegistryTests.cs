@@ -34,4 +34,25 @@ public sealed class ScenarioRegistryTests
         var scenario = ScenarioRegistry.BuiltIn["deep-dive"];
         Assert.Equal("Slice", scenario.DisplayName);
     }
+
+    [Fact]
+    public void DeepDiveScenario_default_pruning_config_is_pinned()
+    {
+        var p = ScenarioRegistry.BuiltIn["deep-dive"].Pruning;
+        Assert.Equal(3, p.MaxPathDistance);
+        Assert.Equal(5, p.MaxCallDepth);
+        Assert.Equal(25, p.MaxSurvivingTypes);
+        Assert.Equal(0.35, p.RoleWeight);
+        Assert.Equal(0.65, p.FocusWeight);
+    }
+
+    [Fact]
+    public void OverviewScenario_default_pruning_config_is_pinned()
+    {
+        var p = ScenarioRegistry.BuiltIn["overview"].Pruning;
+        Assert.Equal(2, p.MaxPathDistance);
+        Assert.Equal(40, p.MaxSurvivingTypes);
+        Assert.Equal(0.7, p.RoleWeight);
+        Assert.Equal(0.3, p.FocusWeight);
+    }
 }

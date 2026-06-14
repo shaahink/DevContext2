@@ -60,14 +60,26 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
             gitClonePath = repoUrl.ClonePath;
             var branch = settings.Ref ?? repoUrl.Ref;
-            var cloneResult = await git.CloneAsync(repoUrl, gitClonePath, branch, null, ct);
-            if (cloneResult is null)
-            {
-                AnsiConsole.MarkupLine("[red]Clone failed[/]");
-                return 1;
-            }
 
-            inputPath = gitClonePath;
+            if (GitCloneService.DecideCloneAction(gitClonePath, cleanup) == GitCloneService.CloneAction.Reuse)
+            {
+                // Reuse existing fresh clone
+                inputPath = gitClonePath;
+            }
+            else
+            {
+                if (cleanup == "24h" && Directory.Exists(gitClonePath))
+                    GitCloneService.Cleanup(gitClonePath);
+
+                var cloneResult = await git.CloneAsync(repoUrl, gitClonePath, branch, null, ct);
+                if (cloneResult is null)
+                {
+                    AnsiConsole.MarkupLine("[red]Clone failed[/]");
+                    return 1;
+                }
+
+                inputPath = gitClonePath;
+            }
         }
 
         var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
@@ -76,7 +88,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var focusInput = settings.Focus ?? settings.Around;
         var intentInput = new IntentInput
         {
-            Focus = settings.Task,
+            Focus = null,
             Focuses = focusInput?.Length > 0 ? focusInput : null,
             Depth = settings.Depth,
             ExplicitScenario = settings.Scenario ?? config?.DefaultScenario,

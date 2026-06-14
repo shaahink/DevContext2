@@ -1,24 +1,65 @@
 using DevContext.Core.Configuration;
+using DevContext.Core.Contracts;
 using DevContext.Core.Pipeline;
-using DevContext.Core.Services;
 
 namespace DevContext.Core.Tests;
 
 public sealed class EndpointFocusResolutionTests
 {
-    private static DiscoveryPipeline CreatePipeline(List<IPruner>? pruners = null)
+    /// <summary>Test extractor that runs at Stage 3 and injects a known endpoint detection + handler type.</summary>
+    private sealed class EndpointInjectorExtractor : IDiscoveryExtractor
     {
-        return new DiscoveryPipeline(
-            [], pruners ?? [], [],
-            new Dictionary<string, IContextRenderer>
+        public string Name => "EndpointInjector";
+        public ExtractorTier Tier => ExtractorTier.Deep;
+        public ExtractorCategory Category => ExtractorCategory.Specific;
+        public ExecutionStage Stage => ExecutionStage.Stage3Specific;
+        public ExtractorCapabilities Capabilities => new([], [], ["Detections", "Types"], "Test injector");
+
+        private readonly string _httpMethod;
+        private readonly string _route;
+        private readonly string _handlerType;
+        private readonly string _handlerMethod;
+        private readonly string _handlerFilePath;
+
+        public EndpointInjectorExtractor(string httpMethod, string route,
+            string handlerType, string handlerMethod, string handlerFilePath)
+        {
+            _httpMethod = httpMethod;
+            _route = route;
+            _handlerType = handlerType;
+            _handlerMethod = handlerMethod;
+            _handlerFilePath = handlerFilePath;
+        }
+
+        public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel) => true;
+
+        public ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+        {
+            model.Detections.Add(new DevContext.Core.Models.EndpointDetection(
+                _httpMethod, _route, _handlerType, _handlerMethod, [], [])
             {
-                ["markdown"] = new TestMarkdownRenderer(),
-            },
-            new NullLogger<DiscoveryPipeline>());
+                ExtractorName = Name,
+                SourceFile = _handlerFilePath,
+                LineNumber = 1,
+            });
+
+            model.Types.TryAdd(_handlerType, new TypeDiscovery
+            {
+                Id = _handlerType,
+                Name = _handlerType,
+                Namespace = "Test",
+                FilePath = _handlerFilePath,
+                Kind = TypeKind.Class,
+                Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+                Layer = ArchitectureLayer.Api,
+            });
+
+            return ValueTask.CompletedTask;
+        }
     }
 
     [Fact]
-    public async Task Endpoint_focus_resolved_to_handler_after_stage3()
+    public async Task Endpoint_focus_resolved_to_handler_via_pipeline()
     {
         var fs = new FakeFileSystem();
         fs.AddFile(@"src\Program.cs", "class Program { static void Main() {} }");
@@ -27,48 +68,36 @@ public sealed class EndpointFocusResolutionTests
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
             .WithRootPath("src");
-        var built = builder.BuildWithRecording();
-        var ctx = built.Context;
+        var ctx = builder.Build();
 
-        // Add a resolved endpoint detection to the model (simulating Stage 3 output)
-        var model = new DiscoveryModel();
-        model.Detections.Add(new DevContext.Core.Models.EndpointDetection(
-            "GET", "/todos", "TodosController", "GetTodos",
-            [], [])
-        {
-            ExtractorName = "TestExtractor",
-            SourceFile = "src/Controllers/TodosController.cs",
-            LineNumber = 1,
-        });
-
-        // Set focus point to an unresolved endpoint
+        // Set an endpoint focus point
         ctx.Analysis.FocusPoints = [
             new FocusPoint(FocusKind.Endpoint, "", null, null,
                 HttpMethod: "GET", Route: "/todos"),
         ];
 
-        var pipeline = CreatePipeline();
+        // Extractor injects a matching EndpointDetection + handler TypeDiscovery
+        var extractors = new List<IDiscoveryExtractor>
+        {
+            new EndpointInjectorExtractor("GET", "/todos", "TodosController",
+                "GetTodos", @"src\Controllers\TodosController.cs"),
+        };
 
-        // Invoke the AnalyzeAsync method which includes ResolveEndpointFocusPoints after Stage 3
-        // But since AnalyzeAsync is async with stages, we need to invoke the resolution directly
-        // via reflection or by running the pipeline. We'll use the public API path.
+        var pipeline = new DiscoveryPipeline(
+            extractors, [], [],
+            new Dictionary<string, IContextRenderer> { ["markdown"] = new TestMarkdownRenderer() },
+            new NullLogger<DiscoveryPipeline>());
 
-        // Instead: we construct the pipeline and call AnalyzeAsync with a minimal context
-        // The pipeline's stage execution is complex; we test the resolver via a simpler path.
-        // Let's verify the resolver works by invoking ResolveEndpointFocusPoints via reflection.
+        var snapshot = await pipeline.AnalyzeAsync(ctx, default);
 
-        var resolveMethod = typeof(DiscoveryPipeline)
-            .GetMethod("ResolveEndpointFocusPoints",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-
-        Assert.NotNull(resolveMethod);
-        resolveMethod.Invoke(null, [ctx, model]);
-
-        Assert.Single(ctx.Analysis.FocusPoints);
-        var resolved = ctx.Analysis.FocusPoints[0];
+        Assert.NotNull(snapshot);
+        Assert.NotEmpty(snapshot.Analysis.FocusPoints);
+        var resolved = snapshot.Analysis.FocusPoints[0];
         Assert.Equal(FocusKind.Method, resolved.Kind);
         Assert.Equal("TodosController", resolved.TypeName);
         Assert.Equal("GetTodos", resolved.MethodName);
+        Assert.NotEmpty(resolved.FilePath);                                   // A2 lock
+        Assert.Contains(@"TodosController.cs", resolved.FilePath);
     }
 
     [Fact]
@@ -81,32 +110,35 @@ public sealed class EndpointFocusResolutionTests
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
             .WithRootPath("src");
-        var built = builder.BuildWithRecording();
-        var ctx = built.Context;
-
-        var model = new DiscoveryModel();
-        // No endpoint detection registered
+        var ctx = builder.Build();
 
         ctx.Analysis.FocusPoints = [
             new FocusPoint(FocusKind.Endpoint, "", null, null,
                 HttpMethod: "GET", Route: "/nonexistent"),
         ];
 
-        var resolveMethod = typeof(DiscoveryPipeline)
-            .GetMethod("ResolveEndpointFocusPoints",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        // Extractor injects no matching endpoint
+        var extractors = new List<IDiscoveryExtractor>
+        {
+            new EndpointInjectorExtractor("GET", "/todos", "TodosController",
+                "GetTodos", @"src\Controllers\TodosController.cs"),
+        };
 
-        Assert.NotNull(resolveMethod);
-        resolveMethod.Invoke(null, [ctx, model]);
+        var pipeline = new DiscoveryPipeline(
+            extractors, [], [],
+            new Dictionary<string, IContextRenderer> { ["markdown"] = new TestMarkdownRenderer() },
+            new NullLogger<DiscoveryPipeline>());
 
-        Assert.Single(ctx.Analysis.FocusPoints);
-        Assert.Equal(FocusKind.Endpoint, ctx.Analysis.FocusPoints[0].Kind); // unchanged
+        var snapshot = await pipeline.AnalyzeAsync(ctx, default);
 
-        Assert.Contains(model.Diagnostics, d =>
-            d is DiagnosticEntry diag &&
-            diag.Level == DiagnosticLevel.Warning &&
-            diag.Source == "EndpointFocusResolver" &&
-            diag.Message.Contains("/nonexistent"));
+        Assert.NotNull(snapshot);
+        Assert.Single(snapshot.Analysis.FocusPoints);
+        Assert.Equal(FocusKind.Endpoint, snapshot.Analysis.FocusPoints[0].Kind); // unchanged
+
+        Assert.Contains(snapshot.Model.Diagnostics, d =>
+            d.Level == DiagnosticLevel.Warning &&
+            d.Source == "EndpointFocusResolver" &&
+            d.Message.Contains("/nonexistent"));
     }
 
     [Fact]
@@ -119,24 +151,23 @@ public sealed class EndpointFocusResolutionTests
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
             .WithRootPath("src");
-        var built = builder.BuildWithRecording();
-        var ctx = built.Context;
-
-        var model = new DiscoveryModel();
+        var ctx = builder.Build();
 
         ctx.Analysis.FocusPoints = [
-            new FocusPoint(FocusKind.Type, "SomeFile.cs", "MyService", null),
+            new FocusPoint(FocusKind.Type, @"src\Services\MyService.cs", "MyService", null),
         ];
 
-        var resolveMethod = typeof(DiscoveryPipeline)
-            .GetMethod("ResolveEndpointFocusPoints",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        // No stage 3 extractors — type focus should pass through unchanged
+        var pipeline = new DiscoveryPipeline(
+            [], [], [],
+            new Dictionary<string, IContextRenderer> { ["markdown"] = new TestMarkdownRenderer() },
+            new NullLogger<DiscoveryPipeline>());
 
-        Assert.NotNull(resolveMethod);
-        resolveMethod.Invoke(null, [ctx, model]);
+        var snapshot = await pipeline.AnalyzeAsync(ctx, default);
 
-        Assert.Single(ctx.Analysis.FocusPoints);
-        Assert.Equal(FocusKind.Type, ctx.Analysis.FocusPoints[0].Kind);
-        Assert.Equal("MyService", ctx.Analysis.FocusPoints[0].TypeName);
+        Assert.NotNull(snapshot);
+        Assert.Single(snapshot.Analysis.FocusPoints);
+        Assert.Equal(FocusKind.Type, snapshot.Analysis.FocusPoints[0].Kind);
+        Assert.Equal("MyService", snapshot.Analysis.FocusPoints[0].TypeName);
     }
 }

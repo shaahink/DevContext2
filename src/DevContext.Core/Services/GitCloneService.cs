@@ -255,6 +255,12 @@ public sealed class GitCloneService : IDisposable
         return age.TotalHours >= maxAgeHours;
     }
 
+    public enum CloneAction { Clone, Reuse }
+
+    public static CloneAction DecideCloneAction(string clonePath, string cleanupMode) =>
+        cleanupMode == "24h" && Directory.Exists(clonePath) && !IsCloneStale(clonePath)
+            ? CloneAction.Reuse : CloneAction.Clone;
+
     private static readonly ConcurrentBag<string> _sessionClones = new();
 
     public static void RegisterForSessionCleanup(string path)

@@ -1,5 +1,6 @@
 using DevContext.Cli;
 using DevContext.Cli.Commands;
+using DevContext.Core.Services;
 
 var services = new ServiceCollection();
 services.AddSingleton<IFileSystem>(_ => new RealFileSystem());
@@ -32,4 +33,6 @@ app.Configure(config =>
     config.PropagateExceptions();
 });
 
-return await app.RunAsync(args);
+var exit = await app.RunAsync(args);
+GitCloneService.CleanupSession();
+return exit;

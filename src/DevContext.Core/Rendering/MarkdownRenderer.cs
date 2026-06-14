@@ -107,18 +107,12 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         preLen = sb.Length;
-        if (ShouldRender(SectionNames.AntiPatterns, options))
-        {
-            AppendAntiPatterns(sb, model);
-            TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
-        }
+        AppendAntiPatterns(sb, model);
+        TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
 
         preLen = sb.Length;
-        if (ShouldRender(SectionNames.EventFlow, options))
-        {
-            AppendEventFlow(sb, model);
-            TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
-        }
+        AppendEventFlow(sb, model);
+        TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
 
         if (ShouldRender(SectionNames.RelatedTypes, options))
         {
