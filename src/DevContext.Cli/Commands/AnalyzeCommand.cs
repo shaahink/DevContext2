@@ -178,6 +178,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     {
                         Format = options.OutputFormat.ToString().ToLowerInvariant(),
                         MaxTokens = options.MaxOutputTokens,
+                        MaxTypes = settings.MaxTypes,
                         Sections = scenario.RequiredSections,
                         IncludeProvenance = options.IncludeProvenance,
                         IncludeDiagnostics = options.IncludeDiagnostics,
@@ -315,25 +316,22 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             AnsiConsole.Write(extractorTable);
         }
 
-        // Scorer funnel
+        // Scorer summary
         if (report.Scorers.Length > 0)
         {
             AnsiConsole.WriteLine();
             var scorerTable = new Table()
                 .Border(TableBorder.Rounded)
-                .Title("Scorer Funnel")
+                .Title("Hard Exclusions")
                 .AddColumn("Scorer")
-                .AddColumn(new TableColumn("Before").RightAligned())
-                .AddColumn(new TableColumn("After").RightAligned())
-                .AddColumn(new TableColumn("Delta").RightAligned());
+                .AddColumn(new TableColumn("Checked").RightAligned())
+                .AddColumn(new TableColumn("Excluded").RightAligned());
 
             foreach (var sc in report.Scorers)
             {
-                var delta = sc.TypesBefore > 0
-                    ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
-                    : 0;
+                var excluded = sc.TypesBefore - sc.TypesAfter;
                 scorerTable.AddRow(sc.Name, sc.TypesBefore.ToString(),
-                    sc.TypesAfter.ToString(), $"{delta}%");
+                    excluded > 0 ? excluded.ToString() : "—");
             }
             AnsiConsole.Write(scorerTable);
         }

@@ -1,6 +1,9 @@
 ## DevContext — Slice on CleanArch
 
 **Architecture**: CleanArchitecture (100% confidence)
+> minimal-apis signal detected (confidence 80%)
+> Clean Architecture: MediatR + 3 named layers (infrastructure, domain, application)
+> N-layer: EF Core + 4 projects (web, infrastructure, domain)
 **Signals**: minimal-apis · mediatr · efcore
 **Projects**: 4 — Web, Infrastructure, Domain, Application
 **Profile**: focused | **Tokens**: ~607 (budget 8000) | **Types**: 4 in output

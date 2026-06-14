@@ -185,6 +185,12 @@ public sealed class MarkdownRenderer : IContextRenderer
             : "Not detected";
 
         sb.AppendLine($"**Architecture**: {style}");
+
+        if (!model.StyleEvidence.IsDefaultOrEmpty)
+        {
+            foreach (var item in model.StyleEvidence.Take(3))
+                sb.AppendLine($"> {item}");
+        }
     }
 
     private static void AppendSignals(StringBuilder sb, DiscoveryModel model)

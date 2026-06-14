@@ -13,7 +13,7 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.8f));
         model.Projects = [Project("WebApp")];
 
-        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        var (style, confidence, via, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.ControllerBased, style);
     }
 
@@ -24,7 +24,7 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.8f));
         model.Projects = [Project("WebApp")];
 
-        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        var (style, confidence, via, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.MinimalApi, style);
     }
 
@@ -35,7 +35,7 @@ public sealed class ArchitectureStyleDetectorTests
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
         model.Projects = [Project("Web"), Project("Core"), Project("Infrastructure")];
 
-        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        var (style, confidence, via, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.NLayer, style);
     }
 
@@ -50,7 +50,7 @@ public sealed class ArchitectureStyleDetectorTests
             Project("MyApp.Infrastructure")
         ];
 
-        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        var (style, confidence, via, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.CleanArchitecture, style);
     }
 }

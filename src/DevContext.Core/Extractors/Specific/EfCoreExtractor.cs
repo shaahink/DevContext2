@@ -137,7 +137,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     Confidence = 0.8f,
                 });
 
-                // Detect ApplyConfigurationsFromAssembly pattern
+                // Detect ApplyConfigurationsFromAssembly pattern — resolve to actual entity types
                 if (method.Body is not null)
                 {
                     foreach (var inv in method.Body.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -149,6 +149,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                             ?.Expression?.ToString() ?? "?";
                         model.AddDiagnostic(DiagnosticLevel.Info, extractorName,
                             $"{dbContextType} uses ApplyConfigurationsFromAssembly({arg}) for entity discovery.");
+
+                        ResolveEntitiesFromConfigurationTypes(model, dbContextType, filePath, lineNumber, extractorName);
                     }
                 }
             }
@@ -217,21 +219,27 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                         && gns.TypeArgumentList.Arguments.Count > 0)
                     {
                         var entityTypeName = gns.TypeArgumentList.Arguments[0].ToString();
-                        // Skip if it's a generic parameter from the enclosing method
                         if (entityTypeName.Length < 2 || entityTypeName[0] is 'T' or 't') continue;
 
-                        var keyProps = FindKeyProperties(entityTypeName);
-                        model.Detections.Add(new EfEntityDetection(
-                            EntityType: entityTypeName,
-                            DbContextType: dbContextType,
-                            IsAggregate: IsAggregateRootPattern(entityTypeName),
-                            KeyProperties: keyProps)
+                        if (methodName == "RegisterAllDerivedEntities")
                         {
-                            ExtractorName = "EfCoreExtractor",
-                            SourceFile = filePath,
-                            LineNumber = lineNumber,
-                            Confidence = 0.7f,
-                        });
+                            ResolveEntitiesDerivedFrom(entityTypeName, model, dbContextType, filePath, lineNumber);
+                        }
+                        else
+                        {
+                            var keyProps = FindKeyProperties(entityTypeName);
+                            model.Detections.Add(new EfEntityDetection(
+                                EntityType: entityTypeName,
+                                DbContextType: dbContextType,
+                                IsAggregate: IsAggregateRootPattern(entityTypeName),
+                                KeyProperties: keyProps)
+                            {
+                                ExtractorName = "EfCoreExtractor",
+                                SourceFile = filePath,
+                                LineNumber = lineNumber,
+                                Confidence = 0.7f,
+                            });
+                        }
                     }
                     else if (inv.ArgumentList.Arguments.Count > 0)
                     {
@@ -309,6 +317,73 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     });
                 }
             }
+        }
+    }
+
+    /// <summary>Resolves entity types from IEntityTypeConfiguration&lt;T&gt; implementations in the model.</summary>
+    private static void ResolveEntitiesFromConfigurationTypes(
+        DiscoveryModel model, string dbContextType, string filePath, int lineNumber, string extractorName)
+    {
+        foreach (var type in model.Types.Values)
+        {
+            foreach (var iface in type.ImplementedInterfaces)
+            {
+                // Match IEntityTypeConfiguration<T> or IEntityTypeConfiguration<T, ...>
+                var name = iface.Split('<')[0].Trim();
+                if (!name.EndsWith("IEntityTypeConfiguration", StringComparison.Ordinal)) continue;
+
+                // Extract the first generic argument as the entity type
+                var start = iface.IndexOf('<');
+                var end = iface.LastIndexOf('>');
+                if (start < 0 || end <= start) continue;
+
+                var args = iface[(start + 1)..end];
+                var firstArg = args.Split(',')[0].Trim();
+
+                if (firstArg.Length < 2 || firstArg is "T" or "TEntity") continue;
+
+                var keyProps = FindKeyProperties(firstArg);
+                model.Detections.Add(new EfEntityDetection(
+                    EntityType: firstArg,
+                    DbContextType: dbContextType,
+                    IsAggregate: IsAggregateRootPattern(firstArg),
+                    KeyProperties: keyProps)
+                {
+                    ExtractorName = extractorName,
+                    SourceFile = type.FilePath,
+                    LineNumber = lineNumber,
+                    Confidence = 0.85f,
+                });
+            }
+        }
+    }
+
+    /// <summary>Resolves entity types from all concrete types deriving from the given base type.</summary>
+    private static void ResolveEntitiesDerivedFrom(
+        string baseTypeName, DiscoveryModel model, string dbContextType, string filePath, int lineNumber)
+    {
+        foreach (var type in model.Types.Values)
+        {
+            if (type.Kind is DevContext.Core.Models.TypeKind.Interface or DevContext.Core.Models.TypeKind.Enum or DevContext.Core.Models.TypeKind.Delegate) continue;
+
+            // Check if the type's base types include the target, or its namespace is a sub-namespace
+            var derivesFrom = type.BaseTypes.Any(b =>
+                b == baseTypeName || b.Contains("." + baseTypeName, StringComparison.Ordinal));
+
+            if (!derivesFrom) continue;
+
+            var keyProps = FindKeyProperties(type.Name);
+            model.Detections.Add(new EfEntityDetection(
+                EntityType: type.Name,
+                DbContextType: dbContextType,
+                IsAggregate: IsAggregateRootPattern(type.Name),
+                KeyProperties: keyProps)
+            {
+                ExtractorName = "EfCoreExtractor",
+                SourceFile = type.FilePath,
+                LineNumber = lineNumber,
+                Confidence = 0.75f,
+            });
         }
     }
 }

@@ -39,7 +39,7 @@ public static class RenderPlanBuilder
         var included = ImmutableArray.CreateBuilder<string>();
         var excluded = ImmutableArray.CreateBuilder<PlannedExclusion>();
         var budget = Math.Max(0, request.MaxTokens - SafetyMargin);
-        var maxTypes = scenario.Pruning.MaxSurvivingTypes;
+        var maxTypes = request.MaxTypes ?? scenario.Pruning.MaxSurvivingTypes;
         var usedTokens = 0;
 
         // Pin: explicit focus types always included, exempt from caps

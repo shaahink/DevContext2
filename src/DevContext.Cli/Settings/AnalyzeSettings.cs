@@ -36,6 +36,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--max-tokens")]
     public int? MaxTokens { get; set; }
 
+    [Description("Maximum types in output (overrides scenario default)")]
+    [CommandOption("--max-types")]
+    public int? MaxTypes { get; set; }
+
     [Description("Write output to file")]
     [CommandOption("-o|--output")]
     public string? Output { get; set; }

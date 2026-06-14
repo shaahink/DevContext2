@@ -1,6 +1,8 @@
 ## DevContext — Overview on MinimalApiProject
 
 **Architecture**: MinimalApi (100% confidence)
+> minimal-apis signal detected (confidence 100%)
+> N-layer: EF Core + 3 projects (infrastructure, api, core)
 **Signals**: dapper · minimal-apis · mediatr · efcore
 **Projects**: 3 — Infrastructure, Api, Core
 **Profile**: focused | **Tokens**: ~642 (budget 8000) | **Types**: 5 in output

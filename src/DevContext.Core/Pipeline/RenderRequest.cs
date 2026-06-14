@@ -9,4 +9,5 @@ public sealed record RenderRequest
     public bool IncludeProvenance { get; init; }
     public bool IncludeDiagnostics { get; init; }
     public bool TokenView { get; init; }
+    public int? MaxTypes { get; init; }
 }

@@ -87,6 +87,9 @@ public sealed class RunReportCollector : IDiscoveryObserver
     public void SetCorpusFileCounts(int totalFiles, int csharpFiles)
         => _corpusStats = _corpusStats with { TotalFiles = totalFiles, CSharpFiles = csharpFiles };
 
+    public void SetProjectCount(int projectCount)
+        => _corpusStats = _corpusStats with { Projects = projectCount };
+
     public void SetBudget(int budget) => _budget = budget;
 
     /// <summary>Returns the budget value for funnel reporting.</summary>

@@ -118,6 +118,7 @@ public sealed class DiscoveryPipeline
         {
             var csharpFiles = context.Analysis.AllSourceFiles?.Count ?? 0;
             collector.SetCorpusFileCounts(0, csharpFiles);
+            collector.SetProjectCount(model.Projects.Length);
 
             if (context.Cache is AnalysisCache ac)
                 collector.SetCacheStats(ac.GetStats());
@@ -414,10 +415,11 @@ public sealed class DiscoveryPipeline
     /// </summary>
     private static void ApplyArchitectureStyle(DiscoveryModel model)
     {
-        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        var (style, confidence, via, evidence) = ArchitectureStyleDetector.Detect(model);
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = via ?? "ArchitectureStyleDetector";
+        model.StyleEvidence = evidence;
     }
 
     /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>
