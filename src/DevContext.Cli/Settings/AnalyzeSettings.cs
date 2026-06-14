@@ -40,7 +40,7 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("-o|--output")]
     public string? Output { get; set; }
 
-    [Description("Output format: markdown | json")]
+    [Description("Output format: markdown | json | html")]
     [CommandOption("--format")]
     public string? Format { get; set; }
 

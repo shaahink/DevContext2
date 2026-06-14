@@ -2,7 +2,7 @@ namespace DevContext.Cli.Services;
 
 public static class ServiceRegistration
 {
-    public static IServiceCollection AddDevContextServices(this IServiceCollection services, string rootPath, string? configPath = null)
+    public static IServiceCollection AddDevContextServices(this IServiceCollection services, string? configPath = null)
     {
         var config = configPath != null ? DevContextConfig.Load(configPath) : null;
 

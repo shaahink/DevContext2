@@ -13,23 +13,48 @@ public sealed class PathProximityPruner : IPruner
         var focusPoints = context.Analysis.FocusPoints;
         var maxDistance = context.ActiveScenario.Pruning.MaxPathDistance;
 
+        // Separate resolved (has file path) and unresolved focus points
+        var resolvedFps = focusPoints.Where(fp => !string.IsNullOrEmpty(fp.FilePath)).ToList();
+
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
 
-            if (focusPoints.Count == 0) continue; // no focus — path component stays 0
+            if (focusPoints.Count == 0) continue;
 
             var minDistance = int.MaxValue;
 
-            foreach (var fp in focusPoints)
+            // Path-based: directory distance from resolved focus points
+            foreach (var fp in resolvedFps)
             {
                 var dist = ComputeDirectoryDistance(type.FilePath, fp.FilePath);
                 if (dist < minDistance) minDistance = dist;
             }
 
-            type.PathProximityScore = minDistance == 0
-                ? 1.0f
-                : Math.Max(0.0f, 1.0f - (float)minDistance / Math.Max(maxDistance, 1));
+            // Name-based fallback for unresolved focus points (type not found by name match)
+            if (minDistance == int.MaxValue)
+            {
+                foreach (var fp in focusPoints)
+                {
+                    if (fp.TypeName is null) continue;
+                    // Boost types whose name or namespace contains the focus type name
+                    if (type.Name.Contains(fp.TypeName, StringComparison.OrdinalIgnoreCase)
+                        || (type.Namespace?.Contains(fp.TypeName, StringComparison.OrdinalIgnoreCase) == true))
+                    {
+                        var dist = 1; // near but not exact match
+                        if (string.Equals(type.Name, fp.TypeName, StringComparison.OrdinalIgnoreCase))
+                            dist = 0; // exact name match
+                        if (dist < minDistance) minDistance = dist;
+                    }
+                }
+            }
+
+            type.PathProximityScore = minDistance switch
+            {
+                0 => 1.0f,
+                int.MaxValue => 0.0f,
+                _ => Math.Max(0.0f, 1.0f - (float)minDistance / Math.Max(maxDistance, 1)),
+            };
         }
 
         return default;

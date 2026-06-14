@@ -98,6 +98,13 @@
     }
     else
     {
+        @if (VM.IsStale)
+        {
+            <div class="stale-banner">
+                <span>Inputs changed — output is out of date.</span>
+                <button class="btn-text" @onclick="() => VM.AnalyzeCommand.Execute(null)">Re-analyze</button>
+            </div>
+        }
         <div class="output-toolbar">
             <div class="tabs">
                 <button class="@(IsTabHuman?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>

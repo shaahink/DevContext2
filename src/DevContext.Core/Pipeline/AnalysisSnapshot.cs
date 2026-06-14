@@ -10,4 +10,6 @@ public sealed record AnalysisSnapshot
     public required RunReport Report { get; init; }
     public bool IsDryRun { get; init; }
     public string? DryRunContent { get; init; }
+    public string Explanation { get; init; } = "";
+    public ImmutableArray<string> Warnings { get; init; } = [];
 }

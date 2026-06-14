@@ -102,6 +102,9 @@ public sealed class DiscoveryPipeline
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
+        // Resolve endpoint focus points against detected endpoints (runs after Stage 3 fills model.Detections)
+        ResolveEndpointFocusPoints(context, model);
+
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
@@ -151,7 +154,7 @@ public sealed class DiscoveryPipeline
 
         var resolved = FocusPointResolver.Resolve(context.Analysis.UnresolvedFocusPoints, model);
         var failedToResolve = resolved
-            .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method
+            .Where((fp, i) => fp.Kind is FocusKind.Type or FocusKind.Method or FocusKind.Endpoint
                 && string.IsNullOrEmpty(fp.FilePath))
             .ToList();
 
@@ -176,6 +179,47 @@ public sealed class DiscoveryPipeline
         model.Architecture.Seal();
         context.Observer.OnSignalsSealed(model.Architecture.All);
         context.Observer.OnStageCompleted(PipelineStage.SignalSealing, sealSw.Elapsed);
+    }
+
+    private static void ResolveEndpointFocusPoints(DiscoveryContext context, DiscoveryModel model)
+    {
+        var endpointFps = context.Analysis.FocusPoints
+            .Where(fp => fp.Kind == FocusKind.Endpoint)
+            .ToList();
+
+        if (endpointFps.Count == 0) return;
+
+        var resolved = new List<FocusPoint>();
+        foreach (var fp in context.Analysis.FocusPoints)
+        {
+            if (fp.Kind != FocusKind.Endpoint)
+            {
+                resolved.Add(fp);
+                continue;
+            }
+
+            var match = model.Detections
+                .OfType<DevContext.Core.Models.EndpointDetection>()
+                .FirstOrDefault(d =>
+                    d.RouteTemplate.Equals(fp.Route, StringComparison.OrdinalIgnoreCase) &&
+                    (string.IsNullOrEmpty(fp.HttpMethod) ||
+                     d.HttpMethod.Equals(fp.HttpMethod, StringComparison.OrdinalIgnoreCase)));
+
+            if (match is not null)
+            {
+                resolved.Add(new FocusPoint(FocusKind.Method,
+                    match.HandlerType, match.HandlerType, match.HandlerMethod));
+            }
+            else
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, "EndpointFocusResolver",
+                    $"Route \"{fp.HttpMethod} {fp.Route}\" not found among {model.Detections.OfType<DevContext.Core.Models.EndpointDetection>().Count()} endpoints. "
+                    + "Falling back to unfocused scoring.");
+                resolved.Add(fp);
+            }
+        }
+
+        context.Analysis.FocusPoints = resolved.ToImmutableArray();
     }
 
     private async Task<AnalysisSnapshot> BuildDryRunSnapshotAsync(DiscoveryContext context, CancellationToken ct)
@@ -446,9 +490,9 @@ public sealed class DiscoveryPipeline
         foreach (var pruner in _pruners.OrderBy(p => p.Order))
         {
             ct.ThrowIfCancellationRequested();
-            var before = model.Types.Values.Count(t => !t.IsPruned);
+            var before = model.Types.Values.Count;
             await pruner.PruneAsync(ctx, model, ct);
-            var after = model.Types.Values.Count(t => !t.IsPruned);
+            var after = model.Types.Values.Count;
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
 

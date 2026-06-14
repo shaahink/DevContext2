@@ -46,8 +46,8 @@
         <section class="config-group">
             <h2 class="group-label">Source</h2>
             <div class="source-row">
-                <input class="input" placeholder="Path, .sln, .csproj, or github.com/user/repo"
-                       @bind="VM.ProjectPath" @bind:event="oninput" />
+            <input class="input" placeholder="Path, .sln, .csproj, or github.com/user/repo"
+                   @bind="VM.ProjectPath" />
             </div>
 
             @if (VM.IsGitHubUrl)
@@ -105,11 +105,22 @@
         <section class="config-group">
             <h2 class="group-label">Focus <span class="hint">(optional)</span></h2>
             <input class="input" placeholder="TypeName, Type:Method, or GET /api/route"
-                   @bind="VM.Around" @bind:event="oninput" />
+                   @bind="VM.Around" />
             <p class="field-hint">The starting point to slice from. Leave empty for overview map.</p>
         </section>
 
         @* ── Sections ───────────────────────────────────────────── *@
+        <section class="config-group">
+            <h2 class="group-label">Sections</h2>
+            @foreach (var s in VM.Sections)
+            {
+                <label class="toggle-label">
+                    <input type="checkbox" checked="@s.IsEnabled"
+                           @onchange="@(e => VM.SetSectionEnabled(s.Key, (bool)(e.Value ?? false)))" />
+                    @s.Label
+                </label>
+            }
+        </section>
 
         @* ── Token budget ─────────────────────────────────────────── *@
         <section class="config-group">

@@ -17,7 +17,7 @@ public sealed class AggressiveTruncator : ICompressionStrategy
         foreach (var type in model.Types.Values)
         {
             ct.ThrowIfCancellationRequested();
-            if (type.IsPruned || type.IsHardExcluded) continue;
+            if (type.IsHardExcluded) continue;
             if (string.IsNullOrEmpty(type.SourceBody)) continue;
 
             var cap = options.PerTypeCharCap;
@@ -82,7 +82,7 @@ public sealed class AggressiveTruncator : ICompressionStrategy
         var chars = 0;
         foreach (var type in model.Types.Values)
         {
-            if (type.IsPruned || type.IsHardExcluded) continue;
+            if (type.IsHardExcluded) continue;
             chars += type.Name?.Length ?? 0;
             chars += type.Namespace?.Length ?? 0;
             chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);

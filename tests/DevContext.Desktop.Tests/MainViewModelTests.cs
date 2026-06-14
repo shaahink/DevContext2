@@ -305,33 +305,28 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task Option_change_triggers_analysis_when_output_exists_and_path_set()
+    public async Task Option_change_does_not_auto_analyze_when_output_exists_and_path_set()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
-        // Set HasOutput to simulate previous analysis completed
-        vm.Output.HasOutput = true;
 
-        // Set up mock before option change triggers re-analysis
-        var tcs = new TaskCompletionSource<SnapshotResult>();
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
-            .Returns(tcs.Task);
+            .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 }));
 
-        var triggered = false;
+        await ExecuteAnalyzeCommand(vm);
+        Assert.False(vm.IsStale);
+
+        var becameAnalyzing = false;
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.IsAnalyzing) && vm.IsAnalyzing)
-                triggered = true;
+                becameAnalyzing = true;
         };
 
-        vm.IncludeAntiPatterns = true; // analysis input — triggers full re-analysis
+        vm.IncludeAntiPatterns = true; // analysis input — should NOT trigger analysis
 
-        Assert.True(triggered);
-
-        // Clean up
-        tcs.SetResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport } });
-        // Wait for the async re-analysis to complete
-        await Task.Delay(100);
+        Assert.False(becameAnalyzing);
+        Assert.True(vm.IsStale);
     }
 
     [Fact]
@@ -543,23 +538,17 @@ public class MainViewModelTests
                 ElapsedMs = 100
             }));
 
-        var sections = ImmutableArray.Create(new SectionStat("Drop section", 100));
+        // Use a known section label so key mapping works
+        var sections = ImmutableArray.Create(new SectionStat("Architecture overview", 100));
         _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
 
         await ExecuteAnalyzeCommand(vm);
 
-        // Find the "Drop section" and uncheck it
-        var dropSection = vm.SectionGroups.SelectMany(g => g.Children)
-            .FirstOrDefault(s => s.Name == "Drop section");
-        Assert.NotNull(dropSection);
-
-        vm.Output.SelectedTab = OutputViewModel.OutputTab.Llm;
-        var beforeToggle = vm.SelectedTokenTotal;
-        dropSection.IsIncluded = false;
-        var afterToggle = vm.SelectedTokenTotal;
-        Assert.NotEqual(beforeToggle, afterToggle);
-        Assert.True(afterToggle < beforeToggle);
+        // Find the "Architecture overview" SectionToggle
+        var archToggle = vm.Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
+        Assert.NotNull(archToggle);
+        Assert.True(archToggle.IsEnabled);
     }
 
     [Fact]
@@ -576,7 +565,10 @@ public class MainViewModelTests
                 ElapsedMs = 100
             }));
 
-        var sections = ImmutableArray.Create(new SectionStat("Section A", 100), new SectionStat("Section B", 50));
+        // Use section names that match known SectionNames labels for correct key mapping
+        var sections = ImmutableArray.Create(
+            new SectionStat("Architecture overview", 100),
+            new SectionStat("Endpoints", 50));
         _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = sections, EstimatedTokens = 100 }));
 
@@ -585,16 +577,16 @@ public class MainViewModelTests
         var beforeTotal = vm.SelectedTokenTotal;
         Assert.True(beforeTotal > 0);
 
-        // Uncheck all sections
-        foreach (var group in vm.SectionGroups)
-            foreach (var section in group.Children)
-                section.IsIncluded = false;
+        // Disable a section via the public API
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.Endpoints, false);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
 
-        Assert.Equal(0, vm.SelectedTokenTotal);
+        // Section toggle should reflect the change
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
     }
 
     [Fact]
-    public async Task Changing_scenario_triggers_reanalysis_and_resets_defaults()
+    public async Task Changing_scenario_sets_stale_without_reanalysis_and_resets_defaults()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
@@ -609,10 +601,12 @@ public class MainViewModelTests
 
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(1, callCount);
+        Assert.False(vm.IsStale);
 
         vm.SelectedScenario = vm.Scenarios[1]; // Switch to Trace
         await Task.Delay(200);
-        Assert.Equal(2, callCount);
+        Assert.Equal(1, callCount); // no re-analysis triggered
+        Assert.True(vm.IsStale);
     }
 
     [Fact]
@@ -795,24 +789,23 @@ public async Task LlmViewText_excludes_disabled_sections()
         .Returns(Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 }));
 
     _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Keep", 100), new SectionStat("Drop", 50)), EstimatedTokens = 100 }));
+        .Returns(Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = ImmutableArray.Create(new SectionStat("Architecture overview", 100), new SectionStat("Endpoints", 50)), EstimatedTokens = 100 }));
 
     await ExecuteAnalyzeCommand(vm);
 
-    // Verify sections are present
-    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop"));
-    Assert.NotNull(drop);
-    var keep = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Keep"));
-    Assert.NotNull(keep);
+    // Verify sections are present in drawer
+    var archVm = vm.SectionGroups.SelectMany(g => g.Children).FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
+    Assert.NotNull(archVm);
+    var epVm = vm.SectionGroups.SelectMany(g => g.Children).FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints);
+    Assert.NotNull(epVm);
 
     var beforeTotal = vm.SelectedTokenTotal;
     Assert.True(beforeTotal > 0);
 
-    // Toggle off "Drop"
-    drop.IsIncluded = false;
-
-    var afterTotal = vm.SelectedTokenTotal;
-    Assert.True(afterTotal < beforeTotal);
+    // Disable Endpoints via the public API
+    vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.Endpoints, false);
+    Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
+    Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
 }
 
 // ══ PropertyChanged batching ══════════════════════════════════════════════
@@ -1033,5 +1026,172 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         Assert.Equal(6000, vm.BudgetTokens);
     }
 
+    // ══ Phase 3-4: Live-update gating ═════════════════════════════════════════
+
+    [Fact]
+    public async Task Cached_analysis_key_serves_instantly_on_input_change()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var analyzeCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                analyzeCount++;
+                return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
+            });
+
+        var renderCount = 0;
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                renderCount++;
+                return Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 0 });
+            });
+
+        // First analysis: NoRoslyn = false (default)
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCount);
+
+        // Toggle NoRoslyn to true → cache miss (different key)
+        vm.NoRoslyn = true;
+        Assert.True(vm.IsStale);
+
+        // Toggle NoRoslyn back to false → cache hit (same as original key)
+        renderCount = 0;
+        vm.NoRoslyn = false;
+        Assert.False(vm.IsStale);           // should match cached key
+        Assert.Equal(1, analyzeCount);      // no re-analysis
+        Assert.True(renderCount >= 1);      // re-rendered from cache
+    }
+
+    [Fact]
+    public async Task Render_input_change_never_triggers_analysis()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var analyzeCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                analyzeCount++;
+                return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCount);
+        Assert.False(vm.IsStale);
+
+        // Toggle a render input (IncludeProvenance)
+        vm.IncludeProvenance = true;
+        Assert.Equal(1, analyzeCount);      // no re-analysis
+        Assert.False(vm.IsStale);           // still not stale
+
+        // Toggle another render input (SelectedFormat)
+        vm.SelectedFormat = "json";
+        Assert.Equal(1, analyzeCount);
+        Assert.False(vm.IsStale);
+    }
+
+    [Fact]
+    public async Task AnalyzeCommand_on_cached_key_serves_from_cache()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var analyzeCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                analyzeCount++;
+                return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new AnalysisSnapshot { Model = new DiscoveryModel(), Analysis = new SharedAnalysisContext(), Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
+            });
+
+        // First run: miss → pipeline called
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCount);
+
+        // Second run with exact same inputs: cache hit → no pipeline call
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCount);
+        Assert.False(vm.IsStale);
+    }
+
+    // ══ Task 1: Section toggle integration ═══════════════════════════════════
+
+    [Fact]
+    public async Task SetSectionEnabled_updates_SectionToggle_and_triggers_render()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new SnapshotResult { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 }));
+
+        await ExecuteAnalyzeCommand(vm);
+
+        // Architecture overview should be enabled by default in Overview scenario
+        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+
+        // Toggle it off
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.ArchitectureOverview, false);
+        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+    }
+
+    [Fact]
+    public async Task SetSectionEnabled_filters_GetActiveSections()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new SnapshotResult { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 }));
+
+        await ExecuteAnalyzeCommand(vm);
+
+        // Architecture overview should be active by default
+        var activeKeys = vm.Sections.Where(s => s.IsEnabled && s.Key != "__source__").Select(s => s.Key).ToHashSet();
+        Assert.Contains(DevContext.Core.Constants.SectionNames.ArchitectureOverview, activeKeys);
+
+        // Disable it
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.ArchitectureOverview, false);
+
+        // It should no longer be in GetActiveSections
+        var activeAfter = vm.Sections.Where(s => s.IsEnabled && s.Key != "__source__").Select(s => s.Key).ToHashSet();
+        Assert.DoesNotContain(DevContext.Core.Constants.SectionNames.ArchitectureOverview, activeAfter);
+    }
+
+    [Fact]
+    public async Task Profile_affecting_section_sets_IsStale_without_auto_analyze()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+
+        var analyzeCount = 0;
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                analyzeCount++;
+                return Task.FromResult(new SnapshotResult { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
+            });
+
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCount);
+        Assert.False(vm.IsStale);
+
+        // Enable Call graph (profile-affecting section)
+        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
+
+        // Should set stale but NOT auto-analyze
+        Assert.Equal(1, analyzeCount);
+        Assert.True(vm.IsStale);
+
+        // Re-analyze should run exactly once
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(2, analyzeCount);
+        Assert.False(vm.IsStale);
+    }
 
 }

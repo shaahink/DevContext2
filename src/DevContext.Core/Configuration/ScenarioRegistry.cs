@@ -21,7 +21,7 @@ public static class ScenarioRegistry
                 Name = "deep-dive",
                 DisplayName = "Slice",
                 Description = "Entry-point focused: call graph, handler chain, event flow",
-                Pruning = new PruningConfig { MaxPathDistance = 1, MaxCallDepth = 5, MaxSurvivingTypes = 25, RoleWeight = 0.35, FocusWeight = 0.65 },
+                Pruning = new PruningConfig { MaxPathDistance = 3, MaxCallDepth = 5, MaxSurvivingTypes = 25, RoleWeight = 0.35, FocusWeight = 0.65 },
                 Compression = new CompressionConfig { AggressiveTruncation = true },
                 RequiredSections = [SectionNames.Endpoints, SectionNames.CallGraph, SectionNames.MediatRHandlers, SectionNames.DataModel, SectionNames.MessageConsumers, SectionNames.DiRegistrations, SectionNames.BackgroundWorkers, SectionNames.MiddlewarePipeline]
             }

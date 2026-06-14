@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using LibGit2Sharp;
 
@@ -245,6 +246,26 @@ public sealed class GitCloneService : IDisposable
     {
         try { DeleteDirectoryRobust(localPath); }
         catch { /* best effort */ }
+    }
+
+    public static bool IsCloneStale(string clonePath, double maxAgeHours = 24)
+    {
+        if (!Directory.Exists(clonePath)) return true;
+        var age = DateTime.UtcNow - Directory.GetLastWriteTimeUtc(clonePath);
+        return age.TotalHours >= maxAgeHours;
+    }
+
+    private static readonly ConcurrentBag<string> _sessionClones = new();
+
+    public static void RegisterForSessionCleanup(string path)
+    {
+        _sessionClones.Add(path);
+    }
+
+    public static void CleanupSession()
+    {
+        while (_sessionClones.TryTake(out var path))
+            Cleanup(path);
     }
 
     private static void DeleteDirectoryRobust(string path)

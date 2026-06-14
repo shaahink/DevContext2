@@ -12,7 +12,7 @@ public class ServiceRegistrationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDevContextServices(".");
+        services.AddDevContextServices();
 
         var sp = services.BuildServiceProvider();
 

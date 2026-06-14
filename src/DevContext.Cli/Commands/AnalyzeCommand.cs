@@ -74,10 +74,10 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         // Build IntentInput from settings
         var focusInput = settings.Focus ?? settings.Around;
-        var focusText = focusInput is { Length: > 0 } ? focusInput[0] : null;
         var intentInput = new IntentInput
         {
-            Focus = focusText ?? settings.Task,
+            Focus = settings.Task,
+            Focuses = focusInput?.Length > 0 ? focusInput : null,
             Depth = settings.Depth,
             ExplicitScenario = settings.Scenario ?? config?.DefaultScenario,
             ExplicitProfile = settings.Profile ?? config?.DefaultProfile,
@@ -204,12 +204,20 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         ShowSummary(sw, rootResult, options, result);
 
-        // Clean up clone if auto-clean
+        // Clean up clone according to cleanup mode
         if (gitClonePath is not null)
         {
             var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
-            if (cleanup == "auto")
-                GitCloneService.Cleanup(gitClonePath);
+            switch (cleanup)
+            {
+                case "auto":
+                    GitCloneService.Cleanup(gitClonePath);
+                    break;
+                case "session":
+                    GitCloneService.RegisterForSessionCleanup(gitClonePath);
+                    break;
+                // "24h" and "keep" — no immediate cleanup; 24h freshness checked on next run
+            }
         }
 
         return 0;
@@ -237,7 +245,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
     private DiscoveryPipeline BuildPipeline(IAnalysisCache cache)
     {
         var services = new ServiceCollection();
-        services.AddDevContextServices(".");
+        services.AddDevContextServices();
         services.AddSingleton(_loggerFactory.CreateLogger<DiscoveryPipeline>());
         var sp = services.BuildServiceProvider();
         return sp.GetRequiredService<DiscoveryPipeline>();

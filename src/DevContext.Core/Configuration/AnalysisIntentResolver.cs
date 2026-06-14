@@ -4,6 +4,7 @@ namespace DevContext.Core.Configuration;
 public sealed record IntentInput
 {
     public string? Focus { get; init; }
+    public IReadOnlyList<string>? Focuses { get; init; }
     public int? Depth { get; init; }
     public string? ExplicitScenario { get; init; }
     public string? ExplicitProfile { get; init; }
@@ -40,7 +41,12 @@ public static class AnalysisIntentResolver
             throw new ArgumentException($"Unknown scenario: {scenarioKey}");
 
         // 2. Scenario: explicit → deep-dive if focus present → overview
-        var hasFocus = !string.IsNullOrWhiteSpace(input.Focus);
+        var allFocusTexts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(input.Focus))
+            allFocusTexts.Add(input.Focus);
+        if (input.Focuses is not null)
+            allFocusTexts.AddRange(input.Focuses.Where(f => !string.IsNullOrWhiteSpace(f)));
+        var hasFocus = allFocusTexts.Count > 0;
         var finalScenarioKey = scenarioKey ?? (hasFocus ? "deep-dive" : "overview");
         var scenario = ScenarioRegistry.BuiltIn[finalScenarioKey];
 
@@ -76,21 +82,19 @@ public static class AnalysisIntentResolver
 
         // 5. Focus parsing
         var focusPoints = ImmutableArray.CreateBuilder<FocusPoint>();
-        if (hasFocus)
+        foreach (var text in allFocusTexts)
         {
-            var text = input.Focus!.Trim();
+            var t = text.Trim();
 
-            // Endpoint route detection: contains '/' or starts with HTTP verb
-            if (text.Contains('/') || IsHttpVerbPrefixed(text))
+            if (t.Contains('/') || IsHttpVerbPrefixed(t))
             {
-                var (verb, route) = ParseEndpointFocus(text);
+                var (verb, route) = ParseEndpointFocus(t);
                 focusPoints.Add(new FocusPoint(FocusKind.Endpoint, "", null, null,
                     HttpMethod: verb, Route: route));
             }
             else
             {
-                // Parse Type or Type:Method (no filesystem needed here)
-                var fp = ParseTypeOrMethodFocus(text);
+                var fp = ParseTypeOrMethodFocus(t);
                 if (fp is not null)
                     focusPoints.Add(fp);
             }
@@ -102,16 +106,16 @@ public static class AnalysisIntentResolver
         {
             explanation = "Overview map (no focus).";
         }
-        else if (focusPoints.Count > 0 && focusPoints[0].Kind == FocusKind.Endpoint)
+        else if (focusPoints.Count == 1 && focusPoints[0].Kind == FocusKind.Endpoint)
         {
             var fp = focusPoints[0];
             explanation = $"Slicing from {fp.HttpMethod} {fp.Route} — handler resolved after scan.";
         }
         else
         {
-            var name = input.Focus!;
+            var names = string.Join(", ", allFocusTexts);
             var depthInfo = input.Depth is { } d ? $", depth {d}" : "";
-            explanation = $"Slicing from {name}{depthInfo}, call graph on.";
+            explanation = $"Slicing from {names}{depthInfo}, call graph on.";
         }
 
         // Warn when deep-dive has no focus

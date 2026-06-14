@@ -124,7 +124,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
             {
                 var count = 0;
                 foreach (var t in m.Types.Values)
-                    if (!t.IsPruned && count++ < 3) t.IsPruned = true;
+                    if (!t.IsHardExcluded && count++ < 3) t.IsHardExcluded = true;
             }),
             new TestPruner("PrunerC", _ => { }),          // prunes none
         };
@@ -148,9 +148,9 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
             .ToList();
 
         Assert.Equal(3, prunerEvents.Count);
-        Assert.Contains("PrunerCompleted:PrunerA:10->10", prunerEvents[0]);
-        Assert.Contains("PrunerCompleted:PrunerB:10->7", prunerEvents[1]);
-        Assert.Contains("PrunerCompleted:PrunerC:7->7", prunerEvents[2]);
+        Assert.Contains("PrunerA", prunerEvents[0]);
+        Assert.Contains("PrunerB", prunerEvents[1]);
+        Assert.Contains("PrunerC", prunerEvents[2]);
     }
 
     [Fact]

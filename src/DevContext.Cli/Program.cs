@@ -18,7 +18,7 @@ app.Configure(config =>
         .WithDescription("Analyze a .NET project and produce structured context")
         .WithExample(new[] { "analyze", "." })
         .WithExample(new[] { "analyze", "./src/MyApp.sln", "--scenario", "overview" })
-        .WithExample(new[] { "analyze", "--task", "debug why is this endpoint failing" });
+        .WithExample(new[] { "analyze", ".", "--focus", "MyService", "--focus", "GET /api/orders" });
 
     config.AddCommand<InitCommand>("init")
         .WithDescription("Create devcontext.json in the current directory");

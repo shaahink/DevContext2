@@ -48,7 +48,7 @@ public class AnalysisService : IAnalysisService
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddDevContextServices(rootPath);
+        services.AddDevContextServices();
         _serviceProvider = services.BuildServiceProvider();
         _cachedPipeline = _serviceProvider.GetRequiredService<DiscoveryPipeline>();
         return _cachedPipeline;
@@ -81,6 +81,9 @@ public class AnalysisService : IAnalysisService
         {
             return new SnapshotResult { Success = false, Error = ex.Message };
         }
+
+        var explanation = resolvedIntent.Explanation;
+        var focusWarnings = resolvedIntent.Warnings;
 
         // Build effective scenario: filter RequiredSections to what user selected.
         var scenario = opts.ActiveSections.Length > 0
@@ -150,6 +153,7 @@ public class AnalysisService : IAnalysisService
         try
         {
             var snapshot = await pipeline.AnalyzeAsync(ctx, ct);
+            snapshot = snapshot with { Explanation = explanation, Warnings = focusWarnings };
             sw.Stop();
             return new SnapshotResult
             {
@@ -276,6 +280,8 @@ public record SnapshotResult
     public AnalysisSnapshot? Snapshot { get; init; }
     public string? Error { get; init; }
     public long ElapsedMs { get; init; }
+    public string Explanation { get; init; } = "";
+    public ImmutableArray<string> Warnings { get; init; } = [];
 }
 
 public record RenderResult

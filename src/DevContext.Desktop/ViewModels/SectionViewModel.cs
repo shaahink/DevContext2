@@ -6,6 +6,7 @@ public enum TokenWeight { Light, Medium, Heavy, Critical }
 
 public partial class SectionViewModel : ObservableObject
 {
+    public string Key { get; init; } = "";
     public string Name { get; init; } = "";
     public string Category { get; init; } = "";
     public string FullText { get; init; } = "";

@@ -147,7 +147,6 @@ public static partial class GoldenTestHelper
             new PathProximityPruner(),
             new CallReachabilityPruner(),
             new PatternRelevancePruner(),
-            new TokenBudgetEnforcer(),
         };
 
         var compressors = new List<ICompressionStrategy>

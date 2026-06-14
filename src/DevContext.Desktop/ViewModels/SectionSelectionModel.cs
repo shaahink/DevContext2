@@ -155,15 +155,23 @@ public sealed class SectionSelectionModel
     /// <summary>Callback invoked when any section is toggled. The VM wires this to refresh itself.</summary>
     public Action? OnSectionChanged { get; set; }
 
+    /// <summary>Callback invoked when a specific section's include state changes (key, isIncluded).</summary>
+    public Action<string, bool>? OnSectionToggled { get; set; }
+
+    public bool IsBuildingSections { get; private set; }
+
     public (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionDataFromStat(
         ImmutableArray<SectionStat> sections)
     {
+        IsBuildingSections = true;
         var sectionVms = new List<SectionViewModel>();
 
         foreach (var stat in sections)
         {
+            var key = Sections.FirstOrDefault(s => s.Label == stat.Name)?.Key ?? stat.Name;
             var section = new SectionViewModel
             {
+                Key = key,
                 Name = stat.Name,
                 FullText = "",
                 RawTokens = stat.Tokens,
@@ -171,9 +179,11 @@ public sealed class SectionSelectionModel
                 Category = CategorizeSection(stat.Name),
             };
 
-            section.PropertyChanged += (_, _) =>
+            section.PropertyChanged += (_, e) =>
             {
                 RecalcTokenTotal();
+                if (e.PropertyName == nameof(SectionViewModel.IsIncluded))
+                    OnSectionToggled?.Invoke(key, section.IsIncluded);
                 OnSectionChanged?.Invoke();
             };
 
@@ -207,6 +217,7 @@ public sealed class SectionSelectionModel
         _totalTokens = totalTokens;
         _selectedTokenTotal = selectedTokens;
 
+        IsBuildingSections = false;
         return (groups, llmText, totalTokens, selectedTokens);
     }
 

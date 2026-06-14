@@ -28,7 +28,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly CancellableOperation _renderOp = new();
     private readonly CancellableOperation _validateOp = new();
     private readonly Debouncer _tokenDebouncer = new(500);
+    private readonly SnapshotCache _cache = new(capacity: 8);
     private AnalysisSnapshot? _snapshot;
+    private AnalysisKey? _displayedKey;
     private bool _isInitializing = true;
 
     // ── Output (forwarded from OutputViewModel) ───────────────────────────────
@@ -97,6 +99,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 ? (_output.IsAnalyzing ? "Analyzing..." : $"Analyze (~{SelectedTokenTotal:N0} tok)")
                 : (_output.IsAnalyzing ? "Analyzing..." : "Analyze");
 
+    private AnalysisKey BuildAnalysisKey() =>
+        new(ProjectPath, SelectedScenario.Value, Around, DerivedProfile, NoRoslyn, DryRun, IncludeAntiPatterns);
+
+    public bool IsStale =>
+        HasOutput && _displayedKey is not null && _displayedKey != BuildAnalysisKey();
+
     // ── GitHub repo analysis ────────────────────────────────────────────────────
     public bool IsGitAvailable => _git.IsGitAvailable;
 
@@ -162,7 +170,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public void SetSectionEnabled(string key, bool enabled)
     {
         _sections.SetSectionEnabled(key, enabled);
-        OnRenderInputChanged();
+        if (key == DevContext.Core.Constants.SectionNames.CallGraph || key == "__source__")
+            MarkAnalysisInputsChanged();
+        else
+            OnRenderInputChanged();
+    }
+
+    private void SetSectionEnabledSilent(string key, bool enabled)
+    {
+        _sections.SetSectionEnabled(key, enabled);
     }
 
     public List<ScenarioItem> Scenarios { get; } =
@@ -183,6 +199,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sections.OnSectionChanged = () =>
         {
             RebuildLlmViewText();
+        };
+        _sections.OnSectionToggled = (key, included) =>
+        {
+            SetSectionEnabledSilent(key, included);
+            if (!_sections.IsBuildingSections)
+                OnRenderInputChanged();
         };
         _output.PropertyChanged += (_, e) =>
         {
@@ -205,24 +227,33 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sections.SelectedScenarioValue = value.Value;
         OnPropertyChanged(nameof(IsTraceMode));
         ResetToScenarioDefaults();
-        OnAnalysisInputChanged();
+        MarkAnalysisInputsChanged();
     }
     partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
 
     partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
-    partial void OnAroundChanged(string value) => OnAnalysisInputChanged();
+    partial void OnAroundChanged(string value) => MarkAnalysisInputsChanged();
     partial void OnIncludeProvenanceChanged(bool value) => OnRenderInputChanged();
     partial void OnIncludeDiagnosticsChanged(bool value) => OnRenderInputChanged();
-    partial void OnNoRoslynChanged(bool value) => OnAnalysisInputChanged();
-    partial void OnDryRunChanged(bool value)                    => OnAnalysisInputChanged();
-    partial void OnIncludeAntiPatternsChanged(bool value)        => OnAnalysisInputChanged();
+    partial void OnNoRoslynChanged(bool value) => MarkAnalysisInputsChanged();
+    partial void OnDryRunChanged(bool value)                    => MarkAnalysisInputsChanged();
+    partial void OnIncludeAntiPatternsChanged(bool value)        => MarkAnalysisInputsChanged();
 
-    private void OnAnalysisInputChanged()
+    private void MarkAnalysisInputsChanged()
     {
         if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
-        AnalyzeCommand.Execute(null);
+        var key = BuildAnalysisKey();
+        if (_cache.TryGet(key, out var snapshot))
+        {
+            _snapshot = snapshot;
+            _displayedKey = key;
+            _ = RerenderAsync();
+        }
+
+        OnPropertyChanged(nameof(IsStale));
+        OnPropertyChanged(nameof(AnalyzeButtonText));
     }
 
     private void OnRenderInputChanged()
@@ -266,6 +297,21 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _output.RawContent = "";
         _output.HumanViewHtml = "";
         _snapshot = null;
+
+        var key = BuildAnalysisKey();
+
+        // Cache-hit fast path: skip clone + pipeline, serve from cache
+        if (_cache.TryGet(key, out var cached))
+        {
+            _snapshot = cached;
+            _displayedKey = key;
+            await RerenderAsync(ct).ConfigureAwait(true);
+            _output.HasOutput = true;
+            _output.IsAnalyzing = false;
+            _output.IsProgressVisible = false;
+            OnPropertyChanged(nameof(IsStale));
+            return;
+        }
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
@@ -320,6 +366,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (snapResult.Success && snapResult.Snapshot is not null)
             {
                 _snapshot = snapResult.Snapshot;
+                _cache.Set(key, _snapshot);
+                _displayedKey = key;
                 var elapsedMs = snapResult.ElapsedMs;
 
                 // Initial render from the snapshot
@@ -332,17 +380,28 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
                 _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                 _output.HasOutput = true;
-                _output.ProgressText = "Done";
+                _output.ProgressText = snapResult.Explanation.Length > 0
+                    ? snapResult.Explanation : "Done";
                 _sections.BudgetTokens = capturedBudget;
+                OnPropertyChanged(nameof(IsStale));
 
                 OnPropertyChanged(string.Empty);
 
-                // Clean up clone off UI thread
-                if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
+                // Clean up clone according to cleanup mode
+                if (_gitRepoUrl is { } gitRepo)
                 {
                     var clonePath = gitRepo.ClonePath;
-                    await System.Threading.Tasks.Task.Run(() =>
-                        GitCloneService.Cleanup(clonePath)).ConfigureAwait(false);
+                    switch (CloneCleanup)
+                    {
+                        case "auto":
+                            await System.Threading.Tasks.Task.Run(() =>
+                                GitCloneService.Cleanup(clonePath)).ConfigureAwait(false);
+                            break;
+                        case "session":
+                            GitCloneService.RegisterForSessionCleanup(clonePath);
+                            break;
+                        // "24h" and "keep" — no immediate cleanup; 24h freshness checked on next run
+                    }
                 }
             }
             else
@@ -478,6 +537,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _cache.Clear();
+        GitCloneService.CleanupSession();
         _analyzeOp.Dispose();
         _renderOp.Dispose();
         _validateOp.Dispose();

@@ -134,4 +134,31 @@ public sealed class AnalysisIntentResolverTests
         Assert.Equal("POST", result.FocusPoints[0].HttpMethod);
         Assert.Equal("/api/users", result.FocusPoints[0].Route);
     }
+
+    [Fact]
+    public void MultipleFocusPoints_ProducesMultipleEntries()
+    {
+        var result = AnalysisIntentResolver.Resolve(new IntentInput
+        {
+            Focuses = ["MyService", "OrderProcessor:HandleOrder"]
+        });
+        Assert.Equal(2, result.FocusPoints.Length);
+        Assert.Equal(FocusKind.Type, result.FocusPoints[0].Kind);
+        Assert.Equal("MyService", result.FocusPoints[0].TypeName);
+        Assert.Equal(FocusKind.Method, result.FocusPoints[1].Kind);
+        Assert.Equal("OrderProcessor", result.FocusPoints[1].TypeName);
+        Assert.Equal("HandleOrder", result.FocusPoints[1].MethodName);
+        Assert.Contains("MyService, OrderProcessor:HandleOrder", result.Explanation);
+    }
+
+    [Fact]
+    public void FocusAndFocuses_AreConsolidated()
+    {
+        var result = AnalysisIntentResolver.Resolve(new IntentInput
+        {
+            Focus = "MyService",
+            Focuses = ["OrderProcessor:HandleOrder"]
+        });
+        Assert.Equal(2, result.FocusPoints.Length);
+    }
 }
