@@ -172,7 +172,7 @@ public static partial class GoldenTestHelper
         return result;
     }
 
-    private static string GetFixturePath(string fixtureName)
+    internal static string GetFixturePath(string fixtureName)
     {
         var searchPaths = new[]
         {
