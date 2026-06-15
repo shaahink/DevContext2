@@ -152,10 +152,12 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             list.Add(edge);
         }
 
+        // BFS traversal from start keys to count reachable edges (for diagnostics only;
+        // the full graph is stored regardless so the renderer shows all resolved calls)
         var startKeys = GetStartKeys(context, model);
         var bfsDepth = new Dictionary<string, int>();
         var queue = new Queue<string>();
-        var includedEdges = new List<CallEdge>();
+        var bfsReachableCount = 0;
 
         foreach (var key in startKeys)
         {
@@ -174,18 +176,20 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
             foreach (var edge in edges)
             {
-                includedEdges.Add(edge);
+                bfsReachableCount++;
                 var calleeKey = $"{edge.CalleeType}.{edge.CalleeMethod}";
                 if (bfsDepth.TryAdd(calleeKey, depth + 1))
                     queue.Enqueue(calleeKey);
             }
         }
 
-        foreach (var edge in includedEdges)
+        // Store all resolved edges as CallEdges
+        foreach (var edge in allEdges)
             model.CallEdges.Add(edge);
 
+        // Store full adjacency in CallGraph — not just BFS-reachable subset
         var callGraphAdj = new Dictionary<string, ImmutableArray<CallEdge>>();
-        foreach (var edge in includedEdges)
+        foreach (var edge in allEdges)
         {
             ct.ThrowIfCancellationRequested();
             var key = $"{edge.CallerType}.{edge.CallerMethod}";
@@ -202,7 +206,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
         model.AddDiagnostic(DiagnosticLevel.Info, Name,
-            $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}");
+            $"Built call graph: {allEdges.Count} edges ({bfsReachableCount} BFS-reachable from focus at depth ≤ {maxDepth})");
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)

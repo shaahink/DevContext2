@@ -637,20 +637,23 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        // Determine which caller keys to focus on
-        var callerKeys = options.FocusPoints.IsDefaultOrEmpty
-            ? options.CallGraph.Edges.Keys.Take(5).ToList()
-            : options.FocusPoints
-                .Select(f => options.CallGraph.Edges.Keys.FirstOrDefault(k =>
-                    k.StartsWith(f.TypeName ?? "", StringComparison.OrdinalIgnoreCase)))
-                .Where(k => k is not null)
-                .Cast<string>()
-                .DefaultIfEmpty(options.CallGraph.Edges.Keys.FirstOrDefault() ?? "")
-                .Take(3)
-                .ToList();
+        // Show all caller types with their call trees
+        var callerKeys = options.CallGraph.Edges.Keys
+            .GroupBy(k => k.Contains('.') ? k[..k.LastIndexOf('.')] : k)
+            .SelectMany(g => g.OrderBy(k => k).Take(5)) // up to 5 methods per type
+            .ToList();
 
-        if (callerKeys.Count == 0 || callerKeys.All(string.IsNullOrEmpty))
-            callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
+        if (options.FocusPoints is { Length: > 0 })
+        {
+            // Prefer focus-matched callers first
+            var focusMatched = options.FocusPoints
+                .SelectMany(f => options.CallGraph.Edges.Keys.Where(k =>
+                    k.StartsWith(f.TypeName ?? "", StringComparison.OrdinalIgnoreCase)))
+                .Distinct()
+                .ToList();
+            if (focusMatched.Count > 0)
+                callerKeys = focusMatched.Concat(callerKeys.Except(focusMatched)).Take(20).ToList();
+        }
 
         sb.AppendLine("## Call graph");
         sb.AppendLine();
