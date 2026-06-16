@@ -58,6 +58,14 @@ public static class TraceRenderer
 
         sb.AppendLine();
 
+        // Salient body lines at --detail salient or full
+        if (detail >= TraceDetail.Salient && step.Salient.Length > 0)
+        {
+            var bodyIndent = indent + (isLast ? "       " : "\u2502      ");
+            foreach (var line in step.Salient)
+                sb.AppendLine(bodyIndent + line);
+        }
+
         if (step.Truncated)
         {
             sb.AppendLine(indent + (isLast ? "   " : "\u2502  ") + "(truncated — more edges beyond depth/fan-out)");

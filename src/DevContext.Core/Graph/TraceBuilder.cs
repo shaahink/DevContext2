@@ -17,6 +17,8 @@ public sealed record TraceStep(
     public ImmutableArray<TraceStep> Children { get; init; } = [];
     /// <summary>True when traversal stopped here (depth/fan-out/revisit) with more beyond.</summary>
     public bool Truncated { get; init; }
+    /// <summary>Salient source lines around the provenance site (1-3 lines, for --detail salient).</summary>
+    public ImmutableArray<string> Salient { get; init; } = [];
 }
 
 /// <summary>An entry-rooted trace: the call stack down the wiring, with indirection bridged.</summary>
@@ -65,7 +67,24 @@ public sealed class TraceBuilder
         var rootNode = _graph.Node(entry.Node)
             ?? new GraphNode(entry.Node, entry.Title, NodeKind.EntryPoint);
         var root = Walk(rootNode, SeamKind.Entry, entry.Provenance, Resolution.Join, 0, opts, follow, visited);
-        return new Trace(entry, root);
+        var touched = new List<string>();
+        var emitted = new List<string>();
+        CollectSummaries(root, touched, emitted);
+        return new Trace(entry, root)
+        {
+            TouchedEntities = [.. touched],
+            EmittedEvents = [.. emitted],
+        };
+    }
+
+    private static void CollectSummaries(TraceStep step, List<string> touched, List<string> emitted)
+    {
+        if (step.Node.Kind == NodeKind.Entity)
+            touched.Add(step.Node.Title);
+        if (step.Node.Kind == NodeKind.Event)
+            emitted.Add(step.Node.Title);
+        foreach (var child in step.Children)
+            CollectSummaries(child, touched, emitted);
     }
 
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
@@ -96,6 +115,8 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
+            var salient = ExtractSalient(node.SourceBody, edge.Provenance);
+
             // Framework-boundary stop: don't descend into generic framework internals
             if (IsFrameworkLeaf(child))
             {
@@ -103,12 +124,13 @@ public sealed class TraceBuilder
                 {
                     Provenance = edge.Provenance,
                     Resolution = edge.Resolution,
+                    Salient = salient,
                 });
                 continue;
             }
 
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
-                depth + 1, opts, follow, visited));
+                depth + 1, opts, follow, visited) with { Salient = salient });
         }
 
         return new TraceStep(node, seam, depth)
@@ -142,22 +164,32 @@ public sealed class TraceBuilder
             || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
-    /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service node and the class's
-    /// Type node are the same class with different ids: the Handles/Resolves/Consumes edge lands on the
-    /// Handler/Service node, but the class's own call/raise/data edges were attached to the Type node.
+    /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service/Member node and the class's
+    /// Type node are the same class with different ids: the Handles/Resolves/Consumes/Calls edge lands on the
+    /// Handler/Service/Member node, but the class's own call/raise/data edges were attached to the Type node.
     /// Without this bridge the trace dead-ends the moment it crosses an indirection seam into a handler.</summary>
     private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
     {
         foreach (var e in _graph.OutEdges(id))
             yield return e;
 
-        if (id.Kind is NodeKind.Handler or NodeKind.Service)
+        if (id.Kind is NodeKind.Handler or NodeKind.Service or NodeKind.Member)
         {
-            var twin = NodeId.ForType(id.Key);
+            var typeKey = id.Kind == NodeKind.Member
+                ? ExtractTypeKey(id.Key)
+                : id.Key;
+            var twin = NodeId.ForType(typeKey);
             if (_graph.Contains(twin))
                 foreach (var e in _graph.OutEdges(twin))
                     yield return e;
         }
+    }
+
+    /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>
+    private static string ExtractTypeKey(string memberKey)
+    {
+        var dot = memberKey.LastIndexOf('.');
+        return dot > 0 ? memberKey[..dot] : memberKey;
     }
 
     private bool HasFollowable(NodeId id, HashSet<EdgeKind> follow)
@@ -174,4 +206,30 @@ public sealed class TraceBuilder
         EdgeKind.WrappedBy => SeamKind.Pipeline,
         _ => SeamKind.Call,
     };
+
+    /// <summary>Extracts up to 3 salient source lines around a provenance line from SourceBody.</summary>
+    private static ImmutableArray<string> ExtractSalient(string? sourceBody, string? provenance)
+    {
+        if (string.IsNullOrEmpty(sourceBody) || string.IsNullOrEmpty(provenance))
+            return [];
+
+        var colon = provenance.LastIndexOf(':');
+        if (colon < 0 || !int.TryParse(provenance[(colon + 1)..], out var lineNumber))
+            return [];
+
+        var lines = sourceBody.Replace("\r\n", "\n").Split('\n');
+        var idx = lineNumber - 1; // provenance is 1-based
+        if (idx < 0 || idx >= lines.Length)
+            return [];
+
+        var salientLines = ImmutableArray.CreateBuilder<string>();
+        var context = 1; // 1 line before and after
+        for (var i = Math.Max(0, idx - context); i <= Math.Min(lines.Length - 1, idx + context); i++)
+        {
+            var line = lines[i].Trim();
+            if (line.Length > 0)
+                salientLines.Add(line);
+        }
+        return salientLines.ToImmutable();
+    }
 }

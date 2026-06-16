@@ -77,6 +77,8 @@ public sealed record GraphNode(
     public string? FilePath { get; init; }
     /// <summary>Owning project/service, when known.</summary>
     public string? Project { get; init; }
+    /// <summary>Full source body text of the type declaration (when applicable).</summary>
+    public string? SourceBody { get; init; }
     /// <summary>Free-form labels (e.g. "aggregate", "command", "scoped").</summary>
     public ImmutableArray<string> Tags { get; init; } = [];
 }
@@ -136,6 +138,9 @@ public sealed class CodeGraphBuilder
     private readonly Dictionary<NodeId, GraphNode> _nodes = [];
     private readonly Dictionary<NodeId, List<GraphEdge>> _out = [];
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
+
+    /// <summary>All nodes added so far.</summary>
+    public IEnumerable<GraphNode> Nodes => _nodes.Values;
 
     /// <summary>Adds a node, or returns the existing one with the same id (first write wins).</summary>
     public GraphNode AddNode(GraphNode node)

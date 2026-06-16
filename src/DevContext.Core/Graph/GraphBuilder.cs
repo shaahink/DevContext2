@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 
+using DevContext.Core.Models;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -30,6 +32,7 @@ public sealed class GraphBuilder
         AddTypeNodes(g, model, scope);                      // worked example
         var entries = AddHttpEntryPoints(g, model, scope, names);  // worked example
         AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
+        AddPipelineBehaviors(g, model, names, scope);       // B3: IPipelineBehavior → WrappedBy edges
 
         // ── P1 Map-facing seams ───────────────────────────────────────────
         AddEntityNodes(g, model, names, scope);             // B1: Entity nodes + aggregate tags
@@ -54,6 +57,7 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
             {
                 FilePath = type.FilePath,
+                SourceBody = type.SourceBody,
             });
         }
     }
@@ -87,15 +91,38 @@ public sealed class GraphBuilder
             if (!isLambdaHandler)
             {
                 var handlerFqn = names.Resolve(ep.HandlerType);
-                var handlerNodeId = NodeId.ForType(handlerFqn);
-                if (g.HasNode(handlerNodeId))
+                var methodName = ep.HandlerMethod;
+                var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
+                    && methodName is not "<lambda>" and not "<anonymous>"
+                    && !methodName.Contains("=>", StringComparison.Ordinal);
+
+                if (hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
                 {
-                    g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
+                    // B4: Anchor on the specific handler method via a Member node
+                    var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
+                    g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
+                    {
+                        FilePath = ep.SourceFile,
+                    });
+                    g.AddEdge(new GraphEdge(id, memberNodeId, EdgeKind.Calls)
                     {
                         Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                         Resolution = Resolution.Join,
                     });
                     linked = true;
+                }
+                else
+                {
+                    var handlerNodeId = NodeId.ForType(handlerFqn);
+                    if (g.HasNode(handlerNodeId))
+                    {
+                        g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
+                        {
+                            Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                            Resolution = Resolution.Join,
+                        });
+                        linked = true;
+                    }
                 }
             }
 
@@ -153,6 +180,71 @@ public sealed class GraphBuilder
             });
             // TODO(agent, P2): add the Sends edge — the member that constructs + dispatches h.RequestType → requestId.
         }
+    }
+
+    /// <summary>B3: Detects IPipelineBehavior registrations from DI detections and creates
+    /// WrappedBy edges from every Request node to each pipeline behavior. The trace renders
+    /// pipeline behaviors as a "pipeline" seam under the first send that reaches a Request.</summary>
+    private static void AddPipelineBehaviors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    {
+        var behaviors = new HashSet<(string BehaviorType, string? SourceFile, int? LineNumber)>();
+
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        {
+            if (!scope.Contains(di.SourceFile)) continue;
+
+            // Direct registration: services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
+            if (di.ServiceType.Contains("IPipelineBehavior", StringComparison.Ordinal))
+            {
+                var impl = CleanTypeRef(di.ImplementationType);
+                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                    behaviors.Add((impl, di.SourceFile, di.LineNumber));
+            }
+            // MediatR extension: services.AddMediatR(cfg => { cfg.AddOpenBehavior(typeof(LoggingBehavior<,>)); })
+            if (di.ExtensionsUsed.Contains("AddOpenBehavior") || di.ServiceType == "AddOpenBehavior")
+            {
+                var impl = CleanTypeRef(di.ImplementationType);
+                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                    behaviors.Add((impl, di.SourceFile, di.LineNumber));
+            }
+        }
+
+        foreach (var (behaviorType, file, line) in behaviors)
+        {
+            var behaviorFqn = names.Resolve(behaviorType);
+            var behaviorNodeId = NodeId.ForService(behaviorFqn);
+            g.AddNode(new GraphNode(behaviorNodeId, behaviorType, NodeKind.Service)
+            {
+                FilePath = file,
+                Tags = ["pipeline"],
+            });
+
+            // WrappedBy edge from every Request node to this pipeline behavior
+            foreach (var node in g.Nodes.Where(n => n.Kind == NodeKind.Request))
+            {
+                g.AddEdge(new GraphEdge(node.Id, behaviorNodeId, EdgeKind.WrappedBy)
+                {
+                    Provenance = file is not null && line is not null ? $"{file}:{line}" : null,
+                    Resolution = Resolution.Join,
+                });
+            }
+        }
+    }
+
+    /// <summary>Strips typeof(…) / nameof(…) / generics to get a raw type name.</summary>
+    private static string CleanTypeRef(string expr)
+    {
+        var s = expr.AsSpan().Trim();
+        // typeof(X) → X
+        if (s.StartsWith("typeof(", StringComparison.Ordinal) && s[^1] == ')')
+            s = s.Slice(7, s.Length - 8);
+        // nameof(X) → X
+        else if (s.StartsWith("nameof(", StringComparison.Ordinal) && s[^1] == ')')
+            s = s.Slice(7, s.Length - 8);
+        // Strip generic arity suffix: LoggingBehavior<,> → LoggingBehavior
+        var generic = s.IndexOf('<');
+        if (generic > 0) s = s.Slice(0, generic);
+        return s.ToString().Trim();
     }
 
     // ── P1 Map-facing seams (B1) — JOIN detections into graph nodes/edges ────────────────────────
@@ -397,6 +489,7 @@ public sealed class GraphBuilder
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
+            var handlerId = NodeId.ForHandler(type.Id);
 
             foreach (var method in eventMethods)
             {
@@ -415,6 +508,15 @@ public sealed class GraphBuilder
                         Resolution = Resolution.Syntactic,
                         Confidence = 0.5f,
                     });
+                    // B5: Mirror to Handler node so trace can cross from handler → event
+                    if (g.HasNode(handlerId))
+                    {
+                        g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
+                        {
+                            Resolution = Resolution.Syntactic,
+                            Confidence = 0.5f,
+                        });
+                    }
                 }
             }
 
@@ -436,6 +538,15 @@ public sealed class GraphBuilder
                     Resolution = Resolution.Syntactic,
                     Confidence = 0.5f,
                 });
+                // B5: Mirror to Handler node
+                if (g.HasNode(handlerId))
+                {
+                    g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.5f,
+                    });
+                }
             }
         }
     }
