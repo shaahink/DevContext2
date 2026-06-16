@@ -294,9 +294,9 @@ public sealed class DiscoveryPipeline
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
-        // ── PLAN-10 A3: Map/Trace branch — when the Graph is available (always after a full analyze),
-        // route to Map or Trace. Legacy catalog path only if Graph is null (dry-run).
-        if (snapshot.Graph is { } graph)
+        // ── PLAN-10 A3: Map/Trace branch — when the Graph is available with content (always after a
+        // full analyze). Fall back to legacy catalog when graph is empty/null (dry-run or minimal analysis).
+        if (snapshot.Graph is { NodeCount: > 0 } graph)
         {
             if (!string.IsNullOrEmpty(request.Entry))
             {

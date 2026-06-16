@@ -1,41 +1,23 @@
-## DevContext — Slice on MinimalApiProject
+MAP  MinimalApiProject     (3 projects)
 
-**Architecture**: CleanArchitecture (70% confidence)
-**Signals**: dapper · minimal-apis · mediatr · efcore
-**Projects**: 3 — Infrastructure, Api, Core
-**Profile**: focused | **Tokens**: ~642 (budget 8000) | **Types**: 5 in output
+STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core
 
----
-## Endpoints
+STYLE  CleanArchitecture  (confidence moderate)
+       evidence: DDD folder layers: Infrastructure, Api, Core; MediatR with 0 handlers
 
-**Api** (2 endpoints)
-| Method | Route | Handler | Auth | Source |
-|--------|-------|---------|------|--------|
-| POST | /orders | λ Program.cs:15 | - | Program.cs:15 |
-| GET | /orders | λ Program.cs:9 | - | Program.cs:9 |
+TOPOLOGY (depends-on)
+   Api
+   Core
+   Infrastructure
 
-## Call graph
+ENTRY POINTS
+   HTTP (2)
+      POST /orders  (src\Api\Program.cs:15)
+      GET /orders  (src\Api\Program.cs:9)
 
-Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
+PACKAGES
+   Web/API:  Microsoft.AspNetCore.OpenApi 10.0.0
+   ORM/Data:  Dapper 2.1.35, Microsoft.EntityFrameworkCore 10.0.0-preview.3.25171.5
+   Mediator/CQRS:  MediatR 12.0.0
 
-## MediatR Handlers
-
-| Kind | Request | Response | Handler |
-|------|---------|----------|---------|
-| Command | CreateOrderCommand | int | CreateOrderHandler |
-
-## Middleware pipeline
-
-| Type | Kind | Count | Sources |
-|------|------|-------|---------|
-| MapPost | MapX | 1 | Program.cs |
-| MapGet | MapX | 1 | Program.cs |
-
-## DI registrations
-
-| Lifetime | Service | Implementation | Source |
-|----------|---------|----------------|--------|
-| Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly) | Program.cs:5 |
-
----
-*Generated in {elapsed}ms | 7 types (5 active, 2 pruned) | Compression: TrivialMemberCompressor(−12%) · StructuralDeduplicator(−13%) | Schema v1.1*
+→ drill in:  trace <entry>        → list all:  trace --all

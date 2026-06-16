@@ -1,49 +1,25 @@
-## DevContext — Slice on CleanArch
+MAP  CleanArch     (4 projects)
 
-**Architecture**: CleanArchitecture (80% confidence)
-**Signals**: minimal-apis · mediatr · efcore
-**Projects**: 4 — Web, Infrastructure, Domain, Application
-**Profile**: focused | **Tokens**: ~607 (budget 8000) | **Types**: 4 in output
+STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core · DDD aggregates
 
----
-## Endpoints
+STYLE  CleanArchitecture  (confidence high)
+       evidence: DDD folder layers: Domain, Application, Infrastructure; MediatR with 0 handlers
 
-**Web** (1 endpoints)
-| Method | Route | Handler | Auth | Source |
-|--------|-------|---------|------|--------|
-| GET | /products | λ Program.cs:13 | - | Program.cs:13 |
+TOPOLOGY (depends-on)
+   Application
+   Domain
+   Infrastructure
+   Web
 
-## Call graph
+ENTRY POINTS
+   HTTP (1)
+      GET /products  (src\Web\Program.cs:13)
 
-Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.
+CROSS-CUTTING
+   Aggregates:   Product
 
-## MediatR Handlers
+PACKAGES
+   ORM/Data:  Microsoft.EntityFrameworkCore 10.0.0-preview.3.25171.5
+   Mediator/CQRS:  MediatR 12.0.0
 
-| Kind | Request | Response | Handler |
-|------|---------|----------|---------|
-| Command | GetProductsQuery | List<Product> | GetProductsHandler |
-
-## Data model (EF Core)
-
-### `AppDbContext`
-
-| Entity | Aggregate root | Key properties |
-|--------|---------------|----------------|
-| `Product` | — | Id |
-| `Product` | ✓ | Id |
-
-## Middleware pipeline
-
-| Type | Kind | Count | Sources |
-|------|------|-------|---------|
-| MapGet | MapX | 1 | Program.cs |
-
-## DI registrations
-
-| Lifetime | Service | Implementation | Source |
-|----------|---------|----------------|--------|
-| Extension | AddDbContext | AddDbContext → options =>... | Program.cs:8 |
-| Extension | AddMediatR | AddMediatR → cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) | Program.cs:7 |
-
----
-*Generated in {elapsed}ms | 4 types (4 active, 0 pruned) | Compression: TrivialMemberCompressor(−4%) | Schema v1.1*
+→ drill in:  trace <entry>        → list all:  trace --all

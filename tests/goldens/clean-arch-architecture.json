@@ -1,180 +1,25 @@
-{
-  "schemaVersion": "1.1",
-  "generatedAt": "{timestamp}",
-  "solution": {
-    "name": "CleanArch",
-    "filePath": "CleanArch.sln",
-    "projectPaths": [
-      "src\\Domain\\Domain.csproj",
-      "src\\Application\\Application.csproj",
-      "src\\Infrastructure\\Infrastructure.csproj",
-      "src\\Web\\Web.csproj"
-    ]
-  },
-  "architecture": {
-    "style": "CleanArchitecture",
-    "confidence": 0.8
-  },
-  "signals": [
-    {
-      "key": "efcore",
-      "confidence": 1,
-      "detected": true
-    },
-    {
-      "key": "mediatr",
-      "confidence": 1,
-      "detected": true
-    },
-    {
-      "key": "minimal-apis",
-      "confidence": 0.8,
-      "detected": true
-    }
-  ],
-  "projects": {
-    "count": 4,
-    "names": [
-      "Application",
-      "Domain",
-      "Infrastructure",
-      "Web"
-    ]
-  },
-  "typesSummary": {
-    "found": 4,
-    "inOutput": 4,
-    "prunedPercent": 0
-  },
-  "detections": [
-    {
-      "type": "DiRegistrationDetection",
-      "serviceType": "AddMediatR",
-      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly)",
-      "lifetime": "Extension",
-      "extensionsUsed": [
-        "AddMediatR"
-      ],
-      "shape": 0,
-      "extractorName": "DiRegistrationExtractor",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 7,
-      "confidence": 0.7
-    },
-    {
-      "serviceType": "AddDbContext",
-      "implementationType": "options =\u003E\r\n    options.UseSqlServer(builder.Configuration.GetConnectionString(\u0022Default\u0022))",
-      "lifetime": "Extension",
-      "extensionsUsed": [
-        "AddDbContext"
-      ],
-      "shape": 0,
-      "extractorName": "DiRegistrationExtractor",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 8,
-      "confidence": 0.7
-    },
-    {
-      "type": "EfEntityDetection",
-      "entityType": "Product",
-      "dbContextType": "AppDbContext",
-      "isAggregate": true,
-      "keyProperties": [
-        "Id"
-      ],
-      "extractorName": "EfCoreExtractor",
-      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
-      "lineNumber": 6,
-      "confidence": 1
-    },
-    {
-      "entityType": "Product",
-      "dbContextType": "AppDbContext",
-      "isAggregate": false,
-      "keyProperties": [
-        "Id"
-      ],
-      "extractorName": "EfCoreExtractor",
-      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
-      "lineNumber": 12,
-      "confidence": 0.7
-    },
-    {
-      "entityType": "\u003COnModelCreating\u003E",
-      "dbContextType": "AppDbContext",
-      "isAggregate": false,
-      "keyProperties": [],
-      "extractorName": "EfCoreExtractor",
-      "sourceFile": "src\\Infrastructure\\Data\\AppDbContext.cs",
-      "lineNumber": 12,
-      "confidence": 0.8
-    },
-    {
-      "type": "EndpointDetection",
-      "httpMethod": "GET",
-      "routeTemplate": "/products",
-      "handlerType": "async (IMediator mediator) =\u003E\r\n{\r\n    var products = await mediator.Send(new GetProductsQuery());\r\n    return Results.Ok(products);\r\n}",
-      "handlerMethod": "\u003Clambda\u003E",
-      "authAttributes": [],
-      "parameterTypes": [],
-      "extractorName": "EndpointExtractor",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 13,
-      "confidence": 1
-    },
-    {
-      "type": "MediatRHandlerDetection",
-      "requestType": "GetProductsQuery",
-      "responseType": "List\u003CProduct\u003E",
-      "handlerType": "GetProductsHandler",
-      "kind": 0,
-      "extractorName": "MediatRExtractor",
-      "sourceFile": "src\\Application\\Handlers\\GetProductsHandler.cs",
-      "lineNumber": 8,
-      "confidence": 1
-    },
-    {
-      "type": "MiddlewareDetection",
-      "middlewareType": "MapGet",
-      "pipelineOrder": 1,
-      "kind": 1,
-      "extractorName": "ProgramCsFlowExtractor",
-      "sourceFile": "src\\Web\\Program.cs",
-      "lineNumber": 13,
-      "confidence": 1
-    }
-  ],
-  "maxTokens": 607,
-  "runReport": {
-    "stages": [],
-    "extractors": [],
-    "scorers": [],
-    "compressions": [],
-    "cache": {
-      "textHits": 0,
-      "textMisses": 0,
-      "syntaxTreeHits": 0,
-      "syntaxTreeMisses": 0
-    },
-    "corpus": {
-      "totalFiles": 0,
-      "cSharpFiles": 0,
-      "projects": 0
-    },
-    "funnel": {
-      "typesDiscovered": 4,
-      "typesHardExcluded": 0,
-      "typesIncluded": 4,
-      "rawEstimatedTokens": 0,
-      "renderedEstimatedTokens": 0,
-      "budget": 0
-    },
-    "parallelism": {
-      "stage2Wall": "00:00:00",
-      "stage2CpuSum": "00:00:00",
-      "stage3Wall": "00:00:00",
-      "stage3CpuSum": "00:00:00"
-    },
-    "totalWall": "00:00:00"
-  }
-}
+MAP  CleanArch     (4 projects)
+
+STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core · DDD aggregates
+
+STYLE  CleanArchitecture  (confidence high)
+       evidence: DDD folder layers: Domain, Application, Infrastructure; MediatR with 0 handlers
+
+TOPOLOGY (depends-on)
+   Application
+   Domain
+   Infrastructure
+   Web
+
+ENTRY POINTS
+   HTTP (1)
+      GET /products  (src\Web\Program.cs:13)
+
+CROSS-CUTTING
+   Aggregates:   Product
+
+PACKAGES
+   ORM/Data:  Microsoft.EntityFrameworkCore 10.0.0-preview.3.25171.5
+   Mediator/CQRS:  MediatR 12.0.0
+
+→ drill in:  trace <entry>        → list all:  trace --all

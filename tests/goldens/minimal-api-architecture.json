@@ -1,156 +1,23 @@
-{
-  "schemaVersion": "1.1",
-  "generatedAt": "{timestamp}",
-  "solution": {
-    "name": "MinimalApiProject",
-    "filePath": "MinimalApiProject.sln",
-    "projectPaths": [
-      "src\\Api\\Api.csproj",
-      "src\\Core\\Core.csproj",
-      "src\\Infrastructure\\Infrastructure.csproj"
-    ]
-  },
-  "architecture": {
-    "style": "CleanArchitecture",
-    "confidence": 0.7
-  },
-  "signals": [
-    {
-      "key": "dapper",
-      "confidence": 1,
-      "detected": true
-    },
-    {
-      "key": "efcore",
-      "confidence": 1,
-      "detected": true
-    },
-    {
-      "key": "mediatr",
-      "confidence": 1,
-      "detected": true
-    },
-    {
-      "key": "minimal-apis",
-      "confidence": 1,
-      "detected": true
-    }
-  ],
-  "projects": {
-    "count": 3,
-    "names": [
-      "Api",
-      "Core",
-      "Infrastructure"
-    ]
-  },
-  "typesSummary": {
-    "found": 7,
-    "inOutput": 5,
-    "prunedPercent": 28.6
-  },
-  "detections": [
-    {
-      "type": "DiRegistrationDetection",
-      "serviceType": "AddMediatR",
-      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Program).Assembly)",
-      "lifetime": "Extension",
-      "extensionsUsed": [
-        "AddMediatR"
-      ],
-      "shape": 0,
-      "extractorName": "DiRegistrationExtractor",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 5,
-      "confidence": 0.7
-    },
-    {
-      "type": "EndpointDetection",
-      "httpMethod": "GET",
-      "routeTemplate": "/orders",
-      "handlerType": "async (IMediator mediator) =\u003E\r\n{\r\n    var orders = await mediator.Send(new GetOrdersQuery());\r\n    return Results.Ok(orders);\r\n}",
-      "handlerMethod": "\u003Clambda\u003E",
-      "authAttributes": [],
-      "parameterTypes": [],
-      "extractorName": "EndpointExtractor",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 9,
-      "confidence": 1
-    },
-    {
-      "httpMethod": "POST",
-      "routeTemplate": "/orders",
-      "handlerType": "async (CreateOrderCommand cmd, IMediator mediator) =\u003E\r\n{\r\n    var id = await mediator.Send(cmd);\r\n    return Results.Created($\u0022/orders/{id}\u0022, id);\r\n}",
-      "handlerMethod": "\u003Clambda\u003E",
-      "authAttributes": [],
-      "parameterTypes": [],
-      "extractorName": "EndpointExtractor",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 15,
-      "confidence": 1
-    },
-    {
-      "type": "MediatRHandlerDetection",
-      "requestType": "CreateOrderCommand",
-      "responseType": "int",
-      "handlerType": "CreateOrderHandler",
-      "kind": 0,
-      "extractorName": "MediatRExtractor",
-      "sourceFile": "src\\Api\\Handlers\\CreateOrderHandler.cs",
-      "lineNumber": 6,
-      "confidence": 1
-    },
-    {
-      "type": "MiddlewareDetection",
-      "middlewareType": "MapGet",
-      "pipelineOrder": 1,
-      "kind": 1,
-      "extractorName": "ProgramCsFlowExtractor",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 9,
-      "confidence": 1
-    },
-    {
-      "middlewareType": "MapPost",
-      "pipelineOrder": 2,
-      "kind": 1,
-      "extractorName": "ProgramCsFlowExtractor",
-      "sourceFile": "src\\Api\\Program.cs",
-      "lineNumber": 15,
-      "confidence": 1
-    }
-  ],
-  "maxTokens": 642,
-  "runReport": {
-    "stages": [],
-    "extractors": [],
-    "scorers": [],
-    "compressions": [],
-    "cache": {
-      "textHits": 0,
-      "textMisses": 0,
-      "syntaxTreeHits": 0,
-      "syntaxTreeMisses": 0
-    },
-    "corpus": {
-      "totalFiles": 0,
-      "cSharpFiles": 0,
-      "projects": 0
-    },
-    "funnel": {
-      "typesDiscovered": 7,
-      "typesHardExcluded": 0,
-      "typesIncluded": 7,
-      "rawEstimatedTokens": 0,
-      "renderedEstimatedTokens": 0,
-      "budget": 0
-    },
-    "parallelism": {
-      "stage2Wall": "00:00:00",
-      "stage2CpuSum": "00:00:00",
-      "stage3Wall": "00:00:00",
-      "stage3CpuSum": "00:00:00"
-    },
-    "totalWall": "00:00:00"
-  }
-}
+MAP  MinimalApiProject     (3 projects)
+
+STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core
+
+STYLE  CleanArchitecture  (confidence moderate)
+       evidence: DDD folder layers: Infrastructure, Api, Core; MediatR with 0 handlers
+
+TOPOLOGY (depends-on)
+   Api
+   Core
+   Infrastructure
+
+ENTRY POINTS
+   HTTP (2)
+      POST /orders  (src\Api\Program.cs:15)
+      GET /orders  (src\Api\Program.cs:9)
+
+PACKAGES
+   Web/API:  Microsoft.AspNetCore.OpenApi 10.0.0
+   ORM/Data:  Dapper 2.1.35, Microsoft.EntityFrameworkCore 10.0.0-preview.3.25171.5
+   Mediator/CQRS:  MediatR 12.0.0
+
+→ drill in:  trace <entry>        → list all:  trace --all
