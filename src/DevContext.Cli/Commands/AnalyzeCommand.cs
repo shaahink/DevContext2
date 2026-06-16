@@ -174,6 +174,14 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 }
                 else
                 {
+                    var traceDetail = settings.Detail?.ToLowerInvariant() switch
+                    {
+                        "signature" => TraceDetail.Signature,
+                        "salient" => TraceDetail.Salient,
+                        "full" => TraceDetail.Full,
+                        _ => TraceDetail.Salient,
+                    };
+
                     var request = new RenderRequest
                     {
                         Format = options.OutputFormat.ToString().ToLowerInvariant(),
@@ -182,6 +190,9 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         IncludeProvenance = options.IncludeProvenance,
                         IncludeDiagnostics = options.IncludeDiagnostics,
                         TokenView = options.TokenView,
+                        Entry = focusText,
+                        Depth = settings.Depth,
+                        Detail = traceDetail,
                     };
 
                     result = await pipeline.RenderAsync(capturedSnapshot, request, ct);

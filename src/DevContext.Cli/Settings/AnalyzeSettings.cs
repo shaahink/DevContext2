@@ -16,6 +16,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--depth")]
     public int? Depth { get; set; }
 
+    [Description("Trace detail level: signature | salient | full (default: salient)")]
+    [CommandOption("--detail")]
+    public string? Detail { get; set; }
+
     [Description("Entry point (alias for --focus)")]
     [CommandOption("-a|--around")]
     public string[]? Around { get; set; }

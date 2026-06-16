@@ -71,7 +71,6 @@ public sealed class TraceBuilder
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
     {
-        // Revisit guard + depth cap: render the node, but don't expand it again.
         if (!visited.Add(node.Id) || depth >= opts.MaxDepth)
             return new TraceStep(node, seam, depth)
             {
@@ -82,15 +81,32 @@ public sealed class TraceBuilder
 
         var edges = _graph.OutEdges(node.Id).Where(e => follow.Contains(e.Kind)).ToList();
 
-        // TODO(agent, P2): rank fan-out structurally before Take — prefer edges that lead toward a
-        // sink (Data write / Raise / another EntryPoint) over framework-leaf Calls.
-        var taken = edges.Take(opts.MaxFanOut).ToList();
+        // Structural ranking: prefer edges that lead to sinks (Data/Raise/Consumes) over framework
+        // leaf Calls. Sends/Handles/Resolves are medium priority. Calls are lowest.
+        var ranked = edges
+            .OrderBy(e => EdgePriority(e.Kind))
+            .ThenBy(e => e.Confidence != 1.0f ? 1 : 0)   // uncertain edges last
+            .ToList();
+
+        var taken = ranked.Take(opts.MaxFanOut).ToList();
 
         var children = ImmutableArray.CreateBuilder<TraceStep>(taken.Count);
         foreach (var edge in taken)
         {
             var child = _graph.Node(edge.To);
             if (child is null) continue;
+
+            // Framework-boundary stop: don't descend into generic framework internals
+            if (IsFrameworkLeaf(child))
+            {
+                children.Add(new TraceStep(child, ToSeam(edge.Kind), depth + 1)
+                {
+                    Provenance = edge.Provenance,
+                    Resolution = edge.Resolution,
+                });
+                continue;
+            }
+
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
                 depth + 1, opts, follow, visited));
         }
@@ -100,8 +116,30 @@ public sealed class TraceBuilder
             Provenance = provenance,
             Resolution = resolution,
             Children = children.ToImmutable(),
-            Truncated = edges.Count > taken.Count,
+            Truncated = ranked.Count > taken.Count,
         };
+    }
+
+    private static int EdgePriority(EdgeKind kind) => kind switch
+    {
+        EdgeKind.Sends => 0,     // highest: dispatch is the core story
+        EdgeKind.Handles => 1,   // handler is the response
+        EdgeKind.Raises => 2,    // events are important
+        EdgeKind.Consumes => 3,  // event consumption
+        EdgeKind.ReadsWrites => 4, // data access
+        EdgeKind.Resolves => 5,  // DI wiring
+        EdgeKind.WrappedBy => 6, // pipeline wrappers
+        _ => 7,                  // Calls — lowest priority, most likely to be framework noise
+    };
+
+    private static bool IsFrameworkLeaf(GraphNode node)
+    {
+        var title = node.Title;
+        return title.StartsWith("Microsoft.", StringComparison.Ordinal)
+            || title.StartsWith("System.", StringComparison.Ordinal)
+            || title == "DbContext"
+            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher"
+            || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
     private bool HasFollowable(NodeId id, HashSet<EdgeKind> follow)
