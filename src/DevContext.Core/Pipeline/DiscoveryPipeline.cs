@@ -4,7 +4,9 @@ using System.Text;
 
 using DevContext.Core.Analysis;
 using DevContext.Core.Extractors.Generic;
+using DevContext.Core.Graph;
 using DevContext.Core.Observers;
+using DevContext.Core.Rendering;
 using DevContext.Core.Validation;
 
 namespace DevContext.Core.Pipeline;
@@ -109,6 +111,18 @@ public sealed class DiscoveryPipeline
                 "Re-run with '--profile debug' to enable call graph.");
         }
 
+        // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
+        // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
+        // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
+        var scope = SolutionScope.FromModel(model);
+        var graphResolver = new SyntacticSymbolResolver();
+        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
+        var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
+        var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
+        model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
+            $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
+            + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
+
         await RunScoringAsync(context, model, ct);
         await RunCompressionAsync(context, model, ct);
 
@@ -129,6 +143,9 @@ public sealed class DiscoveryPipeline
             Analysis = context.Analysis,
             Scenario = context.ActiveScenario,
             Options = context.Options,
+            Graph = codeGraph,
+            Map = mapModel,
+            Entries = entryPoints,
             Report = collector?.Build() ?? new RunReport
             {
                 Stages = [],
@@ -277,6 +294,36 @@ public sealed class DiscoveryPipeline
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
+        // ── PLAN-10 A3: Map/Trace branch — bypasses RenderPlanBuilder when Graph is available and no
+        // explicit Sections override. The old path stays reachable for legacy format behind Sections.
+        if (snapshot.Graph is { } graph && request.Sections.IsDefaultOrEmpty)
+        {
+            if (!string.IsNullOrEmpty(request.Entry))
+            {
+                var entry = snapshot.Entries.FirstOrDefault(e =>
+                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase));
+                if (entry is not null)
+                {
+                    var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
+                    {
+                        MaxDepth = request.Depth ?? 6,
+                        MaxFanOut = 12,
+                    });
+                    var traceRenderer = new TraceRenderer();
+                    var traceContent = traceRenderer.Render(trace, request.Detail);
+                    return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
+                }
+            }
+
+            // No entry chosen — render the Map.
+            if (snapshot.Map is { } mapModel)
+            {
+                var mapCtx = new MapRenderContext(mapModel, snapshot, request.Format, request);
+                var mapRenderer = new MapRenderer();
+                return await mapRenderer.RenderAsync(mapCtx, ct);
+            }
+        }
+
         var plan = RenderPlanBuilder.Build(snapshot, request);
 
         var opts = new RenderOptions(

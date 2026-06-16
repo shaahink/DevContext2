@@ -1,3 +1,5 @@
+using DevContext.Core.Graph;
+
 namespace DevContext.Core.Pipeline;
 
 /// <summary>Immutable result of the analyze phase. The model must not be mutated after this is created.</summary>
@@ -10,4 +12,13 @@ public sealed record AnalysisSnapshot
     public required RunReport Report { get; init; }
     public bool IsDryRun { get; init; }
     public string? DryRunContent { get; init; }
+    public string Explanation { get; init; } = "";
+    public ImmutableArray<string> Warnings { get; init; } = [];
+
+    /// <summary>Connected code graph assembled at analyze-time (PLAN-10). Null on dry-run.</summary>
+    public CodeGraph? Graph { get; init; }
+    /// <summary>Orientation map derived from the graph (PLAN-10). Null on dry-run.</summary>
+    public MapModel? Map { get; init; }
+    /// <summary>Entry-point inventory — the roots a Trace can start from (PLAN-10).</summary>
+    public ImmutableArray<EntryPoint> Entries { get; init; } = [];
 }
