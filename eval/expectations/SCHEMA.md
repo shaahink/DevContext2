@@ -45,3 +45,14 @@ evaluation repository. Each file lives in `eval/expectations/<name>.json`.
 - `expected` — must pass. Test failure blocks the gate.
 - `aspirational` — known defect. Failure is printed but not blocking.
   Flip to `expected` in the same commit that fixes the underlying issue.
+
+## Two validation tiers (read before trusting a green gate)
+
+These JSON files validate the **detection substrate** (counts, signals, arch-style) over a no-focus
+(overview/Map) run. They were authored in iteration-4 for the *catalog* output and say nothing about
+the product after the catalog→trace pivot: a trace that came out **empty** still passes every check
+here. So the gate has a second tier — **`TraceQualityTests`** focuses one entry per archetype and
+asserts the Trace actually bridges indirection (handler joins, data/event seams). That is the
+regression guard for the empty-trace class of bug; express trace assertions there, not in these JSON
+files (they run a Map, not a Trace). `iteration-4:` notes predate the pivot — verify before trusting,
+and ratchet aspirational→expected the moment a repo passes (last refresh: 2026-06-16).

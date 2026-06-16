@@ -1,8 +1,8 @@
 {
   "repo": "eval-repos/eShop",
   "checks": [
-    { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "Microservices", "status": "aspirational", "note": "iteration-4: misdetected as MinimalApi — topology signals (AppHost, multi-service) are outranked by per-service endpoint style" },
-    { "id": "aspire-signal",  "type": "signal-present", "value": "aspire", "status": "aspirational", "note": "iteration-4: Aspire AppHost project exists but Aspire signal is not consistently detected" },
+    { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "Microservices", "status": "aspirational", "note": "whole-repo scan now reads CleanArchitecture (MediatR + DDD folders), no longer MinimalApi. Microservices requires the Aspire signal + constellation scope — see aspire-signal. Updated 2026-06-16." },
+    { "id": "aspire-signal",  "type": "signal-present", "value": "aspire", "status": "aspirational", "note": "Aspire AppHost project exists but the Aspire signal is not detected (package is Aspire.Hosting.*, not 'Microsoft.Aspire'). Fix DependencyExtractor package map." },
     { "id": "efcore-signal",  "type": "signal-present", "value": "efcore", "status": "expected" },
     { "id": "mediatr-signal", "type": "signal-present", "value": "mediatr", "status": "expected" },
     { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "expected" },
