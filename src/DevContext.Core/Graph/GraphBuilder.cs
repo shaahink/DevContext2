@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -35,9 +37,10 @@ public sealed class GraphBuilder
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
         // ── P2 Trace-facing seams ─────────────────────────────────────────
-        AddRaises(g, model);                                // TODO(agent, P2)
-        AddDataEdges(g, model);                             // TODO(agent, P2)
-        AddCallEdges(g, model);                             // TODO(agent, P2 approx → P3 semantic)
+        AddRaises(g, model, names);                         // C1: Raises edges from body scan
+        AddSends(g, model, names);                          // C1: Sends edges from .Send(new X())
+        AddDataEdges(g, model, names);                      // C1: ReadsWrites edges from entities
+        AddCallEdges(g, model);                             // C1: Calls edges from CallEdges (approx)
 
         return (g.Build(), entries);
     }
@@ -260,16 +263,204 @@ public sealed class GraphBuilder
         }
     }
 
-    // ── P2 Trace-facing TODO seams — agent fills in C1 ─────────────────────────────────────────
+    // ── P2 Trace-facing seams (C1) — joins that complete the indirection-bridged trace ─────────
 
-    /// <summary>TODO(agent, P2 C1): scan handler/ctor bodies for AddDomainEvent(new X) / new XIntegrationEvent → Raises edges.</summary>
-    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model) { _ = g; _ = model; }
+    /// <summary>C1: model.CallEdges → Calls edges. Mark Resolution.Syntactic (approx) — P3 upgrades to Semantic.
+    /// Every CallEdge becomes a Calls edge between Member nodes. Falls back to Type nodes when the type
+    /// is not in the graph.</summary>
+    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model)
+    {
+        foreach (var ce in model.CallEdges)
+        {
+            var callerMemberId = NodeId.ForMember(ce.CallerType, ce.CallerMethod);
+            var calleeMemberId = NodeId.ForMember(ce.CalleeType, ce.CalleeMethod);
 
-    /// <summary>TODO(agent, P2 C1): EfEntityDetection + body usage → Entity/DataStore nodes + ReadsWrites edges.</summary>
-    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model) { _ = g; _ = model; }
+            // Ensure type nodes exist for both ends (if not already)
+            EnsureTypeNode(g, ce.CallerType);
+            EnsureTypeNode(g, ce.CalleeType);
 
-    /// <summary>TODO(agent, P2 C1 → P3 semantic): model.CallEdges resolved via ISymbolResolver → Calls edges.</summary>
-    private void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model) { _ = g; _ = model; _ = _resolver; }
+            // Prefer Member→Member edge; fall back to Type→Type
+            var from = g.HasNode(callerMemberId) ? callerMemberId : NodeId.ForType(ce.CallerType);
+            var to = g.HasNode(calleeMemberId) ? calleeMemberId : NodeId.ForType(ce.CalleeType);
+
+            g.AddEdge(new GraphEdge(from, to, EdgeKind.Calls)
+            {
+                Provenance = ce.CallSiteLocation,
+                Resolution = Resolution.Syntactic,
+                Confidence = 0.6f,
+            });
+        }
+    }
+
+    /// <summary>C1: Link EF entities to their handler types via body references + DbContext info.
+    /// For each entity detection, find handler types whose SourceBody references the entity name,
+    /// and add ReadsWrites edges from the handler type to the entity.</summary>
+    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    {
+        var entityNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var e in model.Detections.OfType<EfEntityDetection>())
+        {
+            var entityFqn = names.Resolve(e.EntityType);
+            var entityId = NodeId.ForEntity(entityFqn);
+            var ctxFqn = names.Resolve(e.DbContextType);
+            var ctxType = ctxFqn;
+            if (!string.IsNullOrEmpty(ctxType) && ctxType != "?")
+            {
+                var ctxId = NodeId.ForType(ctxType);
+                g.AddNode(new GraphNode(ctxId, ctxType, NodeKind.DataStore)
+                {
+                    FilePath = e.SourceFile,
+                });
+                g.AddEdge(new GraphEdge(entityId, ctxId, EdgeKind.ReadsWrites)
+                {
+                    Provenance = $"{e.SourceFile}:{e.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+            }
+            entityNames.Add(RemoveGenerics(e.EntityType));
+            entityNames.Add(RemoveGenerics(entityFqn));
+        }
+
+        // Link handler/consumer types that reference entities in their bodies
+        foreach (var type in model.Types.Values)
+        {
+            if (type.SourceBody is not { Length: > 0 } body) continue;
+            foreach (var entityName in entityNames)
+            {
+                if (!body.Contains(entityName, StringComparison.Ordinal)) continue;
+                var typeId = NodeId.ForType(type.Id);
+                var entityId = NodeId.ForEntity(entityName);
+                if (!g.HasNode(typeId) || !g.HasNode(entityId)) continue;
+
+                g.AddEdge(new GraphEdge(typeId, entityId, EdgeKind.ReadsWrites)
+                {
+                    Resolution = Resolution.Syntactic,
+                    Confidence = 0.5f,
+                });
+                break;
+            }
+        }
+    }
+
+    /// <summary>C1: Scan handler/ctor SourceBody for domain/integration event creation → Raises edges.
+    /// Per R4: matches method-name set {AddDomainEvent, RaiseDomainEvent, AddEvent} with new TEvent()
+    /// arg; also new TIntegrationEvent(...) constructor calls. Returns Raises edges from the type
+    /// (or its handler node) to the Event node. Mark Resolution.Syntactic.</summary>
+    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    {
+        var eventMethods = new[] { "AddDomainEvent", "RaiseDomainEvent", "AddEvent" };
+        foreach (var type in model.Types.Values)
+        {
+            if (type.SourceBody is not { Length: > 0 } body) continue;
+            var typeId = NodeId.ForType(type.Id);
+
+            foreach (var method in eventMethods)
+            {
+                foreach (Match match in Regex.Matches(body,
+                    $@"{Regex.Escape(method)}\s*\(\s*new\s+(\w+)\s*\(", RegexOptions.Compiled))
+                {
+                    var eventName = match.Groups[1].Value;
+                    var eventFqn = names.Resolve(eventName);
+                    var eventId = NodeId.ForEvent(eventFqn);
+                    if (!g.HasNode(typeId)) continue;
+
+                    g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event));
+                    g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.5f,
+                    });
+                }
+            }
+
+            // new TIntegrationEvent(...) — constructor calls for integration events
+            foreach (Match match in Regex.Matches(body,
+                @"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled))
+            {
+                var eventName = match.Groups[1].Value;
+                var eventFqn = names.Resolve(eventName);
+                var eventId = NodeId.ForEvent(eventFqn);
+                if (!g.HasNode(typeId)) continue;
+
+                g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event)
+                {
+                    Tags = ["integration-event"],
+                });
+                g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                {
+                    Resolution = Resolution.Syntactic,
+                    Confidence = 0.5f,
+                });
+            }
+        }
+    }
+
+    /// <summary>C1: Scan bodies for MediatR Send/Publish dispatch → Sends edges.
+    /// Per R4: matches .Send/.SendAsync/.Publish/.PublishAsync where the receiver is a mediator
+    /// field/property, with a new TRequest(...) inline arg or a local-variable arg.
+    /// Creates Sends edge from the calling type to the request node.</summary>
+    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    {
+        foreach (var type in model.Types.Values)
+        {
+            if (type.SourceBody is not { Length: > 0 } body) continue;
+            var typeId = NodeId.ForType(type.Id);
+
+            // Find all Send/Publish calls with either inline `new T()` or a variable arg.
+            // Pattern: .Send(expr) where expr is either `new Type(...)` or a local name.
+            foreach (Match match in Regex.Matches(body,
+                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+                RegexOptions.Compiled))
+            {
+                string? requestName;
+                if (match.Groups[2].Success)
+                {
+                    // Inline: .Send(new CreateOrderCommand(...))
+                    requestName = match.Groups[2].Value;
+                }
+                else
+                {
+                    // Variable: .Send(cmd) — try to find `cmd` assignment via `new T()` before this call
+                    var varName = match.Groups[3].Value;
+                    var pos = match.Index;
+                    if (pos <= 0) continue;
+                    var before = body[..pos];
+                    // Find `new XType ` occurring before this Send, closest to the call
+                    var newMatches = Regex.Matches(before, @"new\s+(\w+)\s*[\(;]");
+                    if (newMatches.Count == 0) continue;
+                    // Pick the last `new XType` before the Send call as the likely request type
+                    requestName = newMatches[^1].Groups[1].Value;
+                }
+
+                if (string.IsNullOrEmpty(requestName)) continue;
+                var requestFqn = names.Resolve(requestName);
+                var requestId = NodeId.ForRequest(requestFqn);
+                if (!g.HasNode(typeId)) continue;
+
+                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Request));
+                g.AddEdge(new GraphEdge(typeId, requestId, EdgeKind.Sends)
+                {
+                    Resolution = Resolution.Syntactic,
+                    Confidence = 0.55f,
+                });
+            }
+        }
+    }
+
+    private static void EnsureTypeNode(CodeGraphBuilder g, string typeId)
+    {
+        if (!g.HasNode(NodeId.ForType(typeId)))
+        {
+            var name = typeId.Contains('.') ? typeId[(typeId.LastIndexOf('.') + 1)..] : typeId;
+            g.AddNode(new GraphNode(NodeId.ForType(typeId), name, NodeKind.Type));
+        }
+    }
+
+    private static string RemoveGenerics(string typeName)
+    {
+        var idx = typeName.IndexOf('<');
+        return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
+    }
 
     private static string StripGenerics(string typeName)
     {
