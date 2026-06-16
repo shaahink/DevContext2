@@ -83,10 +83,13 @@ public sealed class ArchitectureStyleDetector
                 $"EF Core + {projectCount} projects; folder roles: {string.Join(", ", folderRoles)}");
         }
 
-        // MinimalApi: minimal API signal, single project or few projects, no MediatR
-        if (hasMinimalApis && !hasMediatR && projectCount <= 5)
+        // MinimalApi: minimal APIs are the entry style, no MediatR. Project count is NOT a disqualifier —
+        // a minimal-API backend is routinely accompanied by a Blazor/SPA frontend split and Aspire infra
+        // projects (e.g. TodoApi's 7 projects). When minimal APIs are present, they outrank a bare NLayer
+        // multi-project+EF reading (0.65 > 0.6); a single API project is a near-certain MinimalApi (0.9).
+        if (hasMinimalApis && !hasMediatR)
         {
-            scores[ArchitectureStyle.MinimalApi] = (projectCount == 1 ? 0.9f : 0.6f,
+            scores[ArchitectureStyle.MinimalApi] = (projectCount == 1 ? 0.9f : 0.65f,
                 $"Minimal APIs + {projectCount} project(s); no MediatR");
         }
 

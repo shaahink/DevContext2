@@ -295,8 +295,12 @@ public sealed class DiscoveryPipeline
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
         // ── PLAN-10 A3: Map/Trace branch — when the Graph is available with content (always after a
-        // full analyze). Fall back to legacy catalog when graph is empty/null (dry-run or minimal analysis).
-        if (snapshot.Graph is { NodeCount: > 0 } graph)
+        // full analyze). The Map/Trace renderers produce the human-facing markdown narrative; JSON/HTML
+        // consumers (programmatic callers, the eval harness) get the structured model from the legacy
+        // renderers below, so --format json stays valid, parseable structured data.
+        var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
+        var wantsNarrative = format is "markdown" or "md";
+        if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
         {
             if (!string.IsNullOrEmpty(request.Entry))
             {
@@ -319,7 +323,7 @@ public sealed class DiscoveryPipeline
             // No entry chosen — render the Map.
             if (snapshot.Map is { } mapModel)
             {
-                var mapCtx = new MapRenderContext(mapModel, snapshot, request.Format, request);
+                var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
                 var map = await MapRenderer.RenderAsync(mapCtx, ct);
                 var tail = GraphDiagnosticsTail(snapshot, request);
                 return tail.Length == 0 ? map : map with { Content = map.Content + tail };
@@ -344,8 +348,8 @@ public sealed class DiscoveryPipeline
             Report = snapshot.Report,
         };
 
-        if (!_renderers.TryGetValue(request.Format, out var renderer))
-            throw new InvalidOperationException($"No renderer registered for format: {request.Format}");
+        if (!_renderers.TryGetValue(format, out var renderer))
+            throw new InvalidOperationException($"No renderer registered for format: {format}");
 
         var rendered = await renderer.RenderAsync(snapshot.Model, opts, ct);
         rendered = RunSelfChecks(rendered, snapshot.Model, opts, snapshot.Model);
