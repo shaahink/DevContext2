@@ -27,24 +27,45 @@ public static class AnalysisIntentResolver
     {
         var warnings = ImmutableArray.CreateBuilder<string>();
 
-        // 1. Aliases
+        var (finalScenarioKey, scenario) = ResolveScenario(input, warnings);
+        ExtractionProfile profile = ResolveProfile(input, finalScenarioKey);
+        var focusPoints = ParseFocusPoints(input);
+        var explanation = BuildExplanation(input, focusPoints);
+
+        if (string.Equals(finalScenarioKey, "deep-dive", StringComparison.Ordinal)
+            && string.IsNullOrWhiteSpace(input.Focus)
+            && input.ExplicitScenario is not null)
+        {
+            warnings.Add("deep-dive without --focus behaves like overview — give a starting point");
+        }
+
+        return new ResolvedIntent
+        {
+            Scenario = scenario,
+            Profile = profile,
+            FocusPoints = focusPoints,
+            Explanation = explanation,
+            Warnings = warnings.ToImmutable(),
+        };
+    }
+
+    private static (string Key, Scenario Scenario) ResolveScenario(IntentInput input, ImmutableArray<string>.Builder warnings)
+    {
         var scenarioKey = input.ExplicitScenario;
-        if (scenarioKey == "trace")
+        if (string.Equals(scenarioKey, "trace", StringComparison.Ordinal))
             scenarioKey = "deep-dive";
-        if (scenarioKey == "audit")
+        if (string.Equals(scenarioKey, "audit", StringComparison.Ordinal))
         {
             warnings.Add("'audit' is deprecated. Use 'overview' instead.");
             scenarioKey = "overview";
         }
         if (scenarioKey is not null && !ScenarioRegistry.BuiltIn.ContainsKey(scenarioKey))
-            throw new ArgumentException($"Unknown scenario: {scenarioKey}");
+            throw new ArgumentException($"Unknown scenario: {scenarioKey}", nameof(input));
 
-        // 2. Scenario: explicit → deep-dive if focus present → overview
         var hasFocus = !string.IsNullOrWhiteSpace(input.Focus);
-        var finalScenarioKey = scenarioKey ?? (hasFocus ? "deep-dive" : "overview");
-        var scenario = ScenarioRegistry.BuiltIn[finalScenarioKey];
+        var finalKey = scenarioKey ?? (hasFocus ? "deep-dive" : "overview");
+        var scenario = ScenarioRegistry.BuiltIn[finalKey];
 
-        // 3. Depth overrides
         if (input.Depth is { } depth)
         {
             var clamped = Math.Clamp(depth, 1, 10);
@@ -58,84 +79,71 @@ public static class AnalysisIntentResolver
             };
         }
 
-        // 4. Profile: explicit → derived from scenario
-        ExtractionProfile profile;
+        return (finalKey, scenario);
+    }
+
+    private static ExtractionProfile ResolveProfile(IntentInput input, string finalScenarioKey)
+    {
         if (input.ExplicitProfile is { } ep)
         {
-            profile = ep.ToLowerInvariant() switch
+            return ep.ToLowerInvariant() switch
             {
                 "debug" => ExtractionProfile.Debug,
                 "full" => ExtractionProfile.Full,
                 _ => ExtractionProfile.Focused,
             };
         }
+
+        return string.Equals(finalScenarioKey, "deep-dive", StringComparison.Ordinal)
+            ? ExtractionProfile.Debug
+            : ExtractionProfile.Focused;
+    }
+
+    private static ImmutableArray<FocusPoint> ParseFocusPoints(IntentInput input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Focus))
+            return [];
+
+        var focusPoints = ImmutableArray.CreateBuilder<FocusPoint>();
+        var text = input.Focus!.Trim();
+
+        if (text.Contains('/') || IsHttpVerbPrefixed(text))
+        {
+            var (verb, route) = ParseEndpointFocus(text);
+            focusPoints.Add(new FocusPoint(FocusKind.Endpoint, "", null, null,
+                HttpMethod: verb, Route: route));
+        }
         else
         {
-            profile = finalScenarioKey == "deep-dive" ? ExtractionProfile.Debug : ExtractionProfile.Focused;
+            var fp = ParseTypeOrMethodFocus(text);
+            if (fp is not null)
+                focusPoints.Add(fp);
         }
 
-        // 5. Focus parsing
-        var focusPoints = ImmutableArray.CreateBuilder<FocusPoint>();
-        if (hasFocus)
-        {
-            var text = input.Focus!.Trim();
+        return focusPoints.ToImmutable();
+    }
 
-            // Endpoint route detection: contains '/' or starts with HTTP verb
-            if (text.Contains('/') || IsHttpVerbPrefixed(text))
-            {
-                var (verb, route) = ParseEndpointFocus(text);
-                focusPoints.Add(new FocusPoint(FocusKind.Endpoint, "", null, null,
-                    HttpMethod: verb, Route: route));
-            }
-            else
-            {
-                // Parse Type or Type:Method (no filesystem needed here)
-                var fp = ParseTypeOrMethodFocus(text);
-                if (fp is not null)
-                    focusPoints.Add(fp);
-            }
-        }
+    private static string BuildExplanation(IntentInput input, ImmutableArray<FocusPoint> focusPoints)
+    {
+        if (string.IsNullOrWhiteSpace(input.Focus))
+            return "Overview map (no focus).";
 
-        // 6. Explanation
-        string explanation;
-        if (!hasFocus)
-        {
-            explanation = "Overview map (no focus).";
-        }
-        else if (focusPoints.Count > 0 && focusPoints[0].Kind == FocusKind.Endpoint)
+        if (focusPoints.Length > 0 && focusPoints[0].Kind == FocusKind.Endpoint)
         {
             var fp = focusPoints[0];
-            explanation = $"Slicing from {fp.HttpMethod} {fp.Route} — handler resolved after scan.";
-        }
-        else
-        {
-            var name = input.Focus!;
-            var depthInfo = input.Depth is { } d ? $", depth {d}" : "";
-            explanation = $"Slicing from {name}{depthInfo}, call graph on.";
+            return $"Slicing from {fp.HttpMethod} {fp.Route} — handler resolved after scan.";
         }
 
-        // Warn when deep-dive has no focus
-        if (finalScenarioKey == "deep-dive" && !hasFocus && input.ExplicitScenario is not null)
-        {
-            warnings.Add("deep-dive without --focus behaves like overview — give a starting point");
-        }
-
-        return new ResolvedIntent
-        {
-            Scenario = scenario,
-            Profile = profile,
-            FocusPoints = focusPoints.ToImmutable(),
-            Explanation = explanation,
-            Warnings = warnings.ToImmutable(),
-        };
+        var depthInfo = input.Depth is { } d ? $", depth {d}" : "";
+        return $"Slicing from {input.Focus}{depthInfo}, call graph on.";
     }
 
     private static bool IsHttpVerbPrefixed(string text)
     {
         var upper = text.ToUpperInvariant();
-        return upper.StartsWith("GET ") || upper.StartsWith("POST ") || upper.StartsWith("PUT ")
-            || upper.StartsWith("PATCH ") || upper.StartsWith("DELETE ") || upper.StartsWith("HEAD ")
-            || upper.StartsWith("OPTIONS ");
+        return upper.StartsWith("GET ", StringComparison.Ordinal) || upper.StartsWith("POST ", StringComparison.Ordinal) || upper.StartsWith("PUT ", StringComparison.Ordinal)
+            || upper.StartsWith("PATCH ", StringComparison.Ordinal) || upper.StartsWith("DELETE ", StringComparison.Ordinal) || upper.StartsWith("HEAD ", StringComparison.Ordinal)
+            || upper.StartsWith("OPTIONS ", StringComparison.Ordinal);
     }
 
     private static FocusPoint? ParseTypeOrMethodFocus(string input)

@@ -75,12 +75,12 @@ public sealed class FakeFileSystem : IFileSystem
 
     private static bool MatchPattern(string name, string pattern)
     {
-        if (pattern == "*" || pattern == "*.*") return true;
-        if (pattern.StartsWith("*") && pattern.EndsWith("*"))
+        if (string.Equals(pattern, "*", StringComparison.Ordinal) || string.Equals(pattern, "*.*", StringComparison.Ordinal)) return true;
+        if (pattern.StartsWith('*') && pattern.EndsWith('*'))
             return name.Contains(pattern[1..^1], StringComparison.OrdinalIgnoreCase);
-        if (pattern.StartsWith("*"))
+        if (pattern.StartsWith('*'))
             return name.EndsWith(pattern[1..], StringComparison.OrdinalIgnoreCase);
-        if (pattern.EndsWith("*"))
+        if (pattern.EndsWith('*'))
             return name.StartsWith(pattern[..^1], StringComparison.OrdinalIgnoreCase);
         return string.Equals(name, pattern, StringComparison.OrdinalIgnoreCase);
     }

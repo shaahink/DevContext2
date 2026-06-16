@@ -21,7 +21,7 @@ public sealed record CloneProgress(string Phase, int PercentComplete, string Mes
 public sealed class GitCloneService : IDisposable
 {
     private readonly SemaphoreSlim _cloneLock = new(1, 1);
-    private readonly Dictionary<string, (string Path, DateTime ClonedAt)> _cache = new();
+    private readonly Dictionary<string, (string Path, DateTime ClonedAt)> _cache = new(StringComparer.Ordinal);
     private bool? _gitAvailable;
 
     public bool IsGitAvailable
@@ -111,9 +111,9 @@ public sealed class GitCloneService : IDisposable
             if (p.ExitCode == 0) return RepoStatus.Valid;
 
             var err = stderr.ToString();
-            if (err.Contains("403") || err.Contains("401")) return RepoStatus.Private;
-            if (err.Contains("not found") || err.Contains("Could not read")) return RepoStatus.NotFound;
-            if (err.Contains("429") || err.Contains("rate limit")) return RepoStatus.RateLimited;
+            if (err.Contains("403", StringComparison.Ordinal) || err.Contains("401", StringComparison.Ordinal)) return RepoStatus.Private;
+            if (err.Contains("not found", StringComparison.Ordinal) || err.Contains("Could not read", StringComparison.Ordinal)) return RepoStatus.NotFound;
+            if (err.Contains("429", StringComparison.Ordinal) || err.Contains("rate limit", StringComparison.Ordinal)) return RepoStatus.RateLimited;
             return RepoStatus.NetworkError;
         }
         catch (OperationCanceledException) { throw; }
@@ -253,7 +253,7 @@ public sealed class GitCloneService : IDisposable
         foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
         {
             var attrs = File.GetAttributes(file);
-            if ((attrs & FileAttributes.ReadOnly) != 0)
+            if ((attrs & FileAttributes.ReadOnly) != FileAttributes.None)
                 File.SetAttributes(file, attrs & ~FileAttributes.ReadOnly);
         }
         Directory.Delete(path, true);

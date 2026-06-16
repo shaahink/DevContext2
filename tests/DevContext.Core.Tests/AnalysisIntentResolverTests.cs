@@ -9,7 +9,7 @@ public sealed class AnalysisIntentResolverTests
         Assert.Equal("overview", result.Scenario.Name);
         Assert.Equal(ExtractionProfile.Focused, result.Profile);
         Assert.Empty(result.FocusPoints);
-        Assert.Contains("Overview map", result.Explanation);
+        Assert.Contains("Overview map", result.Explanation, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public sealed class AnalysisIntentResolverTests
         Assert.Equal(ExtractionProfile.Debug, result.Profile);
         Assert.Single(result.FocusPoints);
         Assert.Equal(FocusKind.Type, result.FocusPoints[0].Kind);
-        Assert.Contains("MyService", result.Explanation);
+        Assert.Contains("MyService", result.Explanation, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class AnalysisIntentResolverTests
     {
         var result = AnalysisIntentResolver.Resolve(new IntentInput { ExplicitScenario = "audit" });
         Assert.Equal("overview", result.Scenario.Name);
-        Assert.Contains(result.Warnings, w => w.Contains("deprecated"));
+        Assert.Contains(result.Warnings, w => w.Contains("deprecated", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class AnalysisIntentResolverTests
     public void ExplicitScenario_DeepDiveNoFocus_ProducesWarning()
     {
         var result = AnalysisIntentResolver.Resolve(new IntentInput { ExplicitScenario = "deep-dive" });
-        Assert.Contains(result.Warnings, w => w.Contains("deep-dive without --focus"));
+        Assert.Contains(result.Warnings, w => w.Contains("deep-dive without --focus", StringComparison.Ordinal));
     }
 
     [Fact]

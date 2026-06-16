@@ -41,7 +41,9 @@ public partial class SectionGroupViewModel : ObservableObject
     [ObservableProperty]
     private bool _isIncluded = true;
 
+#pragma warning disable MA0016 // List needed for AddRange
     public List<SectionViewModel> Children { get; } = [];
+#pragma warning restore MA0016
 
     public int TotalTokens => Children.Sum(c => c.CompressedTokens);
 

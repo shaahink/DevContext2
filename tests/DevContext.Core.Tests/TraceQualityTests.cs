@@ -29,11 +29,11 @@ public sealed class TraceQualityTests
 
         // 1. Must be a Trace (not a Map fallback) and reach BEYOND the ENTRY line — this is the direct
         //    regression guard for the empty-trace bug that shipped "working e2e" but rendered nothing.
-        Assert.Contains("TRACE", trace);
-        Assert.Contains("ENTRY", trace);
+        Assert.Contains("TRACE", trace, StringComparison.Ordinal);
+        Assert.Contains("ENTRY", trace, StringComparison.Ordinal);
         var seamHops = trace.Split('\n').Count(l =>
-            l.Contains("call ") || l.Contains("send ") || l.Contains("handler ")
-            || l.Contains("raises ") || l.Contains("data ") || l.Contains("di "));
+            l.Contains("call ", StringComparison.Ordinal) || l.Contains("send ", StringComparison.Ordinal) || l.Contains("handler ", StringComparison.Ordinal)
+            || l.Contains("raises ", StringComparison.Ordinal) || l.Contains("data ", StringComparison.Ordinal) || l.Contains("di ", StringComparison.Ordinal));
         Assert.True(seamHops >= 1, $"Trace for '{entry}' bridged no seams:\n{trace}");
 
         // 2. Must contain the archetype's expected wiring.
@@ -46,7 +46,7 @@ public sealed class TraceQualityTests
     {
         var fs = new RealFileSystem();
         var cache = new AnalysisCache(fs);
-        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None).ConfigureAwait(false);
 
         // Derive scenario/profile/focus from the entry exactly as the CLI does (focus → deep-dive → Debug).
         var intent = AnalysisIntentResolver.Resolve(new IntentInput { Focus = entry });
@@ -80,7 +80,7 @@ public sealed class TraceQualityTests
         };
 
         var pipeline = BuildPipeline(loggerFactory);
-        var snapshot = await pipeline.AnalyzeAsync(ctx);
+        var snapshot = await pipeline.AnalyzeAsync(ctx).ConfigureAwait(false);
 
         var request = new RenderRequest
         {
@@ -90,7 +90,7 @@ public sealed class TraceQualityTests
             Depth = 8,
             Detail = TraceDetail.Salient,
         };
-        var rendered = await pipeline.RenderAsync(snapshot, request);
+        var rendered = await pipeline.RenderAsync(snapshot, request).ConfigureAwait(false);
         return rendered.Content;
     }
 
@@ -134,6 +134,7 @@ public sealed class TraceQualityTests
         };
 
         var renderers = new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
         {
             ["markdown"] = new MarkdownRenderer(),
             ["json"] = new JsonContextRenderer(),
@@ -150,7 +151,7 @@ public sealed class TraceQualityTests
         while (dir is not null && !File.Exists(Path.Combine(dir, "DevContext.slnx")))
         {
             var parent = Path.GetDirectoryName(dir);
-            if (parent == dir) break;
+            if (string.Equals(parent, dir, StringComparison.Ordinal)) break;
             dir = parent;
         }
         return Path.GetFullPath(Path.Combine(dir ?? Environment.CurrentDirectory, relativePath));

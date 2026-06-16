@@ -42,30 +42,30 @@ public sealed class LayerClassifier : IDiscoveryExtractor
     {
         var lower = projectPath.ToLowerInvariant();
 
-        if (lower.Contains("\\domain\\") || lower.Contains("/domain/") || lower.Contains(".domain"))
+        if (lower.Contains("\\domain\\", StringComparison.Ordinal) || lower.Contains("/domain/", StringComparison.Ordinal) || lower.Contains(".domain", StringComparison.Ordinal))
             return ArchitectureLayer.Domain;
-        if (lower.Contains("\\application\\") || lower.Contains("/application/") || lower.Contains(".application"))
+        if (lower.Contains("\\application\\", StringComparison.Ordinal) || lower.Contains("/application/", StringComparison.Ordinal) || lower.Contains(".application", StringComparison.Ordinal))
             return ArchitectureLayer.Application;
-        if (lower.Contains("\\infrastructure\\") || lower.Contains("/infrastructure/") || lower.Contains(".infrastructure"))
+        if (lower.Contains("\\infrastructure\\", StringComparison.Ordinal) || lower.Contains("/infrastructure/", StringComparison.Ordinal) || lower.Contains(".infrastructure", StringComparison.Ordinal))
             return ArchitectureLayer.Infrastructure;
-        if (lower.Contains("\\persistence\\") || lower.Contains("/persistence/") || lower.Contains(".persistence")
-            || lower.Contains("\\data\\") || lower.Contains("/data/") || lower.Contains(".data"))
+        if (lower.Contains("\\persistence\\", StringComparison.Ordinal) || lower.Contains("/persistence/", StringComparison.Ordinal) || lower.Contains(".persistence", StringComparison.Ordinal)
+            || lower.Contains("\\data\\", StringComparison.Ordinal) || lower.Contains("/data/", StringComparison.Ordinal) || lower.Contains(".data", StringComparison.Ordinal))
             return ArchitectureLayer.Persistence;
-        if (lower.Contains("\\api\\") || lower.Contains("/api/") || lower.Contains(".api")
-            || lower.Contains("\\web\\") || lower.Contains("/web/") || lower.Contains(".web"))
+        if (lower.Contains("\\api\\", StringComparison.Ordinal) || lower.Contains("/api/", StringComparison.Ordinal) || lower.Contains(".api", StringComparison.Ordinal)
+            || lower.Contains("\\web\\", StringComparison.Ordinal) || lower.Contains("/web/", StringComparison.Ordinal) || lower.Contains(".web", StringComparison.Ordinal))
             return ArchitectureLayer.Api;
-        if (lower.Contains("\\presentation\\") || lower.Contains("/presentation/") || lower.Contains(".presentation")
-            || lower.Contains("\\blazor\\") || lower.Contains("/blazor/") || lower.Contains(".blazor")
-            || lower.Contains("\\wasm\\") || lower.Contains("/wasm/") || lower.Contains(".wasm"))
+        if (lower.Contains("\\presentation\\", StringComparison.Ordinal) || lower.Contains("/presentation/", StringComparison.Ordinal) || lower.Contains(".presentation", StringComparison.Ordinal)
+            || lower.Contains("\\blazor\\", StringComparison.Ordinal) || lower.Contains("/blazor/", StringComparison.Ordinal) || lower.Contains(".blazor", StringComparison.Ordinal)
+            || lower.Contains("\\wasm\\", StringComparison.Ordinal) || lower.Contains("/wasm/", StringComparison.Ordinal) || lower.Contains(".wasm", StringComparison.Ordinal))
             return ArchitectureLayer.Presentation;
-        if (lower.Contains("\\tests\\") || lower.Contains("/tests/") || lower.Contains(".tests")
-            || lower.Contains("\\test\\") || lower.Contains("/test/") || lower.Contains(".test"))
+        if (lower.Contains("\\tests\\", StringComparison.Ordinal) || lower.Contains("/tests/", StringComparison.Ordinal) || lower.Contains(".tests", StringComparison.Ordinal)
+            || lower.Contains("\\test\\", StringComparison.Ordinal) || lower.Contains("/test/", StringComparison.Ordinal) || lower.Contains(".test", StringComparison.Ordinal))
             return ArchitectureLayer.Testing;
-        if (lower.Contains("\\shared\\") || lower.Contains("/shared/") || lower.Contains(".shared")
-            || lower.Contains("\\core\\") || lower.Contains("/core/") || lower.Contains(".core"))
+        if (lower.Contains("\\shared\\", StringComparison.Ordinal) || lower.Contains("/shared/", StringComparison.Ordinal) || lower.Contains(".shared", StringComparison.Ordinal)
+            || lower.Contains("\\core\\", StringComparison.Ordinal) || lower.Contains("/core/", StringComparison.Ordinal) || lower.Contains(".core", StringComparison.Ordinal))
             return ArchitectureLayer.Shared;
-        if (lower.Contains("\\apphost\\") || lower.Contains("/apphost/") || lower.Contains(".apphost")
-            || lower.Contains("\\service-defaults\\") || lower.Contains(".servicedefaults"))
+        if (lower.Contains("\\apphost\\", StringComparison.Ordinal) || lower.Contains("/apphost/", StringComparison.Ordinal) || lower.Contains(".apphost", StringComparison.Ordinal)
+            || lower.Contains("\\service-defaults\\", StringComparison.Ordinal) || lower.Contains(".servicedefaults", StringComparison.Ordinal))
             return ArchitectureLayer.Infrastructure;
 
         return ArchitectureLayer.Unknown;
@@ -75,16 +75,16 @@ public sealed class LayerClassifier : IDiscoveryExtractor
     {
         var lower = projectName.ToLowerInvariant();
 
-        if (lower.Contains("domain")) return ArchitectureLayer.Domain;
-        if (lower.Contains("application")) return ArchitectureLayer.Application;
-        if (lower.Contains("infrastructure")) return ArchitectureLayer.Infrastructure;
-        if (lower.Contains("persistence") || lower.Contains("data")) return ArchitectureLayer.Persistence;
-        if (lower.Contains("api") || lower.Contains("webapi")) return ArchitectureLayer.Api;
-        if (lower.Contains("web") || lower.Contains("blazor") || lower.Contains("wasm")
-            || lower.Contains("presentation") || lower.Contains("ui"))
+        if (lower.Contains("domain", StringComparison.Ordinal)) return ArchitectureLayer.Domain;
+        if (lower.Contains("application", StringComparison.Ordinal)) return ArchitectureLayer.Application;
+        if (lower.Contains("infrastructure", StringComparison.Ordinal)) return ArchitectureLayer.Infrastructure;
+        if (lower.Contains("persistence", StringComparison.Ordinal) || lower.Contains("data", StringComparison.Ordinal)) return ArchitectureLayer.Persistence;
+        if (lower.Contains("api", StringComparison.Ordinal) || lower.Contains("webapi", StringComparison.Ordinal)) return ArchitectureLayer.Api;
+        if (lower.Contains("web", StringComparison.Ordinal) || lower.Contains("blazor", StringComparison.Ordinal) || lower.Contains("wasm", StringComparison.Ordinal)
+            || lower.Contains("presentation", StringComparison.Ordinal) || lower.Contains("ui", StringComparison.Ordinal))
             return ArchitectureLayer.Presentation;
-        if (lower.Contains("test") || lower.Contains("spec")) return ArchitectureLayer.Testing;
-        if (lower.Contains("shared") || lower.Contains("common")) return ArchitectureLayer.Shared;
+        if (lower.Contains("test", StringComparison.Ordinal) || lower.Contains("spec", StringComparison.Ordinal)) return ArchitectureLayer.Testing;
+        if (lower.Contains("shared", StringComparison.Ordinal) || lower.Contains("common", StringComparison.Ordinal)) return ArchitectureLayer.Shared;
 
         return ArchitectureLayer.Unknown;
     }

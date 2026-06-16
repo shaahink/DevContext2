@@ -114,7 +114,7 @@ public sealed class DiRegistrationShapeTests
         Assert.NotEmpty(regs);
         Assert.Equal(DevContext.Core.Models.DiRegistrationShape.InlineFactory, regs[0].Shape);
         Assert.NotNull(regs[0].FactorySummary);
-        Assert.Contains("Foo", regs[0].FactorySummary);
+        Assert.Contains("Foo", regs[0].FactorySummary, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -143,8 +143,8 @@ public sealed class DiRegistrationShapeTests
 
         // Should produce a diagnostic about implicit publications
         var diags = model.Diagnostics
-            .Where(d => d.Source == "InMemoryEventBusExtractor").ToList();
+            .Where(d => string.Equals(d.Source, "InMemoryEventBusExtractor", StringComparison.Ordinal)).ToList();
         Assert.NotEmpty(diags);
-        Assert.Contains(diags, d => d.Message.Contains("implicit"));
+        Assert.Contains(diags, d => d.Message.Contains("implicit", StringComparison.Ordinal));
     }
 }

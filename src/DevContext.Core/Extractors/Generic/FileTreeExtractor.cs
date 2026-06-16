@@ -26,7 +26,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         var projectFiles = new List<string>();
 
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.cs", SearchOption.AllDirectories, ct))
+            context.RootPath, "*.cs", SearchOption.AllDirectories, ct).ConfigureAwait(false))
         {
             if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
             sourceFiles.Add(file);
@@ -34,7 +34,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         }
 
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.csproj", SearchOption.AllDirectories, ct))
+            context.RootPath, "*.csproj", SearchOption.AllDirectories, ct).ConfigureAwait(false))
         {
             if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
             projectFiles.Add(file);
@@ -42,7 +42,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         }
 
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.sln*", SearchOption.AllDirectories, ct))
+            context.RootPath, "*.sln*", SearchOption.AllDirectories, ct).ConfigureAwait(false))
         {
             if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
             context.Cache.RegisterPath(file);

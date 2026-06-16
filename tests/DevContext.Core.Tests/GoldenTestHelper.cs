@@ -5,8 +5,7 @@ public static partial class GoldenTestHelper
     private static readonly System.Text.RegularExpressions.Regex TimingPattern =
         MyRegex();
 
-    private static readonly System.Text.RegularExpressions.Regex GeneratedAtPattern =
-        new(@"""generatedAt"":\s*""[^""]+""", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex GeneratedAtPattern = GeneratedAtPattern_();
 
     public static string NormalizeOutput(string content)
     {
@@ -20,7 +19,7 @@ public static partial class GoldenTestHelper
     public static void AssertMatchesGolden(string actual, string goldenPath)
     {
         var normalized = NormalizeOutput(actual);
-        var update = Environment.GetEnvironmentVariable("UPDATE_GOLDENS") == "1";
+        var update = string.Equals(Environment.GetEnvironmentVariable("UPDATE_GOLDENS"), "1", StringComparison.Ordinal);
 
         if (update)
         {
@@ -49,7 +48,7 @@ public static partial class GoldenTestHelper
             foreach (var file in Directory.EnumerateFiles(fixturePath, "*", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(fixturePath, file);
-                var content = await File.ReadAllTextAsync(file);
+                var content = await File.ReadAllTextAsync(file).ConfigureAwait(false);
                 fs.AddFile(relative, content);
             }
         }
@@ -81,13 +80,14 @@ public static partial class GoldenTestHelper
 
         var pipeline = new DiscoveryPipeline(
             extractors, [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
             },
             loggerFactory.CreateLogger<DiscoveryPipeline>());
 
-        var result = await pipeline.RunAsync(ctx);
+        var result = await pipeline.RunAsync(ctx).ConfigureAwait(false);
         return result.Content;
     }
 
@@ -102,7 +102,7 @@ public static partial class GoldenTestHelper
             foreach (var file in Directory.EnumerateFiles(fixturePath, "*", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(fixturePath, file);
-                var content = await File.ReadAllTextAsync(file);
+                var content = await File.ReadAllTextAsync(file).ConfigureAwait(false);
                 fs.AddFile(relative, content);
             }
         }
@@ -116,7 +116,7 @@ public static partial class GoldenTestHelper
             .WithOptions(new ExtractionOptions
             {
                 MaxOutputTokens = 8000,
-                OutputFormat = format == "json" ? OutputFormat.Json : OutputFormat.Markdown
+                OutputFormat = string.Equals(format, "json", StringComparison.Ordinal) ? OutputFormat.Json : OutputFormat.Markdown
             })
             .WithScenario(ScenarioRegistry.BuiltIn[scenario])
             .Build();
@@ -161,13 +161,14 @@ public static partial class GoldenTestHelper
         var pipeline = new DiscoveryPipeline(
             extractors, pruners, compressors,
             new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new MarkdownRenderer(),
                 ["json"] = new JsonContextRenderer(),
             },
             loggerFactory.CreateLogger<DiscoveryPipeline>());
 
-        var result = await pipeline.RunAsync(ctx);
+        var result = await pipeline.RunAsync(ctx).ConfigureAwait(false);
         return result;
     }
 
@@ -195,6 +196,8 @@ public static partial class GoldenTestHelper
 
     [System.Text.RegularExpressions.GeneratedRegex(@"\*Generated in [\d.]+ms", System.Text.RegularExpressions.RegexOptions.Compiled)]
     private static partial System.Text.RegularExpressions.Regex MyRegex();
+    [System.Text.RegularExpressions.GeneratedRegex(@"""generatedAt"":\s*""[^""]+""", System.Text.RegularExpressions.RegexOptions.Compiled)]
+    private static partial System.Text.RegularExpressions.Regex GeneratedAtPattern_();
 }
 
 [CollectionDefinition("Golden tests")]

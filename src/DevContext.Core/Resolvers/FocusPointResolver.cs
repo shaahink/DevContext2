@@ -43,8 +43,8 @@ public static class FocusPointResolver
         foreach (var (id, type) in model.Types)
         {
             if (id.EndsWith("." + typeName, StringComparison.Ordinal)
-                || id == typeName
-                || type.Name == typeName)
+                || string.Equals(id, typeName
+, StringComparison.Ordinal) || string.Equals(type.Name, typeName, StringComparison.Ordinal))
             {
                 return type;
             }

@@ -39,11 +39,11 @@ public sealed class CompressorTests
 
         var product = model.Types["MyApp.Models.Product"];
         Assert.DoesNotContain(product.Methods, m => m.Name is ".ctor" or "ToString" or "Equals" or "GetHashCode");
-        Assert.Contains(product.Methods, m => m.Name == "CalculateTotal");
+        Assert.Contains(product.Methods, m => string.Equals(m.Name, "CalculateTotal", StringComparison.Ordinal));
 
-        Assert.DoesNotContain(product.Properties, p => p.Name == "Id");
-        Assert.Contains(product.Properties, p => p.Name == "Name");
-        Assert.Contains(product.Properties, p => p.Name == "ReadOnlyProp");
+        Assert.DoesNotContain(product.Properties, p => string.Equals(p.Name, "Id", StringComparison.Ordinal));
+        Assert.Contains(product.Properties, p => string.Equals(p.Name, "Name", StringComparison.Ordinal));
+        Assert.Contains(product.Properties, p => string.Equals(p.Name, "ReadOnlyProp", StringComparison.Ordinal));
 
         Assert.NotEmpty(result.Notes);
     }
@@ -179,7 +179,7 @@ public sealed class CompressorTests
         Assert.Equal(1, pruned);
 
         var category = model.Types["MyApp.Models.Category"];
-        Assert.Contains(category.Tags, t => t.StartsWith("similar-types:"));
+        Assert.Contains(category.Tags, t => t.StartsWith("similar-types:", StringComparison.Ordinal));
 
         Assert.False(model.Types["MyApp.Services.RealService"].IsHardExcluded);
     }
@@ -227,12 +227,12 @@ public sealed class CompressorTests
         var order = model.Types["MyApp.Models.Order"];
         var svc = model.Types["MyApp.Services.OrderService"];
 
-        Assert.Contains(product.Tags, t => t == "ns-group:MyApp.Models");
-        Assert.Contains(order.Tags, t => t == "ns-group:MyApp.Models");
-        Assert.Contains(svc.Tags, t => t == "ns-group:MyApp.Services");
+        Assert.Contains(product.Tags, t => string.Equals(t, "ns-group:MyApp.Models", StringComparison.Ordinal));
+        Assert.Contains(order.Tags, t => string.Equals(t, "ns-group:MyApp.Models", StringComparison.Ordinal));
+        Assert.Contains(svc.Tags, t => string.Equals(t, "ns-group:MyApp.Services", StringComparison.Ordinal));
 
-        Assert.Contains(result.Notes, n => n.Contains("MyApp.Models"));
-        Assert.Contains(result.Notes, n => n.Contains("MyApp.Services"));
+        Assert.Contains(result.Notes, n => n.Contains("MyApp.Models", StringComparison.Ordinal));
+        Assert.Contains(result.Notes, n => n.Contains("MyApp.Services", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -263,8 +263,8 @@ public sealed class CompressorTests
 
         var type = model.Types["MyApp.Services.ProductService"];
         Assert.NotNull(type.SourceBody);
-        Assert.Contains("~", type.SourceBody);
-        Assert.Contains("<summary>Handles product-related operations</summary>", type.SourceBody);
+        Assert.Contains("~", type.SourceBody, StringComparison.Ordinal);
+        Assert.Contains("<summary>Handles product-related operations</summary>", type.SourceBody, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public sealed class CompressorTests
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
-            SourceBody = string.Join("\n", Enumerable.Range(0, 100).Select(i => $"line {i}")),
+            SourceBody = string.Join('\n', Enumerable.Range(0, 100).Select(i => $"line {i}")),
         });
 
         var options = new CompressionOptions(8000, 30);

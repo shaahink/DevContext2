@@ -104,8 +104,8 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
         var table = new Table();
         table.AddColumn("Metric");
         table.AddColumn("Value");
-        table.AddRow("Types found", total.ToString());
-        table.AddRow("Types in output", pruned.ToString());
+        table.AddRow("Types found", total.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        table.AddRow("Types in output", pruned.ToString(System.Globalization.CultureInfo.InvariantCulture));
         table.AddRow("Pruned", $"{pct}%");
         table.AddRow("Detections", model.Detections.Count.ToString());
         AnsiConsole.Write(table);

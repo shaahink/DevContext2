@@ -40,8 +40,8 @@ public sealed class SyntacticSymbolResolver : ISymbolResolver
         IReadOnlyDictionary<string, string>? diMap = null,
         IReadOnlyDictionary<string, string>? singleImpl = null)
     {
-        _diMap = diMap ?? new Dictionary<string, string>();
-        _singleImpl = singleImpl ?? new Dictionary<string, string>();
+        _diMap = diMap ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        _singleImpl = singleImpl ?? new Dictionary<string, string>(StringComparer.Ordinal);
     }
 
     /// <inheritdoc/>

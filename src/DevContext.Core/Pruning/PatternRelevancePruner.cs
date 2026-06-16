@@ -171,7 +171,7 @@ public sealed class PatternRelevancePruner : IPruner
 
     private static FrozenDictionary<string, ImmutableArray<(Type Kind, string Name)>> BuildDetectionLookup(DiscoveryModel model)
     {
-        var lookup = new Dictionary<string, ImmutableArray<(Type, string)>.Builder>();
+        var lookup = new Dictionary<string, ImmutableArray<(Type, string)>.Builder>(StringComparer.Ordinal);
 
         foreach (var detection in model.Detections)
         {

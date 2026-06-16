@@ -18,7 +18,7 @@ internal static class ExtractorHelpers
     public static bool IsTestFile(string filePath)
     {
         var lower = filePath.ToLowerInvariant();
-        return lower.Contains("\\test") || lower.Contains("\\tests\\") || lower.Contains("/tests/")
+        return lower.Contains("\\test", StringComparison.Ordinal) || lower.Contains("\\tests\\", StringComparison.Ordinal) || lower.Contains("/tests/", StringComparison.Ordinal)
             || lower.EndsWith("test.cs", StringComparison.OrdinalIgnoreCase)
             || lower.EndsWith("tests.cs", StringComparison.OrdinalIgnoreCase);
     }

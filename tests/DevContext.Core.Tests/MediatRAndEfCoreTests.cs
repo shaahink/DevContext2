@@ -69,7 +69,7 @@ public sealed class MediatRAndEfCoreTests
         var entities = model.Detections.OfType<EfEntityDetection>().ToArray();
         Assert.Equal(2, entities.Length);
 
-        Assert.Contains(entities, e => e.EntityType == "Product" && e.DbContextType == "AppDbContext");
-        Assert.Contains(entities, e => e.EntityType == "Order" && e.DbContextType == "AppDbContext");
+        Assert.Contains(entities, e => string.Equals(e.EntityType, "Product", StringComparison.Ordinal) && string.Equals(e.DbContextType, "AppDbContext", StringComparison.Ordinal));
+        Assert.Contains(entities, e => string.Equals(e.EntityType, "Order", StringComparison.Ordinal) && string.Equals(e.DbContextType, "AppDbContext", StringComparison.Ordinal));
     }
 }

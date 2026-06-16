@@ -26,6 +26,7 @@ public sealed class PipelineTests
 
         var pipeline = new DiscoveryPipeline(
             extractors, [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -34,7 +35,7 @@ public sealed class PipelineTests
 
         var result = await pipeline.RunAsync(ctx);
 
-        Assert.Contains("Dry Run Plan", result.Content);
+        Assert.Contains("Dry Run Plan", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -70,6 +71,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
 
         var pipeline = new DiscoveryPipeline(
             extractors, [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -80,8 +82,8 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
 
         Assert.NotNull(result.Content);
         Assert.True(result.EstimatedTokens > 0);
-        Assert.Contains("PipelineStarted", observer.Events[0]);
-        Assert.Contains("PipelineCompleted", observer.Events[^1]);
+        Assert.Contains("PipelineStarted", observer.Events[0], StringComparison.Ordinal);
+        Assert.Contains("PipelineCompleted", observer.Events[^1], StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,6 +133,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
 
         var pipeline = new DiscoveryPipeline(
             [], pruners, [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
             },
@@ -144,13 +147,13 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
         await task;
 
         var prunerEvents = observer.Events
-            .Where(e => e.StartsWith("PrunerCompleted:"))
+            .Where(e => e.StartsWith("PrunerCompleted:", StringComparison.Ordinal))
             .ToList();
 
         Assert.Equal(3, prunerEvents.Count);
-        Assert.Contains("PrunerCompleted:PrunerA:10->10", prunerEvents[0]);
-        Assert.Contains("PrunerCompleted:PrunerB:10->7", prunerEvents[1]);
-        Assert.Contains("PrunerCompleted:PrunerC:7->7", prunerEvents[2]);
+        Assert.Contains("PrunerCompleted:PrunerA:10->10", prunerEvents[0], StringComparison.Ordinal);
+        Assert.Contains("PrunerCompleted:PrunerB:10->7", prunerEvents[1], StringComparison.Ordinal);
+        Assert.Contains("PrunerCompleted:PrunerC:7->7", prunerEvents[2], StringComparison.Ordinal);
     }
 
     [Fact]

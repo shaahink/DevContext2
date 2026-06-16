@@ -62,7 +62,7 @@ public sealed class AspireExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -82,7 +82,7 @@ public sealed class AspireExtractor : IDiscoveryExtractor
 
                 var methodName = memberAccess.Name.Identifier.ValueText;
 
-                if (ResourceMethods.Contains(methodName))
+                if (ResourceMethods.Contains(methodName, StringComparer.Ordinal))
                 {
                     var resourceType = methodName[3..];
                     var resourceName = ExtractResourceName(invocation);
@@ -99,7 +99,7 @@ public sealed class AspireExtractor : IDiscoveryExtractor
                     });
                 }
 
-                if (RelationshipMethods.Contains(methodName))
+                if (RelationshipMethods.Contains(methodName, StringComparer.Ordinal))
                 {
                     var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 

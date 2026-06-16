@@ -12,10 +12,10 @@ public sealed class RendererTests
         var result = await renderer.RenderAsync(model, options, default);
 
         Assert.NotNull(result.Content);
-        Assert.Contains("Architecture overview", result.Content);
+        Assert.Contains("Architecture overview", result.Content, StringComparison.Ordinal);
         // Library mode (no detections): uses namespace-grouped output
-        Assert.Contains("Types by namespace", result.Content);
-        Assert.Contains("Schema v1.1", result.Content);
+        Assert.Contains("Types by namespace", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Schema v1.1", result.Content, StringComparison.Ordinal);
         Assert.Equal("1.1", result.SchemaVersion);
     }
 
@@ -28,9 +28,9 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("No projects discovered", result.Content);
-        Assert.Contains("No endpoints detected", result.Content);
-        Assert.Contains("No types discovered", result.Content);
+        Assert.Contains("No projects discovered", result.Content, StringComparison.Ordinal);
+        Assert.Contains("No endpoints detected", result.Content, StringComparison.Ordinal);
+        Assert.Contains("No types discovered", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -44,9 +44,9 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Diagnostics", result.Content);
-        Assert.Contains("TestExtractor", result.Content);
-        Assert.Contains("Test diagnostic message", result.Content);
+        Assert.Contains("Diagnostics", result.Content, StringComparison.Ordinal);
+        Assert.Contains("TestExtractor", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Test diagnostic message", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -64,8 +64,8 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("CleanArchitecture", result.Content);
-        Assert.Contains("85%", result.Content);
+        Assert.Contains("CleanArchitecture", result.Content, StringComparison.Ordinal);
+        Assert.Contains("85%", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -82,8 +82,8 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains(ArchitectureSignals.Keys.MediatR, result.Content);
-        Assert.Contains(ArchitectureSignals.Keys.EfCore, result.Content);
+        Assert.Contains(ArchitectureSignals.Keys.MediatR, result.Content, StringComparison.Ordinal);
+        Assert.Contains(ArchitectureSignals.Keys.EfCore, result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public sealed class RendererTests
         var result = await renderer.RenderAsync(model, options, default);
 
         Assert.NotNull(result.Content);
-        Assert.Contains("schemaVersion", result.Content);
-        Assert.Contains("1.1", result.Content);
+        Assert.Contains("schemaVersion", result.Content, StringComparison.Ordinal);
+        Assert.Contains("1.1", result.Content, StringComparison.Ordinal);
         Assert.Equal("1.1", result.SchemaVersion);
     }
 
@@ -132,10 +132,10 @@ public sealed class RendererTests
         var renderer = new JsonContextRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("typesSummary", result.Content);
-        Assert.Contains("\"found\": 2", result.Content);
-        Assert.Contains("\"inOutput\": 1", result.Content);
-        Assert.Contains("\"prunedPercent\": 50", result.Content);
+        Assert.Contains("typesSummary", result.Content, StringComparison.Ordinal);
+        Assert.Contains("\"found\": 2", result.Content, StringComparison.Ordinal);
+        Assert.Contains("\"inOutput\": 1", result.Content, StringComparison.Ordinal);
+        Assert.Contains("\"prunedPercent\": 50", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -155,8 +155,8 @@ public sealed class RendererTests
         var renderer = new JsonContextRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("detections", result.Content);
-        Assert.Contains("EndpointDetection", result.Content);
+        Assert.Contains("detections", result.Content, StringComparison.Ordinal);
+        Assert.Contains("EndpointDetection", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -170,8 +170,8 @@ public sealed class RendererTests
         var renderer = new JsonContextRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("signals", result.Content);
-        Assert.Contains(ArchitectureSignals.Keys.MinimalApis, result.Content);
+        Assert.Contains("signals", result.Content, StringComparison.Ordinal);
+        Assert.Contains(ArchitectureSignals.Keys.MinimalApis, result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -204,11 +204,11 @@ public sealed class RendererTests
         var result = await renderer.RenderAsync(model, options, default);
 
         // In library mode (no detections), output should show namespace group
-        Assert.Contains("Types by namespace", result.Content);
-        Assert.Contains("Lib.Services", result.Content);
-        Assert.Contains("MyService", result.Content);
+        Assert.Contains("Types by namespace", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Lib.Services", result.Content, StringComparison.Ordinal);
+        Assert.Contains("MyService", result.Content, StringComparison.Ordinal);
         // Should mention 2 types, 1 public
-        Assert.Contains("2 types (1 public)", result.Content);
+        Assert.Contains("2 types (1 public)", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -226,9 +226,9 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Data model", result.Content);
-        Assert.Contains("Product", result.Content);
-        Assert.Contains("CatalogContext", result.Content);
+        Assert.Contains("Data model", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Product", result.Content, StringComparison.Ordinal);
+        Assert.Contains("CatalogContext", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -246,9 +246,9 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Message consumers", result.Content);
-        Assert.Contains("OrderCreated", result.Content);
-        Assert.Contains("OrderCreatedConsumer", result.Content);
+        Assert.Contains("Message consumers", result.Content, StringComparison.Ordinal);
+        Assert.Contains("OrderCreated", result.Content, StringComparison.Ordinal);
+        Assert.Contains("OrderCreatedConsumer", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -266,8 +266,8 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Source", result.Content);
-        Assert.Contains("Program.cs:5", result.Content);
+        Assert.Contains("Source", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Program.cs:5", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -285,8 +285,8 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Group", result.Content);
-        Assert.Contains("/api", result.Content);
+        Assert.Contains("Group", result.Content, StringComparison.Ordinal);
+        Assert.Contains("/api", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -308,7 +308,7 @@ public sealed class RendererTests
         var result = await renderer.RenderAsync(model, options, default);
 
         // Should truncate the long lambda with file:line reference
-        Assert.Contains("Program.cs:5", result.Content);
+        Assert.Contains("Program.cs:5", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -332,11 +332,11 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Data model (EF Core)", result.Content);
-        Assert.Contains("OrderingContext", result.Content);
-        Assert.Contains("`Order`", result.Content);
-        Assert.Contains("`OrderItem`", result.Content);
-        Assert.Contains("✓", result.Content); // Order is aggregate root
+        Assert.Contains("Data model (EF Core)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("OrderingContext", result.Content, StringComparison.Ordinal);
+        Assert.Contains("`Order`", result.Content, StringComparison.Ordinal);
+        Assert.Contains("`OrderItem`", result.Content, StringComparison.Ordinal);
+        Assert.Contains("✓", result.Content, StringComparison.Ordinal); // Order is aggregate root
     }
 
     [Fact]
@@ -354,10 +354,10 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Message consumers", result.Content);
-        Assert.Contains("MassTransit", result.Content);
-        Assert.Contains("`OrderPlacedEvent`", result.Content);
-        Assert.Contains("`OrderPlacedConsumer`", result.Content);
+        Assert.Contains("Message consumers", result.Content, StringComparison.Ordinal);
+        Assert.Contains("MassTransit", result.Content, StringComparison.Ordinal);
+        Assert.Contains("`OrderPlacedEvent`", result.Content, StringComparison.Ordinal);
+        Assert.Contains("`OrderPlacedConsumer`", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -382,8 +382,8 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("Endpoints", result.Content);
-        Assert.DoesNotContain("Data model", result.Content);
+        Assert.Contains("Endpoints", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Data model", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public sealed class RendererTests
         var options = new RenderOptions(false, false, 8000);
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("### Worker.cs (2)", result.Content);
-        Assert.Contains("### TestFile.cs (1)", result.Content);
+        Assert.Contains("### Worker.cs (2)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("### TestFile.cs (1)", result.Content, StringComparison.Ordinal);
     }
 }

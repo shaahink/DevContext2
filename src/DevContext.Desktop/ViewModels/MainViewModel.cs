@@ -48,7 +48,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     // ── Section selection (forwarded from SectionSelectionModel) ───────────────
     public SectionSelectionModel SectionSelection => _sections;
     public ImmutableArray<SectionGroupViewModel> SectionGroups => _sections.SectionGroups;
-    public List<SectionToggle> Sections => _sections.Sections;
+    public IList<SectionToggle> Sections => _sections.Sections;
     public int SelectedTokenTotal => _sections.SelectedTokenTotal;
     public int TotalTokens => _sections.TotalTokens;
     public int BudgetTokens => _sections.BudgetTokens;
@@ -100,14 +100,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
             DevContext.Core.Graph.EntryPointKind.HostedService => "Hosted Services",
             DevContext.Core.Graph.EntryPointKind.PublicApi => "Public API",
             _ => "Other"
-        });
+        }, StringComparer.Ordinal);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AnalyzeButtonText))]
     private string _selectedEntry = "";
 
-    public bool IsFormatMarkdown => SelectedFormat == "markdown";
-    public bool IsFormatJson => SelectedFormat == "json";
+    public bool IsFormatMarkdown => string.Equals(SelectedFormat, "markdown", StringComparison.Ordinal);
+    public bool IsFormatJson => string.Equals(SelectedFormat, "json", StringComparison.Ordinal);
 
     // ── Analysis state ─────────────────────────────────────────────────────────
     // State lives on OutputViewModel; subscribe to bubble up AnalyzeButtonText notification.
@@ -194,7 +194,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OnRenderInputChanged();
     }
 
-    public List<ScenarioItem> Scenarios { get; } =
+    public IList<ScenarioItem> Scenarios { get; } =
     [
         new("overview",   "Overview"),
         new("deep-dive",  "Trace"),
@@ -305,59 +305,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var capturedDepth = Depth;
         var capturedDetail = Detail;
 
-        _output.IsAnalyzing = true;
-        _output.IsProgressVisible = true;
-        _output.ProgressText = "Starting...";
-        _output.HasOutput = false;
-        _output.StatsText = "";
-        _output.RawContent = "";
-        _output.HumanViewHtml = "";
-        _snapshot = null;
-        SelectedEntry = "";
+        ResetOutputState();
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
 
-        var workingPath = ProjectPath;
+        var (clonePath, shouldContinue) = await TryHandleGitCloneAsync(ct).ConfigureAwait(true);
+        if (!shouldContinue) return;
+        var workingPath = clonePath ?? ProjectPath;
 
-        // Clone from GitHub if this is a repo URL
-        if (_gitRepoUrl is { IsValid: true } repo)
-        {
-            var clonePath = repo.ClonePath;
-
-            var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
-                new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
-
-            if (cloneResult is null)
-            {
-                _output.ProgressText = "Error";
-                _output.RawContent = $"Failed to clone {repo.ToDisplay()}...";
-                _output.HasOutput = true;
-                _output.IsAnalyzing = false;
-                _output.IsProgressVisible = false;
-                return;
-            }
-
-            workingPath = cloneResult;
-        }
-
-        var opts = new AnalysisOptions
-        {
-            ProjectPath = workingPath,
-            Scenario = SelectedScenario.Value,
-            Profile = DerivedProfile,
-            Around = Around,
-            MaxTokens = capturedBudget,
-            Format = SelectedFormat,
-            IncludeProvenance = IncludeProvenance,
-            IncludeDiagnostics = IncludeDiagnostics,
-            NoRoslyn = NoRoslyn,
-            DryRun = DryRun,
-            IncludeAntiPatterns = IncludeAntiPatterns,
-            ActiveSections = GetActiveSections(),
-            Depth = capturedDepth,
-            Detail = capturedDetail,
-        };
+        var opts = BuildAnalysisOptions(workingPath, capturedBudget, capturedDepth, capturedDetail);
 
         var progress = new Progress<AnalysisProgress>(p =>
         {
@@ -367,41 +324,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var snapResult = await _svc.AnalyzeAsync(opts, progress, ct).ConfigureAwait(true);
-            if (snapResult.Success && snapResult.Snapshot is not null)
-            {
-                _snapshot = snapResult.Snapshot;
-                var elapsedMs = snapResult.ElapsedMs;
-
-                // Initial render from the snapshot
-                await RerenderAsync(ct).ConfigureAwait(true);
-
-                if (ct.IsCancellationRequested) return;
-
-                _output.StatsHtml = _snapshot?.Report is { } r
-                    ? RunReportHtmlRenderer.Render(r) : "";
-
-                _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
-                _output.HasOutput = true;
-                _output.ProgressText = "Done";
-                _sections.BudgetTokens = capturedBudget;
-
-                OnPropertyChanged(string.Empty);
-
-                // Clean up clone off UI thread
-                if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
-                {
-                    var clonePath = gitRepo.ClonePath;
-                    await System.Threading.Tasks.Task.Run(() =>
-                        GitCloneService.Cleanup(clonePath)).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                if (ct.IsCancellationRequested) return;
-                _output.ProgressText = "Error";
-                _output.RawContent = snapResult.Error ?? "Analysis failed.";
-                _output.HasOutput = true;
-            }
+            await ProcessSnapshotResultAsync(snapResult, capturedBudget, ct).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
@@ -421,6 +344,100 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _output.IsAnalyzing = false;
             _output.IsProgressVisible = false;
             _ = System.Threading.Tasks.Task.Run(SaveSettings);
+        }
+    }
+
+    private void ResetOutputState()
+    {
+        _output.IsAnalyzing = true;
+        _output.IsProgressVisible = true;
+        _output.ProgressText = "Starting...";
+        _output.HasOutput = false;
+        _output.StatsText = "";
+        _output.RawContent = "";
+        _output.HumanViewHtml = "";
+        _snapshot = null;
+        SelectedEntry = "";
+    }
+
+    private async Task<(string? Path, bool ShouldContinue)> TryHandleGitCloneAsync(CancellationToken ct)
+    {
+        if (_gitRepoUrl is not { IsValid: true } repo)
+            return (null, true);
+
+        var cloneResult = await _git.CloneAsync(repo, repo.ClonePath, repo.Ref,
+            new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
+
+        if (cloneResult is null)
+        {
+            _output.ProgressText = "Error";
+            _output.RawContent = $"Failed to clone {repo.ToDisplay()}...";
+            _output.HasOutput = true;
+            _output.IsAnalyzing = false;
+            _output.IsProgressVisible = false;
+            return (null, false);
+        }
+
+        return (cloneResult, true);
+    }
+
+    private AnalysisOptions BuildAnalysisOptions(string workingPath, int capturedBudget, int capturedDepth, string capturedDetail)
+    {
+        return new AnalysisOptions
+        {
+            ProjectPath = workingPath,
+            Scenario = SelectedScenario.Value,
+            Profile = DerivedProfile,
+            Around = Around,
+            MaxTokens = capturedBudget,
+            Format = SelectedFormat,
+            IncludeProvenance = IncludeProvenance,
+            IncludeDiagnostics = IncludeDiagnostics,
+            NoRoslyn = NoRoslyn,
+            DryRun = DryRun,
+            IncludeAntiPatterns = IncludeAntiPatterns,
+            ActiveSections = GetActiveSections(),
+            Depth = capturedDepth,
+            Detail = capturedDetail,
+        };
+    }
+
+    private async Task ProcessSnapshotResultAsync(SnapshotResult snapResult, int capturedBudget, CancellationToken ct)
+    {
+        if (snapResult.Success && snapResult.Snapshot is not null)
+        {
+            _snapshot = snapResult.Snapshot;
+            var elapsedMs = snapResult.ElapsedMs;
+
+            // Initial render from the snapshot
+            await RerenderAsync(ct).ConfigureAwait(true);
+
+            if (ct.IsCancellationRequested) return;
+
+            _output.StatsHtml = _snapshot?.Report is { } r
+                ? RunReportHtmlRenderer.Render(r) : "";
+
+            _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+            _output.HasOutput = true;
+            _output.ProgressText = "Done";
+            _sections.BudgetTokens = capturedBudget;
+
+            OnPropertyChanged(string.Empty);
+
+            // Clean up clone off UI thread
+            if (_gitRepoUrl is { } gitRepo && string.Equals(CloneCleanup, "auto", StringComparison.Ordinal))
+            {
+                var clonePath = gitRepo.ClonePath;
+                await System.Threading.Tasks.Task.Run(() =>
+                    GitCloneService.Cleanup(clonePath), CancellationToken.None).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            if (ct.IsCancellationRequested) return;
+            _output.ProgressText = "Error";
+            _output.RawContent = snapResult.Error ?? "Analysis failed.";
+            _output.HasOutput = true;
         }
     }
 
@@ -488,7 +505,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void LoadSettings()
     {
         var s = _svc.LoadSettings();
-        SelectedScenario = Scenarios.FirstOrDefault(sc => sc.Value == s.LastScenario) ?? Scenarios[0];
+        SelectedScenario = Scenarios.FirstOrDefault(sc => string.Equals(sc.Value, s.LastScenario, StringComparison.Ordinal)) ?? Scenarios[0];
         SelectedFormat = s.LastFormat ?? "markdown";
         if (s.LastTokens > 0) MaxTokens = s.LastTokens;
         Around = s.LastAround ?? "";

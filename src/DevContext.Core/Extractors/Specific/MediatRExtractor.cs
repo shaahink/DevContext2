@@ -56,7 +56,7 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -104,7 +104,7 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
 
     private static (string RequestType, string ResponseType, MediatRKind Kind)? TryParseHandlerType(string typeName)
     {
-        if (typeName.StartsWith("IRequestHandler<"))
+        if (typeName.StartsWith("IRequestHandler<", StringComparison.Ordinal))
         {
             var args = ExtractGenericArguments(typeName);
             if (args.Length >= 2)
@@ -113,7 +113,7 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
             }
         }
 
-        if (typeName.StartsWith("INotificationHandler<"))
+        if (typeName.StartsWith("INotificationHandler<", StringComparison.Ordinal))
         {
             var args = ExtractGenericArguments(typeName);
             if (args.Length >= 1)
@@ -128,7 +128,7 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
         }
 
         var baseName = ExtractGenericBaseName(typeName);
-        if (baseName != null && RequestMarkers.Contains(baseName))
+        if (baseName != null && RequestMarkers.Contains(baseName, StringComparer.Ordinal))
         {
             var args = ExtractGenericArguments(typeName);
             if (args.Length == 1)

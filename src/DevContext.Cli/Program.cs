@@ -32,4 +32,4 @@ app.Configure(config =>
     config.PropagateExceptions();
 });
 
-return await app.RunAsync(args);
+return await app.RunAsync(args).ConfigureAwait(false);

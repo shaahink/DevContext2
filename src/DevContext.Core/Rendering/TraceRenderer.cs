@@ -16,7 +16,7 @@ public static class TraceRenderer
         if (entry.Provenance is { } p)
             sb.AppendLine($"       {p}");
         if (entry.Project is { } proj)
-            sb.Append("       " + proj);
+            sb.Append("       ").Append(proj);
         sb.AppendLine();
 
         RenderStep(sb, trace.Root, "", detail, isLast: true, isRoot: true);
@@ -63,12 +63,12 @@ public static class TraceRenderer
         {
             var bodyIndent = indent + (isLast ? "       " : "\u2502      ");
             foreach (var line in step.Salient)
-                sb.AppendLine(bodyIndent + line);
+                sb.Append(bodyIndent).AppendLine(line);
         }
 
         if (step.Truncated)
         {
-            sb.AppendLine(indent + (isLast ? "   " : "\u2502  ") + "(truncated — more edges beyond depth/fan-out)");
+            sb.Append(indent).Append(isLast ? "   " : "\u2502  ").AppendLine("(truncated — more edges beyond depth/fan-out)");
         }
 
         if (step.Children.Length == 0) return;

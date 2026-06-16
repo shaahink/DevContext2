@@ -6,7 +6,7 @@ namespace DevContext.Core.Observers;
 public sealed class RecordingDiscoveryObserver : IDiscoveryObserver
 {
     /// <summary>List of event strings recorded during pipeline execution.</summary>
-    public List<string> Events { get; } = [];
+    public IList<string> Events { get; } = [];
     /// <summary>Bag of diagnostic entries recorded during pipeline execution.</summary>
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
 

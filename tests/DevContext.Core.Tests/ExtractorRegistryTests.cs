@@ -11,12 +11,12 @@ public sealed class ExtractorRegistryTests
         var extractors = ExtractorRegistry.DiscoverExtractors(coreAssembly);
 
         Assert.NotEmpty(extractors);
-        Assert.Contains(extractors, e => e.Name == "FileTreeExtractor");
-        Assert.Contains(extractors, e => e.Name == "EndpointExtractor");
-        Assert.Contains(extractors, e => e.Name == "ProgramCsFlowExtractor");
-        Assert.Contains(extractors, e => e.Name == "DiRegistrationExtractor");
-        Assert.Contains(extractors, e => e.Name == "MediatRExtractor");
-        Assert.Contains(extractors, e => e.Name == "EfCoreExtractor");
+        Assert.Contains(extractors, e => string.Equals(e.Name, "FileTreeExtractor", StringComparison.Ordinal));
+        Assert.Contains(extractors, e => string.Equals(e.Name, "EndpointExtractor", StringComparison.Ordinal));
+        Assert.Contains(extractors, e => string.Equals(e.Name, "ProgramCsFlowExtractor", StringComparison.Ordinal));
+        Assert.Contains(extractors, e => string.Equals(e.Name, "DiRegistrationExtractor", StringComparison.Ordinal));
+        Assert.Contains(extractors, e => string.Equals(e.Name, "MediatRExtractor", StringComparison.Ordinal));
+        Assert.Contains(extractors, e => string.Equals(e.Name, "EfCoreExtractor", StringComparison.Ordinal));
     }
 
     [Fact]

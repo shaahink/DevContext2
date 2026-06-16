@@ -59,7 +59,7 @@ public class GitHubAnalysisE2ETests
     {
         var url = RepoUrl.Parse("https://github.com/user/myrepo");
         Assert.NotNull(url);
-        Assert.EndsWith("user-myrepo-default", url.ClonePath);
+        Assert.EndsWith("user-myrepo-default", url.ClonePath, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class GitHubAnalysisE2ETests
         vm.ProjectPath = "https://github.com/shaahink/DevContext2";
 
         Assert.True(vm.IsGitHubUrl);
-        Assert.Contains("github.com/shaahink/DevContext2", vm.GitRepoDisplay);
+        Assert.Contains("github.com/shaahink/DevContext2", vm.GitRepoDisplay, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -146,6 +146,6 @@ public class GitHubAnalysisE2ETests
         Assert.Equal("Analyze", vm.AnalyzeButtonText);
 
         vm.ProjectPath = "https://github.com/shaahink/DevContext2";
-        Assert.Contains("Clone", vm.AnalyzeButtonText);
+        Assert.Contains("Clone", vm.AnalyzeButtonText, StringComparison.Ordinal);
     }
 }

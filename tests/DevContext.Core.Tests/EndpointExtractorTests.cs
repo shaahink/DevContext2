@@ -14,7 +14,7 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/{id}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders/{id}", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -71,8 +71,8 @@ public sealed class EndpointExtractorTests
         var result = await RunExtractorOnFilesAsync(fs);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -89,8 +89,8 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos/" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos/{id}" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos/", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos/{id}", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
         Assert.All(endpoints, e => Assert.Equal("/todos", e.GroupPrefix));
     }
 
@@ -111,11 +111,11 @@ public sealed class EndpointExtractorTests
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
         Assert.Equal(5, endpoints.Count);
-        Assert.Contains(endpoints, e => e.HttpMethod == "GET" && e.RouteTemplate == "/get");
-        Assert.Contains(endpoints, e => e.HttpMethod == "POST" && e.RouteTemplate == "/post");
-        Assert.Contains(endpoints, e => e.HttpMethod == "PUT" && e.RouteTemplate == "/put");
-        Assert.Contains(endpoints, e => e.HttpMethod == "DELETE" && e.RouteTemplate == "/delete");
-        Assert.Contains(endpoints, e => e.HttpMethod == "PATCH" && e.RouteTemplate == "/patch");
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/get", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/post", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "PUT", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/put", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "DELETE", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/delete", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "PATCH", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/patch", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -134,8 +134,8 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/dev-only");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/always");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/dev-only", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/always", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class EndpointExtractorTests
         var result = await RunExtractorOnFilesAsync(fs);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/from-startup");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/from-startup", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -172,8 +172,8 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/items" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/orders" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/items", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/orders", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -217,9 +217,9 @@ public sealed class EndpointExtractorTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        var secret = endpoints.Single(e => e.RouteTemplate == "/secret");
-        var admin = endpoints.Single(e => e.RouteTemplate == "/admin");
-        var pub = endpoints.Single(e => e.RouteTemplate == "/public");
+        var secret = endpoints.Single(e => string.Equals(e.RouteTemplate, "/secret", StringComparison.Ordinal));
+        var admin = endpoints.Single(e => string.Equals(e.RouteTemplate, "/admin", StringComparison.Ordinal));
+        var pub = endpoints.Single(e => string.Equals(e.RouteTemplate, "/public", StringComparison.Ordinal));
 
         Assert.Contains("[Authorize]", secret.AuthAttributes);
         Assert.Contains("[Authorize(AdminPolicy)]", admin.AuthAttributes);
@@ -230,14 +230,14 @@ public sealed class EndpointExtractorTests
     {
         var fs = new FakeFileSystem();
         fs.AddFile(fileName, source);
-        return await RunExtractorOnFilesAsync(fs);
+        return await RunExtractorOnFilesAsync(fs).ConfigureAwait(false);
     }
 
     private static async Task<DiscoveryModel> RunExtractorOnFilesAsync(FakeFileSystem fs)
     {
         var cache = new FakeAnalysisCache(fs);
         var allFiles = new List<string>();
-        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories))
+        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories).ConfigureAwait(false))
             allFiles.Add(f);
 
         var analysis = new SharedAnalysisContext
@@ -263,7 +263,7 @@ public sealed class EndpointExtractorTests
         };
 
         var extractor = new EndpointExtractor();
-        await extractor.ExtractAsync(ctx, model, CancellationToken.None);
+        await extractor.ExtractAsync(ctx, model, CancellationToken.None).ConfigureAwait(false);
 
         return model;
     }

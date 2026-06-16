@@ -32,7 +32,7 @@ public sealed class AntiPatternDetectorTests
         Assert.All(patterns, p =>
         {
             Assert.Equal("low", p.Severity);
-            Assert.Contains("[test file", p.Description);
+            Assert.Contains("[test file", p.Description, StringComparison.Ordinal);
         });
     }
 
@@ -91,7 +91,7 @@ public sealed class AntiPatternDetectorTests
         await detector.ExtractAsync(ctx, model, default);
 
         var patterns = model.Detections.OfType<AntiPatternDetection>()
-            .Where(p => p.Pattern == "AsyncVoid").ToArray();
+            .Where(p => string.Equals(p.Pattern, "AsyncVoid", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(patterns);
         Assert.All(patterns, p => Assert.Equal("high", p.Severity));
     }
@@ -122,7 +122,7 @@ public sealed class AntiPatternDetectorTests
         await detector.ExtractAsync(ctx, model, default);
 
         var patterns = model.Detections.OfType<AntiPatternDetection>()
-            .Where(p => p.Pattern == "AsyncVoid").ToArray();
+            .Where(p => string.Equals(p.Pattern, "AsyncVoid", StringComparison.Ordinal)).ToArray();
         Assert.Empty(patterns);
     }
 
@@ -182,7 +182,7 @@ public sealed class AntiPatternDetectorTests
         await detector.ExtractAsync(ctx, model, default);
 
         var patterns = model.Detections.OfType<AntiPatternDetection>()
-            .Where(p => p.Pattern == "CaptiveDependency").ToArray();
+            .Where(p => string.Equals(p.Pattern, "CaptiveDependency", StringComparison.Ordinal)).ToArray();
         Assert.NotEmpty(patterns);
         Assert.All(patterns, p => Assert.Equal("high", p.Severity));
     }

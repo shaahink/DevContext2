@@ -98,19 +98,19 @@ public sealed class RunReportCollector : IDiscoveryObserver
         var rows = _extractorRows.ToImmutableArray();
 
         var stage2Cpu = TimeSpan.FromMilliseconds(
-            rows.Where(r => r.Stage == "GenericExtraction" && !r.Skipped).Sum(r => r.Elapsed.TotalMilliseconds));
+            rows.Where(r => string.Equals(r.Stage, "GenericExtraction", StringComparison.Ordinal) && !r.Skipped).Sum(r => r.Elapsed.TotalMilliseconds));
         var stage3Cpu = TimeSpan.FromMilliseconds(
-            rows.Where(r => r.Stage == "SpecificExtraction" && !r.Skipped).Sum(r => r.Elapsed.TotalMilliseconds));
+            rows.Where(r => string.Equals(r.Stage, "SpecificExtraction", StringComparison.Ordinal) && !r.Skipped).Sum(r => r.Elapsed.TotalMilliseconds));
 
         var stage2Wall = _stageRows
-            .Where(s => s.Stage == "GenericExtraction").Select(s => s.Elapsed).FirstOrDefault();
+            .Where(s => string.Equals(s.Stage, "GenericExtraction", StringComparison.Ordinal)).Select(s => s.Elapsed).FirstOrDefault();
         var stage3Wall = _stageRows
-            .Where(s => s.Stage == "SpecificExtraction").Select(s => s.Elapsed).FirstOrDefault();
+            .Where(s => string.Equals(s.Stage, "SpecificExtraction", StringComparison.Ordinal)).Select(s => s.Elapsed).FirstOrDefault();
 
         return new RunReport
         {
             Stages = _stageRows.OrderBy(s => s.Ordinal).Select(s => new StageStat(s.Stage, s.Elapsed, s.Ordinal)).ToImmutableArray(),
-            Extractors = rows.OrderByDescending(e => e.Elapsed).ThenBy(e => e.Name).ToImmutableArray(),
+            Extractors = rows.OrderByDescending(e => e.Elapsed).ThenBy(e => e.Name, StringComparer.Ordinal).ToImmutableArray(),
             Scorers = _scorerRows.ToImmutableArray(),
             Compressions = _compressionRows.ToImmutableArray(),
             Cache = _cacheStats,

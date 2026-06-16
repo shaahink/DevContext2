@@ -5,7 +5,7 @@ namespace DevContext.Core.Models;
 /// <summary>Thread-safe collection of architecture feature signals that can be sealed after Stage 2.</summary>
 public sealed class ArchitectureSignals
 {
-    private readonly ConcurrentDictionary<string, FeatureSignal> _signals = new();
+    private readonly ConcurrentDictionary<string, FeatureSignal> _signals = new(StringComparer.Ordinal);
     private volatile bool _sealed;
 
     /// <summary>Registers a signal, replacing existing signals only if the new confidence is higher. Throws if signals are sealed.</summary>
@@ -13,8 +13,10 @@ public sealed class ArchitectureSignals
     {
         if (_sealed) throw new InvalidOperationException(
             "Signals sealed after Stage 2. Register signals only in Generic extractors.");
-        _signals.AddOrUpdate(signal.Key, signal,
-            (_, existing) => signal.Confidence >= existing.Confidence ? signal : existing);
+        _signals.AddOrUpdate(signal.Key,
+            static (key, addArg) => addArg,
+            static (key, existing, arg) => arg.Confidence >= existing.Confidence ? arg : existing,
+            signal);
     }
 
     /// <summary>Returns true if a signal with the given key exists and is detected.</summary>

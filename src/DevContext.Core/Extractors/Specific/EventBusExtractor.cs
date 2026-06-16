@@ -37,7 +37,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -61,7 +61,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                 {
                     var typeName = baseType.Type.ToString();
 
-                    if (typeName.StartsWith("IConsumer<"))
+                    if (typeName.StartsWith("IConsumer<", StringComparison.Ordinal))
                     {
                         var args = ExtractGenericArguments(typeName);
                         if (args.Length == 0) continue;
@@ -83,7 +83,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
             }
         }
 
-        await DetectBusRegistrationPatterns(context, model, busKind, Name, ct);
+        await DetectBusRegistrationPatterns(context, model, busKind, Name, ct).ConfigureAwait(false);
     }
 
     private static string DetectBusKind(DiscoveryModel model)
@@ -113,7 +113,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -130,8 +130,8 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
 
                 var methodName = memberAccess.Name.Identifier.ValueText;
 
-                var isBusRegistration = busKind == "MassTransit"
-                    ? methodName is "AddMassTransit" or "UsingRabbitMq" or "UsingAzureServiceBus" or "AddConsumer" or "AddMediator"
+                var isBusRegistration = string.Equals(busKind, "MassTransit"
+, StringComparison.Ordinal) ? methodName is "AddMassTransit" or "UsingRabbitMq" or "UsingAzureServiceBus" or "AddConsumer" or "AddMediator"
                     : methodName is "AddNServiceBus" or "ConfigureEndpoint" or "AddEndpoint";
 
                 if (!isBusRegistration) continue;

@@ -43,7 +43,7 @@ public sealed class FileTreeExtractorTests
         await extractor.ExtractAsync(ctx, new DiscoveryModel(), CancellationToken.None);
 
         Assert.Single(analysis.AllSourceFiles);
-        Assert.Contains(analysis.AllSourceFiles, f => f.Contains("Program.cs"));
+        Assert.Contains(analysis.AllSourceFiles, f => f.Contains("Program.cs", StringComparison.Ordinal));
     }
 
     private static DiscoveryContext CreateContext(

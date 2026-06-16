@@ -12,9 +12,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
 
     private static readonly Regex DocCommentRegex = MyRegex();
 
-    private static readonly Regex SummaryTagRegex = new(
-        @"<summary>(.*?)</summary>",
-        RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex SummaryTagRegex = SummaryTagRegex_();
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
@@ -59,7 +57,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
             lines[i] = lines[i].Replace('\t', ' ').TrimEnd();
         }
 
-        return string.Join("\n", lines);
+        return string.Join('\n', lines);
     }
 
     private static string StripDocCommentsPreserveSummary(string text)
@@ -103,4 +101,6 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
 
     [GeneratedRegex(@"^\s*///\s*(.*?)$", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex MyRegex();
+    [GeneratedRegex(@"<summary>(.*?)</summary>", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    private static partial Regex SummaryTagRegex_();
 }

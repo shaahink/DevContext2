@@ -46,19 +46,35 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var maxDepth = context.ActiveScenario.Pruning.MaxCallDepth;
-        var allEdges = new ConcurrentBag<CallEdge>();
+        var (diMap, interfaceImplMap, fqnMap, fqnCollisions) = BuildResolutionMaps(model);
+        var trees = await CollectSyntaxTreesAsync(context, model, Name, ct).ConfigureAwait(false);
+        var compilation = CreateCompilation(trees, model, Name);
 
+        var allEdges = new ConcurrentBag<CallEdge>();
+        var semanticEdges = await ResolveCallEdgesAsync(trees, compilation, diMap, interfaceImplMap, fqnMap, fqnCollisions, allEdges, ct).ConfigureAwait(false);
+
+        var includedEdges = FilterEdgesByBfsDepth(allEdges, context, model, maxDepth, ct);
+        EmitCallGraphAndDiagnostic(includedEdges, context, model, compilation, semanticEdges, maxDepth, Name, ct);
+    }
+
+    private static (
+        Dictionary<string, string> DiMap,
+        Dictionary<string, string> InterfaceImplMap,
+        Dictionary<string, string> FqnMap,
+        Dictionary<string, List<string>> FqnCollisions)
+        BuildResolutionMaps(DiscoveryModel model)
+    {
         // Build DI resolution map: interface/abstract type → concrete implementation
         // Key: short type name, Value: short implementation name
         var diMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
             if (!string.IsNullOrEmpty(di.ImplementationType)
-                && di.ImplementationType != "?"
-                && !di.ImplementationType.StartsWith("sp =>")
-                && !di.ImplementationType.StartsWith("_ =>")
-                && !di.ImplementationType.StartsWith("(")
-                && !di.ImplementationType.Contains("GetRequiredService"))
+                && !string.Equals(di.ImplementationType, "?"
+, StringComparison.Ordinal) && !di.ImplementationType.StartsWith("sp =>", StringComparison.Ordinal)
+                && !di.ImplementationType.StartsWith("_ =>", StringComparison.Ordinal)
+                && !di.ImplementationType.StartsWith('(')
+                && !di.ImplementationType.Contains("GetRequiredService", StringComparison.Ordinal))
             {
                 var svcShort = StripGenerics(di.ServiceType);
                 var implShort = StripGenerics(di.ImplementationType);
@@ -97,15 +113,26 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             }
         }
 
+        return (diMap, interfaceImplMap, fqnMap, fqnCollisions);
+    }
+
+    private static async Task<List<(string Path, SyntaxTree Tree)>> CollectSyntaxTreesAsync(
+        DiscoveryContext context, DiscoveryModel model, string name, CancellationToken ct)
+    {
         // Pass 1: collect every parsed tree so one compilation can see the whole solution.
         var trees = new List<(string Path, SyntaxTree Tree)>();
-        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct).ConfigureAwait(false))
         {
             ct.ThrowIfCancellationRequested();
-            try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct))); }
-            catch { model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}"); }
+            try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false))); }
+            catch { model.AddDiagnostic(DiagnosticLevel.Warning, name, $"Failed to parse {filePath}"); }
         }
+        return trees;
+    }
 
+    private static CSharpCompilation? CreateCompilation(
+        List<(string Path, SyntaxTree Tree)> trees, DiscoveryModel model, string name)
+    {
         // Build a best-effort semantic compilation. Source types always bind; external package types
         // may be error types, but intra-solution receiver resolution — the calls a trace follows — works
         // regardless. Any failure degrades cleanly to the syntactic field/DI-map heuristic.
@@ -119,10 +146,22 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         }
         catch (Exception ex)
         {
-            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+            model.AddDiagnostic(DiagnosticLevel.Info, name,
                 $"Semantic compilation unavailable; using syntactic resolution ({ex.GetType().Name}).");
         }
+        return compilation;
+    }
 
+    private static async Task<int> ResolveCallEdgesAsync(
+        List<(string Path, SyntaxTree Tree)> trees,
+        CSharpCompilation? compilation,
+        Dictionary<string, string> diMap,
+        Dictionary<string, string> interfaceImplMap,
+        Dictionary<string, string> fqnMap,
+        Dictionary<string, List<string>> fqnCollisions,
+        ConcurrentBag<CallEdge> allEdges,
+        CancellationToken ct)
+    {
         // Pass 2: resolve call edges, preferring the SemanticModel and falling back to syntax.
         var semanticEdges = 0;
         foreach (var (filePath, syntaxTree) in trees)
@@ -171,8 +210,14 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                 }
             }
         }
+        return semanticEdges;
+    }
 
-        var adjacency = new Dictionary<string, List<CallEdge>>();
+    private static List<CallEdge> FilterEdgesByBfsDepth(
+        ConcurrentBag<CallEdge> allEdges, DiscoveryContext context, DiscoveryModel model,
+        int maxDepth, CancellationToken ct)
+    {
+        var adjacency = new Dictionary<string, List<CallEdge>>(StringComparer.Ordinal);
         foreach (var edge in allEdges)
         {
             var key = $"{edge.CallerType}.{edge.CallerMethod}";
@@ -185,7 +230,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         }
 
         var startKeys = GetStartKeys(context, model);
-        var bfsDepth = new Dictionary<string, int>();
+        var bfsDepth = new Dictionary<string, int>(StringComparer.Ordinal);
         var queue = new Queue<string>();
         var includedEdges = new List<CallEdge>();
 
@@ -212,11 +257,17 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                     queue.Enqueue(calleeKey);
             }
         }
+        return includedEdges;
+    }
 
+    private static void EmitCallGraphAndDiagnostic(
+        List<CallEdge> includedEdges, DiscoveryContext context, DiscoveryModel model,
+        CSharpCompilation? compilation, int semanticEdges, int maxDepth, string name, CancellationToken ct)
+    {
         foreach (var edge in includedEdges)
             model.CallEdges.Add(edge);
 
-        var callGraphAdj = new Dictionary<string, ImmutableArray<CallEdge>>();
+        var callGraphAdj = new Dictionary<string, ImmutableArray<CallEdge>>(StringComparer.Ordinal);
         foreach (var edge in includedEdges)
         {
             ct.ThrowIfCancellationRequested();
@@ -234,13 +285,13 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
         var resolver = compilation is not null ? $"semantic ({semanticEdges} verified)" : "syntactic";
-        model.AddDiagnostic(DiagnosticLevel.Info, Name,
+        model.AddDiagnostic(DiagnosticLevel.Info, name,
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}");
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)
     {
-        var startKeys = new HashSet<string>();
+        var startKeys = new HashSet<string>(StringComparer.Ordinal);
 
         if (context.Analysis.FocusPoints.Count > 0)
         {
@@ -486,7 +537,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                     var callerNs = callerType is not null && callerType.LastIndexOf('.') > 0
                         ? callerType[..callerType.LastIndexOf('.')]
                         : null;
-                    var match = collisions.FirstOrDefault(c => callerNs is not null && c.StartsWith(callerNs + "."));
+                    var match = collisions.FirstOrDefault(c => callerNs is not null && c.StartsWith(callerNs + ".", StringComparison.Ordinal));
                     return match ?? fqn;
                 }
                 return fqn;

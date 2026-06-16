@@ -18,23 +18,23 @@ public sealed class DiscoveryModel
     /// <summary>Indicates which detector or signal identified the architecture style.</summary>
     public string? StyleDetectedVia { get; internal set; }
     /// <summary>All discovered types, keyed by fully qualified name.</summary>
-    public ConcurrentDictionary<string, TypeDiscovery> Types { get; } = new();
+    public ConcurrentDictionary<string, TypeDiscovery> Types { get; } = new(StringComparer.Ordinal);
     /// <summary>All extracted detections (endpoints, handlers, entities, etc.).</summary>
     public ConcurrentBag<Detection> Detections { get; } = [];
     /// <summary>Call edges discovered during call graph extraction.</summary>
     public ConcurrentBag<CallEdge> CallEdges { get; } = [];
     /// <summary>Set of type IDs that have been pruned from the model.</summary>
-    public HashSet<string> PrunedTypeIds { get; } = [];
+    public ISet<string> PrunedTypeIds { get; } = new HashSet<string>(StringComparer.Ordinal);
     /// <summary>Human-readable notes explaining why types were pruned.</summary>
-    public List<string> PruningNotes { get; } = [];
+    public IList<string> PruningNotes { get; } = [];
     /// <summary>Tracks why each item was included (provenance tracking).</summary>
-    public ConcurrentDictionary<string, ConcurrentBag<InclusionReason>> Provenance { get; } = new();
+    public ConcurrentDictionary<string, ConcurrentBag<InclusionReason>> Provenance { get; } = new(StringComparer.Ordinal);
     /// <summary>Diagnostic entries recorded during the pipeline run.</summary>
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
     /// <summary>Token budget configuration for the model.</summary>
     public TokenBudget Budget { get; internal set; } = TokenBudget.Default;
     /// <summary>Compression results recorded sequentially during the compression stage.</summary>
-    public List<CompressionResult> AppliedCompressions { get; } = [];
+    public IList<CompressionResult> AppliedCompressions { get; } = [];
 
     /// <summary>Records a provenance reason for why a specific item was included.</summary>
     public void AddProvenance(string itemId, InclusionReason reason)

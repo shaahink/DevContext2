@@ -30,7 +30,7 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
             ct.ThrowIfCancellationRequested();
             try
             {
-                var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
+                var doc = await context.Cache.GetXmlAsync(csprojPath, ct).ConfigureAwait(false);
                 var name = Path.GetFileNameWithoutExtension(csprojPath);
                 var tfms = ParseTargetFrameworks(doc);
                 var refs = ParseProjectReferences(doc);

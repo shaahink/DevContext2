@@ -27,7 +27,7 @@ public sealed class SolutionScope
                 .Select(p => Path.GetDirectoryName(p.FilePath))
                 .Where(d => !string.IsNullOrEmpty(d))
                 .Select(d => Normalize(d!))
-                .Distinct(),
+                .Distinct(StringComparer.Ordinal),
         ];
     }
 

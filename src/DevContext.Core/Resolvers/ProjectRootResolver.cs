@@ -16,7 +16,7 @@ public sealed class ProjectRootResolver
                 var dir = fs.GetDirectoryName(fullPath)!;
                 return new ProjectRootResult(dir, fullPath, [fullPath], ResolutionMethod.ExplicitSln, null);
             }
-            if (ext == ".csproj")
+            if (string.Equals(ext, ".csproj", StringComparison.Ordinal))
             {
                 var dir = fs.GetDirectoryName(fullPath)!;
                 return new ProjectRootResult(dir, null, [fullPath], ResolutionMethod.ExplicitCsproj, null);
@@ -28,7 +28,7 @@ public sealed class ProjectRootResolver
             throw new DirectoryNotFoundException($"Path not found: {fullPath}");
         }
 
-        var slnFiles = await fs.EnumerateFilesAsync(fullPath, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+        var slnFiles = await fs.EnumerateFilesAsync(fullPath, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct).ConfigureAwait(false);
         if (slnFiles.Count > 0)
         {
             return new ProjectRootResult(fullPath, slnFiles[0], slnFiles.ToImmutableArray(),
@@ -40,7 +40,7 @@ public sealed class ProjectRootResolver
         {
             var parent = fs.GetDirectoryName(current);
             if (parent == null) break;
-            var parentSlns = await fs.EnumerateFilesAsync(parent, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+            var parentSlns = await fs.EnumerateFilesAsync(parent, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct).ConfigureAwait(false);
             if (parentSlns.Count > 0)
             {
                 return new ProjectRootResult(fullPath, parentSlns[0], parentSlns.ToImmutableArray(),
@@ -55,7 +55,7 @@ public sealed class ProjectRootResolver
             var dirs = fs.EnumerateDirectories(current, "*", SearchOption.TopDirectoryOnly).ToList();
             foreach (var dir in dirs)
             {
-                var nestedSlns = await fs.EnumerateFilesAsync(dir, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+                var nestedSlns = await fs.EnumerateFilesAsync(dir, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct).ConfigureAwait(false);
                 if (nestedSlns.Count > 0)
                 {
                     return new ProjectRootResult(fullPath, nestedSlns[0], nestedSlns.ToImmutableArray(),
@@ -67,7 +67,7 @@ public sealed class ProjectRootResolver
             current = next;
         }
 
-        var csprojFiles = await fs.EnumerateFilesAsync(fullPath, "*.csproj", SearchOption.AllDirectories, ct).ToListAsync2(ct);
+        var csprojFiles = await fs.EnumerateFilesAsync(fullPath, "*.csproj", SearchOption.AllDirectories, ct).ToListAsync2(ct).ConfigureAwait(false);
         if (csprojFiles.Count > 0)
         {
             return new ProjectRootResult(fullPath, null, csprojFiles.ToImmutableArray(),

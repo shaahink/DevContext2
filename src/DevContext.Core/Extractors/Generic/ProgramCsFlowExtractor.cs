@@ -42,7 +42,7 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -51,62 +51,69 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
             }
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            var addRegistrations = new List<(string Name, int Line)>();
-            var useRegistrations = new List<(string Name, int Line)>();
-            var mapRegistrations = new List<(string Name, string Method, int Line)>();
-
-            foreach (var invocation in invocations)
-            {
-                if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
-                    continue;
-
-                var methodName = memberAccess.Name.Identifier.ValueText;
-                var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                var target = memberAccess.Expression.ToString();
-                var isServicesTarget = target == "Services" || target.EndsWith(".Services");
-                var isAppTarget = target == "app" || target.EndsWith(".app");
-
-                if (isServicesTarget && methodName.StartsWith("Add"))
-                {
-                    addRegistrations.Add((methodName, lineNumber));
-                }
-                else if (isAppTarget && methodName.StartsWith("Use"))
-                {
-                    useRegistrations.Add((methodName, lineNumber));
-
-                    model.Detections.Add(new MiddlewareDetection(
-                        MiddlewareType: methodName,
-                        PipelineOrder: useRegistrations.Count,
-                        Kind: MiddlewareKind.UseX)
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-                else if (isAppTarget && MapMethods.Contains(methodName))
-                {
-                    var order = mapRegistrations.Count + 1;
-                    mapRegistrations.Add((methodName, methodName, lineNumber));
-
-                    model.Detections.Add(new MiddlewareDetection(
-                        MiddlewareType: methodName,
-                        PipelineOrder: order,
-                        Kind: MiddlewareKind.MapX)
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-            }
+            var (addRegistrations, useRegistrations, mapRegistrations) =
+                CollectProgramRegistrations(root, model, filePath);
 
             DetectOrphanPatterns(addRegistrations, useRegistrations, model, filePath, Name);
-
             DetectBackgroundWorkers(root, model, filePath, Name);
         }
+    }
+
+    private (List<(string Name, int Line)> AddRegs, List<(string Name, int Line)> UseRegs, List<(string Name, string Method, int Line)> MapRegs)
+        CollectProgramRegistrations(SyntaxNode root, DiscoveryModel model, string filePath)
+    {
+        var addRegistrations = new List<(string Name, int Line)>();
+        var useRegistrations = new List<(string Name, int Line)>();
+        var mapRegistrations = new List<(string Name, string Method, int Line)>();
+
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+                continue;
+
+            var methodName = memberAccess.Name.Identifier.ValueText;
+            var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            var target = memberAccess.Expression.ToString();
+            var isServicesTarget = string.Equals(target, "Services", StringComparison.Ordinal) || target.EndsWith(".Services", StringComparison.Ordinal);
+            var isAppTarget = string.Equals(target, "app", StringComparison.Ordinal) || target.EndsWith(".app", StringComparison.Ordinal);
+
+            if (isServicesTarget && methodName.StartsWith("Add", StringComparison.Ordinal))
+            {
+                addRegistrations.Add((methodName, lineNumber));
+            }
+            else if (isAppTarget && methodName.StartsWith("Use", StringComparison.Ordinal))
+            {
+                useRegistrations.Add((methodName, lineNumber));
+
+                model.Detections.Add(new MiddlewareDetection(
+                    MiddlewareType: methodName,
+                    PipelineOrder: useRegistrations.Count,
+                    Kind: MiddlewareKind.UseX)
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
+            else if (isAppTarget && MapMethods.Contains(methodName, StringComparer.Ordinal))
+            {
+                var order = mapRegistrations.Count + 1;
+                mapRegistrations.Add((methodName, methodName, lineNumber));
+
+                model.Detections.Add(new MiddlewareDetection(
+                    MiddlewareType: methodName,
+                    PipelineOrder: order,
+                    Kind: MiddlewareKind.MapX)
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
+        }
+
+        return (addRegistrations, useRegistrations, mapRegistrations);
     }
 
     private static void DetectOrphanPatterns(
@@ -158,13 +165,13 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 continue;
 
             var methodName = memberAccess.Name.Identifier.ValueText;
-            if (methodName != "AddHostedService" && methodName != "AddDNTScheduler")
+            if (!string.Equals(methodName, "AddHostedService", StringComparison.Ordinal) && !string.Equals(methodName, "AddDNTScheduler", StringComparison.Ordinal))
                 continue;
 
             var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
             var implementationType = "?";
 
-            if (methodName == "AddDNTScheduler")
+            if (string.Equals(methodName, "AddDNTScheduler", StringComparison.Ordinal))
             {
                 // Extract job types from options.AddJob<T>() calls in the lambda
                 if (invocation.ArgumentList.Arguments.Count > 0)
@@ -212,8 +219,8 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
             if (inv.Expression is not MemberAccessExpressionSyntax ma)
                 continue;
 
-            if (ma.Name.Identifier.ValueText != "AddJob"
-                && ma.Name.Identifier.ValueText != "AddScheduledTask")
+            if (!string.Equals(ma.Name.Identifier.ValueText, "AddJob"
+, StringComparison.Ordinal) && !string.Equals(ma.Name.Identifier.ValueText, "AddScheduledTask", StringComparison.Ordinal))
                 continue;
 
             // Extract generic type argument from AddJob<T>()
@@ -238,10 +245,8 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
 
     private static string DetermineWorkerServiceType(string implementationType)
     {
-        if (implementationType.Contains("BackgroundService"))
+        if (implementationType.Contains("BackgroundService", StringComparison.Ordinal))
             return "BackgroundService";
-        if (implementationType.Contains("IHostedService"))
-            return "IHostedService";
         return "IHostedService";
     }
 }

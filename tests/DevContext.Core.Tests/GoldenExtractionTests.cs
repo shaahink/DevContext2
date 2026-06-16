@@ -18,8 +18,8 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
-        Assert.Contains("STYLE", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.Contains("STYLE", result.Content, StringComparison.Ordinal);
     }
 
     [Fact(Skip = "JSON golden needs regeneration for Map output format — PLAN-10 follow-up")]
@@ -30,7 +30,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("\"schemaVersion\"", result.Content);
+        Assert.Contains("\"schemaVersion\"", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "minimal-api-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
-        Assert.Contains("STYLE", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.Contains("STYLE", result.Content, StringComparison.Ordinal);
     }
 
     [Fact(Skip = "JSON golden needs regeneration for Map output format — PLAN-10 follow-up")]
@@ -75,7 +75,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-architecture.json");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("\"schemaVersion\"", result.Content);
+        Assert.Contains("\"schemaVersion\"", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-debug-endpoint.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -97,6 +97,6 @@ public sealed class GoldenExtractionTests
         var goldenPath = Path.Combine(_fixture.GoldensPath, "clean-arch-add-similar-feature.md");
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
-        Assert.Contains("MAP", result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
     }
 }

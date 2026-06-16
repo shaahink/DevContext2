@@ -88,8 +88,8 @@ public class MainViewModelTests
     {
         var vm = CreateVm();
         Assert.Equal(2, vm.Scenarios.Count);
-        Assert.Contains(vm.Scenarios, s => s.Value == "overview");
-        Assert.Contains(vm.Scenarios, s => s.Value == "deep-dive");
+        Assert.Contains(vm.Scenarios, s => string.Equals(s.Value, "overview", StringComparison.Ordinal));
+        Assert.Contains(vm.Scenarios, s => string.Equals(s.Value, "deep-dive", StringComparison.Ordinal));
     }
 
     // ══ Sections ═══════════════════════════════════════════════════════════════
@@ -99,10 +99,10 @@ public class MainViewModelTests
     {
         var vm = CreateVm();
         Assert.Equal(12, vm.Sections.Count);
-        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview);
-        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints);
-        Assert.Contains(vm.Sections, s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph);
-        Assert.Contains(vm.Sections, s => s.Key == "__source__");
+        Assert.Contains(vm.Sections, s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.ArchitectureOverview, StringComparison.Ordinal));
+        Assert.Contains(vm.Sections, s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.Endpoints, StringComparison.Ordinal));
+        Assert.Contains(vm.Sections, s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal));
+        Assert.Contains(vm.Sections, s => string.Equals(s.Key, "__source__", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -110,21 +110,21 @@ public class MainViewModelTests
     {
         var vm = CreateVm();
         // Overview: architecture true, call graph false, source false
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
-        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
-        Assert.False(vm.Sections.First(s => s.Key == "__source__").IsEnabled);
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.DiRegistrations).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.ArchitectureOverview, StringComparison.Ordinal)).IsEnabled);
+        Assert.False(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal)).IsEnabled);
+        Assert.False(vm.Sections.First(s => string.Equals(s.Key, "__source__", StringComparison.Ordinal)).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.DiRegistrations, StringComparison.Ordinal)).IsEnabled);
     }
 
     [Fact]
     public void Sections_default_to_trace_preset_when_scenario_is_deep_dive()
     {
         var vm = CreateVm();
-        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+        vm.SelectedScenario = vm.Scenarios.First(s => string.Equals(s.Value, "deep-dive", StringComparison.Ordinal));
 
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
-        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.Endpoints).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal)).IsEnabled);
+        Assert.False(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.ArchitectureOverview, StringComparison.Ordinal)).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.Endpoints, StringComparison.Ordinal)).IsEnabled);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class MainViewModelTests
         var vm = CreateVm();
         Assert.False(vm.IsTraceMode);
 
-        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+        vm.SelectedScenario = vm.Scenarios.First(s => string.Equals(s.Value, "deep-dive", StringComparison.Ordinal));
         Assert.True(vm.IsTraceMode);
     }
 
@@ -179,7 +179,7 @@ public class MainViewModelTests
 
         vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
 
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal)).IsEnabled);
 
         tcs.SetResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport } });
     }
@@ -191,10 +191,10 @@ public class MainViewModelTests
 
         var vm = CreateVm();
 
-        Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
-        Assert.True(vm.Sections.First(s => s.Key == "__source__").IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal)).IsEnabled);
+        Assert.True(vm.Sections.First(s => string.Equals(s.Key, "__source__", StringComparison.Ordinal)).IsEnabled);
         // Sections not in the list should default to false
-        Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
+        Assert.False(vm.Sections.First(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.ArchitectureOverview, StringComparison.Ordinal)).IsEnabled);
     }
 
     // ══ Task / intent ══════════════════════════════════════════════════════════
@@ -320,7 +320,7 @@ public class MainViewModelTests
         var triggered = false;
         vm.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(MainViewModel.IsAnalyzing) && vm.IsAnalyzing)
+            if (string.Equals(e.PropertyName, nameof(MainViewModel.IsAnalyzing), StringComparison.Ordinal) && vm.IsAnalyzing)
                 triggered = true;
         };
 
@@ -395,8 +395,8 @@ public class MainViewModelTests
 
         Assert.True(vm.HasOutput);
         Assert.Equal("analysis output", vm.RawContent);
-        Assert.Contains("tokens", vm.StatsText);
-        Assert.Contains("0.2s", vm.StatsText);
+        Assert.Contains("tokens", vm.StatsText, StringComparison.Ordinal);
+        Assert.Contains("0.2s", vm.StatsText, StringComparison.Ordinal);
         Assert.Equal("Done", vm.ProgressText);
     }
 
@@ -508,7 +508,7 @@ public class MainViewModelTests
     {
         vm.AnalyzeCommand.NotifyCanExecuteChanged();
         if (vm.AnalyzeCommand.CanExecute(null))
-            await vm.AnalyzeCommand.ExecuteAsync(null);
+            await vm.AnalyzeCommand.ExecuteAsync(null).ConfigureAwait(false);
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotEmpty(vm.Output.RawContent);
-        Assert.Contains("Header", vm.Output.RawContent);
+        Assert.Contains("Header", vm.Output.RawContent, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -551,7 +551,7 @@ public class MainViewModelTests
 
         // Find the "Drop section" and uncheck it
         var dropSection = vm.SectionGroups.SelectMany(g => g.Children)
-            .FirstOrDefault(s => s.Name == "Drop section");
+            .FirstOrDefault(s => string.Equals(s.Name, "Drop section", StringComparison.Ordinal));
         Assert.NotNull(dropSection);
 
         vm.Output.SelectedTab = OutputViewModel.OutputTab.Llm;
@@ -775,8 +775,8 @@ public async Task PopulateSections_categorizes_correctly()
 
     await ExecuteAnalyzeCommand(vm);
 
-    var apiGroup = vm.SectionGroups.FirstOrDefault(g => g.Name == "API");
-    var archGroup = vm.SectionGroups.FirstOrDefault(g => g.Name == "Architecture");
+    var apiGroup = vm.SectionGroups.FirstOrDefault(g => string.Equals(g.Name, "API", StringComparison.Ordinal));
+    var archGroup = vm.SectionGroups.FirstOrDefault(g => string.Equals(g.Name, "Architecture", StringComparison.Ordinal));
     Assert.NotNull(apiGroup);
     Assert.NotNull(archGroup);
     Assert.Single(apiGroup.Children);
@@ -800,9 +800,9 @@ public async Task LlmViewText_excludes_disabled_sections()
     await ExecuteAnalyzeCommand(vm);
 
     // Verify sections are present
-    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop"));
+    var drop = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Drop", StringComparison.Ordinal));
     Assert.NotNull(drop);
-    var keep = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Keep"));
+    var keep = vm.SectionGroups.SelectMany(g => g.Children).First(s => s.Name.Contains("Keep", StringComparison.Ordinal));
     Assert.NotNull(keep);
 
     var beforeTotal = vm.SelectedTokenTotal;
@@ -839,7 +839,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
     var batchExclusive = new[] { "BudgetTokens", "SelectedTokenTotal" };
     foreach (var field in batchExclusive)
     {
-        var perField = events.Where(e => e == field).ToList();
+        var perField = events.Where(e => string.Equals(e, field, StringComparison.Ordinal)).ToList();
         Assert.Empty(perField);
     }
 }
@@ -978,7 +978,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
                 capturedFormat = req.Format;
                 return Task.FromResult(new RenderResult
                 {
-                    Content = capturedFormat == "json" ? "{\"test\":true}" : "# markdown",
+                    Content = string.Equals(capturedFormat, "json", StringComparison.Ordinal) ? "{\"test\":true}" : "# markdown",
                     HtmlContent = null,
                     Sections = [],
                     EstimatedTokens = 50
@@ -988,7 +988,7 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         await ExecuteAnalyzeCommand(vm);
 
         Assert.Equal("json", capturedFormat);
-        Assert.Contains("{\"test\":true}", vm.RawContent);
+        Assert.Contains("{\"test\":true}", vm.RawContent, StringComparison.Ordinal);
     }
 
     [Fact]

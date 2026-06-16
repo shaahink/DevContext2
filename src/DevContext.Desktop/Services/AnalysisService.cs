@@ -82,33 +82,9 @@ public class AnalysisService : IAnalysisService
             return new SnapshotResult { Success = false, Error = ex.Message };
         }
 
-        // Build effective scenario: filter RequiredSections to what user selected.
-        var scenario = opts.ActiveSections.Length > 0
-            ? resolvedIntent.Scenario with
-            {
-                RequiredSections = resolvedIntent.Scenario.RequiredSections
-                    .Where(s => opts.ActiveSections.Contains(s))
-                    .Concat(opts.ActiveSections.Where(s => !resolvedIntent.Scenario.RequiredSections.Contains(s)))
-                    .ToImmutableArray()
-            }
-            : resolvedIntent.Scenario;
+        var scenario = BuildEffectiveScenario(resolvedIntent, opts);
 
-        var options = new ExtractionOptions
-        {
-            EntryPaths = rootResult.EntryCandidates,
-            Profile = resolvedIntent.Profile,
-            MaxOutputTokens = opts.MaxTokens,
-            AllowRoslyn = !opts.NoRoslyn,
-            DryRun = opts.DryRun,
-            IncludeAntiPatterns = opts.IncludeAntiPatterns,
-            IncludeProvenance = opts.IncludeProvenance,
-            IncludeDiagnostics = opts.IncludeDiagnostics,
-            OutputFormat = opts.Format == "json" ? OutputFormat.Json
-                : opts.Format == "html" ? OutputFormat.Html
-                : OutputFormat.Markdown,
-            ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
-            ExcludeExtractors = scenario.DisableExtractors,
-        };
+        var options = BuildExtractionOptions(rootResult, resolvedIntent, opts, scenario);
 
         var cache = new AnalysisCache(fs);
 
@@ -122,11 +98,7 @@ public class AnalysisService : IAnalysisService
 
         var loggerFactory = _serviceProvider!.GetRequiredService<ILoggerFactory>();
 
-        var roslyn = opts.NoRoslyn || rootResult.SolutionFilePath is null
-            ? (IRoslynWorkspaceProvider)new NullRoslynProvider()
-            : new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
-                rootResult.SolutionFilePath, fs,
-                loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
+        var roslyn = CreateRoslynProvider(opts, rootResult, fs, loggerFactory);
 
         var collector = new RunReportCollector();
         collector.SetBudget(opts.MaxTokens);
@@ -149,7 +121,7 @@ public class AnalysisService : IAnalysisService
         var sw = Stopwatch.StartNew();
         try
         {
-            var snapshot = await pipeline.AnalyzeAsync(ctx, ct);
+            var snapshot = await pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
             sw.Stop();
             return new SnapshotResult
             {
@@ -164,16 +136,68 @@ public class AnalysisService : IAnalysisService
         }
     }
 
+    private static Scenario BuildEffectiveScenario(ResolvedIntent resolvedIntent, AnalysisOptions opts)
+    {
+        if (opts.ActiveSections.Length == 0)
+            return resolvedIntent.Scenario;
+
+        return resolvedIntent.Scenario with
+        {
+            RequiredSections = resolvedIntent.Scenario.RequiredSections
+                .Where(s => opts.ActiveSections.Contains(s, StringComparer.Ordinal))
+                .Concat(opts.ActiveSections.Where(s => !resolvedIntent.Scenario.RequiredSections.Contains(s, StringComparer.Ordinal)))
+                .ToImmutableArray()
+        };
+    }
+
+    private static ExtractionOptions BuildExtractionOptions(
+        ProjectRootResult rootResult,
+        ResolvedIntent resolvedIntent,
+        AnalysisOptions opts,
+        Scenario scenario)
+    {
+        return new ExtractionOptions
+        {
+            EntryPaths = rootResult.EntryCandidates,
+            Profile = resolvedIntent.Profile,
+            MaxOutputTokens = opts.MaxTokens,
+            AllowRoslyn = !opts.NoRoslyn,
+            DryRun = opts.DryRun,
+            IncludeAntiPatterns = opts.IncludeAntiPatterns,
+            IncludeProvenance = opts.IncludeProvenance,
+            IncludeDiagnostics = opts.IncludeDiagnostics,
+            OutputFormat = string.Equals(opts.Format, "json", StringComparison.Ordinal) ? OutputFormat.Json
+                : string.Equals(opts.Format, "html", StringComparison.Ordinal) ? OutputFormat.Html
+                : OutputFormat.Markdown,
+            ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
+            ExcludeExtractors = scenario.DisableExtractors,
+        };
+    }
+
+    private static IRoslynWorkspaceProvider CreateRoslynProvider(
+        AnalysisOptions opts,
+        ProjectRootResult rootResult,
+        IFileSystem fs,
+        ILoggerFactory loggerFactory)
+    {
+        if (opts.NoRoslyn || rootResult.SolutionFilePath is null)
+            return new NullRoslynProvider();
+
+        return new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
+            rootResult.SolutionFilePath, fs,
+            loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
+    }
+
     public async Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
         var pipeline = GetPipeline(".");
 
         var format = request.Format ?? "markdown";
-        var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
+        var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct).ConfigureAwait(false);
 
         // Render HTML only for markdown format (human view); JSON needs no HTML companion
-        var htmlContent = format == "markdown"
-            ? (await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct)).Content
+        var htmlContent = string.Equals(format, "markdown"
+, StringComparison.Ordinal) ? (await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct).ConfigureAwait(false)).Content
             : null;
 
         return new RenderResult
@@ -326,7 +350,7 @@ public class AppSettings
     public bool IncludeProvenance { get; set; }
     public bool IncludeDiagnostics { get; set; }
     public bool NoRoslyn { get; set; }
-    public List<string>? LastActiveSections { get; set; }
+    public IList<string>? LastActiveSections { get; set; }
     public int LastDepth { get; set; } = 6;
     public string? LastDetail { get; set; } = "salient";
 }

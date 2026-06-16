@@ -21,7 +21,7 @@ public sealed record DevContextConfig
     public ImmutableArray<string>? EntryPaths { get; init; }
 
     [JsonPropertyName("profiles")]
-    public Dictionary<string, ProfileConfig>? Profiles { get; init; }
+    public IDictionary<string, ProfileConfig>? Profiles { get; init; }
 
     public static DevContextConfig? Load(string configPath)
     {

@@ -39,7 +39,7 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -48,100 +48,107 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
             }
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-            var methodDecls = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
 
-            var methodMap = methodDecls.ToDictionary(
-                m => (SyntaxTree: m.SyntaxTree, Span: m.SpanStart),
-                m => m);
-
-            foreach (var invocation in invocations)
+            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
                 ct.ThrowIfCancellationRequested();
-
-                var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
-                if (memberAccess == null) continue;
-
-                var methodName = memberAccess.Name.Identifier.ValueText;
-                var containingMethod = FindContainingMethod(invocation, methodDecls);
-
-                if (containingMethod == null) continue;
-
-                var callerType = FindContainingType(invocation)?.Identifier.ValueText ?? "?";
-                var callerMethod = containingMethod.Identifier.ValueText;
-
-                if (methodName == "CreateInstance"
-                    && memberAccess.Expression.ToString() == "Activator")
-                {
-                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                    model.Detections.Add(new IndirectWiringDetection(
-                        Kind: IndirectWiringKind.ReflectionActivation,
-                        CallerType: callerType,
-                        CallerMethod: callerMethod,
-                        TargetType: ExtractActivatorTargetType(invocation))
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-
-                if (methodName is "CreateProxy" or "CreateClassProxy"
-                    && memberAccess.Expression.ToString().Contains("ProxyGenerator"))
-                {
-                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                    model.Detections.Add(new IndirectWiringDetection(
-                        Kind: IndirectWiringKind.DynamicProxy,
-                        CallerType: callerType,
-                        CallerMethod: callerMethod,
-                        TargetType: memberAccess.Expression.ToString())
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-
-                if (ServiceLocatorPatterns.Contains(methodName)
-                    && memberAccess.Expression is IdentifierNameSyntax
-                    && memberAccess.Expression.ToString() is "serviceProvider" or "sp" or "provider" or "services")
-                {
-                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                    model.Detections.Add(new IndirectWiringDetection(
-                        Kind: IndirectWiringKind.ManualServiceLocator,
-                        CallerType: callerType,
-                        CallerMethod: callerMethod,
-                        TargetType: null)
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-
-                if (ReflectionScanPatterns.Contains(methodName)
-                    && (memberAccess.Expression.ToString() == "Assembly"
-                        || memberAccess.Expression.ToString().Contains("Assembly")))
-                {
-                    var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                    model.Detections.Add(new IndirectWiringDetection(
-                        Kind: IndirectWiringKind.ReflectionActivation,
-                        CallerType: callerType,
-                        CallerMethod: callerMethod,
-                        TargetType: methodName)
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                        Confidence = 0.8f,
-                    });
-                }
+                CheckIndirectWiringPatterns(invocation, root, model, filePath);
             }
         }
+    }
+
+    private void CheckIndirectWiringPatterns(InvocationExpressionSyntax invocation, SyntaxNode root, DiscoveryModel model, string filePath)
+    {
+        var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
+        if (memberAccess == null) return;
+
+        var methodName = memberAccess.Name.Identifier.ValueText;
+        var methodDecls = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
+        var containingMethod = FindContainingMethod(invocation, methodDecls);
+        if (containingMethod == null) return;
+
+        var callerType = FindContainingType(invocation)?.Identifier.ValueText ?? "?";
+        var callerMethod = containingMethod.Identifier.ValueText;
+
+        CheckActivatorPattern(invocation, memberAccess, methodName, callerType, callerMethod, model, filePath);
+        CheckProxyGeneratorPattern(invocation, memberAccess, methodName, callerType, callerMethod, model, filePath);
+        CheckServiceLocatorPattern(invocation, memberAccess, methodName, callerType, callerMethod, model, filePath);
+        CheckReflectionScanPattern(invocation, memberAccess, methodName, callerType, callerMethod, model, filePath);
+    }
+
+    private void CheckActivatorPattern(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess, string methodName, string callerType, string callerMethod, DiscoveryModel model, string filePath)
+    {
+        if (!string.Equals(methodName, "CreateInstance", StringComparison.Ordinal)) return;
+        if (!string.Equals(memberAccess.Expression.ToString(), "Activator", StringComparison.Ordinal)) return;
+
+        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+        model.Detections.Add(new IndirectWiringDetection(
+            Kind: IndirectWiringKind.ReflectionActivation,
+            CallerType: callerType,
+            CallerMethod: callerMethod,
+            TargetType: ExtractActivatorTargetType(invocation))
+        {
+            ExtractorName = Name,
+            SourceFile = filePath,
+            LineNumber = lineNumber,
+        });
+    }
+
+    private void CheckProxyGeneratorPattern(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess, string methodName, string callerType, string callerMethod, DiscoveryModel model, string filePath)
+    {
+        if (methodName is not "CreateProxy" and not "CreateClassProxy") return;
+        if (!memberAccess.Expression.ToString().Contains("ProxyGenerator", StringComparison.Ordinal)) return;
+
+        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+        model.Detections.Add(new IndirectWiringDetection(
+            Kind: IndirectWiringKind.DynamicProxy,
+            CallerType: callerType,
+            CallerMethod: callerMethod,
+            TargetType: memberAccess.Expression.ToString())
+        {
+            ExtractorName = Name,
+            SourceFile = filePath,
+            LineNumber = lineNumber,
+        });
+    }
+
+    private void CheckServiceLocatorPattern(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess, string methodName, string callerType, string callerMethod, DiscoveryModel model, string filePath)
+    {
+        if (!ServiceLocatorPatterns.Contains(methodName, StringComparer.Ordinal)) return;
+        if (memberAccess.Expression is not IdentifierNameSyntax) return;
+        if (memberAccess.Expression.ToString() is not "serviceProvider" and not "sp" and not "provider" and not "services") return;
+
+        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+        model.Detections.Add(new IndirectWiringDetection(
+            Kind: IndirectWiringKind.ManualServiceLocator,
+            CallerType: callerType,
+            CallerMethod: callerMethod,
+            TargetType: null)
+        {
+            ExtractorName = Name,
+            SourceFile = filePath,
+            LineNumber = lineNumber,
+        });
+    }
+
+    private void CheckReflectionScanPattern(InvocationExpressionSyntax invocation, MemberAccessExpressionSyntax memberAccess, string methodName, string callerType, string callerMethod, DiscoveryModel model, string filePath)
+    {
+        if (!ReflectionScanPatterns.Contains(methodName, StringComparer.Ordinal)) return;
+        var exprStr = memberAccess.Expression.ToString();
+        if (!string.Equals(exprStr, "Assembly", StringComparison.Ordinal) && !exprStr.Contains("Assembly", StringComparison.Ordinal)) return;
+
+        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+        model.Detections.Add(new IndirectWiringDetection(
+            Kind: IndirectWiringKind.ReflectionActivation,
+            CallerType: callerType,
+            CallerMethod: callerMethod,
+            TargetType: methodName)
+        {
+            ExtractorName = Name,
+            SourceFile = filePath,
+            LineNumber = lineNumber,
+            Confidence = 0.8f,
+        });
     }
 
     private static MethodDeclarationSyntax? FindContainingMethod(

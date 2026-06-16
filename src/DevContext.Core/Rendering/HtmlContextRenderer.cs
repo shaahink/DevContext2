@@ -106,7 +106,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     private static bool ShouldRender(string sectionName, RenderOptions options)
     {
         if (options.RequiredSections.IsDefaultOrEmpty) return true;
-        return options.RequiredSections.Contains(sectionName);
+        return options.RequiredSections.Contains(sectionName, StringComparer.Ordinal);
     }
 
     private static string RelPath(string? fullPath)
@@ -142,7 +142,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine($"<span class='dc-badge dc-badge-style'>{System.Net.WebUtility.HtmlEncode(style)}</span>");
         sb.AppendLine($"<span class='dc-meta-text'>Signals: {System.Net.WebUtility.HtmlEncode(signals)}</span>");
         sb.AppendLine($"<span class='dc-meta-text'>Profile: {System.Net.WebUtility.HtmlEncode(profile)}</span>");
-        sb.AppendLine($"<span class='dc-meta-text'>Tokens: ~{options.EstimatedTokens:N0}</span>");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<span class='dc-meta-text'>Tokens: ~{options.EstimatedTokens:N0}</span>");
         sb.AppendLine("</div>");
         sb.AppendLine("</header>");
     }
@@ -159,9 +159,9 @@ public sealed class HtmlContextRenderer : IContextRenderer
         {
             sb.AppendLine("<pre class='dc-tree'>");
             var graph = options.ProjectGraph.AdjacencyList;
-            var roots = graph.Keys.Where(k => !graph.Values.Any(v => v.Contains(k))).OrderBy(k => k).ToList();
-            if (roots.Count == 0) roots = graph.Keys.OrderBy(k => k).ToList();
-            var visited = new HashSet<string>();
+            var roots = graph.Keys.Where(k => !graph.Values.Any(v => v.Contains(k, StringComparer.Ordinal))).Order(StringComparer.Ordinal).ToList();
+            if (roots.Count == 0) roots = graph.Keys.Order(StringComparer.Ordinal).ToList();
+            var visited = new HashSet<string>(StringComparer.Ordinal);
             foreach (var root in roots)
                 WriteTree(sb, root, graph, visited, "", true);
             sb.AppendLine("</pre>");
@@ -203,14 +203,14 @@ public sealed class HtmlContextRenderer : IContextRenderer
     private static void RenderEndpoints(StringBuilder sb, DiscoveryModel model)
     {
         var endpoints = model.Detections.OfType<EndpointDetection>()
-            .Where(e => !e.SourceFile?.EndsWith("ChangePasswordEndpoint.cs") is not false).ToList();
+            .Where(e => !e.SourceFile?.EndsWith("ChangePasswordEndpoint.cs", StringComparison.Ordinal) is not false).ToList();
         if (endpoints.Count == 0) return;
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.Endpoints}'>");
-        sb.AppendLine($"<h2 class='dc-h2'>Endpoints ({endpoints.Count} found)</h2>");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<h2 class='dc-h2'>Endpoints ({endpoints.Count} found)</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'>");
         sb.AppendLine("<thead><tr><th>Method</th><th>Route</th><th>Handler</th><th>Source</th></tr></thead><tbody>");
-        foreach (var ep in endpoints.OrderBy(e => e.HandlerType).ThenBy(e => e.HandlerMethod))
+        foreach (var ep in endpoints.OrderBy(e => e.HandlerType, StringComparer.Ordinal).ThenBy(e => e.HandlerMethod, StringComparer.Ordinal))
         {
             var src = System.Net.WebUtility.HtmlEncode($"{RelPath(ep.SourceFile)}{(ep.LineNumber > 0 ? $":{ep.LineNumber}" : "")}");
             sb.Append($"<tr><td class='dc-method dc-method-{ep.HttpMethod.ToLowerInvariant()}'>");
@@ -245,10 +245,10 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine("<section class='dc-section'>");
         sb.AppendLine("<h2 class='dc-h2'>Call graph</h2>");
         sb.AppendLine("<div class='dc-call-graph'>");
-        var visited = new HashSet<string>();
+        var visited = new HashSet<string>(StringComparer.Ordinal);
         foreach (var key in callerKeys)
         {
-            if (!options.CallGraph.Edges.TryGetValue(key, out _)) continue;
+            if (!options.CallGraph.Edges.ContainsKey(key)) continue;
             sb.AppendLine($"<details class='dc-call-node' open><summary>{System.Net.WebUtility.HtmlEncode(key)}</summary><ul>");
             visited.Clear();
             visited.Add(key);
@@ -282,7 +282,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         if (handlers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MediatRHandlers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Request</th><th>Response</th><th>Handler</th></tr></thead><tbody>");
-        foreach (var h in handlers.OrderBy(h => h.Kind.ToString()).ThenBy(h => h.HandlerType))
+        foreach (var h in handlers.OrderBy(h => h.Kind.ToString(), StringComparer.Ordinal).ThenBy(h => h.HandlerType, StringComparer.Ordinal))
             sb.AppendLine($"<tr><td class='dc-kind'>{System.Net.WebUtility.HtmlEncode(h.Kind.ToString())}</td><td><code>{System.Net.WebUtility.HtmlEncode(h.RequestType ?? "?")}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(h.ResponseType ?? "?")}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(h.HandlerType)}</code></td></tr>");
         sb.AppendLine("</tbody></table></div></section>");
     }
@@ -290,18 +290,18 @@ public sealed class HtmlContextRenderer : IContextRenderer
     private static void RenderDataModel(StringBuilder sb, DiscoveryModel model)
     {
         var entities = model.Detections.OfType<EfEntityDetection>()
-            .Where(e => e.DbContextType != "Migrations" && e.EntityType != "<OnModelCreating>").ToList();
-        var migrationCount = model.Detections.OfType<EfEntityDetection>().Count(e => e.DbContextType == "Migrations");
+            .Where(e => !string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal) && !string.Equals(e.EntityType, "<OnModelCreating>", StringComparison.Ordinal)).ToList();
+        var migrationCount = model.Detections.OfType<EfEntityDetection>().Count(e => string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal));
         if (entities.Count == 0 && migrationCount == 0) return;
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.DataModel}'>");
         if (entities.Count > 0)
         {
-            foreach (var group in entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key))
+            foreach (var group in entities.GroupBy(e => e.DbContextType, StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal))
             {
                 sb.AppendLine($"<h3 class='dc-h3'>{System.Net.WebUtility.HtmlEncode(group.Key)}</h3>");
                 sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Entity</th><th>Aggregate</th><th>Keys</th></tr></thead><tbody>");
-                foreach (var e in group.OrderBy(e => e.EntityType))
+                foreach (var e in group.OrderBy(e => e.EntityType, StringComparer.Ordinal))
                 {
                     var agg = e.IsAggregate ? "✓" : "—";
                     var keys = e.KeyProperties.Length > 0 ? string.Join(", ", e.KeyProperties) : "—";
@@ -311,7 +311,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
             }
         }
         if (migrationCount > 0)
-            sb.AppendLine($"<p class='dc-note'>{migrationCount} EF Core migrations found.</p>");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<p class='dc-note'>{migrationCount} EF Core migrations found.</p>");
         sb.AppendLine("</section>");
     }
 
@@ -321,7 +321,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         if (consumers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MessageConsumers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Bus</th><th>Message</th><th>Consumer</th></tr></thead><tbody>");
-        foreach (var c in consumers.OrderBy(c => c.BusKind).ThenBy(c => c.MessageType))
+        foreach (var c in consumers.OrderBy(c => c.BusKind, StringComparer.Ordinal).ThenBy(c => c.MessageType, StringComparer.Ordinal))
             sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(c.BusKind)}</td><td><code>{System.Net.WebUtility.HtmlEncode(c.MessageType)}</code></td><td><code>{System.Net.WebUtility.HtmlEncode(c.ConsumerType)}</code></td></tr>");
         sb.AppendLine("</tbody></table></div></section>");
     }
@@ -352,8 +352,8 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var middleware = model.Detections.OfType<MiddlewareDetection>().ToList();
         if (middleware.Count == 0) return;
-        var grouped = middleware.GroupBy(m => m.MiddlewareType)
-            .Select(g => new { Type = g.Key, Count = g.Count(), Kind = g.First().Kind, Sources = g.Select(m => System.IO.Path.GetFileName(m.SourceFile)).Distinct() })
+        var grouped = middleware.GroupBy(m => m.MiddlewareType, StringComparer.Ordinal)
+            .Select(g => new { Type = g.Key, Count = g.Count(), Kind = g.First().Kind, Sources = g.Select(m => System.IO.Path.GetFileName(m.SourceFile)).Distinct(StringComparer.Ordinal) })
             .OrderBy(m => m.Count).ToList();
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MiddlewarePipeline}'><h2 class='dc-h2'>Middleware pipeline</h2>");
@@ -361,7 +361,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         foreach (var m in grouped)
         {
             var src = string.Join(", ", m.Sources);
-            sb.AppendLine($"<li><code>{System.Net.WebUtility.HtmlEncode(m.Type)}</code> <span class='dc-pipeline-count'>×{m.Count}</span> <span class='dc-pipeline-src'>{System.Net.WebUtility.HtmlEncode(src)}</span></li>");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<li><code>{System.Net.WebUtility.HtmlEncode(m.Type)}</code> <span class='dc-pipeline-count'>×{m.Count}</span> <span class='dc-pipeline-src'>{System.Net.WebUtility.HtmlEncode(src)}</span></li>");
         }
         sb.AppendLine("</ol></section>");
     }
@@ -375,15 +375,15 @@ public sealed class HtmlContextRenderer : IContextRenderer
         foreach (var d in regs)
         {
             var lt = d.Lifetime.ToLowerInvariant();
-            var impl = d.ServiceType == d.ImplementationType || d.ImplementationType == "?"
-                ? System.Net.WebUtility.HtmlEncode(d.ImplementationType)
+            var impl = string.Equals(d.ServiceType, d.ImplementationType, StringComparison.Ordinal) || string.Equals(d.ImplementationType, "?"
+, StringComparison.Ordinal) ? System.Net.WebUtility.HtmlEncode(d.ImplementationType)
                 : $"{System.Net.WebUtility.HtmlEncode(d.ServiceType)} → {System.Net.WebUtility.HtmlEncode(d.ImplementationType)}";
             var src = $"{System.Net.WebUtility.HtmlEncode(System.IO.Path.GetFileName(d.SourceFile))}:{d.LineNumber}";
             var shape = d.Shape switch
             {
                 DiRegistrationShape.ForwardingAlias => "alias",
                 DiRegistrationShape.InlineFactory => "factory",
-                _ => d.Lifetime == "Bulk" ? "bulk" : ""
+                _ => string.Equals(d.Lifetime, "Bulk", StringComparison.Ordinal) ? "bulk" : ""
             };
             var shapeTag = shape.Length > 0 ? $"<span class='dc-di-shape'>{shape}</span>" : "";
             sb.AppendLine($"<div class='dc-di-card dc-di-{lt}'><span class='dc-di-lt'>{System.Net.WebUtility.HtmlEncode(d.Lifetime)}</span> <code>{impl}</code> {shapeTag}<span class='dc-di-src'>{src}</span></div>");
@@ -396,11 +396,11 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
         if (patterns.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-antipatterns'><h2 class='dc-h2'>Anti-patterns detected</h2>");
-        foreach (var g in patterns.GroupBy(p => System.IO.Path.GetFileName(p.SourceFile)).OrderBy(g => g.Key))
+        foreach (var g in patterns.GroupBy(p => System.IO.Path.GetFileName(p.SourceFile), StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal))
         {
-            sb.AppendLine($"<details class='dc-ap-file'><summary>{System.Net.WebUtility.HtmlEncode(g.Key)} ({g.Count()})</summary><ul class='dc-ap-list'>");
-            foreach (var p in g.OrderByDescending(p => p.Severity))
-                sb.AppendLine($"<li class='dc-ap-{p.Severity.ToLowerInvariant()}'><strong>{System.Net.WebUtility.HtmlEncode(p.Pattern)}</strong>: {System.Net.WebUtility.HtmlEncode(p.Description)} <span class='dc-path'>line {p.LineNumber}</span></li>");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<details class='dc-ap-file'><summary>{System.Net.WebUtility.HtmlEncode(g.Key)} ({g.Count()})</summary><ul class='dc-ap-list'>");
+            foreach (var p in g.OrderByDescending(p => p.Severity, StringComparer.Ordinal))
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<li class='dc-ap-{p.Severity.ToLowerInvariant()}'><strong>{System.Net.WebUtility.HtmlEncode(p.Pattern)}</strong>: {System.Net.WebUtility.HtmlEncode(p.Description)} <span class='dc-path'>line {p.LineNumber}</span></li>");
             sb.AppendLine("</ul></details>");
         }
         sb.AppendLine("</section>");
@@ -412,7 +412,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         if (events.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-eventflow'><h2 class='dc-h2'>Event flow</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Event</th><th>Direction</th><th>Target</th></tr></thead><tbody>");
-        foreach (var e in events.OrderBy(e => e.EventType))
+        foreach (var e in events.OrderBy(e => e.EventType, StringComparer.Ordinal))
             sb.AppendLine($"<tr><td><code>{System.Net.WebUtility.HtmlEncode(e.EventType)}</code></td><td>{System.Net.WebUtility.HtmlEncode(e.Kind)}</td><td><code>{System.Net.WebUtility.HtmlEncode(e.Target)}</code></td></tr>");
         sb.AppendLine("</tbody></table></div></section>");
     }
@@ -428,7 +428,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         foreach (var group in types.GroupBy(t => t.Layer).OrderBy(g => g.Key))
         {
             sb.AppendLine($"<div class='dc-type-layer'><h4 class='dc-h4'>{System.Net.WebUtility.HtmlEncode(group.Key.ToString())}</h4><ul class='dc-type-list'>");
-            foreach (var t in group.OrderBy(t => t.Name).Take(15))
+            foreach (var t in group.OrderBy(t => t.Name, StringComparer.Ordinal).Take(15))
                 sb.AppendLine($"<li><code>{System.Net.WebUtility.HtmlEncode(t.Name)}</code></li>");
             sb.AppendLine("</ul></div>");
         }
@@ -455,7 +455,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         {
             sb.AppendLine("<details class='dc-budget-cuts'><summary>Budget cuts — what almost made it</summary><ul>");
             foreach (var ex in plan.Excluded.OrderByDescending(e => e.Score).Take(20))
-                sb.AppendLine($"<li><code>{System.Net.WebUtility.HtmlEncode(ex.TypeName)}</code> ({ex.Score:F3}) — {System.Net.WebUtility.HtmlEncode(ex.Reason)}</li>");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<li><code>{System.Net.WebUtility.HtmlEncode(ex.TypeName)}</code> ({ex.Score:F3}) — {System.Net.WebUtility.HtmlEncode(ex.Reason)}</li>");
             sb.AppendLine("</ul></details>");
         }
 
@@ -476,7 +476,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
             : model.Types.Values.Count(t => !t.IsHardExcluded);
         var total = model.Types.Count;
         sb.AppendLine("<footer class='dc-footer'>");
-        sb.AppendLine($"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.1");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Generated in {sw.Elapsed.TotalMilliseconds:F1}ms · {total} types ({active} active, {total - active} pruned) · Schema v1.1");
         sb.AppendLine("</footer>");
     }
 }

@@ -44,6 +44,7 @@ public sealed class GoldenTests
 
         var pipeline = new DiscoveryPipeline(
             extractors, [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -86,6 +87,7 @@ public sealed class GoldenTests
                 new SolutionDiscoveryExtractor()
             },
             [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new TestMarkdownRenderer(),
                 ["json"] = new TestJsonRenderer()
@@ -94,12 +96,12 @@ public sealed class GoldenTests
 
         await pipeline.RunAsync(ctx);
 
-        Assert.Contains(observer.Events, e => e.StartsWith("PipelineStarted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("StageStarted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("ExtractorStarted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("ExtractorCompleted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("SignalsSealed"));
-        Assert.Contains(observer.Events, e => e.StartsWith("StageCompleted"));
-        Assert.Contains(observer.Events, e => e.StartsWith("PipelineCompleted"));
+        Assert.Contains(observer.Events, e => e.StartsWith("PipelineStarted", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("StageStarted", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("ExtractorStarted", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("ExtractorCompleted", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("SignalsSealed", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("StageCompleted", StringComparison.Ordinal));
+        Assert.Contains(observer.Events, e => e.StartsWith("PipelineCompleted", StringComparison.Ordinal));
     }
 }

@@ -39,7 +39,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(group.Key, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(group.Key, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -59,7 +59,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
                     .ToString() ?? "global";
                 var fullName = $"{ns}.{typeDecl.Identifier.ValueText}";
 
-                var type = group.FirstOrDefault(t => t.Id == fullName);
+                var type = group.FirstOrDefault(t => string.Equals(t.Id, fullName, StringComparison.Ordinal));
                 if (type == null) continue;
 
                 // Store the full declaration. The graph's body-scan seams need the whole body (the

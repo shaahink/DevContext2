@@ -28,14 +28,14 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct).ConfigureAwait(false))
         {
             ct.ThrowIfCancellationRequested();
 
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                     [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()],
                     [.. root.DescendantNodes().OfType<InvocationExpressionSyntax>()]
                 );
-            });
+            }).ConfigureAwait(false);
 
             foreach (var typeDecl in nodes.TypeDeclarations)
             {
@@ -225,7 +225,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         if (decl is InterfaceDeclarationSyntax) return false;
         if (decl is not null) return true; // Class, Struct, Record — all are base types
         // Fallback: type not declared in this file — use naming convention
-        return !typeName.StartsWith("I");
+        return !typeName.StartsWith('I');
     }
 
     private static bool IsInterface(BaseTypeDeclarationSyntax? decl, string typeName)
@@ -233,7 +233,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         if (decl is InterfaceDeclarationSyntax) return true;
         if (decl is not null) return false;
         // Fallback: type not declared in this file — use naming convention
-        return typeName.StartsWith("I");
+        return typeName.StartsWith('I');
     }
 
     /// <summary>Resolves a base type syntax to its declaration by walking into namespace members or type declarations.</summary>
@@ -245,8 +245,8 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         // Look through namespace members and top-level types for a matching declaration
         var candidate = root.DescendantNodes()
             .OfType<BaseTypeDeclarationSyntax>()
-            .FirstOrDefault(t => t.Identifier.ValueText == typeName
-                || typeName.StartsWith(t.Identifier.ValueText + "<", StringComparison.Ordinal));
+            .FirstOrDefault(t => string.Equals(t.Identifier.ValueText, typeName
+, StringComparison.Ordinal) || typeName.StartsWith(t.Identifier.ValueText + "<", StringComparison.Ordinal));
         return candidate;
     }
 
@@ -271,49 +271,49 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         string typeName, ImmutableArray<string> baseTypes, ImmutableArray<string> interfaces)
     {
         // 1. Base type / interface signals (highest confidence)
-        if (interfaces.Any(i => i.Contains("IHostedService") || i.Contains("IEventHandler")))
+        if (interfaces.Any(i => i.Contains("IHostedService", StringComparison.Ordinal) || i.Contains("IEventHandler", StringComparison.Ordinal)))
             return ArchitectureLayer.Application;
-        if (baseTypes.Any(b => b.Contains("DbContext")) || interfaces.Any(i => i.Contains("IRepository")))
+        if (baseTypes.Any(b => b.Contains("DbContext", StringComparison.Ordinal)) || interfaces.Any(i => i.Contains("IRepository", StringComparison.Ordinal)))
             return ArchitectureLayer.Infrastructure;
-        if (baseTypes.Any(b => b.Contains("ControllerBase") || b.Contains("Controller")))
+        if (baseTypes.Any(b => b.Contains("ControllerBase", StringComparison.Ordinal) || b.Contains("Controller", StringComparison.Ordinal)))
             return ArchitectureLayer.Presentation;
 
         // 2. Namespace heuristics
         var lowerNs = namespaceName.ToLowerInvariant();
-        if (lowerNs.Contains("presentation") || lowerNs.Contains("ui") || lowerNs.Contains("web"))
+        if (lowerNs.Contains("presentation", StringComparison.Ordinal) || lowerNs.Contains("ui", StringComparison.Ordinal) || lowerNs.Contains("web", StringComparison.Ordinal))
             return ArchitectureLayer.Presentation;
-        if (lowerNs.Contains("api") || lowerNs.Contains("controller") || lowerNs.Contains("endpoint"))
+        if (lowerNs.Contains("api", StringComparison.Ordinal) || lowerNs.Contains("controller", StringComparison.Ordinal) || lowerNs.Contains("endpoint", StringComparison.Ordinal))
             return ArchitectureLayer.Api;
-        if (lowerNs.Contains("application") || lowerNs.Contains("usecase") || lowerNs.Contains("mediatr"))
+        if (lowerNs.Contains("application", StringComparison.Ordinal) || lowerNs.Contains("usecase", StringComparison.Ordinal) || lowerNs.Contains("mediatr", StringComparison.Ordinal))
             return ArchitectureLayer.Application;
-        if (lowerNs.Contains("domain") || lowerNs.Contains("model") || lowerNs.Contains("entity"))
+        if (lowerNs.Contains("domain", StringComparison.Ordinal) || lowerNs.Contains("model", StringComparison.Ordinal) || lowerNs.Contains("entity", StringComparison.Ordinal))
             return ArchitectureLayer.Domain;
-        if (lowerNs.Contains("infrastructure") || lowerNs.Contains("data") || lowerNs.Contains("persistence"))
+        if (lowerNs.Contains("infrastructure", StringComparison.Ordinal) || lowerNs.Contains("data", StringComparison.Ordinal) || lowerNs.Contains("persistence", StringComparison.Ordinal))
             return ArchitectureLayer.Infrastructure;
 
         // 3. File path heuristics
         var lowerPath = filePath.ToLowerInvariant();
-        if (lowerPath.Contains("\\domain\\") || lowerPath.Contains("/domain/"))
+        if (lowerPath.Contains("\\domain\\", StringComparison.Ordinal) || lowerPath.Contains("/domain/", StringComparison.Ordinal))
             return ArchitectureLayer.Domain;
-        if (lowerPath.Contains("\\application\\") || lowerPath.Contains("/application/"))
+        if (lowerPath.Contains("\\application\\", StringComparison.Ordinal) || lowerPath.Contains("/application/", StringComparison.Ordinal))
             return ArchitectureLayer.Application;
-        if (lowerPath.Contains("\\infrastructure\\") || lowerPath.Contains("/infrastructure/"))
+        if (lowerPath.Contains("\\infrastructure\\", StringComparison.Ordinal) || lowerPath.Contains("/infrastructure/", StringComparison.Ordinal))
             return ArchitectureLayer.Infrastructure;
-        if (lowerPath.Contains("\\api\\") || lowerPath.Contains("/api/") || lowerPath.Contains("\\controllers\\"))
+        if (lowerPath.Contains("\\api\\", StringComparison.Ordinal) || lowerPath.Contains("/api/", StringComparison.Ordinal) || lowerPath.Contains("\\controllers\\", StringComparison.Ordinal))
             return ArchitectureLayer.Api;
-        if (lowerPath.Contains("\\presentation\\") || lowerPath.Contains("/presentation/"))
+        if (lowerPath.Contains("\\presentation\\", StringComparison.Ordinal) || lowerPath.Contains("/presentation/", StringComparison.Ordinal))
             return ArchitectureLayer.Presentation;
 
         // 4. Naming convention heuristics
         var lowerName = typeName.ToLowerInvariant();
-        if (lowerName.EndsWith("handler") || lowerName.EndsWith("service") || lowerName.EndsWith("orchestrator")
-            || lowerName.EndsWith("worker") || lowerName.EndsWith("manager"))
+        if (lowerName.EndsWith("handler", StringComparison.Ordinal) || lowerName.EndsWith("service", StringComparison.Ordinal) || lowerName.EndsWith("orchestrator", StringComparison.Ordinal)
+            || lowerName.EndsWith("worker", StringComparison.Ordinal) || lowerName.EndsWith("manager", StringComparison.Ordinal))
             return ArchitectureLayer.Application;
-        if (lowerName.EndsWith("repository") || lowerName.EndsWith("datastore") || lowerName.EndsWith("dbcontext"))
+        if (lowerName.EndsWith("repository", StringComparison.Ordinal) || lowerName.EndsWith("datastore", StringComparison.Ordinal) || lowerName.EndsWith("dbcontext", StringComparison.Ordinal))
             return ArchitectureLayer.Infrastructure;
-        if (lowerName.EndsWith("controller") || lowerName.EndsWith("endpoint") || lowerName.EndsWith("page"))
+        if (lowerName.EndsWith("controller", StringComparison.Ordinal) || lowerName.EndsWith("endpoint", StringComparison.Ordinal) || lowerName.EndsWith("page", StringComparison.Ordinal))
             return ArchitectureLayer.Presentation;
-        if (lowerName.EndsWith("entity") || lowerName.EndsWith("aggregate") || lowerName.EndsWith("valueobject"))
+        if (lowerName.EndsWith("entity", StringComparison.Ordinal) || lowerName.EndsWith("aggregate", StringComparison.Ordinal) || lowerName.EndsWith("valueobject", StringComparison.Ordinal))
             return ArchitectureLayer.Domain;
 
         return ArchitectureLayer.Unknown;
@@ -325,8 +325,8 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         existing.Properties = existing.Properties.AddRange(other.Properties);
 
         var mergedBaseTypes = existing.BaseTypes
-            .Union(other.BaseTypes)
-            .Distinct()
+            .Union(other.BaseTypes, StringComparer.Ordinal)
+            .Distinct(StringComparer.Ordinal)
             .ToImmutableArray();
         // Can't reassign init-only property directly — use reflection as workaround
         var baseTypeProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.BaseTypes));
@@ -334,8 +334,8 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             baseTypeProp.SetValue(existing, mergedBaseTypes);
 
         var mergedInterfaces = existing.ImplementedInterfaces
-            .Union(other.ImplementedInterfaces)
-            .Distinct()
+            .Union(other.ImplementedInterfaces, StringComparer.Ordinal)
+            .Distinct(StringComparer.Ordinal)
             .ToImmutableArray();
         var ifaceProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.ImplementedInterfaces));
         if (ifaceProp?.SetMethod != null)

@@ -37,8 +37,8 @@ public sealed class ControllerActionExtractorTests
 
         var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
         Assert.Equal(2, endpoints.Length);
-        Assert.Contains(endpoints, e => e.HttpMethod == "GET" && e.HandlerMethod == "GetAll");
-        Assert.Contains(endpoints, e => e.HttpMethod == "POST" && e.HandlerMethod == "Create");
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal) && string.Equals(e.HandlerMethod, "GetAll", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal) && string.Equals(e.HandlerMethod, "Create", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -66,11 +66,11 @@ public sealed class ControllerActionExtractorTests
 
         var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
         Assert.Equal(5, endpoints.Length);
-        Assert.Contains(endpoints, e => e.HandlerMethod == "FetchAll" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.HandlerMethod == "PostNew" && e.HttpMethod == "POST");
-        Assert.Contains(endpoints, e => e.HandlerMethod == "DeleteItem" && e.HttpMethod == "DELETE");
-        Assert.Contains(endpoints, e => e.HandlerMethod == "PatchItem" && e.HttpMethod == "PATCH");
-        Assert.Contains(endpoints, e => e.HandlerMethod == "PutItem" && e.HttpMethod == "PUT");
+        Assert.Contains(endpoints, e => string.Equals(e.HandlerMethod, "FetchAll", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HandlerMethod, "PostNew", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HandlerMethod, "DeleteItem", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "DELETE", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HandlerMethod, "PatchItem", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "PATCH", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HandlerMethod, "PutItem", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "PUT", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -112,10 +112,10 @@ public sealed class ControllerActionExtractorTests
 
         var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
         Assert.Equal(4, endpoints.Length);
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/Feed/Posts");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/Feed/Comments");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/Feed/Index");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/Feed/SiteFeed");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/Feed/Posts", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/Feed/Comments", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/Feed/Index", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/Feed/SiteFeed", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -137,9 +137,9 @@ public sealed class ControllerActionExtractorTests
 
         var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
         Assert.Equal(3, endpoints.Length);
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/rss");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/rss.xml");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/feed/rss");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/rss", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/rss.xml", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/feed/rss", StringComparison.Ordinal));
     }
 
     [Fact]

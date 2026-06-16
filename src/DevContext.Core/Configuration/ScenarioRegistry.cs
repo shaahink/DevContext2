@@ -6,6 +6,7 @@ public static class ScenarioRegistry
     /// <summary>Gets the dictionary of built-in scenarios keyed by name.</summary>
     public static IReadOnlyDictionary<string, Scenario> BuiltIn { get; } =
         new Dictionary<string, Scenario>
+(StringComparer.Ordinal)
         {
             ["overview"] = new()
             {

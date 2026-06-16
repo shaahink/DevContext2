@@ -67,7 +67,7 @@ public sealed class DiscoveryPipeline
 
             foreach (var write in writers)
             {
-                var matchingReaders = readers.Where(r => r.Signal == write.Signal).ToList();
+                var matchingReaders = readers.Where(r => string.Equals(r.Signal, write.Signal, StringComparison.Ordinal)).ToList();
                 if (matchingReaders.Count > 0)
                 {
                     var msg = $"Stage {group.Key}: {write.Extractor} writes signal '{write.Signal}' which is also read by {string.Join(", ", matchingReaders.Select(r => r.Extractor))}. This may cause races.";
@@ -84,7 +84,7 @@ public sealed class DiscoveryPipeline
     public async Task<AnalysisSnapshot> AnalyzeAsync(DiscoveryContext context, CancellationToken ct = default)
     {
         if (context.Options.DryRun)
-            return await BuildDryRunSnapshotAsync(context, ct);
+            return await BuildDryRunSnapshotAsync(context, ct).ConfigureAwait(false);
 
         if (context.Options.Profile == ExtractionProfile.Debug && _validationWarnings.Count > 0)
             _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
@@ -95,14 +95,14 @@ public sealed class DiscoveryPipeline
         var collector = (context.Observer as CompositeDiscoveryObserver)?.GetInner()
             .OfType<RunReportCollector>().FirstOrDefault();
 
-        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct);
-        await RunStageAsync(ExecutionStage.Stage2Parallel, PipelineStage.GenericExtraction, true, context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, model, ct).ConfigureAwait(false);
+        await RunStageAsync(ExecutionStage.Stage2Parallel, PipelineStage.GenericExtraction, true, context, model, ct).ConfigureAwait(false);
 
         ResolveFocusPoints(context, model);
         SealSignals(context, model);
         ApplyArchitectureStyle(model);
 
-        await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
+        await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct).ConfigureAwait(false);
 
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
@@ -123,8 +123,8 @@ public sealed class DiscoveryPipeline
             $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
             + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
 
-        await RunScoringAsync(context, model, ct);
-        await RunCompressionAsync(context, model, ct);
+        await RunScoringAsync(context, model, ct).ConfigureAwait(false);
+        await RunCompressionAsync(context, model, ct).ConfigureAwait(false);
 
         context.Observer.OnPipelineCompleted(model);
 
@@ -198,74 +198,9 @@ public sealed class DiscoveryPipeline
     private async Task<AnalysisSnapshot> BuildDryRunSnapshotAsync(DiscoveryContext context, CancellationToken ct)
     {
         var dryRunModel = new DiscoveryModel();
-        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, dryRunModel, ct);
+        await RunStageAsync(ExecutionStage.Stage1Sequential, PipelineStage.DiscoveryAndCacheWarmup, false, context, dryRunModel, ct).ConfigureAwait(false);
 
-        var stage1 = new List<(string Name, string Description, bool WillRun)>();
-        var stage2 = new List<(string Name, string Description, bool WillRun)>();
-        var stage3 = new List<(string Name, string Description, ImmutableArray<string> RequiredSignals)>();
-
-        foreach (var ext in _extractors.OrderBy(GetOrder))
-        {
-            var willRun = !context.Options.ExcludeExtractors.Contains(ext.Name)
-                          && ext.ShouldRun(context, new DiscoveryModel());
-
-            switch (ext.Stage)
-            {
-                case ExecutionStage.Stage1Sequential:
-                    stage1.Add((ext.Name, ext.Capabilities.Description, willRun));
-                    break;
-                case ExecutionStage.Stage2Parallel:
-                    stage2.Add((ext.Name, ext.Capabilities.Description, willRun));
-                    break;
-                case ExecutionStage.Stage3Specific:
-                    stage3.Add((ext.Name, ext.Capabilities.Description, ext.Capabilities.ReadsSignals));
-                    break;
-            }
-        }
-
-        var sb = new StringBuilder();
-        sb.AppendLine("## Dry Run Plan");
-        sb.AppendLine($"**Root**: {context.RootPath}");
-        sb.AppendLine($"**Scenario**: {context.ActiveScenario.DisplayName}");
-        sb.AppendLine($"**Profile**: {context.Options.Profile}");
-        sb.AppendLine($"**Max tokens**: {context.Options.MaxOutputTokens}");
-        sb.AppendLine();
-
-        sb.AppendLine("### Stage 1 (sequential)");
-        sb.AppendLine("| Status | Name | Description |");
-        sb.AppendLine("|---|---|---|");
-        foreach (var (name, desc, willRun) in stage1)
-            sb.AppendLine($"| {(willRun ? "✓" : "✗")} | {name} | {desc} |");
-
-        sb.AppendLine();
-        sb.AppendLine("### Stage 2 (parallel)");
-        sb.AppendLine("| Status | Name | Description |");
-        sb.AppendLine("|---|---|---|");
-        foreach (var (name, desc, willRun) in stage2)
-            sb.AppendLine($"| {(willRun ? "✓" : "✗")} | {name} | {desc} |");
-
-        sb.AppendLine();
-        sb.AppendLine("### Stage 3 (conditional, after signal detection)");
-        sb.AppendLine("| Status | Name | Requires | Description |");
-        sb.AppendLine("|---|---|---|---|");
-        foreach (var (name, desc, signals) in stage3)
-        {
-            var requires = signals.Length > 0
-                ? string.Join(" OR ", signals)
-                : "(always runs)";
-            sb.AppendLine($"| ? | {name} | {requires} | {desc} |");
-        }
-        sb.AppendLine();
-        sb.AppendLine("*Stage 3 extractors run conditionally based on Stage 2 signal results. "
-            + "Use --scenario or configure signals in devcontext.json to control which run.*");
-
-        if (_validationWarnings.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("### Validation Warnings");
-            foreach (var w in _validationWarnings)
-                sb.AppendLine($"- ⚠ {w}");
-        }
+        var planContent = BuildDryRunPlanMarkdown(context);
 
         context.Observer.OnPipelineCompleted(dryRunModel);
         return new AnalysisSnapshot
@@ -287,9 +222,90 @@ public sealed class DiscoveryPipeline
                 TotalWall = TimeSpan.Zero,
             },
             IsDryRun = true,
-            DryRunContent = sb.ToString(),
+            DryRunContent = planContent,
         };
     }
+
+    private string BuildDryRunPlanMarkdown(DiscoveryContext context)
+    {
+        var (stage1, stage2, stage3) = BuildStageLists(context);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("## Dry Run Plan");
+        sb.AppendLine($"**Root**: {context.RootPath}");
+        sb.AppendLine($"**Scenario**: {context.ActiveScenario.DisplayName}");
+        sb.AppendLine($"**Profile**: {context.Options.Profile}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**Max tokens**: {context.Options.MaxOutputTokens}");
+        sb.AppendLine();
+
+        AppendStageTable(sb, "Stage 1 (sequential)", stage1, (item, _) => $"| {(item.WillRun ? "✓" : "✗")} | {item.Name} | {item.Description} |");
+        sb.AppendLine();
+        AppendStageTable(sb, "Stage 2 (parallel)", stage2, (item, _) => $"| {(item.WillRun ? "✓" : "✗")} | {item.Name} | {item.Description} |");
+        sb.AppendLine();
+        sb.AppendLine("### Stage 3 (conditional, after signal detection)");
+        sb.AppendLine("| Status | Name | Requires | Description |");
+        sb.AppendLine("|---|---|---|---|");
+        foreach (var item in stage3)
+        {
+            var requires = item.RequiredSignals.Length > 0
+                ? string.Join(" OR ", item.RequiredSignals)
+                : "(always runs)";
+            sb.AppendLine($"| ? | {item.Name} | {requires} | {item.Description} |");
+        }
+        sb.AppendLine();
+        sb.AppendLine("*Stage 3 extractors run conditionally based on Stage 2 signal results. "
+            + "Use --scenario or configure signals in devcontext.json to control which run.*");
+
+        if (_validationWarnings.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("### Validation Warnings");
+            foreach (var w in _validationWarnings)
+                sb.AppendLine($"- ⚠ {w}");
+        }
+
+        return sb.ToString();
+    }
+
+    private (List<StageItem> Stage1, List<StageItem> Stage2, List<Stage3Item> Stage3) BuildStageLists(DiscoveryContext context)
+    {
+        var stage1 = new List<StageItem>();
+        var stage2 = new List<StageItem>();
+        var stage3 = new List<Stage3Item>();
+
+        foreach (var ext in _extractors.OrderBy(GetOrder))
+        {
+            var willRun = !context.Options.ExcludeExtractors.Contains(ext.Name, StringComparer.Ordinal)
+                          && ext.ShouldRun(context, new DiscoveryModel());
+
+            switch (ext.Stage)
+            {
+                case ExecutionStage.Stage1Sequential:
+                    stage1.Add(new(ext.Name, ext.Capabilities.Description, willRun));
+                    break;
+                case ExecutionStage.Stage2Parallel:
+                    stage2.Add(new(ext.Name, ext.Capabilities.Description, willRun));
+                    break;
+                case ExecutionStage.Stage3Specific:
+                    stage3.Add(new(ext.Name, ext.Capabilities.Description, ext.Capabilities.ReadsSignals));
+                    break;
+            }
+        }
+
+        return (stage1, stage2, stage3);
+    }
+
+    private static void AppendStageTable<T>(StringBuilder sb, string title, List<T> items, Func<T, int, string> rowSelector)
+    {
+        sb.AppendLine($"### {title}");
+        sb.AppendLine("| Status | Name | Description |");
+        sb.AppendLine("|---|---|---|");
+        for (var i = 0; i < items.Count; i++)
+            sb.AppendLine(rowSelector(items[i], i));
+    }
+
+    private readonly record struct StageItem(string Name, string Description, bool WillRun);
+    private readonly record struct Stage3Item(string Name, string Description, ImmutableArray<string> RequiredSignals);
 
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
@@ -324,7 +340,7 @@ public sealed class DiscoveryPipeline
             if (snapshot.Map is { } mapModel)
             {
                 var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
-                var map = await MapRenderer.RenderAsync(mapCtx, ct);
+                var map = await MapRenderer.RenderAsync(mapCtx, ct).ConfigureAwait(false);
                 var tail = GraphDiagnosticsTail(snapshot, request);
                 return tail.Length == 0 ? map : map with { Content = map.Content + tail };
             }
@@ -351,7 +367,7 @@ public sealed class DiscoveryPipeline
         if (!_renderers.TryGetValue(format, out var renderer))
             throw new InvalidOperationException($"No renderer registered for format: {format}");
 
-        var rendered = await renderer.RenderAsync(snapshot.Model, opts, ct);
+        var rendered = await renderer.RenderAsync(snapshot.Model, opts, ct).ConfigureAwait(false);
         rendered = RunSelfChecks(rendered, snapshot.Model, opts, snapshot.Model);
 
         rendered = rendered with
@@ -409,13 +425,13 @@ public sealed class DiscoveryPipeline
             .Select(d => $"  {d.Source}: {d.Message}")
             .ToList();
         if (lines.Count == 0) return string.Empty;
-        return "\n\nDIAGNOSTICS\n" + string.Join("\n", lines) + "\n";
+        return "\n\nDIAGNOSTICS\n" + string.Join('\n', lines) + "\n";
     }
 
     /// <summary>Convenience: runs the full pipeline (analyze + render) and returns the rendered context.</summary>
     public async Task<RenderedContext> RunAsync(DiscoveryContext context, CancellationToken ct = default)
     {
-        var snapshot = await AnalyzeAsync(context, ct);
+        var snapshot = await AnalyzeAsync(context, ct).ConfigureAwait(false);
         if (snapshot.IsDryRun)
             return new RenderedContext(snapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
 
@@ -428,7 +444,7 @@ public sealed class DiscoveryPipeline
             IncludeDiagnostics = context.Options.IncludeDiagnostics,
             TokenView = context.Options.TokenView,
         };
-        return await RenderAsync(snapshot, request, ct);
+        return await RenderAsync(snapshot, request, ct).ConfigureAwait(false);
     }
 
     /// <summary>Runs a stage of the pipeline: filters extractors by ExecutionStage, executes them sequentially or in parallel.</summary>
@@ -444,18 +460,14 @@ public sealed class DiscoveryPipeline
             .ToList();
 
         var excludedByName = stageExtractors
-            .Where(e => ctx.Options.ExcludeExtractors.Contains(e.Name))
+            .Where(e => ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal))
             .ToList();
 
         var excludedBySignal = stageExtractors
-            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => !e.ShouldRun(ctx, model))
-            .ToList();
+.Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal) && !e.ShouldRun(ctx, model)).ToList();
 
         var eligible = stageExtractors
-            .Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name))
-            .Where(e => e.ShouldRun(ctx, model))
-            .ToList();
+.Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal) && e.ShouldRun(ctx, model)).ToList();
 
         // Report skipped extractors
         foreach (var ext in excludedByName)
@@ -474,17 +486,17 @@ public sealed class DiscoveryPipeline
         {
             await Parallel.ForEachAsync(eligible, ct, async (extractor, innerCt) =>
             {
-                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, innerCt);
+                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, innerCt).ConfigureAwait(false);
                 ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
                 RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
-            });
+            }).ConfigureAwait(false);
         }
         else
         {
             foreach (var extractor in eligible)
             {
                 ct.ThrowIfCancellationRequested();
-                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, ct);
+                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, ct).ConfigureAwait(false);
                 ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
                 RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
             }
@@ -500,7 +512,7 @@ public sealed class DiscoveryPipeline
         var esw = Stopwatch.StartNew();
         var typesBefore = model.Types.Count;
         var detsBefore = model.Detections.Count;
-        try { await extractor.ExtractAsync(ctx, model, ct); }
+        try { await extractor.ExtractAsync(ctx, model, ct).ConfigureAwait(false); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { model.AddDiagnostic(DiagnosticLevel.Warning, extractor.Name, ex.Message); }
         return (model.Types.Count - typesBefore, model.Detections.Count - detsBefore, esw.Elapsed);
@@ -548,7 +560,7 @@ public sealed class DiscoveryPipeline
         {
             ct.ThrowIfCancellationRequested();
             var before = model.Types.Values.Count(t => !t.IsPruned);
-            await pruner.PruneAsync(ctx, model, ct);
+            await pruner.PruneAsync(ctx, model, ct).ConfigureAwait(false);
             var after = model.Types.Values.Count(t => !t.IsPruned);
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
@@ -569,7 +581,7 @@ public sealed class DiscoveryPipeline
         foreach (var strategy in _compressionStrategies.OrderBy(s => s.Order))
         {
             ct.ThrowIfCancellationRequested();
-            var result = await strategy.CompressAsync(model, options, ct);
+            var result = await strategy.CompressAsync(model, options, ct).ConfigureAwait(false);
             model.AppliedCompressions.Add(result);
             ctx.Observer.OnCompressionApplied(result);
         }
@@ -596,11 +608,11 @@ public sealed class DiscoveryPipeline
 
         return types
             .Select(t => t.Name)
-            .Distinct()
+            .Distinct(StringComparer.Ordinal)
             .Select(name => (Name: name, Distance: StringHelpers.LevenshteinDistance(input, name)))
             .Where(x => x.Distance <= maxDistance && x.Distance > 0)
             .OrderBy(x => x.Distance)
-            .ThenBy(x => x.Name)
+            .ThenBy(x => x.Name, StringComparer.Ordinal)
             .Select(x => x.Name)
             .Take(3)
             .ToList();

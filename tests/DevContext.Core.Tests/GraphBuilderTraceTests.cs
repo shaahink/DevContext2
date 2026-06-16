@@ -192,7 +192,7 @@ public sealed class GraphBuilderTraceTests
                 new NoiseFilter(new ProjectClassifier(model.Projects)))
             .Build(model, scope);
 
-        var entry = entries.FirstOrDefault(e => e.Title == "POST /api/orders");
+        var entry = entries.FirstOrDefault(e => string.Equals(e.Title, "POST /api/orders", StringComparison.Ordinal));
         Assert.NotNull(entry);
 
         // Verify graph structure: entry → Sends → request → Handles → handler → Raises → event → Consumes → handler

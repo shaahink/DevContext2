@@ -16,9 +16,9 @@ public sealed class RealPatternEndpointTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/{id}" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/orders/" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders/", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders/{id}", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/orders/", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
         Assert.Equal(3, endpoints.Count);
         Assert.All(endpoints, e => Assert.Equal("/orders", e.GroupPrefix));
     }
@@ -46,8 +46,8 @@ public sealed class RealPatternEndpointTests
 
         var result = await RunOnFilesAsync(fs);
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/todos" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class RealPatternEndpointTests
         var result = await RunOnFilesAsync(fs);
         // The [HttpGet("/products")] attribute on the Endpoint class should be detected
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/products" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/products", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -103,8 +103,8 @@ public sealed class RealPatternEndpointTests
 
         var result = await RunOnFilesAsync(fs);
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/todos" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/todos" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/todos", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -118,9 +118,9 @@ public sealed class RealPatternEndpointTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/hello" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/hello", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
         // Handler should reference the method name
-        var endpoint = endpoints.First(e => e.RouteTemplate == "/hello");
+        var endpoint = endpoints.First(e => string.Equals(e.RouteTemplate, "/hello", StringComparison.Ordinal));
         Assert.Equal("HelloHandler", endpoint.HandlerMethod);
     }
 
@@ -162,9 +162,9 @@ public sealed class RealPatternEndpointTests
         var result = await RunOnFilesAsync(fs);
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
 
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items/{id:int}" && e.HttpMethod == "GET");
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/api/catalog/items" && e.HttpMethod == "POST");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/catalog/items", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/catalog/items/{id:int}", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/api/catalog/items", StringComparison.Ordinal) && string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal));
         Assert.All(endpoints, e => Assert.Equal("api/catalog", e.GroupPrefix));
     }
 
@@ -179,7 +179,7 @@ public sealed class RealPatternEndpointTests
             """);
 
         var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
-        Assert.Contains(endpoints, e => e.RouteTemplate == "/health");
+        Assert.Contains(endpoints, e => string.Equals(e.RouteTemplate, "/health", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -233,14 +233,14 @@ public sealed class RealPatternEndpointTests
     {
         var fs = new FakeFileSystem();
         fs.AddFile(fileName, source);
-        return await RunOnFilesAsync(fs);
+        return await RunOnFilesAsync(fs).ConfigureAwait(false);
     }
 
     private static async Task<DiscoveryModel> RunOnFilesAsync(FakeFileSystem fs)
     {
         var cache = new FakeAnalysisCache(fs);
         var allFiles = new List<string>();
-        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories))
+        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories).ConfigureAwait(false))
             allFiles.Add(f);
 
         var model = new DiscoveryModel();
@@ -260,7 +260,7 @@ public sealed class RealPatternEndpointTests
             RoslynWorkspace = new MockRoslynProvider()
         };
 
-        await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+        await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None).ConfigureAwait(false);
         return model;
     }
 }

@@ -3,13 +3,13 @@ namespace DevContext.Desktop.Helpers;
 /// <summary>Wraps the cancel-previous + identity-guarded disposal pattern used by _cts, _renderCts, etc.</summary>
 public sealed class CancellableOperation : IDisposable
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private CancellationTokenSource? _cts;
 
     /// <summary>Cancels and disposes the previous operation, then starts a new one. Returns the new token.</summary>
     public CancellationToken Begin()
     {
-        lock (_lock)
+        using (_lock.EnterScope())
         {
             CancelAndDispose();
             _cts = new CancellationTokenSource();
@@ -20,7 +20,7 @@ public sealed class CancellableOperation : IDisposable
     /// <summary>Cancels the current operation without starting a new one.</summary>
     public void Cancel()
     {
-        lock (_lock)
+        using (_lock.EnterScope())
         {
             CancelAndDispose();
         }
@@ -29,7 +29,7 @@ public sealed class CancellableOperation : IDisposable
     /// <summary>Disposes this operation only if it's still the current instance. Call from finally blocks.</summary>
     public void End(CancellationTokenSource? myCts)
     {
-        lock (_lock)
+        using (_lock.EnterScope())
         {
             if (_cts == myCts && _cts is not null)
             {
@@ -42,7 +42,7 @@ public sealed class CancellableOperation : IDisposable
     /// <summary>Creates a linked token from an external token and the internal one.</summary>
     public CancellationToken Link(CancellationToken external)
     {
-        lock (_lock)
+        using (_lock.EnterScope())
         {
             return _cts is not null
                 ? CancellationTokenSource.CreateLinkedTokenSource(external, _cts.Token).Token
@@ -55,7 +55,7 @@ public sealed class CancellableOperation : IDisposable
     {
         get
         {
-            lock (_lock)
+            using (_lock.EnterScope())
             {
                 return _cts?.Token ?? CancellationToken.None;
             }
@@ -72,7 +72,7 @@ public sealed class CancellableOperation : IDisposable
 
     public void Dispose()
     {
-        lock (_lock)
+        using (_lock.EnterScope())
         {
             CancelAndDispose();
         }

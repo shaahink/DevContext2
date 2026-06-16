@@ -14,7 +14,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
     {
         var tokensBefore = EstimateTotalTokens(model);
         var notes = new List<string>();
-        var groups = new Dictionary<string, List<TypeDiscovery>>();
+        var groups = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
         var prunedCount = 0;
 
         foreach (var type in model.Types.Values)
@@ -66,8 +66,8 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
         sb.Append('|');
 
         var methodKeys = type.Methods
-            .Select(m => $"{m.Name}:{m.ReturnType}:{string.Join(",", m.ParameterTypes)}")
-            .OrderBy(k => k, StringComparer.Ordinal);
+            .Select(m => $"{m.Name}:{m.ReturnType}:{string.Join(',', m.ParameterTypes)}")
+            .Order(StringComparer.Ordinal);
         foreach (var mk in methodKeys)
         {
             sb.Append(mk);
@@ -78,7 +78,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
 
         var propertyKeys = type.Properties
             .Select(p => $"{p.Name}:{p.PropertyType}")
-            .OrderBy(k => k, StringComparer.Ordinal);
+            .Order(StringComparer.Ordinal);
         foreach (var pk in propertyKeys)
         {
             sb.Append(pk);

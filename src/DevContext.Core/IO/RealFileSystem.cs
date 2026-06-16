@@ -4,7 +4,7 @@ namespace DevContext.Core.IO;
 public sealed class RealFileSystem : IFileSystem
 {
     public async ValueTask<string> ReadAllTextAsync(string path, CancellationToken ct = default)
-        => await File.ReadAllTextAsync(path, ct);
+        => await File.ReadAllTextAsync(path, ct).ConfigureAwait(false);
 
     public async IAsyncEnumerable<string> EnumerateFilesAsync(
         string root, string pattern, SearchOption option, [EnumeratorCancellation] CancellationToken ct = default)

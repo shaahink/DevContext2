@@ -14,9 +14,9 @@ public sealed record FileSyntaxNodes(
 public sealed class SharedAnalysisContext
 {
     /// <summary>All .cs source file paths discovered in the project.</summary>
-    public IReadOnlyList<string> AllSourceFiles { get; set; } = [];
+    public IReadOnlyList<string> AllSourceFiles { get; set; } = new List<string>();
     /// <summary>All .csproj project file paths discovered.</summary>
-    public IReadOnlyList<string> AllProjectFiles { get; set; } = [];
+    public IReadOnlyList<string> AllProjectFiles { get; set; } = new List<string>();
     /// <summary>Focus points extracted from user input to guide extraction.</summary>
     public IReadOnlyList<FocusPoint> FocusPoints { get; set; } = [];
     /// <summary>Raw unresolved focus points as parsed from user input (before type resolution).</summary>
@@ -29,13 +29,13 @@ public sealed class SharedAnalysisContext
     /// <summary>Call graph mapping methods to their call edges.</summary>
     public CallGraph? CallGraph { get; set; }
     /// <summary>Shared cache of pre-parsed syntax nodes per file. Populated once, read by all Stage 2 extractors.</summary>
-    public ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>> SyntaxNodeCache { get; } = new();
+    public ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>> SyntaxNodeCache { get; } = new(StringComparer.Ordinal);
 
     /// <summary>Gets or lazily populates the parsed syntax nodes for a given file path.</summary>
     public async Task<FileSyntaxNodes> GetOrParseSyntaxNodesAsync(string filePath, Func<Task<FileSyntaxNodes>> factory)
     {
-        var lazy = SyntaxNodeCache.GetOrAdd(filePath, _ => new Lazy<Task<FileSyntaxNodes>>(factory));
-        return await lazy.Value;
+        var lazy = SyntaxNodeCache.GetOrAdd(filePath, (_, arg) => new Lazy<Task<FileSyntaxNodes>>(arg), factory);
+        return await lazy.Value.ConfigureAwait(false);
     }
 }
 
@@ -45,7 +45,7 @@ public sealed class ProjectDependencyGraph
     /// <summary>Adjacency list mapping project names to their referenced project names.</summary>
     public IReadOnlyDictionary<string, ImmutableArray<string>> AdjacencyList { get; }
     /// <summary>Creates a project dependency graph from an adjacency dictionary.</summary>
-    public ProjectDependencyGraph(Dictionary<string, ImmutableArray<string>> adjacency)
+    public ProjectDependencyGraph(IDictionary<string, ImmutableArray<string>> adjacency)
     {
         AdjacencyList = adjacency.ToFrozenDictionary();
     }
@@ -57,7 +57,7 @@ public sealed class CallGraph
     /// <summary>Edges grouped by caller key (Type.Method).</summary>
     public IReadOnlyDictionary<string, ImmutableArray<CallEdge>> Edges { get; }
     /// <summary>Creates a call graph from an edges dictionary.</summary>
-    public CallGraph(Dictionary<string, ImmutableArray<CallEdge>> edges)
+    public CallGraph(IDictionary<string, ImmutableArray<CallEdge>> edges)
     {
         Edges = edges.ToFrozenDictionary();
     }

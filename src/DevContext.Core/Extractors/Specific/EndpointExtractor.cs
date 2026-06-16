@@ -26,12 +26,12 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var detectedKeys = new HashSet<string>();
+        var detectedKeys = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var filePath in context.Analysis.AllSourceFiles)
         {
             ct.ThrowIfCancellationRequested();
-            await ScanFile(filePath, context, model, detectedKeys, ct);
+            await ScanFile(filePath, context, model, detectedKeys, ct).ConfigureAwait(false);
         }
     }
 
@@ -42,7 +42,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         SyntaxTree syntaxTree;
         try
         {
-            syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -61,7 +61,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         {
             ct.ThrowIfCancellationRequested();
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
-            if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
+            if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText, StringComparer.Ordinal)) continue;
 
             // Check if this is a call on a MapGroup variable (e.g. api.MapGet(...))
             var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
@@ -87,7 +87,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             {
                 ct.ThrowIfCancellationRequested();
                 if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
-                if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
+                if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText, StringComparer.Ordinal)) continue;
 
                 var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
                     && extGroupPrefixes.TryGetValue(groupVar.Identifier.ValueText, out var gp)
@@ -112,9 +112,9 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     {
         if (method.ParameterList.Parameters.Count == 0) return false;
         var firstType = method.ParameterList.Parameters[0].Type?.ToString() ?? "";
-        return firstType.Contains("WebApplication")
-            || firstType.Contains("IEndpointRouteBuilder")
-            || firstType.Contains("RouteGroupBuilder");
+        return firstType.Contains("WebApplication", StringComparison.Ordinal)
+            || firstType.Contains("IEndpointRouteBuilder", StringComparison.Ordinal)
+            || firstType.Contains("RouteGroupBuilder", StringComparison.Ordinal);
     }
 
     private static void AddEndpoint(
@@ -170,14 +170,14 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         while (node.Parent is MemberAccessExpressionSyntax ma && ma.Parent is InvocationExpressionSyntax chainInvoke)
         {
             var methodName = ma.Name.Identifier.ValueText;
-            if (methodName == "RequireAuthorization")
+            if (string.Equals(methodName, "RequireAuthorization", StringComparison.Ordinal))
             {
                 var policyArg = chainInvoke.ArgumentList.Arguments.FirstOrDefault();
                 auth.Add(policyArg?.Expression is LiteralExpressionSyntax lit
                     ? $"[Authorize({lit.Token.ValueText})]"
                     : "[Authorize]");
             }
-            else if (methodName == "AllowAnonymous")
+            else if (string.Equals(methodName, "AllowAnonymous", StringComparison.Ordinal))
             {
                 auth.Add("[AllowAnonymous]");
             }
@@ -189,11 +189,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
     private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)
     {
-        var prefixes = new Dictionary<string, string>();
+        var prefixes = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
-            if (memberAccess.Name.Identifier.ValueText != "MapGroup") continue;
+            if (!string.Equals(memberAccess.Name.Identifier.ValueText, "MapGroup", StringComparison.Ordinal)) continue;
 
             var prefixArg = invocation.ArgumentList.Arguments.FirstOrDefault();
             var prefix = prefixArg?.Expression is LiteralExpressionSyntax lit
@@ -213,7 +213,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             var resolved = prefixes[key];
             foreach (var (varName, varPrefix) in prefixes)
             {
-                if (resolved != varPrefix && resolved.Contains(varName))
+                if (!string.Equals(resolved, varPrefix, StringComparison.Ordinal) && resolved.Contains(varName, StringComparison.Ordinal))
                     resolved = resolved.Replace(varName, varPrefix);
             }
             prefixes[key] = resolved;
@@ -274,7 +274,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
     private static string NormalizeRoute(string route)
     {
-        if (string.IsNullOrEmpty(route) || route == "/") return route;
+        if (string.IsNullOrEmpty(route) || string.Equals(route, "/", StringComparison.Ordinal)) return route;
         if (!route.StartsWith('/'))
             route = "/" + route;
         return route;

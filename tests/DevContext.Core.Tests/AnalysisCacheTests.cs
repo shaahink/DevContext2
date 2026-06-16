@@ -27,7 +27,7 @@ public sealed class AnalysisCacheTests
 
         Assert.NotNull(tree);
         var root = await tree.GetRootAsync();
-        Assert.Contains("Program", root.ToFullString());
+        Assert.Contains("Program", root.ToFullString(), StringComparison.Ordinal);
     }
 
     [Fact]

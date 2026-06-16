@@ -58,7 +58,7 @@ public sealed class EventBusExtractorTests
         await extractor.ExtractAsync(ctx, model, default);
 
         var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
-        Assert.Contains(consumers, c => c.ConsumerType == "ShipConsumer" && c.MessageType == "OrderShipped");
+        Assert.Contains(consumers, c => string.Equals(c.ConsumerType, "ShipConsumer", StringComparison.Ordinal) && string.Equals(c.MessageType, "OrderShipped", StringComparison.Ordinal));
     }
 
     [Fact]

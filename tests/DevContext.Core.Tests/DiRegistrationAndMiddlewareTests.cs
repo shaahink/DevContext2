@@ -36,16 +36,16 @@ public sealed class DiRegistrationAndMiddlewareTests
         var middleware = model.Detections.OfType<MiddlewareDetection>().ToArray();
         Assert.Equal(5, middleware.Length);
 
-        var useAuth = middleware.FirstOrDefault(m => m.MiddlewareType == "UseAuthentication");
+        var useAuth = middleware.FirstOrDefault(m => string.Equals(m.MiddlewareType, "UseAuthentication", StringComparison.Ordinal));
         Assert.NotNull(useAuth);
         Assert.Equal(MiddlewareKind.UseX, useAuth.Kind);
         Assert.Equal(1, useAuth.PipelineOrder);
 
-        var useCors = middleware.FirstOrDefault(m => m.MiddlewareType == "UseCors");
+        var useCors = middleware.FirstOrDefault(m => string.Equals(m.MiddlewareType, "UseCors", StringComparison.Ordinal));
         Assert.NotNull(useCors);
         Assert.Equal(3, useCors.PipelineOrder);
 
-        var mapGet = middleware.FirstOrDefault(m => m.MiddlewareType == "MapGet");
+        var mapGet = middleware.FirstOrDefault(m => string.Equals(m.MiddlewareType, "MapGet", StringComparison.Ordinal));
         Assert.NotNull(mapGet);
         Assert.Equal(MiddlewareKind.MapX, mapGet.Kind);
 
@@ -86,19 +86,19 @@ public sealed class DiRegistrationAndMiddlewareTests
         var registrations = model.Detections.OfType<DiRegistrationDetection>().ToArray();
         Assert.Equal(4, registrations.Length);
 
-        var singleton = registrations.FirstOrDefault(r => r.Lifetime == "Singleton");
+        var singleton = registrations.FirstOrDefault(r => string.Equals(r.Lifetime, "Singleton", StringComparison.Ordinal));
         Assert.NotNull(singleton);
         Assert.Equal("IProductRepository", singleton.ServiceType);
         Assert.Equal("InMemoryProductRepository", singleton.ImplementationType);
 
-        var scoped = registrations.FirstOrDefault(r => r.Lifetime == "Scoped");
+        var scoped = registrations.FirstOrDefault(r => string.Equals(r.Lifetime, "Scoped", StringComparison.Ordinal));
         Assert.NotNull(scoped);
         Assert.Equal("IOrderService", scoped.ServiceType);
 
-        var transient = registrations.FirstOrDefault(r => r.Lifetime == "Transient");
+        var transient = registrations.FirstOrDefault(r => string.Equals(r.Lifetime, "Transient", StringComparison.Ordinal));
         Assert.NotNull(transient);
 
-        var addMediatR = registrations.FirstOrDefault(r => r.Lifetime == "Extension");
+        var addMediatR = registrations.FirstOrDefault(r => string.Equals(r.Lifetime, "Extension", StringComparison.Ordinal));
         Assert.NotNull(addMediatR);
         Assert.Equal("AddMediatR", addMediatR.ServiceType);
     }
@@ -131,7 +131,7 @@ public sealed class DiRegistrationAndMiddlewareTests
 
         var diags = model.Diagnostics.ToArray();
         var corsDiag = diags.FirstOrDefault(d =>
-            d.Message.Contains("AddCors") && d.Message.Contains("UseCors"));
+            d.Message.Contains("AddCors", StringComparison.Ordinal) && d.Message.Contains("UseCors", StringComparison.Ordinal));
 
         Assert.NotNull(corsDiag);
         Assert.Equal(DiagnosticLevel.Info, corsDiag.Level);
@@ -167,7 +167,7 @@ public sealed class DiRegistrationAndMiddlewareTests
         var registrations = model.Detections.OfType<DiRegistrationDetection>().ToArray();
         Assert.NotEmpty(registrations);
 
-        var singleton = registrations.FirstOrDefault(r => r.Lifetime == "Singleton");
+        var singleton = registrations.FirstOrDefault(r => string.Equals(r.Lifetime, "Singleton", StringComparison.Ordinal));
         Assert.NotNull(singleton);
         Assert.Equal("ICache", singleton.ServiceType);
     }

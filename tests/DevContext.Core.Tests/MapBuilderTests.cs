@@ -27,9 +27,9 @@ public sealed class MapBuilderTests
 
         Assert.NotEmpty(map.Packages);
         // MediatR should appear once with the highest version (12.0.0)
-        var mediatrGroup = map.Packages.First(g => g.Label == "Mediator/CQRS");
+        var mediatrGroup = map.Packages.First(g => string.Equals(g.Label, "Mediator/CQRS", StringComparison.Ordinal));
         Assert.Single(mediatrGroup.Packages);
-        Assert.Contains("MediatR 12.0.0", mediatrGroup.Packages[0]);
+        Assert.Contains("MediatR 12.0.0", mediatrGroup.Packages[0], StringComparison.Ordinal);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class MapBuilderTests
         var map = MapBuilder.Build(model, EmptyGraph, []);
 
         Assert.Equal(2, map.Topology.Length);
-        var a = map.Topology.First(n => n.Name == "A");
+        var a = map.Topology.First(n => string.Equals(n.Name, "A", StringComparison.Ordinal));
         Assert.Single(a.DependsOn);
         Assert.Equal("B", a.DependsOn[0]);
     }

@@ -11,7 +11,7 @@ namespace DevContext.Core.Graph;
 /// nodes, HTTP entries, MediatR handler joins) show the pattern; TODO-marked seams are the agent's
 /// P1/P2 work. Per-seam recipes are in TRACE-ENGINE-DESIGN.md §2.2.
 /// </summary>
-public sealed class GraphBuilder
+public sealed partial class GraphBuilder
 {
     private readonly ISymbolResolver _resolver;
     private readonly NoiseFilter _noise;
@@ -74,77 +74,7 @@ public sealed class GraphBuilder
             var id = NodeId.ForEntry(key);
             g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile });
 
-            // Link entry → its handler so the trace has a first hop down the wiring. Two shapes:
-            //   1. Named handler (controller action, FastEndpoints class): HandlerType is a real type
-            //      name — resolve it to a Type node.
-            //   2. Lambda/inline handler (minimal API): HandlerType is the lambda's *source text* (it
-            //      contains "=>") and HandlerMethod is "<lambda>" — there is no named type, so fall back
-            //      to the type that *contains* the endpoint registration (matched by file).
-            // NOTE: the previous code keyed the lambda branch off HandlerType == "λ", which minimal-API
-            // endpoints never produce — so lambda entries got no out-edge and every trace was empty.
-            var isLambdaHandler = ep.HandlerMethod is "<lambda>" or "<anonymous>"
-                || string.IsNullOrEmpty(ep.HandlerType)
-                || ep.HandlerType is "λ" or "?"
-                || ep.HandlerType.Contains("=>", StringComparison.Ordinal);
-
-            var linked = false;
-            if (!isLambdaHandler)
-            {
-                var handlerFqn = names.Resolve(ep.HandlerType);
-                var methodName = ep.HandlerMethod;
-                var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
-                    && methodName is not "<lambda>" and not "<anonymous>"
-                    && !methodName.Contains("=>", StringComparison.Ordinal);
-
-                if (hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
-                {
-                    // B4: Anchor on the specific handler method via a Member node
-                    var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
-                    var typeNode = g.Nodes.FirstOrDefault(n => n.Id.Key == handlerFqn);
-                    g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
-                    {
-                        FilePath = ep.SourceFile,
-                        SourceBody = typeNode?.SourceBody,
-                    });
-                    g.AddEdge(new GraphEdge(id, memberNodeId, EdgeKind.Calls)
-                    {
-                        Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
-                        Resolution = Resolution.Join,
-                    });
-                    linked = true;
-                }
-                else
-                {
-                    var handlerNodeId = NodeId.ForType(handlerFqn);
-                    if (g.HasNode(handlerNodeId))
-                    {
-                        g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
-                        {
-                            Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
-                            Resolution = Resolution.Join,
-                        });
-                        linked = true;
-                    }
-                }
-            }
-
-            if (!linked)
-            {
-                var ownerType = model.Types.Values.FirstOrDefault(t =>
-                    string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
-                if (ownerType is not null)
-                {
-                    var ownerNodeId = NodeId.ForType(ownerType.Id);
-                    if (g.HasNode(ownerNodeId))
-                    {
-                        g.AddEdge(new GraphEdge(id, ownerNodeId, EdgeKind.Calls)
-                        {
-                            Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
-                            Resolution = Resolution.Join,
-                        });
-                    }
-                }
-            }
+            LinkEntryToHandler(g, model, ep, id, names);
 
             entries.Add(new EntryPoint(EntryPointKind.HttpEndpoint, key, id)
             {
@@ -154,6 +84,81 @@ public sealed class GraphBuilder
             });
         }
         return entries.ToImmutable();
+    }
+
+    private static void LinkEntryToHandler(CodeGraphBuilder g, DiscoveryModel model, EndpointDetection ep, NodeId entryId, NameResolver names)
+    {
+        var isLambdaHandler = ep.HandlerMethod is "<lambda>" or "<anonymous>"
+            || string.IsNullOrEmpty(ep.HandlerType)
+            || ep.HandlerType is "λ" or "?"
+            || ep.HandlerType.Contains("=>", StringComparison.Ordinal);
+
+        if (isLambdaHandler)
+        {
+            LinkLambdaEntryToOwner(g, model, ep, entryId);
+            return;
+        }
+
+        if (TryLinkNamedHandler(g, ep, entryId, names))
+            return;
+
+        LinkLambdaEntryToOwner(g, model, ep, entryId);
+    }
+
+    private static bool TryLinkNamedHandler(CodeGraphBuilder g, EndpointDetection ep, NodeId entryId, NameResolver names)
+    {
+        var handlerFqn = names.Resolve(ep.HandlerType);
+        var methodName = ep.HandlerMethod;
+        var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
+            && methodName is not "<lambda>" and not "<anonymous>"
+            && !methodName.Contains("=>", StringComparison.Ordinal);
+
+        if (hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
+        {
+            var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
+            var typeNode = g.Nodes.FirstOrDefault(n => string.Equals(n.Id.Key, handlerFqn, StringComparison.Ordinal));
+            g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
+            {
+                FilePath = ep.SourceFile,
+                SourceBody = typeNode?.SourceBody,
+            });
+            g.AddEdge(new GraphEdge(entryId, memberNodeId, EdgeKind.Calls)
+            {
+                Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                Resolution = Resolution.Join,
+            });
+            return true;
+        }
+
+        var handlerNodeId = NodeId.ForType(handlerFqn);
+        if (g.HasNode(handlerNodeId))
+        {
+            g.AddEdge(new GraphEdge(entryId, handlerNodeId, EdgeKind.Calls)
+            {
+                Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                Resolution = Resolution.Join,
+            });
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void LinkLambdaEntryToOwner(CodeGraphBuilder g, DiscoveryModel model, EndpointDetection ep, NodeId entryId)
+    {
+        var ownerType = model.Types.Values.FirstOrDefault(t =>
+            string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
+        if (ownerType is null) return;
+
+        var ownerNodeId = NodeId.ForType(ownerType.Id);
+        if (g.HasNode(ownerNodeId))
+        {
+            g.AddEdge(new GraphEdge(entryId, ownerNodeId, EdgeKind.Calls)
+            {
+                Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                Resolution = Resolution.Join,
+            });
+        }
     }
 
     /// <summary>WORKED EXAMPLE — join MediatR detections into Request + Handler nodes and a Handles edge.
@@ -175,7 +180,7 @@ public sealed class GraphBuilder
             {
                 FilePath = h.SourceFile,
                 SourceBody = model.Types.Values
-                    .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType))
+                    .FirstOrDefault(t => string.Equals(t.Id, names.Resolve(h.HandlerType), StringComparison.Ordinal))
                     ?.SourceBody,
             });
             g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
@@ -202,14 +207,14 @@ public sealed class GraphBuilder
             if (di.ServiceType.Contains("IPipelineBehavior", StringComparison.Ordinal))
             {
                 var impl = CleanTypeRef(di.ImplementationType);
-                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                if (!string.IsNullOrEmpty(impl) && !string.Equals(impl, "?", StringComparison.Ordinal))
                     behaviors.Add((impl, di.SourceFile, di.LineNumber));
             }
             // MediatR extension: services.AddMediatR(cfg => { cfg.AddOpenBehavior(typeof(LoggingBehavior<,>)); })
-            if (di.ExtensionsUsed.Contains("AddOpenBehavior") || di.ServiceType == "AddOpenBehavior")
+            if (di.ExtensionsUsed.Contains("AddOpenBehavior", StringComparer.Ordinal) || string.Equals(di.ServiceType, "AddOpenBehavior", StringComparison.Ordinal))
             {
                 var impl = CleanTypeRef(di.ImplementationType);
-                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                if (!string.IsNullOrEmpty(impl) && !string.Equals(impl, "?", StringComparison.Ordinal))
                     behaviors.Add((impl, di.SourceFile, di.LineNumber));
             }
         }
@@ -223,7 +228,7 @@ public sealed class GraphBuilder
                 FilePath = file,
                 Tags = ["pipeline"],
                 SourceBody = model.Types.Values
-                    .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
+                    .FirstOrDefault(t => string.Equals(t.Id, behaviorFqn, StringComparison.Ordinal))?.SourceBody,
             });
 
             // WrappedBy edge from every Request node to this pipeline behavior
@@ -357,11 +362,11 @@ public sealed class GraphBuilder
             if (!scope.Contains(di.SourceFile)) continue;
             if (di.Shape != DiRegistrationShape.DirectBinding) continue;
             if (string.IsNullOrEmpty(di.ImplementationType)
-                || di.ImplementationType == "?"
-                || di.ImplementationType.StartsWith("sp =>")
-                || di.ImplementationType.StartsWith("_ =>")
-                || di.ImplementationType.StartsWith("(")
-                || di.ImplementationType.Contains("GetRequiredService")) continue;
+                || string.Equals(di.ImplementationType, "?"
+, StringComparison.Ordinal) || di.ImplementationType.StartsWith("sp =>", StringComparison.Ordinal)
+                || di.ImplementationType.StartsWith("_ =>", StringComparison.Ordinal)
+                || di.ImplementationType.StartsWith('(')
+                || di.ImplementationType.Contains("GetRequiredService", StringComparison.Ordinal)) continue;
 
             var svcFqn = names.Resolve(di.ServiceType);
             var implFqn = names.Resolve(di.ImplementationType);
@@ -447,7 +452,7 @@ public sealed class GraphBuilder
             var entityId = NodeId.ForEntity(entityFqn);
             var ctxFqn = names.Resolve(e.DbContextType);
             var ctxType = ctxFqn;
-            if (!string.IsNullOrEmpty(ctxType) && ctxType != "?")
+            if (!string.IsNullOrEmpty(ctxType) && !string.Equals(ctxType, "?", StringComparison.Ordinal))
             {
                 var ctxId = NodeId.ForType(ctxType);
                 g.AddNode(new GraphNode(ctxId, ctxType, NodeKind.DataStore)
@@ -531,8 +536,7 @@ public sealed class GraphBuilder
             }
 
             // new TIntegrationEvent(...) — constructor calls for integration events
-            foreach (Match match in Regex.Matches(body,
-                @"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled))
+            foreach (Match match in MyRegex().Matches(body))
             {
                 var eventName = match.Groups[1].Value;
                 var eventFqn = names.Resolve(eventName);
@@ -651,4 +655,7 @@ public sealed class GraphBuilder
         var idx = typeName.IndexOf('<');
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
     }
+
+    [GeneratedRegex(@"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
 }

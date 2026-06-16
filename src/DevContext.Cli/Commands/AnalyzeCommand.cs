@@ -30,49 +30,87 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         var inputPath = settings.Path ?? ".";
 
-        // GitHub repo support: clone if URL detected
-        var gitClonePath = null as string;
-        var repoUrl = RepoUrl.Parse(settings.Repo ?? inputPath);
-        if (repoUrl is { IsValid: true })
+        var (gitClonePath, gitError) = await ResolveGitCloneAsync(settings, inputPath, ct).ConfigureAwait(false);
+        if (gitError is not null)
         {
-            var git = new GitCloneService();
-            if (!git.IsGitAvailable)
-            {
-                AnsiConsole.MarkupLine("[red]Git is not installed. Install Git to clone GitHub repositories.[/]");
-                return 1;
-            }
-
-            var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
-            var status = await git.ValidateAsync(repoUrl, ct);
-            if (status != RepoStatus.Valid)
-            {
-                var msg = status switch
-                {
-                    RepoStatus.NotFound => "Repository not found. Check the URL or ensure the repo is public.",
-                    RepoStatus.Private => "Private repositories require authentication. Clone the repo locally and run DevContext on the local path.",
-                    RepoStatus.NetworkError => "Network error — check your connection or try again later.",
-                    RepoStatus.RateLimited => "GitHub API rate limit exceeded. Wait a few minutes or use a local path instead of a URL.",
-                    _ => "Unknown error"
-                };
-                AnsiConsole.MarkupLine($"[red]{msg}[/]");
-                return 1;
-            }
-
-            gitClonePath = repoUrl.ClonePath;
-            var branch = settings.Ref ?? repoUrl.Ref;
-            var cloneResult = await git.CloneAsync(repoUrl, gitClonePath, branch, null, ct);
-            if (cloneResult is null)
-            {
-                AnsiConsole.MarkupLine("[red]Clone failed[/]");
-                return 1;
-            }
-
+            AnsiConsole.MarkupLine($"[red]{gitError}[/]");
+            return 1;
+        }
+        if (gitClonePath is not null)
             inputPath = gitClonePath;
+
+        var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct).ConfigureAwait(false);
+
+        var (resolvedIntent, focusText) = ResolveIntent(settings, config);
+        if (resolvedIntent is null)
+            return 1;
+
+        AnsiConsole.MarkupLine($"[dim]{resolvedIntent.Explanation}[/]");
+        foreach (var warning in resolvedIntent.Warnings)
+            AnsiConsole.MarkupLine($"[yellow]{warning}[/]");
+        if (!string.IsNullOrWhiteSpace(settings.Task))
+            AnsiConsole.MarkupLine("[yellow]--task is deprecated. Use --focus instead.[/]");
+
+        var cache = new AnalysisCache(_fs);
+        var options = BuildExtractionOptions(settings, config, rootResult, resolvedIntent);
+        var ctx = BuildDiscoveryContext(rootResult, options, resolvedIntent, cache);
+        var pipeline = BuildPipeline(cache);
+
+        var sw = Stopwatch.StartNew();
+        var (snapshot, renderedResult) = await RunAnalysisAsync(pipeline, ctx, settings, focusText, ct).ConfigureAwait(false);
+
+        await WriteOutput(settings, renderedResult).ConfigureAwait(false);
+        if (settings.Strict && HandleStrictMode(renderedResult))
+            return 2;
+
+        if (snapshot?.Report is { } report && !settings.DryRun)
+            AnsiConsole.MarkupLine($"[dim]{RunReportFormatter.Summary(report, renderedResult.RenderFunnel)}[/]");
+
+        if (settings.Stats || settings.Metrics)
+            ShowStats(snapshot?.Report);
+
+        ShowSummary(sw, rootResult, options, renderedResult);
+
+        CleanupClone(settings, gitClonePath);
+
+        return 0;
+    }
+
+    private static async Task<(string? ClonePath, string? Error)> ResolveGitCloneAsync(AnalyzeSettings settings, string inputPath, CancellationToken ct)
+    {
+        var repoUrl = RepoUrl.Parse(settings.Repo ?? inputPath);
+        if (repoUrl is not { IsValid: true })
+            return (null, null);
+
+        var git = new GitCloneService();
+        if (!git.IsGitAvailable)
+            return (null, "Git is not installed. Install Git to clone GitHub repositories.");
+
+        var status = await git.ValidateAsync(repoUrl, ct).ConfigureAwait(false);
+        if (status != RepoStatus.Valid)
+        {
+            var msg = status switch
+            {
+                RepoStatus.NotFound => "Repository not found. Check the URL or ensure the repo is public.",
+                RepoStatus.Private => "Private repositories require authentication. Clone the repo locally and run DevContext on the local path.",
+                RepoStatus.NetworkError => "Network error — check your connection or try again later.",
+                RepoStatus.RateLimited => "GitHub API rate limit exceeded. Wait a few minutes or use a local path instead of a URL.",
+                _ => "Unknown error"
+            };
+            return (null, msg);
         }
 
-        var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
+        var clonePath = repoUrl.ClonePath;
+        var branch = settings.Ref ?? repoUrl.Ref;
+        var cloneResult = await git.CloneAsync(repoUrl, clonePath, branch, null, ct).ConfigureAwait(false);
+        if (cloneResult is null)
+            return (null, "Clone failed");
 
-        // Build IntentInput from settings
+        return (clonePath, null);
+    }
+
+    private static (ResolvedIntent? Intent, string? FocusText) ResolveIntent(AnalyzeSettings settings, DevContextConfig? config)
+    {
         var focusInput = settings.Focus ?? settings.Around;
         var focusText = focusInput is { Length: > 0 } ? focusInput[0] : null;
         var intentInput = new IntentInput
@@ -83,27 +121,50 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             ExplicitProfile = settings.Profile ?? config?.DefaultProfile,
         };
 
-        ResolvedIntent resolvedIntent;
         try
         {
-            resolvedIntent = AnalysisIntentResolver.Resolve(intentInput);
+            return (AnalysisIntentResolver.Resolve(intentInput), focusText);
         }
         catch (ArgumentException ex)
         {
             AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-            return 1;
+            return (null, focusText);
         }
+    }
 
-        // Print explanation and warnings
-        AnsiConsole.MarkupLine($"[dim]{resolvedIntent.Explanation}[/]");
-        foreach (var warning in resolvedIntent.Warnings)
-            AnsiConsole.MarkupLine($"[yellow]{warning}[/]");
+    private DiscoveryContext BuildDiscoveryContext(ProjectRootResult rootResult, ExtractionOptions options, ResolvedIntent resolvedIntent, AnalysisCache cache)
+    {
+        var analysis = new SharedAnalysisContext
+        {
+            UnresolvedFocusPoints = resolvedIntent.FocusPoints,
+            FocusPoints = resolvedIntent.FocusPoints,
+        };
+        var roslyn = BuildRoslynProvider(rootResult, options);
 
-        // --task deprecation
-        if (!string.IsNullOrWhiteSpace(settings.Task))
-            AnsiConsole.MarkupLine("[yellow]--task is deprecated. Use --focus instead.[/]");
+        var collector = new RunReportCollector();
+        collector.SetBudget(options.MaxOutputTokens);
 
-        var options = new ExtractionOptions
+        var observer = new CompositeDiscoveryObserver([
+            new SpectreDiscoveryObserver(),
+            collector]);
+
+        return new DiscoveryContext
+        {
+            RootPath = rootResult.RootPath,
+            Options = options,
+            ActiveScenario = resolvedIntent.Scenario,
+            Observer = observer,
+            FileSystem = _fs,
+            Cache = cache,
+            Analysis = analysis,
+            Logger = _loggerFactory.CreateLogger("DevContext"),
+            RoslynWorkspace = roslyn
+        };
+    }
+
+    private static ExtractionOptions BuildExtractionOptions(AnalyzeSettings settings, DevContextConfig? config, ProjectRootResult rootResult, ResolvedIntent resolvedIntent)
+    {
+        return new ExtractionOptions
         {
             EntryPaths = rootResult.EntryCandidates,
             Profile = resolvedIntent.Profile,
@@ -125,52 +186,22 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
             ExcludeExtractors = resolvedIntent.Scenario.DisableExtractors,
         };
+    }
 
-        var scenario = resolvedIntent.Scenario;
-
-        var cache = new AnalysisCache(_fs);
-        var analysis = new SharedAnalysisContext
-        {
-            UnresolvedFocusPoints = resolvedIntent.FocusPoints,
-            FocusPoints = resolvedIntent.FocusPoints,
-        };
-        var pipeline = BuildPipeline(cache);
-        var roslyn = BuildRoslynProvider(settings, rootResult);
-
-        RenderedContext result = null!;
+    private static async Task<(AnalysisSnapshot? Snapshot, RenderedContext Result)> RunAnalysisAsync(
+        DiscoveryPipeline pipeline, DiscoveryContext ctx, AnalyzeSettings settings, string? focusText, CancellationToken ct)
+    {
         AnalysisSnapshot? snapshot = null;
-        var sw = Stopwatch.StartNew();
-
-        var collector = new RunReportCollector();
-        collector.SetBudget(options.MaxOutputTokens);
-
-        var spectreObserver = new SpectreDiscoveryObserver();
-        var inner = new List<IDiscoveryObserver> { spectreObserver };
-        inner.Add(collector);
-        var observer = new CompositeDiscoveryObserver([.. inner]);
-
-        var ctx = new DiscoveryContext
-        {
-            RootPath = rootResult.RootPath,
-            Options = options,
-            ActiveScenario = scenario,
-            Observer = observer,
-            FileSystem = _fs,
-            Cache = cache,
-            Analysis = analysis,
-            Logger = _loggerFactory.CreateLogger("DevContext"),
-            RoslynWorkspace = roslyn
-        };
+        RenderedContext result = null!;
 
         await AnsiConsole.Status()
             .StartAsync("Analyzing project...", async statusCtx =>
             {
-                var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
-                snapshot = capturedSnapshot;
+                snapshot = await pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
 
-                if (capturedSnapshot.IsDryRun)
+                if (snapshot.IsDryRun)
                 {
-                    result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+                    result = new RenderedContext(snapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
                 }
                 else
                 {
@@ -184,46 +215,30 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
                     var request = new RenderRequest
                     {
-                        Format = options.OutputFormat.ToString().ToLowerInvariant(),
-                        MaxTokens = options.MaxOutputTokens,
-                        Sections = scenario.RequiredSections,
-                        IncludeProvenance = options.IncludeProvenance,
-                        IncludeDiagnostics = options.IncludeDiagnostics,
-                        TokenView = options.TokenView,
+                        Format = ctx.Options.OutputFormat.ToString().ToLowerInvariant(),
+                        MaxTokens = ctx.Options.MaxOutputTokens,
+                        Sections = ctx.ActiveScenario.RequiredSections,
+                        IncludeProvenance = ctx.Options.IncludeProvenance,
+                        IncludeDiagnostics = ctx.Options.IncludeDiagnostics,
+                        TokenView = ctx.Options.TokenView,
                         Entry = focusText,
                         Depth = settings.Depth,
                         Detail = traceDetail,
                     };
 
-                    result = await pipeline.RenderAsync(capturedSnapshot, request, ct);
+                    result = await pipeline.RenderAsync(snapshot, request, ct).ConfigureAwait(false);
                 }
-            });
+            }).ConfigureAwait(false);
 
-        await WriteOutput(settings, result);
-        if (settings.Strict && HandleStrictMode(result))
-            return 2;
+        return (snapshot, result!);
+    }
 
-        if (snapshot?.Report is { } report)
-        {
-            var summary = RunReportFormatter.Summary(report, result.RenderFunnel);
-            if (!settings.DryRun)
-                AnsiConsole.MarkupLine($"[dim]{summary}[/]");
-        }
-
-        if (settings.Stats || settings.Metrics)
-            ShowStats(snapshot?.Report);
-
-        ShowSummary(sw, rootResult, options, result);
-
-        // Clean up clone if auto-clean
-        if (gitClonePath is not null)
-        {
-            var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
-            if (cleanup == "auto")
-                GitCloneService.Cleanup(gitClonePath);
-        }
-
-        return 0;
+    private static void CleanupClone(AnalyzeSettings settings, string? gitClonePath)
+    {
+        if (gitClonePath is null) return;
+        var cleanup = settings.Cleanup ?? (settings.Keep ? "keep" : "auto");
+        if (string.Equals(cleanup, "auto", StringComparison.Ordinal))
+            GitCloneService.Cleanup(gitClonePath);
     }
 
     private static void ConfigureLogging(AnalyzeSettings settings)
@@ -254,9 +269,9 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         return sp.GetRequiredService<DiscoveryPipeline>();
     }
 
-    private IRoslynWorkspaceProvider BuildRoslynProvider(AnalyzeSettings settings, ProjectRootResult root)
+    private IRoslynWorkspaceProvider BuildRoslynProvider(ProjectRootResult root, ExtractionOptions options)
     {
-        if (settings.NoRoslyn || root.SolutionFilePath is null)
+        if (!options.AllowRoslyn || root.SolutionFilePath is null)
             return new NullRoslynProvider();
 
         return new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
@@ -268,7 +283,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
     {
         if (settings.Output is not null)
         {
-            await File.WriteAllTextAsync(settings.Output, result.Content);
+            await File.WriteAllTextAsync(settings.Output, result.Content).ConfigureAwait(false);
             AnsiConsole.MarkupLine($"[green]Output written to {Path.GetFullPath(settings.Output)}[/]");
             return;
         }
@@ -321,7 +336,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     : "[green]ran[/]";
                 var name = ex.Skipped ? $"[dim]{ex.Name}[/]" : ex.Name;
                 extractorTable.AddRow(name, $"{ex.Elapsed.TotalMilliseconds:F0}ms",
-                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status);
+                    ex.TypesAdded.ToString(System.Globalization.CultureInfo.InvariantCulture), ex.DetectionsAdded.ToString(System.Globalization.CultureInfo.InvariantCulture), status);
             }
             AnsiConsole.Write(extractorTable);
         }
@@ -343,8 +358,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 var delta = sc.TypesBefore > 0
                     ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
                     : 0;
-                scorerTable.AddRow(sc.Name, sc.TypesBefore.ToString(),
-                    sc.TypesAfter.ToString(), $"{delta}%");
+                scorerTable.AddRow(sc.Name, sc.TypesBefore.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    sc.TypesAfter.ToString(System.Globalization.CultureInfo.InvariantCulture), $"{delta}%");
             }
             AnsiConsole.Write(scorerTable);
         }

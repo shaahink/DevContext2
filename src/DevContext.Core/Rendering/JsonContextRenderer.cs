@@ -59,13 +59,13 @@ public sealed class JsonContextRenderer : IContextRenderer
                 model.DetectedStyle.ToString(),
                 model.StyleConfidence),
             Signals = [.. model.Architecture.All
-                .OrderBy(kvp => kvp.Key)
+                .OrderBy(kvp => kvp.Key, StringComparer.Ordinal)
                 .Select(kvp => new SignalOutput(kvp.Key, kvp.Value.Confidence, kvp.Value.Detected))],
             Projects = new ProjectsOutput(
                 model.Projects.Length,
-                [.. model.Projects.OrderBy(p => p.Name).Select(p => p.Name)]),
+                [.. model.Projects.OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => p.Name)]),
             TypesSummary = new TypesOutput(total, inOutput, prunedPercent),
-            Detections = [.. model.Detections.OrderBy(d => d.GetType().Name).ThenBy(d => d.SourceFile).ThenBy(d => d.LineNumber)],
+            Detections = [.. model.Detections.OrderBy(d => d.GetType().Name, StringComparer.Ordinal).ThenBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber)],
             Diagnostics = options.IncludeDiagnostics ? [.. model.Diagnostics] : null,
             PruningSummary = model.PruningNotes.Count > 0
                 ? string.Join("; ", model.PruningNotes)

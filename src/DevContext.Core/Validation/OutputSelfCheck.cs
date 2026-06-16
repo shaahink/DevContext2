@@ -150,7 +150,7 @@ public static partial class OutputSelfCheck
         if (unknown.Count == 0)
             return Pass("sections-known");
         return Fail("sections-known",
-            $"Unknown section header(s): {string.Join(", ", unknown.Distinct())}");
+            $"Unknown section header(s): {string.Join(", ", unknown.Distinct(StringComparer.Ordinal))}");
     }
 
     /// <summary>detections‑sourced — every detection must have a non‑empty SourceFile and LineNumber > 0.</summary>
@@ -335,25 +335,20 @@ public static partial class OutputSelfCheck
         sb.Append(d.LineNumber);
         sb.Append('|');
 
+        AppendDetectionFields(sb, d);
+
+        return sb.ToString();
+    }
+
+    private static void AppendDetectionFields(System.Text.StringBuilder sb, Detection d)
+    {
         switch (d)
         {
             case EndpointDetection e:
-                sb.Append(e.HttpMethod);
-                sb.Append('|');
-                sb.Append(e.RouteTemplate);
-                sb.Append('|');
-                sb.Append(e.HandlerType);
-                sb.Append('|');
-                sb.Append(e.HandlerMethod);
+                AppendEndpointFields(sb, e);
                 break;
             case MediatRHandlerDetection m:
-                sb.Append(m.RequestType);
-                sb.Append('|');
-                sb.Append(m.ResponseType);
-                sb.Append('|');
-                sb.Append(m.HandlerType);
-                sb.Append('|');
-                sb.Append(m.Kind);
+                AppendMediatRFields(sb, m);
                 break;
             case EfEntityDetection ef:
                 sb.Append(ef.EntityType);
@@ -361,13 +356,7 @@ public static partial class OutputSelfCheck
                 sb.Append(ef.DbContextType);
                 break;
             case DiRegistrationDetection di:
-                sb.Append(di.ServiceType);
-                sb.Append('|');
-                sb.Append(di.ImplementationType);
-                sb.Append('|');
-                sb.Append(di.Lifetime);
-                sb.Append('|');
-                sb.Append(di.Shape);
+                AppendDiRegistrationFields(sb, di);
                 break;
             case BackgroundWorkerDetection bw:
                 sb.Append(bw.ServiceType);
@@ -405,20 +394,45 @@ public static partial class OutputSelfCheck
                 sb.Append(ap.TargetType);
                 break;
             case EventFlowDetection ef:
-                sb.Append(ef.GetHashCode()); // fallback — EventFlowDetection has no stable string fields
-                break;
             case AspireResourceDetection ar:
-                sb.Append(ar.GetHashCode()); // fallback
-                break;
             case AspireRelationshipDetection ar2:
-                sb.Append(ar2.GetHashCode()); // fallback
-                break;
             default:
                 sb.Append(d.GetHashCode());
                 break;
         }
+    }
 
-        return sb.ToString();
+    private static void AppendEndpointFields(System.Text.StringBuilder sb, EndpointDetection e)
+    {
+        sb.Append(e.HttpMethod);
+        sb.Append('|');
+        sb.Append(e.RouteTemplate);
+        sb.Append('|');
+        sb.Append(e.HandlerType);
+        sb.Append('|');
+        sb.Append(e.HandlerMethod);
+    }
+
+    private static void AppendMediatRFields(System.Text.StringBuilder sb, MediatRHandlerDetection m)
+    {
+        sb.Append(m.RequestType);
+        sb.Append('|');
+        sb.Append(m.ResponseType);
+        sb.Append('|');
+        sb.Append(m.HandlerType);
+        sb.Append('|');
+        sb.Append(m.Kind);
+    }
+
+    private static void AppendDiRegistrationFields(System.Text.StringBuilder sb, DiRegistrationDetection di)
+    {
+        sb.Append(di.ServiceType);
+        sb.Append('|');
+        sb.Append(di.ImplementationType);
+        sb.Append('|');
+        sb.Append(di.Lifetime);
+        sb.Append('|');
+        sb.Append(di.Shape);
     }
 
     internal static int CountOccurrences(string text, string value)

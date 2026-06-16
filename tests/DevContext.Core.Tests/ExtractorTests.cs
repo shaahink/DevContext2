@@ -34,9 +34,9 @@ public sealed class ExtractorTests
         var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
         Assert.Equal(3, endpoints.Length);
 
-        Assert.Contains(endpoints, e => e.HttpMethod == "GET" && e.RouteTemplate == "/api/products");
-        Assert.Contains(endpoints, e => e.HttpMethod == "POST" && e.RouteTemplate == "/api/products");
-        Assert.Contains(endpoints, e => e.HttpMethod == "DELETE" && e.RouteTemplate == "/api/products/{id}");
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "GET", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/api/products", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "POST", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/api/products", StringComparison.Ordinal));
+        Assert.Contains(endpoints, e => string.Equals(e.HttpMethod, "DELETE", StringComparison.Ordinal) && string.Equals(e.RouteTemplate, "/api/products/{id}", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class ExtractorTests
     {
         var cache = new FakeAnalysisCache(fs);
         var allFiles = new List<string>();
-        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories))
+        await foreach (var f in fs.EnumerateFilesAsync("", "*", SearchOption.AllDirectories).ConfigureAwait(false))
             allFiles.Add(f);
 
         var model = new DiscoveryModel();
@@ -251,7 +251,7 @@ public sealed class ExtractorTests
             RoslynWorkspace = new MockRoslynProvider()
         };
 
-        await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+        await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None).ConfigureAwait(false);
         return model;
     }
 }

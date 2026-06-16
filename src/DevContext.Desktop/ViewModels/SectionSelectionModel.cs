@@ -17,7 +17,7 @@ public sealed class SectionSelectionModel
     private bool _isInitializing = true;
 
     // ── Section toggle list ──────────────────────────────────────────────────
-    public List<SectionToggle> Sections { get; } =
+    public IList<SectionToggle> Sections { get; } =
     [
         new() { Key = DevContext.Core.Constants.SectionNames.ArchitectureOverview, Label = "Architecture overview" },
         new() { Key = DevContext.Core.Constants.SectionNames.Endpoints,            Label = "Endpoints" },
@@ -66,14 +66,14 @@ public sealed class SectionSelectionModel
         }
     }
 
-    public bool IsTraceMode => _selectedScenarioValue == "deep-dive";
+    public bool IsTraceMode => string.Equals(_selectedScenarioValue, "deep-dive", StringComparison.Ordinal);
 
     public string DerivedProfile
     {
         get
         {
-            var sourceOn = Sections.FirstOrDefault(s => s.Key == "__source__")?.IsEnabled == true;
-            var callGraphOn = Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph)?.IsEnabled == true;
+            var sourceOn = Sections.FirstOrDefault(s => string.Equals(s.Key, "__source__", StringComparison.Ordinal))?.IsEnabled == true;
+            var callGraphOn = Sections.FirstOrDefault(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal))?.IsEnabled == true;
             if (sourceOn) return "full";
             if (callGraphOn) return "debug";
             return "focused";
@@ -86,18 +86,18 @@ public sealed class SectionSelectionModel
 
     public void SetSectionEnabled(string key, bool enabled)
     {
-        var section = Sections.FirstOrDefault(s => s.Key == key);
+        var section = Sections.FirstOrDefault(s => string.Equals(s.Key, key, StringComparison.Ordinal));
         if (section is null) return;
         section.IsEnabled = enabled;
     }
 
     public ImmutableArray<string> GetActiveSections()
         => Sections
-            .Where(s => s.IsEnabled && s.Key != "__source__")
+            .Where(s => s.IsEnabled && !string.Equals(s.Key, "__source__", StringComparison.Ordinal))
             .Select(s => s.Key)
             .ToImmutableArray();
 
-    public void LoadSectionDefaults(List<string>? activeSections)
+    public void LoadSectionDefaults(IList<string>? activeSections)
     {
         if (activeSections is { Count: > 0 })
         {
@@ -146,7 +146,7 @@ public sealed class SectionSelectionModel
 
     private void SetSectionEnabledSilent(string key, bool enabled)
     {
-        var section = Sections.FirstOrDefault(s => s.Key == key);
+        var section = Sections.FirstOrDefault(s => string.Equals(s.Key, key, StringComparison.Ordinal));
         if (section is not null) section.IsEnabled = enabled;
     }
 
@@ -184,13 +184,13 @@ public sealed class SectionSelectionModel
         var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
         foreach (var cat in categoryOrder)
         {
-            var children = sectionVms.Where(s => s.Category == cat).ToList();
+            var children = sectionVms.Where(s => string.Equals(s.Category, cat, StringComparison.Ordinal)).ToList();
             if (children.Count == 0) continue;
 
             var group = new SectionGroupViewModel
             {
                 Name = cat,
-                IsExpanded = cat != "Debug",
+                IsExpanded = !string.Equals(cat, "Debug", StringComparison.Ordinal),
             };
             group.Children.AddRange(children);
             group.PropertyChanged += (_, _) => RecalcTokenTotal();
@@ -222,22 +222,22 @@ public sealed class SectionSelectionModel
     {
         foreach (var group in SectionGroups)
             foreach (var section in group.Children)
-                section.IsIncluded = section.Category != "Debug";
+                section.IsIncluded = !string.Equals(section.Category, "Debug", StringComparison.Ordinal);
         RecalcTokenTotal();
     }
 
     private static string CategorizeSection(string name)
     {
         var lower = name.ToLowerInvariant();
-        if (lower.Contains("endpoint") || lower.Contains("call graph") || lower.Contains("mediatr") || lower.Contains("handler"))
+        if (lower.Contains("endpoint", StringComparison.Ordinal) || lower.Contains("call graph", StringComparison.Ordinal) || lower.Contains("mediatr", StringComparison.Ordinal) || lower.Contains("handler", StringComparison.Ordinal))
             return "API";
-        if (lower.Contains("architecture") || lower.Contains("project") || lower.Contains("di regist") || lower.Contains("non-obvious") || lower.Contains("middleware") || lower.Contains("signal"))
+        if (lower.Contains("architecture", StringComparison.Ordinal) || lower.Contains("project", StringComparison.Ordinal) || lower.Contains("di regist", StringComparison.Ordinal) || lower.Contains("non-obvious", StringComparison.Ordinal) || lower.Contains("middleware", StringComparison.Ordinal) || lower.Contains("signal", StringComparison.Ordinal))
             return "Architecture";
-        if (lower.Contains("data model") || lower.Contains("entity") || lower.Contains("message consumer") || lower.Contains("event flow"))
+        if (lower.Contains("data model", StringComparison.Ordinal) || lower.Contains("entity", StringComparison.Ordinal) || lower.Contains("message consumer", StringComparison.Ordinal) || lower.Contains("event flow", StringComparison.Ordinal))
             return "Data";
-        if (lower.Contains("anti-pattern") || lower.Contains("related type") || lower.Contains("entry point"))
+        if (lower.Contains("anti-pattern", StringComparison.Ordinal) || lower.Contains("related type", StringComparison.Ordinal) || lower.Contains("entry point", StringComparison.Ordinal))
             return "Analysis";
-        if (lower.Contains("diagnostic") || lower.Contains("pruning") || lower.Contains("source code") || lower.Contains("hotpath"))
+        if (lower.Contains("diagnostic", StringComparison.Ordinal) || lower.Contains("pruning", StringComparison.Ordinal) || lower.Contains("source code", StringComparison.Ordinal) || lower.Contains("hotpath", StringComparison.Ordinal))
             return "Debug";
         return "Other";
     }

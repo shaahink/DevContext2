@@ -26,7 +26,7 @@ public sealed class InMemoryEventBusExtractorTests
         await extractor.ExtractAsync(ctx, model, default);
 
         var flows = model.Detections.OfType<EventFlowDetection>().ToList();
-        Assert.Contains(flows, f => f.EventType == "OrderPlaced" && f.Target == "OrderPlacedHandler");
+        Assert.Contains(flows, f => string.Equals(f.EventType, "OrderPlaced", StringComparison.Ordinal) && string.Equals(f.Target, "OrderPlacedHandler", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -60,8 +60,8 @@ public sealed class InMemoryEventBusExtractorTests
         var extractor = new InMemoryEventBusExtractor();
         await extractor.ExtractAsync(ctx, model, default);
 
-        var flows = model.Detections.OfType<EventFlowDetection>().Where(f => f.Kind == "Subscribe").ToList();
-        Assert.Contains(flows, f => f.EventType == "OrderPlaced");
+        var flows = model.Detections.OfType<EventFlowDetection>().Where(f => string.Equals(f.Kind, "Subscribe", StringComparison.Ordinal)).ToList();
+        Assert.Contains(flows, f => string.Equals(f.EventType, "OrderPlaced", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -87,8 +87,8 @@ public sealed class InMemoryEventBusExtractorTests
         var extractor = new InMemoryEventBusExtractor();
         await extractor.ExtractAsync(ctx, model, default);
 
-        var publishes = model.Detections.OfType<EventFlowDetection>().Where(f => f.Kind == "Publish").ToList();
-        Assert.Contains(publishes, f => f.EventType == "OrderCreated");
+        var publishes = model.Detections.OfType<EventFlowDetection>().Where(f => string.Equals(f.Kind, "Publish", StringComparison.Ordinal)).ToList();
+        Assert.Contains(publishes, f => string.Equals(f.EventType, "OrderCreated", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class InMemoryEventBusExtractorTests
         var extractor = new InMemoryEventBusExtractor();
         await extractor.ExtractAsync(ctx, model, default);
 
-        var publishes = model.Detections.OfType<EventFlowDetection>().Where(f => f.Kind == "Publish").ToList();
+        var publishes = model.Detections.OfType<EventFlowDetection>().Where(f => string.Equals(f.Kind, "Publish", StringComparison.Ordinal)).ToList();
         Assert.Empty(publishes);
     }
 }

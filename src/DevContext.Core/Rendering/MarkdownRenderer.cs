@@ -19,114 +19,23 @@ public sealed class MarkdownRenderer : IContextRenderer
             ? new HashSet<string>(plan.IncludedTypeIds, StringComparer.Ordinal)
             : null;
 
-        var preLen = sb.Length;
-        AppendHeader(sb, model, options);
-        AppendArchitecture(sb, model);
-        AppendSignals(sb, model);
-        AppendProjects(sb, model);
-        AppendProfileAndTokens(sb, model, options, includedIds);
-        TrackSection(sectionTokens, "Header", preLen, sb.Length);
-        sb.AppendLine("---");
+        RenderHeaderSection(sb, model, options, sectionTokens, includedIds);
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
-        {
-            preLen = sb.Length;
-            AppendArchitectureOverview(sb, model, options);
-            TrackSection(sectionTokens, "Architecture overview", preLen, sb.Length);
-        }
+            RenderArchitectureSection(sb, model, options, sectionTokens);
+
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
-        {
-            preLen = sb.Length;
-            AppendEntryPoints(sb, model, options);
-            TrackSection(sectionTokens, "Entry points", preLen, sb.Length);
+            RenderFocusSections(sb, model, options, sectionTokens);
 
-            preLen = sb.Length;
-            AppendSourceBodies(sb, model, options);
-            TrackSection(sectionTokens, "Source code", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.Endpoints, options))
-        {
-            preLen = sb.Length;
-            AppendEndpoints(sb, model, options);
-            TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.CallGraph, options))
-        {
-            preLen = sb.Length;
-            AppendCallGraphAvailability(sb, model, options);
-            TrackSection(sectionTokens, "Call graph", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.MediatRHandlers, options))
-        {
-            preLen = sb.Length;
-            AppendMediatRHandlers(sb, model);
-            TrackSection(sectionTokens, "MediatR Handlers", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.DataModel, options))
-        {
-            preLen = sb.Length;
-            AppendEfEntities(sb, model);
-            TrackSection(sectionTokens, "Data model", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.MessageConsumers, options))
-        {
-            preLen = sb.Length;
-            AppendMessageConsumers(sb, model);
-            TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
-        }
-        if (ShouldRender(SectionNames.NonObviousWiring, options)
-            || ShouldRender(SectionNames.IndirectWiring, options))
-        {
-            preLen = sb.Length;
-            var rendered = AppendIndirectWiring(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Indirect wiring", preLen, sb.Length);
-        }
-
-        if (ShouldRender(SectionNames.NonObviousWiring, options)
-            || ShouldRender(SectionNames.BackgroundWorkers, options))
-        {
-            preLen = sb.Length;
-            var rendered = AppendBackgroundWorkers(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Background workers", preLen, sb.Length);
-        }
-
-        if (ShouldRender(SectionNames.NonObviousWiring, options)
-            || ShouldRender(SectionNames.MiddlewarePipeline, options))
-        {
-            preLen = sb.Length;
-            var rendered = AppendMiddlewarePipeline(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Middleware pipeline", preLen, sb.Length);
-        }
-
-        if (ShouldRender(SectionNames.NonObviousWiring, options)
-            || ShouldRender(SectionNames.DiRegistrations, options))
-        {
-            preLen = sb.Length;
-            var rendered = AppendDiRegistrations(sb, model);
-            if (rendered) TrackSection(sectionTokens, "DI registrations", preLen, sb.Length);
-        }
-
-        preLen = sb.Length;
-        AppendAntiPatterns(sb, model);
-        TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
-
-        preLen = sb.Length;
-        AppendEventFlow(sb, model);
-        TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
+        RenderFeatureSections(sb, model, options, sectionTokens);
+        RenderWiringSections(sb, model, options, sectionTokens);
+        RenderAnalysisSections(sb, model, sectionTokens);
 
         if (ShouldRender(SectionNames.RelatedTypes, options))
-        {
-            preLen = sb.Length;
-            AppendRelatedTypesByLayer(sb, model, includedIds, options);
-            TrackSection(sectionTokens, "Related types", preLen, sb.Length);
-        }
+            RenderTypeSection(sb, model, options, includedIds, sectionTokens);
 
         if (options.IncludeDiagnostics)
-        {
-            preLen = sb.Length;
-            AppendDiagnostics(sb, model, options);
-            TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
-        }
+            RenderDiagnosticSection(sb, model, options, sectionTokens);
 
         AppendFooter(sb, model, options, sw, includedIds);
 
@@ -161,12 +70,24 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             var pct = total > 0 ? s.CompressedTokens * 100 / total : 0;
             var trunc = s.WasTruncated ? "Yes" : "No";
-            sb.AppendLine($"│ {s.SectionName,-30} │ {s.CompressedTokens,8:N0} │ {pct,7}% │ {trunc,-8} │");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"│ {s.SectionName,-30} │ {s.CompressedTokens,8:N0} │ {pct,7}% │ {trunc,-8} │");
         }
         sb.AppendLine("├────────────────────────────────┼──────────┼──────────┼──────────┤");
-        sb.AppendLine($"│ {"TOTAL",-30} │ {total,8:N0} │ {"100%",7} │ {sections.Count(s => s.WasTruncated),8} truncated │");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"│ {"TOTAL",-30} │ {total,8:N0} │ {"100%",7} │ {sections.Count(s => s.WasTruncated),8} truncated │");
         sb.AppendLine("└────────────────────────────────┴──────────┴──────────┴──────────┘");
         sb.AppendLine("-->");
+    }
+
+    private static void RenderHeaderSection(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens, HashSet<string>? includedIds)
+    {
+        var preLen = sb.Length;
+        AppendHeader(sb, model, options);
+        AppendArchitecture(sb, model);
+        AppendSignals(sb, model);
+        AppendProjects(sb, model);
+        AppendProfileAndTokens(sb, model, options, includedIds);
+        TrackSection(sectionTokens, "Header", preLen, sb.Length);
+        sb.AppendLine("---");
     }
 
     private static void AppendHeader(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -207,7 +128,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             ? string.Join(", ", model.Projects.Select(p => p.Name))
             : "none";
 
-        sb.AppendLine($"**Projects**: {count} — {names}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**Projects**: {count} — {names}");
     }
 
     private static void AppendProfileAndTokens(StringBuilder sb, DiscoveryModel model, RenderOptions options, HashSet<string>? includedIds)
@@ -215,8 +136,15 @@ public sealed class MarkdownRenderer : IContextRenderer
         var activeTypes = includedIds is not null
             ? includedIds.Count
             : model.Types.Values.Count(t => !t.IsHardExcluded);
-        sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
         sb.AppendLine();
+    }
+
+    private static void RenderArchitectureSection(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens)
+    {
+        var preLen = sb.Length;
+        AppendArchitectureOverview(sb, model, options);
+        TrackSection(sectionTokens, "Architecture overview", preLen, sb.Length);
     }
 
     private static void AppendArchitectureOverview(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -236,14 +164,14 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             var graph = options.ProjectGraph.AdjacencyList;
             var roots = graph.Keys
-                .Where(k => !graph.Values.Any(v => v.Contains(k)))
-                .OrderBy(k => k)
+                .Where(k => !graph.Values.Any(v => v.Contains(k, StringComparer.Ordinal)))
+                .Order(StringComparer.Ordinal)
                 .ToList();
 
-            if (roots.Count == 0) roots = graph.Keys.OrderBy(k => k).ToList();
+            if (roots.Count == 0) roots = graph.Keys.Order(StringComparer.Ordinal).ToList();
 
             sb.AppendLine("```text");
-            var visited = new HashSet<string>();
+            var visited = new HashSet<string>(StringComparer.Ordinal);
             foreach (var root in roots)
             {
                 RenderProjectTree(sb, root, graph, visited, "", true);
@@ -275,6 +203,17 @@ public sealed class MarkdownRenderer : IContextRenderer
             RenderProjectTree(sb, deps[i], graph, visited, childIndent, i == deps.Length - 1);
     }
 
+    private static void RenderFocusSections(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens)
+    {
+        var preLen = sb.Length;
+        AppendEntryPoints(sb, model, options);
+        TrackSection(sectionTokens, "Entry points", preLen, sb.Length);
+
+        preLen = sb.Length;
+        AppendSourceBodies(sb, model, options);
+        TrackSection(sectionTokens, "Source code", preLen, sb.Length);
+    }
+
     private static void AppendEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
         if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
@@ -284,89 +223,97 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         foreach (var focus in options.FocusPoints)
         {
-            var type = model.Types.Values.FirstOrDefault(t =>
-                t.Name == focus.TypeName || t.Id.EndsWith("." + focus.TypeName, StringComparison.Ordinal));
+            var type = model.Types.Values.FirstOrDefault(t => string.Equals(t.Name, focus.TypeName, StringComparison.Ordinal) || t.Id.EndsWith("." + focus.TypeName, StringComparison.Ordinal));
             if (type is null)
             {
-                // Show unresolved focus point with Levenshtein suggestions
-                sb.AppendLine($"⚠ `--around {focus.TypeName}` not found.");
-                if (focus.TypeName is not null)
-                {
-                    var matches = model.Types.Values
-                        .Select(t => t.Name)
-                        .Distinct()
-                        .Select(n => (Name: n, Dist: StringHelpers.LevenshteinDistance(focus.TypeName, n)))
-                        .Where(x => x.Dist <= 3 && x.Dist > 0)
-                        .OrderBy(x => x.Dist)
-                        .Take(3)
-                        .Select(x => $"`{x.Name}`")
-                        .ToList();
-                    if (matches.Count > 0)
-                        sb.AppendLine($"  Did you mean: {string.Join(", ", matches)}?");
-                }
-                sb.AppendLine();
+                AppendUnresolvedFocusPoint(sb, focus, model);
                 continue;
             }
 
-            sb.AppendLine($"### `{type.Name}` ({type.Kind}, {type.Layer})");
-            sb.AppendLine($"> `{type.Namespace}.{type.Name}` — {type.FilePath}");
-            sb.AppendLine();
-
-            if (type.ImplementedInterfaces.Length > 0)
-                sb.AppendLine($"**Implements**: {string.Join(", ", type.ImplementedInterfaces.Select(i => $"`{i}`"))}");
-
-            if (type.BaseTypes.Length > 0 && type.BaseTypes[0] != "object")
-                sb.AppendLine($"**Extends**: `{type.BaseTypes[0]}`");
-
-            var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
-            if (ctors.Count != 0 && ctors[0].ParameterTypes.Length > 0)
-            {
-                var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
-                sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
-
-                // Cross-reference with DI registrations
-                var diRegs = model.Detections.OfType<DiRegistrationDetection>()
-                    .Where(d => !d.ServiceType.StartsWith("Add") && d.ServiceType != "?")
-                    .GroupBy(d => d.ServiceType)
-                    .ToDictionary(g => g.Key.Trim(), g => g.First());
-
-                var resolved = new List<string>();
-                foreach (var paramType in ctors[0].ParameterTypes)
-                {
-                    var trimmed = paramType.Trim();
-                    if (diRegs.TryGetValue(trimmed, out var reg))
-                    {
-                        var source = $"{Path.GetFileName(reg.SourceFile)}:{reg.LineNumber}";
-                        resolved.Add($"`{trimmed}` → `{reg.ImplementationType}` ({source})");
-                    }
-                    else if (trimmed.StartsWith("ILogger"))
-                    {
-                        resolved.Add($"`{trimmed}` → framework-provided");
-                    }
-                }
-                if (resolved.Count > 0)
-                    sb.AppendLine($"**Resolved to**: {string.Join(", ", resolved)}");
-            }
-
-            var publicMethods = type.Methods
-                .Where(m => m.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
-                    && m.Name != ".ctor" && m.Name != type.Name)
-                .Take(8)
-                .ToList();
-            if (publicMethods.Count != 0)
-            {
-                sb.AppendLine();
-                sb.AppendLine("**Methods**:");
-                foreach (var method in publicMethods)
-                {
-                    var paramStr = string.Join(", ", method.ParameterTypes.Zip(
-                        method.ParameterNames, (t, n) => $"{t} {n}"));
-                    sb.AppendLine($"- `{method.ReturnType} {method.Name}({paramStr})`");
-                }
-            }
-
-            sb.AppendLine();
+            AppendFocusTypeDetail(sb, type, model);
         }
+    }
+
+    private static void AppendUnresolvedFocusPoint(StringBuilder sb, FocusPoint focus, DiscoveryModel model)
+    {
+        sb.AppendLine($"⚠ `--around {focus.TypeName}` not found.");
+        if (focus.TypeName is not null)
+        {
+            var matches = model.Types.Values
+                .Select(t => t.Name)
+                .Distinct(StringComparer.Ordinal)
+                .Select(n => (Name: n, Dist: StringHelpers.LevenshteinDistance(focus.TypeName, n)))
+                .Where(x => x.Dist <= 3 && x.Dist > 0)
+                .OrderBy(x => x.Dist)
+                .Take(3)
+                .Select(x => $"`{x.Name}`")
+                .ToList();
+            if (matches.Count > 0)
+                sb.AppendLine($"  Did you mean: {string.Join(", ", matches)}?");
+        }
+        sb.AppendLine();
+    }
+
+    private static void AppendFocusTypeDetail(StringBuilder sb, TypeDiscovery type, DiscoveryModel model)
+    {
+        sb.AppendLine($"### `{type.Name}` ({type.Kind}, {type.Layer})");
+        sb.AppendLine($"> `{type.Namespace}.{type.Name}` — {type.FilePath}");
+        sb.AppendLine();
+
+        if (type.ImplementedInterfaces.Length > 0)
+            sb.AppendLine($"**Implements**: {string.Join(", ", type.ImplementedInterfaces.Select(i => $"`{i}`"))}");
+
+        if (type.BaseTypes.Length > 0 && !string.Equals(type.BaseTypes[0], "object", StringComparison.Ordinal))
+            sb.AppendLine($"**Extends**: `{type.BaseTypes[0]}`");
+
+        var ctors = type.Methods.Where(m => string.Equals(m.Name, ".ctor", StringComparison.Ordinal) || string.Equals(m.Name, type.Name, StringComparison.Ordinal)).ToList();
+        if (ctors.Count != 0 && ctors[0].ParameterTypes.Length > 0)
+        {
+            var deps = ctors[0].ParameterTypes.Zip(ctors[0].ParameterNames, (t2, n) => $"`{t2} {n}`");
+            sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
+
+            // Cross-reference with DI registrations
+            var diRegs = model.Detections.OfType<DiRegistrationDetection>()
+                .Where(d => !d.ServiceType.StartsWith("Add", StringComparison.Ordinal) && !string.Equals(d.ServiceType, "?", StringComparison.Ordinal))
+                .GroupBy(d => d.ServiceType, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key.Trim(), g => g.First(), StringComparer.Ordinal);
+
+            var resolved = new List<string>();
+            foreach (var paramType in ctors[0].ParameterTypes)
+            {
+                var trimmed = paramType.Trim();
+                if (diRegs.TryGetValue(trimmed, out var reg))
+                {
+                    var source = $"{Path.GetFileName(reg.SourceFile)}:{reg.LineNumber}";
+                    resolved.Add($"`{trimmed}` → `{reg.ImplementationType}` ({source})");
+                }
+                else if (trimmed.StartsWith("ILogger", StringComparison.Ordinal))
+                {
+                    resolved.Add($"`{trimmed}` → framework-provided");
+                }
+            }
+            if (resolved.Count > 0)
+                sb.AppendLine($"**Resolved to**: {string.Join(", ", resolved)}");
+        }
+
+        var publicMethods = type.Methods
+            .Where(m => m.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
+                && !string.Equals(m.Name, ".ctor", StringComparison.Ordinal) && !string.Equals(m.Name, type.Name, StringComparison.Ordinal))
+            .Take(8)
+            .ToList();
+        if (publicMethods.Count != 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("**Methods**:");
+            foreach (var method in publicMethods)
+            {
+                var paramStr = string.Join(", ", method.ParameterTypes.Zip(
+                    method.ParameterNames, (t, n) => $"{t} {n}"));
+                sb.AppendLine($"- `{method.ReturnType} {method.Name}({paramStr})`");
+            }
+        }
+
+        sb.AppendLine();
     }
 
     private static void AppendSourceBodies(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -374,12 +321,12 @@ public sealed class MarkdownRenderer : IContextRenderer
         if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
 
         // Collect types from focus points (entry points)
-        var typeSet = new HashSet<string>();
+        var typeSet = new HashSet<string>(StringComparer.Ordinal);
         foreach (var f in options.FocusPoints)
         {
             foreach (var t in model.Types.Values)
             {
-                if (t.Name == f.TypeName || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
+                if (string.Equals(t.Name, f.TypeName, StringComparison.Ordinal) || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
                 {
                     typeSet.Add(t.Id);
                     break;
@@ -397,7 +344,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                     if (typeSet.Count >= 5) break;
                     foreach (var t in model.Types.Values)
                     {
-                        if (t.Id == edge.CalleeType || t.Id.EndsWith("." + edge.CalleeType))
+                        if (string.Equals(t.Id, edge.CalleeType, StringComparison.Ordinal) || t.Id.EndsWith("." + edge.CalleeType, StringComparison.Ordinal))
                         {
                             typeSet.Add(t.Id);
                             break;
@@ -434,10 +381,44 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine(body);
 
             if (type.SourceBody.Length >= 5000)
-                sb.AppendLine($"// ... [{type.SourceBody.Length} total chars]");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"// ... [{type.SourceBody.Length} total chars]");
 
             sb.AppendLine("```");
             sb.AppendLine();
+        }
+    }
+
+    private static void RenderFeatureSections(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens)
+    {
+        if (ShouldRender(SectionNames.Endpoints, options))
+        {
+            var preLen = sb.Length;
+            AppendEndpoints(sb, model, options);
+            TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
+        }
+        if (ShouldRender(SectionNames.CallGraph, options))
+        {
+            var preLen = sb.Length;
+            AppendCallGraphAvailability(sb, model, options);
+            TrackSection(sectionTokens, "Call graph", preLen, sb.Length);
+        }
+        if (ShouldRender(SectionNames.MediatRHandlers, options))
+        {
+            var preLen = sb.Length;
+            AppendMediatRHandlers(sb, model);
+            TrackSection(sectionTokens, "MediatR Handlers", preLen, sb.Length);
+        }
+        if (ShouldRender(SectionNames.DataModel, options))
+        {
+            var preLen = sb.Length;
+            AppendEfEntities(sb, model);
+            TrackSection(sectionTokens, "Data model", preLen, sb.Length);
+        }
+        if (ShouldRender(SectionNames.MessageConsumers, options))
+        {
+            var preLen = sb.Length;
+            AppendMessageConsumers(sb, model);
+            TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
         }
     }
 
@@ -449,28 +430,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var allEndpoints = model.Detections.OfType<EndpointDetection>()
             .Where(e => !IsFrameworkEndpoint(e));
 
-        // When focus points are present, filter endpoints to those near focus files
-        if (!options.FocusPoints.IsDefaultOrEmpty)
-        {
-            var focusDirs = options.FocusPoints
-                .Where(fp => fp.FilePath is not null)
-                .Select(fp => Path.GetDirectoryName(fp.FilePath)?.Replace('\\', '/') ?? "")
-                .Where(d => d.Length > 0)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            if (focusDirs.Count > 0)
-            {
-                allEndpoints = allEndpoints.Where(e =>
-                {
-                    if (e.SourceFile is null) return true;
-                    var dir = Path.GetDirectoryName(e.SourceFile)?.Replace('\\', '/') ?? "";
-                    return focusDirs.Any(fd =>
-                        dir.StartsWith(fd, StringComparison.OrdinalIgnoreCase)
-                        || fd.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
-                        || AreSiblingDirectories(dir, fd));
-                });
-            }
-        }
+        allEndpoints = FilterEndpointsByFocusPoints(allEndpoints, options);
 
         var endpoints = allEndpoints.ToList();
 
@@ -481,7 +441,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        var hasGroupPrefix = endpoints.Any(e => e.GroupPrefix is not null);
+        var hasGroupPrefix = endpoints.Exists(e => e.GroupPrefix is not null);
 
         // Build project lookup from source file paths
         var projectByDir = model.Projects
@@ -495,12 +455,12 @@ public sealed class MarkdownRenderer : IContextRenderer
             ?? Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "?";
 
         // Group endpoints by project
-        var byProject = endpoints.GroupBy(ep => ProjectForFile(ep.SourceFile)).OrderBy(g => g.Key);
+        var byProject = endpoints.GroupBy(ep => ProjectForFile(ep.SourceFile), StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal);
 
         // Collect MediatR handler types for linkage
         var mediatRTypes = model.Detections.OfType<MediatRHandlerDetection>()
             .Select(m => m.HandlerType)
-            .ToHashSet();
+            .ToHashSet(StringComparer.Ordinal);
 
         var header = hasGroupPrefix
             ? "| Method | Route | Group | Handler | Auth | Source |"
@@ -511,7 +471,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         foreach (var projectGroup in byProject)
         {
-            sb.AppendLine($"**{projectGroup.Key}** ({projectGroup.Count()} endpoints)");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**{projectGroup.Key}** ({projectGroup.Count()} endpoints)");
             sb.AppendLine(header);
             sb.AppendLine(sep);
 
@@ -524,7 +484,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                 if (mediatRTypes.Contains(ep.HandlerType))
                 {
                     var mediatR = model.Detections.OfType<MediatRHandlerDetection>()
-                        .FirstOrDefault(m => m.HandlerType == ep.HandlerType);
+                        .FirstOrDefault(m => string.Equals(m.HandlerType, ep.HandlerType, StringComparison.Ordinal));
                     if (mediatR is not null)
                         handler += $" → `{mediatR.RequestType}`";
                 }
@@ -545,10 +505,35 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
+    private static IEnumerable<EndpointDetection> FilterEndpointsByFocusPoints(IEnumerable<EndpointDetection> endpoints, RenderOptions options)
+    {
+        if (options.FocusPoints.IsDefaultOrEmpty)
+            return endpoints;
+
+        var focusDirs = options.FocusPoints
+            .Where(fp => fp.FilePath is not null)
+            .Select(fp => Path.GetDirectoryName(fp.FilePath)?.Replace('\\', '/') ?? "")
+            .Where(d => d.Length > 0)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (focusDirs.Count == 0)
+            return endpoints;
+
+        return endpoints.Where(e =>
+        {
+            if (e.SourceFile is null) return true;
+            var dir = Path.GetDirectoryName(e.SourceFile)?.Replace('\\', '/') ?? "";
+            return focusDirs.Any(fd =>
+                dir.StartsWith(fd, StringComparison.OrdinalIgnoreCase)
+                || fd.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
+                || AreSiblingDirectories(dir, fd));
+        });
+    }
+
     private static bool ShouldRender(string sectionName, RenderOptions options)
     {
         if (options.RequiredSections.IsDefaultOrEmpty) return true;
-        return options.RequiredSections.Contains(sectionName);
+        return options.RequiredSections.Contains(sectionName, StringComparer.Ordinal);
     }
 
     private static string FormatAuth(EndpointDetection ep)
@@ -595,7 +580,7 @@ public sealed class MarkdownRenderer : IContextRenderer
     private static string FormatImplementation(string implementationType, ImmutableArray<string> extensionsUsed)
     {
         // Filter unresolvable extension args
-        if (implementationType == "?" || string.IsNullOrEmpty(implementationType))
+        if (string.Equals(implementationType, "?", StringComparison.Ordinal) || string.IsNullOrEmpty(implementationType))
             return extensionsUsed.Length > 0
                 ? $"({string.Join(", ", extensionsUsed.Take(3))})"
                 : "-";
@@ -619,8 +604,8 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             DiRegistrationShape.ForwardingAlias => $"{impl} (alias)",
             DiRegistrationShape.InlineFactory when d.FactorySummary is not null => d.FactorySummary,
-            DiRegistrationShape.DirectBinding => d.ServiceType == d.ImplementationType
-                ? impl
+            DiRegistrationShape.DirectBinding => string.Equals(d.ServiceType, d.ImplementationType
+, StringComparison.Ordinal) ? impl
                 : $"{d.ServiceType} → {impl}",
             _ => impl,
         };
@@ -649,22 +634,22 @@ public sealed class MarkdownRenderer : IContextRenderer
                 .Take(3)
                 .ToList();
 
-        if (callerKeys.Count == 0 || callerKeys.All(string.IsNullOrEmpty))
+        if (callerKeys.Count == 0 || callerKeys.TrueForAll(string.IsNullOrEmpty))
             callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
 
         sb.AppendLine("## Call graph");
         sb.AppendLine();
 
-        var visited = new HashSet<string>();
+        var visited = new HashSet<string>(StringComparer.Ordinal);
         var maxDepth = 5;
 
         sb.AppendLine("```text");
         foreach (var callerKey in callerKeys)
         {
-            if (!options.CallGraph.Edges.TryGetValue(callerKey, out _)) continue;
+            if (!options.CallGraph.Edges.ContainsKey(callerKey)) continue;
 
             var parts = callerKey.Split('.');
-            var callerType = parts.Length > 1 ? string.Join(".", parts[..^1]) : callerKey;
+            var callerType = parts.Length > 1 ? string.Join('.', parts[..^1]) : callerKey;
             var callerMethod = parts.Length > 0 ? parts[^1] : callerKey;
 
             sb.AppendLine($"**{callerType}.{callerMethod}**");
@@ -721,10 +706,10 @@ public sealed class MarkdownRenderer : IContextRenderer
     private static void AppendEfEntities(StringBuilder sb, DiscoveryModel model)
     {
         var entities = model.Detections.OfType<EfEntityDetection>()
-            .Where(e => e.DbContextType != "Migrations" && e.EntityType != "<OnModelCreating>")
+            .Where(e => !string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal) && !string.Equals(e.EntityType, "<OnModelCreating>", StringComparison.Ordinal))
             .ToList();
         var migrationCount = model.Detections.OfType<EfEntityDetection>()
-            .Count(e => e.DbContextType == "Migrations");
+            .Count(e => string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal));
 
         if (entities.Count == 0 && migrationCount == 0) return;
 
@@ -733,14 +718,14 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         if (entities.Count > 0)
         {
-            var byContext = entities.GroupBy(e => e.DbContextType).OrderBy(g => g.Key);
+            var byContext = entities.GroupBy(e => e.DbContextType, StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal);
             foreach (var group in byContext)
             {
                 sb.AppendLine($"### `{group.Key}`");
                 sb.AppendLine();
                 sb.AppendLine("| Entity | Aggregate root | Key properties |");
                 sb.AppendLine("|--------|---------------|----------------|");
-                foreach (var e in group.OrderBy(e => e.EntityType))
+                foreach (var e in group.OrderBy(e => e.EntityType, StringComparer.Ordinal))
                 {
                     var keys = e.KeyProperties.Length > 0 ? string.Join(", ", e.KeyProperties) : "—";
                     var agg = e.IsAggregate ? "✓" : "—";
@@ -752,7 +737,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         if (migrationCount > 0)
         {
-            sb.AppendLine($"**{migrationCount} EF Core migrations found.**");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"**{migrationCount} EF Core migrations found.**");
             sb.AppendLine();
         }
     }
@@ -766,9 +751,44 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine();
         sb.AppendLine("| Bus | Message type | Consumer |");
         sb.AppendLine("|-----|-------------|---------|");
-        foreach (var c in consumers.OrderBy(c => c.BusKind).ThenBy(c => c.MessageType))
+        foreach (var c in consumers.OrderBy(c => c.BusKind, StringComparer.Ordinal).ThenBy(c => c.MessageType, StringComparer.Ordinal))
             sb.AppendLine($"| {c.BusKind} | `{c.MessageType}` | `{c.ConsumerType}` |");
         sb.AppendLine();
+    }
+
+    private static void RenderWiringSections(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens)
+    {
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.IndirectWiring, options))
+        {
+            var preLen = sb.Length;
+            var rendered = AppendIndirectWiring(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Indirect wiring", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.BackgroundWorkers, options))
+        {
+            var preLen = sb.Length;
+            var rendered = AppendBackgroundWorkers(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Background workers", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.MiddlewarePipeline, options))
+        {
+            var preLen = sb.Length;
+            var rendered = AppendMiddlewarePipeline(sb, model);
+            if (rendered) TrackSection(sectionTokens, "Middleware pipeline", preLen, sb.Length);
+        }
+
+        if (ShouldRender(SectionNames.NonObviousWiring, options)
+            || ShouldRender(SectionNames.DiRegistrations, options))
+        {
+            var preLen = sb.Length;
+            var rendered = AppendDiRegistrations(sb, model);
+            if (rendered) TrackSection(sectionTokens, "DI registrations", preLen, sb.Length);
+        }
     }
 
     private static bool AppendIndirectWiring(StringBuilder sb, DiscoveryModel model)
@@ -808,13 +828,13 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine();
 
         var grouped = middleware
-            .GroupBy(m => m.MiddlewareType)
+            .GroupBy(m => m.MiddlewareType, StringComparer.Ordinal)
             .Select(g => new
             {
                 Type = g.Key,
                 Count = g.Count(),
                 Kind = g.First().Kind,
-                Sources = g.Select(m => Path.GetFileName(m.SourceFile)).Distinct()
+                Sources = g.Select(m => Path.GetFileName(m.SourceFile)).Distinct(StringComparer.Ordinal)
             })
             .OrderBy(m => m.Count)
             .ToList();
@@ -824,7 +844,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         foreach (var m in grouped)
         {
             var sources = string.Join(", ", m.Sources);
-            sb.AppendLine($"| {m.Type} | {m.Kind} | {m.Count} | {sources} |");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"| {m.Type} | {m.Kind} | {m.Count} | {sources} |");
         }
         sb.AppendLine();
         return true;
@@ -849,6 +869,17 @@ public sealed class MarkdownRenderer : IContextRenderer
         return true;
     }
 
+    private static void RenderAnalysisSections(StringBuilder sb, DiscoveryModel model, List<SectionTokenRecord> sectionTokens)
+    {
+        var preLen = sb.Length;
+        AppendAntiPatterns(sb, model);
+        TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
+
+        preLen = sb.Length;
+        AppendEventFlow(sb, model);
+        TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
+    }
+
     private static void AppendAntiPatterns(StringBuilder sb, DiscoveryModel model)
     {
         var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
@@ -859,7 +890,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         // Group by source file for compact readability
         var byFile = patterns
-            .GroupBy(p => Path.GetFileName(p.SourceFile))
+            .GroupBy(p => Path.GetFileName(p.SourceFile), StringComparer.Ordinal)
             .OrderByDescending(g => g.Count())
             .ToList();
 
@@ -876,7 +907,7 @@ public sealed class MarkdownRenderer : IContextRenderer
                     .OrderBy(p => p.Severity switch { "high" => 0, "medium" => 1, _ => 2 })
                     .ToList();
 
-                sb.AppendLine($"### {fileGroup.Key} ({grouped.Count})");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"### {fileGroup.Key} ({grouped.Count})");
                 sb.AppendLine();
                 AppendAntiPatternTable(sb, grouped);
             }
@@ -899,17 +930,17 @@ public sealed class MarkdownRenderer : IContextRenderer
         var flows = model.Detections.OfType<EventFlowDetection>().ToList();
         if (flows.Count == 0) return;
 
-        var busKind = flows.First().BusKind;
+        var busKind = flows[0].BusKind;
 
-        sb.AppendLine(busKind == "in-memory"
-            ? "## Event flow (in-memory bus)"
+        sb.AppendLine(string.Equals(busKind, "in-memory"
+, StringComparison.Ordinal) ? "## Event flow (in-memory bus)"
             : "## Event flow");
         sb.AppendLine();
 
         // Group by event type
-        var byEvent = flows.Where(f => f.Kind != "Handler")
-            .GroupBy(f => f.EventType)
-            .OrderBy(g => g.Key)
+        var byEvent = flows.Where(f => !string.Equals(f.Kind, "Handler", StringComparison.Ordinal))
+            .GroupBy(f => f.EventType, StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToList();
 
         if (byEvent.Count > 0)
@@ -920,7 +951,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             {
                 foreach (var flow in group)
                 {
-                    var direction = flow.Kind == "Subscribe" ? "← subscribed" : "→ published";
+                    var direction = string.Equals(flow.Kind, "Subscribe", StringComparison.Ordinal) ? "← subscribed" : "→ published";
                     var source = flow.SourceFile is not null && flow.LineNumber > 0
                         ? $"{Path.GetFileName(flow.SourceFile)}:{flow.LineNumber}"
                         : "-";
@@ -931,7 +962,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
 
         // Show handler implementations via IEventHandler<T>
-        var handlers = flows.Where(f => f.Kind == "Handler").ToList();
+        var handlers = flows.Where(f => string.Equals(f.Kind, "Handler", StringComparison.Ordinal)).ToList();
         if (handlers.Count > 0)
         {
             sb.AppendLine("### IEventHandler implementations");
@@ -942,92 +973,112 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
+    private static void RenderTypeSection(StringBuilder sb, DiscoveryModel model, RenderOptions options, HashSet<string>? includedIds, List<SectionTokenRecord> sectionTokens)
+    {
+        var preLen = sb.Length;
+        AppendRelatedTypesByLayer(sb, model, includedIds, options);
+        TrackSection(sectionTokens, "Related types", preLen, sb.Length);
+    }
+
     private static void AppendRelatedTypesByLayer(StringBuilder sb, DiscoveryModel model, HashSet<string>? includedIds, RenderOptions options)
     {
         var hasDetections = !model.Detections.IsEmpty;
 
         if (hasDetections)
-        {
-            sb.AppendLine($"## {SectionNames.RelatedTypes}");
-            sb.AppendLine();
-
-            IEnumerable<TypeDiscovery> surviving = includedIds is not null
-                ? model.Types.Values.Where(t => includedIds.Contains(t.Id))
-                : model.Types.Values.Where(t => !t.IsHardExcluded);
-
-            // Build rank lookup from plan order; lower index = higher rank
-            var rankByType = new Dictionary<string, int>(StringComparer.Ordinal);
-            if (options.Plan is { } plan)
-            {
-                for (var i = 0; i < plan.IncludedTypeIds.Length; i++)
-                    rankByType[plan.IncludedTypeIds[i]] = i;
-            }
-
-            var typedTypes = surviving
-                .GroupBy(t => t.Layer)
-                .OrderBy(g => g.Key.ToString());
-
-            var hasContent = false;
-
-            foreach (var group in typedTypes)
-            {
-                var ordered = rankByType.Count > 0
-                    ? group.OrderBy(t => rankByType.TryGetValue(t.Id, out var r) ? r : int.MaxValue).ThenBy(t => t.Name)
-                    : group.OrderBy(t => t.Name);
-                var typeList = string.Join(", ", ordered.Select(t => t.Name));
-                sb.AppendLine($"- **{group.Key}**: {typeList}");
-                hasContent = true;
-            }
-
-            if (!hasContent)
-                sb.AppendLine("No types discovered.");
-
-            sb.AppendLine();
-        }
+            AppendRelatedTypesWithDetections(sb, model, includedIds, options);
         else
+            AppendRelatedTypesByNamespaceView(sb, model, includedIds);
+    }
+
+    private static void AppendRelatedTypesWithDetections(StringBuilder sb, DiscoveryModel model, HashSet<string>? includedIds, RenderOptions options)
+    {
+        sb.AppendLine($"## {SectionNames.RelatedTypes}");
+        sb.AppendLine();
+
+        IEnumerable<TypeDiscovery> surviving = includedIds is not null
+            ? model.Types.Values.Where(t => includedIds.Contains(t.Id))
+            : model.Types.Values.Where(t => !t.IsHardExcluded);
+
+        // Build rank lookup from plan order; lower index = higher rank
+        var rankByType = new Dictionary<string, int>(StringComparer.Ordinal);
+        if (options.Plan is { } plan)
         {
-            sb.AppendLine("## Types by namespace");
-            sb.AppendLine();
-
-            var hasContent = false;
-            var survivingTypes = includedIds is not null
-                ? model.Types.Values.Where(t => includedIds.Contains(t.Id)).ToList()
-                : model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
-
-            foreach (var nsGroup in survivingTypes
-                .GroupBy(t => t.Namespace)
-                .OrderBy(g => g.Key))
-            {
-                var types = nsGroup.ToList();
-                var publicCount = types.Count(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public);
-                var totalCount = types.Count;
-                var publicTypes = types
-                    .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
-                    .Select(t => t.Name)
-                    .ToList();
-
-                sb.Append($"- **{nsGroup.Key}** — {totalCount} types");
-                if (publicCount > 0 && publicCount < totalCount)
-                    sb.Append($" ({publicCount} public)");
-                sb.AppendLine();
-
-                if (publicCount > 0 && publicTypes.Count <= 10)
-                {
-                    sb.AppendLine($"  Public: {string.Join(", ", publicTypes)}");
-                }
-                else if (publicCount > 10)
-                {
-                    var sample = string.Join(", ", publicTypes.Take(10));
-                    sb.AppendLine($"  Public ({publicCount}): {sample} ...");
-                }
-                hasContent = true;
-            }
-
-            if (!hasContent)
-                sb.AppendLine("No types discovered.");
-
-            sb.AppendLine();
+            for (var i = 0; i < plan.IncludedTypeIds.Length; i++)
+                rankByType[plan.IncludedTypeIds[i]] = i;
         }
+
+        var typedTypes = surviving
+            .GroupBy(t => t.Layer)
+            .OrderBy(g => g.Key.ToString(), StringComparer.Ordinal);
+
+        var hasContent = false;
+
+        foreach (var group in typedTypes)
+        {
+            var ordered = rankByType.Count > 0
+                ? group.OrderBy(t => rankByType.TryGetValue(t.Id, out var r) ? r : int.MaxValue).ThenBy(t => t.Name, StringComparer.Ordinal)
+                : group.OrderBy(t => t.Name, StringComparer.Ordinal);
+            var typeList = string.Join(", ", ordered.Select(t => t.Name));
+            sb.AppendLine($"- **{group.Key}**: {typeList}");
+            hasContent = true;
+        }
+
+        if (!hasContent)
+            sb.AppendLine("No types discovered.");
+
+        sb.AppendLine();
+    }
+
+    private static void AppendRelatedTypesByNamespaceView(StringBuilder sb, DiscoveryModel model, HashSet<string>? includedIds)
+    {
+        sb.AppendLine("## Types by namespace");
+        sb.AppendLine();
+
+        var hasContent = false;
+        var survivingTypes = includedIds is not null
+            ? model.Types.Values.Where(t => includedIds.Contains(t.Id)).ToList()
+            : model.Types.Values.Where(t => !t.IsHardExcluded).ToList();
+
+        foreach (var nsGroup in survivingTypes
+            .GroupBy(t => t.Namespace, StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.Ordinal))
+        {
+            var types = nsGroup.ToList();
+            var publicCount = types.Count(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public);
+            var totalCount = types.Count;
+            var publicTypes = types
+                .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
+                .Select(t => t.Name)
+                .ToList();
+
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"- **{nsGroup.Key}** — {totalCount} types");
+            if (publicCount > 0 && publicCount < totalCount)
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" ({publicCount} public)");
+            sb.AppendLine();
+
+            if (publicCount > 0 && publicTypes.Count <= 10)
+            {
+                sb.AppendLine($"  Public: {string.Join(", ", publicTypes)}");
+            }
+            else if (publicCount > 10)
+            {
+                var sample = string.Join(", ", publicTypes.Take(10));
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  Public ({publicCount}): {sample} ...");
+            }
+            hasContent = true;
+        }
+
+        if (!hasContent)
+            sb.AppendLine("No types discovered.");
+
+        sb.AppendLine();
+    }
+
+    private static void RenderDiagnosticSection(StringBuilder sb, DiscoveryModel model, RenderOptions options, List<SectionTokenRecord> sectionTokens)
+    {
+        var preLen = sb.Length;
+        AppendDiagnostics(sb, model, options);
+        TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
     }
 
     private static void AppendDiagnostics(StringBuilder sb, DiscoveryModel model, RenderOptions options)
@@ -1060,7 +1111,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine("| Type | Score | Reason |");
             sb.AppendLine("|------|-------|--------|");
             foreach (var ex in plan.Excluded.OrderByDescending(e => e.Score).Take(20))
-                sb.AppendLine($"| `{ex.TypeName}` | {ex.Score:F3} | {ex.Reason} |");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"| `{ex.TypeName}` | {ex.Score:F3} | {ex.Reason} |");
             sb.AppendLine();
         }
 
@@ -1099,10 +1150,10 @@ public sealed class MarkdownRenderer : IContextRenderer
             : "";
 
         sb.AppendLine("---");
-        sb.AppendLine($"*Generated in {sw.Elapsed.TotalMilliseconds:F1}ms | "
-            + $"{typesTotal} types ({typesSurviving} active, {prunedCount} pruned)"
-            + compressionText
-            + " | Schema v1.1*");
+        sb.Append("*Generated in ").Append(sw.Elapsed.TotalMilliseconds.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)).Append("ms | ");
+        sb.Append(typesTotal).Append(" types (").Append(typesSurviving).Append(" active, ").Append(prunedCount).Append(" pruned)");
+        sb.Append(compressionText);
+        sb.AppendLine(" | Schema v1.1*");
 
         // Usage hints (only when output is broad and no focus points)
         if (typesSurviving > 50 && options.FocusPoints.IsDefaultOrEmpty)
@@ -1147,6 +1198,6 @@ public sealed class MarkdownRenderer : IContextRenderer
             break;
         }
 
-        return string.Join("\n", result);
+        return string.Join('\n', result);
     }
 }

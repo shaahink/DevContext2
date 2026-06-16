@@ -20,9 +20,16 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var implicitPublishCount = 0;
+        var eventHandlers = DiscoverEventHandlers(model);
+        var implicitPublishCount = await ScanFilesForEventBusCallsAsync(context, model, ct).ConfigureAwait(false);
 
-        // Phase 1: Find all IEventHandler<T> implementations
+        EmitHandlerDetections(model, eventHandlers);
+
+        EmitEventBusDiagnostic(model, eventHandlers, implicitPublishCount);
+    }
+
+    private static Dictionary<string, string> DiscoverEventHandlers(DiscoveryModel model)
+    {
         var eventHandlers = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var type in model.Types.Values)
         {
@@ -33,16 +40,21 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
                     eventHandlers[handlerMatch] = type.Name;
             }
         }
+        return eventHandlers;
+    }
 
-        // Phase 2: Walk files for Subscribe and PublishAsync calls
-        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
+    private async ValueTask<int> ScanFilesForEventBusCallsAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    {
+        var implicitPublishCount = 0;
+
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct).ConfigureAwait(false))
         {
             ct.ThrowIfCancellationRequested();
 
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -52,60 +64,60 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
 
-            // Detect Subscribe<T>(handler) calls
             foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                if (inv.Expression is MemberAccessExpressionSyntax ma)
+                if (inv.Expression is not MemberAccessExpressionSyntax ma) continue;
+
+                var methodName = ma.Name.Identifier.ValueText;
+
+                if (methodName is "Subscribe" or "SubscribeAsync" && ma.Name is GenericNameSyntax subGeneric)
                 {
-                    var methodName = ma.Name.Identifier.ValueText;
-
-                    // Match: .Subscribe<T>(...) or .PublishAsync<T>(...)
-                    if (methodName is "Subscribe" or "SubscribeAsync" && ma.Name is GenericNameSyntax subGeneric)
+                    var eventTypeArgs = subGeneric.TypeArgumentList.Arguments;
+                    if (eventTypeArgs.Count >= 1)
                     {
-                        var eventTypeArgs = subGeneric.TypeArgumentList.Arguments;
-                        if (eventTypeArgs.Count >= 1)
-                        {
-                            var eventType = eventTypeArgs[0].ToString();
-                            var handlerName = ExtractHandlerArg(inv);
-                            var resolved = handlerName ?? "?";
-                            var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        var eventType = eventTypeArgs[0].ToString();
+                        var handlerName = ExtractHandlerArg(inv);
+                        var resolved = handlerName ?? "?";
+                        var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 
-                            model.Detections.Add(new EventFlowDetection(
-                                eventType, resolved, "Subscribe", "in-memory")
-                            {
-                                ExtractorName = Name,
-                                SourceFile = filePath,
-                                LineNumber = line
-                            });
-                        }
+                        model.Detections.Add(new EventFlowDetection(
+                            eventType, resolved, "Subscribe", "in-memory")
+                        {
+                            ExtractorName = Name,
+                            SourceFile = filePath,
+                            LineNumber = line
+                        });
                     }
-                    else if (methodName is "PublishAsync" or "Publish")
+                }
+                else if (methodName is "PublishAsync" or "Publish")
+                {
+                    var eventType = ExtractEventType(ma, inv);
+                    if (eventType is not null)
                     {
-                        var eventType = ExtractEventType(ma, inv);
-                        if (eventType is not null)
-                        {
-                            var callerType = CallingType(root, inv);
-                            var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        var callerType = CallingType(root, inv);
+                        var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 
-                            model.Detections.Add(new EventFlowDetection(
-                                eventType, callerType ?? "?", "Publish", "in-memory")
-                            {
-                                ExtractorName = Name,
-                                SourceFile = filePath,
-                                LineNumber = line
-                            });
-                        }
-                        else
+                        model.Detections.Add(new EventFlowDetection(
+                            eventType, callerType ?? "?", "Publish", "in-memory")
                         {
-                            // Implicit generic — cannot resolve type without semantic model
-                            implicitPublishCount++;
-                        }
+                            ExtractorName = Name,
+                            SourceFile = filePath,
+                            LineNumber = line
+                        });
+                    }
+                    else
+                    {
+                        implicitPublishCount++;
                     }
                 }
             }
         }
 
-        // Phase 3: Emit detections for handler implementations found via IEventHandler<T>
+        return implicitPublishCount;
+    }
+
+    private void EmitHandlerDetections(DiscoveryModel model, Dictionary<string, string> eventHandlers)
+    {
         foreach (var kv in eventHandlers)
         {
             model.Detections.Add(new EventFlowDetection(
@@ -116,14 +128,17 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
                 LineNumber = 0
             });
         }
+    }
 
-        if (eventHandlers.Count > 0 || model.Detections.OfType<EventFlowDetection>().Any() || implicitPublishCount > 0)
-        {
-            var pubCount = model.Detections.OfType<EventFlowDetection>().Count(d => d.Kind == "Publish");
-            var subCount = model.Detections.OfType<EventFlowDetection>().Count(d => d.Kind == "Subscribe");
-            model.AddDiagnostic(DiagnosticLevel.Info, Name,
-                $"Found {eventHandlers.Count} handlers, {subCount} subscriptions, {pubCount} explicit publications{(implicitPublishCount > 0 ? $", {implicitPublishCount} implicit (unresolved)" : "")}");
-        }
+    private void EmitEventBusDiagnostic(DiscoveryModel model, Dictionary<string, string> eventHandlers, int implicitPublishCount)
+    {
+        if (eventHandlers.Count == 0 && !model.Detections.OfType<EventFlowDetection>().Any() && implicitPublishCount == 0)
+            return;
+
+        var pubCount = model.Detections.OfType<EventFlowDetection>().Count(d => string.Equals(d.Kind, "Publish", StringComparison.Ordinal));
+        var subCount = model.Detections.OfType<EventFlowDetection>().Count(d => string.Equals(d.Kind, "Subscribe", StringComparison.Ordinal));
+        model.AddDiagnostic(DiagnosticLevel.Info, Name,
+            $"Found {eventHandlers.Count} handlers, {subCount} subscriptions, {pubCount} explicit publications{(implicitPublishCount > 0 ? $", {implicitPublishCount} implicit (unresolved)" : "")}");
     }
 
     private static string? ExtractEventType(MemberAccessExpressionSyntax ma, InvocationExpressionSyntax inv)

@@ -28,8 +28,8 @@ public sealed class AspireExtractorTests
 
         var resources = model.Detections.OfType<AspireResourceDetection>().ToList();
         Assert.True(resources.Count >= 2);
-        Assert.Contains(resources, r => r.ResourceType == "Redis");
-        Assert.Contains(resources, r => r.ResourceType == "Postgres");
+        Assert.Contains(resources, r => string.Equals(r.ResourceType, "Redis", StringComparison.Ordinal));
+        Assert.Contains(resources, r => string.Equals(r.ResourceType, "Postgres", StringComparison.Ordinal));
     }
 
     [Fact]

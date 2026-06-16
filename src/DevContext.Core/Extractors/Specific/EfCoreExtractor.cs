@@ -34,7 +34,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -57,8 +57,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 var dbSetProperties = classDecl.Members
                     .OfType<PropertyDeclarationSyntax>()
                     .Where(p => p.Type is GenericNameSyntax gns
-                        && gns.Identifier.ValueText == "DbSet"
-                        && gns.TypeArgumentList.Arguments.Count == 1)
+                        && string.Equals(gns.Identifier.ValueText, "DbSet"
+, StringComparison.Ordinal) && gns.TypeArgumentList.Arguments.Count == 1)
                     .ToList();
 
                 foreach (var dbSetProp in dbSetProperties)
@@ -96,10 +96,10 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         foreach (var baseType in classDecl.BaseList.Types)
         {
             var typeName = baseType.Type.ToString();
-            if (typeName == "DbContext") return true;
+            if (string.Equals(typeName, "DbContext", StringComparison.Ordinal)) return true;
 
             var baseName = typeName.Split('<')[0];
-            if (baseName == "DbContext") return true;
+            if (string.Equals(baseName, "DbContext", StringComparison.Ordinal)) return true;
         }
 
         return false;
@@ -119,8 +119,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         foreach (var member in classDecl.Members)
         {
             if (member is MethodDeclarationSyntax method
-                && method.Identifier.ValueText == "OnModelCreating"
-                && method.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword))
+                && string.Equals(method.Identifier.ValueText, "OnModelCreating"
+, StringComparison.Ordinal) && method.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword))
                 && method.Modifiers.Any(m => m.IsKind(SyntaxKind.OverrideKeyword)))
             {
                 var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
@@ -143,7 +143,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                     foreach (var inv in method.Body.DescendantNodes().OfType<InvocationExpressionSyntax>())
                 {
                     if (inv.Expression is MemberAccessExpressionSyntax ma
-                        && ma.Name.Identifier.ValueText == "ApplyConfigurationsFromAssembly")
+                        && string.Equals(ma.Name.Identifier.ValueText, "ApplyConfigurationsFromAssembly", StringComparison.Ordinal))
                     {
                         var arg = inv.ArgumentList.Arguments.FirstOrDefault()
                             ?.Expression?.ToString() ?? "?";
@@ -161,21 +161,21 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         return dbContextClass.Members
             .OfType<PropertyDeclarationSyntax>()
             .Any(p => p.Type is GenericNameSyntax gns
-                && gns.Identifier.ValueText == "DbSet"
-                && gns.TypeArgumentList.Arguments.Count == 1
-                && gns.TypeArgumentList.Arguments[0].ToString() == entityType);
+                && string.Equals(gns.Identifier.ValueText, "DbSet"
+, StringComparison.Ordinal) && gns.TypeArgumentList.Arguments.Count == 1
+                && string.Equals(gns.TypeArgumentList.Arguments[0].ToString(), entityType, StringComparison.Ordinal));
     }
 
     private static bool IsAggregateRootPattern(string entityType)
     {
-        return entityType.EndsWith("Aggregate")
-            || entityType.EndsWith("Root")
-            || entityType.Contains("AggregateRoot");
+        return entityType.EndsWith("Aggregate", StringComparison.Ordinal)
+            || entityType.EndsWith("Root", StringComparison.Ordinal)
+            || entityType.Contains("AggregateRoot", StringComparison.Ordinal);
     }
 
     private static ImmutableArray<string> FindKeyProperties(string entityType)
     {
-        if (entityType.Contains("Id")) return [entityType + "Id"];
+        if (entityType.Contains("Id", StringComparison.Ordinal)) return [entityType + "Id"];
 
         return ["Id"];
     }
@@ -191,8 +191,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         foreach (var member in classDecl.Members)
         {
             if (member is not MethodDeclarationSyntax method
-                || method.Identifier.ValueText != "OnModelCreating"
-                || method.Body == null)
+                || !string.Equals(method.Identifier.ValueText, "OnModelCreating"
+, StringComparison.Ordinal) || method.Body == null)
                 continue;
 
             var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
@@ -206,11 +206,11 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 var methodName = ma.Name.Identifier.ValueText;
 
                 // modelBuilder.Entity<T>() or builder.Entity<T>()
-                if ((methodName == "Entity"
-                     || methodName == "RegisterAllDerivedEntities")
+                if ((string.Equals(methodName, "Entity"
+, StringComparison.Ordinal) || string.Equals(methodName, "RegisterAllDerivedEntities", StringComparison.Ordinal))
                     && inv.Expression is MemberAccessExpressionSyntax ma2
-                    && (ma2.Expression.ToString().Contains("modelBuilder")
-                        || ma2.Expression.ToString().Contains("builder")))
+                    && (ma2.Expression.ToString().Contains("modelBuilder", StringComparison.Ordinal)
+                        || ma2.Expression.ToString().Contains("builder", StringComparison.Ordinal)))
                 {
                     // Try generic type argument or string argument
                     if (ma.Name is GenericNameSyntax gns
@@ -279,7 +279,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -292,7 +292,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
             foreach (var classDecl in classes)
             {
                 if (classDecl.BaseList != null
-                    && classDecl.BaseList.Types.Any(t => t.Type.ToString().Contains("Migration")))
+                    && classDecl.BaseList.Types.Any(t => t.Type.ToString().Contains("Migration", StringComparison.Ordinal)))
                 {
                     var lineNumber = classDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
 

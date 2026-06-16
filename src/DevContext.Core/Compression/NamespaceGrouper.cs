@@ -13,7 +13,7 @@ public sealed class NamespaceGrouper : ICompressionStrategy
         var tokensBefore = EstimateTotalTokens(model);
         var notes = new List<string>();
 
-        var groups = new Dictionary<string, List<TypeDiscovery>>();
+        var groups = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
 
         foreach (var type in model.Types.Values)
         {

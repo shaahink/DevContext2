@@ -165,9 +165,9 @@ public sealed class TraceBuilder
         var title = node.Title;
         return title.StartsWith("Microsoft.", StringComparison.Ordinal)
             || title.StartsWith("System.", StringComparison.Ordinal)
-            || title == "DbContext"
-            || title is "ILogger" or "IMediator" or "ISender" or "IPublisher"
-            || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
+            || string.Equals(title, "DbContext"
+, StringComparison.Ordinal) || title is "ILogger" or "IMediator" or "ISender" or "IPublisher"
+            || title.Contains("Mediator", StringComparison.Ordinal) && !string.Equals(title, "MediatorExtension", StringComparison.Ordinal);
     }
 
     /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service/Member node and the class's
@@ -220,7 +220,7 @@ public sealed class TraceBuilder
             return [];
 
         var colon = provenance.LastIndexOf(':');
-        if (colon < 0 || !int.TryParse(provenance[(colon + 1)..], out var lineNumber))
+        if (colon < 0 || !int.TryParse(provenance[(colon + 1)..], System.Globalization.CultureInfo.InvariantCulture, out var lineNumber))
             return [];
 
         var lines = sourceBody.Replace("\r\n", "\n").Split('\n');

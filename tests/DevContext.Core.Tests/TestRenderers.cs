@@ -10,8 +10,8 @@ public sealed class TestMarkdownRenderer : IContextRenderer
         sb.AppendLine("# Test Analysis");
         if (model.Solution != null)
             sb.AppendLine($"Solution: {model.Solution.Name}");
-        sb.AppendLine($"Types: {model.Types.Count}");
-        sb.AppendLine($"Detections: {model.Detections.Count}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Types: {model.Types.Count}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Detections: {model.Detections.Count}");
 
         var estimatedTokens = sb.Length / 4;
         return new ValueTask<RenderedContext>(new RenderedContext(sb.ToString(), estimatedTokens, [], TimeSpan.Zero, "2.0"));

@@ -22,12 +22,12 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
+        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct).ConfigureAwait(false))
         {
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
         foreach (var assignment in root.DescendantNodes().OfType<AssignmentExpressionSyntax>())
         {
-            if (assignment.Left.ToString() == "_" &&
+            if (string.Equals(assignment.Left.ToString(), "_", StringComparison.Ordinal) &&
                 assignment.Right is InvocationExpressionSyntax inv)
             {
                 var methodName = GetMethodName(inv);
@@ -81,8 +81,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                 continue;
 
             var exprStr = inv.Expression.ToString();
-            var isTaskRun = exprStr.Contains("Task.Run") || exprStr.Contains("Task.Factory.StartNew");
-            var isContinueWith = exprStr.Contains(".ContinueWith");
+            var isTaskRun = exprStr.Contains("Task.Run", StringComparison.Ordinal) || exprStr.Contains("Task.Factory.StartNew", StringComparison.Ordinal);
+            var isContinueWith = exprStr.Contains(".ContinueWith", StringComparison.Ordinal);
 
             if (!isTaskRun && !isContinueWith) continue;
 
@@ -180,7 +180,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
         foreach (var memberAccess in root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
         {
-            if (memberAccess.ToString().EndsWith("CancellationToken.None"))
+            if (memberAccess.ToString().EndsWith("CancellationToken.None", StringComparison.Ordinal))
             {
                 var line = memberAccess.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 model.Detections.Add(new AntiPatternDetection(
@@ -240,10 +240,10 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>())
         {
             var fieldType = field.Declaration.Type.ToString();
-            if ((fieldType.Contains("ConcurrentDictionary") ||
-                 fieldType.Contains("ConcurrentBag") ||
-                 fieldType.Contains("ConcurrentQueue"))
-                && !fieldType.Contains("Channel"))
+            if ((fieldType.Contains("ConcurrentDictionary", StringComparison.Ordinal) ||
+                 fieldType.Contains("ConcurrentBag", StringComparison.Ordinal) ||
+                 fieldType.Contains("ConcurrentQueue", StringComparison.Ordinal))
+                && !fieldType.Contains("Channel", StringComparison.Ordinal))
             {
                 // Check if there's any cleanup/prune/clear method on this type
                 var className = field.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText;
@@ -299,11 +299,11 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
     private static bool IsLikelyService(string typeName)
     {
         var lower = typeName.ToLowerInvariant();
-        return lower.Contains("service") || lower.Contains("handler") || lower.Contains("manager")
-            || lower.Contains("orchestrator") || lower.Contains("worker") || lower.Contains("runner")
-            || lower.Contains("provider") || lower.Contains("resolver") || lower.Contains("factory")
-            || lower.Contains("repository") || lower.Contains("dispatcher") || lower.Contains("tracker")
-            || lower.Contains("adapter") || lower.Contains("broker");
+        return lower.Contains("service", StringComparison.Ordinal) || lower.Contains("handler", StringComparison.Ordinal) || lower.Contains("manager", StringComparison.Ordinal)
+            || lower.Contains("orchestrator", StringComparison.Ordinal) || lower.Contains("worker", StringComparison.Ordinal) || lower.Contains("runner", StringComparison.Ordinal)
+            || lower.Contains("provider", StringComparison.Ordinal) || lower.Contains("resolver", StringComparison.Ordinal) || lower.Contains("factory", StringComparison.Ordinal)
+            || lower.Contains("repository", StringComparison.Ordinal) || lower.Contains("dispatcher", StringComparison.Ordinal) || lower.Contains("tracker", StringComparison.Ordinal)
+            || lower.Contains("adapter", StringComparison.Ordinal) || lower.Contains("broker", StringComparison.Ordinal);
     }
 
     private static string GetMethodName(InvocationExpressionSyntax inv)
@@ -332,7 +332,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
             // Skip event handler signatures: (object sender, XxxEventArgs e)
             if (method.ParameterList.Parameters.Count >= 2
-                && method.ParameterList.Parameters[1].Type?.ToString().Contains("EventArgs") == true)
+                && method.ParameterList.Parameters[1].Type?.ToString().Contains("EventArgs", StringComparison.Ordinal) == true)
                 continue;
 
             var line = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
@@ -355,8 +355,8 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
             if (di.Lifetime is "Singleton" or "Scoped" or "Transient"
-                && !string.IsNullOrEmpty(di.ServiceType) && di.ServiceType != "?"
-                && !di.ServiceType.StartsWith("Add"))
+                && !string.IsNullOrEmpty(di.ServiceType) && !string.Equals(di.ServiceType, "?"
+, StringComparison.Ordinal) && !di.ServiceType.StartsWith("Add", StringComparison.Ordinal))
             {
                 var svc = di.ServiceType.Trim();
                 lifetimeMap[svc] = di.Lifetime;
@@ -366,16 +366,16 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         // Check types for CaptiveDependency: Singleton → Scoped dependency
         foreach (var type in model.Types.Values)
         {
-            var ctors = type.Methods.Where(m => m.Name == ".ctor" || m.Name == type.Name).ToList();
+            var ctors = type.Methods.Where(m => string.Equals(m.Name, ".ctor", StringComparison.Ordinal) || string.Equals(m.Name, type.Name, StringComparison.Ordinal)).ToList();
             if (ctors.Count == 0) continue;
 
             foreach (var paramType in ctors[0].ParameterTypes)
             {
                 var trimmed = paramType.Trim();
                 if (lifetimeMap.TryGetValue(trimmed, out var depLifetime)
-                    && depLifetime == "Scoped"
-                    && lifetimeMap.TryGetValue(type.Name, out var selfLifetime)
-                    && selfLifetime == "Singleton")
+                    && string.Equals(depLifetime, "Scoped"
+, StringComparison.Ordinal) && lifetimeMap.TryGetValue(type.Name, out var selfLifetime)
+                    && string.Equals(selfLifetime, "Singleton", StringComparison.Ordinal))
                 {
                     model.Detections.Add(new AntiPatternDetection(
                         "CaptiveDependency",

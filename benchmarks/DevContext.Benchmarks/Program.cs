@@ -70,6 +70,7 @@ public class DevContextBenchmarks
 
         _pipeline = new DiscoveryPipeline(
             extractors, [], [], new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
             {
                 ["markdown"] = new BenchmarkMarkdownRenderer(),
                 ["json"] = new BenchmarkJsonRenderer()
@@ -80,28 +81,28 @@ public class DevContextBenchmarks
     [Benchmark]
     public async Task FullPipeline()
     {
-        var snapshot = await _pipeline.AnalyzeAsync(_context);
+        var snapshot = await _pipeline.AnalyzeAsync(_context).ConfigureAwait(false);
         var request = new RenderRequest
         {
             Format = _context.Options.OutputFormat.ToString().ToLowerInvariant(),
             MaxTokens = _context.Options.MaxOutputTokens,
             Sections = _context.ActiveScenario.RequiredSections,
         };
-        await _pipeline.RenderAsync(snapshot, request);
+        await _pipeline.RenderAsync(snapshot, request).ConfigureAwait(false);
     }
 
     [Benchmark]
     public async Task FileTreeExtraction()
     {
         var extractor = new FileTreeExtractor();
-        await extractor.ExtractAsync(_context, new DiscoveryModel(), CancellationToken.None);
+        await extractor.ExtractAsync(_context, new DiscoveryModel(), CancellationToken.None).ConfigureAwait(false);
     }
 
     [Benchmark]
     public async Task ProjectStructureExtraction()
     {
         var extractor = new ProjectStructureExtractor();
-        await extractor.ExtractAsync(_context, new DiscoveryModel(), CancellationToken.None);
+        await extractor.ExtractAsync(_context, new DiscoveryModel(), CancellationToken.None).ConfigureAwait(false);
     }
 }
 

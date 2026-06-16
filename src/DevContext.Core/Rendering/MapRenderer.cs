@@ -36,7 +36,7 @@ public static class MapRenderer
     {
         var sln = model.Solution?.Name ?? "unknown";
         var projCount = ctx.Map.Topology.Length;
-        sb.AppendLine($"MAP  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"MAP  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
         sb.AppendLine();
     }
 
@@ -49,8 +49,8 @@ public static class MapRenderer
         // Runtime
         var tfms = model.Projects
             .SelectMany(p => p.TargetFrameworks)
-            .Distinct()
-            .OrderBy(f => f)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
             .ToList();
         if (tfms.Count > 0) parts.Add(string.Join(", ", tfms));
 
@@ -86,7 +86,7 @@ public static class MapRenderer
 
         if (parts.Count > 0)
         {
-            sb.AppendLine("STACK  " + string.Join(" · ", parts));
+            sb.Append("STACK  ").AppendJoin(" · ", parts).AppendLine();
             sb.AppendLine();
         }
     }
@@ -134,7 +134,7 @@ public static class MapRenderer
         foreach (var group in byKind)
         {
             var list = group.ToList();
-            sb.Append($"   {GroupLabel(group.Key)} ({list.Count})");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"   {GroupLabel(group.Key)} ({list.Count})");
 
             if (list.Count <= 10)
             {
@@ -147,7 +147,7 @@ public static class MapRenderer
                 sb.AppendLine();
                 foreach (var ep in list.Take(10))
                     sb.AppendLine($"      {ep.Title}");
-                sb.AppendLine($"      ... and {list.Count - 10} more");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      ... and {list.Count - 10} more");
             }
         }
         sb.AppendLine();

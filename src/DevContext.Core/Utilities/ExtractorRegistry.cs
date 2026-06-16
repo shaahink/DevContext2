@@ -26,7 +26,7 @@ public static class ExtractorRegistry
     public static IReadOnlyList<IDiscoveryExtractor> DiscoverExtractors()
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.GetCustomAttribute<DiscoveryAssemblyAttribute>() != null);
+            .Where(a => a.IsDefined(typeof(DiscoveryAssemblyAttribute)));
 
         if (!assemblies.Any())
             return Array.Empty<IDiscoveryExtractor>();
@@ -36,8 +36,7 @@ public static class ExtractorRegistry
         foreach (var assembly in assemblies)
         {
             var types = assembly.GetTypes()
-                .Where(t => !t.IsAbstract && !t.IsInterface)
-                .Where(t => typeof(IDiscoveryExtractor).IsAssignableFrom(t));
+.Where(t => !t.IsAbstract && !t.IsInterface && typeof(IDiscoveryExtractor).IsAssignableFrom(t));
 
             foreach (var type in types)
             {
@@ -67,7 +66,7 @@ public static class ExtractorRegistry
     /// is not marked with <c>[DiscoveryAssembly]</c>.</exception>
     public static IReadOnlyList<IDiscoveryExtractor> DiscoverExtractors(Assembly assembly)
     {
-        if (assembly.GetCustomAttribute<DiscoveryAssemblyAttribute>() is null)
+        if (!assembly.IsDefined(typeof(DiscoveryAssemblyAttribute)))
             throw new InvalidOperationException(
                 $"Assembly '{assembly.GetName().Name}' is not marked with [DiscoveryAssemblyAttribute]. " +
                 "Only assemblies decorated with this attribute contain discovery extractors.");
@@ -75,8 +74,7 @@ public static class ExtractorRegistry
         var extractors = new List<IDiscoveryExtractor>();
 
         var types = assembly.GetTypes()
-            .Where(t => !t.IsAbstract && !t.IsInterface)
-            .Where(t => typeof(IDiscoveryExtractor).IsAssignableFrom(t));
+.Where(t => !t.IsAbstract && !t.IsInterface && typeof(IDiscoveryExtractor).IsAssignableFrom(t));
 
         foreach (var type in types)
         {

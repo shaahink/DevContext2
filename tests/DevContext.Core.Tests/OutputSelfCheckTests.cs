@@ -18,7 +18,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, opts);
 
-        var r = results.First(x => x.CheckId == "budget-respected");
+        var r = results.First(x => string.Equals(x.CheckId, "budget-respected", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -31,7 +31,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, opts);
 
-        var r = results.First(x => x.CheckId == "budget-respected");
+        var r = results.First(x => string.Equals(x.CheckId, "budget-respected", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -44,7 +44,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, opts);
 
-        var r = results.First(x => x.CheckId == "budget-respected");
+        var r = results.First(x => string.Equals(x.CheckId, "budget-respected", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -68,9 +68,9 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-empty-sections");
+        var r = results.First(x => string.Equals(x.CheckId, "no-empty-sections", StringComparison.Ordinal));
         Assert.False(r.Passed);
-        Assert.Contains("Endpoints", r.Detail);
+        Assert.Contains("Endpoints", r.Detail, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-empty-sections");
+        var r = results.First(x => string.Equals(x.CheckId, "no-empty-sections", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -114,7 +114,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "sections-known");
+        var r = results.First(x => string.Equals(x.CheckId, "sections-known", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -133,9 +133,9 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "sections-known");
+        var r = results.First(x => string.Equals(x.CheckId, "sections-known", StringComparison.Ordinal));
         Assert.False(r.Passed);
-        Assert.Contains("Random Unknown Section", r.Detail);
+        Assert.Contains("Random Unknown Section", r.Detail, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "sections-known");
+        var r = results.First(x => string.Equals(x.CheckId, "sections-known", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -171,7 +171,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "detections-sourced");
+        var r = results.First(x => string.Equals(x.CheckId, "detections-sourced", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -190,7 +190,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "detections-sourced");
+        var r = results.First(x => string.Equals(x.CheckId, "detections-sourced", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -209,7 +209,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "detections-sourced");
+        var r = results.First(x => string.Equals(x.CheckId, "detections-sourced", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -233,7 +233,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-duplicate-detections");
+        var r = results.First(x => string.Equals(x.CheckId, "no-duplicate-detections", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -257,7 +257,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-duplicate-detections");
+        var r = results.First(x => string.Equals(x.CheckId, "no-duplicate-detections", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -279,7 +279,7 @@ public sealed class OutputSelfCheckTests
         var rendered = new RenderedContext("{}", 10, [], TimeSpan.Zero, "1.0");
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-duplicate-detections");
+        var r = results.First(x => string.Equals(x.CheckId, "no-duplicate-detections", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -294,7 +294,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-dynamic-routes");
+        var r = results.First(x => string.Equals(x.CheckId, "no-dynamic-routes", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -307,7 +307,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "no-dynamic-routes");
+        var r = results.First(x => string.Equals(x.CheckId, "no-dynamic-routes", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -333,7 +333,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "json-schema-valid");
+        var r = results.First(x => string.Equals(x.CheckId, "json-schema-valid", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -346,7 +346,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "json-schema-valid");
+        var r = results.First(x => string.Equals(x.CheckId, "json-schema-valid", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -361,7 +361,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "html-well-formed");
+        var r = results.First(x => string.Equals(x.CheckId, "html-well-formed", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -374,7 +374,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "html-well-formed");
+        var r = results.First(x => string.Equals(x.CheckId, "html-well-formed", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -386,9 +386,9 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "html-well-formed");
+        var r = results.First(x => string.Equals(x.CheckId, "html-well-formed", StringComparison.Ordinal));
         Assert.True(r.Passed);
-        Assert.Contains("N/A", r.Detail);
+        Assert.Contains("N/A", r.Detail, StringComparison.Ordinal);
     }
 
     // ── funnel-consistent ─────────────────────────────────────────────
@@ -401,9 +401,9 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "funnel-consistent");
+        var r = results.First(x => string.Equals(x.CheckId, "funnel-consistent", StringComparison.Ordinal));
         Assert.True(r.Passed);
-        Assert.Contains("N/A", r.Detail);
+        Assert.Contains("N/A", r.Detail, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -428,7 +428,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "funnel-consistent");
+        var r = results.First(x => string.Equals(x.CheckId, "funnel-consistent", StringComparison.Ordinal));
         Assert.True(r.Passed);
     }
 
@@ -455,7 +455,7 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions);
 
-        var r = results.First(x => x.CheckId == "funnel-consistent");
+        var r = results.First(x => string.Equals(x.CheckId, "funnel-consistent", StringComparison.Ordinal));
         Assert.False(r.Passed);
     }
 
@@ -469,9 +469,9 @@ public sealed class OutputSelfCheckTests
 
         var results = OutputSelfCheck.Check(rendered, model, DefaultRenderOptions, includeTestOnly: true);
 
-        var r = results.First(x => x.CheckId == "deterministic");
+        var r = results.First(x => string.Equals(x.CheckId, "deterministic", StringComparison.Ordinal));
         Assert.True(r.Passed); // NotApplicable returns Pass with "N/A" detail
-        Assert.Contains("N/A", r.Detail);
+        Assert.Contains("N/A", r.Detail, StringComparison.Ordinal);
     }
 
     // ── BuildStableKey ────────────────────────────────────────────────

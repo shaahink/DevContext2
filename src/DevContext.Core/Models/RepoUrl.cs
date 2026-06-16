@@ -20,7 +20,7 @@ public sealed record RepoUrl(string Owner, string Repo, string? Ref)
             url = "https://" + url;
 
         // Shorthand: "user/repo"
-        if (url.Count(c => c == '/') == 1 && !url.Contains("://") && !url.Contains(' '))
+        if (url.Where(c => c == '/').Take(2).Count() == 1 && !url.Contains("://", StringComparison.Ordinal) && !url.Contains(' '))
         {
             var parts = url.Split('/');
             if (parts.Length == 2 && !string.IsNullOrEmpty(parts[0]) && !string.IsNullOrEmpty(parts[1]))
@@ -39,13 +39,13 @@ public sealed record RepoUrl(string Owner, string Repo, string? Ref)
 
         // Extract ref from /tree/ref or /blob/ref
         string? refName = null;
-        if (path.Contains("/tree/"))
+        if (path.Contains("/tree/", StringComparison.Ordinal))
         {
             var idx = path.IndexOf("/tree/", StringComparison.Ordinal);
             refName = path[(idx + "/tree/".Length)..].Trim('/');
             path = path[..idx];
         }
-        else if (path.Contains("/blob/"))
+        else if (path.Contains("/blob/", StringComparison.Ordinal))
         {
             var idx = path.IndexOf("/blob/", StringComparison.Ordinal);
             refName = path[(idx + "/blob/".Length)..].Trim('/');

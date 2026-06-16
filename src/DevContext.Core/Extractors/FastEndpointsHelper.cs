@@ -9,14 +9,14 @@ public static class FastEndpointsHelper
     public static void DetectClassAttributeEndpoints(
         IEnumerable<ClassDeclarationSyntax> fastEndpointClasses,
         string filePath,
-        HashSet<string> detectedKeys,
+        ISet<string> detectedKeys,
         DiscoveryModel model)
     {
         foreach (var cls in fastEndpointClasses)
         {
             var httpAttr = cls.AttributeLists
                 .SelectMany(a => a.Attributes)
-                .FirstOrDefault(a => HttpConstants.HttpVerbAttributes.Contains(a.Name.ToString()));
+                .FirstOrDefault(a => HttpConstants.HttpVerbAttributes.Contains(a.Name.ToString(), StringComparer.Ordinal));
 
             if (httpAttr == null) continue;
 
@@ -50,14 +50,14 @@ public static class FastEndpointsHelper
     public static void DetectConfigureMethodEndpoints(
         IEnumerable<ClassDeclarationSyntax> fastEndpointClasses,
         string filePath,
-        HashSet<string> detectedKeys,
+        ISet<string> detectedKeys,
         DiscoveryModel model)
     {
         foreach (var cls in fastEndpointClasses)
         {
             var configure = cls.Members
                 .OfType<MethodDeclarationSyntax>()
-                .FirstOrDefault(m => m.Identifier.Text == "Configure");
+                .FirstOrDefault(m => string.Equals(m.Identifier.Text, "Configure", StringComparison.Ordinal));
             if (configure is null) continue;
 
             foreach (var invocation in configure.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -105,8 +105,8 @@ public static class FastEndpointsHelper
         return cls.BaseList.Types.Any(t =>
         {
             var name = t.Type.ToString();
-            return name == "EndpointWithoutRequest"
-                || name.StartsWith("Endpoint<", StringComparison.Ordinal)
+            return string.Equals(name, "EndpointWithoutRequest"
+, StringComparison.Ordinal) || name.StartsWith("Endpoint<", StringComparison.Ordinal)
                 || name.StartsWith("Endpoint", StringComparison.Ordinal);
         });
     }

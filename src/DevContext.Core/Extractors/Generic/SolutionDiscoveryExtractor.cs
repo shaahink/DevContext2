@@ -23,7 +23,7 @@ public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
     {
         var slnFiles = new List<string>();
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.sln", SearchOption.AllDirectories, ct))
+            context.RootPath, "*.sln", SearchOption.AllDirectories, ct).ConfigureAwait(false))
         {
             if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)) continue;
             if (file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)) continue;
@@ -38,7 +38,7 @@ public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
         }
 
         var primary = slnFiles[0];
-        var content = await context.FileSystem.ReadAllTextAsync(primary, ct);
+        var content = await context.FileSystem.ReadAllTextAsync(primary, ct).ConfigureAwait(false);
         var projects = ParseProjectPaths(content);
 
         model.Solution = new SolutionInfo(primary, Path.GetFileNameWithoutExtension(primary), projects);
@@ -51,7 +51,7 @@ public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
         foreach (var line in lines)
         {
             var trimmed = line.Trim();
-            if (trimmed.StartsWith("Project("))
+            if (trimmed.StartsWith("Project(", StringComparison.Ordinal))
             {
                 var parts = trimmed.Split(',');
                 if (parts.Length >= 2)

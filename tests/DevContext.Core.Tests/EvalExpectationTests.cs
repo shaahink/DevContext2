@@ -71,7 +71,7 @@ public sealed class EvalExpectationTests : IDisposable
             {
                 _output.WriteLine($"  [pass] {check.Id}");
             }
-            else if (check.Status == "aspirational")
+            else if (string.Equals(check.Status, "aspirational", StringComparison.Ordinal))
             {
                 var note = check.Note ?? "";
                 aspirationalNotes.Add($"ASPIRATIONAL-FAIL {repoName}/{check.Id}: {note} — {detail}");
@@ -147,7 +147,7 @@ public sealed class EvalExpectationTests : IDisposable
             else
                 return (false, $"Path '{check.Path}' is not numeric: '{val.ToJsonString()}'");
         }
-        else if (double.TryParse(node.ToJsonString(), out d))
+        else if (double.TryParse(node.ToJsonString(), System.Globalization.CultureInfo.InvariantCulture, out d))
         {
             // fallback: parse JSON string
         }
@@ -176,7 +176,7 @@ public sealed class EvalExpectationTests : IDisposable
 
     private static (bool, string) EvaluateOutputContains(EvalCheck check, string markdown, string json)
     {
-        var content = check.Format == "json" ? json : markdown;
+        var content = string.Equals(check.Format, "json", StringComparison.Ordinal) ? json : markdown;
         var sub = check.Value?.ToString() ?? "";
         var found = content.Contains(sub, StringComparison.Ordinal);
         if (found)
@@ -186,7 +186,7 @@ public sealed class EvalExpectationTests : IDisposable
 
     private static (bool, string) EvaluateOutputNotContains(EvalCheck check, string markdown, string json)
     {
-        var content = check.Format == "json" ? json : markdown;
+        var content = string.Equals(check.Format, "json", StringComparison.Ordinal) ? json : markdown;
         var sub = check.Value?.ToString() ?? "";
         var idx = content.IndexOf(sub, StringComparison.Ordinal);
         if (idx < 0)
@@ -202,9 +202,9 @@ public sealed class EvalExpectationTests : IDisposable
         var key = check.Value?.ToString() ?? "";
         foreach (var signal in signals)
         {
-            if (signal?["key"]?.ToString() == key)
+            if (string.Equals(signal?["key"]?.ToString(), key, StringComparison.Ordinal))
             {
-                var detected = signal["detected"]?.GetValue<bool>() ?? false;
+                var detected = signal?["detected"]?.GetValue<bool>() ?? false;
                 return (detected, $"Signal '{key}' detected={detected}");
             }
         }
@@ -217,7 +217,7 @@ public sealed class EvalExpectationTests : IDisposable
         var detections = root["detections"]?.AsArray();
         if (detections is null) return (false, "No detections array");
         var type = check.DetectionType ?? "";
-        var count = detections.Count(d => d?["type"]?.ToString() == type);
+        var count = detections.Count(d => string.Equals(d?["type"]?.ToString(), type, StringComparison.Ordinal));
         var min = check.Min ?? 0;
         var max = check.Max ?? int.MaxValue;
         var ok = count >= min && count <= max;
@@ -234,7 +234,7 @@ public sealed class EvalExpectationTests : IDisposable
             max = d;
         else if (check.Value is int i)
             max = i;
-        else if (check.Value is not null && double.TryParse(check.Value.ToString(), out var sVal))
+        else if (check.Value is not null && double.TryParse(check.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var sVal))
             max = sVal;
 
         var ok = elapsed <= max;
@@ -257,7 +257,7 @@ public sealed class EvalExpectationTests : IDisposable
             {
                 if (seg is "length" or "count")
                     return JsonValue.Create(arrNode.Count);
-                if (int.TryParse(seg, out var arrIdx) && arrIdx >= 0 && arrIdx < arrNode.Count)
+                if (int.TryParse(seg, System.Globalization.CultureInfo.InvariantCulture, out var arrIdx) && arrIdx >= 0 && arrIdx < arrNode.Count)
                 {
                     current = arrNode[arrIdx];
                     continue;
@@ -272,7 +272,7 @@ public sealed class EvalExpectationTests : IDisposable
                 var prop = seg[..bracket];
                 var idxStr = seg[(bracket + 1)..^1];
                 current = current[prop];
-                if (current is JsonArray arr && int.TryParse(idxStr, out var idx))
+                if (current is JsonArray arr && int.TryParse(idxStr, System.Globalization.CultureInfo.InvariantCulture, out var idx))
                     current = idx < arr.Count ? arr[idx] : null;
             }
             else
@@ -312,7 +312,7 @@ public sealed class EvalExpectationTests : IDisposable
         var fs = new RealFileSystem();
         var cache = new AnalysisCache(fs);
 
-        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None).ConfigureAwait(false);
         if (rootResult.RootPath is null)
             throw new InvalidOperationException($"Could not resolve project root at {repoPath}");
 
@@ -383,6 +383,7 @@ public sealed class EvalExpectationTests : IDisposable
         };
 
         var renderers = new Dictionary<string, IContextRenderer>
+(StringComparer.Ordinal)
         {
             ["markdown"] = new MarkdownRenderer(),
             ["json"] = new JsonContextRenderer(),
@@ -392,7 +393,7 @@ public sealed class EvalExpectationTests : IDisposable
             extractors, pruners, compressors, renderers,
             loggerFactory.CreateLogger<DiscoveryPipeline>());
 
-        return await pipeline.RunAsync(ctx);
+        return await pipeline.RunAsync(ctx).ConfigureAwait(false);
     }
 
     // ── helpers ───────────────────────────────────────────────────────
@@ -414,7 +415,7 @@ public sealed class EvalExpectationTests : IDisposable
                 return dir;
             }
             var parent = Path.GetDirectoryName(dir);
-            if (parent == dir) break; // reached root
+            if (string.Equals(parent, dir, StringComparison.Ordinal)) break; // reached root
             dir = parent;
         }
 
@@ -430,9 +431,6 @@ public sealed class EvalExpectationTests : IDisposable
 
         var root = FindRepoRoot();
         var repoRoot = Path.GetFullPath(Path.Combine(root, relativePath));
-
-        if (Directory.Exists(repoRoot))
-            return repoRoot;
 
         return repoRoot;
     }

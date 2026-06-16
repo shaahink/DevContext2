@@ -58,9 +58,9 @@ public sealed class CliSmokeTests
         };
 
         var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start process");
-        var output = await process.StandardOutput.ReadToEndAsync();
-        var error = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+        var error = await process.StandardError.ReadToEndAsync().ConfigureAwait(false);
+        await process.WaitForExitAsync().ConfigureAwait(false);
 
         return (process.ExitCode, output + error);
     }

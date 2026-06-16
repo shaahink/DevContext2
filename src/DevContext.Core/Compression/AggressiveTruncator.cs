@@ -74,7 +74,7 @@ public sealed class AggressiveTruncator : ICompressionStrategy
             break;
         }
 
-        return string.Join("\n", result);
+        return string.Join('\n', result);
     }
 
     private static int EstimateTotalTokens(DiscoveryModel model)

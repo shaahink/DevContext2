@@ -39,7 +39,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct).ConfigureAwait(false);
             }
             catch
             {
@@ -48,89 +48,86 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             }
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
 
-            foreach (var classDecl in classes)
+            foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
             {
                 ct.ThrowIfCancellationRequested();
-
                 if (!IsController(classDecl)) continue;
 
-                var controllerName = classDecl.Identifier.ValueText;
-                var controllerRoute = ExtractControllerRoute(classDecl, controllerName);
-                var hasActionToken = controllerRoute?.Contains("[action]", StringComparison.OrdinalIgnoreCase) == true;
+                ProcessControllerActions(classDecl, model, filePath);
+            }
+        }
+    }
 
-                foreach (var member in classDecl.Members)
+    private void ProcessControllerActions(ClassDeclarationSyntax classDecl, DiscoveryModel model, string filePath)
+    {
+        var controllerName = classDecl.Identifier.ValueText;
+        var controllerRoute = ExtractControllerRoute(classDecl, controllerName);
+        var hasActionToken = controllerRoute?.Contains("[action]", StringComparison.OrdinalIgnoreCase) == true;
+
+        foreach (var member in classDecl.Members)
+        {
+            if (member is not MethodDeclarationSyntax method) continue;
+
+            var actionRoutes = ExtractActionRoutes(method);
+            var hasVerb = HasHttpVerbAttribute(method);
+
+            if (actionRoutes.Length == 0 && !hasVerb && !hasActionToken)
+                continue;
+
+            if (HasNonActionAttribute(method)) continue;
+
+            var httpMethod = ExtractHttpMethod(method);
+            if (httpMethod == null && actionRoutes.Length == 0)
+            {
+                if (hasActionToken)
+                    httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
+                else
+                    continue;
+            }
+
+            if (httpMethod == null && actionRoutes.Length > 0)
+                httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
+
+            var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            var authAttrs = ExtractAuthAttributes(method);
+            var paramTypes = method.ParameterList.Parameters
+                .Select(p => p.Type?.ToString() ?? "?")
+                .ToImmutableArray();
+
+            if (actionRoutes.Length == 0)
+            {
+                var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, null);
+                model.Detections.Add(new EndpointDetection(
+                    HttpMethod: httpMethod!,
+                    RouteTemplate: combinedRoute,
+                    HandlerType: controllerName,
+                    HandlerMethod: method.Identifier.ValueText,
+                    AuthAttributes: authAttrs,
+                    ParameterTypes: paramTypes)
                 {
-                    if (member is not MethodDeclarationSyntax method) continue;
-
-                    var actionRoutes = ExtractActionRoutes(method);
-                    var hasVerb = HasHttpVerbAttribute(method);
-
-                    // Skip methods that have neither [Route] nor HTTP verb attributes,
-                    // unless the controller uses [action] token convention routing
-                    if (actionRoutes.Length == 0 && !hasVerb && !hasActionToken)
-                        continue;
-
-                    // Skip methods that are [NonAction] decorated
-                    if (HasNonActionAttribute(method)) continue;
-
-                    var httpMethod = ExtractHttpMethod(method);
-                    if (httpMethod == null && actionRoutes.Length == 0)
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
+            else
+            {
+                foreach (var actionRoute in actionRoutes)
+                {
+                    var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, actionRoute);
+                    model.Detections.Add(new EndpointDetection(
+                        HttpMethod: httpMethod!,
+                        RouteTemplate: combinedRoute,
+                        HandlerType: controllerName,
+                        HandlerMethod: method.Identifier.ValueText,
+                        AuthAttributes: authAttrs,
+                        ParameterTypes: paramTypes)
                     {
-                        // Convention-routed actions rely on method name for HTTP verb inference
-                        if (hasActionToken)
-                            httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
-                        else
-                            continue;
-                    }
-
-                    // Infer verb from method name when only [Route] is present
-                    if (httpMethod == null && actionRoutes.Length > 0)
-                        httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
-
-                    var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                    var authAttrs = ExtractAuthAttributes(method);
-                    var paramTypes = method.ParameterList.Parameters
-                        .Select(p => p.Type?.ToString() ?? "?")
-                        .ToImmutableArray();
-
-                    if (actionRoutes.Length == 0)
-                    {
-                        // Action has [HttpGet] etc. but no [Route] — combine with controller route
-                        var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, null);
-                        model.Detections.Add(new EndpointDetection(
-                            HttpMethod: httpMethod!,
-                            RouteTemplate: combinedRoute,
-                            HandlerType: controllerName,
-                            HandlerMethod: method.Identifier.ValueText,
-                            AuthAttributes: authAttrs,
-                            ParameterTypes: paramTypes)
-                        {
-                            ExtractorName = Name,
-                            SourceFile = filePath,
-                            LineNumber = lineNumber,
-                        });
-                    }
-                    else
-                    {
-                        foreach (var actionRoute in actionRoutes)
-                        {
-                            var combinedRoute = CombineRoutes(controllerName, method.Identifier.ValueText, controllerRoute, actionRoute);
-                            model.Detections.Add(new EndpointDetection(
-                                HttpMethod: httpMethod!,
-                                RouteTemplate: combinedRoute,
-                                HandlerType: controllerName,
-                                HandlerMethod: method.Identifier.ValueText,
-                                AuthAttributes: authAttrs,
-                                ParameterTypes: paramTypes)
-                            {
-                                ExtractorName = Name,
-                                SourceFile = filePath,
-                                LineNumber = lineNumber,
-                            });
-                        }
-                    }
+                        ExtractorName = Name,
+                        SourceFile = filePath,
+                        LineNumber = lineNumber,
+                    });
                 }
             }
         }
@@ -150,9 +147,9 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         foreach (var attr in classDecl.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (attrName == "ApiController"
-                || attrName == "ApiControllerAttribute"
-                || attrName.EndsWith(".ApiController", StringComparison.Ordinal)
+            if (string.Equals(attrName, "ApiController"
+, StringComparison.Ordinal) || string.Equals(attrName, "ApiControllerAttribute"
+, StringComparison.Ordinal) || attrName.EndsWith(".ApiController", StringComparison.Ordinal)
                 || attrName.EndsWith(".ApiControllerAttribute", StringComparison.Ordinal)) return true;
         }
 
@@ -166,7 +163,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             var attrName = attr.Name.ToString();
             var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
             foreach (var verb in HttpVerbs)
-                if (name == verb || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
+                if (string.Equals(name, verb, StringComparison.Ordinal) || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
         }
         return false;
     }
@@ -199,7 +196,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
 
             foreach (var verb in HttpVerbs)
             {
-                if (attrName == verb || attrName.EndsWith("." + verb, StringComparison.Ordinal))
+                if (string.Equals(attrName, verb, StringComparison.Ordinal) || attrName.EndsWith("." + verb, StringComparison.Ordinal))
                 {
                     return verb[4..].ToUpperInvariant();
                 }
@@ -211,7 +208,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
                 var baseName = attrName[..genericIndex];
                 foreach (var verb in HttpVerbs)
                 {
-                    if (baseName == verb || baseName.EndsWith("." + verb, StringComparison.Ordinal))
+                    if (string.Equals(baseName, verb, StringComparison.Ordinal) || baseName.EndsWith("." + verb, StringComparison.Ordinal))
                         return verb[4..].ToUpperInvariant();
                 }
             }
@@ -222,9 +219,9 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
 
     private static bool IsRouteAttribute(string attrName)
     {
-        return attrName == "Route"
-            || attrName == "RouteAttribute"
-            || attrName.EndsWith(".Route", StringComparison.Ordinal)
+        return string.Equals(attrName, "Route"
+, StringComparison.Ordinal) || string.Equals(attrName, "RouteAttribute"
+, StringComparison.Ordinal) || attrName.EndsWith(".Route", StringComparison.Ordinal)
             || attrName.EndsWith(".RouteAttribute", StringComparison.Ordinal);
     }
 
@@ -279,8 +276,8 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
 
         if (arg.Expression is InvocationExpressionSyntax inv
             && inv.Expression is IdentifierNameSyntax ins
-            && ins.Identifier.ValueText == "nameof"
-            && inv.ArgumentList.Arguments.Count == 1)
+            && string.Equals(ins.Identifier.ValueText, "nameof"
+, StringComparison.Ordinal) && inv.ArgumentList.Arguments.Count == 1)
         {
             return inv.ArgumentList.Arguments[0].Expression.ToString();
         }
@@ -296,7 +293,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         var act = ExpandRouteTokens(actionRoute ?? "", controllerName, actionName);
 
         // Absolute action route overrides controller route entirely
-        if (act.StartsWith('/') || act.StartsWith("~/"))
+        if (act.StartsWith('/') || act.StartsWith("~/", StringComparison.Ordinal))
             return act.TrimStart('~');
 
         ctrl = ctrl.Trim('/');
@@ -324,7 +321,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (attrName.Contains("Authorize"))
+            if (attrName.Contains("Authorize", StringComparison.Ordinal))
                 result.Add(attrName);
         }
 

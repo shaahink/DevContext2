@@ -21,7 +21,7 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
     {
         if (_cached != null) return _cached;
 
-        await _lock.WaitAsync(ct);
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
             if (_cached != null) return _cached;
@@ -29,7 +29,7 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
             _logger.LogInformation("Opening Roslyn workspace for {Solution}", _solutionPath);
             var workspace = new AdhocWorkspace();
 
-            var slnContent = await _fileSystem.ReadAllTextAsync(_solutionPath, ct);
+            var slnContent = await _fileSystem.ReadAllTextAsync(_solutionPath, ct).ConfigureAwait(false);
             var slnPath = Path.GetDirectoryName(_solutionPath) ?? "";
             var projects = ParseProjectPaths(slnContent);
 
@@ -41,7 +41,7 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
 
                 try
                 {
-                    var csprojContent = await _fileSystem.ReadAllTextAsync(csprojPath, ct);
+                    var csprojContent = await _fileSystem.ReadAllTextAsync(csprojPath, ct).ConfigureAwait(false);
                     var projectName = Path.GetFileNameWithoutExtension(csprojPath);
                     var doc = System.Xml.Linq.XDocument.Parse(csprojContent);
 
@@ -87,7 +87,7 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
         foreach (var line in lines)
         {
             var trimmed = line.Trim();
-            if (trimmed.StartsWith("Project("))
+            if (trimmed.StartsWith("Project(", StringComparison.Ordinal))
             {
                 var parts = trimmed.Split(',');
                 if (parts.Length >= 2)

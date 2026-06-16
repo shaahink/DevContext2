@@ -44,11 +44,11 @@ public sealed class MapBuilder
         [
             .. model.Projects
                 .Where(p => scoped is null || scoped.Contains(p.Name))
-                .OrderBy(p => p.Name)
+                .OrderBy(p => p.Name, StringComparer.Ordinal)
                 .Select(p => new ProjectNode(p.Name,
                     [.. p.ProjectReferences
                         .Where(r => scoped is null || scoped.Contains(r))
-                        .OrderBy(r => r)]))
+                        .Order(StringComparer.Ordinal)]))
         ];
     }
 
@@ -66,8 +66,8 @@ public sealed class MapBuilder
         }
 
         // Group by category
-        var groups = new Dictionary<string, List<string>>();
-        foreach (var (name, version) in best.OrderBy(kv => kv.Key))
+        var groups = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var (name, version) in best.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
             var cat = CategorizePackage(name);
             if (!groups.TryGetValue(cat, out var list))
@@ -91,8 +91,8 @@ public sealed class MapBuilder
             .OfType<EfEntityDetection>()
             .Where(d => d.IsAggregate)
             .Select(d => d.EntityType)
-            .Distinct()
-            .OrderBy(n => n)];
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)];
 
     private static int CompareVersions(string a, string b)
     {
@@ -111,33 +111,32 @@ public sealed class MapBuilder
         if (string.IsNullOrEmpty(version)) return false;
         var parts = version.Split('.');
         return parts.Length >= 2
-            && int.TryParse(parts[0], out major)
-            && int.TryParse(parts[1], out minor);
+            && int.TryParse(parts[0], System.Globalization.CultureInfo.InvariantCulture, out major) && int.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out minor);
     }
 
     private static string CategorizePackage(string name)
     {
         var n = name.ToLowerInvariant();
-        if (n.Contains("aspnet") || n.Contains("microsoft.asp") || n.StartsWith("swashbuckle")
-            || n.Contains("fastendpoints") || n.Contains("minimalapi")) return "Web/API";
-        if (n.Contains("entityframework") || n.Contains("ef.") || n.Contains("efcore")
-            || n.Contains("dapper") || n.Contains("sqlite") || n.Contains("sqlserver")
-            || n.Contains("npgsql") || n.Contains("mysql") || n.Contains("cosmos")) return "ORM/Data";
-        if (n.Contains("mediatr")) return "Mediator/CQRS";
-        if (n.Contains("masstransit") || n.Contains("nservicebus") || n.Contains("rabbitmq")
-            || n.Contains("azure.messaging") || n.Contains("amqp")) return "Messaging";
-        if (n.Contains("fluentvalidation")) return "Validation";
-        if (n.Contains("serilog") || n.Contains("nlog") || n.Contains("log4net")
-            || n.Contains("opentelemetry") || n.Contains("applicationinsights")) return "Logging";
-        if (n.Contains("xunit") || n.Contains("nunit") || n.Contains("mstest")
-            || n.Contains("moq") || n.Contains("nsubstitute") || n.Contains("bogus")
-            || n.Contains("fluentassertions") || n.Contains("shouldly")
-            || n.Contains("testcontainers") || n.Contains("coverlet")) return "Testing";
-        if (n.Contains("azure.") || n.Contains("amazon.") || n.Contains("aws.")) return "Cloud";
-        if (n.Contains("polly") || n.Contains("automapper") || n.Contains("scrutor")
-            || n.Contains("humanizer") || n.Contains("newtonsoft")
-            || n.Contains("refit") || n.Contains("restsharp")
-            || n.Contains("swagger")) return "Utilities";
+        if (n.Contains("aspnet", StringComparison.Ordinal) || n.Contains("microsoft.asp", StringComparison.Ordinal) || n.StartsWith("swashbuckle", StringComparison.Ordinal)
+            || n.Contains("fastendpoints", StringComparison.Ordinal) || n.Contains("minimalapi", StringComparison.Ordinal)) return "Web/API";
+        if (n.Contains("entityframework", StringComparison.Ordinal) || n.Contains("ef.", StringComparison.Ordinal) || n.Contains("efcore", StringComparison.Ordinal)
+            || n.Contains("dapper", StringComparison.Ordinal) || n.Contains("sqlite", StringComparison.Ordinal) || n.Contains("sqlserver", StringComparison.Ordinal)
+            || n.Contains("npgsql", StringComparison.Ordinal) || n.Contains("mysql", StringComparison.Ordinal) || n.Contains("cosmos", StringComparison.Ordinal)) return "ORM/Data";
+        if (n.Contains("mediatr", StringComparison.Ordinal)) return "Mediator/CQRS";
+        if (n.Contains("masstransit", StringComparison.Ordinal) || n.Contains("nservicebus", StringComparison.Ordinal) || n.Contains("rabbitmq", StringComparison.Ordinal)
+            || n.Contains("azure.messaging", StringComparison.Ordinal) || n.Contains("amqp", StringComparison.Ordinal)) return "Messaging";
+        if (n.Contains("fluentvalidation", StringComparison.Ordinal)) return "Validation";
+        if (n.Contains("serilog", StringComparison.Ordinal) || n.Contains("nlog", StringComparison.Ordinal) || n.Contains("log4net", StringComparison.Ordinal)
+            || n.Contains("opentelemetry", StringComparison.Ordinal) || n.Contains("applicationinsights", StringComparison.Ordinal)) return "Logging";
+        if (n.Contains("xunit", StringComparison.Ordinal) || n.Contains("nunit", StringComparison.Ordinal) || n.Contains("mstest", StringComparison.Ordinal)
+            || n.Contains("moq", StringComparison.Ordinal) || n.Contains("nsubstitute", StringComparison.Ordinal) || n.Contains("bogus", StringComparison.Ordinal)
+            || n.Contains("fluentassertions", StringComparison.Ordinal) || n.Contains("shouldly", StringComparison.Ordinal)
+            || n.Contains("testcontainers", StringComparison.Ordinal) || n.Contains("coverlet", StringComparison.Ordinal)) return "Testing";
+        if (n.Contains("azure.", StringComparison.Ordinal) || n.Contains("amazon.", StringComparison.Ordinal) || n.Contains("aws.", StringComparison.Ordinal)) return "Cloud";
+        if (n.Contains("polly", StringComparison.Ordinal) || n.Contains("automapper", StringComparison.Ordinal) || n.Contains("scrutor", StringComparison.Ordinal)
+            || n.Contains("humanizer", StringComparison.Ordinal) || n.Contains("newtonsoft", StringComparison.Ordinal)
+            || n.Contains("refit", StringComparison.Ordinal) || n.Contains("restsharp", StringComparison.Ordinal)
+            || n.Contains("swagger", StringComparison.Ordinal)) return "Utilities";
         return "Other";
     }
 }

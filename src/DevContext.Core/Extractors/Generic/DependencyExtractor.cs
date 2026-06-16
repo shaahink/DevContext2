@@ -5,6 +5,7 @@ namespace DevContext.Core.Extractors.Generic;
 public sealed class DependencyExtractor : IDiscoveryExtractor
 {
     private static readonly FrozenDictionary<string, string> PackageSignalMap = new Dictionary<string, string>
+(StringComparer.Ordinal)
     {
         ["MediatR"] = ArchitectureSignals.Keys.MediatR,
         ["Mediator"] = ArchitectureSignals.Keys.MediatR,
@@ -52,7 +53,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var adjacency = new Dictionary<string, ImmutableArray<string>>();
+        var adjacency = new Dictionary<string, ImmutableArray<string>>(StringComparer.Ordinal);
 
         foreach (var projectInfo in model.Projects)
         {
@@ -75,18 +76,18 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
             adjacency[projectInfo.Name] = refs;
 
             var csprojPath = projectInfo.FilePath;
-            if (!string.IsNullOrEmpty(csprojPath) && context.Cache.KnownFilePaths.Contains(csprojPath))
+            if (!string.IsNullOrEmpty(csprojPath) && context.Cache.KnownFilePaths.Contains(csprojPath, StringComparer.Ordinal))
             {
                 try
                 {
-                    var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
+                    var doc = await context.Cache.GetXmlAsync(csprojPath, ct).ConfigureAwait(false);
 
                     // Detect minimal APIs from project SDK
                     var sdk = doc.Root?.Attribute("Sdk")?.Value;
-                    if (sdk == "Microsoft.NET.Sdk.Web")
+                    if (string.Equals(sdk, "Microsoft.NET.Sdk.Web", StringComparison.Ordinal))
                     {
                         model.Architecture.Register(FeatureSignal.CreateDetected(
-                            ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk));
+                            ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk!));
                     }
 
                     var packageRefs = doc.Descendants("PackageReference")

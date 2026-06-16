@@ -92,7 +92,7 @@ public sealed class CallGraphAndSourceBodyTests
         await extractor.ExtractAsync(ctx, model, default);
 
         Assert.NotNull(type.SourceBody);
-        Assert.Contains("class Product", type.SourceBody);
-        Assert.Contains("Id", type.SourceBody);
+        Assert.Contains("class Product", type.SourceBody, StringComparison.Ordinal);
+        Assert.Contains("Id", type.SourceBody, StringComparison.Ordinal);
     }
 }
