@@ -1,5 +1,13 @@
 # Trace Engine — Deep Analysis & Migration Design
 
+> **Status (2026-06-16):** P1 (Map) and P2 (Trace skeleton) are **complete and live**.
+> The CodeGraph, GraphBuilder, MapBuilder, TraceBuilder, entry-point inventory, evidence-based
+> style detector, and Map/Trace renderers are all in production. P3 (Semantic resolution) is
+> deferred behind the validation probe. P4 (persistent index) is designed but not built.
+> See [TRACE-RULE-REFERENCE.md](TRACE-RULE-REFERENCE.md) for the exhaustive rule reference.
+>
+> Original design doc below — preserved for context on decisions made and deferred.
+
 > How we get from the current engine to the Map + Trace artifacts in `IDEAL-OUTPUT-TARGET.md`,
 > **properly** — reuse what's sound, build the missing connected-graph layer, and design (not yet
 > build) the persistent index that makes reliable semantic resolution affordable.

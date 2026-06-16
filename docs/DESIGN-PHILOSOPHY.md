@@ -27,27 +27,14 @@ Each principle below states: the philosophy, what exists today, the gap, and the
 
 **Philosophy.** Reading and modeling code is expensive; deciding what to *show* is cheap. These
 must be separate phases with an immutable artifact between them. Every "view" decision — token
-budget, section selection, output format, provenance on/off — is a **lens** applied to the same
-analyzed model, never a reason to re-read source files.
+budget, depth, detail, format — is a **lens** applied to the same analyzed model, never a reason
+to re-read source files.
 
-**Today.** Stages 1–3 (extraction) and stages 4–6 (pruning/compression/rendering) run as one
-pipeline that mutates a single `DiscoveryModel`: pruners set `IsPruned`, compressors rewrite
-member bodies in place, `TokenBudgetEnforcer` bakes the budget into the model. Consequence: the
-desktop's `OnAnalysisOptionChanged` re-runs the *entire pipeline* when the user toggles a section
-checkbox or moves the token slider (debounced, but still a full re-analysis). The UI lag saga
-(v1→v4 in the technical report) is downstream of this — the UI compensates by parsing rendered
-markdown back into sections, which is rendering run in reverse.
-
-**Gap.** No immutable boundary between "what the code is" and "what we choose to show."
-
-**Bridge.** Split the pipeline result into an **`AnalysisSnapshot`** (immutable: types with
-relevance scores, detections, signals, call graph, compressed body candidates, diagnostics, run
-stats) and a **`RenderPlan`** (cheap, derived: given budget + sections + focus, which items
-render). Pruners become *scorers* — they rank, they don't destroy. Budget enforcement moves to
-RenderPlan computation. The desktop holds the snapshot and re-renders in milliseconds on any
-toggle; the CLI computes one plan and renders once. `BuildSectionData`'s markdown re-parsing
-disappears — section data comes from the snapshot, not from scraping output.
-→ **Plan 1**
+**Today.** `AnalysisSnapshot` (immutable: DiscoveryModel + CodeGraph + MapModel + entries +
+RunReport) is the boundary between analysis and rendering. The `CodeGraph` is built at analyze
+time; the `Trace` is a **render-time lens** built from the graph for a chosen entry + depth.
+Changing entry, depth, or detail re-renders in milliseconds without re-analysis. The desktop
+holds the snapshot and re-renders on any toggle.
 
 ### P2 — The budget is a dial, not a guillotine
 
@@ -102,40 +89,20 @@ CI can track analysis performance over time. → **Plan 3**
 ### P4 — Two situations, one dial (we are not a query system)
 
 **Philosophy.** There are exactly two user situations: **"I don't know this repo"** →
-orientation map (no starting point exists, by definition), and **"I know where I'm standing"**
-→ slice from a focus point *down the wiring* (endpoint → handler → MediatR → entities →
-events) — the wiring map is the asset and this is the move it enables. The focus can be a
-type, a method, or an endpoint route. The only other primary input is **Depth** (how far down
-to follow). Everything else — scenario, profile, section defaults, pruning distances — is
-*derived*, and the derivation is always shown ("Slicing from `GET /api/orders`, depth 5").
-Deliberately absent: natural-language input. DevContext is static analysis with smart,
-controllable filtering — initially automatic, then visually adjustable — not a query engine;
-a free-text "ask your repo" box would be pseudo-NLU that sets expectations the tool doesn't
-honor, which P7 (genuine) forbids.
+orientation Map (architecture, topology, entries, packages — no starting point exists, by
+definition), and **"I know where I'm standing"** → Trace from a focus point *down the wiring*
+(endpoint → send → handler → entities → events). The focus can be a type, a method, or an
+endpoint route. The only other primary input is **Depth** (how far down to follow). Everything
+else is *derived*. Deliberately absent: natural-language input. DevContext is static analysis
+with smart, controllable filtering — not a query engine.
 
-**Today.** Four overlapping vocabularies: `--scenario overview|deep-dive|trace` (with `trace` a
-registry-level duplicate of `deep-dive` and `audit` a deprecated alias remapped in *two* places —
-`AnalyzeCommand` and `AnalysisService`), `--profile focused|debug|full` (mechanism labels users
-can't map to intent; the desktop already hides profile by deriving it from checkboxes — the CLI
-should learn the same trick), `--task` (keyword inference that silently picks scenario+profile),
-and `--around` (the focus point). `deep-dive` without `--around` is just a worse `overview`, and
-nothing tells the user that.
-
-**Gap.** The controls describe the *mechanism* (scenario/profile/pruning) instead of the
-*question* (focus/depth). Inference is silent. Scenario/profile resolution logic is duplicated
-between CLI and desktop.
-
-**Bridge.** A single **`AnalysisIntentResolver` in Core** used by both front-ends, with one
-total rule: focus present → slice config; absent → overview config; `--depth` overrides the
-preset's distances. **`--task` and `IntentInferrer` are removed** (deprecation message for one
-release) — even the LLM-agent-as-caller case is better served by the agent passing `--focus`
-itself. Focus grows instead: `--focus` accepts `Type`, `Type:Method`, or an endpoint route
-(`GET /api/orders` resolves to its handler via the existing detections, then walks the wiring).
-The explanation string is printed/displayed on every run. `trace`/`audit` survive only as
-silent aliases; `--scenario`/`--profile` become hidden expert overrides. Desktop: a focus
-picker autocompleting types, methods, *and routes* from the previous snapshot — plus the
-noise side of "controllable filtering": the excluded-types list (tests, budget cuts) is a
-visible, re-includable filter group in the lens, not a silent score. → **Plan 2**
+**Today (2026-06-16).** Map + Trace are live. The CodeGraph is built at analyze time (typed
+nodes/edges from joined detections); the Trace is a render-time traversal bounded by depth and
+fan-out. Entry points are catalogued from endpoint, consumer, worker, and handler detections;
+`--focus` resolves to both. `--scenario`/`--profile` remain as expert overrides; the desktop
+has an entry picker and depth/detail dials. The old `RoleScore`/`FocusScore`/`FinalScore`
+weighted ranking is retired — relevance is structural (graph reachability), not a tuned weight
+table. → See [TRACE-ENGINE-DESIGN.md](TRACE-ENGINE-DESIGN.md) + [TRACE-RULE-REFERENCE.md](TRACE-RULE-REFERENCE.md)
 
 ### P5 — Never read twice, cancel anywhere, parallel where it pays
 
@@ -143,21 +110,12 @@ visible, re-includable filter group in the lens, not a silent score. → **Plan 
 cancellation; parallelism is applied exactly where the dependency structure allows it and
 nowhere else — measured, not assumed (the Stats tab proves it).
 
-**Today.** Genuinely strong: `AnalysisCache` with `Lazy<Task<…>>` dedup, zero locks, concurrent
-collections, CT propagation through all stages, capability/signal validation that warns about
-same-stage read/write races. Two blemishes: Stage 3's eleven extractors run sequentially even
-though several are mutually independent (they're gated on *sealed* signals and write to
-concurrent collections — the race-validation machinery already exists to prove independence),
-and `AnalyzeCommand` blocks a thread with `.GetAwaiter().GetResult()` inside the non-async
-`AnsiConsole.Status().Start(...)`.
-
-**Gap.** One missed parallel opportunity; one sync-over-async; no numbers proving any of it.
-
-**Bridge.** Declare read/write capabilities for Stage 3 extractors and run the independent
-subset via the same `Parallel.ForEachAsync` path Stage 2 uses (CallGraphExtractor and
-SourceBodyExtractor stay ordered last if they consume others' output). Switch the CLI to
-`Status().StartAsync`. Surface wall-clock vs. sum-of-extractor time in the RunReport so the
-speedup is a visible number, not a claim. → **Plans 1 (mechanics) + 3 (proof)**
+**Today.** `AnalysisCache` with `Lazy<Task<…>>` dedup, zero locks, concurrent collections,
+CT propagation through all stages. Stage 2 (generic extractors) and Stage 3 (specific
+extractors) both run via `Parallel.ForEachAsync` — independent signal-gated extractors execute
+concurrently. The graph assembly step (GraphBuilder) runs sequentially (single-threaded join
+over already-parallel detections). Wall-clock vs. sum-of-extractor time is surfaced in the
+RunReport for visible speedup numbers.
 
 ### P6 — The desktop stays light, smooth, and faff-free
 
@@ -239,8 +197,12 @@ step and is performed by the maintainer, not an agent. → **Plan 4**
 ## Execution order
 
 0. **Plan 0 — Self-validation harness** (`plans/PLAN-0-SELF-VALIDATION.md`) — additive safety
-   net (output self-checks, eval-expectation suite, gate script) built *before* the refactor
-   so every later session is machine-gated. Detection work follows `DETECTION-GUIDE.md`.
-1. **Plan 1 — Analyze once, render many** (`plans/PLAN-1-ANALYZE-ONCE-RENDER-MANY.md`) — the architectural keystone; Plans 2–3 build on its types.
-2. **Plan 2 — Unified Focus + Depth UX** (`plans/PLAN-2-UNIFIED-FOCUS-UX.md`) and **Plan 3 — Nerd stats** (`plans/PLAN-3-NERD-STATS.md`) — independent of each other, either order.
-3. **Plan 4 — World-class repo** (`plans/PLAN-4-WORLD-CLASS-REPO.md`) — last, so docs/tests describe the post-1/2/3 reality.
+   net (output self-checks, eval-expectation suite, gate script). ✅ Complete.
+1. **Plan 1 — Analyze once, render many** (`plans/PLAN-1-ANALYZE-ONCE-RENDER-MANY.md`) — the architectural keystone. ✅ Complete.
+2. **Plan 2 — Unified Focus + Depth UX** (`plans/PLAN-2-UNIFIED-FOCUS-UX.md`). ✅ Complete.
+3. **Plan 3 — Nerd stats** (`plans/PLAN-3-NERD-STATS.md`). ✅ Complete.
+4. **Plan 4 — World-class repo** (`plans/PLAN-4-WORLD-CLASS-REPO.md`). ✅ Complete.
+5. **Plan 10 — Trace engine** (`plans/PLAN-10-TRACE-ENGINE.md`) — Map + Trace over CodeGraph. ✅ Complete.
+6. **Plan 11 — Desktop + trace flesh** (`plans/PLAN-11-DESKTOP-AND-TRACE-FLESH.md`). ✅ Complete.
+7. **P3 (Semantic)** — Roslyn SemanticModel behind `ISymbolResolver` for trustworthy call edges. Deferred behind validation probe.
+8. **P4 (Index)** — Persistent content-keyed CodeGraph cache. Designed, not built.
