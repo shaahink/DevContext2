@@ -40,7 +40,7 @@ public sealed class GraphBuilder
         AddRaises(g, model, names);                         // C1: Raises edges from body scan
         AddSends(g, model, names);                          // C1: Sends edges from .Send(new X())
         AddDataEdges(g, model, names);                      // C1: ReadsWrites edges from entities
-        AddCallEdges(g, model);                             // C1: Calls edges from CallEdges (approx)
+        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges
 
         return (g.Build(), entries);
     }
@@ -70,8 +70,21 @@ public sealed class GraphBuilder
             var id = NodeId.ForEntry(key);
             g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile });
 
-            // Link entry → handler type so the trace has a first hop.
-            if (!string.IsNullOrEmpty(ep.HandlerType) && ep.HandlerType != "λ")
+            // Link entry → its handler so the trace has a first hop down the wiring. Two shapes:
+            //   1. Named handler (controller action, FastEndpoints class): HandlerType is a real type
+            //      name — resolve it to a Type node.
+            //   2. Lambda/inline handler (minimal API): HandlerType is the lambda's *source text* (it
+            //      contains "=>") and HandlerMethod is "<lambda>" — there is no named type, so fall back
+            //      to the type that *contains* the endpoint registration (matched by file).
+            // NOTE: the previous code keyed the lambda branch off HandlerType == "λ", which minimal-API
+            // endpoints never produce — so lambda entries got no out-edge and every trace was empty.
+            var isLambdaHandler = ep.HandlerMethod is "<lambda>" or "<anonymous>"
+                || string.IsNullOrEmpty(ep.HandlerType)
+                || ep.HandlerType is "λ" or "?"
+                || ep.HandlerType.Contains("=>", StringComparison.Ordinal);
+
+            var linked = false;
+            if (!isLambdaHandler)
             {
                 var handlerFqn = names.Resolve(ep.HandlerType);
                 var handlerNodeId = NodeId.ForType(handlerFqn);
@@ -82,11 +95,11 @@ public sealed class GraphBuilder
                         Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                         Resolution = Resolution.Join,
                     });
+                    linked = true;
                 }
             }
 
-            // For lambda handlers (HandlerType = "λ" or empty), find the containing type from the file.
-            if (ep.HandlerType == "λ" || string.IsNullOrEmpty(ep.HandlerType))
+            if (!linked)
             {
                 var ownerType = model.Types.Values.FirstOrDefault(t =>
                     string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
@@ -298,29 +311,27 @@ public sealed class GraphBuilder
 
     // ── P2 Trace-facing seams (C1) — joins that complete the indirection-bridged trace ─────────
 
-    /// <summary>C1: model.CallEdges → Calls edges. Mark Resolution.Syntactic (approx) — P3 upgrades to Semantic.
-    /// Every CallEdge becomes a Calls edge between Member nodes. Falls back to Type nodes when the type
-    /// is not in the graph.</summary>
-    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model)
+    /// <summary>C1: model.CallEdges → Type→Type Calls edges, but ONLY between types that are real nodes
+    /// in the graph (in-scope solution types). The syntactic call graph emits a callee per invocation,
+    /// many of which are local variables, fluent-chain fragments, or framework methods (e.g. "group",
+    /// "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise. By
+    /// requiring both endpoints to already exist, the trace keeps only edges to types we actually know.
+    /// Resolution flows through from the edge (semantic → [verified], syntactic → [approx]).</summary>
+    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
     {
         foreach (var ce in model.CallEdges)
         {
-            var callerMemberId = NodeId.ForMember(ce.CallerType, ce.CallerMethod);
-            var calleeMemberId = NodeId.ForMember(ce.CalleeType, ce.CalleeMethod);
+            var callerId = NodeId.ForType(names.Resolve(ce.CallerType));
+            var calleeId = NodeId.ForType(names.Resolve(ce.CalleeType));
 
-            // Ensure type nodes exist for both ends (if not already)
-            EnsureTypeNode(g, ce.CallerType);
-            EnsureTypeNode(g, ce.CalleeType);
+            if (callerId == calleeId) continue;                              // skip self-calls
+            if (!g.HasNode(callerId) || !g.HasNode(calleeId)) continue;      // real solution types only
 
-            // Prefer Member→Member edge; fall back to Type→Type
-            var from = g.HasNode(callerMemberId) ? callerMemberId : NodeId.ForType(ce.CallerType);
-            var to = g.HasNode(calleeMemberId) ? calleeMemberId : NodeId.ForType(ce.CalleeType);
-
-            g.AddEdge(new GraphEdge(from, to, EdgeKind.Calls)
+            g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
             {
                 Provenance = ce.CallSiteLocation,
-                Resolution = Resolution.Syntactic,
-                Confidence = 0.6f,
+                Resolution = ce.Resolution,
+                Confidence = ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f,
             });
         }
     }
@@ -477,15 +488,6 @@ public sealed class GraphBuilder
                     Confidence = 0.55f,
                 });
             }
-        }
-    }
-
-    private static void EnsureTypeNode(CodeGraphBuilder g, string typeId)
-    {
-        if (!g.HasNode(NodeId.ForType(typeId)))
-        {
-            var name = typeId.Contains('.') ? typeId[(typeId.LastIndexOf('.') + 1)..] : typeId;
-            g.AddNode(new GraphNode(NodeId.ForType(typeId), name, NodeKind.Type));
         }
     }
 

@@ -278,6 +278,31 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             }
         }
 
+        // Lambda parameters with explicit types — minimal-API handlers register inline lambdas
+        // like `(TodoDbContext db, CurrentUser owner) => ...`, where `db`/`owner` are the receivers
+        // of the calls we want to follow. Without these, every minimal-API trace dead-ends at the
+        // endpoint type. Fields/ctor params are authoritative, so only fill gaps (TryAdd).
+        foreach (var lambda in typeDecl.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>())
+        {
+            foreach (var param in lambda.ParameterList.Parameters)
+            {
+                var paramType = param.Type?.ToString();
+                if (paramType is not null)
+                    map.TryAdd(param.Identifier.ValueText, paramType);
+            }
+        }
+
+        // Method parameters (e.g. a handler's `Handle(CreateOrderCommand request)` argument).
+        foreach (var method in typeDecl.Members.OfType<MethodDeclarationSyntax>())
+        {
+            foreach (var param in method.ParameterList.Parameters)
+            {
+                var paramType = param.Type?.ToString();
+                if (paramType is not null)
+                    map.TryAdd(param.Identifier.ValueText, paramType);
+            }
+        }
+
         return map;
     }
 

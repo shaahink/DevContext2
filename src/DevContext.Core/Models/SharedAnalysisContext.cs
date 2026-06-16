@@ -70,4 +70,9 @@ public sealed record CallEdge(
     string CalleeType,
     string CalleeMethod,
     string? CallSiteLocation
-);
+)
+{
+    /// <summary>How the callee was resolved — semantic (Roslyn symbol) carries [verified] into the trace,
+    /// syntactic stays [approx]. Defaults to syntactic for callers that don't resolve symbolically.</summary>
+    public Graph.Resolution Resolution { get; init; } = Graph.Resolution.Syntactic;
+}
