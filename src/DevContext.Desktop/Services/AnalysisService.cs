@@ -67,7 +67,7 @@ public class AnalysisService : IAnalysisService
         var intentInput = new IntentInput
         {
             Focus = opts.Around,
-            Depth = null, // desktop doesn't expose --depth yet
+            Depth = opts.Depth,
             ExplicitScenario = opts.Scenario,
             ExplicitProfile = opts.Profile,
         };
@@ -301,6 +301,8 @@ public record AnalysisOptions
     public bool DryRun { get; init; }
     public bool IncludeAntiPatterns { get; init; }
     public ImmutableArray<string> ActiveSections { get; init; } = [];
+    public int Depth { get; init; } = 6;
+    public string Detail { get; init; } = "salient";
 }
 
 public record AnalysisResult
@@ -325,4 +327,6 @@ public class AppSettings
     public bool IncludeDiagnostics { get; set; }
     public bool NoRoslyn { get; set; }
     public List<string>? LastActiveSections { get; set; }
+    public int LastDepth { get; set; } = 6;
+    public string? LastDetail { get; set; } = "salient";
 }

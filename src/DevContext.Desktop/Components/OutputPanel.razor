@@ -103,7 +103,7 @@
                 <button class="@(IsTabHuman?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
                 <button class="@(IsTabLlm?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
                 <button class="@(IsTabStats?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
-                @if (VM.SectionGroups.Length > 1)
+                @if (VM.SectionGroups.Length > 1 && !VM.HasGraph)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
                         <svg class="icon" viewBox="0 0 24 24"><rect x="15" y="3" width="6" height="18" rx="2"/><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/></svg> Sections
@@ -154,7 +154,14 @@
 
         @if (IsTabHuman)
         {
-            <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
+            @if (VM.HasGraph)
+            {
+                <pre class="output-text"><code>@VM.RawContent</code></pre>
+            }
+            else
+            {
+                <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
+            }
         }
         else if (IsTabStats)
         {

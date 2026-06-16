@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DevContext.Core.Contracts;
+using DevContext.Core.Graph;
 using DevContext.Core.Models;
 using DevContext.Core.Pipeline;
 using DevContext.Core.Rendering;
@@ -70,12 +71,40 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _dryRun;
     [ObservableProperty] private bool _includeAntiPatterns;
 
+    [ObservableProperty] private int _depth = 6;
+    [ObservableProperty] private string _detail = "salient";
+
     // ── Format selection ───────────────────────────────────────────────────────
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFormatMarkdown), nameof(IsFormatJson))]
     private string _selectedFormat = "markdown";
 
     [ObservableProperty] private ScenarioItem _selectedScenario = null!;
+
+    // ── Graph-backed state (PLAN-11 Part A) ─────────────────────────────────────
+    public bool HasGraph => _snapshot?.Graph is { NodeCount: > 0 };
+    public IReadOnlyList<DevContext.Core.Graph.EntryPoint> Entries
+    {
+        get
+        {
+            var list = _snapshot?.Entries ?? [];
+            return list;
+        }
+    }
+    public IEnumerable<IGrouping<string, DevContext.Core.Graph.EntryPoint>> GroupedEntries
+        => Entries.GroupBy(e => e.Kind switch
+        {
+            DevContext.Core.Graph.EntryPointKind.HttpEndpoint => "HTTP",
+            DevContext.Core.Graph.EntryPointKind.MessageConsumer => "Bus Consumers",
+            DevContext.Core.Graph.EntryPointKind.DomainEventHandler => "Domain Events",
+            DevContext.Core.Graph.EntryPointKind.HostedService => "Hosted Services",
+            DevContext.Core.Graph.EntryPointKind.PublicApi => "Public API",
+            _ => "Other"
+        });
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AnalyzeButtonText))]
+    private string _selectedEntry = "";
 
     public bool IsFormatMarkdown => SelectedFormat == "markdown";
     public bool IsFormatJson => SelectedFormat == "json";
@@ -217,6 +246,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnDryRunChanged(bool value)                    => OnAnalysisInputChanged();
     partial void OnIncludeAntiPatternsChanged(bool value)        => OnAnalysisInputChanged();
 
+    partial void OnDepthChanged(int value)                      => DebouncedRender();
+    partial void OnDetailChanged(string value)                   => OnRenderInputChanged();
+    partial void OnSelectedEntryChanged(string value)
+    {
+        if (_isInitializing) return;
+        OnRenderInputChanged();
+    }
+
     private void OnAnalysisInputChanged()
     {
         if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
@@ -227,7 +264,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnRenderInputChanged()
     {
-        if (_isInitializing || !HasOutput || _snapshot is null || string.IsNullOrWhiteSpace(ProjectPath))
+        if (_isInitializing || _snapshot is null || string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
         _ = RerenderAsync();
@@ -236,6 +273,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void DebouncedReanalyze()
     {
         if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        _tokenDebouncer.Invoke(() => OnRenderInputChanged());
+    }
+
+    private void DebouncedRender()
+    {
+        if (_isInitializing || _snapshot is null || string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
         _tokenDebouncer.Invoke(() => OnRenderInputChanged());
@@ -257,6 +302,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _renderOp.Cancel();
         var ct = _analyzeOp.Begin();
         var capturedBudget = MaxTokens;
+        var capturedDepth = Depth;
+        var capturedDetail = Detail;
 
         _output.IsAnalyzing = true;
         _output.IsProgressVisible = true;
@@ -266,6 +313,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _output.RawContent = "";
         _output.HumanViewHtml = "";
         _snapshot = null;
+        SelectedEntry = "";
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
@@ -307,6 +355,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             DryRun = DryRun,
             IncludeAntiPatterns = IncludeAntiPatterns,
             ActiveSections = GetActiveSections(),
+            Depth = capturedDepth,
+            Detail = capturedDetail,
         };
 
         var progress = new Progress<AnalysisProgress>(p =>
@@ -391,6 +441,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 IncludeProvenance = IncludeProvenance,
                 IncludeDiagnostics = IncludeDiagnostics,
                 TokenView = false,
+                Entry = SelectedEntry,
+                Depth = Depth,
+                Detail = Detail switch
+                {
+                    "signature" => TraceDetail.Signature,
+                    "salient" => TraceDetail.Salient,
+                    "full" => TraceDetail.Full,
+                    _ => TraceDetail.Salient,
+                },
             };
 
             var renderResult = await _svc.RenderAsync(_snapshot, request, renderCt).ConfigureAwait(true);
@@ -436,6 +495,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         IncludeProvenance = s.IncludeProvenance;
         IncludeDiagnostics = s.IncludeDiagnostics;
         NoRoslyn = s.NoRoslyn;
+        Depth = s.LastDepth > 0 ? s.LastDepth : 6;
+        Detail = s.LastDetail ?? "salient";
 
         if (s.LastActiveSections is { Count: > 0 })
         {
@@ -458,6 +519,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
+            LastDepth = Depth,
+            LastDetail = Detail,
             LastActiveSections = _sections.Sections.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
         });
 

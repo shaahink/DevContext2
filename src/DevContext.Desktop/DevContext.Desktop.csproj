@@ -8,6 +8,7 @@
     <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DevContext.Core\DevContext.Core.csproj" />
     <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
   </ItemGroup>
   <ItemGroup>
