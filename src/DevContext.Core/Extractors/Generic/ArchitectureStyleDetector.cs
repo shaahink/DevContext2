@@ -36,12 +36,16 @@ public sealed class ArchitectureStyleDetector
         // ── Evidence-driven scoring ──────────────────────────────────────────────────
 
         // Microservices: Aspire + many projects (constellation)
-        if (hasAspire && projectCount >= 3)
+        // Only scores when there's an explicit AppHost — not just Aspire infra packages
+        var hasAppHost = model.Projects.Any(p =>
+            p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+            || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)));
+        if (hasAspire && hasAppHost && projectCount >= 3)
         {
             var svcCount = model.Projects.Count(p => !IsInfrastructureProject(p.Name));
-            evidence.Add($"Aspire detected with {svcCount} service projects");
-            scores[ArchitectureStyle.Microservices] = (Math.Min(0.7f + svcCount * 0.05f, 0.95f),
-                string.Join("; ", evidence));
+            evidence.Add($"Aspire orchestration with {svcCount} service projects");
+            var score = Math.Min(0.65f + svcCount * 0.05f, 0.82f); // cap below VerticalSlices (0.85)
+            scores[ArchitectureStyle.Microservices] = (score, string.Join("; ", evidence));
         }
 
         // CleanArchitecture: MediatR + DDD layer conventions + aggregates

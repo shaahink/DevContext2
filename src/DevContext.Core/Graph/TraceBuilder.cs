@@ -115,7 +115,13 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
-            var salient = ExtractSalient(node.SourceBody, edge.Provenance);
+            // Use source body from the FROM node, preferring Type twin body over Handler/Service body
+            var fromNode = _graph.Node(edge.From) ?? node;
+            var salientSource = fromNode.SourceBody ?? (
+                fromNode.Kind != node.Kind && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
+                    ? twin.SourceBody
+                    : null);
+            var salient = ExtractSalient(salientSource, edge.Provenance);
 
             // Framework-boundary stop: don't descend into generic framework internals
             if (IsFrameworkLeaf(child))

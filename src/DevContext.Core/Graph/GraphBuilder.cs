@@ -100,9 +100,11 @@ public sealed class GraphBuilder
                 {
                     // B4: Anchor on the specific handler method via a Member node
                     var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
+                    var typeNode = g.Nodes.FirstOrDefault(n => n.Id.Key == handlerFqn);
                     g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
+                        SourceBody = typeNode?.SourceBody,
                     });
                     g.AddEdge(new GraphEdge(id, memberNodeId, EdgeKind.Calls)
                     {
@@ -172,6 +174,9 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Handler)
             {
                 FilePath = h.SourceFile,
+                SourceBody = model.Types.Values
+                    .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType))
+                    ?.SourceBody,
             });
             g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
             {
@@ -217,6 +222,8 @@ public sealed class GraphBuilder
             {
                 FilePath = file,
                 Tags = ["pipeline"],
+                SourceBody = model.Types.Values
+                    .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
             });
 
             // WrappedBy edge from every Request node to this pipeline behavior
@@ -503,8 +510,10 @@ public sealed class GraphBuilder
                     if (!g.HasNode(typeId)) continue;
 
                     g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event));
+                    var prov = EstimateProvenance(body, match.Index, type.FilePath);
                     g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
                     {
+                        Provenance = prov,
                         Resolution = Resolution.Syntactic,
                         Confidence = 0.5f,
                     });
@@ -513,6 +522,7 @@ public sealed class GraphBuilder
                     {
                         g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
                         {
+                            Provenance = prov,
                             Resolution = Resolution.Syntactic,
                             Confidence = 0.5f,
                         });
@@ -533,8 +543,10 @@ public sealed class GraphBuilder
                 {
                     Tags = ["integration-event"],
                 });
+                var prov = EstimateProvenance(body, match.Index, type.FilePath);
                 g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
                 {
+                    Provenance = prov,
                     Resolution = Resolution.Syntactic,
                     Confidence = 0.5f,
                 });
@@ -543,6 +555,7 @@ public sealed class GraphBuilder
                 {
                     g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
                     {
+                        Provenance = prov,
                         Resolution = Resolution.Syntactic,
                         Confidence = 0.5f,
                     });
@@ -593,9 +606,13 @@ public sealed class GraphBuilder
                 var requestId = NodeId.ForRequest(requestFqn);
                 if (!g.HasNode(typeId)) continue;
 
+                // Approximate provenance: file + line of the Send call
+                var prov = EstimateProvenance(body, match.Index, type.FilePath);
+
                 g.AddNode(new GraphNode(requestId, requestName, NodeKind.Request));
                 g.AddEdge(new GraphEdge(typeId, requestId, EdgeKind.Sends)
                 {
+                    Provenance = prov,
                     Resolution = Resolution.Syntactic,
                     Confidence = 0.55f,
                 });
@@ -610,6 +627,18 @@ public sealed class GraphBuilder
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
+
+    /// <summary>Estimates a "file:line" provenance from a character offset in the source body.</summary>
+    private static string? EstimateProvenance(string sourceBody, int charOffset, string? filePath)
+    {
+        if (string.IsNullOrEmpty(filePath)) return null;
+        var line = 1;
+        for (var i = 0; i < Math.Min(charOffset, sourceBody.Length); i++)
+        {
+            if (sourceBody[i] == '\n') line++;
+        }
+        return $"{filePath}:{line}";
+    }
 
     private static string RemoveGenerics(string typeName)
     {

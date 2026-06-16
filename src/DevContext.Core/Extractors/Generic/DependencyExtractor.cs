@@ -7,6 +7,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     private static readonly FrozenDictionary<string, string> PackageSignalMap = new Dictionary<string, string>
     {
         ["MediatR"] = ArchitectureSignals.Keys.MediatR,
+        ["Mediator"] = ArchitectureSignals.Keys.MediatR,
         ["Microsoft.EntityFrameworkCore"] = ArchitectureSignals.Keys.EfCore,
         ["Microsoft.AspNetCore.OpenApi"] = ArchitectureSignals.Keys.MinimalApis,
         ["MassTransit"] = ArchitectureSignals.Keys.MassTransit,
@@ -20,7 +21,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["Hangfire"] = ArchitectureSignals.Keys.Hangfire,
         ["Scrutor"] = ArchitectureSignals.Keys.Scrutor,
         ["Refit"] = ArchitectureSignals.Keys.Refit,
-        ["Microsoft.Aspire"] = ArchitectureSignals.Keys.Aspire,
+        ["Aspire.Hosting"] = ArchitectureSignals.Keys.Aspire,
         ["FastEndpoints"] = ArchitectureSignals.Keys.FastEndpoints,
         ["Serilog"] = ArchitectureSignals.Keys.Serilog,
         ["Polly"] = ArchitectureSignals.Keys.Polly,
@@ -59,10 +60,10 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
 
             foreach (var pkg in projectInfo.PackageReferences)
             {
-                if (PackageSignalMap.TryGetValue(pkg.Name, out var signalKey))
+                if (TryMatchSignal(pkg.Name, out var signalKey, out var matchedKey))
                 {
                     model.Architecture.Register(FeatureSignal.CreateDetected(
-                        signalKey, confidence: 1.0f, via: "PackageReference", pkg.Name));
+                        signalKey, confidence: 1.0f, via: "PackageReference", matchedKey));
                 }
             }
 
@@ -94,10 +95,10 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
 
                     foreach (var pkgName in packageRefs)
                     {
-                        if (PackageSignalMap.TryGetValue(pkgName, out var extraSignalKey))
+                        if (TryMatchSignal(pkgName, out var extraSignalKey, out var matchedKey2))
                         {
                             model.Architecture.Register(FeatureSignal.CreateDetected(
-                                extraSignalKey, confidence: 1.0f, via: "PackageReference", pkgName));
+                                extraSignalKey, confidence: 1.0f, via: "PackageReference", matchedKey2));
                         }
                     }
 
@@ -125,5 +126,27 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         }
 
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
+    }
+
+    /// <summary>Matches a package name against the signal map with exact and prefix strategies.</summary>
+    private static bool TryMatchSignal(string packageName, out string signalKey, out string matchedKey)
+    {
+        if (PackageSignalMap.TryGetValue(packageName, out signalKey!))
+        {
+            matchedKey = packageName;
+            return true;
+        }
+        foreach (var (key, value) in PackageSignalMap)
+        {
+            if (packageName.StartsWith(key, StringComparison.OrdinalIgnoreCase))
+            {
+                signalKey = value;
+                matchedKey = key;
+                return true;
+            }
+        }
+        signalKey = null!;
+        matchedKey = null!;
+        return false;
     }
 }
