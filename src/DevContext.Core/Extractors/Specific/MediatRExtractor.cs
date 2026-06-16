@@ -23,9 +23,29 @@ public sealed class MediatRExtractor : IDiscoveryExtractor
         [ArchitectureSignals.Keys.MediatR], ["mediatr-handler-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect MediatR handlers and marker interfaces");
-    /// <summary>Only runs when the MediatR signal has been detected.</summary>
+    /// <summary>Runs when the MediatR package signal fired, OR when the code itself implements MediatR
+    /// handler interfaces. The package signal misses repos that reference MediatR transitively or from
+    /// another project in the closure (e.g. eShop's handlers in Ordering.API while the package lives in
+    /// Ordering.Domain) — but the handler detections are exactly what the trace needs to bridge
+    /// Send→handler, so detect them from the code regardless.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => currentModel.Architecture.Has(ArchitectureSignals.Keys.MediatR);
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.MediatR)
+            || ImplementsHandlerInterface(currentModel);
+
+    private static bool ImplementsHandlerInterface(DiscoveryModel model)
+    {
+        foreach (var type in model.Types.Values)
+        {
+            foreach (var iface in type.ImplementedInterfaces)
+            {
+                if (iface.StartsWith("IRequestHandler", StringComparison.Ordinal)
+                    || iface.StartsWith("INotificationHandler", StringComparison.Ordinal)
+                    || iface.StartsWith("IStreamRequestHandler", StringComparison.Ordinal))
+                    return true;
+            }
+        }
+        return false;
+    }
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

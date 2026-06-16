@@ -191,7 +191,7 @@ public static class MapRenderer
 
     private static void AppendFooter(StringBuilder sb)
     {
-        sb.AppendLine("→ drill in:  trace <entry>        → list all:  trace --all");
+        sb.AppendLine("→ drill in:  --focus \"<entry>\"   (e.g. --focus \"POST /api/orders/\" or --focus <TypeName>)");
     }
 
     private static string GroupLabel(EntryPointKind kind) => kind switch

@@ -404,6 +404,7 @@ public sealed class GraphBuilder
                     $@"{Regex.Escape(method)}\s*\(\s*new\s+(\w+)\s*\(", RegexOptions.Compiled))
                 {
                     var eventName = match.Groups[1].Value;
+                    if (IsNoiseType(eventName)) continue;
                     var eventFqn = names.Resolve(eventName);
                     var eventId = NodeId.ForEvent(eventFqn);
                     if (!g.HasNode(typeId)) continue;
@@ -476,7 +477,7 @@ public sealed class GraphBuilder
                     requestName = newMatches[^1].Groups[1].Value;
                 }
 
-                if (string.IsNullOrEmpty(requestName)) continue;
+                if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
                 var requestFqn = names.Resolve(requestName);
                 var requestId = NodeId.ForRequest(requestFqn);
                 if (!g.HasNode(typeId)) continue;
@@ -490,6 +491,14 @@ public sealed class GraphBuilder
             }
         }
     }
+
+    /// <summary>True for names the body-scan Sends/Raises regexes pick up but that are never a real
+    /// request/event — chiefly framework exceptions (<c>new ArgumentNullException(...)</c> caught by the
+    /// variable-arg .Send() heuristic). Keeps the trace's indirection seams honest.</summary>
+    private static bool IsNoiseType(string name)
+        => name.EndsWith("Exception", StringComparison.Ordinal)
+            || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
+                or "String" or "Object" or "Guid" or "CancellationToken";
 
     private static string RemoveGenerics(string typeName)
     {

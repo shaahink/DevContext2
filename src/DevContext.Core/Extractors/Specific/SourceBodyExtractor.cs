@@ -20,13 +20,14 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
         [], [],
         ["model.Types[*].SourceBody"],
         "Populates SourceBody for each non-pruned type with its declaration source text");
-    /// <summary>Only runs in Full extraction profile.</summary>
+    /// <summary>Runs in Debug and Full profiles. Debug powers the entry-rooted trace, whose body-scan
+    /// seams (Sends/Raises/ReadsWrites in GraphBuilder) read SourceBody to bridge MediatR dispatch,
+    /// domain events, and data access — so without this the trace can't follow indirection.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.Options.Profile == ExtractionProfile.Full;
+        => context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var perTypeCap = context.ActiveScenario.Compression.PerTypeCharCap;
         var fileGroups = model.Types.Values
             .Where(t => !t.IsHardExcluded)
             .GroupBy(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
@@ -61,11 +62,10 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
                 var type = group.FirstOrDefault(t => t.Id == fullName);
                 if (type == null) continue;
 
-                var sourceText = typeDecl.ToFullString();
-                if (perTypeCap > 0 && sourceText.Length > perTypeCap)
-                    sourceText = sourceText[..perTypeCap];
-
-                type.SourceBody = sourceText;
+                // Store the full declaration. The graph's body-scan seams need the whole body (the
+                // MediatR Send / event-raise can be anywhere in a method); the compression stage caps
+                // SourceBody for rendering afterwards (it runs after graph assembly).
+                type.SourceBody = typeDecl.ToFullString();
             }
         }
     }

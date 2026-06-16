@@ -301,7 +301,8 @@ public sealed class DiscoveryPipeline
             if (!string.IsNullOrEmpty(request.Entry))
             {
                 var entry = snapshot.Entries.FirstOrDefault(e =>
-                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase))
+                    ?? ResolveEntryFromNode(graph, request.Entry);
                 if (entry is not null)
                 {
                     var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
@@ -309,7 +310,8 @@ public sealed class DiscoveryPipeline
                         MaxDepth = request.Depth ?? 6,
                         MaxFanOut = 12,
                     });
-                    var traceContent = TraceRenderer.Render(trace, request.Detail);
+                    var traceContent = TraceRenderer.Render(trace, request.Detail)
+                        + GraphDiagnosticsTail(snapshot, request);
                     return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
                 }
             }
@@ -318,7 +320,9 @@ public sealed class DiscoveryPipeline
             if (snapshot.Map is { } mapModel)
             {
                 var mapCtx = new MapRenderContext(mapModel, snapshot, request.Format, request);
-                return await MapRenderer.RenderAsync(mapCtx, ct);
+                var map = await MapRenderer.RenderAsync(mapCtx, ct);
+                var tail = GraphDiagnosticsTail(snapshot, request);
+                return tail.Length == 0 ? map : map with { Content = map.Content + tail };
             }
         }
 
@@ -358,6 +362,50 @@ public sealed class DiscoveryPipeline
         };
 
         return rendered;
+    }
+
+    /// <summary>Resolves a free-text focus (a type or handler name) to a graph node so a Trace can start
+    /// from it, not just from a catalogued HTTP entry. Lets <c>--focus OrdersController</c> /
+    /// <c>--focus CreateOrderCommandHandler</c> produce a trace instead of silently falling back to the Map.
+    /// Prefers behaviour-bearing nodes (Type/Handler/Service) and matches by short name.</summary>
+    private static Graph.EntryPoint? ResolveEntryFromNode(Graph.CodeGraph graph, string focus)
+    {
+        var name = focus.Trim();
+        // Type:Method narrows to the type; the trace walks the type's out-edges either way.
+        var colon = name.IndexOf(':');
+        if (colon > 0) name = name[..colon];
+
+        Graph.GraphNode? best = null;
+        foreach (var node in graph.Nodes)
+        {
+            if (node.Kind is not (Graph.NodeKind.Type or Graph.NodeKind.Handler
+                or Graph.NodeKind.Service or Graph.NodeKind.EntryPoint)) continue;
+            if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
+                && !node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase)) continue;
+            // Prefer a node that actually has somewhere to go.
+            if (best is null || graph.OutEdges(node.Id).Length > graph.OutEdges(best.Id).Length)
+                best = node;
+        }
+
+        return best is null
+            ? null
+            : new Graph.EntryPoint(Graph.EntryPointKind.PublicApi, best.Title, best.Id)
+            {
+                Provenance = best.FilePath,
+            };
+    }
+
+    /// <summary>Appends graph-assembly and call-graph diagnostics under a Map/Trace when --include-diagnostics
+    /// is set, so users (and we) can see node/edge counts and the call-graph resolver without the legacy path.</summary>
+    private static string GraphDiagnosticsTail(AnalysisSnapshot snapshot, RenderRequest request)
+    {
+        if (!request.IncludeDiagnostics) return string.Empty;
+        var lines = snapshot.Model.Diagnostics
+            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder")
+            .Select(d => $"  {d.Source}: {d.Message}")
+            .ToList();
+        if (lines.Count == 0) return string.Empty;
+        return "\n\nDIAGNOSTICS\n" + string.Join("\n", lines) + "\n";
     }
 
     /// <summary>Convenience: runs the full pipeline (analyze + render) and returns the rendered context.</summary>

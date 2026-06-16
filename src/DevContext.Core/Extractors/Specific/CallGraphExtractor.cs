@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Extractors.Specific;
@@ -9,6 +10,22 @@ namespace DevContext.Core.Extractors.Specific;
 [ExtractorOrder(30)]
 public sealed class CallGraphExtractor : IDiscoveryExtractor
 {
+    /// <summary>The runtime's reference assemblies, loaded once. Used to give the semantic compilation a
+    /// reference set so BCL/framework symbols bind; intra-solution types resolve from source regardless.</summary>
+    private static readonly Lazy<ImmutableArray<MetadataReference>> ReferenceAssemblies = new(() =>
+    {
+        var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+        if (string.IsNullOrEmpty(tpa)) return [];
+        var refs = ImmutableArray.CreateBuilder<MetadataReference>();
+        foreach (var path in tpa.Split(System.IO.Path.PathSeparator))
+        {
+            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) continue;
+            try { refs.Add(MetadataReference.CreateFromFile(path)); }
+            catch { /* skip unreadable assembly */ }
+        }
+        return refs.ToImmutable();
+    });
+
     /// <summary>Gets the name of this extractor.</summary>
     public string Name => "CallGraphExtractor";
     /// <summary>Gets the execution tier.</summary>
@@ -80,61 +97,76 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             }
         }
 
+        // Pass 1: collect every parsed tree so one compilation can see the whole solution.
+        var trees = new List<(string Path, SyntaxTree Tree)>();
         await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
         {
             ct.ThrowIfCancellationRequested();
+            try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct))); }
+            catch { model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}"); }
+        }
 
-            SyntaxTree syntaxTree;
-            try
-            {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
-            }
-            catch
-            {
-                model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}");
-                continue;
-            }
+        // Build a best-effort semantic compilation. Source types always bind; external package types
+        // may be error types, but intra-solution receiver resolution — the calls a trace follows — works
+        // regardless. Any failure degrades cleanly to the syntactic field/DI-map heuristic.
+        CSharpCompilation? compilation = null;
+        try
+        {
+            compilation = CSharpCompilation.Create("DevContextSemantics",
+                trees.Select(t => t.Tree),
+                ReferenceAssemblies.Value,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        }
+        catch (Exception ex)
+        {
+            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+                $"Semantic compilation unavailable; using syntactic resolution ({ex.GetType().Name}).");
+        }
 
+        // Pass 2: resolve call edges, preferring the SemanticModel and falling back to syntax.
+        var semanticEdges = 0;
+        foreach (var (filePath, syntaxTree) in trees)
+        {
+            ct.ThrowIfCancellationRequested();
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var typeDecls = root.DescendantNodes().OfType<TypeDeclarationSyntax>();
 
-            foreach (var typeDecl in typeDecls)
+            SemanticModel? semanticModel = null;
+            if (compilation is not null)
+            {
+                try { semanticModel = compilation.GetSemanticModel(syntaxTree); }
+                catch { semanticModel = null; }
+            }
+
+            foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
             {
                 var callerType = GetTypeFullName(typeDecl);
                 if (string.IsNullOrEmpty(callerType)) continue;
 
-                // Build field map for this type: fieldName → declaredType
                 var fieldMap = BuildFieldMap(typeDecl, diMap);
 
-                foreach (var methodDecl in typeDecl.Members.OfType<MethodDeclarationSyntax>())
+                foreach (var member in typeDecl.Members)
                 {
-                    var callerMethod = methodDecl.Identifier.ValueText;
-
-                    foreach (var invocation in methodDecl.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                    var callerMethod = member switch
                     {
-                        var (calleeType, calleeMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
-                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        MethodDeclarationSyntax m => m.Identifier.ValueText,
+                        ConstructorDeclarationSyntax c => c.Identifier.ValueText,
+                        _ => null,
+                    };
+                    if (callerMethod is null) continue;
 
-                        allEdges.Add(new CallEdge(
-                            callerType, callerMethod,
-                            calleeType, calleeMethod,
-                            $"{filePath}:{lineNumber}"));
-                    }
-                }
-
-                foreach (var ctorDecl in typeDecl.Members.OfType<ConstructorDeclarationSyntax>())
-                {
-                    var callerMethod = ctorDecl.Identifier.ValueText;
-
-                    foreach (var invocation in ctorDecl.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                    foreach (var invocation in member.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var (calleeType, calleeMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
-                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        var (calleeType, calleeMethod, resolution) = ResolveCalleeSmart(
+                            invocation, semanticModel, callerType, fieldMap,
+                            diMap, interfaceImplMap, fqnMap, fqnCollisions);
+                        if (resolution == Graph.Resolution.Semantic) semanticEdges++;
 
+                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                         allEdges.Add(new CallEdge(
-                            callerType, callerMethod,
-                            calleeType, calleeMethod,
-                            $"{filePath}:{lineNumber}"));
+                            callerType, callerMethod, calleeType, calleeMethod, $"{filePath}:{lineNumber}")
+                        {
+                            Resolution = resolution,
+                        });
                     }
                 }
             }
@@ -201,8 +233,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
+        var resolver = compilation is not null ? $"semantic ({semanticEdges} verified)" : "syntactic";
         model.AddDiagnostic(DiagnosticLevel.Info, Name,
-            $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}");
+            $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}");
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)
@@ -304,6 +337,74 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         }
 
         return map;
+    }
+
+    /// <summary>Resolves an invocation's callee, preferring Roslyn's SemanticModel (the receiver's real
+    /// static type) and falling back to the syntactic field/DI-map heuristic. Semantic hits are tagged
+    /// so the trace can show [verified] vs [approx].</summary>
+    private static (string Type, string Method, Graph.Resolution Resolution) ResolveCalleeSmart(
+        InvocationExpressionSyntax invocation, SemanticModel? model, string callerType,
+        Dictionary<string, string> fieldMap, Dictionary<string, string> diMap,
+        Dictionary<string, string> interfaceImplMap, Dictionary<string, string> fqnMap,
+        Dictionary<string, List<string>> fqnCollisions)
+    {
+        if (model is not null)
+        {
+            try
+            {
+                var info = model.GetSymbolInfo(invocation);
+                var method = (info.Symbol ?? info.CandidateSymbols.FirstOrDefault()) as IMethodSymbol;
+                if (method?.ReceiverType is { } recv)
+                {
+                    var mapped = MapSemanticReceiver(recv, diMap, interfaceImplMap, fqnMap);
+                    if (mapped is not null)
+                        return (mapped, method.Name, Graph.Resolution.Semantic);
+                }
+                else if (invocation.Expression is MemberAccessExpressionSyntax ma
+                    && model.GetTypeInfo(ma.Expression).Type is { } recvType)
+                {
+                    // The method didn't bind (external base member, no package ref) but the receiver's
+                    // declared type often resolves from source — that's the type the trace follows.
+                    var mapped = MapSemanticReceiver(recvType, diMap, interfaceImplMap, fqnMap);
+                    if (mapped is not null)
+                        return (mapped, ma.Name.Identifier.ValueText, Graph.Resolution.Semantic);
+                }
+            }
+            catch { /* fall through to syntactic */ }
+        }
+
+        var (type, syntacticMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);
+        return (type, syntacticMethod, Graph.Resolution.Syntactic);
+    }
+
+    /// <summary>Maps a semantically-resolved receiver type to the solution type a trace should descend
+    /// into: interfaces/abstracts route to their concrete impl (DI registration, else sole implementor);
+    /// concrete source types pass through; external/framework receivers return null (dropped — the join
+    /// seams cover meaningful external indirection like MediatR dispatch and EF entity access).</summary>
+    private static string? MapSemanticReceiver(ITypeSymbol recv,
+        Dictionary<string, string> diMap, Dictionary<string, string> interfaceImplMap,
+        Dictionary<string, string> fqnMap)
+    {
+        var shortName = recv.Name;
+        if (string.IsNullOrEmpty(shortName)) return null;
+
+        // Interface/abstract → impl. Works even when recv is an unresolved error type (missing package
+        // reference): only its name is needed, and the impl is a real solution type.
+        if (diMap.TryGetValue(shortName, out var impl) || interfaceImplMap.TryGetValue(shortName, out impl))
+            return fqnMap.TryGetValue(impl, out var implFqn) ? implFqn : impl;
+
+        // Concrete solution type — keep it (the verified internal call).
+        if (recv is INamedTypeSymbol named && named.Locations.Any(l => l.IsInSource))
+            return FqnOf(named);
+
+        return null;
+    }
+
+    /// <summary>Builds the "Namespace.Name" form that matches <see cref="GetTypeFullName"/> / TypeDiscovery.Id.</summary>
+    private static string FqnOf(INamedTypeSymbol t)
+    {
+        var ns = t.ContainingNamespace is { IsGlobalNamespace: false } n ? n.ToDisplayString() : null;
+        return ns is null ? t.Name : $"{ns}.{t.Name}";
     }
 
     private static (string Type, string Method) ResolveCallee(InvocationExpressionSyntax invocation,

@@ -79,7 +79,7 @@ public sealed class TraceBuilder
                 Truncated = HasFollowable(node.Id, follow),
             };
 
-        var edges = _graph.OutEdges(node.Id).Where(e => follow.Contains(e.Kind)).ToList();
+        var edges = OutEdgesWithTwin(node.Id).Where(e => follow.Contains(e.Kind)).ToList();
 
         // Structural ranking: prefer edges that lead to sinks (Data/Raise/Consumes) over framework
         // leaf Calls. Sends/Handles/Resolves are medium priority. Calls are lowest.
@@ -142,8 +142,26 @@ public sealed class TraceBuilder
             || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
+    /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service node and the class's
+    /// Type node are the same class with different ids: the Handles/Resolves/Consumes edge lands on the
+    /// Handler/Service node, but the class's own call/raise/data edges were attached to the Type node.
+    /// Without this bridge the trace dead-ends the moment it crosses an indirection seam into a handler.</summary>
+    private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
+    {
+        foreach (var e in _graph.OutEdges(id))
+            yield return e;
+
+        if (id.Kind is NodeKind.Handler or NodeKind.Service)
+        {
+            var twin = NodeId.ForType(id.Key);
+            if (_graph.Contains(twin))
+                foreach (var e in _graph.OutEdges(twin))
+                    yield return e;
+        }
+    }
+
     private bool HasFollowable(NodeId id, HashSet<EdgeKind> follow)
-        => _graph.OutEdges(id).Any(e => follow.Contains(e.Kind));
+        => OutEdgesWithTwin(id).Any(e => follow.Contains(e.Kind));
 
     private static SeamKind ToSeam(EdgeKind kind) => kind switch
     {
