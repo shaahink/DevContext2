@@ -309,8 +309,7 @@ public sealed class DiscoveryPipeline
                         MaxDepth = request.Depth ?? 6,
                         MaxFanOut = 12,
                     });
-                    var traceRenderer = new TraceRenderer();
-                    var traceContent = traceRenderer.Render(trace, request.Detail);
+                    var traceContent = TraceRenderer.Render(trace, request.Detail);
                     return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
                 }
             }
@@ -319,8 +318,7 @@ public sealed class DiscoveryPipeline
             if (snapshot.Map is { } mapModel)
             {
                 var mapCtx = new MapRenderContext(mapModel, snapshot, request.Format, request);
-                var mapRenderer = new MapRenderer();
-                return await mapRenderer.RenderAsync(mapCtx, ct);
+                return await MapRenderer.RenderAsync(mapCtx, ct);
             }
         }
 
