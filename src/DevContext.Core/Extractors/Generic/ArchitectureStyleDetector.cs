@@ -1,120 +1,195 @@
 namespace DevContext.Core.Extractors.Generic;
 
 /// <summary>
-/// Analyzes sealed architecture signals and project structure to determine
-/// the overall architecture style. Called by the pipeline between Stage 2 and 3.
-/// Detects hybrid/multi-style architectures and provides confidence scoring.
+/// Analyzes project structure using EVIDENCE (reference direction, folder roles, signal/presence data)
+/// rather than brittle project-name substrings. Called by the pipeline between Stage 2 and 3.
+/// PLAN-10 B2: replaces the old name-substring heuristic that misclassified eShop and VerticalSlice
+/// as MinimalApi.
 /// </summary>
 public sealed class ArchitectureStyleDetector
 {
     public static (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
     {
         var signals = model.Architecture.All;
+        var evidence = new List<string>();
+        var scores = new Dictionary<ArchitectureStyle, (float Score, string Evidence)>();
+
+        // Compute reference-direction evidence (core/domain projects have high fan-in, low fan-out)
+        var refCounts = ComputeReferenceCounts(model.Projects);
+        // Detect folder-role conventions from file paths
+        var folderRoles = DetectFolderRoles(model);
+        // Detect aggregate presence from EfEntityDetection
+        var aggregateCount = model.Detections
+            .OfType<EfEntityDetection>().Count(d => d.IsAggregate);
+        var mediatRHandlerCount = model.Detections
+            .OfType<MediatRHandlerDetection>().Count(h => h.Kind is MediatRKind.Command or MediatRKind.Query);
+        var notificationHandlerCount = model.Detections
+            .OfType<MediatRHandlerDetection>().Count(h => h.Kind == MediatRKind.Notification);
+        var hasMediatR = signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected;
+        var hasEfCore = signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var _);
+        var hasAspire = signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) && aspire.Detected;
+        var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
+        var hasControllers = signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrl) && ctrl.Detected;
+        var hasFastEndpoints = signals.TryGetValue(ArchitectureSignals.Keys.FastEndpoints, out var fe) && fe.Detected;
         var projectCount = model.Projects.Length;
-        var projectNames = model.Projects.Select(p => p.Name.ToLowerInvariant()).ToArray();
 
-        // Score each candidate style independently, pick the highest confidence
-        var scores = new Dictionary<ArchitectureStyle, (float Score, string Via)>();
+        // ── Evidence-driven scoring ──────────────────────────────────────────────────
 
-        ScoreMinimalApi(signals, projectNames, scores);
-        ScoreCleanArchitecture(signals, projectCount, projectNames, scores);
-        ScoreVerticalSlices(signals, projectNames, scores);
-        ScoreNLayer(signals, projectCount, scores);
-        ScoreModularMonolith(signals, projectNames, scores);
-        ScoreMicroservices(signals, projectCount, scores);
-
-        // When controllers are dominant over minimal-apis, classify as ControllerBased
-        if (signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrlSignal) && ctrlSignal.Detected
-            && signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var maSignal) && maSignal.Detected
-            && ctrlSignal.Confidence >= maSignal.Confidence
-            && scores.TryGetValue(ArchitectureStyle.MinimalApi, out var maScore))
+        // Microservices: Aspire + many projects (constellation)
+        if (hasAspire && projectCount >= 3)
         {
-            scores.Remove(ArchitectureStyle.MinimalApi);
-            // Use NLayer confidence as base, or fall back to a moderate score
-            var baseScore = scores.TryGetValue(ArchitectureStyle.NLayer, out var nlScore)
-                ? nlScore.Score : maScore.Score * 0.8f;
-            scores[ArchitectureStyle.ControllerBased] = (baseScore, $"Signal:{ArchitectureSignals.Keys.Controllers}+minimal-apis (controller-dominant web app)");
+            var svcCount = model.Projects.Count(p => !IsInfrastructureProject(p.Name));
+            evidence.Add($"Aspire detected with {svcCount} service projects");
+            scores[ArchitectureStyle.Microservices] = (Math.Min(0.7f + svcCount * 0.05f, 0.95f),
+                string.Join("; ", evidence));
+        }
+
+        // CleanArchitecture: MediatR + DDD layer conventions + aggregates
+        if (hasMediatR)
+        {
+            var dddLayers = (folderRoles.Contains("Domain") ? 1 : 0)
+                          + (folderRoles.Contains("Application") ? 1 : 0)
+                          + (folderRoles.Contains("Infrastructure") ? 1 : 0)
+                          + (folderRoles.Contains("Api") ? 1 : 0);
+            var hasDomainCore = refCounts.Any(r => r.HighFanIn && r.LowFanOut);
+
+            if (dddLayers >= 2 || aggregateCount >= 1 || notificationHandlerCount >= 1)
+            {
+                var dddEvidence = new List<string>();
+                if (dddLayers >= 2) dddEvidence.Add($"DDD folder layers: {string.Join(", ", folderRoles)}");
+                if (aggregateCount >= 1) dddEvidence.Add($"{aggregateCount} aggregates");
+                if (notificationHandlerCount >= 1) dddEvidence.Add($"{notificationHandlerCount} domain-event handlers");
+                if (hasDomainCore) dddEvidence.Add("domain-core ref pattern (high fan-in, low fan-out)");
+                dddEvidence.Add($"MediatR with {mediatRHandlerCount} handlers");
+
+                scores[ArchitectureStyle.CleanArchitecture] = (Math.Min(0.5f + dddLayers * 0.1f + aggregateCount * 0.05f, 0.95f),
+                    string.Join("; ", dddEvidence));
+            }
+        }
+
+        // VerticalSlices: FastEndpoints + MediatR + feature-folder conventions
+        if (hasFastEndpoints)
+        {
+            var vEvidence = new List<string> { "FastEndpoints detected" };
+            if (hasMediatR) vEvidence.Add($"MediatR with {mediatRHandlerCount} handlers");
+            scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
+                string.Join("; ", vEvidence));
+        }
+
+        // NLayer: multiple projects, EF Core, no strong DDD/MediatR signals
+        if (hasEfCore && projectCount > 2 && !scores.ContainsKey(ArchitectureStyle.CleanArchitecture))
+        {
+            scores[ArchitectureStyle.NLayer] = (0.6f,
+                $"EF Core + {projectCount} projects; folder roles: {string.Join(", ", folderRoles)}");
+        }
+
+        // MinimalApi: minimal API signal, single project or few projects, no MediatR
+        if (hasMinimalApis && !hasMediatR && projectCount <= 5)
+        {
+            scores[ArchitectureStyle.MinimalApi] = (projectCount == 1 ? 0.9f : 0.6f,
+                $"Minimal APIs + {projectCount} project(s); no MediatR");
+        }
+
+        // ModularMonolith: bounded-context / module naming in projects
+        var moduleNames = model.Projects.Select(p => p.Name.ToLowerInvariant())
+            .Where(n => n.Contains("module") || n.Contains("bounded") || n.Contains("context"))
+            .ToList();
+        if (moduleNames.Count >= 2 && !scores.ContainsKey(ArchitectureStyle.Microservices))
+        {
+            scores[ArchitectureStyle.ModularMonolith] = (0.55f + moduleNames.Count * 0.05f,
+                $"{moduleNames.Count} module-like sub-projects: {string.Join(", ", moduleNames)}");
+        }
+
+        // ControllerBased: controllers present, controllers dominant over minimal APIs
+        if (hasControllers && !hasMediatR)
+        {
+            var ctrlConf = signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var cs) ? cs.Confidence : 0;
+            var maConf = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var mas) ? mas.Confidence : 0;
+            if (!hasMinimalApis || ctrlConf >= maConf)
+            {
+                float score = !hasMinimalApis ? 0.7f : 0.55f;
+                scores[ArchitectureStyle.ControllerBased] = (score,
+                    $"Controllers detected (conf={ctrlConf:F1}); MediatR=no, MinimalApi={(hasMinimalApis ? $"yes(conf={maConf:F1})" : "no")}");
+
+                // Remove MinimalApi if controllers are dominant
+                if (hasMinimalApis && ctrlConf >= maConf)
+                    scores.Remove(ArchitectureStyle.MinimalApi);
+            }
         }
 
         if (scores.Count == 0)
             return (ArchitectureStyle.Unknown, 0, null);
 
         var best = scores.MaxBy(kv => kv.Value.Score);
-        return (best.Key, Math.Min(best.Value.Score, 1.0f), best.Value.Via);
+        return (best.Key, Math.Min(best.Value.Score, 1.0f), best.Value.Evidence);
     }
 
-    private static void ScoreMinimalApi(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        string[] projectNames,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
+    private static List<ProjectRefStats> ComputeReferenceCounts(ImmutableArray<ProjectInfo> projects)
     {
-        if (!signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) || !ma.Detected) return;
-
-        var confidence = ma.Confidence;
-        scores[ArchitectureStyle.MinimalApi] = (confidence, $"Signal:{ArchitectureSignals.Keys.MinimalApis}");
+        var projNames = projects.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var results = new List<ProjectRefStats>(projects.Length);
+        foreach (var p in projects)
+        {
+            var outgoing = p.ProjectReferences.Length;
+            var incoming = projects.Count(other =>
+                other.ProjectReferences.Any(r => string.Equals(r, p.Name, StringComparison.OrdinalIgnoreCase)));
+            results.Add(new ProjectRefStats(p.Name, incoming, outgoing));
+        }
+        return results;
     }
 
-    private static void ScoreCleanArchitecture(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        int projectCount,
-        string[] projectNames,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
+    private static HashSet<string> DetectFolderRoles(DiscoveryModel model)
     {
-        if (!signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) || !mr.Detected) return;
+        var roles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var conventions = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Domain"] = ["/Domain/", "/DomainModel/", "/AggregatesModel/"],
+            ["Application"] = ["/Application/", "/UseCases/", "/ApplicationCore/"],
+            ["Infrastructure"] = ["/Infrastructure/", "/Infra/", "/Persistence/"],
+            ["Api"] = ["/Api/", "/Controllers/", "/Endpoints/"],
+            ["Core"] = ["/Core/", "/Abstractions/"],
+        };
 
-        var hasDomain = projectNames.Any(n => n.Contains("domain"));
-        var hasApplication = projectNames.Any(n => n.Contains("application"));
-        var hasInfrastructure = projectNames.Any(n => n.Contains("infrastructure"));
+        // Check both file paths and project names for conventions
+        foreach (var (role, patterns) in conventions)
+        {
+            foreach (var project in model.Projects)
+            {
+                if (project.Name.Contains(role, StringComparison.OrdinalIgnoreCase))
+                {
+                    roles.Add(role);
+                    break;
+                }
+            }
+            if (roles.Contains(role)) continue;
 
-        var layerCount = (hasDomain ? 1 : 0) + (hasApplication ? 1 : 0) + (hasInfrastructure ? 1 : 0);
-        var confidence = mr.Confidence * (0.5f + layerCount * 0.2f);
+            foreach (var type in model.Types.Values.Take(200))
+            {
+                var norm = type.FilePath.Replace('\\', '/');
+                if (patterns.Any(pt => norm.Contains(pt, StringComparison.OrdinalIgnoreCase)))
+                {
+                    roles.Add(role);
+                    break;
+                }
+            }
+        }
 
-        if (layerCount >= 2)
-            scores[ArchitectureStyle.CleanArchitecture] = (confidence, $"Signal:{ArchitectureSignals.Keys.MediatR}+layers:{layerCount}");
+        return roles;
     }
 
-    private static void ScoreVerticalSlices(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        string[] projectNames,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
+    private static bool IsInfrastructureProject(string name)
     {
-        var hasFastEndpoints = signals.TryGetValue("fast-endpoints", out var fe) && fe.Detected;
-
-        if (!hasFastEndpoints) return;
-
-        var confidence = hasFastEndpoints ? 0.7f : 0.3f;
-        scores[ArchitectureStyle.VerticalSlices] = (confidence, "FastEndpoints detected");
+        var lowered = name.ToLowerInvariant();
+        return lowered.Contains(".servicedefaults")
+            || lowered.Contains(".apphost")
+            || lowered.Contains("shared")
+            || lowered.Contains("common")
+            || lowered.Contains(".eventbus");
     }
 
-    private static void ScoreNLayer(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        int projectCount,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
+    private readonly record struct ProjectRefStats(string Name, int Incoming, int Outgoing)
     {
-        if (!signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) || !ef.Detected) return;
-
-        if (projectCount > 2)
-            scores[ArchitectureStyle.NLayer] = (ef.Confidence * 0.8f, $"Signal:{ArchitectureSignals.Keys.EfCore}+{projectCount}projects");
-    }
-
-    private static void ScoreModularMonolith(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        string[] projectNames,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
-    {
-        var moduleCount = projectNames.Count(n =>
-            n.Contains("module") || n.Contains("bounded") || n.Contains("context"));
-        if (moduleCount >= 2)
-            scores[ArchitectureStyle.ModularMonolith] = (0.6f, $"{moduleCount}module-like projects");
-    }
-
-    private static void ScoreMicroservices(
-        IReadOnlyDictionary<string, FeatureSignal> signals,
-        int projectCount,
-        Dictionary<ArchitectureStyle, (float, string)> scores)
-    {
-        if (!signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) || !aspire.Detected) return;
-        if (projectCount >= 3)
-            scores[ArchitectureStyle.Microservices] = (aspire.Confidence * 0.7f, $"Signal:{ArchitectureSignals.Keys.Aspire}+{projectCount}projects");
+        public bool HighFanIn => Incoming >= 2;
+        public bool LowFanOut => Outgoing <= 2;
     }
 }
