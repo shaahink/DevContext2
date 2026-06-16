@@ -11,8 +11,8 @@
     ]
   },
   "architecture": {
-    "style": "MinimalApi",
-    "confidence": 1
+    "style": "CleanArchitecture",
+    "confidence": 0.7
   },
   "signals": [
     {

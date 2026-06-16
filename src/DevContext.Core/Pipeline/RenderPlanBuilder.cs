@@ -31,6 +31,8 @@ public static class RenderPlanBuilder
         }
 
         // 3. Order candidates by FinalScore desc, then name for stable tie-break
+        // (PLAN-10 E1: FinalScore is now just RoleScore from PatternRelevancePruner —
+        //  the weighted multi-pruner system is retired. Map/Trace bypasses this entirely.)
         var candidates = model.Types.Values
             .OrderByDescending(t => t.FinalScore)
             .ThenBy(t => t.Name)
@@ -39,7 +41,6 @@ public static class RenderPlanBuilder
         var included = ImmutableArray.CreateBuilder<string>();
         var excluded = ImmutableArray.CreateBuilder<PlannedExclusion>();
         var budget = Math.Max(0, request.MaxTokens - SafetyMargin);
-        var maxTypes = scenario.Pruning.MaxSurvivingTypes;
         var usedTokens = 0;
 
         // Pin: explicit focus types always included, exempt from caps
@@ -74,17 +75,15 @@ public static class RenderPlanBuilder
             var typeTokens = EstimateTokenCost(type);
 
             var underBudget = budget > 0 && usedTokens + typeTokens <= budget;
-            var underCap = maxTypes <= 0 || included.Count < maxTypes;
 
-            if (underBudget && underCap)
+            if (underBudget)
             {
                 included.Add(type.Id);
                 usedTokens += typeTokens;
             }
             else
             {
-                var reason = !underCap ? "scenario cap" : "budget";
-                excluded.Add(new PlannedExclusion(type.Id, type.Name, type.FinalScore, reason));
+                excluded.Add(new PlannedExclusion(type.Id, type.Name, type.FinalScore, "budget"));
             }
         }
 

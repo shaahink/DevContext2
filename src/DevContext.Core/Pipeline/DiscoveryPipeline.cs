@@ -485,6 +485,10 @@ public sealed class DiscoveryPipeline
 
     private async Task RunScoringAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
+        // PLAN-10 E1: scoring stage shell kept for observer compatibility; the
+        // weighted FinalScore + PathProximityPruner + CallReachabilityPruner are retired.
+        // Noise filtering moved to NoiseFilter at graph-build time. Trace reachability
+        // is now the TraceBuilder traversal over CodeGraph, not a global flat scorer.
         ctx.Observer.OnStageStarted(PipelineStage.Scoring);
         var sw = Stopwatch.StartNew();
 
@@ -497,19 +501,9 @@ public sealed class DiscoveryPipeline
             ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
         }
 
-        // Compute FocusScore + RoleScore → FinalScore with scenario-owned weights
-        var hasFocus = ctx.Analysis.FocusPoints.Count > 0;
+        // Simple role-score fallback for legacy render path: detection-bearing types rank higher.
         foreach (var type in model.Types.Values)
-        {
-            if (hasFocus)
-            {
-                type.FocusScore = Math.Max(type.PathProximityScore, type.GraphProximity);
-                type.FinalScore = ctx.ActiveScenario.Pruning.RoleWeight * type.RoleScore
-                                  + ctx.ActiveScenario.Pruning.FocusWeight * type.FocusScore;
-            }
-            else
-                type.FinalScore = type.RoleScore;
-        }
+            type.FinalScore = type.RoleScore;
 
         ctx.Observer.OnStageCompleted(PipelineStage.Scoring, sw.Elapsed);
     }

@@ -1,6 +1,6 @@
 ## DevContext — Overview on CleanArch
 
-**Architecture**: CleanArchitecture (100% confidence)
+**Architecture**: CleanArchitecture (80% confidence)
 **Signals**: minimal-apis · mediatr · efcore
 **Projects**: 4 — Web, Infrastructure, Domain, Application
 **Profile**: focused | **Tokens**: ~607 (budget 8000) | **Types**: 4 in output

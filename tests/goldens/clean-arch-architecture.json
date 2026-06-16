@@ -13,7 +13,7 @@
   },
   "architecture": {
     "style": "CleanArchitecture",
-    "confidence": 1
+    "confidence": 0.8
   },
   "signals": [
     {

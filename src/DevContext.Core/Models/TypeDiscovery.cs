@@ -35,20 +35,20 @@ public sealed class TypeDiscovery
     public ConcurrentBag<string> Tags { get; } = [];
     /// <summary>Whether this type has been pruned from the model.</summary>
     public bool IsPruned { get; set; }
-    /// <summary>Proximity score based on directory distance from focus points (0.0 to 1.0).</summary>
-    public float PathProximityScore { get; set; }
-    /// <summary>Reachability score computed by CallReachabilityPruner via BFS over the type-collapsed call graph (0.0 to 1.0).</summary>
-    public double GraphProximity { get; set; }
-    /// <summary>Relevance score based on detection patterns and call graph reachability.</summary>
-    public float RelevanceScore { get; set; }
-    /// <summary>Combined ranking score used by RenderPlan to order types for inclusion.</summary>
-    public double FinalScore { get; set; }
-    /// <summary>Focus proximity score ∈ [0,1] encompassing path distance and call-graph reachability.</summary>
-    public double FocusScore { get; set; }
-    /// <summary>Role importance score ∈ [0,1] based on the type's architectural roles (endpoint, entity, DI, etc).</summary>
+    /// <summary>Role importance score ∈ [0,1] for legacy render path ordering.</summary>
     public double RoleScore { get; set; }
+    /// <summary>Combined ranking score used by legacy RenderPlanBuilder.</summary>
+    public double FinalScore { get; set; }
+    /// <summary>Relevance score used by compression/truncation.</summary>
+    public double RelevanceScore { get; set; }
     /// <summary>Reason why this type was excluded, only set by hard-irrelevance rules.</summary>
     public string? ExclusionReason { get; set; }
     /// <summary>Scorer says this type should never be shown (test project noise).</summary>
     public bool IsHardExcluded { get; set; }
+    /// <summary>Proximity score based on directory distance from focus points (0.0 to 1.0). Deprecated — PLAN-10 E1.</summary>
+    public float PathProximityScore { get; set; }
+    /// <summary>Reachability score via BFS over type-collapsed call graph. Deprecated — PLAN-10 E1.</summary>
+    public double GraphProximity { get; set; }
+    /// <summary>Focus proximity score ∈ [0,1] encompassing path distance and call-graph reachability. Deprecated — PLAN-10 E1.</summary>
+    public double FocusScore { get; set; }
 }

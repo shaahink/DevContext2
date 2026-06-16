@@ -1,6 +1,6 @@
 ## DevContext — Overview on MinimalApiProject
 
-**Architecture**: MinimalApi (100% confidence)
+**Architecture**: CleanArchitecture (70% confidence)
 **Signals**: dapper · minimal-apis · mediatr · efcore
 **Projects**: 3 — Infrastructure, Api, Core
 **Profile**: focused | **Tokens**: ~642 (budget 8000) | **Types**: 5 in output

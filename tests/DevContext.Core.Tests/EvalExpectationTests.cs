@@ -368,8 +368,6 @@ public sealed class EvalExpectationTests : IDisposable
 
         var pruners = new List<IPruner>
         {
-            new PathProximityPruner(),
-            new CallReachabilityPruner(),
             new PatternRelevancePruner(),
             new TokenBudgetEnforcer(),
         };
