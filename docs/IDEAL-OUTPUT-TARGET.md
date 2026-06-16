@@ -259,15 +259,22 @@ Free to merge/relayout. The natural shape that falls out of the two artifacts:
 
 ---
 
-## 7. Validation (before committing to the rebuild)
+## 7. Validation probe (gates semantic resolution + persistent index)
 
-The thesis "a bridged entry-trace teaches an LLM better than a file dump" is still unmeasured
-(the deferred LLM-value benchmark). Cheap honest signal first:
+The engine (Parts A–E) now produces real Map + Trace output — syntactic resolution, all
+indirection seams bridged (send · di · domain-event · integration-event), `Calls` marked
+`[approx]`. The question is: **does the syntactic trace meaningfully help an LLM vs raw files
+vs the old catalog**, or do we need semantic precision (Part F) before it's useful?
 
-1. This doc's `POST /api/orders` trace is the hand-built target.
-2. Give an LLM a realistic task ("add a per-line discount to orders") with **(a)** this trace vs
-   **(b)** the raw files vs **(c)** today's tool output. Compare answer quality.
-3. Diff this target against today's output for the same entry — that diff is the concrete roadmap.
+The probe (defined in `docs/reports/probe-kit.md` after Part D is executed):
 
-If the trace wins, build the engine deltas in §5. If it doesn't, we learned that before spending the
-iteration.
+1. Run the engine on the target entry to produce the **real trace** (not the hand-built §2 target).
+2. Give a fresh, context-free LLM session a realistic task (e.g. "add a per-line discount to orders")
+   with **(a)** the engine trace, **(b)** raw source files, and **(c)** the legacy catalog output.
+3. Compare answer quality on: correctness (does discount logic work end-to-end?), navigation speed
+   (how fast does the LLM find the right files?), completeness (validation, persistence, events?),
+   and explanation quality (does the LLM understand the MediatR flow?).
+
+If the trace wins → fund Parts F (SemanticSymbolResolver) + G (Persistent Index).
+If not → syntactic precision is insufficient; semantic resolution is prerequisite, or the approach
+needs rethinking. Record the result in `docs/reports/` and update this section.

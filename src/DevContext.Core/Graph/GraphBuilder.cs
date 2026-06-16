@@ -28,7 +28,7 @@ public sealed class GraphBuilder
         var names = new NameResolver(model.Types.Values); // short-name → FQN for every join (design-doc Q2)
 
         AddTypeNodes(g, model, scope);                      // worked example
-        var entries = AddHttpEntryPoints(g, model, scope);  // worked example
+        var entries = AddHttpEntryPoints(g, model, scope, names);  // worked example
         AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
 
         // ── P1 Map-facing seams ───────────────────────────────────────────
@@ -58,8 +58,9 @@ public sealed class GraphBuilder
         }
     }
 
-    /// <summary>WORKED EXAMPLE — in-scope HTTP endpoints become EntryPoint nodes + inventory entries.</summary>
-    private static ImmutableArray<EntryPoint> AddHttpEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
+    /// <summary>WORKED EXAMPLE — in-scope HTTP endpoints become EntryPoint nodes + inventory entries.
+    /// Links entry → handler type/class with a Calls edge so the trace can step out from the entry.</summary>
+    private static ImmutableArray<EntryPoint> AddHttpEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         foreach (var ep in model.Detections.OfType<EndpointDetection>())
@@ -69,8 +70,40 @@ public sealed class GraphBuilder
             var id = NodeId.ForEntry(key);
             g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile });
 
-            // TODO(agent, P2): link entry → its handler member (Calls edge) so the trace can step in;
-            // then chase the dispatched request via AddCallEdges/AddSends.
+            // Link entry → handler type so the trace has a first hop.
+            if (!string.IsNullOrEmpty(ep.HandlerType) && ep.HandlerType != "λ")
+            {
+                var handlerFqn = names.Resolve(ep.HandlerType);
+                var handlerNodeId = NodeId.ForType(handlerFqn);
+                if (g.HasNode(handlerNodeId))
+                {
+                    g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
+                    {
+                        Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                        Resolution = Resolution.Join,
+                    });
+                }
+            }
+
+            // For lambda handlers (HandlerType = "λ" or empty), find the containing type from the file.
+            if (ep.HandlerType == "λ" || string.IsNullOrEmpty(ep.HandlerType))
+            {
+                var ownerType = model.Types.Values.FirstOrDefault(t =>
+                    string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
+                if (ownerType is not null)
+                {
+                    var ownerNodeId = NodeId.ForType(ownerType.Id);
+                    if (g.HasNode(ownerNodeId))
+                    {
+                        g.AddEdge(new GraphEdge(id, ownerNodeId, EdgeKind.Calls)
+                        {
+                            Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                            Resolution = Resolution.Join,
+                        });
+                    }
+                }
+            }
+
             entries.Add(new EntryPoint(EntryPointKind.HttpEndpoint, key, id)
             {
                 HttpMethod = ep.HttpMethod,
