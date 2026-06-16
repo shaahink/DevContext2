@@ -4,6 +4,59 @@
 
 ---
 
+## ✅ Iteration completion update (2026-06-16, follow-up session)
+
+The trace engine now works **end-to-end** across all three archetypes, the Roslyn
+semantic resolution (Part F) is wired in, and **the full gate passes (4/4 steps incl. Eval)**.
+
+### What was broken and fixed
+| Symptom | Root cause | Fix |
+|---------|-----------|-----|
+| Every trace was just the `▸ ENTRY` line | `AddHttpEntryPoints` keyed the lambda-owner fallback off `HandlerType == "λ"`, but minimal-API endpoints carry the lambda's **source text** as `HandlerType` (`HandlerMethod == "<lambda>"`) | Detect lambda handlers properly; fall back to the containing type by file |
+| Minimal-API traces dead-ended at the endpoint type | lambda receivers (`db`, `owner`) weren't in the call-graph field map | `CallGraphExtractor.BuildFieldMap` now includes lambda + method parameter types |
+| Traces flooded with `call group`, `call pb`, `call AsNoTracking()` | `AddCallEdges` materialised a phantom node per invocation | Only connect type nodes that already exist (real solution types) |
+| `Sends`/`Raises`/data seams never fired in a focused trace | `SourceBodyExtractor` ran only in `Full` profile; a focused trace is `Debug` | Runs in `Debug` ∪ `Full`; stores full body (compression caps later) |
+| eShop CQRS showed "no MediatR", trace stopped at the command | MediatR signal is package-based; eShop references it from `Ordering.Domain`, invisible when scoped to `Ordering.API` | `MediatRExtractor` self-activates when types implement `IRequestHandler`/`INotificationHandler` |
+| Trace dead-ended the instant it crossed a handler | The `Handles` edge lands on the `Handler` node but the class's call/raise/data edges hang off the `Type` node (same class, two ids) | `TraceBuilder` bridges `Handler`/`Service` nodes to their `Type` twin |
+| `--format json` emitted Map markdown (every eval JSON check failed "not parseable") | The Map/Trace branch ignored format | markdown → Map/Trace narrative; json/html → structured legacy renderers |
+| TodoApi style misread as `NLayer` | `MinimalApi` had a `projectCount <= 5` guard; TodoApi's 7 projects are Blazor frontend + Aspire infra | drop the guard; minimal APIs outrank a bare NLayer reading |
+
+### Roslyn semantic resolution (Part F) — DONE, no MSBuild
+`CallGraphExtractor` builds a **source-based `CSharpCompilation`** (parsed trees +
+runtime reference assemblies — no MSBuild workspace) and resolves call receivers via
+`SemanticModel`, falling back to the syntactic field/DI heuristic. Source types always
+bind; external/BCL receivers are dropped as noise. Semantic edges render `[verified]`,
+syntactic stay `[approx]`. `CallEdge` gained a `Resolution` field.
+
+### Flagship trace now produced (eShop Ordering, `--focus "POST /api/orders/"`)
+```
+POST /api/orders/ → OrdersApi
+  → send CreateOrderCommand
+    → handler CreateOrderCommandHandler
+      ├─ raises OrderStartedIntegrationEvent
+      ├─ call OrderingIntegrationEventService [verified]
+      └─ call Order [verified]
+```
+`--focus <TypeName>` also resolves to a graph node and traces from it (no longer silently falls back to the Map).
+
+### Gate: **PASS**
+```
+Step 1 Build:        PASS
+Step 2 Fast tests:   PASS (227 Core + 65 Desktop, 2 JSON goldens skipped)
+Step 3 Eval:         PASS (4/4 repos — was 0/4)
+Step 4 CLI matrix:   PASS
+```
+
+### Still deferred (genuine follow-ups, not blockers)
+- **Per-endpoint precision for minimal APIs**: all endpoints in one registration method share the owner Type node, so a trace shows the file's combined calls. Needs per-lambda call attribution.
+- **FastEndpoints `<dynamic>` routes**: routes set in `Configure()` via `Get("/x")` aren't captured (VerticalSlice shows `<dynamic>`); aspirational eval check still fails.
+- **Multi-project / multi-solution scope**: pointing at a sub-project (eShop `Ordering.API`) sees one project; the full system needs the resolved closure (the `SolutionScope` seam exists for this).
+- **Map JSON renderer**: json currently returns the structured *catalog*; a Map/Trace-shaped JSON is a later schema.
+- **Aspire signal** + **eShop/VerticalSlice arch-style**: still aspirational.
+- Original deferred items below (Part G index, Desktop PLAN-11) unchanged.
+
+---
+
 ## What was delivered (Parts A–E)
 
 ### Part A — Pipeline plumbing
