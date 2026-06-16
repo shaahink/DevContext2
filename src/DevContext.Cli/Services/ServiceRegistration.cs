@@ -24,10 +24,9 @@ public static class ServiceRegistration
         // If the count grows significantly, consider adding [PrunerOrder], [CompressorOrder],
         // and [RendererFormat] attributes with scanning similar to ExtractorRegistry.
 
-        // Pruners (ordered by pipeline execution)
-        services.AddSingleton<IPruner>(_ => new PathProximityPruner());
-        services.AddSingleton<IPruner>(_ => new CallReachabilityPruner());
+        // Pruners (ordered by pipeline execution) — PLAN-10 E1: Path/Call pruners retired
         services.AddSingleton<IPruner>(_ => new PatternRelevancePruner());
+        services.AddSingleton<IPruner>(_ => new TokenBudgetEnforcer());
 
         // Compressors (ordered by pipeline execution)
         services.AddSingleton<ICompressionStrategy>(_ => new TrivialMemberCompressor());

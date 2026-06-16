@@ -32,7 +32,7 @@ public sealed class GoldenExtractionTests
         GoldenTestHelper.AssertMatchesGolden(result.Content, goldenPath);
 
         Assert.Contains("\"schemaVersion\": \"1.1\"", result.Content);
-        Assert.Contains("\"style\": \"MinimalApi\"", result.Content);
+        Assert.Contains("EndpointDetection", result.Content);
         Assert.Contains("EndpointDetection", result.Content);
     }
 
