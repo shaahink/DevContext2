@@ -101,4 +101,114 @@ public sealed class GraphBuilderTests
         Assert.True(scope.Contains(@"C:\repo\src\AppA\Service.cs"));   // in the resolved solution
         Assert.False(scope.Contains(@"C:\repo\src\AppB\Service.cs"));  // independent solution → excluded
     }
+
+    [Fact]
+    public void B1_event_consumers_adds_events_and_consumes_edges()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.CreateOrderCommandHandler", new TypeDiscovery
+        {
+            Id = "Orders.Api.CreateOrderCommandHandler", Name = "CreateOrderCommandHandler",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\CreateOrderCommandHandler.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+        model.Types.TryAdd("Orders.Api.ValidateBuyerHandler", new TypeDiscovery
+        {
+            Id = "Orders.Api.ValidateBuyerHandler", Name = "ValidateBuyerHandler",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\ValidateBuyerHandler.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+
+        model.Detections.Add(new MediatRHandlerDetection("OrderStartedDomainEvent", "void", "ValidateBuyerHandler", MediatRKind.Notification)
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\ValidateBuyerHandler.cs", LineNumber = 15,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var eventId = NodeId.ForEvent("OrderStartedDomainEvent");
+        var handlerId = NodeId.ForHandler("Orders.Api.ValidateBuyerHandler");
+        Assert.True(graph.Contains(eventId));
+        Assert.True(graph.Contains(handlerId));
+        Assert.Contains(graph.OutEdges(eventId), e => e.Kind == EdgeKind.Consumes && e.To == handlerId);
+    }
+
+    [Fact]
+    public void B1_di_resolves_adds_resolve_edges()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.IOrderRepository", new TypeDiscovery
+        {
+            Id = "Orders.Api.IOrderRepository", Name = "IOrderRepository",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\IOrderRepository.cs",
+            Kind = TypeKind.Interface, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Orders.Api.OrderRepository", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrderRepository", Name = "OrderRepository",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrderRepository.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+            ImplementedInterfaces = ["IOrderRepository"],
+        });
+
+        model.Detections.Add(new DiRegistrationDetection("IOrderRepository", "OrderRepository", "Scoped", [], DiRegistrationShape.DirectBinding)
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Program.cs", LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var svcId = NodeId.ForType("Orders.Api.IOrderRepository");
+        var implId = NodeId.ForService("Orders.Api.OrderRepository");
+        Assert.Contains(graph.OutEdges(svcId), e => e.Kind == EdgeKind.Resolves && e.To == implId);
+    }
+
+    [Fact]
+    public void B1_aggregate_nodes_tagged()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.Order", new TypeDiscovery
+        {
+            Id = "Orders.Api.Order", Name = "Order",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\Domain\Order.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+
+        model.Detections.Add(new EfEntityDetection("Order", "OrderingContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Domain\Order.cs", LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var orderNode = graph.Node(NodeId.ForEntity("Orders.Api.Order"));
+        Assert.NotNull(orderNode);
+        Assert.Contains("aggregate", orderNode!.Tags);
+    }
 }
