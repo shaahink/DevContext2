@@ -48,22 +48,22 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
             }
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var methodDecls = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
 
             foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
                 ct.ThrowIfCancellationRequested();
-                CheckIndirectWiringPatterns(invocation, root, model, filePath);
+                CheckIndirectWiringPatterns(invocation, methodDecls, model, filePath);
             }
         }
     }
 
-    private void CheckIndirectWiringPatterns(InvocationExpressionSyntax invocation, SyntaxNode root, DiscoveryModel model, string filePath)
+    private void CheckIndirectWiringPatterns(InvocationExpressionSyntax invocation, List<MethodDeclarationSyntax> methodDecls, DiscoveryModel model, string filePath)
     {
         var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
         if (memberAccess == null) return;
 
         var methodName = memberAccess.Name.Identifier.ValueText;
-        var methodDecls = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
         var containingMethod = FindContainingMethod(invocation, methodDecls);
         if (containingMethod == null) return;
 

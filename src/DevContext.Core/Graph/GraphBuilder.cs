@@ -361,12 +361,7 @@ public sealed partial class GraphBuilder
         {
             if (!scope.Contains(di.SourceFile)) continue;
             if (di.Shape != DiRegistrationShape.DirectBinding) continue;
-            if (string.IsNullOrEmpty(di.ImplementationType)
-                || string.Equals(di.ImplementationType, "?"
-, StringComparison.Ordinal) || di.ImplementationType.StartsWith("sp =>", StringComparison.Ordinal)
-                || di.ImplementationType.StartsWith("_ =>", StringComparison.Ordinal)
-                || di.ImplementationType.StartsWith('(')
-                || di.ImplementationType.Contains("GetRequiredService", StringComparison.Ordinal)) continue;
+            if (!IsValidDiImplementation(di)) continue;
 
             var svcFqn = names.Resolve(di.ServiceType);
             var implFqn = names.Resolve(di.ImplementationType);
@@ -643,6 +638,15 @@ public sealed partial class GraphBuilder
         }
         return $"{filePath}:{line}";
     }
+
+    /// <summary>Filters out unresolvable DI implementations (lambdas, aliases, service locators).</summary>
+    private static bool IsValidDiImplementation(DiRegistrationDetection di)
+        => !string.IsNullOrEmpty(di.ImplementationType)
+           && !string.Equals(di.ImplementationType, "?", StringComparison.Ordinal)
+           && !di.ImplementationType.StartsWith("sp =>", StringComparison.Ordinal)
+           && !di.ImplementationType.StartsWith("_ =>", StringComparison.Ordinal)
+           && !di.ImplementationType.StartsWith('(')
+           && !di.ImplementationType.Contains("GetRequiredService", StringComparison.Ordinal);
 
     private static string RemoveGenerics(string typeName)
     {

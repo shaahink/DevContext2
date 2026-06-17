@@ -51,10 +51,10 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         }
 
         var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-        var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
+        var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
 
         // Phase 1b pre-scan: MapGroup + NewVersionedApi chain detection — resolve group prefixes
-        var groupPrefixes = ExtractGroupPrefixes(root);
+        var groupPrefixes = ExtractGroupPrefixes(allInvocations);
 
         // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
         foreach (var invocation in allInvocations)
@@ -81,8 +81,8 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         foreach (var extMethod in extMethods)
         {
             // Scan for MapGroup calls within the extension method body for prefix resolution
-            var extGroupPrefixes = ExtractGroupPrefixes(extMethod);
-            var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+            var extGroupPrefixes = ExtractGroupPrefixes(extInvocations);
             foreach (var invocation in extInvocations)
             {
                 ct.ThrowIfCancellationRequested();
@@ -187,10 +187,10 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         return [.. auth];
     }
 
-    private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)
+    private static Dictionary<string, string> ExtractGroupPrefixes(IReadOnlyList<InvocationExpressionSyntax> invocations)
     {
         var prefixes = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        foreach (var invocation in invocations)
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
             if (!string.Equals(memberAccess.Name.Identifier.ValueText, "MapGroup", StringComparison.Ordinal)) continue;

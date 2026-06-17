@@ -49,16 +49,31 @@ public static class RenderPlanBuilder
     private static HashSet<string> BuildPinnedIds(AnalysisSnapshot snapshot, DiscoveryModel model)
     {
         var pinnedIds = new HashSet<string>(StringComparer.Ordinal);
+        if (snapshot.Analysis.FocusPoints.Count == 0)
+            return pinnedIds;
+
+        // Build name-to-ID lookup once
+        var nameToIds = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+        {
+            if (!nameToIds.TryGetValue(type.Name, out var ids))
+                nameToIds[type.Name] = ids = [];
+            ids.Add(type.Id);
+        }
+
         foreach (var fp in snapshot.Analysis.FocusPoints)
         {
             if (fp.TypeName is null) continue;
+            if (nameToIds.TryGetValue(fp.TypeName, out var exactMatches))
+            {
+                pinnedIds.UnionWith(exactMatches);
+                continue;
+            }
+            // Fallback: suffix match (e.g. "Service" matches "MyApp.Services.Service")
             foreach (var type in model.Types.Values)
             {
-                if (string.Equals(type.Name, fp.TypeName, StringComparison.Ordinal)
-                    || type.Id.EndsWith("." + fp.TypeName, StringComparison.Ordinal))
-                {
+                if (type.Id.EndsWith("." + fp.TypeName, StringComparison.Ordinal))
                     pinnedIds.Add(type.Id);
-                }
             }
         }
         return pinnedIds;

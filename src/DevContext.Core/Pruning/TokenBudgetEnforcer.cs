@@ -15,7 +15,7 @@ public sealed class TokenBudgetEnforcer : IPruner
 
         var candidates = model.Types.Values
             .Where(t => !t.IsPruned)
-            .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
+            .OrderByDescending(t => t.RelevanceScore)
             .ToList();
 
         var usedTokens = 0;
@@ -52,7 +52,7 @@ public sealed class TokenBudgetEnforcer : IPruner
         {
             var survivors = model.Types.Values
                 .Where(t => !t.IsPruned)
-                .OrderByDescending(t => t.PathProximityScore + t.RelevanceScore)
+                .OrderByDescending(t => t.RelevanceScore)
                 .ToList();
 
             if (survivors.Count > maxTypes)

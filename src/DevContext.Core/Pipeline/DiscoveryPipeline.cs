@@ -459,15 +459,26 @@ public sealed class DiscoveryPipeline
             .OrderBy(GetOrder)
             .ToList();
 
-        var excludedByName = stageExtractors
-            .Where(e => ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal))
-            .ToList();
+        // Single pass partitions extractors into three buckets, calling ShouldRun at most once
+        var excludedByName = new List<IDiscoveryExtractor>();
+        var excludedBySignal = new List<IDiscoveryExtractor>();
+        var eligible = new List<IDiscoveryExtractor>();
 
-        var excludedBySignal = stageExtractors
-.Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal) && !e.ShouldRun(ctx, model)).ToList();
-
-        var eligible = stageExtractors
-.Where(e => !ctx.Options.ExcludeExtractors.Contains(e.Name, StringComparer.Ordinal) && e.ShouldRun(ctx, model)).ToList();
+        foreach (var ext in stageExtractors)
+        {
+            if (ctx.Options.ExcludeExtractors.Contains(ext.Name, StringComparer.Ordinal))
+            {
+                excludedByName.Add(ext);
+            }
+            else if (!ext.ShouldRun(ctx, model))
+            {
+                excludedBySignal.Add(ext);
+            }
+            else
+            {
+                eligible.Add(ext);
+            }
+        }
 
         // Report skipped extractors
         foreach (var ext in excludedByName)

@@ -70,14 +70,12 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             if (member is not MethodDeclarationSyntax method) continue;
 
             var actionRoutes = ExtractActionRoutes(method);
-            var hasVerb = HasHttpVerbAttribute(method);
+            var (hasVerb, httpMethod) = ExtractHttpVerb(method);
 
             if (actionRoutes.Length == 0 && !hasVerb && !hasActionToken)
                 continue;
 
             if (HasNonActionAttribute(method)) continue;
-
-            var httpMethod = ExtractHttpMethod(method);
             if (httpMethod == null && actionRoutes.Length == 0)
             {
                 if (hasActionToken)
@@ -156,16 +154,33 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         return false;
     }
 
-    private static bool HasHttpVerbAttribute(MethodDeclarationSyntax method)
+    /// <summary>Single pass over method attributes to determine whether it has an HTTP verb and extract its HTTP method.</summary>
+    private static (bool HasVerb, string? HttpMethod) ExtractHttpVerb(MethodDeclarationSyntax method)
     {
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
+
             foreach (var verb in HttpVerbs)
-                if (string.Equals(name, verb, StringComparison.Ordinal) || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
+            {
+                var isMatch = string.Equals(attrName, verb, StringComparison.Ordinal) || attrName.EndsWith("." + verb, StringComparison.Ordinal);
+                if (isMatch)
+                    return (true, verb[4..].ToUpperInvariant());
+            }
+
+            var genericIndex = attrName.IndexOf('<');
+            if (genericIndex > 0)
+            {
+                var baseName = attrName[..genericIndex];
+                foreach (var verb in HttpVerbs)
+                {
+                    if (string.Equals(baseName, verb, StringComparison.Ordinal) || baseName.EndsWith("." + verb, StringComparison.Ordinal))
+                        return (true, verb[4..].ToUpperInvariant());
+                }
+            }
         }
-        return false;
+
+        return (false, null);
     }
 
     private static bool HasNonActionAttribute(MethodDeclarationSyntax method)
@@ -188,34 +203,6 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         return "GET"; // ASP.NET default for [ApiController] actions
     }
 
-    private static string? ExtractHttpMethod(MethodDeclarationSyntax method)
-    {
-        foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
-        {
-            var attrName = attr.Name.ToString();
-
-            foreach (var verb in HttpVerbs)
-            {
-                if (string.Equals(attrName, verb, StringComparison.Ordinal) || attrName.EndsWith("." + verb, StringComparison.Ordinal))
-                {
-                    return verb[4..].ToUpperInvariant();
-                }
-            }
-
-            var genericIndex = attrName.IndexOf('<');
-            if (genericIndex > 0)
-            {
-                var baseName = attrName[..genericIndex];
-                foreach (var verb in HttpVerbs)
-                {
-                    if (string.Equals(baseName, verb, StringComparison.Ordinal) || baseName.EndsWith("." + verb, StringComparison.Ordinal))
-                        return verb[4..].ToUpperInvariant();
-                }
-            }
-        }
-
-        return null;
-    }
 
     private static bool IsRouteAttribute(string attrName)
     {

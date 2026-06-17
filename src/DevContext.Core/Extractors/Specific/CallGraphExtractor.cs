@@ -325,29 +325,34 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        foreach (var field in typeDecl.Members.OfType<FieldDeclarationSyntax>())
+        // Single pass over members to collect fields, properties, constructors, and method params
+        foreach (var member in typeDecl.Members)
         {
-            var fieldType = field.Declaration.Type.ToString();
-            foreach (var variable in field.Declaration.Variables)
+            switch (member)
             {
-                map[variable.Identifier.ValueText] = fieldType;
-            }
-        }
-
-        foreach (var prop in typeDecl.Members.OfType<PropertyDeclarationSyntax>())
-        {
-            var propType = prop.Type.ToString();
-            map[prop.Identifier.ValueText] = propType;
-        }
-
-        // Add constructor parameters (they behave like fields for resolution)
-        foreach (var ctor in typeDecl.Members.OfType<ConstructorDeclarationSyntax>())
-        {
-            foreach (var param in ctor.ParameterList.Parameters)
-            {
-                var paramType = param.Type?.ToString();
-                if (paramType is not null)
-                    map[param.Identifier.ValueText] = paramType;
+                case FieldDeclarationSyntax field:
+                    foreach (var variable in field.Declaration.Variables)
+                        map[variable.Identifier.ValueText] = field.Declaration.Type.ToString();
+                    break;
+                case PropertyDeclarationSyntax prop:
+                    map[prop.Identifier.ValueText] = prop.Type.ToString();
+                    break;
+                case ConstructorDeclarationSyntax ctor:
+                    foreach (var param in ctor.ParameterList.Parameters)
+                    {
+                        var ctorParamType = param.Type?.ToString();
+                        if (ctorParamType is not null)
+                            map[param.Identifier.ValueText] = ctorParamType;
+                    }
+                    break;
+                case MethodDeclarationSyntax method:
+                    foreach (var param in method.ParameterList.Parameters)
+                    {
+                        var methodParamType = param.Type?.ToString();
+                        if (methodParamType is not null)
+                            map.TryAdd(param.Identifier.ValueText, methodParamType);
+                    }
+                    break;
             }
         }
 
@@ -369,17 +374,6 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         foreach (var lambda in typeDecl.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>())
         {
             foreach (var param in lambda.ParameterList.Parameters)
-            {
-                var paramType = param.Type?.ToString();
-                if (paramType is not null)
-                    map.TryAdd(param.Identifier.ValueText, paramType);
-            }
-        }
-
-        // Method parameters (e.g. a handler's `Handle(CreateOrderCommand request)` argument).
-        foreach (var method in typeDecl.Members.OfType<MethodDeclarationSyntax>())
-        {
-            foreach (var param in method.ParameterList.Parameters)
             {
                 var paramType = param.Type?.ToString();
                 if (paramType is not null)

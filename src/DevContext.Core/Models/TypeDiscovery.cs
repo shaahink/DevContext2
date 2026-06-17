@@ -39,16 +39,10 @@ public sealed class TypeDiscovery
     public double RoleScore { get; set; }
     /// <summary>Combined ranking score used by legacy RenderPlanBuilder.</summary>
     public double FinalScore { get; set; }
-    /// <summary>Relevance score used by compression/truncation.</summary>
+    /// <summary>Relevance score used by compression/truncation (replaces deprecated PathProximityScore, GraphProximity, FocusScore from PLAN-10).</summary>
     public double RelevanceScore { get; set; }
     /// <summary>Reason why this type was excluded, only set by hard-irrelevance rules.</summary>
     public string? ExclusionReason { get; set; }
     /// <summary>Scorer says this type should never be shown (test project noise).</summary>
     public bool IsHardExcluded { get; set; }
-    /// <summary>Proximity score based on directory distance from focus points (0.0 to 1.0). Deprecated — PLAN-10 E1.</summary>
-    public float PathProximityScore { get; set; }
-    /// <summary>Reachability score via BFS over type-collapsed call graph. Deprecated — PLAN-10 E1.</summary>
-    public double GraphProximity { get; set; }
-    /// <summary>Focus proximity score ∈ [0,1] encompassing path distance and call-graph reachability. Deprecated — PLAN-10 E1.</summary>
-    public double FocusScore { get; set; }
 }
