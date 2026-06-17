@@ -62,10 +62,10 @@ public partial class MainWindow
 
         // Download the Evergreen bootstrapper (~2 MB)
         using var client = new HttpClient();
-        using var response = client.GetAsync(BootstrapperUrl).GetAwaiter().GetResult();
+        using var response = client.GetAsync(BootstrapperUrl).ConfigureAwait(false).GetAwaiter().GetResult();
         response.EnsureSuccessStatusCode();
         using var fs = new FileStream(installer, FileMode.Create, FileAccess.Write);
-        response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
+        response.Content.CopyToAsync(fs).ConfigureAwait(false).GetAwaiter().GetResult();
         fs.Close();
 
         // Run the bootstrapper silently — it installs WebView2 Evergreen Runtime

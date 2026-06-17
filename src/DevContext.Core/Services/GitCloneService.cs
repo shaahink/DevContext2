@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DevContext.Core.Services;
 
@@ -20,9 +22,15 @@ public sealed record CloneProgress(string Phase, int PercentComplete, string Mes
 
 public sealed class GitCloneService : IDisposable
 {
+    private readonly ILogger<GitCloneService> _logger;
     private readonly SemaphoreSlim _cloneLock = new(1, 1);
     private readonly Dictionary<string, (string Path, DateTime ClonedAt)> _cache = new(StringComparer.Ordinal);
     private bool? _gitAvailable;
+
+    public GitCloneService(ILogger<GitCloneService>? logger = null)
+    {
+        _logger = logger ?? NullLogger<GitCloneService>.Instance;
+    }
 
     public bool IsGitAvailable
     {
@@ -49,10 +57,7 @@ public sealed class GitCloneService : IDisposable
             p?.WaitForExit(5000);
             return p?.ExitCode == 0;
         }
-        catch
-        {
-            return false;
-        }
+        catch { /* git not available on PATH — use LibGit2Sharp fallback */ return false; }
     }
 
     public async Task<RepoStatus> ValidateAsync(RepoUrl repo, CancellationToken ct)
@@ -80,9 +85,9 @@ public sealed class GitCloneService : IDisposable
                 return refs.Any() ? RepoStatus.Valid : RepoStatus.NotFound;
         }
         catch (OperationCanceledException) { throw; }
-        catch
+        catch (Exception ex)
         {
-            // Fall through to git CLI
+            _logger.LogDebug(ex, "LibGit2Sharp validation failed, falling back to git CLI");
         }
 
         // Fallback to git CLI
@@ -117,7 +122,7 @@ public sealed class GitCloneService : IDisposable
             return RepoStatus.NetworkError;
         }
         catch (OperationCanceledException) { throw; }
-        catch { return RepoStatus.NetworkError; }
+        catch (Exception ex) { _logger.LogDebug(ex, "Network error during git validation"); return RepoStatus.NetworkError; }
     }
 
     public async Task<string?> CloneAsync(RepoUrl repo, string targetPath, string? branch,
@@ -168,7 +173,7 @@ public sealed class GitCloneService : IDisposable
         }
     }
 
-    private static async Task<bool> TryCloneLibGit2Sharp(string url, string targetPath, string? branch,
+    private async Task<bool> TryCloneLibGit2Sharp(string url, string targetPath, string? branch,
         IProgress<CloneProgress>? progress, CancellationToken ct)
     {
         try
@@ -196,7 +201,7 @@ public sealed class GitCloneService : IDisposable
             }, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { throw; }
-        catch { return false; }
+        catch (Exception ex) { _logger.LogDebug(ex, "Clone failed"); return false; }
     }
 
     private static async Task<bool> TryCloneGitCli(string url, string targetPath, string branch,
@@ -238,13 +243,13 @@ public sealed class GitCloneService : IDisposable
             return true;
         }
         catch (OperationCanceledException) { throw; }
-        catch { return false; }
+        catch { /* best-effort clone: git CLI may not be available or auth may fail */ return false; }
     }
 
     public static void Cleanup(string localPath)
     {
         try { DeleteDirectoryRobust(localPath); }
-        catch { /* best effort */ }
+        catch { /* best effort: cleanup failure is non-fatal */ }
     }
 
     private static void DeleteDirectoryRobust(string path)

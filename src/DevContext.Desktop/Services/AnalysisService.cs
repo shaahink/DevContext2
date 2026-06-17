@@ -28,11 +28,12 @@ public interface IAnalysisService
     void AddRecent(string path);
 }
 
-public class AnalysisService : IAnalysisService
+public class AnalysisService : IAnalysisService, IDisposable
 {
     private readonly string _dataDir;
     private ServiceProvider? _serviceProvider;
     private DiscoveryPipeline? _cachedPipeline;
+    private string? _cachedRootPath;
 
     public AnalysisService()
     {
@@ -44,7 +45,12 @@ public class AnalysisService : IAnalysisService
 
     private DiscoveryPipeline GetPipeline(string rootPath)
     {
-        if (_cachedPipeline is not null) return _cachedPipeline;
+        // Invalidate cache if root path changed
+        if (_cachedPipeline is not null && string.Equals(_cachedRootPath, rootPath, StringComparison.Ordinal))
+            return _cachedPipeline;
+
+        _serviceProvider?.Dispose();
+        _cachedRootPath = rootPath;
 
         var services = new ServiceCollection();
         services.AddLogging();
@@ -52,6 +58,13 @@ public class AnalysisService : IAnalysisService
         _serviceProvider = services.BuildServiceProvider();
         _cachedPipeline = _serviceProvider.GetRequiredService<DiscoveryPipeline>();
         return _cachedPipeline;
+    }
+
+    public void Dispose()
+    {
+        _serviceProvider?.Dispose();
+        _serviceProvider = null;
+        _cachedPipeline = null;
     }
 
     public async Task<SnapshotResult> AnalyzeAsync(
