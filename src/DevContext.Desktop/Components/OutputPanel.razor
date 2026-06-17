@@ -154,14 +154,7 @@
 
         @if (IsTabHuman)
         {
-            @if (VM.HasGraph)
-            {
-                <pre class="output-text"><code>@VM.RawContent</code></pre>
-            }
-            else
-            {
-                <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
-            }
+            <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
         }
         else if (IsTabStats)
         {
