@@ -5,7 +5,6 @@ namespace DevContext.Cli.Observers;
 public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 {
     private readonly ConcurrentQueue<string> _log = new();
-    private readonly ConcurrentQueue<string> _pendingLines = new();
     private readonly bool _isInteractive;
     private int _indent;
     private bool _inParallelStage;
@@ -33,7 +32,12 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
         Interlocked.Increment(ref _extractorDepth);
         var line = $"  ∟ {name}...";
         if (_inParallelStage)
-            _pendingLines.Enqueue(line);
+        {
+            // During parallel stages, write immediately so the user sees real-time progress
+            // rather than waiting for all extractors to complete
+            AnsiConsole.MarkupLine(line);
+            _log.Enqueue(line);
+        }
         else
             WriteLine(line);
     }
@@ -48,7 +52,10 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
             ? $" (+{typesAdded}t +{detectionsAdded}d)" : "";
         var line = $"  ∟ [dim]{name}[/] ✓ {ms:F0}ms{note}{impact}";
         if (_inParallelStage)
-            _pendingLines.Enqueue(line);
+        {
+            AnsiConsole.MarkupLine(line);
+            _log.Enqueue(line);
+        }
         else
             WriteLine(line);
     }
@@ -79,12 +86,7 @@ public sealed class SpectreDiscoveryObserver : IDiscoveryObserver
 
     public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed)
     {
-        if (_inParallelStage)
-        {
-            while (_pendingLines.TryDequeue(out var line))
-                WriteLine(line);
-            _inParallelStage = false;
-        }
+        _inParallelStage = false;
         _indent--;
         WriteLine($"Stage completed [{elapsed.TotalMilliseconds:F0}ms]");
     }

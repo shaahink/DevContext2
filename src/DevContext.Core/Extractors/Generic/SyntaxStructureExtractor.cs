@@ -28,9 +28,15 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
+        var totalFiles = context.Analysis.AllSourceFiles.Count;
+        var processed = 0;
+
         await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct).ConfigureAwait(false))
         {
             ct.ThrowIfCancellationRequested();
+            processed++;
+            if (processed % 25 == 0 && totalFiles > 0)
+                context.Observer.OnItemProgress("parsing types", processed, totalFiles);
 
             SyntaxTree syntaxTree;
             try

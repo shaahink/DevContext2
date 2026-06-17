@@ -43,6 +43,9 @@ public sealed class CompositeDiscoveryObserver : IDiscoveryObserver
     public void OnDiagnostic(DiagnosticEntry entry)
     { foreach (var o in _inner) o.OnDiagnostic(entry); }
 
+    public void OnItemProgress(string detail, int current, int total)
+    { foreach (var o in _inner) o.OnItemProgress(detail, current, total); }
+
     internal void RecordExtractorMetrics(string name, ExtractorTier tier, ExtractorCategory category,
         TimeSpan elapsed, bool skipped, int typesAdded, int detectionsAdded)
     {

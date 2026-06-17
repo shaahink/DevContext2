@@ -273,6 +273,7 @@ public class AnalysisService : IAnalysisService, IDisposable
     private sealed class DesktopProgressObserver : IDiscoveryObserver
     {
         private readonly IProgress<AnalysisProgress>? _progress;
+        private int _extractorCount;
 
         public DesktopProgressObserver(IProgress<AnalysisProgress>? progress) => _progress = progress;
 
@@ -291,20 +292,65 @@ public class AnalysisService : IAnalysisService, IDisposable
                 PipelineStage.Rendering => "Rendering output...",
                 _ => $"Stage: {stage}"
             };
+            _extractorCount = 0;
             _progress?.Report(new AnalysisProgress(text, null));
         }
 
-        public void OnExtractorStarted(string name, ExtractorTier tier) { }
+        public void OnExtractorStarted(string name, ExtractorTier tier)
+        {
+            _extractorCount++;
+            _progress?.Report(new AnalysisProgress($"  ∟ {name}...", null));
+        }
+
         public void OnExtractorCompleted(string name, TimeSpan elapsed, bool skipped, string? skipReason,
             int typesAdded = 0, int detectionsAdded = 0)
-        { }
-        public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals) { }
-        public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter) { }
-        public void OnCompressionApplied(CompressionResult result) { }
-        public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed) { }
-        public void OnRenderCompleted(RenderedContext result) { }
+        {
+            var ms = elapsed.TotalMilliseconds;
+            var impact = (typesAdded > 0 || detectionsAdded > 0)
+                ? $" (+{typesAdded}t +{detectionsAdded}d)" : "";
+            var text = skipped
+                ? $"  ∟ {name} — skipped ({skipReason ?? "?"})"
+                : $"  ∟ {name} ✓ {ms:F0}ms{impact}";
+            _progress?.Report(new AnalysisProgress(text, null));
+        }
+
+        public void OnSignalsSealed(IReadOnlyDictionary<string, FeatureSignal> signals)
+        {
+            var detected = signals.Values.Count(s => s.Detected);
+            _progress?.Report(new AnalysisProgress($"Signals: {detected} detected", null));
+        }
+
+        public void OnPrunerCompleted(string name, int itemsBefore, int itemsAfter)
+        {
+            var pct = itemsBefore > 0 ? (itemsBefore - itemsAfter) * 100 / itemsBefore : 0;
+            _progress?.Report(new AnalysisProgress($"{name}: {itemsBefore} → {itemsAfter} types (‑{pct}%)", null));
+        }
+
+        public void OnCompressionApplied(CompressionResult result)
+        {
+            var pct = result.TokensBefore > 0
+                ? (result.TokensBefore - result.TokensAfter) * 100 / result.TokensBefore : 0;
+            _progress?.Report(new AnalysisProgress($"{result.StrategyName}: ‑{pct}% tokens", null));
+        }
+
+        public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed)
+        {
+            _progress?.Report(new AnalysisProgress($"Stage complete [{elapsed.TotalMilliseconds:F0}ms]", null));
+        }
+
+        public void OnRenderCompleted(RenderedContext result)
+        {
+            _progress?.Report(new AnalysisProgress($"Rendered ~{result.EstimatedTokens} tokens", null));
+        }
+
         public void OnPipelineCompleted(DiscoveryModel model) { }
         public void OnDiagnostic(DiagnosticEntry entry) { }
+
+        public void OnItemProgress(string detail, int current, int total)
+        {
+            var pct = total > 0 ? current * 100 / total : 0;
+            _progress?.Report(new AnalysisProgress($"  ∟ {detail} ({current}/{total}, {pct}%)", (double)pct / 100));
+        }
     }
 }
 

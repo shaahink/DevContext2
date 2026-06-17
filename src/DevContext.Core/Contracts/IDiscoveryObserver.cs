@@ -31,4 +31,9 @@ public interface IDiscoveryObserver
     void RecordExtractorMetrics(string name, ExtractorTier tier, ExtractorCategory category,
         TimeSpan elapsed, bool skipped, int typesAdded, int detectionsAdded)
     { }
+
+    /// <summary>Optional per-item progress callback for long-running extractors.
+    /// Extractors call this periodically during file/type processing. Default no-op.</summary>
+    void OnItemProgress(string detail, int current, int total)
+    { }
 }
