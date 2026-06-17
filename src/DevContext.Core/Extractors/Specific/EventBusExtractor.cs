@@ -63,7 +63,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
 
                     if (typeName.StartsWith("IConsumer<", StringComparison.Ordinal))
                     {
-                        var args = ExtractGenericArguments(typeName);
+                        var args = GenericArgumentParser.ExtractGenericArguments(typeName);
                         if (args.Length == 0) continue;
 
                         var messageType = args[0];
@@ -150,51 +150,5 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                 });
             }
         }
-    }
-
-    private static string[] ExtractGenericArguments(string typeName)
-    {
-        var openBracket = typeName.IndexOf('<');
-        if (openBracket < 0) return [];
-
-        var closeBracket = typeName.LastIndexOf('>');
-        if (closeBracket <= openBracket) return [];
-
-        var inner = typeName.Substring(openBracket + 1, closeBracket - openBracket - 1);
-        return SplitGenericArgs(inner);
-    }
-
-    private static string[] SplitGenericArgs(string args)
-    {
-        var depth = 0;
-        var parts = new List<string>();
-        var current = new System.Text.StringBuilder();
-
-        foreach (var ch in args)
-        {
-            switch (ch)
-            {
-                case '<':
-                    depth++;
-                    current.Append(ch);
-                    break;
-                case '>':
-                    depth--;
-                    current.Append(ch);
-                    break;
-                case ',' when depth == 0:
-                    parts.Add(current.ToString().Trim());
-                    current.Clear();
-                    break;
-                default:
-                    current.Append(ch);
-                    break;
-            }
-        }
-
-        if (current.Length > 0)
-            parts.Add(current.ToString().Trim());
-
-        return [.. parts];
     }
 }

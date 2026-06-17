@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using DevContext.Core.Utilities;
 
 namespace DevContext.Core.Compression;
 
@@ -16,7 +17,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model, includeSourceBody: true);
         var notes = new List<string>();
         var formattedCount = 0;
 
@@ -42,7 +43,7 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
             formattedCount++;
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model, includeSourceBody: true);
         notes.Add($"Formatted {formattedCount} type source bodies for LLM consumption");
 
         return new ValueTask<CompressionResult>(new CompressionResult(
@@ -81,23 +82,6 @@ public sealed partial class LlmFriendlyFormatter : ICompressionStrategy
         return Math.Max(1, text.Length / 4);
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned || type.IsHardExcluded) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-            chars += type.BaseTypes.Sum(b => b.Length);
-            chars += type.ImplementedInterfaces.Sum(i => i.Length);
-            chars += type.SourceBody?.Length ?? 0;
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 
     [GeneratedRegex(@"^\s*///\s*(.*?)$", RegexOptions.Multiline | RegexOptions.Compiled)]
     private static partial Regex MyRegex();

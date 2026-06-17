@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Compression;
 
 /// <summary>Aggressively truncates type source bodies that exceed the per-type character cap.</summary>
@@ -10,7 +12,7 @@ public sealed class AggressiveTruncator : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model, includeSourceBody: true);
         var notes = new List<string>();
         var truncatedCount = 0;
 
@@ -31,7 +33,7 @@ public sealed class AggressiveTruncator : ICompressionStrategy
             notes.Add($"Truncated '{type.Id}' from {originalLength} to {cap} chars ({truncatedLines} method lines truncated)");
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model, includeSourceBody: true);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
@@ -77,21 +79,4 @@ public sealed class AggressiveTruncator : ICompressionStrategy
         return string.Join('\n', result);
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned || type.IsHardExcluded) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-            chars += type.BaseTypes.Sum(b => b.Length);
-            chars += type.ImplementedInterfaces.Sum(i => i.Length);
-            chars += type.SourceBody?.Length ?? 0;
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 }

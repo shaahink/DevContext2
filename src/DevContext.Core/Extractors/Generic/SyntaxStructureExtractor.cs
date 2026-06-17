@@ -85,8 +85,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         var name = typeDecl.Identifier.ValueText;
         if (string.IsNullOrEmpty(name)) return null;
 
-        var namespaceDecl = typeDecl.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
-        var namespaceName = namespaceDecl?.Name.ToString() ?? "global";
+        var namespaceName = RoslynSyntaxHelpers.GetNamespace(typeDecl);
         var id = $"{namespaceName}.{name}";
 
         var kind = typeDecl.Kind() switch
@@ -99,7 +98,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             _ => ModelsTypeKind.Class,
         };
 
-        var methods = ExtractMethods(typeDecl).Concat(ExtractConstructors(typeDecl)).ToImmutableArray();
+        var methods = ExtractMethods(typeDecl);
         var properties = ExtractProperties(typeDecl);
         var baseTypes = ExtractBaseTypes(typeDecl);
         var interfaces = ExtractInterfaces(typeDecl);
@@ -132,52 +131,47 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
     private static ImmutableArray<MethodSignature> ExtractMethods(TypeDeclarationSyntax typeDecl)
     {
         var methods = new List<MethodSignature>();
-        foreach (var method in typeDecl.Members.OfType<MethodDeclarationSyntax>())
+        // Methods (including constructors) collected in a single pass
+        foreach (var member in typeDecl.Members)
         {
-            var paramTypes = method.ParameterList.Parameters
-                .Select(p => p.Type?.ToString() ?? "var")
-                .ToImmutableArray();
-            var paramNames = method.ParameterList.Parameters
-                .Select(p => p.Identifier.ValueText)
-                .ToImmutableArray();
-            var returnType = method.ReturnType?.ToString() ?? "void";
-
-            methods.Add(new MethodSignature(
-                method.Identifier.ValueText,
-                returnType,
-                paramTypes,
-                paramNames,
-                GetAccessibility(method.Modifiers),
-                method.Modifiers.Any(SyntaxKind.StaticKeyword),
-                method.Modifiers.Any(SyntaxKind.AsyncKeyword) || method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
+            switch (member)
+            {
+                case MethodDeclarationSyntax method:
+                    var paramTypes = method.ParameterList.Parameters
+                        .Select(p => p.Type?.ToString() ?? "var")
+                        .ToImmutableArray();
+                    var paramNames = method.ParameterList.Parameters
+                        .Select(p => p.Identifier.ValueText)
+                        .ToImmutableArray();
+                    var returnType = method.ReturnType?.ToString() ?? "void";
+                    methods.Add(new MethodSignature(
+                        method.Identifier.ValueText,
+                        returnType,
+                        paramTypes,
+                        paramNames,
+                        GetAccessibility(method.Modifiers),
+                        method.Modifiers.Any(SyntaxKind.StaticKeyword),
+                        method.Modifiers.Any(SyntaxKind.AsyncKeyword) || method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
+                    break;
+                case ConstructorDeclarationSyntax ctor:
+                    var ctorParamTypes = ctor.ParameterList.Parameters
+                        .Select(p => p.Type?.ToString() ?? "var")
+                        .ToImmutableArray();
+                    var ctorParamNames = ctor.ParameterList.Parameters
+                        .Select(p => p.Identifier.ValueText)
+                        .ToImmutableArray();
+                    methods.Add(new MethodSignature(
+                        ctor.Identifier.ValueText,
+                        "ctor",
+                        ctorParamTypes,
+                        ctorParamNames,
+                        GetAccessibility(ctor.Modifiers),
+                        ctor.Modifiers.Any(SyntaxKind.StaticKeyword),
+                        false));
+                    break;
+            }
         }
-
         return methods.ToImmutableArray();
-    }
-
-    private static ImmutableArray<MethodSignature> ExtractConstructors(TypeDeclarationSyntax typeDecl)
-    {
-        var ctors = new List<MethodSignature>();
-        foreach (var ctor in typeDecl.Members.OfType<ConstructorDeclarationSyntax>())
-        {
-            var paramTypes = ctor.ParameterList.Parameters
-                .Select(p => p.Type?.ToString() ?? "var")
-                .ToImmutableArray();
-            var paramNames = ctor.ParameterList.Parameters
-                .Select(p => p.Identifier.ValueText)
-                .ToImmutableArray();
-
-            ctors.Add(new MethodSignature(
-                ctor.Identifier.ValueText,
-                "ctor",
-                paramTypes,
-                paramNames,
-                GetAccessibility(ctor.Modifiers),
-                ctor.Modifiers.Any(SyntaxKind.StaticKeyword),
-                false));
-        }
-
-        return ctors.ToImmutableArray();
     }
 
     private static ImmutableArray<PropertySignature> ExtractProperties(TypeDeclarationSyntax typeDecl)

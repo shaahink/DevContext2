@@ -52,11 +52,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
 
             foreach (var typeDecl in typeDecls)
             {
-                var ns = typeDecl.Ancestors()
-                    .OfType<BaseNamespaceDeclarationSyntax>()
-                    .FirstOrDefault()
-                    ?.Name
-                    .ToString() ?? "global";
+                var ns = RoslynSyntaxHelpers.GetNamespace(typeDecl);
                 var fullName = $"{ns}.{typeDecl.Identifier.ValueText}";
 
                 var type = group.FirstOrDefault(t => string.Equals(t.Id, fullName, StringComparison.Ordinal));

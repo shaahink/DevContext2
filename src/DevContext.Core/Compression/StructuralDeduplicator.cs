@@ -1,4 +1,5 @@
 using System.Text;
+using DevContext.Core.Utilities;
 
 namespace DevContext.Core.Compression;
 
@@ -12,7 +13,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model);
         var notes = new List<string>();
         var groups = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
         var prunedCount = 0;
@@ -54,7 +55,7 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
             notes.Add($"'{kept.Id}' has {bucket.Count} similar types (showing 1, deduplicated {bucket.Count - 1})");
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
@@ -88,20 +89,4 @@ public sealed class StructuralDeduplicator : ICompressionStrategy
         return sb.ToString();
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned || type.IsHardExcluded) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-            chars += type.BaseTypes.Sum(b => b.Length);
-            chars += type.ImplementedInterfaces.Sum(i => i.Length);
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 }

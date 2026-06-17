@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Compression;
 
 /// <summary>Groups types by namespace and tags them with group membership information.</summary>
@@ -10,7 +12,7 @@ public sealed class NamespaceGrouper : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model);
         var notes = new List<string>();
 
         var groups = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
@@ -46,25 +48,9 @@ public sealed class NamespaceGrouper : ICompressionStrategy
             notes.Add($"Namespace '{ns}' contains {typesInNs.Count} type(s)");
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned || type.IsHardExcluded) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-            chars += type.BaseTypes.Sum(b => b.Length);
-            chars += type.ImplementedInterfaces.Sum(i => i.Length);
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 }

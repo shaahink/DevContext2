@@ -178,7 +178,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
             foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
             {
-                var callerType = GetTypeFullName(typeDecl);
+                var callerType = RoslynSyntaxHelpers.GetTypeFullName(typeDecl);
                 if (string.IsNullOrEmpty(callerType)) continue;
 
                 var fieldMap = BuildFieldMap(typeDecl, diMap);
@@ -445,7 +445,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         return null;
     }
 
-    /// <summary>Builds the "Namespace.Name" form that matches <see cref="GetTypeFullName"/> / TypeDiscovery.Id.</summary>
+    /// <summary>Builds the "Namespace.Name" form that matches <see cref="RoslynSyntaxHelpers.GetTypeFullName"/> / TypeDiscovery.Id.</summary>
     private static string FqnOf(INamedTypeSymbol t)
     {
         var ns = t.ContainingNamespace is { IsGlobalNamespace: false } n ? n.ToDisplayString() : null;
@@ -547,15 +547,5 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
     {
         var idx = typeName.IndexOf('<');
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
-    }
-
-    private static string GetTypeFullName(TypeDeclarationSyntax typeDecl)
-    {
-        var ns = typeDecl.Ancestors()
-            .OfType<BaseNamespaceDeclarationSyntax>()
-            .FirstOrDefault()
-            ?.Name
-            .ToString();
-        return ns != null ? $"{ns}.{typeDecl.Identifier.ValueText}" : typeDecl.Identifier.ValueText;
     }
 }

@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Compression;
 
 /// <summary>Removes boilerplate and designer-generated types (auto-generated, T4, .g.cs, DI extensions).</summary>
@@ -27,7 +29,7 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model, includeRelations: false, includeHardExcluded: false);
         var notes = new List<string>();
         var trimmedCount = 0;
 
@@ -54,7 +56,7 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
             }
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model, includeRelations: false, includeHardExcluded: false);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
@@ -88,18 +90,4 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
         return allExtensionLike;
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 }

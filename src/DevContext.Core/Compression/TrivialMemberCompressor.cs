@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Compression;
 
 /// <summary>Removes trivial members (parameterless constructors, ToString, Equals, GetHashCode, auto-properties).</summary>
@@ -10,7 +12,7 @@ public sealed class TrivialMemberCompressor : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = EstimateTotalTokens(model);
+        var tokensBefore = TokenEstimator.Estimate(model);
         var notes = new List<string>();
         var removedCount = 0;
 
@@ -38,7 +40,7 @@ public sealed class TrivialMemberCompressor : ICompressionStrategy
             type.Properties = filteredProperties;
         }
 
-        var tokensAfter = EstimateTotalTokens(model);
+        var tokensAfter = TokenEstimator.Estimate(model);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
@@ -56,20 +58,4 @@ public sealed class TrivialMemberCompressor : ICompressionStrategy
         return property.HasGetter && property.HasSetter && !property.IsReadOnly;
     }
 
-    private static int EstimateTotalTokens(DiscoveryModel model)
-    {
-        var chars = 0;
-        foreach (var type in model.Types.Values)
-        {
-            if (type.IsPruned || type.IsHardExcluded) continue;
-            chars += type.Name?.Length ?? 0;
-            chars += type.Namespace?.Length ?? 0;
-            chars += type.Methods.Sum(m => m.Name.Length + m.ReturnType.Length);
-            chars += type.Properties.Sum(p => p.Name.Length + p.PropertyType.Length);
-            chars += type.BaseTypes.Sum(b => b.Length);
-            chars += type.ImplementedInterfaces.Sum(i => i.Length);
-        }
-
-        return Math.Max(1, chars / 4);
-    }
 }

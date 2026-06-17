@@ -176,12 +176,8 @@ public sealed class InMemoryEventBusExtractor : IDiscoveryExtractor
         var type = method.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault();
         if (type is null) return null;
 
-        var ns = type.Ancestors()
-            .OfType<BaseNamespaceDeclarationSyntax>()
-            .FirstOrDefault()
-            ?.Name
-            .ToString();
-        return ns is not null ? $"{ns}.{type.Identifier.ValueText}.{method.Identifier.ValueText}" : null;
+        var ns = RoslynSyntaxHelpers.GetNamespace(type);
+        return !string.Equals(ns, "global", StringComparison.Ordinal) ? $"{ns}.{type.Identifier.ValueText}.{method.Identifier.ValueText}" : null;
     }
 
     private static string? MatchEventHandlerGeneric(string ifaceFull)
