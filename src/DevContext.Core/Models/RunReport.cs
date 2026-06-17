@@ -18,7 +18,7 @@ public sealed record StageStat(string Stage, TimeSpan Elapsed, int Ordinal = 0);
 public sealed record ExtractorStat(string Name, string Tier, string Category, string Stage,
     TimeSpan Elapsed, int TypesAdded, int DetectionsAdded, bool Skipped, string? SkipReason);
 public sealed record ScorerStat(string Name, int TypesBefore, int TypesAfter);
-public sealed record CompressionStat(string Name, int TokensSaved);
+public sealed record CompressionStat(string Name, int TokensBefore, int TokensAfter, int TokensSaved);
 public sealed record CacheStats(int TextHits, int TextMisses, int SyntaxTreeHits, int SyntaxTreeMisses);
 public sealed record CorpusStats(int TotalFiles, int CSharpFiles, int Projects);
 public sealed record TokenFunnel(int TypesDiscovered, int TypesHardExcluded, int TypesIncluded,

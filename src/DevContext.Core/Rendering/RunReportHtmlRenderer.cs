@@ -5,7 +5,14 @@ namespace DevContext.Core.Rendering;
 /// <summary>Renders a RunReport as a standalone HTML fragment for the Desktop Stats tab.</summary>
 public static class RunReportHtmlRenderer
 {
-    public static string Render(RunReport report)
+    /// <summary>Detection summary for the stats breakdown. Populated by callers from DiscoveryModel.</summary>
+    public sealed record DetectionStats(
+        int EndpointCount, int MediatRHandlerCount, int EfEntityCount, int EfMigrationCount,
+        int BackgroundWorkerCount, int MiddlewareCount, int IndirectWiringCount,
+        int MessageConsumerCount, int DiRegistrationCount, int AntiPatternCount,
+        int EventFlowCount, int TotalDetections);
+
+    public static string Render(RunReport report, DetectionStats? detections = null)
     {
         var sb = new StringBuilder();
         sb.AppendLine("<div class='dc-stats'>");
@@ -13,6 +20,8 @@ public static class RunReportHtmlRenderer
         var totalMs = report.TotalWall.TotalMilliseconds;
         RenderTiming(sb, report, totalMs);
         RenderExtractors(sb, report);
+        if (detections is not null)
+            RenderDetectionBreakdown(sb, detections);
         RenderScorerFunnel(sb, report);
         RenderTokenFunnel(sb, report);
         RenderCacheChips(sb, report);
@@ -54,6 +63,10 @@ public static class RunReportHtmlRenderer
 
     private static void RenderScorerFunnel(StringBuilder sb, RunReport report)
     {
+        // Show compression strategies first (more interesting than scorer funnel)
+        if (report.Compressions.Length > 0)
+            RenderCompressionDetails(sb, report);
+
         if (report.Scorers.Length == 0) return;
 
         sb.AppendLine("<section class='dc-stats-section'><h3 class='dc-stats-h3'>Scorer Funnel</h3>");
@@ -64,6 +77,46 @@ public static class RunReportHtmlRenderer
                 ? (sc.TypesBefore - sc.TypesAfter) * 100 / sc.TypesBefore
                 : 0;
             sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<tr><td>{sc.Name}</td><td>{sc.TypesBefore}</td><td>{sc.TypesAfter}</td><td>{delta}%</td></tr>");
+        }
+        sb.AppendLine("</tbody></table></section>");
+    }
+
+    private static void RenderDetectionBreakdown(StringBuilder sb, DetectionStats d)
+    {
+        if (d.TotalDetections == 0) return;
+        sb.AppendLine("<section class='dc-stats-section'><h3 class='dc-stats-h3'>Detections</h3>");
+        sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>");
+        WriteRow(sb, "Endpoints", d.EndpointCount);
+        WriteRow(sb, "MediatR Handlers", d.MediatRHandlerCount);
+        WriteRow(sb, "EF Entities", d.EfEntityCount);
+        WriteRow(sb, "EF Migrations", d.EfMigrationCount);
+        WriteRow(sb, "DI Registrations", d.DiRegistrationCount);
+        WriteRow(sb, "Background Workers", d.BackgroundWorkerCount);
+        WriteRow(sb, "Middleware", d.MiddlewareCount);
+        WriteRow(sb, "Indirect Wiring", d.IndirectWiringCount);
+        WriteRow(sb, "Message Consumers", d.MessageConsumerCount);
+        WriteRow(sb, "Anti-Patterns", d.AntiPatternCount);
+        WriteRow(sb, "Event Flows", d.EventFlowCount);
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<tr class='dc-stats-total'><td><strong>Total</strong></td><td><strong>{d.TotalDetections}</strong></td></tr>");
+        sb.AppendLine("</tbody></table></section>");
+    }
+
+    private static void WriteRow(StringBuilder sb, string label, int count)
+    {
+        if (count == 0) return;
+        sb.AppendLine($"<tr><td>{label}</td><td>{count}</td></tr>");
+    }
+
+    private static void RenderCompressionDetails(StringBuilder sb, RunReport report)
+    {
+        sb.AppendLine("<section class='dc-stats-section'><h3 class='dc-stats-h3'>Compression</h3>");
+        sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Strategy</th><th>Before</th><th>After</th><th>Saved</th></tr></thead><tbody>");
+        foreach (var c in report.Compressions)
+        {
+            var pct = c.TokensBefore > 0
+                ? (c.TokensBefore - c.TokensAfter) * 100 / c.TokensBefore
+                : 0;
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<tr><td>{c.Name}</td><td>~{c.TokensBefore}</td><td>~{c.TokensAfter}</td><td>-{pct}% ({c.TokensSaved} tok)</td></tr>");
         }
         sb.AppendLine("</tbody></table></section>");
     }

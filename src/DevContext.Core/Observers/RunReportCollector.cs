@@ -55,6 +55,7 @@ public sealed class RunReportCollector : IDiscoveryObserver
     public void OnCompressionApplied(CompressionResult result)
     {
         _compressionRows.Add(new CompressionStat(result.StrategyName,
+            result.TokensBefore, result.TokensAfter,
             result.TokensBefore - result.TokensAfter));
     }
 

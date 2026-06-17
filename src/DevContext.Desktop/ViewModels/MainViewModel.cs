@@ -419,9 +419,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (ct.IsCancellationRequested) return;
 
             _output.StatsHtml = _snapshot?.Report is { } r
-                ? RunReportHtmlRenderer.Render(r) : "";
+                ? RunReportHtmlRenderer.Render(r, BuildDetectionStats(_snapshot)) : "";
 
             _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+            _output.HasOutput = true;
             _output.HasOutput = true;
             _output.ProgressText = "Done";
             _sections.BudgetTokens = capturedBudget;
@@ -491,7 +492,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (renderCt.IsCancellationRequested) return;
 
             _output.StatsHtml = _snapshot?.Report is { } r
-                ? RunReportHtmlRenderer.Render(r) : "";
+                ? RunReportHtmlRenderer.Render(r, BuildDetectionStats(_snapshot)) : "";
             _output.StatsText = _snapshot?.Report is { } report
                 ? RunReportFormatter.Summary(report, renderResult.RenderFunnel)
                 : "";
@@ -558,6 +559,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sections.ResetToDefaults();
         RebuildLlmViewText();
         OnPropertyChanged(nameof(LlmViewText));
+    }
+
+    private static RunReportHtmlRenderer.DetectionStats BuildDetectionStats(AnalysisSnapshot snapshot)
+    {
+        var model = snapshot.Model;
+        return new RunReportHtmlRenderer.DetectionStats(
+            EndpointCount: model.Detections.OfType<EndpointDetection>().Count(),
+            MediatRHandlerCount: model.Detections.OfType<MediatRHandlerDetection>().Count(),
+            EfEntityCount: model.Detections.OfType<EfEntityDetection>().Count(
+                e => !string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal)),
+            EfMigrationCount: model.Detections.OfType<EfEntityDetection>().Count(
+                e => string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal)),
+            BackgroundWorkerCount: model.Detections.OfType<BackgroundWorkerDetection>().Count(),
+            MiddlewareCount: model.Detections.OfType<MiddlewareDetection>().Count(),
+            IndirectWiringCount: model.Detections.OfType<IndirectWiringDetection>().Count(),
+            MessageConsumerCount: model.Detections.OfType<MessageConsumerDetection>().Count(),
+            DiRegistrationCount: model.Detections.OfType<DiRegistrationDetection>().Count(),
+            AntiPatternCount: model.Detections.OfType<AntiPatternDetection>().Count(),
+            EventFlowCount: model.Detections.OfType<EventFlowDetection>().Count(),
+            TotalDetections: model.Detections.Count);
     }
 
     public void Dispose()
