@@ -28,7 +28,7 @@ public static class AnalysisIntentResolver
         var warnings = ImmutableArray.CreateBuilder<string>();
 
         var (finalScenarioKey, scenario) = ResolveScenario(input, warnings);
-        ExtractionProfile profile = ResolveProfile(input, finalScenarioKey);
+        ExtractionProfile profile = ResolveProfile(input, finalScenarioKey, warnings);
         var focusPoints = ParseFocusPoints(input);
         var explanation = BuildExplanation(input, focusPoints);
 
@@ -36,7 +36,7 @@ public static class AnalysisIntentResolver
             && string.IsNullOrWhiteSpace(input.Focus)
             && input.ExplicitScenario is not null)
         {
-            warnings.Add("deep-dive without --focus behaves like overview — give a starting point");
+            warnings.Add("deep-dive without a focus point behaves like overview — specify a starting point");
         }
 
         return new ResolvedIntent
@@ -59,8 +59,13 @@ public static class AnalysisIntentResolver
             warnings.Add("'audit' is deprecated. Use 'overview' instead.");
             scenarioKey = "overview";
         }
-        if (scenarioKey is not null && !ScenarioRegistry.BuiltIn.ContainsKey(scenarioKey))
-            throw new ArgumentException($"Unknown scenario: {scenarioKey}", nameof(input));
+        if (scenarioKey is not null)
+        {
+            if (string.IsNullOrWhiteSpace(scenarioKey))
+                throw new ArgumentException("Scenario name must not be empty.", nameof(input));
+            if (!ScenarioRegistry.BuiltIn.ContainsKey(scenarioKey))
+                throw new ArgumentException($"Unknown scenario: {scenarioKey}", nameof(input));
+        }
 
         var hasFocus = !string.IsNullOrWhiteSpace(input.Focus);
         var finalKey = scenarioKey ?? (hasFocus ? "deep-dive" : "overview");
@@ -82,16 +87,19 @@ public static class AnalysisIntentResolver
         return (finalKey, scenario);
     }
 
-    private static ExtractionProfile ResolveProfile(IntentInput input, string finalScenarioKey)
+    private static ExtractionProfile ResolveProfile(IntentInput input, string finalScenarioKey, ImmutableArray<string>.Builder? warnings = null)
     {
         if (input.ExplicitProfile is { } ep)
         {
-            return ep.ToLowerInvariant() switch
+            var profile = ep.ToLowerInvariant() switch
             {
                 "debug" => ExtractionProfile.Debug,
                 "full" => ExtractionProfile.Full,
-                _ => ExtractionProfile.Focused,
+                _ => (ExtractionProfile?)null,
             };
+            if (profile is not null) return profile.Value;
+            warnings?.Add($"Unknown profile '{ep}'. Falling back to Focused.");
+            return ExtractionProfile.Focused;
         }
 
         return string.Equals(finalScenarioKey, "deep-dive", StringComparison.Ordinal)
@@ -152,7 +160,8 @@ public static class AnalysisIntentResolver
 
         // Type:Method pattern (no path separators)
         var colonParts = input.Split(':');
-        if (colonParts.Length == 2 && !input.Contains('\\') && !input.Contains('/'))
+        if (colonParts.Length == 2 && !input.Contains('\\') && !input.Contains('/')
+            && colonParts[0].Length > 0 && colonParts[1].Length > 0)
         {
             return new FocusPoint(FocusKind.Method, "", colonParts[0], colonParts[1]);
         }

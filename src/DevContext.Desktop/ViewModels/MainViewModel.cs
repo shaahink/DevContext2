@@ -386,7 +386,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         return new AnalysisOptions
         {
             ProjectPath = workingPath,
-            Scenario = SelectedScenario.Value,
+            // Let the shared resolver auto-detect deep-dive when a focus (--around) is provided,
+            // but honour the explicit scenario pick when the user has switched to Trace.
+            Scenario = string.Equals(SelectedScenario.Value, "deep-dive", StringComparison.Ordinal)
+                ? "deep-dive"
+                : (!string.IsNullOrWhiteSpace(Around) ? null : "overview"),
             Profile = DerivedProfile,
             Around = Around,
             MaxTokens = capturedBudget,

@@ -517,13 +517,14 @@ public sealed class MarkdownRenderer : IContextRenderer
         return ep.AuthAttributes.Length > 0 ? string.Join(", ", ep.AuthAttributes) : "-";
     }
 
-    private static bool AreSiblingDirectories(string dirA, string dirB)
-    {
-        var parentA = Path.GetDirectoryName(dirA)?.Replace('\\', '/') ?? "";
-        var parentB = Path.GetDirectoryName(dirB)?.Replace('\\', '/') ?? "";
-        return string.Equals(parentA, parentB, StringComparison.OrdinalIgnoreCase);
-    }
-
+    // ── Dead code (mid-refactor): moved to RenderingQueries.cs ─────────
+    // private static bool AreSiblingDirectories(string dirA, string dirB)
+    // {
+    //     var parentA = Path.GetDirectoryName(dirA)?.Replace('\\', '/') ?? "";
+    //     var parentB = Path.GetDirectoryName(dirB)?.Replace('\\', '/') ?? "";
+    //     return string.Equals(parentA, parentB, StringComparison.OrdinalIgnoreCase);
+    // }
+    // ─────────────────────────────────────────────────────────────────────
 
     private static string FormatHandler(EndpointDetection ep)
     {

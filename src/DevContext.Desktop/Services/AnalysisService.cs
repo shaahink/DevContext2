@@ -81,7 +81,7 @@ public class AnalysisService : IAnalysisService, IDisposable
         {
             Focus = opts.Around,
             Depth = opts.Depth,
-            ExplicitScenario = opts.Scenario,
+            ExplicitScenario = string.IsNullOrWhiteSpace(opts.Scenario) ? null : opts.Scenario,
             ExplicitProfile = opts.Profile,
         };
 
@@ -203,7 +203,8 @@ public class AnalysisService : IAnalysisService, IDisposable
 
     public async Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
-        var pipeline = GetPipeline(".");
+        // Render is cheap and root-agnostic — reuse the cached pipeline from AnalyzeAsync
+        var pipeline = _cachedPipeline ?? GetPipeline(".");
 
         var format = request.Format ?? "markdown";
         var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct).ConfigureAwait(false);
@@ -327,7 +328,7 @@ public record RenderResult
 public record AnalysisOptions
 {
     public string ProjectPath { get; init; } = "";
-    public string Scenario { get; init; } = "overview";
+    public string? Scenario { get; init; }       // null = auto-detect from focus; non-null = explicit override
     public string Profile { get; init; } = "focused";       // derived by VM; kept for plumbing
     public string Around { get; init; } = "";
     public int MaxTokens { get; init; } = 8000;

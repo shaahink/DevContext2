@@ -7,17 +7,17 @@ public static class TokenEstimator
     /// <param name="model">The discovery model to estimate tokens for.</param>
     /// <param name="includeRelations">Include base types and implemented interfaces in the count.</param>
     /// <param name="includeSourceBody">Include type source body text in the count.</param>
-    /// <param name="includeHardExcluded">Also skip types marked as hard-excluded.</param>
+    /// <param name="excludeHardExcluded">When true, skip types marked as hard-excluded (designer files, DI extensions, duplicates).</param>
     public static int Estimate(DiscoveryModel model,
         bool includeRelations = true,
         bool includeSourceBody = false,
-        bool includeHardExcluded = true)
+        bool excludeHardExcluded = true)
     {
         var chars = 0;
         foreach (var type in model.Types.Values)
         {
             if (type.IsPruned) continue;
-            if (includeHardExcluded && type.IsHardExcluded) continue;
+            if (excludeHardExcluded && type.IsHardExcluded) continue;
 
             chars += type.Name?.Length ?? 0;
             chars += type.Namespace?.Length ?? 0;

@@ -29,7 +29,7 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
 
     public ValueTask<CompressionResult> CompressAsync(DiscoveryModel model, CompressionOptions options, CancellationToken ct)
     {
-        var tokensBefore = TokenEstimator.Estimate(model, includeRelations: false, includeHardExcluded: false);
+        var tokensBefore = TokenEstimator.Estimate(model, includeRelations: false, excludeHardExcluded: false);
         var notes = new List<string>();
         var trimmedCount = 0;
 
@@ -56,7 +56,7 @@ public sealed class BoilerplateCompressor : ICompressionStrategy
             }
         }
 
-        var tokensAfter = TokenEstimator.Estimate(model, includeRelations: false, includeHardExcluded: false);
+        var tokensAfter = TokenEstimator.Estimate(model, includeRelations: false, excludeHardExcluded: false);
         return new ValueTask<CompressionResult>(new CompressionResult(
             Name, tokensBefore, tokensAfter, notes));
     }
