@@ -498,68 +498,67 @@ public sealed partial class GraphBuilder
             var typeId = NodeId.ForType(type.Id);
             var handlerId = NodeId.ForHandler(type.Id);
 
-            foreach (var method in eventMethods)
-            {
-                foreach (Match match in Regex.Matches(body,
-                    $@"{Regex.Escape(method)}\s*\(\s*new\s+(\w+)\s*\(", RegexOptions.Compiled))
-                {
-                    var eventName = match.Groups[1].Value;
-                    if (IsNoiseType(eventName)) continue;
-                    var eventFqn = names.Resolve(eventName);
-                    var eventId = NodeId.ForEvent(eventFqn);
-                    if (!g.HasNode(typeId)) continue;
+            // Phase 1: domain event method calls (AddDomainEvent, RaiseDomainEvent, AddEvent)
+            DetectDomainEvents(g, body, eventMethods, typeId, handlerId, names, type.FilePath);
 
-                    g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event));
-                    var prov = EstimateProvenance(body, match.Index, type.FilePath);
-                    g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
-                    {
-                        Provenance = prov,
-                        Resolution = Resolution.Syntactic,
-                        Confidence = 0.5f,
-                    });
-                    // B5: Mirror to Handler node so trace can cross from handler → event
-                    if (g.HasNode(handlerId))
-                    {
-                        g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
-                        {
-                            Provenance = prov,
-                            Resolution = Resolution.Syntactic,
-                            Confidence = 0.5f,
-                        });
-                    }
-                }
-            }
+            // Phase 2: integration event constructor calls (new XxxIntegrationEvent(...))
+            DetectIntegrationEvents(g, body, typeId, handlerId, names, type.FilePath);
+        }
+    }
 
-            // new TIntegrationEvent(...) — constructor calls for integration events
-            foreach (Match match in IntegrationEventConstructorRegex().Matches(body))
+    private static void DetectDomainEvents(CodeGraphBuilder g, string body, string[] eventMethods,
+        NodeId typeId, NodeId handlerId, NameResolver names, string? filePath)
+    {
+        foreach (var method in eventMethods)
+        {
+            foreach (Match match in Regex.Matches(body,
+                $@"{Regex.Escape(method)}\s*\(\s*new\s+(\w+)\s*\(", RegexOptions.Compiled))
             {
                 var eventName = match.Groups[1].Value;
-                var eventFqn = names.Resolve(eventName);
-                var eventId = NodeId.ForEvent(eventFqn);
-                if (!g.HasNode(typeId)) continue;
-
-                g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event)
-                {
-                    Tags = ["integration-event"],
-                });
-                var prov = EstimateProvenance(body, match.Index, type.FilePath);
-                g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
-                {
-                    Provenance = prov,
-                    Resolution = Resolution.Syntactic,
-                    Confidence = 0.5f,
-                });
-                // B5: Mirror to Handler node
-                if (g.HasNode(handlerId))
-                {
-                    g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
-                    {
-                        Provenance = prov,
-                        Resolution = Resolution.Syntactic,
-                        Confidence = 0.5f,
-                    });
-                }
+                if (IsNoiseType(eventName)) continue;
+                RegisterEventAndEdge(g, body, match, eventName, typeId, handlerId, names, filePath);
             }
+        }
+    }
+
+    private static void DetectIntegrationEvents(CodeGraphBuilder g, string body,
+        NodeId typeId, NodeId handlerId, NameResolver names, string? filePath)
+    {
+        foreach (Match match in IntegrationEventConstructorRegex().Matches(body))
+        {
+            var eventName = match.Groups[1].Value;
+            RegisterEventAndEdge(g, body, match, eventName, typeId, handlerId, names, filePath, ["integration-event"]);
+        }
+    }
+
+    /// <summary>Creates event node and Raises edges from type and handler to event.</summary>
+    private static void RegisterEventAndEdge(CodeGraphBuilder g, string body, Match match,
+        string eventName, NodeId typeId, NodeId handlerId, NameResolver names,
+        string? filePath, ImmutableArray<string> tags = default)
+    {
+        var eventFqn = names.Resolve(eventName);
+        var eventId = NodeId.ForEvent(eventFqn);
+        if (!g.HasNode(typeId)) return;
+
+        g.AddNode(tags.IsDefault
+            ? new GraphNode(eventId, eventName, NodeKind.Event)
+            : new GraphNode(eventId, eventName, NodeKind.Event) { Tags = tags });
+        var prov = EstimateProvenance(body, match.Index, filePath);
+        g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+        {
+            Provenance = prov,
+            Resolution = Resolution.Syntactic,
+            Confidence = 0.5f,
+        });
+        // B5: Mirror to Handler node so trace can cross from handler → event
+        if (g.HasNode(handlerId))
+        {
+            g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
+            {
+                Provenance = prov,
+                Resolution = Resolution.Syntactic,
+                Confidence = 0.5f,
+            });
         }
     }
 

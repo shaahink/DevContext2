@@ -318,17 +318,33 @@ public sealed class MarkdownRenderer : IContextRenderer
     {
         if (options.FocusPoints.IsDefaultOrEmpty || options.FocusPoints.Length == 0) return;
 
-        // Collect types from focus points (entry points)
+        // Collect types from focus points (entry points) using pre-built lookup
         var typeSet = new HashSet<string>(StringComparer.Ordinal);
+
+        // Build name-to-ID lookup once
+        var nameToIds = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var idToType = new Dictionary<string, TypeDiscovery>(StringComparer.Ordinal);
+        foreach (var t in model.Types.Values)
+        {
+            idToType[t.Id] = t;
+            if (!nameToIds.TryGetValue(t.Name, out var ids))
+                nameToIds[t.Name] = ids = [];
+            ids.Add(t.Id);
+        }
+
         foreach (var f in options.FocusPoints)
         {
+            if (f.TypeName is null) continue;
+            if (nameToIds.TryGetValue(f.TypeName, out var exactMatches))
+            {
+                typeSet.UnionWith(exactMatches);
+                continue;
+            }
+            // Fallback: suffix match
             foreach (var t in model.Types.Values)
             {
-                if (string.Equals(t.Name, f.TypeName, StringComparison.Ordinal) || t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
-                {
+                if (t.Id.EndsWith("." + f.TypeName, StringComparison.Ordinal))
                     typeSet.Add(t.Id);
-                    break;
-                }
             }
         }
 
@@ -340,14 +356,8 @@ public sealed class MarkdownRenderer : IContextRenderer
                 foreach (var edge in kv.Value)
                 {
                     if (typeSet.Count >= 5) break;
-                    foreach (var t in model.Types.Values)
-                    {
-                        if (string.Equals(t.Id, edge.CalleeType, StringComparison.Ordinal) || t.Id.EndsWith("." + edge.CalleeType, StringComparison.Ordinal))
-                        {
-                            typeSet.Add(t.Id);
-                            break;
-                        }
-                    }
+                    if (idToType.ContainsKey(edge.CalleeType))
+                        typeSet.Add(edge.CalleeType);
                 }
                 if (typeSet.Count >= 5) break;
             }
