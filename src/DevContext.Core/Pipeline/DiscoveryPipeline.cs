@@ -112,16 +112,7 @@ public sealed class DiscoveryPipeline
         }
 
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
-        // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
-        // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
-        var scope = SolutionScope.FromModel(model);
-        var graphResolver = new SyntacticSymbolResolver();
-        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
-        var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
-        var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
-        model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
-            $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
-            + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
+        var (codeGraph, entryPoints, mapModel) = AssembleCodeGraph(model);
 
         await RunScoringAsync(context, model, ct).ConfigureAwait(false);
         await RunCompressionAsync(context, model, ct).ConfigureAwait(false);
@@ -307,45 +298,73 @@ public sealed class DiscoveryPipeline
     private readonly record struct StageItem(string Name, string Description, bool WillRun);
     private readonly record struct Stage3Item(string Name, string Description, ImmutableArray<string> RequiredSignals);
 
+    /// <summary>Assembles the CodeGraph and Map from the model's detections and types.</summary>
+    private static (CodeGraph Graph, ImmutableArray<Graph.EntryPoint> Entries, MapModel Map) AssembleCodeGraph(DiscoveryModel model)
+    {
+        var scope = SolutionScope.FromModel(model);
+        var graphResolver = new SyntacticSymbolResolver();
+        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
+        var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
+        var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
+        model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
+            $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
+            + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
+        return (codeGraph, entryPoints, mapModel);
+    }
+
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
-        // ── PLAN-10 A3: Map/Trace branch — when the Graph is available with content (always after a
-        // full analyze). The Map/Trace renderers produce the human-facing markdown narrative; JSON/HTML
-        // consumers (programmatic callers, the eval harness) get the structured model from the legacy
-        // renderers below, so --format json stays valid, parseable structured data.
         var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
-        var wantsNarrative = format is "markdown" or "md";
-        if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
+        if (format is "markdown" or "md")
         {
-            if (!string.IsNullOrEmpty(request.Entry))
-            {
-                var entry = snapshot.Entries.FirstOrDefault(e =>
-                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase))
-                    ?? ResolveEntryFromNode(graph, request.Entry);
-                if (entry is not null)
-                {
-                    var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
-                    {
-                        MaxDepth = request.Depth ?? 6,
-                        MaxFanOut = 12,
-                    });
-                    var traceContent = TraceRenderer.Render(trace, request.Detail)
-                        + GraphDiagnosticsTail(snapshot, request);
-                    return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
-                }
-            }
+            var narrative = await TryRenderNarrativeAsync(snapshot, request, format, ct).ConfigureAwait(false);
+            if (narrative is not null) return narrative;
+        }
 
-            // No entry chosen — render the Map.
-            if (snapshot.Map is { } mapModel)
+        return await RenderLegacyImplAsync(snapshot, request, format, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Attempts the Map/Trace narrative path. Returns null if the graph isn't ready,
+    /// falling back to the legacy render pipeline.</summary>
+    private static async Task<RenderedContext?> TryRenderNarrativeAsync(
+        AnalysisSnapshot snapshot, RenderRequest request, string format, CancellationToken ct)
+    {
+        if (snapshot.Graph is not { NodeCount: > 0 } graph)
+            return null;
+
+        if (!string.IsNullOrEmpty(request.Entry))
+        {
+            var entry = snapshot.Entries.FirstOrDefault(e =>
+                string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase))
+                ?? ResolveEntryFromNode(graph, request.Entry);
+            if (entry is not null)
             {
-                var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
-                var map = await MapRenderer.RenderAsync(mapCtx, ct).ConfigureAwait(false);
-                var tail = GraphDiagnosticsTail(snapshot, request);
-                return tail.Length == 0 ? map : map with { Content = map.Content + tail };
+                var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
+                {
+                    MaxDepth = request.Depth ?? 6,
+                    MaxFanOut = 12,
+                });
+                var traceContent = TraceRenderer.Render(trace, request.Detail)
+                    + GraphDiagnosticsTail(snapshot, request);
+                return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
             }
         }
 
+        if (snapshot.Map is { } mapModel)
+        {
+            var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
+            var map = await MapRenderer.RenderAsync(mapCtx, ct).ConfigureAwait(false);
+            var tail = GraphDiagnosticsTail(snapshot, request);
+            return tail.Length == 0 ? map : map with { Content = map.Content + tail };
+        }
+
+        return null;
+    }
+
+    private async Task<RenderedContext> RenderLegacyImplAsync(
+        AnalysisSnapshot snapshot, RenderRequest request, string format, CancellationToken ct)
+    {
         var plan = RenderPlanBuilder.Build(snapshot, request);
 
         var opts = new RenderOptions(

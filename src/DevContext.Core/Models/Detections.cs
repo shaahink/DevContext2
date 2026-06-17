@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json.Serialization;
 
 using DevContext.Core.Extractors.Specific;
@@ -20,14 +21,13 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
 public abstract record Detection
 {
-    /// <summary>Name of the extractor that produced this detection.</summary>
     public required string ExtractorName { get; init; }
-    /// <summary>Source file where the detection was found.</summary>
     public required string SourceFile { get; init; }
-    /// <summary>Line number in the source file.</summary>
     public required int LineNumber { get; init; }
-    /// <summary>Confidence level of this detection (0.0 to 1.0).</summary>
     public float Confidence { get; init; } = 1.0f;
+
+    /// <summary>Appends self-check summary fields for the output validator. Override to provide type-specific fields.</summary>
+    public virtual void AppendSelfCheckFields(StringBuilder sb) => sb.Append(GetHashCode());
 }
 
 /// <summary>Categorizes a MediatR handler as a Command, Query, or Notification handler.</summary>
@@ -48,7 +48,20 @@ public sealed record EndpointDetection(
     ImmutableArray<string> AuthAttributes,
     ImmutableArray<string> ParameterTypes,
     string? GroupPrefix = null
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(HttpMethod);
+        sb.Append('|');
+        sb.Append(RouteTemplate);
+        sb.Append('|');
+        sb.Append(HandlerType);
+        sb.Append('|');
+        sb.Append(HandlerMethod);
+    }
+}
 
 /// <summary>Detection for a MediatR handler implementation.</summary>
 public sealed record MediatRHandlerDetection(
@@ -56,7 +69,20 @@ public sealed record MediatRHandlerDetection(
     string ResponseType,
     string HandlerType,
     MediatRKind Kind
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(RequestType);
+        sb.Append('|');
+        sb.Append(ResponseType);
+        sb.Append('|');
+        sb.Append(HandlerType);
+        sb.Append('|');
+        sb.Append(Kind);
+    }
+}
 
 /// <summary>Detection for an EF Core entity and its DbSet registration.</summary>
 public sealed record EfEntityDetection(
@@ -64,21 +90,52 @@ public sealed record EfEntityDetection(
     string DbContextType,
     bool IsAggregate,
     ImmutableArray<string> KeyProperties
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(EntityType);
+        sb.Append('|');
+        sb.Append(DbContextType);
+    }
+}
 
 /// <summary>Detection for a background worker (hosted service, etc.).</summary>
 public sealed record BackgroundWorkerDetection(
     string ServiceType,
     string ImplementationType,
     BackgroundWorkerKind Kind
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(ServiceType);
+        sb.Append('|');
+        sb.Append(ImplementationType);
+        sb.Append('|');
+        sb.Append(Kind);
+    }
+}
 
 /// <summary>Detection for registered middleware in the pipeline.</summary>
 public sealed record MiddlewareDetection(
     string MiddlewareType,
     int PipelineOrder,
     MiddlewareKind Kind
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(MiddlewareType);
+        sb.Append('|');
+        sb.Append(PipelineOrder);
+        sb.Append('|');
+        sb.Append(Kind);
+    }
+}
 
 /// <summary>Detection for indirect wiring patterns (reflection, service locator, dynamic proxy).</summary>
 public sealed record IndirectWiringDetection(
@@ -86,14 +143,38 @@ public sealed record IndirectWiringDetection(
     string CallerType,
     string CallerMethod,
     string? TargetType
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(Kind);
+        sb.Append('|');
+        sb.Append(CallerType);
+        sb.Append('|');
+        sb.Append(CallerMethod);
+        sb.Append('|');
+        sb.Append(TargetType);
+    }
+}
 
 /// <summary>Detection for a message bus consumer registration.</summary>
 public sealed record MessageConsumerDetection(
     string MessageType,
     string ConsumerType,
     string BusKind
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(MessageType);
+        sb.Append('|');
+        sb.Append(ConsumerType);
+        sb.Append('|');
+        sb.Append(BusKind);
+    }
+}
 
 /// <summary>Classification of how a DI registration binds service to implementation.</summary>
 public enum DiRegistrationShape
@@ -115,7 +196,20 @@ public sealed record DiRegistrationDetection(
     ImmutableArray<string> ExtensionsUsed,
     DiRegistrationShape Shape = DiRegistrationShape.DirectBinding,
     string? FactorySummary = null
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(ServiceType);
+        sb.Append('|');
+        sb.Append(ImplementationType);
+        sb.Append('|');
+        sb.Append(Lifetime);
+        sb.Append('|');
+        sb.Append(Shape);
+    }
+}
 
 /// <summary>Detection for an anti-pattern found in the codebase.</summary>
 public sealed record AntiPatternDetection(
@@ -123,4 +217,13 @@ public sealed record AntiPatternDetection(
     string Description,
     string Severity,
     string TargetType
-) : Detection;
+) : Detection
+{
+    /// <inheritdoc />
+    public override void AppendSelfCheckFields(StringBuilder sb)
+    {
+        sb.Append(Pattern);
+        sb.Append('|');
+        sb.Append(TargetType);
+    }
+}

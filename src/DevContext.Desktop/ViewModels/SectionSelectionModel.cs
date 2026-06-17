@@ -30,7 +30,7 @@ public sealed class SectionSelectionModel
         new() { Key = DevContext.Core.Constants.SectionNames.CallGraph,            Label = "Call graph", Hint = "+call graph, needs Roslyn" },
         new() { Key = DevContext.Core.Constants.SectionNames.MessageConsumers,     Label = "Message consumers" },
         new() { Key = DevContext.Core.Constants.SectionNames.RelatedTypes,         Label = "Related types" },
-        new() { Key = "__source__",                                                Label = "Source code", Hint = "adds full C# bodies, +2k\u201312k tokens" },
+        new() { Key = SourceSectionKey,                                                Label = "Source code", Hint = "adds full C# bodies, +2k\u201312k tokens" },
     ];
 
     // ── Section groups (computed from rendered sections) ──────────────────────
@@ -72,7 +72,7 @@ public sealed class SectionSelectionModel
     {
         get
         {
-            var sourceOn = Sections.FirstOrDefault(s => string.Equals(s.Key, "__source__", StringComparison.Ordinal))?.IsEnabled == true;
+            var sourceOn = Sections.FirstOrDefault(s => string.Equals(s.Key, SourceSectionKey, StringComparison.Ordinal))?.IsEnabled == true;
             var callGraphOn = Sections.FirstOrDefault(s => string.Equals(s.Key, DevContext.Core.Constants.SectionNames.CallGraph, StringComparison.Ordinal))?.IsEnabled == true;
             if (sourceOn) return "full";
             if (callGraphOn) return "debug";
@@ -93,7 +93,7 @@ public sealed class SectionSelectionModel
 
     public ImmutableArray<string> GetActiveSections()
         => Sections
-            .Where(s => s.IsEnabled && !string.Equals(s.Key, "__source__", StringComparison.Ordinal))
+            .Where(s => s.IsEnabled && !string.Equals(s.Key, SourceSectionKey, StringComparison.Ordinal))
             .Select(s => s.Key)
             .ToImmutableArray();
 
@@ -112,37 +112,28 @@ public sealed class SectionSelectionModel
 
     public void ApplyScenarioSectionDefaults()
     {
-        if (IsTraceMode)
-        {
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, false);
-            SetSectionEnabledSilent("__source__", false);
-        }
-        else
-        {
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.ArchitectureOverview, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.Endpoints, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MediatRHandlers, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DataModel, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.DiRegistrations, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.BackgroundWorkers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.IndirectWiring, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.CallGraph, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.MessageConsumers, false);
-            SetSectionEnabledSilent(DevContext.Core.Constants.SectionNames.RelatedTypes, true);
-            SetSectionEnabledSilent("__source__", false);
-        }
+        // Section defaults keyed by scenario mode: (Section, TraceEnabled, OverviewEnabled)
+        foreach (var (key, traceEnabled, overviewEnabled) in SectionDefaultsMap)
+            SetSectionEnabledSilent(key, IsTraceMode ? traceEnabled : overviewEnabled);
     }
+
+    private static readonly (string Key, bool Trace, bool Overview)[] SectionDefaultsMap =
+    [
+        (DevContext.Core.Constants.SectionNames.ArchitectureOverview, false, true),
+        (DevContext.Core.Constants.SectionNames.Endpoints, true, true),
+        (DevContext.Core.Constants.SectionNames.MediatRHandlers, true, true),
+        (DevContext.Core.Constants.SectionNames.DataModel, false, true),
+        (DevContext.Core.Constants.SectionNames.DiRegistrations, true, true),
+        (DevContext.Core.Constants.SectionNames.BackgroundWorkers, true, false),
+        (DevContext.Core.Constants.SectionNames.MiddlewarePipeline, true, true),
+        (DevContext.Core.Constants.SectionNames.IndirectWiring, false, false),
+        (DevContext.Core.Constants.SectionNames.CallGraph, true, false),
+        (DevContext.Core.Constants.SectionNames.MessageConsumers, false, false),
+        (DevContext.Core.Constants.SectionNames.RelatedTypes, false, true),
+        ("__source__", false, false),
+    ];
+
+    private const string SourceSectionKey = "__source__";
 
     private void SetSectionEnabledSilent(string key, bool enabled)
     {
