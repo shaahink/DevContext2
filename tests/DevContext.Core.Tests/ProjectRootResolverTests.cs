@@ -9,7 +9,6 @@ public sealed class ProjectRootResolverTests
         fs.AddFile(@"C:\project\MyApp.sln", "");
         fs.AddFile(@"C:\project\src\Program.cs", "");
 
-        var resolver = new ProjectRootResolver();
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project\MyApp.sln", fs);
 
         Assert.Equal(ResolutionMethod.ExplicitSln, result.Method);
@@ -22,7 +21,6 @@ public sealed class ProjectRootResolverTests
         var fs = new FakeFileSystem();
         fs.AddFile(@"C:\project\src\MyApp.csproj", "");
 
-        var resolver = new ProjectRootResolver();
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project\src\MyApp.csproj", fs);
 
         Assert.Equal(ResolutionMethod.ExplicitCsproj, result.Method);
@@ -35,7 +33,6 @@ public sealed class ProjectRootResolverTests
         fs.AddFile(@"C:\project\MyApp.sln", "");
         fs.AddFile(@"C:\project\src\Program.cs", "");
 
-        var resolver = new ProjectRootResolver();
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project", fs);
 
         Assert.Equal(ResolutionMethod.DirectoryContainsSln, result.Method);
@@ -47,7 +44,6 @@ public sealed class ProjectRootResolverTests
         var fs = new FakeFileSystem();
         fs.AddFile(@"C:\project\src\Program.cs", "");
 
-        var resolver = new ProjectRootResolver();
         var result = await ProjectRootResolver.ResolveAsync(@"C:\project", fs);
 
         Assert.Equal(ResolutionMethod.FolderMode, result.Method);

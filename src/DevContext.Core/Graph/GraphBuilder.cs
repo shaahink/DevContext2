@@ -344,7 +344,7 @@ public sealed partial class GraphBuilder
             if (!scope.Contains(type.FilePath) || !_noise.IsProductionCode(type)) continue;
             foreach (var iface in type.ImplementedInterfaces)
             {
-                var ifaceShort = StripGenerics(iface);
+                var ifaceShort = RemoveGenerics(iface);
                 if (!implCounts.TryGetValue(ifaceShort, out var count))
                 {
                     count = 0;
@@ -536,7 +536,7 @@ public sealed partial class GraphBuilder
             }
 
             // new TIntegrationEvent(...) — constructor calls for integration events
-            foreach (Match match in MyRegex().Matches(body))
+            foreach (Match match in IntegrationEventConstructorRegex().Matches(body))
             {
                 var eventName = match.Groups[1].Value;
                 var eventFqn = names.Resolve(eventName);
@@ -650,12 +650,6 @@ public sealed partial class GraphBuilder
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
     }
 
-    private static string StripGenerics(string typeName)
-    {
-        var idx = typeName.IndexOf('<');
-        return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
-    }
-
     [GeneratedRegex(@"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled)]
-    private static partial Regex MyRegex();
+    private static partial Regex IntegrationEventConstructorRegex();
 }

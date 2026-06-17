@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 using DevContext.Core.Contracts;
 
-namespace DevContext.Core.Models;
+namespace DevContext.Core.Observers;
 
 /// <summary>Collects structured run statistics from the observer callback stream. Thread-safe for parallel stages.</summary>
 public sealed class RunReportCollector : IDiscoveryObserver
@@ -115,7 +115,6 @@ public sealed class RunReportCollector : IDiscoveryObserver
             Compressions = _compressionRows.ToImmutableArray(),
             Cache = _cacheStats,
             Corpus = _corpusStats,
-            // Analysis funnel: populated later or left empty; render funnel is separate
             Funnel = new TokenFunnel(0, 0, 0, 0, 0, _budget),
             Parallelism = new ParallelismStats(stage2Wall, stage2Cpu, stage3Wall, stage3Cpu),
             TotalWall = _totalSw.Elapsed,
