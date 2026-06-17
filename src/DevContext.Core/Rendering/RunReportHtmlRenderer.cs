@@ -104,7 +104,7 @@ public static class RunReportHtmlRenderer
     private static void WriteRow(StringBuilder sb, string label, int count)
     {
         if (count == 0) return;
-        sb.AppendLine($"<tr><td>{label}</td><td>{count}</td></tr>");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"<tr><td>{label}</td><td>{count}</td></tr>");
     }
 
     private static void RenderCompressionDetails(StringBuilder sb, RunReport report)

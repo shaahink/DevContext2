@@ -103,7 +103,7 @@ public sealed class AnalysisIntentResolverTests
     public void ExplicitScenario_DeepDiveNoFocus_ProducesWarning()
     {
         var result = AnalysisIntentResolver.Resolve(new IntentInput { ExplicitScenario = "deep-dive" });
-        Assert.Contains(result.Warnings, w => w.Contains("deep-dive without --focus", StringComparison.Ordinal));
+        Assert.Contains(result.Warnings, w => w.Contains("deep-dive without a focus point", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -133,5 +133,47 @@ public sealed class AnalysisIntentResolverTests
         var result = AnalysisIntentResolver.Resolve(new IntentInput { Focus = "POST /api/users" });
         Assert.Equal("POST", result.FocusPoints[0].HttpMethod);
         Assert.Equal("/api/users", result.FocusPoints[0].Route);
+    }
+
+    // ── Edge cases ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void TrailingColon_FallsBackToTypeFocus()
+    {
+        // "MyService:" with empty method part should be treated as type focus, not method with empty name
+        var result = AnalysisIntentResolver.Resolve(new IntentInput { Focus = "MyService:" });
+        Assert.Single(result.FocusPoints);
+        Assert.Equal(FocusKind.Type, result.FocusPoints[0].Kind);
+        Assert.Equal("MyService:", result.FocusPoints[0].TypeName);
+    }
+
+    [Fact]
+    public void EmptyScenario_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            AnalysisIntentResolver.Resolve(new IntentInput { ExplicitScenario = "" }));
+    }
+
+    [Fact]
+    public void WhitespaceScenario_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            AnalysisIntentResolver.Resolve(new IntentInput { ExplicitScenario = "   " }));
+    }
+
+    [Fact]
+    public void InvalidProfile_ProducesWarning()
+    {
+        var result = AnalysisIntentResolver.Resolve(new IntentInput { ExplicitProfile = "ultrapower" });
+        Assert.Equal(ExtractionProfile.Focused, result.Profile);
+        Assert.Contains(result.Warnings, w => w.Contains("Unknown profile", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ValidProfileNoWarning()
+    {
+        var result = AnalysisIntentResolver.Resolve(new IntentInput { ExplicitProfile = "full" });
+        Assert.Equal(ExtractionProfile.Full, result.Profile);
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("Unknown profile", StringComparison.Ordinal));
     }
 }

@@ -5,6 +5,7 @@ global using DevContext.Core.Attributes;
 global using DevContext.Core.Compression;
 global using DevContext.Core.Configuration;
 global using DevContext.Core.Contracts;
+global using DevContext.Core.Extractors;
 global using DevContext.Core.Extractors.Generic;
 global using DevContext.Core.Extractors.Specific;
 global using DevContext.Core.IO;
