@@ -1,7 +1,5 @@
 using System.Text;
 
-using DevContext.Core.Extractors.Specific;
-
 namespace DevContext.Core.Rendering;
 
 /// <summary>Renders the discovery model as a human-readable Markdown document.</summary>
@@ -273,7 +271,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             sb.AppendLine($"**Depends on**: {string.Join(", ", deps)}");
 
             // Cross-reference with DI registrations
-            var diRegs = model.Detections.OfType<DiRegistrationDetection>()
+            var diRegs = RenderingQueries.GetDiRegistrations(model)
                 .Where(d => !d.ServiceType.StartsWith("Add", StringComparison.Ordinal) && !string.Equals(d.ServiceType, "?", StringComparison.Ordinal))
                 .GroupBy(d => d.ServiceType, StringComparer.Ordinal)
                 .ToDictionary(g => g.Key.Trim(), g => g.First(), StringComparer.Ordinal);
@@ -427,12 +425,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine($"## {SectionNames.Endpoints}");
         sb.AppendLine();
 
-        var allEndpoints = model.Detections.OfType<EndpointDetection>()
-            .Where(e => !IsFrameworkEndpoint(e));
-
-        allEndpoints = FilterEndpointsByFocusPoints(allEndpoints, options);
-
-        var endpoints = allEndpoints.ToList();
+        var endpoints = RenderingQueries.GetEndpoints(model, options);
 
         if (endpoints.Count == 0)
         {
@@ -441,7 +434,7 @@ public sealed class MarkdownRenderer : IContextRenderer
             return;
         }
 
-        var hasGroupPrefix = endpoints.Exists(e => e.GroupPrefix is not null);
+        var hasGroupPrefix = endpoints.Any(e => e.GroupPrefix is not null);
 
         // Build project lookup from source file paths
         var projectByDir = model.Projects
@@ -458,9 +451,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var byProject = endpoints.GroupBy(ep => ProjectForFile(ep.SourceFile), StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal);
 
         // Collect MediatR handler types for linkage
-        var mediatRTypes = model.Detections.OfType<MediatRHandlerDetection>()
-            .Select(m => m.HandlerType)
-            .ToHashSet(StringComparer.Ordinal);
+        var mediatRTypes = RenderingQueries.GetMediatRHandlerTypes(model);
 
         var header = hasGroupPrefix
             ? "| Method | Route | Group | Handler | Auth | Source |"
@@ -480,10 +471,9 @@ public sealed class MarkdownRenderer : IContextRenderer
                 var auth = FormatAuth(ep);
                 var handler = FormatHandler(ep);
 
-                // C3: MediatR linkage — check if handler type is a known MediatR handler
                 if (mediatRTypes.Contains(ep.HandlerType))
                 {
-                    var mediatR = model.Detections.OfType<MediatRHandlerDetection>()
+                    var mediatR = RenderingQueries.GetMediatRHandlers(model)
                         .FirstOrDefault(m => string.Equals(m.HandlerType, ep.HandlerType, StringComparison.Ordinal));
                     if (mediatR is not null)
                         handler += $" → `{mediatR.RequestType}`";
@@ -505,30 +495,6 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
-    private static IEnumerable<EndpointDetection> FilterEndpointsByFocusPoints(IEnumerable<EndpointDetection> endpoints, RenderOptions options)
-    {
-        if (options.FocusPoints.IsDefaultOrEmpty)
-            return endpoints;
-
-        var focusDirs = options.FocusPoints
-            .Where(fp => fp.FilePath is not null)
-            .Select(fp => Path.GetDirectoryName(fp.FilePath)?.Replace('\\', '/') ?? "")
-            .Where(d => d.Length > 0)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        if (focusDirs.Count == 0)
-            return endpoints;
-
-        return endpoints.Where(e =>
-        {
-            if (e.SourceFile is null) return true;
-            var dir = Path.GetDirectoryName(e.SourceFile)?.Replace('\\', '/') ?? "";
-            return focusDirs.Any(fd =>
-                dir.StartsWith(fd, StringComparison.OrdinalIgnoreCase)
-                || fd.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
-                || AreSiblingDirectories(dir, fd));
-        });
-    }
 
     private static bool ShouldRender(string sectionName, RenderOptions options)
     {
@@ -548,20 +514,6 @@ public sealed class MarkdownRenderer : IContextRenderer
         return string.Equals(parentA, parentB, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsFrameworkEndpoint(EndpointDetection ep)
-    {
-        // Filter routes from known framework/infrastructure files
-        var fileName = Path.GetFileName(ep.SourceFile);
-        if (fileName is "OpenApi.Extensions.cs" or "Extensions.cs")
-            return true;
-
-        // Filter known framework route patterns
-        var route = ep.RouteTemplate;
-        if (route is "/" or "/health" or "/alive")
-            return true;
-
-        return false;
-    }
 
     private static string FormatHandler(EndpointDetection ep)
     {
@@ -577,39 +529,6 @@ public sealed class MarkdownRenderer : IContextRenderer
         return $"{ep.HandlerType}.{handler}";
     }
 
-    private static string FormatImplementation(string implementationType, ImmutableArray<string> extensionsUsed)
-    {
-        // Filter unresolvable extension args
-        if (string.Equals(implementationType, "?", StringComparison.Ordinal) || string.IsNullOrEmpty(implementationType))
-            return extensionsUsed.Length > 0
-                ? $"({string.Join(", ", extensionsUsed.Take(3))})"
-                : "-";
-
-        // Truncate delegate bodies (lambdas with => or { )
-        if (implementationType.Length > 80)
-        {
-            var firstLine = implementationType.Split('\n')[0];
-            return firstLine.Length > 60
-                ? firstLine[..57] + "..."
-                : firstLine + "...";
-        }
-
-        return implementationType;
-    }
-
-    private static string FormatDiShape(DiRegistrationDetection d)
-    {
-        var impl = FormatImplementation(d.ImplementationType, d.ExtensionsUsed);
-        return d.Shape switch
-        {
-            DiRegistrationShape.ForwardingAlias => $"{impl} (alias)",
-            DiRegistrationShape.InlineFactory when d.FactorySummary is not null => d.FactorySummary,
-            DiRegistrationShape.DirectBinding => string.Equals(d.ServiceType, d.ImplementationType
-, StringComparison.Ordinal) ? impl
-                : $"{d.ServiceType} → {impl}",
-            _ => impl,
-        };
-    }
 
     private static void AppendCallGraphAvailability(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
@@ -687,7 +606,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
-        var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
+        var handlers = RenderingQueries.GetMediatRHandlers(model);
         if (handlers.Count == 0) return;
 
         sb.AppendLine($"## {SectionNames.MediatRHandlers}");
@@ -705,11 +624,8 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendEfEntities(StringBuilder sb, DiscoveryModel model)
     {
-        var entities = model.Detections.OfType<EfEntityDetection>()
-            .Where(e => !string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal) && !string.Equals(e.EntityType, "<OnModelCreating>", StringComparison.Ordinal))
-            .ToList();
-        var migrationCount = model.Detections.OfType<EfEntityDetection>()
-            .Count(e => string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal));
+        var entities = RenderingQueries.GetEfEntities(model);
+        var migrationCount = RenderingQueries.GetMigrationCount(model);
 
         if (entities.Count == 0 && migrationCount == 0) return;
 
@@ -744,7 +660,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendMessageConsumers(StringBuilder sb, DiscoveryModel model)
     {
-        var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
+        var consumers = RenderingQueries.GetMessageConsumers(model);
         if (consumers.Count == 0) return;
 
         sb.AppendLine($"## {SectionNames.MessageConsumers}");
@@ -793,7 +709,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static bool AppendIndirectWiring(StringBuilder sb, DiscoveryModel model)
     {
-        var wiring = model.Detections.OfType<IndirectWiringDetection>().ToList();
+        var wiring = RenderingQueries.GetIndirectWiring(model);
         if (wiring.Count == 0) return false;
 
         sb.AppendLine($"## {SectionNames.IndirectWiring}");
@@ -808,7 +724,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static bool AppendBackgroundWorkers(StringBuilder sb, DiscoveryModel model)
     {
-        var workers = model.Detections.OfType<BackgroundWorkerDetection>().ToList();
+        var workers = RenderingQueries.GetBackgroundWorkers(model);
         if (workers.Count == 0) return false;
 
         sb.AppendLine($"## {SectionNames.BackgroundWorkers}");
@@ -821,7 +737,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static bool AppendMiddlewarePipeline(StringBuilder sb, DiscoveryModel model)
     {
-        var middleware = model.Detections.OfType<MiddlewareDetection>().ToList();
+        var middleware = RenderingQueries.GetMiddlewarePipeline(model);
         if (middleware.Count == 0) return false;
 
         sb.AppendLine($"## {SectionNames.MiddlewarePipeline}");
@@ -852,7 +768,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static bool AppendDiRegistrations(StringBuilder sb, DiscoveryModel model)
     {
-        var diRegs = model.Detections.OfType<DiRegistrationDetection>().ToList();
+        var diRegs = RenderingQueries.GetDiRegistrations(model);
         if (diRegs.Count == 0) return false;
 
         sb.AppendLine($"## {SectionNames.DiRegistrations}");
@@ -861,7 +777,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         sb.AppendLine("|----------|---------|----------------|--------|");
         foreach (var d in diRegs)
         {
-            var impl = FormatDiShape(d);
+            var impl = RenderingQueries.FormatDiShape(d);
             var source = $"{Path.GetFileName(d.SourceFile)}:{d.LineNumber}";
             sb.AppendLine($"| {d.Lifetime} | {d.ServiceType} | {impl} | {source} |");
         }
@@ -882,7 +798,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendAntiPatterns(StringBuilder sb, DiscoveryModel model)
     {
-        var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
+        var patterns = RenderingQueries.GetAntiPatterns(model);
         if (patterns.Count == 0) return;
 
         sb.AppendLine($"## {SectionNames.AntiPatterns}");
@@ -914,7 +830,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         }
     }
 
-    private static void AppendAntiPatternTable(StringBuilder sb, List<AntiPatternDetection> patterns)
+    private static void AppendAntiPatternTable(StringBuilder sb, IReadOnlyList<AntiPatternDetection> patterns)
     {
         sb.AppendLine("| Severity | Pattern | Description |");
         sb.AppendLine("|----------|---------|-------------|");
@@ -927,7 +843,7 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendEventFlow(StringBuilder sb, DiscoveryModel model)
     {
-        var flows = model.Detections.OfType<EventFlowDetection>().ToList();
+        var flows = RenderingQueries.GetEventFlows(model);
         if (flows.Count == 0) return;
 
         var busKind = flows[0].BusKind;

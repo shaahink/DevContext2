@@ -1,7 +1,4 @@
-using System.Collections.Immutable;
 using System.Text;
-
-using DevContext.Core.Extractors.Specific;
 
 namespace DevContext.Core.Rendering;
 
@@ -26,14 +23,16 @@ public sealed class HtmlContextRenderer : IContextRenderer
         RenderHeader(sb, model, options);
         TrackSection(sectionTokens, "Header", preLen, sb.Length);
 
-        // Build nav while rendering sections
+        // Track position for nav insertion; insert after header closing tag
+        var headerClosePos = sb.Length;
+
         RenderSection(sb, options, SectionNames.ArchitectureOverview, "Architecture overview", navLinks,
             () => RenderArchitectureOverview(sb, model, options));
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
             RenderSection(sb, options, "entry-points", "Entry points", navLinks,
                 () => RenderEntryPoints(sb, model, options));
         RenderSection(sb, options, SectionNames.Endpoints, "Endpoints", navLinks,
-            () => RenderEndpoints(sb, model));
+            () => RenderEndpoints(sb, model, options));
         RenderSection(sb, options, SectionNames.CallGraph, "Call graph", navLinks,
             () => RenderCallGraph(sb, model, options));
         RenderSection(sb, options, SectionNames.MediatRHandlers, "MediatR Handlers", navLinks,
@@ -60,14 +59,11 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
         RenderFooter(sb, model, sw, includedIds);
 
-        // Insert nav after header if there are links
+        // Insert nav after header using position tracking instead of string materialization + Replace
         var navHtml = BuildNav(navLinks);
-        var content = sb.ToString();
         if (navHtml is not null)
-            content = content.Replace("</header>", $"</header>{navHtml}");
+            sb.Insert(headerClosePos, navHtml);
 
-        sb.Clear();
-        sb.Append(content);
         sb.AppendLine("</article>");
 
         var final = sb.ToString();
@@ -200,10 +196,9 @@ public sealed class HtmlContextRenderer : IContextRenderer
         sb.AppendLine("</section>");
     }
 
-    private static void RenderEndpoints(StringBuilder sb, DiscoveryModel model)
+    private static void RenderEndpoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        var endpoints = model.Detections.OfType<EndpointDetection>()
-            .Where(e => !e.SourceFile?.EndsWith("ChangePasswordEndpoint.cs", StringComparison.Ordinal) is not false).ToList();
+        var endpoints = RenderingQueries.GetEndpoints(model, options);
         if (endpoints.Count == 0) return;
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.Endpoints}'>");
@@ -278,7 +273,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderMediatRHandlers(StringBuilder sb, DiscoveryModel model)
     {
-        var handlers = model.Detections.OfType<MediatRHandlerDetection>().ToList();
+        var handlers = RenderingQueries.GetMediatRHandlers(model);
         if (handlers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MediatRHandlers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Request</th><th>Response</th><th>Handler</th></tr></thead><tbody>");
@@ -289,9 +284,8 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderDataModel(StringBuilder sb, DiscoveryModel model)
     {
-        var entities = model.Detections.OfType<EfEntityDetection>()
-            .Where(e => !string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal) && !string.Equals(e.EntityType, "<OnModelCreating>", StringComparison.Ordinal)).ToList();
-        var migrationCount = model.Detections.OfType<EfEntityDetection>().Count(e => string.Equals(e.DbContextType, "Migrations", StringComparison.Ordinal));
+        var entities = RenderingQueries.GetEfEntities(model);
+        var migrationCount = RenderingQueries.GetMigrationCount(model);
         if (entities.Count == 0 && migrationCount == 0) return;
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.DataModel}'>");
@@ -317,7 +311,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderMessageConsumers(StringBuilder sb, DiscoveryModel model)
     {
-        var consumers = model.Detections.OfType<MessageConsumerDetection>().ToList();
+        var consumers = RenderingQueries.GetMessageConsumers(model);
         if (consumers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.MessageConsumers}'>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Bus</th><th>Message</th><th>Consumer</th></tr></thead><tbody>");
@@ -328,7 +322,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderIndirectWiring(StringBuilder sb, DiscoveryModel model)
     {
-        var wiring = model.Detections.OfType<IndirectWiringDetection>().ToList();
+        var wiring = RenderingQueries.GetIndirectWiring(model);
         if (wiring.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.IndirectWiring}'><h2 class='dc-h2'>Indirect wiring</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Kind</th><th>Caller</th><th>Target</th></tr></thead><tbody>");
@@ -339,7 +333,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderBackgroundWorkers(StringBuilder sb, DiscoveryModel model)
     {
-        var workers = model.Detections.OfType<BackgroundWorkerDetection>().ToList();
+        var workers = RenderingQueries.GetBackgroundWorkers(model);
         if (workers.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.BackgroundWorkers}'>");
         sb.AppendLine("<ul class='dc-worker-list'>");
@@ -350,7 +344,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderMiddlewarePipeline(StringBuilder sb, DiscoveryModel model)
     {
-        var middleware = model.Detections.OfType<MiddlewareDetection>().ToList();
+        var middleware = RenderingQueries.GetMiddlewarePipeline(model);
         if (middleware.Count == 0) return;
         var grouped = middleware.GroupBy(m => m.MiddlewareType, StringComparer.Ordinal)
             .Select(g => new { Type = g.Key, Count = g.Count(), Kind = g.First().Kind, Sources = g.Select(m => System.IO.Path.GetFileName(m.SourceFile)).Distinct(StringComparer.Ordinal) })
@@ -368,32 +362,24 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderDiRegistrations(StringBuilder sb, DiscoveryModel model)
     {
-        var regs = model.Detections.OfType<DiRegistrationDetection>().ToList();
+        var regs = RenderingQueries.GetDiRegistrations(model);
         if (regs.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.DiRegistrations}'><h2 class='dc-h2'>DI registrations</h2>");
         sb.AppendLine("<div class='dc-di-grid'>");
         foreach (var d in regs)
         {
             var lt = d.Lifetime.ToLowerInvariant();
-            var impl = string.Equals(d.ServiceType, d.ImplementationType, StringComparison.Ordinal) || string.Equals(d.ImplementationType, "?"
-, StringComparison.Ordinal) ? System.Net.WebUtility.HtmlEncode(d.ImplementationType)
-                : $"{System.Net.WebUtility.HtmlEncode(d.ServiceType)} → {System.Net.WebUtility.HtmlEncode(d.ImplementationType)}";
+            var implText = RenderingQueries.FormatDiShape(d);
+            var encodedImpl = System.Net.WebUtility.HtmlEncode(implText);
             var src = $"{System.Net.WebUtility.HtmlEncode(System.IO.Path.GetFileName(d.SourceFile))}:{d.LineNumber}";
-            var shape = d.Shape switch
-            {
-                DiRegistrationShape.ForwardingAlias => "alias",
-                DiRegistrationShape.InlineFactory => "factory",
-                _ => string.Equals(d.Lifetime, "Bulk", StringComparison.Ordinal) ? "bulk" : ""
-            };
-            var shapeTag = shape.Length > 0 ? $"<span class='dc-di-shape'>{shape}</span>" : "";
-            sb.AppendLine($"<div class='dc-di-card dc-di-{lt}'><span class='dc-di-lt'>{System.Net.WebUtility.HtmlEncode(d.Lifetime)}</span> <code>{impl}</code> {shapeTag}<span class='dc-di-src'>{src}</span></div>");
+            sb.AppendLine($"<div class='dc-di-card dc-di-{lt}'><span class='dc-di-lt'>{System.Net.WebUtility.HtmlEncode(d.Lifetime)}</span> <code>{encodedImpl}</code> <span class='dc-di-src'>{src}</span></div>");
         }
         sb.AppendLine("</div></section>");
     }
 
     private static void RenderAntiPatterns(StringBuilder sb, DiscoveryModel model)
     {
-        var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
+        var patterns = RenderingQueries.GetAntiPatterns(model);
         if (patterns.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-antipatterns'><h2 class='dc-h2'>Anti-patterns detected</h2>");
         foreach (var g in patterns.GroupBy(p => System.IO.Path.GetFileName(p.SourceFile), StringComparer.Ordinal).OrderBy(g => g.Key, StringComparer.Ordinal))
@@ -408,7 +394,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderEventFlow(StringBuilder sb, DiscoveryModel model)
     {
-        var events = model.Detections.OfType<EventFlowDetection>().ToList();
+        var events = RenderingQueries.GetEventFlows(model);
         if (events.Count == 0) return;
         sb.AppendLine($"<section class='dc-section' id='dc-eventflow'><h2 class='dc-h2'>Event flow</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Event</th><th>Direction</th><th>Target</th></tr></thead><tbody>");
