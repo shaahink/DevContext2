@@ -3,7 +3,7 @@ MAP  CleanArch     (4 projects)
 STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core · DDD aggregates
 
 STYLE  CleanArchitecture  (confidence high)
-       evidence: DDD folder layers: Domain, Application, Infrastructure; MediatR with 0 handlers
+       evidence: DDD folder layers: Domain, Application, Infrastructure; domain-core ref pattern (high fan-in, low fan-out); MediatR with 0 handlers
 
 TOPOLOGY (depends-on)
    Application

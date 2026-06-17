@@ -162,13 +162,23 @@ public sealed class ArchitectureStyleDetector
 
     private static List<ProjectRefStats> ComputeReferenceCounts(ImmutableArray<ProjectInfo> projects)
     {
-        var projNames = projects.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Build reverse-incoming map in O(n) pass
+        var incomingMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in projects)
+        {
+            foreach (var r in p.ProjectReferences)
+            {
+                var refName = Path.GetFileNameWithoutExtension(r);
+                if (string.IsNullOrEmpty(refName)) continue;
+                incomingMap[refName] = incomingMap.TryGetValue(refName, out var c) ? c + 1 : 1;
+            }
+        }
+
         var results = new List<ProjectRefStats>(projects.Length);
         foreach (var p in projects)
         {
             var outgoing = p.ProjectReferences.Length;
-            var incoming = projects.Count(other =>
-                other.ProjectReferences.Any(r => string.Equals(r, p.Name, StringComparison.OrdinalIgnoreCase)));
+            incomingMap.TryGetValue(p.Name, out var incoming);
             results.Add(new ProjectRefStats(p.Name, incoming, outgoing));
         }
         return results;

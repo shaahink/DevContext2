@@ -52,22 +52,24 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
 
+            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+
             var (addRegistrations, useRegistrations, mapRegistrations) =
-                CollectProgramRegistrations(root, model, filePath);
+                CollectProgramRegistrations(invocations, model, filePath);
 
             DetectOrphanPatterns(addRegistrations, useRegistrations, model, filePath, Name);
-            DetectBackgroundWorkers(root, model, filePath, Name);
+            DetectBackgroundWorkers(invocations, model, filePath, Name);
         }
     }
 
     private (List<(string Name, int Line)> AddRegs, List<(string Name, int Line)> UseRegs, List<(string Name, string Method, int Line)> MapRegs)
-        CollectProgramRegistrations(SyntaxNode root, DiscoveryModel model, string filePath)
+        CollectProgramRegistrations(IReadOnlyList<InvocationExpressionSyntax> invocations, DiscoveryModel model, string filePath)
     {
         var addRegistrations = new List<(string Name, int Line)>();
         var useRegistrations = new List<(string Name, int Line)>();
         var mapRegistrations = new List<(string Name, string Method, int Line)>();
 
-        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        foreach (var invocation in invocations)
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
                 continue;
@@ -152,13 +154,11 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
     }
 
     private static void DetectBackgroundWorkers(
-        SyntaxNode root,
+        IReadOnlyList<InvocationExpressionSyntax> invocations,
         DiscoveryModel model,
         string filePath,
         string extractorName)
     {
-        var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
         foreach (var invocation in invocations)
         {
             if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)

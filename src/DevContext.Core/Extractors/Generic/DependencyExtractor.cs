@@ -90,20 +90,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                             ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk!));
                     }
 
-                    var packageRefs = doc.Descendants("PackageReference")
-                        .Select(r => r.Attribute("Include")?.Value ?? r.Attribute("Update")?.Value ?? "")
-                        .Where(v => !string.IsNullOrEmpty(v));
-
-                    foreach (var pkgName in packageRefs)
-                    {
-                        if (TryMatchSignal(pkgName, out var extraSignalKey, out var matchedKey2))
-                        {
-                            model.Architecture.Register(FeatureSignal.CreateDetected(
-                                extraSignalKey, confidence: 1.0f, via: "PackageReference", matchedKey2));
-                        }
-                    }
-
-                    // Also check ProjectReference elements for signal-bearing projects
+                    // Check ProjectReference elements for signal-bearing projects
                     var projectRefs = doc.Descendants("ProjectReference")
                         .Select(r => r.Attribute("Include")?.Value ?? "")
                         .Where(v => !string.IsNullOrEmpty(v))

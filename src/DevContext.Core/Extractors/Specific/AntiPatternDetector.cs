@@ -37,24 +37,82 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
 
             var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
 
-            DetectFireAndForget(root, filePath, model);
-            DetectServiceScopeFactory(root, filePath, model);
-            DetectNewOutsideDI(root, filePath, model);
-            DetectCancellationTokenNone(root, filePath, model);
-            DetectUnboundedCollections(root, filePath, model);
-            DetectAsyncVoid(root, filePath, model);
+            // Single walk collects all needed node types
+            var collector = new AntiPatternNodeCollector();
+            collector.Visit(root);
+
+            DetectFireAndForget(collector, filePath, model);
+            DetectServiceScopeFactory(collector.Invocations, filePath, model);
+            DetectNewOutsideDI(collector.ObjectCreations, filePath, model);
+            DetectCancellationTokenNone(collector, filePath, model);
+            DetectUnboundedCollections(collector.Fields, filePath, model);
+            DetectAsyncVoid(collector.Methods, filePath, model);
         }
 
         DetectCaptiveDependency(model);
     }
 
-    private static void DetectFireAndForget(SyntaxNode root, string filePath, DiscoveryModel model)
+    /// <summary>Collects syntax nodes in a single Roslyn walk to avoid repeated <c>DescendantNodes()</c> calls.</summary>
+    private sealed class AntiPatternNodeCollector : CSharpSyntaxWalker
+    {
+        public readonly List<AssignmentExpressionSyntax> Assignments = [];
+        public readonly List<InvocationExpressionSyntax> Invocations = [];
+        public readonly List<ObjectCreationExpressionSyntax> ObjectCreations = [];
+        public readonly List<MemberAccessExpressionSyntax> MemberAccesses = [];
+        public readonly List<DefaultExpressionSyntax> DefaultExpressions = [];
+        public readonly List<FieldDeclarationSyntax> Fields = [];
+        public readonly List<MethodDeclarationSyntax> Methods = [];
+
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
+        {
+            Assignments.Add(node);
+            base.VisitAssignmentExpression(node);
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            Invocations.Add(node);
+            base.VisitInvocationExpression(node);
+        }
+
+        public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
+        {
+            ObjectCreations.Add(node);
+            base.VisitObjectCreationExpression(node);
+        }
+
+        public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            MemberAccesses.Add(node);
+            base.VisitMemberAccessExpression(node);
+        }
+
+        public override void VisitDefaultExpression(DefaultExpressionSyntax node)
+        {
+            DefaultExpressions.Add(node);
+            base.VisitDefaultExpression(node);
+        }
+
+        public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
+        {
+            Fields.Add(node);
+            base.VisitFieldDeclaration(node);
+        }
+
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            Methods.Add(node);
+            base.VisitMethodDeclaration(node);
+        }
+    }
+
+    private static void DetectFireAndForget(AntiPatternNodeCollector collector, string filePath, DiscoveryModel model)
     {
         var isTestFile = ExtractorHelpers.IsTestFile(filePath);
         var severity = isTestFile ? "low" : "high";
         var suffix = isTestFile ? " [test file — likely intentional]" : "";
 
-        foreach (var assignment in root.DescendantNodes().OfType<AssignmentExpressionSyntax>())
+        foreach (var assignment in collector.Assignments)
         {
             if (string.Equals(assignment.Left.ToString(), "_", StringComparison.Ordinal) &&
                 assignment.Right is InvocationExpressionSyntax inv)
@@ -73,8 +131,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
             }
         }
 
-        // Pattern: bare expression-statement calling Task.Run, Task.Factory.StartNew, or ContinueWith
-        foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        foreach (var inv in collector.Invocations)
         {
             if (inv.Parent is not ExpressionStatementSyntax exprStmt) continue;
             if (inv == exprStmt.Expression && inv.Parent?.Parent is not (BlockSyntax or ArrowExpressionClauseSyntax or CompilationUnitSyntax))
@@ -115,11 +172,11 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         }
     }
 
-    private static void DetectServiceScopeFactory(SyntaxNode root, string filePath, DiscoveryModel model)
+    private static void DetectServiceScopeFactory(List<InvocationExpressionSyntax> invocations, string filePath, DiscoveryModel model)
     {
         if (ExtractorHelpers.IsTestFile(filePath)) return;
 
-        foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        foreach (var inv in invocations)
         {
             if (inv.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
             var methodName = memberAccess.Name.Identifier.ValueText;
@@ -138,11 +195,11 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         }
     }
 
-    private static void DetectNewOutsideDI(SyntaxNode root, string filePath, DiscoveryModel model)
+    private static void DetectNewOutsideDI(List<ObjectCreationExpressionSyntax> objectCreations, string filePath, DiscoveryModel model)
     {
         if (ExtractorHelpers.IsTestFile(filePath)) return;
 
-        foreach (var objCreation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        foreach (var objCreation in objectCreations)
         {
             if (IsInConstructorOrDI(objCreation)) continue;
 
@@ -174,11 +231,11 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         }
     }
 
-    private static void DetectCancellationTokenNone(SyntaxNode root, string filePath, DiscoveryModel model)
+    private static void DetectCancellationTokenNone(AntiPatternNodeCollector collector, string filePath, DiscoveryModel model)
     {
         var severity = ExtractorHelpers.IsTestFile(filePath) ? "low" : "medium";
 
-        foreach (var memberAccess in root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        foreach (var memberAccess in collector.MemberAccesses)
         {
             if (memberAccess.ToString().EndsWith("CancellationToken.None", StringComparison.Ordinal))
             {
@@ -195,8 +252,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
             }
         }
 
-        // default(CancellationToken) — semantically equivalent to None
-        foreach (var defaultExpr in root.DescendantNodes().OfType<DefaultExpressionSyntax>())
+        foreach (var defaultExpr in collector.DefaultExpressions)
         {
             if (defaultExpr.Type.ToString() is "CancellationToken" or "System.Threading.CancellationToken")
             {
@@ -213,8 +269,7 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
             }
         }
 
-        // new CancellationToken() — default value, same as None
-        foreach (var objCreation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        foreach (var objCreation in collector.ObjectCreations)
         {
             if (objCreation.Type.ToString() is "CancellationToken" or "System.Threading.CancellationToken"
                 && objCreation.ArgumentList?.Arguments.Count is 0 or null)
@@ -233,11 +288,11 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
         }
     }
 
-    private static void DetectUnboundedCollections(SyntaxNode root, string filePath, DiscoveryModel model)
+    private static void DetectUnboundedCollections(List<FieldDeclarationSyntax> fields, string filePath, DiscoveryModel model)
     {
         if (ExtractorHelpers.IsTestFile(filePath)) return;
 
-        foreach (var field in root.DescendantNodes().OfType<FieldDeclarationSyntax>())
+        foreach (var field in fields)
         {
             var fieldType = field.Declaration.Type.ToString();
             if ((fieldType.Contains("ConcurrentDictionary", StringComparison.Ordinal) ||
@@ -245,7 +300,6 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                  fieldType.Contains("ConcurrentQueue", StringComparison.Ordinal))
                 && !fieldType.Contains("Channel", StringComparison.Ordinal))
             {
-                // Check if there's any cleanup/prune/clear method on this type
                 var className = field.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText;
                 var fullClass = className ?? "unknown";
                 var hasCleanup = field.Ancestors().OfType<TypeDeclarationSyntax>()
@@ -256,15 +310,14 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
                            || m.Identifier.ValueText.Contains("Evict", StringComparison.OrdinalIgnoreCase));
 
                 var line = field.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                var severity = hasCleanup ? "low" : "medium";
-                var note = hasCleanup ? " (cleanup method found)" : " — no eviction/cleanup method found";
+                var noteHasCleanup = hasCleanup ? " (cleanup method found)" : " — no eviction/cleanup method found";
 
                 foreach (var variable in field.Declaration.Variables)
                 {
                     model.Detections.Add(new AntiPatternDetection(
                         "UnboundedCollection",
-                        $"`{fieldType} {variable.Identifier.ValueText}` in `{fullClass}`{note}.",
-                        severity, variable.Identifier.ValueText)
+                        $"`{fieldType} {variable.Identifier.ValueText}` in `{fullClass}`{noteHasCleanup}.",
+                        hasCleanup ? "low" : "medium", variable.Identifier.ValueText)
                     {
                         ExtractorName = "AntiPatternDetector",
                         SourceFile = filePath,
@@ -319,9 +372,9 @@ public sealed class AntiPatternDetector : IDiscoveryExtractor
     private static string Truncate(string text, int maxLen) =>
         text.Length <= maxLen ? text : text[..(maxLen - 3)] + "...";
 
-    private static void DetectAsyncVoid(SyntaxNode root, string filePath, DiscoveryModel model)
+    private static void DetectAsyncVoid(List<MethodDeclarationSyntax> methods, string filePath, DiscoveryModel model)
     {
-        foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        foreach (var method in methods)
         {
             if (!method.Modifiers.Any(SyntaxKind.AsyncKeyword))
                 continue;

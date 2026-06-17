@@ -3,7 +3,7 @@ MAP  MinimalApiProject     (3 projects)
 STACK  net10.0 · Minimal APIs · MediatR (CQRS) · EF Core
 
 STYLE  CleanArchitecture  (confidence moderate)
-       evidence: DDD folder layers: Infrastructure, Api, Core; MediatR with 0 handlers
+       evidence: DDD folder layers: Infrastructure, Api, Core; domain-core ref pattern (high fan-in, low fan-out); MediatR with 0 handlers
 
 TOPOLOGY (depends-on)
    Api
