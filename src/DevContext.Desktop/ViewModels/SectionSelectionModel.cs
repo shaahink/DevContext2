@@ -64,17 +64,7 @@ public sealed class SectionSelectionModel
 
     public bool IsTraceMode => _selectedScenarioValue == "deep-dive";
 
-    public string DerivedProfile
-    {
-        get
-        {
-            var sourceOn = Sections.FirstOrDefault(s => s.Key == "__source__")?.IsEnabled == true;
-            var callGraphOn = Sections.FirstOrDefault(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph)?.IsEnabled == true;
-            if (sourceOn) return "full";
-            if (callGraphOn) return "debug";
-            return "focused";
-        }
-    }
+    public string DerivedProfile => _selectedScenarioValue == "deep-dive" ? "debug" : "focused";
 
     public void CompleteInitialization() => _isInitializing = false;
 

@@ -50,7 +50,7 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 | B4 | H | fixed | Hardcoded `ChangePasswordEndpoint.cs` filter | Removed (Phase A) |
 | B5 | M | fixed | Entry-picker per-keystroke re-render | Routed through `DebouncedRender` (Phase A) |
 | B6 | L | fixed | `CancellableOperation.Link` leaks linked CTS | Tracked and disposed (Phase A) |
-| B7 | M | deferred | Two parallel section-state systems | `SectionToggle.IsEnabled` (dead UI, feeds `DerivedProfile`) vs `SectionViewModel.IsIncluded` (drawer). Only matters in catalog mode, which doesn't occur for real codebases. Deeper refactor would break test contract. |
+| B7 | M | fixed | Two parallel section-state systems | `DerivedProfile` now derives from scenario (deep-dive→debug, overview→focused) instead of dead `SectionToggle.IsEnabled`. Removes the invisible stale state driving the extraction profile. |
 | B8 | L | fixed | `--format md` throws | Normalized to "markdown" (Phase C) |
 | B9 | L | fixed | `AnalysisResult` record dead | Removed (Phase A) |
 | B10 | — | not-a-bug | `DiscoveryPipeline.RunAsync` | Used by Core tests (7 call sites) |
@@ -61,7 +61,7 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 | B15 | M | fixed | `RenderCallGraph` missing `id` attribute | Added (Phase A) |
 | B16 | M | fixed | Spinner-only loading | Determinate progress bar + staged percentages (Phase B) |
 | B17 | L | fixed | Cancel hides spinner before "Canceled" shows | ProgressText set before return, brief delay in finally (Phase B) |
-| B18 | H | fixed | Human tab plain `<pre>` in Trace/Map mode | Narrative/catalog unification: both views show same narrative text. Trace-as-HTML tree (collapsible `<details>`) deferred as aspirational. |
+| B18 | H | fixed | Human tab plain `<pre>` in Trace/Map mode — no HTML, identical to LLM | Narrative/catalog unification: both views show same narrative content. `NarrativeHtmlConverter` converts Map/Trace text to styled HTML (headings, trace tree with colored nodes, code blocks, topology trees). Human view now has visual distinction from LLM view. |
 | B19 | L | fixed | `DesktopProgressObserver` empty stubs | Populated `OnStageStarted` with percentages; `OnPipelineCompleted` reports 100% (Phase B) |
 | B20 | L | deferred | External Google Fonts fails silently offline | Falls back to `system-ui`. Non-critical. |
 
@@ -97,9 +97,8 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 - **Follow-on 4** — Narrative/catalog unification: both views show same content in all modes. ✅
 
 **Deferred (minor / aspirational):**
-- B7: Collapse parallel section-state systems (design debt, low impact)
 - B13: Async WebView2 install (pre-existing, runs once)
 - B20: Offline font fallback (non-critical)
 - L1, L3, L4: Minor code quality items (acceptable patterns)
-- B18 aspirational: Trace as collapsible HTML tree (currently both views show identical text)
+- Trace as collapsible HTML `<details>` tree — aspirational enhancement over current styled monospace rendering
 - Doc reconciliation: `cli-reference.md` / `desktop-ui.md` (out of scope)

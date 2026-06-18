@@ -138,31 +138,22 @@ public class MainViewModelTests
     }
 
     [Theory]
-    [InlineData("__source__", true, "full")]
-    [InlineData(DevContext.Core.Constants.SectionNames.CallGraph, true, "debug")]
-    [InlineData("__source__", false, "focused")]
-    public void DerivedProfile_reflects_section_state(string sectionKey, bool enable, string expectedProfile)
+    [InlineData("overview", "focused")]
+    [InlineData("deep-dive", "debug")]
+    public void DerivedProfile_reflects_scenario_mode(string scenarioValue, string expectedProfile)
     {
         var vm = CreateVm();
-        // Reset all to false first
-        foreach (var s in vm.Sections)
-            s.IsEnabled = false;
-        // Enable only the section under test
-        vm.SetSectionEnabled(sectionKey, enable);
+        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == scenarioValue);
 
         Assert.Equal(expectedProfile, vm.DerivedProfile);
     }
 
     [Fact]
-    public void DerivedProfile_full_when_source_and_call_graph_both_on()
+    public void DerivedProfile_defaults_to_focused_for_overview()
     {
         var vm = CreateVm();
-        foreach (var s in vm.Sections)
-            s.IsEnabled = false;
-        vm.SetSectionEnabled("__source__", true);
-        vm.SetSectionEnabled(DevContext.Core.Constants.SectionNames.CallGraph, true);
-
-        Assert.Equal("full", vm.DerivedProfile);
+        // Default scenario is "overview"
+        Assert.Equal("focused", vm.DerivedProfile);
     }
 
     [Fact]

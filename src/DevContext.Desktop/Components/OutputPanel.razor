@@ -175,9 +175,8 @@
             }
             else if (IsNarrativeMode)
             {
-                // Narrative mode (Map/Trace): both views show the same text.
-                // Trace = call tree, Map = architecture overview. No HTML catalog, no sections.
-                <pre class="output-text"><code>@VM.RawContent</code></pre>
+                // Narrative mode (Map/Trace): styled HTML derived from the narrative text.
+                <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
             }
             else if (HasHtmlFragments)
             {

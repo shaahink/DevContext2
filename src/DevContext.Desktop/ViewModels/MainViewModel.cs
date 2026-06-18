@@ -499,7 +499,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (renderCt.IsCancellationRequested) return;
 
             _output.RawContent = rawContent;
-            _output.HumanViewHtml = renderResult.HtmlContent ?? "";
+            // In narrative mode (Map/Trace): convert the text to styled HTML.
+            // In catalog mode: use the HTML render's output (was already produced by HtmlContextRenderer).
+            _output.HumanViewHtml = HasGraph
+                ? NarrativeHtmlConverter.Convert(rawContent)
+                : (renderResult.HtmlContent ?? "");
             // In narrative mode (Map/Trace): no sections, no fragments → LlmViewText = RawContent.
             // In catalog mode: use fragment-filtered LLM text when available, else RawContent.
             _output.LlmViewText = !string.IsNullOrEmpty(llmText) ? llmText : rawContent;

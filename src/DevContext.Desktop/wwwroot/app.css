@@ -559,3 +559,31 @@ body {
 .dc-stats-funnel-text { font-size: 11px; color: var(--text-muted); margin: 2px 0 0; }
 .dc-stats-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .dc-stats-chip { background: var(--surface-1); color: var(--text-secondary); padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+
+/* ===== Narrative HTML (Map/Trace) ===== */
+.narrative { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; }
+.narrative-title { font-size: 16px; font-weight: 700; margin: 0 0 8px; color: var(--text-primary); }
+.narrative-map { color: var(--accent); }
+.narrative-trace { color: var(--text-primary); }
+.narrative-src { font-size: 11px; color: var(--text-muted); margin: 0 0 12px; padding-left: 8px; border-left: 3px solid var(--border); }
+.narrative-prop { margin: 4px 0; color: var(--text-secondary); font-weight: 500; }
+.narrative-section-title { font-size: 13px; font-weight: 700; margin: 16px 0 4px; color: var(--text-primary); border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+.narrative-evidence { font-size: 11px; color: var(--text-muted); margin: 2px 0 8px; padding-left: 12px; }
+.narrative-footer { font-size: 11px; color: var(--text-muted); margin: 16px 0 0; font-style: italic; }
+
+.narrative-trace-tree,
+.narrative-topology,
+.narrative-entries,
+.narrative-items,
+.narrative-code {
+    font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+    background: var(--bg-sunken); padding: 10px 12px; border-radius: 6px;
+    margin: 6px 0; overflow-x: auto; white-space: pre;
+    color: var(--text-primary);
+}
+.narrative-trace-tree { background: var(--bg-base); border: 1px solid var(--border-light); }
+.narrative-code { background: var(--bg-deep); color: var(--text-secondary); }
+
+.trace-entry { color: var(--accent); font-weight: 700; }
+.trace-branch { color: var(--text-secondary); }
+.trace-leaf { color: var(--text-primary); }
