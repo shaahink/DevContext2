@@ -14,50 +14,49 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        var sectionTokens = new List<SectionTokenRecord>();
         var navLinks = new List<(string Id, string Label)>();
+        var sectionStats = new List<SectionStat>();
+        var fragments = new Dictionary<string, string>(StringComparer.Ordinal);
 
         var includedIds = options.Plan is { } plan
             ? new HashSet<string>(plan.IncludedTypeIds, StringComparer.Ordinal)
             : null;
 
         sb.AppendLine("<article class='dc-report'>");
-        var preLen = sb.Length;
         RenderHeader(sb, model, options);
-        TrackSection(sectionTokens, "Header", preLen, sb.Length);
 
-        // Build nav while rendering sections
-        RenderSection(sb, options, SectionNames.ArchitectureOverview, "Architecture overview", navLinks,
+        // Build nav while rendering sections — each RenderSection captures its fragment + token count.
+        RenderSection(sb, options, SectionNames.ArchitectureOverview, "Architecture overview", navLinks, sectionStats, fragments,
             () => RenderArchitectureOverview(sb, model, options));
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
-            RenderSection(sb, options, SectionNames.EntryPoints, "Entry points", navLinks,
+            RenderSection(sb, options, SectionNames.EntryPoints, "Entry points", navLinks, sectionStats, fragments,
                 () => RenderEntryPoints(sb, model, options));
-        RenderSection(sb, options, SectionNames.Endpoints, "Endpoints", navLinks,
+        RenderSection(sb, options, SectionNames.Endpoints, "Endpoints", navLinks, sectionStats, fragments,
             () => RenderEndpoints(sb, model));
-        RenderSection(sb, options, SectionNames.CallGraph, "Call graph", navLinks,
+        RenderSection(sb, options, SectionNames.CallGraph, "Call graph", navLinks, sectionStats, fragments,
             () => RenderCallGraph(sb, model, options));
-        RenderSection(sb, options, SectionNames.MediatRHandlers, "MediatR Handlers", navLinks,
+        RenderSection(sb, options, SectionNames.MediatRHandlers, "MediatR Handlers", navLinks, sectionStats, fragments,
             () => RenderMediatRHandlers(sb, model));
-        RenderSection(sb, options, SectionNames.DataModel, "Data model", navLinks,
+        RenderSection(sb, options, SectionNames.DataModel, "Data model", navLinks, sectionStats, fragments,
             () => RenderDataModel(sb, model));
-        RenderSection(sb, options, SectionNames.MessageConsumers, "Message consumers", navLinks,
+        RenderSection(sb, options, SectionNames.MessageConsumers, "Message consumers", navLinks, sectionStats, fragments,
             () => RenderMessageConsumers(sb, model));
-        RenderSection(sb, options, SectionNames.IndirectWiring, "Indirect wiring", navLinks,
+        RenderSection(sb, options, SectionNames.IndirectWiring, "Indirect wiring", navLinks, sectionStats, fragments,
             () => RenderIndirectWiring(sb, model));
-        RenderSection(sb, options, SectionNames.BackgroundWorkers, "Background workers", navLinks,
+        RenderSection(sb, options, SectionNames.BackgroundWorkers, "Background workers", navLinks, sectionStats, fragments,
             () => RenderBackgroundWorkers(sb, model));
-        RenderSection(sb, options, SectionNames.MiddlewarePipeline, "Middleware pipeline", navLinks,
+        RenderSection(sb, options, SectionNames.MiddlewarePipeline, "Middleware pipeline", navLinks, sectionStats, fragments,
             () => RenderMiddlewarePipeline(sb, model));
-        RenderSection(sb, options, SectionNames.DiRegistrations, "DI registrations", navLinks,
+        RenderSection(sb, options, SectionNames.DiRegistrations, "DI registrations", navLinks, sectionStats, fragments,
             () => RenderDiRegistrations(sb, model));
-        RenderSection(sb, options, SectionNames.AntiPatterns, "Anti-patterns detected", navLinks,
+        RenderSection(sb, options, SectionNames.AntiPatterns, "Anti-patterns detected", navLinks, sectionStats, fragments,
             () => RenderAntiPatterns(sb, model));
-        RenderSection(sb, options, SectionNames.EventFlow, "Event flow", navLinks,
+        RenderSection(sb, options, SectionNames.EventFlow, "Event flow", navLinks, sectionStats, fragments,
             () => RenderEventFlow(sb, model));
-        RenderSection(sb, options, SectionNames.RelatedTypes, "Related types", navLinks,
+        RenderSection(sb, options, SectionNames.RelatedTypes, "Related types", navLinks, sectionStats, fragments,
             () => RenderRelatedTypes(sb, model, includedIds));
         if (options.IncludeDiagnostics)
-            RenderSection(sb, options, SectionNames.Diagnostics, "Diagnostics", navLinks,
+            RenderSection(sb, options, SectionNames.Diagnostics, "Diagnostics", navLinks, sectionStats, fragments,
                 () => RenderDiagnostics(sb, model, options));
 
         RenderFooter(sb, model, sw, includedIds);
@@ -75,7 +74,11 @@ public sealed class HtmlContextRenderer : IContextRenderer
         var final = sb.ToString();
         var tokens = Math.Max(1, final.Length / 4);
         return new ValueTask<RenderedContext>(new RenderedContext(
-            final, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1"));
+            final, tokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1")
+        {
+            Sections = sectionStats.ToImmutableArray(),
+            SectionFragments = fragments.Count > 0 ? fragments : null,
+        });
     }
 
     private static string? BuildNav(List<(string Id, string Label)> links)
@@ -90,19 +93,20 @@ public sealed class HtmlContextRenderer : IContextRenderer
     }
 
     private static void RenderSection(StringBuilder sb, RenderOptions options, string sectionId, string label,
-        List<(string, string)> navLinks, Action render)
+        List<(string, string)> navLinks, List<SectionStat> sectionStats, Dictionary<string, string> fragments,
+        Action render)
     {
         if (!ShouldRender(sectionId, options)) return;
+        var start = sb.Length;
         render();
+        var end = sb.Length;
+        // Only track non-empty sections — avoids empty wrapper fragments (D9).
+        if (end > start)
+        {
+            fragments[sectionId] = sb.ToString(start, end - start);
+            sectionStats.Add(new SectionStat(sectionId, Math.Max(1, (end - start) / 4)));
+        }
         navLinks.Add((sectionId, label));
-    }
-
-    private static void TrackSection(List<SectionTokenRecord> records, string name, int prevLength, int currentLength)
-    {
-        if (currentLength <= prevLength) return;
-        var chars = currentLength - prevLength;
-        var tokens = Math.Max(1, chars / 4);
-        records.Add(new SectionTokenRecord(name, tokens, tokens, false));
     }
 
     private static bool ShouldRender(string sectionName, RenderOptions options)

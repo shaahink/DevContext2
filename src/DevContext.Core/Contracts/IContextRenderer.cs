@@ -50,6 +50,8 @@ public sealed record RenderedContext(
     public ImmutableArray<string> SelfCheckFailures { get; init; } = [];
     /// <summary>Per-section token counts for desktop section display.</summary>
     public ImmutableArray<SectionStat> Sections { get; init; } = [];
+    /// <summary>Per-section rendered fragments (section key → fragment content) for interactive desktop toggling. Null when the renderer doesn't fragment.</summary>
+    public IReadOnlyDictionary<string, string>? SectionFragments { get; init; }
     /// <summary>Token funnel computed during render from the plan and output. Null on legacy paths.</summary>
     public TokenFunnel? RenderFunnel { get; init; }
 }

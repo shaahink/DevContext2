@@ -301,7 +301,8 @@ public sealed class DiscoveryPipeline
         // consumers (programmatic callers, the eval harness) get the structured model from the legacy
         // renderers below, so --format json stays valid, parseable structured data.
         var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
-        var wantsNarrative = format is "markdown" or "md";
+        if (format == "md") format = "markdown"; // normalize alias
+        var wantsNarrative = format is "markdown";
         if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
         {
             if (!string.IsNullOrEmpty(request.Entry))

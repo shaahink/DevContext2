@@ -14,6 +14,8 @@ public sealed class MarkdownRenderer : IContextRenderer
         var sb = new StringBuilder();
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var sectionTokens = new List<SectionTokenRecord>();
+        var sectionStats = new List<SectionStat>();
+        var fragments = new Dictionary<string, string>(StringComparer.Ordinal);
 
         var includedIds = options.Plan is { } plan
             ? new HashSet<string>(plan.IncludedTypeIds, StringComparer.Ordinal)
@@ -25,61 +27,61 @@ public sealed class MarkdownRenderer : IContextRenderer
         AppendSignals(sb, model);
         AppendProjects(sb, model);
         AppendProfileAndTokens(sb, model, options, includedIds);
-        TrackSection(sectionTokens, "Header", preLen, sb.Length);
+        TrackSection(sb, sectionTokens, sectionStats, fragments, "Header", preLen, sb.Length);
         sb.AppendLine("---");
 
         if (ShouldRender(SectionNames.ArchitectureOverview, options))
         {
             preLen = sb.Length;
             AppendArchitectureOverview(sb, model, options);
-            TrackSection(sectionTokens, "Architecture overview", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.ArchitectureOverview, preLen, sb.Length);
         }
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
         {
             preLen = sb.Length;
             AppendEntryPoints(sb, model, options);
-            TrackSection(sectionTokens, "Entry points", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.EntryPoints, preLen, sb.Length);
 
             preLen = sb.Length;
             AppendSourceBodies(sb, model, options);
-            TrackSection(sectionTokens, "Source code", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.SourceCode, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.Endpoints, options))
         {
             preLen = sb.Length;
             AppendEndpoints(sb, model, options);
-            TrackSection(sectionTokens, "Endpoints", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.Endpoints, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.CallGraph, options))
         {
             preLen = sb.Length;
             AppendCallGraphAvailability(sb, model, options);
-            TrackSection(sectionTokens, "Call graph", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.CallGraph, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.MediatRHandlers, options))
         {
             preLen = sb.Length;
             AppendMediatRHandlers(sb, model);
-            TrackSection(sectionTokens, "MediatR Handlers", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.MediatRHandlers, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.DataModel, options))
         {
             preLen = sb.Length;
             AppendEfEntities(sb, model);
-            TrackSection(sectionTokens, "Data model", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.DataModel, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.MessageConsumers, options))
         {
             preLen = sb.Length;
             AppendMessageConsumers(sb, model);
-            TrackSection(sectionTokens, "Message consumers", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.MessageConsumers, preLen, sb.Length);
         }
         if (ShouldRender(SectionNames.NonObviousWiring, options)
             || ShouldRender(SectionNames.IndirectWiring, options))
         {
             preLen = sb.Length;
             var rendered = AppendIndirectWiring(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Indirect wiring", preLen, sb.Length);
+            if (rendered) TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.IndirectWiring, preLen, sb.Length);
         }
 
         if (ShouldRender(SectionNames.NonObviousWiring, options)
@@ -87,7 +89,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             preLen = sb.Length;
             var rendered = AppendBackgroundWorkers(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Background workers", preLen, sb.Length);
+            if (rendered) TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.BackgroundWorkers, preLen, sb.Length);
         }
 
         if (ShouldRender(SectionNames.NonObviousWiring, options)
@@ -95,7 +97,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             preLen = sb.Length;
             var rendered = AppendMiddlewarePipeline(sb, model);
-            if (rendered) TrackSection(sectionTokens, "Middleware pipeline", preLen, sb.Length);
+            if (rendered) TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.MiddlewarePipeline, preLen, sb.Length);
         }
 
         if (ShouldRender(SectionNames.NonObviousWiring, options)
@@ -103,29 +105,29 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
             preLen = sb.Length;
             var rendered = AppendDiRegistrations(sb, model);
-            if (rendered) TrackSection(sectionTokens, "DI registrations", preLen, sb.Length);
+            if (rendered) TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.DiRegistrations, preLen, sb.Length);
         }
 
         preLen = sb.Length;
         AppendAntiPatterns(sb, model);
-        TrackSection(sectionTokens, "Anti-patterns", preLen, sb.Length);
+        TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.AntiPatterns, preLen, sb.Length);
 
         preLen = sb.Length;
         AppendEventFlow(sb, model);
-        TrackSection(sectionTokens, "Event flow", preLen, sb.Length);
+        TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.EventFlow, preLen, sb.Length);
 
         if (ShouldRender(SectionNames.RelatedTypes, options))
         {
             preLen = sb.Length;
             AppendRelatedTypesByLayer(sb, model, includedIds, options);
-            TrackSection(sectionTokens, "Related types", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.RelatedTypes, preLen, sb.Length);
         }
 
         if (options.IncludeDiagnostics)
         {
             preLen = sb.Length;
             AppendDiagnostics(sb, model, options);
-            TrackSection(sectionTokens, "Diagnostics", preLen, sb.Length);
+            TrackSection(sb, sectionTokens, sectionStats, fragments, SectionNames.Diagnostics, preLen, sb.Length);
         }
 
         AppendFooter(sb, model, options, sw, includedIds);
@@ -138,15 +140,23 @@ public sealed class MarkdownRenderer : IContextRenderer
 
         return new ValueTask<RenderedContext>(new RenderedContext(
             content, estimatedTokens, [.. model.AppliedCompressions], sw.Elapsed, "1.1",
-            SectionTokens: sectionTokens.Count > 0 ? sectionTokens : null));
+            SectionTokens: sectionTokens.Count > 0 ? sectionTokens : null)
+        {
+            Sections = sectionStats.ToImmutableArray(),
+            SectionFragments = fragments.Count > 0 ? fragments : null,
+        });
     }
 
-    private static void TrackSection(List<SectionTokenRecord> records, string name, int prevLength, int currentLength)
+    private static void TrackSection(StringBuilder sb, List<SectionTokenRecord> records,
+        List<SectionStat> stats, Dictionary<string, string> fragments,
+        string name, int prevLength, int currentLength)
     {
         if (currentLength <= prevLength) return; // skip empty sections
         var chars = currentLength - prevLength;
         var tokens = Math.Max(1, chars / 4);
         records.Add(new SectionTokenRecord(name, tokens, tokens, false));
+        stats.Add(new SectionStat(name, tokens));
+        fragments[name] = sb.ToString(prevLength, chars);
     }
 
     private static void AppendTokenAccounting(StringBuilder sb, List<SectionTokenRecord> sections)

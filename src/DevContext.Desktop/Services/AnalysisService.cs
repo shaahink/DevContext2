@@ -183,10 +183,16 @@ public class AnalysisService : IAnalysisService
         var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
         var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
 
-        // Render HTML only for markdown format (human view); JSON needs no HTML companion
-        var htmlContent = format == "markdown"
-            ? (await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct)).Content
-            : null;
+        // Render HTML only for markdown format (human view); JSON needs no HTML companion.
+        // The HTML render also produces per-section HTML fragments for the desktop's interactive section toggling.
+        string? htmlContent = null;
+        IReadOnlyDictionary<string, string>? htmlFragments = null;
+        if (format == "markdown")
+        {
+            var htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+            htmlContent = htmlRendered.Content;
+            htmlFragments = htmlRendered.SectionFragments;
+        }
 
         return new RenderResult
         {
@@ -194,6 +200,8 @@ public class AnalysisService : IAnalysisService
             HtmlContent = htmlContent,
             EstimatedTokens = rendered.EstimatedTokens,
             Sections = rendered.Sections,
+            SectionFragments = rendered.SectionFragments,
+            HtmlSectionFragments = htmlFragments,
             RenderFunnel = rendered.RenderFunnel,
         };
     }
@@ -299,6 +307,8 @@ public record RenderResult
     public string? HtmlContent { get; init; }
     public int EstimatedTokens { get; init; }
     public ImmutableArray<SectionStat> Sections { get; init; } = [];
+    public IReadOnlyDictionary<string, string>? SectionFragments { get; init; }
+    public IReadOnlyDictionary<string, string>? HtmlSectionFragments { get; init; }
     public TokenFunnel? RenderFunnel { get; init; }
 }
 
