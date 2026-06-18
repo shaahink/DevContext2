@@ -61,9 +61,7 @@
                 <div class="github-pill">
                     <span class="pill-text">@VM.GitRepoDisplay</span>
                     <select class="cleanup-select" @bind="VM.CloneCleanup">
-                        <option value="24h">Cache 24h</option>
-                        <option value="auto">Auto-clean</option>
-                        <option value="session">Keep for session</option>
+                        <option value="auto">Auto-clean after analysis</option>
                         <option value="keep">Keep permanently</option>
                     </select>
                 </div>
@@ -112,7 +110,7 @@
             <h2 class="group-label">Focus <span class="hint">(optional)</span></h2>
             <input class="input" placeholder="TypeName, Type:Method, or GET /api/route"
                    @bind="VM.Around" @bind:event="oninput" />
-            <p class="field-hint">The starting point to slice from. Leave empty for overview map.</p>
+            <p class="field-hint">Narrows analysis to this symbol's neighborhood. After analysis, pick an entry point below to trace.</p>
         </section>
 
         @* ── Entry picker (visible after analyze when graph exists) ── *@
@@ -137,8 +135,8 @@
             </section>
         }
 
-        @* ── Depth & Detail (visible after analyze when graph exists) ── *@
-        @if (VM.HasGraph)
+        @* ── Depth & Detail (visible only in Trace mode — graph + selected entry) ── *@
+        @if (VM.HasGraph && !string.IsNullOrEmpty(VM.SelectedEntry))
         {
             <section class="config-group">
                 <h2 class="group-label">Depth</h2>
@@ -210,7 +208,7 @@
                     <label class="toggle-label">
                         <input type="checkbox" checked="@VM.NoRoslyn"
                                @onchange="@(e => VM.NoRoslyn = (bool)(e.Value ?? false))" />
-                        Skip Roslyn (faster, no call graph)
+                        Skip Roslyn (faster, no semantic analysis)
                     </label>
                     <label class="toggle-label">
                         <input type="checkbox" checked="@VM.DryRun"

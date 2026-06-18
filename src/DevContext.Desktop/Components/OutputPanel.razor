@@ -95,7 +95,7 @@
             <div class="empty-features">
                 <div class="empty-feat"><span class="feat-icon">&check;</span> Discover endpoints, workers, entities, DI wiring, middleware</div>
                 <div class="empty-feat"><span class="feat-icon">&check;</span> Prune to fit your token budget (500&ndash;50,000)</div>
-                <div class="empty-feat"><span class="feat-icon">&check;</span> Natural language intent &mdash; type what you need</div>
+                <div class="empty-feat"><span class="feat-icon">&check;</span> Focus on an entry point &mdash; trace the call chain down the wiring</div>
                 <div class="empty-feat"><span class="feat-icon">&check;</span> GitHub URL support &mdash; clone &amp; analyze in one click</div>
                 <div class="empty-feat"><span class="feat-icon">&check;</span> Human view (rendered) and LLM view (raw) tabs</div>
             </div>
@@ -160,7 +160,11 @@
 
         @if (IsTabHuman)
         {
-            @if (IsTraceMode)
+            @if (VM.SelectedFormat == "json")
+            {
+                <div class="output-rendered empty-state"><p>JSON format has no rendered preview. Switch to the LLM tab to see the raw JSON output.</p></div>
+            }
+            else if (IsTraceMode)
             {
                 <pre class="output-text"><code>@VM.RawContent</code></pre>
             }

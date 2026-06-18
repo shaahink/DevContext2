@@ -146,7 +146,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public string GitRepoDisplay => _gitRepoUrl?.ToDisplay() ?? "";
     public RepoStatus GitRepoStatus => _gitRepoStatus;
 
-    [ObservableProperty] private string _cloneCleanup = "24h"; // default: cache 24h for GitHub repos
+    [ObservableProperty] private string _cloneCleanup = "auto"; // default: auto-clean cloned repos
 
     partial void OnProjectPathChanged(string value)
     {
@@ -264,7 +264,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
     partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
 
-    partial void OnMaxTokensChanged(int value) => DebouncedReanalyze();
+    partial void OnMaxTokensChanged(int value) => DebouncedRender();
     partial void OnAroundChanged(string value) => OnAnalysisInputChanged();
     partial void OnIncludeProvenanceChanged(bool value) => OnRenderInputChanged();
     partial void OnIncludeDiagnosticsChanged(bool value) => OnRenderInputChanged();
@@ -294,14 +294,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             return;
 
         _ = RerenderAsync();
-    }
-
-    private void DebouncedReanalyze()
-    {
-        if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
-            return;
-
-        _tokenDebouncer.Invoke(() => OnRenderInputChanged());
     }
 
     private void DebouncedRender()
