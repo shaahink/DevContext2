@@ -12,27 +12,10 @@
     private void OnVmChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         => InvokeAsync(StateHasChanged);
 
-    private void OnScenarioChanged(string value)
-    {
-        VM.SelectedScenario = VM.Scenarios.First(s => s.Value == value);
-    }
-
-    private void OnTokensInput(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var v))
-            VM.MaxTokens = Math.Clamp(v, 500, 50000);
-    }
-
     private void OnDepthInput(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var v))
             VM.Depth = Math.Clamp(v, 1, 10);
-    }
-
-    private void OnSectionChanged(string key, ChangeEventArgs e)
-    {
-        var enabled = (bool)(e.Value ?? false);
-        VM.SetSectionEnabled(key, enabled);
     }
 
     public void Dispose() => VM.PropertyChanged -= OnVmChanged;
@@ -81,45 +64,16 @@
             }
         </section>
 
-        @* ── Mode ──────────────────────────────────────────────── *@
+        @* ── Focus / entry point (single control; mode is derived) ── *@
         <section class="config-group">
-            <h2 class="group-label">Mode</h2>
-            <div class="segmented">
-                @foreach (var s in VM.Scenarios)
-                {
-                    <button class="seg-option @(VM.SelectedScenario?.Value == s.Value ? "active" : "")"
-                            @onclick="() => OnScenarioChanged(s.Value)">
-                        @s.Label
-                    </button>
-                }
-            </div>
-            <p class="field-hint">
-                @if (VM.IsTraceMode)
-                {
-                    <span>Focused on a specific entry point. Set a symbol below for best results.</span>
-                }
-                else
-                {
-                    <span>Whole-codebase architecture map.</span>
-                }
-            </p>
-        </section>
-
-        @* ── Focus point (always visible) ── *@
-        <section class="config-group">
-            <h2 class="group-label">Focus <span class="hint">(optional)</span></h2>
-            <input class="input" placeholder="TypeName, Type:Method, or GET /api/route"
-                   @bind="VM.Around" @bind:event="oninput" />
-            <p class="field-hint">Narrows analysis to this symbol's neighborhood. After analysis, pick an entry point below to trace.</p>
-        </section>
-
-        @* ── Entry picker (visible after analyze when graph exists) ── *@
-        @if (VM.HasGraph && VM.Entries.Count > 0)
-        {
-            <section class="config-group">
-                <h2 class="group-label">Entry point</h2>
-                <input class="input" list="entry-list" placeholder="Pick an entry or type…"
-                       @bind="VM.SelectedEntry" @bind:event="oninput" />
+            <h2 class="group-label">
+                Focus <span class="hint">(optional)</span>
+                <span class="mode-badge @(VM.IsTraceMode ? "trace" : "map")">@(VM.IsTraceMode ? "Trace" : "Map")</span>
+            </h2>
+            <input class="input" list="entry-list" placeholder="TypeName, Type:Method, or GET /api/route"
+                   @bind="VM.Focus" @bind:event="oninput" />
+            @if (VM.HasGraph && VM.Entries.Count > 0)
+            {
                 <datalist id="entry-list">
                     @foreach (var group in VM.GroupedEntries)
                     {
@@ -131,12 +85,21 @@
                         </optgroup>
                     }
                 </datalist>
-                <p class="field-hint">Pick an entry for a Trace; leave empty to see the Map.</p>
-            </section>
-        }
+            }
+            <p class="field-hint">
+                @if (VM.IsTraceMode)
+                {
+                    <span>Trace from this entry, down the wiring. Pick another entry after analysis, or clear for the whole-codebase Map.</span>
+                }
+                else
+                {
+                    <span>Empty → whole-codebase Map. Type a symbol, or analyze first and pick an entry below to trace.</span>
+                }
+            </p>
+        </section>
 
-        @* ── Depth & Detail (visible only in Trace mode — graph + selected entry) ── *@
-        @if (VM.HasGraph && !string.IsNullOrEmpty(VM.SelectedEntry))
+        @* ── Depth & Detail (Trace only — focus set) ── *@
+        @if (VM.IsTraceMode)
         {
             <section class="config-group">
                 <h2 class="group-label">Depth</h2>
@@ -164,19 +127,6 @@
             </section>
         }
 
-        @* ── Sections ───────────────────────────────────────────── *@
-
-        @* ── Token budget ─────────────────────────────────────────── *@
-        <section class="config-group">
-            <h2 class="group-label">Token budget</h2>
-            <div class="token-slider">
-                <input type="range" min="500" max="50000" step="500"
-                       @bind="VM.MaxTokens" @bind:event="oninput" />
-                <input type="number" class="input token-input" min="500" max="50000"
-                       value="@VM.MaxTokens" @onchange="OnTokensInput" />
-            </div>
-        </section>
-
         @* ── Output ────────────────────────────────────────────────── *@
         <section class="config-group">
             <h2 class="group-label">Output</h2>
@@ -196,11 +146,6 @@
                 <summary class="advanced-summary">Advanced</summary>
                 <div class="advanced-body">
                     <label class="toggle-label">
-                        <input type="checkbox" checked="@VM.IncludeProvenance"
-                               @onchange="@(e => VM.IncludeProvenance = (bool)(e.Value ?? false))" />
-                        Include provenance
-                    </label>
-                    <label class="toggle-label">
                         <input type="checkbox" checked="@VM.IncludeDiagnostics"
                                @onchange="@(e => VM.IncludeDiagnostics = (bool)(e.Value ?? false))" />
                         Include diagnostics
@@ -215,11 +160,20 @@
                                @onchange="@(e => VM.DryRun = (bool)(e.Value ?? false))" />
                         Dry run (plan only)
                     </label>
-                    <label class="toggle-label">
-                        <input type="checkbox" checked="@VM.IncludeAntiPatterns"
-                               @onchange="@(e => VM.IncludeAntiPatterns = (bool)(e.Value ?? false))" />
-                        Include anti-pattern detection
-                    </label>
+                    @* Provenance + anti-patterns only affect the legacy catalog output (no graph). *@
+                    @if (!VM.HasGraph)
+                    {
+                        <label class="toggle-label">
+                            <input type="checkbox" checked="@VM.IncludeProvenance"
+                                   @onchange="@(e => VM.IncludeProvenance = (bool)(e.Value ?? false))" />
+                            Include provenance
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" checked="@VM.IncludeAntiPatterns"
+                                   @onchange="@(e => VM.IncludeAntiPatterns = (bool)(e.Value ?? false))" />
+                            Include anti-pattern detection
+                        </label>
+                    }
                 </div>
             </details>
         </section>

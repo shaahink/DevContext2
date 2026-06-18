@@ -317,9 +317,10 @@ public sealed class DiscoveryPipeline
                         MaxDepth = request.Depth ?? 6,
                         MaxFanOut = 12,
                     });
-                    var traceContent = TraceRenderer.Render(trace, request.Detail)
-                        + GraphDiagnosticsTail(snapshot, request);
-                    return new RenderedContext(traceContent, traceContent.Length / 4, [], TimeSpan.Zero, "2.0");
+                    var traceCtx = NarrativeSections.ToRenderedContext(
+                        TraceRenderer.RenderSections(trace, request.Detail));
+                    return NarrativeSections.WithExtraSection(
+                        traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request));
                 }
             }
 
@@ -328,8 +329,8 @@ public sealed class DiscoveryPipeline
             {
                 var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
                 var map = await MapRenderer.RenderAsync(mapCtx, ct);
-                var tail = GraphDiagnosticsTail(snapshot, request);
-                return tail.Length == 0 ? map : map with { Content = map.Content + tail };
+                return NarrativeSections.WithExtraSection(
+                    map, "Diagnostics", GraphDiagnosticsTail(snapshot, request));
             }
         }
 

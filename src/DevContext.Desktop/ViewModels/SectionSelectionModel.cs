@@ -179,7 +179,7 @@ public sealed class SectionSelectionModel
         }
 
         var groups = new List<SectionGroupViewModel>();
-        var categoryOrder = new[] { "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
+        var categoryOrder = new[] { "Map", "Trace", "API", "Architecture", "Data", "Analysis", "Debug", "Other" };
         foreach (var cat in categoryOrder)
         {
             var children = sectionVms.Where(s => s.Category == cat).ToList();
@@ -228,6 +228,22 @@ public sealed class SectionSelectionModel
 
     private static string CategorizeSection(string name)
     {
+        // Narrative (Map/Trace) blocks group under one heading, preserving render order.
+        switch (name)
+        {
+            case "Overview":
+            case "Topology":
+            case "Entry points":
+            case "Cross-cutting":
+            case "Packages":
+            case "Footer":
+                return "Map";
+            case "Trace":
+            case "Touches":
+            case "Emits":
+                return "Trace";
+        }
+
         var lower = name.ToLowerInvariant();
         if (lower.Contains("endpoint") || lower.Contains("call graph") || lower.Contains("mediatr") || lower.Contains("handler"))
             return "API";

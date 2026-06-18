@@ -7,32 +7,50 @@ namespace DevContext.Core.Rendering;
 
 public static class TraceRenderer
 {
+    /// <summary>Renders the whole trace as one string (CLI / file output). Byte-identical to the
+    /// concatenation of <see cref="RenderSections"/>.</summary>
     public static string Render(Trace trace, TraceDetail detail)
     {
         var sb = new StringBuilder();
+        foreach (var s in RenderSections(trace, detail))
+            sb.Append(s.Text);
+        return sb.ToString();
+    }
+
+    /// <summary>Renders the trace as ordered, toggleable fragments — the entry+tree ("Trace"), the
+    /// touched-entities summary ("Touches"), and the emitted-events summary ("Emits") — so the
+    /// desktop can show/hide each in both the Human and LLM views.</summary>
+    public static IReadOnlyList<NarrativeSection> RenderSections(Trace trace, TraceDetail detail)
+    {
+        var sections = new List<NarrativeSection>();
         var entry = trace.Entry;
 
-        sb.AppendLine($"TRACE  {entry.Title}");
+        var head = new StringBuilder();
+        head.AppendLine($"TRACE  {entry.Title}");
         if (entry.Provenance is { } p)
-            sb.AppendLine($"       {p}");
+            head.AppendLine($"       {p}");
         if (entry.Project is { } proj)
-            sb.Append("       " + proj);
-        sb.AppendLine();
+            head.Append("       " + proj);
+        head.AppendLine();
+        RenderStep(head, trace.Root, "", detail, isLast: true, isRoot: true);
+        sections.Add(new NarrativeSection("Trace", head.ToString()));
 
-        RenderStep(sb, trace.Root, "", detail, isLast: true, isRoot: true);
-
-        // Summary pass
+        // Summary pass — kept as separate fragments, each retaining its original spacing.
         if (trace.TouchedEntities.Length > 0)
         {
+            var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine($"TOUCHES  {string.Join(", ", trace.TouchedEntities)}");
+            sections.Add(new NarrativeSection("Touches", sb.ToString()));
         }
         if (trace.EmittedEvents.Length > 0)
         {
+            var sb = new StringBuilder();
             sb.AppendLine($"EMITS    {string.Join(", ", trace.EmittedEvents)}");
+            sections.Add(new NarrativeSection("Emits", sb.ToString()));
         }
 
-        return sb.ToString();
+        return sections;
     }
 
     private static void RenderStep(StringBuilder sb, TraceStep step, string indent, TraceDetail detail,

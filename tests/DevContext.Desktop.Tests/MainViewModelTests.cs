@@ -44,10 +44,11 @@ public class MainViewModelTests
     // ══ Initialization ═════════════════════════════════════════════════════════
 
     [Fact]
-    public void Constructor_sets_default_scenario()
+    public void Constructor_defaults_to_map_mode()
     {
         var vm = CreateVm();
-        Assert.Equal("overview", vm.SelectedScenario.Value);
+        Assert.False(vm.IsTraceMode);
+        Assert.Equal("focused", vm.DerivedProfile);
     }
 
     [Fact]
@@ -64,7 +65,9 @@ public class MainViewModelTests
 
         Assert.Equal("json", vm.SelectedFormat);
         Assert.Equal(4000, vm.MaxTokens);
-        Assert.Equal("MyClass:Method", vm.Around);
+        Assert.Equal("MyClass:Method", vm.Focus);
+        // A loaded focus puts the VM in Trace mode.
+        Assert.True(vm.IsTraceMode);
         Assert.True(vm.IncludeProvenance);
         Assert.True(vm.IncludeDiagnostics);
         Assert.True(vm.NoRoslyn);
@@ -81,15 +84,6 @@ public class MainViewModelTests
         Assert.Equal(2, vm.RecentPaths.Count);
         Assert.Equal("C:\\Proj1", vm.RecentPaths[0]);
         Assert.Equal("C:\\Proj2", vm.RecentPaths[1]);
-    }
-
-    [Fact]
-    public void Constructor_initializes_scenarios()
-    {
-        var vm = CreateVm();
-        Assert.Equal(2, vm.Scenarios.Count);
-        Assert.Contains(vm.Scenarios, s => s.Value == "overview");
-        Assert.Contains(vm.Scenarios, s => s.Value == "deep-dive");
     }
 
     // ══ Sections ═══════════════════════════════════════════════════════════════
@@ -117,10 +111,10 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void Sections_default_to_trace_preset_when_scenario_is_deep_dive()
+    public void Sections_default_to_trace_preset_when_focus_set()
     {
         var vm = CreateVm();
-        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+        vm.Focus = "OrdersController"; // → Trace mode → trace section preset
 
         Assert.True(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.CallGraph).IsEnabled);
         Assert.False(vm.Sections.First(s => s.Key == DevContext.Core.Constants.SectionNames.ArchitectureOverview).IsEnabled);
@@ -128,22 +122,22 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void IsTraceMode_true_when_deep_dive_selected()
+    public void IsTraceMode_true_when_focus_set()
     {
         var vm = CreateVm();
         Assert.False(vm.IsTraceMode);
 
-        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == "deep-dive");
+        vm.Focus = "OrdersController";
         Assert.True(vm.IsTraceMode);
     }
 
     [Theory]
-    [InlineData("overview", "focused")]
-    [InlineData("deep-dive", "debug")]
-    public void DerivedProfile_reflects_scenario_mode(string scenarioValue, string expectedProfile)
+    [InlineData("", "focused")]
+    [InlineData("OrdersController", "debug")]
+    public void DerivedProfile_reflects_focus(string focus, string expectedProfile)
     {
         var vm = CreateVm();
-        vm.SelectedScenario = vm.Scenarios.First(s => s.Value == scenarioValue);
+        vm.Focus = focus;
 
         Assert.Equal(expectedProfile, vm.DerivedProfile);
     }
@@ -276,7 +270,7 @@ public class MainViewModelTests
         Assert.False(vm.HasOutput);
         Assert.False(vm.IsAnalyzing);
 
-        vm.SelectedScenario = vm.Scenarios[0]; // Change scenario
+        vm.NoRoslyn = true; // analysis-input option change
 
         Assert.False(vm.IsAnalyzing); // Should not trigger
     }
@@ -290,7 +284,7 @@ public class MainViewModelTests
 
         Assert.False(vm.IsAnalyzing);
 
-        vm.SelectedScenario = vm.Scenarios[0];
+        vm.NoRoslyn = true;
 
         Assert.False(vm.IsAnalyzing);
     }
@@ -585,7 +579,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task Changing_scenario_triggers_reanalysis_and_resets_defaults()
+    public async Task Changing_focus_triggers_reanalysis()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
@@ -601,8 +595,8 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
         Assert.Equal(1, callCount);
 
-        vm.SelectedScenario = vm.Scenarios[1]; // Switch to Trace
-        await Task.Delay(200);
+        vm.Focus = "OrdersController"; // → Trace; debounced re-analyze
+        await Task.Delay(900); // > 500ms debounce
         Assert.Equal(2, callCount);
     }
 
@@ -680,8 +674,10 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task AnalyzeAsync_passes_derived_profile_to_AnalysisOptions()
+    public async Task AnalyzeAsync_leaves_scenario_and_profile_blank_for_resolver()
     {
+        // The desktop no longer forces scenario/profile — it sends them blank so
+        // AnalysisIntentResolver derives them from focus (matching the CLI).
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
 
@@ -696,15 +692,16 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotNull(capturedOpts);
-        Assert.Equal("focused", capturedOpts.Profile); // default: no call graph, no source
+        Assert.Equal("", capturedOpts.Scenario);
+        Assert.Equal("", capturedOpts.Profile);
     }
 
     [Fact]
-    public async Task AnalyzeAsync_passes_scenario_to_AnalysisOptions()
+    public async Task AnalyzeAsync_passes_focus_as_around()
     {
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
-        vm.SelectedScenario = vm.Scenarios[1]; // deep-dive
+        vm.Focus = "OrdersController";
 
         AnalysisOptions? capturedOpts = null;
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
@@ -717,7 +714,7 @@ public class MainViewModelTests
         await ExecuteAnalyzeCommand(vm);
 
         Assert.NotNull(capturedOpts);
-        Assert.Equal("deep-dive", capturedOpts.Scenario);
+        Assert.Equal("OrdersController", capturedOpts.Around);
     }
 
     // ══ Section data parsing ══════════════════════════════════════════════════
@@ -1024,5 +1021,40 @@ public async Task AnalyzeAsync_fires_single_batched_PropertyChanged()
         Assert.Equal(6000, vm.BudgetTokens);
     }
 
+    // ══ Dry run ════════════════════════════════════════════════════════════════
 
+    [Fact]
+    public async Task DryRun_shows_plan_in_both_views_and_skips_render()
+    {
+        var vm = CreateVm();
+        vm.ProjectPath = "C:\\Test";
+        vm.DryRun = true;
+
+        _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new SnapshotResult
+            {
+                Success = true,
+                Snapshot = new AnalysisSnapshot
+                {
+                    Model = new DiscoveryModel(),
+                    Analysis = new SharedAnalysisContext(),
+                    Scenario = ScenarioRegistry.BuiltIn["overview"],
+                    Options = new ExtractionOptions(),
+                    Report = DefaultReport,
+                    IsDryRun = true,
+                    DryRunContent = "## Dry Run Plan\nStage 1",
+                },
+                ElapsedMs = 5,
+            }));
+
+        _svc.ClearReceivedCalls();
+        await ExecuteAnalyzeCommand(vm);
+
+        Assert.True(vm.HasOutput);
+        Assert.Contains("Dry Run Plan", vm.RawContent);
+        Assert.Contains("Dry Run Plan", vm.LlmViewText);
+        Assert.Contains("Dry run", vm.StatsText);
+        // A dry run has no graph/sections — the render path is skipped.
+        await _svc.DidNotReceive().RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>());
+    }
 }

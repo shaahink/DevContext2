@@ -15,21 +15,33 @@ public static class MapRenderer
 {
     public static ValueTask<RenderedContext> RenderAsync(MapRenderContext ctx, CancellationToken ct)
     {
-        var sb = new StringBuilder();
         var model = ctx.Snapshot.Model;
+        var sections = new List<NarrativeSection>();
 
-        AppendMapHeader(sb, ctx, model);
-        AppendStack(sb, ctx);
-        AppendStyle(sb, ctx.Map);
-        AppendTopology(sb, ctx.Map);
-        AppendEntryPoints(sb, ctx.Map);
-        AppendCrossCutting(sb, ctx.Map);
-        AppendPackages(sb, ctx.Map);
-        AppendFooter(sb);
+        // Identity preamble (header + stack + style) is one always-present block.
+        Add(sections, "Overview", sb =>
+        {
+            AppendMapHeader(sb, ctx, model);
+            AppendStack(sb, ctx);
+            AppendStyle(sb, ctx.Map);
+        });
+        Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
+        Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map));
+        Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
+        Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
+        Add(sections, "Footer", AppendFooter);
 
-        var content = sb.ToString();
-        var tokens = content.Length / 4;
-        return new ValueTask<RenderedContext>(new RenderedContext(content, tokens, [], TimeSpan.Zero, "2.0"));
+        return new ValueTask<RenderedContext>(NarrativeSections.ToRenderedContext(sections));
+    }
+
+    /// <summary>Builds one fragment into its own buffer; skips empty blocks so the desktop only
+    /// lists sections that actually rendered content.</summary>
+    private static void Add(List<NarrativeSection> sections, string key, Action<StringBuilder> build)
+    {
+        var sb = new StringBuilder();
+        build(sb);
+        if (sb.Length > 0)
+            sections.Add(new NarrativeSection(key, sb.ToString()));
     }
 
     private static void AppendMapHeader(StringBuilder sb, MapRenderContext ctx, DiscoveryModel model)

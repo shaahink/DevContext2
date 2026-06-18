@@ -11,6 +11,7 @@ using DevContext.Core.IO;
 using DevContext.Core.Models;
 using DevContext.Core.Observers;
 using DevContext.Core.Pipeline;
+using DevContext.Core.Rendering;
 using DevContext.Core.Resolvers;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -79,8 +80,10 @@ public class AnalysisService : IAnalysisService
         {
             Focus = opts.Around,
             Depth = opts.Depth,
-            ExplicitScenario = opts.Scenario,
-            ExplicitProfile = opts.Profile,
+            // Blank → let AnalysisIntentResolver derive from focus (focus → deep-dive/Debug,
+            // none → overview/Focused), matching the CLI. The desktop no longer forces a scenario.
+            ExplicitScenario = string.IsNullOrWhiteSpace(opts.Scenario) ? null : opts.Scenario,
+            ExplicitProfile = string.IsNullOrWhiteSpace(opts.Profile) ? null : opts.Profile,
         };
 
         ResolvedIntent resolvedIntent;
@@ -183,21 +186,33 @@ public class AnalysisService : IAnalysisService
         var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
         var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
 
-        // When the graph exists, the markdown render produced a Map/Trace NARRATIVE —
-        // a monolithic document with no sections. The HTML catalog renderer would produce
-        // a DIFFERENT document (endpoints table, DI table, etc.) that doesn't correspond
-        // to the narrative. Skip it: both views show the same narrative text.
-        //
-        // When the graph doesn't exist (legacy catalog mode), render HTML too — both views
-        // show the same catalog, just in different formats, and section toggling works.
+        // Both modes are section-aware now. The markdown render carries per-section fragments
+        // (Map/Trace narrative blocks, or catalog sections). The Human view needs matching HTML
+        // fragments keyed the same way so toggling a section filters BOTH views in sync.
         string? htmlContent = null;
         IReadOnlyDictionary<string, string>? htmlFragments = null;
         var isNarrativeMode = snapshot.Graph is { NodeCount: > 0 };
-        if (format == "markdown" && !isNarrativeMode)
+        if (format == "markdown")
         {
-            var htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
-            htmlContent = htmlRendered.Content;
-            htmlFragments = htmlRendered.SectionFragments;
+            if (isNarrativeMode)
+            {
+                // Narrative (Map/Trace): convert each markdown fragment to styled HTML.
+                htmlContent = NarrativeHtmlConverter.Convert(rendered.Content);
+                if (rendered.SectionFragments is { } frags)
+                {
+                    var html = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var (key, md) in frags)
+                        html[key] = NarrativeHtmlConverter.Convert(md);
+                    htmlFragments = html;
+                }
+            }
+            else
+            {
+                // Catalog (no graph): render HTML too — same catalog, different format.
+                var htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+                htmlContent = htmlRendered.Content;
+                htmlFragments = htmlRendered.SectionFragments;
+            }
         }
 
         return new RenderResult

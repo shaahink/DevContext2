@@ -76,6 +76,7 @@ body {
     color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 0.5px;
     margin-bottom: 2px;
+    display: flex; align-items: center; gap: 6px;
 }
 
 .field-label {
@@ -83,6 +84,15 @@ body {
     display: flex; gap: 6px; align-items: baseline;
 }
 .hint { font-weight: 400; font-style: italic; }
+
+/* Derived Map/Trace mode indicator next to the Focus label. */
+.mode-badge {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 1px 7px; border-radius: var(--radius-pill);
+    text-transform: uppercase; margin-left: auto;
+}
+.mode-badge.map { background: color-mix(in srgb, var(--text-muted), transparent 80%); color: var(--text-secondary); }
+.mode-badge.trace { background: var(--accent); color: var(--accent-fg); }
 
 /* ===== Form Controls ===== */
 .input {

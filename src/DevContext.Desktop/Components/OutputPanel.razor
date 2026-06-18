@@ -72,9 +72,12 @@
 
     private List<SectionViewModel> FlattenedSections => VM.SectionGroups.SelectMany(g => g.Children).ToList();
     private bool HasHtmlFragments => FlattenedSections.Any(s => !string.IsNullOrEmpty(s.Html));
-    // Narrative mode (graph exists): both views show the same Map/Trace text. No sections.
-    // Catalog mode (no graph): Human = HTML catalog, LLM = markdown catalog. Sections work.
-    private bool IsNarrativeMode => VM.HasGraph;
+    // Count sections, not groups: narrative (Map/Trace) collapses into a single "Map"/"Trace"
+    // group, so a group-count gate would wrongly hide the drawer.
+    private bool HasToggleableSections => FlattenedSections.Count > 1;
+    // Both modes are section-aware: narrative (Map/Trace) sections are the narrative blocks;
+    // catalog sections are the legacy tables. The right-side panel toggles either, in sync
+    // across the Human (HTML) and LLM (markdown) views.
 }
 
 <section class="output-panel">
@@ -109,7 +112,7 @@
                 <button class="@(IsTabHuman?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
                 <button class="@(IsTabLlm?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
                 <button class="@(IsTabStats?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
-                @if (VM.SectionGroups.Length > 1 && !IsNarrativeMode)
+                @if (HasToggleableSections)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
                         <svg class="icon" viewBox="0 0 24 24"><rect x="15" y="3" width="6" height="18" rx="2"/><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/></svg> Sections
@@ -128,7 +131,7 @@
             </div>
         </div>
 
-        @if (IsSectionsOpen && VM.SectionGroups.Length > 1)
+        @if (IsSectionsOpen && HasToggleableSections)
         {
             <div class="sections-overlay-backdrop" @onclick="ToggleSections"></div>
             <div class="sections-panel">
@@ -173,14 +176,10 @@
             {
                 <div class="output-rendered empty-state"><p>JSON format has no rendered preview. Switch to the LLM tab to see the raw JSON output.</p></div>
             }
-            else if (IsNarrativeMode)
-            {
-                // Narrative mode (Map/Trace): styled HTML derived from the narrative text.
-                <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
-            }
             else if (HasHtmlFragments)
             {
-                // Catalog mode with fragments: per-section HTML wrappers, toggleable.
+                // Section-aware (Map/Trace narrative or catalog): per-section HTML wrappers,
+                // toggled by display so the DOM stays intact and stays in sync with the LLM view.
                 <div class="output-rendered">
                     @foreach (var s in FlattenedSections)
                     {
@@ -192,7 +191,7 @@
             }
             else
             {
-                // Catalog mode without fragments (fallback): monolithic HTML.
+                // Fallback (no fragments, e.g. dry-run): monolithic HTML.
                 <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
             }
         }

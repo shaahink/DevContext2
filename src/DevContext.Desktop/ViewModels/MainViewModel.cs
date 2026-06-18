@@ -14,11 +14,6 @@ using Serilog;
 
 namespace DevContext.Desktop.ViewModels;
 
-public record ScenarioItem(string Value, string Label)
-{
-    public override string ToString() => Label;
-}
-
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalysisService _svc;
@@ -30,6 +25,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly CancellableOperation _validateOp = new();
     private readonly Debouncer _tokenDebouncer = new(500);
     private readonly Debouncer _urlDebouncer = new(400);
+    private readonly Debouncer _analyzeDebouncer = new(500);
     private AnalysisSnapshot? _snapshot;
     private bool _isInitializing = true;
 
@@ -54,8 +50,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public int SelectedTokenTotal => _sections.SelectedTokenTotal;
     public int TotalTokens => _sections.TotalTokens;
     public int BudgetTokens => _sections.BudgetTokens;
-    public bool IsTraceMode => _sections.IsTraceMode;
-    public string DerivedProfile => _sections.DerivedProfile;
+    // Mode is derived from focus, not a toggle: focus set → Trace, empty → Map.
+    public bool IsTraceMode => !string.IsNullOrWhiteSpace(Focus);
+    public string DerivedProfile => IsTraceMode ? "debug" : "focused";
 
     private ImmutableArray<string> GetActiveSections() => _sections.GetActiveSections();
 
@@ -64,7 +61,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(AnalyzeCommand))]
     private string _projectPath = "";
 
-    [ObservableProperty] private string _around = "";
+    // Single focus/entry control: a typed Type/Type:Method/route, or an entry picked from the
+    // graph after analysis. Empty → Map; set → Trace. Mirrors the CLI's --focus exactly.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTraceMode), nameof(DerivedProfile))]
+    private string _focus = "";
     [ObservableProperty] private int _maxTokens = 8000;
     [ObservableProperty] private bool _includeProvenance;
     [ObservableProperty] private bool _includeDiagnostics;
@@ -79,8 +80,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFormatMarkdown), nameof(IsFormatJson))]
     private string _selectedFormat = "markdown";
-
-    [ObservableProperty] private ScenarioItem _selectedScenario = null!;
 
     // ── Graph-backed state (PLAN-11 Part A) ─────────────────────────────────────
     public bool HasGraph => _snapshot?.Graph is { NodeCount: > 0 };
@@ -102,10 +101,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
             DevContext.Core.Graph.EntryPointKind.PublicApi => "Public API",
             _ => "Other"
         });
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AnalyzeButtonText))]
-    private string _selectedEntry = "";
 
     public bool IsFormatMarkdown => SelectedFormat == "markdown";
     public bool IsFormatJson => SelectedFormat == "json";
@@ -215,18 +210,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OnRenderInputChanged();
     }
 
-    public List<ScenarioItem> Scenarios { get; } =
-    [
-        new("overview",   "Overview"),
-        new("deep-dive",  "Trace"),
-    ];
-
     public MainViewModel() : this(new AnalysisService()) { }
 
     public MainViewModel(IAnalysisService svc)
     {
         _svc = svc;
-        SelectedScenario = Scenarios[0];
         LoadSettings();
         RefreshRecent();
         _sections.CompleteInitialization();
@@ -254,18 +242,18 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // ── Auto-reanalyze on option change ────────────────────────────────────────
-    partial void OnSelectedScenarioChanged(ScenarioItem value)
+    partial void OnFocusChanged(string value)
     {
         if (_isInitializing) return;
-        _sections.SelectedScenarioValue = value.Value;
-        OnPropertyChanged(nameof(IsTraceMode));
-        ResetToScenarioDefaults();
-        OnAnalysisInputChanged();
+        // Focus drives analysis (overview↔deep-dive, Focused↔Debug profile, call graph on/off),
+        // so changing it re-analyzes — debounced so typing / picking an entry doesn't spawn a run
+        // per keystroke. Keep the catalog section defaults coherent with the derived mode.
+        _sections.SelectedScenarioValue = IsTraceMode ? "deep-dive" : "overview";
+        DebouncedAnalyze();
     }
     partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
 
     partial void OnMaxTokensChanged(int value) => DebouncedRender();
-    partial void OnAroundChanged(string value) => OnAnalysisInputChanged();
     partial void OnIncludeProvenanceChanged(bool value) => OnRenderInputChanged();
     partial void OnIncludeDiagnosticsChanged(bool value) => OnRenderInputChanged();
     partial void OnNoRoslynChanged(bool value) => OnAnalysisInputChanged();
@@ -274,11 +262,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnDepthChanged(int value)                      => DebouncedRender();
     partial void OnDetailChanged(string value)                   => OnRenderInputChanged();
-    partial void OnSelectedEntryChanged(string value)
-    {
-        if (_isInitializing) return;
-        DebouncedRender();
-    }
 
     private void OnAnalysisInputChanged()
     {
@@ -302,6 +285,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
             return;
 
         _tokenDebouncer.Invoke(() => OnRenderInputChanged());
+    }
+
+    private void DebouncedAnalyze()
+    {
+        if (_isInitializing || !HasOutput || string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        _analyzeDebouncer.Invoke(() => OnAnalysisInputChanged());
     }
 
     // ── Commands ───────────────────────────────────────────────────────────────
@@ -332,7 +323,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _output.RawContent = "";
         _output.HumanViewHtml = "";
         _snapshot = null;
-        SelectedEntry = "";
 
         _svc.AddRecent(ProjectPath);
         RefreshRecent();
@@ -367,9 +357,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var opts = new AnalysisOptions
         {
             ProjectPath = workingPath,
-            Scenario = SelectedScenario.Value,
-            Profile = DerivedProfile,
-            Around = Around,
+            // Scenario + profile are derived from focus by AnalysisIntentResolver (focus →
+            // deep-dive/Debug, none → overview/Focused) — same derivation the CLI uses.
+            Scenario = "",
+            Profile = "",
+            Around = Focus,
             MaxTokens = capturedBudget,
             Format = SelectedFormat,
             IncludeProvenance = IncludeProvenance,
@@ -396,20 +388,27 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 _snapshot = snapResult.Snapshot;
                 var elapsedMs = snapResult.ElapsedMs;
 
-                // Initial render from the snapshot
-                await RerenderAsync(ct).ConfigureAwait(true);
+                if (_snapshot.IsDryRun)
+                {
+                    ShowDryRun(_snapshot, elapsedMs);
+                }
+                else
+                {
+                    // Initial render from the snapshot
+                    await RerenderAsync(ct).ConfigureAwait(true);
 
-                if (ct.IsCancellationRequested) return;
+                    if (ct.IsCancellationRequested) return;
 
-                _output.StatsHtml = _snapshot?.Report is { } r
-                    ? RunReportHtmlRenderer.Render(r) : "";
+                    _output.StatsHtml = _snapshot?.Report is { } r
+                        ? RunReportHtmlRenderer.Render(r) : "";
 
-                _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
-                _output.HasOutput = true;
-                _output.ProgressText = "Done";
-                _sections.BudgetTokens = capturedBudget;
+                    _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
+                    _output.HasOutput = true;
+                    _output.ProgressText = "Done";
+                    _sections.BudgetTokens = capturedBudget;
 
-                OnPropertyChanged(string.Empty);
+                    OnPropertyChanged(string.Empty);
+                }
 
                 // Clean up clone off UI thread
                 if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
@@ -476,7 +475,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 IncludeProvenance = IncludeProvenance,
                 IncludeDiagnostics = IncludeDiagnostics,
                 TokenView = false,
-                Entry = SelectedEntry,
+                Entry = Focus,
                 Depth = Depth,
                 Detail = Detail switch
                 {
@@ -499,13 +498,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (renderCt.IsCancellationRequested) return;
 
             _output.RawContent = rawContent;
-            // In narrative mode (Map/Trace): convert the text to styled HTML.
-            // In catalog mode: use the HTML render's output (was already produced by HtmlContextRenderer).
-            _output.HumanViewHtml = HasGraph
-                ? NarrativeHtmlConverter.Convert(rawContent)
-                : (renderResult.HtmlContent ?? "");
-            // In narrative mode (Map/Trace): no sections, no fragments → LlmViewText = RawContent.
-            // In catalog mode: use fragment-filtered LLM text when available, else RawContent.
+            // Human view: the OutputPanel renders per-section HTML wrappers when fragments exist
+            // (both narrative and catalog). HumanViewHtml is the monolithic fallback for views
+            // without fragments (e.g. JSON-less tests, dry-run).
+            _output.HumanViewHtml = renderResult.HtmlContent
+                ?? NarrativeHtmlConverter.Convert(rawContent);
+            // LLM view: included sections' markdown fragments joined; falls back to raw content
+            // when the render produced no fragments.
             _output.LlmViewText = !string.IsNullOrEmpty(llmText) ? llmText : rawContent;
             _sections.BudgetTokens = MaxTokens;
 
@@ -526,19 +525,37 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>Shows a dry-run plan in both views. A dry run produces no graph/sections, so the
+    /// render path is skipped (it would emit an empty catalog) — the plan text is shown directly.</summary>
+    private void ShowDryRun(AnalysisSnapshot snapshot, long elapsedMs)
+    {
+        var plan = snapshot.DryRunContent ?? "";
+        _sections.BuildSectionDataFromStat([], null, null); // clear any prior sections
+        _output.RawContent = plan;
+        _output.LlmViewText = plan;
+        _output.HumanViewHtml = $"<pre class=\"output-text\">{System.Net.WebUtility.HtmlEncode(plan)}</pre>";
+        _output.StatsHtml = "";
+        _output.StatsText = $"Dry run · {elapsedMs / 1000.0:F1}s";
+        _output.HasOutput = true;
+        _output.ProgressText = "Done";
+        OnPropertyChanged(string.Empty);
+    }
+
     // ── Settings helpers ───────────────────────────────────────────────────────
     private void LoadSettings()
     {
         var s = _svc.LoadSettings();
-        SelectedScenario = Scenarios.FirstOrDefault(sc => sc.Value == s.LastScenario) ?? Scenarios[0];
         SelectedFormat = s.LastFormat ?? "markdown";
         if (s.LastTokens > 0) MaxTokens = s.LastTokens;
-        Around = s.LastAround ?? "";
+        Focus = s.LastAround ?? "";
         IncludeProvenance = s.IncludeProvenance;
         IncludeDiagnostics = s.IncludeDiagnostics;
         NoRoslyn = s.NoRoslyn;
         Depth = s.LastDepth > 0 ? s.LastDepth : 6;
         Detail = s.LastDetail ?? "salient";
+
+        // Keep the catalog section defaults coherent with the focus-derived mode before applying them.
+        _sections.SelectedScenarioValue = IsTraceMode ? "deep-dive" : "overview";
 
         if (s.LastActiveSections is { Count: > 0 })
         {
@@ -553,11 +570,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private void SaveSettings() =>
         _svc.SaveSettings(new AppSettings
         {
-            LastScenario = SelectedScenario.Value,
             LastProfile = DerivedProfile,
             LastFormat = SelectedFormat,
             LastTokens = MaxTokens,
-            LastAround = Around,
+            LastAround = Focus,
             IncludeProvenance = IncludeProvenance,
             IncludeDiagnostics = IncludeDiagnostics,
             NoRoslyn = NoRoslyn,
@@ -588,6 +604,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _validateOp.Dispose();
         _tokenDebouncer.Dispose();
         _urlDebouncer.Dispose();
+        _analyzeDebouncer.Dispose();
         _git.Dispose();
     }
 }

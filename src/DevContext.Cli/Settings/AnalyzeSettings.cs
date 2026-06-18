@@ -96,7 +96,7 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--ref")]
     public string? Ref { get; set; }
 
-    [Description("Clone cleanup: auto (default), session, 24h, keep")]
+    [Description("Clone cleanup: auto (default — delete after analysis) | keep (retain clone)")]
     [CommandOption("--cleanup")]
     public string? Cleanup { get; set; }
 

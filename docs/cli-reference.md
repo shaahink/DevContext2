@@ -8,89 +8,51 @@ Analyze a .NET project and output structured context for LLMs.
 
 | Argument | Description |
 |----------|-------------|
-| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, directory, or `github.com/user/repo` URL. Required positional argument. |
+| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, a directory, or a `github.com/user/repo` URL. Defaults to `.` (current directory). |
 
 ---
 
-## Scenarios (Modes)
+## The model: Focus drives everything
 
-Two primary modes. The `deep-dive` engine key remains for backward compatibility.
+There are exactly two situations, selected by whether you give a `--focus`:
 
-| Mode | Alias | CLI flag | Best for |
-|------|-------|----------|----------|
-| **Overview** | — | `--scenario overview` | Whole-codebase architecture map, endpoints, entities, wiring. Broad picture. |
-| **Trace** | `deep-dive` | `--scenario trace` or `--scenario deep-dive` | Entry-point focused: call graph, handler chain, event flow. Requires `--around` for best results. |
+| You run | You get | Derived scenario | Derived profile |
+|---------|---------|------------------|-----------------|
+| `devcontext analyze .` | **Map** — architecture style, stack, project topology, entry points, packages | `overview` | `focused` |
+| `devcontext analyze . --focus <entry>` | **Trace** — the call stack from that entry, down the wiring | `deep-dive` | `debug` (call graph on) |
 
-**Deprecated**:
-
-| Old name | Status | Maps to |
-|----------|--------|---------|
-| `audit` | Deprecated — prints warning | `overview` |
+You normally never set scenario or profile by hand — `--focus` derives both. `--scenario` / `--profile` exist only as advanced overrides.
 
 ---
 
-## Profile (Auto-Derived)
+## Focus (`-f`, `--focus`)
 
-Profile is now **automatically derived** from which sections are selected. You can still pass it explicitly for backward compatibility.
+The entry point to trace from. Repeatable (first focus drives the trace).
 
-| Section checked | Profile |
-|-----------------|---------|
-| ☑ Call graph | **Debug** (enables call graph extraction) |
-| ☑ Source code | **Full** (enables source body extraction) |
-| Neither | **Focused** (default — balanced with pruning) |
-
-CLI override (if needed):
-```
---profile focused | debug | full
-```
-
----
-
-## Entry Point (`--around`)
-
-Focus analysis on a specific file, type, or method. Repeatable.
-
-| Format | Example | Description |
+| Format | Example | Resolves to |
 |--------|---------|-------------|
-| `TypeName` | `FeedController` | Resolves the type, scopes proximity pruning to its directory |
-| `TypeName:MethodName` | `FeedController:SiteFeed` | Resolves the type + method, enables call graph tracing |
-| File path | `./src/Controllers/FeedController.cs` | Focuses on that file's directory neighborhood |
-| Folder path | `./src/Controllers/` | Focuses on types within that folder |
+| `TypeName` | `OrdersController` | A Type/Handler/Service graph node |
+| `TypeName:MethodName` | `OrdersController:Create` | The type (trace walks its out-edges) |
+| `VERB /route` | `POST /api/orders` | The matching HTTP endpoint |
 
 ```
-# Focus on a single controller
-devcontext analyze . --around FeedController
+# Whole-codebase Map
+devcontext analyze .
 
-# Trace a specific endpoint method
-devcontext analyze . --scenario trace --around FeedController:SiteFeed
+# Trace from an endpoint
+devcontext analyze . --focus "POST /api/orders"
 
-# Multiple entry points
-devcontext analyze . --around FeedController --around UploadFileController
+# Trace from a type, 3 hops deep, full method bodies
+devcontext analyze . --focus OrdersController --depth 3 --detail full
 ```
 
-**How filtering works**: `--around` uses **directory proximity** pruning — types within `MaxPathDistance` directory hops of the focus point's file are kept. The endpoints table is also filtered to nearby source files. This means `--around FeedController` includes nearby controllers in the same directory, not JUST FeedController.
+| Flag | Description |
+|------|-------------|
+| `-f, --focus <FOCUS>` | Entry point to trace from (see formats above). Repeatable. |
+| `--depth <N>` | Trace depth from the focus (1–10, default 6). |
+| `--detail <LEVEL>` | Trace body detail: `signature` (names only), `salient` (key body lines, default), `full` (method slice). |
 
----
-
-## Natural Language Intent (`--task`)
-
-Pass a free-text description of what you want and DevContext auto-selects mode + profile.
-
-| Keywords in task | Auto-selects |
-|-----------------|-------------|
-| `debug`, `error`, `exception`, `failing`, `500`, `trace`, `call graph` | Trace mode, Debug profile |
-| `architecture`, `overview`, `structure`, `layers`, `map`, `add`, `implement`, `crud` | Overview mode, Focused profile |
-| `di`, `injection`, `middleware`, `pipeline`, `wiring`, `activator` | Overview mode, Debug profile |
-| `event`, `message`, `publish`, `consume`, `queue`, `bus` | Trace mode, Focused profile |
-
-```
-# Let the tool figure out the best mode
-devcontext analyze . --task "trace the failing order handler"
-# → Auto-selects: Trace mode + Debug profile
-
-devcontext analyze . --task "architecture overview"
-# → Auto-selects: Overview mode + Focused profile
-```
+**Deprecated aliases** (still accepted): `-a, --around` is an alias for `--focus`; `-t, --task` (free-text intent) is deprecated — use `--focus`.
 
 ---
 
@@ -98,22 +60,25 @@ devcontext analyze . --task "architecture overview"
 
 | Flag | Description |
 |------|-------------|
-| `-o, --output <FILE>` | Write output to file (default: stdout) |
-| `--format <FMT>` | Output format: `markdown` (default) or `json` |
-| `--max-tokens <N>` | Token budget (default: 8000). Range: 500–50000 |
+| `-o, --output <FILE>` | Write output to file (default: stdout). |
+| `--format <FMT>` | `markdown` (default) → Map/Trace narrative; `json` / `html` → structured legacy renderers. |
+| `--max-tokens <N>` | Token budget (default 8000; `devcontext.json` validates 100–100000). |
+| `--token-view` | Per-section token accounting in the output. |
+| `--include-provenance` | (Catalog output) show why each type was included. |
+| `--include-anti-patterns` | (Catalog output) include anti-pattern detection. |
+| `--include-diagnostics` | Show diagnostics — under a Map/Trace this appends graph + call-graph diagnostics. |
 
 ---
 
-## Diagnostics & Debugging
+## Diagnostics & debugging
 
 | Flag | Description |
 |------|-------------|
-| `--include-diagnostics` | Show pruning notes, warnings, and pipeline events in output |
-| `--include-provenance` | Show why each type was included in the output |
-| `--metrics` | Show per-extractor timing breakdown after analysis |
-| `--dry-run` | Plan only — lists which extractors would run without executing |
-| `--verbose` | Info-level Serilog logging to console |
-| `--trace` | Debug-level Serilog logging (includes Roslyn events) |
+| `--stats` (alias `--metrics`) | Print the full RunReport (stage waterfall, extractor table, scorer funnel, cache/corpus). |
+| `--dry-run` | Plan only — lists which extractors would run, without executing. |
+| `--strict` | Exit code 2 if any output self-check invariant fails. |
+| `--verbose` | Info-level Serilog logging. |
+| `--trace` | Debug-level Serilog logging (includes Roslyn events). |
 
 ---
 
@@ -121,16 +86,29 @@ devcontext analyze . --task "architecture overview"
 
 | Flag | Description |
 |------|-------------|
-| `--no-roslyn` | Skip Roslyn workspace loading (faster, no call graph / syntax analysis) |
-| `--include-anti-patterns` | Include anti-pattern detection in output |
-| `--token-view` | Show per-section token accounting table in output |
+| `--no-roslyn` | Skip the Roslyn deep tier (faster; weaker semantic call resolution). |
+| `-s, --scenario <NAME>` | Override the derived scenario: `overview` \| `deep-dive` (`trace` is an alias). |
+| `-p, --profile <NAME>` | Override the derived profile: `focused` \| `debug` \| `full`. |
 
 ---
 
-## Other Commands
+## GitHub repositories
+
+A `github.com/user/repo` URL as `[PATH]` (or via `--repo`) is cloned, analyzed, then cleaned up.
+
+| Flag | Description |
+|------|-------------|
+| `--repo <URL>` | GitHub repo URL to clone and analyze. |
+| `--ref <REF>` | Branch or tag to check out (default: repo default). |
+| `--cleanup <MODE>` | `auto` (default — delete after analysis) \| `keep` (retain the clone). |
+| `--keep` | Shorthand for `--cleanup keep`. |
+
+---
+
+## Other commands
 
 | Command | Description |
 |---------|-------------|
-| `devcontext init` | Create `devcontext.json` in current directory |
-| `devcontext scenarios` | List available scenarios with descriptions and required sections |
-| `devcontext version` | Show version and commit hash |
+| `devcontext init` | Create `devcontext.json` in the current directory. |
+| `devcontext scenarios` | List scenarios (`overview`, `deep-dive`) with their required sections. |
+| `devcontext version` | Show version and commit hash. |
