@@ -5,6 +5,7 @@ public sealed class CancellableOperation : IDisposable
 {
     private readonly object _lock = new();
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _linkedCts;
 
     /// <summary>Cancels and disposes the previous operation, then starts a new one. Returns the new token.</summary>
     public CancellationToken Begin()
@@ -39,14 +40,20 @@ public sealed class CancellableOperation : IDisposable
         }
     }
 
-    /// <summary>Creates a linked token from an external token and the internal one.</summary>
+    /// <summary>Creates a linked token from an external token and the internal one.
+    /// The linked source is disposed on the next Begin/Cancel/Dispose call.</summary>
     public CancellationToken Link(CancellationToken external)
     {
         lock (_lock)
         {
-            return _cts is not null
-                ? CancellationTokenSource.CreateLinkedTokenSource(external, _cts.Token).Token
-                : external;
+            _linkedCts?.Dispose();
+            _linkedCts = null;
+            if (_cts is not null)
+            {
+                _linkedCts = CancellationTokenSource.CreateLinkedTokenSource(external, _cts.Token);
+                return _linkedCts.Token;
+            }
+            return external;
         }
     }
 
@@ -64,6 +71,8 @@ public sealed class CancellableOperation : IDisposable
 
     private void CancelAndDispose()
     {
+        _linkedCts?.Dispose();
+        _linkedCts = null;
         if (_cts is null) return;
         _cts.Cancel();
         _cts.Dispose();

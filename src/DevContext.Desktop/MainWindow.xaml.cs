@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -17,6 +18,8 @@ public partial class MainWindow
     private static readonly string UserDataDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "DevContext", "WebView2");
+
+    private ServiceProvider? _services;
 
     public MainWindow()
     {
@@ -41,7 +44,8 @@ public partial class MainWindow
             var services = new ServiceCollection();
             services.AddWpfBlazorWebView();
             services.AddSingleton<MainViewModel>();
-            Resources["services"] = services.BuildServiceProvider();
+            _services = services.BuildServiceProvider();
+            Resources["services"] = _services;
 
             Log.Information("MainWindow initialized successfully");
         }
@@ -52,6 +56,23 @@ public partial class MainWindow
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Application.Current.Shutdown();
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        // Dispose the singleton MainViewModel (owns CancellableOperations, Debouncer, GitCloneService)
+        // and the DI container before the window is fully torn down.
+        try
+        {
+            if (_services?.GetService(typeof(MainViewModel)) is MainViewModel vm)
+                vm.Dispose();
+            _services?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error during MainWindow disposal");
+        }
+        base.OnClosed(e);
     }
 
     private static void InstallWebView2Sync()

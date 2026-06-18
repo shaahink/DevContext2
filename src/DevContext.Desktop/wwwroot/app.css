@@ -5,9 +5,11 @@
     --surface-1: #ccd0da;
     --surface-2: #bcc0cc;
     --border: #ccd0da;
+    --border-light: #e6e9ef;
     --text-primary: #4c4f69;
     --text-secondary: #5c5f77;
     --text-muted: #9ca0b0;
+    --text-accent: #1e66f5;
     --accent: #1e66f5;
     --accent-fg: #ffffff;
     --success: #40a02b;
@@ -17,6 +19,7 @@
     --radius-md: 8px;
     --radius-pill: 999px;
     --font: 'Inter', system-ui, sans-serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
     --font-mono: 'Cascadia Code', 'Consolas', monospace;
     --transition: 150ms ease-out;
 }

@@ -50,10 +50,6 @@ public sealed class SectionSelectionModel
         set => _budgetTokens = value;
     }
 
-    public float BudgetUtilisation => _budgetTokens > 0
-        ? (float)_totalTokens / _budgetTokens
-        : 0;
-
     // ── Profile / scenario ───────────────────────────────────────────────────
     private string _selectedScenarioValue = "overview";
     public string SelectedScenarioValue

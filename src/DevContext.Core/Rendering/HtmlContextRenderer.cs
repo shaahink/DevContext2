@@ -30,7 +30,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         RenderSection(sb, options, SectionNames.ArchitectureOverview, "Architecture overview", navLinks,
             () => RenderArchitectureOverview(sb, model, options));
         if (!options.FocusPoints.IsDefaultOrEmpty && options.FocusPoints.Length > 0)
-            RenderSection(sb, options, "entry-points", "Entry points", navLinks,
+            RenderSection(sb, options, SectionNames.EntryPoints, "Entry points", navLinks,
                 () => RenderEntryPoints(sb, model, options));
         RenderSection(sb, options, SectionNames.Endpoints, "Endpoints", navLinks,
             () => RenderEndpoints(sb, model));
@@ -50,12 +50,14 @@ public sealed class HtmlContextRenderer : IContextRenderer
             () => RenderMiddlewarePipeline(sb, model));
         RenderSection(sb, options, SectionNames.DiRegistrations, "DI registrations", navLinks,
             () => RenderDiRegistrations(sb, model));
-        RenderAntiPatterns(sb, model);
-        RenderEventFlow(sb, model);
+        RenderSection(sb, options, SectionNames.AntiPatterns, "Anti-patterns detected", navLinks,
+            () => RenderAntiPatterns(sb, model));
+        RenderSection(sb, options, SectionNames.EventFlow, "Event flow", navLinks,
+            () => RenderEventFlow(sb, model));
         RenderSection(sb, options, SectionNames.RelatedTypes, "Related types", navLinks,
             () => RenderRelatedTypes(sb, model, includedIds));
         if (options.IncludeDiagnostics)
-            RenderSection(sb, options, "diagnostics", "Diagnostics", navLinks,
+            RenderSection(sb, options, SectionNames.Diagnostics, "Diagnostics", navLinks,
                 () => RenderDiagnostics(sb, model, options));
 
         RenderFooter(sb, model, sw, includedIds);
@@ -188,7 +190,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderEntryPoints(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine("<section class='dc-section' id='dc-entry-points'>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.EntryPoints}'>");
         sb.AppendLine("<h2 class='dc-h2'>Entry points</h2>");
         foreach (var fp in options.FocusPoints)
         {
@@ -202,8 +204,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderEndpoints(StringBuilder sb, DiscoveryModel model)
     {
-        var endpoints = model.Detections.OfType<EndpointDetection>()
-            .Where(e => !e.SourceFile?.EndsWith("ChangePasswordEndpoint.cs") is not false).ToList();
+        var endpoints = model.Detections.OfType<EndpointDetection>().ToList();
         if (endpoints.Count == 0) return;
 
         sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.Endpoints}'>");
@@ -242,7 +243,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
         if (callerKeys.Count == 0)
             callerKeys = options.CallGraph.Edges.Keys.Take(3).ToList();
 
-        sb.AppendLine("<section class='dc-section'>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.CallGraph}'>");
         sb.AppendLine("<h2 class='dc-h2'>Call graph</h2>");
         sb.AppendLine("<div class='dc-call-graph'>");
         var visited = new HashSet<string>();
@@ -395,7 +396,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var patterns = model.Detections.OfType<AntiPatternDetection>().ToList();
         if (patterns.Count == 0) return;
-        sb.AppendLine($"<section class='dc-section' id='dc-antipatterns'><h2 class='dc-h2'>Anti-patterns detected</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.AntiPatterns}'><h2 class='dc-h2'>Anti-patterns detected</h2>");
         foreach (var g in patterns.GroupBy(p => System.IO.Path.GetFileName(p.SourceFile)).OrderBy(g => g.Key))
         {
             sb.AppendLine($"<details class='dc-ap-file'><summary>{System.Net.WebUtility.HtmlEncode(g.Key)} ({g.Count()})</summary><ul class='dc-ap-list'>");
@@ -410,7 +411,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
     {
         var events = model.Detections.OfType<EventFlowDetection>().ToList();
         if (events.Count == 0) return;
-        sb.AppendLine($"<section class='dc-section' id='dc-eventflow'><h2 class='dc-h2'>Event flow</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.EventFlow}'><h2 class='dc-h2'>Event flow</h2>");
         sb.AppendLine("<div class='dc-table-wrap'><table class='dc-table'><thead><tr><th>Event</th><th>Direction</th><th>Target</th></tr></thead><tbody>");
         foreach (var e in events.OrderBy(e => e.EventType))
             sb.AppendLine($"<tr><td><code>{System.Net.WebUtility.HtmlEncode(e.EventType)}</code></td><td>{System.Net.WebUtility.HtmlEncode(e.Kind)}</td><td><code>{System.Net.WebUtility.HtmlEncode(e.Target)}</code></td></tr>");
@@ -437,7 +438,7 @@ public sealed class HtmlContextRenderer : IContextRenderer
 
     private static void RenderDiagnostics(StringBuilder sb, DiscoveryModel model, RenderOptions options)
     {
-        sb.AppendLine($"<section class='dc-section' id='dc-diagnostics'><h2 class='dc-h2'>Diagnostics</h2>");
+        sb.AppendLine($"<section class='dc-section' id='dc-{SectionNames.Diagnostics}'><h2 class='dc-h2'>Diagnostics</h2>");
         if (model.Diagnostics.IsEmpty && model.PruningNotes.Count == 0 && options.Plan?.Excluded.IsDefaultOrEmpty != false)
         {
             sb.AppendLine("<p>No diagnostics recorded.</p></section>"); return;

@@ -21,7 +21,7 @@ public partial class OutputViewModel : ObservableObject
         set
         {
             _llmViewText = value;
-            OnPropertyChanged(nameof(DisplayContent));
+            OnPropertyChanged(nameof(LlmViewText));
         }
     }
 
@@ -32,31 +32,18 @@ public partial class OutputViewModel : ObservableObject
         set
         {
             _statsHtml = value;
-            OnPropertyChanged(nameof(DisplayContent));
+            OnPropertyChanged(nameof(StatsHtml));
         }
     }
 
     [ObservableProperty]
     private string _statsText = "";
 
-    // ── Computed display ─────────────────────────────────────────────────────
-    public string DisplayContent => SelectedTab switch
-    {
-        OutputTab.Human => RawContent,
-        OutputTab.Llm => LlmViewText,
-        OutputTab.Stats => StatsHtml,
-        _ => ""
-    };
-
-    public string DisplayHtml => SelectedTab == OutputTab.Human ? HumanViewHtml : "";
-
     // ── Progress / status ────────────────────────────────────────────────────
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsActive))]
     private bool _hasOutput;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsActive))]
     private bool _isAnalyzing;
 
     [ObservableProperty]
@@ -64,6 +51,4 @@ public partial class OutputViewModel : ObservableObject
 
     [ObservableProperty]
     private string _progressText = "";
-
-    public bool IsActive => HasOutput && !IsAnalyzing;
 }

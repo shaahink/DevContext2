@@ -41,8 +41,21 @@ public static class Program
             // WPF dispatcher exception handler (must be after Application creation)
             app.DispatcherUnhandledException += (_, e) =>
             {
-                Log.Fatal(e.Exception, "Unhandled WPF dispatcher exception");
-                e.Handled = true;
+                // Critical exceptions (StackOverflow, OutOfMemory, ThreadAbort) should not be
+                // swallowed — mark non-critical exceptions as handled so the app can recover.
+                var isCritical = e.Exception is StackOverflowException or OutOfMemoryException or ThreadAbortException;
+                if (isCritical)
+                {
+                    Log.Fatal(e.Exception, "Critical unhandled dispatcher exception — terminating");
+                    Log.CloseAndFlush();
+                    // Let the default crash behavior take over.
+                    e.Handled = false;
+                }
+                else
+                {
+                    Log.Error(e.Exception, "Unhandled WPF dispatcher exception (suppressed to keep app alive)");
+                    e.Handled = true;
+                }
             };
 
             app.Run(new MainWindow());

@@ -10,6 +10,8 @@ public sealed record AnalysisSnapshot
     public required Scenario Scenario { get; init; }
     public required ExtractionOptions Options { get; init; }
     public required RunReport Report { get; init; }
+    /// <summary>The root path the analysis was run against. Used by front-ends to re-acquire a pipeline for rendering.</summary>
+    public string RootPath { get; init; } = "";
     public bool IsDryRun { get; init; }
     public string? DryRunContent { get; init; }
     public string Explanation { get; init; } = "";

@@ -52,7 +52,6 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public int SelectedTokenTotal => _sections.SelectedTokenTotal;
     public int TotalTokens => _sections.TotalTokens;
     public int BudgetTokens => _sections.BudgetTokens;
-    public float BudgetUtilisation => _sections.BudgetUtilisation;
     public bool IsTraceMode => _sections.IsTraceMode;
     public string DerivedProfile => _sections.DerivedProfile;
 
@@ -251,7 +250,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedEntryChanged(string value)
     {
         if (_isInitializing) return;
-        OnRenderInputChanged();
+        DebouncedRender();
     }
 
     private void OnAnalysisInputChanged()

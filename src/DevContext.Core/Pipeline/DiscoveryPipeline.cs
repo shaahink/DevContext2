@@ -143,6 +143,7 @@ public sealed class DiscoveryPipeline
             Analysis = context.Analysis,
             Scenario = context.ActiveScenario,
             Options = context.Options,
+            RootPath = context.RootPath,
             Graph = codeGraph,
             Map = mapModel,
             Entries = entryPoints,
@@ -288,6 +289,7 @@ public sealed class DiscoveryPipeline
             },
             IsDryRun = true,
             DryRunContent = sb.ToString(),
+            RootPath = context.RootPath,
         };
     }
 

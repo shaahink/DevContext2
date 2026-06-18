@@ -33,6 +33,7 @@ public class AnalysisService : IAnalysisService
     private readonly string _dataDir;
     private ServiceProvider? _serviceProvider;
     private DiscoveryPipeline? _cachedPipeline;
+    private string? _cachedRootPath;
 
     public AnalysisService()
     {
@@ -44,13 +45,23 @@ public class AnalysisService : IAnalysisService
 
     private DiscoveryPipeline GetPipeline(string rootPath)
     {
-        if (_cachedPipeline is not null) return _cachedPipeline;
+        // Rebuild the pipeline (and its DI graph) when the root path changes —
+        // AddDevContextServices(rootPath) binds filesystem resolvers to the path,
+        // so reusing a cached pipeline from a different project would contaminate analysis.
+        if (_cachedPipeline is not null && _cachedRootPath == rootPath)
+            return _cachedPipeline;
+
+        // Dispose the previous provider + pipeline before building a new one.
+        _cachedPipeline = null;
+        _serviceProvider?.Dispose();
+        _serviceProvider = null;
 
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDevContextServices(rootPath);
         _serviceProvider = services.BuildServiceProvider();
         _cachedPipeline = _serviceProvider.GetRequiredService<DiscoveryPipeline>();
+        _cachedRootPath = rootPath;
         return _cachedPipeline;
     }
 
@@ -166,9 +177,10 @@ public class AnalysisService : IAnalysisService
 
     public async Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
-        var pipeline = GetPipeline(".");
+        // Use the snapshot's root path so the pipeline's DI graph matches the analyzed project.
+        var pipeline = GetPipeline(snapshot.RootPath);
 
-        var format = request.Format ?? "markdown";
+        var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
         var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
 
         // Render HTML only for markdown format (human view); JSON needs no HTML companion
@@ -303,15 +315,6 @@ public record AnalysisOptions
     public ImmutableArray<string> ActiveSections { get; init; } = [];
     public int Depth { get; init; } = 6;
     public string Detail { get; init; } = "salient";
-}
-
-public record AnalysisResult
-{
-    public bool Success { get; init; }
-    public string? Content { get; init; }
-    public string? HtmlContent { get; init; }
-    public string? Error { get; init; }
-    public long ElapsedMs { get; init; }
 }
 
 public record AnalysisProgress(string Text, double? Value);
