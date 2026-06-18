@@ -205,7 +205,10 @@ public class AnalysisService : IAnalysisService
             // are empty — fall back to the HTML render's sections so the desktop's section
             // drawer and fragment-based toggling still work.
             Sections = !rendered.Sections.IsDefaultOrEmpty ? rendered.Sections : htmlRendered?.Sections ?? [],
-            SectionFragments = rendered.SectionFragments ?? htmlRendered?.SectionFragments,
+            // Markdown fragments come ONLY from the markdown render — never fall back to
+            // HTML fragments (they would show HTML in the LLM view). In Trace mode the
+            // markdown render produces no fragments, so LlmViewText falls back to RawContent.
+            SectionFragments = rendered.SectionFragments,
             HtmlSectionFragments = htmlFragments,
             RenderFunnel = rendered.RenderFunnel,
         };

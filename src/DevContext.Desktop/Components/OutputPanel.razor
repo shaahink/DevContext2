@@ -130,31 +130,40 @@
 
         @if (IsSectionsOpen && VM.SectionGroups.Length > 1)
         {
-            <div class="sections-drawer">
-                <div class="section-budget">
-                    <div class="budget-bar-wrapper">
+            <div class="sections-overlay-backdrop" @onclick="ToggleSections"></div>
+            <div class="sections-panel">
+                <div class="sections-panel-header">
+                    <span class="sections-panel-title">Sections</span>
+                    <div class="sections-panel-budget">
                         <div class="budget-bar"><div class="budget-fill @BudgetState" style="width:@(Math.Min(100,BudgetPct))%"></div></div>
-                        <span class="budget-text @(VM.SelectedTokenTotal>VM.BudgetTokens?"danger":"")">@VM.SelectedTokenTotal.ToString("N0") / @VM.BudgetTokens.ToString("N0") tokens</span>
+                        <span class="budget-text @(VM.SelectedTokenTotal>VM.BudgetTokens?"danger":"")">@VM.SelectedTokenTotal.ToString("N0") / @VM.BudgetTokens.ToString("N0")</span>
                     </div>
-                    <button class="btn-text" @onclick="()=>VM.ResetToScenarioDefaultsCommand.Execute(null)">Reset to defaults</button>
+                    <button class="btn-icon sections-close" title="Close" @onclick="ToggleSections">
+                        <svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
-                @foreach (var group in VM.SectionGroups)
-                {
-                    <details open>
-                        <summary>
-                            <label><input type="checkbox" checked="@group.IsIncluded" @onchange="@(e=>ToggleGroup(group,(bool)(e.Value??false)))" /> @group.Name</label>
-                            <span class="group-tokens">@group.TotalTokens.ToString("N0") tok</span>
-                        </summary>
-                        @foreach (var section in group.Children)
-                        {
-                            <label class="section-row" style="padding-left:20px">
-                                <input type="checkbox" checked="@section.IsIncluded" @onchange="@(e=>section.IsIncluded=(bool)(e.Value??false))" />
-                                @section.Name
-                                <span class="section-tokens">@section.CompressedTokens.ToString("N0") tok</span>
-                            </label>
-                        }
-                    </details>
-                }
+                <div class="sections-panel-body">
+                    <button class="btn-text sections-reset" @onclick="()=>VM.ResetToScenarioDefaultsCommand.Execute(null)">Reset to defaults</button>
+                    @foreach (var group in VM.SectionGroups)
+                    {
+                        <details open="@(group.IsExpanded)">
+                            <summary class="sections-group-summary">
+                                <label class="sections-group-label" @onclick:stopPropagation="true">
+                                    <input type="checkbox" checked="@group.IsIncluded" @onchange="@(e=>ToggleGroup(group,(bool)(e.Value??false)))" /> @group.Name
+                                </label>
+                                <span class="group-tokens">@group.TotalTokens.ToString("N0") tok</span>
+                            </summary>
+                            @foreach (var section in group.Children)
+                            {
+                                <label class="section-row">
+                                    <input type="checkbox" checked="@section.IsIncluded" @onchange="@(e=>section.IsIncluded=(bool)(e.Value??false))" />
+                                    <span class="section-name">@section.Name</span>
+                                    <span class="section-tokens">@section.CompressedTokens.ToString("N0")</span>
+                                </label>
+                            }
+                        </details>
+                    }
+                </div>
             </div>
         }
 
