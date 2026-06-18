@@ -29,6 +29,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly CancellableOperation _renderOp = new();
     private readonly CancellableOperation _validateOp = new();
     private readonly Debouncer _tokenDebouncer = new(500);
+    private readonly Debouncer _urlDebouncer = new(400);
     private AnalysisSnapshot? _snapshot;
     private bool _isInitializing = true;
 
@@ -150,15 +151,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnProjectPathChanged(string value)
     {
         if (_isInitializing) return;
-        _ = ValidateGitHubUrlAsync(value);
-    }
 
-    private async Task ValidateGitHubUrlAsync(string path)
-    {
-        _validateOp.Cancel();
-        var ct = _validateOp.Begin();
-
-        var url = RepoUrl.Parse(path);
+        // Synchronous part: parse the URL and update GitHub state immediately so
+        // IsGitHubUrl / GitRepoDisplay / AnalyzeButtonText reflect the new path
+        // without waiting for the debounced network validation.
+        var url = RepoUrl.Parse(value);
         _gitRepoUrl = url;
         _gitRepoStatus = url is null ? RepoStatus.None : RepoStatus.Checking;
 
@@ -167,7 +164,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(GitRepoStatus));
         OnPropertyChanged(nameof(AnalyzeButtonText));
 
+        // Debounced part: only the network validation (git ls-remote) is debounced
+        // so typing a GitHub URL doesn't spawn a process per keystroke (M2 fix).
         if (url is not { IsValid: true }) return;
+        _urlDebouncer.Invoke(() => _ = ValidateGitHubUrlAsync(value));
+    }
+
+    private async Task ValidateGitHubUrlAsync(string path)
+    {
+        // URL parsing and state update already done synchronously in OnProjectPathChanged.
+        // This method handles the debounced network validation only.
+        var url = _gitRepoUrl;
+        if (url is not { IsValid: true }) return;
+
+        _validateOp.Cancel();
+        var ct = _validateOp.Begin();
+
         if (!_git.IsGitAvailable)
         {
             _gitRepoStatus = RepoStatus.NoGit;
@@ -578,6 +590,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _renderOp.Dispose();
         _validateOp.Dispose();
         _tokenDebouncer.Dispose();
+        _urlDebouncer.Dispose();
         _git.Dispose();
     }
 }

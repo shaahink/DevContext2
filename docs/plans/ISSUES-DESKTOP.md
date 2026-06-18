@@ -86,10 +86,11 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 
 ## Remediation phases
 
-- **Phase A** — Latent bugs (B1-B15, M3, B12): quick wins, no UX change.
-- **Phase B** — Loading/progress UX (B16, B17, B19, B20).
-- **Phase C** — Renderers emit fragments (D3, D4, D5, D9, B8, B14, B15).
-- **Phase D** — Desktop section-fragment binding (D1, D2, D7, D8, D10, B7).
-- **Phase E** — Mode parity + cleanup (B18, M2, H3, L1, L3).
+- **Phase A** — Latent bugs (B1-B15, M3, B12): quick wins, no UX change. ✅ DONE
+- **Phase B** — Loading/progress UX (B16, B17, B19, B20). ✅ DONE
+- **Phase C** — Renderers emit fragments (D3, D4, D5, D9, B8, B14, B15). ✅ DONE
+- **Phase D** — Desktop section-fragment binding (D1, D2, D7, D8, D10, B7). ✅ DONE
+- **Phase E** — Mode parity + cleanup (M2, H3 partial). ✅ DONE
+  - B18 (Trace/Map Human tab HTML parity) — **deferred**: requires a TraceHtmlRenderer/MapHtmlRenderer or markdown-to-HTML conversion for the trace tree. The trace narrative is markdown-only; the HTML renderer produces the catalog view. Design decision needed on whether Trace mode should show the catalog HTML or a purpose-built trace HTML tree.
 
 Each phase: `dotnet build` + `dotnet test tests/DevContext.Desktop.Tests` green.
