@@ -254,18 +254,18 @@ public class AnalysisService : IAnalysisService
 
         public void OnStageStarted(PipelineStage stage)
         {
-            var text = stage switch
+            var (text, pct) = stage switch
             {
-                PipelineStage.DiscoveryAndCacheWarmup => "Discovering files...",
-                PipelineStage.GenericExtraction => "Extracting structure...",
-                PipelineStage.SignalSealing => "Sealing signals...",
-                PipelineStage.SpecificExtraction => "Deep analysis...",
-                PipelineStage.Scoring => "Scoring...",
-                PipelineStage.Compression => "Compressing...",
-                PipelineStage.Rendering => "Rendering output...",
-                _ => $"Stage: {stage}"
+                PipelineStage.DiscoveryAndCacheWarmup => ("Discovering files...", (double?)10),
+                PipelineStage.GenericExtraction => ("Extracting structure...", (double?)25),
+                PipelineStage.SignalSealing => ("Sealing signals...", (double?)35),
+                PipelineStage.SpecificExtraction => ("Deep analysis...", (double?)50),
+                PipelineStage.Scoring => ("Scoring...", (double?)70),
+                PipelineStage.Compression => ("Compressing...", (double?)80),
+                PipelineStage.Rendering => ("Rendering output...", (double?)90),
+                _ => ($"Stage: {stage}", (double?)null)
             };
-            _progress?.Report(new AnalysisProgress(text, null));
+            _progress?.Report(new AnalysisProgress(text, pct));
         }
 
         public void OnExtractorStarted(string name, ExtractorTier tier) { }
@@ -277,7 +277,10 @@ public class AnalysisService : IAnalysisService
         public void OnCompressionApplied(CompressionResult result) { }
         public void OnStageCompleted(PipelineStage stage, TimeSpan elapsed) { }
         public void OnRenderCompleted(RenderedContext result) { }
-        public void OnPipelineCompleted(DiscoveryModel model) { }
+        public void OnPipelineCompleted(DiscoveryModel model)
+        {
+            _progress?.Report(new AnalysisProgress("Done", 100));
+        }
         public void OnDiagnostic(DiagnosticEntry entry) { }
     }
 }

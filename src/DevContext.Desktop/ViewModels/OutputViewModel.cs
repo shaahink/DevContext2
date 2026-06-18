@@ -51,4 +51,8 @@ public partial class OutputViewModel : ObservableObject
 
     [ObservableProperty]
     private string _progressText = "";
+
+    /// <summary>Determinate progress percentage (0–100), or null for indeterminate.</summary>
+    [ObservableProperty]
+    private double? _progressValue;
 }

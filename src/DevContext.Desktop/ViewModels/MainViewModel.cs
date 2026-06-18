@@ -38,6 +38,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public bool IsAnalyzing => _output.IsAnalyzing;
     public bool IsProgressVisible => _output.IsProgressVisible;
     public string ProgressText => _output.ProgressText;
+    public double? ProgressValue => _output.ProgressValue;
     public string StatsText => _output.StatsText;
     public string StatsHtml => _output.StatsHtml;
     public string HumanViewText => _output.RawContent;
@@ -307,6 +308,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _output.IsAnalyzing = true;
         _output.IsProgressVisible = true;
         _output.ProgressText = "Starting...";
+        _output.ProgressValue = null;
         _output.HasOutput = false;
         _output.StatsText = "";
         _output.RawContent = "";
@@ -325,7 +327,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
             var clonePath = repo.ClonePath;
 
             var cloneResult = await _git.CloneAsync(repo, clonePath, repo.Ref,
-                new Progress<CloneProgress>(p => _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%"), ct).ConfigureAwait(true);
+                new Progress<CloneProgress>(p =>
+                {
+                    _output.ProgressText = $"{p.Phase}: {p.PercentComplete}%";
+                    _output.ProgressValue = p.PercentComplete > 0 ? p.PercentComplete : null;
+                }), ct).ConfigureAwait(true);
 
             if (cloneResult is null)
             {
@@ -361,6 +367,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var progress = new Progress<AnalysisProgress>(p =>
         {
             _output.ProgressText = p.Text;
+            _output.ProgressValue = p.Value;
         });
 
         try
@@ -404,8 +411,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            if (ct.IsCancellationRequested) return;
-            _output.ProgressText = "Canceled";
+            if (ct.IsCancellationRequested)
+            {
+                _output.ProgressText = "Canceled";
+                _output.ProgressValue = null;
+                return;
+            }
         }
         catch (Exception ex)
         {
@@ -417,6 +428,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         finally
         {
+            // On cancellation, keep the "Canceled" message visible briefly so the user sees it
+            // before the overlay hides.
+            if (ct.IsCancellationRequested)
+            {
+                try { await System.Threading.Tasks.Task.Delay(1200, CancellationToken.None).ConfigureAwait(true); }
+                catch { }
+            }
             _output.IsAnalyzing = false;
             _output.IsProgressVisible = false;
             _ = System.Threading.Tasks.Task.Run(SaveSettings);

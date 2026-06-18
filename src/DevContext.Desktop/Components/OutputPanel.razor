@@ -174,7 +174,17 @@
 
         @if (VM.IsAnalyzing)
         {
-            <div class="loading-overlay"><div class="spinner"></div><p>@VM.ProgressText</p></div>
+            <div class="loading-overlay">
+                @if (VM.ProgressValue is { } pct)
+                {
+                    <div class="progress-bar-track"><div class="progress-bar-fill" style="width:@(Math.Clamp(pct,0,100))%"></div></div>
+                }
+                else
+                {
+                    <div class="spinner"></div>
+                }
+                <p>@VM.ProgressText</p>
+            </div>
         }
     }
     @if (_toastMessage is not null)
