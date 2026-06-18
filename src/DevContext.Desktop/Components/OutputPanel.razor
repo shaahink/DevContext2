@@ -72,9 +72,9 @@
 
     private List<SectionViewModel> FlattenedSections => VM.SectionGroups.SelectMany(g => g.Children).ToList();
     private bool HasHtmlFragments => FlattenedSections.Any(s => !string.IsNullOrEmpty(s.Html));
-    // Trace mode (graph + selected entry) shows the monospace trace tree.
-    // Everything else (Overview, Map with no entry) shows the rich HTML catalog.
-    private bool IsTraceMode => VM.HasGraph && !string.IsNullOrEmpty(VM.SelectedEntry);
+    // Narrative mode (graph exists): both views show the same Map/Trace text. No sections.
+    // Catalog mode (no graph): Human = HTML catalog, LLM = markdown catalog. Sections work.
+    private bool IsNarrativeMode => VM.HasGraph;
 }
 
 <section class="output-panel">
@@ -109,7 +109,7 @@
                 <button class="@(IsTabHuman?"tab active":"tab")" @onclick='()=>SelectTab("human")'>Human</button>
                 <button class="@(IsTabLlm?"tab active":"tab")" @onclick='()=>SelectTab("llm")'>LLM</button>
                 <button class="@(IsTabStats?"tab active":"tab")" @onclick='()=>SelectTab("stats")'>Stats</button>
-                @if (VM.SectionGroups.Length > 1 && !IsTraceMode)
+                @if (VM.SectionGroups.Length > 1 && !IsNarrativeMode)
                 {
                     <button class="btn-sections" @onclick="ToggleSections">
                         <svg class="icon" viewBox="0 0 24 24"><rect x="15" y="3" width="6" height="18" rx="2"/><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/></svg> Sections
@@ -173,12 +173,15 @@
             {
                 <div class="output-rendered empty-state"><p>JSON format has no rendered preview. Switch to the LLM tab to see the raw JSON output.</p></div>
             }
-            else if (IsTraceMode)
+            else if (IsNarrativeMode)
             {
+                // Narrative mode (Map/Trace): both views show the same text.
+                // Trace = call tree, Map = architecture overview. No HTML catalog, no sections.
                 <pre class="output-text"><code>@VM.RawContent</code></pre>
             }
             else if (HasHtmlFragments)
             {
+                // Catalog mode with fragments: per-section HTML wrappers, toggleable.
                 <div class="output-rendered">
                     @foreach (var s in FlattenedSections)
                     {
@@ -190,6 +193,7 @@
             }
             else
             {
+                // Catalog mode without fragments (fallback): monolithic HTML.
                 <div class="output-rendered">@((MarkupString)VM.HumanViewHtml)</div>
             }
         }

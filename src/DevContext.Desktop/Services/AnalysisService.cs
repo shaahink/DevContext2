@@ -183,14 +183,19 @@ public class AnalysisService : IAnalysisService
         var format = string.IsNullOrEmpty(request.Format) ? "markdown" : request.Format;
         var rendered = await pipeline.RenderAsync(snapshot, request with { Format = format }, ct);
 
-        // Render HTML only for markdown format (human view); JSON needs no HTML companion.
-        // The HTML render also produces per-section HTML fragments for the desktop's interactive section toggling.
+        // When the graph exists, the markdown render produced a Map/Trace NARRATIVE —
+        // a monolithic document with no sections. The HTML catalog renderer would produce
+        // a DIFFERENT document (endpoints table, DI table, etc.) that doesn't correspond
+        // to the narrative. Skip it: both views show the same narrative text.
+        //
+        // When the graph doesn't exist (legacy catalog mode), render HTML too — both views
+        // show the same catalog, just in different formats, and section toggling works.
         string? htmlContent = null;
         IReadOnlyDictionary<string, string>? htmlFragments = null;
-        RenderedContext? htmlRendered = null;
-        if (format == "markdown")
+        var isNarrativeMode = snapshot.Graph is { NodeCount: > 0 };
+        if (format == "markdown" && !isNarrativeMode)
         {
-            htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+            var htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
             htmlContent = htmlRendered.Content;
             htmlFragments = htmlRendered.SectionFragments;
         }
@@ -200,14 +205,9 @@ public class AnalysisService : IAnalysisService
             Content = rendered.Content,
             HtmlContent = htmlContent,
             EstimatedTokens = rendered.EstimatedTokens,
-            // Use the markdown render's sections when available (Overview mode).
-            // When the markdown render took the Map/Trace path (graph exists), its Sections
-            // are empty — fall back to the HTML render's sections so the desktop's section
-            // drawer and fragment-based toggling still work.
-            Sections = !rendered.Sections.IsDefaultOrEmpty ? rendered.Sections : htmlRendered?.Sections ?? [],
-            // Markdown fragments come ONLY from the markdown render — never fall back to
-            // HTML fragments (they would show HTML in the LLM view). In Trace mode the
-            // markdown render produces no fragments, so LlmViewText falls back to RawContent.
+            // Sections only come from the markdown render (catalog mode). In narrative mode
+            // (Map/Trace) there are no sections — the section drawer stays hidden.
+            Sections = rendered.Sections,
             SectionFragments = rendered.SectionFragments,
             HtmlSectionFragments = htmlFragments,
             RenderFunnel = rendered.RenderFunnel,

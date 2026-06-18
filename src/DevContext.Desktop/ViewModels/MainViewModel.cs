@@ -500,7 +500,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             _output.RawContent = rawContent;
             _output.HumanViewHtml = renderResult.HtmlContent ?? "";
-            // Use fragment-filtered LLM text when fragments exist; otherwise raw content.
+            // In narrative mode (Map/Trace): no sections, no fragments → LlmViewText = RawContent.
+            // In catalog mode: use fragment-filtered LLM text when available, else RawContent.
             _output.LlmViewText = !string.IsNullOrEmpty(llmText) ? llmText : rawContent;
             _sections.BudgetTokens = MaxTokens;
 
