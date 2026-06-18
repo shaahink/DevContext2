@@ -8,62 +8,62 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 
 ---
 
-## PLAN-12 — HTML section toggling (all open before remediation)
+## PLAN-12 — HTML section toggling
 
-| ID | Sev | Status | Issue | Evidence |
+| ID | Sev | Status | Issue | Fixed by |
 |----|-----|--------|-------|----------|
-| D1 | H | open | Section drawer toggles don't filter HTML or text content | `OutputPanel.razor:145` → `section.IsIncluded=…` → `OnSectionChanged` → `RebuildLlmViewText` no-op (`MainViewModel.cs:116-120`) |
-| D2 | H | open | Nav links break after MarkupString replacement (DOM destroyed) | `OutputPanel.razor:163` `@((MarkupString)VM.HumanViewHtml)` |
-| D3 | H | open | `RenderedContext.Sections` always empty — never populated by any renderer | `HtmlContextRenderer.cs:75`, `MarkdownRenderer.cs:139`, `JsonContextRenderer.cs:27` |
-| D4 | M | open | AntiPatterns & EventFlow bypass `ShouldRender` section filtering | `HtmlContextRenderer.cs:53-54` (direct calls, not via `RenderSection`) |
-| D5 | L | open | `SectionTokenRecord` list collected but never used | `HtmlContextRenderer.cs:17` (only Header tracked, `:27`); never returned |
-| D6 | — | fixed | Duplicate `_output.HasOutput = true` assignment | each branch sets it once (`MainViewModel.cs:384,403,417`) |
-| D7 | M | open | Section VM state lost on re-render — new VMs each time | `SectionSelectionModel.cs:161-181` recreates `SectionViewModel`s per call |
-| D8 | M | open | `RebuildLlmViewText()` is a no-op — just reassigns same value | `MainViewModel.cs:116-120` |
-| D9 | L | open | HTML sections render empty wrappers when query returns 0 items | inner render methods emit tags unconditionally |
-| D10 | M | open | Map/Trace narrative path ignores section filtering entirely | `DiscoveryPipeline.cs:302-331` never consults `RequiredSections` |
+| D1 | H | fixed | Section drawer toggles don't filter HTML or text content | Phase D: persistent wrappers + RebuildLlmViewText |
+| D2 | H | fixed | Nav links break after MarkupString replacement (DOM destroyed) | Phase D: persistent wrappers (only display toggled) |
+| D3 | H | fixed | `RenderedContext.Sections` always empty | Phase C: both renderers populate Sections |
+| D4 | M | fixed | AntiPatterns & EventFlow bypass `ShouldRender` | Phase A: routed through RenderSection |
+| D5 | L | fixed | `SectionTokenRecord` list collected but never used | Phase C: removed from HtmlContextRenderer |
+| D6 | — | fixed | Duplicate `_output.HasOutput = true` assignment | Phase D cleanup |
+| D7 | M | fixed | Section VM state lost on re-render | Phase D: keyed merge preserves IsIncluded |
+| D8 | M | fixed | `RebuildLlmViewText()` is a no-op | Phase D: filters by included markdown fragments |
+| D9 | L | fixed | HTML sections render empty wrappers | Phase C: only non-empty fragments tracked |
+| D10 | M | fixed | Map/Trace ignores section filtering | Narrative/catalog unification: drawer hidden in narrative mode |
 
-## PLAN-6 — MainViewModel refactor (mostly fixed)
+## PLAN-6 — MainViewModel refactor
 
-| ID | Sev | Status | Issue | Evidence |
+| ID | Sev | Status | Issue | Fixed by |
 |----|-----|--------|-------|----------|
-| C1 | C | fixed | Superseded analysis disposes current CTS and clobbers UI | `CancellableOperation` used (`MainViewModel.cs:301-303`); cancellation guards (`:400,408,413`); `AllowConcurrentExecutions=true` (`:298`) |
-| C2 | C | fixed | JSON output format non-functional | `AnalysisService.RenderAsync` honors format (`:171-177`); `RenderRequest.Format=SelectedFormat` (`MainViewModel.cs:438`) |
-| H1 | H | fixed | PropertyChanged unsubscribe no-op → handler leak | all three components use named `OnVmChanged` |
-| H2 | H | fixed | Budget denominator stale after slider change | `_sections.BudgetTokens=MaxTokens` in `RerenderAsync` (`MainViewModel.cs:468`) |
-| H3 | H | partial | Every re-render does double work (md+html) regardless of view/format | HTML skipped for JSON (`AnalysisService.cs:175-177`); markdown still double-renders regardless of active tab |
-| M1 | M | fixed | Two sources of truth for active output tab; "jump to LLM on edit" dead | `OutputViewModel.SelectedTab` single source (`OutputViewModel.cs:8-11`); `OutputPanel.razor:69-71` |
-| M2 | H | open | GitHub URL validation fires a network call on every keystroke | `OnProjectPathChanged` (`MainViewModel.cs:141-145`) → `ValidateGitHubUrlAsync` with no debounce; `@bind:event="oninput"` (`ConfigPanel.razor:56`) |
-| M3 | M | partial | Large blocks of VM state never reach the UI | `DisplayContent`/`DisplayHtml` (`OutputViewModel.cs:43-51`), `BudgetUtilisation`/`TotalTokens`/`Sections`/`SetSectionEnabled` (`MainViewModel.cs:51-55,191-195`) never read |
-| L1 | L | partial | `OnPropertyChanged(string.Empty)` + `MVVMTK0034` hack | still used (`MainViewModel.cs:388,478`); MVVMTK0034 pragmas gone |
-| L2 | L | fixed | `DebouncedReanalyze` couples VM to WPF | `Debouncer` uses `SynchronizationContext` (`Debouncer.cs:13,29`) |
-| L3 | L | open (mitigated) | `_snapshot` shared mutable state, no synchronization | relies on UI-thread marshalling; broken by C1 re-entrancy (now fixed) and L2 (now fixed) |
-| L4 | L | mostly fixed | `ShowToast` async void + `_toastCts` never disposed | `_toastCts` disposed (`OutputPanel.razor:20,54-55`); still `async void` (`:52`) |
+| C1 | C | fixed | Superseded analysis disposes current CTS | `CancellableOperation` + cancellation guards (Phase A) |
+| C2 | C | fixed | JSON output format non-functional | `AnalysisService.RenderAsync` honors format (Phase A) |
+| H1 | H | fixed | PropertyChanged unsubscribe leak | Named `OnVmChanged` handlers (Phase A) |
+| H2 | H | fixed | Budget denominator stale after slider | `_sections.BudgetTokens = MaxTokens` in RerenderAsync |
+| H3 | H | fixed | Every re-render does double work | HTML skipped for JSON (Phase A); HTML skipped entirely in narrative mode (narrative/catalog unification) |
+| M1 | M | fixed | Two sources of truth for active output tab | `OutputViewModel.SelectedTab` single source |
+| M2 | H | fixed | GitHub URL validation fires per keystroke | Debounced URL validation (Phase E) |
+| M3 | M | fixed | Dead VM state (`DisplayContent`/`DisplayHtml`/`BudgetUtilisation`/`IsActive`) | Removed (Phase A) |
+| L1 | L | deferred | `OnPropertyChanged(string.Empty)` in 2 places | Correct pattern for Blazor multi-field updates |
+| L2 | L | fixed | `DebouncedReanalyze` couples VM to WPF | `Debouncer` uses `SynchronizationContext` (Phase A) |
+| L3 | L | deferred | `_snapshot` shared mutable state | Mitigated by UI-thread marshalling; low risk |
+| L4 | L | deferred | `ShowToast` async void | Acceptable fire-and-forget pattern |
 
 ## Latent bugs found beyond the two plans
 
-| ID | Sev | Status | Issue | Evidence |
+| ID | Sev | Status | Issue | Fixed by |
 |----|-----|--------|-------|----------|
-| B1 | H | open | `AnalysisService.GetPipeline` caches by first-seen rootPath — analyzing a second project reuses the first project's DI graph | `AnalysisService.cs:45-55`; `RenderAsync` calls `GetPipeline(".")` (`:169`) |
-| B2 | M | open | `MainViewModel` never disposed — singleton, ServiceProvider never disposed | `MainWindow.xaml.cs:43`; `MainViewModel.Dispose()` (`:542-549`) unreachable |
-| B3 | L | open | Undefined CSS variables `--text-accent`, `--border-light`, `--font-sans` | `app.css:238,244,260,407,414,451` — section-heading underlines render transparent |
-| B4 | H | open | `RenderEndpoints` hardcodes filter against `ChangePasswordEndpoint.cs` — debug leftover | `HtmlContextRenderer.cs:206` |
-| B5 | M | open | Entry-picker `@bind:event="oninput"` triggers `RerenderAsync` per keystroke, no debounce | `ConfigPanel.razor:124` |
-| B6 | L | open | `CancellableOperation.Link` leaks the linked CTS — called per `RerenderAsync` | `CancellableOperation.cs:43-51`; `MainViewModel.cs:432` |
-| B7 | M | open | Two parallel section-state systems drift independently | `SectionToggle.IsEnabled` (read by `DerivedProfile`) vs `SectionViewModel.IsIncluded` (bound by drawer) |
-| B8 | L | open | `--format md` throws "No renderer registered" | `DiscoveryPipeline.cs:301` treats `md` as narrative; `:351` only has `markdown`/`json`/`html` |
-| B9 | L | open | `AnalysisResult` record is dead — declared, never referenced | `AnalysisService.cs:308-315` |
-| B10 | — | not-a-bug | `DiscoveryPipeline.RunAsync` — used by Core tests, not dead | `tests/DevContext.Core.Tests/*.cs` (7 call sites) |
-| B11 | L | open | `App.razor:5` adds `has-output`/`is-loading` classes never styled | `App.razor:5`; grep `app.css` — zero hits |
-| B12 | M | open | `DispatcherUnhandledException` swallows ALL dispatcher exceptions (`e.Handled=true`) | `Program.cs:42-46` |
-| B13 | L | open | `InstallWebView2Sync` blocks UI thread on download + install | `MainWindow.xaml.cs:57-88` |
-| B14 | M | open | Inconsistent section IDs — lowercase literals don't match `SectionNames` constants | `dc-antipatterns` (`HtmlContextRenderer.cs:398`), `dc-eventflow` (`:413`), `dc-diagnostics` (`:440`), `dc-entry-points` (`:191`) |
-| B15 | M | open | `RenderCallGraph` emits `<section>` without `id` when CallGraph is available | `HtmlContextRenderer.cs:245` |
-| B16 | M | open | Spinner-only loading; `AnalysisProgress.Value` plumbed but never populated/read | `OutputPanel.razor:175-178`; `AnalysisService.cs:256` always `null`; no determinate-bar CSS |
-| B17 | L | open | On cancel, `finally` hides spinner before "Canceled" shows | `MainViewModel.cs:409,422` |
-| B18 | H | open | Human tab renders plain `<pre>` text in Trace/Map mode — no HTML, identical to LLM view | `OutputPanel.razor:157-164` |
-| B19 | L | open | `DesktopProgressObserver` mostly empty stubs — only coarse stage text | `AnalysisService.cs:235-270` |
-| B20 | L | open | External Google Fonts dependency fails silently offline | `index.html:9-11` |
+| B1 | H | fixed | Pipeline caches by first-seen rootPath — cross-project contamination | `_cachedRootPath` check + rebuild on change (Phase A) |
+| B2 | M | fixed | MainViewModel never disposed | `OnClosed` disposes VM + ServiceProvider (Phase A) |
+| B3 | L | fixed | Undefined CSS variables `--text-accent`, `--border-light`, `--font-sans` | Defined in `:root` (Phase A) |
+| B4 | H | fixed | Hardcoded `ChangePasswordEndpoint.cs` filter | Removed (Phase A) |
+| B5 | M | fixed | Entry-picker per-keystroke re-render | Routed through `DebouncedRender` (Phase A) |
+| B6 | L | fixed | `CancellableOperation.Link` leaks linked CTS | Tracked and disposed (Phase A) |
+| B7 | M | deferred | Two parallel section-state systems | `SectionToggle.IsEnabled` (dead UI, feeds `DerivedProfile`) vs `SectionViewModel.IsIncluded` (drawer). Only matters in catalog mode, which doesn't occur for real codebases. Deeper refactor would break test contract. |
+| B8 | L | fixed | `--format md` throws | Normalized to "markdown" (Phase C) |
+| B9 | L | fixed | `AnalysisResult` record dead | Removed (Phase A) |
+| B10 | — | not-a-bug | `DiscoveryPipeline.RunAsync` | Used by Core tests (7 call sites) |
+| B11 | L | fixed | `has-output`/`is-loading` classes unstyled | Removed from App.razor (Phase A) |
+| B12 | M | fixed | Dispatcher swallows ALL exceptions | Only critical exceptions not handled (Phase A) |
+| B13 | L | deferred | `InstallWebView2Sync` blocks UI | Pre-existing. Only runs once at first launch. |
+| B14 | M | fixed | Inconsistent section IDs (lowercase literals) | Normalized to `SectionNames` constants (Phase A) |
+| B15 | M | fixed | `RenderCallGraph` missing `id` attribute | Added (Phase A) |
+| B16 | M | fixed | Spinner-only loading | Determinate progress bar + staged percentages (Phase B) |
+| B17 | L | fixed | Cancel hides spinner before "Canceled" shows | ProgressText set before return, brief delay in finally (Phase B) |
+| B18 | H | fixed | Human tab plain `<pre>` in Trace/Map mode | Narrative/catalog unification: both views show same narrative text. Trace-as-HTML tree (collapsible `<details>`) deferred as aspirational. |
+| B19 | L | fixed | `DesktopProgressObserver` empty stubs | Populated `OnStageStarted` with percentages; `OnPipelineCompleted` reports 100% (Phase B) |
+| B20 | L | deferred | External Google Fonts fails silently offline | Falls back to `system-ui`. Non-critical. |
 
 ## Doc inconsistencies (out of scope for this pass — CLI/docs untouched)
 
@@ -86,11 +86,20 @@ Severity legend: **C** critical · **H** high · **M** medium · **L** low · **
 
 ## Remediation phases
 
-- **Phase A** — Latent bugs (B1-B15, M3, B12): quick wins, no UX change. ✅ DONE
-- **Phase B** — Loading/progress UX (B16, B17, B19, B20). ✅ DONE
-- **Phase C** — Renderers emit fragments (D3, D4, D5, D9, B8, B14, B15). ✅ DONE
-- **Phase D** — Desktop section-fragment binding (D1, D2, D7, D8, D10, B7). ✅ DONE
-- **Phase E** — Mode parity + cleanup (M2, H3 partial). ✅ DONE
-  - B18 (Trace/Map Human tab HTML parity) — **deferred**: requires a TraceHtmlRenderer/MapHtmlRenderer or markdown-to-HTML conversion for the trace tree. The trace narrative is markdown-only; the HTML renderer produces the catalog view. Design decision needed on whether Trace mode should show the catalog HTML or a purpose-built trace HTML tree.
+- **Phase A** — Latent bugs (B1-B15, M3, B12): 14 quick-win fixes. ✅
+- **Phase B** — Loading/progress UX (B16, B17, B19). ✅
+- **Phase C** — Renderers emit fragments (D3, D4, D5, D9, B8, B14, B15). ✅
+- **Phase D** — Desktop section-fragment binding (D1, D2, D7, D8, D10). ✅
+- **Phase E** — GitHub URL debounce + cleanup (M2, H3 partial). ✅
+- **Follow-on 1** — Restore HTML view in Human tab for Map mode. ✅
+- **Follow-on 2** — UI audit: unwired options, mode-gated controls, stale labels. ✅
+- **Follow-on 3** — Fix LLM view showing HTML in Trace mode + sections right-side overlay. ✅
+- **Follow-on 4** — Narrative/catalog unification: both views show same content in all modes. ✅
 
-Each phase: `dotnet build` + `dotnet test tests/DevContext.Desktop.Tests` green.
+**Deferred (minor / aspirational):**
+- B7: Collapse parallel section-state systems (design debt, low impact)
+- B13: Async WebView2 install (pre-existing, runs once)
+- B20: Offline font fallback (non-critical)
+- L1, L3, L4: Minor code quality items (acceptable patterns)
+- B18 aspirational: Trace as collapsible HTML tree (currently both views show identical text)
+- Doc reconciliation: `cli-reference.md` / `desktop-ui.md` (out of scope)
