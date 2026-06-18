@@ -187,9 +187,10 @@ public class AnalysisService : IAnalysisService
         // The HTML render also produces per-section HTML fragments for the desktop's interactive section toggling.
         string? htmlContent = null;
         IReadOnlyDictionary<string, string>? htmlFragments = null;
+        RenderedContext? htmlRendered = null;
         if (format == "markdown")
         {
-            var htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
+            htmlRendered = await pipeline.RenderAsync(snapshot, request with { Format = "html" }, ct);
             htmlContent = htmlRendered.Content;
             htmlFragments = htmlRendered.SectionFragments;
         }
@@ -199,8 +200,12 @@ public class AnalysisService : IAnalysisService
             Content = rendered.Content,
             HtmlContent = htmlContent,
             EstimatedTokens = rendered.EstimatedTokens,
-            Sections = rendered.Sections,
-            SectionFragments = rendered.SectionFragments,
+            // Use the markdown render's sections when available (Overview mode).
+            // When the markdown render took the Map/Trace path (graph exists), its Sections
+            // are empty — fall back to the HTML render's sections so the desktop's section
+            // drawer and fragment-based toggling still work.
+            Sections = !rendered.Sections.IsDefaultOrEmpty ? rendered.Sections : htmlRendered?.Sections ?? [],
+            SectionFragments = rendered.SectionFragments ?? htmlRendered?.SectionFragments,
             HtmlSectionFragments = htmlFragments,
             RenderFunnel = rendered.RenderFunnel,
         };
