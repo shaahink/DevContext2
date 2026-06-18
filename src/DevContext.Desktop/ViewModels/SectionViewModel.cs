@@ -6,9 +6,15 @@ public enum TokenWeight { Light, Medium, Heavy, Critical }
 
 public partial class SectionViewModel : ObservableObject
 {
+    /// <summary>Stable section key (matches SectionNames constants) used for fragment lookup and DOM id.</summary>
+    public string Key { get; init; } = "";
     public string Name { get; init; } = "";
     public string Category { get; init; } = "";
-    public string FullText { get; init; } = "";
+    /// <summary>Full markdown text for this section (for LLM view filtering). Empty when no fragments available.</summary>
+    public string Markdown { get; init; } = "";
+    /// <summary>HTML fragment for this section (for Human view rendering). Empty when no fragments available.</summary>
+    public string Html { get; init; } = "";
+    public string FullText { get => Markdown; init => Markdown = value; }
 
     [ObservableProperty]
     private bool _isIncluded = true;

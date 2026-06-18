@@ -69,6 +69,9 @@
     private bool IsTabHuman => VM.Output.SelectedTab == OutputViewModel.OutputTab.Human;
     private bool IsTabLlm => VM.Output.SelectedTab == OutputViewModel.OutputTab.Llm;
     private bool IsTabStats => VM.Output.SelectedTab == OutputViewModel.OutputTab.Stats;
+
+    private List<SectionViewModel> FlattenedSections => VM.SectionGroups.SelectMany(g => g.Children).ToList();
+    private bool HasHtmlFragments => FlattenedSections.Any(s => !string.IsNullOrEmpty(s.Html));
 }
 
 <section class="output-panel">
@@ -157,6 +160,17 @@
             @if (VM.HasGraph)
             {
                 <pre class="output-text"><code>@VM.RawContent</code></pre>
+            }
+            else if (HasHtmlFragments)
+            {
+                <div class="output-rendered">
+                    @foreach (var s in FlattenedSections)
+                    {
+                        <section id="dc-@s.Key" class="dc-section-wrapper" style="display:@(s.IsIncluded ? "" : "none")">
+                            @((MarkupString)s.Html)
+                        </section>
+                    }
+                </div>
             }
             else
             {

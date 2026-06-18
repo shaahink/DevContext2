@@ -152,19 +152,31 @@ public sealed class SectionSelectionModel
     public Action? OnSectionChanged { get; set; }
 
     public (List<SectionGroupViewModel> Groups, string LlmText, int TotalTokens, int SelectedTokens) BuildSectionDataFromStat(
-        ImmutableArray<SectionStat> sections)
+        ImmutableArray<SectionStat> sections,
+        IReadOnlyDictionary<string, string>? markdownFragments = null,
+        IReadOnlyDictionary<string, string>? htmlFragments = null)
     {
+        // Capture current IsIncluded state by Key so toggles survive re-renders (D7 fix).
+        var previousIncluded = new Dictionary<string, bool>(StringComparer.Ordinal);
+        foreach (var g in SectionGroups)
+            foreach (var s in g.Children)
+                previousIncluded[s.Key.Length > 0 ? s.Key : s.Name] = s.IsIncluded;
+
         var sectionVms = new List<SectionViewModel>();
 
         foreach (var stat in sections)
         {
+            var key = stat.Name;
             var section = new SectionViewModel
             {
+                Key = key,
                 Name = stat.Name,
-                FullText = "",
+                Markdown = markdownFragments?.GetValueOrDefault(key) ?? "",
+                Html = htmlFragments?.GetValueOrDefault(key) ?? "",
                 RawTokens = stat.Tokens,
                 CompressedTokens = stat.Tokens,
                 Category = CategorizeSection(stat.Name),
+                IsIncluded = previousIncluded.GetValueOrDefault(key, true),
             };
 
             section.PropertyChanged += (_, _) =>
@@ -197,8 +209,10 @@ public sealed class SectionSelectionModel
 
         var totalTokens = sectionVms.Sum(s => s.CompressedTokens);
         var selectedTokens = sectionVms.Where(s => s.IsIncluded).Sum(s => s.CompressedTokens);
+        // Build LLM text from included sections' markdown fragments; fall back to empty
+        // (the caller assigns RawContent to LlmViewText when no fragments are available).
         var llmText = string.Join(Environment.NewLine,
-            sectionVms.Where(s => s.IsIncluded).Select(s => s.FullText));
+            sectionVms.Where(s => s.IsIncluded && !string.IsNullOrEmpty(s.Markdown)).Select(s => s.Markdown));
 
         _totalTokens = totalTokens;
         _selectedTokenTotal = selectedTokens;

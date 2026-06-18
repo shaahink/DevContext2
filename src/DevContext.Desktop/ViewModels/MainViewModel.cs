@@ -115,8 +115,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void RebuildLlmViewText()
     {
-        // The LLM view is the raw content; no per-section filtering needed
-        _output.LlmViewText = _output.RawContent;
+        // Filter the LLM view to only included sections' markdown fragments.
+        // When no fragments are available (e.g. tests), fall back to raw content.
+        var includedMarkdowns = _sections.SectionGroups
+            .SelectMany(g => g.Children)
+            .Where(s => s.IsIncluded && !string.IsNullOrEmpty(s.Markdown))
+            .Select(s => s.Markdown)
+            .ToList();
+
+        _output.LlmViewText = includedMarkdowns.Count > 0
+            ? string.Join(Environment.NewLine, includedMarkdowns)
+            : _output.RawContent;
     }
 
     public string AnalyzeButtonText
@@ -212,6 +221,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _sections.OnSectionChanged = () =>
         {
             RebuildLlmViewText();
+            // Notify so the Human view's persistent wrappers re-evaluate display style,
+            // and the LLM view + token totals refresh.
+            OnPropertyChanged(nameof(SectionGroups));
+            OnPropertyChanged(nameof(SelectedTokenTotal));
+            OnPropertyChanged(nameof(LlmViewText));
         };
         _output.PropertyChanged += (_, e) =>
         {
@@ -475,13 +489,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             var rawContent = renderResult.Content ?? "";
 
-            var (_, llmText, _, _) = _sections.BuildSectionDataFromStat(renderResult.Sections);
+            var (_, llmText, _, _) = _sections.BuildSectionDataFromStat(
+                renderResult.Sections, renderResult.SectionFragments, renderResult.HtmlSectionFragments);
 
             if (renderCt.IsCancellationRequested) return;
 
             _output.RawContent = rawContent;
             _output.HumanViewHtml = renderResult.HtmlContent ?? "";
-            _output.LlmViewText = rawContent;
+            // Use fragment-filtered LLM text when fragments exist; otherwise raw content.
+            _output.LlmViewText = !string.IsNullOrEmpty(llmText) ? llmText : rawContent;
             _sections.BudgetTokens = MaxTokens;
 
             if (renderCt.IsCancellationRequested) return;
