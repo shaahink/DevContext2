@@ -26,6 +26,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly Debouncer _tokenDebouncer = new(500);
     private readonly Debouncer _urlDebouncer = new(400);
     private readonly Debouncer _analyzeDebouncer = new(500);
+    // GitHub clones made this session, cleaned up on Dispose when CloneCleanup == "auto".
+    private readonly HashSet<string> _sessionClones = new(StringComparer.OrdinalIgnoreCase);
     private AnalysisSnapshot? _snapshot;
     private bool _isInitializing = true;
 
@@ -352,6 +354,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             }
 
             workingPath = cloneResult;
+            // Remember the clone so we can clean it up at session end (not between re-analyses —
+            // GitCloneService's cache reuses it, so changing an option re-uses the clone instead
+            // of re-cloning).
+            _sessionClones.Add(cloneResult);
         }
 
         var opts = new AnalysisOptions
@@ -410,13 +416,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
                     OnPropertyChanged(string.Empty);
                 }
 
-                // Clean up clone off UI thread
-                if (_gitRepoUrl is { } gitRepo && CloneCleanup == "auto")
-                {
-                    var clonePath = gitRepo.ClonePath;
-                    await System.Threading.Tasks.Task.Run(() =>
-                        GitCloneService.Cleanup(clonePath)).ConfigureAwait(false);
-                }
+                // NOTE: cloned repos are NOT deleted here. Deleting after each run defeated the
+                // GitCloneService cache (its Directory.Exists check failed → re-clone on every
+                // option change). "auto" cleanup now runs once at session end (see Dispose).
             }
             else
             {
@@ -599,6 +601,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        // "auto" cleanup happens once, at session end — clones are kept and reused during the
+        // session so option changes don't re-clone.
+        if (CloneCleanup == "auto")
+        {
+            foreach (var path in _sessionClones)
+                GitCloneService.Cleanup(path);
+        }
+
         _analyzeOp.Dispose();
         _renderOp.Dispose();
         _validateOp.Dispose();

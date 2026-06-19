@@ -30,8 +30,10 @@ section drawer that filters both views in sync.
 ### Source
 
 A local path (`.sln`, `.csproj`, or directory) or a GitHub URL (`github.com/user/repo`). Recent
-paths appear as clickable chips. For a GitHub URL a cleanup selector appears: **Auto-clean after
-analysis** (default) or **Keep permanently**.
+paths appear as clickable chips. For a GitHub URL a cleanup selector appears: **Auto-clean on exit**
+(default) or **Keep permanently**. A cloned repo is reused for the whole session — changing options
+or the focus re-analyzes the existing clone instead of re-cloning — and is deleted on app close when
+"Auto-clean on exit" is selected.
 
 ### Focus  — one control, mode is derived
 
