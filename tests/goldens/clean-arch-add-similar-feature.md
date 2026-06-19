@@ -6,14 +6,14 @@ STYLE  CleanArchitecture  (confidence high)
        evidence: DDD folder layers: Domain, Application, Infrastructure; MediatR with 0 handlers
 
 TOPOLOGY (depends-on)
-   Application
+   Application ── Domain
    Domain
-   Infrastructure
-   Web
+   Infrastructure ── Domain
+   Web ── Application, Infrastructure
 
 ENTRY POINTS
    HTTP (1)
-      GET /products  (src\Web\Program.cs:13)
+      GET /products  (Program.cs:13)
 
 CROSS-CUTTING
    Aggregates:   Product

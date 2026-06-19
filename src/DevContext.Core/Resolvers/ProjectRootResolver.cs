@@ -28,7 +28,7 @@ public sealed class ProjectRootResolver
             throw new DirectoryNotFoundException($"Path not found: {fullPath}");
         }
 
-        var slnFiles = await fs.EnumerateFilesAsync(fullPath, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+        var slnFiles = await FindSolutionsAsync(fs, fullPath, ct);
         if (slnFiles.Count > 0)
         {
             return new ProjectRootResult(fullPath, slnFiles[0], slnFiles.ToImmutableArray(),
@@ -40,7 +40,7 @@ public sealed class ProjectRootResolver
         {
             var parent = fs.GetDirectoryName(current);
             if (parent == null) break;
-            var parentSlns = await fs.EnumerateFilesAsync(parent, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+            var parentSlns = await FindSolutionsAsync(fs, parent, ct);
             if (parentSlns.Count > 0)
             {
                 return new ProjectRootResult(fullPath, parentSlns[0], parentSlns.ToImmutableArray(),
@@ -55,7 +55,7 @@ public sealed class ProjectRootResolver
             var dirs = fs.EnumerateDirectories(current, "*", SearchOption.TopDirectoryOnly).ToList();
             foreach (var dir in dirs)
             {
-                var nestedSlns = await fs.EnumerateFilesAsync(dir, "*.sln", SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct);
+                var nestedSlns = await FindSolutionsAsync(fs, dir, ct);
                 if (nestedSlns.Count > 0)
                 {
                     return new ProjectRootResult(fullPath, nestedSlns[0], nestedSlns.ToImmutableArray(),
@@ -76,5 +76,19 @@ public sealed class ProjectRootResolver
 
         return new ProjectRootResult(fullPath, null, [], ResolutionMethod.FolderMode,
             "no .sln or .csproj found, folder mode");
+    }
+
+    /// <summary>Finds solution files in a directory — both legacy <c>.sln</c> and XML <c>.slnx</c>.
+    /// <c>.sln</c> is listed first so single-<c>.sln</c> repos keep their existing primary selection;
+    /// on Windows the <c>*.sln</c> glob can also match <c>.slnx</c>, so duplicates are dropped.</summary>
+    private static async Task<List<string>> FindSolutionsAsync(IFileSystem fs, string dir, CancellationToken ct)
+    {
+        var result = new List<string>();
+        foreach (var pattern in new[] { "*.sln", "*.slnx" })
+        {
+            foreach (var file in await fs.EnumerateFilesAsync(dir, pattern, SearchOption.TopDirectoryOnly, ct).ToListAsync2(ct))
+                if (!result.Contains(file)) result.Add(file);
+        }
+        return result;
     }
 }

@@ -42,6 +42,35 @@ public sealed class ProjectRootResolverTests
     }
 
     [Fact]
+    public async Task ResolveAsync_DirectoryWithSlnx_ResolvesSolution()
+    {
+        // .slnx (XML solution) repos — eShop, AutoMapper, VerticalSlice — must resolve a solution
+        // path, not fall through to folder mode (which also leaves Roslyn disabled).
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\project\MyApp.slnx", "<Solution />");
+        fs.AddFile(@"C:\project\src\Program.cs", "");
+
+        var result = await ProjectRootResolver.ResolveAsync(@"C:\project", fs);
+
+        Assert.Equal(ResolutionMethod.DirectoryContainsSln, result.Method);
+        Assert.Equal(@"C:\project\MyApp.slnx", result.SolutionFilePath);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_SubfolderWalksUpToSlnx()
+    {
+        // Pointing at a project subfolder finds the parent .slnx (as Roslyn already does).
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\project\MyApp.slnx", "<Solution />");
+        fs.AddFile(@"C:\project\src\Api\Api.csproj", "");
+
+        var result = await ProjectRootResolver.ResolveAsync(@"C:\project\src\Api", fs);
+
+        Assert.Equal(ResolutionMethod.WalkedUp, result.Method);
+        Assert.Equal(@"C:\project\MyApp.slnx", result.SolutionFilePath);
+    }
+
+    [Fact]
     public async Task ResolveAsync_NoSlnFound_ReturnsFolderMode()
     {
         var fs = new FakeFileSystem();

@@ -1,3 +1,5 @@
+using DevContext.Core.Resolvers;
+
 using Microsoft.CodeAnalysis;
 
 namespace DevContext.Roslyn.Services;
@@ -31,7 +33,7 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
 
             var slnContent = await _fileSystem.ReadAllTextAsync(_solutionPath, ct);
             var slnPath = Path.GetDirectoryName(_solutionPath) ?? "";
-            var projects = ParseProjectPaths(slnContent);
+            var projects = SolutionFileParser.ParseProjectPaths(slnContent, _solutionPath);
 
             foreach (var project in projects)
             {
@@ -78,28 +80,5 @@ public sealed class RoslynWorkspaceProvider : IRoslynWorkspaceProvider
         {
             _lock.Release();
         }
-    }
-
-    private static ImmutableArray<string> ParseProjectPaths(string slnContent)
-    {
-        var projects = new List<string>();
-        var lines = slnContent.Split('\n');
-        foreach (var line in lines)
-        {
-            var trimmed = line.Trim();
-            if (trimmed.StartsWith("Project("))
-            {
-                var parts = trimmed.Split(',');
-                if (parts.Length >= 2)
-                {
-                    var path = parts[1].Trim().Trim('"');
-                    if (!string.IsNullOrEmpty(path) && path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                    {
-                        projects.Add(path);
-                    }
-                }
-            }
-        }
-        return projects.ToImmutableArray();
     }
 }

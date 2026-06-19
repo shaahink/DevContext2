@@ -1,3 +1,5 @@
+using DevContext.Core.Resolvers;
+
 namespace DevContext.Core.Extractors.Generic;
 
 /// <summary>Parses .sln and .slnx files to discover solution structure and project references.</summary>
@@ -21,49 +23,38 @@ public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
+        // Enumerate .sln (legacy text) and .slnx (XML) — many modern repos ship .slnx only.
+        // .sln is gathered first so single-.sln repos keep their existing primary selection.
         var slnFiles = new List<string>();
-        await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.sln", SearchOption.AllDirectories, ct))
+        foreach (var pattern in new[] { "*.sln", "*.slnx" })
         {
-            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)) continue;
-            if (file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)) continue;
-            if (file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase)) continue;
-            slnFiles.Add(file);
+            await foreach (var file in context.FileSystem.EnumerateFilesAsync(
+                context.RootPath, pattern, SearchOption.AllDirectories, ct))
+            {
+                if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)) continue;
+                if (file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)) continue;
+                if (file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase)) continue;
+                // On Windows the "*.sln" glob also matches ".slnx", so the same file can surface in
+                // both passes — keep first occurrence (.sln) only.
+                if (!slnFiles.Contains(file)) slnFiles.Add(file);
+            }
         }
 
         if (slnFiles.Count == 0)
         {
-            model.AddDiagnostic(DiagnosticLevel.Info, Name, "No .sln file found");
+            model.AddDiagnostic(DiagnosticLevel.Info, Name, "No .sln or .slnx file found");
             return;
         }
 
-        var primary = slnFiles[0];
+        // Prefer the solution closest to the root — the canonical one. AllDirectories order can
+        // otherwise surface a nested solution first (e.g. eShop's src/ClientApp client app over the
+        // root eShop.slnx). OrderBy is stable, so the .sln-before-.slnx order holds at equal depth.
+        var primary = slnFiles
+            .OrderBy(f => f.Count(c => c is '/' or '\\'))
+            .First();
         var content = await context.FileSystem.ReadAllTextAsync(primary, ct);
-        var projects = ParseProjectPaths(content);
+        var projects = SolutionFileParser.ParseProjectPaths(content, primary);
 
         model.Solution = new SolutionInfo(primary, Path.GetFileNameWithoutExtension(primary), projects);
-    }
-
-    private static ImmutableArray<string> ParseProjectPaths(string slnContent)
-    {
-        var projects = new List<string>();
-        var lines = slnContent.Split('\n');
-        foreach (var line in lines)
-        {
-            var trimmed = line.Trim();
-            if (trimmed.StartsWith("Project("))
-            {
-                var parts = trimmed.Split(',');
-                if (parts.Length >= 2)
-                {
-                    var path = parts[1].Trim().Trim('"');
-                    if (!string.IsNullOrEmpty(path) && path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                    {
-                        projects.Add(path);
-                    }
-                }
-            }
-        }
-        return projects.ToImmutableArray();
     }
 }

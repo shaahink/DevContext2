@@ -6,14 +6,14 @@ STYLE  CleanArchitecture  (confidence moderate)
        evidence: DDD folder layers: Infrastructure, Api, Core; MediatR with 0 handlers
 
 TOPOLOGY (depends-on)
-   Api
+   Api ── Core
    Core
-   Infrastructure
+   Infrastructure ── Core
 
 ENTRY POINTS
    HTTP (2)
-      POST /orders  (src\Api\Program.cs:15)
-      GET /orders  (src\Api\Program.cs:9)
+      POST /orders  (Program.cs:15)
+      GET /orders  (Program.cs:9)
 
 PACKAGES
    Web/API:  Microsoft.AspNetCore.OpenApi 10.0.0
