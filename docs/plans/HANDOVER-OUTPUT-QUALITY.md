@@ -19,13 +19,19 @@ model feed both). Done in small, committed checkpoints.
 | `6845d29` | entry UX | ConfigPanel `<datalist>` → custom searchable combobox (browse/filter/clear), shows `route → Target`, commits `VM.Focus` only on pick/Enter (no re-analyze per keystroke). |
 | `dcb5439` | **B1** | GitHub clone no longer deleted after each run (that defeated `GitCloneService`'s 24h cache → re-clone on every option change). Now reused for the session, cleaned on Dispose when cleanup=="auto". Label → "Auto-clean on exit". |
 | `f7f0fd7` | **G4+G6** | Trace dedups followable edges by `(target, kind)` (twin-node double-counted Raises) + `Distinct` summaries. Topology reduces `..\X.csproj` refs to names (also un-breaks the name-based scope filter) and drops test/benchmark projects via `ProjectClassifier`. |
+| `a21d5e9` | **G1 (part) + G7** | Parse `.slnx` solutions (new `SolutionFileParser`, used by `SolutionDiscoveryExtractor` + `RoslynWorkspaceProvider`; resolver globs `*.slnx`). Four eval repos are `.slnx`-only and previously resolved to an EMPTY solution (name `""`, 0 projects). Extractor now prefers the **root** solution over nested ones. Verified: eShop root → `eShop`/24 projects, `CleanArchitecture`+MediatR lit, constellation topology (was empty/`MinimalApi`/no-MediatR). **Root-pointing** now correct; **subfolder** pointing still analyses only that closure (rescope = remaining G1). |
 
 (Note `ad8bdb2` and earlier are the prior consistency branch — already on `fix/desktop-latent-bugs-and-rendering`, merged into this branch's history.)
 
 ## Remaining (in recommended order)
 
 ### G1 — multi-project / multi-solution scope · **Critical · FOUNDATIONAL — do not one-shot**
-Pointing at a project analyzes only that project's closure. Symptoms:
+> **Groundwork landed (`a21d5e9`):** `.slnx` solutions now parse, so pointing at a repo **root**
+> resolves the real solution (style/MediatR/topology correct — eShop root verified). What remains
+> below is specifically the **subfolder / closure rescope** — analysing a project sub-path (or one of
+> several solutions) still sees only that project's closure. That's the part with perf + eval fallout.
+
+Pointing at a project subfolder analyzes only that project's closure. Symptoms:
 - eShop `Ordering.API` → Map `unknown (1 project)`, `STYLE MinimalApi`, *"no MediatR"* — yet its own
   Trace bridges MediatR send→handler. Data/domain-event seams never appear (Domain/Infra not scanned).
 - VerticalSlice → `(1 project)` because the repo has **two** solutions (`Clean.Architecture.slnx` at
