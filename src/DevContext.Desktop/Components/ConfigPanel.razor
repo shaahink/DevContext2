@@ -1,21 +1,80 @@
 @inject MainViewModel VM
 @using DevContext.Cli
+@using DevContext.Core.Graph
 
 @implements IDisposable
 
 @code {
+    // Entry combobox: a searchable browse-and-pick over the graph's entry inventory. The query is
+    // local — VM.Focus (which drives analysis) only changes when an entry is picked or Enter is
+    // pressed, so browsing never re-analyzes.
+    private string _entryQuery = "";
+    private bool _entryOpen;
+
     protected override void OnInitialized()
     {
         VM.PropertyChanged += OnVmChanged;
+        _entryQuery = VM.Focus;
     }
 
     private void OnVmChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        => InvokeAsync(StateHasChanged);
+    {
+        // Keep the box text in sync when Focus changes elsewhere (loaded settings, cleared, etc.).
+        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(MainViewModel.Focus))
+            _entryQuery = VM.Focus;
+        InvokeAsync(StateHasChanged);
+    }
 
     private void OnDepthInput(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var v))
             VM.Depth = Math.Clamp(v, 1, 10);
+    }
+
+    private void OnEntryInput(ChangeEventArgs e)
+    {
+        _entryQuery = e.Value?.ToString() ?? "";
+        _entryOpen = true;
+    }
+
+    private void OnEntryKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") CommitFocus(_entryQuery);
+        else if (e.Key == "Escape") _entryOpen = false;
+    }
+
+    private void ToggleEntryList() => _entryOpen = !_entryOpen;
+
+    private void SelectEntry(EntryPoint entry)
+    {
+        _entryQuery = entry.Title;
+        CommitFocus(entry.Title);
+    }
+
+    private void ClearFocus() => CommitFocus("");
+
+    private void CommitFocus(string value)
+    {
+        _entryOpen = false;
+        _entryQuery = value;
+        if (VM.Focus != value) VM.Focus = value; // triggers debounced re-analysis
+    }
+
+    private List<KeyValuePair<string, List<EntryPoint>>> FilteredGroups()
+    {
+        var q = _entryQuery?.Trim() ?? "";
+        bool Match(EntryPoint e) =>
+            q.Length == 0
+            || e.Title.Contains(q, StringComparison.OrdinalIgnoreCase)
+            || (e.Target?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false);
+
+        var result = new List<KeyValuePair<string, List<EntryPoint>>>();
+        foreach (var g in VM.GroupedEntries)
+        {
+            var items = g.Where(Match).ToList();
+            if (items.Count > 0) result.Add(new(g.Key, items));
+        }
+        return result;
     }
 
     public void Dispose() => VM.PropertyChanged -= OnVmChanged;
@@ -64,36 +123,65 @@
             }
         </section>
 
-        @* ── Focus / entry point (single control; mode is derived) ── *@
-        <section class="config-group">
+        @* ── Focus / entry point (single searchable control; mode is derived) ── *@
+        <section class="config-group entry-combo">
             <h2 class="group-label">
                 Focus <span class="hint">(optional)</span>
                 <span class="mode-badge @(VM.IsTraceMode ? "trace" : "map")">@(VM.IsTraceMode ? "Trace" : "Map")</span>
             </h2>
-            <input class="input" list="entry-list" placeholder="TypeName, Type:Method, or GET /api/route"
-                   @bind="VM.Focus" @bind:event="oninput" />
-            @if (VM.HasGraph && VM.Entries.Count > 0)
+            <div class="entry-input-row">
+                <input class="input entry-input" placeholder="Type a symbol, or pick an entry…"
+                       value="@_entryQuery"
+                       @oninput="OnEntryInput"
+                       @onfocus="() => _entryOpen = VM.HasGraph"
+                       @onkeydown="OnEntryKeyDown" />
+                @if (VM.HasGraph && VM.Entries.Count > 0)
+                {
+                    <button class="entry-btn" type="button" title="Browse entry points" @onclick="ToggleEntryList">▾</button>
+                }
+                @if (!string.IsNullOrEmpty(VM.Focus))
+                {
+                    <button class="entry-btn entry-clear" type="button" title="Clear — back to Map" @onclick="ClearFocus">✕</button>
+                }
+            </div>
+
+            @if (_entryOpen && VM.HasGraph && VM.Entries.Count > 0)
             {
-                <datalist id="entry-list">
-                    @foreach (var group in VM.GroupedEntries)
+                <div class="entry-backdrop" @onclick="() => _entryOpen = false"></div>
+                <div class="entry-dropdown">
+                    @{ var groups = FilteredGroups(); }
+                    @if (groups.Count == 0)
                     {
-                        <optgroup label="@group.Key">
-                            @foreach (var entry in group)
-                            {
-                                <option value="@entry.Title" />
-                            }
-                        </optgroup>
+                        <div class="entry-none">No match. Press Enter to use “@_entryQuery” as a focus.</div>
                     }
-                </datalist>
+                    @foreach (var grp in groups)
+                    {
+                        <div class="entry-group">@grp.Key <span class="entry-group-count">@grp.Value.Count</span></div>
+                        @foreach (var e in grp.Value)
+                        {
+                            <button class="entry-option" type="button" @onclick="() => SelectEntry(e)">
+                                <span class="entry-option-title">@e.Title</span>
+                                @if (!string.IsNullOrEmpty(e.Target))
+                                {
+                                    <span class="entry-option-target">→ @e.Target</span>
+                                }
+                            </button>
+                        }
+                    }
+                </div>
             }
             <p class="field-hint">
                 @if (VM.IsTraceMode)
                 {
-                    <span>Trace from this entry, down the wiring. Pick another entry after analysis, or clear for the whole-codebase Map.</span>
+                    <span>Tracing <strong>@VM.Focus</strong>. Pick another entry, or clear for the whole-codebase Map.</span>
+                }
+                else if (VM.HasGraph)
+                {
+                    <span>Empty → whole-codebase Map. Pick an entry to trace it (or type a symbol + Enter).</span>
                 }
                 else
                 {
-                    <span>Empty → whole-codebase Map. Type a symbol, or analyze first and pick an entry below to trace.</span>
+                    <span>Empty → whole-codebase Map. After analysis, pick an entry here to trace.</span>
                 }
             </p>
         </section>
