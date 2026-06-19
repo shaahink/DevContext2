@@ -72,8 +72,8 @@ public sealed class TraceBuilder
         CollectSummaries(root, touched, emitted);
         return new Trace(entry, root)
         {
-            TouchedEntities = [.. touched],
-            EmittedEvents = [.. emitted],
+            TouchedEntities = [.. touched.Distinct()],
+            EmittedEvents = [.. emitted.Distinct()],
         };
     }
 
@@ -98,7 +98,13 @@ public sealed class TraceBuilder
                 Truncated = HasFollowable(node.Id, follow),
             };
 
-        var edges = OutEdgesWithTwin(node.Id).Where(e => follow.Contains(e.Kind)).ToList();
+        // Dedup by (target, kind): a Handler/Service node and its Type twin can carry the SAME edge
+        // (e.g. a Raises edge mirrored onto both), which would otherwise render the child twice.
+        var edges = OutEdgesWithTwin(node.Id)
+            .Where(e => follow.Contains(e.Kind))
+            .GroupBy(e => (e.To, e.Kind))
+            .Select(grp => grp.OrderByDescending(e => e.Confidence).First())
+            .ToList();
 
         // Structural ranking: prefer edges that lead to sinks (Data/Raise/Consumes) over framework
         // leaf Calls. Sends/Handles/Resolves are medium priority. Calls are lowest.

@@ -36,18 +36,25 @@ public sealed class MapBuilder
 
     private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model)
     {
+        var classifier = new ProjectClassifier(model.Projects);
         var scoped = model.Solution is { ProjectPaths.Length: > 0 } sln
             ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : null;
 
+        // ProjectReferences come through as raw ".../X.csproj" relative paths; reduce to project
+        // names so the topology reads "A ── B" (and so the name-based scope filter actually matches —
+        // it previously dropped every dependency for solution-scoped repos). Test/benchmark projects
+        // are excluded, consistent with the graph's NoiseFilter.
         return
         [
             .. model.Projects
+                .Where(p => !classifier.IsInTestProject(p.FilePath))
                 .Where(p => scoped is null || scoped.Contains(p.Name))
                 .OrderBy(p => p.Name)
                 .Select(p => new ProjectNode(p.Name,
                     [.. p.ProjectReferences
-                        .Where(r => scoped is null || scoped.Contains(r))
+                        .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
+                        .Where(r => r.Length > 0 && (scoped is null || scoped.Contains(r)))
                         .OrderBy(r => r)]))
         ];
     }
