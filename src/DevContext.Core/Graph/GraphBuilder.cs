@@ -45,7 +45,54 @@ public sealed class GraphBuilder
         AddDataEdges(g, model, names);                      // C1: ReadsWrites edges from entities
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges
 
-        return (g.Build(), entries);
+        var graph = g.Build();
+        return (graph, EnrichEntryTargets(graph, entries));
+    }
+
+    /// <summary>After the graph is assembled, resolve each entry's dispatch target (the command it
+    /// sends or the handler it invokes) so the Map and the desktop picker can show "route → Target".
+    /// The Sends/Handles edges don't exist yet when entries are first created, so this runs last.</summary>
+    private static ImmutableArray<EntryPoint> EnrichEntryTargets(CodeGraph graph, ImmutableArray<EntryPoint> entries)
+    {
+        if (entries.IsDefaultOrEmpty) return entries;
+        var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
+        foreach (var e in entries)
+            b.Add(e with { Target = ResolveEntryTarget(graph, e.Node) });
+        return b.ToImmutable();
+    }
+
+    /// <summary>Resolves an entry's primary target by stepping one hop down its Calls edge: a named
+    /// handler method/class is the target; a type that dispatches exactly one request shows that
+    /// command; an ambiguous registration class (many sends — minimal APIs) yields null (the Trace
+    /// disambiguates per-endpoint). Truthful by construction — no guess when the owner fans out.</summary>
+    private static string? ResolveEntryTarget(CodeGraph graph, NodeId entryNode)
+    {
+        // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node, so
+        // every such entry would resolve to whichever endpoint won that bucket — misleading. Skip them.
+        if (entryNode.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
+
+        foreach (var call in graph.OutEdges(entryNode, EdgeKind.Calls))
+        {
+            var node = graph.Node(call.To);
+            if (node is null) continue;
+            switch (node.Kind)
+            {
+                case NodeKind.Member:
+                    // "CreateEndpoint.HandleAsync" → "CreateEndpoint" (the handler class).
+                    var dot = node.Title.LastIndexOf('.');
+                    return dot > 0 ? node.Title[..dot] : node.Title;
+                case NodeKind.Handler:
+                    return node.Title;
+                case NodeKind.Type:
+                    var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
+                        .Select(s => s.To).Distinct().ToList();
+                    if (sends.Count == 1)
+                        return graph.Node(sends[0])?.Title;
+                    // 0 or >1 sends → ambiguous; leave the route to speak for itself.
+                    return null;
+            }
+        }
+        return null;
     }
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>

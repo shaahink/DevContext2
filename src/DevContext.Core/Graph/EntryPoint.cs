@@ -24,4 +24,9 @@ public sealed record EntryPoint(
     public string? Provenance { get; init; }
     /// <summary>Owning project/service.</summary>
     public string? Project { get; init; }
+    /// <summary>What this entry dispatches to — the command/request it sends, or the handler class it
+    /// invokes. Resolved from the graph after assembly. Null when ambiguous (e.g. a minimal-API
+    /// registration class that dispatches several commands). Surfaced as "route → Target" in the Map
+    /// and the desktop entry picker so both convey the wiring at a glance.</summary>
+    public string? Target { get; init; }
 }

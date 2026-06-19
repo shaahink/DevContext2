@@ -142,27 +142,33 @@ public static class MapRenderer
         if (map.Entries.IsDefaultOrEmpty) return;
         sb.AppendLine("ENTRY POINTS");
 
+        // The Map is the entry-discovery surface and the launch pad for tracing, so list ALL entries
+        // (no "... and N more"). Each shows its dispatch target (route → command/handler) when the
+        // graph resolved one, plus a short file:line.
         var byKind = map.Entries.GroupBy(e => e.Kind).OrderBy(g => g.Key);
         foreach (var group in byKind)
         {
             var list = group.ToList();
-            sb.Append($"   {GroupLabel(group.Key)} ({list.Count})");
-
-            if (list.Count <= 10)
-            {
-                sb.AppendLine();
-                foreach (var ep in list)
-                    sb.AppendLine($"      {ep.Title}  {(ep.Provenance is { } p ? $"({p})" : "")}");
-            }
-            else
-            {
-                sb.AppendLine();
-                foreach (var ep in list.Take(10))
-                    sb.AppendLine($"      {ep.Title}");
-                sb.AppendLine($"      ... and {list.Count - 10} more");
-            }
+            sb.AppendLine($"   {GroupLabel(group.Key)} ({list.Count})");
+            foreach (var ep in list)
+                sb.AppendLine($"      {ep.Title}{Target(ep)}{Where(ep)}");
         }
         sb.AppendLine();
+    }
+
+    private static string Target(EntryPoint ep)
+        => string.IsNullOrEmpty(ep.Target) ? "" : $"  → {ep.Target}";
+
+    /// <summary>Short "(file:line)" — just the filename, not the absolute path, to keep the Map clean.</summary>
+    private static string Where(EntryPoint ep)
+    {
+        if (ep.Provenance is not { Length: > 0 } p) return "";
+        var colon = p.LastIndexOf(':');
+        var path = colon > 0 ? p[..colon] : p;
+        var line = colon > 0 ? p[colon..] : "";
+        var slash = path.LastIndexOfAny(['\\', '/']);
+        var file = slash >= 0 ? path[(slash + 1)..] : path;
+        return $"  ({file}{line})";
     }
 
     private static void AppendCrossCutting(StringBuilder sb, MapModel map)

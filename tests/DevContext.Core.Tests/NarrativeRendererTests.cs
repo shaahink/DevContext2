@@ -112,4 +112,37 @@ public sealed class NarrativeRendererTests
         Assert.Contains("MAP", result.Content);
         Assert.Contains("GET /todos", result.Content);
     }
+
+    [Fact]
+    public async Task MapRenderer_lists_all_entries_and_targets_without_truncation()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("A", @"C:\a\A.csproj", "C#", ["net10.0"], [], [])],
+        };
+        // 15 entries — the old renderer capped at 10 with "... and N more".
+        var entries = Enumerable.Range(1, 15)
+            .Select(i => new EntryPoint(EntryPointKind.HttpEndpoint, $"GET /r{i}", NodeId.ForEntry($"GET /r{i}"))
+            {
+                Provenance = @"C:\a\Endpoints.cs:" + i,
+                Target = i == 1 ? "FooCommand" : null,
+            })
+            .ToImmutableArray();
+        var map = MapBuilder.Build(model, EmptyGraph, entries);
+
+        var snapshot = new AnalysisSnapshot
+        {
+            Model = model, Analysis = new SharedAnalysisContext(),
+            Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(),
+            Report = DefaultReport, Graph = EmptyGraph, Map = map, Entries = entries,
+        };
+        var result = await MapRenderer.RenderAsync(
+            new MapRenderContext(map, snapshot, "markdown", new RenderRequest { Format = "markdown", MaxTokens = 8000 }), default);
+
+        Assert.DoesNotContain("more", result.Content);          // no "... and N more"
+        for (var i = 1; i <= 15; i++)
+            Assert.Contains($"GET /r{i}", result.Content);      // every entry listed
+        Assert.Contains("→ FooCommand", result.Content);        // resolved target shown
+        Assert.Contains("(Endpoints.cs:1)", result.Content);    // short provenance, not absolute path
+    }
 }
