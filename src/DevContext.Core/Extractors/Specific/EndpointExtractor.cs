@@ -154,7 +154,17 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             _ => "<lambda>"
         };
 
-        model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, authAttrs, [], groupPrefix)
+        // G5: for an inline lambda/anonymous handler, capture its own line + body so the graph can anchor
+        // a per-endpoint node on the chosen route's lambda (not the shared registration type).
+        var handlerLine = 0;
+        string? handlerBody = null;
+        if (handlerArg is LambdaExpressionSyntax or AnonymousMethodExpressionSyntax)
+        {
+            handlerLine = handlerArg.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            handlerBody = handlerArg.ToString();
+        }
+
+        model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, authAttrs, [], groupPrefix, handlerLine, handlerBody)
         {
             ExtractorName = "EndpointExtractor",
             SourceFile = filePath,

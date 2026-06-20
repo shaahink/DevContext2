@@ -13,7 +13,7 @@ TOPOLOGY (depends-on)
 ENTRY POINTS
    HTTP (2)
       POST /orders  (Program.cs:15)
-      GET /orders  (Program.cs:9)
+      GET /orders  → GetOrdersQuery  (Program.cs:9)
 
 PACKAGES
    Web/API:  Microsoft.AspNetCore.OpenApi 10.0.0

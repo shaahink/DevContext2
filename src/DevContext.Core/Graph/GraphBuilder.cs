@@ -78,6 +78,15 @@ public sealed class GraphBuilder
             switch (node.Kind)
             {
                 case NodeKind.Member:
+                    // G5: a per-endpoint minimal-API lambda node resolves its target through its own
+                    // Sends edge (like a Type) — "route → Command" when it dispatches exactly one,
+                    // else null. Its synthetic "<lambda> …" title must never surface as the target.
+                    if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+                    {
+                        var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
+                            .Select(s => s.To).Distinct().ToList();
+                        return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
+                    }
                     // "CreateEndpoint.HandleAsync" → "CreateEndpoint" (the handler class).
                     var dot = node.Title.LastIndexOf('.');
                     return dot > 0 ? node.Title[..dot] : node.Title;
@@ -179,7 +188,28 @@ public sealed class GraphBuilder
             {
                 var ownerType = model.Types.Values.FirstOrDefault(t =>
                     string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
-                if (ownerType is not null)
+
+                // G5: an inline minimal-API lambda gets its OWN node carrying that route's body, keyed by
+                // verb+route, so the trace from this route shows this lambda — not the shared registration
+                // type that every Map{Verb} in the file would otherwise collapse onto.
+                if (isLambdaHandler && !string.IsNullOrEmpty(ep.HandlerBody))
+                {
+                    var ownerKey = ownerType?.Id ?? Path.GetFileNameWithoutExtension(ep.SourceFile);
+                    var lambdaId = NodeId.ForMember(ownerKey, $"<lambda> {key}");
+                    g.AddNode(new GraphNode(lambdaId, $"<lambda> {key}", NodeKind.Member)
+                    {
+                        FilePath = ep.SourceFile,
+                        SourceBody = ep.HandlerBody,
+                    });
+                    g.AddEdge(new GraphEdge(id, lambdaId, EdgeKind.Calls)
+                    {
+                        Provenance = $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}",
+                        Resolution = Resolution.Join,
+                    });
+                    AddLambdaOutEdges(g, lambdaId, ep, names);
+                    linked = true;
+                }
+                else if (ownerType is not null)
                 {
                     var ownerNodeId = NodeId.ForType(ownerType.Id);
                     if (g.HasNode(ownerNodeId))
@@ -615,6 +645,43 @@ public sealed class GraphBuilder
     /// Per R4: matches .Send/.SendAsync/.Publish/.PublishAsync where the receiver is a mediator
     /// field/property, with a new TRequest(...) inline arg or a local-variable arg.
     /// Creates Sends edge from the calling type to the request node.</summary>
+    /// <summary>G5: best-effort out-edges for a per-endpoint minimal-API lambda node. Scans the lambda's
+    /// own body for MediatR Send/Publish dispatch (same pattern as <see cref="AddSends"/>) so the trace
+    /// from this route shows ITS send target, anchored on the lambda — not the registration type.</summary>
+    private static void AddLambdaOutEdges(CodeGraphBuilder g, NodeId fromId, EndpointDetection ep, NameResolver names)
+    {
+        if (ep.HandlerBody is not { Length: > 0 } body) return;
+
+        foreach (Match match in Regex.Matches(body,
+            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+            RegexOptions.Compiled))
+        {
+            string? requestName;
+            if (match.Groups[2].Success)
+            {
+                requestName = match.Groups[2].Value;
+            }
+            else
+            {
+                var pos = match.Index;
+                if (pos <= 0) continue;
+                var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)\s*[\(;]");
+                if (newMatches.Count == 0) continue;
+                requestName = newMatches[^1].Groups[1].Value;
+            }
+
+            if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
+            var requestId = NodeId.ForRequest(names.Resolve(requestName));
+            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Request));
+            g.AddEdge(new GraphEdge(fromId, requestId, EdgeKind.Sends)
+            {
+                Provenance = $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}",
+                Resolution = Resolution.Syntactic,
+                Confidence = 0.55f,
+            });
+        }
+    }
+
     private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
     {
         foreach (var type in model.Types.Values)

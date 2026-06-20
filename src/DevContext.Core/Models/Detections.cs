@@ -47,7 +47,9 @@ public sealed record EndpointDetection(
     string HandlerMethod,
     ImmutableArray<string> AuthAttributes,
     ImmutableArray<string> ParameterTypes,
-    string? GroupPrefix = null
+    string? GroupPrefix = null,
+    int HandlerLine = 0,
+    string? HandlerBody = null
 ) : Detection;
 
 /// <summary>Detection for a MediatR handler implementation.</summary>
