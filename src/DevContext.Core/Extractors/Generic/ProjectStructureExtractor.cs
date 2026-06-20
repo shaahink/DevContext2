@@ -1,5 +1,7 @@
 using System.Xml.Linq;
 
+using DevContext.Core.Resolvers;
+
 namespace DevContext.Core.Extractors.Generic;
 
 /// <summary>Parses .csproj files to extract project structure information including target frameworks, references, and packages.</summary>
@@ -33,7 +35,7 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
                 var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
                 var name = Path.GetFileNameWithoutExtension(csprojPath);
                 var tfms = ParseTargetFrameworks(doc);
-                var refs = ParseProjectReferences(doc);
+                var refs = CsprojReader.ParseProjectReferences(doc);
                 var packages = ParsePackageReferences(doc);
 
                 projects.Add(new ProjectInfo(
@@ -56,12 +58,6 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
                ?? doc.Descendants("TargetFrameworks").FirstOrDefault()?.Value;
         return tfm != null ? [tfm] : [];
     }
-
-    private static ImmutableArray<string> ParseProjectReferences(XDocument doc)
-        => doc.Descendants("ProjectReference")
-            .Select(r => r.Attribute("Include")?.Value ?? "")
-            .Where(v => !string.IsNullOrEmpty(v))
-            .ToImmutableArray();
 
     private static ImmutableArray<PackageReferenceInfo> ParsePackageReferences(XDocument doc)
         => doc.Descendants("PackageReference")

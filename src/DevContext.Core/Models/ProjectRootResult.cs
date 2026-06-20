@@ -6,7 +6,9 @@ public sealed record ProjectRootResult(
     string? SolutionFilePath,
     ImmutableArray<string> EntryCandidates,
     ResolutionMethod Method,
-    string? ResolutionNote
+    string? ResolutionNote,
+    ImmutableArray<string> ScopeProjectDirs = default,
+    string? AnchorProjectPath = null
 );
 
 /// <summary>Describes how the project root was resolved from the input path.</summary>

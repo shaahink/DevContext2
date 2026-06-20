@@ -3,8 +3,17 @@ namespace DevContext.Core.Resolvers;
 /// <summary>Resolves the project root directory from a user-provided input path using solution/project file discovery.</summary>
 public sealed class ProjectRootResolver
 {
-    /// <summary>Resolves the project root, finding .sln or .csproj files by walking up and down the directory tree.</summary>
+    /// <summary>Resolves the project root, finding .sln or .csproj files by walking up and down the
+    /// directory tree, then computes the Hybrid scan set (closure for project/subfolder input,
+    /// whole-solution otherwise) via <see cref="ScopeResolver"/>.</summary>
     public static async Task<ProjectRootResult> ResolveAsync(string inputPath, IFileSystem fs, CancellationToken ct = default)
+    {
+        var baseResult = await ResolveBaseAsync(inputPath, fs, ct);
+        var (dirs, anchor) = await ScopeResolver.ResolveAsync(baseResult, fs, ct);
+        return baseResult with { ScopeProjectDirs = dirs, AnchorProjectPath = anchor };
+    }
+
+    private static async Task<ProjectRootResult> ResolveBaseAsync(string inputPath, IFileSystem fs, CancellationToken ct)
     {
         var fullPath = fs.GetFullPath(inputPath);
 
