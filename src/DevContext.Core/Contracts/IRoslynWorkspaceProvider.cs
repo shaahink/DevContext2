@@ -16,7 +16,9 @@ public sealed record ProjectInfo(
     string Language,
     ImmutableArray<string> TargetFrameworks,
     ImmutableArray<string> ProjectReferences,
-    ImmutableArray<PackageReferenceInfo> PackageReferences
+    ImmutableArray<PackageReferenceInfo> PackageReferences,
+    string? OutputType = null,
+    bool IsPackable = false
 );
 
 /// <summary>Information about a NuGet package reference.</summary>

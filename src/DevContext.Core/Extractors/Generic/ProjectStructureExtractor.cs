@@ -40,7 +40,9 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
 
                 projects.Add(new ProjectInfo(
                     name, csprojPath, "C#",
-                    tfms, refs, packages));
+                    tfms, refs, packages,
+                    CsprojReader.ParseOutputType(doc),
+                    CsprojReader.ParseIsPackable(doc)));
             }
             catch (Exception ex)
             {

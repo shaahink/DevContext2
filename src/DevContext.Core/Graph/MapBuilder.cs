@@ -11,6 +11,10 @@ public sealed record MapModel
     public ImmutableArray<PackageGroup> Packages { get; init; } = [];
     public ImmutableArray<string> Aggregates { get; init; } = [];
     public ImmutableArray<string> PipelineBehaviors { get; init; } = [];
+    /// <summary>App vs Library — decides whether the entry-point Map or the public-surface view renders (G3).</summary>
+    public Archetype Archetype { get; init; } = Archetype.App;
+    /// <summary>The capability-grouped public API, when <see cref="Archetype"/> is Library.</summary>
+    public LibrarySurface? Surface { get; init; }
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
@@ -21,6 +25,7 @@ public sealed class MapBuilder
 {
     public static MapModel Build(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
+        var archetype = ArchetypeDetector.Detect(model, entries);
         return new MapModel
         {
             Style = model.DetectedStyle.ToString(),
@@ -31,6 +36,8 @@ public sealed class MapBuilder
             Packages = BuildPackages(model),
             Aggregates = BuildAggregates(model),
             PipelineBehaviors = [],
+            Archetype = archetype,
+            Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
         };
     }
 

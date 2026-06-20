@@ -340,13 +340,15 @@ public sealed class DiscoveryPipeline
                 }
             }
 
-            // No entry chosen — render the Map.
+            // No entry chosen — render the Map (app) or the public-surface view (library, G3).
             if (snapshot.Map is { } mapModel)
             {
                 var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
-                var map = await MapRenderer.RenderAsync(mapCtx, ct);
+                var narrative = mapModel.Archetype == Archetype.Library
+                    ? await LibrarySurfaceRenderer.RenderAsync(mapCtx, ct)
+                    : await MapRenderer.RenderAsync(mapCtx, ct);
                 return NarrativeSections.WithExtraSection(
-                    map, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
+                    narrative, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
                     with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null) };
             }
         }
