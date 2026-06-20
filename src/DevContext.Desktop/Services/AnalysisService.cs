@@ -132,7 +132,7 @@ public class AnalysisService : IAnalysisService
             FocusPoints = resolvedIntent.FocusPoints,
         };
 
-        var pipeline = GetPipeline(rootResult.RootPath);
+        var pipeline = GetPipeline(rootResult.EffectiveRootPath);
 
         var loggerFactory = _serviceProvider!.GetRequiredService<ILoggerFactory>();
 
@@ -148,7 +148,8 @@ public class AnalysisService : IAnalysisService
 
         var ctx = new DiscoveryContext
         {
-            RootPath = rootResult.RootPath,
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = scenario,
             Observer = observer,

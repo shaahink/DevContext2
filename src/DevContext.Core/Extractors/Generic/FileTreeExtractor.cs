@@ -25,22 +25,38 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         var sourceFiles = new List<string>();
         var projectFiles = new List<string>();
 
-        await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.cs", SearchOption.AllDirectories, ct))
+        // Hybrid scope (G1): when a closure scan set was resolved, walk the union of those project
+        // dirs (deduped) — the closure can live outside RootPath (e.g. Domain/Infrastructure under a
+        // sibling folder). Empty scan set ⇒ walk RootPath (whole-solution / folder mode), unchanged.
+        var roots = context.ScopedProjectDirs.IsDefaultOrEmpty
+            ? [context.RootPath]
+            : context.ScopedProjectDirs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        var seenSource = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenProject = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var root in roots)
         {
-            if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
-            sourceFiles.Add(file);
-            context.Cache.RegisterPath(file);
+            await foreach (var file in context.FileSystem.EnumerateFilesAsync(
+                root, "*.cs", SearchOption.AllDirectories, ct))
+            {
+                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (!seenSource.Add(file)) continue;
+                sourceFiles.Add(file);
+                context.Cache.RegisterPath(file);
+            }
+
+            await foreach (var file in context.FileSystem.EnumerateFilesAsync(
+                root, "*.csproj", SearchOption.AllDirectories, ct))
+            {
+                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (!seenProject.Add(file)) continue;
+                projectFiles.Add(file);
+                context.Cache.RegisterPath(file);
+            }
         }
 
-        await foreach (var file in context.FileSystem.EnumerateFilesAsync(
-            context.RootPath, "*.csproj", SearchOption.AllDirectories, ct))
-        {
-            if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
-            projectFiles.Add(file);
-            context.Cache.RegisterPath(file);
-        }
-
+        // Solution files are always discovered from RootPath (the solution dir), independent of scope.
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
             context.RootPath, "*.sln*", SearchOption.AllDirectories, ct))
         {

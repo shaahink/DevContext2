@@ -151,7 +151,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         var ctx = new DiscoveryContext
         {
-            RootPath = rootResult.RootPath,
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = scenario,
             Observer = observer,
