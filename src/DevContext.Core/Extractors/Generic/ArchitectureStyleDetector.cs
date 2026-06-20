@@ -21,11 +21,24 @@ public sealed class ArchitectureStyleDetector
         // Detect aggregate presence from EfEntityDetection
         var aggregateCount = model.Detections
             .OfType<EfEntityDetection>().Count(d => d.IsAggregate);
-        var mediatRHandlerCount = model.Detections
-            .OfType<MediatRHandlerDetection>().Count(h => h.Kind is MediatRKind.Command or MediatRKind.Query);
-        var notificationHandlerCount = model.Detections
-            .OfType<MediatRHandlerDetection>().Count(h => h.Kind == MediatRKind.Notification);
-        var hasMediatR = signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected;
+        // Count MediatR handlers from the implemented interfaces captured in Stage 2, NOT from
+        // MediatRHandlerDetection: this detector runs between Stage 2 and Stage 3, and the MediatR
+        // extractor that emits those detections is a Stage 3 specific extractor — so model.Detections
+        // is still empty here. The interface strings ("IRequestHandler<…>") are already on the types.
+        var mediatRHandlerCount = model.Types.Values.Count(t => t.ImplementedInterfaces.Any(i =>
+            i.StartsWith("IRequestHandler", StringComparison.Ordinal)
+            || i.StartsWith("IStreamRequestHandler", StringComparison.Ordinal)));
+        var notificationHandlerCount = model.Types.Values.Count(t => t.ImplementedInterfaces.Any(i =>
+            i.StartsWith("INotificationHandler", StringComparison.Ordinal)));
+        var totalHandlerCount = mediatRHandlerCount + notificationHandlerCount;
+        // The MediatR architecture *signal* keys off the package reference, which is missed when only a
+        // sub-project of the closure is scoped (e.g. eShop's handlers live in Ordering.API while the
+        // package is referenced from Ordering.Domain). The handler *detections* come straight from the
+        // code, so treat them as first-class evidence of MediatR — otherwise the style falls through to
+        // MinimalApi even though Send→handler is clearly wired (assessment G7).
+        var hasMediatR = (signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
+            || mediatRHandlerCount > 0
+            || notificationHandlerCount > 0;
         var hasEfCore = signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var _);
         var hasAspire = signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) && aspire.Detected;
         var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
@@ -64,7 +77,7 @@ public sealed class ArchitectureStyleDetector
                 if (aggregateCount >= 1) dddEvidence.Add($"{aggregateCount} aggregates");
                 if (notificationHandlerCount >= 1) dddEvidence.Add($"{notificationHandlerCount} domain-event handlers");
                 if (hasDomainCore) dddEvidence.Add("domain-core ref pattern (high fan-in, low fan-out)");
-                dddEvidence.Add($"MediatR with {mediatRHandlerCount} handlers");
+                dddEvidence.Add($"MediatR with {totalHandlerCount} handlers");
 
                 scores[ArchitectureStyle.CleanArchitecture] = (Math.Min(0.5f + dddLayers * 0.1f + aggregateCount * 0.05f, 0.95f),
                     string.Join("; ", dddEvidence));
@@ -75,7 +88,7 @@ public sealed class ArchitectureStyleDetector
         if (hasFastEndpoints)
         {
             var vEvidence = new List<string> { "FastEndpoints detected" };
-            if (hasMediatR) vEvidence.Add($"MediatR with {mediatRHandlerCount} handlers");
+            if (hasMediatR) vEvidence.Add($"MediatR with {totalHandlerCount} handlers");
             scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
                 string.Join("; ", vEvidence));
         }

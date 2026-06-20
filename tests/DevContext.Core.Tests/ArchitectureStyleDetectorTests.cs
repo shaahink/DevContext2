@@ -118,6 +118,45 @@ public sealed class ArchitectureStyleDetectorTests
     }
 
     [Fact]
+    public void MediatR_handlers_in_code_outrank_MinimalApi_without_a_package_signal()
+    {
+        // eShop's Ordering.API scoped alone: the MediatR package signal isn't lit (package lives in a
+        // sibling project), but the handler types are right here. The style must read CleanArchitecture
+        // off those handlers, not fall through to MinimalApi (assessment G7). Detections are NOT used —
+        // the style detector runs before the Stage-3 MediatR extractor — so this proves the type path.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Projects = [Project("Ordering.API")];
+        model.Types.TryAdd("Ordering.API.Application.CreateOrderCommandHandler", new TypeDiscovery
+        {
+            Id = "Ordering.API.Application.CreateOrderCommandHandler",
+            Name = "CreateOrderCommandHandler",
+            Namespace = "Ordering.API.Application.Commands",
+            FilePath = @"C:\repo\src\Ordering.API\Application\Commands\CreateOrderCommandHandler.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            ImplementedInterfaces = ["IRequestHandler<CreateOrderCommand, bool>"],
+        });
+        model.Types.TryAdd("Ordering.API.Application.OrderPaidDomainEventHandler", new TypeDiscovery
+        {
+            Id = "Ordering.API.Application.OrderPaidDomainEventHandler",
+            Name = "OrderPaidDomainEventHandler",
+            Namespace = "Ordering.API.Application.DomainEventHandlers",
+            FilePath = @"C:\repo\src\Ordering.API\Application\DomainEventHandlers\OrderPaidDomainEventHandler.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            ImplementedInterfaces = ["INotificationHandler<OrderPaidDomainEvent>"],
+        });
+
+        var (style, _, via) = ArchitectureStyleDetector.Detect(model);
+
+        Assert.Equal(ArchitectureStyle.CleanArchitecture, style);
+        Assert.Contains("domain-event handlers", via);
+    }
+
+    [Fact]
     public void EShop_shape_is_microservices_not_MinimalApi()
     {
         // Aspire + many projects → Microservices
