@@ -16,7 +16,7 @@ public sealed class TraceQualityTests
     // repo (relative to root) · entry to focus · substrings the trace MUST contain.
     [Theory]
     [InlineData("eval-repos/TodoApi", "POST /todos/", new[] { "TodoDbContext" })]
-    [InlineData("eval-repos/VerticalSlice", "POST /Products", new[] { "CreateEndpoint", "Product" })]
+    [InlineData("eval-repos/VerticalSlice/MinimalClean", "POST /Products", new[] { "CreateEndpoint", "Product" })]
     [InlineData("eval-repos/eShop/src/Ordering.API", "POST /api/orders/",
         new[] { "send", "CreateOrderCommand", "handler", "CreateOrderCommandHandler" })]
     public async Task Trace_bridges_indirection(string repoRel, string entry, string[] expected)

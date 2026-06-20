@@ -51,7 +51,14 @@ public sealed class SolutionScope
     {
         if (model.Solution is { ProjectPaths.Length: > 0 } sln)
         {
-            var inSln = sln.ProjectPaths.Select(Normalize).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // ProjectPaths are written relative to the solution directory (SolutionFileParser); project
+            // FilePaths are absolute (Roslyn). Resolve the relative paths against the solution dir before
+            // comparing — otherwise relative-vs-absolute never matches and the scope silently falls back
+            // to "all discovered projects" (assessment G1, Phase 0).
+            var slnDir = Path.GetDirectoryName(sln.FilePath) ?? "";
+            var inSln = sln.ProjectPaths
+                .Select(rel => Normalize(ToAbsolute(slnDir, rel)))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var scoped = model.Projects
                 .Where(p => inSln.Contains(Normalize(p.FilePath)))
                 .ToImmutableArray();
@@ -60,6 +67,11 @@ public sealed class SolutionScope
         }
         return new SolutionScope(model.Projects, model.Solution?.Name);
     }
+
+    private static string ToAbsolute(string baseDir, string path)
+        => Path.IsPathRooted(path) || baseDir.Length == 0
+            ? path
+            : Path.GetFullPath(Path.Combine(baseDir, path));
 
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
 }
