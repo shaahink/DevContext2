@@ -25,8 +25,6 @@ public sealed class DiscoveryContext
     public required SharedAnalysisContext Analysis { get; init; }
     /// <summary>Logger for diagnostic output.</summary>
     public required ILogger Logger { get; init; }
-    /// <summary>Provider for Roslyn workspace access.</summary>
-    public required IRoslynWorkspaceProvider RoslynWorkspace { get; init; }
     /// <summary>Optional cancellation token for the pipeline run.</summary>
     public CancellationToken CancellationToken { get; init; }
 }

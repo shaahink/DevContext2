@@ -9,7 +9,6 @@ public sealed class DiscoveryContextBuilder
     private Scenario _scenario = ScenarioRegistry.BuiltIn["overview"];
     private IDiscoveryObserver _observer = new NullDiscoveryObserver();
     private ILogger _logger = new NullLogger<DiscoveryContext>();
-    private IRoslynWorkspaceProvider _roslyn = new MockRoslynProvider();
     private string _rootPath = "";
     private readonly List<FeatureSignal> _signals = [];
     private bool _sealSignals;
@@ -35,8 +34,7 @@ public sealed class DiscoveryContextBuilder
             FileSystem = _fs,
             Cache = _cache,
             Analysis = _analysis,
-            Logger = _logger,
-            RoslynWorkspace = _roslyn
+            Logger = _logger
         };
 
         return ctx;

@@ -136,12 +136,6 @@ public class AnalysisService : IAnalysisService
 
         var loggerFactory = _serviceProvider!.GetRequiredService<ILoggerFactory>();
 
-        var roslyn = opts.NoRoslyn || rootResult.SolutionFilePath is null
-            ? (IRoslynWorkspaceProvider)new NullRoslynProvider()
-            : new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
-                rootResult.SolutionFilePath, fs,
-                loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
-
         var collector = new RunReportCollector();
         collector.SetBudget(opts.MaxTokens);
         var observer = new CompositeDiscoveryObserver(new DesktopProgressObserver(progress), collector);
@@ -157,7 +151,6 @@ public class AnalysisService : IAnalysisService
             Cache = cache,
             Analysis = analysis,
             Logger = loggerFactory.CreateLogger("DevContext"),
-            RoslynWorkspace = roslyn,
             CancellationToken = ct,
         };
 

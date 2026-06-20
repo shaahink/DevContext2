@@ -199,7 +199,6 @@ public sealed class RealPatternEndpointTests
             Cache = new FakeAnalysisCache(new FakeFileSystem()),
             Analysis = new SharedAnalysisContext(),
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         }, model);
 
         Assert.False(shouldRun);
@@ -223,7 +222,6 @@ public sealed class RealPatternEndpointTests
             Cache = new FakeAnalysisCache(new FakeFileSystem()),
             Analysis = new SharedAnalysisContext(),
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         }, model);
 
         Assert.True(shouldRun);
@@ -257,7 +255,6 @@ public sealed class RealPatternEndpointTests
             Cache = cache,
             Analysis = new SharedAnalysisContext { AllSourceFiles = allFiles },
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None);

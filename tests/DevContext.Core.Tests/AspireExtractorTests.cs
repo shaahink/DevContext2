@@ -104,7 +104,6 @@ public sealed class AspireExtractorTests
             Cache = new FakeAnalysisCache(new FakeFileSystem()),
             Analysis = new SharedAnalysisContext(),
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider(),
         };
 
         Assert.False(new AspireExtractor().ShouldRun(mockContext, model));

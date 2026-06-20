@@ -32,7 +32,6 @@ public sealed class GoldenTests
             Cache = cache,
             Analysis = analysis,
             Logger = loggerFactory.CreateLogger("Golden"),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var extractors = new List<IDiscoveryExtractor>
@@ -76,7 +75,6 @@ public sealed class GoldenTests
             Cache = cache,
             Analysis = new SharedAnalysisContext(),
             Logger = loggerFactory.CreateLogger("Test"),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var pipeline = new DiscoveryPipeline(

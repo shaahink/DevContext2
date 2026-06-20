@@ -60,7 +60,6 @@ public sealed class FileTreeExtractorTests
             Cache = cache,
             Analysis = analysis,
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
     }
 

@@ -26,7 +26,6 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
             Cache = cache,
             Analysis = analysis,
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var model = new DiscoveryModel();
@@ -65,7 +64,6 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
             Cache = cache,
             Analysis = analysis,
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var model = new DiscoveryModel();
@@ -100,7 +98,6 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
             Cache = new FakeAnalysisCache(fs),
             Analysis = new SharedAnalysisContext(),
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var model = new DiscoveryModel();
@@ -128,7 +125,6 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
             Cache = cache,
             Analysis = new SharedAnalysisContext(),
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var extractor = new SolutionDiscoveryExtractor();

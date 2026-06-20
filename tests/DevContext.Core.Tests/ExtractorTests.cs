@@ -248,7 +248,6 @@ public sealed class ExtractorTests
             Cache = cache,
             Analysis = new SharedAnalysisContext { AllSourceFiles = allFiles },
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         await new EndpointExtractor().ExtractAsync(ctx, model, CancellationToken.None);

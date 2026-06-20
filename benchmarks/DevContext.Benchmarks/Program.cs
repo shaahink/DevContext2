@@ -63,8 +63,7 @@ public class DevContextBenchmarks
             FileSystem = _fs,
             Cache = _cache,
             Analysis = analysis,
-            Logger = loggerFactory.CreateLogger("Benchmark"),
-            RoslynWorkspace = new MockRoslynProvider()
+            Logger = loggerFactory.CreateLogger("Benchmark")
         };
 
         var extractors = new List<IDiscoveryExtractor>
@@ -109,12 +108,6 @@ public class DevContextBenchmarks
         var extractor = new ProjectStructureExtractor();
         await extractor.ExtractAsync(_context, new DiscoveryModel(), CancellationToken.None);
     }
-}
-
-public sealed class MockRoslynProvider : IRoslynWorkspaceProvider
-{
-    public Task<IRoslynWorkspace?> GetWorkspaceAsync(CancellationToken ct)
-        => Task.FromResult<IRoslynWorkspace?>(null);
 }
 
 public sealed class BenchmarkMarkdownRenderer : IContextRenderer

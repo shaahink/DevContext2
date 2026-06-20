@@ -1,11 +1,5 @@
 namespace DevContext.Core.Tests;
 
-public sealed class MockRoslynProvider : IRoslynWorkspaceProvider
-{
-    public Task<IRoslynWorkspace?> GetWorkspaceAsync(CancellationToken ct)
-        => Task.FromResult<IRoslynWorkspace?>(null);
-}
-
 public sealed class TestPruner : IPruner
 {
     private readonly Action<DiscoveryModel> _action;

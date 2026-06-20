@@ -259,7 +259,6 @@ public sealed class EndpointExtractorTests
             Cache = cache,
             Analysis = analysis,
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var extractor = new EndpointExtractor();

@@ -10,16 +10,13 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 {
     private readonly IFileSystem _fs;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly IRoslynWorkspaceProvider _roslynProvider;
 
     public AnalyzeCommand(
         IFileSystem fs,
-        ILoggerFactory loggerFactory,
-        IRoslynWorkspaceProvider roslynProvider)
+        ILoggerFactory loggerFactory)
     {
         _fs = fs;
         _loggerFactory = loggerFactory;
-        _roslynProvider = roslynProvider;
     }
 
     protected override async Task<int> ExecuteAsync(CommandContext context, AnalyzeSettings settings, CancellationToken ct)
@@ -135,7 +132,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             FocusPoints = resolvedIntent.FocusPoints,
         };
         var pipeline = BuildPipeline(cache);
-        var roslyn = BuildRoslynProvider(settings, rootResult);
 
         RenderedContext result = null!;
         AnalysisSnapshot? snapshot = null;
@@ -159,8 +155,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             FileSystem = _fs,
             Cache = cache,
             Analysis = analysis,
-            Logger = _loggerFactory.CreateLogger("DevContext"),
-            RoslynWorkspace = roslyn
+            Logger = _loggerFactory.CreateLogger("DevContext")
         };
 
         await AnsiConsole.Status()
@@ -253,16 +248,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         services.AddSingleton(_loggerFactory.CreateLogger<DiscoveryPipeline>());
         var sp = services.BuildServiceProvider();
         return sp.GetRequiredService<DiscoveryPipeline>();
-    }
-
-    private IRoslynWorkspaceProvider BuildRoslynProvider(AnalyzeSettings settings, ProjectRootResult root)
-    {
-        if (settings.NoRoslyn || root.SolutionFilePath is null)
-            return new NullRoslynProvider();
-
-        return new DevContext.Roslyn.Services.RoslynWorkspaceProvider(
-            root.SolutionFilePath, _fs,
-            _loggerFactory.CreateLogger<DevContext.Roslyn.Services.RoslynWorkspaceProvider>());
     }
 
     private static async Task WriteOutput(AnalyzeSettings settings, RenderedContext result)

@@ -4,7 +4,6 @@ using DevContext.Cli.Commands;
 var services = new ServiceCollection();
 services.AddSingleton<IFileSystem>(_ => new RealFileSystem());
 services.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(b => b.AddSerilog(dispose: true)));
-services.AddSingleton<IRoslynWorkspaceProvider>(_ => new NullRoslynProvider());
 
 var registrar = new TypeRegistrar(services);
 

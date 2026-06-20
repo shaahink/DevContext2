@@ -329,9 +329,6 @@ public sealed class EvalExpectationTests : IDisposable
         var analysis = new SharedAnalysisContext();
         var observer = new NullDiscoveryObserver();
 
-        // Roslyn workspace for deep analysis — use Mock to avoid dependency on Roslyn project
-        IRoslynWorkspaceProvider roslyn = new MockRoslynProvider();
-
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.RootPath,
@@ -341,8 +338,7 @@ public sealed class EvalExpectationTests : IDisposable
             FileSystem = fs,
             Cache = cache,
             Analysis = analysis,
-            Logger = loggerFactory.CreateLogger("Eval"),
-            RoslynWorkspace = roslyn
+            Logger = loggerFactory.CreateLogger("Eval")
         };
 
         var extractors = new List<IDiscoveryExtractor>

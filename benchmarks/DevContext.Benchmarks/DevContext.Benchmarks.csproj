@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DevContext.Core\DevContext.Core.csproj" />
-    <ProjectReference Include="..\..\src\DevContext.Roslyn\DevContext.Roslyn.csproj" />
     <ProjectReference Include="..\..\src\DevContext.Cli\DevContext.Cli.csproj" />
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />

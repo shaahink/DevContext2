@@ -138,7 +138,6 @@ public static class RepoBenchmark
                         UnresolvedFocusPoints = intent.FocusPoints,
                     },
                     Logger = LoggerFactory.Create(_ => { }).CreateLogger("bench"),
-                    RoslynWorkspace = new MockRoslynProvider(),
                 };
 
                 var snap = await pipeline.AnalyzeAsync(ctx);

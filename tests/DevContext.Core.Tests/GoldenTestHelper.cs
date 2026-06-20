@@ -68,8 +68,7 @@ public static partial class GoldenTestHelper
             FileSystem = fs,
             Cache = cache,
             Analysis = analysis,
-            Logger = loggerFactory.CreateLogger("Golden"),
-            RoslynWorkspace = new MockRoslynProvider()
+            Logger = loggerFactory.CreateLogger("Golden")
         };
 
         var extractors = new List<IDiscoveryExtractor>

@@ -34,7 +34,6 @@ public sealed class ProjectStructureExtractorTests
             Cache = cache,
             Analysis = analysis,
             Logger = new NullLogger<DiscoveryContext>(),
-            RoslynWorkspace = new MockRoslynProvider()
         };
 
         var model = new DiscoveryModel();

@@ -77,7 +77,6 @@ public sealed class TraceQualityTests
             Cache = cache,
             Analysis = analysis,
             Logger = loggerFactory.CreateLogger("Trace"),
-            RoslynWorkspace = new MockRoslynProvider(),
         };
 
         var pipeline = BuildPipeline(loggerFactory);
