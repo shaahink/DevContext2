@@ -63,6 +63,37 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Background_workers_become_entry_points()
+    {
+        // DntSite audit: 24 DNTScheduler jobs were detected but never surfaced as entries.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Web.Jobs.BackupDatabaseJob", new TypeDiscovery
+        {
+            Id = "Web.Jobs.BackupDatabaseJob", Name = "BackupDatabaseJob", Namespace = "Web.Jobs",
+            FilePath = @"C:\repo\src\Web\Jobs\BackupDatabaseJob.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Detections.Add(new BackgroundWorkerDetection("DNTScheduler", "BackupDatabaseJob", BackgroundWorkerKind.HostedService)
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Web\SchedulersConfig.cs", LineNumber = 18,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var worker = entries.Single(e => e.Title == "BackupDatabaseJob");
+        Assert.Equal(EntryPointKind.ScheduledJob, worker.Kind); // DNTScheduler → Scheduled
+        Assert.Contains(graph.OutEdges(worker.Node), e =>
+            e.Kind == EdgeKind.Calls && e.To == NodeId.ForType("Web.Jobs.BackupDatabaseJob"));
+    }
+
+    [Fact]
     public void NoiseFilter_keeps_production_Spec_types()
     {
         // Regression: the old name-suffix heuristic dropped DDD *Spec types as "tests".

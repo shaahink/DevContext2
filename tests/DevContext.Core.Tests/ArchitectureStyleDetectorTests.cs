@@ -191,4 +191,24 @@ public sealed class ArchitectureStyleDetectorTests
         Assert.True(style is ArchitectureStyle.Microservices or ArchitectureStyle.CleanArchitecture,
             $"Expected Microservices or CleanArchitecture, got {style} ({via})");
     }
+
+    [Fact]
+    public void Controllers_with_test_project_not_misread_as_NLayer()
+    {
+        // DntSite audit: a lone test project inflated projectCount, tripping the NLayer rule at repo-root.
+        // Non-test count = 2 ⇒ NLayer (EfCore + >2) must not fire; controllers win.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Controllers, 0.9f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.8f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
+        model.Projects =
+        [
+            new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorSsr", @"C:\repo\src\BlazorSsr\BlazorSsr.csproj", "C#", [], [], []),
+            new ProjectInfo("App.Tests", @"C:\repo\tests\App.Tests\App.Tests.csproj", "C#", [], [], []),
+        ];
+
+        var (style, _, via) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.ControllerBased, style);
+    }
 }

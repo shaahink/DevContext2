@@ -42,7 +42,11 @@ public sealed class ArchitectureStyleDetector
         var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
         var hasControllers = signals.TryGetValue(ArchitectureSignals.Keys.Controllers, out var ctrl) && ctrl.Detected;
         var hasFastEndpoints = signals.TryGetValue(ArchitectureSignals.Keys.FastEndpoints, out var fe) && fe.Detected;
-        var projectCount = model.Projects.Length;
+        // Count NON-test projects so the style verdict agrees with the (test-excluded) topology. Counting
+        // raw model.Projects let a single test project trip the NLayer rule (EfCore + >2 projects),
+        // misreading a controller app as NLayer at repo-root (assessment: DntSite audit).
+        var projectClassifier = new Graph.ProjectClassifier(model.Projects);
+        var projectCount = model.Projects.Count(p => !projectClassifier.IsInTestProject(p.FilePath));
 
         // ── Evidence-driven scoring ──────────────────────────────────────────────────
 

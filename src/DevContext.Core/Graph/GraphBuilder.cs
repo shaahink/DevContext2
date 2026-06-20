@@ -30,7 +30,8 @@ public sealed class GraphBuilder
         var names = new NameResolver(model.Types.Values); // short-name → FQN for every join (design-doc Q2)
 
         AddTypeNodes(g, model, scope);                      // worked example
-        var entries = AddHttpEntryPoints(g, model, scope, names);  // worked example
+        var entries = AddHttpEntryPoints(g, model, scope, names)  // worked example
+            .AddRange(AddWorkerEntryPoints(g, model, scope, names)); // hosted services + scheduled jobs (DntSite audit)
         AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -229,6 +230,43 @@ public sealed class GraphBuilder
                 Route = ep.RouteTemplate,
                 Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
             });
+        }
+        return entries.ToImmutable();
+    }
+
+    /// <summary>Hosted services + scheduled jobs (incl. DNTScheduler <c>AddScheduledTask&lt;T&gt;</c>)
+    /// become entry points so the Map's inventory and the Trace can start from them — not just HTTP.
+    /// Anchored on the worker's implementation type; deduped by short type name. (DntSite audit: 24 jobs
+    /// were detected but never surfaced as entries.)</summary>
+    private static ImmutableArray<EntryPoint> AddWorkerEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var bw in model.Detections.OfType<BackgroundWorkerDetection>())
+        {
+            if (!scope.Contains(bw.SourceFile)) continue;
+            var impl = bw.ImplementationType;
+            if (string.IsNullOrEmpty(impl) || impl == "?") continue;
+            var shortName = impl.Contains('.') ? impl[(impl.LastIndexOf('.') + 1)..] : impl;
+            if (!seen.Add(shortName)) continue;
+
+            var kind = bw.Kind == BackgroundWorkerKind.TimedJob
+                || string.Equals(bw.ServiceType, "DNTScheduler", StringComparison.OrdinalIgnoreCase)
+                ? EntryPointKind.ScheduledJob
+                : EntryPointKind.HostedService;
+
+            var id = NodeId.ForEntry($"worker:{shortName}");
+            g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile });
+
+            var typeId = NodeId.ForType(names.Resolve(shortName));
+            if (g.HasNode(typeId))
+                g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
+                {
+                    Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+
+            entries.Add(new EntryPoint(kind, shortName, id) { Provenance = $"{bw.SourceFile}:{bw.LineNumber}" });
         }
         return entries.ToImmutable();
     }
