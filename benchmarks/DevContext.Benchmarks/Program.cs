@@ -14,6 +14,12 @@ using DevContext.Core.Pipeline;
 
 using Microsoft.Extensions.Logging;
 
+if (args.Length > 0 && args[0].Equals("repos", StringComparison.OrdinalIgnoreCase))
+{
+    await DevContext.Benchmarks.RepoBenchmark.RunAsync(args);
+    return;
+}
+
 var summary = BenchmarkRunner.Run<DevContextBenchmarks>();
 
 [MemoryDiagnoser]

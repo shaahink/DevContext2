@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -98,6 +99,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         }
 
         // Pass 1: collect every parsed tree so one compilation can see the whole solution.
+        var swParse = Stopwatch.StartNew();
         var trees = new List<(string Path, SyntaxTree Tree)>();
         await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
         {
@@ -105,10 +107,12 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct))); }
             catch { model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}"); }
         }
+        swParse.Stop();
 
         // Build a best-effort semantic compilation. Source types always bind; external package types
         // may be error types, but intra-solution receiver resolution — the calls a trace follows — works
         // regardless. Any failure degrades cleanly to the syntactic field/DI-map heuristic.
+        var swCompile = Stopwatch.StartNew();
         CSharpCompilation? compilation = null;
         try
         {
@@ -122,8 +126,10 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             model.AddDiagnostic(DiagnosticLevel.Info, Name,
                 $"Semantic compilation unavailable; using syntactic resolution ({ex.GetType().Name}).");
         }
+        swCompile.Stop();
 
         // Pass 2: resolve call edges, preferring the SemanticModel and falling back to syntax.
+        var swBind = Stopwatch.StartNew();
         var semanticEdges = 0;
         foreach (var (filePath, syntaxTree) in trees)
         {
@@ -172,6 +178,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             }
         }
 
+        swBind.Stop();
+
+        var swBfs = Stopwatch.StartNew();
         var adjacency = new Dictionary<string, List<CallEdge>>();
         foreach (var edge in allEdges)
         {
@@ -233,9 +242,12 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
         context.Analysis.CallGraph = new CallGraph(callGraphAdj);
 
+        swBfs.Stop();
         var resolver = compilation is not null ? $"semantic ({semanticEdges} verified)" : "syntactic";
         model.AddDiagnostic(DiagnosticLevel.Info, Name,
-            $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}");
+            $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}; "
+            + $"phases: parse {swParse.ElapsedMilliseconds}ms · compile {swCompile.ElapsedMilliseconds}ms · "
+            + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files)");
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)
