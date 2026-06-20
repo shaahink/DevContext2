@@ -68,7 +68,8 @@ public sealed class TraceQualityTests
 
         var ctx = new DiscoveryContext
         {
-            RootPath = rootResult.RootPath ?? repoPath,
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = intent.Scenario,
             Observer = new NullDiscoveryObserver(),
