@@ -1,76 +1,61 @@
-# Next-session warm start — DevContext output quality
+# Handover — current state
 
-> Purpose: warm a fresh session **cheaply**. Read this first; only open the deep doc
-> (`docs/reports/OUTPUT-QUALITY-ASSESSMENT.md`) when you pick up a specific gap.
-> Branch: `feat/output-quality-graph` (off `develop`). Working tree clean at handover.
+> The warm-start doc. Read this first; deep history is in `docs/archive/`. Iteration/benchmark
+> reports are kept (not archived). Branch of record: **`develop`** (all work below merged in).
 
-## Warm-start facts (don't re-derive)
+## Stack / build / run
 
-- **Stack:** .NET 10 (`global.json` 10.0.300). One engine (`DevContext.Core`) → two binaries:
-  CLI (`src/DevContext.Cli`, scriptable) + WPF/BlazorWebView desktop (`src/DevContext.Desktop`, Windows).
-- **Shell:** Windows PowerShell 5.1 (`powershell.exe`; no `pwsh`).
-- **Build/test/run:**
-  ```
-  dotnet build DevContext.slnx                 # analyzer warnings = errors
-  dotnet test tests/DevContext.Core.Tests      # ~255 pass / 2 skip
-  dotnet test tests/DevContext.Desktop.Tests   # 64 pass
-  powershell -File .claude/skills/run-devcontext/smoke.ps1   # CLI smoke (Map/Trace/JSON)
-  ```
-- **Gotchas (bite every time):** pass **absolute** paths to the CLI (`RepoUrl.Parse` treats `a/b` as a
-  GitHub repo); **rebuild `src/DevContext.Cli`** after a Core edit (it has its own Core.dll copy);
-  `$env:UPDATE_GOLDENS=1; dotnet test` regenerates goldens.
-- **Two output artifacts:** **Map** (no focus → architecture/topology/entries) and **Trace** (`--focus`
-  → call stack down the wiring). North star: `docs/IDEAL-OUTPUT-TARGET.md`.
+- .NET 10 (`global.json`). One engine (`DevContext.Core`) → CLI (`src/DevContext.Cli`) + WPF/Blazor
+  desktop (`src/DevContext.Desktop`, Windows). Shell: Windows PowerShell 5.1.
+- Build: `dotnet build DevContext.slnx` (analyzer warnings = errors).
+- Test: `dotnet test tests/DevContext.Core.Tests` (**269 pass / 2 skip**) · `tests/DevContext.Desktop.Tests` (**64**).
+- Benchmark: `dotnet run -c Debug --project benchmarks/DevContext.Benchmarks -- repos [RepoName…]` →
+  real pipeline over the eval repos (Map + Trace), median of 3; publishes `benchmarks/results/`.
+- Gotchas: pass **absolute** paths to the CLI; rebuild `DevContext.Cli` after a Core edit; PowerShell
+  redirects write UTF‑16 (decode or read via tool); `$env:UPDATE_GOLDENS=1; dotnet test` regenerates goldens.
 
-## Done this session (committed + pushed)
+## What's done (merged to develop)
 
-| commit | what |
-|---|---|
-| `a21d5e9` | **G1 part:** parse `.slnx` solutions (`SolutionFileParser`), prefer root solution. eShop/AutoMapper/VerticalSlice (`.slnx`-only) now resolve real solution/style/topology when pointed at the **root**. |
-| `3d8544c` | **G7:** style detector reads MediatR from handler *types* (Stage-2 interfaces), not the package signal — eShop `Ordering.API` alone now reads CleanArchitecture, not MinimalApi. |
-| `4908228` | **G8:** Map/Trace stats line is graph-shaped (`nodes · edges · entries · depth`), not `0 types kept of 0`. |
-| (skill) | `.claude/skills/run-devcontext/` — verified CLI smoke driver + desktop launch helper. **`.claude/` is gitignored** → uncommitted; `git add -f` or add `!.claude/skills/` to `.gitignore` to share. |
+**Output quality (the G/B gap list G1–G9 + B1–B3 is cleared):**
+- **G1 — multi-project / Hybrid scope.** Project/subfolder input → anchor + transitive `ProjectReference`
+  closure; `.sln`/repo-root → whole solution. `.slnx` parsing, `SolutionScope.FromModel` fix,
+  `ScopeResolver`, `FileTreeExtractor` union walk, large-solution guardrail.
+- **G2** entry `→ target`, **G4/G6** trace dedup + topology (test projects excluded), **G7** MediatR
+  style/STACK from handler types, **G8** graph-shaped stats, **G9** package cap.
+- **G3 — library archetype.** `ArchetypeDetector` (App/Library) + `LibrarySurfaceBuilder` +
+  `LibrarySurfaceRenderer` → AutoMapper renders a PUBLIC SURFACE.
+- **G5 — minimal-API per-endpoint.** Per-route lambda nodes; Map shows `route → Command` per route.
+- **Audit fixes (DntSite):** non-test project count for style (ControllerBased, not NLayer);
+  `AddScheduledTask<T>`/hosted services promoted to `ScheduledJob`/HostedService entry points.
 
-Earlier on the branch: G2 (entry `→ target`, de-truncate), G4 (dup raises), G6 (topology), B1 (clone cache).
+**Performance (profile-first; `benchmarks/results/SUMMARY.md`):**
+- Macro benchmark runner + `CallGraphExtractor` phase timers.
+- **P2** parallel semantic bind · **P1** focus-scoped binding (+ seam-landing seed so Send→Handler
+  chains aren't truncated) · **IndirectWiringDetector** O(n²)→O(depth)+parallel.
+- DntSite Trace **53.9 s → ~5–10 s**; CallGraph **bind 84,306 ms → ~1,800 ms (−98%)**. No regressions.
 
-## Remaining gaps + the way to go
+**UX:** **repo-relative source paths** in traces (`src/…/File.cs:line`, not absolute machine paths).
 
-Ordered by what I'd do next. "Plan it" = write a short `docs/plans/*.md` and get the user's nod before
-coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a checkpoint.
+## Branches
 
-> ~~Desktop stale-UI~~ — **investigated and dismissed.** A launch screenshot showed the old controls,
-> but the built `DevContext.Desktop.dll` contains the new UI (`entry-combo` present; old
-> `SYMBOL FOCUS`/`MAX TOKENS` absent) and a clean rebuild changes nothing. The screenshot was a
-> *different* instance (it read **v2.0.0**; this branch is **v1.0.5-preview**) — i.e. a pre-existing
-> installed/running DevContext, not the freshly-built debug app. No branch bug. (Harness caveat:
-> `desktop-shot.ps1` can foreground/capture a pre-existing instance; close other instances first.)
+- `develop` — integration (all the above).
+- `feat/polish-batch-and-g1-phase0` — G1/G3/G5 + audit fixes (ancestor of perf).
+- `perf/profile-and-optimize` — perf work + relative paths (fast-forward of develop).
 
-1. **G1-proper — multi-project/closure rescope · DONE** (`feat/polish-batch-and-g1-phase0`:
-   P1 `06df05a` · P2 `4c87981` · P3 `1a67291` · P4 `9fb7efb`; policy = **Hybrid (C)**). Project/subfolder
-   input now analyses the anchor + transitive `ProjectReference` closure; `.sln`/root input stays
-   whole-solution. Verified: `analyze eShop/src/Ordering.API` → `MAP eShop (7-project closure)`,
-   CleanArchitecture, cross-project topology; trace crosses into `IntegrationEventLogEF`. Plan:
-   `docs/plans/PLAN-G1-multi-project-scope.md`.
+## What's left (deferred, none blocking)
 
-2. **G3 — library archetype · High · sizable.** AutoMapper renders as `NLayer` with `0 entries` and no
-   public surface. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.**
+1. **P5 — Stage-2 parallelism** (`SyntaxStructureExtractor`/`DiRegistrationExtractor`): now the wall
+   floor; deferred — needs thread-safety on partial-type merges + signal registration. Biggest lever.
+2. **P3 — cross-run/incremental cache** (parsed trees by path+mtime / reusable compilation): biggest
+   interactive/desktop win.
+3. **P4 — trim metadata references**; **P6 — remove the unused Roslyn workspace provider**
+   (`GetWorkspaceAsync` is never called).
+4. **Benchmark variance:** total-wall swings with machine load — prefer the per-phase (bind/parse)
+   deltas, which are stable; consider pinning iterations/affinity.
+5. **Relative paths in the Map** entry list (currently filename-only) — optional consistency follow-up.
 
-3. **Polish batch · DONE (`ce64a0f` on `feat/polish-batch-and-g1-phase0`).**
-   - **G7 residual — done:** `ArchitectureStyleDetector.HasMediatREvidence` is the single source of
-     truth (package signal OR handler interfaces); the STACK line uses it, so a scoped sub-project no
-     longer disagrees with STYLE.
-   - **G9 — done:** PACKAGES capped at 8/group with `… (N total)` overflow.
-   - **FastEndpoints `<dynamic>` — triaged, no change:** `GraphBuilder` already nulls the target and
-     `OutputSelfCheck` guards the literal. Real per-endpoint resolution stays with G5.
+## Key references
 
-4. **G5 — minimal-API per-endpoint precision · Medium · hard.** All minimal-API endpoints in one
-   registration method share the owner Type node, so trace body/`→ target` don't match the specific
-   route. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`** (second half). Defer.
-
-## Suggested next-session sequence
-
-**Polish batch (#3), G1 (Phase 0 + Phases 1–4), G3, and G5 are all LANDED** on
-`feat/polish-batch-and-g1-phase0` (pushed; gate green — build 0-warn · Core 267 pass / 2 skip ·
-Desktop 64 pass). The output-quality gap list (G1–G9 + B1) is now cleared. Remaining ideas are
-follow-ups: G5's downstream call-body salience (partial by design) and FastEndpoints `<dynamic>`
-`Configure()` routes.
+- North star: `docs/IDEAL-OUTPUT-TARGET.md`. Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md`.
+- DntSite evaluation: `eval-results/DntSite/AUDIT.md`. Perf: `benchmarks/results/SUMMARY.md`.
+- Plans for the landed work live in `docs/archive/` (`PLAN-G1-*`, `PLAN-G3-*`, etc.).
