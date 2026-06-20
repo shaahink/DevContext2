@@ -199,7 +199,19 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             var bound = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var frontier = new HashSet<string>(seedFiles, StringComparer.OrdinalIgnoreCase);
 
-            for (var round = 0; round <= maxDepth && frontier.Count > 0; round++)
+            // The trace doesn't only follow CALL edges — it crosses Send→Handler / scheduled-job seams.
+            // A focused trace from an endpoint reaches its MediatR handler (and everything the handler
+            // calls — e.g. eShop Order → IntegrationEventLogEF) via a Send seam, not a call. So seed the
+            // closure with those seam-landing type files too; otherwise their call edges are never bound
+            // and the trace silently truncates. Bounded (handlers/jobs are a small fraction of files).
+            foreach (var f in SeamLandingFiles(model, typeToFile)) frontier.Add(f);
+
+            // Bind the FULL transitive closure of files reachable from the focus (not just maxDepth call
+            // hops): the trace can walk to its own depth (≤10) and includes deep cross-project seams, so
+            // binding too shallow silently drops them (e.g. eShop Order → IntegrationEventLogEF). The
+            // closure from one entry is small even in a large repo; the cap only guards pathological fan-out.
+            const int MaxRounds = 16;
+            for (var round = 0; round < MaxRounds && frontier.Count > 0; round++)
             {
                 var toBind = frontier.Where(f => !bound.Contains(f) && treeByPath.ContainsKey(f)).ToList();
                 foreach (var f in toBind) bound.Add(f);
@@ -346,6 +358,22 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             map.TryAdd(kv.Value.Name, kv.Value.FilePath);
         }
         return map;
+    }
+
+    /// <summary>Files of types a trace can jump to across a non-call seam (MediatR handlers, scheduled
+    /// jobs / hosted services). Seeding the focus closure with these ensures their call edges are bound,
+    /// so a send→handler→… chain (incl. cross-project) isn't silently truncated by focus-scoping.</summary>
+    private static HashSet<string> SeamLandingFiles(DiscoveryModel model, Dictionary<string, string> typeToFile)
+    {
+        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Add(string? typeName)
+        {
+            if (!string.IsNullOrEmpty(typeName) && typeToFile.TryGetValue(StripGenerics(typeName), out var f))
+                files.Add(f);
+        }
+        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>()) Add(h.HandlerType);
+        foreach (var w in model.Detections.OfType<BackgroundWorkerDetection>()) Add(w.ImplementationType);
+        return files;
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)
