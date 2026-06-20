@@ -24,18 +24,26 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        foreach (var filePath in context.Analysis.AllSourceFiles)
-        {
-            ct.ThrowIfCancellationRequested();
+        // Two-phase, output-preserving parallelism (P5): parse + build per-file detection lists in
+        // parallel, then commit to model.Detections single-threaded in source-file order. model.Detections
+        // is a ConcurrentBag (add is thread-safe), but its ORDER feeds CallGraphExtractor's diMap
+        // (last-write-wins by key), so committing serially in source order keeps the output identical.
+        var files = context.Analysis.AllSourceFiles;
+        var perFile = new List<DiRegistrationDetection>[files.Count];
 
-            // Use shared syntax node cache — populated first by SyntaxStructureExtractor
+        var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
+        await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
+        {
+            var filePath = files[i];
+
+            // Use shared syntax node cache — populated first by SyntaxStructureExtractor (thread-safe Lazy).
             FileSyntaxNodes nodes;
             try
             {
-                var tree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                var tree = await context.Cache.GetSyntaxTreeAsync(filePath, innerCt);
                 nodes = await context.Analysis.GetOrParseSyntaxNodesAsync(filePath, async () =>
                 {
-                    var root = await tree.GetRootAsync(ct).ConfigureAwait(false);
+                    var root = await tree.GetRootAsync(innerCt).ConfigureAwait(false);
                     return new FileSyntaxNodes(
                         [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()],
                         [.. root.DescendantNodes().OfType<InvocationExpressionSyntax>()]
@@ -45,122 +53,139 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
             catch (Exception ex)
             {
                 context.Logger.LogWarning(ex, "Failed to parse syntax for DI registrations: {Path}", filePath);
-                continue;
+                return;
             }
 
-            foreach (var invocation in nodes.Invocations)
+            perFile[i] = BuildDetections(filePath, nodes);
+        });
+
+        // Phase 2: commit in source-file order (identical ordering to the prior serial loop).
+        foreach (var list in perFile)
+        {
+            if (list is null) continue;
+            foreach (var detection in list)
+                model.Detections.Add(detection);
+        }
+    }
+
+    private List<DiRegistrationDetection> BuildDetections(string filePath, FileSyntaxNodes nodes)
+    {
+        var detections = new List<DiRegistrationDetection>();
+
+        foreach (var invocation in nodes.Invocations)
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+                continue;
+
+            var methodName = memberAccess.Name.Identifier.ValueText;
+            if (!IsServicesChain(memberAccess)) continue;
+
+            var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+            if (LifetimeMethods.Contains(methodName))
             {
-                if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
-                    continue;
-
-                var methodName = memberAccess.Name.Identifier.ValueText;
-                if (!IsServicesChain(memberAccess)) continue;
-
-                var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
-                if (LifetimeMethods.Contains(methodName))
+                var lifetime = methodName.ToLowerInvariant() switch
                 {
-                    var lifetime = methodName.ToLowerInvariant() switch
-                    {
-                        "addsingleton" => "Singleton",
-                        "addscoped" => "Scoped",
-                        "addtransient" => "Transient",
-                        _ => "Unknown",
-                    };
+                    "addsingleton" => "Singleton",
+                    "addscoped" => "Scoped",
+                    "addtransient" => "Transient",
+                    _ => "Unknown",
+                };
 
-                    var args = invocation.ArgumentList.Arguments;
-                    string serviceType;
-                    string implementationType;
-                    DiRegistrationShape shape = DiRegistrationShape.DirectBinding;
-                    string? factorySummary = null;
+                var args = invocation.ArgumentList.Arguments;
+                string serviceType;
+                string implementationType;
+                DiRegistrationShape shape = DiRegistrationShape.DirectBinding;
+                string? factorySummary = null;
 
-                    if (args.Count >= 2)
-                    {
-                        serviceType = args[0].Expression?.ToString() ?? "?";
-                        implementationType = args[1].Expression?.ToString() ?? "?";
-                        (shape, factorySummary) = ClassifyShape(args[1].Expression);
-                    }
-                    else if (args.Count == 1)
-                    {
-                        serviceType = args[0].Expression?.ToString() ?? "?";
-                        implementationType = serviceType;
-                        (shape, factorySummary) = ClassifyShape(args[0].Expression);
-                    }
-                    else if (memberAccess.Name is GenericNameSyntax genericName)
-                    {
-                        var typeArgs = genericName.TypeArgumentList.Arguments;
-                        serviceType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
-                        implementationType = typeArgs.Count >= 2 ? typeArgs[1].ToString() : serviceType;
-                        shape = typeArgs.Count >= 2 ? DiRegistrationShape.DirectBinding : DiRegistrationShape.SelfRegistration;
-                    }
-                    else
-                    {
-                        serviceType = "?";
-                        implementationType = "?";
-                    }
-
-                    var extensions = ExtractExtensionMethods(invocation);
-
-                    model.Detections.Add(new DiRegistrationDetection(
-                        ServiceType: serviceType,
-                        ImplementationType: implementationType,
-                        Lifetime: lifetime,
-                        ExtensionsUsed: extensions,
-                        Shape: shape,
-                        FactorySummary: factorySummary)
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                    });
-                }
-                else if (methodName.StartsWith("Add") && methodName.Length > 3)
+                if (args.Count >= 2)
                 {
-                    var args = invocation.ArgumentList.Arguments;
-                    var argTypes = args
-                        .Select(a => a.Expression?.ToString() ?? "?")
-                        .ToImmutableArray();
-
-                    // For generic extensions like AddHostedService<T>, extract T from type arguments
-                    var implType = argTypes.Length > 0 ? argTypes[0] : "?";
-                    if (implType == "?" && invocation.Expression is MemberAccessExpressionSyntax ma
-                        && ma.Name is GenericNameSyntax genericName)
-                    {
-                        var typeArgs = genericName.TypeArgumentList.Arguments;
-                        implType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
-                    }
-
-                    model.Detections.Add(new DiRegistrationDetection(
-                        ServiceType: methodName,
-                        ImplementationType: implType,
-                        Lifetime: "Extension",
-                        ExtensionsUsed: [methodName])
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                        Confidence = 0.7f,
-                    });
+                    serviceType = args[0].Expression?.ToString() ?? "?";
+                    implementationType = args[1].Expression?.ToString() ?? "?";
+                    (shape, factorySummary) = ClassifyShape(args[1].Expression);
                 }
-                else if (methodName.StartsWith("Auto") || methodName.StartsWith("Scan"))
+                else if (args.Count == 1)
                 {
-                    // Bulk auto-registration patterns: AutoInjectAllServices, Scan, RegisterAssemblyTypes, etc.
-                    model.Detections.Add(new DiRegistrationDetection(
-                        ServiceType: methodName,
-                        ImplementationType: "*",
-                        Lifetime: "Bulk",
-                        ExtensionsUsed: [methodName],
-                        Shape: DiRegistrationShape.InlineFactory,
-                        FactorySummary: "[bulk auto-registration]")
-                    {
-                        ExtractorName = Name,
-                        SourceFile = filePath,
-                        LineNumber = lineNumber,
-                        Confidence = 0.6f,
-                    });
+                    serviceType = args[0].Expression?.ToString() ?? "?";
+                    implementationType = serviceType;
+                    (shape, factorySummary) = ClassifyShape(args[0].Expression);
                 }
+                else if (memberAccess.Name is GenericNameSyntax genericName)
+                {
+                    var typeArgs = genericName.TypeArgumentList.Arguments;
+                    serviceType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
+                    implementationType = typeArgs.Count >= 2 ? typeArgs[1].ToString() : serviceType;
+                    shape = typeArgs.Count >= 2 ? DiRegistrationShape.DirectBinding : DiRegistrationShape.SelfRegistration;
+                }
+                else
+                {
+                    serviceType = "?";
+                    implementationType = "?";
+                }
+
+                var extensions = ExtractExtensionMethods(invocation);
+
+                detections.Add(new DiRegistrationDetection(
+                    ServiceType: serviceType,
+                    ImplementationType: implementationType,
+                    Lifetime: lifetime,
+                    ExtensionsUsed: extensions,
+                    Shape: shape,
+                    FactorySummary: factorySummary)
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
+            else if (methodName.StartsWith("Add") && methodName.Length > 3)
+            {
+                var args = invocation.ArgumentList.Arguments;
+                var argTypes = args
+                    .Select(a => a.Expression?.ToString() ?? "?")
+                    .ToImmutableArray();
+
+                // For generic extensions like AddHostedService<T>, extract T from type arguments
+                var implType = argTypes.Length > 0 ? argTypes[0] : "?";
+                if (implType == "?" && invocation.Expression is MemberAccessExpressionSyntax ma
+                    && ma.Name is GenericNameSyntax genericName)
+                {
+                    var typeArgs = genericName.TypeArgumentList.Arguments;
+                    implType = typeArgs.Count >= 1 ? typeArgs[0].ToString() : "?";
+                }
+
+                detections.Add(new DiRegistrationDetection(
+                    ServiceType: methodName,
+                    ImplementationType: implType,
+                    Lifetime: "Extension",
+                    ExtensionsUsed: [methodName])
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                    Confidence = 0.7f,
+                });
+            }
+            else if (methodName.StartsWith("Auto") || methodName.StartsWith("Scan"))
+            {
+                // Bulk auto-registration patterns: AutoInjectAllServices, Scan, RegisterAssemblyTypes, etc.
+                detections.Add(new DiRegistrationDetection(
+                    ServiceType: methodName,
+                    ImplementationType: "*",
+                    Lifetime: "Bulk",
+                    ExtensionsUsed: [methodName],
+                    Shape: DiRegistrationShape.InlineFactory,
+                    FactorySummary: "[bulk auto-registration]")
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                    Confidence = 0.6f,
+                });
             }
         }
+
+        return detections;
     }
 
     private static bool IsServicesChain(MemberAccessExpressionSyntax memberAccess)

@@ -24,9 +24,9 @@ public sealed class TypeDiscovery
     /// <summary>Properties declared in this type.</summary>
     public ImmutableArray<PropertySignature> Properties { get; set; } = [];
     /// <summary>Base types this type extends.</summary>
-    public ImmutableArray<string> BaseTypes { get; init; } = [];
+    public ImmutableArray<string> BaseTypes { get; set; } = [];
     /// <summary>Interfaces implemented by this type.</summary>
-    public ImmutableArray<string> ImplementedInterfaces { get; init; } = [];
+    public ImmutableArray<string> ImplementedInterfaces { get; set; } = [];
     /// <summary>Attributes applied to this type.</summary>
     public ImmutableArray<string> Attributes { get; init; } = [];
     /// <summary>Full source body text of the type declaration (populated by SourceBodyExtractor).</summary>

@@ -28,37 +28,56 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        await foreach (var filePath in ExtractorHelpers.EnumerateSourceFilesAsync(context, ct))
+        // Two-phase, output-preserving parallelism (P5): parse + build per-file TypeDiscovery lists in
+        // parallel (the parse/walk is the Stage-2 floor), then COMMIT to the shared model single-threaded
+        // in deterministic file order. The shared collections are concurrent, but the partial-type merge
+        // (read-modify-write) and the member/signal ORDER are not — so committing serially in source
+        // order makes the output byte-identical to the previous serial loop while the heavy work fans out.
+        var files = context.Analysis.AllSourceFiles;
+        var perFile = new List<TypeDiscovery>[files.Count];
+
+        var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
+        await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
         {
-            ct.ThrowIfCancellationRequested();
+            var filePath = files[i];
 
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, innerCt);
             }
             catch (Exception ex)
             {
                 context.Logger.LogWarning(ex, "Failed to parse syntax tree: {Path}", filePath);
                 model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse syntax tree: {filePath}");
-                continue;
+                return;
             }
 
-            // Use shared syntax node cache — first extractor to access a file populates it
+            // Use shared syntax node cache — first extractor to access a file populates it (thread-safe Lazy).
             var nodes = await context.Analysis.GetOrParseSyntaxNodesAsync(filePath, async () =>
             {
-                var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+                var root = await syntaxTree.GetRootAsync(innerCt).ConfigureAwait(false);
                 return new FileSyntaxNodes(
                     [.. root.DescendantNodes().OfType<TypeDeclarationSyntax>()],
                     [.. root.DescendantNodes().OfType<InvocationExpressionSyntax>()]
                 );
             });
 
+            var list = new List<TypeDiscovery>(nodes.TypeDeclarations.Length);
             foreach (var typeDecl in nodes.TypeDeclarations)
             {
                 var typeDiscovery = CreateTypeDiscovery(typeDecl, filePath);
-                if (typeDiscovery == null) continue;
+                if (typeDiscovery != null) list.Add(typeDiscovery);
+            }
+            perFile[i] = list;
+        });
 
+        // Phase 2: commit in source-file order (identical ordering to the prior serial loop).
+        foreach (var list in perFile)
+        {
+            if (list is null) continue;
+            foreach (var typeDiscovery in list)
+            {
                 if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery))
                 {
                     // Merge partial class fields and methods
@@ -324,21 +343,14 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         existing.Methods = existing.Methods.AddRange(other.Methods);
         existing.Properties = existing.Properties.AddRange(other.Properties);
 
-        var mergedBaseTypes = existing.BaseTypes
+        existing.BaseTypes = existing.BaseTypes
             .Union(other.BaseTypes)
             .Distinct()
             .ToImmutableArray();
-        // Can't reassign init-only property directly — use reflection as workaround
-        var baseTypeProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.BaseTypes));
-        if (baseTypeProp?.SetMethod != null)
-            baseTypeProp.SetValue(existing, mergedBaseTypes);
 
-        var mergedInterfaces = existing.ImplementedInterfaces
+        existing.ImplementedInterfaces = existing.ImplementedInterfaces
             .Union(other.ImplementedInterfaces)
             .Distinct()
             .ToImmutableArray();
-        var ifaceProp = typeof(TypeDiscovery).GetProperty(nameof(TypeDiscovery.ImplementedInterfaces));
-        if (ifaceProp?.SetMethod != null)
-            ifaceProp.SetValue(existing, mergedInterfaces);
     }
 }
