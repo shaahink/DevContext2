@@ -205,7 +205,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         if (snapshot?.Report is { } report)
         {
-            var summary = RunReportFormatter.Summary(report, result.RenderFunnel);
+            var summary = RunReportFormatter.Summary(report, result.RenderFunnel, result.GraphSummary, result.EstimatedTokens);
             if (!settings.DryRun)
                 AnsiConsole.MarkupLine($"[dim]{summary}[/]");
         }

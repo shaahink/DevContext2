@@ -23,5 +23,8 @@ public sealed record CacheStats(int TextHits, int TextMisses, int SyntaxTreeHits
 public sealed record CorpusStats(int TotalFiles, int CSharpFiles, int Projects);
 public sealed record TokenFunnel(int TypesDiscovered, int TypesHardExcluded, int TypesIncluded,
     int RawEstimatedTokens, int RenderedEstimatedTokens, int Budget);
+/// <summary>Graph-shaped stats for the Map/Trace narrative, where the type-funnel ("N types kept")
+/// is meaningless. <see cref="TraceDepth"/> is null for a Map (whole-codebase, no walk).</summary>
+public sealed record GraphSummary(int Nodes, int Edges, int Entries, int? TraceDepth);
 public sealed record ParallelismStats(TimeSpan Stage2Wall, TimeSpan Stage2CpuSum,
     TimeSpan Stage3Wall, TimeSpan Stage3CpuSum);

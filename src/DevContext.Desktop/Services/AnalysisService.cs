@@ -226,6 +226,7 @@ public class AnalysisService : IAnalysisService
             SectionFragments = rendered.SectionFragments,
             HtmlSectionFragments = htmlFragments,
             RenderFunnel = rendered.RenderFunnel,
+            GraphSummary = rendered.GraphSummary,
         };
     }
 
@@ -333,6 +334,7 @@ public record RenderResult
     public IReadOnlyDictionary<string, string>? SectionFragments { get; init; }
     public IReadOnlyDictionary<string, string>? HtmlSectionFragments { get; init; }
     public TokenFunnel? RenderFunnel { get; init; }
+    public GraphSummary? GraphSummary { get; init; }
 }
 
 public record AnalysisOptions

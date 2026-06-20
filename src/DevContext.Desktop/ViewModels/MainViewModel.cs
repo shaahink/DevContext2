@@ -515,7 +515,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _output.StatsHtml = _snapshot?.Report is { } r
                 ? RunReportHtmlRenderer.Render(r) : "";
             _output.StatsText = _snapshot?.Report is { } report
-                ? RunReportFormatter.Summary(report, renderResult.RenderFunnel)
+                ? RunReportFormatter.Summary(report, renderResult.RenderFunnel, renderResult.GraphSummary, renderResult.EstimatedTokens)
                 : "";
 
             OnPropertyChanged(string.Empty);

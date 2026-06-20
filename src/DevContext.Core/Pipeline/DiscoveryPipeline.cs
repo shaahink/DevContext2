@@ -320,7 +320,8 @@ public sealed class DiscoveryPipeline
                     var traceCtx = NarrativeSections.ToRenderedContext(
                         TraceRenderer.RenderSections(trace, request.Detail));
                     return NarrativeSections.WithExtraSection(
-                        traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request));
+                        traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
+                        with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root)) };
                 }
             }
 
@@ -330,7 +331,8 @@ public sealed class DiscoveryPipeline
                 var mapCtx = new MapRenderContext(mapModel, snapshot, format, request);
                 var map = await MapRenderer.RenderAsync(mapCtx, ct);
                 return NarrativeSections.WithExtraSection(
-                    map, "Diagnostics", GraphDiagnosticsTail(snapshot, request));
+                    map, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
+                    with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null) };
             }
         }
 
@@ -370,6 +372,15 @@ public sealed class DiscoveryPipeline
         };
 
         return rendered;
+    }
+
+    /// <summary>Deepest hop reached in a trace tree (for the narrative stats line).</summary>
+    private static int MaxTraceDepth(Graph.TraceStep step)
+    {
+        var max = step.Depth;
+        foreach (var child in step.Children)
+            max = Math.Max(max, MaxTraceDepth(child));
+        return max;
     }
 
     /// <summary>Resolves a free-text focus (a type or handler name) to a graph node so a Trace can start

@@ -54,6 +54,8 @@ public sealed record RenderedContext(
     public IReadOnlyDictionary<string, string>? SectionFragments { get; init; }
     /// <summary>Token funnel computed during render from the plan and output. Null on legacy paths.</summary>
     public TokenFunnel? RenderFunnel { get; init; }
+    /// <summary>Graph-shaped stats for the Map/Trace narrative (nodes/edges/entries/depth). Null on catalog paths.</summary>
+    public GraphSummary? GraphSummary { get; init; }
 }
 
 /// <summary>Renders a discovery model into a specific output format (e.g. markdown, JSON).</summary>
