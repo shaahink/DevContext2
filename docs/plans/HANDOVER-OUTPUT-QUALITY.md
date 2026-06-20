@@ -19,7 +19,9 @@ model feed both). Done in small, committed checkpoints.
 | `6845d29` | entry UX | ConfigPanel `<datalist>` → custom searchable combobox (browse/filter/clear), shows `route → Target`, commits `VM.Focus` only on pick/Enter (no re-analyze per keystroke). |
 | `dcb5439` | **B1** | GitHub clone no longer deleted after each run (that defeated `GitCloneService`'s 24h cache → re-clone on every option change). Now reused for the session, cleaned on Dispose when cleanup=="auto". Label → "Auto-clean on exit". |
 | `f7f0fd7` | **G4+G6** | Trace dedups followable edges by `(target, kind)` (twin-node double-counted Raises) + `Distinct` summaries. Topology reduces `..\X.csproj` refs to names (also un-breaks the name-based scope filter) and drops test/benchmark projects via `ProjectClassifier`. |
-| `a21d5e9` | **G1 (part) + G7** | Parse `.slnx` solutions (new `SolutionFileParser`, used by `SolutionDiscoveryExtractor` + `RoslynWorkspaceProvider`; resolver globs `*.slnx`). Four eval repos are `.slnx`-only and previously resolved to an EMPTY solution (name `""`, 0 projects). Extractor now prefers the **root** solution over nested ones. Verified: eShop root → `eShop`/24 projects, `CleanArchitecture`+MediatR lit, constellation topology (was empty/`MinimalApi`/no-MediatR). **Root-pointing** now correct; **subfolder** pointing still analyses only that closure (rescope = remaining G1). |
+| `a21d5e9` | **G1 (part)** | Parse `.slnx` solutions (new `SolutionFileParser`, used by `SolutionDiscoveryExtractor` + `RoslynWorkspaceProvider`; resolver globs `*.slnx`). Four eval repos are `.slnx`-only and previously resolved to an EMPTY solution (name `""`, 0 projects). Extractor now prefers the **root** solution over nested ones. Verified: eShop root → `eShop`/24 projects, `CleanArchitecture`+MediatR lit, constellation topology (was empty/`MinimalApi`/no-MediatR). **Root-pointing** now correct; **subfolder** pointing still analyses only that closure (rescope = remaining G1). |
+| `3d8544c` | **G7** | `ArchitectureStyleDetector` keyed MediatR styles off the package *signal* (missed when a sub-project is scoped) and counted handlers from `MediatRHandlerDetection` — but it runs between Stage 2/3 while that detector is Stage 3, so the count was always 0. Now counts handlers from the types' implemented interfaces (available in Stage 2) and lights `hasMediatR` from them. Verified: eShop `Ordering.API` alone → `CleanArchitecture` (7 domain-event handlers; MediatR with 16) instead of `MinimalApi`/no-MediatR. |
+| `4908228` | **G8** | Map/Trace stats line was `0 types kept of 0` (type funnel is meaningless for graph artifacts). `RenderedContext.GraphSummary` (nodes/edges/entries/depth) now drives a graph-shaped summary in CLI + desktop: `247 nodes · 7 edges · 0 entries · ~236 tokens` (Map) / `… depth 2 …` (Trace). |
 
 (Note `ad8bdb2` and earlier are the prior consistency branch — already on `fix/desktop-latent-bugs-and-rendering`, merged into this branch's history.)
 
@@ -60,19 +62,17 @@ entries + packable library → Library), (b) a `LibrarySurface` builder over pub
 surface renderer (reuse the `NarrativeSections` fragment pattern from this branch so it stays
 section-aware in the desktop). New work — plan it.
 
-### G8 — narrative stats line · **Low · trivial & safe — good next quick win**
-Every Map/Trace footer says `… 0 types kept of 0 …` (type-funnel is meaningless for the graph
-artifacts). Report **nodes / edges / entries / trace depth** instead. Source: the summary is built
-from `snapshot.Report` / `RenderFunnel` in `RunReportFormatter.Summary`; the narrative `RenderAsync`
-branch in `DiscoveryPipeline` returns no `RenderFunnel`. Either populate a graph-shaped funnel there or
-special-case the summary for narrative mode.
+### ~~G8 — narrative stats line~~ · **DONE (`4908228`)** — graph-shaped summary in CLI + desktop.
 
 ### G5 — minimal-API per-endpoint precision · **Medium · hard**
 All minimal-API endpoints in one registration method share the owner Type node, so trace body lines /
 `→ target` don't match the specific route (e.g. TodoApi `POST /todos/` shows `MapGet("/{id}"…)` lines).
 Needs per-endpoint anchoring (member/lambda-level nodes). Known-deferred; real work.
 
-### G7 — signal consistency · folds into G1 (the MediatR-signal fix above).
+### ~~G7 — signal consistency~~ · **DONE (`3d8544c`)** — MediatR style now reads handler types, not
+just the package signal. (Residual: the STACK line still reads the package-based signal, so a scoped
+sub-project shows "Minimal APIs" in STACK while STYLE correctly says CleanArchitecture — light the
+MediatR signal from handler types too if that inconsistency matters.)
 ### G9 — PACKAGES verbosity · **Low · cosmetic** (cap/group long lists).
 ### FastEndpoints `<dynamic>` routes · separate known gap — Configure()-set routes collapse to one
 `GET <dynamic>` node (visible in VerticalSlice). G2 already suppresses misleading targets for these.
