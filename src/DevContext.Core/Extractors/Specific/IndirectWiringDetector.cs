@@ -32,41 +32,34 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        foreach (var filePath in context.Analysis.AllSourceFiles)
+        // Parallel across files; purely syntactic. The containing method is found by an ancestor walk
+        // (O(depth)) — the old per-invocation scan of every method's line span was O(invocations×methods)
+        // per file and dominated trace time on large repos (DntSite audit). model.Detections is a
+        // ConcurrentBag (thread-safe Add).
+        var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
+        await Parallel.ForEachAsync(context.Analysis.AllSourceFiles, opts, async (filePath, innerCt) =>
         {
-            ct.ThrowIfCancellationRequested();
-
             SyntaxTree syntaxTree;
             try
             {
-                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, innerCt);
             }
             catch
             {
                 model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}");
-                continue;
+                return;
             }
 
-            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
-            var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
-            var methodDecls = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
+            var root = await syntaxTree.GetRootAsync(innerCt).ConfigureAwait(false);
 
-            var methodMap = methodDecls.ToDictionary(
-                m => (SyntaxTree: m.SyntaxTree, Span: m.SpanStart),
-                m => m);
-
-            foreach (var invocation in invocations)
+            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                ct.ThrowIfCancellationRequested();
+                if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
 
-                var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
-                if (memberAccess == null) continue;
+                var containingMethod = invocation.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+                if (containingMethod is null) continue;
 
                 var methodName = memberAccess.Name.Identifier.ValueText;
-                var containingMethod = FindContainingMethod(invocation, methodDecls);
-
-                if (containingMethod == null) continue;
-
                 var callerType = FindContainingType(invocation)?.Identifier.ValueText ?? "?";
                 var callerMethod = containingMethod.Identifier.ValueText;
 
@@ -74,7 +67,6 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                     && memberAccess.Expression.ToString() == "Activator")
                 {
                     var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
                     model.Detections.Add(new IndirectWiringDetection(
                         Kind: IndirectWiringKind.ReflectionActivation,
                         CallerType: callerType,
@@ -91,7 +83,6 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                     && memberAccess.Expression.ToString().Contains("ProxyGenerator"))
                 {
                     var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
                     model.Detections.Add(new IndirectWiringDetection(
                         Kind: IndirectWiringKind.DynamicProxy,
                         CallerType: callerType,
@@ -109,7 +100,6 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                     && memberAccess.Expression.ToString() is "serviceProvider" or "sp" or "provider" or "services")
                 {
                     var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
                     model.Detections.Add(new IndirectWiringDetection(
                         Kind: IndirectWiringKind.ManualServiceLocator,
                         CallerType: callerType,
@@ -127,7 +117,6 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                         || memberAccess.Expression.ToString().Contains("Assembly")))
                 {
                     var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-
                     model.Detections.Add(new IndirectWiringDetection(
                         Kind: IndirectWiringKind.ReflectionActivation,
                         CallerType: callerType,
@@ -141,26 +130,7 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
                     });
                 }
             }
-        }
-    }
-
-    private static MethodDeclarationSyntax? FindContainingMethod(
-        InvocationExpressionSyntax invocation,
-        IEnumerable<MethodDeclarationSyntax> methodDecls)
-    {
-        var invocationLine = invocation.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        foreach (var method in methodDecls)
-        {
-            var methodStart = method.GetLocation().GetLineSpan().StartLinePosition.Line;
-            var methodEnd = method.Body?.GetLocation().GetLineSpan().EndLinePosition.Line
-                ?? method.GetLocation().GetLineSpan().EndLinePosition.Line;
-
-            if (invocationLine >= methodStart && invocationLine <= methodEnd)
-                return method;
-        }
-
-        return null;
+        });
     }
 
     private static ClassDeclarationSyntax? FindContainingType(SyntaxNode? node)
