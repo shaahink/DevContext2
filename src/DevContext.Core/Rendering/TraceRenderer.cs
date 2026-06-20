@@ -9,18 +9,19 @@ public static class TraceRenderer
 {
     /// <summary>Renders the whole trace as one string (CLI / file output). Byte-identical to the
     /// concatenation of <see cref="RenderSections"/>.</summary>
-    public static string Render(Trace trace, TraceDetail detail)
+    public static string Render(Trace trace, TraceDetail detail, string? basePath = null)
     {
         var sb = new StringBuilder();
-        foreach (var s in RenderSections(trace, detail))
+        foreach (var s in RenderSections(trace, detail, basePath))
             sb.Append(s.Text);
         return sb.ToString();
     }
 
     /// <summary>Renders the trace as ordered, toggleable fragments — the entry+tree ("Trace"), the
     /// touched-entities summary ("Touches"), and the emitted-events summary ("Emits") — so the
-    /// desktop can show/hide each in both the Human and LLM views.</summary>
-    public static IReadOnlyList<NarrativeSection> RenderSections(Trace trace, TraceDetail detail)
+    /// desktop can show/hide each in both the Human and LLM views. Source locations are rendered
+    /// relative to <paramref name="basePath"/> (the analysis root) when provided.</summary>
+    public static IReadOnlyList<NarrativeSection> RenderSections(Trace trace, TraceDetail detail, string? basePath = null)
     {
         var sections = new List<NarrativeSection>();
         var entry = trace.Entry;
@@ -28,11 +29,11 @@ public static class TraceRenderer
         var head = new StringBuilder();
         head.AppendLine($"TRACE  {entry.Title}");
         if (entry.Provenance is { } p)
-            head.AppendLine($"       {p}");
+            head.AppendLine($"       {PathDisplay.RelativeProvenance(basePath, p)}");
         if (entry.Project is { } proj)
             head.Append("       " + proj);
         head.AppendLine();
-        RenderStep(head, trace.Root, "", detail, isLast: true, isRoot: true);
+        RenderStep(head, trace.Root, "", detail, basePath, isLast: true, isRoot: true);
         sections.Add(new NarrativeSection("Trace", head.ToString()));
 
         // Summary pass — kept as separate fragments, each retaining its original spacing.
@@ -54,7 +55,7 @@ public static class TraceRenderer
     }
 
     private static void RenderStep(StringBuilder sb, TraceStep step, string indent, TraceDetail detail,
-        bool isLast, bool isRoot)
+        string? basePath, bool isLast, bool isRoot)
     {
         var prefix = isRoot ? "\u25B8 ENTRY  " : indent + (isLast ? "\u2514\u2500 " : "\u251C\u2500 ")
             + SeamLabel(step.Seam) + " ";
@@ -63,7 +64,7 @@ public static class TraceRenderer
         sb.Append(step.Node.Title);
 
         if (step.Provenance is { } p)
-            sb.Append($"  ({p})");
+            sb.Append($"  ({PathDisplay.RelativeProvenance(basePath, p)})");
 
         if (step.Resolution is Resolution.Syntactic)
             sb.Append(" [approx]");
@@ -96,7 +97,7 @@ public static class TraceRenderer
         {
             var child = step.Children[i];
             var childIsLast = i == step.Children.Length - 1;
-            RenderStep(sb, child, childIndent, detail, childIsLast, false);
+            RenderStep(sb, child, childIndent, detail, basePath, childIsLast, false);
         }
     }
 

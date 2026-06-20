@@ -333,7 +333,7 @@ public sealed class DiscoveryPipeline
                         MaxFanOut = 12,
                     });
                     var traceCtx = NarrativeSections.ToRenderedContext(
-                        TraceRenderer.RenderSections(trace, request.Detail));
+                        TraceRenderer.RenderSections(trace, request.Detail, snapshot.RootPath));
                     return NarrativeSections.WithExtraSection(
                         traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
                         with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root)) };
