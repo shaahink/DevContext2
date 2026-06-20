@@ -57,19 +57,15 @@ Pointing at a project subfolder analyzes only that project's closure. Symptoms:
   doc itself flags this as a foundational fork. Get the user's nod on the tradeoffs and give it its own
   plan; don't bundle it into a polish pass.
 
-### G3 — library archetype (AutoMapper) · **High · sizable**
-No archetype detection → AutoMapper renders as `NLayer` with test projects, no PUBLIC SURFACE, no
-entries. Design §4 wants a capability-grouped surface map. Needs: (a) archetype detection (no app
-entries + packable library → Library), (b) a `LibrarySurface` builder over public types/methods, (c) a
-surface renderer (reuse the `NarrativeSections` fragment pattern from this branch so it stays
-section-aware in the desktop). New work — plan it.
+### ~~G3 — library archetype (AutoMapper)~~ · **DONE (`d667478`)**
+ArchetypeDetector (App/Library) + LibrarySurfaceBuilder + LibrarySurfaceRenderer; AutoMapper → PUBLIC
+SURFACE over 230 public types. See `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.
 
 ### ~~G8 — narrative stats line~~ · **DONE (`4908228`)** — graph-shaped summary in CLI + desktop.
 
-### G5 — minimal-API per-endpoint precision · **Medium · hard**
-All minimal-API endpoints in one registration method share the owner Type node, so trace body lines /
-`→ target` don't match the specific route (e.g. TodoApi `POST /todos/` shows `MapGet("/{id}"…)` lines).
-Needs per-endpoint anchoring (member/lambda-level nodes). Known-deferred; real work.
+### ~~G5 — minimal-API per-endpoint precision~~ · **DONE (`0c75d73`)**
+Per-endpoint lambda nodes carry each route's body; Map shows `route → Command` per route. Residual
+(partial by design): downstream call-body salience. See `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.
 
 ### ~~G7 — signal consistency~~ · **DONE (`3d8544c` + residual `ce64a0f`)** — MediatR style reads
 handler types, not just the package signal. Residual fixed: `ArchitectureStyleDetector.HasMediatREvidence`

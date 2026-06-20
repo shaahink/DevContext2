@@ -1,12 +1,16 @@
 # Plan: G3 — library archetype · G5 — minimal-API per-endpoint precision
 
-> Status: **draft.** Two render-fidelity features, independent of each other and of G1. Each can be
-> taken on its own. Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` G3, G5.
+> Status: **DONE** on `feat/polish-batch-and-g1-phase0` — G3 `d667478`, G5 `0c75d73`.
+> Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` G3, G5.
 > North star: `docs/IDEAL-OUTPUT-TARGET.md` §4 (library surface), §2 (trace precision).
 
 ---
 
-## G3 — library archetype (the AutoMapper case) · High · sizable
+## G3 — library archetype (the AutoMapper case) · **DONE (`d667478`)**
+
+> `ArchetypeDetector` (App/Library, auxiliary Exe samples don't disqualify), `LibrarySurfaceBuilder`,
+> `LibrarySurfaceRenderer` wired in `DiscoveryPipeline.RenderAsync`; `CsprojReader`/`ProjectInfo` capture
+> OutputType+IsPackable. Verified: AutoMapper → `LIBRARY AutoMapper (230 public types)` + PUBLIC SURFACE.
 
 ### Problem
 A packable library with **no application entry points** (AutoMapper) renders as `STYLE NLayer` with
@@ -52,7 +56,12 @@ new `Graph/ArchetypeDetector.cs`, `Graph/LibrarySurfaceBuilder.cs`, `Rendering/L
 
 ---
 
-## G5 — minimal-API per-endpoint precision · Medium · hard
+## G5 — minimal-API per-endpoint precision · **DONE (`0c75d73`)**
+
+> Per-endpoint lambda nodes (verb+route) carry that route's body; `EndpointDetection` gains lambda
+> line/body; `ResolveEntryTarget` follows the lambda's Sends so the Map shows `route → Command` per
+> route. Verified: TodoApi `POST /todos/` anchors on its own lambda; goldens ratcheted. Residual
+> (partial by design): downstream call-body salience can still surface the registration type's region.
 
 ### Problem
 All minimal-API endpoints registered in one method (`app.MapGet(...)`, `app.MapPost(...)`, …) share a

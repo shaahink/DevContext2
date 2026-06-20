@@ -69,7 +69,8 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 
 ## Suggested next-session sequence
 
-**Polish batch (#3), G1 Phase 0, and G1-proper Phases 1–4 are all LANDED** on
-`feat/polish-batch-and-g1-phase0` (pushed; gate green — build 0-warn · Core 261 pass / 2 skip ·
-Desktop 64 pass). Next: **#2 G3 — library archetype** (independent, high-value; plan in
-`PLAN-G3-and-G5`), then **#4 G5 — minimal-API per-endpoint** (hard, last).
+**Polish batch (#3), G1 (Phase 0 + Phases 1–4), G3, and G5 are all LANDED** on
+`feat/polish-batch-and-g1-phase0` (pushed; gate green — build 0-warn · Core 267 pass / 2 skip ·
+Desktop 64 pass). The output-quality gap list (G1–G9 + B1) is now cleared. Remaining ideas are
+follow-ups: G5's downstream call-body salience (partial by design) and FastEndpoints `<dynamic>`
+`Configure()` routes.
