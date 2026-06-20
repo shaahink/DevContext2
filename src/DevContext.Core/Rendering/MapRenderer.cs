@@ -1,5 +1,6 @@
 using System.Text;
 
+using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
 using DevContext.Core.Pipeline;
 
@@ -74,8 +75,9 @@ public static class MapRenderer
         if (signals.TryGetValue(ArchitectureSignals.Keys.FastEndpoints, out var fe) && fe.Detected)
             parts.Add("FastEndpoints");
 
-        // CQRS / Mediator
-        if (signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
+        // CQRS / Mediator — light from handler evidence too (not just the package signal), so a scoped
+        // sub-project whose handlers are present reads consistently with the resolved STYLE (G7 residual).
+        if (ArchitectureStyleDetector.HasMediatREvidence(model))
             parts.Add("MediatR (CQRS)");
 
         // Data
@@ -202,10 +204,17 @@ public static class MapRenderer
         sb.AppendLine("PACKAGES");
         foreach (var group in map.Packages)
         {
-            sb.AppendLine($"   {group.Label}:  {string.Join(", ", group.Packages)}");
+            var shown = group.Packages.Take(MaxPackagesPerGroup).ToList();
+            var line = string.Join(", ", shown);
+            if (group.Packages.Length > MaxPackagesPerGroup)
+                line += $" … ({group.Packages.Length} total)";
+            sb.AppendLine($"   {group.Label}:  {line}");
         }
         sb.AppendLine();
     }
+
+    /// <summary>Cap per-group package lists so PACKAGES stays a signal, not a manifest dump (G9).</summary>
+    private const int MaxPackagesPerGroup = 8;
 
     private static void AppendFooter(StringBuilder sb)
     {

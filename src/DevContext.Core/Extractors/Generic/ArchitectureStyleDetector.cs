@@ -36,9 +36,7 @@ public sealed class ArchitectureStyleDetector
         // package is referenced from Ordering.Domain). The handler *detections* come straight from the
         // code, so treat them as first-class evidence of MediatR — otherwise the style falls through to
         // MinimalApi even though Send→handler is clearly wired (assessment G7).
-        var hasMediatR = (signals.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
-            || mediatRHandlerCount > 0
-            || notificationHandlerCount > 0;
+        var hasMediatR = HasMediatREvidence(model);
         var hasEfCore = signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var _);
         var hasAspire = signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) && aspire.Detected;
         var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
@@ -156,6 +154,23 @@ public sealed class ArchitectureStyleDetector
             results.Add(new ProjectRefStats(p.Name, incoming, outgoing));
         }
         return results;
+    }
+
+    /// <summary>
+    /// True when MediatR is present as EVIDENCE — either the package signal fired, or the code itself
+    /// implements MediatR handler interfaces. The package signal is missed when only a sub-project of the
+    /// closure is scoped (handlers live in one project, the package reference in another), so the handler
+    /// interfaces are first-class evidence. Single source of truth so the STACK line (MapRenderer) and the
+    /// style verdict can't drift (assessment G7 + residual).
+    /// </summary>
+    public static bool HasMediatREvidence(DiscoveryModel model)
+    {
+        if (model.Architecture.All.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
+            return true;
+        return model.Types.Values.Any(t => t.ImplementedInterfaces.Any(i =>
+            i.StartsWith("IRequestHandler", StringComparison.Ordinal)
+            || i.StartsWith("IStreamRequestHandler", StringComparison.Ordinal)
+            || i.StartsWith("INotificationHandler", StringComparison.Ordinal)));
     }
 
     private static HashSet<string> DetectFolderRoles(DiscoveryModel model)
