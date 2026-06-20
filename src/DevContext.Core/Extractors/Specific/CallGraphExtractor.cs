@@ -52,7 +52,11 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         // Build DI resolution map: interface/abstract type → concrete implementation
         // Key: short type name, Value: short implementation name
         var diMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        // Stable order: model.Detections is a ConcurrentBag filled by several parallel extractors, so its
+        // enumeration order is nondeterministic and this map is "last write wins" by service short-name.
+        // Order by source location so the winning implementation — and the resolved edges — are stable.
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>()
+            .OrderBy(d => d.SourceFile, StringComparer.Ordinal).ThenBy(d => d.LineNumber))
         {
             if (!string.IsNullOrEmpty(di.ImplementationType)
                 && di.ImplementationType != "?"
@@ -72,7 +76,10 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         var interfaceImplMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var fqnMap = new Dictionary<string, string>(StringComparer.Ordinal);
         var fqnCollisions = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        foreach (var kv in model.Types)
+        // Iterate in a STABLE order: model.Types is a ConcurrentDictionary whose enumeration order is
+        // nondeterministic, and these maps resolve short-name collisions "first wins". Ordering by FQN
+        // makes the winner — and therefore the resolved call edges — deterministic across runs.
+        foreach (var kv in model.Types.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
             var type = kv.Value;
 
@@ -351,7 +358,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
     private static Dictionary<string, string> BuildTypeToFile(DiscoveryModel model)
     {
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in model.Types)
+        // Stable order (model.Types enumeration is nondeterministic) so the short-name "first wins"
+        // TryAdd below picks the same file each run → deterministic focus-closure frontier expansion.
+        foreach (var kv in model.Types.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
             if (string.IsNullOrEmpty(kv.Value.FilePath)) continue;
             map[kv.Key] = kv.Value.FilePath;
