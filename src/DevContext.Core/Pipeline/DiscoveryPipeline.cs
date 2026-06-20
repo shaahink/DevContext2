@@ -21,6 +21,9 @@ public sealed class DiscoveryPipeline
     private readonly ILogger<DiscoveryPipeline> _logger;
     private readonly IReadOnlyList<string> _validationWarnings;
 
+    /// <summary>Project count at/above which a whole-solution run emits a "narrow your scope" hint (G1 Phase 4).</summary>
+    private const int LargeSolutionProjectThreshold = 25;
+
     /// <summary>Creates a new discovery pipeline with the given extractors, pruners, compressors, and renderers.</summary>
     public DiscoveryPipeline(
         IReadOnlyList<IDiscoveryExtractor> extractors,
@@ -115,6 +118,18 @@ public sealed class DiscoveryPipeline
         // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
         // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
         var scope = SolutionScope.FromModel(model);
+
+        // G1 Phase 4 — perf guardrail. Whole-solution runs (no closure narrowing) over a large solution
+        // scale the file walk + graph; surface a hint rather than a hard cap (measured eShop=24 projects
+        // ~1.9s — no cliff — and a silent cap would skew output/evals). Pointing at a project triggers the
+        // bounded ProjectReference closure instead.
+        if (context.ScopedProjectDirs.IsDefaultOrEmpty && scope.Projects.Length >= LargeSolutionProjectThreshold)
+        {
+            model.AddDiagnostic(DiagnosticLevel.Warning, "Scope",
+                $"Whole-solution analysis over {scope.Projects.Length} projects — this can be slow and noisy. "
+                + "Point at a specific project (e.g. its folder or .csproj) to analyse just its reference closure.");
+        }
+
         var graphResolver = new SyntacticSymbolResolver();
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
