@@ -129,12 +129,17 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         swCompile.Stop();
 
         // Pass 2: resolve call edges, preferring the SemanticModel and falling back to syntax.
+        // Parallel across files — semantic binding (the dominant cost, measured) is CPU-bound and
+        // Roslyn's GetSemanticModel is safe to call concurrently on one Compilation; edges land in a
+        // ConcurrentBag. (perf: the bind loop was ~84 s single-threaded on a 1336-file repo.)
         var swBind = Stopwatch.StartNew();
         var semanticEdges = 0;
-        foreach (var (filePath, syntaxTree) in trees)
+        Parallel.ForEach(trees,
+            new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount },
+            tuple =>
         {
-            ct.ThrowIfCancellationRequested();
-            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var (filePath, syntaxTree) = tuple;
+            var root = syntaxTree.GetRoot(ct);
 
             SemanticModel? semanticModel = null;
             if (compilation is not null)
@@ -165,7 +170,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                         var (calleeType, calleeMethod, resolution) = ResolveCalleeSmart(
                             invocation, semanticModel, callerType, fieldMap,
                             diMap, interfaceImplMap, fqnMap, fqnCollisions);
-                        if (resolution == Graph.Resolution.Semantic) semanticEdges++;
+                        if (resolution == Graph.Resolution.Semantic) Interlocked.Increment(ref semanticEdges);
 
                         var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                         allEdges.Add(new CallEdge(
@@ -176,7 +181,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                     }
                 }
             }
-        }
+        });
 
         swBind.Stop();
 
