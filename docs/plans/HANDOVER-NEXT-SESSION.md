@@ -45,16 +45,14 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 > installed/running DevContext, not the freshly-built debug app. No branch bug. (Harness caveat:
 > `desktop-shot.ps1` can foreground/capture a pre-existing instance; close other instances first.)
 
-1. **G1-proper — multi-project/closure rescope · Critical · FOUNDATIONAL · plan it.** Pointing at a
+1. **G1-proper — multi-project/closure rescope · Critical · FOUNDATIONAL.** Pointing at a
    *subfolder* (`eShop/src/Ordering.API`) still analyses only that project's closure → `(1 project)`,
-   no data/domain-event seams. The `.slnx` groundwork (#a21d5e9) is the prerequisite, not the fix.
-   Touches `ProjectRootResolver`/`SolutionScope`/discovery + has perf (eShop = 24 projects) and
-   eval-expectation fallout. Biggest quality lever; needs its own plan + user buy-in.
+   no data/domain-event seams. **Plan drafted → `docs/plans/PLAN-G1-multi-project-scope.md`** (needs the
+   scope-policy decision + buy-in before coding; Phase 0 = fix `SolutionScope.FromModel` is safe to land
+   alone).
 
-2. **G3 — library archetype · High · sizable · plan it.** AutoMapper renders as `NLayer` with `0
-   entries` and no public surface. Need: archetype detection (no app entries + packable → Library), a
-   `LibrarySurface` builder over public types/methods, a surface renderer (reuse the `NarrativeSections`
-   fragment pattern). New feature; design §4/§5.5.
+2. **G3 — library archetype · High · sizable.** AutoMapper renders as `NLayer` with `0 entries` and no
+   public surface. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.**
 
 3. **Polish batch · surgical · one checkpoint.**
    - **G7 residual:** STACK line still reads the MediatR *package* signal, so a scoped sub-project shows
@@ -64,9 +62,9 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
    - **FastEndpoints `<dynamic>` routes:** `Configure()`-set routes collapse to one `GET <dynamic>` node
      (visible in VerticalSlice). G2 already suppresses misleading targets for these.
 
-4. **G5 — minimal-API per-endpoint precision · Medium · hard · design later.** All minimal-API
-   endpoints in one registration method share the owner Type node, so trace body/`→ target` don't match
-   the specific route. Needs per-endpoint (member/lambda-level) graph nodes. Real work; defer.
+4. **G5 — minimal-API per-endpoint precision · Medium · hard.** All minimal-API endpoints in one
+   registration method share the owner Type node, so trace body/`→ target` don't match the specific
+   route. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`** (second half). Defer.
 
 ## Suggested next-session sequence
 
