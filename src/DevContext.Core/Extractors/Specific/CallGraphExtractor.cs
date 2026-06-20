@@ -131,14 +131,15 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         // Pass 2: resolve call edges, preferring the SemanticModel and falling back to syntax.
         // Parallel across files — semantic binding (the dominant cost, measured) is CPU-bound and
         // Roslyn's GetSemanticModel is safe to call concurrently on one Compilation; edges land in a
-        // ConcurrentBag. (perf: the bind loop was ~84 s single-threaded on a 1336-file repo.)
+        // ConcurrentBag. (perf P2: parallelized the bind loop.)
         var swBind = Stopwatch.StartNew();
         var semanticEdges = 0;
-        Parallel.ForEach(trees,
-            new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount },
-            tuple =>
+        var parallelOpts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
+
+        // Binds one file: resolves every invocation to a call edge; reports discovered callee types
+        // (for focus-scoped frontier expansion). Pure reads of the shared maps → thread-safe.
+        void BindOne(string filePath, SyntaxTree syntaxTree, ConcurrentBag<string>? calleesOut)
         {
-            var (filePath, syntaxTree) = tuple;
             var root = syntaxTree.GetRoot(ct);
 
             SemanticModel? semanticModel = null;
@@ -178,11 +179,48 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                         {
                             Resolution = resolution,
                         });
+                        calleesOut?.Add(calleeType);
                     }
                 }
             }
-        });
+        }
 
+        // Focus-scoped binding (perf P1): a focused trace only needs files reachable from the focus, so
+        // seed from the focus type/route and bind the reachable frontier round-by-round (≤ maxDepth call
+        // hops). Falls back to a full parallel bind when there's no focus or the seed can't be resolved —
+        // correctness-preserving: the downstream BFS prunes by depth either way.
+        var treeByPath = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in trees) treeByPath[t.Path] = t.Tree;
+
+        var seedFiles = ResolveFocusSeedFiles(context, model);
+        if (context.Analysis.FocusPoints.Count > 0 && seedFiles.Count > 0)
+        {
+            var typeToFile = BuildTypeToFile(model);
+            var bound = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var frontier = new HashSet<string>(seedFiles, StringComparer.OrdinalIgnoreCase);
+
+            for (var round = 0; round <= maxDepth && frontier.Count > 0; round++)
+            {
+                var toBind = frontier.Where(f => !bound.Contains(f) && treeByPath.ContainsKey(f)).ToList();
+                foreach (var f in toBind) bound.Add(f);
+
+                var callees = new ConcurrentBag<string>();
+                Parallel.ForEach(toBind, parallelOpts, f => BindOne(f, treeByPath[f], callees));
+
+                var next = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var c in callees)
+                    if (typeToFile.TryGetValue(c, out var cf) && !bound.Contains(cf))
+                        next.Add(cf);
+                frontier = next;
+            }
+
+            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+                $"Focus-scoped call graph: bound {bound.Count} of {trees.Count} files from the focus seed.");
+        }
+        else
+        {
+            Parallel.ForEach(trees, parallelOpts, t => BindOne(t.Path, t.Tree, null));
+        }
         swBind.Stop();
 
         var swBfs = Stopwatch.StartNew();
@@ -253,6 +291,61 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}; "
             + $"phases: parse {swParse.ElapsedMilliseconds}ms · compile {swCompile.ElapsedMilliseconds}ms · "
             + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files)");
+    }
+
+    /// <summary>Files the focus points to — the seed for focus-scoped binding (perf P1). Type/Method
+    /// focus → the declaring type's file(s); Endpoint focus → the matching endpoint's file + handler
+    /// type file. Empty when the focus can't be tied to a source file (→ full bind fallback).</summary>
+    private static HashSet<string> ResolveFocusSeedFiles(DiscoveryContext context, DiscoveryModel model)
+    {
+        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var fp in context.Analysis.FocusPoints)
+        {
+            if (!string.IsNullOrEmpty(fp.TypeName))
+            {
+                foreach (var t in model.Types.Values)
+                    if ((string.Equals(t.Name, fp.TypeName, StringComparison.OrdinalIgnoreCase)
+                            || t.Id.EndsWith("." + fp.TypeName, StringComparison.OrdinalIgnoreCase))
+                        && !string.IsNullOrEmpty(t.FilePath))
+                        files.Add(t.FilePath);
+            }
+
+            if (fp.Kind == FocusKind.Endpoint && !string.IsNullOrEmpty(fp.Route))
+            {
+                foreach (var ep in model.Detections.OfType<EndpointDetection>())
+                {
+                    if (!RouteMatches(ep, fp)) continue;
+                    if (!string.IsNullOrEmpty(ep.SourceFile)) files.Add(ep.SourceFile);
+                    foreach (var t in model.Types.Values)
+                        if (string.Equals(t.Name, ep.HandlerType, StringComparison.OrdinalIgnoreCase)
+                            && !string.IsNullOrEmpty(t.FilePath))
+                            files.Add(t.FilePath);
+                }
+            }
+        }
+        return files;
+    }
+
+    private static bool RouteMatches(EndpointDetection ep, FocusPoint fp)
+    {
+        static string Norm(string r) => "/" + r.Trim('/');
+        var routeOk = string.Equals(Norm(ep.RouteTemplate), Norm(fp.Route!), StringComparison.OrdinalIgnoreCase);
+        var verbOk = string.IsNullOrEmpty(fp.HttpMethod)
+            || string.Equals(ep.HttpMethod, fp.HttpMethod, StringComparison.OrdinalIgnoreCase);
+        return routeOk && verbOk;
+    }
+
+    /// <summary>Maps every type's FQN (Id) and short name to its source file, for frontier expansion.</summary>
+    private static Dictionary<string, string> BuildTypeToFile(DiscoveryModel model)
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in model.Types)
+        {
+            if (string.IsNullOrEmpty(kv.Value.FilePath)) continue;
+            map[kv.Key] = kv.Value.FilePath;
+            map.TryAdd(kv.Value.Name, kv.Value.FilePath);
+        }
+        return map;
     }
 
     private static HashSet<string> GetStartKeys(DiscoveryContext context, DiscoveryModel model)
