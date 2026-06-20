@@ -1,7 +1,20 @@
-# Handover — current state
+# Iteration 7 — handover (state at start)
 
-> The warm-start doc. Read this first; deep history is in `docs/archive/`. Iteration/benchmark
-> reports are kept (not archived). Branch of record: **`develop`** (all work below merged in).
+> Warm-start doc for iteration 7. Read this first; the iteration's work is in `./PLAN.md`. Completed
+> plans live in `docs/archive/`; deep references are linked at the bottom. Branch of record:
+> **`develop`** (everything in "What's done" is merged in). Last numbered iteration was 6.
+
+## Pick your thread (read order)
+
+- **Perf (the active plan):** `./PLAN.md` → `benchmarks/results/SUMMARY.md` → hot paths in
+  `src/DevContext.Core/Extractors/Generic/SyntaxStructureExtractor.cs` + `…/Specific/CallGraphExtractor.cs`.
+  Run the bench: `dotnet run -c Debug --project benchmarks/DevContext.Benchmarks -- repos`.
+- **Output quality / detections:** `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` + `docs/IDEAL-OUTPUT-TARGET.md`;
+  the pipeline is `src/DevContext.Core/Pipeline/DiscoveryPipeline.cs` (`AnalyzeAsync`/`RenderAsync`),
+  the graph is `Graph/GraphBuilder.cs` (`Build` + seam methods), entries `Graph/EntryPoint.cs`.
+- **Rendering (Map/Trace/Library surface):** `Rendering/{MapRenderer,TraceRenderer,LibrarySurfaceRenderer}.cs`
+  + `NarrativeSections.cs`; archetype in `Graph/ArchetypeDetector.cs`.
+- **A repo audit (like DntSite):** `eval-results/DntSite/AUDIT.md` is the worked example.
 
 ## Stack / build / run
 
