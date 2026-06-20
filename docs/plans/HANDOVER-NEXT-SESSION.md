@@ -47,20 +47,22 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 
 1. **G1-proper — multi-project/closure rescope · Critical · FOUNDATIONAL.** Pointing at a
    *subfolder* (`eShop/src/Ordering.API`) still analyses only that project's closure → `(1 project)`,
-   no data/domain-event seams. **Plan drafted → `docs/plans/PLAN-G1-multi-project-scope.md`** (needs the
-   scope-policy decision + buy-in before coding; Phase 0 = fix `SolutionScope.FromModel` is safe to land
-   alone).
+   no data/domain-event seams. **Plan → `docs/plans/PLAN-G1-multi-project-scope.md`.** Scope policy
+   **DECIDED: Hybrid (C)** (subfolder→ProjectReference closure; `.sln`/root→whole-solution).
+   **Phase 0 LANDED** (`8c93c57` on `feat/polish-batch-and-g1-phase0`: `SolutionScope.FromModel`
+   relative-path fix + `SolutionScopeTests`). **Next: Phases 1–4** (resolve scan set → thread into
+   discovery → eval/golden ratchet → perf guardrails).
 
 2. **G3 — library archetype · High · sizable.** AutoMapper renders as `NLayer` with `0 entries` and no
    public surface. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.**
 
-3. **Polish batch · surgical · one checkpoint.**
-   - **G7 residual:** STACK line still reads the MediatR *package* signal, so a scoped sub-project shows
-     "Minimal APIs" in STACK while STYLE correctly says CleanArchitecture. Light the MediatR signal from
-     handler types too (where STACK is built) for consistency.
-   - **G9:** PACKAGES lists are long/low-signal — cap or group.
-   - **FastEndpoints `<dynamic>` routes:** `Configure()`-set routes collapse to one `GET <dynamic>` node
-     (visible in VerticalSlice). G2 already suppresses misleading targets for these.
+3. **Polish batch · DONE (`ce64a0f` on `feat/polish-batch-and-g1-phase0`).**
+   - **G7 residual — done:** `ArchitectureStyleDetector.HasMediatREvidence` is the single source of
+     truth (package signal OR handler interfaces); the STACK line uses it, so a scoped sub-project no
+     longer disagrees with STYLE.
+   - **G9 — done:** PACKAGES capped at 8/group with `… (N total)` overflow.
+   - **FastEndpoints `<dynamic>` — triaged, no change:** `GraphBuilder` already nulls the target and
+     `OutputSelfCheck` guards the literal. Real per-endpoint resolution stays with G5.
 
 4. **G5 — minimal-API per-endpoint precision · Medium · hard.** All minimal-API endpoints in one
    registration method share the owner Type node, so trace body/`→ target` don't match the specific
@@ -68,6 +70,7 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 
 ## Suggested next-session sequence
 
-Land the **#3 polish batch** first (safe, visible, no buy-in needed) → then write a plan for
-**#1 G1-proper** and get the user's nod before touching scope (biggest lever, but foundational). **#2 G3**
-and **#4 G5** are separate features, each its own plan.
+**Polish batch (#3) and G1 Phase 0 are LANDED** on `feat/polish-batch-and-g1-phase0` (pushed; gate
+green — build 0-warn · Core 258 pass / 2 skip · Desktop 64 pass). Next: **#1 G1-proper Phases 1–4**
+(policy = Hybrid, already decided — go straight to coding). **#2 G3** and **#4 G5** remain separate
+features, each its own plan.

@@ -1,7 +1,8 @@
 # Plan: G1 — multi-project / closure scope
 
-> Status: **draft for buy-in.** Foundational; do not start coding before the scope-policy
-> decision below is made. Prerequisite landed: `.slnx` parsing (`a21d5e9`).
+> Status: **policy DECIDED → Hybrid (C); Phase 0 LANDED.** Phases 1–4 remain.
+> Prerequisite landed: `.slnx` parsing (`a21d5e9`). **Phase 0** (`SolutionScope.FromModel` fix) shipped
+> on `feat/polish-batch-and-g1-phase0` (`8c93c57`). Scope policy below resolved with the user: **C (hybrid)**.
 > Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` G1. Branch: `feat/output-quality-graph`.
 
 ## Problem
@@ -34,14 +35,16 @@ Root cause (confirmed in code this session):
 | **C. Hybrid** | Subfolder/project input → **A**; `.sln`/repo-root input → **B** | Best of both; matches user intent | Two code paths |
 
 Recommendation: **C (hybrid)** — input intent already distinguishes "a project" from "the repo".
+**DECIDED (user): C (hybrid).** Phases 1–3 implement closure resolution for project/subfolder input and
+whole-solution for `.sln`/repo-root input.
 
 ## Phases
 
-**Phase 0 — fix `SolutionScope.FromModel` path matching (low-risk, do first).**
-Resolve `sln.ProjectPaths` to absolute (relative to the solution dir) before comparing to
-`p.FilePath`; normalise separators. Add a test (relative `.slnx` paths + absolute project paths →
-correct scoped set). This alone makes topology/scope precise for the **root-pointing** case and is
-safe to land independently.
+**Phase 0 — fix `SolutionScope.FromModel` path matching — DONE (`8c93c57`).**
+Resolves `sln.ProjectPaths` to absolute (relative to the solution dir) before comparing to
+`p.FilePath`; normalises separators. `SolutionScopeTests` added. Root-pointing scope is now precise and
+no longer unions an independent sibling solution — this surfaced/ratcheted the VerticalSlice
+`TraceQualityTests` case (its endpoint lives only in the `MinimalClean` solution; test now points there).
 
 **Phase 1 — resolve the scan set.** In `ProjectRootResolver`, when the input resolves to a solution
 (directly or by walk-up), also return: the **anchor project** (the `.csproj` owning the input path, if

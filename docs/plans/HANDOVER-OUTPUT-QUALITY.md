@@ -29,9 +29,11 @@ model feed both). Done in small, committed checkpoints.
 
 ### G1 — multi-project / multi-solution scope · **Critical · FOUNDATIONAL — do not one-shot**
 > **Groundwork landed (`a21d5e9`):** `.slnx` solutions now parse, so pointing at a repo **root**
-> resolves the real solution (style/MediatR/topology correct — eShop root verified). What remains
-> below is specifically the **subfolder / closure rescope** — analysing a project sub-path (or one of
-> several solutions) still sees only that project's closure. That's the part with perf + eval fallout.
+> resolves the real solution (style/MediatR/topology correct — eShop root verified). **Phase 0 also
+> landed (`8c93c57`):** `SolutionScope.FromModel` relative-path fix — root-pointing scope is now precise
+> (no longer unions an independent sibling solution). **Scope policy DECIDED: Hybrid (C).** What remains
+> below is the **subfolder / closure rescope** (Phases 1–4) — analysing a project sub-path still sees
+> only that project's closure. That's the part with perf + eval fallout.
 
 Pointing at a project subfolder analyzes only that project's closure. Symptoms:
 - eShop `Ordering.API` → Map `unknown (1 project)`, `STYLE MinimalApi`, *"no MediatR"* — yet its own
@@ -69,13 +71,14 @@ All minimal-API endpoints in one registration method share the owner Type node, 
 `→ target` don't match the specific route (e.g. TodoApi `POST /todos/` shows `MapGet("/{id}"…)` lines).
 Needs per-endpoint anchoring (member/lambda-level nodes). Known-deferred; real work.
 
-### ~~G7 — signal consistency~~ · **DONE (`3d8544c`)** — MediatR style now reads handler types, not
-just the package signal. (Residual: the STACK line still reads the package-based signal, so a scoped
-sub-project shows "Minimal APIs" in STACK while STYLE correctly says CleanArchitecture — light the
-MediatR signal from handler types too if that inconsistency matters.)
-### G9 — PACKAGES verbosity · **Low · cosmetic** (cap/group long lists).
-### FastEndpoints `<dynamic>` routes · separate known gap — Configure()-set routes collapse to one
-`GET <dynamic>` node (visible in VerticalSlice). G2 already suppresses misleading targets for these.
+### ~~G7 — signal consistency~~ · **DONE (`3d8544c` + residual `ce64a0f`)** — MediatR style reads
+handler types, not just the package signal. Residual fixed: `ArchitectureStyleDetector.HasMediatREvidence`
+is now the single source of truth and the STACK line uses it, so a scoped sub-project's STACK no longer
+disagrees with STYLE.
+### ~~G9 — PACKAGES verbosity~~ · **DONE (`ce64a0f`)** — capped at 8/group with `… (N total)` overflow.
+### ~~FastEndpoints `<dynamic>` routes~~ · **triaged, no change** — `GraphBuilder` nulls the target and
+`OutputSelfCheck` guards the literal; G2 already suppresses misleading targets. Real per-endpoint
+resolution stays with G5.
 
 ## How to verify / reproduce
 
