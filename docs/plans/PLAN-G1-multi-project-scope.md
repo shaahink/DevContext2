@@ -1,9 +1,10 @@
 # Plan: G1 — multi-project / closure scope
 
-> Status: **policy DECIDED → Hybrid (C); Phase 0 LANDED.** Phases 1–4 remain.
-> Prerequisite landed: `.slnx` parsing (`a21d5e9`). **Phase 0** (`SolutionScope.FromModel` fix) shipped
-> on `feat/polish-batch-and-g1-phase0` (`8c93c57`). Scope policy below resolved with the user: **C (hybrid)**.
-> Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` G1. Branch: `feat/output-quality-graph`.
+> Status: **DONE.** Policy = **Hybrid (C)**; Phases 0–4 all landed on `feat/polish-batch-and-g1-phase0`
+> (`8c93c57` P0 · `06df05a` P1 · `4c87981` P2 · `1a67291` P3 · `9fb7efb` P4). `.slnx` groundwork `a21d5e9`.
+> Verified: `analyze eShop/src/Ordering.API` → `MAP eShop (7-project closure)`, CleanArchitecture, real
+> cross-project topology; trace from `POST /api/orders/` crosses into `IntegrationEventLogEF`.
+> Assessment: `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md` G1.
 
 ## Problem
 
@@ -39,6 +40,11 @@ Recommendation: **C (hybrid)** — input intent already distinguishes "a project
 whole-solution for `.sln`/repo-root input.
 
 ## Phases
+
+> **All phases DONE.** P1 `06df05a` (`ScopeResolver` closure + `CsprojReader`) · P2 `4c87981`
+> (`DiscoveryContext.ScopedProjectDirs`, `FileTreeExtractor` union walk, `EffectiveRootPath`, callers) ·
+> P3 `1a67291` (`TraceQualityTests` exercises closure; root-pointing evals unaffected — no ratchet) ·
+> P4 `9fb7efb` (large-solution warning diagnostic; measured 1.3s closure vs 1.9s whole-solution — no cap).
 
 **Phase 0 — fix `SolutionScope.FromModel` path matching — DONE (`8c93c57`).**
 Resolves `sln.ProjectPaths` to absolute (relative to the solution dir) before comparing to

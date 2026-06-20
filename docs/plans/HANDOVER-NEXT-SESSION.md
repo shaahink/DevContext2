@@ -45,13 +45,12 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 > installed/running DevContext, not the freshly-built debug app. No branch bug. (Harness caveat:
 > `desktop-shot.ps1` can foreground/capture a pre-existing instance; close other instances first.)
 
-1. **G1-proper — multi-project/closure rescope · Critical · FOUNDATIONAL.** Pointing at a
-   *subfolder* (`eShop/src/Ordering.API`) still analyses only that project's closure → `(1 project)`,
-   no data/domain-event seams. **Plan → `docs/plans/PLAN-G1-multi-project-scope.md`.** Scope policy
-   **DECIDED: Hybrid (C)** (subfolder→ProjectReference closure; `.sln`/root→whole-solution).
-   **Phase 0 LANDED** (`8c93c57` on `feat/polish-batch-and-g1-phase0`: `SolutionScope.FromModel`
-   relative-path fix + `SolutionScopeTests`). **Next: Phases 1–4** (resolve scan set → thread into
-   discovery → eval/golden ratchet → perf guardrails).
+1. **G1-proper — multi-project/closure rescope · DONE** (`feat/polish-batch-and-g1-phase0`:
+   P1 `06df05a` · P2 `4c87981` · P3 `1a67291` · P4 `9fb7efb`; policy = **Hybrid (C)**). Project/subfolder
+   input now analyses the anchor + transitive `ProjectReference` closure; `.sln`/root input stays
+   whole-solution. Verified: `analyze eShop/src/Ordering.API` → `MAP eShop (7-project closure)`,
+   CleanArchitecture, cross-project topology; trace crosses into `IntegrationEventLogEF`. Plan:
+   `docs/plans/PLAN-G1-multi-project-scope.md`.
 
 2. **G3 — library archetype · High · sizable.** AutoMapper renders as `NLayer` with `0 entries` and no
    public surface. **Plan drafted → `docs/plans/PLAN-G3-library-and-G5-minimal-api.md`.**
@@ -70,7 +69,7 @@ coding (foundational/behaviour-changing). "Surgical" = safe, do it inline at a c
 
 ## Suggested next-session sequence
 
-**Polish batch (#3) and G1 Phase 0 are LANDED** on `feat/polish-batch-and-g1-phase0` (pushed; gate
-green — build 0-warn · Core 258 pass / 2 skip · Desktop 64 pass). Next: **#1 G1-proper Phases 1–4**
-(policy = Hybrid, already decided — go straight to coding). **#2 G3** and **#4 G5** remain separate
-features, each its own plan.
+**Polish batch (#3), G1 Phase 0, and G1-proper Phases 1–4 are all LANDED** on
+`feat/polish-batch-and-g1-phase0` (pushed; gate green — build 0-warn · Core 261 pass / 2 skip ·
+Desktop 64 pass). Next: **#2 G3 — library archetype** (independent, high-value; plan in
+`PLAN-G3-and-G5`), then **#4 G5 — minimal-API per-endpoint** (hard, last).

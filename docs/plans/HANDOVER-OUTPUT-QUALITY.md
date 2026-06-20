@@ -27,13 +27,13 @@ model feed both). Done in small, committed checkpoints.
 
 ## Remaining (in recommended order)
 
-### G1 — multi-project / multi-solution scope · **Critical · FOUNDATIONAL — do not one-shot**
-> **Groundwork landed (`a21d5e9`):** `.slnx` solutions now parse, so pointing at a repo **root**
-> resolves the real solution (style/MediatR/topology correct — eShop root verified). **Phase 0 also
-> landed (`8c93c57`):** `SolutionScope.FromModel` relative-path fix — root-pointing scope is now precise
-> (no longer unions an independent sibling solution). **Scope policy DECIDED: Hybrid (C).** What remains
-> below is the **subfolder / closure rescope** (Phases 1–4) — analysing a project sub-path still sees
-> only that project's closure. That's the part with perf + eval fallout.
+### ~~G1 — multi-project / multi-solution scope~~ · **DONE (Hybrid policy)**
+> **DONE** on `feat/polish-batch-and-g1-phase0`. `.slnx` groundwork `a21d5e9`; `SolutionScope.FromModel`
+> fix `8c93c57`; **Hybrid closure** P1 `06df05a` · P2 `4c87981` · P3 `1a67291` · P4 `9fb7efb`. Project/
+> subfolder input → anchor + transitive `ProjectReference` closure; `.sln`/root → whole-solution. Verified:
+> `analyze eShop/src/Ordering.API` → `MAP eShop (7-project closure)`, CleanArchitecture, cross-project
+> topology, trace crosses into `IntegrationEventLogEF`. See `docs/plans/PLAN-G1-multi-project-scope.md`.
+> (Historical investigation notes below retained for context.)
 
 Pointing at a project subfolder analyzes only that project's closure. Symptoms:
 - eShop `Ordering.API` → Map `unknown (1 project)`, `STYLE MinimalApi`, *"no MediatR"* — yet its own
