@@ -504,12 +504,32 @@ public sealed class DiscoveryPipeline
 
         if (parallel)
         {
-            await Parallel.ForEachAsync(eligible, ct, async (extractor, innerCt) =>
+            // Two waves: cheap detectors first, then Deep extractors (the call graph). The call graph's
+            // focus-scoping needs the OTHER Stage-3 detections (endpoints, handlers, jobs) to resolve a
+            // route/endpoint focus to its seed file; if it raced them it saw none and fell back to a full
+            // bind (P1 lost). Nothing in this stage consumes the call graph (it's read post-stage by the
+            // graph builder), so deferring the Deep wave is safe and strictly more correct.
+            async Task RunWaveAsync(IReadOnlyList<IDiscoveryExtractor> wave)
             {
-                var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, innerCt);
-                ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
-                RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
-            });
+                await Parallel.ForEachAsync(wave, ct, async (extractor, innerCt) =>
+                {
+                    var (typesAdded, detsAdded, elapsed) = await RunSingleExtractorAsync(ctx, model, extractor, innerCt);
+                    ctx.Observer.OnExtractorCompleted(extractor.Name, elapsed, false, null, typesAdded, detsAdded);
+                    RecordMetrics(ctx.Observer, extractor.Name, extractor.Tier, extractor.Category, elapsed, false, typesAdded, detsAdded);
+                });
+            }
+
+            var deep = eligible.Where(e => e.Tier == ExtractorTier.Deep).ToList();
+            var detectors = eligible.Where(e => e.Tier != ExtractorTier.Deep).ToList();
+            if (deep.Count > 0 && detectors.Count > 0)
+            {
+                await RunWaveAsync(detectors);
+                await RunWaveAsync(deep);
+            }
+            else
+            {
+                await RunWaveAsync(eligible);
+            }
         }
         else
         {
