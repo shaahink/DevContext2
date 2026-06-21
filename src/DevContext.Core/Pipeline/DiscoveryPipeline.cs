@@ -334,6 +334,18 @@ public sealed class DiscoveryPipeline
                     });
                     var traceCtx = NarrativeSections.ToRenderedContext(
                         TraceRenderer.RenderSections(trace, request.Detail, snapshot.RootPath));
+
+                    // Keep the architecture/Map sections visible alongside the trace when requested (the
+                    // desktop), so drilling a call stack from any node doesn't hide the orientation view.
+                    if (request.IncludeMapWithTrace && snapshot.Map is { } mapForTrace)
+                    {
+                        var mapForTraceCtx = new MapRenderContext(mapForTrace, snapshot, format, request);
+                        var mapNarrative = mapForTrace.Archetype == Archetype.Library
+                            ? await LibrarySurfaceRenderer.RenderAsync(mapForTraceCtx, ct)
+                            : await MapRenderer.RenderAsync(mapForTraceCtx, ct);
+                        traceCtx = NarrativeSections.Combine(mapNarrative, traceCtx);
+                    }
+
                     return NarrativeSections.WithExtraSection(
                         traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
                         with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root)) };

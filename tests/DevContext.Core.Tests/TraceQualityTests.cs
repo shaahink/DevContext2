@@ -42,7 +42,27 @@ public sealed class TraceQualityTests
                 $"Trace for '{entry}' missing '{sub}':\n{trace}");
     }
 
-    private static async Task<string> RunTraceAsync(string repoPath, string entry)
+    [Fact]
+    public async Task Trace_can_keep_arch_sections_alongside_the_call_stack()
+    {
+        var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
+        if (!Directory.Exists(repoPath))
+            return; // eval repo not cloned in this environment — skip silently
+
+        // Default: a focus produces a trace-only render (the CLI behaviour).
+        var traceOnly = await RunTraceAsync(repoPath, "POST /api/orders/");
+        Assert.Contains("TRACE", traceOnly, StringComparison.Ordinal);
+        Assert.DoesNotContain("MAP  ", traceOnly, StringComparison.Ordinal);
+
+        // IncludeMapWithTrace: the architecture/Map sections stay on, with the trace appended — so the
+        // desktop can drill a call stack from a node without losing the orientation view.
+        var combined = await RunTraceAsync(repoPath, "POST /api/orders/", includeMap: true);
+        Assert.Contains("MAP  ", combined, StringComparison.Ordinal);     // arch header kept
+        Assert.Contains("ENTRY POINTS", combined, StringComparison.Ordinal);
+        Assert.Contains("TRACE", combined, StringComparison.Ordinal);     // plus the drill-down
+    }
+
+    private static async Task<string> RunTraceAsync(string repoPath, string entry, bool includeMap = false)
     {
         var fs = new RealFileSystem();
         var cache = new AnalysisCache(fs);
@@ -89,6 +109,7 @@ public sealed class TraceQualityTests
             Entry = entry,
             Depth = 8,
             Detail = TraceDetail.Salient,
+            IncludeMapWithTrace = includeMap,
         };
         var rendered = await pipeline.RenderAsync(snapshot, request);
         return rendered.Content;

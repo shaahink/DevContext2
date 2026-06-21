@@ -18,4 +18,8 @@ public sealed record RenderRequest
     public int? Depth { get; init; }
     /// <summary>Trace detail level — controls body inclusion per step.</summary>
     public TraceDetail Detail { get; init; } = TraceDetail.Salient;
+    /// <summary>When tracing (Entry set), also render the Map/architecture sections alongside the trace,
+    /// so the orientation view stays visible while drilling into a call stack. Off by default (the CLI
+    /// keeps a focused trace-only output); the desktop turns it on.</summary>
+    public bool IncludeMapWithTrace { get; init; }
 }

@@ -56,4 +56,26 @@ public static class NarrativeSections
             SectionFragments = fragments,
         };
     }
+
+    /// <summary>Concatenates two assembled narratives — e.g. the Map (orientation) followed by the Trace
+    /// (drill-down) — into one section-aware context, so the desktop can keep the architecture sections
+    /// visible while showing a call-stack trace. Section keys from the two are distinct, so fragments and
+    /// stats are simply combined in order.</summary>
+    public static RenderedContext Combine(RenderedContext first, RenderedContext second)
+    {
+        var fragments = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (first.SectionFragments is { } f1)
+            foreach (var (k, v) in f1) fragments[k] = v;
+        if (second.SectionFragments is { } f2)
+            foreach (var (k, v) in f2) fragments[k] = v;
+
+        var content = first.Content + second.Content;
+        return first with
+        {
+            Content = content,
+            EstimatedTokens = content.Length / 4,
+            Sections = first.Sections.AddRange(second.Sections),
+            SectionFragments = fragments,
+        };
+    }
 }

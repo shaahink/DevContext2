@@ -51,6 +51,12 @@
         CommitFocus(entry.Title);
     }
 
+    private void SelectSymbol(string title)
+    {
+        _entryQuery = title;
+        CommitFocus(title);
+    }
+
     private void ClearFocus() => CommitFocus("");
 
     private void CommitFocus(string value)
@@ -75,6 +81,23 @@
             if (items.Count > 0) result.Add(new(g.Key, items));
         }
         return result;
+    }
+
+    // Any-node search: when the user types a query, also offer matching graph nodes (types/handlers/
+    // services) so they can drill a call stack from ANY node, not just the catalogued entries. Capped
+    // and de-duped against the entry list. Empty query → no dump (browse entries via the groups above).
+    private List<string> FilteredSymbols()
+    {
+        var q = _entryQuery?.Trim() ?? "";
+        if (q.Length == 0) return [];
+
+        var entryTitles = VM.Entries.Select(e => e.Title).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return VM.DrillableNodes
+            .Select(n => n.Title)
+            .Where(t => t.Contains(q, StringComparison.OrdinalIgnoreCase) && !entryTitles.Contains(t))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(40)
+            .ToList();
     }
 
     public void Dispose() => VM.PropertyChanged -= OnVmChanged;
@@ -135,9 +158,9 @@
                        @oninput="OnEntryInput"
                        @onfocus="() => _entryOpen = VM.HasGraph"
                        @onkeydown="OnEntryKeyDown" />
-                @if (VM.HasGraph && VM.Entries.Count > 0)
+                @if (VM.HasGraph)
                 {
-                    <button class="entry-btn" type="button" title="Browse entry points" @onclick="ToggleEntryList">▾</button>
+                    <button class="entry-btn" type="button" title="Browse entries & symbols" @onclick="ToggleEntryList">▾</button>
                 }
                 @if (!string.IsNullOrEmpty(VM.Focus))
                 {
@@ -145,12 +168,12 @@
                 }
             </div>
 
-            @if (_entryOpen && VM.HasGraph && VM.Entries.Count > 0)
+            @if (_entryOpen && VM.HasGraph)
             {
                 <div class="entry-backdrop" @onclick="() => _entryOpen = false"></div>
                 <div class="entry-dropdown">
-                    @{ var groups = FilteredGroups(); }
-                    @if (groups.Count == 0)
+                    @{ var groups = FilteredGroups(); var symbols = FilteredSymbols(); }
+                    @if (groups.Count == 0 && symbols.Count == 0)
                     {
                         <div class="entry-none">No match. Press Enter to use “@_entryQuery” as a focus.</div>
                     }
@@ -165,6 +188,16 @@
                                 {
                                     <span class="entry-option-target">→ @e.Target</span>
                                 }
+                            </button>
+                        }
+                    }
+                    @if (symbols.Count > 0)
+                    {
+                        <div class="entry-group">Symbols <span class="entry-group-count">@symbols.Count</span></div>
+                        @foreach (var s in symbols)
+                        {
+                            <button class="entry-option" type="button" @onclick="() => SelectSymbol(s)">
+                                <span class="entry-option-title">@s</span>
                             </button>
                         }
                     }

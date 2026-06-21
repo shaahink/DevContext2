@@ -104,6 +104,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _ => "Other"
         });
 
+    // Any drillable graph node (type / handler / service), so the picker can search the whole
+    // codebase and trace a call stack from ANY node — not just the catalogued entry points. These
+    // resolve through ResolveEntryFromNode by Title, exactly like a typed --focus.
+    public IReadOnlyList<DevContext.Core.Graph.GraphNode> DrillableNodes
+        => (_snapshot?.Graph?.Nodes ?? [])
+            .Where(n => n.Kind is DevContext.Core.Graph.NodeKind.Type
+                or DevContext.Core.Graph.NodeKind.Handler
+                or DevContext.Core.Graph.NodeKind.Service)
+            .OrderBy(n => n.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
     public bool IsFormatMarkdown => SelectedFormat == "markdown";
     public bool IsFormatJson => SelectedFormat == "json";
 
@@ -479,6 +490,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 TokenView = false,
                 Entry = Focus,
                 Depth = Depth,
+                IncludeMapWithTrace = true,
                 Detail = Detail switch
                 {
                     "signature" => TraceDetail.Signature,
