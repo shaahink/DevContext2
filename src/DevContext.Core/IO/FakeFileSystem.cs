@@ -6,13 +6,18 @@ namespace DevContext.Core.IO;
 public sealed class FakeFileSystem : IFileSystem
 {
     private readonly ConcurrentDictionary<string, string> _files = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, DateTime> _mtimes = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _dirs = new(StringComparer.OrdinalIgnoreCase) { "" };
+    private static readonly DateTime Epoch = new(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private long _seq;
 
-    /// <summary>Adds a file with the given path and content to the fake file system.</summary>
+    /// <summary>Adds a file with the given path and content to the fake file system. Re-adding a path
+    /// bumps its last-write time monotonically, so tests can simulate an edit for cache invalidation.</summary>
     public void AddFile(string path, string content)
     {
         var full = path.Replace('/', '\\');
         _files[full] = content;
+        _mtimes[full] = Epoch.AddTicks(Interlocked.Increment(ref _seq));
         var dir = Path.GetDirectoryName(full);
         while (!string.IsNullOrEmpty(dir))
         {
@@ -47,6 +52,9 @@ public sealed class FakeFileSystem : IFileSystem
         var norm = path.Replace('/', '\\').TrimEnd('\\');
         return _dirs.Contains(norm) || norm == "";
     }
+
+    public DateTime GetLastWriteTimeUtc(string path)
+        => _mtimes.TryGetValue(path.Replace('/', '\\'), out var t) ? t : DateTime.MinValue;
 
     public string GetRelativePath(string relativeTo, string path)
     {

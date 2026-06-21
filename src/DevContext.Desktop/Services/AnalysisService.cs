@@ -35,6 +35,10 @@ public class AnalysisService : IAnalysisService
     private ServiceProvider? _serviceProvider;
     private DiscoveryPipeline? _cachedPipeline;
     private string? _cachedRootPath;
+    // Reused across analyses so focus/option changes that re-run the same project skip re-reading and
+    // re-parsing unchanged files; mtime invalidation re-parses only edited files (P3 — interactive win).
+    private readonly RealFileSystem _fs = new();
+    private readonly PersistentAnalysisCache _cache;
 
     public AnalysisService()
     {
@@ -42,6 +46,7 @@ public class AnalysisService : IAnalysisService
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "DevContext");
         Directory.CreateDirectory(_dataDir);
+        _cache = new PersistentAnalysisCache(_fs);
     }
 
     private DiscoveryPipeline GetPipeline(string rootPath)
@@ -71,7 +76,7 @@ public class AnalysisService : IAnalysisService
         IProgress<AnalysisProgress>? progress = null,
         CancellationToken ct = default)
     {
-        var fs = new RealFileSystem();
+        var fs = _fs;
 
         var rootResult = await ProjectRootResolver.ResolveAsync(opts.ProjectPath, fs, ct).ConfigureAwait(false);
 
@@ -124,7 +129,7 @@ public class AnalysisService : IAnalysisService
             ExcludeExtractors = scenario.DisableExtractors,
         };
 
-        var cache = new AnalysisCache(fs);
+        var cache = _cache;
 
         var analysis = new SharedAnalysisContext
         {

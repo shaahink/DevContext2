@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace DevContext.Core.Analysis;
 
 /// <summary>Real implementation of <see cref="IAnalysisCache"/> that caches file reads, syntax trees, and XML documents.</summary>
-public sealed class AnalysisCache : IAnalysisCache
+public sealed class AnalysisCache : IAnalysisCache, ICacheStatsSource
 {
     private readonly IFileSystem _fs;
     private readonly ConcurrentDictionary<string, Lazy<Task<string>>> _textCache = new();

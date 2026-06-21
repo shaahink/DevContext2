@@ -18,6 +18,7 @@ public sealed class RealFileSystem : IFileSystem
 
     public bool FileExists(string path) => File.Exists(path);
     public bool DirectoryExists(string path) => Directory.Exists(path);
+    public DateTime GetLastWriteTimeUtc(string path) => File.GetLastWriteTimeUtc(path);
     public string GetRelativePath(string relativeTo, string path)
         => Path.GetRelativePath(relativeTo, path);
     public string GetFullPath(string path) => Path.GetFullPath(path);

@@ -12,6 +12,8 @@ public interface IFileSystem
     bool FileExists(string path);
     /// <summary>Returns true if the specified directory exists.</summary>
     bool DirectoryExists(string path);
+    /// <summary>Gets the UTC last-write time of a file (used for cross-run cache invalidation).</summary>
+    DateTime GetLastWriteTimeUtc(string path);
     /// <summary>Computes a relative path from one path to another.</summary>
     string GetRelativePath(string relativeTo, string path);
     /// <summary>Gets the absolute path for a given path.</summary>
