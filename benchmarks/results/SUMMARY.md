@@ -4,6 +4,30 @@ Profile-first work: measure the real pipeline over the standing eval repos, find
 empirically, fix one lever at a time, re-benchmark, keep tests green. Harness: `benchmarks` `repos`
 mode (median of 3 after 1 warm-up, reusing the production composition root). Raw runs in this folder.
 
+## Iteration 8 (P5 + determinism) — latest
+
+Stage-2 parse/walk parallelized (output-preserving two-phase: parallel parse → deterministic serial
+commit). Latest full run: `PERF-2026-06-21-0048.md`.
+
+| Repo | Mode | iter-7 after | iter-8 after | Stage2 |
+|---|---|--:|--:|--:|
+| DntSite | Map | 7.7 s | **3.5 s** | 6030 → **2013 ms** |
+| DntSite | Trace | 10.1 s | **4.1 s** | bind 1816 → 1245 ms |
+| OrchardCore | Map | 5.7 s | **3.0 s** | 3802 → **1559 ms** |
+| AutoMapper | Map | 2.0 s | **0.9 s** | 1872 → **806 ms** |
+
+Also fixed a **pre-existing** focus-scoped-trace nondeterminism (`CallGraphExtractor` iterated
+`model.Types`/`model.Detections`, both concurrent collections with nondeterministic enumeration, to build
+first/last-wins resolution maps) — eShop `POST /api/orders/` edges wandered 159/91; now a fresh-process
+CLI trace is byte-identical and always lands on the complete 159-edge chain. P4 (trim metadata refs) was
+measured and **skipped** (static `Lazy`, already excluded from the post-warmup bench median). Caveat: the
+macro bench reuses one pipeline across repos, so its eShop-trace edge cell is harness noise — production
+is deterministic.
+
+---
+
+## Iteration 7 baseline (below)
+
 ## Headline (DntSite, 1336 files — the representative repo)
 
 | Stage | Baseline (`f31a2a2`) | After (P2+P1+IndirectWiring+seam-fix) | Δ |
