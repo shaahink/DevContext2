@@ -132,7 +132,7 @@ public sealed class NarrativeRendererTests
 
         var snapshot = new AnalysisSnapshot
         {
-            Model = model, Analysis = new SharedAnalysisContext(),
+            Model = model, Analysis = new SharedAnalysisContext(), RootPath = @"C:\a",
             Scenario = ScenarioRegistry.BuiltIn["overview"], Options = new ExtractionOptions(),
             Report = DefaultReport, Graph = EmptyGraph, Map = map, Entries = entries,
         };
@@ -143,6 +143,6 @@ public sealed class NarrativeRendererTests
         for (var i = 1; i <= 15; i++)
             Assert.Contains($"GET /r{i}", result.Content);      // every entry listed
         Assert.Contains("→ FooCommand", result.Content);        // resolved target shown
-        Assert.Contains("(Endpoints.cs:1)", result.Content);    // short provenance, not absolute path
+        Assert.Contains("(Endpoints.cs:1)", result.Content);    // repo-relative provenance (relative to RootPath)
     }
 }

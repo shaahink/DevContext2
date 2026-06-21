@@ -13,7 +13,7 @@ TOPOLOGY (depends-on)
 
 ENTRY POINTS
    HTTP (1)
-      GET /products  → GetProductsQuery  (Program.cs:13)
+      GET /products  → GetProductsQuery  (src/Web/Program.cs:13)
 
 CROSS-CUTTING
    Aggregates:   Product

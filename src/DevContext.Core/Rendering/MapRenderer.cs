@@ -26,8 +26,9 @@ public static class MapRenderer
             AppendStack(sb, ctx);
             AppendStyle(sb, ctx.Map);
         });
+        var basePath = ctx.Snapshot.RootPath;
         Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
-        Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map));
+        Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
         Add(sections, "Footer", AppendFooter);
@@ -139,7 +140,7 @@ public static class MapRenderer
         sb.AppendLine();
     }
 
-    private static void AppendEntryPoints(StringBuilder sb, MapModel map)
+    private static void AppendEntryPoints(StringBuilder sb, MapModel map, string? basePath)
     {
         if (map.Entries.IsDefaultOrEmpty) return;
         sb.AppendLine("ENTRY POINTS");
@@ -153,7 +154,7 @@ public static class MapRenderer
             var list = group.ToList();
             sb.AppendLine($"   {GroupLabel(group.Key)} ({list.Count})");
             foreach (var ep in list)
-                sb.AppendLine($"      {ep.Title}{Target(ep)}{Where(ep)}");
+                sb.AppendLine($"      {ep.Title}{Target(ep)}{Where(ep, basePath)}");
         }
         sb.AppendLine();
     }
@@ -161,16 +162,12 @@ public static class MapRenderer
     private static string Target(EntryPoint ep)
         => string.IsNullOrEmpty(ep.Target) ? "" : $"  → {ep.Target}";
 
-    /// <summary>Short "(file:line)" — just the filename, not the absolute path, to keep the Map clean.</summary>
-    private static string Where(EntryPoint ep)
+    /// <summary>Short "(repo/relative/File.cs:line)" — repo-relative (like traces), not the absolute
+    /// machine path, so the Map's entry list matches the trace's source locations.</summary>
+    private static string Where(EntryPoint ep, string? basePath)
     {
         if (ep.Provenance is not { Length: > 0 } p) return "";
-        var colon = p.LastIndexOf(':');
-        var path = colon > 0 ? p[..colon] : p;
-        var line = colon > 0 ? p[colon..] : "";
-        var slash = path.LastIndexOfAny(['\\', '/']);
-        var file = slash >= 0 ? path[(slash + 1)..] : path;
-        return $"  ({file}{line})";
+        return $"  ({PathDisplay.RelativeProvenance(basePath, p)})";
     }
 
     private static void AppendCrossCutting(StringBuilder sb, MapModel map)
