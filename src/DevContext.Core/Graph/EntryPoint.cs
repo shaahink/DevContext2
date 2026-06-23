@@ -29,4 +29,7 @@ public sealed record EntryPoint(
     /// registration class that dispatches several commands). Surfaced as "route → Target" in the Map
     /// and the desktop entry picker so both convey the wiring at a glance.</summary>
     public string? Target { get; init; }
+    /// <summary>The graph node (Type or Member) that this entry's Calls edge points to. Set during
+    /// graph construction so EnrichEntryTargets can resolve targets without scanning by name.</summary>
+    public NodeId? HandlerNode { get; init; }
 }

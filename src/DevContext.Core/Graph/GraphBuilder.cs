@@ -54,75 +54,77 @@ public sealed class GraphBuilder
 
     /// <summary>After the graph is assembled, resolve each entry's dispatch target (the command it
     /// sends or the handler it invokes) so the Map and the desktop picker can show "route → Target".
-    /// The Sends/Handles edges don't exist yet when entries are first created, so this runs last.</summary>
+    /// Uses the entry's <see cref="EntryPoint.HandlerNode"/> (set during graph construction) to find
+    /// the connected Type/Member node and its Sends edges.</summary>
     private static ImmutableArray<EntryPoint> EnrichEntryTargets(CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         if (entries.IsDefaultOrEmpty) return entries;
         var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
         foreach (var e in entries)
-            b.Add(e with { Target = ResolveEntryTarget(graph, e.Node, e.Title) });
+            b.Add(e with { Target = ResolveEntryTarget(graph, e) });
         return b.ToImmutable();
     }
 
-    /// <summary>Resolves an entry's primary target by stepping one hop down its Calls edge: a named
-    /// handler method/class is the target; a type that dispatches exactly one request shows that
-    /// command; for multi-send types (minimal-API registration classes), the entry route is matched
-    /// heuristically against request names (last route segment → contains-match on request).</summary>
-    private static string? ResolveEntryTarget(CodeGraph graph, NodeId entryNode, string? entryTitle = null)
+    /// <summary>Resolves an entry's primary target by following its HandlerNode (set during graph
+    /// construction). For Member nodes (named handlers, lambda nodes): resolves via the Member's own
+    /// or parent Type's Sends edges. For Type nodes: finds the single Sends target or matches by
+    /// route segment + HTTP verb prefix.</summary>
+    private static string? ResolveEntryTarget(CodeGraph graph, EntryPoint entry)
     {
-        // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node, so
-        // every such entry would resolve to whichever endpoint won that bucket — misleading. Skip them.
+        var entryNode = entry.Node;
+        // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node.
         if (entryNode.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
 
-        foreach (var call in graph.OutEdges(entryNode, EdgeKind.Calls))
+        // Use the handler node stored at construction time — no graph scanning needed.
+        if (entry.HandlerNode is not { } handlerNodeId) return null;
+        var node = graph.Node(handlerNodeId);
+        if (node is null) return null;
+
+        switch (node.Kind)
         {
-            var node = graph.Node(call.To);
-            if (node is null) continue;
-            switch (node.Kind)
-            {
-                case NodeKind.Member:
-                    // G5: a per-endpoint minimal-API lambda node resolves its target through its own
-                    // Sends edge (like a Type) — "route → Command" when it dispatches exactly one,
-                    // else null. Its synthetic "<lambda> …" title must never surface as the target.
-                    if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
-                    {
-                        var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
-                            .Select(s => s.To).Distinct().ToList();
-                        return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
-                    }
-                    // Named handler method (e.g. "OrdersApi.CreateOrderAsync"): look for Sends from
-                    // the parent Type node (the Member itself carries no Sends — they live on the Type).
-                    var memberTypeKey = node.Title.LastIndexOf('.');
-                    if (memberTypeKey > 0)
-                    {
-                        var typeName = node.Title[..memberTypeKey];
-                        // Match the parent Type by scanning graph nodes for one whose Title equals
-                        // the short name (FQN-based keys don't match short names directly).
-                        var typeNode = graph.Nodes
-                            .FirstOrDefault(n => n.Kind == NodeKind.Type
-                                && (n.Title == typeName || n.Title.EndsWith("." + typeName, StringComparison.Ordinal)));
-                        if (typeNode is not null)
-                        {
-                            var typeSends = graph.OutEdges(typeNode.Id, EdgeKind.Sends)
-                                .Select(s => s.To).Distinct().ToList();
-                            if (typeSends.Count == 1)
-                                return graph.Node(typeSends[0])?.Title;
-                            if (typeSends.Count > 1 && entryTitle is { } rt)
-                                return MatchRouteToSend(rt, typeSends, graph);
-                        }
-                    }
-                    return memberTypeKey > 0 ? node.Title[..memberTypeKey] : node.Title;
-                case NodeKind.Handler:
-                    return node.Title;
-                case NodeKind.Type:
-                    var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
+            case NodeKind.Member:
+                if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+                {
+                    var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
-                    if (sends.Count == 1)
-                        return graph.Node(sends[0])?.Title;
-                    if (sends.Count > 1 && entryTitle is { } route)
-                        return MatchRouteToSend(route, sends, graph);
-                    return null;
-            }
+                    return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
+                }
+                // Named handler method: check parent Type's Sends
+                return ResolveViaParentType(node.Title, entry.Title, graph);
+            case NodeKind.Handler:
+                return node.Title;
+            case NodeKind.Type:
+                var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
+                    .Select(s => s.To).Distinct().ToList();
+                if (sends.Count == 1)
+                    return graph.Node(sends[0])?.Title;
+                if (sends.Count > 1 && entry.Title is { } route)
+                    return MatchRouteToSend(route, sends, graph);
+                return null;
+        }
+        return null;
+    }
+
+    /// <summary>For a named Member node (e.g. "OrdersApi.CreateOrderAsync"), follow to the parent
+    /// Type's Sends edges.</summary>
+    private static string? ResolveViaParentType(string memberTitle, string? entryTitle, CodeGraph graph)
+    {
+        var dot = memberTitle.LastIndexOf('.');
+        if (dot <= 0) return null;
+        var typeName = memberTitle[..dot];
+
+        foreach (var n in graph.Nodes)
+        {
+            if (n.Kind != NodeKind.Type) continue;
+            if (n.Title != typeName && !n.Title.EndsWith("." + typeName, StringComparison.Ordinal))
+                continue;
+            var typeSends = graph.OutEdges(n.Id, EdgeKind.Sends)
+                .Select(s => s.To).Distinct().ToList();
+            if (typeSends.Count == 1)
+                return graph.Node(typeSends[0])?.Title;
+            if (typeSends.Count > 1 && entryTitle is { } route)
+                return MatchRouteToSend(route, typeSends, graph);
+            break;
         }
         return null;
     }
@@ -222,6 +224,8 @@ public sealed class GraphBuilder
                 || ep.HandlerType.Contains("=>", StringComparison.Ordinal);
 
             var linked = false;
+            NodeId? handlerNodeId = null;
+
             if (!isLambdaHandler)
             {
                 var handlerFqn = names.Resolve(ep.HandlerType);
@@ -234,6 +238,7 @@ public sealed class GraphBuilder
                 {
                     // B4: Anchor on the specific handler method via a Member node
                     var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
+                    handlerNodeId = memberNodeId;
                     var typeNode = g.Nodes.FirstOrDefault(n => n.Id.Key == handlerFqn);
                     g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
                     {
@@ -249,10 +254,11 @@ public sealed class GraphBuilder
                 }
                 else
                 {
-                    var handlerNodeId = NodeId.ForType(handlerFqn);
-                    if (g.HasNode(handlerNodeId))
+                    var typeNodeId = NodeId.ForType(handlerFqn);
+                    if (g.HasNode(typeNodeId))
                     {
-                        g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
+                        handlerNodeId = typeNodeId;
+                        g.AddEdge(new GraphEdge(id, typeNodeId, EdgeKind.Calls)
                         {
                             Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                             Resolution = Resolution.Join,
@@ -274,6 +280,7 @@ public sealed class GraphBuilder
                 {
                     var ownerKey = ownerType?.Id ?? Path.GetFileNameWithoutExtension(ep.SourceFile);
                     var lambdaId = NodeId.ForMember(ownerKey, $"<lambda> {key}");
+                    handlerNodeId = lambdaId;
                     g.AddNode(new GraphNode(lambdaId, $"<lambda> {key}", NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
@@ -292,6 +299,7 @@ public sealed class GraphBuilder
                     var ownerNodeId = NodeId.ForType(ownerType.Id);
                     if (g.HasNode(ownerNodeId))
                     {
+                        handlerNodeId = ownerNodeId;
                         g.AddEdge(new GraphEdge(id, ownerNodeId, EdgeKind.Calls)
                         {
                             Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
@@ -306,6 +314,7 @@ public sealed class GraphBuilder
                 HttpMethod = ep.HttpMethod,
                 Route = ep.RouteTemplate,
                 Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                HandlerNode = handlerNodeId,
             });
         }
         return entries.ToImmutable();
