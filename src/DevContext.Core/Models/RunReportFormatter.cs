@@ -21,7 +21,9 @@ public static class RunReportFormatter
         if (graphSummary is { } g)
         {
             var depth = g.TraceDepth is int d ? $" · depth {d}" : "";
-            return $"analyzed {files} files · {g.Nodes} nodes · {g.Edges} edges · {g.Entries} entries{depth} · ~{renderedTokens} tokens · {elapsed:F1}s{speedup}";
+            var targets = g.Entries > 0 && g.EntriesWithTarget > 0
+                ? $" · {g.EntriesWithTarget}/{g.Entries} →target" : "";
+            return $"analyzed {files} files · {g.Nodes} nodes · {g.Edges} edges · {g.Entries} entries{targets}{depth} · ~{renderedTokens} tokens · {elapsed:F1}s{speedup}";
         }
 
         var funnel = renderFunnel ?? report.Funnel;

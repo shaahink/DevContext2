@@ -55,8 +55,8 @@ public sealed class GraphBuilderTests
         Assert.Equal("POST /api/orders", entries[0].Title);
 
         // MediatR detection became Request --Handles--> Handler, with the handler key FQN-resolved.
-        var requestId = NodeId.ForRequest("CreateOrderCommand");
-        var handlerId = NodeId.ForHandler("Orders.Api.CreateOrderCommandHandler");
+        var requestId = NodeId.ForType("CreateOrderCommand");
+        var handlerId = NodeId.ForType("Orders.Api.CreateOrderCommandHandler");
         Assert.True(graph.Contains(requestId));
         Assert.True(graph.Contains(handlerId));
         Assert.Contains(graph.OutEdges(requestId), e => e.Kind == EdgeKind.Handles && e.To == handlerId);
@@ -166,8 +166,8 @@ public sealed class GraphBuilderTests
                 new NoiseFilter(new ProjectClassifier(model.Projects)))
             .Build(model, scope);
 
-        var eventId = NodeId.ForEvent("OrderStartedDomainEvent");
-        var handlerId = NodeId.ForHandler("Orders.Api.ValidateBuyerHandler");
+        var eventId = NodeId.ForType("OrderStartedDomainEvent");
+        var handlerId = NodeId.ForType("Orders.Api.ValidateBuyerHandler");
         Assert.True(graph.Contains(eventId));
         Assert.True(graph.Contains(handlerId));
         Assert.Contains(graph.OutEdges(eventId), e => e.Kind == EdgeKind.Consumes && e.To == handlerId);
@@ -208,7 +208,7 @@ public sealed class GraphBuilderTests
             .Build(model, scope);
 
         var svcId = NodeId.ForType("Orders.Api.IOrderRepository");
-        var implId = NodeId.ForService("Orders.Api.OrderRepository");
+        var implId = NodeId.ForType("Orders.Api.OrderRepository");
         Assert.Contains(graph.OutEdges(svcId), e => e.Kind == EdgeKind.Resolves && e.To == implId);
     }
 
@@ -238,7 +238,7 @@ public sealed class GraphBuilderTests
                 new NoiseFilter(new ProjectClassifier(model.Projects)))
             .Build(model, scope);
 
-        var orderNode = graph.Node(NodeId.ForEntity("Orders.Api.Order"));
+        var orderNode = graph.Node(NodeId.ForType("Orders.Api.Order"));
         Assert.NotNull(orderNode);
         Assert.Contains("aggregate", orderNode!.Tags);
     }

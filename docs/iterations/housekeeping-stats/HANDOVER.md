@@ -5,6 +5,44 @@
 > rendering upgrades, stats page redesign, entry→target heuristics. The prior handover is
 > in `docs/iterations/iteration-8/HANDOVER.md`.
 
+## ⬆ Update 2026-06-23 — Graph kernel redesign + G1–G4 closed + unified seams
+
+A follow-up session did the kernel redesign the gaps were pointing at, folded the targeted fixes
+in, and unified three subsystems. **Gate PASS** (build 0-warn · Core 273 pass/2 skip · Desktop 64 ·
+eval 8/8 · CLI matrix). Plan: `~/.claude/plans/fancy-noodling-codd.md`.
+
+- **Kernel: one node per class (Type + role tags).** `NodeKind` collapsed to `{Type, Member,
+  EntryPoint}`; `Handler/Service/Request/Event/Entity/DataStore` are now **role tags** on the single
+  Type node (`RoleTags` in `CodeGraph.cs`), and the relationship lives in the `EdgeKind`. Deleted the
+  twin machinery (`OutEdgesWithTwin` Handler/Service branch, the `AddRaises` B5 mirror,
+  `ResolveViaParentType` rescans). `CodeGraphBuilder.AddNode` now **merges** tags + keeps the richest
+  declaration. This dissolves G1/G5 structurally (the entry's Calls edge and the type's Sends edges
+  finally land on one identity).
+- **G1 (eShop `POST /api/orders/ → CreateOrderCommand`) — RESOLVED.** `EndpointExtractor` now reports
+  the owning type for method-group handlers, and each endpoint anchors on its own method body
+  (`AddDispatchEdgesFromBody`) so per-route dispatch is exact (GET-that-only-queries → no command, not
+  a wrong guess). Needs `BuildFullGraph` (below) so source bodies exist in overview.
+- **G2 (FastEndpoints `<dynamic>`) — RESOLVED.** `FastEndpointsHelper` resolves `Post(Request.Route)`
+  const-string routes via a cross-file index (`BuildRouteConstIndex`). VerticalSlice `no-dynamic`
+  **ratcheted to expected**.
+- **G3 (eShop Bus group) — RESOLVED.** `EventBusExtractor` self-activates on `IIntegrationEventHandler<T>`
+  impls (eShop's custom RabbitMQ bus, no MassTransit/NSB signal). eShop now shows `Bus (13)`.
+- **G4 (TOUCHES on shallow traces) — RESOLVED.** `AddDataEdges` scans lambda/handler-method Member
+  bodies; `EfCoreExtractor.DerivesFromDbContext` now matches `IdentityDbContext`/`*DbContext` (TodoApi's
+  entity went undetected). Migration-folder artifacts filtered from TOUCHES. TodoApi `POST /todos/` →
+  `TOUCHES Todo`.
+- **Unified entry-point selection:** one `Graph/EntryPointResolver.cs` used by both the pipeline render
+  branch and the desktop picker (was two inconsistent paths).
+- **Unified, graph-shaped stats:** `Graph/GraphStats.cs` → per-seam edge counts × resolution split +
+  entry→target coverage, feeding CLI `--stats`, the one-line summary (`N/M →target`), and the desktop
+  HTML stats page.
+- **Caching — focus is now a pure re-render.** `ExtractionOptions.BuildFullGraph` (default on) assembles
+  the complete graph (source bodies + call edges) at analyze-time, so the snapshot is entry-agnostic;
+  desktop `OnFocusChanged` → re-render (not re-analyze). Opt-out: CLI `--lite`. The `CodeGraph` stays
+  serialization-clean = the P4 disk-index seed (still deferred).
+- **Still aspirational:** eShop `POST /api/orders/draft` (command comes from a method parameter, not a
+  `new` — semantic/P3); some FastEndpoints POST/List targets. G5/G6 superseded/unchanged.
+
 ## Pick your thread (read order)
 
 - **Map/Trace rendering:** `src/DevContext.Core/Rendering/{MapRenderer,TraceRenderer,NarrativeSections}.cs`

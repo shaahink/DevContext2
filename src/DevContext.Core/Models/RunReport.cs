@@ -24,7 +24,19 @@ public sealed record CorpusStats(int TotalFiles, int CSharpFiles, int Projects);
 public sealed record TokenFunnel(int TypesDiscovered, int TypesHardExcluded, int TypesIncluded,
     int RawEstimatedTokens, int RenderedEstimatedTokens, int Budget);
 /// <summary>Graph-shaped stats for the Map/Trace narrative, where the type-funnel ("N types kept")
-/// is meaningless. <see cref="TraceDepth"/> is null for a Map (whole-codebase, no walk).</summary>
-public sealed record GraphSummary(int Nodes, int Edges, int Entries, int? TraceDepth);
+/// is meaningless. <see cref="TraceDepth"/> is null for a Map (whole-codebase, no walk).
+/// <see cref="Seams"/> and <see cref="EntriesWithTarget"/> turn the stats page into a wiring-coverage
+/// dashboard: how much indirection was bridged, how confidently, and how many entries resolved a
+/// dispatch target (the direct quality signal that improves as detection/semantics improve).</summary>
+public sealed record GraphSummary(int Nodes, int Edges, int Entries, int? TraceDepth)
+{
+    /// <summary>Per-seam edge counts with the approximate (syntactic) share — the "show your work" surface.</summary>
+    public ImmutableArray<SeamStat> Seams { get; init; } = [];
+    /// <summary>How many entry points resolved a dispatch target (route → command/handler).</summary>
+    public int EntriesWithTarget { get; init; }
+}
+
+/// <summary>One edge-kind's coverage: total edges and how many were resolved only syntactically (approx).</summary>
+public sealed record SeamStat(string Seam, int Count, int Approx);
 public sealed record ParallelismStats(TimeSpan Stage2Wall, TimeSpan Stage2CpuSum,
     TimeSpan Stage3Wall, TimeSpan Stage3CpuSum);

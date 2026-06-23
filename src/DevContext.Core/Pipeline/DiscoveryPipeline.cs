@@ -320,11 +320,13 @@ public sealed class DiscoveryPipeline
         var wantsNarrative = format is "markdown";
         if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
         {
+            // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
+            // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
+            var (seams, withTarget) = Graph.GraphStats.Compute(graph, snapshot.Entries);
+
             if (!string.IsNullOrEmpty(request.Entry))
             {
-                var entry = snapshot.Entries.FirstOrDefault(e =>
-                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase))
-                    ?? ResolveEntryFromNode(graph, request.Entry);
+                var entry = Graph.EntryPointResolver.Resolve(snapshot.Entries, graph, request.Entry);
                 if (entry is not null)
                 {
                     var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
@@ -348,7 +350,8 @@ public sealed class DiscoveryPipeline
 
                     return NarrativeSections.WithExtraSection(
                         traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
-                        with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root)) };
+                        with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root))
+                            { Seams = seams, EntriesWithTarget = withTarget } };
                 }
             }
 
@@ -361,7 +364,8 @@ public sealed class DiscoveryPipeline
                     : await MapRenderer.RenderAsync(mapCtx, ct);
                 return NarrativeSections.WithExtraSection(
                     narrative, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
-                    with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null) };
+                    with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null)
+                        { Seams = seams, EntriesWithTarget = withTarget } };
             }
         }
 
@@ -421,33 +425,6 @@ public sealed class DiscoveryPipeline
     /// from it, not just from a catalogued HTTP entry. Lets <c>--focus OrdersController</c> /
     /// <c>--focus CreateOrderCommandHandler</c> produce a trace instead of silently falling back to the Map.
     /// Prefers behaviour-bearing nodes (Type/Handler/Service) and matches by short name.</summary>
-    private static Graph.EntryPoint? ResolveEntryFromNode(Graph.CodeGraph graph, string focus)
-    {
-        var name = focus.Trim();
-        // Type:Method narrows to the type; the trace walks the type's out-edges either way.
-        var colon = name.IndexOf(':');
-        if (colon > 0) name = name[..colon];
-
-        Graph.GraphNode? best = null;
-        foreach (var node in graph.Nodes)
-        {
-            if (node.Kind is not (Graph.NodeKind.Type or Graph.NodeKind.Handler
-                or Graph.NodeKind.Service or Graph.NodeKind.EntryPoint)) continue;
-            if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
-                && !node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase)) continue;
-            // Prefer a node that actually has somewhere to go.
-            if (best is null || graph.OutEdges(node.Id).Length > graph.OutEdges(best.Id).Length)
-                best = node;
-        }
-
-        return best is null
-            ? null
-            : new Graph.EntryPoint(Graph.EntryPointKind.PublicApi, best.Title, best.Id)
-            {
-                Provenance = best.FilePath,
-            };
-    }
-
     /// <summary>Appends graph-assembly and call-graph diagnostics under a Map/Trace when --include-diagnostics
     /// is set, so users (and we) can see node/edge counts and the call-graph resolver without the legacy path.</summary>
     private static string GraphDiagnosticsTail(AnalysisSnapshot snapshot, RenderRequest request)

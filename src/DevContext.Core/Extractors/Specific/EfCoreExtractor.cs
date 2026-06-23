@@ -98,8 +98,13 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
             var typeName = baseType.Type.ToString();
             if (typeName == "DbContext") return true;
 
+            // Match any *DbContext base: DbContext, IdentityDbContext<TUser> (ASP.NET Identity),
+            // and project-specific base contexts (ApplicationDbContext, etc.). Without this, an
+            // Identity-based context's DbSets go undetected — so its entities never reach the graph
+            // and a trace through them shows no TOUCHES (G4).
             var baseName = typeName.Split('<')[0];
-            if (baseName == "DbContext") return true;
+            if (baseName == "DbContext" || baseName.EndsWith("DbContext", StringComparison.Ordinal))
+                return true;
         }
 
         return false;

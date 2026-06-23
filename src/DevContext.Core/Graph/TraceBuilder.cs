@@ -85,7 +85,7 @@ public sealed class TraceBuilder
     {
         // Entity nodes are collected by CollectGraphEntities (below) which scans
         // all edges including cut ones — not limited to the rendered tree.
-        if (step.Node.Kind == NodeKind.Event)
+        if (IsEventNode(step.Node))
             emitted.Add(step.Node.Title);
         foreach (var child in step.Children)
             CollectSummaries(child, touched, emitted);
@@ -104,8 +104,8 @@ public sealed class TraceBuilder
                 if (edge.Kind == EdgeKind.ReadsWrites)
                 {
                     var targetNode = _graph.Node(edge.To);
-                    if (targetNode is not null && targetNode.Kind == NodeKind.Entity
-                        && !IsNoiseEntityName(targetNode.Title))
+                    if (targetNode is not null && IsEntityNode(targetNode)
+                        && !IsNoiseEntity(targetNode))
                         touched.Add(targetNode.Title);
                 }
             }
@@ -113,8 +113,8 @@ public sealed class TraceBuilder
         // Also collect entities that connect TO a visited DataStore node
         foreach (var (nodeId, node) in _graph.Nodes.Select(n => (n.Id, n)))
         {
-            if (node.Kind != NodeKind.Entity) continue;
-            if (IsNoiseEntityName(node.Title)) continue;
+            if (!IsEntityNode(node)) continue;
+            if (IsNoiseEntity(node)) continue;
             foreach (var edge in _graph.OutEdges(nodeId, EdgeKind.ReadsWrites))
             {
                 if (visited.Contains(edge.To))
@@ -126,10 +126,25 @@ public sealed class TraceBuilder
         }
     }
 
-    private static bool IsNoiseEntityName(string name)
-        => name.StartsWith('<')           // <OnModelCreating> etc.
-        || name.Contains("Migration")     // Migration artifacts
-        || name.Contains("Initial");      // Initial migration
+    /// <summary>Filters EF artifacts that get mistaken for entities: synthetic names (&lt;OnModelCreating&gt;),
+    /// migration classes by name, and — the robust catch — anything declared under a Migrations folder
+    /// (e.g. a migration class like <c>ForeignKeyChange</c> that doesn't match a name pattern).</summary>
+    private static bool IsNoiseEntity(GraphNode node)
+        => node.Title.StartsWith('<')
+        || node.Title.Contains("Migration")
+        || node.Title.Contains("Initial")
+        || (node.FilePath is { } f
+            && (f.Contains("\\Migrations\\", StringComparison.OrdinalIgnoreCase)
+                || f.Contains("/Migrations/", StringComparison.OrdinalIgnoreCase)));
+
+    /// <summary>A node is an emitted event if tagged as a domain/integration event (role tags replaced
+    /// the old NodeKind.Event).</summary>
+    private static bool IsEventNode(GraphNode n)
+        => n.Tags.Contains(RoleTags.DomainEvent) || n.Tags.Contains(RoleTags.IntegrationEvent);
+
+    /// <summary>A node is an entity if tagged entity/aggregate (replaced the old NodeKind.Entity).</summary>
+    private static bool IsEntityNode(GraphNode n)
+        => n.Tags.Contains(RoleTags.Entity) || n.Tags.Contains(RoleTags.Aggregate);
 
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
@@ -165,10 +180,12 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
-            // Use source body from the FROM node, preferring Type twin body over Handler/Service body
+            // Salient source comes from the FROM node's body; for a Member node, fall back to its
+            // parent Type's body (the body scans attach edges + bodies at the type level).
             var fromNode = _graph.Node(edge.From) ?? node;
             var salientSource = fromNode.SourceBody ?? (
-                fromNode.Kind != node.Kind && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
+                fromNode.Id.Kind == NodeKind.Member
+                && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
                     ? twin.SourceBody
                     : null);
             var salient = ExtractSalient(salientSource, edge.Provenance);
@@ -220,21 +237,19 @@ public sealed class TraceBuilder
             || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
-    /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service/Member node and the class's
-    /// Type node are the same class with different ids: the Handles/Resolves/Consumes/Calls edge lands on the
-    /// Handler/Service/Member node, but the class's own call/raise/data edges were attached to the Type node.
-    /// Without this bridge the trace dead-ends the moment it crosses an indirection seam into a handler.</summary>
+    /// <summary>Out-edges of a node, plus those of its parent Type when the node is a Member. A method
+    /// belongs to a type (legitimate containment, not a synonym): an entry anchored on a handler-method
+    /// or minimal-API lambda Member node should also see the class's own call/raise/send/data edges,
+    /// which the body scans attach to the Type node. Since the Type+tags collapse made one node per class,
+    /// the old Handler/Service "twins" are gone — Member→Type is the only bridge that remains.</summary>
     private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
     {
         foreach (var e in _graph.OutEdges(id))
             yield return e;
 
-        if (id.Kind is NodeKind.Handler or NodeKind.Service or NodeKind.Member)
+        if (id.Kind is NodeKind.Member)
         {
-            var typeKey = id.Kind == NodeKind.Member
-                ? ExtractTypeKey(id.Key)
-                : id.Key;
-            var twin = NodeId.ForType(typeKey);
+            var twin = NodeId.ForType(ExtractTypeKey(id.Key));
             if (_graph.Contains(twin))
                 foreach (var e in _graph.OutEdges(twin))
                     yield return e;

@@ -67,7 +67,7 @@ public sealed class GraphBuilderTraceTests
             .Build(model, scope);
 
         var orderId = NodeId.ForType("Orders.Api.Order");
-        var eventId = NodeId.ForEvent("OrderStartedDomainEvent");
+        var eventId = NodeId.ForType("OrderStartedDomainEvent");
         Assert.True(graph.Contains(eventId), "Event node should exist");
         Assert.Contains(graph.OutEdges(orderId), e => e.Kind == EdgeKind.Raises && e.To == eventId);
     }
@@ -95,7 +95,7 @@ public sealed class GraphBuilderTraceTests
             .Build(model, scope);
 
         var apiId = NodeId.ForType("Orders.Api.OrdersApi");
-        var requestId = NodeId.ForRequest("CreateOrderCommand");
+        var requestId = NodeId.ForType("CreateOrderCommand");
         Assert.True(graph.Contains(requestId), "Request node should exist");
         Assert.Contains(graph.OutEdges(apiId), e => e.Kind == EdgeKind.Sends && e.To == requestId);
     }
@@ -132,7 +132,7 @@ public sealed class GraphBuilderTraceTests
                 new NoiseFilter(new ProjectClassifier(model.Projects)))
             .Build(model, scope);
 
-        var entityId = NodeId.ForEntity("Orders.Api.Order");
+        var entityId = NodeId.ForType("Orders.Api.Order");
         var ctxId = NodeId.ForType("Orders.Api.OrderingContext");
         Assert.Contains(graph.OutEdges(entityId), e => e.Kind == EdgeKind.ReadsWrites && e.To == ctxId);
     }
@@ -200,12 +200,12 @@ public sealed class GraphBuilderTraceTests
         Assert.Equal(SeamKind.Entry, trace.Root.Seam);
 
         // At minimum, verify the graph has the expected nodes and edges
-        Assert.True(graph.Contains(NodeId.ForRequest("CreateOrderCommand")));
-        Assert.True(graph.Contains(NodeId.ForHandler("Orders.Api.CreateOrderCommandHandler")));
-        Assert.Contains(graph.OutEdges(NodeId.ForRequest("CreateOrderCommand")),
+        Assert.True(graph.Contains(NodeId.ForType("CreateOrderCommand")));
+        Assert.True(graph.Contains(NodeId.ForType("Orders.Api.CreateOrderCommandHandler")));
+        Assert.Contains(graph.OutEdges(NodeId.ForType("CreateOrderCommand")),
             e => e.Kind == EdgeKind.Handles);
-        Assert.True(graph.Contains(NodeId.ForEvent("OrderStartedDomainEvent")));
-        Assert.Contains(graph.OutEdges(NodeId.ForEvent("OrderStartedDomainEvent")),
+        Assert.True(graph.Contains(NodeId.ForType("OrderStartedDomainEvent")));
+        Assert.Contains(graph.OutEdges(NodeId.ForType("OrderStartedDomainEvent")),
             e => e.Kind == EdgeKind.Consumes);
     }
 }

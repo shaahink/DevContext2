@@ -60,6 +60,11 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--no-roslyn")]
     public bool NoRoslyn { get; set; }
 
+    [Description("Lite mode: skip the full graph build (source bodies + call graph) for speed; "
+        + "the Map still renders but loses dispatch targets/deep traces, and focus re-analyzes")]
+    [CommandOption("--lite")]
+    public bool Lite { get; set; }
+
     [Description("Info-level logging")]
     [CommandOption("--verbose")]
     public bool Verbose { get; set; }

@@ -188,9 +188,23 @@ public static class RunReportHtmlRenderer
             sb.AppendLine($"<span class='dc-stats-graph-stat'>{g.Nodes}<span class='dc-stats-graph-label'>nodes</span></span>");
             sb.AppendLine($"<span class='dc-stats-graph-stat'>{g.Edges}<span class='dc-stats-graph-label'>edges</span></span>");
             sb.AppendLine($"<span class='dc-stats-graph-stat'>{g.Entries}<span class='dc-stats-graph-label'>entries</span></span>");
+            if (g.Entries > 0)
+                sb.AppendLine($"<span class='dc-stats-graph-stat'>{g.EntriesWithTarget}/{g.Entries}<span class='dc-stats-graph-label'>&rarr;target</span></span>");
             if (g.TraceDepth is { } d)
                 sb.AppendLine($"<span class='dc-stats-graph-stat'>{d}<span class='dc-stats-graph-label'>depth</span></span>");
             sb.AppendLine("</div>");
+
+            // Per-seam coverage — how much wiring was bridged, and the approx (syntactic-only) share.
+            if (g.Seams.Length > 0)
+            {
+                sb.AppendLine("<table class='dc-stats-table'><thead><tr><th>Seam</th><th>Edges</th><th>Approx</th></tr></thead><tbody>");
+                foreach (var s in g.Seams)
+                {
+                    var approx = s.Approx > 0 ? $"<span class='dc-stats-skip-chip'>{s.Approx}</span>" : "0";
+                    sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(s.Seam)}</td><td>{s.Count}</td><td>{approx}</td></tr>");
+                }
+                sb.AppendLine("</tbody></table>");
+            }
         }
 
         sb.AppendLine("</div></div>");
