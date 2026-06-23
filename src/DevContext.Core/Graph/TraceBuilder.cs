@@ -70,6 +70,10 @@ public sealed class TraceBuilder
         var touched = new List<string>();
         var emitted = new List<string>();
         CollectSummaries(root, touched, emitted);
+        // Also collect entities from ALL out-edges of visited nodes (not just the followed
+        // ones) — ReadWrites edges at priority 4 may be cut by fan-out, but the entities
+        // they connect to should still appear in TOUCHES.
+        CollectGraphEntities(visited, touched);
         return new Trace(entry, root)
         {
             TouchedEntities = [.. touched.Distinct()],
@@ -79,13 +83,53 @@ public sealed class TraceBuilder
 
     private static void CollectSummaries(TraceStep step, List<string> touched, List<string> emitted)
     {
-        if (step.Node.Kind == NodeKind.Entity)
-            touched.Add(step.Node.Title);
+        // Entity nodes are collected by CollectGraphEntities (below) which scans
+        // all edges including cut ones — not limited to the rendered tree.
         if (step.Node.Kind == NodeKind.Event)
             emitted.Add(step.Node.Title);
         foreach (var child in step.Children)
             CollectSummaries(child, touched, emitted);
     }
+
+    /// <summary>For every visited node, check all out-edges (including twin-node edges) for Entity
+    /// targets that were cut by fan-out. Also collects entities from incoming edges (Entity→DataStore)
+    /// when the DataStore node was visited. This ensures TOUCHES lists all entities reachable from the
+    /// trace, not just the ones in the rendered tree.</summary>
+    private void CollectGraphEntities(HashSet<NodeId> visited, List<string> touched)
+    {
+        foreach (var nodeId in visited)
+        {
+            foreach (var edge in OutEdgesWithTwin(nodeId))
+            {
+                if (edge.Kind == EdgeKind.ReadsWrites)
+                {
+                    var targetNode = _graph.Node(edge.To);
+                    if (targetNode is not null && targetNode.Kind == NodeKind.Entity
+                        && !IsNoiseEntityName(targetNode.Title))
+                        touched.Add(targetNode.Title);
+                }
+            }
+        }
+        // Also collect entities that connect TO a visited DataStore node
+        foreach (var (nodeId, node) in _graph.Nodes.Select(n => (n.Id, n)))
+        {
+            if (node.Kind != NodeKind.Entity) continue;
+            if (IsNoiseEntityName(node.Title)) continue;
+            foreach (var edge in _graph.OutEdges(nodeId, EdgeKind.ReadsWrites))
+            {
+                if (visited.Contains(edge.To))
+                {
+                    touched.Add(node.Title);
+                    break;
+                }
+            }
+        }
+    }
+
+    private static bool IsNoiseEntityName(string name)
+        => name.StartsWith('<')           // <OnModelCreating> etc.
+        || name.Contains("Migration")     // Migration artifacts
+        || name.Contains("Initial");      // Initial migration
 
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)

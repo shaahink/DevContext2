@@ -113,6 +113,7 @@ public sealed class MapBuilder
         var behaviors = new HashSet<string>(StringComparer.Ordinal);
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
+            // Direct registration: services.AddTransient(typeof(IPipelineBehavior<,>), typeof(X))
             if (di.ServiceType.Contains("IPipelineBehavior", StringComparison.Ordinal))
             {
                 var impl = CleanTypeRef(di.ImplementationType);
@@ -124,6 +125,18 @@ public sealed class MapBuilder
                 var impl = CleanTypeRef(di.ImplementationType);
                 if (!string.IsNullOrEmpty(impl) && impl != "?")
                     behaviors.Add(impl);
+            }
+            // AddMediatR fluent config: the lambda body may contain AddOpenBehavior(typeof(X)) calls
+            if (di.ImplementationType is { Length: > 0 } body
+                && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
+            {
+                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(body,
+                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
+                    System.Text.RegularExpressions.RegexOptions.Compiled))
+                {
+                    if (m.Groups[1].Value is { Length: > 0 } name && name != "?")
+                        behaviors.Add(name);
+                }
             }
         }
         return [.. behaviors.OrderBy(b => b)];

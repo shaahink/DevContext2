@@ -44,12 +44,6 @@ public static class TraceRenderer
             sb.AppendLine($"TOUCHES  {string.Join(", ", trace.TouchedEntities)}");
             sections.Add(new NarrativeSection("Touches", sb.ToString()));
         }
-        if (trace.TouchedEntities.Length > 0)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine($"TOUCHES  {string.Join(", ", trace.TouchedEntities)}");
-            sections.Add(new NarrativeSection("Touches", sb.ToString()));
-        }
 
         if (trace.EmittedEvents.Length > 0)
         {

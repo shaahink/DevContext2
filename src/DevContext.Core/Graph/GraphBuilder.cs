@@ -60,15 +60,15 @@ public sealed class GraphBuilder
         if (entries.IsDefaultOrEmpty) return entries;
         var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
         foreach (var e in entries)
-            b.Add(e with { Target = ResolveEntryTarget(graph, e.Node) });
+            b.Add(e with { Target = ResolveEntryTarget(graph, e.Node, e.Title) });
         return b.ToImmutable();
     }
 
     /// <summary>Resolves an entry's primary target by stepping one hop down its Calls edge: a named
     /// handler method/class is the target; a type that dispatches exactly one request shows that
-    /// command; an ambiguous registration class (many sends — minimal APIs) yields null (the Trace
-    /// disambiguates per-endpoint). Truthful by construction — no guess when the owner fans out.</summary>
-    private static string? ResolveEntryTarget(CodeGraph graph, NodeId entryNode)
+    /// command; for multi-send types (minimal-API registration classes), the entry route is matched
+    /// heuristically against request names (last route segment → contains-match on request).</summary>
+    private static string? ResolveEntryTarget(CodeGraph graph, NodeId entryNode, string? entryTitle = null)
     {
         // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node, so
         // every such entry would resolve to whichever endpoint won that bucket — misleading. Skip them.
@@ -90,9 +90,28 @@ public sealed class GraphBuilder
                             .Select(s => s.To).Distinct().ToList();
                         return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
                     }
-                    // "CreateEndpoint.HandleAsync" → "CreateEndpoint" (the handler class).
-                    var dot = node.Title.LastIndexOf('.');
-                    return dot > 0 ? node.Title[..dot] : node.Title;
+                    // Named handler method (e.g. "OrdersApi.CreateOrderAsync"): look for Sends from
+                    // the parent Type node (the Member itself carries no Sends — they live on the Type).
+                    var memberTypeKey = node.Title.LastIndexOf('.');
+                    if (memberTypeKey > 0)
+                    {
+                        var typeName = node.Title[..memberTypeKey];
+                        // Match the parent Type by scanning graph nodes for one whose Title equals
+                        // the short name (FQN-based keys don't match short names directly).
+                        var typeNode = graph.Nodes
+                            .FirstOrDefault(n => n.Kind == NodeKind.Type
+                                && (n.Title == typeName || n.Title.EndsWith("." + typeName, StringComparison.Ordinal)));
+                        if (typeNode is not null)
+                        {
+                            var typeSends = graph.OutEdges(typeNode.Id, EdgeKind.Sends)
+                                .Select(s => s.To).Distinct().ToList();
+                            if (typeSends.Count == 1)
+                                return graph.Node(typeSends[0])?.Title;
+                            if (typeSends.Count > 1 && entryTitle is { } rt)
+                                return MatchRouteToSend(rt, typeSends, graph);
+                        }
+                    }
+                    return memberTypeKey > 0 ? node.Title[..memberTypeKey] : node.Title;
                 case NodeKind.Handler:
                     return node.Title;
                 case NodeKind.Type:
@@ -100,9 +119,34 @@ public sealed class GraphBuilder
                         .Select(s => s.To).Distinct().ToList();
                     if (sends.Count == 1)
                         return graph.Node(sends[0])?.Title;
-                    // 0 or >1 sends → ambiguous; leave the route to speak for itself.
+                    if (sends.Count > 1 && entryTitle is { } route)
+                        return MatchRouteToSend(route, sends, graph);
                     return null;
             }
+        }
+        return null;
+    }
+
+    /// <summary>When a registration type dispatches many commands (minimal APIs), match an entry's
+    /// route to the most likely request by extracting the last significant route segment and finding
+    /// the Send target whose request name contains it.</summary>
+    private static string? MatchRouteToSend(string route, List<NodeId> sendTargets, CodeGraph graph)
+    {
+        // Extract the last significant segment: "POST /api/orders/" → "orders"
+        var segment = route.TrimEnd('/');
+        var lastSlash = segment.LastIndexOf('/');
+        if (lastSlash >= 0)
+            segment = segment[(lastSlash + 1)..];
+        // Strip {params}: "orders/{orderId:int}" → "orders"
+        var brace = segment.IndexOf('{');
+        if (brace > 0) segment = segment[..brace];
+        if (segment.Length < 2) return null;
+
+        foreach (var targetId in sendTargets)
+        {
+            var name = graph.Node(targetId)?.Title;
+            if (name is not null && name.Contains(segment, StringComparison.OrdinalIgnoreCase))
+                return name;
         }
         return null;
     }
@@ -373,6 +417,19 @@ public sealed class GraphBuilder
                 var impl = CleanTypeRef(di.ImplementationType);
                 if (!string.IsNullOrEmpty(impl) && impl != "?")
                     behaviors.Add((impl, di.SourceFile, di.LineNumber));
+            }
+            // Fluent config packed in lambda body: scan for AddOpenBehavior(typeof(X)) patterns
+            if (di.ImplementationType is { Length: > 0 } body
+                && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
+            {
+                foreach (Match m in Regex.Matches(body,
+                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
+                    RegexOptions.Compiled))
+                {
+                    var name = m.Groups[1].Value;
+                    if (name is { Length: > 0 } && name != "?")
+                        behaviors.Add((name, di.SourceFile, di.LineNumber));
+                }
             }
         }
 

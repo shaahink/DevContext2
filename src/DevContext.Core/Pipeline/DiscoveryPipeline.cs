@@ -367,10 +367,15 @@ public sealed class DiscoveryPipeline
 
         var plan = RenderPlanBuilder.Build(snapshot, request);
 
+        // For JSON output, use the user's budget as the cap (the catalog plan's type-based
+        // token estimate doesn't reflect the JSON structure). Markdown keeps the plan estimate
+        // which is the actual scored-and-capped token budget for the catalog renderer.
+        var budgetForChecks = format == "json" ? request.MaxTokens : plan.EstimatedTokens;
+
         var opts = new RenderOptions(
             request.IncludeProvenance,
             request.IncludeDiagnostics,
-            plan.EstimatedTokens,
+            budgetForChecks,
             snapshot.Scenario.DisplayName,
             ProfileDisplayName: snapshot.Options.Profile.ToString().ToLowerInvariant(),
             plan.Sections,
