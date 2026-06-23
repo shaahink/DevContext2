@@ -190,6 +190,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         Entry = focusText,
                         Depth = settings.Depth,
                         Detail = traceDetail,
+                        IncludeMapWithTrace = settings.IncludeMapWithTrace,
                     };
 
                     result = await pipeline.RenderAsync(capturedSnapshot, request, ct);

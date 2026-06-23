@@ -56,6 +56,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--include-diagnostics")]
     public bool IncludeDiagnostics { get; set; }
 
+    [Description("When tracing (--focus), also render the Map/architecture sections alongside the trace")]
+    [CommandOption("--include-map")]
+    public bool IncludeMapWithTrace { get; set; }
+
     [Description("Disable Roslyn deep tier")]
     [CommandOption("--no-roslyn")]
     public bool NoRoslyn { get; set; }
