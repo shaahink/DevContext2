@@ -65,42 +65,38 @@ public sealed class GraphBuilder
         return b.ToImmutable();
     }
 
-    /// <summary>Resolves an entry's primary target by following its HandlerNode (set during graph
-    /// construction). For Member nodes (named handlers, lambda nodes): resolves via the Member's own
-    /// or parent Type's Sends edges. For Type nodes: finds the single Sends target or matches by
-    /// route segment + HTTP verb prefix.</summary>
+    /// <summary>Resolves an entry's primary target by following the entry's Calls edge to the
+    /// target node, then checking that node's Sends edges — same traversal the TraceBuilder uses.</summary>
     private static string? ResolveEntryTarget(CodeGraph graph, EntryPoint entry)
     {
-        var entryNode = entry.Node;
-        // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node.
-        if (entryNode.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
+        if (entry.Node.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
 
-        // Use the handler node stored at construction time — no graph scanning needed.
-        if (entry.HandlerNode is not { } handlerNodeId) return null;
-        var node = graph.Node(handlerNodeId);
-        if (node is null) return null;
-
-        switch (node.Kind)
+        foreach (var call in graph.OutEdges(entry.Node, EdgeKind.Calls))
         {
-            case NodeKind.Member:
-                if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
-                {
-                    var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
+            var node = graph.Node(call.To);
+            if (node is null) continue;
+
+            switch (node.Kind)
+            {
+                case NodeKind.Member:
+                    if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+                    {
+                        var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
+                            .Select(s => s.To).Distinct().ToList();
+                        return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
+                    }
+                    return ResolveViaParentType(node.Title, entry.Title, graph);
+                case NodeKind.Handler:
+                    return node.Title;
+                case NodeKind.Type:
+                    var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
-                    return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
-                }
-                // Named handler method: check parent Type's Sends
-                return ResolveViaParentType(node.Title, entry.Title, graph);
-            case NodeKind.Handler:
-                return node.Title;
-            case NodeKind.Type:
-                var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
-                    .Select(s => s.To).Distinct().ToList();
-                if (sends.Count == 1)
-                    return graph.Node(sends[0])?.Title;
-                if (sends.Count > 1 && entry.Title is { } route)
-                    return MatchRouteToSend(route, sends, graph);
-                return null;
+                    if (sends.Count == 1)
+                        return graph.Node(sends[0])?.Title;
+                    if (sends.Count > 1 && entry.Title is { } route)
+                        return MatchRouteToSend(route, sends, graph);
+                    return null;
+            }
         }
         return null;
     }
@@ -296,11 +292,15 @@ public sealed class GraphBuilder
                 }
                 else if (ownerType is not null)
                 {
-                    var ownerNodeId = NodeId.ForType(ownerType.Id);
-                    if (g.HasNode(ownerNodeId))
+                    // Find the Type node already added (by AddTypeNodes) — its NodeId key may differ
+                    // from NodeId.ForType(ownerType.Id) due to namespace prefix variations (global::).
+                    var ownerNode = g.Nodes.FirstOrDefault(n =>
+                        n.Kind == NodeKind.Type
+                        && string.Equals(n.FilePath, ownerType.FilePath, StringComparison.OrdinalIgnoreCase));
+                    if (ownerNode is not null)
                     {
-                        handlerNodeId = ownerNodeId;
-                        g.AddEdge(new GraphEdge(id, ownerNodeId, EdgeKind.Calls)
+                        handlerNodeId = ownerNode.Id;
+                        g.AddEdge(new GraphEdge(id, ownerNode.Id, EdgeKind.Calls)
                         {
                             Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                             Resolution = Resolution.Join,
