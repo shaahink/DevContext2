@@ -142,14 +142,45 @@ public sealed class GraphBuilder
         if (brace > 0) segment = segment[..brace];
         if (segment.Length < 2) return null;
 
+        // Also try singular form (routes are often plural, type names singular)
+        var singular = segment.EndsWith("s", StringComparison.OrdinalIgnoreCase)
+            ? segment[..^1] : null;
+        // HTTP-verb prefix hints: POST→Create, GET→Get/List, PUT→Update, DELETE→Delete
+        var verb = route.AsSpan().TrimStart();
+        var space = verb.IndexOf(' ');
+        var httpVerb = space > 0 ? verb[..space].ToString() : "";
+
+        string? best = null;
         foreach (var targetId in sendTargets)
         {
             var name = graph.Node(targetId)?.Title;
-            if (name is not null && name.Contains(segment, StringComparison.OrdinalIgnoreCase))
+            if (name is null) continue;
+            if (!name.Contains(segment, StringComparison.OrdinalIgnoreCase)
+                && (singular is null || !name.Contains(singular, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            // Prefer targets whose verb-derived prefix matches
+            if (MatchesVerbPrefix(name, httpVerb))
                 return name;
+            best ??= name;
         }
-        return null;
+        return best;
     }
+
+    private static bool MatchesVerbPrefix(string name, string httpVerb) => httpVerb switch
+    {
+        "POST" => name.StartsWith("Create", StringComparison.OrdinalIgnoreCase)
+               || name.StartsWith("Add", StringComparison.OrdinalIgnoreCase),
+        "GET" => name.StartsWith("Get", StringComparison.OrdinalIgnoreCase)
+              || name.StartsWith("List", StringComparison.OrdinalIgnoreCase)
+              || name.StartsWith("Find", StringComparison.OrdinalIgnoreCase),
+        "PUT" => name.StartsWith("Update", StringComparison.OrdinalIgnoreCase),
+        "DELETE" => name.StartsWith("Delete", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("Remove", StringComparison.OrdinalIgnoreCase),
+        "PATCH" => name.StartsWith("Update", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("Patch", StringComparison.OrdinalIgnoreCase),
+        _ => false,
+    };
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
@@ -795,21 +826,23 @@ public sealed class GraphBuilder
         if (ep.HandlerBody is not { Length: > 0 } body) return;
 
         foreach (Match match in Regex.Matches(body,
-            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
             RegexOptions.Compiled))
         {
             string? requestName;
             if (match.Groups[2].Success)
             {
-                requestName = match.Groups[2].Value;
-            }
-            else
-            {
-                var pos = match.Index;
-                if (pos <= 0) continue;
-                var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)\s*[\(;]");
-                if (newMatches.Count == 0) continue;
-                requestName = newMatches[^1].Groups[1].Value;
+                // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
+                    requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
+                }
+                else
+                {
+                    var pos = match.Index;
+                    if (pos <= 0) continue;
+                    var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
+                    if (newMatches.Count == 0) continue;
+                    var lastMatch = newMatches[^1];
+                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
             }
 
             if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
@@ -834,14 +867,14 @@ public sealed class GraphBuilder
             // Find all Send/Publish calls with either inline `new T()` or a variable arg.
             // Pattern: .Send(expr) where expr is either `new Type(...)` or a local name.
             foreach (Match match in Regex.Matches(body,
-                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
                 RegexOptions.Compiled))
             {
                 string? requestName;
                 if (match.Groups[2].Success)
                 {
-                    // Inline: .Send(new CreateOrderCommand(...))
-                    requestName = match.Groups[2].Value;
+                    // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
+                    requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
                 }
                 else
                 {
@@ -851,10 +884,10 @@ public sealed class GraphBuilder
                     if (pos <= 0) continue;
                     var before = body[..pos];
                     // Find `new XType ` occurring before this Send, closest to the call
-                    var newMatches = Regex.Matches(before, @"new\s+(\w+)\s*[\(;]");
+                    var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
                     if (newMatches.Count == 0) continue;
-                    // Pick the last `new XType` before the Send call as the likely request type
-                    requestName = newMatches[^1].Groups[1].Value;
+                    var lastMatch = newMatches[^1];
+                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
                 }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
@@ -906,5 +939,26 @@ public sealed class GraphBuilder
     {
         var idx = typeName.IndexOf('<');
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
+    }
+
+    /// <summary>When a <c>new</c> expression wraps the real request in a generic type
+    /// (e.g. <c>new IdentifiedCommand&lt;CreateOrderCommand,bool&gt;(...)</c>), extract the
+    /// first generic argument as the actual request type. Returns the original typeName
+    /// if no generic wrapper is detected.</summary>
+    private static string UnwrapGenericArg(string body, int typeNamePos, string typeName)
+    {
+        var after = typeNamePos + typeName.Length;
+        if (after >= body.Length || body[after] != '<') return typeName;
+
+        // Extract the first generic argument: everything between < and the first , or >
+        var start = after + 1;
+        var comma = body.IndexOf(',', start);
+        var close = body.IndexOf('>', start);
+        if (close < 0) return typeName;
+        var end = comma > 0 && comma < close ? comma : close;
+        if (end <= start) return typeName;
+
+        var inner = body[start..end].Trim();
+        return inner.Length > 0 ? inner : typeName;
     }
 }
