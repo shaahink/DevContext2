@@ -584,25 +584,147 @@ body {
 .status-stats { text-align: right; }
 
 /* ── Stats Tab ────────────────────────────────────────── */
-.dc-stats { font-family: Cascadia Code, Consolas, monospace; color: var(--text-primary); }
-.dc-stats-section { margin-bottom: 18px; }
-.dc-stats-h3 { font-size: 13px; margin: 0 0 6px; color: var(--text-secondary); font-weight: 600; }
-.dc-stats-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-.dc-stats-table th { text-align: left; color: var(--text-muted); font-weight: 500; padding: 3px 8px; border-bottom: 1px solid var(--surface-1); }
-.dc-stats-table td { padding: 2px 8px; border-bottom: 1px solid var(--surface-1); }
-.dc-stats-label { font-variant-numeric: tabular-nums; }
+.dc-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-family: Cascadia Code, Consolas, monospace;
+    color: var(--text-primary);
+}
+
+/* ── Card ── */
+.dc-stats-card {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.dc-stats-card-header {
+    padding: 6px 10px;
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--border);
+    font-size: 9.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--text-muted);
+}
+.dc-stats-card-body { padding: 10px 12px; }
+
+/* ── Table (shared) ── */
+.dc-stats-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.dc-stats-table th { text-align: left; color: var(--text-muted); font-weight: 500; padding: 2px 6px; border-bottom: 1px solid var(--surface-1); }
+.dc-stats-table td { padding: 2px 6px; border-bottom: 1px solid var(--surface-1); }
 .dc-stats-time { font-variant-numeric: tabular-nums; text-align: right; }
-.dc-stats-bar-cell { width: 100%; padding-left: 12px; }
-.dc-stats-bar { height: 10px; background: var(--accent); border-radius: 3px; min-width: 1px; }
-.dc-stats-total td { font-weight: 600; border-top: 1px solid var(--surface-2); }
-.dc-stats-skipped { opacity: 0.5; }
-.dc-stats-ran { color: var(--success); }
-.dc-stats-funnel { display: flex; height: 14px; border-radius: 3px; overflow: hidden; margin: 4px 0; }
-.dc-stats-funnel-bar { background: var(--accent); }
-.dc-stats-funnel-exc { background: var(--surface-2); }
-.dc-stats-funnel-text { font-size: 11px; color: var(--text-muted); margin: 2px 0 0; }
-.dc-stats-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.dc-stats-chip { background: var(--surface-1); color: var(--text-secondary); padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.dc-stats-skipped { opacity: 0.45; }
+.dc-stats-skip-chip {
+    font-size: 9px; background: var(--surface-1); color: var(--text-muted);
+    padding: 1px 5px; border-radius: 3px; text-transform: uppercase;
+}
+
+/* ── Timing Waterfall ── */
+.dc-stats-timing-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 2px 0; font-size: 11px;
+}
+.dc-stats-timing-label {
+    width: 110px; flex-shrink: 0; font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+}
+.dc-stats-timing-ms {
+    width: 48px; flex-shrink: 0; text-align: right;
+    font-variant-numeric: tabular-nums; color: var(--text-muted);
+}
+.dc-stats-timing-track {
+    flex: 1; height: 8px; background: var(--surface-1);
+    border-radius: 4px; overflow: hidden;
+}
+.dc-stats-timing-bar {
+    height: 100%; border-radius: 4px; min-width: 2px;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent), var(--success) 30%));
+    transition: width 400ms ease-out;
+}
+.dc-stats-timing-total {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 0 0; margin-top: 4px;
+    border-top: 1px solid var(--surface-1); font-weight: 600;
+    font-size: 11px;
+}
+
+/* ── Extractor scrollable body ── */
+.dc-stats-extractors-scroll { max-height: 320px; overflow-y: auto; }
+
+/* ── Funnel ── */
+.dc-stats-funnel-label {
+    font-size: 10px; color: var(--text-muted); margin: 8px 0 3px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
+.dc-stats-funnel {
+    display: flex; height: 12px; border-radius: 3px; overflow: hidden;
+}
+.dc-stats-funnel-bar {
+    background: linear-gradient(90deg, var(--accent), #04a5e5);
+    min-width: 2px;
+}
+.dc-stats-funnel-exc {
+    background: var(--surface-2);
+    min-width: 2px;
+}
+.dc-stats-funnel-text {
+    font-size: 10.5px; color: var(--text-muted); margin: 3px 0 0;
+}
+
+/* ── Gauge ── */
+.dc-stats-gauge-row {
+    display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px;
+}
+.dc-stats-gauge {
+    font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1;
+}
+.dc-stats-gauge-unit {
+    font-size: 13px; font-weight: 400; color: var(--text-muted);
+}
+.dc-stats-gauge-label {
+    font-size: 10px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
+.dc-stats-gauge-track {
+    height: 5px; background: var(--surface-1);
+    border-radius: 3px; overflow: hidden; margin-bottom: 10px;
+}
+.dc-stats-gauge-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    transition: width 400ms ease-out;
+}
+
+/* ── Chips ── */
+.dc-stats-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+.dc-stats-chip {
+    background: var(--surface-1); color: var(--text-secondary);
+    padding: 2px 7px; border-radius: var(--radius-pill);
+    font-size: 10.5px; white-space: nowrap;
+}
+
+/* ── Speedup Badge ── */
+.dc-stats-badge {
+    display: inline-block;
+    background: var(--accent); color: var(--accent-fg);
+    padding: 2px 8px; border-radius: var(--radius-pill);
+    font-size: 10px; margin-right: 4px; margin-bottom: 6px;
+}
+
+/* ── Graph Summary ── */
+.dc-stats-graph-summary {
+    display: flex; gap: 14px; margin-top: 8px;
+    padding-top: 6px; border-top: 1px solid var(--surface-1);
+}
+.dc-stats-graph-stat {
+    font-size: 12px; font-weight: 600; color: var(--text-primary);
+    display: flex; flex-direction: column; align-items: flex-start;
+}
+.dc-stats-graph-label {
+    font-size: 9px; font-weight: 400; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.4px;
+}
 
 /* ===== Narrative HTML (Map/Trace) ===== */
 .narrative { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; }

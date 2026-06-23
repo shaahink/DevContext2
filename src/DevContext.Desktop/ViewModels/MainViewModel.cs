@@ -411,18 +411,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 }
                 else
                 {
-                    // Initial render from the snapshot
+                    // Initial render from the snapshot. StatsHtml, StatsText, and
+                    // section state are set inside RerenderAsync.
                     await RerenderAsync(ct).ConfigureAwait(true);
 
                     if (ct.IsCancellationRequested) return;
 
-                    _output.StatsHtml = _snapshot?.Report is { } r
-                        ? RunReportHtmlRenderer.Render(r) : "";
-
-                    _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                     _output.HasOutput = true;
                     _output.ProgressText = "Done";
-                    _sections.BudgetTokens = capturedBudget;
 
                     OnPropertyChanged(string.Empty);
                 }
@@ -525,7 +521,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (renderCt.IsCancellationRequested) return;
 
             _output.StatsHtml = _snapshot?.Report is { } r
-                ? RunReportHtmlRenderer.Render(r) : "";
+                ? RunReportHtmlRenderer.Render(r, renderResult.GraphSummary, renderResult.EstimatedTokens, renderResult.RenderFunnel) : "";
             _output.StatsText = _snapshot?.Report is { } report
                 ? RunReportFormatter.Summary(report, renderResult.RenderFunnel, renderResult.GraphSummary, renderResult.EstimatedTokens)
                 : "";

@@ -23,7 +23,7 @@ public class MainViewModelTests
         Cache = new(0, 0, 0, 0), Corpus = new(0, 0, 0),
         Funnel = new(0, 0, 0, 0, 0, 0),
         Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),
-        TotalWall = TimeSpan.Zero,
+        TotalWall = TimeSpan.FromMilliseconds(200),
     };
 
     public MainViewModelTests()

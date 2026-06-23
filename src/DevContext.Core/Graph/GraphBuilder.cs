@@ -31,7 +31,9 @@ public sealed class GraphBuilder
 
         AddTypeNodes(g, model, scope);                      // worked example
         var entries = AddHttpEntryPoints(g, model, scope, names)  // worked example
-            .AddRange(AddWorkerEntryPoints(g, model, scope, names)); // hosted services + scheduled jobs (DntSite audit)
+            .AddRange(AddWorkerEntryPoints(g, model, scope, names)) // hosted services + scheduled jobs (DntSite audit)
+            .AddRange(AddDomainEventHandlerEntries(g, model, scope, names)) // domain-event handlers
+            .AddRange(AddMessageConsumerEntries(g, model, scope, names));  // integration-event consumers
         AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -267,6 +269,51 @@ public sealed class GraphBuilder
                 });
 
             entries.Add(new EntryPoint(kind, shortName, id) { Provenance = $"{bw.SourceFile}:{bw.LineNumber}" });
+        }
+        return entries.ToImmutable();
+    }
+
+    /// <summary>MediatR notification handlers become DomainEventHandler entry points so the Map and
+    /// desktop picker list them alongside HTTP endpoints.</summary>
+    private static ImmutableArray<EntryPoint> AddDomainEventHandlerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
+        {
+            if (h.Kind != MediatRKind.Notification) continue;
+            if (!scope.Contains(h.SourceFile)) continue;
+            if (!seen.Add(h.HandlerType)) continue;
+
+            var id = NodeId.ForEntry($"domain:{h.HandlerType}");
+            g.AddNode(new GraphNode(id, h.HandlerType, NodeKind.EntryPoint) { FilePath = h.SourceFile });
+            entries.Add(new EntryPoint(EntryPointKind.DomainEventHandler, h.HandlerType, id)
+            {
+                Provenance = $"{h.SourceFile}:{h.LineNumber}",
+                Target = h.RequestType,
+            });
+        }
+        return entries.ToImmutable();
+    }
+
+    /// <summary>Message bus consumers become MessageConsumer entry points so the Map shows integration
+    /// event consumers grouped under Bus alongside HTTP routes.</summary>
+    private static ImmutableArray<EntryPoint> AddMessageConsumerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
+        {
+            if (!scope.Contains(mc.SourceFile)) continue;
+            if (!seen.Add(mc.ConsumerType)) continue;
+
+            var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
+            g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile });
+            entries.Add(new EntryPoint(EntryPointKind.MessageConsumer, mc.ConsumerType, id)
+            {
+                Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
+                Target = mc.MessageType,
+            });
         }
         return entries.ToImmutable();
     }
