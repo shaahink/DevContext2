@@ -26,9 +26,11 @@ public sealed class IndirectWiringDetector : IDiscoveryExtractor
         [], ["indirect-wiring-detections"],
         ["model.Detections"],
         "Detects indirect wiring patterns like Activator.CreateInstance, Castle DynamicProxy, service locator, and reflection scanning");
-    /// <summary>Only runs for deep-dive (Trace) scenario.</summary>
+    /// <summary>Runs for both the Map (overview) and Trace (deep-dive) narrative scenarios, so reflection/
+    /// service-locator wiring is surfaced on a plain Map too (Iteration 3 Step 5 / Low-15). Fast tier and
+    /// already perf-optimized (ancestor-walk method lookup), so no Map-time regression.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.ActiveScenario.Name is "deep-dive";
+        => context.ActiveScenario.Name is "deep-dive" or "overview";
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

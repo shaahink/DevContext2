@@ -869,11 +869,16 @@ public sealed class GraphBuilder
 
             foreach (var method in eventMethods)
             {
+                // Match both inline `AddDomainEvent(new X(...))` and the variable form
+                // `AddDomainEvent(evt)` where `evt = new X(...)` earlier (eShop's Order ctor raises
+                // OrderStartedDomainEvent this way — group 1 = inline new type, group 2 = variable name).
                 foreach (Match match in Regex.Matches(body,
-                    $@"{Regex.Escape(method)}\s*\(\s*new\s+(\w+)\s*\(", RegexOptions.Compiled))
+                    $@"{Regex.Escape(method)}\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))", RegexOptions.Compiled))
                 {
-                    var eventName = match.Groups[1].Value;
-                    if (IsNoiseType(eventName)) continue;
+                    var eventName = match.Groups[1].Success
+                        ? match.Groups[1].Value
+                        : ResolveVariableNewType(body, match.Index, match.Groups[2].Value);
+                    if (string.IsNullOrEmpty(eventName) || IsNoiseType(eventName)) continue;
                     var eventId = NodeId.ForType(names.Resolve(eventName));
 
                     g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
@@ -1161,5 +1166,18 @@ public sealed class GraphBuilder
 
     /// <summary>Normalizes a route template for dedup comparison.</summary>
     private static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
+
+    /// <summary>Resolves the event type for a variable-form raise (<c>AddDomainEvent(evt)</c>): prefers the
+    /// variable's own <c>evt = new X(...)</c> assignment before the call, else the last <c>new X(...)</c>
+    /// before it (the same approximate heuristic <see cref="AddSends"/> uses for <c>.Send(cmd)</c>).</summary>
+    private static string? ResolveVariableNewType(string body, int callPos, string varName)
+    {
+        if (callPos <= 0 || string.IsNullOrEmpty(varName)) return null;
+        var before = body[..callPos];
+        var assign = Regex.Matches(before, $@"\b{Regex.Escape(varName)}\s*=\s*new\s+(\w+)");
+        if (assign.Count > 0) return assign[^1].Groups[1].Value;
+        var news = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
+        return news.Count > 0 ? news[^1].Groups[1].Value : null;
+    }
 
 }
