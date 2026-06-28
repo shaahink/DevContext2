@@ -99,7 +99,7 @@ public sealed class TraceQualityTests
             Logger = loggerFactory.CreateLogger("Trace"),
         };
 
-        var pipeline = BuildPipeline(loggerFactory);
+        var pipeline = TestPipeline.Build(loggerFactory);
         var snapshot = await pipeline.AnalyzeAsync(ctx);
 
         var request = new RenderRequest
@@ -113,56 +113,6 @@ public sealed class TraceQualityTests
         };
         var rendered = await pipeline.RenderAsync(snapshot, request);
         return rendered.Content;
-    }
-
-    private static DiscoveryPipeline BuildPipeline(ILoggerFactory loggerFactory)
-    {
-        var extractors = new List<IDiscoveryExtractor>
-        {
-            new FileTreeExtractor(),
-            new SolutionDiscoveryExtractor(),
-            new ProjectStructureExtractor(),
-            new DependencyExtractor(),
-            new SyntaxStructureExtractor(),
-            new LayerClassifier(),
-            new EndpointExtractor(),
-            new MediatRExtractor(),
-            new ControllerActionExtractor(),
-            new EfCoreExtractor(),
-            new EventBusExtractor(),
-            new CallGraphExtractor(),
-            new SourceBodyExtractor(),
-            new IndirectWiringDetector(),
-            new AspireExtractor(),
-            new ProgramCsFlowExtractor(),
-            new DiRegistrationExtractor(),
-        };
-
-        var pruners = new List<IPruner>
-        {
-            new PatternRelevancePruner(),
-            new TokenBudgetEnforcer(),
-        };
-
-        var compressors = new List<ICompressionStrategy>
-        {
-            new TrivialMemberCompressor(),
-            new BoilerplateCompressor(),
-            new StructuralDeduplicator(),
-            new NamespaceGrouper(),
-            new LlmFriendlyFormatter(),
-            new AggressiveTruncator(),
-        };
-
-        var renderers = new Dictionary<string, IContextRenderer>
-        {
-            ["markdown"] = new MarkdownRenderer(),
-            ["json"] = new JsonContextRenderer(),
-        };
-
-        return new DiscoveryPipeline(
-            extractors, pruners, compressors, renderers,
-            loggerFactory.CreateLogger<DiscoveryPipeline>());
     }
 
     private static string RepoPath(string relativePath)

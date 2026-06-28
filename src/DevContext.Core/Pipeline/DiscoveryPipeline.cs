@@ -117,6 +117,12 @@ public sealed class DiscoveryPipeline
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
         // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
         // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
+        // INVARIANT (Iteration 1 / PRODUCT-DIRECTION.md §8 — "token budget out of the kernel"): the
+        // CodeGraph + Map/Trace are assembled HERE, *before* RunScoringAsync (the pruners) and
+        // RunCompressionAsync. They never read model.Budget, IsPruned, or RoleScore — the token budget and
+        // the legacy pruners drive ONLY the legacy catalog RenderPlan (JSON/HTML). So token budgeting is
+        // already structurally out of the kernel; BudgetIndependenceTests locks this (Map/Trace output is
+        // invariant across --max-tokens). Do not re-couple budget to graph assembly.
         var scope = SolutionScope.FromModel(model);
 
         // G1 Phase 4 — perf guardrail. Whole-solution runs (no closure narrowing) over a large solution
@@ -587,6 +593,10 @@ public sealed class DiscoveryPipeline
         // weighted FinalScore + PathProximityPruner + CallReachabilityPruner are retired.
         // Noise filtering moved to NoiseFilter at graph-build time. Trace reachability
         // is now the TraceBuilder traversal over CodeGraph, not a global flat scorer.
+        // NOTE (Iteration 1): these pruners (TokenBudgetEnforcer, PatternRelevancePruner) run AFTER the
+        // graph is frozen and mutate only model.Types (IsPruned/RoleScore) for the legacy catalog
+        // RenderPlan → JSON/HTML. The Map/Trace graph is independent of them. They are slated to retire
+        // together with the catalog render path; until then they stay so JSON/HTML keep sizing.
         ctx.Observer.OnStageStarted(PipelineStage.Scoring);
         var sw = Stopwatch.StartNew();
 
