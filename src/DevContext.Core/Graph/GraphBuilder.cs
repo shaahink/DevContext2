@@ -2,6 +2,10 @@ using System.Text.RegularExpressions;
 
 using DevContext.Core.Models;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -43,10 +47,16 @@ public sealed class GraphBuilder
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
         // ── P2 Trace-facing seams ─────────────────────────────────────────
-        AddRaises(g, model, names);                         // C1: Raises edges from body scan
-        AddSends(g, model, names);                          // C1: Sends edges from .Send(new X())
-        AddDataEdges(g, model, names);                      // C1: ReadsWrites edges from entities
-        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges
+        // Member-origin correctness (Iteration 1 / Phase 1): edges that originate in a method body must
+        // originate from that method's Member node, not the whole Type — otherwise a trace anchored on
+        // one method inherits every sibling method's edges. Precompute, once, a per-type offset→method
+        // locator from each type's SourceBody so the body-scan seams below attribute each match to the
+        // method that contains it. (See PRODUCT-DIRECTION.md §6 req.1.)
+        var methodSpans = BuildAllMethodSpans(model);
+        AddRaises(g, model, names, methodSpans);            // C1: Raises edges from body scan (member-origin)
+        AddSends(g, model, names, methodSpans);             // C1: Sends edges from .Send(new X()) (member-origin)
+        AddDataEdges(g, model, names, methodSpans);         // C1: ReadsWrites edges from entities (member-origin)
+        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
 
         var graph = g.Build();
         return (graph, EnrichEntryTargets(graph, entries));
@@ -685,25 +695,45 @@ public sealed class GraphBuilder
 
     // ── P2 Trace-facing seams (C1) — joins that complete the indirection-bridged trace ─────────
 
-    /// <summary>C1: model.CallEdges → Type→Type Calls edges, but ONLY between types that are real nodes
-    /// in the graph (in-scope solution types). The syntactic call graph emits a callee per invocation,
-    /// many of which are local variables, fluent-chain fragments, or framework methods (e.g. "group",
-    /// "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise. By
-    /// requiring both endpoints to already exist, the trace keeps only edges to types we actually know.
+    /// <summary>C1: model.CallEdges → <b>member→member</b> Calls edges, but ONLY between types that are
+    /// real nodes in the graph (in-scope solution types). The syntactic call graph emits a callee per
+    /// invocation, many of which are local variables, fluent-chain fragments, or framework methods (e.g.
+    /// "group", "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise.
+    /// By requiring both endpoints to already exist as declared Type nodes (non-null FilePath), the trace
+    /// keeps only edges to types we actually know. Origin is the caller <b>method</b> and target the callee
+    /// <b>method</b> (both carried on <see cref="CallEdge"/>), so a focused trace descends method-to-method
+    /// — the spine — instead of inheriting every sibling method's edges. Member nodes carry their owning
+    /// Type's FilePath (salient lines fall back to the Type body in <see cref="TraceBuilder"/>).
     /// Resolution flows through from the edge (semantic → [verified], syntactic → [approx]).</summary>
     private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
     {
         foreach (var ce in model.CallEdges)
         {
-            var callerId = NodeId.ForType(names.Resolve(ce.CallerType));
-            var calleeId = NodeId.ForType(names.Resolve(ce.CalleeType));
+            var callerFqn = names.Resolve(ce.CallerType);
+            var calleeFqn = names.Resolve(ce.CalleeType);
 
-            if (callerId == calleeId) continue;                              // skip self-calls
             // Declared in-scope types only. After the Type+tags collapse, requests/events/handlers that
             // live in referenced projects also exist as Type nodes (name-only, added by joins) — gating
             // on a non-null FilePath (set only by AddTypeNodes) keeps Calls restricted to types we
             // actually declared, exactly as before the collapse, so no phantom call edges appear.
-            if (g.GetNode(callerId)?.FilePath is null || g.GetNode(calleeId)?.FilePath is null) continue;
+            var callerType = g.GetNode(NodeId.ForType(callerFqn));
+            var calleeType = g.GetNode(NodeId.ForType(calleeFqn));
+            if (callerType?.FilePath is null || calleeType?.FilePath is null) continue;
+
+            var callerId = NodeId.ForMember(callerFqn, ce.CallerMethod);
+            var calleeId = NodeId.ForMember(calleeFqn, ce.CalleeMethod);
+            if (callerId == calleeId) continue;                              // skip direct self-recursion
+
+            // Member nodes for both endpoints, carrying the owning Type's file (body filled — when at all —
+            // by the body-scan seams / HTTP entry; salient otherwise falls back to the parent Type body).
+            g.AddNode(new GraphNode(callerId, $"{callerType.Title}.{ce.CallerMethod}", NodeKind.Member)
+            {
+                FilePath = callerType.FilePath,
+            });
+            g.AddNode(new GraphNode(calleeId, $"{calleeType.Title}.{ce.CalleeMethod}", NodeKind.Member)
+            {
+                FilePath = calleeType.FilePath,
+            });
 
             g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
             {
@@ -716,9 +746,11 @@ public sealed class GraphBuilder
 
     /// <summary>C1: Link EF entities to their data store and to the code that touches them. Entity→
     /// DataStore comes from the detection; the touch edges come from scanning bodies that name an entity
-    /// — both type bodies (handlers/services) AND minimal-API lambda/handler-method Member nodes, so even
-    /// a shallow trace (MinimalApi → EF, no MediatR) gets a TOUCHES section (G4).</summary>
-    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    /// — attributed to the enclosing <b>method</b> (member-origin), so a method-anchored trace shows only
+    /// its own data access. The minimal-API lambda/handler-method Member pass keeps a direct MinimalApi→EF
+    /// trace (TodoApi) surfacing its touched entity (G4).</summary>
+    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
         // Map every entity alias (short + FQN) → its node id, so a body that names the entity either way
         // links to the SAME node (FQN-keyed entities used to never match a short-name body reference).
@@ -747,13 +779,28 @@ public sealed class GraphBuilder
         }
         if (entityIdByName.Count == 0) return;
 
-        // Type bodies (handlers/services) that reference an entity.
+        // Type bodies (handlers/services) that reference an entity — attributed to the enclosing METHOD so
+        // a member-anchored trace gets only its own data access. A type whose body can't be split into
+        // methods (parse miss / no methods) falls back to a single Type-level edge (the old behaviour).
         foreach (var type in model.Types.Values)
-            LinkBodyToEntity(g, NodeId.ForType(type.Id), type.SourceBody, entityIdByName);
+        {
+            if (type.SourceBody is not { Length: > 0 } body) continue;
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
+            if (spans.IsDefaultOrEmpty)
+            {
+                LinkBodyToEntity(g, NodeId.ForType(type.Id), body, entityIdByName);
+                continue;
+            }
+            foreach (var span in spans)
+            {
+                var memberId = EnsureMember(g, type, span.Method);
+                LinkBodyToEntity(g, memberId, body[span.Start..span.End], entityIdByName);
+            }
+        }
 
         // Minimal-API lambda / captured handler-method Member nodes that reference an entity — this is
         // what makes a direct MinimalApi→EF trace (TodoApi) surface its touched entity.
-        foreach (var member in g.Nodes.Where(n => n.Kind == NodeKind.Member).ToList())
+        foreach (var member in g.Nodes.Where(n => n.Kind == NodeKind.Member && n.SourceBody is { Length: > 0 }).ToList())
             LinkBodyToEntity(g, member.Id, member.SourceBody, entityIdByName);
     }
 
@@ -778,9 +825,12 @@ public sealed class GraphBuilder
 
     /// <summary>C1: Scan handler/ctor SourceBody for domain/integration event creation → Raises edges.
     /// Per R4: matches method-name set {AddDomainEvent, RaiseDomainEvent, AddEvent} with new TEvent()
-    /// arg; also new TIntegrationEvent(...) constructor calls. The Raises edge lands on the single Type
-    /// node for the class — no Handler-twin mirror needed (one identity per class). Resolution.Syntactic.</summary>
-    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    /// arg; also new TIntegrationEvent(...) constructor calls. The Raises edge originates from the
+    /// enclosing <b>method's</b> Member node (member-origin), falling back to the Type node only when the
+    /// match is outside any method — so the type-level <c>data Order</c> no longer dumps every method's
+    /// domain events. Resolution.Syntactic.</summary>
+    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
         var eventMethods = new[] { "AddDomainEvent", "RaiseDomainEvent", "AddEvent" };
         foreach (var type in model.Types.Values)
@@ -788,6 +838,7 @@ public sealed class GraphBuilder
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
             if (!g.HasNode(typeId)) continue;
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
             foreach (var method in eventMethods)
             {
@@ -802,7 +853,7 @@ public sealed class GraphBuilder
                     {
                         Tags = [RoleTags.DomainEvent],
                     });
-                    g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                    g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
                     {
                         Provenance = EstimateProvenance(body, match.Index, type.FilePath),
                         Resolution = Resolution.Syntactic,
@@ -822,7 +873,7 @@ public sealed class GraphBuilder
                 {
                     Tags = [RoleTags.IntegrationEvent],
                 });
-                g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
                 {
                     Provenance = EstimateProvenance(body, match.Index, type.FilePath),
                     Resolution = Resolution.Syntactic,
@@ -871,12 +922,14 @@ public sealed class GraphBuilder
         }
     }
 
-    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
             // Find all Send/Publish calls with either inline `new T()` or a variable arg.
             // Pattern: .Send(expr) where expr is either `new Type(...)` or a local name.
@@ -913,7 +966,7 @@ public sealed class GraphBuilder
                 var prov = EstimateProvenance(body, match.Index, type.FilePath);
 
                 g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
-                g.AddEdge(new GraphEdge(typeId, requestId, EdgeKind.Sends)
+                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), requestId, EdgeKind.Sends)
                 {
                     Provenance = prov,
                     Resolution = Resolution.Syntactic,
@@ -938,6 +991,86 @@ public sealed class GraphBuilder
             && (n.Tags.Contains(RoleTags.Command)
                 || n.Tags.Contains(RoleTags.Query)
                 || n.Tags.Contains(RoleTags.Notification));
+
+    /// <summary>A method/ctor text span within a type's SourceBody (offsets relative to SourceBody, which
+    /// is the type declaration's full text — so they share the Regex match index's origin). Ctor name is
+    /// the type short name, matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s
+    /// caller-method key.</summary>
+    private readonly record struct MethodSpan(int Start, int End, string Method);
+
+    /// <summary>Precomputes, once per build, each type's offset→method locator from its SourceBody so the
+    /// body-scan seams (Raises/Sends/ReadsWrites) can attribute every match to the enclosing method
+    /// (member-origin) rather than the whole type.</summary>
+    private static Dictionary<string, ImmutableArray<MethodSpan>> BuildAllMethodSpans(DiscoveryModel model)
+    {
+        var map = new Dictionary<string, ImmutableArray<MethodSpan>>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+            if (type.SourceBody is { Length: > 0 } body)
+                map[type.Id] = BuildMethodSpans(body);
+        return map;
+    }
+
+    /// <summary>Parses a type's SourceBody fragment and returns the text span of each direct method/ctor.
+    /// Mirrors CallGraphExtractor's per-member iteration (direct members of the type, ctors keyed by the
+    /// type short name). A parse failure yields an empty list → callers fall back to Type-level origin.</summary>
+    private static ImmutableArray<MethodSpan> BuildMethodSpans(string sourceBody)
+    {
+        try
+        {
+            var root = CSharpSyntaxTree.ParseText(sourceBody).GetRoot();
+            var typeDecl = root.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+            if (typeDecl is null) return [];
+
+            var typeShort = typeDecl.Identifier.ValueText;
+            var spans = ImmutableArray.CreateBuilder<MethodSpan>();
+            foreach (var member in typeDecl.Members)
+            {
+                switch (member)
+                {
+                    case MethodDeclarationSyntax m:
+                        spans.Add(new MethodSpan(m.Span.Start, m.Span.End, m.Identifier.ValueText));
+                        break;
+                    case ConstructorDeclarationSyntax c:
+                        spans.Add(new MethodSpan(c.Span.Start, c.Span.End, typeShort));
+                        break;
+                }
+            }
+            return spans.ToImmutable();
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    /// <summary>Resolves a SourceBody character offset to the enclosing method name, or null when the
+    /// offset is outside every method (e.g. a field initializer) — callers then attribute to the Type.</summary>
+    private static string? EnclosingMethod(ImmutableArray<MethodSpan> spans, int offset)
+    {
+        foreach (var span in spans)
+            if (offset >= span.Start && offset < span.End)
+                return span.Method;
+        return null;
+    }
+
+    /// <summary>Ensures a Member node exists for <paramref name="type"/>.<paramref name="method"/>, carrying
+    /// the owning Type's file, and returns its id. First-write-wins merge keeps any body/edges already
+    /// attached by the call graph or HTTP-entry passes.</summary>
+    private static NodeId EnsureMember(CodeGraphBuilder g, TypeDiscovery type, string method)
+    {
+        var id = NodeId.ForMember(type.Id, method);
+        g.AddNode(new GraphNode(id, $"{type.Name}.{method}", NodeKind.Member) { FilePath = type.FilePath });
+        return id;
+    }
+
+    /// <summary>Origin node for a body-scan match: the enclosing method's Member node (member-origin), or
+    /// the Type node when the match isn't inside any method.</summary>
+    private static NodeId BodyMatchOrigin(CodeGraphBuilder g, TypeDiscovery type,
+        ImmutableArray<MethodSpan> spans, int offset, NodeId typeFallback)
+    {
+        var method = EnclosingMethod(spans, offset);
+        return method is null ? typeFallback : EnsureMember(g, type, method);
+    }
 
     /// <summary>Estimates a "file:line" provenance from a character offset in the source body.</summary>
     private static string? EstimateProvenance(string sourceBody, int charOffset, string? filePath)

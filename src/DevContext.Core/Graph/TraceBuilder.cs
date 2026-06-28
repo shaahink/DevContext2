@@ -54,9 +54,39 @@ public sealed record TraceOptions
 public sealed class TraceBuilder
 {
     private readonly CodeGraph _graph;
+    private readonly Dictionary<NodeId, List<NodeId>> _handlerMembersByType;
 
     /// <summary>Creates a trace builder over a graph.</summary>
-    public TraceBuilder(CodeGraph graph) => _graph = graph;
+    public TraceBuilder(CodeGraph graph)
+    {
+        _graph = graph;
+        _handlerMembersByType = BuildHandlerMemberIndex(graph);
+    }
+
+    /// <summary>Precomputes, once, a Type→[handler-member] lookup: for each Member node whose method name
+    /// is a handler entry point (Handle/HandleAsync/…), maps its owning Type's id to the member. Used by
+    /// <see cref="OutEdgesWithTwin"/> to bridge from a handler Type (reached via Handles/Consumes) into
+    /// the single entry method that has the real wiring.</summary>
+    private static Dictionary<NodeId, List<NodeId>> BuildHandlerMemberIndex(CodeGraph graph)
+    {
+        var map = new Dictionary<NodeId, List<NodeId>>();
+        foreach (var node in graph.Nodes)
+        {
+            if (node.Id.Kind != NodeKind.Member) continue;
+            var dot = node.Id.Key.LastIndexOf('.');
+            if (dot <= 0) continue;
+            if (!IsHandlerEntryMethod(node.Id.Key[(dot + 1)..])) continue;
+            var typeId = NodeId.ForType(node.Id.Key[..dot]);
+            if (!map.TryGetValue(typeId, out var list)) map[typeId] = list = [];
+            list.Add(node.Id);
+        }
+        return map;
+    }
+
+    private static bool IsHandlerEntryMethod(string method)
+        => method is "Handle" or "HandleAsync" or "Consume" or "ConsumeAsync"
+            || method.StartsWith("Execute", StringComparison.Ordinal)
+            || method.StartsWith("Invoke", StringComparison.Ordinal);
 
     /// <summary>Builds the entry-rooted trace tree.</summary>
     public Trace Build(EntryPoint entry, TraceOptions? options = null)
@@ -237,23 +267,21 @@ public sealed class TraceBuilder
             || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
-    /// <summary>Out-edges of a node, plus those of its parent Type when the node is a Member. A method
-    /// belongs to a type (legitimate containment, not a synonym): an entry anchored on a handler-method
-    /// or minimal-API lambda Member node should also see the class's own call/raise/send/data edges,
-    /// which the body scans attach to the Type node. Since the Type+tags collapse made one node per class,
-    /// the old Handler/Service "twins" are gone — Member→Type is the only bridge that remains.</summary>
+    /// <summary>Out-edges of a node, with the controlled member bridge (Phase 1). A <b>Member</b> node
+    /// yields ONLY its own edges — the per-method set is now correct, so inheriting the parent Type's edges
+    /// (the old behaviour) is exactly the bug that made sibling methods' traces identical. A <b>Type</b>
+    /// node yields its own join edges PLUS the edges of its handler-entry members (Handle/HandleAsync/…):
+    /// Handles/Consumes seams land on the handler Type, so we bridge into the one entry method that carries
+    /// the handler's real wiring — not every sibling method.</summary>
     private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
     {
         foreach (var e in _graph.OutEdges(id))
             yield return e;
 
-        if (id.Kind is NodeKind.Member)
-        {
-            var twin = NodeId.ForType(ExtractTypeKey(id.Key));
-            if (_graph.Contains(twin))
-                foreach (var e in _graph.OutEdges(twin))
+        if (id.Kind is NodeKind.Type && _handlerMembersByType.TryGetValue(id, out var members))
+            foreach (var memberId in members)
+                foreach (var e in _graph.OutEdges(memberId))
                     yield return e;
-        }
     }
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>

@@ -38,10 +38,16 @@ public sealed class GraphBuilderTraceTests
                 new NoiseFilter(new ProjectClassifier(model.Projects)))
             .Build(model, scope);
 
-        // CallEdges use type-level nodes as fallback (member nodes not auto-created)
+        // Member-origin (Phase 1): a call edge originates from the caller METHOD's Member node and lands
+        // on the callee METHOD's Member node (both carried on CallEdge), so a method-anchored trace
+        // descends method-to-method instead of inheriting every sibling's edges.
+        var callerMemberId = NodeId.ForMember("Orders.Api.OrderService", "ProcessOrder");
+        var calleeMemberId = NodeId.ForMember("Orders.Api.OrderRepository", "Save");
+        Assert.Contains(graph.OutEdges(callerMemberId), e => e.Kind == EdgeKind.Calls && e.To == calleeMemberId);
+
+        // ...and the old Type→Type folded edge no longer exists (that fold was the fabrication bug).
         var callerTypeId = NodeId.ForType("Orders.Api.OrderService");
-        var calleeTypeId = NodeId.ForType("Orders.Api.OrderRepository");
-        Assert.Contains(graph.OutEdges(callerTypeId), e => e.Kind == EdgeKind.Calls && e.To == calleeTypeId);
+        Assert.DoesNotContain(graph.OutEdges(callerTypeId), e => e.Kind == EdgeKind.Calls);
     }
 
     [Fact]

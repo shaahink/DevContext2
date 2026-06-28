@@ -25,14 +25,21 @@ public static class EntryPointResolver
         return ResolveFromNode(graph, f);
     }
 
-    /// <summary>Finds a Type/EntryPoint node by short name or FQN suffix; "Type:Method" narrows to the
-    /// type (the trace walks its out-edges either way). Prefers the node with the most out-edges so a
-    /// focus that matches both a bare class and a richer twin lands on the one that actually goes somewhere.</summary>
+    /// <summary>Finds a Type/EntryPoint node by short name or FQN suffix. For a "Type:Method" focus it
+    /// anchors on the <b>Member</b> node when one exists (member-origin: this is what makes two sibling
+    /// methods produce different traces); it falls back to the Type node otherwise (a method with no
+    /// wiring). For a bare type it prefers the node with the most out-edges so a focus that matches both a
+    /// bare class and a richer twin lands on the one that actually goes somewhere.</summary>
     private static EntryPoint? ResolveFromNode(CodeGraph graph, string focus)
     {
         var name = focus;
+        string? method = null;
         var colon = name.IndexOf(':');
-        if (colon > 0) name = name[..colon];
+        if (colon > 0)
+        {
+            method = name[(colon + 1)..].Trim();
+            name = name[..colon];
+        }
 
         GraphNode? best = null;
         foreach (var node in graph.Nodes)
@@ -40,6 +47,19 @@ public static class EntryPointResolver
             if (node.Kind is not (NodeKind.Type or NodeKind.EntryPoint)) continue;
             if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
                 && !node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase)) continue;
+
+            // "Type:Method" → anchor on the Member node that originates this method's edges, so the trace
+            // shows only this method's wiring (sibling methods diverge). Prefer the first candidate Type
+            // that actually declares the member.
+            if (method is { Length: > 0 } && node.Kind is NodeKind.Type
+                && graph.Node(NodeId.ForMember(node.Id.Key, method)) is { } memberNode)
+            {
+                return new EntryPoint(EntryPointKind.PublicApi, memberNode.Title, memberNode.Id)
+                {
+                    Provenance = memberNode.FilePath,
+                };
+            }
+
             if (best is null || graph.OutEdges(node.Id).Length > graph.OutEdges(best.Id).Length)
                 best = node;
         }

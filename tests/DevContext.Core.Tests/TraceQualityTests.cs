@@ -62,6 +62,67 @@ public sealed class TraceQualityTests
         Assert.Contains("TRACE", combined, StringComparison.Ordinal);     // plus the drill-down
     }
 
+    /// <summary>Phase 1 (member-origin) divergence guard — the decisive fix. Two sibling methods of the
+    /// SAME class must produce DIFFERENT traces: before member-origin, <c>CatalogApi:CreateItem</c> and
+    /// <c>:UpdateItem</c> rendered byte-identical traces headed <c>ENTRY CatalogApi</c> (the type) because
+    /// every edge attached to the Type node and the Member inherited all of them. The fabrication this
+    /// catches: CreateItem (which only adds an item) showing UpdateItem's
+    /// <c>ProductPriceChangedIntegrationEvent</c> raise. This Fact is the negative/divergence guard the
+    /// JSON suite cannot express.</summary>
+    [Fact]
+    public async Task Sibling_methods_produce_divergent_traces_no_fabricated_edges()
+    {
+        var repoPath = RepoPath("eval-repos/eShop/src/Catalog.API");
+        if (!Directory.Exists(repoPath))
+            return; // eval repo not cloned in this environment — skip silently
+
+        var create = await RunTraceAsync(repoPath, "CatalogApi:CreateItem");
+        var update = await RunTraceAsync(repoPath, "CatalogApi:UpdateItem");
+
+        // Each trace renders and its header names the method it was anchored on (not the bare type).
+        Assert.Contains("CatalogApi.CreateItem", create, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.UpdateItem", update, StringComparison.Ordinal);
+
+        // Divergence: the two sibling traces must NOT be identical.
+        Assert.NotEqual(create, update);
+
+        // The fabrication class: CreateItem must NOT inherit UpdateItem's price-changed integration event,
+        // while UpdateItem (which genuinely raises it) must — proving the divergence is the real wiring.
+        Assert.DoesNotContain("ProductPriceChangedIntegrationEvent", create, StringComparison.Ordinal);
+        Assert.Contains("ProductPriceChangedIntegrationEvent", update, StringComparison.Ordinal);
+    }
+
+    /// <summary>Phase 1 negative guard on the eShop CQRS spine: focusing <c>POST /api/orders/</c> must show
+    /// ONLY CreateOrderAsync's wiring. The genuine send→handler→raises(OrderStarted)→outbox spine survives
+    /// (the controlled member bridge expands the handler's <c>Handle</c> method), while the sibling
+    /// fabrications disappear: the trace must NOT contain <c>CancelOrderCommand</c>/<c>ShipOrderCommand</c>
+    /// (siblings CancelOrderAsync/ShipOrderAsync send those) nor the <c>Order</c> aggregate's
+    /// <c>OrderShipped</c>/<c>OrderCancelled</c> domain events (raised in unrelated Order methods, which
+    /// the type-level <c>data Order</c> edge used to dump wholesale).</summary>
+    [Fact]
+    public async Task Orders_trace_keeps_the_real_spine_and_drops_sibling_edges()
+    {
+        var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
+        if (!Directory.Exists(repoPath))
+            return; // eval repo not cloned in this environment — skip silently
+
+        var trace = await RunTraceAsync(repoPath, "POST /api/orders/");
+
+        // The genuine CreateOrder spine survives (send → handler → raises OrderStarted → outbox write).
+        Assert.Contains("CreateOrderCommand", trace, StringComparison.Ordinal);
+        Assert.Contains("CreateOrderCommandHandler", trace, StringComparison.Ordinal);
+        Assert.Contains("OrderStartedIntegrationEvent", trace, StringComparison.Ordinal);
+        Assert.Contains("AddAndSaveEventAsync", trace, StringComparison.Ordinal);
+
+        // Sibling sends fabricated by the old Type-level edge inheritance are gone.
+        Assert.DoesNotContain("CancelOrderCommand", trace, StringComparison.Ordinal);
+        Assert.DoesNotContain("ShipOrderCommand", trace, StringComparison.Ordinal);
+
+        // The Order ctor/data path no longer raises every Order method's domain event.
+        Assert.DoesNotContain("OrderShippedDomainEvent", trace, StringComparison.Ordinal);
+        Assert.DoesNotContain("OrderCancelledDomainEvent", trace, StringComparison.Ordinal);
+    }
+
     private static async Task<string> RunTraceAsync(string repoPath, string entry, bool includeMap = false)
     {
         var fs = new RealFileSystem();
