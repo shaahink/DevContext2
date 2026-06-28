@@ -1,0 +1,9 @@
+{
+  "repo": "tests/fixtures/ControllerApp",
+  "checks": [
+    { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 20, "status": "expected", "note": "Controllers detected. (The JSON detections array is the pruned legacy-catalog path; entry->target coverage is asserted by the three target-* checks on the unpruned markdown Map.)" },
+    { "id": "target-get",    "type": "output-contains", "format": "markdown", "value": "ProductService.GetByIdAsync", "status": "expected", "note": "Phase 2: GET action resolves entry->target via primary service call (controllers 0 -> resolved)." },
+    { "id": "target-post",   "type": "output-contains", "format": "markdown", "value": "ProductService.CreateAsync", "status": "expected", "note": "Phase 2: POST action resolves entry->target." },
+    { "id": "target-delete", "type": "output-contains", "format": "markdown", "value": "ProductService.DeleteAsync", "status": "expected", "note": "Phase 2: DELETE action resolves entry->target; sibling actions diverge." }
+  ]
+}

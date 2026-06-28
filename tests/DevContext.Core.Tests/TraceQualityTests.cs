@@ -19,6 +19,7 @@ public sealed class TraceQualityTests
     [InlineData("eval-repos/VerticalSlice/MinimalClean", "POST /Products", new[] { "CreateEndpoint", "Product" })]
     [InlineData("eval-repos/eShop/src/Ordering.API", "POST /api/orders/",
         new[] { "send", "CreateOrderCommand", "handler", "CreateOrderCommandHandler" })]
+    [InlineData("tests/fixtures/ControllerApp", "GET /api/Products", new[] { "ProductService", "GetByIdAsync" })]
     public async Task Trace_bridges_indirection(string repoRel, string entry, string[] expected)
     {
         var repoPath = RepoPath(repoRel);
@@ -121,6 +122,30 @@ public sealed class TraceQualityTests
         // The Order ctor/data path no longer raises every Order method's domain event.
         Assert.DoesNotContain("OrderShippedDomainEvent", trace, StringComparison.Ordinal);
         Assert.DoesNotContain("OrderCancelledDomainEvent", trace, StringComparison.Ordinal);
+    }
+
+    /// <summary>Phase 2 (controllers-first) divergence guard: two sibling actions of one controller must
+    /// produce DIFFERENT traces, each descending into the service IT calls (member-origin makes the
+    /// action's own Calls edges precise). The fabrication this catches is a controller action inheriting
+    /// every sibling action's wiring (the same class-collapse bug, now on the most common .NET shape).</summary>
+    [Fact]
+    public async Task Controller_sibling_actions_produce_divergent_traces()
+    {
+        var repoPath = RepoPath("tests/fixtures/ControllerApp");
+        if (!Directory.Exists(repoPath))
+            return; // fixture missing — skip silently
+
+        var get = await RunTraceAsync(repoPath, "GET /api/Products");
+        var del = await RunTraceAsync(repoPath, "DELETE /api/Products");
+
+        // Each descends into its own service method...
+        Assert.Contains("GetByIdAsync", get, StringComparison.Ordinal);
+        Assert.Contains("DeleteAsync", del, StringComparison.Ordinal);
+
+        // ...and not the other's, and the two traces differ.
+        Assert.DoesNotContain("DeleteAsync", get, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetByIdAsync", del, StringComparison.Ordinal);
+        Assert.NotEqual(get, del);
     }
 
     private static async Task<string> RunTraceAsync(string repoPath, string entry, bool includeMap = false)
