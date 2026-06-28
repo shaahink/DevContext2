@@ -104,14 +104,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _ => "Other"
         });
 
-    // Any drillable graph node (type / handler / service), so the picker can search the whole
-    // codebase and trace a call stack from ANY node — not just the catalogued entry points. These
-    // resolve through ResolveEntryFromNode by Title, exactly like a typed --focus.
+    // Any drillable graph node (every class is one Type node now, role conveyed by tags), so the
+    // picker can search the whole codebase and trace a call stack from ANY node — not just the
+    // catalogued entry points. These resolve through EntryPointResolver by Title, like a typed --focus.
     public IReadOnlyList<DevContext.Core.Graph.GraphNode> DrillableNodes
         => (_snapshot?.Graph?.Nodes ?? [])
-            .Where(n => n.Kind is DevContext.Core.Graph.NodeKind.Type
-                or DevContext.Core.Graph.NodeKind.Handler
-                or DevContext.Core.Graph.NodeKind.Service)
+            .Where(n => n.Kind is DevContext.Core.Graph.NodeKind.Type)
             .OrderBy(n => n.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -258,11 +256,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
     partial void OnFocusChanged(string value)
     {
         if (_isInitializing) return;
-        // Focus drives analysis (overview↔deep-dive, Focused↔Debug profile, call graph on/off),
-        // so changing it re-analyzes — debounced so typing / picking an entry doesn't spawn a run
-        // per keystroke. Keep the catalog section defaults coherent with the derived mode.
+        // Focus is now a pure RENDER lens: the full code graph (incl. call edges) is assembled once at
+        // analyze-time (ExtractionOptions.BuildFullGraph), so the snapshot is entry-agnostic and picking
+        // an entry just re-renders a trace from it — no re-analyze. This realizes "analyze once, render
+        // many" and makes the picker instant. Keep the catalog section defaults coherent with the mode.
         _sections.SelectedScenarioValue = IsTraceMode ? "deep-dive" : "overview";
-        DebouncedAnalyze();
+        DebouncedRender();
     }
     partial void OnSelectedFormatChanged(string value) => OnRenderInputChanged();
 
@@ -411,18 +410,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 }
                 else
                 {
-                    // Initial render from the snapshot
+                    // Initial render from the snapshot. StatsHtml, StatsText, and
+                    // section state are set inside RerenderAsync.
                     await RerenderAsync(ct).ConfigureAwait(true);
 
                     if (ct.IsCancellationRequested) return;
 
-                    _output.StatsHtml = _snapshot?.Report is { } r
-                        ? RunReportHtmlRenderer.Render(r) : "";
-
-                    _output.StatsText = $"~{_sections.TotalTokens:N0} tokens · {elapsedMs / 1000.0:F1}s";
                     _output.HasOutput = true;
                     _output.ProgressText = "Done";
-                    _sections.BudgetTokens = capturedBudget;
 
                     OnPropertyChanged(string.Empty);
                 }
@@ -525,7 +520,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (renderCt.IsCancellationRequested) return;
 
             _output.StatsHtml = _snapshot?.Report is { } r
-                ? RunReportHtmlRenderer.Render(r) : "";
+                ? RunReportHtmlRenderer.Render(r, renderResult.GraphSummary, renderResult.EstimatedTokens, renderResult.RenderFunnel) : "";
             _output.StatsText = _snapshot?.Report is { } report
                 ? RunReportFormatter.Summary(report, renderResult.RenderFunnel, renderResult.GraphSummary, renderResult.EstimatedTokens)
                 : "";

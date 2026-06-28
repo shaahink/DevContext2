@@ -82,10 +82,36 @@ the same `--focus`/Map/Trace behaviour as the CLI, so prefer the CLI smoke for v
 ## Test
 
 ```powershell
-dotnet test tests/DevContext.Core.Tests        # ~255 pass / 2 skip (graph, map, trace, eval, goldens)
+dotnet test tests/DevContext.Core.Tests        # ~261 pass / 2 skip (graph, map, trace, eval, goldens)
 dotnet test tests/DevContext.Desktop.Tests     # 64 pass (MVVM, sections)
 $env:UPDATE_GOLDENS=1; dotnet test tests/DevContext.Core.Tests   # regenerate goldens, then unset
 ```
+
+## Gate script (self-validating)
+
+```powershell
+./eval/gates.ps1    # build → fast tests → eval → CLI strict matrix → GATE: PASS/FAIL
+```
+
+The gate runs `Category=Eval` tests (8 eval expectation tests across TodoApi, eShop, VerticalSlice,
+AutoMapper) and a 5-command CLI matrix (`--strict`, `--format json --strict`, `--format html --strict`,
+`--dry-run`, `--max-tokens 2000 --strict`). All must exit cleanly.
+
+## New Trace features (since iteration-8)
+
+Traces now include summary sections past the tree:
+
+- **RESULT** — HTTP status codes per verb: `200 OK / 201 Created · failure → 400 Bad Request`
+- **NEXT** — lifecycle hints from emitted events: `initial state → status transition → payment processing → fulfillment → cancellation`
+- **TOUCHES** — entities reachable in the trace: `OrderItem, PaymentMethod, Buyer, CardType, Order`
+- **EMITS** — deduped list of events the trace emits
+
+## New Map features (since iteration-8)
+
+- **Domain entry group** — MediatR notification handlers alongside HTTP routes
+- **Bus entry group** — message consumers (code ready, detection gap for some patterns)
+- **PipelineBehaviors** — MediatR pipeline shown under CROSS-CUTTING
+- **Entry→target** — route → command mapping for named handlers (e.g. `GET /products → GetProductsQuery`)
 
 ## Gotchas
 

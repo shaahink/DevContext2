@@ -8,10 +8,33 @@ namespace DevContext.Core.Graph;
 // stable core; evolve builders/resolvers around it, not the node/edge shapes.
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 
-/// <summary>The kind of a node in the <see cref="CodeGraph"/>.</summary>
+/// <summary>The kind of a node in the <see cref="CodeGraph"/>. A node is an *entity*: a declared
+/// type, one of its members, or an application entry point. A class's *role* (handler, command,
+/// entity, …) is NOT a node kind — it's a <see cref="RoleTags">tag</see> on the single Type node, so
+/// one C# class is exactly one node and every edge it participates in lands on that one identity.</summary>
 public enum NodeKind
 {
-    Type, Member, EntryPoint, Request, Handler, Entity, Event, DataStore, Service,
+    Type, Member, EntryPoint,
+}
+
+/// <summary>Role labels attached to a Type node's <see cref="GraphNode.Tags"/>. These replace the old
+/// per-role node kinds (Request/Handler/Event/Entity/DataStore/Service): the relationship lives in the
+/// <see cref="EdgeKind"/>, the role lives here. A node can carry several (a class can be both an
+/// aggregate and an entity, or a handler that is also a service).</summary>
+public static class RoleTags
+{
+    public const string Command = "command";
+    public const string Query = "query";
+    public const string Notification = "notification";
+    public const string Handler = "handler";
+    public const string DomainEvent = "domain-event";
+    public const string IntegrationEvent = "integration-event";
+    public const string Entity = "entity";
+    public const string Aggregate = "aggregate";
+    public const string Service = "service";
+    public const string Pipeline = "pipeline";
+    public const string DataStore = "datastore";
+    public const string Consumer = "consumer";
 }
 
 /// <summary>The kind of a directed edge. Each maps to a trace "seam". Direction is always caller→callee
@@ -60,11 +83,6 @@ public readonly record struct NodeId(NodeKind Kind, string Key)
     public static NodeId ForType(string fqn) => new(NodeKind.Type, fqn);
     public static NodeId ForMember(string typeFqn, string member) => new(NodeKind.Member, $"{typeFqn}.{member}");
     public static NodeId ForEntry(string key) => new(NodeKind.EntryPoint, key);
-    public static NodeId ForRequest(string requestType) => new(NodeKind.Request, requestType);
-    public static NodeId ForHandler(string handlerFqn) => new(NodeKind.Handler, handlerFqn);
-    public static NodeId ForEntity(string entityType) => new(NodeKind.Entity, entityType);
-    public static NodeId ForEvent(string eventType) => new(NodeKind.Event, eventType);
-    public static NodeId ForService(string serviceType) => new(NodeKind.Service, serviceType);
 }
 
 /// <summary>A node. Serialization-stable: holds primitive data, never live model references.</summary>
@@ -142,13 +160,38 @@ public sealed class CodeGraphBuilder
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
 
-    /// <summary>Adds a node, or returns the existing one with the same id (first write wins).</summary>
+    /// <summary>Adds a node, or MERGES into the existing one with the same id. Because a class collapses
+    /// to one Type node touched by many passes (AddTypeNodes seeds the declaration; each join adds a role
+    /// tag), merge = union of <see cref="GraphNode.Tags"/> + first-non-null declaration info
+    /// (FilePath/SourceBody/Project). Order-independent: a name-only node added by a join is later enriched
+    /// when its declaration appears, and vice-versa. Returns the resulting node.</summary>
     public GraphNode AddNode(GraphNode node)
     {
-        if (_nodes.TryGetValue(node.Id, out var existing)) return existing;
+        if (_nodes.TryGetValue(node.Id, out var existing))
+        {
+            var mergedTags = existing.Tags.IsDefaultOrEmpty
+                ? node.Tags
+                : node.Tags.IsDefaultOrEmpty
+                    ? existing.Tags
+                    : [.. existing.Tags.Union(node.Tags, StringComparer.Ordinal)];
+            var merged = existing with
+            {
+                Tags = mergedTags,
+                FilePath = existing.FilePath ?? node.FilePath,
+                SourceBody = existing.SourceBody ?? node.SourceBody,
+                Project = existing.Project ?? node.Project,
+            };
+            _nodes[node.Id] = merged;
+            return merged;
+        }
         _nodes[node.Id] = node;
         return node;
     }
+
+    /// <summary>Adds the given role tags to an existing node (creating a minimal Type node if absent).
+    /// Convenience over reconstructing a <see cref="GraphNode"/> just to tag it.</summary>
+    public void Tag(NodeId id, string title, params string[] tags)
+        => AddNode(new GraphNode(id, title, id.Kind) { Tags = [.. tags] });
 
     /// <summary>Adds an edge if both endpoints exist and the (from, to, kind) triple is new.</summary>
     public bool AddEdge(GraphEdge edge)
@@ -162,6 +205,10 @@ public sealed class CodeGraphBuilder
 
     /// <summary>True if a node with the given id has been added.</summary>
     public bool HasNode(NodeId id) => _nodes.ContainsKey(id);
+
+    /// <summary>The node with the given id, or null. Lets passes inspect what's already there
+    /// (e.g. restrict Calls edges to declared in-scope types, which carry a FilePath).</summary>
+    public GraphNode? GetNode(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
 
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
     public CodeGraph Build()

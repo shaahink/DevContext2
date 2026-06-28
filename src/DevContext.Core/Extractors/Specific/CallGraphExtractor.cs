@@ -40,9 +40,12 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         [], ["call-graph"],
         ["model.CallEdges", "context.Analysis.CallGraph"],
         "Walks syntax trees using Roslyn to build a BFS-depth-limited call graph");
-    /// <summary>Only runs in Debug or Full extraction profile.</summary>
+    /// <summary>Runs when the full graph is built (default) or in Debug/Full. This is the expensive
+    /// pass (semantic resolution over a CSharpCompilation); the <c>--lite</c> opt-out turns it off via
+    /// BuildFullGraph=false, leaving Calls edges unresolved (Map + indirection seams still work).</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
+        => context.Options.BuildFullGraph
+            || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

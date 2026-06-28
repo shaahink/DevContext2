@@ -56,9 +56,18 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--include-diagnostics")]
     public bool IncludeDiagnostics { get; set; }
 
+    [Description("When tracing (--focus), also render the Map/architecture sections alongside the trace")]
+    [CommandOption("--include-map")]
+    public bool IncludeMapWithTrace { get; set; }
+
     [Description("Disable Roslyn deep tier")]
     [CommandOption("--no-roslyn")]
     public bool NoRoslyn { get; set; }
+
+    [Description("Lite mode: skip the full graph build (source bodies + call graph) for speed; "
+        + "the Map still renders but loses dispatch targets/deep traces, and focus re-analyzes")]
+    [CommandOption("--lite")]
+    public bool Lite { get; set; }
 
     [Description("Info-level logging")]
     [CommandOption("--verbose")]

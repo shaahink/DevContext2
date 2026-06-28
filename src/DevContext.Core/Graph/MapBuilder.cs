@@ -35,7 +35,7 @@ public sealed class MapBuilder
             Topology = BuildTopology(model),
             Packages = BuildPackages(model),
             Aggregates = BuildAggregates(model),
-            PipelineBehaviors = [],
+            PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
         };
@@ -107,6 +107,53 @@ public sealed class MapBuilder
             .Select(d => d.EntityType)
             .Distinct()
             .OrderBy(n => n)];
+
+    private static ImmutableArray<string> BuildPipelineBehaviors(DiscoveryModel model)
+    {
+        var behaviors = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        {
+            // Direct registration: services.AddTransient(typeof(IPipelineBehavior<,>), typeof(X))
+            if (di.ServiceType.Contains("IPipelineBehavior", StringComparison.Ordinal))
+            {
+                var impl = CleanTypeRef(di.ImplementationType);
+                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                    behaviors.Add(impl);
+            }
+            if (di.ExtensionsUsed.Contains("AddOpenBehavior") || di.ServiceType == "AddOpenBehavior")
+            {
+                var impl = CleanTypeRef(di.ImplementationType);
+                if (!string.IsNullOrEmpty(impl) && impl != "?")
+                    behaviors.Add(impl);
+            }
+            // AddMediatR fluent config: the lambda body may contain AddOpenBehavior(typeof(X)) calls
+            if (di.ImplementationType is { Length: > 0 } body
+                && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
+            {
+                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(body,
+                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
+                    System.Text.RegularExpressions.RegexOptions.Compiled))
+                {
+                    if (m.Groups[1].Value is { Length: > 0 } name && name != "?")
+                        behaviors.Add(name);
+                }
+            }
+        }
+        return [.. behaviors.OrderBy(b => b)];
+    }
+
+    /// <summary>Strips typeof(…) / nameof(…) / generic arity suffix to get a raw type name.</summary>
+    private static string CleanTypeRef(string expr)
+    {
+        var s = expr.AsSpan().Trim();
+        if (s.StartsWith("typeof(", StringComparison.Ordinal) && s[^1] == ')')
+            s = s.Slice(7, s.Length - 8);
+        else if (s.StartsWith("nameof(", StringComparison.Ordinal) && s[^1] == ')')
+            s = s.Slice(7, s.Length - 8);
+        var generic = s.IndexOf('<');
+        if (generic > 0) s = s.Slice(0, generic);
+        return s.ToString().Trim();
+    }
 
     private static int CompareVersions(string a, string b)
     {

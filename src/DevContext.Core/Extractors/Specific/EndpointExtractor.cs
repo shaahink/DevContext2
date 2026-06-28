@@ -28,16 +28,20 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
     {
         var detectedKeys = new HashSet<string>();
 
+        // Project-wide const-string index so FastEndpoints routes referenced as `SomeRequest.Route`
+        // resolve across files (G2).
+        var routeConsts = await FastEndpointsHelper.BuildRouteConstIndex(context, ct);
+
         foreach (var filePath in context.Analysis.AllSourceFiles)
         {
             ct.ThrowIfCancellationRequested();
-            await ScanFile(filePath, context, model, detectedKeys, ct);
+            await ScanFile(filePath, context, model, detectedKeys, routeConsts, ct);
         }
     }
 
     private static async Task ScanFile(
         string filePath, DiscoveryContext context, DiscoveryModel model,
-        HashSet<string> detectedKeys, CancellationToken ct)
+        HashSet<string> detectedKeys, IReadOnlyDictionary<string, string> routeConsts, CancellationToken ct)
     {
         SyntaxTree syntaxTree;
         try
@@ -105,7 +109,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             .ToList();
 
         FastEndpointsHelper.DetectClassAttributeEndpoints(fastEndpointClasses, filePath, detectedKeys, model);
-        FastEndpointsHelper.DetectConfigureMethodEndpoints(fastEndpointClasses, filePath, detectedKeys, model);
+        FastEndpointsHelper.DetectConfigureMethodEndpoints(fastEndpointClasses, filePath, detectedKeys, model, routeConsts);
     }
 
     private static bool IsEndpointExtension(MethodDeclarationSyntax method)
@@ -144,7 +148,6 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
         var authAttrs = ExtractAuthFromChain(invocation);
         var handlerArg = FindHandler(invocation);
-        var handlerInfo = handlerArg?.ToString() ?? "?";
         var handlerMethod = handlerArg switch
         {
             LambdaExpressionSyntax => "<lambda>",
@@ -154,14 +157,45 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             _ => "<lambda>"
         };
 
-        // G5: for an inline lambda/anonymous handler, capture its own line + body so the graph can anchor
-        // a per-endpoint node on the chosen route's lambda (not the shared registration type).
+        // HandlerType must name the *owning type* so the graph can resolve the handler — not the method
+        // name (G1). A bare identifier (CreateOrderAsync) is a method group on the enclosing type; a
+        // qualified reference (OrdersApi.CreateOrderAsync) names its type as the member-access qualifier;
+        // a lambda/anonymous handler carries its source text (the graph keys off "=>" to anchor a
+        // per-endpoint node). Previously this stored handlerArg.ToString() for all shapes, so a
+        // method-group endpoint recorded the method name as the type and never resolved.
+        var handlerInfo = handlerArg switch
+        {
+            IdentifierNameSyntax => invocation.Ancestors().OfType<TypeDeclarationSyntax>()
+                .FirstOrDefault()?.Identifier.ValueText ?? handlerArg.ToString(),
+            MemberAccessExpressionSyntax ma => ma.Expression.ToString(),
+            null => "?",
+            _ => handlerArg.ToString(),
+        };
+
+        // Capture the handler's OWN body + line so the graph anchors a per-endpoint node on exactly
+        // what this route runs — not the shared registration type. Two shapes carry a body:
+        //   • inline lambda/anonymous (minimal API) — the lambda source itself (G5);
+        //   • a method-group reference to a method in the SAME class (eShop's MapPost("/",
+        //     CreateOrderAsync)) — the referenced method's body, found syntactically. This makes
+        //     per-endpoint dispatch precise: GET methods that only query resolve to no command,
+        //     instead of the type-level route heuristic guessing one (G1b).
         var handlerLine = 0;
         string? handlerBody = null;
         if (handlerArg is LambdaExpressionSyntax or AnonymousMethodExpressionSyntax)
         {
             handlerLine = handlerArg.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
             handlerBody = handlerArg.ToString();
+        }
+        else if (handlerArg is IdentifierNameSyntax idName)
+        {
+            var method = invocation.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault()
+                ?.Members.OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault(m => m.Identifier.ValueText == idName.Identifier.ValueText);
+            if (method is not null)
+            {
+                handlerLine = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                handlerBody = method.ToString();
+            }
         }
 
         model.Detections.Add(new EndpointDetection(httpMethod, fullRoute, handlerInfo, handlerMethod, authAttrs, [], groupPrefix, handlerLine, handlerBody)

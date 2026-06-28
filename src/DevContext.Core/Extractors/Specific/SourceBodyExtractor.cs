@@ -20,11 +20,13 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
         [], [],
         ["model.Types[*].SourceBody"],
         "Populates SourceBody for each non-pruned type with its declaration source text");
-    /// <summary>Runs in Debug and Full profiles. Debug powers the entry-rooted trace, whose body-scan
-    /// seams (Sends/Raises/ReadsWrites in GraphBuilder) read SourceBody to bridge MediatR dispatch,
-    /// domain events, and data access — so without this the trace can't follow indirection.</summary>
+    /// <summary>Runs whenever the full graph is built (default) or in Debug/Full. The body-scan seams
+    /// (Sends/Raises/ReadsWrites in GraphBuilder) read SourceBody to bridge MediatR dispatch, domain
+    /// events, and data access, and the Map's entry→target enrichment depends on the resulting Sends
+    /// edges — so without this even the overview Map can't show "route → command".</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
+        => context.Options.BuildFullGraph
+            || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full;
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

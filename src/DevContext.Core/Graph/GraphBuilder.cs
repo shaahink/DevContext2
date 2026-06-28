@@ -2,6 +2,10 @@ using System.Text.RegularExpressions;
 
 using DevContext.Core.Models;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -31,7 +35,9 @@ public sealed class GraphBuilder
 
         AddTypeNodes(g, model, scope);                      // worked example
         var entries = AddHttpEntryPoints(g, model, scope, names)  // worked example
-            .AddRange(AddWorkerEntryPoints(g, model, scope, names)); // hosted services + scheduled jobs (DntSite audit)
+            .AddRange(AddWorkerEntryPoints(g, model, scope, names)) // hosted services + scheduled jobs (DntSite audit)
+            .AddRange(AddDomainEventHandlerEntries(g, model, scope, names)) // domain-event handlers
+            .AddRange(AddMessageConsumerEntries(g, model, scope, names));  // integration-event consumers
         AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -41,10 +47,16 @@ public sealed class GraphBuilder
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
         // ── P2 Trace-facing seams ─────────────────────────────────────────
-        AddRaises(g, model, names);                         // C1: Raises edges from body scan
-        AddSends(g, model, names);                          // C1: Sends edges from .Send(new X())
-        AddDataEdges(g, model, names);                      // C1: ReadsWrites edges from entities
-        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges
+        // Member-origin correctness (Iteration 1 / Phase 1): edges that originate in a method body must
+        // originate from that method's Member node, not the whole Type — otherwise a trace anchored on
+        // one method inherits every sibling method's edges. Precompute, once, a per-type offset→method
+        // locator from each type's SourceBody so the body-scan seams below attribute each match to the
+        // method that contains it. (See PRODUCT-DIRECTION.md §6 req.1.)
+        var methodSpans = BuildAllMethodSpans(model);
+        AddRaises(g, model, names, methodSpans);            // C1: Raises edges from body scan (member-origin)
+        AddSends(g, model, names, methodSpans);             // C1: Sends edges from .Send(new X()) (member-origin)
+        AddDataEdges(g, model, names, methodSpans);         // C1: ReadsWrites edges from entities (member-origin)
+        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
 
         var graph = g.Build();
         return (graph, EnrichEntryTargets(graph, entries));
@@ -52,58 +64,134 @@ public sealed class GraphBuilder
 
     /// <summary>After the graph is assembled, resolve each entry's dispatch target (the command it
     /// sends or the handler it invokes) so the Map and the desktop picker can show "route → Target".
-    /// The Sends/Handles edges don't exist yet when entries are first created, so this runs last.</summary>
+    /// Uses the entry's <see cref="EntryPoint.HandlerNode"/> (set during graph construction) to find
+    /// the connected Type/Member node and its Sends edges.</summary>
     private static ImmutableArray<EntryPoint> EnrichEntryTargets(CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         if (entries.IsDefaultOrEmpty) return entries;
         var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
         foreach (var e in entries)
-            b.Add(e with { Target = ResolveEntryTarget(graph, e.Node) });
+            b.Add(e with { Target = ResolveEntryTarget(graph, e) });
         return b.ToImmutable();
     }
 
-    /// <summary>Resolves an entry's primary target by stepping one hop down its Calls edge: a named
-    /// handler method/class is the target; a type that dispatches exactly one request shows that
-    /// command; an ambiguous registration class (many sends — minimal APIs) yields null (the Trace
-    /// disambiguates per-endpoint). Truthful by construction — no guess when the owner fans out.</summary>
-    private static string? ResolveEntryTarget(CodeGraph graph, NodeId entryNode)
+    /// <summary>Resolves an entry's primary target by following the entry's Calls edge to the
+    /// target node, then checking that node's Sends edges — same traversal the TraceBuilder uses.</summary>
+    private static string? ResolveEntryTarget(CodeGraph graph, EntryPoint entry)
     {
-        // Unresolved (FastEndpoints Configure()-set) routes collapse to a single "<dynamic>" node, so
-        // every such entry would resolve to whichever endpoint won that bucket — misleading. Skip them.
-        if (entryNode.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
+        if (entry.Node.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
 
-        foreach (var call in graph.OutEdges(entryNode, EdgeKind.Calls))
+        foreach (var call in graph.OutEdges(entry.Node, EdgeKind.Calls))
         {
             var node = graph.Node(call.To);
             if (node is null) continue;
+
             switch (node.Kind)
             {
                 case NodeKind.Member:
-                    // G5: a per-endpoint minimal-API lambda node resolves its target through its own
-                    // Sends edge (like a Type) — "route → Command" when it dispatches exactly one,
-                    // else null. Its synthetic "<lambda> …" title must never surface as the target.
-                    if (node.Title.StartsWith("<lambda>", StringComparison.Ordinal))
-                    {
-                        var lsends = graph.OutEdges(node.Id, EdgeKind.Sends)
-                            .Select(s => s.To).Distinct().ToList();
-                        return lsends.Count == 1 ? graph.Node(lsends[0])?.Title : null;
-                    }
-                    // "CreateEndpoint.HandleAsync" → "CreateEndpoint" (the handler class).
-                    var dot = node.Title.LastIndexOf('.');
-                    return dot > 0 ? node.Title[..dot] : node.Title;
-                case NodeKind.Handler:
-                    return node.Title;
+                    // A Member node (lambda or captured handler method) resolves to ITS OWN dispatch.
+                    var msends = graph.OutEdges(node.Id, EdgeKind.Sends)
+                        .Select(s => s.To).Distinct().ToList();
+                    if (msends.Count == 1) return graph.Node(msends[0])?.Title;
+                    if (msends.Count > 1 && entry.Title is { } mroute)
+                        return MatchRouteToSend(mroute, msends, graph);
+                    // No own dispatch. If we have the member's body (lambda / captured method), it
+                    // genuinely sends nothing → no target. Only when the body is absent (cross-type
+                    // method ref) do we fall back to guessing via the owning type.
+                    return node.SourceBody is { Length: > 0 }
+                        ? null
+                        : ResolveViaParentType(node.Title, entry.Title, graph);
                 case NodeKind.Type:
                     var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
                     if (sends.Count == 1)
                         return graph.Node(sends[0])?.Title;
-                    // 0 or >1 sends → ambiguous; leave the route to speak for itself.
+                    if (sends.Count > 1 && entry.Title is { } route)
+                        return MatchRouteToSend(route, sends, graph);
                     return null;
             }
         }
         return null;
     }
+
+    /// <summary>For a named Member node (e.g. "OrdersApi.CreateOrderAsync"), follow to the parent
+    /// Type's Sends edges.</summary>
+    private static string? ResolveViaParentType(string memberTitle, string? entryTitle, CodeGraph graph)
+    {
+        var dot = memberTitle.LastIndexOf('.');
+        if (dot <= 0) return null;
+        var typeName = memberTitle[..dot];
+
+        foreach (var n in graph.Nodes)
+        {
+            if (n.Kind != NodeKind.Type) continue;
+            if (n.Title != typeName && !n.Title.EndsWith("." + typeName, StringComparison.Ordinal))
+                continue;
+            var typeSends = graph.OutEdges(n.Id, EdgeKind.Sends)
+                .Select(s => s.To).Distinct().ToList();
+            if (typeSends.Count == 1)
+                return graph.Node(typeSends[0])?.Title;
+            if (typeSends.Count > 1 && entryTitle is { } route)
+                return MatchRouteToSend(route, typeSends, graph);
+            break;
+        }
+        return null;
+    }
+
+    /// <summary>When a registration type dispatches many commands (minimal APIs), match an entry's
+    /// route to the most likely request by extracting the last significant route segment and finding
+    /// the Send target whose request name contains it.</summary>
+    private static string? MatchRouteToSend(string route, List<NodeId> sendTargets, CodeGraph graph)
+    {
+        // Extract the last significant segment: "POST /api/orders/" → "orders"
+        var segment = route.TrimEnd('/');
+        var lastSlash = segment.LastIndexOf('/');
+        if (lastSlash >= 0)
+            segment = segment[(lastSlash + 1)..];
+        // Strip {params}: "orders/{orderId:int}" → "orders"
+        var brace = segment.IndexOf('{');
+        if (brace > 0) segment = segment[..brace];
+        if (segment.Length < 2) return null;
+
+        // Also try singular form (routes are often plural, type names singular)
+        var singular = segment.EndsWith("s", StringComparison.OrdinalIgnoreCase)
+            ? segment[..^1] : null;
+        // HTTP-verb prefix hints: POST→Create, GET→Get/List, PUT→Update, DELETE→Delete
+        var verb = route.AsSpan().TrimStart();
+        var space = verb.IndexOf(' ');
+        var httpVerb = space > 0 ? verb[..space].ToString() : "";
+
+        string? best = null;
+        foreach (var targetId in sendTargets)
+        {
+            var name = graph.Node(targetId)?.Title;
+            if (name is null) continue;
+            if (!name.Contains(segment, StringComparison.OrdinalIgnoreCase)
+                && (singular is null || !name.Contains(singular, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            // Prefer targets whose verb-derived prefix matches
+            if (MatchesVerbPrefix(name, httpVerb))
+                return name;
+            best ??= name;
+        }
+        return best;
+    }
+
+    private static bool MatchesVerbPrefix(string name, string httpVerb) => httpVerb switch
+    {
+        "POST" => name.StartsWith("Create", StringComparison.OrdinalIgnoreCase)
+               || name.StartsWith("Add", StringComparison.OrdinalIgnoreCase),
+        "GET" => name.StartsWith("Get", StringComparison.OrdinalIgnoreCase)
+              || name.StartsWith("List", StringComparison.OrdinalIgnoreCase)
+              || name.StartsWith("Find", StringComparison.OrdinalIgnoreCase),
+        "PUT" => name.StartsWith("Update", StringComparison.OrdinalIgnoreCase),
+        "DELETE" => name.StartsWith("Delete", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("Remove", StringComparison.OrdinalIgnoreCase),
+        "PATCH" => name.StartsWith("Update", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("Patch", StringComparison.OrdinalIgnoreCase),
+        _ => false,
+    };
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
@@ -145,6 +233,8 @@ public sealed class GraphBuilder
                 || ep.HandlerType.Contains("=>", StringComparison.Ordinal);
 
             var linked = false;
+            NodeId? handlerNodeId = null;
+
             if (!isLambdaHandler)
             {
                 var handlerFqn = names.Resolve(ep.HandlerType);
@@ -155,27 +245,35 @@ public sealed class GraphBuilder
 
                 if (hasSpecificMethod && g.HasNode(NodeId.ForType(handlerFqn)))
                 {
-                    // B4: Anchor on the specific handler method via a Member node
+                    // B4: Anchor on the specific handler method via a Member node. When the extractor
+                    // captured the method's OWN body (same-class method group), carry it and scan it for
+                    // dispatch so this endpoint resolves to exactly what THIS method sends (a GET that
+                    // only queries gets no command). Without a captured body (cross-type ref), the member
+                    // carries no body and target resolution falls back to the owning type.
                     var memberNodeId = NodeId.ForMember(handlerFqn, methodName);
-                    var typeNode = g.Nodes.FirstOrDefault(n => n.Id.Key == handlerFqn);
+                    handlerNodeId = memberNodeId;
                     g.AddNode(new GraphNode(memberNodeId, ep.HandlerType + "." + methodName, NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
-                        SourceBody = typeNode?.SourceBody,
+                        SourceBody = ep.HandlerBody,
                     });
                     g.AddEdge(new GraphEdge(id, memberNodeId, EdgeKind.Calls)
                     {
                         Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                         Resolution = Resolution.Join,
                     });
+                    if (!string.IsNullOrEmpty(ep.HandlerBody))
+                        AddDispatchEdgesFromBody(g, memberNodeId, ep.HandlerBody,
+                            $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}", names);
                     linked = true;
                 }
                 else
                 {
-                    var handlerNodeId = NodeId.ForType(handlerFqn);
-                    if (g.HasNode(handlerNodeId))
+                    var typeNodeId = NodeId.ForType(handlerFqn);
+                    if (g.HasNode(typeNodeId))
                     {
-                        g.AddEdge(new GraphEdge(id, handlerNodeId, EdgeKind.Calls)
+                        handlerNodeId = typeNodeId;
+                        g.AddEdge(new GraphEdge(id, typeNodeId, EdgeKind.Calls)
                         {
                             Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                             Resolution = Resolution.Join,
@@ -197,6 +295,7 @@ public sealed class GraphBuilder
                 {
                     var ownerKey = ownerType?.Id ?? Path.GetFileNameWithoutExtension(ep.SourceFile);
                     var lambdaId = NodeId.ForMember(ownerKey, $"<lambda> {key}");
+                    handlerNodeId = lambdaId;
                     g.AddNode(new GraphNode(lambdaId, $"<lambda> {key}", NodeKind.Member)
                     {
                         FilePath = ep.SourceFile,
@@ -207,15 +306,21 @@ public sealed class GraphBuilder
                         Provenance = $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}",
                         Resolution = Resolution.Join,
                     });
-                    AddLambdaOutEdges(g, lambdaId, ep, names);
+                    AddDispatchEdgesFromBody(g, lambdaId, ep.HandlerBody,
+                        $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}", names);
                     linked = true;
                 }
                 else if (ownerType is not null)
                 {
-                    var ownerNodeId = NodeId.ForType(ownerType.Id);
-                    if (g.HasNode(ownerNodeId))
+                    // Find the Type node already added (by AddTypeNodes) — its NodeId key may differ
+                    // from NodeId.ForType(ownerType.Id) due to namespace prefix variations (global::).
+                    var ownerNode = g.Nodes.FirstOrDefault(n =>
+                        n.Kind == NodeKind.Type
+                        && string.Equals(n.FilePath, ownerType.FilePath, StringComparison.OrdinalIgnoreCase));
+                    if (ownerNode is not null)
                     {
-                        g.AddEdge(new GraphEdge(id, ownerNodeId, EdgeKind.Calls)
+                        handlerNodeId = ownerNode.Id;
+                        g.AddEdge(new GraphEdge(id, ownerNode.Id, EdgeKind.Calls)
                         {
                             Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                             Resolution = Resolution.Join,
@@ -229,6 +334,7 @@ public sealed class GraphBuilder
                 HttpMethod = ep.HttpMethod,
                 Route = ep.RouteTemplate,
                 Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
+                HandlerNode = handlerNodeId,
             });
         }
         return entries.ToImmutable();
@@ -271,6 +377,51 @@ public sealed class GraphBuilder
         return entries.ToImmutable();
     }
 
+    /// <summary>MediatR notification handlers become DomainEventHandler entry points so the Map and
+    /// desktop picker list them alongside HTTP endpoints.</summary>
+    private static ImmutableArray<EntryPoint> AddDomainEventHandlerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
+        {
+            if (h.Kind != MediatRKind.Notification) continue;
+            if (!scope.Contains(h.SourceFile)) continue;
+            if (!seen.Add(h.HandlerType)) continue;
+
+            var id = NodeId.ForEntry($"domain:{h.HandlerType}");
+            g.AddNode(new GraphNode(id, h.HandlerType, NodeKind.EntryPoint) { FilePath = h.SourceFile });
+            entries.Add(new EntryPoint(EntryPointKind.DomainEventHandler, h.HandlerType, id)
+            {
+                Provenance = $"{h.SourceFile}:{h.LineNumber}",
+                Target = h.RequestType,
+            });
+        }
+        return entries.ToImmutable();
+    }
+
+    /// <summary>Message bus consumers become MessageConsumer entry points so the Map shows integration
+    /// event consumers grouped under Bus alongside HTTP routes.</summary>
+    private static ImmutableArray<EntryPoint> AddMessageConsumerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
+        {
+            if (!scope.Contains(mc.SourceFile)) continue;
+            if (!seen.Add(mc.ConsumerType)) continue;
+
+            var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
+            g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile });
+            entries.Add(new EntryPoint(EntryPointKind.MessageConsumer, mc.ConsumerType, id)
+            {
+                Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
+                Target = mc.MessageType,
+            });
+        }
+        return entries.ToImmutable();
+    }
+
     /// <summary>WORKED EXAMPLE — join MediatR detections into Request + Handler nodes and a Handles edge.
     /// Note the FQN resolution (<paramref name="names"/>): node keys are canonical even though detections
     /// carry short names. Every other join seam follows this exact pattern.</summary>
@@ -279,16 +430,17 @@ public sealed class GraphBuilder
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
             if (!scope.Contains(h.SourceFile)) continue;
-            var requestId = NodeId.ForRequest(names.Resolve(h.RequestType));
-            var handlerId = NodeId.ForHandler(names.Resolve(h.HandlerType));
+            var requestId = NodeId.ForType(names.Resolve(h.RequestType));
+            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
 
-            g.AddNode(new GraphNode(requestId, h.RequestType, NodeKind.Request)
+            g.AddNode(new GraphNode(requestId, h.RequestType, NodeKind.Type)
             {
                 Tags = [h.Kind.ToString().ToLowerInvariant()],
             });
-            g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Handler)
+            g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Type)
             {
                 FilePath = h.SourceFile,
+                Tags = [RoleTags.Handler],
                 SourceBody = model.Types.Values
                     .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType))
                     ?.SourceBody,
@@ -327,22 +479,36 @@ public sealed class GraphBuilder
                 if (!string.IsNullOrEmpty(impl) && impl != "?")
                     behaviors.Add((impl, di.SourceFile, di.LineNumber));
             }
+            // Fluent config packed in lambda body: scan for AddOpenBehavior(typeof(X)) patterns
+            if (di.ImplementationType is { Length: > 0 } body
+                && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
+            {
+                foreach (Match m in Regex.Matches(body,
+                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
+                    RegexOptions.Compiled))
+                {
+                    var name = m.Groups[1].Value;
+                    if (name is { Length: > 0 } && name != "?")
+                        behaviors.Add((name, di.SourceFile, di.LineNumber));
+                }
+            }
         }
 
         foreach (var (behaviorType, file, line) in behaviors)
         {
             var behaviorFqn = names.Resolve(behaviorType);
-            var behaviorNodeId = NodeId.ForService(behaviorFqn);
-            g.AddNode(new GraphNode(behaviorNodeId, behaviorType, NodeKind.Service)
+            var behaviorNodeId = NodeId.ForType(behaviorFqn);
+            g.AddNode(new GraphNode(behaviorNodeId, behaviorType, NodeKind.Type)
             {
                 FilePath = file,
-                Tags = ["pipeline"],
+                Tags = [RoleTags.Service, RoleTags.Pipeline],
                 SourceBody = model.Types.Values
                     .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
             });
 
-            // WrappedBy edge from every Request node to this pipeline behavior
-            foreach (var node in g.Nodes.Where(n => n.Kind == NodeKind.Request))
+            // WrappedBy edge from every request node (a Type tagged command/query/notification) to
+            // this pipeline behavior.
+            foreach (var node in g.Nodes.Where(IsRequestNode))
             {
                 g.AddEdge(new GraphEdge(node.Id, behaviorNodeId, EdgeKind.WrappedBy)
                 {
@@ -377,11 +543,11 @@ public sealed class GraphBuilder
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             if (!scope.Contains(e.SourceFile)) continue;
-            var entityId = NodeId.ForEntity(names.Resolve(e.EntityType));
+            var entityId = NodeId.ForType(names.Resolve(e.EntityType));
             var tags = e.IsAggregate
-                ? ImmutableArray.Create("aggregate")
-                : ImmutableArray<string>.Empty;
-            g.AddNode(new GraphNode(entityId, e.EntityType, NodeKind.Entity)
+                ? ImmutableArray.Create(RoleTags.Entity, RoleTags.Aggregate)
+                : ImmutableArray.Create(RoleTags.Entity);
+            g.AddNode(new GraphNode(entityId, e.EntityType, NodeKind.Type)
             {
                 FilePath = e.SourceFile,
                 Tags = tags,
@@ -399,16 +565,17 @@ public sealed class GraphBuilder
         {
             if (h.Kind != MediatRKind.Notification) continue;
             if (!scope.Contains(h.SourceFile)) continue;
-            var eventId = NodeId.ForEvent(names.Resolve(h.RequestType));
-            var handlerId = NodeId.ForHandler(names.Resolve(h.HandlerType));
+            var eventId = NodeId.ForType(names.Resolve(h.RequestType));
+            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
 
-            g.AddNode(new GraphNode(eventId, h.RequestType, NodeKind.Event)
+            g.AddNode(new GraphNode(eventId, h.RequestType, NodeKind.Type)
             {
-                Tags = ["domain-event"],
+                Tags = [RoleTags.DomainEvent],
             });
-            g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Handler)
+            g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Type)
             {
                 FilePath = h.SourceFile,
+                Tags = [RoleTags.Handler],
             });
             g.AddEdge(new GraphEdge(eventId, handlerId, EdgeKind.Consumes)
             {
@@ -421,17 +588,18 @@ public sealed class GraphBuilder
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
             if (!scope.Contains(mc.SourceFile)) continue;
-            var eventId = NodeId.ForEvent(names.Resolve(mc.MessageType));
+            var eventId = NodeId.ForType(names.Resolve(mc.MessageType));
             var consumerType = names.Resolve(mc.ConsumerType);
-            var handlerId = NodeId.ForHandler(consumerType);
+            var handlerId = NodeId.ForType(consumerType);
 
-            g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Event)
+            g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Type)
             {
-                Tags = ["integration-event", mc.BusKind],
+                Tags = [RoleTags.IntegrationEvent, mc.BusKind],
             });
-            g.AddNode(new GraphNode(handlerId, mc.ConsumerType, NodeKind.Handler)
+            g.AddNode(new GraphNode(handlerId, mc.ConsumerType, NodeKind.Type)
             {
                 FilePath = mc.SourceFile,
+                Tags = [RoleTags.Consumer],
             });
             g.AddEdge(new GraphEdge(eventId, handlerId, EdgeKind.Consumes)
             {
@@ -482,13 +650,15 @@ public sealed class GraphBuilder
             var implFqn = names.Resolve(di.ImplementationType);
 
             var svcNodeId = NodeId.ForType(svcFqn);
-            var implNodeId = NodeId.ForService(implFqn);
+            var implNodeId = NodeId.ForType(implFqn);
 
             // Ensure both nodes exist
             if (!g.HasNode(svcNodeId))
                 g.AddNode(new GraphNode(svcNodeId, di.ServiceType, NodeKind.Type));
-            if (!g.HasNode(implNodeId))
-                g.AddNode(new GraphNode(implNodeId, di.ImplementationType, NodeKind.Service));
+            g.AddNode(new GraphNode(implNodeId, di.ImplementationType, NodeKind.Type)
+            {
+                Tags = [RoleTags.Service],
+            });
 
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
@@ -511,7 +681,7 @@ public sealed class GraphBuilder
         {
             var ifaceFqn = names.Resolve(ifaceShort);
             var svcNodeId = NodeId.ForType(ifaceFqn);
-            var implNodeId = NodeId.ForService(implFqn);
+            var implNodeId = NodeId.ForType(implFqn);
             if (!g.HasNode(svcNodeId) || !g.HasNode(implNodeId)) continue;
             if (diResolvedSvcIds.Contains(svcNodeId)) continue; // already resolved via DI
 
@@ -525,21 +695,45 @@ public sealed class GraphBuilder
 
     // ── P2 Trace-facing seams (C1) — joins that complete the indirection-bridged trace ─────────
 
-    /// <summary>C1: model.CallEdges → Type→Type Calls edges, but ONLY between types that are real nodes
-    /// in the graph (in-scope solution types). The syntactic call graph emits a callee per invocation,
-    /// many of which are local variables, fluent-chain fragments, or framework methods (e.g. "group",
-    /// "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise. By
-    /// requiring both endpoints to already exist, the trace keeps only edges to types we actually know.
+    /// <summary>C1: model.CallEdges → <b>member→member</b> Calls edges, but ONLY between types that are
+    /// real nodes in the graph (in-scope solution types). The syntactic call graph emits a callee per
+    /// invocation, many of which are local variables, fluent-chain fragments, or framework methods (e.g.
+    /// "group", "pb", "AsNoTracking()"); materializing those as phantom nodes floods the trace with noise.
+    /// By requiring both endpoints to already exist as declared Type nodes (non-null FilePath), the trace
+    /// keeps only edges to types we actually know. Origin is the caller <b>method</b> and target the callee
+    /// <b>method</b> (both carried on <see cref="CallEdge"/>), so a focused trace descends method-to-method
+    /// — the spine — instead of inheriting every sibling method's edges. Member nodes carry their owning
+    /// Type's FilePath (salient lines fall back to the Type body in <see cref="TraceBuilder"/>).
     /// Resolution flows through from the edge (semantic → [verified], syntactic → [approx]).</summary>
     private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
     {
         foreach (var ce in model.CallEdges)
         {
-            var callerId = NodeId.ForType(names.Resolve(ce.CallerType));
-            var calleeId = NodeId.ForType(names.Resolve(ce.CalleeType));
+            var callerFqn = names.Resolve(ce.CallerType);
+            var calleeFqn = names.Resolve(ce.CalleeType);
 
-            if (callerId == calleeId) continue;                              // skip self-calls
-            if (!g.HasNode(callerId) || !g.HasNode(calleeId)) continue;      // real solution types only
+            // Declared in-scope types only. After the Type+tags collapse, requests/events/handlers that
+            // live in referenced projects also exist as Type nodes (name-only, added by joins) — gating
+            // on a non-null FilePath (set only by AddTypeNodes) keeps Calls restricted to types we
+            // actually declared, exactly as before the collapse, so no phantom call edges appear.
+            var callerType = g.GetNode(NodeId.ForType(callerFqn));
+            var calleeType = g.GetNode(NodeId.ForType(calleeFqn));
+            if (callerType?.FilePath is null || calleeType?.FilePath is null) continue;
+
+            var callerId = NodeId.ForMember(callerFqn, ce.CallerMethod);
+            var calleeId = NodeId.ForMember(calleeFqn, ce.CalleeMethod);
+            if (callerId == calleeId) continue;                              // skip direct self-recursion
+
+            // Member nodes for both endpoints, carrying the owning Type's file (body filled — when at all —
+            // by the body-scan seams / HTTP entry; salient otherwise falls back to the parent Type body).
+            g.AddNode(new GraphNode(callerId, $"{callerType.Title}.{ce.CallerMethod}", NodeKind.Member)
+            {
+                FilePath = callerType.FilePath,
+            });
+            g.AddNode(new GraphNode(calleeId, $"{calleeType.Title}.{ce.CalleeMethod}", NodeKind.Member)
+            {
+                FilePath = calleeType.FilePath,
+            });
 
             g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
             {
@@ -550,24 +744,29 @@ public sealed class GraphBuilder
         }
     }
 
-    /// <summary>C1: Link EF entities to their handler types via body references + DbContext info.
-    /// For each entity detection, find handler types whose SourceBody references the entity name,
-    /// and add ReadsWrites edges from the handler type to the entity.</summary>
-    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    /// <summary>C1: Link EF entities to their data store and to the code that touches them. Entity→
+    /// DataStore comes from the detection; the touch edges come from scanning bodies that name an entity
+    /// — attributed to the enclosing <b>method</b> (member-origin), so a method-anchored trace shows only
+    /// its own data access. The minimal-API lambda/handler-method Member pass keeps a direct MinimalApi→EF
+    /// trace (TodoApi) surfacing its touched entity (G4).</summary>
+    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
-        var entityNames = new HashSet<string>(StringComparer.Ordinal);
+        // Map every entity alias (short + FQN) → its node id, so a body that names the entity either way
+        // links to the SAME node (FQN-keyed entities used to never match a short-name body reference).
+        var entityIdByName = new Dictionary<string, NodeId>(StringComparer.Ordinal);
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             var entityFqn = names.Resolve(e.EntityType);
-            var entityId = NodeId.ForEntity(entityFqn);
+            var entityId = NodeId.ForType(entityFqn);
             var ctxFqn = names.Resolve(e.DbContextType);
-            var ctxType = ctxFqn;
-            if (!string.IsNullOrEmpty(ctxType) && ctxType != "?")
+            if (!string.IsNullOrEmpty(ctxFqn) && ctxFqn != "?")
             {
-                var ctxId = NodeId.ForType(ctxType);
-                g.AddNode(new GraphNode(ctxId, ctxType, NodeKind.DataStore)
+                var ctxId = NodeId.ForType(ctxFqn);
+                g.AddNode(new GraphNode(ctxId, ctxFqn, NodeKind.Type)
                 {
                     FilePath = e.SourceFile,
+                    Tags = [RoleTags.DataStore],
                 });
                 g.AddEdge(new GraphEdge(entityId, ctxId, EdgeKind.ReadsWrites)
                 {
@@ -575,43 +774,71 @@ public sealed class GraphBuilder
                     Resolution = Resolution.Join,
                 });
             }
-            entityNames.Add(RemoveGenerics(e.EntityType));
-            entityNames.Add(RemoveGenerics(entityFqn));
+            entityIdByName[RemoveGenerics(e.EntityType)] = entityId;
+            entityIdByName[RemoveGenerics(entityFqn)] = entityId;
         }
+        if (entityIdByName.Count == 0) return;
 
-        // Link handler/consumer types that reference entities in their bodies
+        // Type bodies (handlers/services) that reference an entity — attributed to the enclosing METHOD so
+        // a member-anchored trace gets only its own data access. A type whose body can't be split into
+        // methods (parse miss / no methods) falls back to a single Type-level edge (the old behaviour).
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
-            foreach (var entityName in entityNames)
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
+            if (spans.IsDefaultOrEmpty)
             {
-                if (!body.Contains(entityName, StringComparison.Ordinal)) continue;
-                var typeId = NodeId.ForType(type.Id);
-                var entityId = NodeId.ForEntity(entityName);
-                if (!g.HasNode(typeId) || !g.HasNode(entityId)) continue;
-
-                g.AddEdge(new GraphEdge(typeId, entityId, EdgeKind.ReadsWrites)
-                {
-                    Resolution = Resolution.Syntactic,
-                    Confidence = 0.5f,
-                });
-                break;
+                LinkBodyToEntity(g, NodeId.ForType(type.Id), body, entityIdByName);
+                continue;
             }
+            foreach (var span in spans)
+            {
+                var memberId = EnsureMember(g, type, span.Method);
+                LinkBodyToEntity(g, memberId, body[span.Start..span.End], entityIdByName);
+            }
+        }
+
+        // Minimal-API lambda / captured handler-method Member nodes that reference an entity — this is
+        // what makes a direct MinimalApi→EF trace (TodoApi) surface its touched entity.
+        foreach (var member in g.Nodes.Where(n => n.Kind == NodeKind.Member && n.SourceBody is { Length: > 0 }).ToList())
+            LinkBodyToEntity(g, member.Id, member.SourceBody, entityIdByName);
+    }
+
+    /// <summary>Adds one ReadsWrites edge from <paramref name="fromId"/> to the first entity its body
+    /// names (syntactic, approximate). Shared by the type-body and member-body passes.</summary>
+    private static void LinkBodyToEntity(CodeGraphBuilder g, NodeId fromId, string? body,
+        Dictionary<string, NodeId> entityIdByName)
+    {
+        if (body is not { Length: > 0 } || !g.HasNode(fromId)) return;
+        foreach (var (entityName, entityId) in entityIdByName)
+        {
+            if (entityName.Length < 3 || !body.Contains(entityName, StringComparison.Ordinal)) continue;
+            if (fromId == entityId || !g.HasNode(entityId)) continue;
+            g.AddEdge(new GraphEdge(fromId, entityId, EdgeKind.ReadsWrites)
+            {
+                Resolution = Resolution.Syntactic,
+                Confidence = 0.5f,
+            });
+            break;
         }
     }
 
     /// <summary>C1: Scan handler/ctor SourceBody for domain/integration event creation → Raises edges.
     /// Per R4: matches method-name set {AddDomainEvent, RaiseDomainEvent, AddEvent} with new TEvent()
-    /// arg; also new TIntegrationEvent(...) constructor calls. Returns Raises edges from the type
-    /// (or its handler node) to the Event node. Mark Resolution.Syntactic.</summary>
-    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    /// arg; also new TIntegrationEvent(...) constructor calls. The Raises edge originates from the
+    /// enclosing <b>method's</b> Member node (member-origin), falling back to the Type node only when the
+    /// match is outside any method — so the type-level <c>data Order</c> no longer dumps every method's
+    /// domain events. Resolution.Syntactic.</summary>
+    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
         var eventMethods = new[] { "AddDomainEvent", "RaiseDomainEvent", "AddEvent" };
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
-            var handlerId = NodeId.ForHandler(type.Id);
+            if (!g.HasNode(typeId)) continue;
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
             foreach (var method in eventMethods)
             {
@@ -620,28 +847,18 @@ public sealed class GraphBuilder
                 {
                     var eventName = match.Groups[1].Value;
                     if (IsNoiseType(eventName)) continue;
-                    var eventFqn = names.Resolve(eventName);
-                    var eventId = NodeId.ForEvent(eventFqn);
-                    if (!g.HasNode(typeId)) continue;
+                    var eventId = NodeId.ForType(names.Resolve(eventName));
 
-                    g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event));
-                    var prov = EstimateProvenance(body, match.Index, type.FilePath);
-                    g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                    g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                     {
-                        Provenance = prov,
+                        Tags = [RoleTags.DomainEvent],
+                    });
+                    g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
+                    {
+                        Provenance = EstimateProvenance(body, match.Index, type.FilePath),
                         Resolution = Resolution.Syntactic,
                         Confidence = 0.5f,
                     });
-                    // B5: Mirror to Handler node so trace can cross from handler → event
-                    if (g.HasNode(handlerId))
-                    {
-                        g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
-                        {
-                            Provenance = prov,
-                            Resolution = Resolution.Syntactic,
-                            Confidence = 0.5f,
-                        });
-                    }
                 }
             }
 
@@ -650,94 +867,81 @@ public sealed class GraphBuilder
                 @"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled))
             {
                 var eventName = match.Groups[1].Value;
-                var eventFqn = names.Resolve(eventName);
-                var eventId = NodeId.ForEvent(eventFqn);
-                if (!g.HasNode(typeId)) continue;
+                var eventId = NodeId.ForType(names.Resolve(eventName));
 
-                g.AddNode(new GraphNode(eventId, eventName, NodeKind.Event)
+                g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                 {
-                    Tags = ["integration-event"],
+                    Tags = [RoleTags.IntegrationEvent],
                 });
-                var prov = EstimateProvenance(body, match.Index, type.FilePath);
-                g.AddEdge(new GraphEdge(typeId, eventId, EdgeKind.Raises)
+                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
                 {
-                    Provenance = prov,
+                    Provenance = EstimateProvenance(body, match.Index, type.FilePath),
                     Resolution = Resolution.Syntactic,
                     Confidence = 0.5f,
                 });
-                // B5: Mirror to Handler node
-                if (g.HasNode(handlerId))
-                {
-                    g.AddEdge(new GraphEdge(handlerId, eventId, EdgeKind.Raises)
-                    {
-                        Provenance = prov,
-                        Resolution = Resolution.Syntactic,
-                        Confidence = 0.5f,
-                    });
-                }
             }
         }
     }
 
-    /// <summary>C1: Scan bodies for MediatR Send/Publish dispatch → Sends edges.
-    /// Per R4: matches .Send/.SendAsync/.Publish/.PublishAsync where the receiver is a mediator
-    /// field/property, with a new TRequest(...) inline arg or a local-variable arg.
-    /// Creates Sends edge from the calling type to the request node.</summary>
-    /// <summary>G5: best-effort out-edges for a per-endpoint minimal-API lambda node. Scans the lambda's
-    /// own body for MediatR Send/Publish dispatch (same pattern as <see cref="AddSends"/>) so the trace
-    /// from this route shows ITS send target, anchored on the lambda — not the registration type.</summary>
-    private static void AddLambdaOutEdges(CodeGraphBuilder g, NodeId fromId, EndpointDetection ep, NameResolver names)
+    /// <summary>Best-effort Sends edges FROM a specific Member node (a minimal-API lambda or a captured
+    /// handler-method body) by scanning that body for MediatR Send/Publish dispatch — the same pattern
+    /// as <see cref="AddSends"/> but anchored on the one endpoint's body, so the trace and the Map's
+    /// entry→target reflect exactly what THIS route dispatches (not the whole registration type). A
+    /// method that only queries adds no Sends edge, so it correctly resolves to no command.</summary>
+    private static void AddDispatchEdgesFromBody(CodeGraphBuilder g, NodeId fromId, string body, string? provenance, NameResolver names)
     {
-        if (ep.HandlerBody is not { Length: > 0 } body) return;
-
         foreach (Match match in Regex.Matches(body,
-            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
             RegexOptions.Compiled))
         {
             string? requestName;
             if (match.Groups[2].Success)
             {
-                requestName = match.Groups[2].Value;
+                // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
+                requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
             }
             else
             {
                 var pos = match.Index;
                 if (pos <= 0) continue;
-                var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)\s*[\(;]");
+                var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
                 if (newMatches.Count == 0) continue;
-                requestName = newMatches[^1].Groups[1].Value;
+                var lastMatch = newMatches[^1];
+                requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
             }
 
             if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
-            var requestId = NodeId.ForRequest(names.Resolve(requestName));
-            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Request));
+            var requestId = NodeId.ForType(names.Resolve(requestName));
+            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
             g.AddEdge(new GraphEdge(fromId, requestId, EdgeKind.Sends)
             {
-                Provenance = $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}",
+                Provenance = provenance,
                 Resolution = Resolution.Syntactic,
                 Confidence = 0.55f,
             });
         }
     }
 
-    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
+            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
             // Find all Send/Publish calls with either inline `new T()` or a variable arg.
             // Pattern: .Send(expr) where expr is either `new Type(...)` or a local name.
             foreach (Match match in Regex.Matches(body,
-                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))",
+                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
                 RegexOptions.Compiled))
             {
                 string? requestName;
                 if (match.Groups[2].Success)
                 {
-                    // Inline: .Send(new CreateOrderCommand(...))
-                    requestName = match.Groups[2].Value;
+                    // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
+                    requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
                 }
                 else
                 {
@@ -747,22 +951,22 @@ public sealed class GraphBuilder
                     if (pos <= 0) continue;
                     var before = body[..pos];
                     // Find `new XType ` occurring before this Send, closest to the call
-                    var newMatches = Regex.Matches(before, @"new\s+(\w+)\s*[\(;]");
+                    var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
                     if (newMatches.Count == 0) continue;
-                    // Pick the last `new XType` before the Send call as the likely request type
-                    requestName = newMatches[^1].Groups[1].Value;
+                    var lastMatch = newMatches[^1];
+                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
                 }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
                 var requestFqn = names.Resolve(requestName);
-                var requestId = NodeId.ForRequest(requestFqn);
+                var requestId = NodeId.ForType(requestFqn);
                 if (!g.HasNode(typeId)) continue;
 
                 // Approximate provenance: file + line of the Send call
                 var prov = EstimateProvenance(body, match.Index, type.FilePath);
 
-                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Request));
-                g.AddEdge(new GraphEdge(typeId, requestId, EdgeKind.Sends)
+                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
+                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), requestId, EdgeKind.Sends)
                 {
                     Provenance = prov,
                     Resolution = Resolution.Syntactic,
@@ -779,6 +983,94 @@ public sealed class GraphBuilder
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
+
+    /// <summary>True for a node that represents a MediatR request (a Type tagged command/query/
+    /// notification) — the targets a pipeline behavior wraps. Replaces the old NodeKind.Request check.</summary>
+    private static bool IsRequestNode(GraphNode n)
+        => n.Kind == NodeKind.Type
+            && (n.Tags.Contains(RoleTags.Command)
+                || n.Tags.Contains(RoleTags.Query)
+                || n.Tags.Contains(RoleTags.Notification));
+
+    /// <summary>A method/ctor text span within a type's SourceBody (offsets relative to SourceBody, which
+    /// is the type declaration's full text — so they share the Regex match index's origin). Ctor name is
+    /// the type short name, matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s
+    /// caller-method key.</summary>
+    private readonly record struct MethodSpan(int Start, int End, string Method);
+
+    /// <summary>Precomputes, once per build, each type's offset→method locator from its SourceBody so the
+    /// body-scan seams (Raises/Sends/ReadsWrites) can attribute every match to the enclosing method
+    /// (member-origin) rather than the whole type.</summary>
+    private static Dictionary<string, ImmutableArray<MethodSpan>> BuildAllMethodSpans(DiscoveryModel model)
+    {
+        var map = new Dictionary<string, ImmutableArray<MethodSpan>>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+            if (type.SourceBody is { Length: > 0 } body)
+                map[type.Id] = BuildMethodSpans(body);
+        return map;
+    }
+
+    /// <summary>Parses a type's SourceBody fragment and returns the text span of each direct method/ctor.
+    /// Mirrors CallGraphExtractor's per-member iteration (direct members of the type, ctors keyed by the
+    /// type short name). A parse failure yields an empty list → callers fall back to Type-level origin.</summary>
+    private static ImmutableArray<MethodSpan> BuildMethodSpans(string sourceBody)
+    {
+        try
+        {
+            var root = CSharpSyntaxTree.ParseText(sourceBody).GetRoot();
+            var typeDecl = root.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+            if (typeDecl is null) return [];
+
+            var typeShort = typeDecl.Identifier.ValueText;
+            var spans = ImmutableArray.CreateBuilder<MethodSpan>();
+            foreach (var member in typeDecl.Members)
+            {
+                switch (member)
+                {
+                    case MethodDeclarationSyntax m:
+                        spans.Add(new MethodSpan(m.Span.Start, m.Span.End, m.Identifier.ValueText));
+                        break;
+                    case ConstructorDeclarationSyntax c:
+                        spans.Add(new MethodSpan(c.Span.Start, c.Span.End, typeShort));
+                        break;
+                }
+            }
+            return spans.ToImmutable();
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    /// <summary>Resolves a SourceBody character offset to the enclosing method name, or null when the
+    /// offset is outside every method (e.g. a field initializer) — callers then attribute to the Type.</summary>
+    private static string? EnclosingMethod(ImmutableArray<MethodSpan> spans, int offset)
+    {
+        foreach (var span in spans)
+            if (offset >= span.Start && offset < span.End)
+                return span.Method;
+        return null;
+    }
+
+    /// <summary>Ensures a Member node exists for <paramref name="type"/>.<paramref name="method"/>, carrying
+    /// the owning Type's file, and returns its id. First-write-wins merge keeps any body/edges already
+    /// attached by the call graph or HTTP-entry passes.</summary>
+    private static NodeId EnsureMember(CodeGraphBuilder g, TypeDiscovery type, string method)
+    {
+        var id = NodeId.ForMember(type.Id, method);
+        g.AddNode(new GraphNode(id, $"{type.Name}.{method}", NodeKind.Member) { FilePath = type.FilePath });
+        return id;
+    }
+
+    /// <summary>Origin node for a body-scan match: the enclosing method's Member node (member-origin), or
+    /// the Type node when the match isn't inside any method.</summary>
+    private static NodeId BodyMatchOrigin(CodeGraphBuilder g, TypeDiscovery type,
+        ImmutableArray<MethodSpan> spans, int offset, NodeId typeFallback)
+    {
+        var method = EnclosingMethod(spans, offset);
+        return method is null ? typeFallback : EnsureMember(g, type, method);
+    }
 
     /// <summary>Estimates a "file:line" provenance from a character offset in the source body.</summary>
     private static string? EstimateProvenance(string sourceBody, int charOffset, string? filePath)
@@ -802,5 +1094,26 @@ public sealed class GraphBuilder
     {
         var idx = typeName.IndexOf('<');
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
+    }
+
+    /// <summary>When a <c>new</c> expression wraps the real request in a generic type
+    /// (e.g. <c>new IdentifiedCommand&lt;CreateOrderCommand,bool&gt;(...)</c>), extract the
+    /// first generic argument as the actual request type. Returns the original typeName
+    /// if no generic wrapper is detected.</summary>
+    private static string UnwrapGenericArg(string body, int typeNamePos, string typeName)
+    {
+        var after = typeNamePos + typeName.Length;
+        if (after >= body.Length || body[after] != '<') return typeName;
+
+        // Extract the first generic argument: everything between < and the first , or >
+        var start = after + 1;
+        var comma = body.IndexOf(',', start);
+        var close = body.IndexOf('>', start);
+        if (close < 0) return typeName;
+        var end = comma > 0 && comma < close ? comma : close;
+        if (end <= start) return typeName;
+
+        var inner = body[start..end].Trim();
+        return inner.Length > 0 ? inner : typeName;
     }
 }

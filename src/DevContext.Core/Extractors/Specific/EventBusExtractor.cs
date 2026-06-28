@@ -21,10 +21,20 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
         ["message-consumer-detections"],
         ["model.Detections"],
         "Walks syntax trees to detect message bus consumers and bus registrations");
-    /// <summary>Only runs when MassTransit or NServiceBus signals are detected.</summary>
+    /// <summary>Runs for MassTransit/NServiceBus, or self-activates when any discovered type implements
+    /// an integration-event handler interface (eShop's custom RabbitMQ IEventBus pattern, which carries
+    /// no MassTransit/NServiceBus signal) — so its Bus consumers reach the Map's Bus group (G3).</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MassTransit)
-            || currentModel.Architecture.Has(ArchitectureSignals.Keys.NServiceBus);
+            || currentModel.Architecture.Has(ArchitectureSignals.Keys.NServiceBus)
+            || currentModel.Types.Values.Any(ImplementsIntegrationEventHandler);
+
+    /// <summary>True when a type implements <c>IIntegrationEventHandler&lt;T&gt;</c> (eShop / generic
+    /// integration-event bus pattern).</summary>
+    private static bool ImplementsIntegrationEventHandler(TypeDiscovery type)
+        => type.ImplementedInterfaces.Any(i =>
+            i.StartsWith("IIntegrationEventHandler<", StringComparison.Ordinal)
+            || i.Contains(".IIntegrationEventHandler<", StringComparison.Ordinal));
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
@@ -61,7 +71,11 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                 {
                     var typeName = baseType.Type.ToString();
 
-                    if (typeName.StartsWith("IConsumer<"))
+                    // MassTransit IConsumer<T> or a generic/eShop IIntegrationEventHandler<T> — both name
+                    // the message in the first type argument and the handler as the declaring class.
+                    var isConsumer = typeName.StartsWith("IConsumer<", StringComparison.Ordinal);
+                    var isIntegrationHandler = typeName.StartsWith("IIntegrationEventHandler<", StringComparison.Ordinal);
+                    if (isConsumer || isIntegrationHandler)
                     {
                         var args = ExtractGenericArguments(typeName);
                         if (args.Length == 0) continue;
@@ -72,7 +86,7 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
                         model.Detections.Add(new MessageConsumerDetection(
                             MessageType: messageType,
                             ConsumerType: consumerType,
-                            BusKind: busKind)
+                            BusKind: isIntegrationHandler && busKind == "Unknown" ? "RabbitMQ" : busKind)
                         {
                             ExtractorName = Name,
                             SourceFile = filePath,

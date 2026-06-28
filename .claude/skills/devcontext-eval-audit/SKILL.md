@@ -14,7 +14,13 @@ root. Shell is **Windows PowerShell 5.1**. The worked example is `eval-results/D
 - **Expectations:** `eval-repos.json` (per repo: expected architecture, endpoint count, signals,
   entry points, workers). The machine eval is `tests/DevContext.Core.Tests` (`Category=Eval`,
   `EvalExpectationTests`, goldens in `tests/goldens/`).
-- **North star / assessment:** `docs/IDEAL-OUTPUT-TARGET.md`, `docs/reports/OUTPUT-QUALITY-ASSESSMENT.md`.
+- **North star / assessment:** `docs/IDEAL-OUTPUT-TARGET.md`, `docs/archive/reports/OUTPUT-QUALITY-ASSESSMENT.md`.
+- **Aspirational checks (1 remaining):** VerticalSlice `no-dynamic` (FastEndpoints routes `<dynamic>`).
+  3 previously aspirational checks flipped to `expected` in `chore/housekeeping-stats`: eShop arch-style,
+  eShop aspire-signal, VerticalSlice mediatr-signal.
+- **Known gaps:** eShop entry→target (`POST /api/orders/ → CreateOrderCommand`), MessageConsumer Bus
+  entries (RabbitMQ `IIntegrationEventHandler`), trace TOUCHES on simple repos.
+  See `docs/iterations/housekeeping-stats/HANDOVER.md` for verification guides.
 
 ## Capture (CLI, absolute paths, UTF-8)
 
@@ -37,12 +43,16 @@ levels (signature/salient/full) are the desktop's call-graph "Detail" control.
 | Dimension | Check |
 |---|---|
 | Projects / topology | test projects excluded (G6); count matches scope |
-| Architecture style | matches `eval-repos.json` (root vs closure may differ) |
+| Architecture style | matches `eval-repos.json` (root vs closure may differ); evidence-driven (not name-substring) |
 | Endpoints | count + each `route → Target` (G2); minimal-API lambdas anchor their own node (G5) |
+| **Entry groups** (NEW) | Domain handlers (MediatR notifications), Bus consumers (MessageConsumerDetection), Background workers — each as a separate group under ENTRY POINTS |
+| **Trace summary** (NEW) | RESULT (HTTP status per verb), NEXT (lifecycle hints from emitted events), TOUCHES (entities reachable from trace), EMITS (deduped events) |
+| **PipelineBehaviors** (NEW) | MediatR pipeline shown under CROSS-CUTTING when IPipelineBehavior regs exist (including AddOpenBehavior inside AddMediatR lambdas) |
 | Scheduled/hosted workers | surfaced as entries (`AddScheduledTask<T>`/`AddHostedService`) |
 | Archetype | App vs Library (`ArchetypeDetector`) — library → PUBLIC SURFACE, not entry inventory |
-| Traces | reach the real seams **including deep cross-project ones** (Send→Handler, raises) |
-| Tokens / perf | graph-shaped stats line; capped packages (G9); wall time reasonable |
+| Traces | reach the real seams **including deep cross-project ones** (Send→Handler, raises, consumes) |
+| Tokens / perf | graph-shaped stats line (`N nodes · M edges · X entries · depth D`); capped packages (G9); wall time reasonable |
+| **Stats page** (NEW) | Card grid layout in Desktop: Timing Waterfall, Extractors, Scorer+Token Funnel, Cache+Corpus+Parallelism+Graph |
 
 ## Write the report
 

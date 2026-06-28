@@ -106,6 +106,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             Profile = resolvedIntent.Profile,
             MaxOutputTokens = settings.MaxTokens ?? config?.MaxOutputTokens ?? 8000,
             AllowRoslyn = !settings.NoRoslyn,
+            BuildFullGraph = !settings.Lite,
             DryRun = settings.DryRun,
             IncludeProvenance = settings.IncludeProvenance,
             IncludeDiagnostics = settings.IncludeDiagnostics,
@@ -189,6 +190,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         Entry = focusText,
                         Depth = settings.Depth,
                         Detail = traceDetail,
+                        IncludeMapWithTrace = settings.IncludeMapWithTrace,
                     };
 
                     result = await pipeline.RenderAsync(capturedSnapshot, request, ct);
@@ -207,7 +209,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         if (settings.Stats || settings.Metrics)
-            ShowStats(snapshot?.Report);
+            ShowStats(snapshot?.Report, result.GraphSummary);
 
         ShowSummary(sw, rootResult, options, result);
 
@@ -263,7 +265,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         AnsiConsole.WriteLine(result.Content);
     }
 
-    private static void ShowStats(RunReport? report)
+    private static void ShowStats(RunReport? report, GraphSummary? graph = null)
     {
         if (report is null) return;
 
@@ -333,6 +335,26 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     sc.TypesAfter.ToString(), $"{delta}%");
             }
             AnsiConsole.Write(scorerTable);
+        }
+
+        // Graph seam coverage — how much wiring was bridged and how confidently (the Map/Trace
+        // equivalent of the legacy scorer funnel). "approx" = resolved syntactically only.
+        if (graph is { Seams.Length: > 0 })
+        {
+            AnsiConsole.WriteLine();
+            var seamTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Graph Seams")
+                .AddColumn("Seam")
+                .AddColumn(new TableColumn("Edges").RightAligned())
+                .AddColumn(new TableColumn("Approx").RightAligned());
+            foreach (var s in graph.Seams)
+                seamTable.AddRow(s.Seam, s.Count.ToString(), s.Approx > 0 ? $"[yellow]{s.Approx}[/]" : "0");
+            AnsiConsole.Write(seamTable);
+
+            if (graph.Entries > 0)
+                AnsiConsole.MarkupLine(
+                    $"[dim]{graph.Nodes} nodes · {graph.Edges} edges · {graph.EntriesWithTarget}/{graph.Entries} entries → target[/]");
         }
 
         // Cache + corpus chips

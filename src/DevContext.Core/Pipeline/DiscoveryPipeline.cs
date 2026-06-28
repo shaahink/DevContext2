@@ -117,6 +117,12 @@ public sealed class DiscoveryPipeline
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
         // Analyze-time, scoped to one solution (R1). The Trace is a render-time lens over snapshot.Graph
         // (PLAN-10 A3/Part C). Runs before scoring/compression; uses stable type ids, not mutated bodies.
+        // INVARIANT (Iteration 1 / PRODUCT-DIRECTION.md §8 — "token budget out of the kernel"): the
+        // CodeGraph + Map/Trace are assembled HERE, *before* RunScoringAsync (the pruners) and
+        // RunCompressionAsync. They never read model.Budget, IsPruned, or RoleScore — the token budget and
+        // the legacy pruners drive ONLY the legacy catalog RenderPlan (JSON/HTML). So token budgeting is
+        // already structurally out of the kernel; BudgetIndependenceTests locks this (Map/Trace output is
+        // invariant across --max-tokens). Do not re-couple budget to graph assembly.
         var scope = SolutionScope.FromModel(model);
 
         // G1 Phase 4 — perf guardrail. Whole-solution runs (no closure narrowing) over a large solution
@@ -320,11 +326,13 @@ public sealed class DiscoveryPipeline
         var wantsNarrative = format is "markdown";
         if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
         {
+            // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
+            // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
+            var (seams, withTarget) = Graph.GraphStats.Compute(graph, snapshot.Entries);
+
             if (!string.IsNullOrEmpty(request.Entry))
             {
-                var entry = snapshot.Entries.FirstOrDefault(e =>
-                    string.Equals(e.Title, request.Entry, StringComparison.OrdinalIgnoreCase))
-                    ?? ResolveEntryFromNode(graph, request.Entry);
+                var entry = Graph.EntryPointResolver.Resolve(snapshot.Entries, graph, request.Entry);
                 if (entry is not null)
                 {
                     var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
@@ -348,7 +356,8 @@ public sealed class DiscoveryPipeline
 
                     return NarrativeSections.WithExtraSection(
                         traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
-                        with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root)) };
+                        with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root))
+                            { Seams = seams, EntriesWithTarget = withTarget } };
                 }
             }
 
@@ -361,16 +370,22 @@ public sealed class DiscoveryPipeline
                     : await MapRenderer.RenderAsync(mapCtx, ct);
                 return NarrativeSections.WithExtraSection(
                     narrative, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
-                    with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null) };
+                    with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null)
+                        { Seams = seams, EntriesWithTarget = withTarget } };
             }
         }
 
         var plan = RenderPlanBuilder.Build(snapshot, request);
 
+        // For JSON output, use the user's budget as the cap (the catalog plan's type-based
+        // token estimate doesn't reflect the JSON structure). Markdown keeps the plan estimate
+        // which is the actual scored-and-capped token budget for the catalog renderer.
+        var budgetForChecks = format == "json" ? request.MaxTokens : plan.EstimatedTokens;
+
         var opts = new RenderOptions(
             request.IncludeProvenance,
             request.IncludeDiagnostics,
-            plan.EstimatedTokens,
+            budgetForChecks,
             snapshot.Scenario.DisplayName,
             ProfileDisplayName: snapshot.Options.Profile.ToString().ToLowerInvariant(),
             plan.Sections,
@@ -416,33 +431,6 @@ public sealed class DiscoveryPipeline
     /// from it, not just from a catalogued HTTP entry. Lets <c>--focus OrdersController</c> /
     /// <c>--focus CreateOrderCommandHandler</c> produce a trace instead of silently falling back to the Map.
     /// Prefers behaviour-bearing nodes (Type/Handler/Service) and matches by short name.</summary>
-    private static Graph.EntryPoint? ResolveEntryFromNode(Graph.CodeGraph graph, string focus)
-    {
-        var name = focus.Trim();
-        // Type:Method narrows to the type; the trace walks the type's out-edges either way.
-        var colon = name.IndexOf(':');
-        if (colon > 0) name = name[..colon];
-
-        Graph.GraphNode? best = null;
-        foreach (var node in graph.Nodes)
-        {
-            if (node.Kind is not (Graph.NodeKind.Type or Graph.NodeKind.Handler
-                or Graph.NodeKind.Service or Graph.NodeKind.EntryPoint)) continue;
-            if (!string.Equals(node.Title, name, StringComparison.OrdinalIgnoreCase)
-                && !node.Id.Key.EndsWith("." + name, StringComparison.OrdinalIgnoreCase)) continue;
-            // Prefer a node that actually has somewhere to go.
-            if (best is null || graph.OutEdges(node.Id).Length > graph.OutEdges(best.Id).Length)
-                best = node;
-        }
-
-        return best is null
-            ? null
-            : new Graph.EntryPoint(Graph.EntryPointKind.PublicApi, best.Title, best.Id)
-            {
-                Provenance = best.FilePath,
-            };
-    }
-
     /// <summary>Appends graph-assembly and call-graph diagnostics under a Map/Trace when --include-diagnostics
     /// is set, so users (and we) can see node/edge counts and the call-graph resolver without the legacy path.</summary>
     private static string GraphDiagnosticsTail(AnalysisSnapshot snapshot, RenderRequest request)
@@ -605,6 +593,10 @@ public sealed class DiscoveryPipeline
         // weighted FinalScore + PathProximityPruner + CallReachabilityPruner are retired.
         // Noise filtering moved to NoiseFilter at graph-build time. Trace reachability
         // is now the TraceBuilder traversal over CodeGraph, not a global flat scorer.
+        // NOTE (Iteration 1): these pruners (TokenBudgetEnforcer, PatternRelevancePruner) run AFTER the
+        // graph is frozen and mutate only model.Types (IsPruned/RoleScore) for the legacy catalog
+        // RenderPlan → JSON/HTML. The Map/Trace graph is independent of them. They are slated to retire
+        // together with the catalog render path; until then they stay so JSON/HTML keep sizing.
         ctx.Observer.OnStageStarted(PipelineStage.Scoring);
         var sw = Stopwatch.StartNew();
 

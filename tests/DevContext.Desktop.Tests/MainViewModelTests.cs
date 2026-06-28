@@ -23,7 +23,7 @@ public class MainViewModelTests
         Cache = new(0, 0, 0, 0), Corpus = new(0, 0, 0),
         Funnel = new(0, 0, 0, 0, 0, 0),
         Parallelism = new(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero),
-        TotalWall = TimeSpan.Zero,
+        TotalWall = TimeSpan.FromMilliseconds(200),
     };
 
     public MainViewModelTests()
@@ -579,25 +579,39 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public async Task Changing_focus_triggers_reanalysis()
+    public async Task Changing_focus_re_renders_without_re_analyzing()
     {
+        // The full code graph is assembled once at analyze-time (BuildFullGraph), so the snapshot is
+        // entry-agnostic and picking a focus is a pure RENDER lens — no second analyze. This is the
+        // "analyze once, render many" win that makes the entry picker instant.
         var vm = CreateVm();
         vm.ProjectPath = "C:\\Test";
 
-        var callCount = 0;
+        var analyzeCallCount = 0;
         _svc.AnalyzeAsync(Arg.Any<AnalysisOptions>(), Arg.Any<IProgress<AnalysisProgress>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
-                callCount++;
+                analyzeCallCount++;
                 return Task.FromResult(new SnapshotResult() { Success = true, Snapshot = new DevContext.Core.Pipeline.AnalysisSnapshot { Model = new DevContext.Core.Models.DiscoveryModel(), Analysis = new DevContext.Core.Models.SharedAnalysisContext(), Scenario = DevContext.Core.Configuration.ScenarioRegistry.BuiltIn["overview"], Options = new DevContext.Core.Models.ExtractionOptions(), Report = DefaultReport }, ElapsedMs = 10 });
             });
 
-        await ExecuteAnalyzeCommand(vm);
-        Assert.Equal(1, callCount);
+        var renderCallCount = 0;
+        _svc.RenderAsync(Arg.Any<AnalysisSnapshot>(), Arg.Any<RenderRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                renderCallCount++;
+                return Task.FromResult(new RenderResult { Content = "content", HtmlContent = "<html/>", Sections = [], EstimatedTokens = 0 });
+            });
 
-        vm.Focus = "OrdersController"; // → Trace; debounced re-analyze
+        await ExecuteAnalyzeCommand(vm);
+        Assert.Equal(1, analyzeCallCount);
+        var rendersAfterAnalyze = renderCallCount;
+
+        vm.Focus = "OrdersController"; // → Trace; debounced RE-RENDER, not re-analyze
         await Task.Delay(900); // > 500ms debounce
-        Assert.Equal(2, callCount);
+
+        Assert.Equal(1, analyzeCallCount);                       // no second analyze
+        Assert.True(renderCallCount > rendersAfterAnalyze, "Focus change should re-render from the snapshot");
     }
 
     [Fact]

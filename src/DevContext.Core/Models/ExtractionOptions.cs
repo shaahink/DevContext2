@@ -30,6 +30,12 @@ public sealed record ExtractionOptions
     public bool IncludeAntiPatterns { get; init; }
     /// <summary>If true, any failed self-check invariant returns exit code 2.</summary>
     public bool Strict { get; init; }
+    /// <summary>Assemble the COMPLETE code graph at analyze-time regardless of profile — source bodies
+    /// (for Sends/Raises/data + Map entry→target) and the call graph (Calls edges). This makes the
+    /// snapshot entry-agnostic, so changing focus/depth is a pure re-render (no re-analyze) and the Map
+    /// resolves dispatch targets even in overview. Default on; the opt-out (CLI <c>--lite</c>) reverts
+    /// to the old profile-gated behavior for users who don't want the upfront cost.</summary>
+    public bool BuildFullGraph { get; init; } = true;
 }
 
 /// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>

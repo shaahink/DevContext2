@@ -2,8 +2,8 @@
   "repo": "eval-repos/VerticalSlice",
   "checks": [
     { "id": "arch-style",     "type": "json-equals", "path": "$.architecture.style", "value": "VerticalSlices", "status": "expected", "note": "RATCHETED 2026-06-16: FastEndpoints evidence now drives VerticalSlices (was iteration-4 MinimalApi misdetect)" },
-    { "id": "mediatr-signal", "type": "signal-present", "value": "mediatr", "status": "aspirational", "note": "this repo uses the martinothamar 'Mediator' source-gen library (Mediator.Abstractions), NOT the 'MediatR' package — the package-keyed signal will not fire. Handlers ARE detected as MediatRHandlerDetection (shared IRequestHandler interface). Revisit: teach DependencyExtractor the Mediator package, or rename the signal." },
-    { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "aspirational", "note": "FastEndpoints routes set in Configure() via Get(\"/x\") are not captured — entries render <dynamic>. Real gap." },
+    { "id": "mediatr-signal", "type": "signal-present", "value": "mediatr", "status": "expected", "note": "Mediator source-gen package now mapped in DependencyExtractor (ratcheted 2026-06-23). Handlers detected as MediatRHandlerDetection." },
+    { "id": "no-dynamic",     "type": "output-not-contains", "format": "markdown", "value": "<dynamic>", "status": "expected", "note": "RATCHETED 2026-06-23: FastEndpoints Configure() routes (Post(Request.Route) const refs) now resolved via a cross-file const-string index (FastEndpointsHelper.BuildRouteConstIndex)." },
     { "id": "endpoint-count", "type": "json-range", "path": "$.detections.length", "min": 2, "max": 300, "status": "expected" },
     { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 40, "status": "expected" },
     { "id": "detection-mediatr", "type": "detection-count", "detectionType": "MediatRHandlerDetection", "min": 0, "max": 100, "status": "expected" },

@@ -54,9 +54,39 @@ public sealed record TraceOptions
 public sealed class TraceBuilder
 {
     private readonly CodeGraph _graph;
+    private readonly Dictionary<NodeId, List<NodeId>> _handlerMembersByType;
 
     /// <summary>Creates a trace builder over a graph.</summary>
-    public TraceBuilder(CodeGraph graph) => _graph = graph;
+    public TraceBuilder(CodeGraph graph)
+    {
+        _graph = graph;
+        _handlerMembersByType = BuildHandlerMemberIndex(graph);
+    }
+
+    /// <summary>Precomputes, once, a Type→[handler-member] lookup: for each Member node whose method name
+    /// is a handler entry point (Handle/HandleAsync/…), maps its owning Type's id to the member. Used by
+    /// <see cref="OutEdgesWithTwin"/> to bridge from a handler Type (reached via Handles/Consumes) into
+    /// the single entry method that has the real wiring.</summary>
+    private static Dictionary<NodeId, List<NodeId>> BuildHandlerMemberIndex(CodeGraph graph)
+    {
+        var map = new Dictionary<NodeId, List<NodeId>>();
+        foreach (var node in graph.Nodes)
+        {
+            if (node.Id.Kind != NodeKind.Member) continue;
+            var dot = node.Id.Key.LastIndexOf('.');
+            if (dot <= 0) continue;
+            if (!IsHandlerEntryMethod(node.Id.Key[(dot + 1)..])) continue;
+            var typeId = NodeId.ForType(node.Id.Key[..dot]);
+            if (!map.TryGetValue(typeId, out var list)) map[typeId] = list = [];
+            list.Add(node.Id);
+        }
+        return map;
+    }
+
+    private static bool IsHandlerEntryMethod(string method)
+        => method is "Handle" or "HandleAsync" or "Consume" or "ConsumeAsync"
+            || method.StartsWith("Execute", StringComparison.Ordinal)
+            || method.StartsWith("Invoke", StringComparison.Ordinal);
 
     /// <summary>Builds the entry-rooted trace tree.</summary>
     public Trace Build(EntryPoint entry, TraceOptions? options = null)
@@ -70,6 +100,10 @@ public sealed class TraceBuilder
         var touched = new List<string>();
         var emitted = new List<string>();
         CollectSummaries(root, touched, emitted);
+        // Also collect entities from ALL out-edges of visited nodes (not just the followed
+        // ones) — ReadWrites edges at priority 4 may be cut by fan-out, but the entities
+        // they connect to should still appear in TOUCHES.
+        CollectGraphEntities(visited, touched);
         return new Trace(entry, root)
         {
             TouchedEntities = [.. touched.Distinct()],
@@ -79,13 +113,68 @@ public sealed class TraceBuilder
 
     private static void CollectSummaries(TraceStep step, List<string> touched, List<string> emitted)
     {
-        if (step.Node.Kind == NodeKind.Entity)
-            touched.Add(step.Node.Title);
-        if (step.Node.Kind == NodeKind.Event)
+        // Entity nodes are collected by CollectGraphEntities (below) which scans
+        // all edges including cut ones — not limited to the rendered tree.
+        if (IsEventNode(step.Node))
             emitted.Add(step.Node.Title);
         foreach (var child in step.Children)
             CollectSummaries(child, touched, emitted);
     }
+
+    /// <summary>For every visited node, check all out-edges (including twin-node edges) for Entity
+    /// targets that were cut by fan-out. Also collects entities from incoming edges (Entity→DataStore)
+    /// when the DataStore node was visited. This ensures TOUCHES lists all entities reachable from the
+    /// trace, not just the ones in the rendered tree.</summary>
+    private void CollectGraphEntities(HashSet<NodeId> visited, List<string> touched)
+    {
+        foreach (var nodeId in visited)
+        {
+            foreach (var edge in OutEdgesWithTwin(nodeId))
+            {
+                if (edge.Kind == EdgeKind.ReadsWrites)
+                {
+                    var targetNode = _graph.Node(edge.To);
+                    if (targetNode is not null && IsEntityNode(targetNode)
+                        && !IsNoiseEntity(targetNode))
+                        touched.Add(targetNode.Title);
+                }
+            }
+        }
+        // Also collect entities that connect TO a visited DataStore node
+        foreach (var (nodeId, node) in _graph.Nodes.Select(n => (n.Id, n)))
+        {
+            if (!IsEntityNode(node)) continue;
+            if (IsNoiseEntity(node)) continue;
+            foreach (var edge in _graph.OutEdges(nodeId, EdgeKind.ReadsWrites))
+            {
+                if (visited.Contains(edge.To))
+                {
+                    touched.Add(node.Title);
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>Filters EF artifacts that get mistaken for entities: synthetic names (&lt;OnModelCreating&gt;),
+    /// migration classes by name, and — the robust catch — anything declared under a Migrations folder
+    /// (e.g. a migration class like <c>ForeignKeyChange</c> that doesn't match a name pattern).</summary>
+    private static bool IsNoiseEntity(GraphNode node)
+        => node.Title.StartsWith('<')
+        || node.Title.Contains("Migration")
+        || node.Title.Contains("Initial")
+        || (node.FilePath is { } f
+            && (f.Contains("\\Migrations\\", StringComparison.OrdinalIgnoreCase)
+                || f.Contains("/Migrations/", StringComparison.OrdinalIgnoreCase)));
+
+    /// <summary>A node is an emitted event if tagged as a domain/integration event (role tags replaced
+    /// the old NodeKind.Event).</summary>
+    private static bool IsEventNode(GraphNode n)
+        => n.Tags.Contains(RoleTags.DomainEvent) || n.Tags.Contains(RoleTags.IntegrationEvent);
+
+    /// <summary>A node is an entity if tagged entity/aggregate (replaced the old NodeKind.Entity).</summary>
+    private static bool IsEntityNode(GraphNode n)
+        => n.Tags.Contains(RoleTags.Entity) || n.Tags.Contains(RoleTags.Aggregate);
 
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
@@ -121,10 +210,12 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
-            // Use source body from the FROM node, preferring Type twin body over Handler/Service body
+            // Salient source comes from the FROM node's body; for a Member node, fall back to its
+            // parent Type's body (the body scans attach edges + bodies at the type level).
             var fromNode = _graph.Node(edge.From) ?? node;
             var salientSource = fromNode.SourceBody ?? (
-                fromNode.Kind != node.Kind && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
+                fromNode.Id.Kind == NodeKind.Member
+                && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
                     ? twin.SourceBody
                     : null);
             var salient = ExtractSalient(salientSource, edge.Provenance);
@@ -176,25 +267,21 @@ public sealed class TraceBuilder
             || title.Contains("Mediator", StringComparison.Ordinal) && title != "MediatorExtension";
     }
 
-    /// <summary>Out-edges of a node, plus those of its Type twin. A Handler/Service/Member node and the class's
-    /// Type node are the same class with different ids: the Handles/Resolves/Consumes/Calls edge lands on the
-    /// Handler/Service/Member node, but the class's own call/raise/data edges were attached to the Type node.
-    /// Without this bridge the trace dead-ends the moment it crosses an indirection seam into a handler.</summary>
+    /// <summary>Out-edges of a node, with the controlled member bridge (Phase 1). A <b>Member</b> node
+    /// yields ONLY its own edges — the per-method set is now correct, so inheriting the parent Type's edges
+    /// (the old behaviour) is exactly the bug that made sibling methods' traces identical. A <b>Type</b>
+    /// node yields its own join edges PLUS the edges of its handler-entry members (Handle/HandleAsync/…):
+    /// Handles/Consumes seams land on the handler Type, so we bridge into the one entry method that carries
+    /// the handler's real wiring — not every sibling method.</summary>
     private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
     {
         foreach (var e in _graph.OutEdges(id))
             yield return e;
 
-        if (id.Kind is NodeKind.Handler or NodeKind.Service or NodeKind.Member)
-        {
-            var typeKey = id.Kind == NodeKind.Member
-                ? ExtractTypeKey(id.Key)
-                : id.Key;
-            var twin = NodeId.ForType(typeKey);
-            if (_graph.Contains(twin))
-                foreach (var e in _graph.OutEdges(twin))
+        if (id.Kind is NodeKind.Type && _handlerMembersByType.TryGetValue(id, out var members))
+            foreach (var memberId in members)
+                foreach (var e in _graph.OutEdges(memberId))
                     yield return e;
-        }
     }
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>

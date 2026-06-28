@@ -142,6 +142,21 @@ public sealed class ArchitectureStyleDetector
         if (scores.Count == 0)
             return (ArchitectureStyle.Unknown, 0, null);
 
+        // Topology-over-structure rule: when Aspire AppHost orchestration is present,
+        // the Microservices topology signal outranks any intra-service style (e.g.
+        // CleanArchitecture within individual services). A monorepo of CleanArchitecture
+        // services behind an AppHost IS Microservices — the structural style is a
+        // secondary trait of each service, not the primary system architecture.
+        if (scores.TryGetValue(ArchitectureStyle.Microservices, out var msEntry)
+            && scores.TryGetValue(ArchitectureStyle.CleanArchitecture, out var caEntry)
+            && hasAppHost)
+        {
+            // Boost Microservices just above the strongest CleanArchitecture score so
+            // it wins the MaxBy. Keep the original evidence so the user sees what was
+            // detected.
+            scores[ArchitectureStyle.Microservices] = (Math.Max(msEntry.Score, caEntry.Score + 0.01f), msEntry.Evidence);
+        }
+
         var best = scores.MaxBy(kv => kv.Value.Score);
         return (best.Key, Math.Min(best.Value.Score, 1.0f), best.Value.Evidence);
     }
