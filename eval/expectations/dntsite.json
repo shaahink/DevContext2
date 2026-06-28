@@ -1,0 +1,8 @@
+{
+  "repo": "eval-repos/DntSite",
+  "checks": [
+    { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 500, "status": "expected", "note": "DntSite is a controller Web API (~94 endpoints). (The JSON detections array is the pruned legacy-catalog path; entry->target coverage 0/94->34/94 is asserted by the target-* checks on the unpruned markdown Map and recorded in docs/reports/phase2-controller-targets.md.)" },
+    { "id": "target-feednews",     "type": "output-contains", "format": "markdown", "value": "FeedsService.GetNewsAsync", "status": "expected", "note": "Phase 2: controller entry->target 0/94 -> 34/94. GET /Feed/News resolves its primary service call." },
+    { "id": "target-feedcomments", "type": "output-contains", "format": "markdown", "value": "FeedsService.GetCommentsAsync", "status": "expected", "note": "Phase 2: a sibling Feed action resolves a DIFFERENT target (divergence on a real controller repo)." }
+  ]
+}

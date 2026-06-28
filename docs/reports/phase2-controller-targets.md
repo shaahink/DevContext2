@@ -49,11 +49,28 @@ dotnet <cli> analyze <dntsite-root> --stats
 
 ### DntSite run results (fill after run)
 
-| Metric | Before (Iteration 1) | After (Iteration 2) |
+> Run 2026-06-28 against the cached DntSite clone (`%LOCALAPPDATA%\DevContext\repos\VahidN-DntSite-default`,
+> 1,342 .cs files, 2 projects). The audit's 0/94 (Claim 6) was measured on this repo.
+
+| Metric | Before (Iteration 1 / audit) | After (Iteration 2) |
 |---|---|---|
-| Entry→target coverage | 0/94 | TBD |
-| Infra `GET /` | present | TBD |
-| Sibling controller trace divergence | identical (bug) | TBD |
+| Entry→target coverage | 0/94 | **34/94** (36%) |
+| Infra `GET /` | present? | **Not present** (no Scalar/OpenApi root; eShop `GET /` filtered by Step 3) |
+| Sibling controller trace divergence | identical (bug) | **Divergent** (`GET /Feed/News` descends into `FeedsService.GetNewsAsync → DailyNewsItemsService...`; `GET /Feed/Comments` descends into `FeedsService.GetCommentsAsync` — different traces) |
+
+**Sample resolved targets** (all correct, primary service call by the controller action):
+- `GET /Feed/News → FeedsService.GetNewsAsync`
+- `GET /Feed/Comments → FeedsService.GetCommentsAsync`
+- `GET /Feed/Author/{id?} → FeedsService.GetAuthorAsync`
+- `GET /Feed/Tag/{id?} → FeedsService.GetTagAsync`
+- `GET /Feed/NewsComments → FeedsService.GetNewsCommentsAsync`
+- `GET /Feed/Surveys → FeedsService.GetAllVotesAsync`
+- `GET /ProjectsFeeds/ProjectsNews → FeedsService.GetProjectsNewsAsync`
+- … 34 total across FeedController, ProjectsFeedsController, SitemapController, FtsController, etc.
+
+**Unresolved (60/94):** mostly RSS/XML feed format variants (`/rss.xml`, `/atom.xml`, `/feed/rss`, etc.)
+that share a single FeedController action and don't call a distinct business service, file-serving
+endpoints (`/File/*`), and background workers — all expected, no false targets.
 
 ## Next
 
