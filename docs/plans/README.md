@@ -18,8 +18,8 @@ iterations. Each iteration is one agent session: detailed steps, harness updates
 
 | # | Iteration (guide) | Phases | Status | Gate that proves it done |
 |---|---|---|---|---|
-| 1 | [Kernel hygiene + member-origin correctness](./ITERATION-1-kernel-correctness.md) | 0, 1 | **IN PROGRESS** (branch `feature/iter1-member-origin`): Phase 0 DONE (budget-independence verified+locked); Phase 1 next | `CatalogApi:CreateItem` trace ≠ `:UpdateItem`; `POST /api/orders` has no sibling sends/raises; gates green |
-| 2 | [Universal entries, controllers first](./ITERATION-2-universal-entries.md) | 2 | **BLOCKED** (needs #1) | Controller repo: majority of entries show `→ target`; sibling actions diverge |
+| 1 | [Kernel hygiene + member-origin correctness](./ITERATION-1-kernel-correctness.md) | 0, 1 | **DONE** (commit `4f457a3`; branch `feature/iter1-member-origin`) | `CatalogApi:CreateItem` trace ≠ `:UpdateItem`; `POST /api/orders` has no sibling sends/raises; gates green |
+| 2 | [Universal entries, controllers first](./ITERATION-2-universal-entries.md) | 2 | **NOT STARTED** (prereq #1 DONE) | Controller repo: majority of entries show `→ target`; sibling actions diverge |
 | 3 | [Complete & honest traces](./ITERATION-3-complete-honest-traces.md) | 3 | **BLOCKED** (needs #2) | Domain-event→handler path + pipeline render; TOUCHES non-trivial; re-probe improved |
 | 4 | Honest Map & detection — *to write* | 4 | **BLOCKED** | OrchardCore ≠ "Microservices"; scope-stamp; no `$(` in STACK |
 | 5 | Queryable kernel (inverse edges + query API) — *to write* | 5 | **BLOCKED** | Query-API both-direction tests; CLI unchanged through it |

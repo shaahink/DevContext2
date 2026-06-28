@@ -1,17 +1,23 @@
 # Iteration 1 — Kernel hygiene + member-origin correctness (Phases 0 & 1)
 
-> **Status:** IN PROGRESS (branch `feature/iter1-member-origin`) · **Phase(s):** 0, 1 · **Prerequisite:** none.
+> **Status:** DONE (branch `feature/iter1-member-origin`) · **Phase(s):** 0, 1 · **Prerequisite:** none.
 > **Fresh session? Start at [`README.md`](./README.md).**
 >
 > **Progress (2026-06-28):**
-> - **Phase 0 DONE.** Key finding: the budget was *already* out of the kernel — the CodeGraph + Map/Trace
+> - **Phase 0 DONE** (commit `2c12f95`). Key finding: the budget was already out of the kernel — the CodeGraph + Map/Trace
 >   are built at `DiscoveryPipeline` line ~135, BEFORE the pruners run (~141), from `NoiseFilter`-filtered
 >   types; they never read `model.Budget`/`IsPruned`. The pruners only drive the legacy catalog (JSON/HTML).
 >   Action taken: documented the invariant in `DiscoveryPipeline` (GraphAssembly + RunScoring comments),
 >   added `tests/.../BudgetIndependenceTests.cs` (Map+Trace byte-identical across `--max-tokens` 2000 vs
 >   20000 — PASSES), and extracted a shared `tests/.../TestPipeline.cs`. Did **not** delete the legacy
 >   pruners (JSON/HTML still size with them; retire with the catalog path later).
-> - **Phase 1 design finalized — see "Implementation notes" under Phase 1 before coding.**
+> - **Phase 1 DONE** (commit `4f457a3`). Root cause (CallEdge→Type→Type fold + Member→inherit-parent-Type in
+>   OutEdgesWithTwin + EntryPointResolver dropping :Method) eliminated. Four changes in the kernel:
+>   `AddCallEdges` → Member→Member; `AddRaises`/`AddSends`/`AddDataEdges` → per-method attribution via
+>   Roslyn span locator; `OutEdgesWithTwin` → controlled bridge (Type→handler-entry-member only);
+>   `EntryPointResolver` → Type:Method anchors on Member node. Divergence gate: CreateItem ≠ UpdateItem;
+>   orders trace shows no sibling sends/raises; spine (send→handler→raises→outbox) intact via the
+>   handler-`Handle` bridge; `gates.ps1` PASS (12 eval tests incl. 2 new negative/divergence guards).
 >
 > Agent-executable iteration. Do Phase 0 then Phase 1, back to back. End on the gate.
 > **Required reading first:** `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md`
