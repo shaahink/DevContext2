@@ -17,6 +17,12 @@ public sealed record TraceStep(
     public ImmutableArray<TraceStep> Children { get; init; } = [];
     /// <summary>True when traversal stopped here (depth/fan-out/revisit) with more beyond.</summary>
     public bool Truncated { get; init; }
+    /// <summary>Number of followable branches omitted at this node (fan-out cap or depth limit) — rendered
+    /// explicitly so a cut is honest, not silent (Iteration 3 Step 4).</summary>
+    public int Omitted { get; init; }
+    /// <summary>Pipeline behaviors that wrap the request reached by a <c>Sends</c> edge — rendered once as
+    /// an annotation under the send (Iteration 3 Step 3).</summary>
+    public ImmutableArray<string> Pipeline { get; init; } = [];
     /// <summary>Salient source lines around the provenance site (1-3 lines, for --detail salient).</summary>
     public ImmutableArray<string> Salient { get; init; } = [];
 }
@@ -54,20 +60,24 @@ public sealed record TraceOptions
 public sealed class TraceBuilder
 {
     private readonly CodeGraph _graph;
-    private readonly Dictionary<NodeId, List<NodeId>> _handlerMembersByType;
+    private readonly Dictionary<NodeId, List<NodeId>> _bridgeMembersByType;
 
     /// <summary>Creates a trace builder over a graph.</summary>
     public TraceBuilder(CodeGraph graph)
     {
         _graph = graph;
-        _handlerMembersByType = BuildHandlerMemberIndex(graph);
+        _bridgeMembersByType = BuildBridgeMemberIndex(graph);
     }
 
-    /// <summary>Precomputes, once, a Type→[handler-member] lookup: for each Member node whose method name
-    /// is a handler entry point (Handle/HandleAsync/…), maps its owning Type's id to the member. Used by
-    /// <see cref="OutEdgesWithTwin"/> to bridge from a handler Type (reached via Handles/Consumes) into
-    /// the single entry method that has the real wiring.</summary>
-    private static Dictionary<NodeId, List<NodeId>> BuildHandlerMemberIndex(CodeGraph graph)
+    /// <summary>Precomputes, once, a Type→[bridgeable-member] lookup used by <see cref="OutEdgesWithTwin"/>:
+    /// <list type="bullet">
+    /// <item>handler/consumer entry members (Handle/HandleAsync/Consume/ConsumeAsync/Execute*/Invoke*) — a
+    /// Handles/Consumes seam lands on the handler Type, so we bridge into the method that has the wiring;</item>
+    /// <item>the <b>constructor</b> of an entity/aggregate Type (method name == the type's short name) — so
+    /// reaching an aggregate via a <c>data</c> edge surfaces the domain event its ctor raises (Iteration 3:
+    /// the <c>OrderStartedDomainEvent → handler</c> path the trace used to drop). Scoped to entity/aggregate
+    /// tags so non-domain ctors aren't expanded.</item></list></summary>
+    private static Dictionary<NodeId, List<NodeId>> BuildBridgeMemberIndex(CodeGraph graph)
     {
         var map = new Dictionary<NodeId, List<NodeId>>();
         foreach (var node in graph.Nodes)
@@ -75,8 +85,20 @@ public sealed class TraceBuilder
             if (node.Id.Kind != NodeKind.Member) continue;
             var dot = node.Id.Key.LastIndexOf('.');
             if (dot <= 0) continue;
-            if (!IsHandlerEntryMethod(node.Id.Key[(dot + 1)..])) continue;
+            var method = node.Id.Key[(dot + 1)..];
             var typeId = NodeId.ForType(node.Id.Key[..dot]);
+
+            bool bridge;
+            if (IsHandlerEntryMethod(method))
+                bridge = true;
+            else if (graph.Node(typeId) is { } t
+                && string.Equals(method, t.Title, StringComparison.Ordinal)
+                && (t.Tags.Contains(RoleTags.Aggregate) || t.Tags.Contains(RoleTags.Entity)))
+                bridge = true; // entity/aggregate constructor — surfaces its domain-event raises
+            else
+                bridge = false;
+
+            if (!bridge) continue;
             if (!map.TryGetValue(typeId, out var list)) map[typeId] = list = [];
             list.Add(node.Id);
         }
@@ -121,23 +143,21 @@ public sealed class TraceBuilder
             CollectSummaries(child, touched, emitted);
     }
 
-    /// <summary>For every visited node, check all out-edges (including twin-node edges) for Entity
-    /// targets that were cut by fan-out. Also collects entities from incoming edges (Entity→DataStore)
-    /// when the DataStore node was visited. This ensures TOUCHES lists all entities reachable from the
-    /// trace, not just the ones in the rendered tree.</summary>
+    /// <summary>For every visited node, collect entity/aggregate targets reached via its out-edges. EF
+    /// access is usually a <c>Calls</c> edge onto an entity/repository member (not a <c>ReadsWrites</c>
+    /// edge), so we collect entities reached via <b>both</b> <c>ReadsWrites</c> and <c>Calls</c> — resolving
+    /// a Member callee to its owning entity Type (Iteration 3 High-5). Also collects entities that connect
+    /// TO a visited DataStore node. De-duped by title with <see cref="IsNoiseEntity"/> filtering.</summary>
     private void CollectGraphEntities(HashSet<NodeId> visited, List<string> touched)
     {
         foreach (var nodeId in visited)
         {
             foreach (var edge in OutEdgesWithTwin(nodeId))
             {
-                if (edge.Kind == EdgeKind.ReadsWrites)
-                {
-                    var targetNode = _graph.Node(edge.To);
-                    if (targetNode is not null && IsEntityNode(targetNode)
-                        && !IsNoiseEntity(targetNode))
-                        touched.Add(targetNode.Title);
-                }
+                if (edge.Kind is not (EdgeKind.ReadsWrites or EdgeKind.Calls)) continue;
+                var entity = ResolveEntityNode(_graph.Node(edge.To));
+                if (entity is not null && !IsNoiseEntity(entity))
+                    touched.Add(entity.Title);
             }
         }
         // Also collect entities that connect TO a visited DataStore node
@@ -176,16 +196,38 @@ public sealed class TraceBuilder
     private static bool IsEntityNode(GraphNode n)
         => n.Tags.Contains(RoleTags.Entity) || n.Tags.Contains(RoleTags.Aggregate);
 
+    /// <summary>Resolves an edge target (a Type or Member node) to its owning entity Type, or null.
+    /// For a Member callee, looks up the owning Type (via <see cref="ExtractTypeKey"/>) and checks its
+    /// entity/aggregate tags — this is what makes TOUCHES surface the real entities reached via Calls
+    /// (EF access) after the Iteration 3 Step 1 extension.</summary>
+    private GraphNode? ResolveEntityNode(GraphNode? node)
+    {
+        if (node is null) return null;
+        if (node.Kind is NodeKind.Type && IsEntityNode(node)) return node;
+        if (node.Kind is NodeKind.Member)
+        {
+            var typeId = NodeId.ForType(ExtractTypeKey(node.Id.Key));
+            var owner = _graph.Node(typeId);
+            if (owner is not null && IsEntityNode(owner)) return owner;
+        }
+        return null;
+    }
+
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
     {
         if (!visited.Add(node.Id) || depth >= opts.MaxDepth)
+        {
+            var omitted = OutEdgesWithTwin(node.Id).Where(e => follow.Contains(e.Kind))
+                .Select(e => (e.To, e.Kind)).Distinct().Count();
             return new TraceStep(node, seam, depth)
             {
                 Provenance = provenance,
                 Resolution = resolution,
-                Truncated = HasFollowable(node.Id, follow),
+                Truncated = omitted > 0,
+                Omitted = omitted,
             };
+        }
 
         // Dedup by (target, kind): a Handler/Service node and its Type twin can carry the SAME edge
         // (e.g. a Raises edge mirrored onto both), which would otherwise render the child twice.
@@ -221,6 +263,16 @@ public sealed class TraceBuilder
             var salient = ExtractSalient(salientSource, edge.Provenance);
 
             // Framework-boundary stop: don't descend into generic framework internals
+            // Pipeline annotation (Iteration 3 Step 3): when a Sends edge reaches a request Type,
+            // collect the WrappedBy behaviors so the renderer can show the pipeline once under the send.
+            var pipeline = edge.Kind == EdgeKind.Sends
+                ? _graph.OutEdges(child.Id, EdgeKind.WrappedBy)
+                    .Select(e => _graph.Node(e.To)?.Title)
+                    .Where(t => t is not null)
+                    .Cast<string>()
+                    .ToImmutableArray()
+                : [];
+
             if (IsFrameworkLeaf(child))
             {
                 children.Add(new TraceStep(child, ToSeam(edge.Kind), depth + 1)
@@ -228,12 +280,13 @@ public sealed class TraceBuilder
                     Provenance = edge.Provenance,
                     Resolution = edge.Resolution,
                     Salient = salient,
+                    Pipeline = pipeline,
                 });
                 continue;
             }
 
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
-                depth + 1, opts, follow, visited) with { Salient = salient });
+                depth + 1, opts, follow, visited) with { Salient = salient, Pipeline = pipeline });
         }
 
         return new TraceStep(node, seam, depth)
@@ -242,6 +295,7 @@ public sealed class TraceBuilder
             Resolution = resolution,
             Children = children.ToImmutable(),
             Truncated = ranked.Count > taken.Count,
+            Omitted = ranked.Count - taken.Count,
         };
     }
 
@@ -278,7 +332,7 @@ public sealed class TraceBuilder
         foreach (var e in _graph.OutEdges(id))
             yield return e;
 
-        if (id.Kind is NodeKind.Type && _handlerMembersByType.TryGetValue(id, out var members))
+        if (id.Kind is NodeKind.Type && _bridgeMembersByType.TryGetValue(id, out var members))
             foreach (var memberId in members)
                 foreach (var e in _graph.OutEdges(memberId))
                     yield return e;
@@ -290,9 +344,6 @@ public sealed class TraceBuilder
         var dot = memberKey.LastIndexOf('.');
         return dot > 0 ? memberKey[..dot] : memberKey;
     }
-
-    private bool HasFollowable(NodeId id, HashSet<EdgeKind> follow)
-        => OutEdgesWithTwin(id).Any(e => follow.Contains(e.Kind));
 
     private static SeamKind ToSeam(EdgeKind kind) => kind switch
     {

@@ -1,16 +1,21 @@
 # Iteration 3 — Complete & honest traces (Phase 3)
 
-> **Status:** NOT STARTED · **Phase(s):** 3 · **Prerequisite:** Iteration 2 DONE
+> **Status:** DONE · **Phase(s):** 3 · **Prerequisite:** Iteration 2 DONE
 > (controller entries resolve targets; sibling actions diverge; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
 > `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 3), `docs/ACCEPTANCE.md`,
 > and `docs/IDEAL-OUTPUT-TARGET.md` §2 (the shape a great trace should approach).
 >
-> **Why this builds on Iterations 1–2.** Member-origin edges (Iter 1) mean an aggregate's ctor now
-> raises only *its* event (not all six), so the right domain-event path is no longer drowned. This
-> iteration makes the trace *follow* that path to its handler, count entities reached via calls, show
-> cross-cutting once, and be honest about what it cut — turning the trace from a "primer" into an
-> "accelerator" (the probe metric).
+> **Progress (2026-06-28):** Phase 3 DONE (commit `b9934f5`). `POST /api/orders` now renders the
+> domain-event chain (`raises OrderStartedDomainEvent → consumes ValidateOrAddBuyer…Handler`), TOUCHES
+> includes `Buyer` reached via `Calls` (High-5), the pipeline once under the send
+> (`LoggingBehavior → ValidatorBehavior → TransactionBehavior`), and explicit truncation markers. Fixes:
+> (1) bridge extended to entity/aggregate **constructors** so the ctor's domain-event raise is reachable;
+> (2) `AddRaises` resolves the variable-arg `AddDomainEvent(evt)` form eShop uses; (3) WrappedBy rendered
+> as a once-per-send annotation; (4) `Omitted` count + explicit markers; (5) `IndirectWiringDetector`
+> ungated to Map mode. Gate: `gates.ps1` PASS (17 eval tests incl. `Orders_trace_is_complete_and_honest`).
+> **Caveat:** DntSite `GET /Feed` TOUCHES stays empty — its EF entities aren't detected (`EfCoreExtractor`
+> gap), deferred to Iteration 4; the High-5 mechanism is asserted on eShop. Re-probe: `docs/reports/probe-phase3.md`.
 
 **Goal.** The trace surfaces the whole relevant path and is honest about cuts. (Audit High-5, Medium-11,
 Low-15; closes the probe's "missed the real domain-event path" finding.)

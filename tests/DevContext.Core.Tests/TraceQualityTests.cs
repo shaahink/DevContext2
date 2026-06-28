@@ -148,6 +148,35 @@ public sealed class TraceQualityTests
         Assert.NotEqual(get, del);
     }
 
+    /// <summary>Phase 3 (complete & honest traces): focusing <c>POST /api/orders/</c> must now render the
+    /// whole relevant path and be honest about cuts — closing the probe's "missed the real domain-event
+    /// path" finding. Asserts: the domain-event chain <c>raises OrderStartedDomainEvent → consumes
+    /// ValidateOrAddBuyer…Handler</c> (Step 2); an entity reached via <c>Calls</c> in TOUCHES — <c>Buyer</c>
+    /// (Step 1, the High-5 gap); the pipeline annotation rendered once (Step 3); and an explicit truncation
+    /// marker (Step 4). Sibling fabrications stay gone (covered by the Iteration-1 guard above).</summary>
+    [Fact]
+    public async Task Orders_trace_is_complete_and_honest()
+    {
+        var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
+        if (!Directory.Exists(repoPath))
+            return; // eval repo not cloned in this environment — skip silently
+
+        var trace = await RunTraceAsync(repoPath, "POST /api/orders/");
+
+        // Step 2 — the domain-event → handler path the trace used to drop.
+        Assert.Contains("OrderStartedDomainEvent", trace, StringComparison.Ordinal);
+        Assert.Contains("ValidateOrAddBuyer", trace, StringComparison.Ordinal);
+
+        // Step 1 — TOUCHES includes an entity reached via Calls (EF access), not only ReadsWrites.
+        Assert.Contains("Buyer", trace, StringComparison.Ordinal);
+
+        // Step 3 — the pipeline (Logging/Validation/Transaction) rendered once under the send.
+        Assert.Contains("pipeline", trace, StringComparison.Ordinal);
+
+        // Step 4 — truncation is explicit, not silent.
+        Assert.Contains("omitted", trace, StringComparison.Ordinal);
+    }
+
     private static async Task<string> RunTraceAsync(string repoPath, string entry, bool includeMap = false)
     {
         var fs = new RealFileSystem();

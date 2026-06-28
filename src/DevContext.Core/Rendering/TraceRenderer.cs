@@ -122,9 +122,21 @@ public static class TraceRenderer
                 sb.AppendLine(bodyIndent + line);
         }
 
+        // Pipeline behaviors wrapping the request, rendered once under the send (Iteration 3 Step 3).
+        if (step.Pipeline.Length > 0)
+        {
+            var pipeIndent = indent + (isLast ? "       " : "\u2502      ");
+            sb.AppendLine(pipeIndent + "pipeline \u25B8 " + string.Join(" \u2192 ", step.Pipeline));
+        }
+
         if (step.Truncated)
         {
-            sb.AppendLine(indent + (isLast ? "   " : "\u2502  ") + "(truncated — more edges beyond depth/fan-out)");
+            var n = step.Omitted;
+            var branches = n == 1 ? "branch" : "branches";
+            var marker = step.Children.Length == 0
+                ? $"(stopped at depth {step.Depth}; {n} {branches} omitted)"
+                : $"({n} more {branches} omitted beyond fan-out)";
+            sb.AppendLine(indent + (isLast ? "   " : "\u2502  ") + marker);
         }
 
         if (step.Children.Length == 0) return;
