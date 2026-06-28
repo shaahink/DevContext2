@@ -1,13 +1,17 @@
 # Iteration 2 — Universal entries, controllers first (Phase 2)
 
-> **Status:** NOT STARTED · **Phase(s):** 2 · **Prerequisite:** Iteration 1 DONE
+> **Status:** DONE · **Phase(s):** 2 · **Prerequisite:** Iteration 1 DONE
 > (member-origin edges; `CatalogApi:CreateItem` trace ≠ `:UpdateItem`; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
 > `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 2), `docs/ACCEPTANCE.md`.
 >
-> **Why this builds on Iteration 1.** Controllers are multi-action classes — only *after* member-origin
-> edges does a controller action have its *own* call edges. This iteration uses that to resolve each
-> action's dispatch target and trace, without shipping the fabrication bug to the most common .NET shape.
+> **Progress (2026-06-28):** Phase 2 DONE (commit `2b3dd12`). Controller fixture goes 0/3 → 3/3 targets
+> (GetByIdAsync/CreateAsync/DeleteAsync), entries diverge per sibling action, infra `GET /` filtered from
+> eShop, no CQRS regression. Core change: `ResolveEntryTarget` generalized from Sends-only to primary
+> service call fallback (prefer DI-service callee from action member's own Calls edges, precise post
+> member-origin); `ResolveViaParentType` retired. Fixture at `tests/fixtures/ControllerApp` with eval JSON;
+> DntSite capability run queued in `docs/reports/phase2-controller-targets.md`. Gate: `gates.ps1` PASS
+> (15 eval tests incl. controller divergence + infra filter).
 
 **Goal.** Every common entry resolves a **`→ target`**. Controllers go from **0/94** (audit Claim 6) to
 mostly resolved. Drop infra-noise entries; dedup. (Audit Critical-2, Low-17, Low-18.)

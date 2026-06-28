@@ -89,18 +89,17 @@ public sealed class GraphBuilder
             switch (node.Kind)
             {
                 case NodeKind.Member:
-                    // A Member node (lambda or captured handler method) resolves to ITS OWN dispatch.
+                    // 1. CQRS dispatch (MediatR Send/Publish) — try FIRST so eShop entry→target is unchanged.
                     var msends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
                     if (msends.Count == 1) return graph.Node(msends[0])?.Title;
                     if (msends.Count > 1 && entry.Title is { } mroute)
                         return MatchRouteToSend(mroute, msends, graph);
-                    // No own dispatch. If we have the member's body (lambda / captured method), it
-                    // genuinely sends nothing → no target. Only when the body is absent (cross-type
-                    // method ref) do we fall back to guessing via the owning type.
-                    return node.SourceBody is { Length: > 0 }
-                        ? null
-                        : ResolveViaParentType(node.Title, entry.Title, graph);
+                    // 2. Primary service call — a handler that dispatches no request (a plain controller
+                    //    action) resolves to the dominant in-scope service it calls. The action member's
+                    //    own Calls edges are precise post member-origin (Iteration 1), so this takes
+                    //    controllers from 0 → target without guessing via the whole class.
+                    return ResolvePrimaryCall(graph, node);
                 case NodeKind.Type:
                     var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
@@ -114,28 +113,45 @@ public sealed class GraphBuilder
         return null;
     }
 
-    /// <summary>For a named Member node (e.g. "OrdersApi.CreateOrderAsync"), follow to the parent
-    /// Type's Sends edges.</summary>
-    private static string? ResolveViaParentType(string memberTitle, string? entryTitle, CodeGraph graph)
+    /// <summary>Resolves an entry whose handler dispatches no MediatR request (e.g. a plain controller
+    /// action) to the primary service it calls: the dominant in-scope callee of the action <b>member</b>.
+    /// Prefers a DI-resolved <c>service</c>-tagged callee, else the first in-scope, non-self, non-framework
+    /// callee. Returns its title (member form, e.g. "ProductService.GetByIdAsync"), or null when the action
+    /// calls nothing meaningful — honest, never guessed via the whole class (member-origin made the action's
+    /// own Calls edges precise, so the old <c>ResolveViaParentType</c> whole-type crutch is retired).</summary>
+    private static string? ResolvePrimaryCall(CodeGraph graph, GraphNode member)
     {
-        var dot = memberTitle.LastIndexOf('.');
-        if (dot <= 0) return null;
-        var typeName = memberTitle[..dot];
-
-        foreach (var n in graph.Nodes)
+        var ownerTypeKey = ExtractTypeKey(member.Id.Key);
+        GraphNode? firstInScope = null;
+        foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
-            if (n.Kind != NodeKind.Type) continue;
-            if (n.Title != typeName && !n.Title.EndsWith("." + typeName, StringComparison.Ordinal))
-                continue;
-            var typeSends = graph.OutEdges(n.Id, EdgeKind.Sends)
-                .Select(s => s.To).Distinct().ToList();
-            if (typeSends.Count == 1)
-                return graph.Node(typeSends[0])?.Title;
-            if (typeSends.Count > 1 && entryTitle is { } route)
-                return MatchRouteToSend(route, typeSends, graph);
-            break;
+            var callee = graph.Node(call.To);
+            if (callee is null) continue;
+
+            var calleeTypeKey = callee.Kind == NodeKind.Member ? ExtractTypeKey(callee.Id.Key) : callee.Id.Key;
+            // Skip self-calls (a controller action calling ControllerBase helpers like Ok()/NotFound(),
+            // which the syntactic resolver attributes to `this`).
+            if (string.Equals(calleeTypeKey, ownerTypeKey, StringComparison.Ordinal)) continue;
+
+            // In-scope only: the callee's owning Type must be a declared type we own (non-null FilePath),
+            // which excludes framework leaves.
+            var calleeType = graph.Node(NodeId.ForType(calleeTypeKey));
+            if (calleeType?.FilePath is null) continue;
+
+            // Prefer a DI-resolved service (the action's real collaborator); else remember the first
+            // in-scope callee as a fallback.
+            if (calleeType.Tags.Contains(RoleTags.Service))
+                return callee.Title;
+            firstInScope ??= callee;
         }
-        return null;
+        return firstInScope?.Title;
+    }
+
+    /// <summary>"TypeFqn.MethodName" → "TypeFqn" (strips the trailing member segment from a Member key).</summary>
+    private static string ExtractTypeKey(string memberKey)
+    {
+        var dot = memberKey.LastIndexOf('.');
+        return dot > 0 ? memberKey[..dot] : memberKey;
     }
 
     /// <summary>When a registration type dispatches many commands (minimal APIs), match an entry's
@@ -212,9 +228,20 @@ public sealed class GraphBuilder
     private static ImmutableArray<EntryPoint> AddHttpEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var dedup = new HashSet<(string Verb, string Route, string File, int Line)>();
         foreach (var ep in model.Detections.OfType<EndpointDetection>())
         {
             if (!scope.Contains(ep.SourceFile)) continue;
+
+            // Filter infrastructure pseudo-entries (Iteration 2 Phase 2 Step 3): OpenAPI/Scalar root
+            // routes registered in ServiceDefaults or framework extension files — not application surface.
+            if (IsInfrastructureEntry(ep)) continue;
+
+            // Dedup exact duplicates (Step 4): same verb, route, file, and line collapse to one entry.
+            // Genuinely different lines (versioned overloads) are kept distinct.
+            if (!dedup.Add((ep.HttpMethod, NormalizeRoute(ep.RouteTemplate), ep.SourceFile, ep.LineNumber)))
+                continue;
+
             var key = $"{ep.HttpMethod} {ep.RouteTemplate}";
             var id = NodeId.ForEntry(key);
             g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile });
@@ -1116,4 +1143,23 @@ public sealed class GraphBuilder
         var inner = body[start..end].Trim();
         return inner.Length > 0 ? inner : typeName;
     }
+
+    /// <summary>True for an EndpointDetection that is a framework/infrastructure pseudo-entry — OpenAPI/Scalar
+    /// root routes registered in ServiceDefaults or extension files — not genuine application surface. The
+    /// guard matches on both source and route, not just <c>"/"</c>, so a real root route isn't falsely dropped.</summary>
+    private static bool IsInfrastructureEntry(EndpointDetection ep)
+    {
+        if (ep.RouteTemplate is "/" or "" or "/index.html" or "/openapi" or "/scalar")
+        {
+            var f = ep.SourceFile.AsSpan();
+            if (f.Contains("ServiceDefaults", StringComparison.OrdinalIgnoreCase)
+                || f.Contains("OpenApi", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Normalizes a route template for dedup comparison.</summary>
+    private static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
+
 }
