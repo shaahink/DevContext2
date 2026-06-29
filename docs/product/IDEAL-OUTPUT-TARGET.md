@@ -190,7 +190,7 @@ section checkboxes.
 
 ---
 
-## 4. Library archetype — IMPLEMENTED (FluentValidation, Polly)
+## 4. Library archetype — IMPLEMENTED (FluentValidation, Polly, CommunityToolkit.Mvvm)
 
 No application entries → a ranked **surface map**, organized by how a consumer uses the library, not a
 call stack. Shipped: archetype auto-detection (sample/benchmark apps don't flip a library to App) →
@@ -217,8 +217,11 @@ PACKAGES                        (runtime only — test/benchmark/sample deps exc
 ```
 
 Builder-shaped libraries get a `build` entry: Polly's `ResiliencePipelineBuilder` (a `*Builder` with a
-public `Build()`) leads its surface. Traces are off by default for libraries (a public method's "call
-stack down" is library internals, rarely what a consumer wants); available on demand for a chosen method.
+public `Build()`) leads its surface. **Source-generator libraries** (e.g. CommunityToolkit.Mvvm) lead with
+their marker attributes as an `annotate` tier (`[ObservableProperty]`, `[RelayCommand]`) and get a
+`GENERATORS` section listing the source generators / analyzers / code fixers they ship. Traces are off by
+default for libraries (a public method's "call stack down" is library internals, rarely what a consumer
+wants); available on demand for a chosen method.
 
 ---
 
