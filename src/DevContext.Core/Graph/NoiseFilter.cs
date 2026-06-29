@@ -35,6 +35,22 @@ public sealed class ProjectClassifier
         return false;
     }
 
+    /// <summary>True when the file lives under a samples / snippets / examples / demos path. A library's
+    /// sample apps are not the library — they must not flip its archetype to App or pollute its surface.</summary>
+    public static bool IsSamplePath(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath)) return false;
+        var p = Normalize(filePath);
+        return p.Contains("/samples/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/sample/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/snippets/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/snippet/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/examples/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/example/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/demos/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsTestProject(ProjectInfo p)
     {
         var name = p.Name;

@@ -26,9 +26,12 @@ public static class LibrarySurfaceBuilder
     public static LibrarySurface Build(DiscoveryModel model)
     {
         var classifier = new ProjectClassifier(model.Projects);
+        var nonLibraryDirs = NonLibraryProjectDirs(model.Projects);
         var publicTypes = model.Types.Values
             .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
             .Where(t => !classifier.IsInTestProject(t.FilePath))
+            .Where(t => !ProjectClassifier.IsSamplePath(t.FilePath))
+            .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
             .ToList();
 
         var mainTypes = publicTypes.Where(t => !IsInternalNamespace(t.Namespace)).ToList();
@@ -159,7 +162,28 @@ public static class LibrarySurfaceBuilder
 
     private static ImmutableArray<PackageGroup> BuildRuntimePackages(DiscoveryModel model, ProjectClassifier classifier)
         => MapBuilder.BuildPackages(model.Projects.Where(p =>
-            !classifier.IsInTestProject(p.FilePath) && !IsExe(p) && !IsBenchmarkOrSample(p.Name)));
+            !classifier.IsInTestProject(p.FilePath) && !IsExe(p) && !IsBenchmarkOrSample(p.Name)
+            && !ProjectClassifier.IsSamplePath(p.FilePath)));
+
+    // A library's surface is its library projects — not its exe benchmarks/samples. Collect those
+    // project directories so their (public) types are kept out of the surface.
+    private static ImmutableArray<string> NonLibraryProjectDirs(ImmutableArray<ProjectInfo> projects) =>
+    [
+        .. projects
+            .Where(p => IsExe(p) || IsBenchmarkOrSample(p.Name))
+            .Select(p => System.IO.Path.GetDirectoryName(p.FilePath))
+            .Where(d => !string.IsNullOrEmpty(d))
+            .Select(d => d!.Replace('\\', '/').TrimEnd('/'))
+    ];
+
+    private static bool IsUnder(ImmutableArray<string> dirs, string filePath)
+    {
+        var norm = filePath.Replace('\\', '/').TrimEnd('/');
+        foreach (var d in dirs)
+            if (norm.StartsWith(d + "/", StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
 
     private static bool IsExe(ProjectInfo p)
         => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
