@@ -1,4 +1,4 @@
-# Acceptance — what "good output" means, and how we measure it as we progress
+﻿# Acceptance — what "good output" means, and how we measure it as we progress
 
 > The single reference for *acceptable output per artifact*, and the bar at each roadmap phase.
 > It does **not** invent a new harness — it is operationalized by what already exists:
@@ -18,7 +18,7 @@
 - **Negative guards are first-class.** The current trace tier only asserts a trace *contains* the
   right wiring. As of the universal-lens work it must also assert it *excludes* the wrong wiring
   (the fabrication class of bug). Use `output-not-contains` checks + negative `TraceQualityTests`.
-- **`docs/examples/*` are "current", not "golden".** They are regenerated snapshots, some still
+- **`docs/product/examples/*` are "current", not "golden".** They are regenerated snapshots, some still
   carrying known bugs. Do not treat them as the bar — this doc + the eval suite are the bar.
 
 ## Acceptable output, per artifact
@@ -69,9 +69,9 @@ Each phase is done when these checks pass (flip aspirational→expected / add as
 | **0 Hygiene** | No `output-contains "over budget"`; output bounded by depth/fan-out on DntSite+OrchardCore; budget checks removed; build/tests green. |
 | **1 Correct traces** | **ENFORCED** (2026-06-28): `CatalogApi:CreateItem` trace ≠ `:UpdateItem` trace (divergence test passes). `POST /api/orders` trace `output-not-contains "CancelOrderCommand"` / `"ShipOrderCommand"` / `"OrderShippedDomainEvent"` / `"OrderCancelledDomainEvent"`; genuine spine (send→handler→raises OrderStartedIntegrationEvent→outbox) survives. `[verified]` redefined as method-scoped. See `TraceQualityTests.Sibling_methods_produce_divergent_traces_no_fabricated_edges` + `Orders_trace_keeps_the_real_spine_and_drops_sibling_edges`. |
 | **2 Universal entries** | **ENFORCED** (controller fixture 0/3→3/3; controller sibling-action divergence test passes; `GET /` infra entry filtered from eShop). See `controllerapp.json`, `TraceQualityTests.Controller_sibling_actions_produce_divergent_traces`. |
-| **3 Complete+honest traces** | **ENFORCED** (2026-06-28): `POST /api/orders` renders `raises OrderStartedDomainEvent → consumes ValidateOrAddBuyer…Handler` (domain-event path), TOUCHES includes `Buyer` reached via `Calls` (High-5), the pipeline (`LoggingBehavior → ValidatorBehavior → TransactionBehavior`) once under the send, and an explicit `…omitted` / `stopped at depth N` truncation marker. See `TraceQualityTests.Orders_trace_is_complete_and_honest`. Re-probe recorded in `docs/reports/probe-phase3.md`. *(DntSite `GET /Feed` TOUCHES still empty — its EF entities aren't detected by `EfCoreExtractor`; that detection gap is deferred to Iteration 4, so the High-5 mechanism is asserted on eShop.)* |
-| **4 Honest Map** | **ENFORCED** (2026-06-28): OrchardCore arch.style ≠ "Microservices" (`ModularMonolith`); Catalog scope-stamp present (`5-project closure of 24-project eShop`); STACK/PACKAGES `output-not-contains "$("`; Catalog CRUD types not tagged aggregate (`DDD aggregates` removed). Unit tests: partial-closure suppression + whole-solution Microservices preserved. See `catalog.json`, `ArchitectureStyleDetectorTests`, `docs/reports/phase4-honest-map.md`. |
-| **5 Queryable kernel** | **ENFORCED** (2026-06-28): query-API unit tests green (both edge directions, `find_usages`, `neighbors`); CLI output unchanged through the `GraphQuery` re-express (golden + eval). See `GraphQueryTests`, `docs/reports/phase5-queryable-kernel.md`. *(DntSite TOUCHES follow-up split out — entities detected via RegisterAllDerivedEntities reflection; EfCoreExtractor detection gap, not a query-API issue.)* |
+| **3 Complete+honest traces** | **ENFORCED** (2026-06-28): `POST /api/orders` renders `raises OrderStartedDomainEvent → consumes ValidateOrAddBuyer…Handler` (domain-event path), TOUCHES includes `Buyer` reached via `Calls` (High-5), the pipeline (`LoggingBehavior → ValidatorBehavior → TransactionBehavior`) once under the send, and an explicit `…omitted` / `stopped at depth N` truncation marker. See `TraceQualityTests.Orders_trace_is_complete_and_honest`. Re-probe recorded in `docs/dev/reports/probe-phase3.md`. *(DntSite `GET /Feed` TOUCHES still empty — its EF entities aren't detected by `EfCoreExtractor`; that detection gap is deferred to Iteration 4, so the High-5 mechanism is asserted on eShop.)* |
+| **4 Honest Map** | **ENFORCED** (2026-06-28): OrchardCore arch.style ≠ "Microservices" (`ModularMonolith`); Catalog scope-stamp present (`5-project closure of 24-project eShop`); STACK/PACKAGES `output-not-contains "$("`; Catalog CRUD types not tagged aggregate (`DDD aggregates` removed). Unit tests: partial-closure suppression + whole-solution Microservices preserved. See `catalog.json`, `ArchitectureStyleDetectorTests`, `docs/dev/reports/phase4-honest-map.md`. |
+| **5 Queryable kernel** | **ENFORCED** (2026-06-28): query-API unit tests green (both edge directions, `find_usages`, `neighbors`); CLI output unchanged through the `GraphQuery` re-express (golden + eval). See `GraphQueryTests`, `docs/dev/reports/phase5-queryable-kernel.md`. *(DntSite TOUCHES follow-up split out — entities detected via RegisterAllDerivedEntities reflection; EfCoreExtractor detection gap, not a query-API issue.)* |
 | **6 Performance** | `max-elapsed-ms` ratcheted down (warm); DntSite cold materially < 41s. |
 | **7 Browse UI** | UI re-query (focus/depth/detail) does no re-analysis (interaction test). |
 | **8 MCP** | MCP tool contract test; re-probe as `C + MCP`. |
@@ -95,7 +95,7 @@ Zero-config, seconds (warm), genuinely useful on each shape:
 Beyond unit checks, re-run the before/after probe (`IDEAL-OUTPUT-TARGET.md §7`) after Phases 1, 3, and
 8: give a fresh agent a real task with (a) the trace, (b) raw files, (c) repo+tools, (d) repo+tools+trace.
 Acceptance target: the fixed trace moves from "primer" (cheap orientation) toward "accelerator"
-(reduces a tool-using agent's cost). Record each run in `docs/reports/`.
+(reduces a tool-using agent's cost). Record each run in `docs/dev/reports/`.
 
 ## Adding/flipping a check
 

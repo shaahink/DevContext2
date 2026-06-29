@@ -1,4 +1,4 @@
-# Phase 2 Capability Report — Universal Entries, Controllers First
+﻿# Phase 2 Capability Report — Universal Entries, Controllers First
 
 > 2026-06-28, Iteration 2 / Phase 2 (commit `4f457a3`+ on branch `feature/iter2-universal-entries`).
 > Hybrid approach: a controller fixture for the repeatable CI gate, plus a queued DntSite manual run
@@ -75,4 +75,4 @@ endpoints (`/File/*`), and background workers — all expected, no false targets
 ## Next
 
 Iteration 3 — Complete & honest traces (domain-event chain, pipeline render, TOUCHES non-trivial,
-re-probe). See `docs/plans/ITERATION-3-complete-honest-traces.md`.
+re-probe). See `docs/dev/plans/ITERATION-3-complete-honest-traces.md`.

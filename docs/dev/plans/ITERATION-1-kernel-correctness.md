@@ -1,4 +1,4 @@
-# Iteration 1 — Kernel hygiene + member-origin correctness (Phases 0 & 1)
+﻿# Iteration 1 — Kernel hygiene + member-origin correctness (Phases 0 & 1)
 
 > **Status:** DONE (branch `feature/iter1-member-origin`) · **Phase(s):** 0, 1 · **Prerequisite:** none.
 > **Fresh session? Start at [`README.md`](./README.md).**
@@ -20,8 +20,8 @@
 >   handler-`Handle` bridge; `gates.ps1` PASS (12 eval tests incl. 2 new negative/divergence guards).
 >
 > Agent-executable iteration. Do Phase 0 then Phase 1, back to back. End on the gate.
-> **Required reading first:** `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md`
-> (Phases 0–1), `docs/ACCEPTANCE.md` (you will ADD checks here — you are authorized to improve the
+> **Required reading first:** `docs/product/PRODUCT-DIRECTION.md`, `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md`
+> (Phases 0–1), `docs/product/ACCEPTANCE.md` (you will ADD checks here — you are authorized to improve the
 > harness: gates, expectations, tests). The bug below is confirmed live; the design is decided.
 >
 > **Mental model.** The kernel is `CodeGraph` + builders. The product is Map/Trace rendered from it.
@@ -68,7 +68,7 @@ Medium-12.)
 - Remove/relax token-budget assertions that no longer apply. Search `eval/expectations/*.json` and
   `gates.ps1` step 4 for `--max-tokens` / "budget" checks. The CLI `--max-tokens 2000 --strict` matrix
   row should still exit cleanly (flag is accepted, just doesn't drive graph pruning).
-- Add to `docs/ACCEPTANCE.md` Phase 0 row: output bounded by depth/fan-out (no "over budget" string).
+- Add to `docs/product/ACCEPTANCE.md` Phase 0 row: output bounded by depth/fan-out (no "over budget" string).
 
 ### Phase 0 gate
 - `eval/gates.ps1` PASS (build, fast tests, eval, CLI matrix).
@@ -186,7 +186,7 @@ Add the **negative/divergence** guards that don't exist yet:
 - `eval/expectations/eshop.json`: add `output-not-contains` for `CancelOrderCommand` /
   `ShipOrderCommand` on the `POST /api/orders` focus run *if* you wire a trace-focus expectation
   variant; otherwise keep the negative trace guards in `TraceQualityTests` (it runs real focused traces).
-- Flip the relevant `docs/ACCEPTANCE.md` Phase 1 checks to `expected`.
+- Flip the relevant `docs/product/ACCEPTANCE.md` Phase 1 checks to `expected`.
 
 ### Phase 1 gate (decisive)
 Run these exact commands (Release CLI) and diff:

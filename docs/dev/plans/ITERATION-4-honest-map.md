@@ -1,10 +1,10 @@
-# Iteration 4 — Honest Map & detection (Phase 4)
+﻿# Iteration 4 — Honest Map & detection (Phase 4)
 
 > **Status:** DONE · **Phase(s):** 4 · **Prerequisite:** Iteration 3 DONE
 > (domain-event chain renders; TOUCHES includes `Buyer` via Calls; pipeline once; honest truncation; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
-> `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 4), `docs/ACCEPTANCE.md`,
-> and `docs/audit/audit-claims-vs-delivery.md` (the OrchardCore/Catalog/DntSite live-runs).
+> `docs/product/PRODUCT-DIRECTION.md`, `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 4), `docs/product/ACCEPTANCE.md`,
+> and `docs/dev/audit/audit-claims-vs-delivery.md` (the OrchardCore/Catalog/DntSite live-runs).
 >
 > **Progress (2026-06-28):** Phase 4 DONE (commit `a336e25`). Catalog.API now stamps its partial scope
 > (`5-project closure of 24-project eShop`); the partial-closure guard suppresses system-level verdicts on
@@ -14,7 +14,7 @@
 > OrchardCore was already `ModularMonolith` (Fix 2 gate met — it lacks an Aspire AppHost). Gate: `gates.ps1`
 > PASS (18 eval tests incl. `catalog.json`; new style-detector partial-closure tests; regenerated clean-arch
 > goldens). **DntSite TOUCHES diagnosed** (115 entities detected; gap is FQN canonicalization between
-> EfEntityDetection nodes and call-graph callee nodes) — tracked for Iteration 5. Report: `docs/reports/phase4-honest-map.md`.
+> EfEntityDetection nodes and call-graph callee nodes) — tracked for Iteration 5. Report: `docs/dev/reports/phase4-honest-map.md`.
 
 **Goal.** The Map never lies about scope or style. OrchardCore ≠ "Microservices"; scope-stamped verdict with
 4 honest fixes + trace-noise polish. (Closes Critical 3, Medium 10, Low 16; defers OrchardCore/STACK to
@@ -122,9 +122,9 @@ traces. Two low-risk fixes:
     list is on the whole-eShop eval (which has real aggregates — Order/Buyer/…). For the CRUD assertion,
     a unit test on the aggregate heuristic is deterministic; the eval check can be a `signal-present` or a
     unit test.
-- **Manual OrchardCore run** → `docs/reports/phase4-honest-map.md` (repo is gitignored + 5239 files — kept
+- **Manual OrchardCore run** → `docs/dev/reports/phase4-honest-map.md` (repo is gitignored + 5239 files — kept
   out of the automated suite, like DntSite).
-- Flip `docs/ACCEPTANCE.md` Phase-4 checks to `expected`.
+- Flip `docs/product/ACCEPTANCE.md` Phase-4 checks to `expected`.
 
 ## Gate (Phase 4 done when)
 - OrchardCore not "Microservices" (unit test + manual run).

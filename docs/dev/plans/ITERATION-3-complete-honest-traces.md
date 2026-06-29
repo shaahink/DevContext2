@@ -1,10 +1,10 @@
-# Iteration 3 — Complete & honest traces (Phase 3)
+﻿# Iteration 3 — Complete & honest traces (Phase 3)
 
 > **Status:** DONE · **Phase(s):** 3 · **Prerequisite:** Iteration 2 DONE
 > (controller entries resolve targets; sibling actions diverge; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
-> `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 3), `docs/ACCEPTANCE.md`,
-> and `docs/IDEAL-OUTPUT-TARGET.md` §2 (the shape a great trace should approach).
+> `docs/product/PRODUCT-DIRECTION.md`, `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 3), `docs/product/ACCEPTANCE.md`,
+> and `docs/product/IDEAL-OUTPUT-TARGET.md` §2 (the shape a great trace should approach).
 >
 > **Progress (2026-06-28):** Phase 3 DONE (commit `b9934f5`). `POST /api/orders` now renders the
 > domain-event chain (`raises OrderStartedDomainEvent → consumes ValidateOrAddBuyer…Handler`), TOUCHES
@@ -15,7 +15,7 @@
 > as a once-per-send annotation; (4) `Omitted` count + explicit markers; (5) `IndirectWiringDetector`
 > ungated to Map mode. Gate: `gates.ps1` PASS (17 eval tests incl. `Orders_trace_is_complete_and_honest`).
 > **Caveat:** DntSite `GET /Feed` TOUCHES stays empty — its EF entities aren't detected (`EfCoreExtractor`
-> gap), deferred to Iteration 4; the High-5 mechanism is asserted on eShop. Re-probe: `docs/reports/probe-phase3.md`.
+> gap), deferred to Iteration 4; the High-5 mechanism is asserted on eShop. Re-probe: `docs/dev/reports/probe-phase3.md`.
 
 **Goal.** The trace surfaces the whole relevant path and is honest about cuts. (Audit High-5, Medium-11,
 Low-15; closes the probe's "missed the real domain-event path" finding.)
@@ -76,10 +76,10 @@ upgrades these — schedule as a later iteration after Phase 5. Do **not** start
 - `TraceQualityTests`: `POST /api/orders` must contain `OrderStartedDomainEvent` **and** the buyer
   handler; controller `GET /Feed` `TOUCHES` count > 1; truncation marker present when cut; pipeline shown
   once for a CQRS entry.
-- Flip `docs/ACCEPTANCE.md` Phase-3 checks to `expected`.
+- Flip `docs/product/ACCEPTANCE.md` Phase-3 checks to `expected`.
 - **Re-probe (capability gate).** Rerun the before/after probe (`IDEAL-OUTPUT-TARGET.md §7`): conditions
   C (repo+tools) vs D (repo+tools+trace) on the **fixed** trace, plus a controller repo and a 2nd task
-  (e.g. "add a per-line discount to orders"). Record in `docs/reports/probe-phase3.md`. **Target:** the
+  (e.g. "add a per-line discount to orders"). Record in `docs/dev/reports/probe-phase3.md`. **Target:** the
   fixed trace reduces a tool-using agent's cost (moves from "primer" toward "accelerator") — the metric
   the Iteration-0 probe set at "primer, not accelerator yet."
 

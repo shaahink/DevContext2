@@ -1,8 +1,8 @@
-# Phase 1 Re-Probe — Member-Origin Edge Correctness
+﻿# Phase 1 Re-Probe — Member-Origin Edge Correctness
 
 > Run 2026-06-28, after Iteration 1 / Phase 1 (commit `4f457a3`, landed on `develop` via PR #1 `c84f088`).
-> Satisfies the **periodic LLM probe** checkpoint in `docs/ACCEPTANCE.md` ("re-run the before/after probe
-> after Phases 1, 3, and 8"). Companion to the archived `docs/archive/reports/probe-kit.md` (the full
+> Satisfies the **periodic LLM probe** checkpoint in `docs/product/ACCEPTANCE.md` ("re-run the before/after probe
+> after Phases 1, 3, and 8"). Companion to the archived `docs/dev/archive/reports/probe-kit.md` (the full
 > LLM-in-the-loop protocol) and `IDEAL-OUTPUT-TARGET.md` §7.
 >
 > This report records the **trace-quality delta** the member-origin fix produced (the substrate the LLM
@@ -105,7 +105,7 @@ EMITS  OrderStartedIntegrationEvent, IntegrationEventLogEntry            (2 even
 
 ## 4. Full LLM A/B protocol (human-in-the-loop, for the periodic probe)
 
-Reuse the archived task (`docs/archive/reports/probe-kit.md`): **"Add a per-line discount to orders"** on
+Reuse the archived task (`docs/dev/archive/reports/probe-kit.md`): **"Add a per-line discount to orders"** on
 `eval-repos/eShop` `Ordering.API`. Give a *fresh* agent the task with each input variant and score on the
 rubric (Correctness 40 / Navigation 25 / Completeness 20 / Explanation 15):
 

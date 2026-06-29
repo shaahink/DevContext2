@@ -1,4 +1,4 @@
-# Execution Roadmap — Sessions, Gates, and Your Intervention Points
+﻿# Execution Roadmap — Sessions, Gates, and Your Intervention Points
 
 > How to get from here to release with ~8 DeepSeek v4 Pro sessions and minimal human time.
 > Strategy: **reform in place** (never rewrite — the detection logic + 232 tests are the
@@ -9,16 +9,16 @@
 
 | # | Scope | Prompt to give the agent | Gate after (you, ~5 min) |
 |---|-------|--------------------------|---------------------------|
-| S0 | Plan 0, all (self-validation harness) | "Execute `docs/plans/PLAN-0-SELF-VALIDATION.md` in full. Read `docs/DETECTION-GUIDE.md` §1 first — the eval expectations you seed encode that value model." | run `eval/gates.ps1` yourself once; skim the aspirational-fail list |
-| S1 | Plan 1, Phases 0–3 | "Execute Phases 0–3 of `docs/plans/PLAN-1-ANALYZE-ONCE-RENDER-MANY.md` exactly. Stop after Phase 3 verification. Read DESIGN-PHILOSOPHY.md P1/P2 first for intent." | G-core |
+| S0 | Plan 0, all (self-validation harness) | "Execute `docs/dev/plans/PLAN-0-SELF-VALIDATION.md` in full. Read `docs/product/DETECTION-GUIDE.md` §1 first — the eval expectations you seed encode that value model." | run `eval/gates.ps1` yourself once; skim the aspirational-fail list |
+| S1 | Plan 1, Phases 0–3 | "Execute Phases 0–3 of `docs/dev/plans/PLAN-1-ANALYZE-ONCE-RENDER-MANY.md` exactly. Stop after Phase 3 verification. Read DESIGN-PHILOSOPHY.md P1/P2 first for intent." | G-core |
 | S1b | Plan 1, Phase 3b (Scoring Model v2 — behavior-changing) | "Execute Phase 3b of PLAN-1 exactly. Read DETECTION-GUIDE.md §1 and §6 first. Golden/eval diffs are expected — list and justify every one." | G-core + read the justified diff list; AutoMapper eval must improve |
 | S2 | Plan 1, Phases 4–5 | "Execute Phases 4–5 of PLAN-1. Phases 0–3b are done — verify by building first." | G-core + G-desktop |
 | S3 | Plan 1, Phases 6–7 | "Execute Phases 6–7 of PLAN-1. If Stage-3 parallelization causes flaky tests, follow the plan's revert instruction." | G-core + record before/after timing |
-| S4 | Plan 2, all | "Execute `docs/plans/PLAN-2-UNIFIED-FOCUS-UX.md` in full." (If it stalls mid-desktop, finish desktop in S4b.) | G-core + CLI matrix from Plan 2 Phase 6 |
-| S5 | Plan 3, Phases 0–2 | "Execute Phases 0–2 of `docs/plans/PLAN-3-NERD-STATS.md`." | G-core + eyeball `--stats` output |
+| S4 | Plan 2, all | "Execute `docs/dev/plans/PLAN-2-UNIFIED-FOCUS-UX.md` in full." (If it stalls mid-desktop, finish desktop in S4b.) | G-core + CLI matrix from Plan 2 Phase 6 |
+| S5 | Plan 3, Phases 0–2 | "Execute Phases 0–2 of `docs/dev/plans/PLAN-3-NERD-STATS.md`." | G-core + eyeball `--stats` output |
 | S6 | Plan 3, Phases 3–4 | "Execute Phases 3–4 of PLAN-3." | G-desktop (Stats tab) |
-| S7 | Plan 4, Phase 1 (extractor + service tests only; goldens need S5 done first) | "Execute Phase 1 of `docs/plans/PLAN-4-WORLD-CLASS-REPO.md`." | G-core |
-| S8 | Plan 4, Phases 0, 2–4 | "Execute Phase 0, then Phases 2–4 of PLAN-4. Phase 0 = work the aspirational eval checks following `docs/DETECTION-GUIDE.md`; flip fixed ones to `expected`. Unfixable ones go into the README limits section." | Read the README; skim remaining aspirational list |
+| S7 | Plan 4, Phase 1 (extractor + service tests only; goldens need S5 done first) | "Execute Phase 1 of `docs/dev/plans/PLAN-4-WORLD-CLASS-REPO.md`." | G-core |
+| S8 | Plan 4, Phases 0, 2–4 | "Execute Phase 0, then Phases 2–4 of PLAN-4. Phase 0 = work the aspirational eval checks following `docs/product/DETECTION-GUIDE.md`; flip fixed ones to `expected`. Unfixable ones go into the README limits section." | Read the README; skim remaining aspirational list |
 
 Then **you alone**: Plan 4 Phase 5 (history reset checklist) → tag → release → record demo GIF.
 
@@ -32,8 +32,8 @@ Wrap every prompt from the table in this template:
 
 ```
 You are executing a pre-written implementation plan in this repo. Rules:
-1. Before any edit, read in full: docs/DESIGN-PHILOSOPHY.md and docs/plans/<PLAN-FILE>.
-   If the work touches extractors, scoring, or pruning, also read docs/DETECTION-GUIDE.md
+1. Before any edit, read in full: docs/product/DESIGN-PHILOSOPHY.md and docs/dev/plans/<PLAN-FILE>.
+   If the work touches extractors, scoring, or pruning, also read docs/product/DETECTION-GUIDE.md
    — it is binding.
 2. Task: 01
 3. Execute the plan EXACTLY as written, phase by phase, in order. Do not expand scope, do
@@ -50,7 +50,7 @@ You are executing a pre-written implementation plan in this repo. Rules:
 Fix-up session (gate failed — use once per plan, then escalate to a stronger model):
 
 ```
-The previous session executed Phases <X–Y> of docs/plans/<PLAN-FILE> but the gate fails.
+The previous session executed Phases <X–Y> of docs/dev/plans/<PLAN-FILE> but the gate fails.
 Gate output: <PASTE FAILING TAIL>
 Read the plan and DESIGN-PHILOSOPHY.md first. Fix with the smallest change consistent with
 the plan's intent. Do not continue to later phases. End by running eval/gates.ps1.
@@ -79,7 +79,7 @@ Analyze this repo → toggle 2 sections → move token slider → switch all tab
 Pass = no freeze, toggles don't re-run analysis (progress text must NOT reappear), output updates.
 
 **Failed gate protocol:** don't debug yourself — start a fix-up session: paste the gate output
-+ "fix this; the intent is in docs/plans/PLAN-N section X". Budget one fix-up session per plan;
++ "fix this; the intent is in docs/dev/plans/PLAN-N section X". Budget one fix-up session per plan;
 if a second is needed, that's the signal to involve a stronger model on that plan instead.
 
 ## Worktree policy

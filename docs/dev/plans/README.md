@@ -1,18 +1,18 @@
-# Universal Lens — execution plans & live progress
+﻿# Universal Lens — execution plans & live progress
 
-This folder turns `docs/PRODUCT-DIRECTION.md` (the product) into ordered, **fresh-session-resumable**
+This folder turns `docs/product/PRODUCT-DIRECTION.md` (the product) into ordered, **fresh-session-resumable**
 iterations. Each iteration is one agent session: detailed steps, harness updates, and a gate.
 
 ## Start here (fresh session)
 
-1. **Quick start (5 min):** read `docs/HANDOVER.md` — the architecture, what was built, key files, and
+1. **Quick start (5 min):** read `docs/dev/HANDOVER.md` — the architecture, what was built, key files, and
    what's left. Then skip to step 3.
-2. Read `docs/PRODUCT-DIRECTION.md` (what we're building) and `docs/ACCEPTANCE.md` (what "good" means).
+2. Read `docs/product/PRODUCT-DIRECTION.md` (what we're building) and `docs/product/ACCEPTANCE.md` (what "good" means).
 3. Run the gate to see current reality: `pwsh -File eval/gates.ps1` (build → fast tests → eval → CLI).
 4. Find the **first iteration below whose Status ≠ DONE** — that's where you pick up.
 5. Open its guide, do **Step 0 (Reproduce)** first (line numbers in guides may have drifted; verify
    against current code), then execute the steps.
-6. When its **Gate** passes: flip the relevant `docs/ACCEPTANCE.md` checks to `expected`, update the
+6. When its **Gate** passes: flip the relevant `docs/product/ACCEPTANCE.md` checks to `expected`, update the
    **Status** in that guide's header **and the table below**, and record the commit hash.
 7. Stop at the iteration boundary. The next session repeats from step 1.
 
@@ -40,13 +40,13 @@ Status values: **NOT STARTED** (ready, prereqs met) · **BLOCKED** (waiting on a
 - **Reproduce before you change.** Guides cite file:line as of authoring; verify against current code.
 - **Harness is part of the work.** Every iteration ratchets `eval/expectations/*.json` and/or
   `TraceQualityTests`. You are authorized to correct gates/expectations (the eval suite is the bar).
-- **Acceptance first.** `docs/ACCEPTANCE.md` defines the bar per artifact and per phase; never ship a
+- **Acceptance first.** `docs/product/ACCEPTANCE.md` defines the bar per artifact and per phase; never ship a
   feature whose data the kernel can't honestly answer.
 
 ## Map of the docs
 
-- `docs/PRODUCT-DIRECTION.md` — the product (5-artifact set, coverage ladder, one-kernel/three-faces).
-- `docs/plans/UNIVERSAL-LENS-ROADMAP.md` — all phases + the audit-issue→phase map.
-- `docs/ACCEPTANCE.md` — what "good output" is + the per-phase ratchet.
-- `docs/IDEAL-OUTPUT-TARGET.md` — the hand-built shape a great Map/Trace approaches.
-- `docs/audit/*` — the source diagnosis these plans address.
+- `docs/product/PRODUCT-DIRECTION.md` — the product (5-artifact set, coverage ladder, one-kernel/three-faces).
+- `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` — all phases + the audit-issue→phase map.
+- `docs/product/ACCEPTANCE.md` — what "good output" is + the per-phase ratchet.
+- `docs/product/IDEAL-OUTPUT-TARGET.md` — the hand-built shape a great Map/Trace approaches.
+- `docs/dev/audit/*` — the source diagnosis these plans address.

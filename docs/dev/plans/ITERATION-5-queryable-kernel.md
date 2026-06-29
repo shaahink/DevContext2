@@ -1,10 +1,10 @@
-# Iteration 5 — Queryable kernel: inverse edges + query API (Phase 5)
+﻿# Iteration 5 — Queryable kernel: inverse edges + query API (Phase 5)
 
 > **Status:** DONE · **Phase(s):** 5 · **Prerequisite:** Iteration 4 DONE
 > (honest Map: scope-stamp, aggregates, STACK clean; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
-> `docs/PRODUCT-DIRECTION.md` §6 (the query-API sketch) + §7 (faces' data-needs),
-> `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 5), `docs/ACCEPTANCE.md`.
+> `docs/product/PRODUCT-DIRECTION.md` §6 (the query-API sketch) + §7 (faces' data-needs),
+> `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 5), `docs/product/ACCEPTANCE.md`.
 >
 > **Progress (2026-06-28):** Phase 5 DONE (commit `1fe7576`). Inverse edges derived in
 > `CodeGraph` ctor (kept derived — serialization-clean). `GraphQuery` facade over `(graph, entries, map)`:
@@ -18,7 +18,7 @@
 > (`BlogPost`, `DailyNewsItem`, …). The gap is NOT FQN canonicalization; it's an `EfCoreExtractor`
 > detection gap — DntSite uses `RegisterAllDerivedEntities` with reflection, which the syntax-tree walker
 > can't see individual `Entity<T>()` registrations for. Split to a separate detection-enhancement follow-up
-> (tracked in `docs/reports/phase5-queryable-kernel.md`).
+> (tracked in `docs/dev/reports/phase5-queryable-kernel.md`).
 >
 > **Why this builds on Iterations 1–4.** The graph is now correct (member-origin), covered (controllers),
 > complete (domain-event chain), and honest (scope/aggregates). It is trustworthy — so now make it a
@@ -101,7 +101,7 @@ DntSite entity-FQN canonicalization so `TOUCHES` is non-empty on DntSite.
   TraceQualityTests) stay green through the query-layer re-express.
 - **DntSite TOUCHES:** add a `TraceQualityTests` (or eval) assertion that DntSite `GET /Feed/News` `TOUCHES`
   is non-empty (skip-if-absent, like other DntSite checks).
-- Flip `docs/ACCEPTANCE.md` Phase-5 + the Browse row's query-API checks to `expected`.
+- Flip `docs/product/ACCEPTANCE.md` Phase-5 + the Browse row's query-API checks to `expected`.
 
 ## Gate (Phase 5 done when)
 - Query API unit-tested, both edge directions correct; `find_usages`/`neighbors` verified on eShop + DntSite.

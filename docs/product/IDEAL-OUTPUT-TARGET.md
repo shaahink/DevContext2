@@ -1,4 +1,4 @@
-# Ideal Output Target
+﻿# Ideal Output Target
 
 > What DevContext *should* produce, designed from the output backwards — independent of the
 > current CLI flags, desktop layout, and section model. Grounded in real target repos
@@ -266,7 +266,7 @@ indirection seams bridged (send · di · domain-event · integration-event), `Ca
 `[approx]`. The question is: **does the syntactic trace meaningfully help an LLM vs raw files
 vs the old catalog**, or do we need semantic precision (Part F) before it's useful?
 
-The probe (defined in `docs/reports/probe-kit.md` after Part D is executed):
+The probe (defined in `docs/dev/reports/probe-kit.md` after Part D is executed):
 
 1. Run the engine on the target entry to produce the **real trace** (not the hand-built §2 target).
 2. Give a fresh, context-free LLM session a realistic task (e.g. "add a per-line discount to orders")
@@ -277,4 +277,4 @@ The probe (defined in `docs/reports/probe-kit.md` after Part D is executed):
 
 If the trace wins → fund Parts F (SemanticSymbolResolver) + G (Persistent Index).
 If not → syntactic precision is insufficient; semantic resolution is prerequisite, or the approach
-needs rethinking. Record the result in `docs/reports/` and update this section.
+needs rethinking. Record the result in `docs/dev/reports/` and update this section.

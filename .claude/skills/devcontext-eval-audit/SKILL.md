@@ -1,4 +1,4 @@
----
+﻿---
 name: devcontext-eval-audit
 description: Audit DevContext's output quality against a real .NET repo. Use when asked to evaluate, audit, or sanity-check what DevContext produces for a repo (Map/Trace fidelity), compare against expectations or a recorded baseline, find detection defects, or verify a fix. Codifies the worked DntSite audit.
 ---
@@ -14,7 +14,7 @@ root. Shell is **Windows PowerShell 5.1**. The worked example is `eval-results/D
 - **Expectations:** `eval-repos.json` (per repo: expected architecture, endpoint count, signals,
   entry points, workers). The machine eval is `tests/DevContext.Core.Tests` (`Category=Eval`,
   `EvalExpectationTests`, goldens in `tests/goldens/`).
-- **North star / assessment:** `docs/IDEAL-OUTPUT-TARGET.md`, `docs/archive/reports/OUTPUT-QUALITY-ASSESSMENT.md`.
+- **North star / assessment:** `docs/product/IDEAL-OUTPUT-TARGET.md`, `docs/dev/archive/reports/OUTPUT-QUALITY-ASSESSMENT.md`.
 - **Aspirational checks (1 remaining):** VerticalSlice `no-dynamic` (FastEndpoints routes `<dynamic>`).
   3 previously aspirational checks flipped to `expected` in `chore/housekeeping-stats`: eShop arch-style,
   eShop aspire-signal, VerticalSlice mediatr-signal.
@@ -22,7 +22,7 @@ root. Shell is **Windows PowerShell 5.1**. The worked example is `eval-results/D
   reflection — subtype expansion applied in Iteration 6 but local-variable receiver resolution still
   drops some `Calls` edges); semantic Sends/Raises (body-scan stays `[approx]` — deferred semantic tier);
   persistent graph cache (Phase 9). eShop CQRS entry→target works; controllers 34/94 on DntSite.
-  See `docs/HANDOVER.md` for the full status + `docs/audit/` for the original findings.
+  See `docs/dev/HANDOVER.md` for the full status + `docs/dev/audit/` for the original findings.
 
 ## Capture (CLI, absolute paths, UTF-8)
 

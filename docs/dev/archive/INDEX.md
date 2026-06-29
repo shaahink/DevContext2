@@ -1,7 +1,12 @@
 # Docs Archive — Index
 
-> Archived 2026-06-23 from `chore/housekeeping-stats`. All files are retracable
-> via git history. Nothing was deleted — just reorganized for clarity.
+> Archived 2026-06-23 from `chore/housekeeping-stats`. Reorganized 2026-06-28 into `docs/dev/archive/`
+> as part of the product/dev doc separation. All files are retracable via git history. Nothing was
+> deleted — just reorganized for clarity.
+>
+> **Note:** paths within these archived files may reference the OLD `docs/` layout (e.g.
+> `docs/reports/` rather than `docs/dev/reports/`). These files are preserved as historical records;
+> cross-references in active files have been updated to the current layout.
 
 ## What was moved
 

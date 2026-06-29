@@ -1,7 +1,7 @@
-# Universal Lens — Phased Execution Roadmap
+﻿# Universal Lens — Phased Execution Roadmap
 
 > Ordered, agent-executable plan to turn DevContext into the universal go-to lens for **any** .NET
-> repo (`docs/PRODUCT-DIRECTION.md` is the north star). Each phase is one iteration: a clear goal,
+> repo (`docs/product/PRODUCT-DIRECTION.md` is the north star). Each phase is one iteration: a clear goal,
 > the audit issues/requirements it closes, key changes, key files, and a **gate** verified against the
 > `eval-repos/`. Phases are ordered by dependency — finish a phase's gate before starting the next.
 > Run `eval/gates.ps1` (build + tests + eval) at every phase boundary.
@@ -149,7 +149,7 @@ Medium 11, Low 15; addresses the probe's "missed the real domain-event path" fin
 **Gate.** DntSite `GET /Feed` TOUCHES lists more than `BaseEntity`. `POST /api/orders` surfaces the
 `OrderStartedDomainEvent → ValidateOrAddBuyer…` path. **Re-run the probe** (D vs C) on the fixed
 trace + a controller repo + a 2nd task; target: trace reduces a tool-using agent's cost (move from
-"primer" toward "accelerator"). Record in `docs/reports/`.
+"primer" toward "accelerator"). Record in `docs/dev/reports/`.
 
 ---
 

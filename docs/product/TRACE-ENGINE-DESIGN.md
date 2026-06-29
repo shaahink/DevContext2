@@ -1,4 +1,4 @@
-# Trace Engine — Deep Analysis & Migration Design
+﻿# Trace Engine — Deep Analysis & Migration Design
 
 > **Status (2026-06-16):** P1 (Map) and P2 (Trace skeleton) are **complete and live**.
 > The CodeGraph, GraphBuilder, MapBuilder, TraceBuilder, entry-point inventory, evidence-based
@@ -307,7 +307,7 @@ Additive, compiles clean, **not yet wired into DI/pipeline** — the spine for t
 | `MapBuilder.cs` | `MapModel`, `ProjectNode`, `PackageGroup`, `MapBuilder` | Model done; builder is a stub with per-facet TODOs |
 | `GraphBuilder.cs` | `GraphBuilder` | Worked examples (type nodes, HTTP entries, MediatR `Handles`) + stubbed join seams |
 
-Execution plan: `docs/plans/PLAN-10-TRACE-ENGINE.md`.
+Execution plan: `docs/dev/plans/PLAN-10-TRACE-ENGINE.md`.
 
 ---
 
@@ -351,7 +351,7 @@ the renderer), **B4 last** (renderer consumes the others). B1/B3 either order. �
 
 **R6 — Validation probe (Q6).** Part D **gates only Parts F + G** (the expensive semantic + index
 work), **not Part E**. The useful core (A–E) ships regardless — Map+Trace beat the catalog even on
-syntactic resolution. Deliverable: a probe kit in `docs/reports/` (the three inputs — trace / raw
+syntactic resolution. Deliverable: a probe kit in `docs/dev/reports/` (the three inputs — trace / raw
 files / legacy — + the task + a scoring rubric), run against a **fresh, context-free model session**
 (unbiased), then decide F/G.
 

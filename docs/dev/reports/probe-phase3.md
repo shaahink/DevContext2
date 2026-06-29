@@ -1,7 +1,7 @@
-# Phase 3 Re-Probe — Complete & Honest Traces
+﻿# Phase 3 Re-Probe — Complete & Honest Traces
 
 > Run 2026-06-28, after Iteration 3 / Phase 3 (branch `feature/iter3-complete-honest-traces`).
-> Satisfies the **periodic LLM probe** checkpoint (`docs/ACCEPTANCE.md` — re-run after Phases 1, 3, 8) and
+> Satisfies the **periodic LLM probe** checkpoint (`docs/product/ACCEPTANCE.md` — re-run after Phases 1, 3, 8) and
 > the Iteration-3 guide's re-probe gate. Records the trace-completeness delta (the substrate the scored
 > A/B consumes); the scored fresh-agent run is the human-in-the-loop step in §4.
 

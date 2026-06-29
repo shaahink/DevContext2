@@ -1,4 +1,4 @@
-# DevContext — .NET codebase context for humans and LLMs
+﻿# DevContext — .NET codebase context for humans and LLMs
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
@@ -131,7 +131,7 @@ Evidence-driven (not name-substring):
 | **ControllerBased** | Controllers present, no MediatR, dominant over MinimalApi | 0.55–0.70 |
 | **ModularMonolith** | ≥2 projects with "module"/"bounded"/"context" in name | 0.55+ |
 
-→ Full design: [TRACE-ENGINE-DESIGN.md](docs/TRACE-ENGINE-DESIGN.md) | [Trace rule reference](docs/TRACE-RULE-REFERENCE.md)
+→ Full design: [TRACE-ENGINE-DESIGN.md](docs/product/TRACE-ENGINE-DESIGN.md) | [Trace rule reference](docs/product/TRACE-RULE-REFERENCE.md)
 
 ## What it extracts
 
@@ -180,7 +180,7 @@ devcontext analyze . --format json --strict        # JSON with runReport
 
 **Known limits:**
 - Call edges are syntactic (regex-based) — marked `[approx]` in trace output. Semantic resolution (Roslyn `SemanticModel`) is designed behind `ISymbolResolver` and deferred to P3.
-- Architecture-style detection on hybrid repos may misclassify — see [DETECTION-GUIDE.md](docs/DETECTION-GUIDE.md#5-architecture-style-detection-the-known-weak-spot).
+- Architecture-style detection on hybrid repos may misclassify — see [DETECTION-GUIDE.md](docs/product/DETECTION-GUIDE.md#5-architecture-style-detection-the-known-weak-spot).
 - No persistent snapshot cache yet — each run re-analyses from source.
 
 **Deliberately deferred:**

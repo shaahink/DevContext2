@@ -1,16 +1,16 @@
-# Iteration 2 — Universal entries, controllers first (Phase 2)
+﻿# Iteration 2 — Universal entries, controllers first (Phase 2)
 
 > **Status:** DONE · **Phase(s):** 2 · **Prerequisite:** Iteration 1 DONE
 > (member-origin edges; `CatalogApi:CreateItem` trace ≠ `:UpdateItem`; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
-> `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 2), `docs/ACCEPTANCE.md`.
+> `docs/product/PRODUCT-DIRECTION.md`, `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 2), `docs/product/ACCEPTANCE.md`.
 >
 > **Progress (2026-06-28):** Phase 2 DONE (commit `2b3dd12`). Controller fixture goes 0/3 → 3/3 targets
 > (GetByIdAsync/CreateAsync/DeleteAsync), entries diverge per sibling action, infra `GET /` filtered from
 > eShop, no CQRS regression. Core change: `ResolveEntryTarget` generalized from Sends-only to primary
 > service call fallback (prefer DI-service callee from action member's own Calls edges, precise post
 > member-origin); `ResolveViaParentType` retired. Fixture at `tests/fixtures/ControllerApp` with eval JSON;
-> DntSite capability run queued in `docs/reports/phase2-controller-targets.md`. Gate: `gates.ps1` PASS
+> DntSite capability run queued in `docs/dev/reports/phase2-controller-targets.md`. Gate: `gates.ps1` PASS
 > (15 eval tests incl. controller divergence + infra filter).
 
 **Goal.** Every common entry resolves a **`→ target`**. Controllers go from **0/94** (audit Claim 6) to
@@ -67,12 +67,12 @@ fallback where member-origin now makes it drown precision (it was a class-scoped
 - **Controller repo in CI.** None of the always-present `eval-repos/` is a plain-controller app (TodoApi
   = minimal, VerticalSlice = FastEndpoints, eShop = CQRS). Either (a) add DntSite to `eval-repos/` (pin a
   commit, like the others) or (b) add a small controller fixture under `tests/fixtures/`. Required so the
-  controller acceptance actually runs — note it in `docs/ACCEPTANCE.md`.
+  controller acceptance actually runs — note it in `docs/product/ACCEPTANCE.md`.
 - Add `eval/expectations/<controller-repo>.json`: entry→target coverage `json-range` min > 0 (ratchet
   from 0), `output-not-contains` the infra `GET /`, endpoint `detection-count`.
 - `TraceQualityTests`: add a controller archetype `[InlineData]` row (entry → expected service substring)
   + a sibling-action **divergence** `[Fact]`.
-- Flip `docs/ACCEPTANCE.md` Phase-2 checks to `expected`.
+- Flip `docs/product/ACCEPTANCE.md` Phase-2 checks to `expected`.
 
 ## Gate (Phase 2 done when)
 - Controller repo: **majority of entries show `→ target`** (coverage ratchets up from 0).

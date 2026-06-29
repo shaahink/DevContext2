@@ -1,11 +1,11 @@
-# Handover — Universal Lens (Phases 0–7)
+﻿# Handover — Universal Lens (Phases 0–7)
 
 > Written 2026-06-28. Covers all work on `develop` at merge commit `c762c98` (PRs #1–#5) plus the
 > in-progress branch `feature/iter6-7-final`. Created for a fresh session or new contributor to
 > pick up and continue.
 >
-> **Resume instruction:** Read `docs/plans/README.md` → find the first iteration whose status ≠ DONE →
-> open that iteration's guide in `docs/plans/` → do Step 0 (Reproduce) first, then execute steps. Commit
+> **Resume instruction:** Read `docs/dev/plans/README.md` → find the first iteration whose status ≠ DONE →
+> open that iteration's guide in `docs/dev/plans/` → do Step 0 (Reproduce) first, then execute steps. Commit
 > at checkpoints; one PR per iteration → `develop`. Run `pwsh -File eval/gates.ps1` at every phase boundary.
 
 ## What was built (Phases 0–7)
@@ -152,7 +152,7 @@ Pattern: `git checkout -b feature/iterN-<name>` off `develop` → implement → 
 | Item | Status | Where |
 |---|---|---|
 | **DntSite TOUCHES** | Entity subtype expansion applied (GraphBuilder.AddEntityNodes now tags BaseEntity children). Still empty for `GET /Feed/News` — the local-variable receiver resolution in CallGraphExtractor (`item.MapToNews...`) drops the `BlogPost` Calls edge because syntactic resolution returns lower-case "blogPost" (unknown). The subtype expansion IS correct; TOUCHES will populate when the call graph resolves entity-member receivers. | `GraphBuilder.cs:596` |
-| **LLM re-probes (Phase 1 & 3)** | Scored A/B probe-kits scaffolded — inherently human-in-the-loop. | `docs/reports/phase1-member-origin-reprobe.md` + `docs/reports/probe-phase3.md` |
+| **LLM re-probes (Phase 1 & 3)** | Scored A/B probe-kits scaffolded — inherently human-in-the-loop. | `docs/dev/reports/phase1-member-origin-reprobe.md` + `docs/dev/reports/probe-phase3.md` |
 | **EstimateProvenance accuracy** | Line numbers are computed relative to `type.SourceBody`, not the file. Salient lines can show wrong source context (e.g., a Get action shows Create's body). Fix needs source-start-line info on `TypeDiscovery`. Pre-existing since before iter1. | `GraphBuilder.cs:1055` |
 | **Browse UI interactive redo (full)** | The `GraphQuery` facade is available to the desktop (`IAnalysisService.GetQuery`). The HTML rendering in `OutputPanel.razor` has no interactive click handlers — nodes can't be clicked for detail/neighbors. Splitting the `MainViewModel` god class, rebuilding the surface as a thin view over `GraphQuery`, and adding interactive navigation is the **Phase 7 proper** scope (planned, not yet done). | `DevContext.Desktop/*` |
 | **MCP server (Phase 8)** | Not started. The `GraphQuery` facade is MCP-ready (JSON-friendly operations). | — |

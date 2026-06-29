@@ -1,8 +1,8 @@
-# Iteration 6 — Performance & caching (Phase 6)
+﻿# Iteration 6 — Performance & caching (Phase 6)
 
 > **Status:** DONE · **Phase(s):** 6 · **Prerequisite:** Iteration 5 DONE (queryable kernel; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading: the devcontext-bench skill,
-> `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 6).
+> `docs/product/PRODUCT-DIRECTION.md`, `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 6).
 
 **Goal.** Cold DntSite Map time drops materially under 41s (the audit baseline). (Closes High 6.)
 

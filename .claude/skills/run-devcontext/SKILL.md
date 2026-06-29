@@ -1,4 +1,4 @@
----
+﻿---
 name: run-devcontext
 description: Build, run, test, and drive DevContext (a .NET CLI + WPF desktop that turns a .NET solution into LLM-ready Map/Trace context). Use when asked to run, start, build, test, smoke-test, or analyze a repo with DevContext, or to launch its desktop app.
 ---
@@ -97,7 +97,7 @@ The gate runs `Category=Eval` tests (18 eval expectation tests across TodoApi, e
 AutoMapper, ControllerApp, DntSite, Catalog) and a 5-command CLI matrix (`--strict`, `--format json --strict`,
 `--format html --strict`, `--dry-run`, `--max-tokens 2000 --strict`). All must exit cleanly.
 
-## Trace features (since Iteration 1 — see docs/HANDOVER.md)
+## Trace features (since Iteration 1 — see docs/dev/HANDOVER.md)
 
 Traces are now member-anchored (Iteration 1), complete with domain-event chains (Iteration 3), and
 honest about cuts. Plus summary sections:
@@ -108,7 +108,7 @@ honest about cuts. Plus summary sections:
 - **EMITS** — deduped list of events the trace emits
 - **Pipeline** — cross-cutting behaviors rendered once under the first `send`: `pipeline ▸ LoggingBehavior → ValidatorBehavior → TransactionBehavior`
 
-## Map features (since Iteration 2 — see docs/HANDOVER.md)
+## Map features (since Iteration 2 — see docs/dev/HANDOVER.md)
 
 - **Entry→target** — route → handler/service mapping for controllers and CQRS: e.g. DntSite `GET /Feed/News → FeedsService.GetNewsAsync` (34/94)
 - **Scope stamp (Iteration 4)** — `SCOPE 5-project closure of 24-project eShop` for a partial analysis

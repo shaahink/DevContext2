@@ -1,8 +1,8 @@
-# DevContext — Design Philosophy
+﻿# DevContext — Design Philosophy
 
 > What this tool believes, what the codebase currently does, and the bridge between the two.
 > This document is the source of truth for product and architecture decisions. The action plans
-> in `docs/plans/` implement it.
+> in `docs/dev/plans/` implement it.
 
 ## The one-sentence pitch
 

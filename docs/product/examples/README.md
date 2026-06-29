@@ -1,4 +1,4 @@
-# Example Outputs
+﻿# Example Outputs
 
 Curated DevContext analysis outputs for real open-source .NET repositories.
 Each example shows what an LLM receives — a structurally-bounded (depth · fan-out)
@@ -30,10 +30,10 @@ $cli = "src/DevContext.Cli/bin/Release/net10.0/DevContext.Cli.dll"
 dotnet build src/DevContext.Cli -c Release
 
 # eShop Catalog.API trace (member-anchored, scope-stamped)
-dotnet $cli analyze "$pwd\eval-repos\eShop\src\Catalog.API" --focus "CatalogApi:UpdateItem" --depth 5 | Out-File docs/examples/eshop-catalog-trace.md -Encoding utf8
+dotnet $cli analyze "$pwd\eval-repos\eShop\src\Catalog.API" --focus "CatalogApi:UpdateItem" --depth 5 | Out-File docs/product/examples/eshop-catalog-trace.md -Encoding utf8
 
 # DntSite Feed trace (entry->target resolved, entry-scoped binding)
-dotnet $cli analyze "$env:LOCALAPPDATA\DevContext\repos\VahidN-DntSite-default" --focus "GET /Feed/News" --depth 5 | Out-File docs/examples/dntsite-trace-feedcontroller.md -Encoding utf8
+dotnet $cli analyze "$env:LOCALAPPDATA\DevContext\repos\VahidN-DntSite-default" --focus "GET /Feed/News" --depth 5 | Out-File docs/product/examples/dntsite-trace-feedcontroller.md -Encoding utf8
 ```
 
 ## See also
@@ -41,4 +41,4 @@ dotnet $cli analyze "$env:LOCALAPPDATA\DevContext\repos\VahidN-DntSite-default" 
 - Full eval results: `eval-results/`
 - Evaluation gate: `eval/gates.ps1`
 - Expectations (expected counts/signals): `eval/expectations/`
-- Handover / architecture: `docs/HANDOVER.md`
+- Handover / architecture: `docs/dev/HANDOVER.md`
