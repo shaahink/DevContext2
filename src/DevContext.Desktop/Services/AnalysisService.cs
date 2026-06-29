@@ -10,6 +10,7 @@ using DevContext.Core.Contracts;
 using DevContext.Core.IO;
 using DevContext.Core.Models;
 using DevContext.Core.Observers;
+using DevContext.Core.Graph;
 using DevContext.Core.Pipeline;
 using DevContext.Core.Rendering;
 using DevContext.Core.Resolvers;
@@ -23,6 +24,9 @@ public interface IAnalysisService
 {
     Task<SnapshotResult> AnalyzeAsync(AnalysisOptions opts, IProgress<AnalysisProgress>? progress = null, CancellationToken ct = default);
     Task<RenderResult> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default);
+    /// <summary>Returns the Phase-5 query facade over a completed analysis snapshot — powers interactive
+    /// Node, Neighbors, FindUsages in the browse UI without re-analysis.</summary>
+    GraphQuery GetQuery(AnalysisSnapshot snapshot);
     AppSettings LoadSettings();
     void SaveSettings(AppSettings s);
     string[] LoadRecent();
@@ -228,6 +232,9 @@ public class AnalysisService : IAnalysisService
             GraphSummary = rendered.GraphSummary,
         };
     }
+
+    public GraphQuery GetQuery(AnalysisSnapshot snapshot)
+        => new GraphQuery(snapshot.Graph!, snapshot.Entries, snapshot.Map);
 
     public AppSettings LoadSettings()
     {
