@@ -29,6 +29,8 @@ public sealed class TypeDiscovery
     public ImmutableArray<string> ImplementedInterfaces { get; set; } = [];
     /// <summary>Attributes applied to this type.</summary>
     public ImmutableArray<string> Attributes { get; init; } = [];
+    /// <summary>The &lt;summary&gt; text from the type's leading XML doc comment, whitespace-collapsed; null if none.</summary>
+    public string? XmlDoc { get; set; }
     /// <summary>Full source body text of the type declaration (populated by SourceBodyExtractor).</summary>
     public string? SourceBody { get; set; }
     /// <summary>Tags added by compressors and other pipeline stages.</summary>

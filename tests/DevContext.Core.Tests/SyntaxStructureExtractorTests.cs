@@ -83,4 +83,71 @@ public sealed class SyntaxStructureExtractorTests
 
         Assert.True(model.Architecture.Has(ArchitectureSignals.Keys.Controllers));
     }
+
+    // ── WP1 (library support): XML doc summaries + extension-method capture ──
+
+    private static async Task<DiscoveryModel> RunSingleFileAsync(string source)
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\Demo.cs", source);
+
+        var builder = new DiscoveryContextBuilder()
+            .WithFileSystem(fs)
+            .WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Demo.cs"];
+
+        var model = new DiscoveryModel();
+        await new SyntaxStructureExtractor().ExtractAsync(ctx, model, default);
+        return model;
+    }
+
+    [Fact]
+    public async Task ExtensionMethod_IsFlaggedWithExtendedType()
+    {
+        var model = await RunSingleFileAsync("""
+            namespace Demo;
+            public static class MyExtensions {
+                public static IServiceCollection AddFoo(this IServiceCollection services) => services;
+                public static int Helper(int x) => x;
+            }
+            """);
+
+        var type = model.Types["Demo.MyExtensions"];
+        var addFoo = type.Methods.Single(m => m.Name == "AddFoo");
+        var helper = type.Methods.Single(m => m.Name == "Helper");
+
+        Assert.True(addFoo.IsExtension);
+        Assert.Equal("IServiceCollection", addFoo.ExtendedType);
+
+        // A static method without a `this` first parameter is NOT an extension method.
+        Assert.False(helper.IsExtension);
+        Assert.Null(helper.ExtendedType);
+    }
+
+    [Fact]
+    public async Task XmlDocSummary_IsExtracted_ForTypeAndMethod()
+    {
+        var model = await RunSingleFileAsync("""
+            namespace Demo;
+            /// <summary>Base class for object validators.</summary>
+            public abstract class AbstractValidator {
+                /// <summary>
+                /// Registers the foo service.
+                /// </summary>
+                public void AddFoo() { }
+                public void Undocumented() { }
+            }
+            """);
+
+        var type = model.Types["Demo.AbstractValidator"];
+        Assert.Equal("Base class for object validators.", type.XmlDoc);
+
+        var addFoo = type.Methods.Single(m => m.Name == "AddFoo");
+        Assert.Equal("Registers the foo service.", addFoo.XmlDoc);
+
+        // No doc comment -> null (not empty string).
+        var undoc = type.Methods.Single(m => m.Name == "Undocumented");
+        Assert.Null(undoc.XmlDoc);
+    }
 }

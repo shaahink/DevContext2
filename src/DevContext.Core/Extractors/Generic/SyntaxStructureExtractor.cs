@@ -145,6 +145,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             BaseTypes = baseTypes,
             ImplementedInterfaces = interfaces,
             Attributes = attributes,
+            XmlDoc = ExtractXmlDocSummary(typeDecl),
         };
     }
 
@@ -161,6 +162,11 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 .ToImmutableArray();
             var returnType = method.ReturnType?.ToString() ?? "void";
 
+            var firstParam = method.ParameterList.Parameters.FirstOrDefault();
+            var isExtension = method.Modifiers.Any(SyntaxKind.StaticKeyword)
+                && firstParam is not null
+                && firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
+
             methods.Add(new MethodSignature(
                 method.Identifier.ValueText,
                 returnType,
@@ -168,7 +174,12 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 paramNames,
                 GetAccessibility(method.Modifiers),
                 method.Modifiers.Any(SyntaxKind.StaticKeyword),
-                method.Modifiers.Any(SyntaxKind.AsyncKeyword) || method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
+                method.Modifiers.Any(SyntaxKind.AsyncKeyword) || method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+            {
+                IsExtension = isExtension,
+                ExtendedType = isExtension ? firstParam!.Type?.ToString() : null,
+                XmlDoc = ExtractXmlDocSummary(method),
+            });
         }
 
         return methods.ToImmutableArray();
@@ -275,6 +286,32 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
             .SelectMany(al => al.Attributes)
             .Select(a => a.Name.ToString())
             .ToImmutableArray();
+    }
+
+    /// <summary>Extracts the <c>&lt;summary&gt;</c> prose from a node's leading XML doc comment — build-free,
+    /// syntactic (no SemanticModel). Walks nested elements (e.g. <c>&lt;para&gt;</c>) and returns the
+    /// whitespace-collapsed text, or null when there is no doc comment or summary.</summary>
+    private static string? ExtractXmlDocSummary(SyntaxNode node)
+    {
+        var doc = node.GetLeadingTrivia()
+            .Select(t => t.GetStructure())
+            .OfType<DocumentationCommentTriviaSyntax>()
+            .FirstOrDefault();
+        if (doc is null) return null;
+
+        var summary = doc.Content
+            .OfType<XmlElementSyntax>()
+            .FirstOrDefault(e => e.StartTag.Name.LocalName.ValueText == "summary");
+        if (summary is null) return null;
+
+        var raw = string.Concat(summary.DescendantNodes()
+            .OfType<XmlTextSyntax>()
+            .SelectMany(t => t.TextTokens)
+            .Where(tok => tok.IsKind(SyntaxKind.XmlTextLiteralToken) || tok.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+            .Select(tok => tok.ValueText));
+
+        var collapsed = string.Join(" ", raw.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return string.IsNullOrEmpty(collapsed) ? null : collapsed;
     }
 
     private static Accessibility GetAccessibility(SyntaxTokenList modifiers)
