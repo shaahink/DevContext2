@@ -21,8 +21,8 @@ iterations. Each iteration is one agent session: detailed steps, harness updates
 | 1 | [Kernel hygiene + member-origin correctness](./ITERATION-1-kernel-correctness.md) | 0, 1 | **DONE** (commit `4f457a3`; branch `feature/iter1-member-origin`) | `CatalogApi:CreateItem` trace ≠ `:UpdateItem`; `POST /api/orders` has no sibling sends/raises; gates green |
 | 2 | [Universal entries, controllers first](./ITERATION-2-universal-entries.md) | 2 | **DONE** (commit `2b3dd12`; branch `feature/iter2-universal-entries`) | Controller fixture 0/3→3/3 `→ target`; sibling actions diverge; infra `GET /` filtered; gates green |
 | 3 | [Complete & honest traces](./ITERATION-3-complete-honest-traces.md) | 3 | **DONE** (commit `b9934f5`; branch `feature/iter3-complete-honest-traces`) | Domain-event→handler path + pipeline rendered; Buyer in TOUCHES; truncation explicit; gates green |
-| 4 | Honest Map & detection — *to write* | 4 | **NOT STARTED** (prereq #3 DONE) | OrchardCore ≠ "Microservices"; scope-stamp; STACK no `$(`; DntSite entities detected |
-| 5 | Queryable kernel (inverse edges + query API) — *to write* | 5 | **BLOCKED** | Query-API both-direction tests; CLI unchanged through it |
+| 4 | [Honest Map & detection](./ITERATION-4-honest-map.md) | 4 | **DONE** (commit `a336e25`; branch `feature/iter4-honest-map`) | OrchardCore = ModularMonolith; Catalog scope-stamped; STACK/PACKAGES no `$(`; CRUD not aggregate; controller-trace noise filtered; gates green |
+| 5 | Queryable kernel (inverse edges + query API) — *to write* | 5 | **NOT STARTED** (prereq #4 DONE) | Query-API both-direction tests; CLI unchanged through it; **fold in** the DntSite entity-FQN canonicalization (TOUCHES) follow-up |
 | 6 | Performance & caching — *to write* | 6 | **BLOCKED** | DntSite warm fast; cold ≪ 41s |
 | 7 | Browse UI redo — *to write* | 7 | **BLOCKED** | Re-query does no re-analysis |
 | 8 | MCP server — *to write* | 8 | **BLOCKED** | Tool-contract test; re-probe `C + MCP` |

@@ -1,16 +1,20 @@
 # Iteration 4 — Honest Map & detection (Phase 4)
 
-> **Status:** IN PROGRESS (branch `feature/iter4-honest-map`) · **Phase(s):** 4 · **Prerequisite:** Iteration 3 DONE
+> **Status:** DONE · **Phase(s):** 4 · **Prerequisite:** Iteration 3 DONE
 > (domain-event chain renders; TOUCHES includes `Buyer` via Calls; pipeline once; honest truncation; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
 > `docs/PRODUCT-DIRECTION.md`, `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 4), `docs/ACCEPTANCE.md`,
 > and `docs/audit/audit-claims-vs-delivery.md` (the OrchardCore/Catalog/DntSite live-runs).
 >
-> **Why this builds on Iterations 1–3.** The trace is now honest and complete; but the **Map** — the
-> orientation artifact users see first — still pronounces system-level style from a single-service
-> closure (Critical 3), tags anemic CRUD entities as DDD aggregates (Medium 10), leaks MSBuild-variable
-> noise in STACK (Low 16), and shows no controller trace-noise polish. This iteration makes the Map
-> honest about scope, style, and detection, so pointing at any repo produces a trustworthy first result.
+> **Progress (2026-06-28):** Phase 4 DONE (commit `a336e25`). Catalog.API now stamps its partial scope
+> (`5-project closure of 24-project eShop`); the partial-closure guard suppresses system-level verdicts on
+> a slice while whole-eShop keeps `Microservices`. `$(…)` MSBuild-variable noise stripped from STACK +
+> PACKAGES (OrchardCore clean). Aggregate detection requires a real `IAggregateRoot` (eShop: `Buyer · Order`
+> only; Catalog/CleanArch CRUD: none). Controller traces drop `nameof`/`Ok`/`NotFound` self-call noise.
+> OrchardCore was already `ModularMonolith` (Fix 2 gate met — it lacks an Aspire AppHost). Gate: `gates.ps1`
+> PASS (18 eval tests incl. `catalog.json`; new style-detector partial-closure tests; regenerated clean-arch
+> goldens). **DntSite TOUCHES diagnosed** (115 entities detected; gap is FQN canonicalization between
+> EfEntityDetection nodes and call-graph callee nodes) — tracked for Iteration 5. Report: `docs/reports/phase4-honest-map.md`.
 
 **Goal.** The Map never lies about scope or style. OrchardCore ≠ "Microservices"; scope-stamped verdict with
 4 honest fixes + trace-noise polish. (Closes Critical 3, Medium 10, Low 16; defers OrchardCore/STACK to
