@@ -326,20 +326,19 @@ public sealed class DiscoveryPipeline
         var wantsNarrative = format is "markdown";
         if (wantsNarrative && snapshot.Graph is { NodeCount: > 0 } graph)
         {
+            // Phase 5: the render path is a CLIENT of the query layer (analyze once, query many) — the
+            // CLI/Desktop go through the same GraphQuery the browse UI + MCP will. Output is unchanged.
+            var query = new Graph.GraphQuery(graph, snapshot.Entries, snapshot.Map);
+
             // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
             // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
-            var (seams, withTarget) = Graph.GraphStats.Compute(graph, snapshot.Entries);
+            var (seams, withTarget) = query.Stats();
 
             if (!string.IsNullOrEmpty(request.Entry))
             {
-                var entry = Graph.EntryPointResolver.Resolve(snapshot.Entries, graph, request.Entry);
-                if (entry is not null)
+                var trace = query.Trace(request.Entry, request.Depth ?? 6, 12);
+                if (trace is not null)
                 {
-                    var trace = new TraceBuilder(graph).Build(entry, new Graph.TraceOptions
-                    {
-                        MaxDepth = request.Depth ?? 6,
-                        MaxFanOut = 12,
-                    });
                     var traceCtx = NarrativeSections.ToRenderedContext(
                         TraceRenderer.RenderSections(trace, request.Detail, snapshot.RootPath));
 

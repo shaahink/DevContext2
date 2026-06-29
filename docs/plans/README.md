@@ -22,8 +22,8 @@ iterations. Each iteration is one agent session: detailed steps, harness updates
 | 2 | [Universal entries, controllers first](./ITERATION-2-universal-entries.md) | 2 | **DONE** (commit `2b3dd12`; branch `feature/iter2-universal-entries`) | Controller fixture 0/3→3/3 `→ target`; sibling actions diverge; infra `GET /` filtered; gates green |
 | 3 | [Complete & honest traces](./ITERATION-3-complete-honest-traces.md) | 3 | **DONE** (commit `b9934f5`; branch `feature/iter3-complete-honest-traces`) | Domain-event→handler path + pipeline rendered; Buyer in TOUCHES; truncation explicit; gates green |
 | 4 | [Honest Map & detection](./ITERATION-4-honest-map.md) | 4 | **DONE** (commit `a336e25`; branch `feature/iter4-honest-map`) | OrchardCore = ModularMonolith; Catalog scope-stamped; STACK/PACKAGES no `$(`; CRUD not aggregate; controller-trace noise filtered; gates green |
-| 5 | Queryable kernel (inverse edges + query API) — *to write* | 5 | **NOT STARTED** (prereq #4 DONE) | Query-API both-direction tests; CLI unchanged through it; **fold in** the DntSite entity-FQN canonicalization (TOUCHES) follow-up |
-| 6 | Performance & caching — *to write* | 6 | **BLOCKED** | DntSite warm fast; cold ≪ 41s |
+| 5 | [Queryable kernel](./ITERATION-5-queryable-kernel.md) | 5 | **DONE** (commit `1fe7576`; branch `feature/iter5-queryable-kernel`) | Inverse edges + GraphQuery (entrypoints/trace/map/stats/node/neighbors/find_usages); CLI re-express byte-identical; 7 GraphQueryTests green. *(DntSite TOUCHES split out: EfCoreExtractor detection gap, not FQN.)* |
+| 6 | Performance & caching — *to write* | 6 | **NOT STARTED** (prereq #5 DONE) | DntSite warm fast; cold ≪ 41s |
 | 7 | Browse UI redo — *to write* | 7 | **BLOCKED** | Re-query does no re-analysis |
 | 8 | MCP server — *to write* | 8 | **BLOCKED** | Tool-contract test; re-probe `C + MCP` |
 | 9 | Persistent index + GitHub-URL — *to write* | 9 | **BLOCKED** | Re-open near-instant; GitHub URL → honest Map |

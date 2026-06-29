@@ -120,6 +120,7 @@ public sealed class CodeGraph
 {
     private readonly FrozenDictionary<NodeId, GraphNode> _nodes;
     private readonly FrozenDictionary<NodeId, ImmutableArray<GraphEdge>> _outEdges;
+    private readonly FrozenDictionary<NodeId, ImmutableArray<GraphEdge>> _inEdges;
 
     /// <summary>Creates a graph from a node map and an outgoing-edge adjacency map.</summary>
     public CodeGraph(
@@ -128,6 +129,19 @@ public sealed class CodeGraph
     {
         _nodes = nodes.ToFrozenDictionary();
         _outEdges = outEdges.ToFrozenDictionary();
+
+        // Inverse adjacency (Phase 5 req 3): derived from out-edges so neighbors(id, in) and
+        // find_usages(id) are O(degree), not a full-graph scan. Kept DERIVED — rebuilt here on
+        // construct, never serialized — so the graph stays serialization-clean (Phase 9 disk index
+        // remains additive).
+        var inverse = new Dictionary<NodeId, List<GraphEdge>>();
+        foreach (var edges in _outEdges.Values)
+            foreach (var e in edges)
+            {
+                if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
+                list.Add(e);
+            }
+        _inEdges = inverse.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
     }
 
     /// <summary>All nodes.</summary>
@@ -146,6 +160,14 @@ public sealed class CodeGraph
     public ImmutableArray<GraphEdge> OutEdges(NodeId id, EdgeKind? kind = null)
     {
         if (!_outEdges.TryGetValue(id, out var edges)) return [];
+        return kind is null ? edges : [.. edges.Where(e => e.Kind == kind)];
+    }
+
+    /// <summary>Incoming edges to a node (the inverse adjacency), optionally filtered by kind. Powers
+    /// <c>neighbors(id, in)</c> and <c>find_usages(id)</c> without a full-graph scan (Phase 5 req 3).</summary>
+    public ImmutableArray<GraphEdge> InEdges(NodeId id, EdgeKind? kind = null)
+    {
+        if (!_inEdges.TryGetValue(id, out var edges)) return [];
         return kind is null ? edges : [.. edges.Where(e => e.Kind == kind)];
     }
 }
