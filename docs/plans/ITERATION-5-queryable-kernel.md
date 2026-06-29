@@ -1,10 +1,24 @@
 # Iteration 5 — Queryable kernel: inverse edges + query API (Phase 5)
 
-> **Status:** IN PROGRESS (branch `feature/iter5-queryable-kernel`) · **Phase(s):** 5 · **Prerequisite:** Iteration 4 DONE
+> **Status:** DONE · **Phase(s):** 5 · **Prerequisite:** Iteration 4 DONE
 > (honest Map: scope-stamp, aggregates, STACK clean; gate green).
 > **Fresh session? Start at [`README.md`](./README.md).** Required reading:
 > `docs/PRODUCT-DIRECTION.md` §6 (the query-API sketch) + §7 (faces' data-needs),
 > `docs/plans/UNIVERSAL-LENS-ROADMAP.md` (Phase 5), `docs/ACCEPTANCE.md`.
+>
+> **Progress (2026-06-28):** Phase 5 DONE (commit `1fe7576`). Inverse edges derived in
+> `CodeGraph` ctor (kept derived — serialization-clean). `GraphQuery` facade over `(graph, entries, map)`:
+> `entrypoints · trace · map · stats · node · neighbors · find_usages · ResolveNodeId`. Face-agnostic +
+> JSON-friendly — the substrate browse UI + MCP will use. `DiscoveryPipeline.RenderAsync` re-expressed
+> over `GraphQuery` (byte-identical; golden + eval + CLI matrix green). **`GraphQueryTests`**: 7 tests
+> (both edge directions, find_usages, neighbors, node, resolve, entrypoint filter). Gate: `gates.ps1` PASS
+> (18 eval; fast tests incl. golden + 7 GraphQueryTests; CLI matrix).
+> **DntSite TOUCHES deferred (split out):** diagnosed — 115 EfEntityDetections are almost entirely
+> migration classes + `BaseEntity`; the 34 distinct entity types contain ZERO real business entities
+> (`BlogPost`, `DailyNewsItem`, …). The gap is NOT FQN canonicalization; it's an `EfCoreExtractor`
+> detection gap — DntSite uses `RegisterAllDerivedEntities` with reflection, which the syntax-tree walker
+> can't see individual `Entity<T>()` registrations for. Split to a separate detection-enhancement follow-up
+> (tracked in `docs/reports/phase5-queryable-kernel.md`).
 >
 > **Why this builds on Iterations 1–4.** The graph is now correct (member-origin), covered (controllers),
 > complete (domain-event chain), and honest (scope/aggregates). It is trustworthy — so now make it a
