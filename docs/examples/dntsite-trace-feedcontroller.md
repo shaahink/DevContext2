@@ -1,95 +1,23 @@
-﻿Slicing from FeedController, call graph on.
-Analyzing project...
-
-TRACE  FeedController
-       
-C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSite
-.Web\Features\RssFeeds\Controllers\FeedController.cs
-
-▸ ENTRY  FeedController  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Controllers\FeedController.cs)
-   ├─ call CachedAppSettingsProvider  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Controllers\FeedController.cs:133) [verified]
-   └─ call FeedsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Controllers\FeedController.cs:129) [verified]
-          return appSetting.ShowRssBriefDescription;
-          }
-      (truncated — more edges beyond depth/fan-out)
-      ├─ call ProjectsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:274) [verified]
-      │      var rssItems = list.Data.Select(item
-      │      => 
-item.MapToProjectsReleasesWhatsNewItemModel(appSetting.SiteRootUri, 
-showBriefDescription))
-      │      .ToList();
-      ├─ call BlogPost  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:280) [approx]
-      │      return GetFeedChannel(title, appSetting, rssItems);
-      │      }
-      ├─ call ProjectReleasesService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:295) [verified]
-      │      var rssItems = list.Data.Select(item
-      │      => 
-item.MapToProjectsIssuesWhatsNewItemModel(appSetting.SiteRootUri, 
-showBriefDescription))
-      │      .ToList();
-      ├─ call ProjectIssuesService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:316) [verified]
-      │      var title = $"فید {WhatsNewItemType.ProjectsIssuesReplies.Value}";
-      ├─ call ProjectIssueCommentsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:334) [verified]
-      │      return GetFeedChannel(title, appSetting, rssItems);
-      │      }
-      ├─ call ProjectFaqsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:386) [verified]
-      │      var project = await 
-projectsService.FindProjectAsync(projectId.Value);
-      ├─ call BlogPostDraftsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:259) [verified]
-      │      return GetFeedChannel(title, appSetting, rssItems);
-      │      }
-      ├─ call VoteCommentsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:352) [verified]
-      │      return GetFeedChannel(title, appSetting, rssItems);
-      │      }
-      ├─ call AdvertisementCommentsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:368) [verified]
-      │      var title = $"فید {WhatsNewItemType.ProjectsFaqs.Value}";
-      ├─ call LearningPathService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:166) [verified]
-      │      public async Task<WhatsNewFeedChannel> GetAllCoursesAsync(bool 
-showBriefDescription,
-      │      int pageNumber = 0,
-      ├─ call BacklogsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:119) [verified]
-      │      var appSetting = await GetAppSettingsAsync();
-      └─ call QuestionsService  
-(C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default\src\DntSit
-e.Web\Features\RssFeeds\Services\FeedsService.cs:143) [verified]
-             var appSetting = await GetAppSettingsAsync();
-             var rssItems = list.Data
-
-analyzed 1336 files · 1476 nodes · 178 edges · 94 entries · depth 2 · ~1051 
-tokens · 35.9s stage2 ×2.0 stage3 ×1.4
-╭──────────┬──────────────────────╮
-│  Metric  │        Value         │
-├──────────┼──────────────────────┤
-│ Solution │     DntSite.slnx     │
-│   Time   │       35939ms        │
-│  Tokens  │ ~1051 (budget 8000)  │
-│ Version  │ v1.0.5-preview.0.100 │
-╰──────────┴──────────────────────╯
+﻿dotnet : Unhandled exception. System.IO.DirectoryNotFoundException: Path not found: 
+C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default
+At line:1 char:237
++ ... /News ==="; dotnet $cli analyze $dnt --focus "GET /Feed/News" --depth ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep...DntSite-default:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at DevContext.Core.Resolvers.ProjectRootResolver.ResolveBaseAsync(String inputPath, IFileSystem fs, 
+CancellationToken ct) in C:\Code\DevContext2\src\DevContext.Core\Resolvers\ProjectRootResolver.cs:line 37
+   at DevContext.Core.Resolvers.ProjectRootResolver.ResolveAsync(String inputPath, IFileSystem fs, CancellationToken 
+ct) in C:\Code\DevContext2\src\DevContext.Core\Resolvers\ProjectRootResolver.cs:line 11
+   at DevContext.Cli.Commands.AnalyzeCommand.ExecuteAsync(CommandContext context, AnalyzeSettings settings, 
+CancellationToken ct) in C:\Code\DevContext2\src\DevContext.Cli\Commands\AnalyzeCommand.cs:line 70
+   at Spectre.Console.Cli.CommandExecutor.ExecuteAsync(CommandTree leaf, CommandTree tree, CommandContext context, 
+ITypeResolver resolver, IConfiguration configuration, CancellationToken cancellationToken) in 
+/_/src/Spectre.Console.Cli/Internal/CommandExecutor.cs:line 257
+   at Spectre.Console.Cli.CommandExecutor.ExecuteAsync(IConfiguration configuration, IEnumerable`1 args, 
+CancellationToken cancellationToken) in /_/src/Spectre.Console.Cli/Internal/CommandExecutor.cs:line 128
+   at Spectre.Console.Cli.CommandApp.RunAsync(IEnumerable`1 args, CancellationToken cancellationToken) in 
+/_/src/Spectre.Console.Cli/CommandApp.cs:line 77
+   at Program.<Main>$(String[] args) in C:\Code\DevContext2\src\DevContext.Cli\Program.cs:line 34
+   at Program.<Main>(String[] args)

@@ -18,9 +18,11 @@ root. Shell is **Windows PowerShell 5.1**. The worked example is `eval-results/D
 - **Aspirational checks (1 remaining):** VerticalSlice `no-dynamic` (FastEndpoints routes `<dynamic>`).
   3 previously aspirational checks flipped to `expected` in `chore/housekeeping-stats`: eShop arch-style,
   eShop aspire-signal, VerticalSlice mediatr-signal.
-- **Known gaps:** eShop entry→target (`POST /api/orders/ → CreateOrderCommand`), MessageConsumer Bus
-  entries (RabbitMQ `IIntegrationEventHandler`), trace TOUCHES on simple repos.
-  See `docs/iterations/housekeeping-stats/HANDOVER.md` for verification guides.
+- **Known gaps (post-Phases 0–6):** DntSite TOUCHES (entities registered via `RegisterAllDerivedEntities`
+  reflection — subtype expansion applied in Iteration 6 but local-variable receiver resolution still
+  drops some `Calls` edges); semantic Sends/Raises (body-scan stays `[approx]` — deferred semantic tier);
+  persistent graph cache (Phase 9). eShop CQRS entry→target works; controllers 34/94 on DntSite.
+  See `docs/HANDOVER.md` for the full status + `docs/audit/` for the original findings.
 
 ## Capture (CLI, absolute paths, UTF-8)
 
