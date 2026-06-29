@@ -23,8 +23,8 @@ iterations. Each iteration is one agent session: detailed steps, harness updates
 | 3 | [Complete & honest traces](./ITERATION-3-complete-honest-traces.md) | 3 | **DONE** (commit `b9934f5`; branch `feature/iter3-complete-honest-traces`) | Domain-event→handler path + pipeline rendered; Buyer in TOUCHES; truncation explicit; gates green |
 | 4 | [Honest Map & detection](./ITERATION-4-honest-map.md) | 4 | **DONE** (commit `a336e25`; branch `feature/iter4-honest-map`) | OrchardCore = ModularMonolith; Catalog scope-stamped; STACK/PACKAGES no `$(`; CRUD not aggregate; controller-trace noise filtered; gates green |
 | 5 | [Queryable kernel](./ITERATION-5-queryable-kernel.md) | 5 | **DONE** (commit `1fe7576`; branch `feature/iter5-queryable-kernel`) | Inverse edges + GraphQuery (entrypoints/trace/map/stats/node/neighbors/find_usages); CLI re-express byte-identical; 7 GraphQueryTests green. *(DntSite TOUCHES split out: EfCoreExtractor detection gap, not FQN.)* |
-| 6 | Performance & caching — *to write* | 6 | **NOT STARTED** (prereq #5 DONE) | DntSite warm fast; cold ≪ 41s |
-| 7 | Browse UI redo — *to write* | 7 | **BLOCKED** | Re-query does no re-analysis |
+| 6 | [Performance & caching](./ITERATION-6-performance.md) | 6 | **DONE** (commit `44a2a0e`; branch `feature/iter6-7-final`) | Entry-scoped call-graph binding drops DntSite cold Map ~41s→~10s; entry→target 34/94 preserved; eval suite ~103s→~32s |
+| 7 | Browse UI redo | 7 | **WIRED** (query-API available via `IAnalysisService.GetQuery`; interactive node-detail/neighbors/re-render-deferred to follow-up) | Node/Neighbors/FindUsages accessible to the desktop; full interactive redo TBD |
 | 8 | MCP server — *to write* | 8 | **BLOCKED** | Tool-contract test; re-probe `C + MCP` |
 | 9 | Persistent index + GitHub-URL — *to write* | 9 | **BLOCKED** | Re-open near-instant; GitHub URL → honest Map |
 | 10 | Coverage-ladder rungs — *to write* | 10 | **BLOCKED** | Per rung: entries resolve; "ripgrep test" passes |

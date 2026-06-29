@@ -564,9 +564,12 @@ public sealed class GraphBuilder
 
     // ── P1 Map-facing seams (B1) — JOIN detections into graph nodes/edges ────────────────────────
 
-    /// <summary>B1: EfEntityDetection → Entity nodes + aggregate tags. (ReadsWrites edges are P2 C1.)</summary>
+    /// <summary>B1: EfEntityDetection → Entity nodes + aggregate tags PLUS subtypes of detected entity
+    /// bases so entities registered via reflection (e.g. DntSite's RegisterAllDerivedEntities) are also
+    /// tagged — Iteration 6 deferred / DntSite TOUCHES gap.</summary>
     private static void AddEntityNodes(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
     {
+        var knownEntityFqns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             if (!scope.Contains(e.SourceFile)) continue;
@@ -579,6 +582,28 @@ public sealed class GraphBuilder
                 FilePath = e.SourceFile,
                 Tags = tags,
             });
+            knownEntityFqns.Add(names.Resolve(e.EntityType));
+        }
+
+        // Iteration 6 deferred: when a base entity is detected but its subtypes aren't (because they were
+        // registered via reflection — DntSite's RegisterAllDerivedEntities from BaseEntity), create
+        // entity-tagged nodes for every in-scope production type whose base resolves to a known entity.
+        foreach (var type in model.Types.Values)
+        {
+            if (!scope.Contains(type.FilePath) || type.IsHardExcluded) continue;
+            if (type.BaseTypes.IsDefaultOrEmpty) continue;
+            foreach (var bt in type.BaseTypes)
+            {
+                if (knownEntityFqns.Contains(names.Resolve(bt)))
+                {
+                    g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
+                    {
+                        FilePath = type.FilePath,
+                        Tags = [RoleTags.Entity],
+                    });
+                    break;
+                }
+            }
         }
     }
 
