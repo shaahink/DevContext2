@@ -1,9 +1,7 @@
 ﻿Overview map (no focus).
 Analyzing project...
 
-LIBRARY  Polly     (188 public types)
-
-STYLE  MinimalApi
+LIBRARY  Polly     (187 public types)
 
 ENTRY API
    register  PollyServiceCollectionExtensions.AddResiliencePipeline   
@@ -17,6 +15,10 @@ resilience pipelines using the key.
 (PollyServiceCollectionExtensions.cs)
       Allows deferred addition of one or more resilience pipelines to the 
 service collection.
+   build     PredicateBuilder   (PredicateBuilder.cs)
+      Defines a builder for creating exception predicates.
+   build     ResiliencePipelineBuilder   (ResiliencePipelineBuilder.cs)
+      A builder that is used to create an instance of .
    derive    AsyncPolicy   (AsyncPolicy.ContextAndKeys.cs)
    derive    Policy   (Policy.ContextAndKeys.cs)
    derive    ResilienceStrategy   (ResilienceStrategy.cs)
@@ -30,11 +32,6 @@ service collection.
       Fluent API for defining a Circuit Breaker .
    extend    AsyncAdvancedCircuitBreakerSyntax   
 (AsyncAdvancedCircuitBreakerSyntax.cs)
-      Fluent API for defining a Circuit Breaker .
-   extend    AsyncAdvancedCircuitBreakerTResultSyntax   
-(AsyncAdvancedCircuitBreakerTResultSyntax.cs)
-      Fluent API for defining a Circuit Breaker .
-   extend    AsyncCircuitBreakerSyntax   (AsyncCircuitBreakerSyntax.cs)
       Fluent API for defining a Circuit Breaker .
 
 ABSTRACTIONS
@@ -473,8 +470,6 @@ by the resilience strategies.
          The test-related extensions for and .
       ResilienceStrategyDescriptor (class)
          This class provides additional information about a .
-   Polly.Tests
-      StrongNameTests (class):  Tests_Are_Strong_Named
    Polly.Timeout
       AsyncTimeoutPolicy (class)
          A timeout policy which can be applied to async delegates.
@@ -514,9 +509,9 @@ CONSUMER PATHS
    wire into DI  →  
 PollyServiceCollectionExtensions.AddResiliencePipelineRegistry(...)
    wire into DI  →  PollyServiceCollectionExtensions.AddResiliencePipelines(...)
-   build one  →  derive AsyncPolicy
-   build one  →  derive Policy
-   build one  →  derive ResilienceStrategy
+   build  →  new PredicateBuilder()…Build()
+   build  →  new ResiliencePipelineBuilder()…Build()
+   extend  →  derive AsyncPolicy
 
 PACKAGES
    Other:  Microsoft.Bcl.AsyncInterfaces, Microsoft.Bcl.TimeProvider, 
@@ -527,13 +522,13 @@ System.Threading.RateLimiting, System.Threading.Tasks.Extensions … (9 total)
 → drill in:  --focus "<TypeName>"   (e.g. --focus 
 PollyServiceCollectionExtensions)
 
-analyzed 794 files · 389 nodes · 38 edges · 0 entries · ~6840 tokens · 9.1s 
-stage2 ×2.1 stage3 ×1.7
+analyzed 794 files · 389 nodes · 38 edges · 0 entries · ~6813 tokens · 5.5s 
+stage2 ×2.1 stage3 ×1.6
 ╭──────────┬──────────────────────╮
 │  Metric  │        Value         │
 ├──────────┼──────────────────────┤
 │ Solution │      Polly.slnx      │
-│   Time   │        9738ms        │
-│  Tokens  │ ~6840 (budget 8000)  │
-│ Version  │ v1.0.5-preview.0.135 │
+│   Time   │        5751ms        │
+│  Tokens  │ ~6813 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.136 │
 ╰──────────┴──────────────────────╯

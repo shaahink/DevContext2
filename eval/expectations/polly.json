@@ -13,6 +13,6 @@
     { "id": "no-sample-package-refit", "type": "output-not-contains", "format": "markdown", "value": "Refit", "status": "expected", "note": "Refit is a samples-only dep; excluded by sample/exe package scoping (It2)." },
     { "id": "no-sample-package-restsharp", "type": "output-not-contains", "format": "markdown", "value": "RestSharp", "status": "expected" },
     { "id": "no-benchmark-types", "type": "output-not-contains", "format": "markdown", "value": "Polly.Benchmarks", "status": "expected", "note": "Benchmark exe-project types excluded from the surface (It2)." },
-    { "id": "no-test-type-leak", "type": "output-not-contains", "format": "markdown", "value": "StrongNameTests", "status": "aspirational", "note": "Follow-up: a Polly.Tests project isn't caught by ProjectClassifier; one type leaks into the surface." }
+    { "id": "no-test-type-leak", "type": "output-not-contains", "format": "markdown", "value": "StrongNameTests", "status": "expected", "note": "Shared test source (test/Shared/*) excluded from the surface via ProjectClassifier.IsTestPath." }
   ]
 }

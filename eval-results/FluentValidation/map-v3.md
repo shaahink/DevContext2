@@ -3,8 +3,6 @@ Analyzing project...
 
 LIBRARY  FluentValidation     (92 public types)
 
-STYLE  Unknown
-
 ENTRY API
    register  ServiceCollectionExtensions.AddValidatorsFromAssemblies   
 (ServiceCollectionExtensions.cs)
@@ -217,7 +215,7 @@ CONSUMER PATHS
    wire into DI  →  ServiceCollectionExtensions.AddValidatorsFromAssembly(...)
    wire into DI  →  
 ServiceCollectionExtensions.AddValidatorsFromAssemblyContaining(...)
-   build one  →  derive AbstractValidator
+   extend  →  derive AbstractValidator
    contract  →  implement IPropertyValidator
    contract  →  implement IValidationRule
 
@@ -228,13 +226,13 @@ System.Threading.Tasks.Extensions 4.5.4, Zomp.SyncMethodGenerator 1.3.8-beta
 
 → drill in:  --focus "<TypeName>"   (e.g. --focus ServiceCollectionExtensions)
 
-analyzed 218 files · 195 nodes · 32 edges · 0 entries · ~2928 tokens · 3.6s 
-stage2 ×2.2 stage3 ×1.6
+analyzed 218 files · 195 nodes · 32 edges · 0 entries · ~2922 tokens · 1.5s 
+stage2 ×2.3 stage3 ×1.6
 ╭──────────┬──────────────────────╮
 │  Metric  │        Value         │
 ├──────────┼──────────────────────┤
 │ Solution │ FluentValidation.sln │
-│   Time   │        4039ms        │
-│  Tokens  │ ~2928 (budget 8000)  │
-│ Version  │ v1.0.5-preview.0.134 │
+│   Time   │        1643ms        │
+│  Tokens  │ ~2922 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.136 │
 ╰──────────┴──────────────────────╯

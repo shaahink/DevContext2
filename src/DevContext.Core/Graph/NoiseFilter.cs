@@ -51,6 +51,17 @@ public sealed class ProjectClassifier
             || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>True when the file lives under a <c>test</c>/<c>tests</c> path segment. Catches shared test
+    /// source (e.g. <c>test/Shared/*.cs</c> linked into several test projects) that the project-directory
+    /// classifier misses. Used only by the library surface — never by the app graph filter.</summary>
+    public static bool IsTestPath(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath)) return false;
+        var p = Normalize(filePath);
+        return p.Contains("/test/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/tests/", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsTestProject(ProjectInfo p)
     {
         var name = p.Name;

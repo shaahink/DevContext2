@@ -28,11 +28,6 @@ public static class LibrarySurfaceRenderer
             var typeCount = surface?.Groups.Sum(g => g.Types.Length) ?? 0;
             sb.AppendLine($"LIBRARY  {name}     ({typeCount} public type{(typeCount != 1 ? "s" : "")})");
             sb.AppendLine();
-            if (!string.IsNullOrEmpty(ctx.Map.StyleEvidence))
-            {
-                sb.AppendLine($"STYLE  {ctx.Map.Style}");
-                sb.AppendLine();
-            }
         });
         Add(sections, "Entry API", sb => AppendEntryApi(sb, surface));
         Add(sections, "Abstractions", sb => AppendAbstractions(sb, surface));

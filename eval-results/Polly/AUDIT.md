@@ -37,12 +37,12 @@ Re-captured as `map-v3.md` (188 public types). `archetype=Library`; ENTRY API / 
 (docs) / CONSUMER PATHS / runtime-only PACKAGES all present; benchmark types + sample packages gone. All
 `eval/expectations/polly.json` checks `expected` and green.
 
-## Minor follow-ups (non-blocking, noted for later)
+## Follow-ups (resolved)
 
-- `Polly.Tests.StrongNameTests` still appears — a test type whose project isn't caught by
-  `ProjectClassifier` (no `*Tests` suffix / test-package marker on that project). One type.
-- `STYLE  MinimalApi` on the library header — the Chaos sample's Minimal-API **signal** still reaches the
-  style detector (separate from archetype). Cosmetic; consider suppressing style for libraries.
-- The v8 `ResiliencePipelineBuilder` (primary fluent builder) is in PUBLIC SURFACE but not promoted to a
-  top ENTRY API "build" tier; the v7 `*Syntax` classes dominate the `extend` tier. A "key-builder" ranking
-  tier would sharpen the v8 story.
+- ✅ `Polly.Tests.StrongNameTests` leak — root cause was a **shared test source** (`test/Shared/StrongNameTests.cs`,
+  linked into several test projects, with no owning `.csproj`). Fixed via `ProjectClassifier.IsTestPath`
+  (path-segment `/test/`·`/tests/`), applied to the library surface only (zero app-classification risk).
+- ✅ `STYLE  MinimalApi` on the library header — the `STYLE` line is now dropped from the library Overview
+  (a library's surface is about its public API, not an app architecture style).
+- ✅ v8 `ResiliencePipelineBuilder` ranking — added a `build` ENTRY-API tier (`*Builder` class with a public
+  `Build()`); `ResiliencePipelineBuilder` now leads the surface as a `build` front door. See `map-v3.md`.

@@ -31,6 +31,7 @@ public static class LibrarySurfaceBuilder
             .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
             .Where(t => !classifier.IsInTestProject(t.FilePath))
             .Where(t => !ProjectClassifier.IsSamplePath(t.FilePath))
+            .Where(t => !ProjectClassifier.IsTestPath(t.FilePath))
             .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
             .ToList();
 
@@ -101,8 +102,9 @@ public static class LibrarySurfaceBuilder
         ];
     }
 
-    /// <summary>Ranked "how do I use this": (0) framework-seat extension front-doors, (1) abstract seats,
-    /// (2) fluent-DSL extension classes. Deterministic, weight-free — tiered then name-ordered.</summary>
+    /// <summary>Ranked "how do I use this": (0) framework-seat extension front-doors, (1) primary fluent
+    /// builders, (2) abstract seats, (3) fluent-DSL extension classes. Deterministic, weight-free — tiered
+    /// then name-ordered.</summary>
     private static ImmutableArray<SurfaceEntry> BuildEntryApi(List<TypeDiscovery> mainTypes, ImmutableArray<SurfaceAbstraction> abstractions)
     {
         var ranked = new List<(int Tier, string Sort, SurfaceEntry Entry)>();
@@ -112,17 +114,20 @@ public static class LibrarySurfaceBuilder
                 ranked.Add((0, $"{t.Name}.{m.Name}",
                     new SurfaceEntry($"{t.Name}.{m.Name}", "register", OneLine(m.XmlDoc), ShortLocation(t.FilePath))));
 
+        foreach (var t in mainTypes.Where(IsBuilderType))
+            ranked.Add((1, t.Name, new SurfaceEntry(t.Name, "build", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+
         foreach (var a in abstractions.Take(4))
         {
             var t = mainTypes.FirstOrDefault(x => x.Name == a.Name);
             var kind = a.Kind == TypeKind.Interface ? "implement" : "derive";
-            ranked.Add((1, a.Name, new SurfaceEntry(a.Name, kind, OneLine(t?.XmlDoc),
+            ranked.Add((2, a.Name, new SurfaceEntry(a.Name, kind, OneLine(t?.XmlDoc),
                 t is null ? null : ShortLocation(t.FilePath))));
         }
 
         foreach (var t in mainTypes)
             if (PublicMethods(t).Any(m => m.IsExtension && !IsFrameworkFrontDoor(m)))
-                ranked.Add((2, t.Name, new SurfaceEntry(t.Name, "extend", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+                ranked.Add((3, t.Name, new SurfaceEntry(t.Name, "extend", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
 
         return
         [
@@ -139,6 +144,14 @@ public static class LibrarySurfaceBuilder
         => m.IsExtension && m.ExtendedType is { } ext
             && FrameworkSeats.Contains(StripGenerics(ext), StringComparer.Ordinal);
 
+    /// <summary>A primary fluent builder — a <c>*Builder</c> class exposing a public <c>Build()</c>
+    /// (e.g. Polly's <c>ResiliencePipelineBuilder</c>). Excludes <c>*BuilderBase</c>/<c>*BuilderExtensions</c>
+    /// and predicate builders that have no <c>Build</c>.</summary>
+    private static bool IsBuilderType(TypeDiscovery t)
+        => t.Kind == TypeKind.Class
+            && t.Name.EndsWith("Builder", StringComparison.Ordinal)
+            && PublicMethods(t).Any(m => m.Name == "Build");
+
     private static ImmutableArray<string> BuildConsumerPaths(ImmutableArray<SurfaceEntry> entryApi)
     {
         var paths = new List<string>();
@@ -147,7 +160,8 @@ public static class LibrarySurfaceBuilder
             var recipe = e.Kind switch
             {
                 "register" => $"wire into DI  →  {e.Title}(...)",
-                "derive" => $"build one  →  derive {e.Title}",
+                "build" => $"build  →  new {e.Title}()…Build()",
+                "derive" => $"extend  →  derive {e.Title}",
                 "implement" => $"contract  →  implement {e.Title}",
                 "extend" => $"configure  →  {e.Title}.*",
                 _ => null,
