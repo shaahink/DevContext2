@@ -15,6 +15,7 @@ namespace DevContext.Core.Rendering;
 public static class LibrarySurfaceRenderer
 {
     private const int MaxPackagesPerGroup = 8;
+    private const int MaxGenerators = 24;
 
     public static ValueTask<RenderedContext> RenderAsync(MapRenderContext ctx, CancellationToken ct)
     {
@@ -31,6 +32,7 @@ public static class LibrarySurfaceRenderer
         });
         Add(sections, "Entry API", sb => AppendEntryApi(sb, surface));
         Add(sections, "Abstractions", sb => AppendAbstractions(sb, surface));
+        Add(sections, "Generators", sb => AppendGenerators(sb, surface));
         Add(sections, "Public surface", sb => AppendSurface(sb, surface));
         Add(sections, "Consumer paths", sb => AppendConsumerPaths(sb, surface));
         Add(sections, "Packages", sb => AppendPackages(sb, surface));
@@ -72,6 +74,21 @@ public static class LibrarySurfaceRenderer
             var impl = a.ImplementorCount == 1 ? "1 implementor" : $"{a.ImplementorCount} implementors";
             sb.AppendLine($"   {a.Name} ({kind})  — {impl}");
         }
+        sb.AppendLine();
+    }
+
+    private static void AppendGenerators(StringBuilder sb, LibrarySurface? surface)
+    {
+        if (surface is null || surface.Generators.IsDefaultOrEmpty) return;
+        sb.AppendLine("GENERATORS");
+        foreach (var g in surface.Generators.Take(MaxGenerators))
+        {
+            sb.AppendLine($"   {g.Kind,-11} {g.Name}");
+            if (!string.IsNullOrEmpty(g.Doc))
+                sb.AppendLine($"      {g.Doc}");
+        }
+        if (surface.Generators.Length > MaxGenerators)
+            sb.AppendLine($"   … ({surface.Generators.Length} total)");
         sb.AppendLine();
     }
 
@@ -124,7 +141,9 @@ public static class LibrarySurfaceRenderer
     }
 
     private static string ExampleFocus(LibrarySurface? surface)
-        => surface?.EntryApi.FirstOrDefault()?.Title.Split('.')[0]
-            ?? surface?.Groups.FirstOrDefault()?.Types.FirstOrDefault()?.Name
-            ?? "TypeName";
+    {
+        var entry = surface?.EntryApi.FirstOrDefault(e => !e.Title.StartsWith('['));
+        if (entry is not null) return entry.Title.Split('.')[0];
+        return surface?.Groups.FirstOrDefault()?.Types.FirstOrDefault()?.Name ?? "TypeName";
+    }
 }

@@ -17,6 +17,8 @@ public sealed record LibrarySurface(
     public ImmutableArray<SurfaceGroup> Internals { get; init; } = [];
     /// <summary>Deterministic usage recipes derived from the entries and seats.</summary>
     public ImmutableArray<string> ConsumerPaths { get; init; } = [];
+    /// <summary>Roslyn tooling this library ships — source generators / analyzers / code fixers.</summary>
+    public ImmutableArray<SurfaceGenerator> Generators { get; init; } = [];
     /// <summary>Runtime NuGet packages (test / benchmark / sample project deps excluded).</summary>
     public ImmutableArray<PackageGroup> Packages { get; init; } = [];
 }
@@ -36,3 +38,6 @@ public sealed record SurfaceEntry(string Title, string Kind, string? Doc, string
 
 /// <summary>An interface or base class consumers implement or derive, with its in-repo implementor count.</summary>
 public sealed record SurfaceAbstraction(string Name, TypeKind Kind, int ImplementorCount);
+
+/// <summary>A Roslyn tooling type the library ships: a source generator, analyzer, or code fixer.</summary>
+public sealed record SurfaceGenerator(string Name, string Kind, string? Doc);

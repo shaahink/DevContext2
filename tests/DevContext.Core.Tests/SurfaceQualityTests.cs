@@ -26,6 +26,7 @@ public sealed class SurfaceQualityTests
     [Theory]
     [InlineData("eval-repos/FluentValidation")]
     [InlineData("eval-repos/Polly")]
+    [InlineData("eval-repos/CommunityToolkit.Mvvm")]
     public async Task Library_repo_is_detected_as_library_archetype(string repoRel)
     {
         var repoPath = RepoPath(repoRel);
@@ -40,6 +41,7 @@ public sealed class SurfaceQualityTests
     [Theory]
     [InlineData("eval-repos/FluentValidation")]
     [InlineData("eval-repos/Polly")]
+    [InlineData("eval-repos/CommunityToolkit.Mvvm")]
     public async Task Library_surface_renders_capability_header(string repoRel)
     {
         var repoPath = RepoPath(repoRel);

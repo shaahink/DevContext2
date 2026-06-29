@@ -32,6 +32,10 @@ pushd eval-repos/FluentValidation; git checkout 943979089b55664ceb8390547ea1eb84
 # Polly — resilience library (fluent builder + strategy options)
 git clone https://github.com/App-vNext/Polly.git eval-repos/Polly
 pushd eval-repos/Polly; git checkout 7a1d10f47e2ec667ceada49deb6bdd9a765753bd; popd
+
+# CommunityToolkit.Mvvm — MVVM Toolkit (source generators + analyzers + marker attributes)
+git clone https://github.com/CommunityToolkit/dotnet.git eval-repos/CommunityToolkit.Mvvm
+pushd eval-repos/CommunityToolkit.Mvvm; git checkout b135626dd54d33b8f05f2ff31591592c004aa848; popd
 ```
 
 ## Pinned Commits
@@ -44,3 +48,4 @@ pushd eval-repos/Polly; git checkout 7a1d10f47e2ec667ceada49deb6bdd9a765753bd; p
 | AutoMapper | `b57c206dc7291821e42bdf816a5637a5c1d8cb54` |
 | FluentValidation | `943979089b55664ceb8390547ea1eb84ee99252a` |
 | Polly | `7a1d10f47e2ec667ceada49deb6bdd9a765753bd` |
+| CommunityToolkit.Mvvm | `b135626dd54d33b8f05f2ff31591592c004aa848` |

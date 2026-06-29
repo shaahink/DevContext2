@@ -65,6 +65,16 @@
       "expectedSignals": [],
       "profile": "focused",
       "scenarios": ["overview"]
+    },
+    {
+      "name": "CommunityToolkit.Mvvm",
+      "url": "https://github.com/CommunityToolkit/dotnet.git",
+      "ref": "b135626dd54d33b8f05f2ff31591592c004aa848",
+      "description": "MVVM Toolkit — source generators ([ObservableProperty]/[RelayCommand]), analyzers, code fixers + ObservableObject/RelayCommand/IMessenger runtime",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
     }
   ]
 }

@@ -35,11 +35,17 @@ public static class LibrarySurfaceBuilder
             .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
             .ToList();
 
-        var mainTypes = publicTypes.Where(t => !IsInternalNamespace(t.Namespace)).ToList();
-        var internalTypes = publicTypes.Where(t => IsInternalNamespace(t.Namespace)).ToList();
+        // Roslyn tooling (source generators / analyzers / code fixers) gets its own GENERATORS section
+        // rather than cluttering the runtime API surface.
+        var generators = BuildGenerators(publicTypes);
+        var toolingNames = generators.Select(g => g.Name).ToHashSet(StringComparer.Ordinal);
+        var surfaceTypes = publicTypes.Where(t => !toolingNames.Contains(t.Name)).ToList();
+
+        var mainTypes = surfaceTypes.Where(t => !IsDemotedNamespace(t.Namespace)).ToList();
+        var internalTypes = surfaceTypes.Where(t => IsDemotedNamespace(t.Namespace)).ToList();
 
         var abstractions = BuildAbstractions(model, mainTypes);
-        var entryApi = BuildEntryApi(mainTypes, abstractions);
+        var entryApi = BuildEntryApi(mainTypes, abstractions, hasGenerators: generators.Length > 0);
 
         return new LibrarySurface(GroupByNamespace(mainTypes), BuildExtensionPoints(publicTypes))
         {
@@ -47,9 +53,17 @@ public static class LibrarySurfaceBuilder
             Abstractions = abstractions,
             Internals = GroupByNamespace(internalTypes),
             ConsumerPaths = BuildConsumerPaths(entryApi),
+            Generators = generators,
             Packages = BuildRuntimePackages(model, classifier),
         };
     }
+
+    private static bool IsDemotedNamespace(string ns) => IsInternalNamespace(ns) || IsToolingNamespace(ns);
+
+    private static bool IsToolingNamespace(string ns)
+        => ns.Contains(".SourceGenerators", StringComparison.Ordinal)
+            || ns.Contains(".CodeFixers", StringComparison.Ordinal)
+            || ns.Contains(".Analyzers", StringComparison.Ordinal);
 
     private static bool IsInternalNamespace(string ns)
         => ns.EndsWith(".Internal", StringComparison.Ordinal)
@@ -96,38 +110,46 @@ public static class LibrarySurfaceBuilder
                 .Where(t => t.Kind is TypeKind.Interface or TypeKind.Class)
                 .Where(t => implCounts.GetValueOrDefault(t.Name) > 0)
                 .Select(t => new SurfaceAbstraction(t.Name, t.Kind, implCounts.GetValueOrDefault(t.Name)))
+                .GroupBy(a => a.Name, StringComparer.Ordinal)
+                .Select(g => g.First())
                 .OrderByDescending(a => a.ImplementorCount)
                 .ThenBy(a => a.Name, StringComparer.Ordinal)
                 .Take(MaxAbstractions)
         ];
     }
 
-    /// <summary>Ranked "how do I use this": (0) framework-seat extension front-doors, (1) primary fluent
-    /// builders, (2) abstract seats, (3) fluent-DSL extension classes. Deterministic, weight-free — tiered
-    /// then name-ordered.</summary>
-    private static ImmutableArray<SurfaceEntry> BuildEntryApi(List<TypeDiscovery> mainTypes, ImmutableArray<SurfaceAbstraction> abstractions)
+    /// <summary>Ranked "how do I use this": (0) marker attributes (source-gen libraries), (1) framework-seat
+    /// extension front-doors, (2) primary fluent builders, (3) abstract seats, (4) fluent-DSL extension
+    /// classes. Deterministic, weight-free — tiered then name-ordered.</summary>
+    private static ImmutableArray<SurfaceEntry> BuildEntryApi(List<TypeDiscovery> mainTypes, ImmutableArray<SurfaceAbstraction> abstractions, bool hasGenerators)
     {
         var ranked = new List<(int Tier, string Sort, SurfaceEntry Entry)>();
 
+        // Tier 0: marker attributes — the consumer API of an attribute-driven (source-gen) library.
+        if (hasGenerators)
+            foreach (var t in mainTypes.Where(IsMarkerAttribute))
+                ranked.Add((0, t.Name, new SurfaceEntry($"[{t.Name[..^9]}]", "annotate",
+                    OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+
         foreach (var t in mainTypes)
             foreach (var m in PublicMethods(t).Where(IsFrameworkFrontDoor))
-                ranked.Add((0, $"{t.Name}.{m.Name}",
+                ranked.Add((1, $"{t.Name}.{m.Name}",
                     new SurfaceEntry($"{t.Name}.{m.Name}", "register", OneLine(m.XmlDoc), ShortLocation(t.FilePath))));
 
         foreach (var t in mainTypes.Where(IsBuilderType))
-            ranked.Add((1, t.Name, new SurfaceEntry(t.Name, "build", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+            ranked.Add((2, t.Name, new SurfaceEntry(t.Name, "build", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
 
         foreach (var a in abstractions.Take(4))
         {
             var t = mainTypes.FirstOrDefault(x => x.Name == a.Name);
             var kind = a.Kind == TypeKind.Interface ? "implement" : "derive";
-            ranked.Add((2, a.Name, new SurfaceEntry(a.Name, kind, OneLine(t?.XmlDoc),
+            ranked.Add((3, a.Name, new SurfaceEntry(a.Name, kind, OneLine(t?.XmlDoc),
                 t is null ? null : ShortLocation(t.FilePath))));
         }
 
         foreach (var t in mainTypes)
             if (PublicMethods(t).Any(m => m.IsExtension && !IsFrameworkFrontDoor(m)))
-                ranked.Add((3, t.Name, new SurfaceEntry(t.Name, "extend", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+                ranked.Add((4, t.Name, new SurfaceEntry(t.Name, "extend", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
 
         return
         [
@@ -152,6 +174,41 @@ public static class LibrarySurfaceBuilder
             && t.Name.EndsWith("Builder", StringComparison.Ordinal)
             && PublicMethods(t).Any(m => m.Name == "Build");
 
+    private static bool IsMarkerAttribute(TypeDiscovery t)
+        => t.Kind == TypeKind.Class
+            && t.Name.Length > 9
+            && t.Name.EndsWith("Attribute", StringComparison.Ordinal);
+
+    /// <summary>Detects the Roslyn tooling a library ships — source generators (IIncrementalGenerator /
+    /// ISourceGenerator), analyzers (DiagnosticAnalyzer / DiagnosticSuppressor), and code fixers
+    /// (CodeFixProvider) — by base type / interface / [Generator] attribute. Build-free.</summary>
+    private static ImmutableArray<SurfaceGenerator> BuildGenerators(IEnumerable<TypeDiscovery> publicTypes) =>
+    [
+        .. publicTypes
+            .Select(t => (Type: t, Kind: GeneratorKind(t)))
+            .Where(x => x.Kind is not null)
+            .Select(x => (Order: GeneratorOrder(x.Kind!), Gen: new SurfaceGenerator(x.Type.Name, x.Kind!, OneLine(x.Type.XmlDoc))))
+            .GroupBy(x => x.Gen.Name, StringComparer.Ordinal)
+            .Select(g => g.First())
+            .OrderBy(x => x.Order).ThenBy(x => x.Gen.Name, StringComparer.Ordinal)
+            .Select(x => x.Gen)
+    ];
+
+    private static string? GeneratorKind(TypeDiscovery t)
+    {
+        if (t.Kind != TypeKind.Class) return null;
+        if (t.ImplementedInterfaces.Any(i => i is "IIncrementalGenerator" or "ISourceGenerator")
+            || t.Attributes.Any(a => a is "Generator" or "GeneratorAttribute"))
+            return "generator";
+        if (t.BaseTypes.Any(b => b is "DiagnosticAnalyzer" or "DiagnosticSuppressor"))
+            return "analyzer";
+        if (t.BaseTypes.Any(b => b is "CodeFixProvider"))
+            return "code-fixer";
+        return null;
+    }
+
+    private static int GeneratorOrder(string kind) => kind switch { "generator" => 0, "analyzer" => 1, _ => 2 };
+
     private static ImmutableArray<string> BuildConsumerPaths(ImmutableArray<SurfaceEntry> entryApi)
     {
         var paths = new List<string>();
@@ -159,6 +216,7 @@ public static class LibrarySurfaceBuilder
         {
             var recipe = e.Kind switch
             {
+                "annotate" => $"annotate  →  {e.Title} on a partial class/member",
                 "register" => $"wire into DI  →  {e.Title}(...)",
                 "build" => $"build  →  new {e.Title}()…Build()",
                 "derive" => $"extend  →  derive {e.Title}",
