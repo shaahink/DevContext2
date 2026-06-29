@@ -139,6 +139,18 @@ public sealed class ArchitectureStyleDetector
             }
         }
 
+        // Partial-closure guard (Iteration 4 / Critical 3): a single-service closure of a larger solution
+        // may state its LOCAL style (CleanArchitecture/ControllerBased/MinimalApi) but cannot pronounce the
+        // SYSTEM architecture. When we clearly analysed a subset (≤ 75% of the .sln's projects), drop the
+        // system-level verdicts. Whole-solution runs (incl. eShop's Aspire AppHost constellation) analyse
+        // ~all projects, so they keep Microservices.
+        var slnProjectCount = model.Solution?.ProjectPaths.Length ?? 0;
+        if (slnProjectCount > 0 && model.Projects.Length < slnProjectCount * 3 / 4)
+        {
+            scores.Remove(ArchitectureStyle.Microservices);
+            scores.Remove(ArchitectureStyle.ModularMonolith);
+        }
+
         if (scores.Count == 0)
             return (ArchitectureStyle.Unknown, 0, null);
 

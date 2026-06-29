@@ -739,6 +739,10 @@ public sealed class GraphBuilder
             var callerFqn = names.Resolve(ce.CallerType);
             var calleeFqn = names.Resolve(ce.CalleeType);
 
+            // Filter self-calls to known noise targets — syntactic-resolver mis-attributions (nameof,
+            // controller result-helpers) that member-origin precision surfaced (Iteration 4 noise polish).
+            if (callerFqn == calleeFqn && IsSelfCallNoise(ce.CalleeMethod)) continue;
+
             // Declared in-scope types only. After the Type+tags collapse, requests/events/handlers that
             // live in referenced projects also exist as Type nodes (name-only, added by joins) — gating
             // on a non-null FilePath (set only by AddTypeNodes) keeps Calls restricted to types we
@@ -1015,6 +1019,16 @@ public sealed class GraphBuilder
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
+
+    /// <summary>True for a self-call target that is syntactic-resolver noise, not real wiring: the
+    /// <c>nameof</c> pseudo-call, and the common ASP.NET <c>ControllerBase</c> result helpers (inherited,
+    /// not declared on the controller) that resolve to <c>this</c> (Iteration 4 noise polish).</summary>
+    private static bool IsSelfCallNoise(string method)
+        => method is "nameof"
+            or "Ok" or "NotFound" or "BadRequest" or "NoContent" or "Created" or "CreatedAtAction"
+            or "CreatedAtRoute" or "Accepted" or "Unauthorized" or "Forbid" or "StatusCode"
+            or "Content" or "Json" or "Redirect" or "RedirectToAction" or "File" or "ValidationProblem"
+            or "Problem" or "Conflict" or "UnprocessableEntity";
 
     /// <summary>True for a node that represents a MediatR request (a Type tagged command/query/
     /// notification) — the targets a pipeline behavior wraps. Replaces the old NodeKind.Request check.</summary>

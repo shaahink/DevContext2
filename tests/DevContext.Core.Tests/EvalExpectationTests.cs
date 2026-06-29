@@ -331,7 +331,8 @@ public sealed class EvalExpectationTests : IDisposable
 
         var ctx = new DiscoveryContext
         {
-            RootPath = rootResult.RootPath,
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = scenario,
             Observer = observer,

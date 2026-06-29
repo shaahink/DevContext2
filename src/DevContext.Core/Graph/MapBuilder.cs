@@ -15,6 +15,10 @@ public sealed record MapModel
     public Archetype Archetype { get; init; } = Archetype.App;
     /// <summary>The capability-grouped public API, when <see cref="Archetype"/> is Library.</summary>
     public LibrarySurface? Surface { get; init; }
+    /// <summary>When the analysed set is a partial closure of the owning solution (e.g. pointing at one
+    /// microservice of many), a human-readable scope descriptor — keyed so the Map never claims a
+    /// whole-system style from a single-service slice (Iteration 4 / Critical 3).</summary>
+    public string? ScopeNote { get; init; }
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
@@ -26,19 +30,35 @@ public sealed class MapBuilder
     public static MapModel Build(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         var archetype = ArchetypeDetector.Detect(model, entries);
+        var topology = BuildTopology(model);
         return new MapModel
         {
             Style = model.DetectedStyle.ToString(),
             StyleConfidence = model.StyleConfidence,
             StyleEvidence = model.StyleDetectedVia,
             Entries = entries,
-            Topology = BuildTopology(model),
+            Topology = topology,
             Packages = BuildPackages(model),
             Aggregates = BuildAggregates(model),
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
+            ScopeNote = BuildScopeNote(model, topology.Length),
         };
+    }
+
+    /// <summary>When fewer projects were analysed than the owning solution declares, describe the partial
+    /// closure so the Map can stamp its scope (Iteration 4 / Critical 3). Null when the full solution was
+    /// analysed or no solution was resolved.</summary>
+    private static string? BuildScopeNote(DiscoveryModel model, int analyzedProjectCount)
+    {
+        var slnCount = model.Solution?.ProjectPaths.Length ?? 0;
+        // Decide partial from the RAW discovered count vs the raw .sln count (consistent bases). Require a
+        // clear gap (≤ 75%) so a whole-solution run that discovers a few fewer than the .sln lists (failed
+        // loads, etc.) isn't falsely stamped — guards eShop whole-solution staying "Microservices".
+        if (slnCount <= 0 || model.Projects.Length >= slnCount * 3 / 4 || analyzedProjectCount <= 0) return null;
+        var slnName = model.Solution?.Name ?? "solution";
+        return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
     }
 
     private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model)
@@ -86,7 +106,10 @@ public sealed class MapBuilder
             var cat = CategorizePackage(name);
             if (!groups.TryGetValue(cat, out var list))
                 groups[cat] = list = [];
-            list.Add(string.IsNullOrEmpty(version) ? name : $"{name} {version}");
+            // Strip unevaluated MSBuild-variable versions ($(TemplateOrchardPackageVersion) etc.) — show
+            // just the package name rather than leak the build variable (Iteration 4 / Low 16).
+            var showVersion = !string.IsNullOrEmpty(version) && !version.Contains("$(", StringComparison.Ordinal);
+            list.Add(showVersion ? $"{name} {version}" : name);
         }
 
         var order = new[] { "Web/API", "ORM/Data", "Mediator/CQRS", "Messaging", "Validation",

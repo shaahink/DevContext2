@@ -27,6 +27,15 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
+        // Real DDD aggregate roots implement IAggregateRoot (eShop's Order/Buyer) — precompute the set of
+        // such type names once so entity detection tags ONLY genuine aggregates, not every entity that
+        // happens to have a DbSet (the Medium-10 false positive: Catalog's anemic CRUD, eShop's child
+        // OrderItem/CardType). Drops the old HasOwnDbSet heuristic.
+        var aggregateRootNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var t in model.Types.Values)
+            if (t.ImplementedInterfaces.Any(IsAggregateRootInterface))
+                aggregateRootNames.Add(t.Name);
+
         foreach (var filePath in context.Analysis.AllSourceFiles)
         {
             ct.ThrowIfCancellationRequested();
@@ -64,7 +73,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 foreach (var dbSetProp in dbSetProperties)
                 {
                     var entityType = ((GenericNameSyntax)dbSetProp.Type).TypeArgumentList.Arguments[0].ToString();
-                    var isAggregate = HasOwnDbSet(entityType, classDecl) || IsAggregateRootPattern(entityType);
+                    var isAggregate = aggregateRootNames.Contains(entityType) || IsAggregateRootPattern(entityType);
                     var keyProps = FindKeyProperties(entityType);
 
                     model.Detections.Add(new EfEntityDetection(
@@ -82,7 +91,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                 DetectOnModelCreatingOverrides(classDecl, filePath, dbContextType, model, Name, ct, context);
 
                 // Detect entities via modelBuilder.Entity<T>() in OnModelCreating
-                DetectEntitiesFromOnModelCreating(classDecl, filePath, dbContextType, model, context, ct);
+                DetectEntitiesFromOnModelCreating(classDecl, filePath, dbContextType, model, context, ct, aggregateRootNames);
             }
         }
 
@@ -161,15 +170,12 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
     }
     }
 
-    private static bool HasOwnDbSet(string entityType, ClassDeclarationSyntax dbContextClass)
-    {
-        return dbContextClass.Members
-            .OfType<PropertyDeclarationSyntax>()
-            .Any(p => p.Type is GenericNameSyntax gns
-                && gns.Identifier.ValueText == "DbSet"
-                && gns.TypeArgumentList.Arguments.Count == 1
-                && gns.TypeArgumentList.Arguments[0].ToString() == entityType);
-    }
+    /// <summary>True for an interface that marks a DDD aggregate root (<c>IAggregateRoot</c>,
+    /// <c>IAggregateRoot&lt;TId&gt;</c>, etc.). This — not "has a DbSet" — is the real aggregate signal,
+    /// so anemic CRUD entities and child entities aren't falsely tagged (Iteration 4 / Medium-10).</summary>
+    private static bool IsAggregateRootInterface(string iface)
+        => iface.StartsWith("IAggregateRoot", StringComparison.Ordinal)
+            || iface.Contains("AggregateRoot", StringComparison.Ordinal);
 
     private static bool IsAggregateRootPattern(string entityType)
     {
@@ -191,7 +197,8 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
         string dbContextType,
         DiscoveryModel model,
         DiscoveryContext context,
-        CancellationToken ct)
+        CancellationToken ct,
+        HashSet<string> aggregateRootNames)
     {
         foreach (var member in classDecl.Members)
         {
@@ -229,7 +236,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                         model.Detections.Add(new EfEntityDetection(
                             EntityType: entityTypeName,
                             DbContextType: dbContextType,
-                            IsAggregate: IsAggregateRootPattern(entityTypeName),
+                            IsAggregate: aggregateRootNames.Contains(entityTypeName) || IsAggregateRootPattern(entityTypeName),
                             KeyProperties: keyProps)
                         {
                             ExtractorName = "EfCoreExtractor",
@@ -248,7 +255,7 @@ public sealed class EfCoreExtractor : IDiscoveryExtractor
                             model.Detections.Add(new EfEntityDetection(
                                 EntityType: entityTypeName,
                                 DbContextType: dbContextType,
-                                IsAggregate: IsAggregateRootPattern(entityTypeName),
+                                IsAggregate: aggregateRootNames.Contains(entityTypeName) || IsAggregateRootPattern(entityTypeName),
                                 KeyProperties: keyProps)
                             {
                                 ExtractorName = "EfCoreExtractor",

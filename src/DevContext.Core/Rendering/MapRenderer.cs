@@ -51,6 +51,8 @@ public static class MapRenderer
         var sln = model.Solution?.Name ?? "unknown";
         var projCount = ctx.Map.Topology.Length;
         sb.AppendLine($"MAP  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
+        if (ctx.Map.ScopeNote is { Length: > 0 } scope)
+            sb.AppendLine($"SCOPE  {scope} — style/topology are local to this slice, not the whole system");
         sb.AppendLine();
     }
 
@@ -63,6 +65,7 @@ public static class MapRenderer
         // Runtime
         var tfms = model.Projects
             .SelectMany(p => p.TargetFrameworks)
+            .Where(f => !f.Contains("$(", StringComparison.Ordinal)) // drop unevaluated MSBuild vars (Low 16)
             .Distinct()
             .OrderBy(f => f)
             .ToList();
