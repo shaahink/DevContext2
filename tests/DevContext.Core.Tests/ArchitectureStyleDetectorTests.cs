@@ -211,4 +211,47 @@ public sealed class ArchitectureStyleDetectorTests
         var (style, _, via) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.ControllerBased, style);
     }
+
+    [Fact]
+    public void Partial_closure_suppresses_system_level_microservices()
+    {
+        // Iteration 4 / Critical 3: pointing at one service of a larger solution analyses a partial
+        // closure. Even with Aspire + an AppHost in the slice, the verdict must NOT pronounce the SYSTEM
+        // architecture (Microservices) — it states a local style instead.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.8f));
+        model.Projects =
+        [
+            Project("Catalog.API"), Project("Catalog.Domain"), Project("Catalog.Infrastructure"),
+            Project("eShop.AppHost"), Project("eShop.ServiceDefaults"),
+        ];
+        // The solution declares 24 projects; we analysed only 5 → partial closure (5 < 24 * 0.75).
+        model.Solution = new SolutionInfo("eShop.slnx", "eShop",
+            [.. Enumerable.Range(0, 24).Select(i => $"p{i}.csproj")]);
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.Microservices, style);
+        Assert.NotEqual(ArchitectureStyle.ModularMonolith, style);
+    }
+
+    [Fact]
+    public void Whole_solution_keeps_microservices_despite_scope_field()
+    {
+        // Regression guard for the partial-closure suppression: when ~all solution projects are analysed
+        // (not a partial closure), the Microservices verdict is preserved.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        var projects = new[]
+        {
+            "Ordering.API", "Basket.API", "Catalog.API", "Payment.API",
+            "Identity.API", "Webhooks.API", "eShop.AppHost", "eShop.ServiceDefaults",
+        };
+        model.Projects = [.. projects.Select(Project)];
+        // Solution declares the same set we analysed → NOT partial → Microservices kept.
+        model.Solution = new SolutionInfo("eShop.slnx", "eShop", [.. projects.Select(p => $"{p}.csproj")]);
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.Microservices, style);
+    }
 }

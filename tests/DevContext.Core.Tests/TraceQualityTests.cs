@@ -146,6 +146,11 @@ public sealed class TraceQualityTests
         Assert.DoesNotContain("DeleteAsync", get, StringComparison.Ordinal);
         Assert.DoesNotContain("GetByIdAsync", del, StringComparison.Ordinal);
         Assert.NotEqual(get, del);
+
+        // Iteration 4 noise polish: syntactic-resolver pseudo-calls must not pollute controller traces —
+        // ControllerBase result-helpers (Ok/NotFound/...) and `nameof` resolve to `this` self-calls.
+        Assert.DoesNotContain("NotFound", get, StringComparison.Ordinal);
+        Assert.DoesNotContain("nameof", get, StringComparison.Ordinal);
     }
 
     /// <summary>Phase 3 (complete & honest traces): focusing <c>POST /api/orders/</c> must now render the
