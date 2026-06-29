@@ -43,6 +43,24 @@ engine deltas close.
   `PACKAGES` to non-test/non-benchmark projects.
 - **D6 (consumer paths, WP7).** Derive `CONSUMER PATHS` recipes from the ranked entries + seats.
 
+## Post-fix re-audit (engine deltas WP1–WP7 landed)
+
+Re-captured as `map-v3.md`. All 6 defects closed; all 12 gates in `eval/expectations/fluentvalidation.json`
+are now `expected` and green (`EvalExpectationTests.EvalRepo_MatchesExpectations(fluentvalidation)` + both
+`SurfaceQualityTests` pass on the real clone):
+
+| Defect | Status | Evidence (`map-v3.md`) |
+|---|---|---|
+| D1 ENTRY API ranked | ✅ | `register AddValidatorsFromAssembly*` → `derive AbstractValidator` → `extend DefaultValidatorExtensions`, each with `///` summary |
+| D2 real extension methods | ✅ | `DefaultValidatorExtensions` (`this IRuleBuilder`) now surfaced as `extend`; verb-prefix noise no longer the sole signal |
+| D3 `///` docs | ✅ | one-liners throughout ENTRY API + PUBLIC SURFACE |
+| D4 abstractions/seats | ✅ | `ABSTRACTIONS` ranks AbstractValidator (52), IPropertyValidator (12), … by implementor count |
+| D5 internal/test/packages | ✅ | `.Internal` → `INTERNAL (15 types … available on request)`; PACKAGES = DI.Abstractions + System.* only (**no Bogus/xunit/BenchmarkDotNet**) |
+| D6 consumer paths | ✅ | `CONSUMER PATHS`: wire-into-DI / derive / implement recipes |
+
+Minor follow-ups (non-blocking): abstraction implementor counts include test-project derivers (inflates
+AbstractValidator's 52); `*.TestHelper` not yet grouped separately; entry locations are file-only (no line).
+
 ## Notes (out of scope / pre-existing)
 
 - **CLI JSON purity:** `--format json` stdout is wrapped by a status preamble (`Overview map (no focus).`)

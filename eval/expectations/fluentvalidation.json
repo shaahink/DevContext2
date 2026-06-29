@@ -1,18 +1,18 @@
 {
   "repo": "eval-repos/FluentValidation",
   "checks": [
-    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "FluentValidation has no app entry points + packable library projects -> Library archetype (It0)." },
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "No app entry points + packable library projects -> Library archetype (It0)." },
     { "id": "surface-header", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected", "note": "Routed to LibrarySurfaceRenderer, not the app entry-point Map." },
     { "id": "public-surface", "type": "output-contains", "format": "markdown", "value": "PUBLIC SURFACE", "status": "expected" },
-    { "id": "seat-type", "type": "output-contains", "format": "markdown", "value": "AbstractValidator", "status": "expected", "note": "The derive-seat is present in the surface today (unranked)." },
+    { "id": "seat-type", "type": "output-contains", "format": "markdown", "value": "AbstractValidator", "status": "expected" },
     { "id": "di-front-door", "type": "output-contains", "format": "markdown", "value": "AddValidatorsFromAssembly", "status": "expected" },
     { "id": "di-detection", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 1, "max": 50, "status": "expected", "note": "ServiceCollectionExtensions.AddValidatorsFromAssembly* register-extensions detected." },
 
-    { "id": "entry-api-section", "type": "output-contains", "format": "markdown", "value": "ENTRY API", "status": "aspirational", "note": "WP3 — ranked public-API entry inventory not yet built." },
-    { "id": "abstractions-section", "type": "output-contains", "format": "markdown", "value": "ABSTRACTIONS", "status": "aspirational", "note": "WP2 — abstract/interface seats not yet surfaced." },
-    { "id": "consumer-paths", "type": "output-contains", "format": "markdown", "value": "CONSUMER PATHS", "status": "aspirational", "note": "WP7 — usage recipes not yet built." },
-    { "id": "rule-dsl-extension", "type": "output-contains", "format": "markdown", "value": "DefaultValidatorExtensions", "status": "expected", "note": "Present in PUBLIC SURFACE today; WP2 will additionally surface it as the rule DSL extension (asserted structurally in SurfaceQualityTests)." },
-    { "id": "no-test-package-bogus", "type": "output-not-contains", "format": "markdown", "value": "Bogus", "status": "aspirational", "note": "WP4 — PACKAGES must scope to runtime (non-test/non-benchmark) deps." },
-    { "id": "no-benchmark-package", "type": "output-not-contains", "format": "markdown", "value": "BenchmarkDotNet", "status": "aspirational", "note": "WP4 — benchmark project deps must be excluded from PACKAGES." }
+    { "id": "entry-api-section", "type": "output-contains", "format": "markdown", "value": "ENTRY API", "status": "expected", "note": "WP3 — ranked public-API entry inventory (register front-doors -> seats -> DSL)." },
+    { "id": "abstractions-section", "type": "output-contains", "format": "markdown", "value": "ABSTRACTIONS", "status": "expected", "note": "WP2 — interface/base seats with implementor counts." },
+    { "id": "consumer-paths", "type": "output-contains", "format": "markdown", "value": "CONSUMER PATHS", "status": "expected", "note": "WP7 — usage recipes derived from entries." },
+    { "id": "rule-dsl-extension", "type": "output-contains", "format": "markdown", "value": "DefaultValidatorExtensions", "status": "expected", "note": "Surfaced in ENTRY API as an 'extend' DSL (real this-IRuleBuilder extension, WP2)." },
+    { "id": "no-test-package-bogus", "type": "output-not-contains", "format": "markdown", "value": "Bogus", "status": "expected", "note": "WP4 — PACKAGES scoped to runtime (non-test/non-benchmark) projects." },
+    { "id": "no-benchmark-package", "type": "output-not-contains", "format": "markdown", "value": "BenchmarkDotNet", "status": "expected", "note": "WP4 — benchmark project deps excluded from PACKAGES." }
   ]
 }
