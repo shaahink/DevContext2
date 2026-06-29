@@ -4,11 +4,14 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/DevContext.Cli/DevContext.Cli.csproj" />
+    <Project Path="src/DevContext.Contracts/DevContext.Contracts.csproj" />
     <Project Path="src/DevContext.Core/DevContext.Core.csproj" />
     <Project Path="src/DevContext.Desktop/DevContext.Desktop.csproj" />
+    <Project Path="src/DevContext.Server/DevContext.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj" />
     <Project Path="tests/DevContext.Desktop.Tests/DevContext.Desktop.Tests.csproj" />
+    <Project Path="tests/DevContext.Server.Tests/DevContext.Server.Tests.csproj" />
   </Folder>
 </Solution>

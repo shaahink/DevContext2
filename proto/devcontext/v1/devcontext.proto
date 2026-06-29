@@ -1,0 +1,363 @@
+syntax = "proto3";
+
+package devcontext.v1;
+
+option csharp_namespace = "DevContext.Protos";
+
+// DevContextService is the single seam between the UI and the DevContext.Core engine.
+// It follows the engine's "analyze once, query many" model: Analyze produces a session
+// handle; every other RPC is a cheap query against that handle's immutable snapshot.
+service DevContextService {
+  // Analyze a repo (local path or github.com/user/repo). Server-streams progress
+  // events while the engine runs, then a final Result event carrying the session handle.
+  rpc Analyze(AnalyzeRequest) returns (stream AnalyzeEvent);
+
+  // Releases a session's resources (engine container + any clone). Idempotent.
+  rpc CloseSession(SessionRequest) returns (CloseResponse);
+
+  // The unified entry-point inventory (HTTP, bus consumers, domain handlers, workers, public API).
+  rpc ListEntryPoints(SessionRequest) returns (EntryPointsResponse);
+
+  // The orientation Map: structured facets (topology, packages, cross-cutting, archetype, library
+  // surface) plus the rendered markdown.
+  rpc GetMap(SessionRequest) returns (MapResponse);
+
+  // A Trace from a focus (entry route, type, or type:method) down the wiring.
+  rpc GetTrace(TraceRequest) returns (TraceResponse);
+
+  // Detail card for a single graph node.
+  rpc GetNode(NodeRequest) returns (NodeResponse);
+
+  // Outgoing/incoming edges of a node (browse navigation / find-usages).
+  rpc GetNeighbors(NeighborsRequest) returns (NeighborsResponse);
+
+  // Free-text search across the graph's nodes (powers the universal command palette).
+  rpc SearchNodes(SearchRequest) returns (SearchResponse);
+
+  // The run report + wiring-coverage dashboard ("show your work").
+  rpc GetStats(SessionRequest) returns (StatsResponse);
+
+  // Render the Map/Trace as token-budgeted markdown or JSON, with optional section filtering
+  // (powers the LLM-export sheet).
+  rpc Render(RenderRequest) returns (RenderResponse);
+
+  // Liveness/readiness probe.
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+// ---------------------------------------------------------------------------
+// Analyze
+// ---------------------------------------------------------------------------
+
+message AnalyzeRequest {
+  string path = 1;             // local path, .sln, .csproj, or github.com/user/repo
+  optional string focus = 2;   // empty -> Map; set -> Trace seed
+  optional int32 depth = 3;    // 1..10, default 6
+  optional string detail = 4;  // "signature" | "salient" | "full" (default salient)
+  bool no_roslyn = 5;          // skip the semantic tier (faster)
+  optional string cleanup = 6; // "auto" (default) | "keep" — for cloned repos
+}
+
+message AnalyzeEvent {
+  oneof event {
+    ProgressEvent progress = 1;
+    AnalyzeResult result = 2;
+    AnalyzeError error = 3;
+  }
+}
+
+message ProgressEvent {
+  string stage = 1;
+  double percent = 2;
+  string message = 3;
+}
+
+message AnalyzeResult {
+  string handle = 1;
+  AnalysisSummary summary = 2;
+}
+
+message AnalyzeError {
+  string message = 1;
+  string code = 2;
+}
+
+message AnalysisSummary {
+  string label = 1;
+  int32 projects = 2;
+  int32 nodes = 3;
+  int32 edges = 4;
+  int32 entries = 5;
+  int32 entries_with_target = 6;
+  int64 elapsed_ms = 7;
+  string explanation = 8;
+  repeated string warnings = 9;
+  bool is_library = 10;
+  string archetype = 11;
+}
+
+message SessionRequest {
+  string handle = 1;
+}
+
+message CloseResponse {
+  bool closed = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Entry points
+// ---------------------------------------------------------------------------
+
+message EntryPointsResponse {
+  repeated EntryPoint entry_points = 1;
+}
+
+message EntryPoint {
+  string kind = 1;
+  string title = 2;
+  string node_id = 3;
+  optional string http_method = 4;
+  optional string route = 5;
+  optional string provenance = 6;
+  optional string project = 7;
+  optional string target = 8;
+}
+
+// ---------------------------------------------------------------------------
+// Map (structured + markdown)
+// ---------------------------------------------------------------------------
+
+message MapResponse {
+  string markdown = 1;
+  string style = 2;
+  double style_confidence = 3;
+  optional string style_evidence = 4;
+  optional string scope_note = 5;
+  string archetype = 6;
+  bool is_library = 7;
+  int32 project_count = 8;
+  repeated ProjectNode topology = 9;
+  repeated PackageGroup packages = 10;
+  repeated string aggregates = 11;
+  repeated string pipeline_behaviors = 12;
+  repeated string stack = 13;
+  LibrarySurface surface = 14;
+}
+
+message ProjectNode {
+  string name = 1;
+  repeated string depends_on = 2;
+}
+
+message PackageGroup {
+  string label = 1;
+  repeated string packages = 2;
+}
+
+message LibrarySurface {
+  repeated SurfaceGroup groups = 1;
+  repeated string extension_points = 2;
+}
+
+message SurfaceGroup {
+  string namespace = 1;
+  repeated SurfaceType types = 2;
+}
+
+message SurfaceType {
+  string name = 1;
+  string kind = 2;
+  repeated string members = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Trace
+// ---------------------------------------------------------------------------
+
+message TraceRequest {
+  string handle = 1;
+  string focus = 2;
+  optional int32 depth = 3;
+  optional string detail = 4;
+}
+
+message TraceResponse {
+  bool found = 1;
+  string markdown = 2;
+  TraceNode root = 3;
+  repeated string touched_entities = 4;
+  repeated string emitted_events = 5;
+}
+
+message TraceNode {
+  string node_id = 1;
+  string title = 2;
+  string kind = 3;
+  string seam = 4;
+  int32 depth = 5;
+  optional string provenance = 6;
+  string resolution = 7;
+  bool truncated = 8;
+  int32 omitted = 9;
+  optional string salient = 10;
+  repeated string tags = 11;
+  repeated string pipeline = 12;
+  repeated TraceNode children = 13;
+}
+
+// ---------------------------------------------------------------------------
+// Node + neighbours + search
+// ---------------------------------------------------------------------------
+
+message NodeRequest {
+  string handle = 1;
+  string node_id = 2;
+}
+
+message NodeResponse {
+  bool found = 1;
+  string node_id = 2;
+  string title = 3;
+  string kind = 4;
+  repeated string tags = 5;
+  optional string file_path = 6;
+  int32 out_degree = 7;
+  int32 in_degree = 8;
+}
+
+message NeighborsRequest {
+  string handle = 1;
+  string node_id = 2;
+  string direction = 3;        // "out" | "in" | "usages"
+}
+
+message NeighborsResponse {
+  repeated Edge edges = 1;
+}
+
+message Edge {
+  string from = 1;
+  string to = 2;
+  string kind = 3;
+  string resolution = 4;
+  optional string provenance = 5;
+  string other_title = 6;
+}
+
+message SearchRequest {
+  string handle = 1;
+  string query = 2;
+  int32 limit = 3;
+}
+
+message SearchResponse {
+  repeated NodeRef nodes = 1;
+}
+
+message NodeRef {
+  string node_id = 1;
+  string title = 2;
+  string kind = 3;
+  repeated string tags = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Stats (run report + wiring coverage)
+// ---------------------------------------------------------------------------
+
+message StatsResponse {
+  repeated StageStat stages = 1;
+  repeated ExtractorStat extractors = 2;
+  repeated SeamStat seams = 3;
+  CorpusStat corpus = 4;
+  CacheStat cache = 5;
+  GraphStat graph = 6;
+  FunnelStat funnel = 7;
+  int64 total_wall_ms = 8;
+}
+
+message StageStat {
+  string stage = 1;
+  int64 elapsed_ms = 2;
+}
+
+message ExtractorStat {
+  string name = 1;
+  int64 elapsed_ms = 2;
+  int32 types_added = 3;
+  int32 detections_added = 4;
+  bool skipped = 5;
+  optional string skip_reason = 6;
+  string tier = 7;
+}
+
+message SeamStat {
+  string seam = 1;
+  int32 count = 2;
+  int32 approx = 3;
+}
+
+message CorpusStat {
+  int32 total_files = 1;
+  int32 csharp_files = 2;
+  int32 projects = 3;
+}
+
+message CacheStat {
+  int32 text_hits = 1;
+  int32 text_misses = 2;
+  int32 syntax_tree_hits = 3;
+  int32 syntax_tree_misses = 4;
+}
+
+message GraphStat {
+  int32 nodes = 1;
+  int32 edges = 2;
+  int32 entries = 3;
+  int32 entries_with_target = 4;
+}
+
+message FunnelStat {
+  int32 types_discovered = 1;
+  int32 types_included = 2;
+  int32 raw_tokens = 3;
+  int32 rendered_tokens = 4;
+  int32 budget = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Render (LLM export)
+// ---------------------------------------------------------------------------
+
+message RenderRequest {
+  string handle = 1;
+  optional string focus = 2;
+  optional int32 depth = 3;
+  optional string detail = 4;
+  string format = 5;           // "markdown" | "json"
+  repeated string sections = 6;
+  bool include_diagnostics = 7;
+}
+
+message RenderResponse {
+  string content = 1;
+  string format = 2;
+  int32 estimated_tokens = 3;
+  repeated SectionInfo sections = 4;
+}
+
+message SectionInfo {
+  string key = 1;
+  int32 tokens = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Health
+// ---------------------------------------------------------------------------
+
+message PingRequest {}
+
+message PingResponse {
+  string version = 1;
+  bool ready = 2;
+}

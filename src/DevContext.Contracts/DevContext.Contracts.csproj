@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DevContext.Protos</RootNamespace>
+    <!-- Generated protobuf/gRPC C# is the single source of truth shared by the server and any
+         in-process .NET client (tests today; more later). The .proto itself is also consumed by
+         the TypeScript client via buf — one contract, many languages. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\proto\devcontext\v1\devcontext.proto" GrpcServices="Both" ProtoRoot="..\..\proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.*" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.*" />
+    <PackageReference Include="Grpc.Tools" Version="2.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
