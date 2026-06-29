@@ -140,6 +140,7 @@ public sealed class DiscoveryPipeline
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
+        model.Archetype = mapModel.Archetype.ToString();
         model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
             $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
             + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));

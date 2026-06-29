@@ -17,6 +17,8 @@ public sealed class DiscoveryModel
     public float StyleConfidence { get; internal set; }
     /// <summary>Indicates which detector or signal identified the architecture style.</summary>
     public string? StyleDetectedVia { get; internal set; }
+    /// <summary>The detected codebase archetype ("App" or "Library"), set at graph-assembly time.</summary>
+    public string? Archetype { get; internal set; }
     /// <summary>All discovered types, keyed by fully qualified name.</summary>
     public ConcurrentDictionary<string, TypeDiscovery> Types { get; } = new();
     /// <summary>All extracted detections (endpoints, handlers, entities, etc.).</summary>

@@ -11,6 +11,7 @@ public sealed record DevContextOutput
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
     public SolutionOutput? Solution { get; init; }
     public ArchitectureOutput? Architecture { get; init; }
+    public string? Archetype { get; init; }
     public IReadOnlyList<SignalOutput> Signals { get; init; } = [];
     public ProjectsOutput Projects { get; init; } = new();
     public TypesOutput TypesSummary { get; init; } = new();

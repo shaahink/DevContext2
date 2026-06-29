@@ -58,6 +58,7 @@ public sealed class JsonContextRenderer : IContextRenderer
             Architecture = new ArchitectureOutput(
                 model.DetectedStyle.ToString(),
                 model.StyleConfidence),
+            Archetype = model.Archetype ?? "App",
             Signals = [.. model.Architecture.All
                 .OrderBy(kvp => kvp.Key)
                 .Select(kvp => new SignalOutput(kvp.Key, kvp.Value.Confidence, kvp.Value.Detected))],

@@ -24,6 +24,14 @@ pushd eval-repos/VerticalSlice; git checkout 74624fb0e45454c471b5ca00b13acbab926
 # AutoMapper — object-mapping library
 git clone https://github.com/AutoMapper/AutoMapper.git eval-repos/AutoMapper
 pushd eval-repos/AutoMapper; git checkout b57c206dc7291821e42bdf816a5637a5c1d8cb54; popd
+
+# FluentValidation — validation library (abstract-seat + extension-DI + fluent DSL)
+git clone https://github.com/FluentValidation/FluentValidation.git eval-repos/FluentValidation
+pushd eval-repos/FluentValidation; git checkout 943979089b55664ceb8390547ea1eb84ee99252a; popd
+
+# Polly — resilience library (fluent builder + strategy options)
+git clone https://github.com/App-vNext/Polly.git eval-repos/Polly
+pushd eval-repos/Polly; git checkout 7a1d10f47e2ec667ceada49deb6bdd9a765753bd; popd
 ```
 
 ## Pinned Commits
@@ -34,3 +42,5 @@ pushd eval-repos/AutoMapper; git checkout b57c206dc7291821e42bdf816a5637a5c1d8cb
 | TodoApi | `307a1eadbbd77a3004c318f2377e4818bc400af6` |
 | VerticalSlice (CleanArchitecture) | `74624fb0e45454c471b5ca00b13acbab9263cbf3` |
 | AutoMapper | `b57c206dc7291821e42bdf816a5637a5c1d8cb54` |
+| FluentValidation | `943979089b55664ceb8390547ea1eb84ee99252a` |
+| Polly | `7a1d10f47e2ec667ceada49deb6bdd9a765753bd` |
