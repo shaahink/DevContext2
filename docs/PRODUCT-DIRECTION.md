@@ -159,16 +159,18 @@ controller repo and a 2nd task, and measure whether the trace now reduces a tool
 
 ## 10. Sequenced backlog (each line serves a §6 requirement)
 
-1. **Member-origin edge correctness** (req. 1) — removes fabrication; the probe showed it also recovers
-   *missed* paths. Gate: Catalog `CreateItem` ≠ `UpdateItem`; `POST /api/orders` shows no sibling sends/raises.
-2. **Controller entry→target resolution** (req. 2) — 0/94 → most resolve. The common case.
-3. **Inverse edges + `neighbors`/`find_usages`** (req. 3) — unlocks browse navigation + MCP usages.
-4. **Query API + analyze-once/query-many in the kernel** (req. 4 v1) — the layer the faces sit on.
-5. **Perf / caching** — "just run it" needs speed; 41s cold is disqualifying.
-6. **Browse UI (redo)** — thin client over the query API.
-7. **MCP server** — second thin client.
-8. **Remaining entry kinds** (§4 rungs 4–7) — widen universality.
-9. **Persistent disk index + GitHub-URL path** (req. 4 v2) — discovery surface + scale.
+1. **~~Member-origin edge correctness~~** (req. 1) — **DONE (Iteration 1, Phase 1).** Removes fabrication; `CreateItem ≠ UpdateItem`; no sibling sends/raises.
+   1b. **~~Kernel hygiene~~** (req. 1) — **DONE (Iteration 1, Phase 0).** Token budgeting out of the kernel; documented invariant.
+2. **~~Controller entry→target resolution~~** (req. 2) — **DONE (Iteration 2, Phase 2).** 0/94 → 34/94 on DntSite. Controllers resolve to primary service calls. Infra filter + dedup applied.
+3. **~~Inverse edges + query API~~** (req. 3 + 4-v1) — **DONE (Iteration 5, Phase 5).** `CodeGraph.InEdges`, `GraphQuery` facade (`entrypoints · trace · map · stats · node · neighbors · find_usages · ResolveNodeId`). One kernel, faces are thin.
+4. **~~Honest Map & detection~~** — **DONE (Iteration 4, Phase 4).** Scope stamp, `$(` filter, aggregate tightening (IAggregateRoot). OrchardCore = ModularMonolith.
+5. **~~Complete & honest traces~~** — **DONE (Iteration 3, Phase 3).** Domain-event chain, TOUCHES via Calls, pipeline annotation, honest truncation.
+6. **~~Performance & caching~~** — **DONE (Iteration 6).** Entry-scoped call-graph binding drops DntSite Map cold ~41s → ~10s.
+7. **Browse UI (redo)** — query API wired (Iteration 7); full interactive redo TBD. Thin client over the query API.
+8. **MCP server** — second thin client over the same query API.
+9. **Remaining entry kinds** (§4 rungs 4–7) — widen universality (gRPC, SignalR, Blazor, Functions).
+10. **Persistent disk index + GitHub-URL path** (req. 4 v2) — discovery surface + scale.
+11. **Semantic Sends/Raises** — Roslyn SemanticModel tier for body-scan seams (deferred from Phase 3/Medium 9).
 
 ## 11. Deferred / out of scope (named, not forgotten)
 

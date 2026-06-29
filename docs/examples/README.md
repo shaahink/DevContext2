@@ -1,8 +1,8 @@
 # Example Outputs
 
 Curated DevContext analysis outputs for real open-source .NET repositories.
-Each example shows what an LLM receives — a token-budgeted, pruned document
-with structure overview, endpoint inventory, DI registrations, and more.
+Each example shows what an LLM receives — a structurally-bounded (depth · fan-out)
+narrative Map/Trace from the kernel, post-Universal-Lens Phases 0–6 (updated 2026-06-28).
 
 ## Repos analyzed
 
@@ -12,7 +12,8 @@ with structure overview, endpoint inventory, DI registrations, and more.
 | [VerticalSlice](https://github.com/ardalis/CleanArchitecture) | Steve Smith | VerticalSlices (FastEndpoints) | Map |
 | [TodoApi](https://github.com/davidfowl/TodoApi) | David Fowler | MinimalApi | Map |
 | [AutoMapper](https://github.com/AutoMapper/AutoMapper) | Jimmy Bogard | Library (class library) | Map (library surface) |
-| [DntSite](https://github.com/VahidN/DntSite) | Vahid Nasiri | ControllerBased + Workers | Map + Trace |
+| [DntSite](https://github.com/VahidN/DntSite) | Vahid Nasiri | ControllerBased | Map + Trace |
+| [ControllerApp](tests/fixtures/ControllerApp) | (fixture) | MinimalApi | Map + Trace |
 
 ## File naming
 
@@ -24,13 +25,15 @@ with structure overview, endpoint inventory, DI registrations, and more.
 ## Regenerating
 
 ```powershell
-# Clone the eval repos (pinned commits):
-git clone https://github.com/dotnet/eShop.git eval-repos/eShop
-cd eval-repos/eShop; git checkout 9b4f9434f46fdc5c1a6e9e936af2868340cdbc48; cd ../..
+# Use absolute paths (single-slash relative paths are parsed as GitHub owner/repo).
+$cli = "src/DevContext.Cli/bin/Release/net10.0/DevContext.Cli.dll"
+dotnet build src/DevContext.Cli -c Release
 
-# Run DevContext (replace paths with your setup):
-dotnet run --project src/DevContext.Cli -- analyze eval-repos/eShop --max-tokens 8000 > docs/examples/eshop-overview.md
-dotnet run --project src/DevContext.Cli -- analyze eval-repos/eShop --focus "POST /api/orders/" --depth 3 --max-tokens 8000 > docs/examples/eshop-trace-orders.md
+# eShop Catalog.API trace (member-anchored, scope-stamped)
+dotnet $cli analyze "$pwd\eval-repos\eShop\src\Catalog.API" --focus "CatalogApi:UpdateItem" --depth 5 | Out-File docs/examples/eshop-catalog-trace.md -Encoding utf8
+
+# DntSite Feed trace (entry->target resolved, entry-scoped binding)
+dotnet $cli analyze "$env:LOCALAPPDATA\DevContext\repos\VahidN-DntSite-default" --focus "GET /Feed/News" --depth 5 | Out-File docs/examples/dntsite-trace-feedcontroller.md -Encoding utf8
 ```
 
 ## See also
@@ -38,3 +41,4 @@ dotnet run --project src/DevContext.Cli -- analyze eval-repos/eShop --focus "POS
 - Full eval results: `eval-results/`
 - Evaluation gate: `eval/gates.ps1`
 - Expectations (expected counts/signals): `eval/expectations/`
+- Handover / architecture: `docs/HANDOVER.md`

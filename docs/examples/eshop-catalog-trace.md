@@ -1,85 +1,140 @@
-TRACE  POST /api/catalog/items
-       src/Catalog.API/Apis/CatalogApi.cs:103
+﻿Slicing from CatalogApi:UpdateItem, depth 5, call graph on.
+Analyzing project...
 
-▸ ENTRY  POST /api/catalog/items  (src/Catalog.API/Apis/CatalogApi.cs:103)
-   └─ call CatalogApi.CreateItem  (src/Catalog.API/Apis/CatalogApi.cs:103)
-      ├─ raises ProductPriceChangedIntegrationEvent  (src/Catalog.API/Apis/CatalogApi.cs:342) [approx]
-      │      //Create Integration Event to be published through the Event Bus
-      │      var priceChangedEvent = new ProductPriceChangedIntegrationEvent(catalogItem.Id, productToUpdate.Price, priceEntry.OriginalValue);
-      ├─ data CatalogType [approx]
-      │  └─ data CatalogContext  (src/Catalog.API/Infrastructure/CatalogContext.cs:8)
-      │         public int Id { get; set; }
-      │     └─ data CatalogType [approx]
-      │        (truncated — more edges beyond depth/fan-out)
-      ├─ call CatalogServices  (src/Catalog.API/Apis/CatalogApi.cs:394) [approx]
-      │      services.Context.CatalogItems.Remove(item);
-      │      await services.Context.SaveChangesAsync();
-      │      return TypedResults.NoContent();
-      ├─ call CatalogContext  (src/Catalog.API/Apis/CatalogApi.cs:402) [verified]
-      │      ".gif" => "image/gif",
-      │      ".jpg" or ".jpeg" => "image/jpeg",
-      │      ".bmp" => "image/bmp",
-      │  (truncated — more edges beyond depth/fan-out)
-      ├─ call CatalogAI  (src/Catalog.API/Apis/CatalogApi.cs:382) [verified]
-      │      public static async Task<Results<NoContent, NotFound>> DeleteItemById(
-      │      [AsParameters] CatalogServices services,
-      │  └─ data CatalogItem [approx]
-      │     ├─ data CatalogContext  (src/Catalog.API/Infrastructure/CatalogContext.cs:8)
-      │     │      public string Name { get; set; }
-      │     │      public string? Description { get; set; }
-      │     │  (truncated — more edges beyond depth/fan-out)
-      │     └─ data CatalogType [approx]
-      │        (truncated — more edges beyond depth/fan-out)
-      └─ call CatalogIntegrationEventService  (src/Catalog.API/Apis/CatalogApi.cs:353) [verified]
-             await services.Context.SaveChangesAsync();
-             }
-             return TypedResults.Created($"/api/catalog/items/{id}");
-         ├─ call ResilientTransaction  (src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:34) [verified]
-         │      await ResilientTransaction.New(catalogContext).ExecuteAsync(async () =>
-         │      {
-         │      // Achieving atomicity between original catalog database operation and the IntegrationEventLog thanks to a local transaction
-         ├─ call CatalogContext  (src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:37) [verified]
-         │      await catalogContext.SaveChangesAsync();
-         │      await integrationEventLogService.SaveEventAsync(evt, catalogContext.Database.CurrentTransaction);
-         │      });
-         │  (truncated — more edges beyond depth/fan-out)
-         ├─ call IntegrationEventLogService  (src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:38) [verified]
-         │      await integrationEventLogService.SaveEventAsync(evt, catalogContext.Database.CurrentTransaction);
-         │      });
-         │      }
-         │  └─ raises IntegrationEventLogEntry  (src/IntegrationEventLogEF/Services/IntegrationEventLogService.cs:37) [approx]
-         │         var eventLogEntry = new IntegrationEventLogEntry(@event, transaction.TransactionId);
-         └─ call RabbitMQEventBus  (src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:18) [verified]
-                await eventBus.PublishAsync(evt);
-                await integrationEventLogService.MarkEventAsPublishedAsync(evt.Id);
-                }
-            ├─ call EventBusSubscriptionInfo  (src/EventBusRabbitMQ/RabbitMQEventBus.cs:192) [approx]
-            │      // Get all the handlers using the event type as the key
-            │      foreach (var handler in scope.ServiceProvider.GetKeyedServices<IIntegrationEventHandler>(eventType))
-            └─ call OrderStatusChangedToAwaitingValidationIntegrationEventHandler  (src/EventBusRabbitMQ/RabbitMQEventBus.cs:206) [verified]
-                   }
-                   [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode",
-               ├─ raises OrderStockRejectedIntegrationEvent  (src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:27) [approx]
-               │      var confirmedIntegrationEvent = confirmedOrderStockItems.Any(c => !c.HasStock)
-               │      ? (IntegrationEvent)new OrderStockRejectedIntegrationEvent(@event.OrderId, confirmedOrderStockItems)
-               │      : new OrderStockConfirmedIntegrationEvent(@event.OrderId);
-               ├─ raises OrderStockConfirmedIntegrationEvent  (src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:28) [approx]
-               │      ? (IntegrationEvent)new OrderStockRejectedIntegrationEvent(@event.OrderId, confirmedOrderStockItems)
-               │      : new OrderStockConfirmedIntegrationEvent(@event.OrderId);
-               ├─ data CatalogItem [approx]
-               │  (truncated — more edges beyond depth/fan-out)
-               ├─ call CatalogContext  (src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:17) [approx]
-               │      var catalogItem = catalogContext.CatalogItems.Find(orderStockItem.ProductId);
-               │      if (catalogItem is not null)
-               │      {
-               │  (truncated — more edges beyond depth/fan-out)
-               └─ call CatalogIntegrationEventService  (src/Catalog.API/IntegrationEvents/EventHandling/OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs:31) [verified]
-                      await catalogIntegrationEventService.SaveEventAndCatalogContextChangesAsync(confirmedIntegrationEvent);
-                      await catalogIntegrationEventService.PublishThroughEventBusAsync(confirmedIntegrationEvent);
-                      }
-                  (truncated — more edges beyond depth/fan-out)
+TRACE  CatalogApi.UpdateItem
+       src/Catalog.API/Apis/CatalogApi.cs
 
-TOUCHES  CatalogType, CatalogItem, CatalogBrand
-EMITS    ProductPriceChangedIntegrationEvent, IntegrationEventLogEntry, OrderStockRejectedIntegrationEvent, OrderStockConfirmedIntegrationEvent
-RESULT   200 OK / 201 Created · failure → 400 Bad Request
-NEXT     status transition
+? ENTRY  CatalogApi.UpdateItem  (src/Catalog.API/Apis/CatalogApi.cs)
+   ├─ raises ProductPriceChangedIntegrationEvent  
+(src/Catalog.API/Apis/CatalogApi.cs:342) [approx]
+   ├─ data CatalogItem [approx]
+   │  ├─ data CatalogContext  
+(src/Catalog.API/Infrastructure/CatalogContext.cs:8)
+   │  │      public string Name { get; set; }
+   │  │      public string? Description { get; set; }
+   │  └─ data CatalogItem [approx]
+   │     (stopped at depth 2; 2 branches omitted)
+   ├─ call CatalogServices.SingleOrDefaultAsync  
+(src/Catalog.API/Apis/CatalogApi.cs:330) [approx]
+   ├─ call CatalogContext.Entry  (src/Catalog.API/Apis/CatalogApi.cs:340) 
+[verified]
+   ├─ call CatalogAI.GetEmbeddingAsync  (src/Catalog.API/Apis/CatalogApi.cs:343)
+[verified]
+   │  ├─ data CatalogItem [approx]
+   │  │  (stopped at depth 2; 2 branches omitted)
+   │  └─ call CatalogAI.CatalogItemToString  
+(src/Catalog.API/Services/CatalogAI.cs:30) [verified]
+   │         public async ValueTask<IReadOnlyList<Vector>?> 
+GetEmbeddingsAsync(IEnumerable<CatalogItem> items)
+   │         {
+   │         if (IsEnabled)
+   │     └─ data CatalogItem [approx]
+   │        (stopped at depth 3; 2 branches omitted)
+   ├─ call CatalogIntegrationEventService.SaveEventAndCatalogContextChangesAsync
+(src/Catalog.API/Apis/CatalogApi.cs:353) [verified]
+   │  ├─ call ResilientTransaction.ExecuteAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:34) 
+[verified]
+   │  │      await ResilientTransaction.New(catalogContext).ExecuteAsync(async 
+() =>
+   │  │      {
+   │  │      // Achieving atomicity between original catalog database operation 
+and the IntegrationEventLog thanks to a local transaction
+   │  │  └─ call ResilientTransaction.action  
+(src/IntegrationEventLogEF/Utilities/ResilientTransaction.cs:19) [approx]
+   │  │         await action();
+   │  │         await transaction.CommitAsync();
+   │  │         });
+   │  ├─ call ResilientTransaction.New  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:34) 
+[verified]
+   │  │      await ResilientTransaction.New(catalogContext).ExecuteAsync(async 
+() =>
+   │  │      {
+   │  │      // Achieving atomicity between original catalog database operation 
+and the IntegrationEventLog thanks to a local transaction
+   │  ├─ call CatalogContext.SaveChangesAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:37) 
+[verified]
+   │  │      await catalogContext.SaveChangesAsync();
+   │  │      await integrationEventLogService.SaveEventAsync(evt, 
+catalogContext.Database.CurrentTransaction);
+   │  │      });
+   │  └─ call IntegrationEventLogService.SaveEventAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:38) 
+[verified]
+   │         await integrationEventLogService.SaveEventAsync(evt, 
+catalogContext.Database.CurrentTransaction);
+   │         });
+   │         }
+   │     └─ raises IntegrationEventLogEntry  
+(src/IntegrationEventLogEF/Services/IntegrationEventLogService.cs:37) [approx]
+   │            var eventLogEntry = new IntegrationEventLogEntry(@event, 
+transaction.TransactionId);
+   ├─ call CatalogIntegrationEventService.PublishThroughEventBusAsync  
+(src/Catalog.API/Apis/CatalogApi.cs:356) [verified]
+   │  ├─ call IntegrationEventLogService.MarkEventAsInProgressAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:17) 
+[verified]
+   │  │      await 
+integrationEventLogService.MarkEventAsInProgressAsync(evt.Id);
+   │  │      await eventBus.PublishAsync(evt);
+   │  │      await integrationEventLogService.MarkEventAsPublishedAsync(evt.Id);
+   │  │  └─ call IntegrationEventLogService.UpdateEventStatus  
+(src/IntegrationEventLogEF/Services/IntegrationEventLogService.cs:53) [verified]
+   │  │         return UpdateEventStatus(eventId, EventStateEnum.InProgress);
+   │  │         }
+   │  ├─ call RabbitMQEventBus.PublishAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:18) 
+[verified]
+   │  │      await eventBus.PublishAsync(evt);
+   │  │      await integrationEventLogService.MarkEventAsPublishedAsync(evt.Id);
+   │  │      }
+   │  │  ├─ call RabbitMQEventBus.SerializeMessage  
+(src/EventBusRabbitMQ/RabbitMQEventBus.cs:51) [verified]
+   │  │  │      // Depending on Sampling (and whether a listener is registered 
+or not), the activity above may not be created.
+   │  │  │      // If it is created, then propagate its context. If it is not 
+created, the propagate the Current context, if any.
+   │  │  └─ call RabbitMQEventBus.SetActivityContext  
+(src/EventBusRabbitMQ/RabbitMQEventBus.cs:88) [verified]
+   │  │         exchange: ExchangeName,
+   │  │         routingKey: routingKey,
+   │  │         mandatory: true,
+   │  ├─ call IntegrationEventLogService.MarkEventAsPublishedAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:19) 
+[verified]
+   │  │      await integrationEventLogService.MarkEventAsPublishedAsync(evt.Id);
+   │  │      }
+   │  │      catch (Exception ex)
+   │  │  └─ call IntegrationEventLogService.UpdateEventStatus  
+(src/IntegrationEventLogEF/Services/IntegrationEventLogService.cs:48) [verified]
+   │  │         return UpdateEventStatus(eventId, EventStateEnum.Published);
+   │  │         }
+   │  └─ call IntegrationEventLogService.MarkEventAsFailedAsync  
+(src/Catalog.API/IntegrationEvents/CatalogIntegrationEventService.cs:24) 
+[verified]
+   │         await integrationEventLogService.MarkEventAsFailedAsync(evt.Id);
+   │         }
+   │         }
+   │     └─ call IntegrationEventLogService.UpdateEventStatus  
+(src/IntegrationEventLogEF/Services/IntegrationEventLogService.cs:58) [verified]
+   │            return UpdateEventStatus(eventId, 
+EventStateEnum.PublishedFailed);
+   │            }
+   └─ call CatalogContext.SaveChangesAsync  
+(src/Catalog.API/Apis/CatalogApi.cs:360) [verified]
+
+TOUCHES  CatalogItem, CatalogType, CatalogBrand
+EMITS    ProductPriceChangedIntegrationEvent, IntegrationEventLogEntry
+
+analyzed 66 files · 215 nodes · 125 edges · 18 entries · 7/18 target · depth 3 
+· ~1516 tokens · 2.8s stage2 x2.8 stage3 x1.1
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      eShop.slnx      │
+│   Time   │        2844ms        │
+│  Tokens  │ ~1516 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.127 │
+└──────────┴──────────────────────┘

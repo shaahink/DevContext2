@@ -82,7 +82,7 @@ the same `--focus`/Map/Trace behaviour as the CLI, so prefer the CLI smoke for v
 ## Test
 
 ```powershell
-dotnet test tests/DevContext.Core.Tests        # ~261 pass / 2 skip (graph, map, trace, eval, goldens)
+dotnet test tests/DevContext.Core.Tests        # ~268 pass / 2 skip (graph, map, trace, query, eval, goldens)
 dotnet test tests/DevContext.Desktop.Tests     # 64 pass (MVVM, sections)
 $env:UPDATE_GOLDENS=1; dotnet test tests/DevContext.Core.Tests   # regenerate goldens, then unset
 ```
@@ -93,25 +93,28 @@ $env:UPDATE_GOLDENS=1; dotnet test tests/DevContext.Core.Tests   # regenerate go
 ./eval/gates.ps1    # build → fast tests → eval → CLI strict matrix → GATE: PASS/FAIL
 ```
 
-The gate runs `Category=Eval` tests (8 eval expectation tests across TodoApi, eShop, VerticalSlice,
-AutoMapper) and a 5-command CLI matrix (`--strict`, `--format json --strict`, `--format html --strict`,
-`--dry-run`, `--max-tokens 2000 --strict`). All must exit cleanly.
+The gate runs `Category=Eval` tests (18 eval expectation tests across TodoApi, eShop, VerticalSlice,
+AutoMapper, ControllerApp, DntSite, Catalog) and a 5-command CLI matrix (`--strict`, `--format json --strict`,
+`--format html --strict`, `--dry-run`, `--max-tokens 2000 --strict`). All must exit cleanly.
 
-## New Trace features (since iteration-8)
+## Trace features (since Iteration 1 — see docs/HANDOVER.md)
 
-Traces now include summary sections past the tree:
+Traces are now member-anchored (Iteration 1), complete with domain-event chains (Iteration 3), and
+honest about cuts. Plus summary sections:
 
 - **RESULT** — HTTP status codes per verb: `200 OK / 201 Created · failure → 400 Bad Request`
 - **NEXT** — lifecycle hints from emitted events: `initial state → status transition → payment processing → fulfillment → cancellation`
 - **TOUCHES** — entities reachable in the trace: `OrderItem, PaymentMethod, Buyer, CardType, Order`
 - **EMITS** — deduped list of events the trace emits
+- **Pipeline** — cross-cutting behaviors rendered once under the first `send`: `pipeline ▸ LoggingBehavior → ValidatorBehavior → TransactionBehavior`
 
-## New Map features (since iteration-8)
+## Map features (since Iteration 2 — see docs/HANDOVER.md)
 
-- **Domain entry group** — MediatR notification handlers alongside HTTP routes
-- **Bus entry group** — message consumers (code ready, detection gap for some patterns)
+- **Entry→target** — route → handler/service mapping for controllers and CQRS: e.g. DntSite `GET /Feed/News → FeedsService.GetNewsAsync` (34/94)
+- **Scope stamp (Iteration 4)** — `SCOPE 5-project closure of 24-project eShop` for a partial analysis
+- **Aggregates (Iteration 4)** — only genuine DDD aggregates (require `IAggregateRoot`); anemic CRUD no longer tagged
+- **Domain/Bus/Background entry groups** — MediatR notification handlers, message consumers, workers each as separate groups under ENTRY POINTS
 - **PipelineBehaviors** — MediatR pipeline shown under CROSS-CUTTING
-- **Entry→target** — route → command mapping for named handlers (e.g. `GET /products → GetProductsQuery`)
 
 ## Gotchas
 
