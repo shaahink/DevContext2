@@ -1,0 +1,772 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-29T21:36:10.4859372Z",
+  "solution": {
+    "name": "FluentValidation",
+    "filePath": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\FluentValidation.sln",
+    "projectPaths": [
+      "src\\FluentValidation.Tests\\FluentValidation.Tests.csproj",
+      "src\\FluentValidation\\FluentValidation.csproj",
+      
+"src\\FluentValidation.DependencyInjectionExtensions\\FluentValidation.Dependenc
+yInjectionExtensions.csproj",
+      
+"src\\FluentValidation.Tests.Benchmarks\\FluentValidation.Tests.Benchmarks.cspro
+j"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "fluentvalidation",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 4,
+    "names": [
+      "FluentValidation",
+      "FluentValidation.DependencyInjectionExtensions",
+      "FluentValidation.Tests",
+      "FluentValidation.Tests.Benchmarks"
+    ]
+  },
+  "typesSummary": {
+    "found": 371,
+    "inOutput": 37,
+    "prunedPercent": 90
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddValidatorsFromAssembly",
+      "implementationType": "assembly",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddValidatorsFromAssembly"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Depe
+ndencyInjectionExtensions\\ServiceCollectionExtensions.cs",
+      "lineNumber": 39,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddScanResult",
+      "implementationType": "scanResult",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddScanResult"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Depe
+ndencyInjectionExtensions\\ServiceCollectionExtensions.cs",
+      "lineNumber": 56,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddValidatorsFromAssembly",
+      "implementationType": "type.Assembly",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddValidatorsFromAssembly"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Depe
+ndencyInjectionExtensions\\ServiceCollectionExtensions.cs",
+      "lineNumber": 71,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddValidatorsFromAssembly",
+      "implementationType": "typeof(T).Assembly",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddValidatorsFromAssembly"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Depe
+ndencyInjectionExtensions\\ServiceCollectionExtensions.cs",
+      "lineNumber": 82,
+      "confidence": 0.7
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 0,
+      "callerType": "LanguageManagerTests",
+      "callerMethod": "All_localizations_have_same_parameters_as_English",
+      "targetType": "GetTypes",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Test
+s\\LanguageManagerTests.cs",
+      "lineNumber": 223,
+      "confidence": 0.8
+    },
+    {
+      "kind": 0,
+      "callerType": "LanguageManagerTests",
+      "callerMethod": "All_languages_should_be_loaded",
+      "targetType": "GetTypes",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\FluentValidation\\src\\FluentValidation.Test
+s\\LanguageManagerTests.cs",
+      "lineNumber": 252,
+      "confidence": 0.8
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ITestType\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.MyResources\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Customer\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.FlagsEnumPoco\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.DependencyInjectionExtensions.FirstDummyValidator\u
+0027; PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Request\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.ValidationResultTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CollisionBase\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.InfiniteLoopValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.EngineOnlyBenchmark\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.Program\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.PersonValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.UserSeverityTester\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.DerivedPerson\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RulesetTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.StringEnumValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.MessageFormatterTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.DataSet\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.ApplicationGroup\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedConditionWithScopedUnlessValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ValidatorTesterTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.DepartmentValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.NoopAddressValidator\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.InfiniteLoop2Validator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestModel\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.TestObjectValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.TestModel\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.ModelLevelValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.OrderValidator\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.ConditionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AppropriatenessAnswerViewModelRequiredValidator\u00
+27; PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AsyncValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.SharedConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.FullModelValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RuleDependencyTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.NameResolutionPluggabilityTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestDetailObject\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.Base\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestPropertyValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.MyValueType\u0027; PatternRelevancePruner: excluded
+test-project type \u0027FluentValidation.Tests.ForEachRuleTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ValidatorDescriptorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.NullTester\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.EmptyTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Department\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.TracksAsyncCallValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TypeUnsafePolymorphicValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestValidator4\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.Address\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AccessorCacheTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.AsyncValidator2\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.NoLogicModelTenRulesValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ChainedValidationTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.InitializationBenchmark\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Child\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.ApplicationViewModelValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ChildValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.ComplexValidationTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.NestedModel\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestValidatorWithPreValidate\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.ValidationBenchmark\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.LessThanOrEqualToValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Payment\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.MyTypeValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CountryValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.GreaterThanValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.EmailValidatorTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.CascadingFailuresTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.UnitOfMeasureValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedAsyncConditionInverseValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Bar\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.AsyncOrderValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CreditCardValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RulesetOrderValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RuleBuilderTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.Order\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AsyncModelTestValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CollectionValidatorWithParentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.IOrder\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.AssemblyScannerTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AddressValidator\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.Collision1\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.StreetNumberComparer\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.NotEqualValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Model1Validator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.OrderInterfaceValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ValidateAndThrowTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.PrecisionScaleValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CultureScope\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.LocalisedNameTester\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.InlineValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ApplicationViewModel\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.OnFailureHookTester\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.TestValidator2\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestObject\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.Model2Validator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedConditionTests\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.InheritanceValidatorTest\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.NestedModelValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.PointlessStringValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.EqualValidatorTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.SharedConditionInverseValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CustomValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.MyType\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.RootValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.EnumValidatorTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.LocalisedMessagesTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.NoLogicModelSingleRuleValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.InfiniteLoop\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.ValidatorSelectorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Root\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.ChildRulesTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Model1\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.RulesetChildValidatorRulesValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.DefaultValidatorExtensionTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CacheTestModel\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.AbstractValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedCollectionConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Model1InternalValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ExclusiveBetweenValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AppropriatenessGroupViewModelValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Baz\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.IAddress\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.AppropriatenessQuestionViewModelValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.VoidModel\u0027; PatternRelevancePruner:
+excluded test-project type \u0027FluentValidation.Tests.Collision2\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.FooImpl1\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.InclusiveBetweenValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.ExtensionTester\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.AccessorCacheBenchmark\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.UserStateTester\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.NotEmptyTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TrackingCollectionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.PredicateValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Address2Validator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.BenchmarkValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.LessThanValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Question\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.TestConditionAsyncValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CustomMessageFormatTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.LengthValidatorTests\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.ChainingValidatorsTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Parent\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.UnitOfMeasure\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedAsyncCollectionConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestExtensions\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.Person\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.PropertyChainTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.DependencyInjectionExtensions.DummyModel\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Model2\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.Foo\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.InverseConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.PersonContainer\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027FluentValidation.Tests.NotNullTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.GreaterThanOrEqualToValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RegularExpressionValidatorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Model\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.LanguageManagerTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.IFoo\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.Grandchild\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestValidator\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027FluentValidation.Tests.Benchmarks.FullModel\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027FluentValidation.Tests.ExactLengthValidatorTester\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.SharedAsyncConditionValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.TestType\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.TestMessages\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.NestedOrderValidator\u0027; PatternRelevancePruner:
+excluded test-project type \u0027FluentValidation.Tests.TestValidator3\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.InverseConditionAsyncValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Country\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.SharedAsyncConditionWithScopedUnlessValidator\u0027
+; PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.MyAsyncNotNullValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.RulesetChildRulesValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.DependencyInjectionExtensions.SecondDummyValidator\
+u0027; PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.FooImpl2\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027FluentValidation.Tests.DependencyInjectionExtensions.ServiceCollectionExte
+nsionsTests\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.CustomLanguageManager\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.Address2\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027FluentValidation.Tests.InterfaceValidator\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.JsonSerializationTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027FluentValidation.Tests.InfiniteLoop2\u0027; PatternRelevancePruner: 
+library mode active \u2014 boosting public API, penalizing test types; 
+TokenBudgetEnforcer: kept 24 types (347 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0790540",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.4849144",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0014307",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3831352",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0338430",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0216874",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.4800502",
+        "typesAdded": 371,
+        "detectionsAdded": 4,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.4120153",
+        "typesAdded": 0,
+        "detectionsAdded": 4,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2683188",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1794751",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1331534",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1097842",
+        "typesAdded": 0,
+        "detectionsAdded": 2,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0248017",
+        "typesAdded": 0,
+        "detectionsAdded": 2,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0230101",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0229917",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0213391",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0177816",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0152542",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or 
+controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 371,
+        "typesAfter": 24
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 371,
+        "typesAfter": 371
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 300
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 49
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 0
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 222,
+      "syntaxTreeHits": 1086,
+      "syntaxTreeMisses": 218
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 218,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:00.4849144",
+      "stage2CpuSum": "00:00:01.0712207",
+      "stage3Wall": "00:00:00.3831352",
+      "stage3CpuSum": "00:00:00.5823797"
+    },
+    "totalWall": "00:00:01.4969455"
+  }
+}
+analyzed 218 files · 37 types kept of 371 · 7887/8000 tokens · 1.5s stage2 ×2.2 
+stage3 ×1.5
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │ FluentValidation.sln │
+│   Time   │        1869ms        │
+│  Tokens  │ ~7887 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.132 │
+╰──────────┴──────────────────────╯
