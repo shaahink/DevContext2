@@ -5,14 +5,16 @@ iterations. Each iteration is one agent session: detailed steps, harness updates
 
 ## Start here (fresh session)
 
-1. Read `docs/PRODUCT-DIRECTION.md` (what we're building) and `docs/ACCEPTANCE.md` (what "good" means).
-2. Run the gate to see current reality: `pwsh -File eval/gates.ps1` (build → fast tests → eval → CLI).
-3. Find the **first iteration below whose Status ≠ DONE** — that's where you pick up.
-4. Open its guide, do **Step 0 (Reproduce)** first (line numbers in guides may have drifted; verify
+1. **Quick start (5 min):** read `docs/HANDOVER.md` — the architecture, what was built, key files, and
+   what's left. Then skip to step 3.
+2. Read `docs/PRODUCT-DIRECTION.md` (what we're building) and `docs/ACCEPTANCE.md` (what "good" means).
+3. Run the gate to see current reality: `pwsh -File eval/gates.ps1` (build → fast tests → eval → CLI).
+4. Find the **first iteration below whose Status ≠ DONE** — that's where you pick up.
+5. Open its guide, do **Step 0 (Reproduce)** first (line numbers in guides may have drifted; verify
    against current code), then execute the steps.
-5. When its **Gate** passes: flip the relevant `docs/ACCEPTANCE.md` checks to `expected`, update the
+6. When its **Gate** passes: flip the relevant `docs/ACCEPTANCE.md` checks to `expected`, update the
    **Status** in that guide's header **and the table below**, and record the commit hash.
-6. Stop at the iteration boundary. The next session repeats from step 1.
+7. Stop at the iteration boundary. The next session repeats from step 1.
 
 ## Status
 

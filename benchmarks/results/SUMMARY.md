@@ -1,4 +1,9 @@
-# DevContext performance — summary (perf/profile-and-optimize)
+# DevContext performance — summary (perf/profile-and-optimize) — pre-Phase-6 baseline
+
+> **Updated 2026-06-28:** Phase 6 (Iteration 6) applied entry-scoped call-graph binding for Map mode —
+> DntSite Map cold ~41s → ~10s, Stage-3 ~30s → ~3s. The numbers below are the **pre-Phase-6 baseline**
+> from iterations 7-8 of the `perf/profile-and-optimize` branch. Re-benchmark with the current `develop`
+> to refresh.
 
 Profile-first work: measure the real pipeline over the standing eval repos, find the hot path
 empirically, fix one lever at a time, re-benchmark, keep tests green. Harness: `benchmarks` `repos`
