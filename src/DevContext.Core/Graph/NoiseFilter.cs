@@ -104,6 +104,15 @@ public sealed class NoiseFilter
         return true;
     }
 
+    /// <summary>True when a detection's source file is a production entry source — not a test project,
+    /// generated code, or a samples/snippets path. Gates the entry-point inventory so a library's (or an
+    /// app's) test fixtures and sample apps don't surface as application entry points (e.g. MediatR's
+    /// samples/MediatR.Examples handlers + the MediatR.Tests handlers).</summary>
+    public bool IsProductionEntrySource(string filePath)
+        => !_projects.IsInTestProject(filePath)
+            && !IsGeneratedPath(filePath)
+            && !ProjectClassifier.IsSamplePath(filePath);
+
     private static bool IsGeneratedPath(string filePath)
     {
         var norm = filePath.Replace('\\', '/');
