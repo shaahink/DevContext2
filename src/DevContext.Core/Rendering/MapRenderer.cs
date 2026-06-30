@@ -28,6 +28,7 @@ public static class MapRenderer
         });
         var basePath = ctx.Snapshot.RootPath;
         Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
+        Add(sections, "Routes", sb => AppendGatewayRoutes(sb, ctx.Map));
         Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
@@ -143,6 +144,19 @@ public static class MapRenderer
         sb.AppendLine();
     }
 
+    private static void AppendGatewayRoutes(StringBuilder sb, MapModel map)
+    {
+        if (map.Routes.IsDefaultOrEmpty) return;
+        sb.AppendLine("ROUTES");
+        foreach (var route in map.Routes)
+        {
+            sb.Append($"   {route.UpstreamMethods} {route.UpstreamTemplate}");
+            sb.Append($"  →  {route.DownstreamHosts}{route.DownstreamTemplate}");
+            sb.AppendLine();
+        }
+        sb.AppendLine();
+    }
+
     private static void AppendEntryPoints(StringBuilder sb, MapModel map, string? basePath)
     {
         if (map.Entries.IsDefaultOrEmpty) return;
@@ -229,6 +243,7 @@ public static class MapRenderer
         EntryPointKind.HostedService => "Background",
         EntryPointKind.ScheduledJob => "Scheduled",
         EntryPointKind.PublicApi => "Public API",
+        EntryPointKind.UiEntry => "UI",
         _ => kind.ToString(),
     };
 }

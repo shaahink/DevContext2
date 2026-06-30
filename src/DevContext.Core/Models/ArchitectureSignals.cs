@@ -54,5 +54,7 @@ public sealed class ArchitectureSignals
         public const string Redis = "redis";
         public const string HealthChecks = "healthchecks";
         public const string NServiceBus = "nservicebus";
+        public const string DesktopUi = "desktop-ui";
+        public const string Gateway = "gateway";
     }
 }

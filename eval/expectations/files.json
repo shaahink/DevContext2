@@ -1,0 +1,8 @@
+{
+  "repo": "analysis-repos/files",
+  "checks": [
+    { "id": "desktop-archetype", "type": "output-not-contains", "format": "markdown", "value": "LIBRARY  Files", "status": "expected", "note": "W5: Files should not be classified as LIBRARY" },
+    { "id": "map-app-header", "type": "output-contains", "format": "markdown", "value": "MAP  Files", "status": "expected", "note": "W5: Files should be classified as App (MAP header)" },
+    { "id": "ui-entries", "type": "output-contains", "format": "markdown", "value": "ENTRY POINTS", "status": "aspirational", "note": "W5: Map should contain entry points (aspirational until DesktopEntryExtractor output is consistent across profiles)" }
+  ]
+}

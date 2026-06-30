@@ -48,7 +48,9 @@ public sealed class ProjectClassifier
             || p.Contains("/examples/", StringComparison.OrdinalIgnoreCase)
             || p.Contains("/example/", StringComparison.OrdinalIgnoreCase)
             || p.Contains("/demos/", StringComparison.OrdinalIgnoreCase)
-            || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase);
+            || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/benchmarks/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/benchmark/", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>True when the file lives under a <c>test</c>/<c>tests</c> path segment. Catches shared test

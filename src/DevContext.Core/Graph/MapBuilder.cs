@@ -19,6 +19,8 @@ public sealed record MapModel
     /// microservice of many), a human-readable scope descriptor — keyed so the Map never claims a
     /// whole-system style from a single-service slice (Iteration 4 / Critical 3).</summary>
     public string? ScopeNote { get; init; }
+    /// <summary>Gateway routes from ocelot.json / YARP config (W7).</summary>
+    public ImmutableArray<GatewayRoute> Routes { get; init; } = [];
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
@@ -44,6 +46,7 @@ public sealed class MapBuilder
             Archetype = archetype,
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
             ScopeNote = BuildScopeNote(model, topology.Length),
+            Routes = [.. model.GatewayRoutes],
         };
     }
 

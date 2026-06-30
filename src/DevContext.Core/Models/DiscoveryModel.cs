@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 
+using DevContext.Core.Graph;
+
 namespace DevContext.Core.Models;
 
 /// <summary>Represents the result of running the discovery pipeline, containing all extracted data.</summary>
@@ -37,6 +39,9 @@ public sealed class DiscoveryModel
     public TokenBudget Budget { get; internal set; } = TokenBudget.Default;
     /// <summary>Compression results recorded sequentially during the compression stage.</summary>
     public List<CompressionResult> AppliedCompressions { get; } = [];
+
+    /// <summary>Gateway Routes extracted from ocelot.json / YARP config (W7).</summary>
+    public List<GatewayRoute> GatewayRoutes { get; } = [];
 
     /// <summary>Records a provenance reason for why a specific item was included.</summary>
     public void AddProvenance(string itemId, InclusionReason reason)

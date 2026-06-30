@@ -37,7 +37,8 @@ public sealed class GraphBuilder
         var entries = AddHttpEntryPoints(g, model, scope, names)  // worked example
             .AddRange(AddWorkerEntryPoints(g, model, scope, names)) // hosted services + scheduled jobs (DntSite audit)
             .AddRange(AddDomainEventHandlerEntries(g, model, scope, names)) // domain-event handlers
-            .AddRange(AddMessageConsumerEntries(g, model, scope, names));  // integration-event consumers
+            .AddRange(AddMessageConsumerEntries(g, model, scope, names))  // integration-event consumers
+            .AddRange(AddDesktopEntryPoints(g, model, scope, names));     // W5: desktop UI entry points
         AddHandlerJoins(g, model, names, scope, _noise);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope, _noise);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -469,6 +470,45 @@ public sealed class GraphBuilder
             {
                 Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
                 Target = mc.MessageType,
+            });
+        }
+        return entries.ToImmutable();
+    }
+
+    /// <summary>W5: DesktopEntryDetection → UiEntry points. Each Window/Page/UserControl/App/RelayCommand
+    /// becomes a UI entry point so the Map shows a UI (N) group and traces can start from them.</summary>
+    private ImmutableArray<EntryPoint> AddDesktopEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    {
+        var entries = ImmutableArray.CreateBuilder<EntryPoint>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var de in model.Detections.OfType<DesktopEntryDetection>())
+        {
+            if (!scope.Contains(de.SourceFile) || !_noise.IsProductionEntrySource(de.SourceFile)) continue;
+
+            var label = de.Kind == DesktopEntryKind.RelayCommand
+                ? de.TypeName
+                : de.TypeName;
+
+            if (!seen.Add(label)) continue;
+
+            var id = NodeId.ForEntry($"ui:{de.TypeName}");
+            var title = de.Kind == DesktopEntryKind.RelayCommand
+                ? $"[RelayCommand] {de.TypeName}"
+                : de.TypeName;
+
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = de.SourceFile });
+
+            var typeId = NodeId.ForType(names.Resolve(de.TypeName));
+            if (g.HasNode(typeId))
+                g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
+                {
+                    Provenance = $"{de.SourceFile}:{de.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+
+            entries.Add(new EntryPoint(EntryPointKind.UiEntry, title, id)
+            {
+                Provenance = $"{de.SourceFile}:{de.LineNumber}",
             });
         }
         return entries.ToImmutable();

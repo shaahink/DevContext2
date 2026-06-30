@@ -18,6 +18,7 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(AspireRelationshipDetection), "AspireRelationshipDetection")]
 [JsonDerivedType(typeof(AntiPatternDetection), "AntiPatternDetection")]
 [JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
+[JsonDerivedType(typeof(DesktopEntryDetection), "DesktopEntryDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -125,4 +126,14 @@ public sealed record AntiPatternDetection(
     string Description,
     string Severity,
     string TargetType
+) : Detection;
+
+/// <summary>Kind of desktop UI entry point.</summary>
+public enum DesktopEntryKind { Window, Page, UserControl, AppStartup, RelayCommand }
+
+/// <summary>Detection for a desktop UI entry point (Window, Page, UserControl, App.OnLaunched, [RelayCommand]).</summary>
+public sealed record DesktopEntryDetection(
+    string TypeName,
+    DesktopEntryKind Kind,
+    string? DeclaringFile = null
 ) : Detection;

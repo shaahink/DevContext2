@@ -32,6 +32,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["Quartz"] = ArchitectureSignals.Keys.Quartz,
         ["StackExchange.Redis"] = ArchitectureSignals.Keys.Redis,
         ["AspNetCore.HealthChecks"] = ArchitectureSignals.Keys.HealthChecks,
+        ["Microsoft.WindowsAppSDK"] = ArchitectureSignals.Keys.DesktopUi,
+        ["CommunityToolkit.WinUI"] = ArchitectureSignals.Keys.DesktopUi,
+        ["CommunityToolkit.Mvvm"] = ArchitectureSignals.Keys.DesktopUi,
+        ["Ocelot"] = ArchitectureSignals.Keys.Gateway,
+        ["Microsoft.ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
     }.ToFrozenDictionary();
 
     /// <summary>Gets the name of this extractor.</summary>
@@ -87,6 +92,16 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     {
                         model.Architecture.Register(FeatureSignal.CreateDetected(
                             ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk));
+                    }
+
+                    // Detect WPF desktop apps from SDK + UseWPF property
+                    var outputType = projectInfo.OutputType;
+                    var isWinExe = outputType is { } ot && ot.Contains("WinExe", StringComparison.OrdinalIgnoreCase);
+                    if (sdk == "Microsoft.NET.Sdk.WindowsDesktop"
+                        || (sdk == "Microsoft.NET.Sdk" && isWinExe))
+                    {
+                        model.Architecture.Register(FeatureSignal.CreateDetected(
+                            ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectSdk", sdk ?? outputType ?? "WinExe"));
                     }
 
                     var packageRefs = doc.Descendants("PackageReference")

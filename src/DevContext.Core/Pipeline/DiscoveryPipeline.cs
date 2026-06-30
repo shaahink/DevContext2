@@ -139,6 +139,10 @@ public sealed class DiscoveryPipeline
         var graphResolver = new SyntacticSymbolResolver();
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
+
+        // W7: scan for ocelot.json files in the project root and extract gateway routes
+        PopulateGatewayRoutes(model, context);
+
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();
         model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
@@ -678,5 +682,58 @@ public sealed class DiscoveryPipeline
             .Select(x => x.Name)
             .Take(3)
             .ToList();
+    }
+
+    private static void PopulateGatewayRoutes(DiscoveryModel model, DiscoveryContext context)
+    {
+        if (!model.Architecture.Has(ArchitectureSignals.Keys.Gateway)) return;
+
+        var root = context.RootPath;
+        if (!Directory.Exists(root)) return;
+
+        foreach (var file in Directory.EnumerateFiles(root, "ocelot*.json", SearchOption.AllDirectories))
+        {
+            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (ProjectClassifier.IsSamplePath(file) || ProjectClassifier.IsTestPath(file))
+                continue;
+
+            try
+            {
+                var json = File.ReadAllText(file);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var routes = doc.RootElement.TryGetProperty("Routes", out var r) ? r : default;
+                if (routes.ValueKind != System.Text.Json.JsonValueKind.Array) continue;
+
+                foreach (var route in routes.EnumerateArray())
+                {
+                    var upstream = route.TryGetProperty("UpstreamPathTemplate", out var ut) ? ut.GetString() ?? "" : "";
+                    var methods = route.TryGetProperty("UpstreamHttpMethod", out var um) ? FormatMethods(um) : "";
+                    var downstream = route.TryGetProperty("DownstreamPathTemplate", out var dt) ? dt.GetString() ?? "" : "";
+                    var hosts = route.TryGetProperty("DownstreamHostAndPorts", out var dh) ? FormatHosts(dh) : "";
+
+                    model.GatewayRoutes.Add(new GatewayRoute(upstream, methods, downstream, hosts));
+                }
+            }
+            catch { /* non-json or malformed — skip */ }
+        }
+
+        static string FormatMethods(System.Text.Json.JsonElement el)
+        {
+            if (el.ValueKind == System.Text.Json.JsonValueKind.Array)
+                return string.Join(", ", el.EnumerateArray().Select(x => x.GetString() ?? ""));
+            return el.GetString() ?? "";
+        }
+
+        static string FormatHosts(System.Text.Json.JsonElement el)
+        {
+            if (el.ValueKind != System.Text.Json.JsonValueKind.Array) return "";
+            var hosts = el.EnumerateArray()
+                .Select(h => h.TryGetProperty("Host", out var host) ? host.GetString() ?? "" : "")
+                .Where(h => h.Length > 0);
+            return string.Join(", ", hosts);
+        }
     }
 }

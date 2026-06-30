@@ -6,7 +6,7 @@ namespace DevContext.Core.Graph;
 /// with a public API and no entry points (e.g. AutoMapper). The archetype decides which renderer runs:
 /// the entry-point Map vs the capability-grouped public surface (assessment G3).
 /// </summary>
-public enum Archetype { App, Library }
+public enum Archetype { App, Library, Gateway }
 
 /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.</summary>
 public static class ArchetypeDetector
@@ -15,13 +15,18 @@ public static class ArchetypeDetector
     [
         EntryPointKind.HttpEndpoint, EntryPointKind.MessageConsumer,
         EntryPointKind.HostedService, EntryPointKind.ScheduledJob,
+        EntryPointKind.UiEntry,
     ];
 
     /// <summary>Library ⇔ no application entry points AND a non-executable project with a public
     /// surface exists, where any executable projects are merely auxiliary samples/benchmarks that
-    /// reference the library (so AutoMapper's Benchmark/TestApp don't flip it to App). App otherwise.</summary>
+    /// reference the library (so AutoMapper's Benchmark/TestApp don't flip it to App).
+    /// Gateway ⇔ Ocelot/YARP reverse-proxy packages detected (overrides App/Library). App otherwise.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
+        // W7: gateway packages (Ocelot, Microsoft.ReverseProxy) → Gateway archetype
+        if (model.Architecture.Has(ArchitectureSignals.Keys.Gateway))
+            return Archetype.Gateway;
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
         // ignore their entries and projects so they don't flip the archetype to App.
         if (!entries.IsDefaultOrEmpty && entries.Any(e =>
@@ -44,8 +49,14 @@ public static class ArchetypeDetector
             return Archetype.App; // pure executable(s)
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var allExeAreAuxiliary = exe.All(e => e.ProjectReferences.Any(r =>
-            libNames.Contains(Path.GetFileNameWithoutExtension(r))));
+        // W5: an exe is auxiliary only when its own project path is a sample/test/benchmark path,
+        // or (for console Exes) it references a library project — not when a desktop WinExe
+        // happens to reference internal library projects (e.g. Files.App → Files.Core).
+        var allExeAreAuxiliary = exe.All(e =>
+            ProjectClassifier.IsSamplePath(e.FilePath)
+            || ProjectClassifier.IsTestPath(e.FilePath)
+            || e.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true
+                && e.ProjectReferences.Any(r => libNames.Contains(Path.GetFileNameWithoutExtension(r))));
         if (!allExeAreAuxiliary)
             return Archetype.App; // a standalone executable that isn't just a sample of the library
 

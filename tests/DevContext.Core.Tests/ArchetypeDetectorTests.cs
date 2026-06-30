@@ -83,4 +83,37 @@ public sealed class ArchetypeDetectorTests
 
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
     }
+
+    [Fact]
+    public void App_when_win_exe_references_internal_library_projects()
+    {
+        // W5: a desktop WinExe that references internal library projects (Files.App → Files.Core)
+        // must NOT be classified as an auxiliary sample — it IS the product.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Files.Core", @"C:\repo\src\Files.Core\Files.Core.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Files.App", @"C:\repo\src\Files.App\Files.App.csproj", "C#", ["net10.0"],
+                    [@"..\src\Files.Core\Files.Core.csproj"], [], OutputType: "WinExe"),
+            ],
+        };
+        model.Types.TryAdd("Files.Core.Service", PublicType("Files.Core.Service", @"C:\repo\src\Files.Core\Service.cs"));
+
+        Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
+    }
+
+    [Fact]
+    public void App_when_ui_entry_points_exist()
+    {
+        // W5: UiEntry kind entries make the archetype App, just like HTTP/Message entries do.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Desktop", @"C:\repo\Desktop\Desktop.csproj", "C#", ["net10.0"], [], [], OutputType: "WinExe")],
+        };
+        ImmutableArray<EntryPoint> entries =
+            [new EntryPoint(EntryPointKind.UiEntry, "MainWindow", NodeId.ForEntry("ui:MainWindow"))];
+
+        Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, entries));
+    }
 }

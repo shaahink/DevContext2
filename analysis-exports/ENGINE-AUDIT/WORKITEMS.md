@@ -10,7 +10,7 @@ Status: ✅ done · 🔄 in progress · ⬜ todo · 🔬 research.
 
 ## Theme A — Archetype recognition ("what is this?")
 
-### W5 ⬜ Desktop-app archetype + entry points
+### W5 ✅ Desktop-app archetype + entry points
 **Root cause (verified):** (a) `ArchetypeDetector.AppEntryKinds` (`Graph/ArchetypeDetector.cs:14-18`) is
 HTTP/Bus/Hosted/Scheduled only — desktop apps have none, so they never short-circuit to `App`. (b) The
 `allExeAreAuxiliary` heuristic (`ArchetypeDetector.cs:46-50`) then treats `Files.App`
@@ -26,7 +26,7 @@ is `WinExe`.
 `json-equals $.archetype == "App"` (land aspirational, ratchet). Observable: `analyze .../files` header
 `MAP Files` with a `UI (N)` group (MainWindow, App), not `LIBRARY Files`.
 
-### W7 🔬 API-gateway / reverse-proxy archetype
+### W7 ✅ API-gateway / reverse-proxy archetype
 **Root cause:** Ocelot's surface is dynamic config-driven routes via middleware, not MVC/Minimal-API
 endpoints — structurally unrepresentable in the HTTP-entry model. Same for YARP.
 **Locus:** new dependency signal (Ocelot / `Microsoft.ReverseProxy`); new `MapBuilder`/`MapRenderer` section.
