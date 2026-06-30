@@ -2,11 +2,13 @@ namespace DevContext.Core.Graph;
 
 /// <summary>
 /// Builds the <see cref="LibrarySurface"/> from a library's public types/methods. Produces a ranked
-/// <c>ENTRY API</c> (extension front-doors → abstract seats → fluent DSL), the <c>ABSTRACTIONS</c> seats
-/// consumers implement/derive, the namespace-grouped public surface (with <c>*.Internal</c> demoted and
-/// XML-doc one-liners), deterministic consumer-path recipes, and runtime-only packages. Build-free:
-/// everything is derived from syntactic <see cref="TypeDiscovery"/> data (incl. WP1 doc summaries +
-/// extension-method flags). Test projects are excluded, consistent with the graph's <see cref="NoiseFilter"/>.
+/// <c>ENTRY API</c> (marker attributes → extension front-doors → builders → abstract seats → fluent DSL),
+/// the <c>ABSTRACTIONS</c> seats consumers implement/derive, a <c>GENERATORS</c> section (source
+/// generators / analyzers / code fixers), the namespace-grouped public surface (with <c>*.Internal</c> and
+/// tooling namespaces demoted and XML-doc one-liners), deterministic consumer-path recipes, and runtime-only
+/// packages. Build-free: everything is derived from syntactic <see cref="TypeDiscovery"/> data (base types /
+/// interfaces / attributes / WP1 doc summaries + extension flags). Test/sample/exe projects are excluded,
+/// consistent with the graph's <see cref="NoiseFilter"/>.
 /// </summary>
 public static class LibrarySurfaceBuilder
 {
@@ -14,6 +16,7 @@ public static class LibrarySurfaceBuilder
     private const int MaxEntryApi = 12;
     private const int MaxAbstractions = 10;
     private const int MaxConsumerPaths = 6;
+    private const string AttributeSuffix = "Attribute";
 
     private static readonly string[] ExtensionVerbs =
         ["Add", "Use", "Register", "With", "Configure", "Map"];
@@ -33,6 +36,9 @@ public static class LibrarySurfaceBuilder
             .Where(t => !ProjectClassifier.IsSamplePath(t.FilePath))
             .Where(t => !ProjectClassifier.IsTestPath(t.FilePath))
             .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
+            // Stable order: model.Types is a ConcurrentDictionary (nondeterministic enumeration), so order
+            // by FQN here — every downstream grouping/dedup then produces a byte-deterministic surface.
+            .OrderBy(t => t.Id, StringComparer.Ordinal)
             .ToList();
 
         // Roslyn tooling (source generators / analyzers / code fixers) gets its own GENERATORS section
@@ -62,8 +68,7 @@ public static class LibrarySurfaceBuilder
 
     private static bool IsToolingNamespace(string ns)
         => ns.Contains(".SourceGenerators", StringComparison.Ordinal)
-            || ns.Contains(".CodeFixers", StringComparison.Ordinal)
-            || ns.Contains(".Analyzers", StringComparison.Ordinal);
+            || ns.Contains(".CodeFixers", StringComparison.Ordinal);
 
     private static bool IsInternalNamespace(string ns)
         => ns.EndsWith(".Internal", StringComparison.Ordinal)
@@ -128,7 +133,7 @@ public static class LibrarySurfaceBuilder
         // Tier 0: marker attributes — the consumer API of an attribute-driven (source-gen) library.
         if (hasGenerators)
             foreach (var t in mainTypes.Where(IsMarkerAttribute))
-                ranked.Add((0, t.Name, new SurfaceEntry($"[{t.Name[..^9]}]", "annotate",
+                ranked.Add((0, t.Name, new SurfaceEntry($"[{t.Name[..^AttributeSuffix.Length]}]", "annotate",
                     OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
 
         foreach (var t in mainTypes)
@@ -176,8 +181,8 @@ public static class LibrarySurfaceBuilder
 
     private static bool IsMarkerAttribute(TypeDiscovery t)
         => t.Kind == TypeKind.Class
-            && t.Name.Length > 9
-            && t.Name.EndsWith("Attribute", StringComparison.Ordinal);
+            && t.Name.Length > AttributeSuffix.Length
+            && t.Name.EndsWith(AttributeSuffix, StringComparison.Ordinal);
 
     /// <summary>Detects the Roslyn tooling a library ships — source generators (IIncrementalGenerator /
     /// ISourceGenerator), analyzers (DiagnosticAnalyzer / DiagnosticSuppressor), and code fixers
