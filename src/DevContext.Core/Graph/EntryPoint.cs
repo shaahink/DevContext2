@@ -3,7 +3,8 @@ namespace DevContext.Core.Graph;
 /// <summary>The kind of application entry point — the universal abstraction the Map and Trace start from.</summary>
 public enum EntryPointKind
 {
-    HttpEndpoint, MessageConsumer, HostedService, ScheduledJob, DomainEventHandler, PublicApi, UiEntry,
+    HttpEndpoint, MessageConsumer, HostedService, ScheduledJob, DomainEventHandler, PublicApi,
+    UiEntry, BlazorPage, GrpcService, SignalRHub, FunctionEntry,
 }
 
 /// <summary>

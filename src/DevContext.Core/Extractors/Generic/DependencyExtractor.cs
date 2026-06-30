@@ -37,6 +37,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["CommunityToolkit.Mvvm"] = ArchitectureSignals.Keys.DesktopUi,
         ["Ocelot"] = ArchitectureSignals.Keys.Gateway,
         ["Microsoft.ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
+        ["Microsoft.AspNetCore.Components"] = ArchitectureSignals.Keys.Blazor,
     }.ToFrozenDictionary();
 
     /// <summary>Gets the name of this extractor.</summary>
@@ -167,6 +168,8 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["GreenDonut"] = ArchitectureSignals.Keys.GraphQL,
         ["xunit"] = ArchitectureSignals.Keys.Testing,
         ["nunit"] = ArchitectureSignals.Keys.Testing,
+        ["Functions"] = ArchitectureSignals.Keys.Functions,
+        ["Azure.Functions"] = ArchitectureSignals.Keys.Functions,
     };
 
     private static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)

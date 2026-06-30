@@ -19,6 +19,9 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(AntiPatternDetection), "AntiPatternDetection")]
 [JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
 [JsonDerivedType(typeof(DesktopEntryDetection), "DesktopEntryDetection")]
+[JsonDerivedType(typeof(GrpcServiceDetection), "GrpcServiceDetection")]
+[JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
+[JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -136,4 +139,24 @@ public sealed record DesktopEntryDetection(
     string TypeName,
     DesktopEntryKind Kind,
     string? DeclaringFile = null
+) : Detection;
+
+/// <summary>Detection for a gRPC service implementation (class extending XxxBase).</summary>
+public sealed record GrpcServiceDetection(
+    string ServiceName,
+    string ImplementationType,
+    ImmutableArray<string> Methods
+) : Detection;
+
+/// <summary>Detection for a SignalR hub class (extends Hub or Hub&lt;T&gt;).</summary>
+public sealed record SignalRHubDetection(
+    string HubType,
+    ImmutableArray<string> HubMethods
+) : Detection;
+
+/// <summary>Detection for an Azure Functions entry point (method with [Function] + trigger attributes).</summary>
+public sealed record FunctionEntryDetection(
+    string ClassName,
+    string MethodName,
+    ImmutableArray<string> Triggers
 ) : Detection;

@@ -30,6 +30,9 @@ public sealed class GraphBuilder
         new DomainEventHandlerEntryBuilder(),
         new MessageConsumerEntryBuilder(),
         new DesktopEntryPointBuilder(),
+        new GrpcEntryPointBuilder(),
+        new SignalrEntryPointBuilder(),
+        new FunctionsEntryPointBuilder(),
     ];
 
     /// <summary>Creates a graph builder with a symbol resolver (syntactic now, semantic in P3) and a noise filter.</summary>

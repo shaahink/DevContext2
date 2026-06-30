@@ -15,7 +15,9 @@ public static class ArchetypeDetector
     [
         EntryPointKind.HttpEndpoint, EntryPointKind.MessageConsumer,
         EntryPointKind.HostedService, EntryPointKind.ScheduledJob,
-        EntryPointKind.UiEntry,
+        EntryPointKind.UiEntry, EntryPointKind.BlazorPage,
+        EntryPointKind.GrpcService, EntryPointKind.SignalRHub,
+        EntryPointKind.FunctionEntry,
     ];
 
     /// <summary>Library ⇔ no application entry points AND a non-executable project with a public

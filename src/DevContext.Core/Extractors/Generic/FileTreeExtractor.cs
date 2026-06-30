@@ -1,6 +1,6 @@
 namespace DevContext.Core.Extractors.Generic;
 
-/// <summary>Walks the file tree, discovers .cs, .csproj, and .sln files, and registers them in the analysis context and cache.</summary>
+/// <summary>Walks the file tree, discovers .cs, .razor, .csproj, and .sln files, and registers them in the analysis context and cache.</summary>
 [ExtractorOrder(-100)]
 public sealed class FileTreeExtractor : IDiscoveryExtractor
 {
@@ -39,6 +39,16 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         {
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.cs", SearchOption.AllDirectories, ct))
+            {
+                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (!seenSource.Add(file)) continue;
+                sourceFiles.Add(file);
+                context.Cache.RegisterPath(file);
+            }
+
+            // Include .razor files for Blazor component detection
+            await foreach (var file in context.FileSystem.EnumerateFilesAsync(
+                root, "*.razor", SearchOption.AllDirectories, ct))
             {
                 if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
                 if (!seenSource.Add(file)) continue;
