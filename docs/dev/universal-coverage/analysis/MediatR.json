@@ -1,0 +1,3884 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:54:53.0486232Z",
+  "solution": {
+    "name": "MediatR",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\MediatR.slnx",
+    "projectPaths": [
+      "samples/MediatR.Examples.AspNetCore/MediatR.Examples.AspNetCore.csproj",
+      "samples/MediatR.Examples.Autofac/MediatR.Examples.Autofac.csproj",
+      "samples/MediatR.Examples.DryIoc/MediatR.Examples.DryIoc.csproj",
+      "samples/MediatR.Examples.Lamar/MediatR.Examples.Lamar.csproj",
+      "samples/MediatR.Examples.LightInject/MediatR.Examples.LightInject.csproj",
+      "samples/MediatR.Examples.PublishStrategies/MediatR.Examples.PublishStrategies.csproj",
+      "samples/MediatR.Examples.SimpleInjector/MediatR.Examples.SimpleInjector.csproj",
+      "samples/MediatR.Examples.Stashbox/MediatR.Examples.Stashbox.csproj",
+      "samples/MediatR.Examples/MediatR.Examples.csproj",
+      "src/MediatR.Contracts/MediatR.Contracts.csproj",
+      "src/MediatR/MediatR.csproj",
+      "test/MediatR.Benchmarks/MediatR.Benchmarks.csproj",
+      "test/MediatR.DependencyInjectionTests/MediatR.DependencyInjectionTests.csproj",
+      "test/MediatR.Tests/MediatR.Tests.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "CleanArchitecture",
+    "confidence": 0.5
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "scrutor",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 15,
+    "names": [
+      "MediatR",
+      "MediatR.Benchmarks",
+      "MediatR.Contracts",
+      "MediatR.DependencyInjectionTests",
+      "MediatR.Examples",
+      "MediatR.Examples.AspNetCore",
+      "MediatR.Examples.Autofac",
+      "MediatR.Examples.DryIoc",
+      "MediatR.Examples.Lamar",
+      "MediatR.Examples.LightInject",
+      "MediatR.Examples.PublishStrategies",
+      "MediatR.Examples.SimpleInjector",
+      "MediatR.Examples.Stashbox",
+      "MediatR.Examples.Windsor",
+      "MediatR.Tests"
+    ]
+  },
+  "typesSummary": {
+    "found": 347,
+    "inOutput": 67,
+    "prunedPercent": 80.7
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "writer",
+      "implementationType": "writer",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblies(typeof(Ping).Assembly, typeof(Sing).Assembly);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 25,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "typeof(IStreamRequestHandler\u003CSing, Song\u003E)",
+      "implementationType": "typeof(SingHandler)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IPipelineBehavior\u003C,\u003E)",
+      "implementationType": "typeof(GenericPipelineBehavior\u003C,\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IRequestPreProcessor\u003C\u003E)",
+      "implementationType": "typeof(GenericRequestPreProcessor\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 33,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IRequestPostProcessor\u003C,\u003E)",
+      "implementationType": "typeof(GenericRequestPostProcessor\u003C,\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 34,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IStreamPipelineBehavior\u003C,\u003E)",
+      "implementationType": "typeof(GenericStreamPipelineBehavior\u003C,\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "serviceType": "Publisher",
+      "implementationType": "Publisher",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E new SyncPingedHandler(\u00221\u0022)",
+      "implementationType": "sp =\u003E new SyncPingedHandler(\u00221\u0022)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new SyncPingedHandler]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E new AsyncPingedHandler(\u00222\u0022)",
+      "implementationType": "sp =\u003E new AsyncPingedHandler(\u00222\u0022)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new AsyncPingedHandler]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E new AsyncPingedHandler(\u00223\u0022)",
+      "implementationType": "sp =\u003E new AsyncPingedHandler(\u00223\u0022)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new AsyncPingedHandler]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E new SyncPingedHandler(\u00224\u0022)",
+      "implementationType": "sp =\u003E new SyncPingedHandler(\u00224\u0022)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new SyncPingedHandler]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddSimpleInjector",
+      "implementationType": "container",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddSimpleInjector"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.SimpleInjector\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "serviceConfig",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\MicrosoftExtensionsDI\\MediatRServiceCollectionExtensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "multiOpenInterface",
+      "implementationType": "type",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 89,
+      "confidence": 1
+    },
+    {
+      "serviceType": "@interface",
+      "implementationType": "type",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 143,
+      "confidence": 1
+    },
+    {
+      "serviceType": "Service",
+      "implementationType": "Implementation",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 315,
+      "confidence": 1
+    },
+    {
+      "serviceType": "TextWriter.Null",
+      "implementationType": "TextWriter.Null",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Benchmarks\\Benchmarks.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n            {\r\n                cfg.RegisterServicesFromAssemblyContaining(typeof(Ping));\r\n                cfg.AddOpenBehavior(typeof(GenericPipelineBehavior\u003C,\u003E));\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Benchmarks\\Benchmarks.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\AutoFacServiceProviderFixture.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "x =\u003E x.RegisterServicesFromAssemblyContaining(typeof(Pong))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\AutoFacServiceProviderFixture.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\DryIocServiceProviderFixture.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "x =\u003E x.RegisterServicesFromAssemblyContaining(typeof(Pong))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\DryIocServiceProviderFixture.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\LamarServiceProviderFixture.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "x =\u003E x.RegisterServicesFromAssemblyContaining(typeof(Pong))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\LamarServiceProviderFixture.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\LightInjectServiceProviderFixture.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "x =\u003E x.RegisterServicesFromAssemblyContaining(typeof(Pong))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\LightInjectServiceProviderFixture.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\StashBoxServiceProviderFixture.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "x =\u003E x.RegisterServicesFromAssemblyContaining(typeof(Pong))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Providers\\StashBoxServiceProviderFixture.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n            {\r\n                cfg.RegisterServicesFromAssemblies(dynamicAssembly);\r\n                cfg.RegisterGenericHandlers = true;\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 21,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 90,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n                {\r\n                    cfg.RegisterServicesFromAssembly(assembly);\r\n                    cfg.RegisterGenericHandlers = true;\r\n                }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 96,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 109,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n                {\r\n                    cfg.RegisterServicesFromAssembly(assembly);\r\n                    cfg.RegisterGenericHandlers = true;\r\n                }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 115,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 128,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n                {\r\n                    cfg.RegisterServicesFromAssembly(assembly);\r\n                    cfg.RegisterGenericHandlers = true;\r\n                }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 134,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 147,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n                {\r\n                    cfg.MaxGenericTypeParameters = 0;\r\n                    cfg.MaxGenericTypeRegistrations = 0;\r\n                    cfg.MaxTypesClosing = 0;\r\n                    cfg.RegistrationTimeout = 100;\r\n                    cfg.RegisterGenericHandlers = true;\r\n                    cfg.RegisterServicesFromAssembly(assembly);\r\n                }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 153,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 170,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n            {\r\n                //opt out flag set\r\n                cfg.RegisterGenericHandlers = false;\r\n                cfg.RegisterServicesFromAssembly(assembly);\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 173,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.RegisterGenericHandlers = true;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 21,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "_ =\u003E { }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 64,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 97,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblies(typeof(Ping).Assembly, new BrokenAssembly());\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 100,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 17,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.MediatorImplementationType = typeof(MyCustomMediator);\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 50,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.MediatorImplementationType = typeof(MyCustomMediator);\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 51,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 58,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\DerivingRequestsTests.cs",
+      "lineNumber": 17,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\DerivingRequestsTests.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssemblyContaining(typeof(Ping))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\DerivingRequestsTests.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\DuplicateAssemblyResolutionTests.cs",
+      "lineNumber": 17,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssemblies(typeof(Ping).Assembly, typeof(Ping).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\DuplicateAssemblyResolutionTests.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 64,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "CallLog",
+      "implementationType": "CallLog",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Issue1118Tests).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 66,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 33,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 34,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 55,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n            cfg.NotificationPublisher = publisher;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 56,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 76,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n            cfg.NotificationPublisherType = typeof(MockPublisher);\r\n            cfg.Lifetime = ServiceLifetime.Singleton;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 77,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(CustomMediatorTests));\r\n            cfg.NotificationPublisherType = typeof(TaskWhenAllPublisher);\r\n            cfg.Lifetime = ServiceLifetime.Singleton;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 103,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 82,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 83,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "typeof(IPipelineBehavior\u003C,\u003E)",
+      "implementationType": "typeof(ConstructorTestBehavior\u003C,\u003E)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 84,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddOpenBehavior(typeof(ConstructorTestBehavior\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 85,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 397,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 398,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddBehavior\u003CIPipelineBehavior\u003CPing, Pong\u003E, OuterBehavior\u003E();\r\n            cfg.AddBehavior\u003CIPipelineBehavior\u003CPing, Pong\u003E, InnerBehavior\u003E();\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 399,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 428,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 429,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            // Call these registration methods multiple times to prove we don\u0027t register a service if it is already registered\r\n            for (var i = 0; i \u003C 3; i\u002B\u002B)\r\n            {\r\n                cfg.AddOpenBehavior(typeof(OuterBehavior\u003C,\u003E));\r\n                cfg.AddOpenBehavior(typeof(InnerBehavior\u003C,\u003E));\r\n                cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            }\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 430,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 463,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 464,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddRequestPreProcessor\u003CIRequestPreProcessor\u003CPing\u003E, FirstConcretePreProcessor\u003E();\r\n            cfg.AddRequestPreProcessor\u003CIRequestPreProcessor\u003CPing\u003E, NextConcretePreProcessor\u003E();\r\n            cfg.AddOpenRequestPreProcessor(typeof(FirstPreProcessor\u003C\u003E));\r\n            cfg.AddOpenRequestPreProcessor(typeof(NextPreProcessor\u003C\u003E));\r\n            cfg.AddRequestPostProcessor\u003CIRequestPostProcessor\u003CPing, Pong\u003E, FirstConcretePostProcessor\u003E();\r\n            cfg.AddRequestPostProcessor\u003CIRequestPostProcessor\u003CPing, Pong\u003E, NextConcretePostProcessor\u003E();\r\n            cfg.AddOpenRequestPostProcessor(typeof(FirstPostProcessor\u003C,\u003E));\r\n            cfg.AddOpenRequestPostProcessor(typeof(NextPostProcessor\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 465,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 504,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 505,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 506,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 522,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 523,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 524,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 540,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 541,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddBehavior\u003CThrowingBehavior\u003E();\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 542,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 562,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 563,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 564,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 580,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 581,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddOpenBehavior(typeof(OuterBehavior\u003C,\u003E));\r\n            cfg.AddOpenBehavior(typeof(InnerBehavior\u003C,\u003E));\r\n            cfg.AddOpenBehavior(typeof(ConstrainedBehavior\u003C,\u003E));\r\n            cfg.AddRequestPreProcessor\u003CIRequestPreProcessor\u003CPing\u003E, FirstConcretePreProcessor\u003E();\r\n            cfg.AddRequestPreProcessor\u003CIRequestPreProcessor\u003CPing\u003E, NextConcretePreProcessor\u003E();\r\n            cfg.AddOpenRequestPreProcessor(typeof(FirstPreProcessor\u003C\u003E));\r\n            cfg.AddOpenRequestPreProcessor(typeof(NextPreProcessor\u003C\u003E));\r\n            cfg.AddRequestPostProcessor\u003CIRequestPostProcessor\u003CPing, Pong\u003E, FirstConcretePostProcessor\u003E();\r\n            cfg.AddRequestPostProcessor\u003CIRequestPostProcessor\u003CPing, Pong\u003E, NextConcretePostProcessor\u003E();\r\n            cfg.AddOpenRequestPostProcessor(typeof(FirstPostProcessor\u003C,\u003E));\r\n            cfg.AddOpenRequestPostProcessor(typeof(NextPostProcessor\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 582,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 690,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 721,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 753,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 784,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 815,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 848,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 863,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 867,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining\u003CFooRequest\u003E();\r\n            cfg.AddBehavior\u003CClosedBehavior\u003E();\r\n            cfg.AddOpenBehavior(typeof(Open2Behavior\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 947,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 953,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "logger",
+      "implementationType": "logger",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 955,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.PipelineTests.Logger()",
+      "implementationType": "new MediatR.Tests.PipelineTests.Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 956,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.StreamPipelineTests.Logger()",
+      "implementationType": "new MediatR.Tests.StreamPipelineTests.Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 957,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.SendTests.Dependency()",
+      "implementationType": "new MediatR.Tests.SendTests.Dependency()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 958,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new System.IO.StringWriter()",
+      "implementationType": "new System.IO.StringWriter()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 959,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IBlogger\u003C\u003E)",
+      "implementationType": "typeof(Blogger\u003C\u003E)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 960,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining\u003CFooRequest\u003E();\r\n            cfg.AddOpenBehaviors(behaviorTypeList);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1040,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1045,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "logger",
+      "implementationType": "logger",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1047,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.PipelineTests.Logger()",
+      "implementationType": "new MediatR.Tests.PipelineTests.Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1048,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.StreamPipelineTests.Logger()",
+      "implementationType": "new MediatR.Tests.StreamPipelineTests.Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1049,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new MediatR.Tests.SendTests.Dependency()",
+      "implementationType": "new MediatR.Tests.SendTests.Dependency()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1050,
+      "confidence": 1
+    },
+    {
+      "serviceType": "new System.IO.StringWriter()",
+      "implementationType": "new System.IO.StringWriter()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1051,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IBlogger\u003C\u003E)",
+      "implementationType": "typeof(Blogger\u003C\u003E)",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1052,
+      "confidence": 1
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1105,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1106,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(PipelineTests).Assembly);\r\n            cfg.AddOpenBehavior(typeof(ListResponseBehavior\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1107,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 63,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 64,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IStreamPipelineBehavior\u003CStreamPing, Pong\u003E",
+      "implementationType": "OuterBehavior",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IStreamPipelineBehavior\u003CStreamPing, Pong\u003E",
+      "implementationType": "InnerBehavior",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 66,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 67,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "output",
+      "implementationType": "output",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 94,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 95,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssembly(typeof(Ping).Assembly);\r\n            cfg.AddStreamBehavior\u003CIStreamPipelineBehavior\u003CStreamPing, Pong\u003E, OuterBehavior\u003E();\r\n            cfg.AddStreamBehavior\u003CIStreamPipelineBehavior\u003CStreamPing, Pong\u003E, InnerBehavior\u003E();\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 96,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssemblyContaining(typeof(Ping))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 86,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new Logger()",
+      "implementationType": "new Logger()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 87,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddKeyedSingleton",
+      "implementationType": "\u0022Foo\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddKeyedSingleton"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 88,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E cfg.RegisterServicesFromAssemblyContaining(typeof(Ping))",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 89,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 37,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining\u003CNotification\u003E();\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 56,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining\u003CNotification\u003E();\r\n            cfg.NotificationPublisherType = typeof(TaskWhenAllPublisher);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 57,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\Streams\\StreamPipelineBehaviorTests.cs",
+      "lineNumber": 54,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "opts =\u003E\r\n        {\r\n            opts.RegisterServicesFromAssemblyContaining\u003CPublishTests\u003E();\r\n            opts.AddStreamBehavior\u003CSingSongPipelineBehavior\u003E();\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\Streams\\StreamPipelineBehaviorTests.cs",
+      "lineNumber": 55,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblies(typeof(Ping).Assembly);\r\n            cfg.AddOpenBehavior(typeof(TimeoutBehavior\u003C,\u003E), ServiceLifetime.Transient);\r\n            cfg.RegisterGenericHandlers = true;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 23,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "_dependency",
+      "implementationType": "_dependency",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "serviceType": "dependency",
+      "implementationType": "dependency",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 307,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 308,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());\r\n            cfg.RegisterGenericHandlers = true;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 309,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IRequestHandler\u003CVoidGenericPing\u003CPongExtension\u003E\u003E",
+      "implementationType": "TestClass1PingRequestHandler",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 315,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 331,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "dependency",
+      "implementationType": "dependency",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 332,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E \r\n        {\r\n            cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());\r\n            cfg.RegisterGenericHandlers = true;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 333,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IRequestHandler\u003CVoidGenericPing\u003CPongExtension\u003E\u003E",
+      "implementationType": "TestClass1PingRequestHandler",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 338,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 52,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IMediator",
+      "implementationType": "Mediator",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 53,
+      "confidence": 1
+    },
+    {
+      "serviceType": "config",
+      "implementationType": "config",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "serviceType": "LicenseAccessor",
+      "implementationType": "LicenseAccessor",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 56,
+      "confidence": 1
+    },
+    {
+      "serviceType": "LicenseValidator",
+      "implementationType": "LicenseValidator",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 57,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFakeLogging",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFakeLogging"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 70,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IMediator",
+      "implementationType": "Mediator",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 71,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "BuildMediator",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.AspNetCore\\Program.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "BuildMediator",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.Autofac\\Program.cs",
+      "lineNumber": 87,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "BuildMediator",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.LightInject\\Program.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "Main",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\Program.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "Send",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 60,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "Send",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 78,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "Send",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 113,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "PublishNotification",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 155,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "CreateStream",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 173,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Mediator",
+      "callerMethod": "CreateStream",
+      "targetType": "wrapperType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Mediator.cs",
+      "lineNumber": 200,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MediatRServiceCollectionExtensions",
+      "callerMethod": "CheckLicense",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\MicrosoftExtensionsDI\\MediatRServiceCollectionExtensions.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MediatRServiceCollectionExtensions",
+      "callerMethod": "CheckLicense",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\MicrosoftExtensionsDI\\MediatRServiceCollectionExtensions.cs",
+      "lineNumber": 66,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceRegistrar",
+      "callerMethod": "AddRequiredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 468,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceRegistrar",
+      "callerMethod": "AddRequiredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 469,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceRegistrar",
+      "callerMethod": "AddRequiredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 476,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceRegistrar",
+      "callerMethod": "AddRequiredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 480,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceRegistrar",
+      "callerMethod": "AddRequiredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Registration\\ServiceRegistrar.cs",
+      "lineNumber": 487,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\RequestHandlerWrapper.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\RequestHandlerWrapper.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\RequestHandlerWrapper.cs",
+      "lineNumber": 60,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\RequestHandlerWrapper.cs",
+      "lineNumber": 66,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "StreamRequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\StreamRequestHandlerWrapper.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "StreamRequestHandlerWrapperImpl",
+      "callerMethod": "Handle",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\Wrappers\\StreamRequestHandlerWrapper.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Benchmarks",
+      "callerMethod": "GlobalSetup",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Benchmarks\\Benchmarks.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "GenericRequestHandlerTests",
+      "callerMethod": "ShouldResolveAllCombinationsOfGenericHandler",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "GenericRequestHandlerTests",
+      "callerMethod": "ShouldNotRegisterGenericHandlersWhenOptingOut",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericRequestHandlerTests.cs",
+      "lineNumber": 190,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "AssemblyResolutionTests",
+      "callerMethod": "ShouldNotThrowWhenAssemblyThrowsReflectionTypeLoadException",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\AssemblyResolutionTests.cs",
+      "lineNumber": 108,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CustomMediatorTests",
+      "callerMethod": "Can_Call_AddMediatr_multiple_times",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\CustomMediatorTests.cs",
+      "lineNumber": 61,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_BaseEvent_Should_Call_BaseEventHandler_Once",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_BaseEvent_Should_Call_BaseEventHandler_Once",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_DerivedEvent_Should_Call_BaseEventHandler_ExactlyOnce",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 85,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_DerivedEvent_Should_Call_BaseEventHandler_ExactlyOnce",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 87,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_DerivedEvent_Should_Call_DerivedEventHandler_Once",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 97,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Issue1118Tests",
+      "callerMethod": "Publishing_DerivedEvent_Should_Call_DerivedEventHandler_Once",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 99,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldResolveDefaultPublisher",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldResolveDefaultPublisher",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldSubstitutePublisherInstance",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 63,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldSubstitutePublisherServiceType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 85,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldSubstitutePublisherServiceType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 86,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldSubstitutePublisherServiceTypeWithWhenAll",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 111,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "ShouldSubstitutePublisherServiceTypeWithWhenAll",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\NotificationPublisherTests.cs",
+      "lineNumber": 112,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineMultiCallToConstructorTests",
+      "callerMethod": "Should_not_call_constructor_multiple_times_when_using_a_pipeline",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 92,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_wrap_with_behavior",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 407,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_wrap_generics_with_behavior",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 442,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_register_pre_and_post_processors",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 479,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_pick_up_specific_exception_behaviors",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 509,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_pick_up_base_exception_behaviors",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 527,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_handle_exceptions_from_behaviors",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 549,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_pick_up_exception_actions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 567,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_handle_constrained_generics",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 599,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_auto_register_processors_when_configured_including_all_concrete_types",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 871,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_auto_register_processors_when_configured_including_all_concrete_types",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 876,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_register_correctly",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 966,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_register_open_behaviors_correctly",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1058,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PipelineTests",
+      "callerMethod": "Should_apply_open_behavior_with_nested_generic_response_type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1113,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "StreamPipelineTests",
+      "callerMethod": "Should_wrap_with_behavior",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 70,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "StreamPipelineTests",
+      "callerMethod": "Should_register_and_wrap_with_behavior",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\StreamPipelineTests.cs",
+      "lineNumber": 104,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "TypeResolutionTests",
+      "callerMethod": "ShouldHandleKeyedServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\TypeResolutionTests.cs",
+      "lineNumber": 92,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "Should_handle_sequentially_by_default",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "NotificationPublisherTests",
+      "callerMethod": "Should_handle_sequentially_by_default",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 64,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "SendTests",
+      "callerMethod": "Should_resolve_closed_handler_if_defined",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 317,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "SendTests",
+      "callerMethod": "Should_resolve_open_handler_if_not_defined",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 340,
+      "confidence": 1
+    },
+    {
+      "type": "MediatRHandlerDetection",
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "AsyncPingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\AsyncPingedHandler.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "SyncPingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples.PublishStrategies\\SyncPingedHandler.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "PingResource",
+      "responseType": "Pong",
+      "handlerType": "PingResourceHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\ExceptionHandler\\Handlers.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "PingNewResource",
+      "responseType": "Pong",
+      "handlerType": "PingNewResourceHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\ExceptionHandler\\Handlers.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "requestType": "PingResourceTimeout",
+      "responseType": "Pong",
+      "handlerType": "PingResourceTimeoutHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\ExceptionHandler\\Handlers.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "requestType": "Overrides.PingResourceTimeout",
+      "responseType": "Pong",
+      "handlerType": "PingResourceTimeoutOverrideHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\ExceptionHandler\\Handlers.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "requestType": "PingProtectedResource",
+      "responseType": "Pong",
+      "handlerType": "PingProtectedResourceHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\ExceptionHandler\\Handlers.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "requestType": "INotification",
+      "responseType": "Unit",
+      "handlerType": "GenericHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\GenericHandler.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "Jing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\Jing.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\Ping.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "PingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\PingedHandler.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ponged",
+      "responseType": "Unit",
+      "handlerType": "PongedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\PingedHandler.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "requestType": "TNotification",
+      "responseType": "Unit",
+      "handlerType": "ConstrainedPingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\PingedHandler.cs",
+      "lineNumber": 38,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "PingedAlsoHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\PingedHandler.cs",
+      "lineNumber": 54,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\samples\\MediatR.Examples\\PingHandler.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "requestType": "TNotification",
+      "responseType": "Unit",
+      "handlerType": "NotificationHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\src\\MediatR\\INotificationHandler.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Benchmarks\\Ping.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "PingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Benchmarks\\Pinged.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ding",
+      "responseType": "Unit",
+      "handlerType": "Door1",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Notifications\\Ding.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ding",
+      "responseType": "Unit",
+      "handlerType": "Door2",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Notifications\\Ding.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ding",
+      "responseType": "Unit",
+      "handlerType": "Door3",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Notifications\\Ding.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "requestType": "InternalPing",
+      "responseType": "Pong",
+      "handlerType": "Handler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Requests\\InternalPing.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "requestType": "PrivatePing",
+      "responseType": "Pong",
+      "handlerType": "Handler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Requests\\PrivatePing.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "requestType": "PublicPing",
+      "responseType": "Pong",
+      "handlerType": "Handler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.DependencyInjectionTests\\Contracts\\Requests\\PublicPing.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "AsyncPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "AsyncVoidPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 34,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "NullPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidNullPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "requestType": "NullPing",
+      "responseType": "Pong",
+      "handlerType": "NullPingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 54,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "PingException",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ExceptionTests.cs",
+      "lineNumber": 228,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "Jing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericTypeConstraintsTests.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericTypeConstraintsTests.cs",
+      "lineNumber": 69,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\GenericTypeConstraintsTests.cs",
+      "lineNumber": 79,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "requestType": "Zong",
+      "responseType": "Unit",
+      "handlerType": "Zing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "Ding",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "InternalPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "requestType": "INotification",
+      "responseType": "Unit",
+      "handlerType": "GenericHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 52,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "PingedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pinged",
+      "responseType": "Unit",
+      "handlerType": "PingedAlsoHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 73,
+      "confidence": 1
+    },
+    {
+      "requestType": "TNotification",
+      "responseType": "Unit",
+      "handlerType": "PingedAlsoOpenHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 81,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 92,
+      "confidence": 1
+    },
+    {
+      "requestType": "DerivedPing",
+      "responseType": "Pong",
+      "handlerType": "DerivedPingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 110,
+      "confidence": 1
+    },
+    {
+      "requestType": "Zing",
+      "responseType": "Zong",
+      "handlerType": "ZingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 125,
+      "confidence": 1
+    },
+    {
+      "requestType": "string",
+      "responseType": "Unit",
+      "handlerType": "DuplicateTest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 156,
+      "confidence": 1
+    },
+    {
+      "requestType": "DuplicateTest",
+      "responseType": "string",
+      "handlerType": "DuplicateHandler1",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 157,
+      "confidence": 1
+    },
+    {
+      "requestType": "DuplicateTest",
+      "responseType": "string",
+      "handlerType": "DuplicateHandler2",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 165,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "OpenGenericVoidRequest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 219,
+      "confidence": 1
+    },
+    {
+      "requestType": "string",
+      "responseType": "Unit",
+      "handlerType": "OpenGenericReturnTypeRequest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 227,
+      "confidence": 1
+    },
+    {
+      "requestType": "OpenGenericReturnTypeRequest\u003CT\u003E",
+      "responseType": "string",
+      "handlerType": "OpenGenericReturnTypeRequestHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 230,
+      "confidence": 1
+    },
+    {
+      "requestType": "T",
+      "responseType": "Unit",
+      "handlerType": "GenericPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 236,
+      "confidence": 1
+    },
+    {
+      "requestType": "GenericPing\u003CT\u003E",
+      "responseType": "T",
+      "handlerType": "GenericPingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 242,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidGenericPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 248,
+      "confidence": 1
+    },
+    {
+      "requestType": "Bar",
+      "responseType": "Unit",
+      "handlerType": "Foo",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 265,
+      "confidence": 1
+    },
+    {
+      "requestType": "Foo",
+      "responseType": "Bar",
+      "handlerType": "FooHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Handlers.cs",
+      "lineNumber": 276,
+      "confidence": 1
+    },
+    {
+      "requestType": "BaseEvent",
+      "responseType": "Unit",
+      "handlerType": "BaseEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 33,
+      "confidence": 1
+    },
+    {
+      "requestType": "DerivedEvent",
+      "responseType": "Unit",
+      "handlerType": "DerivedEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\Issue1118Tests.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "requestType": "ConstructorTestResponse",
+      "responseType": "Unit",
+      "handlerType": "ConstructorTestRequest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "requestType": "ConstructorTestRequest",
+      "responseType": "ConstructorTestResponse",
+      "handlerType": "ConstructorTestHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipeLineMultiCallToConstructorTest.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "requestType": "List\u003CPong\u003E",
+      "responseType": "Unit",
+      "handlerType": "ListPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1072,
+      "confidence": 1
+    },
+    {
+      "requestType": "ListPing",
+      "responseType": "List\u003CPong\u003E",
+      "handlerType": "ListPingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\MicrosoftExtensionsDI\\PipelineTests.cs",
+      "lineNumber": 1074,
+      "confidence": 1
+    },
+    {
+      "requestType": "Notification",
+      "responseType": "Unit",
+      "handlerType": "FirstHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "requestType": "Notification",
+      "responseType": "Unit",
+      "handlerType": "SecondHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\NotificationPublisherTests.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestExceptionActionTests.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestExceptionActionTests.cs",
+      "lineNumber": 38,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestExceptionHandlerTests.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestExceptionHandlerTests.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestPostProcessorTests.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestPostProcessorTests.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestPreProcessorTests.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\Pipeline\\RequestPreProcessorTests.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PipelineTests.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PipelineTests.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "requestType": "Zong",
+      "responseType": "Unit",
+      "handlerType": "Zing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PipelineTests.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PipelineTests.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "requestType": "Zing",
+      "responseType": "Zong",
+      "handlerType": "ZingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PipelineTests.cs",
+      "lineNumber": 67,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Unit",
+      "handlerType": "PongHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PublishTests.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Unit",
+      "handlerType": "PungHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\PublishTests.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 34,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "requestType": "Ping",
+      "responseType": "Pong",
+      "handlerType": "PingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "requestType": "T",
+      "responseType": "Unit",
+      "handlerType": "GenericPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "requestType": "GenericPing\u003CT\u003E",
+      "responseType": "T",
+      "handlerType": "GenericPingHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 82,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "VoidGenericPing",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 97,
+      "confidence": 1
+    },
+    {
+      "requestType": "int",
+      "responseType": "Unit",
+      "handlerType": "MultipleGenericTypeParameterRequest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 141,
+      "confidence": 1
+    },
+    {
+      "requestType": "MultipleGenericTypeParameterRequest\u003CT1, T2, T3\u003E",
+      "responseType": "int",
+      "handlerType": "MultipleGenericTypeParameterRequestHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 149,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "TimeoutRequest",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 177,
+      "confidence": 1
+    },
+    {
+      "requestType": "int",
+      "responseType": "Unit",
+      "handlerType": "TimeoutRequest2",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 181,
+      "confidence": 1
+    },
+    {
+      "requestType": "TimeoutRequest2",
+      "responseType": "int",
+      "handlerType": "TimeoutRequest2Handler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendTests.cs",
+      "lineNumber": 199,
+      "confidence": 1
+    },
+    {
+      "requestType": "\u003Cself\u003E",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\SendVoidInterfaceTests.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "requestType": "Pong",
+      "responseType": "Unit",
+      "handlerType": "Ping",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\MediatR\\test\\MediatR.Tests\\ServiceFactoryTests.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongExceptionActionForType1\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.GenericPingExceptionHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.GenericTypeConstraintPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.InnerStreamBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NotAnOpenStreamBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.DingAsyncHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pinged\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ITestInterface1\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.VoidGenericPingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.LightInjectDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.MyCustomMediator\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Requests.PrivateVoidPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TimeoutBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FirstConcretePostProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Pinged\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PublishTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongExceptionHandlerForType\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.StreamPipelineTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.SequentialPublisher\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Included.Bar\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NotAnOpenBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FirstPreProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongException\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.CreateStreamTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongApplicationExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.TypeEvaluatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongExceptionActionForType2\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Abstractions.BaseServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.NotificationPublisherTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PongException\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.MicrosoftDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ServiceFactoryCollectionBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.GenericTypeRequestHandlerTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.LamarServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ITypeArgument\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.LightInjectServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NextConcretePostProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenBehaviorMultipleRegistration2\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PipelineTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongExceptionHandlerNotHandled\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.StreamRequests.InternalZing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Licensing.LicenseValidatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ITestInterface2\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NextPreProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.MicrosoftExtensionsDI.BaseGenericRequestHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ThrowingBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NotificationPublisherTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.MicrosoftServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenBehaviorMultipleRegistration0\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.StreamRequests.PrivateZing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.AssemblyResolutionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.VoidGenericPingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Pong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.MultiOpenBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.GenericExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.CustomMediatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.InnerVoidBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Responses.Zong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Requests.PublicVoidPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.StashBoxServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.DerivedEvent\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.StreamRequests.PublicZing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Requests.PrivatePing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.AutoFacDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Streams.StreamPipelineBehaviorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.TypeResolutionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.IGenericTypeRequestHandlerTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ConstructorTestResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ListResponseBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.AutoFacServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.BaseEvent\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ConcreteTypeArgument\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Abstractions.BaseAssemblyResolutionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TestClass1\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ServiceFactoryTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Responses.Pong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.OuterVoidBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TestClass3\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.IBlogger\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PongExtension\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.NullPinged\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.RequestExceptionActionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FirstPostProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingStreamHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongPostProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.StreamPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Pong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPreProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.GenericTypeConstraintJing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.DerivingRequestsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PingExceptionHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.StreamPipelineTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Requests.PublicPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.InternalPingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongGenericExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.VoidPingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FooRequest\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongExceptionHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.RequestExceptionHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.DryIocDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenGenericVoidRequestHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ClosedBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Providers.DryIocServiceProviderFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenStreamBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NextPostProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.UnitTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.LamarDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.GenericRequestHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PongChildHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.NextConcretePreProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.SendTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ConstrainedBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.NotificationHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.MockPublisher\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ConstrainedBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FooRequestHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.DerivedPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.NonRequest\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.SendVoidInterfaceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.GenericTypeConstraintsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.ConstructorTestBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongGenericExceptionHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Logger\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PipelineMultiCallToConstructorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.FirstConcretePreProcessor\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ITestInterface3\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.RequestPostProcessorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PipelineTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.SequentialMediator\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Licensing.LicenseAccessorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Dependency\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Zong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OuterStreamBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.Contracts.Requests.InternalVoidPing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Open2Behavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Streams.SingSongPipelineBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TestClass2\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.VoidNullPingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Streams.SingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.PingStreamHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ExceptionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Streams.Sing\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Blogger\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.Streams.Song\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TestContainer\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.BrokenAssembly\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PingPongThrowingExceptionHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.TimeoutRequestHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.AsyncPinged\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.DuplicateAssemblyResolutionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.PingPongExceptionHandlerForType\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.ConcreteBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.RequestPreProcessorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Pipeline.PongExceptionAction\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Notification\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.JingHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Zong\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.Issue1118Tests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Tests.Logger\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.DependencyInjectionTests.StashBoxDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027MediatR.Extensions.Microsoft.DependencyInjection.Tests.OpenBehaviorMultipleRegistration1\u0027; TokenBudgetEnforcer: kept 22 types (325 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.3797696",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.1948050",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0022666",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:01.9013506",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0299120",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0212701",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:01.8759903",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.1911666",
+        "typesAdded": 347,
+        "detectionsAdded": 164,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.9190809",
+        "typesAdded": 0,
+        "detectionsAdded": 164,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.3443384",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2703955",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1013255",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0554897",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0329133",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0230307",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0222284",
+        "typesAdded": 0,
+        "detectionsAdded": 155,
+        "skipped": false
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0219930",
+        "typesAdded": 0,
+        "detectionsAdded": 155,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0186870",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0167332",
+        "typesAdded": 0,
+        "detectionsAdded": 130,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 347,
+        "typesAfter": 22
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 347,
+        "typesAfter": 347
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 657
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 0
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 166,
+      "syntaxTreeHits": 909,
+      "syntaxTreeMisses": 151
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 151,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.1948050",
+      "stage2CpuSum": "00:00:02.4963035",
+      "stage3Wall": "00:00:01.9013506",
+      "stage3CpuSum": "00:00:02.0382704"
+    },
+    "totalWall": "00:00:03.9226654"
+  }
+}

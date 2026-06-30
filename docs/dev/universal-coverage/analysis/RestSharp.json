@@ -1,0 +1,591 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:55:02.9403295Z",
+  "solution": {
+    "name": "RestSharp",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\RestSharp.slnx",
+    "projectPaths": [
+      "benchmarks/RestSharp.Benchmarks/RestSharp.Benchmarks.csproj",
+      "src/RestSharp.Serializers.CsvHelper/RestSharp.Serializers.CsvHelper.csproj",
+      "src/RestSharp.Serializers.NewtonsoftJson/RestSharp.Serializers.NewtonsoftJson.csproj",
+      "src/RestSharp.Serializers.Xml/RestSharp.Serializers.Xml.csproj",
+      "gen/SourceGenerator/SourceGenerator.csproj",
+      "test/RestSharp.InteractiveTests/RestSharp.InteractiveTests.csproj",
+      "test/RestSharp.Tests.DependencyInjection/RestSharp.Tests.DependencyInjection.csproj",
+      "test/RestSharp.Tests.Integrated/RestSharp.Tests.Integrated.csproj",
+      "test/RestSharp.Tests.Serializers.Csv/RestSharp.Tests.Serializers.Csv.csproj",
+      "test/RestSharp.Tests.Serializers.Json/RestSharp.Tests.Serializers.Json.csproj",
+      "test/RestSharp.Tests.Serializers.Xml/RestSharp.Tests.Serializers.Xml.csproj",
+      "test/RestSharp.Tests.Shared/RestSharp.Tests.Shared.csproj",
+      "test/RestSharp.Tests/RestSharp.Tests.csproj",
+      "src/RestSharp.Extensions.DependencyInjection/RestSharp.Extensions.DependencyInjection.csproj",
+      "src/RestSharp/RestSharp.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "polly",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 15,
+    "names": [
+      "RestSharp",
+      "RestSharp.Benchmarks",
+      "RestSharp.Extensions.DependencyInjection",
+      "RestSharp.InteractiveTests",
+      "RestSharp.Serializers.CsvHelper",
+      "RestSharp.Serializers.NewtonsoftJson",
+      "RestSharp.Serializers.Xml",
+      "RestSharp.Tests",
+      "RestSharp.Tests.DependencyInjection",
+      "RestSharp.Tests.Integrated",
+      "RestSharp.Tests.Serializers.Csv",
+      "RestSharp.Tests.Serializers.Json",
+      "RestSharp.Tests.Serializers.Xml",
+      "RestSharp.Tests.Shared",
+      "SourceGenerator"
+    ]
+  },
+  "typesSummary": {
+    "found": 344,
+    "inOutput": 21,
+    "prunedPercent": 93.9
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddHttpClient",
+      "implementationType": "name",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "sp =\u003E {\r\n                        var client = sp.GetRequiredService\u003CIHttpClientFactory\u003E().CreateClient(name);\r\n                        return new RestClient(client, options);\r\n                    }",
+      "implementationType": "sp =\u003E {\r\n                        var client = sp.GetRequiredService\u003CIHttpClientFactory\u003E().CreateClient(name);\r\n                        return new RestClient(client, options);\r\n                    }",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new RestClient(client, options)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "Constants.DefaultRestClient",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 60,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "Constants.DefaultRestClient",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 67,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "Constants.DefaultRestClient",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 76,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "Constants.DefaultRestClient",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 86,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "name",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 94,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "name",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 103,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "new Uri(server.Url!)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\test\\RestSharp.Tests.DependencyInjection\\DefaultClientRequestTests.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "ClientName",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\test\\RestSharp.Tests.DependencyInjection\\NamedClientWithBaseUrlRequestTests.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRestClient",
+      "implementationType": "ClientName",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRestClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\test\\RestSharp.Tests.DependencyInjection\\NamedClientWithOptionsRequestTests.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensions",
+      "callerMethod": "AddRestClient",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Extensions.DependencyInjection\\ServiceCollectionExtensions.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CsvHelperSerializer",
+      "callerMethod": "Deserialize",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.CsvHelper\\CsvHelperSerializer.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "XmlDeserializer",
+      "callerMethod": "Deserialize",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.Xml\\XmlDeserializer.cs",
+      "lineNumber": 58,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "XmlDeserializer",
+      "callerMethod": "Map",
+      "targetType": "type.AsType()",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.Xml\\XmlDeserializer.cs",
+      "lineNumber": 149,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "XmlDeserializer",
+      "callerMethod": "Map",
+      "targetType": "asType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.Xml\\XmlDeserializer.cs",
+      "lineNumber": 251,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "XmlDeserializer",
+      "callerMethod": "HandleListDerivative",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.Xml\\XmlDeserializer.cs",
+      "lineNumber": 331,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "XmlDeserializer",
+      "callerMethod": "CreateAndMap",
+      "targetType": "t",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp.Serializers.Xml\\XmlDeserializer.cs",
+      "lineNumber": 450,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "ReflectionExtensions",
+      "callerMethod": "FindEnumValue",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\RestSharp\\src\\RestSharp\\Extensions\\ReflectionExtensions.cs",
+      "lineNumber": 88,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Parameters.ParameterValidationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Database\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.InlineListSample\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Header\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.HttpBasicAuthTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.user\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.ErrorMessageTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.TestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Error\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.SearchResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.TestResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.forecast_conditions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Group\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.LastfmBase\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.EmployeeTracker\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.ContactData\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoogleWeather\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.TestAuthenticator\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.PostParameter\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.StructuredSyntaxSuffixTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GuidList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.AuthenticationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.SearchRulesResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Fixtures.RequestBodyCapturer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ColorWithValue\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ForecastInformation\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.Queue\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Forecast_information\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.RequestBodyTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.RequestFailureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuthTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Event\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.WrongNote\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Current_conditions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.EventArtistList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Interceptor.InterceptorChecks\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GenericWithList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Foe\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.JsonEnumTypesTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.ITwitterClient\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.NewtonsoftJson.IntegratedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Birthdate\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Fixtures.CookieExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.TimeSpanTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ServiceImage1\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.SystemTextJson.SystemTextJsonTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.CookieInternal\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.NewtonsoftJson.SerializationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterKeys\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Person\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.artist\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.JsonEnumsTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.UploadFileTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Parameters.HeaderRangeTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth1SignatureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DeserializeAsTest.SingleNode\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.VenuesResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Weather\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoodReadsReview\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.SyncRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.DependencyInjection.NamedClientWithBaseUrlRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Authentication.AuthenticationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Extensions.UriExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.QueueItem\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.CurrentConditions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.RequestHeaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.NamedItems\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.HostHeaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Fixtures.MockHttpClient\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.NonProtocolExceptionHandlingTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.JsonLists\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.SimpleTypesListSample\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Authentication.OAuth2Tests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth2TokenAuthenticatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.TestRequest\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.EmailAddress\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.TwilioCallList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.ThrowingInterceptor\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.CredentialConfigurationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.JwtAuthTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.TestServerResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ItemsResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.MultipartFormTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.SimpleStruct\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Csv.CsvHelperTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.status\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.RestContentTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.Item\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Extensions.StreamExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth1AuthTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.RequestTestsBase\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.OptionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Payment\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.CookieExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.DownloadFileTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.FoeList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Image\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.NamespacedXmlTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DecimalNumber\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.AddStreamSearchRule\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.IncomingInvoice\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Csv.TestObjectCustomization\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.CookieRedirectTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DateTimeResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Band\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.UrlBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.MultipartFormDataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.AuthenticatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.WackyPerson\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ServiceImage\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DeserializeAsTest.NodeWithAttributeAndValue\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterClient\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Fixtures.WebServer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.OrderedProperties\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoogleDataElement\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.InvariantCultureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.BooleanTest\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Performer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ValueCollectionForXml\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Venue\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DataElement\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth2ClientCredentialsAuthenticatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.UploadResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Generic\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.NestedListSample\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HttpTracer.OutputHttpTracerLogger\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterSingleObject\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.NtlmTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.XmlSerializerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.XmlAttributeDeserializerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.FakeHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.AddSearchRulesRequest\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.RestClientTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth2RefreshTokenAuthenticatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Extensions.WireMockExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Header\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Interceptor.InterceptorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.NewtonsoftJson.IntegratedSimpleTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HttpHeadersTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.RestRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.XmlDeserializerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.DefaultParameterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.JsonBodyTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.ResourceStringParametersTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.PutTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Fixtures.SimpleServer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ItemWithGroup\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.BearerToken\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.INamed\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.ProxyTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Oddball\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Headers.DefaultHeaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.TestClient\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.EmptyListSample\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.Person\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterAuthenticator\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Json.Subclass\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.PersonForXml\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Row\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.PersonList\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ItemContainer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Response\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.VenueSearch\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Interceptor.TestInterceptor\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Call\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.image\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HttpTracer.IHttpTracerLogger\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DatabaseCollection\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HttpClientTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.PersonForJson\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ItemGroup\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.StatusCodeTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Friend\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TokenResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterUser\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Fixtures.RequestHeadCapturer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ForecastConditions\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.NullableValues\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.RequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.RedirectTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.XmlResponseTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoogleWeatherApi\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.Contacts\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.NewDateTimeTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.CookieTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.Fixtures.CaptureFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.DownloadDataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.InteractiveTests.TwitterCollectionObject\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.ClassWithEnum\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.DateTimeTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.CompressionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Auth.OAuth1Tests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Iso8601DateTimeTestStructure\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.xml_api_reply\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.PostTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoodReadsBook\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.DependencyInjection.NamedClientWithOptionsRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ValueForXml\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.DependencyInjection.DefaultClientRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Parameters.UrlSegmentTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.PerformerSearch\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.GoodReadsReviewCollection\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.RootElementTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.SuccessResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.complexStatus\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Item\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.Note\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.SoUser\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.StringExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Serializers.Xml.SampleClasses.ObjectProperties\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HttpTracer.HttpTracerHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.HeaderInterceptor\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Fixtures.Handlers\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Shared.Server.WireMockTestServer\u0027; PatternRelevancePruner: excluded test-project type \u0027RestSharp.Tests.Integrated.StupidClass\u0027; PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 30 types (314 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.3467005",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.5044953",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0012991",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2767806",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0299079",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0185810",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.5008697",
+        "typesAdded": 344,
+        "detectionsAdded": 11,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4986382",
+        "typesAdded": 1,
+        "detectionsAdded": 11,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2472823",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.2113599",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1839561",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1308143",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0903523",
+        "typesAdded": 0,
+        "detectionsAdded": 8,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0462260",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0313694",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0234370",
+        "typesAdded": 0,
+        "detectionsAdded": 8,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0179783",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0177549",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 344,
+        "typesAfter": 30
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 344,
+        "typesAfter": 344
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 796
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 39
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 260,
+      "syntaxTreeHits": 1206,
+      "syntaxTreeMisses": 245
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 245,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.5044953",
+      "stage2CpuSum": "00:00:03.2466010",
+      "stage3Wall": "00:00:00.2767806",
+      "stage3CpuSum": "00:00:00.4285597"
+    },
+    "totalWall": "00:00:02.6765609"
+  }
+}

@@ -1,0 +1,1479 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:54:41.8374892Z",
+  "solution": {
+    "name": "dotnet",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\dotnet.slnx",
+    "projectPaths": [
+      "tests/CommunityToolkit.Common.UnitTests/CommunityToolkit.Common.UnitTests.csproj",
+      "tests/CommunityToolkit.Diagnostics.UnitTests/CommunityToolkit.Diagnostics.UnitTests.csproj",
+      "tests/CommunityToolkit.HighPerformance.UnitTests/CommunityToolkit.HighPerformance.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4001/CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4001.csproj",
+      "tests/CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4031/CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4031.csproj",
+      "tests/CommunityToolkit.Mvvm.Internals.UnitTests/CommunityToolkit.Mvvm.Internals.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.Roslyn4001.UnitTests/CommunityToolkit.Mvvm.Roslyn4001.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.Roslyn4031.UnitTests/CommunityToolkit.Mvvm.Roslyn4031.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.Roslyn4120.UnitTests/CommunityToolkit.Mvvm.Roslyn4120.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.Roslyn5000.UnitTests/CommunityToolkit.Mvvm.Roslyn5000.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001.UnitTests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031.UnitTests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120.UnitTests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000.UnitTests/CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000.UnitTests.csproj",
+      "tests/CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests/CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests.csproj",
+      "src/CommunityToolkit.Common/CommunityToolkit.Common.csproj",
+      "src/CommunityToolkit.Diagnostics/CommunityToolkit.Diagnostics.csproj",
+      "src/CommunityToolkit.HighPerformance/CommunityToolkit.HighPerformance.csproj",
+      "src/CommunityToolkit.Mvvm.CodeFixers.Roslyn4001/CommunityToolkit.Mvvm.CodeFixers.Roslyn4001.csproj",
+      "src/CommunityToolkit.Mvvm.CodeFixers.Roslyn4120/CommunityToolkit.Mvvm.CodeFixers.Roslyn4120.csproj",
+      "src/CommunityToolkit.Mvvm.CodeFixers.Roslyn5000/CommunityToolkit.Mvvm.CodeFixers.Roslyn5000.csproj",
+      "src/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001.csproj",
+      "src/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031.csproj",
+      "src/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120/CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120.csproj",
+      "src/CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000/CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000.csproj",
+      "src/CommunityToolkit.Mvvm/CommunityToolkit.Mvvm.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "desktop-ui",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 26,
+    "names": [
+      "CommunityToolkit.Common",
+      "CommunityToolkit.Common.UnitTests",
+      "CommunityToolkit.Diagnostics",
+      "CommunityToolkit.Diagnostics.UnitTests",
+      "CommunityToolkit.HighPerformance",
+      "CommunityToolkit.HighPerformance.UnitTests",
+      "CommunityToolkit.Mvvm",
+      "CommunityToolkit.Mvvm.CodeFixers.Roslyn4001",
+      "CommunityToolkit.Mvvm.CodeFixers.Roslyn4120",
+      "CommunityToolkit.Mvvm.CodeFixers.Roslyn5000",
+      "CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests",
+      "CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4001",
+      "CommunityToolkit.Mvvm.ExternalAssembly.Roslyn4031",
+      "CommunityToolkit.Mvvm.Internals.UnitTests",
+      "CommunityToolkit.Mvvm.Roslyn4001.UnitTests",
+      "CommunityToolkit.Mvvm.Roslyn4031.UnitTests",
+      "CommunityToolkit.Mvvm.Roslyn4120.UnitTests",
+      "CommunityToolkit.Mvvm.Roslyn5000.UnitTests",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4001.UnitTests",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4031.UnitTests",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn4120.UnitTests",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000",
+      "CommunityToolkit.Mvvm.SourceGenerators.Roslyn5000.UnitTests"
+    ]
+  },
+  "typesSummary": {
+    "found": 455,
+    "inOutput": 21,
+    "prunedPercent": 95.4
+  },
+  "detections": [
+    {
+      "type": "DesktopEntryDetection",
+      "typeName": "BaseViewModel.DoSomething",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.Roslyn4120.UnitTests\\Test_ObservablePropertyAttribute_PartialProperties.cs",
+      "lineNumber": 1077,
+      "confidence": 1
+    },
+    {
+      "typeName": "DependentPropertyModel2.TestFromMethod",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.Roslyn4120.UnitTests\\Test_ObservablePropertyAttribute_PartialProperties.cs",
+      "lineNumber": 1161,
+      "confidence": 1
+    },
+    {
+      "typeName": "InheritedModelWithCommandUsingInheritedObservablePropertyForCanExecute.Save",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.Roslyn4120.UnitTests\\Test_ObservablePropertyAttribute_PartialProperties.cs",
+      "lineNumber": 1589,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithOverriddenCommandMethodFromExternalBaseModel.Save",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.Roslyn4120.UnitTests\\Test_ObservablePropertyAttribute_PartialProperties.cs",
+      "lineNumber": 1610,
+      "confidence": 1
+    },
+    {
+      "typeName": "BaseViewModel.DoSomething",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1107,
+      "confidence": 1
+    },
+    {
+      "typeName": "DependentPropertyModel2.TestFromMethod",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1191,
+      "confidence": 1
+    },
+    {
+      "typeName": "InheritedModelWithCommandUsingInheritedObservablePropertyForCanExecute.Save",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1619,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithOverriddenCommandMethodFromExternalBaseModel.Save",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1640,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandNamesThatCantBeLowered.\u4E2D\u6587",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1711,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandNamesThatCantBeLowered.c\u4E2D\u6587",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservablePropertyAttribute.cs",
+      "lineNumber": 1716,
+      "confidence": 1
+    },
+    {
+      "typeName": "ViewModelForIssue13.Greet",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 706,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.IncrementCounter",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 725,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.IncrementCounterWithValue",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 734,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.DelayAndIncrementCounterAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 743,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.AddValueToListAndDelayAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 751,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.AddValueToListAndDelayWithDefaultConcurrencyAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 759,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.AddValueToListAndDelayWithDefaultConcurrencyAsync_WithCancelCommand",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 767,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.DelayAndIncrementCounterWithTokenAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 782,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.DelayAndIncrementCounterWithValueAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 791,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.DelayAndIncrementCounterWithValueAndTokenAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 801,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.AwaitForExternalTaskAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 809,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.AwaitForInputTaskAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 815,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_NoParameters_Property",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 840,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_WithParameter_Property",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 846,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_NoParameters_GeneratedProperty",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 852,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_WithParameter_GeneratedProperty",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 858,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_NoParameters_MethodWithNoParameters",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 864,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_WithParameters_MethodWithNoParameters",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 870,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_WithParameters_MethodWithMatchingParameter",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 876,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_NoParameters_Property",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 882,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_WithParameter_Property",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 890,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_NoParameters_GeneratedProperty",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 898,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_WithParameter_GeneratedProperty",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 906,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_NoParameters_MethodWithNoParameters",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 914,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_WithParameters_MethodWithNoParameters",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 922,
+      "confidence": 1
+    },
+    {
+      "typeName": "CanExecuteViewModel.IncrementCounter_Async_WithParameters_MethodWithMatchingParameter",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 930,
+      "confidence": 1
+    },
+    {
+      "typeName": "CancelCommandViewModel.DoWorkAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 954,
+      "confidence": 1
+    },
+    {
+      "typeName": "CancelCommandViewModel.DoWorkWithParameterAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 971,
+      "confidence": 1
+    },
+    {
+      "typeName": "GenericTaskCommands.GreetAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 991,
+      "confidence": 1
+    },
+    {
+      "typeName": "GenericTaskCommands.GreetWithTokenAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 999,
+      "confidence": 1
+    },
+    {
+      "typeName": "GenericTaskCommands.GreetWithParamAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1007,
+      "confidence": 1
+    },
+    {
+      "typeName": "GenericTaskCommands.GreetWithParamAndTokenAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1015,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCultureAwareCommandName.Initialize",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1027,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandMethodsWithOnPrefixes.On",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1043,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandMethodsWithOnPrefixes.Onboard",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1049,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandMethodsWithOnPrefixes.OnSubmit",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1055,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandMethodsWithOnPrefixes.OnDownloadAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1061,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithNullabilityAnnotations.NullableObject",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1072,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithNullabilityAnnotations.ListWithNullableType",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1077,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithNullabilityAnnotations.TupleWithNullableElements",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1082,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.Default",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1090,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.OfTDefault",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1096,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.AllowConcurrentExecutions",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1102,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.OfTAndAllowConcurrentExecutions",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1108,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.FlowExceptionsToTaskScheduler",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1114,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.OfTAndFlowExceptionsToTaskScheduler",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1120,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.AllowConcurrentExecutionsAndFlowExceptionsToTaskScheduler",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1126,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandsWithCustomOptions.OfTAndAllowConcurrentExecutionsAndFlowExceptionsToTaskScheduler",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1132,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandWithNullableCanExecute.DoSomething1",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1146,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandWithNullableCanExecute.DoSomething2",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1156,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithCommandWithNullableCanExecute.DoSomething3",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1166,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModelWithExplicitFieldAndPropertyAttributes.Foo",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1174,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModelWithExplicitFieldAndPropertyAttributes.Bar",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1185,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModelWithExplicitFieldAndPropertyAttributes.BazAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1192,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModelWithExplicitFieldAndPropertyAttributes.FooBar",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1199,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModelWithExplicitFieldAndPropertyAttributes.BarBaz",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1206,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithPartialCommandMethods.Foo",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1244,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithPartialCommandMethods.Bar",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1253,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithPartialCommandMethods.Baz",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1258,
+      "confidence": 1
+    },
+    {
+      "typeName": "ModelWithPartialCommandMethods.FooBarAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_RelayCommandAttribute.cs",
+      "lineNumber": 1273,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.Test",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_SourceGenerators.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "typeName": "MyViewModel.Test",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_SourceGenerators.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 0,
+      "callerType": "Test_ArgumentNullException",
+      "callerMethod": "Test_ArgumentNullException_Messenger",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ArgumentNullException.Messaging.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ArgumentNullException",
+      "callerMethod": "Test_ArgumentNullException_MessengerExtensions",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ArgumentNullException.Messaging.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_UnregisterRecipientWithMessageType",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_UnregisterRecipientWithMessageTypeAndToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_UnregisterRecipientWithToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_UnregisterRecipientWithRecipient",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 58,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterAndUnregisterRecipientWithMessageType",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 69,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterAndUnregisterRecipientWithMessageTypeAndToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 86,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterAndUnregisterRecipientWithMessageTypeAndMultipleTokens",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 103,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterAndUnregisterRecipientWithToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 173,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterAndUnregisterRecipientWithRecipient",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 190,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IsRegistered_Register_Send_UnregisterOfTMessage_WithNoToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 207,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IsRegistered_Register_Send_UnregisterRecipient_WithNoToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 246,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IsRegistered_Register_Send_UnregisterOfTMessage_WithToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 275,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_DuplicateRegistrationWithMessageType",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 304,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_DuplicateRegistrationWithMessageTypeAndToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 320,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IRecipient_NoMessages",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 336,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IRecipient_SomeMessages_NoToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 350,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IRecipient_SomeMessages_WithGenericTypeParameters",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 383,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_IRecipient_SomeMessages_WithToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 416,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterWithTypeParameter",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 452,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_Collect_Test",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 469,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_Reset",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 500,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_Cleanup",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 534,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ManyRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 569,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RegisterMultiple_UnregisterSingle",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 616,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ConcurrentOperations_DefaultChannel_SeparateRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 640,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ConcurrentOperations_DefaultChannel_SharedRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 710,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ConcurrentOperations_WithToken_SeparateRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 779,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ConcurrentOperations_WithToken_SharedRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 847,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_ConcurrentOperations_Combined_SeparateRecipients",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.cs",
+      "lineNumber": 918,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_CreateObservable",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Observables.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_CreateObservable_WithToken",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Observables.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RequestMessage_Ok",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RequestMessage_Fail_NoReply",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 50,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_RequestMessage_Fail_MultipleReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 64,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncRequestMessage_Ok_Sync",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 89,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncRequestMessage_Ok_Async",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 115,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncRequestMessage_Fail_NoReply",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 148,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncRequestMessage_Fail_MultipleReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 162,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_CollectionRequestMessage_Ok_NoReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 190,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_CollectionRequestMessage_Ok_MultipleReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 211,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncCollectionRequestMessage_Ok_NoReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 264,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncCollectionRequestMessage_Ok_MultipleReplies",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 285,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_Messenger",
+      "callerMethod": "Test_Messenger_AsyncCollectionRequestMessage_Ok_MultipleReplies_Enumerate",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_Messenger.Request.cs",
+      "lineNumber": 323,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableRecipient",
+      "callerMethod": "Test_ObservableRecipient_Activation",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableRecipient.cs",
+      "lineNumber": 28,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableRecipient",
+      "callerMethod": "Test_ObservableRecipient_IsSame",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableRecipient.cs",
+      "lineNumber": 49,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableRecipient",
+      "callerMethod": "Test_ObservableRecipient_Injection",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableRecipient.cs",
+      "lineNumber": 68,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableRecipient",
+      "callerMethod": "Test_ObservableRecipient_Broadcast",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableRecipient.cs",
+      "lineNumber": 79,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableValidator",
+      "callerMethod": "Test_ObservableRecipient_ValidationOnNonValidatableProperties",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableValidator.cs",
+      "lineNumber": 492,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Test_ObservableValidator",
+      "callerMethod": "Test_ObservableRecipient_ValidationOnNonValidatableProperties_WithFallback",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CommunityToolkit.Mvvm\\tests\\CommunityToolkit.Mvvm.UnitTests\\Test_ObservableValidator.cs",
+      "lineNumber": 503,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Collections.Test_ObservableGroupedCollectionExtensions\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_ReadOnlySpanExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Bar\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Test_BoxOfT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.GenericStruct\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.RecipientWithConcurrency\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BaseModelWithObservablePropertyAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Common.UnitTests.Extensions.Test_TaskExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests.Test_DisableINotifyPropertyChanging\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Vehicle\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithAttributeAndClassLevelAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Test_BitHelper\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.PersonWithCustomOnDeactivated\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.CustomValidationModel\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Test_SpanOwnerOfT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Test_MemoryOwnerOfT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.MyFormViewModel\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithObservablePropertyWithUnderscoreAndUppercase\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelForIssue13\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.PersonWithPartialDeclaration\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.TestObservableValidator\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Test_ReadOnlyMemory2DT\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Recipient\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.PersonWithCustomOnActivated\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithInheritedClassLevelAttribute\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.AsyncNumberRequestMessage\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Test_StringPool\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Collections.Test_ObservableGroup\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Test_Span2DT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Common.UnitTests.Extensions.Test_ArrayExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ObservableRecipient\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Foo\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Int\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.UnmanagedStruct1\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.BufferedStream\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Test_ParallelHelper\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ObservablePropertyAttribute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_RelayCommand\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_BoolExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Cat\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Test_TypeExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ConcreteViewModel\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Rabbit\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Region\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NestedRecord\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithMultipleGenericParameters\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.AsyncNumbersCollectionRequestMessage\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.AbstractModelWithValidatableProperty\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NumbersCollectionRequestMessage\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Streams.Test_MemoryStream\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Internals.UnmanagedSpanOwner\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithForwardedAttributesWithNegativeValues\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Test_Memory2DT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Streams.ReadOnlySequenceSegmentOfByte\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.TestStruct\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.DependentPropertyModel3\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCommandsWithNullabilityAnnotations\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.GenericPerson\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Streams.Test_IBufferWriterStream\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.RecipientWithNoMessages\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.DependentPropertyModel2\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.DependentPropertyModel4\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NumberRequestMessage\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Dog\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_AsyncRelayCommand\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.DummyAction2D\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_StreamExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.DummyMessage\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.User\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Test_ThrowHelper\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCultureAwareCommandName\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.CanExecuteViewModel\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithAttribute\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.RecipientWithSomeMessages\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.TestAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_HashCodeExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_RelayCommandAttribute\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.Test_RuntimeHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_AsyncVoidReturningRelayCommandMethodCodeFixer\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_IMemoryOwnerExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ObservableValidatorDerived\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCommandNamesThatCantBeLowered\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Assigner\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.FancyService\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Assigner2D\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_SourceGenerators\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithInheritedAttributeAndClassLevelAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.DummyAction\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.MessageA\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithValuePropertyWithAutomaticValidationInheritingClassLevelAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_ArrayPoolExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NestedStructType\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_MemoryExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Helpers.TaskSchedulerTestHelper\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.TestValidationAttribute\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ValidationWithDisplayName\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.Internals.UnitTests.Test_Dictionary2\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.TestObservableObject\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_IBufferWriterExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NonAbstractPerson\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_Messenger\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.ManagedStruct1\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.Internals.UnitTests.MessageA\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BaseViewModel\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Message\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.MyViewModelWithExplicitFieldAndPropertyAttributes\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.SampleModelWithINPCAndObservableProperties\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Animal\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ObservableRecipientAttribute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.GenericRecipient\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.InheritedModelWithCommandUsingInheritedObservablePropertyForCanExecute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithValuePropertyWithAutomaticValidationWithClassLevelAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.ArrayMemoryManager\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithDependentPropertyAndPropertyChanging\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Helpers.TestException\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.BiggerThanLimit\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Multiplier\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ArgumentNullException\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Test_ValueTypeExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelWithImplementedUpdateMethods\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ObservablePropertyAttribute_PartialProperties\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Test_ReadOnlySpan2DT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_ReadOnlyMemoryExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Collections.Test_ReadOnlyObservableGroupedCollection\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Extensions.Llama\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithDependentPropertyAndNoPropertyChanging\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithOverriddenCommandMethodFromExternalBaseModel\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Test_ArrayPoolBufferWriterOfT\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_StringExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_SpanExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.SampleModelWithoutHelpers\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelWithImplementedUpdateMethods2\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.Internals.UnitTests.MessageB\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.AbstractModelWithValidatablePropertyIRecipientInterfaces\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithPartialCommandMethods\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.TestRecipient\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.DerivedModelWithValidatableProperties\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Streams.Test_ReadOnlySequenceStream\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.Internals.UnitTests.Test_Messenger\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.SomeRecipient\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.UnmanagedStruct2\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.RecipientWithMultipleClassDeclarations\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_IRecipientGenerator\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Helpers.ExceptionHelper\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Collections.Test_ReadOnlyObservableGroup\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Common.UnitTests.Test_Converters\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.ManagedStruct2\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Summer\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.SampleModel\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_UsePartialPropertyForObservablePropertyCodeFixer\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.SampleMessage\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.IValueHolder\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Common.UnitTests.Extensions.Test_EventHandlerExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Internals.TrackingArrayPool\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_UseObservablePropertyOnSemiAutoPropertyCodeFixer\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Internals.ManagedStruct3\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.CancelCommandViewModel\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.PersonWithCustomOnActivatedAndOnDeactivated\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_SourceGeneratorsCodegen\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_UnsupportedRoslynVersionForPartialPropertyAnalyzer\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_SourceGeneratorsDiagnostics\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.MessageB\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelWithValidatableGeneratedProperties\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ComparableModel\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.DisableINotifyPropertyChanging.UnitTests.SampleModel\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Diagnostics.UnitTests.Test_Guard\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NestedInterfaceType\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_ArrayExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithNotifyPropertyChangedRecipientsAndDisplayAttributeLast\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelWithOnlyObservableRecipientAttribute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_INotifyPropertyChangedAttribute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_ObservableValidator\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithAdditionalDataAnnotationAttributes\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ViewModelWithImplementedUpdateMethodAndAdditionalValidation\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Common.UnitTests.Extensions.TestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCultureAwarePropertyName\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.GreaterThanAttribute\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.Internals.UnitTests.RecipientWithSomeMessages\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithValueProperty\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Extensions.Test_SpinLockExtensions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCommandsWithCustomOptions\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.IFancyService\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.RecipientWithNonBroadcastingProperty\u0027; PatternRelevancePruner: penalized name-pattern type \u0027global.ModelWithObservablePropertyInRootNamespace\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.BaseViewModelWithObservableObjectAttribute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ValidationWithServiceModel\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Helpers.Test_HashCodeOfT\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCommandMethodsWithOnPrefixes\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.AbstractPerson\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.MyViewModelWithExplicitPropertyAttributes\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_AsyncRelayCommandOfT\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Test_RelayCommandOfT\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.MyViewModel\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Helpers.CSharpCodeFixWithLanguageVersionTest\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Collections.Test_ObservableGroupedCollection\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.PropertyInfoAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithValuePropertyWithValidation\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.ClassUsingAttributeInsteadOfInheritanceCodeFixer\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Helpers.CSharpAnalyzerWithLanguageVersionTest\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.DependentPropertyModel\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.Person\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.PersonWithDeferredValidation\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModel\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.IntGroup\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithClassLevelAttribute\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.GenericTaskCommands\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithValuePropertyWithAutomaticValidation\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.SourceGenerators.UnitTests.Test_FieldReferenceForObservablePropertyFieldCodeFixer\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithObservablePropertyAndBaseClassInAnotherAssembly\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ModelWithCommandWithNullableCanExecute\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.NestedStructTypeWithGenerics\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.SealedPersonWithCustomOnActivatedAndOnDeactivated\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Buffers.Test_MemoryBufferWriterOfT\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.TestObservableRecipient\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.HighPerformance.UnitTests.Streams.Test_IMemoryOwnerStream\u0027; PatternRelevancePruner: excluded test-project type \u0027CommunityToolkit.Mvvm.UnitTests.BroadcastingViewModelWithInheritedAttribute\u0027; PatternRelevancePruner: penalized name-pattern type \u0027CommunityToolkit.Mvvm.UnitTests.ObservableValidatorBase\u0027 (RoleScore=0); PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 5 types (450 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1278820",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4577150",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0011318",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.6694127",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0292172",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0195413",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4544936",
+        "typesAdded": 455,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.3058317",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3409552",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3249269",
+        "typesAdded": 0,
+        "detectionsAdded": 123,
+        "skipped": false
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3232028",
+        "typesAdded": 0,
+        "detectionsAdded": 123,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1812292",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1414580",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1309318",
+        "typesAdded": 0,
+        "detectionsAdded": 55,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0441443",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0365473",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0268893",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0227941",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0227830",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 455,
+        "typesAfter": 5
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 455,
+        "typesAfter": 455
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 897
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 0
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 393,
+      "syntaxTreeHits": 2122,
+      "syntaxTreeMisses": 367
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 367,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.4577150",
+      "stage2CpuSum": "00:00:02.9871316",
+      "stage3Wall": "00:00:00.6694127",
+      "stage3CpuSum": "00:00:01.2614747"
+    },
+    "totalWall": "00:00:03.4428659"
+  }
+}

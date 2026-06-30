@@ -1,0 +1,4188 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:59:27.9893765Z",
+  "solution": {
+    "name": "eShop",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\eShop\\eShop.slnx",
+    "projectPaths": [
+      "src/eShop.AppHost/eShop.AppHost.csproj",
+      "src/Basket.API/Basket.API.csproj",
+      "src/Catalog.API/Catalog.API.csproj",
+      "src/eShop.ServiceDefaults/eShop.ServiceDefaults.csproj",
+      "src/EventBus/EventBus.csproj",
+      "src/EventBusRabbitMQ/EventBusRabbitMQ.csproj",
+      "src/Identity.API/Identity.API.csproj",
+      "src/IntegrationEventLogEF/IntegrationEventLogEF.csproj",
+      "src/Ordering.API/Ordering.API.csproj",
+      "src/OrderProcessor/OrderProcessor.csproj",
+      "src/Ordering.Domain/Ordering.Domain.csproj",
+      "src/Ordering.Infrastructure/Ordering.Infrastructure.csproj",
+      "src/PaymentProcessor/PaymentProcessor.csproj",
+      "src/WebApp/WebApp.csproj",
+      "src/WebhookClient/WebhookClient.csproj",
+      "src/Webhooks.API/Webhooks.API.csproj",
+      "src/WebAppComponents/WebAppComponents.csproj",
+      "src/HybridApp/HybridApp.csproj",
+      "src/ClientApp/ClientApp.csproj",
+      "tests/Basket.UnitTests/Basket.UnitTests.csproj",
+      "tests/Catalog.FunctionalTests/Catalog.FunctionalTests.csproj",
+      "tests/Ordering.FunctionalTests/Ordering.FunctionalTests.csproj",
+      "tests/Ordering.UnitTests/Ordering.UnitTests.csproj",
+      "tests/ClientApp.UnitTests/ClientApp.UnitTests.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Microservices",
+    "confidence": 0.90999997
+  },
+  "archetype": "App",
+  "signals": [
+    {
+      "key": "aspire",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "desktop-ui",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "fluentvalidation",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "identity",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 24,
+    "names": [
+      "Basket.API",
+      "Basket.UnitTests",
+      "Catalog.API",
+      "Catalog.FunctionalTests",
+      "ClientApp",
+      "ClientApp.UnitTests",
+      "eShop.AppHost",
+      "eShop.ServiceDefaults",
+      "EventBus",
+      "EventBusRabbitMQ",
+      "HybridApp",
+      "Identity.API",
+      "IntegrationEventLogEF",
+      "Ordering.API",
+      "Ordering.Domain",
+      "Ordering.FunctionalTests",
+      "Ordering.Infrastructure",
+      "Ordering.UnitTests",
+      "OrderProcessor",
+      "PaymentProcessor",
+      "WebApp",
+      "WebAppComponents",
+      "WebhookClient",
+      "Webhooks.API"
+    ]
+  },
+  "typesSummary": {
+    "found": 517,
+    "inOutput": 8,
+    "prunedPercent": 98.5
+  },
+  "detections": [
+    {
+      "type": "AspireRelationshipDetection",
+      "sourceResource": "builder.AddConnectionString(textEmbeddingName, cs =\u003E\r\n            {\r\n                cs.Append($\u0022{openAIConnectionString};Deployment={embeddingModel}\u0022);\r\n            })",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 127,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "builder.AddConnectionString(chatName, cs =\u003E\r\n            {\r\n                cs.Append($\u0022{openAIConnectionString};Deployment={chatModel}\u0022);\r\n            })",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 131,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "textEmbedding",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 154,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "chat",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 155,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "embeddings",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 175,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022OllamaEnabled\u0022",
+      "targetResource": "\u0022true\u0022",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 175,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "chat",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 178,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022OllamaEnabled\u0022",
+      "targetResource": "\u0022true\u0022",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 178,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "identityDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "redis",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Identity__Url\u0022",
+      "targetResource": "identityEndpoint",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 36,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "catalogDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 36,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 40,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "orderDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 40,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Identity__Url\u0022",
+      "targetResource": "identityEndpoint",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 40,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 46,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "orderDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 46,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 51,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 54,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "webhooksDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 54,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Identity__Url\u0022",
+      "targetResource": "identityEndpoint",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 54,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "webHooksApi",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 65,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022IdentityUrl\u0022",
+      "targetResource": "identityEndpoint",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 65,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "basketApi",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "catalogApi",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "orderingApi",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "rabbitMq",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022IdentityUrl\u0022",
+      "targetResource": "identityEndpoint",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022CallBackUrl\u0022",
+      "targetResource": "webApp.GetEndpoint(launchProfileName)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 93,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022CallBackUrl\u0022",
+      "targetResource": "webhooksClient.GetEndpoint(launchProfileName)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 94,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022BasketApiClient\u0022",
+      "targetResource": "basketApi.GetEndpoint(\u0022http\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 97,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022OrderingApiClient\u0022",
+      "targetResource": "orderingApi.GetEndpoint(\u0022http\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 97,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022WebhooksApiClient\u0022",
+      "targetResource": "webHooksApi.GetEndpoint(\u0022http\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 97,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022WebhooksWebClient\u0022",
+      "targetResource": "webhooksClient.GetEndpoint(launchProfileName)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 97,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022WebAppClient\u0022",
+      "targetResource": "webApp.GetEndpoint(launchProfileName)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 97,
+      "confidence": 0.8
+    },
+    {
+      "type": "AspireResourceDetection",
+      "resourceType": "Redis",
+      "resourceName": "redis",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "resourceType": "RabbitMQ",
+      "resourceName": "eventbus",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Postgres",
+      "resourceName": "postgres",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "identity-api",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "basket-api",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "catalog-api",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "ordering-api",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "order-processor",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "payment-processor",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "webhooks-api",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 54,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "webhooksclient",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "webapp",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Program.cs",
+      "lineNumber": 69,
+      "confidence": 1
+    },
+    {
+      "type": "DesktopEntryDetection",
+      "typeName": "BasketViewModel.AddAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\BasketViewModel.cs",
+      "lineNumber": 53,
+      "confidence": 1
+    },
+    {
+      "typeName": "BasketViewModel.DeleteAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\BasketViewModel.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "typeName": "BasketViewModel.CheckoutAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\BasketViewModel.cs",
+      "lineNumber": 104,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogItemViewModel.AddCatalogItemAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogItemViewModel.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogItemViewModel.DismissAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogItemViewModel.cs",
+      "lineNumber": 60,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.ViewCatalogItemAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 90,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.Filter",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 105,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.SelectCatalogBrand",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 111,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.SelectCatalogType",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 136,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.ApplyFilterAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 161,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.ClearFilterAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 178,
+      "confidence": 1
+    },
+    {
+      "typeName": "CatalogViewModel.ViewBasket",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CatalogViewModel.cs",
+      "lineNumber": 192,
+      "confidence": 1
+    },
+    {
+      "typeName": "CheckoutViewModel.CheckoutAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\CheckoutViewModel.cs",
+      "lineNumber": 104,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.MockSignInAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 57,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.SignInAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 83,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.RegisterAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.PerformLogoutAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 104,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.SettingsAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 115,
+      "confidence": 1
+    },
+    {
+      "typeName": "LoginViewModel.Validate",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\LoginViewModel.cs",
+      "lineNumber": 121,
+      "confidence": 1
+    },
+    {
+      "typeName": "MainViewModel.SettingsAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\MainViewModel.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "typeName": "OrderDetailViewModel.ToggleCancelOrderAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\OrderDetailViewModel.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "typeName": "ProfileViewModel.LogoutAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\ProfileViewModel.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "typeName": "ProfileViewModel.RefreshAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\ProfileViewModel.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "typeName": "ProfileViewModel.OrderDetailAsync",
+      "kind": 4,
+      "extractorName": "DesktopEntryExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\ViewModels\\ProfileViewModel.cs",
+      "lineNumber": 66,
+      "confidence": 1
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "IBasketRepository",
+      "implementationType": "RedisBasketRepository",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Basket.API\\Extensions\\Extensions.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddGrpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Basket.API\\Program.cs",
+      "lineNumber": 6,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "CatalogContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "CatalogContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IIntegrationEventLogService",
+      "implementationType": "IntegrationEventLogService\u003CCatalogContext\u003E",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ICatalogIntegrationEventService",
+      "implementationType": "CatalogIntegrationEventService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "CatalogOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "ICatalogAI",
+      "implementationType": "CatalogAI",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Extensions\\Extensions.cs",
+      "lineNumber": 49,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddProblemDetails",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddProblemDetails"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiVersioning",
+      "implementationType": "options =\u003E\r\n{\r\n    // Include \u0022api-supported-versions\u0022 and \u0022api-deprecated-versions\u0022 headers in all responses\r\n    options.ReportApiVersions = true;\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersioning"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Program.cs",
+      "lineNumber": 7,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "ISettingsService",
+      "implementationType": "SettingsService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "serviceType": "INavigationService",
+      "implementationType": "MauiNavigationService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 75,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDialogService",
+      "implementationType": "DialogService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IOpenUrlService",
+      "implementationType": "OpenUrlService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 77,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E\r\n            {\r\n                var debugHttpHandler = sp.GetKeyedService\u003CHttpMessageHandler\u003E(\u0022DebugHttpMessageHandler\u0022);\r\n                return new RequestProvider(debugHttpHandler);\r\n            }",
+      "implementationType": "sp =\u003E\r\n            {\r\n                var debugHttpHandler = sp.GetKeyedService\u003CHttpMessageHandler\u003E(\u0022DebugHttpMessageHandler\u0022);\r\n                return new RequestProvider(debugHttpHandler);\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new RequestProvider(debugHttpHandler)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 78,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E\r\n            {\r\n                var browser = sp.GetRequiredService\u003CIBrowser\u003E();\r\n                var settingsService = sp.GetRequiredService\u003CISettingsService\u003E();\r\n                var debugHttpHandler = sp.GetKeyedService\u003CHttpMessageHandler\u003E(\u0022DebugHttpMessageHandler\u0022);\r\n                return new IdentityService(browser, settingsService, debugHttpHandler);\r\n            }",
+      "implementationType": "sp =\u003E\r\n            {\r\n                var browser = sp.GetRequiredService\u003CIBrowser\u003E();\r\n                var settingsService = sp.GetRequiredService\u003CISettingsService\u003E();\r\n                var debugHttpHandler = sp.GetKeyedService\u003CHttpMessageHandler\u003E(\u0022DebugHttpMessageHandler\u0022);\r\n                return new IdentityService(browser, settingsService, debugHttpHandler);\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new IdentityService(browser, settingsService, debugHttpHandler)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 84,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IFixUriService",
+      "implementationType": "FixUriService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 92,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ILocationService",
+      "implementationType": "LocationService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 93,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ITheme",
+      "implementationType": "Theme",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 95,
+      "confidence": 1
+    },
+    {
+      "serviceType": "serviceProvider =\u003E\r\n            {\r\n                var requestProvider = serviceProvider.GetRequiredService\u003CIRequestProvider\u003E();\r\n                var fixUriService = serviceProvider.GetRequiredService\u003CIFixUriService\u003E();\r\n                var settingsService = serviceProvider.GetRequiredService\u003CISettingsService\u003E();\r\n                var identityService = serviceProvider.GetRequiredService\u003CIIdentityService\u003E();\r\n\r\n                var aes =\r\n                    new AppEnvironmentService(\r\n                        new BasketMockService(), new BasketService(identityService, settingsService, fixUriService),\r\n                        new CatalogMockService(), new CatalogService(settingsService, requestProvider, fixUriService),\r\n                        new OrderMockService(), new OrderService(identityService, settingsService, requestProvider),\r\n                        new IdentityMockService(), identityService);\r\n\r\n                aes.UpdateDependencies(settingsService.UseMocks);\r\n                return aes;\r\n            }",
+      "implementationType": "serviceProvider =\u003E\r\n            {\r\n                var requestProvider = serviceProvider.GetRequiredService\u003CIRequestProvider\u003E();\r\n                var fixUriService = serviceProvider.GetRequiredService\u003CIFixUriService\u003E();\r\n                var settingsService = serviceProvider.GetRequiredService\u003CISettingsService\u003E();\r\n                var identityService = serviceProvider.GetRequiredService\u003CIIdentityService\u003E();\r\n\r\n                var aes =\r\n                    new AppEnvironmentService(\r\n                        new BasketMockService(), new BasketService(identityService, settingsService, fixUriService),\r\n                        new CatalogMockService(), new CatalogService(settingsService, requestProvider, fixUriService),\r\n                        new OrderMockService(), new OrderService(identityService, settingsService, requestProvider),\r\n                        new IdentityMockService(), identityService);\r\n\r\n                aes.UpdateDependencies(settingsService.UseMocks);\r\n                return aes;\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new AppEnvironmentService(new BasketMockService(), new BasketService(identityService, settingsService, fixUriService), new CatalogMockService())]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 97,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IBrowser",
+      "implementationType": "MauiAuthenticationBrowser",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 116,
+      "confidence": 1
+    },
+    {
+      "serviceType": "MainViewModel",
+      "implementationType": "MainViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 154,
+      "confidence": 1
+    },
+    {
+      "serviceType": "LoginViewModel",
+      "implementationType": "LoginViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 155,
+      "confidence": 1
+    },
+    {
+      "serviceType": "BasketViewModel",
+      "implementationType": "BasketViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 156,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CatalogViewModel",
+      "implementationType": "CatalogViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 157,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CatalogItemViewModel",
+      "implementationType": "CatalogItemViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 158,
+      "confidence": 1
+    },
+    {
+      "serviceType": "MapViewModel",
+      "implementationType": "MapViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 159,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ProfileViewModel",
+      "implementationType": "ProfileViewModel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 160,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CheckoutViewModel",
+      "implementationType": "CheckoutViewModel",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 162,
+      "confidence": 1
+    },
+    {
+      "serviceType": "OrderDetailViewModel",
+      "implementationType": "OrderDetailViewModel",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 163,
+      "confidence": 1
+    },
+    {
+      "serviceType": "SettingsViewModel",
+      "implementationType": "SettingsViewModel",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 164,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CatalogItemView",
+      "implementationType": "CatalogItemView",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 171,
+      "confidence": 1
+    },
+    {
+      "serviceType": "BasketView",
+      "implementationType": "BasketView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 173,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CatalogView",
+      "implementationType": "CatalogView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 174,
+      "confidence": 1
+    },
+    {
+      "serviceType": "CheckoutView",
+      "implementationType": "CheckoutView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 175,
+      "confidence": 1
+    },
+    {
+      "serviceType": "FiltersView",
+      "implementationType": "FiltersView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 176,
+      "confidence": 1
+    },
+    {
+      "serviceType": "LoginView",
+      "implementationType": "LoginView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 177,
+      "confidence": 1
+    },
+    {
+      "serviceType": "OrderDetailView",
+      "implementationType": "OrderDetailView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 178,
+      "confidence": 1
+    },
+    {
+      "serviceType": "MapView",
+      "implementationType": "MapView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 179,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ProfileView",
+      "implementationType": "ProfileView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 180,
+      "confidence": 1
+    },
+    {
+      "serviceType": "SettingsView",
+      "implementationType": "SettingsView",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 181,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddAuthentication",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthentication"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\AuthenticationExtensions.cs",
+      "lineNumber": 33,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddJwtBearer",
+      "implementationType": "options =\u003E\r\n        {\r\n            var identityUrl = identitySection.GetRequiredValue(\u0022Url\u0022);\r\n            var audience = identitySection.GetRequiredValue(\u0022Audience\u0022);\r\n\r\n            options.Authority = identityUrl;\r\n            options.RequireHttpsMetadata = false;\r\n            options.Audience = audience;\r\n            \r\n#if DEBUG\r\n            //Needed if using Android Emulator Locally. See https://learn.microsoft.com/en-us/dotnet/maui/data-cloud/local-web-services?view=net-maui-8.0#android\r\n            options.TokenValidationParameters.ValidIssuers = [identityUrl, \u0022https://10.0.2.2:5243\u0022];\r\n#else\r\n            options.TokenValidationParameters.ValidIssuers = [identityUrl];\r\n#endif\r\n            \r\n            options.TokenValidationParameters.ValidateAudience = false;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddJwtBearer"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\AuthenticationExtensions.cs",
+      "lineNumber": 33,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthorization",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthorization"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\AuthenticationExtensions.cs",
+      "lineNumber": 52,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 58,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHealthChecks",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHealthChecks"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 101,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCheck",
+      "implementationType": "\u0022self\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCheck"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 101,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpContextAccessor",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpContextAccessor"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\HttpClientExtensions.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddKeyedTransient",
+      "implementationType": "typeof(T)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddKeyedTransient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBus\\Extensions\\EventBusBuilderExtensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMqDependencyInjectionExtensions.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "RabbitMQTelemetry",
+      "implementationType": "RabbitMQTelemetry",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMqDependencyInjectionExtensions.cs",
+      "lineNumber": 34,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IEventBus",
+      "implementationType": "RabbitMQEventBus",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMqDependencyInjectionExtensions.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E (RabbitMQEventBus)sp.GetRequiredService\u003CIEventBus\u003E()",
+      "implementationType": "sp =\u003E (RabbitMQEventBus)sp.GetRequiredService\u003CIEventBus\u003E()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMqDependencyInjectionExtensions.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMauiBlazorWebView",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMauiBlazorWebView"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\HybridApp\\MauiProgram.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "o =\u003E o.BaseAddress = new(MobileBffHost)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\HybridApp\\MauiProgram.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "WebAppComponents.Services.IProductImageUrlProvider",
+      "implementationType": "ProductImageUrlProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\HybridApp\\MauiProgram.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddControllersWithViews",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddControllersWithViews"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "ApplicationDbContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddIdentity",
+      "implementationType": "ApplicationUser",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddIdentity"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddEntityFrameworkStores",
+      "implementationType": "ApplicationDbContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddEntityFrameworkStores"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDefaultTokenProviders",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDefaultTokenProviders"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddIdentityServer",
+      "implementationType": "options =\u003E\r\n{\r\n    //options.IssuerUri = \u0022null\u0022;\r\n    options.Authentication.CookieLifetime = TimeSpan.FromHours(2);\r\n\r\n    options.Events.RaiseErrorEvents = true;\r\n    options.Events.RaiseInformationEvents = true;\r\n    options.Events.RaiseFailureEvents = true;\r\n    options.Events.RaiseSuccessEvents = true;\r\n\r\n    // TODO: Remove this line in production.\r\n    options.KeyManagement.Enabled = false;\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddIdentityServer"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInMemoryIdentityResources",
+      "implementationType": "Config.GetResources()",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInMemoryIdentityResources"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInMemoryApiScopes",
+      "implementationType": "Config.GetApiScopes()",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInMemoryApiScopes"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInMemoryApiResources",
+      "implementationType": "Config.GetApis()",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInMemoryApiResources"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInMemoryClients",
+      "implementationType": "Config.GetClients(builder.Configuration)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInMemoryClients"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAspNetIdentity",
+      "implementationType": "ApplicationUser",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAspNetIdentity"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDeveloperSigningCredential",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDeveloperSigningCredential"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IProfileService",
+      "implementationType": "ProfileService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ILoginService\u003CApplicationUser\u003E",
+      "implementationType": "EFLoginService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 40,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IRedirectService",
+      "implementationType": "RedirectService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.UseNpgsql(builder.Configuration.GetConnectionString(\u0022orderingdb\u0022));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "OrderingContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 21,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IIntegrationEventLogService",
+      "implementationType": "IntegrationEventLogService\u003COrderingContext\u003E",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IOrderingIntegrationEventService",
+      "implementationType": "OrderingIntegrationEventService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddHttpContextAccessor",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpContextAccessor"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IIdentityService",
+      "implementationType": "IdentityService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMediatR",
+      "implementationType": "cfg =\u003E\r\n        {\r\n            cfg.RegisterServicesFromAssemblyContaining(typeof(Program));\r\n\r\n            cfg.AddOpenBehavior(typeof(LoggingBehavior\u003C,\u003E));\r\n            cfg.AddOpenBehavior(typeof(ValidatorBehavior\u003C,\u003E));\r\n            cfg.AddOpenBehavior(typeof(TransactionBehavior\u003C,\u003E));\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatR"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddValidatorsFromAssemblyContaining",
+      "implementationType": "CancelOrderCommandValidator",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddValidatorsFromAssemblyContaining"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 45,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IOrderQueries",
+      "implementationType": "OrderQueries",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IBuyerRepository",
+      "implementationType": "BuyerRepository",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IOrderRepository",
+      "implementationType": "OrderRepository",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 49,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IRequestManager",
+      "implementationType": "RequestManager",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Extensions\\Extensions.cs",
+      "lineNumber": 50,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddProblemDetails",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddProblemDetails"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiVersioning",
+      "implementationType": "options =\u003E\r\n{\r\n    // Include \u0022api-supported-versions\u0022 and \u0022api-deprecated-versions\u0022 headers in all responses\r\n    options.ReportApiVersions = true;\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersioning"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Program.cs",
+      "lineNumber": 7,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "BackgroundTaskOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\OrderProcessor\\Extensions\\Extensions.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHostedService",
+      "implementationType": "GracePeriodManagerService",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHostedService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\OrderProcessor\\Extensions\\Extensions.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "PaymentOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\PaymentProcessor\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "(_, _) =\u003E Task.CompletedTask",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHostedService",
+      "implementationType": "sp =\u003E new MigrationHostedService\u003CTContext\u003E(sp, seeder)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHostedService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IDbSeeder\u003CTContext\u003E",
+      "implementationType": "TDbSeeder",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "(context, sp) =\u003E sp.GetRequiredService\u003CIDbSeeder\u003CTContext\u003E\u003E().SeedAsync(context)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 28,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpForwarderWithServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpForwarderWithServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "BasketState",
+      "implementationType": "BasketState",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "serviceType": "LogOutService",
+      "implementationType": "LogOutService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "serviceType": "BasketService",
+      "implementationType": "BasketService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "serviceType": "OrderStatusNotificationService",
+      "implementationType": "OrderStatusNotificationService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IProductImageUrlProvider",
+      "implementationType": "ProductImageUrlProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddGrpcClient",
+      "implementationType": "o =\u003E o.Address = new(\u0022http://basket-api\u0022)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpcClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthToken",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthToken"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "o =\u003E o.BaseAddress = new(\u0022https\u002Bhttp://catalog-api\u0022)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiVersion",
+      "implementationType": "2.0",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersion"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthToken",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthToken"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "o =\u003E o.BaseAddress = new(\u0022https\u002Bhttp://ordering-api\u0022)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiVersion",
+      "implementationType": "1.0",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersion"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthToken",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthToken"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthorization",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthorization"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 65,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthentication",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;\r\n            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthentication"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 66,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCookie",
+      "implementationType": "options =\u003E options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCookie"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 66,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenIdConnect",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;\r\n            options.Authority = identityUrl;\r\n            options.SignedOutRedirectUri = callBackUrl;\r\n            options.ClientId = \u0022webapp\u0022;\r\n            options.ClientSecret = \u0022secret\u0022;\r\n            options.ResponseType = \u0022code\u0022;\r\n            options.SaveTokens = true;\r\n            options.GetClaimsFromUserInfoEndpoint = true;\r\n            options.RequireHttpsMetadata = false;\r\n            options.Scope.Add(\u0022openid\u0022);\r\n            options.Scope.Add(\u0022profile\u0022);\r\n            options.Scope.Add(\u0022orders\u0022);\r\n            options.Scope.Add(\u0022basket\u0022);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenIdConnect"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 66,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AuthenticationStateProvider",
+      "implementationType": "ServerAuthenticationStateProvider",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 90,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddCascadingAuthenticationState",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCascadingAuthenticationState"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Extensions\\Extensions.cs",
+      "lineNumber": 91,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRazorComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRazorComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInteractiveServerComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInteractiveServerComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "WebhookClientOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "HooksRepository",
+      "implementationType": "HooksRepository",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "o =\u003E o.BaseAddress = new(\u0022http://webhooks-api\u0022)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApiVersion",
+      "implementationType": "1.0",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersion"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthToken",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthToken"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthorization",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthorization"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAuthentication",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;\r\n            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAuthentication"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCookie",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime);\r\n\r\n            // Must be distinct from WebApp\u0027s cookie name, otherwise the two sites will interfere\r\n            // with each other when both are on localhost (yes, even when they are on different ports)\r\n            options.Cookie.Name = \u0022.AspNetCore.WebHooksClientIdentity\u0022;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCookie"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenIdConnect",
+      "implementationType": "options =\u003E\r\n        {\r\n            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;\r\n            options.Authority = identityUrl.ToString();\r\n            options.SignedOutRedirectUri = callBackUrl.ToString();\r\n            options.ClientId = \u0022webhooksclient\u0022;\r\n            options.ClientSecret = \u0022secret\u0022;\r\n            options.ResponseType = \u0022code\u0022;\r\n            options.SaveTokens = true;\r\n            options.GetClaimsFromUserInfoEndpoint = true;\r\n            options.RequireHttpsMetadata = false;\r\n            options.Scope.Add(\u0022openid\u0022);\r\n            options.Scope.Add(\u0022webhooks\u0022);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenIdConnect"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AuthenticationStateProvider",
+      "implementationType": "ServerAuthenticationStateProvider",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 63,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddCascadingAuthenticationState",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCascadingAuthenticationState"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Extensions\\Extensions.cs",
+      "lineNumber": 64,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRazorComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRazorComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInteractiveServerComponents",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInteractiveServerComponents"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 5,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMigration",
+      "implementationType": "WebhooksContext",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMigration"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Extensions\\Extensions.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IGrantUrlTesterService",
+      "implementationType": "GrantUrlTesterService",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Extensions\\Extensions.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IWebhooksRetriever",
+      "implementationType": "WebhooksRetriever",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Extensions\\Extensions.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IWebhooksSender",
+      "implementationType": "WebhooksSender",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Extensions\\Extensions.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddApiVersioning",
+      "implementationType": "options =\u003E\r\n{\r\n    // Include \u0022api-supported-versions\u0022 and \u0022api-deprecated-versions\u0022 headers in all responses\r\n    options.ReportApiVersions = true;\r\n}",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApiVersioning"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Program.cs",
+      "lineNumber": 6,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new AutoAuthorizeStartupFilter()",
+      "implementationType": "new AutoAuthorizeStartupFilter()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\tests\\Ordering.FunctionalTests\\OrderingApiFixture.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "type": "EfEntityDetection",
+      "entityType": "CatalogType",
+      "dbContextType": "CatalogContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\CatalogContext.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "entityType": "CatalogBrand",
+      "dbContextType": "CatalogContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\CatalogContext.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "entityType": "CatalogItem",
+      "dbContextType": "CatalogContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\CatalogContext.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "CatalogContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\CatalogContext.cs",
+      "lineNumber": 18,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "Initial",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\Migrations\\20231009153249_Initial.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "RemoveHiLoAndIndexCatalogName",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\Migrations\\20231018163051_RemoveHiLoAndIndexCatalogName.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "Outbox",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Infrastructure\\Migrations\\20231026091140_Outbox.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "ApplicationDbContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Data\\ApplicationDbContext.cs",
+      "lineNumber": 15,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "InitialMigration",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Data\\Migrations\\20230925223402_InitialMigration.cs",
+      "lineNumber": 10,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "Initial",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\Migrations\\20230925222426_Initial.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "FixOrderitemseqSchema",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\Migrations\\20231021004633_FixOrderitemseqSchema.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "Outbox",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\Migrations\\20231026091055_Outbox.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "UseEnumForOrderStatus",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\Migrations\\20240106121712_UseEnumForOrderStatus.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "CardType",
+      "dbContextType": "OrderingContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "entityType": "Buyer",
+      "dbContextType": "OrderingContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "entityType": "PaymentMethod",
+      "dbContextType": "OrderingContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "entityType": "OrderItem",
+      "dbContextType": "OrderingContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "entityType": "Order",
+      "dbContextType": "OrderingContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 10,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "OrderingContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.Infrastructure\\OrderingContext.cs",
+      "lineNumber": 35,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "WebhookSubscription",
+      "dbContextType": "WebhooksContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Infrastructure\\WebhooksContext.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "entityType": "WebhookSubscription",
+      "dbContextType": "WebhooksContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Infrastructure\\WebhooksContext.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "WebhooksContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Infrastructure\\WebhooksContext.cs",
+      "lineNumber": 12,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "Initial",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Migrations\\20230925222606_Initial.cs",
+      "lineNumber": 10,
+      "confidence": 0.9
+    },
+    {
+      "type": "EndpointDetection",
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetAllItemsV1",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 115,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E\u003E GetAllItemsV1(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services)\r\n    {\r\n        return await GetAllItems(paginationRequest, services, null, null, null);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetAllItems",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 123,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E\u003E GetAllItems(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The name of the item to return\u0022)] string? name,\r\n        [Description(\u0022The type of items to return\u0022)] int? type,\r\n        [Description(\u0022The brand of items to return\u0022)] int? brand)\r\n    {\r\n        var pageSize = paginationRequest.PageSize;\r\n        var pageIndex = paginationRequest.PageIndex;\r\n\r\n        var root = (IQueryable\u003CCatalogItem\u003E)services.Context.CatalogItems;\r\n\r\n        if (name is not null)\r\n        {\r\n            root = root.Where(c =\u003E c.Name.StartsWith(name));\r\n        }\r\n        if (type is not null)\r\n        {\r\n            root = root.Where(c =\u003E c.CatalogTypeId == type);\r\n        }\r\n        if (brand is not null)\r\n        {\r\n            root = root.Where(c =\u003E c.CatalogBrandId == brand);\r\n        }\r\n\r\n        var totalItems = await root\r\n            .LongCountAsync();\r\n\r\n        var itemsOnPage = await root\r\n            .OrderBy(c =\u003E c.Name)\r\n            .Skip(pageSize * pageIndex)\r\n            .Take(pageSize)\r\n            .ToListAsync();\r\n\r\n        return TypedResults.Ok(new PaginatedItems\u003CCatalogItem\u003E(pageIndex, pageSize, totalItems, itemsOnPage));\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/by",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsByIds",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 161,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CList\u003CCatalogItem\u003E\u003E\u003E GetItemsByIds(\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022List of ids for catalog items to return\u0022)] int[] ids)\r\n    {\r\n        var items = await services.Context.CatalogItems.Where(item =\u003E ids.Contains(item.Id)).ToListAsync();\r\n        return TypedResults.Ok(items);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/{id:int}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemById",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 170,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003CResults\u003COk\u003CCatalogItem\u003E, NotFound, BadRequest\u003CProblemDetails\u003E\u003E\u003E GetItemById(\r\n        HttpContext httpContext,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The catalog item id\u0022)] int id)\r\n    {\r\n        if (id \u003C= 0)\r\n        {\r\n            return TypedResults.BadRequest\u003CProblemDetails\u003E(new (){\r\n                Detail = \u0022Id is not valid\u0022\r\n            });\r\n        }\r\n\r\n        var item = await services.Context.CatalogItems.Include(ci =\u003E ci.CatalogBrand).SingleOrDefaultAsync(ci =\u003E ci.Id == id);\r\n\r\n        if (item == null)\r\n        {\r\n            return TypedResults.NotFound();\r\n        }\r\n\r\n        return TypedResults.Ok(item);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/by/{name:minlength(1)}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsByName",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 193,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E\u003E GetItemsByName(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The name of the item to return\u0022)] string name)\r\n    {\r\n        return await GetAllItems(paginationRequest, services, name, null, null);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/{id:int}/pic",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemPictureById",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 202,
+      "handlerBody": "[ProducesResponseType\u003Cbyte[]\u003E(StatusCodes.Status200OK, \u0022application/octet-stream\u0022,\r\n        [ \u0022image/png\u0022, \u0022image/gif\u0022, \u0022image/jpeg\u0022, \u0022image/bmp\u0022, \u0022image/tiff\u0022,\r\n          \u0022image/wmf\u0022, \u0022image/jp2\u0022, \u0022image/svg\u002Bxml\u0022, \u0022image/webp\u0022 ])]\r\n    public static async Task\u003CResults\u003CPhysicalFileHttpResult,NotFound\u003E\u003E GetItemPictureById(\r\n        CatalogContext context,\r\n        IWebHostEnvironment environment,\r\n        [Description(\u0022The catalog item id\u0022)] int id)\r\n    {\r\n        var item = await context.CatalogItems.FindAsync(id);\r\n\r\n        if (item is null || item.PictureFileName is null)\r\n        {\r\n            return TypedResults.NotFound();\r\n        }\r\n\r\n        var path = GetFullPath(environment.ContentRootPath, item.PictureFileName);\r\n\r\n        string imageFileExtension = Path.GetExtension(item.PictureFileName) ?? string.Empty;\r\n        string mimetype = GetImageMimeTypeFromImageFileExtension(imageFileExtension);\r\n        DateTime lastModified = File.GetLastWriteTimeUtc(path);\r\n\r\n        return TypedResults.PhysicalFile(path, mimetype, lastModified: lastModified);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/withsemanticrelevance/{text:minlength(1)}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsBySemanticRelevanceV1",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 226,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003CResults\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E, RedirectToRouteHttpResult\u003E\u003E GetItemsBySemanticRelevanceV1(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The text string to use when search for related items in the catalog\u0022)] string text)\r\n\r\n    {\r\n        return await GetItemsBySemanticRelevance(paginationRequest, services, text);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 53,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/withsemanticrelevance",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsBySemanticRelevance",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 236,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003CResults\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E, RedirectToRouteHttpResult\u003E\u003E GetItemsBySemanticRelevance(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The text string to use when search for related items in the catalog\u0022), Required, MinLength(1)] string text)\r\n    {\r\n        var pageSize = paginationRequest.PageSize;\r\n        var pageIndex = paginationRequest.PageIndex;\r\n\r\n        if (!services.CatalogAI.IsEnabled)\r\n        {\r\n            return await GetItemsByName(paginationRequest, services, text);\r\n        }\r\n\r\n        // Create an embedding for the input search\r\n        var vector = await services.CatalogAI.GetEmbeddingAsync(text);\r\n\r\n        if (vector is null)\r\n        {\r\n            return await GetItemsByName(paginationRequest, services, text);\r\n        }\r\n\r\n        // Get the total number of items\r\n        var totalItems = await services.Context.CatalogItems\r\n            .LongCountAsync();\r\n\r\n        // Get the next page of items, ordered by most similar (smallest distance) to the input search\r\n        List\u003CCatalogItem\u003E itemsOnPage;\r\n        if (services.Logger.IsEnabled(LogLevel.Debug))\r\n        {\r\n            var itemsWithDistance = await services.Context.CatalogItems\r\n                .Where(c =\u003E c.Embedding != null)\r\n                .Select(c =\u003E new { Item = c, Distance = c.Embedding!.CosineDistance(vector) })\r\n                .OrderBy(c =\u003E c.Distance)\r\n                .Skip(pageSize * pageIndex)\r\n                .Take(pageSize)\r\n                .ToListAsync();\r\n\r\n            services.Logger.LogDebug(\u0022Results from {text}: {results}\u0022, text, string.Join(\u0022, \u0022, itemsWithDistance.Select(i =\u003E $\u0022{i.Item.Name} =\u003E {i.Distance}\u0022)));\r\n\r\n            itemsOnPage = itemsWithDistance.Select(i =\u003E i.Item).ToList();\r\n        }\r\n        else\r\n        {\r\n            itemsOnPage = await services.Context.CatalogItems\r\n                .Where(c =\u003E c.Embedding != null)\r\n                .OrderBy(c =\u003E c.Embedding!.CosineDistance(vector))\r\n                .Skip(pageSize * pageIndex)\r\n                .Take(pageSize)\r\n                .ToListAsync();\r\n        }\r\n\r\n        return TypedResults.Ok(new PaginatedItems\u003CCatalogItem\u003E(pageIndex, pageSize, totalItems, itemsOnPage));\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 60,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/type/{typeId}/brand/{brandId?}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsByBrandAndTypeId",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 291,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E\u003E GetItemsByBrandAndTypeId(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The type of items to return\u0022)] int typeId,\r\n        [Description(\u0022The brand of items to return\u0022)] int? brandId)\r\n    {\r\n        return await GetAllItems(paginationRequest, services, null, typeId, brandId);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 67,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/items/type/all/brand/{brandId:int?}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "GetItemsByBrandId",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 301,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003COk\u003CPaginatedItems\u003CCatalogItem\u003E\u003E\u003E GetItemsByBrandId(\r\n        [AsParameters] PaginationRequest paginationRequest,\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The brand of items to return\u0022)] int? brandId)\r\n    {\r\n        return await GetAllItems(paginationRequest, services, null, null, brandId);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/catalogtypes",
+      "handlerType": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n            async (CatalogContext context) =\u003E await context.CatalogTypes.OrderBy(x =\u003E x.Type).ToListAsync()",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 78,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n            async (CatalogContext context) =\u003E await context.CatalogTypes.OrderBy(x =\u003E x.Type).ToListAsync()",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 77,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/catalog/catalogbrands",
+      "handlerType": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n            async (CatalogContext context) =\u003E await context.CatalogBrands.OrderBy(x =\u003E x.Brand).ToListAsync()",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 85,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n            async (CatalogContext context) =\u003E await context.CatalogBrands.OrderBy(x =\u003E x.Brand).ToListAsync()",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 84,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/api/catalog/items",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "UpdateItemV1",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 310,
+      "handlerBody": "public static async Task\u003CResults\u003CCreated, BadRequest\u003CProblemDetails\u003E, NotFound\u003CProblemDetails\u003E\u003E\u003E UpdateItemV1(\r\n        HttpContext httpContext,\r\n        [AsParameters] CatalogServices services,\r\n        CatalogItem productToUpdate)\r\n    {\r\n        if (productToUpdate?.Id == null)\r\n        {\r\n            return TypedResults.BadRequest\u003CProblemDetails\u003E(new (){\r\n                Detail = \u0022Item id must be provided in the request body.\u0022\r\n            });\r\n        }\r\n        return await UpdateItem(httpContext, productToUpdate.Id, services, productToUpdate);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 93,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/api/catalog/items/{id:int}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "UpdateItem",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 324,
+      "handlerBody": "public static async Task\u003CResults\u003CCreated, BadRequest\u003CProblemDetails\u003E, NotFound\u003CProblemDetails\u003E\u003E\u003E UpdateItem(\r\n        HttpContext httpContext,\r\n        [Description(\u0022The id of the catalog item to delete\u0022)] int id,\r\n        [AsParameters] CatalogServices services,\r\n        CatalogItem productToUpdate)\r\n    {\r\n        var catalogItem = await services.Context.CatalogItems.SingleOrDefaultAsync(i =\u003E i.Id == id);\r\n\r\n        if (catalogItem == null)\r\n        {\r\n            return TypedResults.NotFound\u003CProblemDetails\u003E(new (){\r\n                Detail = $\u0022Item with id {id} not found.\u0022\r\n            });\r\n        }\r\n\r\n        // Update current product\r\n        var catalogEntry = services.Context.Entry(catalogItem);\r\n        catalogEntry.CurrentValues.SetValues(productToUpdate);\r\n\r\n        catalogItem.Embedding = await services.CatalogAI.GetEmbeddingAsync(catalogItem);\r\n\r\n        var priceEntry = catalogEntry.Property(i =\u003E i.Price);\r\n\r\n        if (priceEntry.IsModified) // Save product\u0027s data and publish integration event through the Event Bus if price has changed\r\n        {\r\n            //Create Integration Event to be published through the Event Bus\r\n            var priceChangedEvent = new ProductPriceChangedIntegrationEvent(catalogItem.Id, productToUpdate.Price, priceEntry.OriginalValue);\r\n\r\n            // Achieving atomicity between original Catalog database operation and the IntegrationEventLog thanks to a local transaction\r\n            await services.EventService.SaveEventAndCatalogContextChangesAsync(priceChangedEvent);\r\n\r\n            // Publish through the Event Bus and mark the saved event as published\r\n            await services.EventService.PublishThroughEventBusAsync(priceChangedEvent);\r\n        }\r\n        else // Just save the updated product because the Product\u0027s Price hasn\u0027t changed.\r\n        {\r\n            await services.Context.SaveChangesAsync();\r\n        }\r\n        return TypedResults.Created($\u0022/api/catalog/items/{id}\u0022);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/api/catalog/items",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "CreateItem",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 365,
+      "handlerBody": "[ProducesResponseType\u003CProblemDetails\u003E(StatusCodes.Status400BadRequest, \u0022application/problem\u002Bjson\u0022)]\r\n    public static async Task\u003CCreated\u003E CreateItem(\r\n        [AsParameters] CatalogServices services,\r\n        CatalogItem product)\r\n    {\r\n        var item = new CatalogItem(product.Name)\r\n        {\r\n            Id = product.Id,\r\n            CatalogBrandId = product.CatalogBrandId,\r\n            CatalogTypeId = product.CatalogTypeId,\r\n            Description = product.Description,\r\n            PictureFileName = product.PictureFileName,\r\n            Price = product.Price,\r\n            AvailableStock = product.AvailableStock,\r\n            RestockThreshold = product.RestockThreshold,\r\n            MaxStockThreshold = product.MaxStockThreshold\r\n        };\r\n        item.Embedding = await services.CatalogAI.GetEmbeddingAsync(item);\r\n\r\n        services.Context.CatalogItems.Add(item);\r\n        await services.Context.SaveChangesAsync();\r\n\r\n        return TypedResults.Created($\u0022/api/catalog/items/{item.Id}\u0022);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 103,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/api/catalog/items/{id:int}",
+      "handlerType": "CatalogApi",
+      "handlerMethod": "DeleteItemById",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/catalog",
+      "handlerLine": 390,
+      "handlerBody": "public static async Task\u003CResults\u003CNoContent, NotFound\u003E\u003E DeleteItemById(\r\n        [AsParameters] CatalogServices services,\r\n        [Description(\u0022The id of the catalog item to delete\u0022)] int id)\r\n    {\r\n        var item = services.Context.CatalogItems.SingleOrDefault(x =\u003E x.Id == id);\r\n\r\n        if (item is null)\r\n        {\r\n            return TypedResults.NotFound();\r\n        }\r\n\r\n        services.Context.CatalogItems.Remove(item);\r\n        await services.Context.SaveChangesAsync();\r\n        return TypedResults.NoContent();\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Apis\\CatalogApi.cs",
+      "lineNumber": 107,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/",
+      "handlerType": "() =\u003E Results.Redirect($\u0022/scalar/{defaultDocument}\u0022)",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 41,
+      "handlerBody": "() =\u003E Results.Redirect($\u0022/scalar/{defaultDocument}\u0022)",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.ServiceDefaults\\OpenApi.Extensions.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Account",
+      "handlerType": "AccountController",
+      "handlerMethod": "Login",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\AccountController.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Account",
+      "handlerType": "AccountController",
+      "handlerMethod": "Login",
+      "authAttributes": [],
+      "parameterTypes": [
+        "LoginInputModel",
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\AccountController.cs",
+      "lineNumber": 59,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Account",
+      "handlerType": "AccountController",
+      "handlerMethod": "Logout",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\AccountController.cs",
+      "lineNumber": 146,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Account",
+      "handlerType": "AccountController",
+      "handlerMethod": "Logout",
+      "authAttributes": [],
+      "parameterTypes": [
+        "LogoutInputModel"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\AccountController.cs",
+      "lineNumber": 165,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Account",
+      "handlerType": "AccountController",
+      "handlerMethod": "AccessDenied",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\AccountController.cs",
+      "lineNumber": 196,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/External",
+      "handlerType": "ExternalController",
+      "handlerMethod": "Challenge",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string",
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\ExternalController.cs",
+      "lineNumber": 33,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/External",
+      "handlerType": "ExternalController",
+      "handlerMethod": "Callback",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Account\\ExternalController.cs",
+      "lineNumber": 63,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Consent",
+      "handlerType": "ConsentController",
+      "handlerMethod": "Index",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Consent\\ConsentController.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Consent",
+      "handlerType": "ConsentController",
+      "handlerMethod": "Index",
+      "authAttributes": [],
+      "parameterTypes": [
+        "ConsentInputModel"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Consent\\ConsentController.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Device",
+      "handlerType": "DeviceController",
+      "handlerMethod": "Index",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Device\\DeviceController.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Device",
+      "handlerType": "DeviceController",
+      "handlerMethod": "UserCodeCapture",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Device\\DeviceController.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Device",
+      "handlerType": "DeviceController",
+      "handlerMethod": "Callback",
+      "authAttributes": [],
+      "parameterTypes": [
+        "DeviceAuthorizationInputModel"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Device\\DeviceController.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Grants",
+      "handlerType": "GrantsController",
+      "handlerMethod": "Index",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Grants\\GrantsController.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Grants",
+      "handlerType": "GrantsController",
+      "handlerMethod": "Revoke",
+      "authAttributes": [],
+      "parameterTypes": [
+        "string"
+      ],
+      "handlerLine": 0,
+      "extractorName": "ControllerActionExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Quickstart\\Grants\\GrantsController.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/api/orders/cancel",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "CancelOrderAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 22,
+      "handlerBody": "public static async Task\u003CResults\u003COk, BadRequest\u003Cstring\u003E, ProblemHttpResult\u003E\u003E CancelOrderAsync(\r\n        [FromHeader(Name = \u0022x-requestid\u0022)] Guid requestId,\r\n        CancelOrderCommand command,\r\n        [AsParameters] OrderServices services)\r\n    {\r\n        if (requestId == Guid.Empty)\r\n        {\r\n            return TypedResults.BadRequest(\u0022Empty GUID is not valid for request ID\u0022);\r\n        }\r\n\r\n        var requestCancelOrder = new IdentifiedCommand\u003CCancelOrderCommand, bool\u003E(command, requestId);\r\n\r\n        services.Logger.LogInformation(\r\n            \u0022Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})\u0022,\r\n            requestCancelOrder.GetGenericTypeName(),\r\n            nameof(requestCancelOrder.Command.OrderNumber),\r\n            requestCancelOrder.Command.OrderNumber,\r\n            requestCancelOrder);\r\n\r\n        var commandResult = await services.Mediator.Send(requestCancelOrder);\r\n\r\n        if (!commandResult)\r\n        {\r\n            return TypedResults.Problem(detail: \u0022Cancel order failed to process.\u0022, statusCode: 500);\r\n        }\r\n\r\n        return TypedResults.Ok();\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/api/orders/ship",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "ShipOrderAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 51,
+      "handlerBody": "public static async Task\u003CResults\u003COk, BadRequest\u003Cstring\u003E, ProblemHttpResult\u003E\u003E ShipOrderAsync(\r\n        [FromHeader(Name = \u0022x-requestid\u0022)] Guid requestId,\r\n        ShipOrderCommand command,\r\n        [AsParameters] OrderServices services)\r\n    {\r\n        if (requestId == Guid.Empty)\r\n        {\r\n            return TypedResults.BadRequest(\u0022Empty GUID is not valid for request ID\u0022);\r\n        }\r\n\r\n        var requestShipOrder = new IdentifiedCommand\u003CShipOrderCommand, bool\u003E(command, requestId);\r\n\r\n        services.Logger.LogInformation(\r\n            \u0022Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})\u0022,\r\n            requestShipOrder.GetGenericTypeName(),\r\n            nameof(requestShipOrder.Command.OrderNumber),\r\n            requestShipOrder.Command.OrderNumber,\r\n            requestShipOrder);\r\n\r\n        var commandResult = await services.Mediator.Send(requestShipOrder);\r\n\r\n        if (!commandResult)\r\n        {\r\n            return TypedResults.Problem(detail: \u0022Ship order failed to process.\u0022, statusCode: 500);\r\n        }\r\n\r\n        return TypedResults.Ok();\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/orders/{orderId:int}",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "GetOrderAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 80,
+      "handlerBody": "public static async Task\u003CResults\u003COk\u003COrder\u003E, NotFound\u003E\u003E GetOrderAsync(int orderId, [AsParameters] OrderServices services)\r\n    {\r\n        try\r\n        {\r\n            var order = await services.Queries.GetOrderAsync(orderId);\r\n            return TypedResults.Ok(order);\r\n        }\r\n        catch\r\n        {\r\n            return TypedResults.NotFound();\r\n        }\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/orders/",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "GetOrdersByUserAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 93,
+      "handlerBody": "public static async Task\u003COk\u003CIEnumerable\u003COrderSummary\u003E\u003E\u003E GetOrdersByUserAsync([AsParameters] OrderServices services)\r\n    {\r\n        var userId = services.IdentityService.GetUserIdentity();\r\n        var orders = await services.Queries.GetOrdersFromUserAsync(userId);\r\n        return TypedResults.Ok(orders);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/orders/cardtypes",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "GetCardTypesAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 100,
+      "handlerBody": "public static async Task\u003COk\u003CIEnumerable\u003CCardType\u003E\u003E\u003E GetCardTypesAsync(IOrderQueries orderQueries)\r\n    {\r\n        var cardTypes = await orderQueries.GetCardTypesAsync();\r\n        return TypedResults.Ok(cardTypes);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/api/orders/draft",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "CreateOrderDraftAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 106,
+      "handlerBody": "public static async Task\u003COrderDraftDTO\u003E CreateOrderDraftAsync(CreateOrderDraftCommand command, [AsParameters] OrderServices services)\r\n    {\r\n        services.Logger.LogInformation(\r\n            \u0022Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})\u0022,\r\n            command.GetGenericTypeName(),\r\n            nameof(command.BuyerId),\r\n            command.BuyerId,\r\n            command);\r\n\r\n        return await services.Mediator.Send(command);\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/api/orders/",
+      "handlerType": "OrdersApi",
+      "handlerMethod": "CreateOrderAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "api/orders",
+      "handlerLine": 118,
+      "handlerBody": "public static async Task\u003CResults\u003COk, BadRequest\u003Cstring\u003E\u003E\u003E CreateOrderAsync(\r\n        [FromHeader(Name = \u0022x-requestid\u0022)] Guid requestId,\r\n        CreateOrderRequest request,\r\n        [AsParameters] OrderServices services)\r\n    {\r\n        \r\n        //mask the credit card number\r\n        \r\n        services.Logger.LogInformation(\r\n            \u0022Sending command: {CommandName} - {IdProperty}: {CommandId}\u0022,\r\n            request.GetGenericTypeName(),\r\n            nameof(request.UserId),\r\n            request.UserId); //don\u0027t log the request as it has CC number\r\n\r\n        if (requestId == Guid.Empty)\r\n        {\r\n            services.Logger.LogWarning(\u0022Invalid IntegrationEvent - RequestId is missing - {@IntegrationEvent}\u0022, request);\r\n            return TypedResults.BadRequest(\u0022RequestId is missing.\u0022);\r\n        }\r\n\r\n        using (services.Logger.BeginScope(new List\u003CKeyValuePair\u003Cstring, object\u003E\u003E { new(\u0022IdentifiedCommandId\u0022, requestId) }))\r\n        {\r\n            var maskedCCNumber = request.CardNumber.Substring(request.CardNumber.Length - 4).PadLeft(request.CardNumber.Length, \u0027X\u0027);\r\n            var createOrderCommand = new CreateOrderCommand(request.Items, request.UserId, request.UserName, request.City, request.Street,\r\n                request.State, request.Country, request.ZipCode,\r\n                maskedCCNumber, request.CardHolderName, request.CardExpiration,\r\n                request.CardSecurityNumber, request.CardTypeId);\r\n\r\n            var requestCreateOrder = new IdentifiedCommand\u003CCreateOrderCommand, bool\u003E(createOrderCommand, requestId);\r\n\r\n            services.Logger.LogInformation(\r\n                \u0022Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})\u0022,\r\n                requestCreateOrder.GetGenericTypeName(),\r\n                nameof(requestCreateOrder.Id),\r\n                requestCreateOrder.Id,\r\n                requestCreateOrder);\r\n\r\n            var result = await services.Mediator.Send(requestCreateOrder);\r\n\r\n            if (result)\r\n            {\r\n                services.Logger.LogInformation(\u0022CreateOrderCommand succeeded - RequestId: {RequestId}\u0022, requestId);\r\n            }\r\n            else\r\n            {\r\n                services.Logger.LogWarning(\u0022CreateOrderCommand failed - RequestId: {RequestId}\u0022, requestId);\r\n            }\r\n\r\n            return TypedResults.Ok();\r\n        }\r\n    }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Apis\\OrdersApi.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/logout",
+      "handlerType": "async (HttpContext httpContext, IAntiforgery antiforgery) =\u003E\r\n        {\r\n            await antiforgery.ValidateRequestAsync(httpContext);\r\n            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);\r\n            await httpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 12,
+      "handlerBody": "async (HttpContext httpContext, IAntiforgery antiforgery) =\u003E\r\n        {\r\n            await antiforgery.ValidateRequestAsync(httpContext);\r\n            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);\r\n            await httpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Endpoints\\AuthenticationEndpoints.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/webhook-received",
+      "handlerType": "async (WebhookData hook, HttpRequest request, ILogger\u003CProgram\u003E logger, HooksRepository hooksRepository) =\u003E\r\n        {\r\n            var token = request.Headers[webhookCheckHeader];\r\n\r\n            logger.LogInformation(\u0022Received hook with token {Token}. My token is {MyToken}. Token validation is set to {ValidateToken}\u0022, token, tokenToValidate, validateToken);\r\n\r\n            if (!validateToken || tokenToValidate == token)\r\n            {\r\n                logger.LogInformation(\u0022Received hook is going to be processed\u0022);\r\n                var newHook = new WebHookReceived()\r\n                {\r\n                    Data = hook.Payload,\r\n                    When = hook.When,\r\n                    Token = token\r\n                };\r\n                await hooksRepository.AddNew(newHook);\r\n                logger.LogInformation(\u0022Received hook was processed.\u0022);\r\n                return Results.Ok(newHook);\r\n            }\r\n\r\n            logger.LogInformation(\u0022Received hook is NOT processed - Bad Request returned.\u0022);\r\n            return Results.BadRequest();\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 31,
+      "handlerBody": "async (WebhookData hook, HttpRequest request, ILogger\u003CProgram\u003E logger, HooksRepository hooksRepository) =\u003E\r\n        {\r\n            var token = request.Headers[webhookCheckHeader];\r\n\r\n            logger.LogInformation(\u0022Received hook with token {Token}. My token is {MyToken}. Token validation is set to {ValidateToken}\u0022, token, tokenToValidate, validateToken);\r\n\r\n            if (!validateToken || tokenToValidate == token)\r\n            {\r\n                logger.LogInformation(\u0022Received hook is going to be processed\u0022);\r\n                var newHook = new WebHookReceived()\r\n                {\r\n                    Data = hook.Payload,\r\n                    When = hook.When,\r\n                    Token = token\r\n                };\r\n                await hooksRepository.AddNew(newHook);\r\n                logger.LogInformation(\u0022Received hook was processed.\u0022);\r\n                return Results.Ok(newHook);\r\n            }\r\n\r\n            logger.LogInformation(\u0022Received hook is NOT processed - Bad Request returned.\u0022);\r\n            return Results.BadRequest();\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Endpoints\\WebhookEndpoints.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/webhooks/",
+      "handlerType": "async (WebhooksContext context, ClaimsPrincipal user) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var data = await context.Subscriptions.Where(s =\u003E s.UserId == userId).ToListAsync();\r\n            return TypedResults.Ok(data);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/api/webhooks",
+      "handlerLine": 13,
+      "handlerBody": "async (WebhooksContext context, ClaimsPrincipal user) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var data = await context.Subscriptions.Where(s =\u003E s.UserId == userId).ToListAsync();\r\n            return TypedResults.Ok(data);\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Apis\\WebHooksApi.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/api/webhooks/{id:int}",
+      "handlerType": "async Task\u003CResults\u003COk\u003CWebhookSubscription\u003E, NotFound\u003Cstring\u003E\u003E\u003E (\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user,\r\n            int id) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var subscription = await context.Subscriptions\r\n                .SingleOrDefaultAsync(s =\u003E s.Id == id \u0026\u0026 s.UserId == userId);\r\n            if (subscription != null)\r\n            {\r\n                return TypedResults.Ok(subscription);\r\n            }\r\n            return TypedResults.NotFound($\u0022Subscriptions {id} not found\u0022);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/api/webhooks",
+      "handlerLine": 20,
+      "handlerBody": "async Task\u003CResults\u003COk\u003CWebhookSubscription\u003E, NotFound\u003Cstring\u003E\u003E\u003E (\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user,\r\n            int id) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var subscription = await context.Subscriptions\r\n                .SingleOrDefaultAsync(s =\u003E s.Id == id \u0026\u0026 s.UserId == userId);\r\n            if (subscription != null)\r\n            {\r\n                return TypedResults.Ok(subscription);\r\n            }\r\n            return TypedResults.NotFound($\u0022Subscriptions {id} not found\u0022);\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Apis\\WebHooksApi.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/api/webhooks/",
+      "handlerType": "async Task\u003CResults\u003CCreated, BadRequest\u003Cstring\u003E\u003E\u003E (\r\n            WebhookSubscriptionRequest request,\r\n            IGrantUrlTesterService grantUrlTester,\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user) =\u003E\r\n        {\r\n            var grantOk = await grantUrlTester.TestGrantUrl(request.Url, request.GrantUrl, request.Token ?? string.Empty);\r\n\r\n            if (grantOk)\r\n            {\r\n                var subscription = new WebhookSubscription()\r\n                {\r\n                    Date = DateTime.UtcNow,\r\n                    DestUrl = request.Url,\r\n                    Token = request.Token,\r\n                    Type = Enum.Parse\u003CWebhookType\u003E(request.Event, ignoreCase: true),\r\n                    UserId = user.GetUserId()\r\n                };\r\n\r\n                context.Add(subscription);\r\n                await context.SaveChangesAsync();\r\n\r\n                return TypedResults.Created($\u0022/api/webhooks/{subscription.Id}\u0022);\r\n            }\r\n            else\r\n            {\r\n                return TypedResults.BadRequest($\u0022Invalid grant URL: {request.GrantUrl}\u0022);\r\n            }\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/api/webhooks",
+      "handlerLine": 35,
+      "handlerBody": "async Task\u003CResults\u003CCreated, BadRequest\u003Cstring\u003E\u003E\u003E (\r\n            WebhookSubscriptionRequest request,\r\n            IGrantUrlTesterService grantUrlTester,\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user) =\u003E\r\n        {\r\n            var grantOk = await grantUrlTester.TestGrantUrl(request.Url, request.GrantUrl, request.Token ?? string.Empty);\r\n\r\n            if (grantOk)\r\n            {\r\n                var subscription = new WebhookSubscription()\r\n                {\r\n                    Date = DateTime.UtcNow,\r\n                    DestUrl = request.Url,\r\n                    Token = request.Token,\r\n                    Type = Enum.Parse\u003CWebhookType\u003E(request.Event, ignoreCase: true),\r\n                    UserId = user.GetUserId()\r\n                };\r\n\r\n                context.Add(subscription);\r\n                await context.SaveChangesAsync();\r\n\r\n                return TypedResults.Created($\u0022/api/webhooks/{subscription.Id}\u0022);\r\n            }\r\n            else\r\n            {\r\n                return TypedResults.BadRequest($\u0022Invalid grant URL: {request.GrantUrl}\u0022);\r\n            }\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Apis\\WebHooksApi.cs",
+      "lineNumber": 35,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/api/webhooks/{id:int}",
+      "handlerType": "async Task\u003CResults\u003CAccepted, NotFound\u003Cstring\u003E\u003E\u003E (\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user,\r\n            int id) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var subscription = await context.Subscriptions.SingleOrDefaultAsync(s =\u003E s.Id == id \u0026\u0026 s.UserId == userId);\r\n\r\n            if (subscription != null)\r\n            {\r\n                context.Remove(subscription);\r\n                await context.SaveChangesAsync();\r\n                return TypedResults.Accepted($\u0022/api/webhooks/{subscription.Id}\u0022);\r\n            }\r\n\r\n            return TypedResults.NotFound($\u0022Subscriptions {id} not found\u0022);\r\n        }",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "groupPrefix": "/api/webhooks",
+      "handlerLine": 66,
+      "handlerBody": "async Task\u003CResults\u003CAccepted, NotFound\u003Cstring\u003E\u003E\u003E (\r\n            WebhooksContext context,\r\n            ClaimsPrincipal user,\r\n            int id) =\u003E\r\n        {\r\n            var userId = user.GetUserId();\r\n            var subscription = await context.Subscriptions.SingleOrDefaultAsync(s =\u003E s.Id == id \u0026\u0026 s.UserId == userId);\r\n\r\n            if (subscription != null)\r\n            {\r\n                context.Remove(subscription);\r\n                await context.SaveChangesAsync();\r\n                return TypedResults.Accepted($\u0022/api/webhooks/{subscription.Id}\u0022);\r\n            }\r\n\r\n            return TypedResults.NotFound($\u0022Subscriptions {id} not found\u0022);\r\n        }",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Apis\\WebHooksApi.cs",
+      "lineNumber": 66,
+      "confidence": 1
+    },
+    {
+      "type": "EventFlowDetection",
+      "eventType": "BeforeStartEvent",
+      "target": "(@event, ct) =\u003E\r\n            {\r\n                foreach (var p in @event.Model.GetProjectResources())\r\n                {\r\n                    p.Annotations.Add(new EnvironmentCallbackAnnotation(context =\u003E\r\n                    {\r\n                        context.EnvironmentVariables[\u0022ASPNETCORE_FORWARDEDHEADERS_ENABLED\u0022] = \u0022true\u0022;\r\n                    }));\r\n                }\r\n\r\n                return Task.CompletedTask;\r\n            }",
+      "kind": "Subscribe",
+      "busKind": "in-memory",
+      "extractorName": "InMemoryEventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\eShop.AppHost\\Extensions.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 87,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 88,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 100,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 101,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 102,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MauiProgram",
+      "callerMethod": "RegisterAppServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\ClientApp\\MauiProgram.cs",
+      "lineNumber": 103,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RabbitMqDependencyInjectionExtensions",
+      "callerMethod": "AddRabbitMqEventBus",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMqDependencyInjectionExtensions.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RabbitMQEventBus",
+      "callerMethod": "StartAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\EventBusRabbitMQ\\RabbitMQEventBus.cs",
+      "lineNumber": 235,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MigrateDbContextExtensions",
+      "callerMethod": "AddMigration",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Shared\\MigrateDbContextExtensions.cs",
+      "lineNumber": 28,
+      "confidence": 1
+    },
+    {
+      "type": "MediatRHandlerDetection",
+      "requestType": "CancelOrderCommand",
+      "responseType": "bool",
+      "handlerType": "CancelOrderCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\CancelOrderCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "bool",
+      "responseType": "Unit",
+      "handlerType": "CreateOrderCommand",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\CreateOrderCommand.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "requestType": "CreateOrderCommand",
+      "responseType": "bool",
+      "handlerType": "CreateOrderCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\CreateOrderCommandHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "CreateOrderDraftCommand",
+      "responseType": "OrderDraftDTO",
+      "handlerType": "CreateOrderDraftCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\CreateOrderDraftCommandHandler.cs",
+      "lineNumber": 7,
+      "confidence": 1
+    },
+    {
+      "requestType": "R",
+      "responseType": "Unit",
+      "handlerType": "IdentifiedCommand",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\IdentifiedCommand.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "IdentifiedCommand\u003CT, R\u003E",
+      "responseType": "R",
+      "handlerType": "IdentifiedCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\IdentifiedCommandHandler.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "requestType": "SetAwaitingValidationOrderStatusCommand",
+      "responseType": "bool",
+      "handlerType": "SetAwaitingValidationOrderStatusCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\SetAwaitingValidationOrderStatusCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "SetPaidOrderStatusCommand",
+      "responseType": "bool",
+      "handlerType": "SetPaidOrderStatusCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\SetPaidOrderStatusCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "SetStockConfirmedOrderStatusCommand",
+      "responseType": "bool",
+      "handlerType": "SetStockConfirmedOrderStatusCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\SetStockConfirmedOrderStatusCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "SetStockRejectedOrderStatusCommand",
+      "responseType": "bool",
+      "handlerType": "SetStockRejectedOrderStatusCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\SetStockRejectedOrderStatusCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "ShipOrderCommand",
+      "responseType": "bool",
+      "handlerType": "ShipOrderCommandHandler",
+      "kind": 0,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\Commands\\ShipOrderCommandHandler.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderCancelledDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "OrderCancelledDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\OrderCancelledDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderShippedDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "OrderShippedDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\OrderShippedDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderStatusChangedToAwaitingValidationDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "OrderStatusChangedToAwaitingValidationDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\OrderStatusChangedToAwaitingValidationDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderStatusChangedToPaidDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "OrderStatusChangedToPaidDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\OrderStatusChangedToPaidDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderStatusChangedToStockConfirmedDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "OrderStatusChangedToStockConfirmedDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\OrderStatusChangedToStockConfirmedDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "BuyerAndPaymentMethodVerifiedDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "requestType": "OrderStartedDomainEvent",
+      "responseType": "Unit",
+      "handlerType": "ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\DomainEventHandlers\\ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "type": "MessageConsumerDetection",
+      "messageType": "OrderStartedIntegrationEvent",
+      "consumerType": "OrderStartedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Basket.API\\IntegrationEvents\\EventHandling\\OrderStartedIntegrationEventHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToAwaitingValidationIntegrationEvent",
+      "consumerType": "OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\IntegrationEvents\\EventHandling\\OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToPaidIntegrationEvent",
+      "consumerType": "OrderStatusChangedToPaidIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\IntegrationEvents\\EventHandling\\OrderStatusChangedToPaidIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "GracePeriodConfirmedIntegrationEvent",
+      "consumerType": "GracePeriodConfirmedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\IntegrationEvents\\EventHandling\\GracePeriodConfirmedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderPaymentFailedIntegrationEvent",
+      "consumerType": "OrderPaymentFailedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\IntegrationEvents\\EventHandling\\OrderPaymentFailedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderPaymentSucceededIntegrationEvent",
+      "consumerType": "OrderPaymentSucceededIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\IntegrationEvents\\EventHandling\\OrderPaymentSucceededIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStockConfirmedIntegrationEvent",
+      "consumerType": "OrderStockConfirmedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\IntegrationEvents\\EventHandling\\OrderStockConfirmedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStockRejectedIntegrationEvent",
+      "consumerType": "OrderStockRejectedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Application\\IntegrationEvents\\EventHandling\\OrderStockRejectedIntegrationEventHandler.cs",
+      "lineNumber": 2,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToStockConfirmedIntegrationEvent",
+      "consumerType": "OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\PaymentProcessor\\IntegrationEvents\\EventHandling\\OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToAwaitingValidationIntegrationEvent",
+      "consumerType": "OrderStatusChangedToAwaitingValidationIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToAwaitingValidationIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToCancelledIntegrationEvent",
+      "consumerType": "OrderStatusChangedToCancelledIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToCancelledIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToPaidIntegrationEvent",
+      "consumerType": "OrderStatusChangedToPaidIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToPaidIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToShippedIntegrationEvent",
+      "consumerType": "OrderStatusChangedToShippedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToShippedIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToStockConfirmedIntegrationEvent",
+      "consumerType": "OrderStatusChangedToStockConfirmedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToStockConfirmedIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToSubmittedIntegrationEvent",
+      "consumerType": "OrderStatusChangedToSubmittedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Services\\OrderStatus\\IntegrationEvents\\EventHandling\\OrderStatusChangedToSubmittedIntegrationEventHandler.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToPaidIntegrationEvent",
+      "consumerType": "OrderStatusChangedToPaidIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\IntegrationEvents\\OrderStatusChangedToPaidIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "OrderStatusChangedToShippedIntegrationEvent",
+      "consumerType": "OrderStatusChangedToShippedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\IntegrationEvents\\OrderStatusChangedToShippedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "messageType": "ProductPriceChangedIntegrationEvent",
+      "consumerType": "ProductPriceChangedIntegrationEventHandler",
+      "busKind": "RabbitMQ",
+      "extractorName": "EventBusExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\IntegrationEvents\\ProductPriceChangedIntegrationEventHandler.cs",
+      "lineNumber": 3,
+      "confidence": 1
+    },
+    {
+      "type": "MiddlewareDetection",
+      "middlewareType": "MapGrpcService",
+      "pipelineOrder": 1,
+      "kind": 1,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Basket.API\\Program.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseStatusCodePages",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Program.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseDefaultOpenApi",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Catalog.API\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseStaticFiles",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseCookiePolicy",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 50,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseRouting",
+      "pipelineOrder": 3,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseIdentityServer",
+      "pipelineOrder": 4,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 52,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAuthorization",
+      "pipelineOrder": 5,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Identity.API\\Program.cs",
+      "lineNumber": 53,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseDefaultOpenApi",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Ordering.API\\Program.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseExceptionHandler",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseHsts",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAntiforgery",
+      "pipelineOrder": 3,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseHttpsRedirection",
+      "pipelineOrder": 4,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseStaticFiles",
+      "pipelineOrder": 5,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebApp\\Program.cs",
+      "lineNumber": 28,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseExceptionHandler",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseHsts",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAntiforgery",
+      "pipelineOrder": 3,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseStaticFiles",
+      "pipelineOrder": 4,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\WebhookClient\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseDefaultOpenApi",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\eShop\\src\\Webhooks.API\\Program.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Domain.OrderAggregateTest\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Catalog.FunctionalTests.CatalogApiTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.FunctionalTests.AutoAuthorizeMiddleware\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Application.NewOrderRequestHandlerTest\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.FunctionalTests.AutoAuthorizeStartupFilter\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Domain.OrderBuilder\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Application.OrdersWebApiTest\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.FunctionalTests.OrderingApiFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.ViewModels.CatalogItemViewModelTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Domain.AddressBuilder\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Mocks.MockDialogService\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.TestingExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Application.IdentifiedCommandHandlerTest\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Mocks.MockViewModel\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.ViewModels.MockViewModelTests\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Mocks.MockNavigationService\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Application.SetStockRejectedOrderStatusCommandTest\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.UnitTests.Domain.BuyerAggregateTest\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Services.CatalogServiceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Services.BasketServiceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.ViewModels.CatalogViewModelTests\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.ViewModels.MainViewModelTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Basket.UnitTests.BasketServiceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Ordering.FunctionalTests.OrderingApiTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Catalog.FunctionalTests.CatalogApiFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.ViewModels.OrderViewModelTests\u0027; PatternRelevancePruner: excluded test-project type \u0027eShop.Basket.UnitTests.Helpers.TestServerCallContext\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Mocks.MockSettingsService\u0027; PatternRelevancePruner: excluded test-project type \u0027ClientApp.UnitTests.Services.OrdersServiceTests\u0027; TokenBudgetEnforcer: kept 23 types (494 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1332734",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.5170676",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0014660",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:03.7168622",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0302089",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0171447",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:03.0575350",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.6565655",
+        "typesAdded": 0,
+        "detectionsAdded": 186,
+        "skipped": false
+      },
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.5144428",
+        "typesAdded": 517,
+        "detectionsAdded": 154,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.4093265",
+        "typesAdded": 0,
+        "detectionsAdded": 154,
+        "skipped": false
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.4002471",
+        "typesAdded": 0,
+        "detectionsAdded": 173,
+        "skipped": false
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2951928",
+        "typesAdded": 0,
+        "detectionsAdded": 156,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2835221",
+        "typesAdded": 0,
+        "detectionsAdded": 156,
+        "skipped": false
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2267303",
+        "typesAdded": 0,
+        "detectionsAdded": 96,
+        "skipped": false
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2039918",
+        "typesAdded": 0,
+        "detectionsAdded": 126,
+        "skipped": false
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1791765",
+        "typesAdded": 0,
+        "detectionsAdded": 117,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1706060",
+        "typesAdded": 0,
+        "detectionsAdded": 127,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1628580",
+        "typesAdded": 0,
+        "detectionsAdded": 19,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1454496",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0497055",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0460705",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0201747",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0158964",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0148387",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0065236",
+        "typesAdded": 0,
+        "detectionsAdded": 49,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 517,
+        "typesAfter": 23
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 517,
+        "typesAfter": 517
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 58
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 32
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 230
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 548,
+      "syntaxTreeHits": 6791,
+      "syntaxTreeMisses": 524
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 524,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:00.5170676",
+      "stage2CpuSum": "00:00:01.1173624",
+      "stage3Wall": "00:00:03.7168622",
+      "stage3CpuSum": "00:00:05.6255403"
+    },
+    "totalWall": "00:00:04.8314222"
+  }
+}

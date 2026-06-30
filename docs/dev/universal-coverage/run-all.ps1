@@ -3,9 +3,9 @@ param(
     [switch]$OnlyNew
 )
 $ErrorActionPreference = 'Continue'
-$repoRoot = $PSScriptRoot
-$cliProject = Join-Path $repoRoot "..\..\src\DevContext.Cli"
-$evalRoot = Join-Path $repoRoot "..\..\eval-repos"
+$repoRoot = Join-Path $PSScriptRoot "analysis"
+$cliProject = Join-Path $PSScriptRoot "..\..\..\src\DevContext.Cli"
+$evalRoot = Join-Path $PSScriptRoot "..\..\..\eval-repos"
 
 # Build
 Write-Host "=== Building CLI ==="

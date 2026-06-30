@@ -1,0 +1,1830 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:57:38.5406262Z",
+  "solution": {
+    "name": "DotNetWorker.Extensions",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\Functions\\DotNetWorker.Extensions.sln",
+    "projectPaths": [
+      "test\\TestUtility\\TestUtility.csproj",
+      "extensions\\Worker.Extensions.Http\\src\\Worker.Extensions.Http.csproj",
+      "extensions\\Worker.Extensions.Abstractions\\src\\Worker.Extensions.Abstractions.csproj",
+      "extensions\\Worker.Extensions.Storage\\src\\Worker.Extensions.Storage.csproj",
+      "extensions\\Worker.Extensions.Timer\\src\\Worker.Extensions.Timer.csproj",
+      "extensions\\Worker.Extensions.CosmosDB\\src\\Worker.Extensions.CosmosDB.csproj",
+      "extensions\\Worker.Extensions.EventGrid\\src\\Worker.Extensions.EventGrid.csproj",
+      "extensions\\Worker.Extensions.ServiceBus\\src\\Worker.Extensions.ServiceBus.csproj",
+      "extensions\\Worker.Extensions.EventHubs\\src\\Worker.Extensions.EventHubs.csproj",
+      "extensions\\Worker.Extensions.RabbitMQ\\src\\Worker.Extensions.RabbitMQ.csproj",
+      "extensions\\Worker.Extensions.SignalRService\\src\\Worker.Extensions.SignalRService.csproj",
+      "extensions\\Worker.Extensions.SendGrid\\src\\Worker.Extensions.SendGrid.csproj",
+      "extensions\\Worker.Extensions.Warmup\\src\\Worker.Extensions.Warmup.csproj",
+      "extensions\\Worker.Extensions.Kafka\\src\\Worker.Extensions.Kafka.csproj",
+      "test\\E2ETests\\E2EApps\\E2EApp\\E2EApp.csproj",
+      "test\\E2ETests\\E2ETests\\E2ETests.csproj",
+      "extensions\\Worker.Extensions.Storage.Queues\\src\\Worker.Extensions.Storage.Queues.csproj",
+      "extensions\\Worker.Extensions.Storage.Blobs\\src\\Worker.Extensions.Storage.Blobs.csproj",
+      "extensions\\Worker.Extensions.Tables\\src\\Worker.Extensions.Tables.csproj",
+      "extensions\\Worker.Extensions.Shared\\Worker.Extensions.Shared.csproj",
+      "extensions\\Worker.Extensions.Rpc\\src\\Worker.Extensions.Rpc.csproj",
+      "extensions\\Worker.Extensions.Http.AspNetCore\\src\\Worker.Extensions.Http.AspNetCore.csproj",
+      "test\\extensions\\Worker.Extensions.Rpc.Tests\\Worker.Extensions.Rpc.Tests.csproj",
+      "test\\extensions\\Worker.Extensions.SignalRService.Tests\\Worker.Extensions.SignalRService.Tests.csproj",
+      "test\\extensions\\Worker.Extensions.Tests\\Worker.Extensions.Tests.csproj",
+      "test\\extensions\\Worker.Extensions.Http.AspNetCore.Tests\\Worker.Extensions.Http.AspNetCore.Tests.csproj",
+      "test\\extensions\\Worker.Extensions.Shared.Tests\\Worker.Extensions.Shared.Tests.csproj",
+      "test\\extensions\\Worker.Extensions.Timer.Tests\\Worker.Extensions.Timer.Tests.csproj",
+      "extensions\\Worker.Extensions.Http.AspNetCore.Analyzers\\src\\Worker.Extensions.Http.AspNetCore.Analyzers.csproj",
+      "test\\E2ETests\\E2EApps\\E2EAspNetCoreApp\\E2EAspNetCoreApp.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "NLayer",
+    "confidence": 0.6
+  },
+  "archetype": "App",
+  "signals": [
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 66,
+    "names": [
+      "App",
+      "AspNetIntegration",
+      "Azure.Functions.Sdk",
+      "Azure.Functions.Sdk.Resolver",
+      "Azure.Functions.Sdk.Tests",
+      "Configuration",
+      "CustomMiddleware",
+      "DependentAssemblyWithFunctions",
+      "DependentAssemblyWithFunctions.NetStandard",
+      "DotNetWorker",
+      "DotNetWorker.ApplicationInsights",
+      "DotNetWorker.ApplicationInsights.Tests",
+      "DotNetWorker.Core",
+      "DotNetWorker.Grpc",
+      "DotNetWorker.OpenTelemetry",
+      "DotNetWorker.OpenTelemetry.Tests",
+      "DotNetWorker.Tests",
+      "E2EApp",
+      "E2EAspNetCoreApp",
+      "E2ETests",
+      "EntityFramework",
+      "Extensions",
+      "FunctionApp",
+      "FunctionApp.MSBuildSdk",
+      "FunctionApp01",
+      "FunctionExt01",
+      "FunctionLib01",
+      "FunctionMetadataLoaderExtension",
+      "FunctionsNetHost",
+      "Net9FunctionApp",
+      "NetFxWorker",
+      "Sdk",
+      "Sdk.Analyzers",
+      "Sdk.Analyzers.Tests",
+      "Sdk.E2ETests",
+      "Sdk.Generator.Tests",
+      "Sdk.Generators",
+      "TestUtility",
+      "Worker.Extensions.Abstractions",
+      "Worker.Extensions.CosmosDB",
+      "Worker.Extensions.EventGrid",
+      "Worker.Extensions.EventHubs",
+      "Worker.Extensions.Http",
+      "Worker.Extensions.Http.AspNetCore",
+      "Worker.Extensions.Http.AspNetCore.Analyzers",
+      "Worker.Extensions.Http.AspNetCore.Tests",
+      "Worker.Extensions.Kafka",
+      "Worker.Extensions.RabbitMQ",
+      "Worker.Extensions.Rpc",
+      "Worker.Extensions.Rpc.Tests",
+      "Worker.Extensions.Sample",
+      "Worker.Extensions.Sample-IncorrectImplementation",
+      "Worker.Extensions.SendGrid",
+      "Worker.Extensions.ServiceBus",
+      "Worker.Extensions.Shared",
+      "Worker.Extensions.Shared.Tests",
+      "Worker.Extensions.SignalRService",
+      "Worker.Extensions.SignalRService.Tests",
+      "Worker.Extensions.Storage",
+      "Worker.Extensions.Storage.Blobs",
+      "Worker.Extensions.Storage.Queues",
+      "Worker.Extensions.Tables",
+      "Worker.Extensions.Tests",
+      "Worker.Extensions.Timer",
+      "Worker.Extensions.Timer.Tests",
+      "Worker.Extensions.Warmup"
+    ]
+  },
+  "typesSummary": {
+    "found": 896,
+    "inOutput": 29,
+    "prunedPercent": 96.8
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddAzureClientsCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAzureClientsCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.CosmosDB\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 41,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "CosmosDBBindingOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.CosmosDB\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 42,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "CosmosDBExtensionOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.CosmosDB\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 50,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "CosmosDBExtensionOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.CosmosDB\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 88,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "FunctionsEndpointDataSource",
+      "implementationType": "FunctionsEndpointDataSource",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Http.AspNetCore\\src\\FunctionsHostBuilderExtensions.cs",
+      "lineNumber": 80,
+      "confidence": 1
+    },
+    {
+      "serviceType": "ExtensionTrace",
+      "implementationType": "ExtensionTrace",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Http.AspNetCore\\src\\FunctionsHostBuilderExtensions.cs",
+      "lineNumber": 81,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IHttpCoordinator",
+      "implementationType": "DefaultHttpCoordinator",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Http.AspNetCore\\src\\WorkerBuilderExtensions.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddMvc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMvc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Http.AspNetCore\\src\\WorkerBuilderExtensions.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "builder.Name",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Rpc\\src\\GrpcHttpClientBuilderExtensions.cs",
+      "lineNumber": 33,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "FunctionsGrpcOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Rpc\\src\\RpcServiceCollectionExtensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddGrpcClient",
+      "implementationType": "_ =\u003E { }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpcClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Rpc\\src\\RpcServiceCollectionExtensions.NetApp.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "sp =\u003E\r\n            {\r\n                IOptions\u003CFunctionsGrpcOptions\u003E options = sp.GetRequiredService\u003CIOptions\u003CFunctionsGrpcOptions\u003E\u003E();\r\n                return new Settlement.SettlementClient(options.Value.CallInvoker);\r\n            }",
+      "implementationType": "sp =\u003E\r\n            {\r\n                IOptions\u003CFunctionsGrpcOptions\u003E options = sp.GetRequiredService\u003CIOptions\u003CFunctionsGrpcOptions\u003E\u003E();\r\n                return new Settlement.SettlementClient(options.Value.CallInvoker);\r\n            }",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new Settlement.SettlementClient(options.Value.CallInvoker)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.ServiceBus\\src\\ServiceBusExtensionStartup.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddWorkerRpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddWorkerRpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.ServiceBus\\src\\ServiceBusExtensionStartup.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServerlessHub",
+      "implementationType": "typeof(THub)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServerlessHub"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServerlessHub",
+      "implementationType": "typeof(THub)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServerlessHub"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 23,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServerlessHub",
+      "implementationType": "hubType",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServerlessHub"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 26,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAzureClientsCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAzureClientsCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "genericType",
+      "implementationType": "sp =\u003E ActivatorUtilities.CreateInstance(sp, genericType, configure)",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "serviceType": "sp =\u003E (IHostedService)sp.GetRequiredService(genericType)",
+      "implementationType": "sp =\u003E (IHostedService)sp.GetRequiredService(genericType)",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddAzureClientsCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAzureClientsCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Storage.Blobs\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 28,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "BlobStorageBindingOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Storage.Blobs\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 29,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddAzureClientsCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddAzureClientsCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Tables\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 29,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "TablesBindingOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Tables\\src\\Extensions\\FunctionsWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApplicationInsightsTelemetryWorkerService",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApplicationInsightsTelemetryWorkerService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\samples\\Net9FunctionApp\\Program.cs",
+      "lineNumber": 9,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "FunctionMetadataJsonReaderOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\sdk\\FunctionMetadataLoaderExtension\\Startup.cs",
+      "lineNumber": 60,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "FunctionMetadataJsonReader",
+      "implementationType": "FunctionMetadataJsonReader",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\sdk\\FunctionMetadataLoaderExtension\\Startup.cs",
+      "lineNumber": 61,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IFunctionProvider",
+      "implementationType": "JsonFunctionProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\sdk\\FunctionMetadataLoaderExtension\\Startup.cs",
+      "lineNumber": 62,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IConfigureOptions\u003CAppServiceOptions\u003E",
+      "implementationType": "AppServiceOptionsInitializer",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AppServiceEnvironmentVariableMonitor",
+      "implementationType": "AppServiceEnvironmentVariableMonitor",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "serviceType": "p =\u003E p.GetRequiredService\u003CAppServiceEnvironmentVariableMonitor\u003E()",
+      "implementationType": "p =\u003E p.GetRequiredService\u003CAppServiceEnvironmentVariableMonitor\u003E()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 2,
+      "factorySummary": "alias \u2192 GetRequiredService",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 38,
+      "confidence": 1
+    },
+    {
+      "serviceType": "p =\u003E p.GetRequiredService\u003CAppServiceEnvironmentVariableMonitor\u003E()",
+      "implementationType": "p =\u003E p.GetRequiredService\u003CAppServiceEnvironmentVariableMonitor\u003E()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 2,
+      "factorySummary": "alias \u2192 GetRequiredService",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 39,
+      "confidence": 1
+    },
+    {
+      "serviceType": "FunctionsRoleInstanceProvider",
+      "implementationType": "FunctionsRoleInstanceProvider",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 41,
+      "confidence": 1
+    },
+    {
+      "serviceType": "provider =\u003E\r\n            {\r\n                // To match parity with the Host, we need to update the QuickPulseTelemetryModule.ServerId. We don\u0027t want to reference the\r\n                // top-level WorkerService or AspNetCore packages, so we cannot use ConfigureTelemetryModules().\r\n                // \r\n                // Nesting this setup inside this ITelemetryInitializer factory as it guarantees it will be run before\r\n                // any ITelemetryModules are initialized.\r\n                var modules = provider.GetServices\u003CITelemetryModule\u003E();\r\n                var quickPulseModule = modules.OfType\u003CQuickPulseTelemetryModule\u003E().SingleOrDefault();\r\n                if (quickPulseModule is not null)\r\n                {\r\n                    var roleInstanceProvider = provider.GetRequiredService\u003CFunctionsRoleInstanceProvider\u003E();\r\n                    quickPulseModule.ServerId = roleInstanceProvider.GetRoleInstanceName();\r\n                }\r\n\r\n                return ActivatorUtilities.CreateInstance\u003CFunctionsRoleEnvironmentTelemetryInitializer\u003E(provider);\r\n            }",
+      "implementationType": "provider =\u003E\r\n            {\r\n                // To match parity with the Host, we need to update the QuickPulseTelemetryModule.ServerId. We don\u0027t want to reference the\r\n                // top-level WorkerService or AspNetCore packages, so we cannot use ConfigureTelemetryModules().\r\n                // \r\n                // Nesting this setup inside this ITelemetryInitializer factory as it guarantees it will be run before\r\n                // any ITelemetryModules are initialized.\r\n                var modules = provider.GetServices\u003CITelemetryModule\u003E();\r\n                var quickPulseModule = modules.OfType\u003CQuickPulseTelemetryModule\u003E().SingleOrDefault();\r\n                if (quickPulseModule is not null)\r\n                {\r\n                    var roleInstanceProvider = provider.GetRequiredService\u003CFunctionsRoleInstanceProvider\u003E();\r\n                    quickPulseModule.ServerId = roleInstanceProvider.GetRoleInstanceName();\r\n                }\r\n\r\n                return ActivatorUtilities.CreateInstance\u003CFunctionsRoleEnvironmentTelemetryInitializer\u003E(provider);\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "FunctionsApplicationInsightsOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 62,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHostedService",
+      "implementationType": "ApplicationInsightsValidationService",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHostedService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 67,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "configureOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\CoreWorkerHostBuilderExtensions.cs",
+      "lineNumber": 36,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "sp =\u003E\r\n            {\r\n                return _pipelineBuilder.Build();\r\n            }",
+      "implementationType": "sp =\u003E\r\n            {\r\n                return _pipelineBuilder.Build();\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\FunctionsWorkerApplicationBuilder.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddHostedService",
+      "implementationType": "WorkerHostedService",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHostedService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 73,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 79,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "builder",
+      "implementationType": "builder",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 113,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFunctionTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 120,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "FunctionExecutionMiddleware",
+      "implementationType": "FunctionExecutionMiddleware",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\WorkerMiddlewareWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "serviceType": "p =\u003E throw new InvalidOperationException($\u0022Type {nameof(OutputBindingsMiddleware)} cannot be resolved using the container.\u0022)",
+      "implementationType": "p =\u003E throw new InvalidOperationException($\u0022Type {nameof(OutputBindingsMiddleware)} cannot be resolved using the container.\u0022)",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new InvalidOperationException($\u0022Type {nameof(OutputBindingsMiddleware)} cannot be resolved using the container.\u0022)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\WorkerMiddlewareWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 78,
+      "confidence": 1
+    },
+    {
+      "serviceType": "T",
+      "implementationType": "T",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\WorkerMiddlewareWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 99,
+      "confidence": 1
+    },
+    {
+      "serviceType": "T",
+      "implementationType": "T",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\WorkerMiddlewareWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 133,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IWorkerClientFactory",
+      "implementationType": "GrpcWorkerClientFactory",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Grpc\\GrpcServiceCollectionExtensions.cs",
+      "lineNumber": 69,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Grpc\\GrpcServiceCollectionExtensions.cs",
+      "lineNumber": 72,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddGrpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Grpc\\Hosting\\GrpcWorkerApplicationBuilderExtensions.cs",
+      "lineNumber": 12,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IBaggagePropagator",
+      "implementationType": "DefaultBaggagePropagator",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.OpenTelemetry\\ConfigureFunctionsOpenTelemetry.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDefaultInputConvertersToWorkerOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDefaultInputConvertersToWorkerOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 32,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "configure",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 38,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddGrpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 41,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerDefaults",
+      "implementationType": "configureOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerDefaults"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker\\Hosting\\WorkerHostBuilderExtensions.cs",
+      "lineNumber": 168,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApplicationInsightsTelemetryWorkerService",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApplicationInsightsTelemetryWorkerService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\ApplicationInsightsConfigurationTests.cs",
+      "lineNumber": 37,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApplicationInsightsTelemetryWorkerService",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApplicationInsightsTelemetryWorkerService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\ApplicationInsightsConfigurationTests.cs",
+      "lineNumber": 47,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 51,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddApplicationInsightsTelemetryWorkerService",
+      "implementationType": "options =\u003E\r\n               {\r\n#pragma warning disable CS0618 // Obsolete member. Test case, this is fine to use.\r\n                   options.InstrumentationKey = \u0022abc\u0022;\r\n#pragma warning restore CS0618 // Obsolete member. Test case, this is fine to use.\r\n\r\n                   // keep things more deterministic for tests\r\n                   options.EnableAdaptiveSampling = false;\r\n                   options.EnableDependencyTrackingTelemetryModule = false;\r\n                   options.EnablePerformanceCounterCollectionModule = false;\r\n                   options.EnableEventCounterCollectionModule = false;\r\n                   options.EnableHeartbeat = false;\r\n               }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddApplicationInsightsTelemetryWorkerService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 54,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "p =\u003E new AppServiceEnvironmentVariableMonitor(TimeSpan.FromMilliseconds(50))",
+      "implementationType": "p =\u003E new AppServiceEnvironmentVariableMonitor(TimeSpan.FromMilliseconds(50))",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new AppServiceEnvironmentVariableMonitor]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 71,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDefaultInputConvertersToWorkerOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDefaultInputConvertersToWorkerOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 73,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "_channel",
+      "implementationType": "_channel",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "serviceType": "_ =\u003E new Mock\u003CIWorkerDiagnostics\u003E().Object",
+      "implementationType": "_ =\u003E new Mock\u003CIWorkerDiagnostics\u003E().Object",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new Mock\u003CIWorkerDiagnostics\u003E]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.ApplicationInsights.Tests\\EndToEndTests.cs",
+      "lineNumber": 77,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.OpenTelemetry.Tests\\EndToEndTests.cs",
+      "lineNumber": 40,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDefaultInputConvertersToWorkerOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDefaultInputConvertersToWorkerOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.OpenTelemetry.Tests\\EndToEndTests.cs",
+      "lineNumber": 42,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.OpenTelemetry.Tests\\EndToEndTests.cs",
+      "lineNumber": 43,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "_ =\u003E new Mock\u003CIWorkerDiagnostics\u003E().Object",
+      "implementationType": "_ =\u003E new Mock\u003CIWorkerDiagnostics\u003E().Object",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new Mock\u003CIWorkerDiagnostics\u003E]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.OpenTelemetry.Tests\\EndToEndTests.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddGrpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\GrpcServiceCollectionExtensionsTests.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddGrpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddGrpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\GrpcServiceCollectionExtensionsTests.cs",
+      "lineNumber": 17,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\Http\\HttpResponseDataExtensionsTests.cs",
+      "lineNumber": 139,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\Http\\HttpResponseDataExtensionsTests.cs",
+      "lineNumber": 140,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 85,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 86,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerCore",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerCore"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 97,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerDefaults",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerDefaults"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\WorkerServiceCollectionExtensionsTests.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerDefaults",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerDefaults"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\WorkerServiceCollectionExtensionsTests.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "(IConfiguration)configBuilder.Build()",
+      "implementationType": "(IConfiguration)configBuilder.Build()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Rpc.Tests\\RpcServiceCollectionExtensionsTests.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddWorkerRpc",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddWorkerRpc"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Rpc.Tests\\RpcServiceCollectionExtensionsTests.cs",
+      "lineNumber": 26,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "MyService",
+      "implementationType": "MyService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\AspNetCore\\WorkerRequestServicesMiddlewareTests.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "WorkerOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 138,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "WorkerOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 196,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "WorkerOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 323,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "WorkerOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 375,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "new ConfigurationBuilder()\r\n                .AddInMemoryCollection(configData)\r\n                .Build()",
+      "implementationType": "new ConfigurationBuilder()\r\n                .AddInMemoryCollection(configData)\r\n                .Build()",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 376,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IMyFooService",
+      "implementationType": "MyFooService",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\Resources\\Extensions\\Worker.Extensions.Sample\\SampleExtensionStartup.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\TestUtility\\TestFunctionContext.cs",
+      "lineNumber": 119,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFunctionsWorkerDefaults",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFunctionsWorkerDefaults"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\TestUtility\\TestFunctionContext.cs",
+      "lineNumber": 120,
+      "confidence": 0.7
+    },
+    {
+      "type": "EfEntityDetection",
+      "entityType": "Post",
+      "dbContextType": "BloggingContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\samples\\EntityFramework\\Models.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "entityType": "Blog",
+      "dbContextType": "BloggingContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\samples\\EntityFramework\\Models.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "ServiceBusExtensionStartup",
+      "callerMethod": "Configure",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.ServiceBus\\src\\ServiceBusExtensionStartup.cs",
+      "lineNumber": 21,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "SignalRServiceDependencyInjectionExtensions",
+      "callerMethod": "AddServerlessHub",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.SignalRService\\src\\SignalRServiceDependencyInjectionExtensions.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "BlobStorageConverter",
+      "callerMethod": "BindToCollectionAsync",
+      "targetType": "resultType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\extensions\\Worker.Extensions.Storage.Blobs\\src\\BlobStorageConverter.cs",
+      "lineNumber": 179,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "FunctionsApplicationInsightsExtensions",
+      "callerMethod": "ConfigureFunctionsApplicationInsights",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "FunctionsApplicationInsightsExtensions",
+      "callerMethod": "ConfigureFunctionsApplicationInsights",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 55,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "FunctionsApplicationInsightsExtensions",
+      "callerMethod": "ConfigureFunctionsApplicationInsights",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.ApplicationInsights\\FunctionsApplicationInsightsExtensions.cs",
+      "lineNumber": 64,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CoreWorkerHostBuilderExtensions",
+      "callerMethod": "InvokeAutoGeneratedConfigureMethods",
+      "targetType": "GetTypes",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\CoreWorkerHostBuilderExtensions.cs",
+      "lineNumber": 55,
+      "confidence": 0.8
+    },
+    {
+      "kind": 0,
+      "callerType": "CoreWorkerHostBuilderExtensions",
+      "callerMethod": "InvokeAutoGeneratedConfigureMethods",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\CoreWorkerHostBuilderExtensions.cs",
+      "lineNumber": 61,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensions",
+      "callerMethod": "AddFunctionTelemetry",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 148,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "ServiceCollectionExtensions",
+      "callerMethod": "RunExtensionStartupCode",
+      "targetType": "startupCodeExecutorInfoAttr.StartupCodeExecutorType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Hosting\\ServiceCollectionExtensions.cs",
+      "lineNumber": 178,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "DefaultMethodInfoLocator",
+      "callerMethod": "GetMethod",
+      "targetType": "LoadFrom",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\src\\DotNetWorker.Core\\Invocation\\DefaultMethodInfoLocator.cs",
+      "lineNumber": 34,
+      "confidence": 0.8
+    },
+    {
+      "kind": 0,
+      "callerType": "FormatterResolver",
+      "callerMethod": "Initialize",
+      "targetType": "GetTypes",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\Azure.Functions.Sdk.Tests\\Assertions\\FormatterResolver.cs",
+      "lineNumber": 21,
+      "confidence": 0.8
+    },
+    {
+      "kind": 2,
+      "callerType": "DefaultFunctionContextTests",
+      "callerMethod": "CreateAndDisposeInstanceServicesTestAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\DefaultFunctionContextTests.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DefaultFunctionContextTests",
+      "callerMethod": "CreateAndDisposeInstanceServicesTestAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\DefaultFunctionContextTests.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DefaultFunctionContextTests",
+      "callerMethod": "CreateAndDisposeInstanceServicesTestAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\DefaultFunctionContextTests.cs",
+      "lineNumber": 47,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DefaultFunctionContextTests",
+      "callerMethod": "CreateAndDisposeInstanceServicesTestAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\DefaultFunctionContextTests.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "FunctionsWorkerApplicationBuilderTests",
+      "callerMethod": "ConfigureIsCalled",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\FunctionsWorkerApplicationBuilderTests.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensionsTests",
+      "callerMethod": "ConfigureOptions_IsCalled",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensionsTests",
+      "callerMethod": "DefaultInputConverters_RegisteredOnce",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 46,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensionsTests",
+      "callerMethod": "LoggerProvider_RegisteredOnce",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 63,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ServiceCollectionExtensionsTests",
+      "callerMethod": "AddFunctionsWorkerCore_RegistersNullBaggagePropagatorByDefault",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\DotNetWorker.Tests\\ServiceCollectionExtensionsTests.cs",
+      "lineNumber": 101,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "RpcServiceCollectionExtensionsTests",
+      "callerMethod": "Configure_AddsFunctionsGrpcOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Rpc.Tests\\RpcServiceCollectionExtensionsTests.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "WorkerRequestServicesMiddlewareTests",
+      "callerMethod": "ServiceProviders_Equal",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\AspNetCore\\WorkerRequestServicesMiddlewareTests.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "ConfigureCosmosDBExtension_RegistersExpectedServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 33,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "ConfigureCosmosDBExtension_WithConfigure_AppliesOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 65,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "ConfigureCosmosDBExtensionOptions_AppliesAction",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "PostConfigure_SetsCosmosSerializer_WhenSerializerIsSet",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 125,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "PostConfigure_SetsCosmosSerializer_FromWorkerOptionsSerializer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 145,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "PostConfigure_DoesNotOverrideExistingCosmosSerializer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 168,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "PostConfigure_NoSerializerSet_DoesNotSetCosmosSerializer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 184,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "UseWorkerSerializer_SetsSerializerFromWorkerOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 206,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "BindingOptionsSetup_SetsCosmosExtensionOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 309,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "BindingOptionsSetup_UseWorkerSerializer_FlowsToBindingOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 333,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CosmosDBExtensionOptionsSetupTests",
+      "callerMethod": "BindingOptionsSetup_NoSerializer_UsesDefaultSerializer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Functions\\test\\extensions\\Worker.Extensions.Tests\\Cosmos\\CosmosDBExtensionOptionsSetupTests.cs",
+      "lineNumber": 352,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.NullInstanceFactoryTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests.EndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Storage.BlobEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.TablePocoConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Blob\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.Queue.QueueTestFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Publish.Tests.CreateFuncZipFileTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.StreamTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBusSessionMessageActionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Publish.Tests.ZipDeployTaskTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_Table\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.ArrayConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn_MultiAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ExtensionsMetadataEnhancerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.MyDocument\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.AsyncTransientService\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableStringNestedGenericTestClass2\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests.HttpResultAttributeExpectedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.TestFunctionContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.SignalRService.Tests.StronglyTypedChatRoom\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Http.AspNetCore.Tests.AspNetCoreHttpRequestDataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Queue.QueuesTestHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.WriteExtensionMetadataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.FunctionsTelemetryInitializerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableStringNestedGenericTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.WorkerServiceCollectionExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Helpers.TestLoggerProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.DefaultMethodInvokerFactoryTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBusReceivedMessageConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.CancellationHttpFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.FunctionAppFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.AssertionExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionContextHttpExtensionTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.ExternalPoco\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests.RpcServiceCollectionExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.CosmosDB\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.IgnoreOnNetFxTestRunTheory\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGridTestHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.SignalRService.Tests.MockServerlessHubTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EventHubNotBatched\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Http.AspNetCore.Tests.FunctionsHostBuilderExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.MyQueueFunctionClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.WebJobsExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.DefaultFunctionInvokerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Cardinality_One_Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.FunctionMetadataGeneratorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_ServiceBus\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.TestUtility\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore.CancellationEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.MyTableFunctionClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBusMessageActionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionsWorkerApplicationBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.FormatterResolver\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.ServiceBusTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.GrpcWorkerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Helpers.TableHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.EventHubs.TestData\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.BlobTestHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.BasicHttpAspNet\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Queue\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.Book\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.GrpcFunctionDefinitionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.GrpcHttpRequestDataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TransientService\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.BasicHttpFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Sdk.Analyzers.Tests.AsyncVoidAnalyzerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ExtensionsCsProjGeneratorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.NugetPackage\u0027; PatternRelevancePruner: excluded test-project type \u0027Sdk.Analyzers.Tests.WebJobsAttributesNotSupportedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests.MockHttpMessageHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.BasicHttpWithNoResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.BlobStorageConverterCoreTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.OpenTelemetryTraceConstantsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Constants\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.ZipDeployTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ZipDeployTaskTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiOutput_ReturnType_MultiAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.MyCustomerAsyncInputConverter\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Publish.Tests.MockHttpMessageHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.RequestPoco\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.Extension\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.Timer\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.EventHubs\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableBinaryTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.TableTestHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionContextExtensionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TestUtility\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.UtilitiesTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.FunctionAppCollection\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.ExpectedFilesHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.WorkerPackage\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ExceptionExtensionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.InvocationFeaturesTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.KafkaTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.HttpTriggerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.MyFunctionClassWithCancellation\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.NotGeneratedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ExceptionTestData\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_Queue\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.DependentAssemblyTest\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.MyFunctionClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.MyEntity\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.Blob.Book\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_BlobCollection\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.FixtureHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.Poco\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ConstructorAndPropertiesAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.FunctionsAssemblyScannerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests.OtelFunctionDefinition\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.Formatter\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Queue.QueueMessageJsonConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.TempDirectory\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.Integration.Extension\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.TableEntityConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ExternalType_Return\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ReturnType_JustHttp\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.EventHubsStringFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableStringNestedTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.AspNetCore.WorkerRequestServicesMiddlewareTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.InnerBuildTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.String_Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.GrpcTestHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Moq.MSBuildMoqExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata.DefaultFunctionMetadataManagerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Subclass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.DiagnosticResultTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableStringTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.FunctionMetadataProviderGeneratorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.SignalRService.Tests.IChatRoom\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.ExtensionStartupRunner.Tests.ExtensionStartupRunnerGeneratorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.Integration.GeneratedProject\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Storage.QueueEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.Customer\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.MyList\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ServiceCollectionExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Http.AspNetCore.Tests.TestMiddleware\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.SignalRService.Tests.ServerlessHubDependencyInjectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.ConversionResultTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests.ActivityTestListener\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.TableEntityEnumerableConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.MyEnumerable\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.TypeExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.VoidMethodInvokerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.ZipDeploy.Tests.MockHttpMessageHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Timer.Tests.TimerInfoConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.MyTableEntity\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn_Http_AspNet\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.MyBlobFunctionClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.WorkerHostBuilderExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.GrpcServiceCollectionExtensionsTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.TableClientConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.StringExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.MyLayeredList\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.StartupHookTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid.EventGridEventConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.CosmosDBConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.DefaultFunctionContextTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.CancellationTokenConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.TestBindingContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.InvocationHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.HttpHeadersCollectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.MemoryConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Inner.Tests.ResolveExtensionCopyLocalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Http.AspNetCore.Tests.CookiesCollection\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.HttpEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.AutoConfigureStartupTypeTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.ZipDeploymentStatusTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Worker.Tests.TestAsyncFunctionContext\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Worker.Tests.TestFunctionDefinition\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.StaticFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.PublishTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.HttpHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.CurrentTestAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Tests.GenerateWorkerConfigTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.Queue.HttpAndQueue\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Worker.Tests.TestFunctionInvocation\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Tables.TablesEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.BuildEventArgsAssertions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Tables\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.CallerName\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid.EventGridStringArrayConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Diagnostics.GrpcHostLogWriterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.Http.AspNetCore.Tests.DefaultHttpCoordinatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.MySimpleSyncInputConverter2\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.DateTimeConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.CustomAttributeExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TaskExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.EventHubsEnumerableFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ServiceCollectionExtensionsTestUtility\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Json_Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Worker.Extensions.SignalRService.Tests.ChatRoom\u0027; PatternRelevancePruner: excluded test-project type \u0027System.Collections.Immutable.ImmutableCollectionExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.TestTelemetryChannel\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.WebJobsExtension\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.BlobClientTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.DependentAssemblyTestNetFx\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TaskMethodInvokerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.Storage\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.StringTests\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.BuildOutputAssertions\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.TestUtility\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.POCOTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiOutput_ReturnType_Http\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.Tests.Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.TokenCredentialOptionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.MySimpleSyncInputConverter\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.DefaultInvocationPipelineBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.WriteExtensionProjectTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.BasicHttp\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ScopedService\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn_Http\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.Tests.CSharpSourceGeneratorVerifier\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Build.Utilities.ProjectCreation.ProjectCreatorExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid.EventGridCloudEventConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Functions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.JustPropertiesAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableGenericTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.GuidConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.Tests.TestHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.ProjectItemAssertions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.RetryOptionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.ResolveExtensionPackagesTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.ExtensionStartupRunner.Tests.NotGeneratedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.TestConverterContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests.DefaultBaggagePropagatorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.AspNetCore.FunctionsEndpointDataSourceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TestLogger\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.TestHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiOutput_ReturnType\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs.EventDataConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.CosmosDBExtensionOptionsSetupTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn_MultiBinding\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.LogMessageTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.LogMessage\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.MyGenericList\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.AppInsightsFunctionDefinition\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.StorageHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.HttpRequestDataExtensionsTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.StampHttpHeadersMiddleware\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.Integration.MSBuildSdkTestBase\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Build.Utilities.ProjectCreation.TargetOutputs\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.Integration.WebJobsExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.BlobContainerClientTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.IGeneric\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.Queue.TimerTestFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.JustHttp\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.TestScopedEnvironmentVariable\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.DefaultInputConversionFeatureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests.AspNetCoreHttpResponseHeadersCollectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.TestAppNames\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.FailingHttpFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.EnumerableBinaryNestedTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.CustomTestAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.JsonPocoConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApps.CosmosApp.Program\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.Tests.SymbolExtensionsTest\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.IMyFooService\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.TimerEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.Extension\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiOutput_ReturnType_Http_AspNet\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata.TestFunctionMetadata\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.ResponsePoco\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Features.TestFeatureProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Queue.QueueMessageConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests.Layer2\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Diagnostics.WorkerMessageTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests.NotGeneratedTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.ToDoItem\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.SingletonService\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionsApplicationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBusSessionMessageConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Builder.FunctionsApplicationBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Table.MyTableEntityWithField\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.CosmosAllVersionsAndDeletesFunction\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.WebJobsPackage\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.DefaultFunctionInvokerFactoryTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.Person\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Converters.NewtonsoftBook\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos.WorkerCosmosSerializerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.IProvidesFormatter\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.HttpResponseDataExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests.DependentAssemblyTest\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.ModuleInitializer\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.SignalRTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.CosmosDBHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Kafka.KafkaRecordConverterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tasks.Extensions.Tests.ValidateExtensionPackagesTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.AvadDocument\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests.RegistrationExpectedInAspNetIntegrationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore.TestFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.WebJobs\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.Book\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Microsoft.Azure.Functions.Worker.Tests.TestFunctionContext\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.JustConstructorAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.RetryFunctions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_BlobStorage\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.TestLoggerProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.MockSettlementClient\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.ZipDeploy.Tests.DeploymentClientTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.Poco\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.MyResponse\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.Methods\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.ApplicationInsightsConfigurationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.TypeHelpers\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiReturn_MultiBindingOnProp\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests.EndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.ZipDeploy.Tests.ZipDeployRequestTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.ExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.E2ETests.ProcessWrapper\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Cosmos.CosmosDBEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata.DefaultFunctionMetadataTests\u0027; PatternRelevancePruner: excluded test-project type \u0027AwesomeAssertions.TaskItemAssertions\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.AmbiguousNamespaceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.Queue.TestData\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2ETests.Helpers.DisposableOutput\u0027; PatternRelevancePruner: excluded test-project type \u0027Azure.Functions.Sdk.Tests.Integration.SdkEndToEndTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Pipeline.Tests.FunctionsExecutionMiddlewareTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.E2EApp.CosmosFunction\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.SDKTypeBindings_EventHubs\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.CardinalityMany\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests.NestedTypesTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests.FunctionExecutorGeneratorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests.MultiOutput_Method\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Tests.AspNetCore.FunctionsHttpProxyingMiddlewareTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob.ByteArrayTests\u0027; PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 9 types (887 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:01.8098476",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:05.1207650",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0014474",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.9549181",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0371200",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0210648",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:05.1161037",
+        "typesAdded": 896,
+        "detectionsAdded": 85,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:05.1064714",
+        "typesAdded": 13,
+        "detectionsAdded": 85,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:01.5936917",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.6333124",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.5862272",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3175068",
+        "typesAdded": 0,
+        "detectionsAdded": 36,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3090492",
+        "typesAdded": 0,
+        "detectionsAdded": 36,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2211218",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1072146",
+        "typesAdded": 0,
+        "detectionsAdded": 36,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1056622",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0838313",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0320552",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0233147",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 896,
+        "typesAfter": 9
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 896,
+        "typesAfter": 896
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 423
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 0
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 833,
+      "syntaxTreeHits": 4540,
+      "syntaxTreeMisses": 767
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 767,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:05.1207650",
+      "stage2CpuSum": "00:00:10.8641722",
+      "stage3Wall": "00:00:00.9549181",
+      "stage3CpuSum": "00:00:01.5882048"
+    },
+    "totalWall": "00:00:09.1445872"
+  }
+}

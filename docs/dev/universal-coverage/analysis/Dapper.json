@@ -1,0 +1,431 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:55:39.193196Z",
+  "solution": {
+    "name": "Dapper",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\Dapper.slnx",
+    "projectPaths": [
+      "docs/docs.csproj",
+      "Dapper.EntityFramework.StrongName/Dapper.EntityFramework.StrongName.csproj",
+      "Dapper.EntityFramework/Dapper.EntityFramework.csproj",
+      "Dapper.ProviderTools/Dapper.ProviderTools.csproj",
+      "Dapper.Rainbow/Dapper.Rainbow.csproj",
+      "Dapper.SqlBuilder/Dapper.SqlBuilder.csproj",
+      "Dapper.StrongName/Dapper.StrongName.csproj",
+      "Dapper/Dapper.csproj",
+      "benchmarks/Dapper.Tests.Performance/Dapper.Tests.Performance.csproj",
+      "tests/Dapper.Tests/Dapper.Tests.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "NLayer",
+    "confidence": 0.6
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "dapper",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 11,
+    "names": [
+      "Build",
+      "Dapper",
+      "Dapper.EntityFramework",
+      "Dapper.EntityFramework.StrongName",
+      "Dapper.ProviderTools",
+      "Dapper.Rainbow",
+      "Dapper.SqlBuilder",
+      "Dapper.StrongName",
+      "Dapper.Tests",
+      "Dapper.Tests.Performance",
+      "docs"
+    ]
+  },
+  "typesSummary": {
+    "found": 364,
+    "inOutput": 11,
+    "prunedPercent": 97
+  },
+  "detections": [
+    {
+      "type": "EfEntityDetection",
+      "entityType": "Post",
+      "dbContextType": "EFContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\benchmarks\\Dapper.Tests.Performance\\EntityFramework\\EFContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "entityType": "Post",
+      "dbContextType": "EFCoreContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\benchmarks\\Dapper.Tests.Performance\\EntityFrameworkCore\\EFCoreContext.cs",
+      "lineNumber": 5,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 0,
+      "callerType": "Database",
+      "callerMethod": "IsNew",
+      "targetType": "pk.GetType()",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\benchmarks\\Dapper.Tests.Performance\\PetaPoco\\PetaPoco.cs",
+      "lineNumber": 984,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "SqlMapper",
+      "callerMethod": "LookupDbType",
+      "targetType": "typeof(SqlDataRecordHandler\u003C\u003E).MakeGenericType(argTypes)",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\Dapper\\SqlMapper.cs",
+      "lineNumber": 502,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "SqlMapper",
+      "callerMethod": "GetSimpleValueDeserializer",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\Dapper\\SqlMapper.cs",
+      "lineNumber": 3108,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "MiscTests",
+      "callerMethod": "TypeBasedViaDynamic",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Dapper\\tests\\Dapper.Tests\\MiscTests.cs",
+      "lineNumber": 1081,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MySqlHasBool\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue461_BlargHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithInt16Values\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DiscriminatedWithMultiMapping_BaseType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DummyDbException\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Skip\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientTupleTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncFoo2\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ResultsChangeType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TestBase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientNullTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Dashing.DashingConfiguration\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazIssue1959_Raw\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Dyno\u0027; PatternRelevancePruner: excluded test-project type \u0027System.Runtime.CompilerServices.IsExternalInit\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.StringEnumHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MyResult\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazNullableSqlDecimal\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DuckDBProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Multi1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.One\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.NHibernateBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.DapperCacheImpact\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TheoryDiscoverer\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TupleTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.BelgradeBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue1959_Subclass\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Dog\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Helpers.ORMColum\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TheoryAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientQueryMultipleTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PracticeRebateOrders\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Foo1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DuckDBTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TPTable\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue461_ParameterlessTypeConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazSqlDecimal\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DbCustomParam\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientProcedureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SO29596645_OrganisationDTO\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.PocoColumn\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactRequiredCompatibilityLevelAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HasDoubleDecimal\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.ExplicitColumns\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Tests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.HandCodedBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TestObj\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithInit\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MiscTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.CanHazInt\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientXmlTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqliteTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NullTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactMySqlAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SkipTestException\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ParameterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NullTestType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.XpoBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TestEnumClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.EFCoreBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Parent\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.LinqToDBBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.EntityFramework.EFContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NoDefaultConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazNameId\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HasInt32\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqliteTypeTestBase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue461_ParameterisedTypeConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue1959_Raw\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PostgresqlTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Providers.FirebirdTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Linq2Db.Linq2DBContext\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.ResultColumn\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SO36303462\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DataReaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DummyDbCommand\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithCharValue\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SkippableMessageBus\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Program\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue1959_Subclass_Handler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NullTestClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.RepoDbBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Linq2Db.ConnectionStringSettings\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.SqlDataReaderHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SO27024806Class\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests._ExplicitConstructors\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Student\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.NormBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Common\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Discriminated_Bar\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Two\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Blog_DupeProp\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientDecimalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue142_StatusType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Discriminated_Foo\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazX\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Post_DupeProp\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Helpers.ReturnColum\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PostWithConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DecimalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.EnumParamObjectNonNullable\u0027; PatternRelevancePruner: excluded test-project type \u0027Massive.DynamicModel\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.LocalDateResult\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Cat\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Config\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue1164Object\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.ShareableConnection\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.StringListTypeHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientPreferTypeHandlersForEnumsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.QueryMultipleTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.RatingValue\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DynamicParameterWithIntTVP\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ThrowOnCloseDbDataReader\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.PrimaryKey\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.ServiceStackBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DiscriminatedWithMultiMapping_Bar\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue40_User\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DbDynamicParams\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.EF6Benchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WrongTypes\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SomeType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Nation\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Index\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.LiteralTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NoDefaultConstructorWithChar\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PositionalCarRecord\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithInt32Values\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithBizarreData\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.InheritanceTest1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientDataReaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NamedSkippedDataRowTestCase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TransactedConnection\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Fooz0\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqlServerDatabaseProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.XUnitExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NonParallelDefinition\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NullableDatePerson\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ReviewBoard\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MyObjectWithStringList\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Discriminated_BaseType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.EnumTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactDiscoverer\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncFoo0\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazGetOnlyAndCtor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.SqlMarshalBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PreferTypeHandlersForEnumsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DbCustomParamStruct\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Profile\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ThrowOnCloseIDataReader\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Database\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.LegacyTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncQueryCacheTests\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Transaction\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientMiscTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqlServerTypesLoader\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DatabaseProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactDuckDBAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Multi2\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Type_ParamsWithoutUnderscores\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.NHibernate.NHibernateHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.CarWithAllProps\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.BenchmarkBase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.LocalDateHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MultipleParametersWithIndexer\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.LotsOfNumerics\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Sql\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientAsyncQueryCacheTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientLiteralTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Extra\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientTransactionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue327_Magic\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqliteTypeHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TestEnumClassNoNull\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Product\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Car\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TypeWithMapping\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientTypeHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientMultiMapTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithBigInt\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue149_Person\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Ignore\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MultiMapTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Bar1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientConstructorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ConstructorsWithAccessModifiers\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazGetOnly\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Providers.FirebirdProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.IMapper\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WithPrivateConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DiscriminatedWithMultiMapping_Foo\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactSqliteAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientSingleRowTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Address\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.DapperBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SO29596645_RuleTableValuedParameters\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MySqlProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.BasicType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ConstructorTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.MassiveBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.TableName\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MultipleParametersWithIndexerDeclaringType\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactPostgresqlAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.PocoData\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Order\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Page\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.InheritanceTest2\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MultipleConstructors\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NullableColorResult\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TypeWithDodgyProperties\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Person\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ConcreteOrder\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TransactionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SingleRowTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ProviderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.DuckDBTypeTestBase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue426_Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientEnumTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Topic\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactLongRunningAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SkippableTestCase\u0027; PatternRelevancePruner: excluded test-project type \u0027PetaPoco.Column\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.PetaPocoBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazIssue1959_Subclass\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.EntityFrameworkCore.EFCoreContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SkippableTheoryTestCase\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Type_ParamsWithUnderscores\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactUnlessCaseSensitiveDatabaseAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PersonWithDob\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqlBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Massive.ObjectExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.RatingValueHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TypeHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AbstractInheritance\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NoDefaultConstructorWithEnum\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue1959_Raw_Handler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.CharTable\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ParameterWithIndexer\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ShowIssue1993\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Category\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Fooz1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.NominalCarRecord\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ProcedureTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Linq2Db.Linq2DBSettings\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.MightyBenchmarks\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientParameterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientSqlBuilderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MyRow\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.WrappedReaderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncFoo1\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue142_Status\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Foo\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.IntDynamicParam\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PrivateDan\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Child\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Issue327_Person\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.ColorResult\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.XmlTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Blarg\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.UserWithConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.AsyncLinqHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.HazBools\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Performance.Test\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SqliteProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.LocalDate\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.MySQLTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.IntCustomParam\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SnowflakeTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.User\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.PostgresProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Fooz2\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.RecordingTypeHandler\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.EnumParamObject\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Foo\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.Comment\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.SystemSqlClientAsyncTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.FactAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Dapper.Tests.TestFieldCaseAndPrivatesEntity\u0027; PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 32 types (332 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2910038",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4187905",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0015996",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.4572135",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0267900",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0164170",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4153974",
+        "typesAdded": 364,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.3401240",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2861250",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2198043",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1912981",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1786147",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1654088",
+        "typesAdded": 0,
+        "detectionsAdded": 6,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1606388",
+        "typesAdded": 0,
+        "detectionsAdded": 6,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0545983",
+        "typesAdded": 0,
+        "detectionsAdded": 4,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0384561",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0207928",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0190611",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0155417",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 364,
+        "typesAfter": 32
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 364,
+        "typesAfter": 364
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 778
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 9
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 167,
+      "syntaxTreeHits": 921,
+      "syntaxTreeMisses": 156
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 156,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.4187905",
+      "stage2CpuSum": "00:00:02.9866733",
+      "stage3Wall": "00:00:00.4572135",
+      "stage3CpuSum": "00:00:00.8453856"
+    },
+    "totalWall": "00:00:02.8107150"
+  }
+}

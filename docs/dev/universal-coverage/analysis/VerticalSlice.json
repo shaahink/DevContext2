@@ -1,0 +1,2298 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:53:55.9069088Z",
+  "solution": {
+    "name": "Clean.Architecture",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\Clean.Architecture.slnx",
+    "projectPaths": [
+      "src/Clean.Architecture.Core/Clean.Architecture.Core.csproj",
+      "src/Clean.Architecture.Infrastructure/Clean.Architecture.Infrastructure.csproj",
+      "src/Clean.Architecture.UseCases/Clean.Architecture.UseCases.csproj",
+      "src/Clean.Architecture.Web/Clean.Architecture.Web.csproj",
+      "src/Clean.Architecture.AspireHost/Clean.Architecture.AspireHost.csproj",
+      "src/Clean.Architecture.ServiceDefaults/Clean.Architecture.ServiceDefaults.csproj",
+      "tests/Clean.Architecture.FunctionalTests/Clean.Architecture.FunctionalTests.csproj",
+      "tests/Clean.Architecture.IntegrationTests/Clean.Architecture.IntegrationTests.csproj",
+      "tests/Clean.Architecture.UnitTests/Clean.Architecture.UnitTests.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "VerticalSlices",
+    "confidence": 0.85
+  },
+  "archetype": "App",
+  "signals": [
+    {
+      "key": "aspire",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "fast-endpoints",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "fluentvalidation",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "mediatr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.8,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 22,
+    "names": [
+      "Clean.Architecture.AspireHost",
+      "Clean.Architecture.AspireTests",
+      "Clean.Architecture.Core",
+      "Clean.Architecture.FunctionalTests",
+      "Clean.Architecture.Infrastructure",
+      "Clean.Architecture.IntegrationTests",
+      "Clean.Architecture.ServiceDefaults",
+      "Clean.Architecture.UnitTests",
+      "Clean.Architecture.UseCases",
+      "Clean.Architecture.Web",
+      "MinimalClean.Architecture.AspireHost",
+      "MinimalClean.Architecture.ServiceDefaults",
+      "MinimalClean.Architecture.Web",
+      "NimblePros.SampleToDo.AspireHost",
+      "NimblePros.SampleToDo.Core",
+      "NimblePros.SampleToDo.FunctionalTests",
+      "NimblePros.SampleToDo.Infrastructure",
+      "NimblePros.SampleToDo.IntegrationTests",
+      "NimblePros.SampleToDo.ServiceDefaults",
+      "NimblePros.SampleToDo.UnitTests",
+      "NimblePros.SampleToDo.UseCases",
+      "NimblePros.SampleToDo.Web"
+    ]
+  },
+  "typesSummary": {
+    "found": 381,
+    "inOutput": 16,
+    "prunedPercent": 95.8
+  },
+  "detections": [
+    {
+      "type": "AspireRelationshipDetection",
+      "sourceResource": "\u0022ASPNETCORE_ENVIRONMENT\u0022",
+      "targetResource": "builder.Environment.EnvironmentName",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "appDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Papercut__Smtp__Url\u0022",
+      "targetResource": "papercut.GetEndpoint(\u0022smtp\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.AspireHost\\Program.cs",
+      "lineNumber": 22,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Papercut__Ui__Url\u0022",
+      "targetResource": "papercut.GetEndpoint(\u0022ui\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.AspireHost\\Program.cs",
+      "lineNumber": 22,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "cleanArchDb",
+      "targetResource": "?",
+      "relationshipType": "WithReference",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022ASPNETCORE_ENVIRONMENT\u0022",
+      "targetResource": "builder.Environment.EnvironmentName",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 0.8
+    },
+    {
+      "sourceResource": "\u0022Papercut__Smtp__Url\u0022",
+      "targetResource": "papercut.GetEndpoint(\u0022smtp\u0022)",
+      "relationshipType": "WithEnvironment",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 0.8
+    },
+    {
+      "type": "AspireResourceDetection",
+      "resourceType": "SqlServer",
+      "resourceName": "sqlserver",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "web",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "web",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.AspireHost\\Program.cs",
+      "lineNumber": 22,
+      "confidence": 1
+    },
+    {
+      "resourceType": "SqlServer",
+      "resourceName": "sqlserver",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "resourceType": "Project",
+      "resourceName": "web",
+      "extractorName": "AspireExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.AspireHost\\AppHost.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 55,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 87,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHealthChecks",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHealthChecks"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCheck",
+      "implementationType": "\u0022self\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCheck"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediator",
+      "implementationType": "options =\u003E\r\n    {\r\n      // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported.\r\n      options.ServiceLifetime = ServiceLifetime.Scoped;\r\n\r\n      // Supply any TYPE from each assembly you want scanned (the generator finds the assembly from the type)\r\n      options.Assemblies =\r\n      [\r\n        typeof(MediatorConfig)                  // Web\r\n      ];\r\n\r\n      // Register AOT pipeline behaviors here (order matters)\r\n      options.PipelineBehaviors =\r\n      [\r\n        typeof(Nimble.Modulith.Web.LoggingBehavior\u003C,\u003E)\r\n      ];\r\n\r\n      // If you have stream behaviors:\r\n      // options.StreamPipelineBehaviors = [ typeof(YourStreamBehavior\u003C,\u003E) ];\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediator"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\MediatorConfig.cs",
+      "lineNumber": 10,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInfrastructureServices",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInfrastructureServices"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatorSourceGen",
+      "implementationType": "logger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatorSourceGen"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\r\n         options.UseSqlServer(connectionString)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContextExtensions.cs",
+      "lineNumber": 8,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "EventDispatchInterceptor",
+      "implementationType": "EventDispatchInterceptor",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDomainEventDispatcher",
+      "implementationType": "MediatorDomainEventDispatcher",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "(provider, options) =\u003E\r\n    {\r\n      var eventDispatchInterceptor = provider.GetRequiredService\u003CEventDispatchInterceptor\u003E();\r\n      \r\n      options.UseSqlServer(connectionString);\r\n      options.AddInterceptors(eventDispatchInterceptor);\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "typeof(IRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IReadRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListProductsQueryService",
+      "implementationType": "ListProductsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptionConfigs",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptionConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServiceConfigs",
+      "implementationType": "startupLogger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Program.cs",
+      "lineNumber": 17,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFastEndpoints",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFastEndpoints"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Program.cs",
+      "lineNumber": 19,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IToDoItemSearchService",
+      "implementationType": "ToDoItemSearchService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\CoreServiceExtensions.cs",
+      "lineNumber": 12,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDeleteContributorService",
+      "implementationType": "DeleteContributorService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\CoreServiceExtensions.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "serviceType": "EventDispatchInterceptor",
+      "implementationType": "EventDispatchInterceptor",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDomainEventDispatcher",
+      "implementationType": "MediatorDomainEventDispatcher",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "(provider, options) =\u003E\r\n    {\r\n      \r\n      options.UseSqlite(connectionString)\r\n             .AddMetronomeDbTracking(provider)\r\n             .AddInterceptors(provider.GetRequiredService\u003CEventDispatchInterceptor\u003E());\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 46,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 60,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListContributorsQueryService",
+      "implementationType": "ListContributorsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 61,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListIncompleteItemsQueryService",
+      "implementationType": "ListIncompleteItemsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 62,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListProjectsShallowQueryService",
+      "implementationType": "ListProjectsShallowQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 63,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "FakeEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 70,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListContributorsQueryService",
+      "implementationType": "FakeListContributorsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 71,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListIncompleteItemsQueryService",
+      "implementationType": "FakeListIncompleteItemsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListProjectsShallowQueryService",
+      "implementationType": "FakeListProjectsShallowQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 73,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 80,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListContributorsQueryService",
+      "implementationType": "ListContributorsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 81,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListIncompleteItemsQueryService",
+      "implementationType": "ListIncompleteItemsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 82,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListProjectsShallowQueryService",
+      "implementationType": "ListProjectsShallowQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 83,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 88,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IReadRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 89,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 55,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 87,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHealthChecks",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHealthChecks"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCheck",
+      "implementationType": "\u0022self\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCheck"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediator",
+      "implementationType": "options =\u003E\r\n    {\r\n      // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported.\r\n      options.ServiceLifetime = ServiceLifetime.Scoped;\r\n\r\n      // Supply any TYPE from each assembly you want scanned (the generator finds the assembly from the type)\r\n      options.Assemblies =\r\n      [\r\n        typeof(Contributor),                       // Core\r\n        typeof(CreateContributorCommand),         // UseCases\r\n        typeof(InfrastructureServiceExtensions), // Infrastructure\r\n        typeof(MediatorConfig)                  // Web\r\n      ];\r\n\r\n      // Register pipeline behaviors here (order matters)\r\n      options.PipelineBehaviors =\r\n      [\r\n        typeof(LoggingBehavior\u003C,\u003E),\r\n        typeof(CachingBehavior\u003C,\u003E)\r\n      ];\r\n\r\n      // If you have stream behaviors:\r\n      // options.StreamPipelineBehaviors = [ typeof(YourStreamBehavior\u003C,\u003E) ];\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediator"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\MediatorConfig.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddExceptionHandler",
+      "implementationType": "GlobalExceptionHandler",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddExceptionHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\OptionConfigs.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddProblemDetails",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddProblemDetails"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\OptionConfigs.cs",
+      "lineNumber": 23,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCoreServices",
+      "implementationType": "logger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCoreServices"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInfrastructureServices",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInfrastructureServices"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatorSourceGen",
+      "implementationType": "logger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatorSourceGen"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "\u0022Default\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMetronomeHandler",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMetronomeHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 18,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptionConfigs",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptionConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 35,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServiceConfigs",
+      "implementationType": "appLogger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 37,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFastEndpoints",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFastEndpoints"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 39,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddValidatorsFromAssemblyContaining",
+      "implementationType": "UpdateProjectRequestValidator",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddValidatorsFromAssemblyContaining"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 44,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\r\n                options.UseSqlite(connectionString)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 49,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMemoryCache",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMemoryCache"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 53,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMetronome",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMetronome"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 65,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddLocalization",
+      "implementationType": "options =\u003E options.ResourcesPath = \u0022i18n\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddLocalization"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 68,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddJsonLocalization",
+      "implementationType": "options =\u003E\r\n    {\r\n      options.ResourcesPath = \u0022i18n\u0022;  // Path to the JSON files (e.g., i18n/en/Project.json)\r\n      options.CacheDuration = TimeSpan.FromHours(1);  // Optional: Cache for performance\r\n      options.FileEncoding = Encoding.UTF8; //Optional: Specify file encoding\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddJsonLocalization"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 71,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "sp =\u003E\r\n    {\r\n      var factory = sp.GetRequiredService\u003CIStringLocalizerFactory\u003E();\r\n      // Creates a localizer for \u0027ProjectAggregate\u0027 \u2013 loads from i18n/{culture}/Project.json\r\n      return factory.Create(typeof(ProjectErrorMessages));\r\n    }",
+      "implementationType": "sp =\u003E\r\n    {\r\n      var factory = sp.GetRequiredService\u003CIStringLocalizerFactory\u003E();\r\n      // Creates a localizer for \u0027ProjectAggregate\u0027 \u2013 loads from i18n/{culture}/Project.json\r\n      return factory.Create(typeof(ProjectErrorMessages));\r\n    }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 79,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\r\n          {\r\n            options.UseInMemoryDatabase(inMemoryCollectionName).LogTo(s =\u003E Console.WriteLine(s));\r\n          }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\tests\\NimblePros.SampleToDo.FunctionalTests\\CustomWebApplicationFactory.cs",
+      "lineNumber": 78,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediator",
+      "implementationType": "options =\u003E\r\n          {\r\n            options.ServiceLifetime = ServiceLifetime.Scoped;\r\n            options.Assemblies =\r\n            [\r\n              typeof(Contributor),                    // Core\r\n              typeof(CreateContributorCommand),       // UseCases\r\n              typeof(InfrastructureServiceExtensions) // Infrastructure\r\n            ];\r\n          }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediator"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\tests\\NimblePros.SampleToDo.FunctionalTests\\CustomWebApplicationFactory.cs",
+      "lineNumber": 84,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "options =\u003E\r\n         options.UseSqlite(connectionString)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\AppDbContextExtensions.cs",
+      "lineNumber": 6,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "EventDispatchInterceptor",
+      "implementationType": "EventDispatchInterceptor",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDomainEventDispatcher",
+      "implementationType": "MediatorDomainEventDispatcher",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 28,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "(provider, options) =\u003E\r\n    {\r\n      var eventDispatchInterceptor = provider.GetRequiredService\u003CEventDispatchInterceptor\u003E();\r\n      \r\n      // Use SQL Server if Aspire or DefaultConnection (on Windows or forced) is available, otherwise use SQLite\r\n      if (config.GetConnectionString(\u0022cleanarchitecture\u0022) != null || \r\n          ((isWindows || forceSqlServer) \u0026\u0026 config.GetConnectionString(\u0022DefaultConnection\u0022) != null))\r\n      {\r\n        options.UseSqlServer(connectionString);\r\n      }\r\n      else\r\n      {\r\n        options.UseSqlite(connectionString);\r\n      }\r\n      \r\n      options.AddInterceptors(eventDispatchInterceptor);\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 30,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "typeof(IRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "serviceType": "typeof(IReadRepository\u003C\u003E)",
+      "implementationType": "typeof(EfRepository\u003C\u003E)",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IListContributorsQueryService",
+      "implementationType": "ListContributorsQueryService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IDeleteContributorService",
+      "implementationType": "DeleteContributorService",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddServiceDiscovery",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceDiscovery"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 27,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 55,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOpenTelemetry",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOpenTelemetry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 87,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHealthChecks",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHealthChecks"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddCheck",
+      "implementationType": "\u0022self\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddCheck"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.ServiceDefaults\\Extensions.cs",
+      "lineNumber": 102,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediator",
+      "implementationType": "options =\u003E\r\n    {\r\n      // Lifetime: Singleton is fastest per docs; Scoped/Transient also supported.\r\n      options.ServiceLifetime = ServiceLifetime.Scoped;\r\n\r\n      // Supply any TYPE from each assembly you want scanned (the generator finds the assembly from the type)\r\n      options.Assemblies =\r\n      [\r\n        typeof(Contributor),                       // Core\r\n        typeof(CreateContributorCommand),         // UseCases\r\n        typeof(InfrastructureServiceExtensions), // Infrastructure\r\n        typeof(MediatorConfig)                  // Web\r\n      ];\r\n\r\n      // Register pipeline behaviors here (order matters)\r\n      options.PipelineBehaviors =\r\n      [\r\n        typeof(LoggingBehavior\u003C,\u003E)\r\n      ];\r\n\r\n      // If you have stream behaviors:\r\n      // options.StreamPipelineBehaviors = [ typeof(YourStreamBehavior\u003C,\u003E) ];\r\n    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediator"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\MediatorConfig.cs",
+      "lineNumber": 15,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddInfrastructureServices",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddInfrastructureServices"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddMediatorSourceGen",
+      "implementationType": "logger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddMediatorSourceGen"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 11,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "serviceType": "IEmailSender",
+      "implementationType": "MimeKitEmailSender",
+      "lifetime": "Scoped",
+      "extensionsUsed": [],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\ServiceConfigs.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddOptionConfigs",
+      "implementationType": "builder.Configuration",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptionConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Program.cs",
+      "lineNumber": 13,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddServiceConfigs",
+      "implementationType": "startupLogger",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddServiceConfigs"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddFastEndpoints",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddFastEndpoints"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddDbContext",
+      "implementationType": "(provider, options) =\u003E\r\n            {\r\n              options.UseSqlServer(_dbContainer.GetConnectionString());\r\n              var interceptor = provider.GetRequiredService\u003CEventDispatchInterceptor\u003E();\r\n              options.AddInterceptors(interceptor);\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddDbContext"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\tests\\Clean.Architecture.FunctionalTests\\CustomWebApplicationFactory.cs",
+      "lineNumber": 118,
+      "confidence": 0.7
+    },
+    {
+      "type": "EfEntityDetection",
+      "entityType": "OrderItem",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "Order",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "GuestUser",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "CartItem",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "Cart",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "Product",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 9,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 19,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "Initial",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\Migrations\\20251020223304_Initial.cs",
+      "lineNumber": 11,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "AddGuestUsersAndOrdersSqlServer",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\Data\\Migrations\\20251024232246_AddGuestUsersAndOrdersSqlServer.cs",
+      "lineNumber": 9,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "Contributor",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "entityType": "Project",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "entityType": "ToDoItem",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 16,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "Contributor",
+      "dbContextType": "AppDbContext",
+      "isAggregate": true,
+      "keyProperties": [
+        "Id"
+      ],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 4,
+      "confidence": 1
+    },
+    {
+      "entityType": "\u003COnModelCreating\u003E",
+      "dbContextType": "AppDbContext",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\AppDbContext.cs",
+      "lineNumber": 8,
+      "confidence": 0.8
+    },
+    {
+      "entityType": "PhoneNumber",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\Migrations\\20231218143922_PhoneNumber.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "UpdateForNet10",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\Migrations\\20251113164108_UpdateForNet10.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "entityType": "UseDbGeneratedIds",
+      "dbContextType": "Migrations",
+      "isAggregate": false,
+      "keyProperties": [],
+      "extractorName": "EfCoreExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\Data\\Migrations\\20260424000000_UseDbGeneratedIds.cs",
+      "lineNumber": 8,
+      "confidence": 0.9
+    },
+    {
+      "type": "EndpointDetection",
+      "httpMethod": "POST",
+      "routeTemplate": "/cart/{CartId}/checkout",
+      "handlerType": "CheckoutEndpoint",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\CartFeatures\\Checkout\\CheckoutEndpoint.cs",
+      "lineNumber": 28,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/cart/{CartId}",
+      "handlerType": "GetByIdEndpoint",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\CartFeatures\\GetById\\GetByIdEndpoint.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Products",
+      "handlerType": "CreateEndpoint",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\ProductFeatures\\Create\\CreateEndpoint.cs",
+      "lineNumber": 23,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Products/{ProductId}",
+      "handlerType": "GetByIdEndpoint",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\ProductFeatures\\GetById\\GetByIdEndpoint.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Products",
+      "handlerType": "ListEndpoint",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\ProductFeatures\\List\\ListEndpoint.cs",
+      "lineNumber": 31,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Contributors",
+      "handlerType": "Create",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Contributors\\Create.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "Delete",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Contributors\\Delete.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "GetById",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Contributors\\GetById.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Contributors",
+      "handlerType": "List",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Contributors\\List.cs",
+      "lineNumber": 13,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "Update",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Contributors\\Update.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Projects",
+      "handlerType": "Create",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\Create.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Projects/{ProjectId:int}/ToDoItems",
+      "handlerType": "Create",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\CreateToDoItem.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/Projects/{ProjectId:int}",
+      "handlerType": "Delete",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\Delete.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Projects/{ProjectId:int}",
+      "handlerType": "GetById",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\GetById.cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "\u003Cdynamic\u003E",
+      "handlerType": "List",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\List.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Projects/{ProjectId}/IncompleteItems",
+      "handlerType": "ListIncompleteItems",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\ListIncompleteItems.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Projects/{ProjectId:int}/ToDoItems/{ToDoItemId:int}",
+      "handlerType": "MarkItemComplete",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\MarkItemComplete.cs",
+      "lineNumber": 15,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/Projects/{ProjectId:int}",
+      "handlerType": "Update",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Projects\\Update.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "POST",
+      "routeTemplate": "/Contributors",
+      "handlerType": "Create",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Contributors\\Create.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "DELETE",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "Delete",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Contributors\\Delete.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "GetById",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Contributors\\GetById.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "GET",
+      "routeTemplate": "/Contributors",
+      "handlerType": "List",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Contributors\\List.cs",
+      "lineNumber": 14,
+      "confidence": 1
+    },
+    {
+      "httpMethod": "PUT",
+      "routeTemplate": "/Contributors/{ContributorId:int}",
+      "handlerType": "Update",
+      "handlerMethod": "HandleAsync",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 0,
+      "extractorName": "EndpointExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Contributors\\Update.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabase",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabase",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 52,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabase",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 53,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "InfrastructureServiceExtensions",
+      "callerMethod": "AddInfrastructureServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 24,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "InfrastructureServiceExtensions",
+      "callerMethod": "AddDbContextWithSqlite",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 51,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabase",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabase",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 49,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "Main",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 81,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "BaseEfRepoTestFixture",
+      "callerMethod": "CreateNewContextOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\tests\\NimblePros.SampleToDo.IntegrationTests\\Data\\BaseEfRepoTestFixture.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "InfrastructureServiceExtensions",
+      "callerMethod": "AddInfrastructureServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Infrastructure\\InfrastructureServiceExtensions.cs",
+      "lineNumber": 32,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "MigrateDatabaseAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 62,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "MigrateDatabaseAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 67,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabaseAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 93,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "MiddlewareConfig",
+      "callerMethod": "SeedDatabaseAsync",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Configurations\\MiddlewareConfig.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "CustomWebApplicationFactory",
+      "callerMethod": "ConfigureWebHost",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\tests\\Clean.Architecture.FunctionalTests\\CustomWebApplicationFactory.cs",
+      "lineNumber": 121,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "BaseEfRepoTestFixture",
+      "callerMethod": "CreateNewContextOptions",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\tests\\Clean.Architecture.IntegrationTests\\Data\\BaseEfRepoTestFixture.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "type": "MediatRHandlerDetection",
+      "requestType": "ContributorDeletedEvent",
+      "responseType": "Unit",
+      "handlerType": "ContributorDeletedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\ContributorAggregate\\Handlers\\ContributorDeletedHandler.cs",
+      "lineNumber": 8,
+      "confidence": 1
+    },
+    {
+      "requestType": "ContributorNameUpdatedEvent",
+      "responseType": "Unit",
+      "handlerType": "ContributorNameUpdatedEventLoggingHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\ContributorAggregate\\Handlers\\ContributorNameUpdatedEventLoggingHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "ContributorAddedToItemEvent",
+      "responseType": "Unit",
+      "handlerType": "ContributorAddedToItemLoggingHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\ProjectAggregate\\Handlers\\ContributorAddedToItemLoggingHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "NewItemAddedEvent",
+      "responseType": "Unit",
+      "handlerType": "NewItemAddedLoggingHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Core\\ProjectAggregate\\Handlers\\NewItemAddedLoggingHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "ContributorDeletedEvent",
+      "responseType": "Unit",
+      "handlerType": "ContributorDeletedHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Core\\ContributorAggregate\\Handlers\\ContributorDeletedHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "requestType": "ContributorNameUpdatedEvent",
+      "responseType": "Unit",
+      "handlerType": "ContributorNameUpdatedEmailNotificationHandler",
+      "kind": 2,
+      "extractorName": "MediatRExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Core\\ContributorAggregate\\Handlers\\ContributorNameUpdatedEmailNotificationHandler.cs",
+      "lineNumber": 6,
+      "confidence": 1
+    },
+    {
+      "type": "MiddlewareDetection",
+      "middlewareType": "UseAppMiddlewareAndSeedDatabase",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\MinimalClean\\src\\MinimalClean.Architecture.Web\\Program.cs",
+      "lineNumber": 27,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseRequestLocalization",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 98,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAppMiddleware",
+      "pipelineOrder": 2,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\sample\\src\\NimblePros.SampleToDo.Web\\Program.cs",
+      "lineNumber": 109,
+      "confidence": 1
+    },
+    {
+      "middlewareType": "UseAppMiddlewareAndSeedDatabase",
+      "pipelineOrder": 1,
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\VerticalSlice\\src\\Clean.Architecture.Web\\Program.cs",
+      "lineNumber": 30,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.UseCases.Contributors.CreateContributorHandlerHandle\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.AspireTests.Tests.AspireIntegrationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Contributors.ContributorCreate\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.Services.ToDoItemSearchService_GetNextIncompleteItem\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.ToDoItemBuilder\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.FunctionalTests.ApiEndpoints.ContributorList\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.IntegrationTests.Data.EfRepositoryDelete\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Contributors.ContributorUpdate\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ContributorAggregate.ContributorIdFrom\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.NoOpMediator\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.FunctionalTests.CustomWebApplicationFactory\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ContributorAggregate.ContributorUpdateName\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.IntegrationTests.Data.BaseEfRepoTestFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ContributorAggregate.ContributorConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.Services.ToDoItemSearchServiceTests\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.UseCases.Contributors.UpdateContributorHandlerHandle\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ProjectAggregate.ToDoItemConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.IntegrationTests.Data.EfRepositoryUpdate\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ProjectAggregate.Project_AddItem\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.Specifications.IncompleteItemsSpecificationConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Contributors.ContributorDelete\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.ClassFixtures.SmtpServerFixture\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.ProjectList\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.IntegrationTests.Data.EfRepositoryAdd\u0027; PatternRelevancePruner: penalized name-pattern type \u0027Clean.Architecture.Core.ContributorAggregate.Specifications.ContributorByIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.ProjectItemMarkComplete\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.FunctionalTests.ApiEndpoints.ContributorGetById\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.ProjectGetById\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.ProjectAddToDoItem\u0027; PatternRelevancePruner: penalized name-pattern type \u0027NimblePros.SampleToDo.Core.ContributorAggregate.Specifications.ContributorByIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.IntegrationTests.Data.EfRepositoryUpdate\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.Services.DeleteContributorService_DeleteContributor\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Contributors.ContributorList\u0027; PatternRelevancePruner: penalized name-pattern type \u0027MinimalClean.Architecture.Web.Domain.ProductAggregate.Specifications.ProductByIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.IntegrationTests.Data.BaseEfRepoTestFixture\u0027; PatternRelevancePruner: penalized name-pattern type \u0027MinimalClean.Architecture.Web.Domain.CartAggregate.Specifications.CartByIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ProjectAggregate.ProjectConstructor\u0027; PatternRelevancePruner: penalized name-pattern type \u0027NimblePros.SampleToDo.Core.ProjectAggregate.Specifications.IncompleteItemsSearchSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ProjectAggregate.ProjectNameFrom\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.UseCases.Contributors.GetContributorHandlerHandle\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.CreateToDoItemRequestBuilder\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.ContributorAggregate.ContributorConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.FunctionalTests.DockerAvailabilityTests\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.Handlers.ItemCompletedEmailNotificationHandlerHandle\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Projects.ProjectCreate\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.Services.DeleteContributorService_DeleteContributor\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.ContributorAggregate.ContributorUpdateName\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.UseCases.Contributors.CreateContributorHandlerHandle\u0027; PatternRelevancePruner: penalized name-pattern type \u0027NimblePros.SampleToDo.Core.ProjectAggregate.Specifications.ProjectsWithItemsByContributorIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.Core.ProjectAggregate.ToDoItemMarkComplete\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.TestBase\u0027; PatternRelevancePruner: penalized name-pattern type \u0027NimblePros.SampleToDo.Core.ProjectAggregate.Specifications.ProjectByIdWithItemsSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.Services.ToDoItemSearchService_GetAllIncompleteItems\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.ContributorAggregate.ContributorIdFrom\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.UnitTests.Core.ContributorAggregate.ContributorNameFrom\u0027; PatternRelevancePruner: penalized name-pattern type \u0027MinimalClean.Architecture.Web.Domain.GuestUserAggregate.Specifications.GuestUserByIdSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.IntegrationTests.Data.EfRepositoryDelete\u0027; PatternRelevancePruner: penalized name-pattern type \u0027MinimalClean.Architecture.Web.Domain.GuestUserAggregate.Specifications.GuestUserByEmailSpec\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.UnitTests.NoOpMediator\u0027; PatternRelevancePruner: excluded test-project type \u0027Clean.Architecture.IntegrationTests.Data.EfRepositoryAdd\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.CustomWebApplicationFactory\u0027; PatternRelevancePruner: excluded test-project type \u0027NimblePros.SampleToDo.FunctionalTests.Contributors.ContributorGetById\u0027; PatternRelevancePruner: penalized name-pattern type \u0027NimblePros.SampleToDo.Core.ProjectAggregate.Specifications.IncompleteItemsSpec\u0027 (RoleScore=0); TokenBudgetEnforcer: kept 33 types (348 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1784006",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.3763678",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0014561",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:02.2920636",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0299264",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0192300",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:01.9860504",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.3693111",
+        "typesAdded": 381,
+        "detectionsAdded": 90,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.3539640",
+        "typesAdded": 0,
+        "detectionsAdded": 90,
+        "skipped": false
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3026798",
+        "typesAdded": 0,
+        "detectionsAdded": 75,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1745074",
+        "typesAdded": 0,
+        "detectionsAdded": 4,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1148796",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0881507",
+        "typesAdded": 0,
+        "detectionsAdded": 52,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0810694",
+        "typesAdded": 0,
+        "detectionsAdded": 52,
+        "skipped": false
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0802699",
+        "typesAdded": 0,
+        "detectionsAdded": 52,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0604047",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0561460",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0378450",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0315043",
+        "typesAdded": 0,
+        "detectionsAdded": 34,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0248455",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0234213",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0048376",
+        "typesAdded": 0,
+        "detectionsAdded": 13,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 381,
+        "typesAfter": 33
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 381,
+        "typesAfter": 381
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 115
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 64
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 12
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 384,
+      "syntaxTreeHits": 3248,
+      "syntaxTreeMisses": 362
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 362,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:00.3763678",
+      "stage2CpuSum": "00:00:00.9460493",
+      "stage3Wall": "00:00:02.2920636",
+      "stage3CpuSum": "00:00:02.6894417"
+    },
+    "totalWall": "00:00:03.3394146"
+  }
+}

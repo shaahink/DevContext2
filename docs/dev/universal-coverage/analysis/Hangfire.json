@@ -1,0 +1,715 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:55:25.2330393Z",
+  "solution": {
+    "name": "Hangfire",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\Hangfire.sln",
+    "projectPaths": [
+      "samples\\ConsoleSample\\ConsoleSample.csproj",
+      "src\\Hangfire.Core\\Hangfire.Core.csproj",
+      "src\\Hangfire.SqlServer\\Hangfire.SqlServer.csproj",
+      "tests\\Hangfire.Core.Tests\\Hangfire.Core.Tests.csproj",
+      "tests\\Hangfire.SqlServer.Tests\\Hangfire.SqlServer.Tests.csproj",
+      "src\\Hangfire.SqlServer.Msmq\\Hangfire.SqlServer.Msmq.csproj",
+      "tests\\Hangfire.SqlServer.Msmq.Tests\\Hangfire.SqlServer.Msmq.Tests.csproj",
+      "src\\Hangfire.AspNetCore\\Hangfire.AspNetCore.csproj",
+      "samples\\NetCoreSample\\NetCoreSample.csproj",
+      "src\\Hangfire.NetCore\\Hangfire.NetCore.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "dapper",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 10,
+    "names": [
+      "ConsoleSample",
+      "Hangfire.AspNetCore",
+      "Hangfire.Core",
+      "Hangfire.Core.Tests",
+      "Hangfire.NetCore",
+      "Hangfire.SqlServer",
+      "Hangfire.SqlServer.Msmq",
+      "Hangfire.SqlServer.Msmq.Tests",
+      "Hangfire.SqlServer.Tests",
+      "NetCoreSample"
+    ]
+  },
+  "typesSummary": {
+    "found": 633,
+    "inOutput": 23,
+    "prunedPercent": 96.4
+  },
+  "detections": [
+    {
+      "type": "BackgroundWorkerDetection",
+      "serviceType": "IHostedService",
+      "implementationType": "RecurringJobsService",
+      "kind": 0,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\samples\\NetCoreSample\\Program.cs",
+      "lineNumber": 59,
+      "confidence": 1
+    },
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddHangfire",
+      "implementationType": "(provider, configuration) =\u003E configuration\r\n                        .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)\r\n                        .UseSimpleAssemblyNameTypeSerializer()\r\n                        .UseSqlServerStorage(\r\n                            @\u0022Server=.\\;Database=Hangfire.Sample;Trusted_Connection=True;\u0022, \r\n                            provider.GetRequiredService\u003CSqlServerStorageOptions\u003E())",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHangfire"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\samples\\NetCoreSample\\Program.cs",
+      "lineNumber": 52,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHostedService",
+      "implementationType": "RecurringJobsService",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHostedService"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\samples\\NetCoreSample\\Program.cs",
+      "lineNumber": 59,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHangfireServer",
+      "implementationType": "options =\u003E\r\n                    {\r\n                        options.StopTimeout = TimeSpan.FromSeconds(15);\r\n                        options.ShutdownTimeout = TimeSpan.FromSeconds(30);\r\n                    }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHangfireServer"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\samples\\NetCoreSample\\Program.cs",
+      "lineNumber": 60,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "serviceProvider =\u003E\r\n            {\r\n                var configurationInstance = GlobalConfiguration.Configuration;\r\n\r\n                // init defaults for log provider and job activator\r\n                // they may be overwritten by the configuration callback later\r\n\r\n                var loggerFactory = serviceProvider.GetService\u003CILoggerFactory\u003E();\r\n                if (loggerFactory != null)\r\n                {\r\n                    configurationInstance.UseLogProvider(new AspNetCoreLogProvider(loggerFactory));\r\n                }\r\n\r\n                var scopeFactory = serviceProvider.GetService\u003CIServiceScopeFactory\u003E();\r\n                if (scopeFactory != null)\r\n                {\r\n                    configurationInstance.UseActivator(new AspNetCoreJobActivator(scopeFactory));\r\n                }\r\n\r\n                // do configuration inside callback\r\n\r\n                configuration(serviceProvider, configurationInstance);\r\n                \r\n                return configurationInstance;\r\n            }",
+      "implementationType": "serviceProvider =\u003E\r\n            {\r\n                var configurationInstance = GlobalConfiguration.Configuration;\r\n\r\n                // init defaults for log provider and job activator\r\n                // they may be overwritten by the configuration callback later\r\n\r\n                var loggerFactory = serviceProvider.GetService\u003CILoggerFactory\u003E();\r\n                if (loggerFactory != null)\r\n                {\r\n                    configurationInstance.UseLogProvider(new AspNetCoreLogProvider(loggerFactory));\r\n                }\r\n\r\n                var scopeFactory = serviceProvider.GetService\u003CIServiceScopeFactory\u003E();\r\n                if (scopeFactory != null)\r\n                {\r\n                    configurationInstance.UseActivator(new AspNetCoreJobActivator(scopeFactory));\r\n                }\r\n\r\n                // do configuration inside callback\r\n\r\n                configuration(serviceProvider, configurationInstance);\r\n                \r\n                return configurationInstance;\r\n            }",
+      "lifetime": "Singleton",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new AspNetCoreLogProvider(loggerFactory)]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 82,
+      "confidence": 1
+    },
+    {
+      "serviceType": "provider =\u003E\r\n            {\r\n                var options = provider.GetService\u003CBackgroundJobServerOptions\u003E() ?? new BackgroundJobServerOptions();\r\n                return CreateBackgroundJobServerHostedService(provider, storage, additionalProcesses, options);\r\n            }",
+      "implementationType": "provider =\u003E\r\n            {\r\n                var options = provider.GetService\u003CBackgroundJobServerOptions\u003E() ?? new BackgroundJobServerOptions();\r\n                return CreateBackgroundJobServerHostedService(provider, storage, additionalProcesses, options);\r\n            }",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new BackgroundJobServerOptions]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 191,
+      "confidence": 1
+    },
+    {
+      "serviceType": "provider =\u003E\r\n            {\r\n                var options = new BackgroundJobServerOptions();\r\n                optionsAction(provider, options);\r\n\r\n                return CreateBackgroundJobServerHostedService(provider, storage, additionalProcesses, options);\r\n            }",
+      "implementationType": "provider =\u003E\r\n            {\r\n                var options = new BackgroundJobServerOptions();\r\n                optionsAction(provider, options);\r\n\r\n                return CreateBackgroundJobServerHostedService(provider, storage, additionalProcesses, options);\r\n            }",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new BackgroundJobServerOptions]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 206,
+      "confidence": 1
+    },
+    {
+      "serviceType": "provider =\u003E new BackgroundProcessingServerHostedService(\r\n                    implementationFactory(provider)\r\n#if NETSTANDARD2_1\r\n                    , provider.GetService\u003CIHostApplicationLifetime\u003E()\r\n#endif\r\n                    )",
+      "implementationType": "provider =\u003E new BackgroundProcessingServerHostedService(\r\n                    implementationFactory(provider)\r\n#if NETSTANDARD2_1\r\n                    , provider.GetService\u003CIHostApplicationLifetime\u003E()\r\n#endif\r\n                    )",
+      "lifetime": "Transient",
+      "extensionsUsed": [],
+      "shape": 3,
+      "factorySummary": "[factory: new BackgroundProcessingServerHostedService]",
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 224,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "Program",
+      "callerMethod": "Main",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\samples\\NetCoreSample\\Program.cs",
+      "lineNumber": 57,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireDashboard",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireDashboard",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 49,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireDashboard",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 50,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 75,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 76,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 78,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 79,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "UseHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 80,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireApplicationBuilderExtensions",
+      "callerMethod": "RegisterHangfireServer",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.AspNetCore\\HangfireApplicationBuilderExtensions.cs",
+      "lineNumber": 111,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "ElmahLog",
+      "callerMethod": "Log",
+      "targetType": "_errorType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.Core\\App_Packages\\LibLog.1.4\\LibLog.cs",
+      "lineNumber": 1616,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "ElmahLog",
+      "callerMethod": "Log",
+      "targetType": "_errorType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.Core\\App_Packages\\LibLog.1.4\\LibLog.cs",
+      "lineNumber": 1617,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "JobActivator",
+      "callerMethod": "ActivateJob",
+      "targetType": "jobType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.Core\\JobActivator.cs",
+      "lineNumber": 48,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "InvocationData",
+      "callerMethod": "DeserializeArguments",
+      "targetType": "parameter.ParameterType",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.Core\\Storage\\InvocationData.cs",
+      "lineNumber": 295,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "AddHangfire",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 89,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "AddHangfire",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 95,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "AddHangfireServerInner",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 193,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "CreateBackgroundJobServerHostedService",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 243,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "CreateBackgroundJobServerHostedService",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 244,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "CreateBackgroundJobServerHostedService",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 246,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "CreateBackgroundJobServerHostedService",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 247,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "CreateBackgroundJobServerHostedService",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 248,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "GetInternalServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 273,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "GetInternalServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 274,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "GetInternalServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 275,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "TryAddSingletonChecked",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 299,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HangfireServiceCollectionExtensions",
+      "callerMethod": "ThrowIfNotConfigured",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\Hangfire\\src\\Hangfire.NetCore\\HangfireServiceCollectionExtensions.cs",
+      "lineNumber": 307,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.AwaitingStateHandlerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.BackgroundJobFactoryFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.DelayedJobSchedulerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobClassWrapper\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.SomeClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.CreatingContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.NestedType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.GenericType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.BackgroundProcessingServerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.CancellationTokenExtentionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Stubs.DashboardContextStub\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.PerformContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTheoryAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.CoreBackgroundJobFactoryFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyBaseClassService\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerJobQueueFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerTimeoutJobFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CreateContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.RecurringJobSchedulerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.GenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyDerivedClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.BrokenDispose\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.StorageConnectionExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.StorageOptionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerDistributedLockFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.IParent\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.DoubleNestedNonGenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.JobStorageFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.ClientExceptionContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.RecurringJobManagerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.IClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.NestedNonGenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CustomConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeFactAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.JobActivatorFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MsmqUtils\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.StateChangeContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.ApplyStateContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.ElectStateContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerStorageFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.RecurringJobOptionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.DerivedClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.WorkerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.ProcessingStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.BackgroundProcessContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MethodInfoExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ShallowExceptionHelperFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.ServerJobCancellationWatcherFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerTransactionJobFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTheoryTestCase\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Dashboard.CommandDispatcherFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MsmqJobQueueMonitoringApiFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.EnqueuedStateHandlerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.IParent\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFilterFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ClassWithActionAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.PersistentJobQueueProviderCollectionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundJobClientFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundJobServerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.AwaitingStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Obsolete.ServerWatchdogOptionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.DoubleNestedGenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.MonitoringTypeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.SucceededStateHandlerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.CreatedContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CleanSerializerSettingsAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.InvocationDataFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Processing.TaskExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ICommandDispatcher\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.CleanDatabaseAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyStruct\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.FailedStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.EnqueuedStateValidationFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.CleanMsmqQueueAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.LatencyTimeoutAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.IServiceInterface\u0027; PatternRelevancePruner: excluded test-project type \u0027global.GlobalType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.NestedGenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTestRunner\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.StateChangeContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.Instance\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ExplicitInterfaceImplementation\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTheoryTestCaseRunner\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.RetryAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFilterAttributeFilterProviderFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundJobClientExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MsmqJobQueueFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.SequenceAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.NestedGenericType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobLoadExceptionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.PerformContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.BackgroundJob\u0027; PatternRelevancePruner: excluded test-project type \u0027global.NestedGenericType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ClassB\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.IChild\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyBaseClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.SucceededStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CultureHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.AllowMultipleFalseAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.StatisticsHistoryAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.SerializationHelperFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.TestMethodAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.BackgroundJobServerOptionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.PreserveCultureAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.RegularInterfaceImplementation\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DefaultConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.DerivedInstance\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.CustomSerializerBinder\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.DeletedStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.GlobalStateHandlersFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.AsyncLocalFilter\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.ElectStateContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.AllowMultipleTrueAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.CleanSerializerSettingsAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.NonGenericClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundJobFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyFilterAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027global.ClassWithoutNamespace\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Stubs.JobStorageStub\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.AllowMultipleCustomFilter\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MessageQueueExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.BaseClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CustomClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFilterProviderCollectionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerMonitoringApiFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.CoreBackgroundJobPerformerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.PlatformHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.CoreStateMachineFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.CountersAggregatorFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.ScheduledStateHandlerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeFactDiscoverer\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.QueueAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.ApplyStateContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.MyClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Storage.FieldsOnlyContractResolver\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.IChild\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.SampleJobAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Dashboard.HtmlHelperFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.SerializerSettingsHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CronFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.MyCustomTaskScheduler\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.TypeExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTheoryDiscoverer\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Dashboard.BatchCommandDispatcherFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.GlobalLockAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.StateMachineFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.BrokenDispose\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.ExpirationManagerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Dashboard.DashboardOptionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MsmqSqlServerStorageExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Client.CreateContextFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.StateHandlerCollectionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundJobMock\u0027; PatternRelevancePruner: excluded test-project type \u0027global.NestedType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.StaticLockAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.ServerWatchdogFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.EnqueuedStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.JobParameterInjectionFilterFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ClassWithTypeAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.CommandDispatcher\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.CaptureCultureAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Stubs.DashboardResponseStub\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ServiceImpl\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFilterCollectionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.RecurringJobEntityFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobFilterAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027global.GlobalGenericType\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.FieldsOnlyContractResolver\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.Disposable\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Profiling.ProfilerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.ServerJobCancellationTokenFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.ScheduledStateFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobArgumentFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.ContinuationsSupportAttributeFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerWriteOnlyTransactionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SqlServerConnectionFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.SerializerSettingsHelper\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.IService\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.TestTypeAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.JobCancellationTokenFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Msmq.Tests.MsmqJobQueueProviderFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.BackgroundProcessContextMock\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.BackgroundJobStateChangerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.States.DeletedStateHandlerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.JobHelperFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.GloabalConfigurationExtensionsFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Common.ClassA\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTestCaseRunner\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.SqlServer.Tests.ConnectionUtils\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.Server.BackgroundJobPerformerFacts\u0027; PatternRelevancePruner: excluded test-project type \u0027Hangfire.Core.Tests.DataCompatibilityRangeTestCase\u0027; PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 5 types (628 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.5103882",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:03.9763595",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0013494",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:03.5789727",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0308202",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0202616",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:03.9710221",
+        "typesAdded": 633,
+        "detectionsAdded": 8,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:03.9424141",
+        "typesAdded": 0,
+        "detectionsAdded": 8,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:03.1525325",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.9781993",
+        "typesAdded": 0,
+        "detectionsAdded": 1,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.8976956",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.4230238",
+        "typesAdded": 0,
+        "detectionsAdded": 28,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.3518864",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1026511",
+        "typesAdded": 0,
+        "detectionsAdded": 28,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0847337",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0406742",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0262481",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0260187",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 633,
+        "typesAfter": 5
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 633,
+        "typesAfter": 633
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 465
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 0
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 4
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 501,
+      "syntaxTreeHits": 2435,
+      "syntaxTreeMisses": 491
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 491,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:03.9763595",
+      "stage2CpuSum": "00:00:08.9439023",
+      "stage3Wall": "00:00:03.5789727",
+      "stage3CpuSum": "00:00:04.5759029"
+    },
+    "totalWall": "00:00:09.6985670"
+  }
+}

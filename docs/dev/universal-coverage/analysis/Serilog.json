@@ -1,0 +1,351 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:55:09.7808121Z",
+  "solution": {
+    "name": "Serilog",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\Serilog\\Serilog.sln",
+    "projectPaths": [
+      "src\\Serilog\\Serilog.csproj",
+      "test\\TestDummies\\TestDummies.csproj",
+      "test\\Serilog.Tests\\Serilog.Tests.csproj",
+      "test\\Serilog.PerformanceTests\\Serilog.PerformanceTests.csproj",
+      "test\\Serilog.ApprovalTests\\Serilog.ApprovalTests.csproj",
+      "test\\AotTestApp\\AotTestApp.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [
+    {
+      "key": "serilog",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 6,
+    "names": [
+      "AotTestApp",
+      "Serilog",
+      "Serilog.ApprovalTests",
+      "Serilog.PerformanceTests",
+      "Serilog.Tests",
+      "TestDummies"
+    ]
+  },
+  "typesSummary": {
+    "found": 247,
+    "inOutput": 37,
+    "prunedPercent": 85
+  },
+  "detections": [],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.VersioningTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.A\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.CollectingSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.MessageTemplateCacheBenchmark_Cached\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.D\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.LevelControlBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.JsonLiteralValueFormatter\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.Empty\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Core.Tests.FailureAwareBatchSchedulerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.ConcurrentDictionaryMessageTemplateCache\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.AuditSinkTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.IMyChannel\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.LoggerSinkConfigurationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.CallbackBatchedSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DummyConcreteClassWithDefaultConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Rendering.MessageTemplateRendererTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.Value\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.FailureListenerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DummyConcreteClassWithoutDefaultConstructor\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.HasItem\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.DerivedWithOverrides\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.NoOpMessageTemplateParser\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DelegatingSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.InMemoryBatchedSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Context.LogContextTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.DictionaryMessageTemplateCache\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.ToStringReturnsNull\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Display.SizeFormatter\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.ProjectedDestructuringPolicy\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Events.DictionaryValueTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.MethodOverloadConventionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.SourceContextMatchBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.BaseWithProps\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.LogTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.MessageTemplateCacheBenchmark_Leaking\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ThrowingProperty\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.AnAbstractClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.JsonFormatterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.IAmAnInterface\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.ToStringOfLength\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.AllocationsBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.AChair\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.SyncState\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.NestedLoggerLatencyBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.Extensions\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.ArgumentNullTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.LoggingFailure\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Harness\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Data.LimitingRewriter\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.TestTimeProvider\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Debugging.SelfLogTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ChildLoggerKnownLimitationsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.MessageTemplateRenderingBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ToStringThrows\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Settings.SettingValueConversionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.ThrowingSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Parsing.MessageTemplateParserTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.AB\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.HasPropertyWithPrivateGetter\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.LogEventPropertyStructuralEqualityComparerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.NullTextWriter\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.MessageTemplateTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DisposeTrackingSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.JsonValueFormatterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Rendering.ReusableStringWriterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DummyAbstractClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Filters.MatchingTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.B\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.SubclassWithOverride\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.Some\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.MessageTemplateParsingBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.TemporarySelfLog\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.CollectingEnricher\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.BaseClass\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ChildLoggerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.ClassWithStaticAccessors\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.CustomConsoleTheme\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.LoggingLevekSwitchTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.LevelOverrideMapTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.NestedLoggerCreationBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.LoggerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.LogContextEnrichmentBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Display.MessageTemplateTextFormatterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.CollectingFailureListener\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.C\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.Thrower\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.Value\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.Chair\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DelegatingEnricher\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.Receipt\u0027; PatternRelevancePruner: excluded test-project type \u0027global.ApiApprovalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.SafeAggregateSinkTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.SecondaryLoggerSinkTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.PipelineBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Core.Tests.BatchingSinkTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Events.LogEventTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ToStringReturnsNull\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.MyDictionary\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.StringSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.HasIndexer\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.LogEventPropertyValueComparer\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.DisposableSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.ConcreteImpl\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.LogEventPropertyCapturingTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.LogEventPropertyStructuralEqualityComparer\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.ChildLoggerDisposalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Settings.KeyValuePairSettingsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Events.LogEventPropertyValueTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Core.LoggerExtensionsTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Data.LogEventPropertyValueRewriterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Formatting.Json.ToStringThrows\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.SupportsFailureListener\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Configuration.LoggerConfigurationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Settings.CallableConfigurationMethodFinderTests\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Context.ForceNewThreadSyncContext\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.ListenerTrackingSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.Some\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.OutputTemplateRenderingBenchmark\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.SubclassWithRedefinition\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Support.DisposableLogger\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.PerformanceTests.Support.NullSink\u0027; PatternRelevancePruner: excluded test-project type \u0027Serilog.Tests.Capturing.PropertyValueConverterTests\u0027; PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 25 types (222 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2130898",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.8504086",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0011865",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2690651",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0200019",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0201327",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.8458132",
+        "typesAdded": 247,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.8333605",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.1906091",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1645251",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1292850",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1014879",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0860282",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0696482",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0386477",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0265958",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0190332",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0189768",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 247,
+        "typesAfter": 25
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 247,
+        "typesAfter": 247
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 2048
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 11
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 8
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 220,
+      "syntaxTreeHits": 1055,
+      "syntaxTreeMisses": 214
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 214,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:00.8504086",
+      "stage2CpuSum": "00:00:01.9077928",
+      "stage3Wall": "00:00:00.2690651",
+      "stage3CpuSum": "00:00:00.4339457"
+    },
+    "totalWall": "00:00:01.9453023"
+  }
+}

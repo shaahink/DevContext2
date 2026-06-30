@@ -1,0 +1,369 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-30T21:56:58.6721685Z",
+  "solution": {
+    "name": "System.CommandLine",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\CLI\\System.CommandLine.sln",
+    "projectPaths": [
+      "src\\System.CommandLine\\System.CommandLine.csproj",
+      "src\\System.CommandLine.Tests\\System.CommandLine.Tests.csproj",
+      "src\\System.CommandLine.Suggest\\dotnet-suggest.csproj",
+      "src\\System.CommandLine.Suggest.Tests\\dotnet-suggest.Tests.csproj",
+      "src\\System.CommandLine.ApiCompatibility.Tests\\System.CommandLine.ApiCompatibility.Tests.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "Unknown",
+    "confidence": 0
+  },
+  "archetype": "Library",
+  "signals": [],
+  "projects": {
+    "count": 10,
+    "names": [
+      "dotnet-suggest",
+      "dotnet-suggest.Tests",
+      "EndToEndTestApp",
+      "NativeAOT",
+      "System.CommandLine",
+      "System.CommandLine.ApiCompatibility.Tests",
+      "System.CommandLine.Benchmarks",
+      "System.CommandLine.Tests",
+      "Tools",
+      "Trimming"
+    ]
+  },
+  "typesSummary": {
+    "found": 182,
+    "inOutput": 9,
+    "prunedPercent": 95.1
+  },
+  "detections": [
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 0,
+      "callerType": "RemoteExecutor",
+      "callerMethod": "Main",
+      "targetType": "type",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CLI\\src\\System.CommandLine.Tests\\Utility\\RemoteExecutor.cs",
+      "lineNumber": 43,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "Argument",
+      "callerMethod": "CreateDefaultValue",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": "C:\\Code\\DevContext2\\eval-repos\\CLI\\src\\System.CommandLine\\Argument{T}.cs",
+      "lineNumber": 131,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.VersionOptionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.DiagramDirectiveTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.MultipleArgumentsPerToken\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ResponseFileTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.SuggestionRegistrationTest\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.FileEnumeratorTests\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CompletionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Help.HelpBuilderTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.TestSuggestionRegistrationTests\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.TestSuggestionStore\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.RemoteExecutor\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.PathValidity\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.AnonymousSuggestionStore\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CustomAppConfiguration\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.NonWindowsOnlyFactAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Allowed\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Invocation.CustomCliAction\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Help.HelpBuilderExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Invocation.TypoCorrectionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Parsing.CommandLineStringSplitterTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.WindowsOnlyFactAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.SynchronousTestAction\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.RootCommandAndArg0\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.Process\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.UseExceptionHandlerTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.LocalizationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.SetupErrors\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.FileExistence\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Help.CustomHelpAction\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.LinuxOnlyTheory\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.SuggestionDispatcherTests\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Invocation.InvocationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParsingValidationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Disallowed\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CustomHelpAction\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.AssertionExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ArgumentTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.TokenReplacementTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.SuggestDirectiveTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.MultipleArguments\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.RootCommandTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.ApiCompatibility.Tests.ApiCompatibilityApprovalTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.MultiplePositions\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.InvocationConfigurationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.RemoteExecution\u0027; PatternRelevancePruner: excluded test-project type \u0027global.Program\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.HelpOptionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CompletionContextTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParseDiagramTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.OptionTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.FileSuggestionProviderTests\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Help.Customization\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.FileNameValidity\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.ReleaseBuildOnlyTheoryAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.DefaultDoubleDashBehavior\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.ReleaseBuildOnlyFactAttribute\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.SplitCommandLineTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.EnvironmentVariableDirectiveTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.GetValueByNameTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.GlobalToolsSuggestionRegistrationTests\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.ApiCompatibility.Tests.ApiContract\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParserTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CustomParsingTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CaptureRemainingTokens\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.AsynchronousTestAction\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Invocation.CancelOnProcessTerminationTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.DirectiveTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CustomizedHelpAction\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.SuggestionShellScriptHandlerTest\u0027 (RoleScore=0); PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.DotnetSuggestEndToEndTests\u0027 (RoleScore=0); PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParseResultExtensions\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.CommandTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.Utility.RemoteExecutionException\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.GlobalOptionTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParseResultTests\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.TestDirective\u0027; PatternRelevancePruner: excluded test-project type \u0027System.CommandLine.Tests.ParseErrorReportingTests\u0027; PatternRelevancePruner: penalized name-pattern type \u0027System.CommandLine.Suggest.Tests.TestSuggestionRegistration\u0027 (RoleScore=0); PatternRelevancePruner: library mode active \u2014 boosting public API, penalizing test types; TokenBudgetEnforcer: kept 11 types (171 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.4747823",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4400554",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0016549",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.4068258",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0310356",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0286112",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4157846",
+        "typesAdded": 182,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.4106751",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.4576662",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.2306024",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.2093639",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1924126",
+        "typesAdded": 0,
+        "detectionsAdded": 2,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1741506",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.1585843",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.0840806",
+        "typesAdded": 0,
+        "detectionsAdded": 2,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0399675",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0219705",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0216213",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "DesktopEntryExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs desktop-ui"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EndpointExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs minimal-apis or fast-endpoints or controllers"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 182,
+        "typesAfter": 11
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 182,
+        "typesAfter": 182
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 892
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 15
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 15
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 178,
+      "syntaxTreeHits": 831,
+      "syntaxTreeMisses": 168
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 168,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.4400554",
+      "stage2CpuSum": "00:00:03.3277176",
+      "stage3Wall": "00:00:00.4068258",
+      "stage3CpuSum": "00:00:00.6444413"
+    },
+    "totalWall": "00:00:02.9087291"
+  }
+}
