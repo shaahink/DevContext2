@@ -75,6 +75,16 @@
       "expectedSignals": [],
       "profile": "focused",
       "scenarios": ["overview"]
+    },
+    {
+      "name": "MediatR",
+      "url": "https://github.com/jbogard/MediatR.git",
+      "ref": "1fd25f5beb40aafd6859d9225a37d0c4f5062cfa",
+      "description": "Mediator library — IMediator/ISender/IPublisher + IRequest/IRequestHandler/INotificationHandler/IPipelineBehavior contracts + AddMediatR DI; defines the handler interfaces (no handlers in src/)",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
     }
   ]
 }

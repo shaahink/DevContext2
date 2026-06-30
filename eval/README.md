@@ -36,6 +36,10 @@ pushd eval-repos/Polly; git checkout 7a1d10f47e2ec667ceada49deb6bdd9a765753bd; p
 # CommunityToolkit.Mvvm — MVVM Toolkit (source generators + analyzers + marker attributes)
 git clone https://github.com/CommunityToolkit/dotnet.git eval-repos/CommunityToolkit.Mvvm
 pushd eval-repos/CommunityToolkit.Mvvm; git checkout b135626dd54d33b8f05f2ff31591592c004aa848; popd
+
+# MediatR — mediator library (defines IRequestHandler/INotificationHandler/IPipelineBehavior; AddMediatR DI)
+git clone https://github.com/jbogard/MediatR.git eval-repos/MediatR
+pushd eval-repos/MediatR; git checkout 1fd25f5beb40aafd6859d9225a37d0c4f5062cfa; popd
 ```
 
 ## Pinned Commits
@@ -49,3 +53,4 @@ pushd eval-repos/CommunityToolkit.Mvvm; git checkout b135626dd54d33b8f05f2ff3159
 | FluentValidation | `943979089b55664ceb8390547ea1eb84ee99252a` |
 | Polly | `7a1d10f47e2ec667ceada49deb6bdd9a765753bd` |
 | CommunityToolkit.Mvvm | `b135626dd54d33b8f05f2ff31591592c004aa848` |
+| MediatR | `1fd25f5beb40aafd6859d9225a37d0c4f5062cfa` |
