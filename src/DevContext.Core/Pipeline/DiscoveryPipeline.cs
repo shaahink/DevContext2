@@ -354,6 +354,14 @@ public sealed class DiscoveryPipeline
                         traceCtx = NarrativeSections.Combine(mapNarrative, traceCtx);
                     }
 
+                    // W3b: empty-but-resolved trace — append an honest hint that no wiring was found,
+                    // so the user isn't left staring at a bare ENTRY line wondering what went wrong.
+                    if (trace.Root.Children.Length == 0)
+                    {
+                        traceCtx = NarrativeSections.WithExtraSection(traceCtx, "TraceHint",
+                            $"NOTE: no out-edges resolved for '{request.Entry}' — try `Type:Method`, or `--profile debug` to enable the call graph\n\n");
+                    }
+
                     return NarrativeSections.WithExtraSection(
                         traceCtx, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
                         with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, MaxTraceDepth(trace.Root))
@@ -368,6 +376,16 @@ public sealed class DiscoveryPipeline
                 var narrative = mapModel.Archetype == Archetype.Library
                     ? await LibrarySurfaceRenderer.RenderAsync(mapCtx, ct)
                     : await MapRenderer.RenderAsync(mapCtx, ct);
+
+                // W3b: when a focus was requested but no entry/node matched, explain why the Map
+                // is shown instead so the user isn't confused by a silent fallback.
+                var focusWasRequested = !string.IsNullOrEmpty(request.Entry);
+                if (focusWasRequested)
+                {
+                    narrative = NarrativeSections.WithExtraSection(narrative, "NoMatch",
+                        $"NOTE: no entry/node matched '{request.Entry}' — try the fully-qualified name, `Type:Method`, or `--focus \"<exact map entry>\"`\n\n");
+                }
+
                 return NarrativeSections.WithExtraSection(
                     narrative, "Diagnostics", GraphDiagnosticsTail(snapshot, request))
                     with { GraphSummary = new GraphSummary(graph.NodeCount, graph.EdgeCount, snapshot.Entries.Length, null)

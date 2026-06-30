@@ -53,8 +53,8 @@ Branch: `feat/engine-cross-repo-analysis`. Legend: ✅ done · 🔄 in progress 
 | **B · Entry-point fidelity** | W6 | Prefer the product solution when several sit at repo root | ✅ this session |
 | **B · Entry-point fidelity** | W8 | Entry→target fallback for view/no-call controller actions | ✅ this session |
 | **B · Entry-point fidelity** | L2 | Share test-path predicate into TraceBuilder / GraphBuilder | ✅ this session |
-| **C · Trace dive-in** | W3 | Library / type-rooted traces follow member call edges | ⬜ |
-| **C · Trace dive-in** | W3b | Honest message when a focus resolves but has no out-edges | ⬜ |
+| **C · Trace dive-in** | W3 | Library / type-rooted traces follow member call edges | ✅ this session |
+| **C · Trace dive-in** | W3b | Honest message when a focus resolves but has no out-edges | ✅ this session |
 | **A · Archetype** | W5 | Desktop-app archetype + entry points (WinUI/WPF/Avalonia); fix auxiliary-exe heuristic | ⬜ |
 | **D · At-a-glance Map** | W4 | Structural section caps + ranking for huge repos (NOT token-driven) | ⬜ |
 | **A · Archetype** | W7 | API-gateway / reverse-proxy archetype (Ocelot, YARP) | ⬜ |

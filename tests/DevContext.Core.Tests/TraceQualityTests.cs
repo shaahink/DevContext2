@@ -20,6 +20,8 @@ public sealed class TraceQualityTests
     [InlineData("eval-repos/eShop/src/Ordering.API", "POST /api/orders/",
         new[] { "send", "CreateOrderCommand", "handler", "CreateOrderCommandHandler" })]
     [InlineData("tests/fixtures/ControllerApp", "GET /api/Products", new[] { "ProductService", "GetByIdAsync" })]
+    [InlineData("analysis-repos/serilog", "Log", new[] { "Logger" })]
+    [InlineData("analysis-repos/serilog", "LoggerConfiguration", new[] { "LoggerConfiguration" })]
     public async Task Trace_bridges_indirection(string repoRel, string entry, string[] expected)
     {
         var repoPath = RepoPath(repoRel);

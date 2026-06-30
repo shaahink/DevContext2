@@ -61,6 +61,8 @@ public sealed class TraceBuilder
 {
     private readonly CodeGraph _graph;
     private readonly Dictionary<NodeId, List<NodeId>> _bridgeMembersByType;
+    private NodeId? _entryRootNodeId;
+    private EntryPointKind _entryKind;
 
     /// <summary>Creates a trace builder over a graph.</summary>
     public TraceBuilder(CodeGraph graph)
@@ -118,6 +120,11 @@ public sealed class TraceBuilder
         var visited = new HashSet<NodeId>();
         var rootNode = _graph.Node(entry.Node)
             ?? new GraphNode(entry.Node, entry.Title, NodeKind.EntryPoint);
+
+        // Store entry context for PublicApi all-member bridge (W3).
+        _entryRootNodeId = rootNode.Id;
+        _entryKind = entry.Kind;
+
         var root = Walk(rootNode, SeamKind.Entry, entry.Provenance, Resolution.Join, 0, opts, follow, visited);
         var touched = new List<string>();
         var emitted = new List<string>();
@@ -336,6 +343,23 @@ public sealed class TraceBuilder
             foreach (var memberId in members)
                 foreach (var e in _graph.OutEdges(memberId))
                     yield return e;
+        else if (id == _entryRootNodeId
+            && _entryKind == EntryPointKind.PublicApi
+            && id.Kind == NodeKind.Type)
+        {
+            // W3: at the entry root of a PublicApi Type with no handler-entry bridge members
+            // (e.g. a library facade like Log), bridge ALL member edges so the trace follows
+            // the type's real call wiring instead of rendering empty. Scoped to depth 0 only
+            // — deeper Type nodes still use the narrow handler/entity-ctor bridge.
+            foreach (var node in _graph.Nodes)
+            {
+                if (node.Id.Kind != NodeKind.Member) continue;
+                var memberTypeKey = ExtractTypeKey(node.Id.Key);
+                if (!string.Equals(memberTypeKey, id.Key, StringComparison.Ordinal)) continue;
+                foreach (var e in _graph.OutEdges(node.Id))
+                    yield return e;
+            }
+        }
     }
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>

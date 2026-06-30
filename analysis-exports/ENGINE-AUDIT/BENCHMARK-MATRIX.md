@@ -10,7 +10,7 @@ Legend: ✅ good · ⚠️ partial/misleading · ❌ wrong/empty · — n/a. IDs
 
 | Repo | Archetype | (1) What is this? | (2) Entry points | (3) Trace/focus dive-in | Open gaps |
 |------|-----------|-------------------|------------------|-------------------------|-----------|
-| **Serilog** | Library | ✅ clean library surface (facade/builder/abstractions ranked) | — (library) | ❌ `--focus Log` → 4-line empty trace | **W3** |
+| **Serilog** | Library | ✅ clean library surface (facade/builder/abstractions ranked) | — (library) | ✅ `--focus Log` → 153-line trace into Logger.Write, BindMessageTemplate, ForContext… | — |
 | **Ocelot** | API gateway | ⚠️ reads as a 3-endpoint admin app; gateway nature hidden — **W7** | ✅ scoped to `Ocelot` core | ✅ `POST /configuration` trace is excellent | **W7** (gateway archetype) |
 | **Files** | Desktop (WinUI 3) | ❌ classified LIBRARY of UI controls | ❌ none (no desktop entry kinds) | ❌ `--focus MainWindow` empty; `--focus IAppService` falls back to Map | **W5** (+ **W3**) |
 | **aspnetcore** | Framework / monorepo | ⚠️ topology still dumps 395 projects (424 lines) → **W4** | ✅ **W1 done** — HTTP entries **518→10** (real Identity API only), zero test/stress/template leak | ✅ test DbContexts filtered (L2) | **W4** (topology cap) |

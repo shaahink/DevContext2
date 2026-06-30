@@ -73,7 +73,7 @@ declaring type) and more useful than a blank drill-in hint.
 
 ## Theme C — Trace / focus dive-in ("examine any part")
 
-### W3 ⬜ Library / type-rooted traces follow member call edges  ★ next
+### W3 ✅ Library / type-rooted traces follow member call edges  ★ next
 **Root cause (verified):** `Calls` edges are **member-origin** (hang off `Type.Method` Member nodes). From a
 **Type** entry, `TraceBuilder.OutEdgesWithTwin` (`Graph/TraceBuilder.cs:330-339`) bridges only
 **handler-entry members** (`Handle/Execute/Invoke`, via `BuildBridgeMemberIndex` 80-106). A library/UI type
@@ -87,7 +87,7 @@ assert the existing `seamHops >= 1` guard (line 38) and the substring. Regressio
 Facts (`TraceQualityTests` 73-154) stay green. Observable: `analyze .../serilog -f Log` shows
 `call Logger.Write …`.
 
-### W3b ⬜ Honest message when a focus resolves but has no out-edges
+### W3b ✅ Honest message when a focus resolves but has no out-edges
 **Root cause:** `DiscoveryPipeline.RenderAsync` (338-362): a trace whose root has no children renders a bare
 `▸ ENTRY X`; a null trace silently falls back to the Map (the Files `--focus IAppService` "Map fallback"
 confusion — H3). Both are opaque.
