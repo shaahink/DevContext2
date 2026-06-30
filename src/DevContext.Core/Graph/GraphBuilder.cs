@@ -20,6 +20,18 @@ public sealed class GraphBuilder
     private readonly ISymbolResolver _resolver;
     private readonly NoiseFilter _noise;
 
+    // P3: Entry-point builders — one per entry-point kind. Adding a new kind
+    // (Blazor, gRPC, SignalR, etc.) means adding one class that implements
+    // IEntryPointBuilder — no changes to GraphBuilder itself.
+    private static readonly IEntryPointBuilder[] _entryBuilders =
+    [
+        new HttpEntryPointBuilder(),
+        new WorkerEntryPointBuilder(),
+        new DomainEventHandlerEntryBuilder(),
+        new MessageConsumerEntryBuilder(),
+        new DesktopEntryPointBuilder(),
+    ];
+
     /// <summary>Creates a graph builder with a symbol resolver (syntactic now, semantic in P3) and a noise filter.</summary>
     public GraphBuilder(ISymbolResolver resolver, NoiseFilter noise)
     {
@@ -34,11 +46,14 @@ public sealed class GraphBuilder
         var names = new NameResolver(model.Types.Values); // short-name → FQN for every join (design-doc Q2)
 
         AddTypeNodes(g, model, scope);                      // worked example
-        var entries = AddHttpEntryPoints(g, model, scope, names)  // worked example
-            .AddRange(AddWorkerEntryPoints(g, model, scope, names)) // hosted services + scheduled jobs (DntSite audit)
-            .AddRange(AddDomainEventHandlerEntries(g, model, scope, names)) // domain-event handlers
-            .AddRange(AddMessageConsumerEntries(g, model, scope, names))  // integration-event consumers
-            .AddRange(AddDesktopEntryPoints(g, model, scope, names));     // W5: desktop UI entry points
+
+        // ── P3: Entry-point builders (one per kind) ──────────────────────────
+        // Open to extension — add a new builder for Blazor/gRPC/SignalR without
+        // modifying GraphBuilder itself.
+        var entries = ImmutableArray<EntryPoint>.Empty;
+        foreach (var builder in _entryBuilders)
+            entries = entries.AddRange(builder.Build(g, model, scope, names, _noise));
+
         AddHandlerJoins(g, model, names, scope, _noise);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope, _noise);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -1029,7 +1044,7 @@ public sealed class GraphBuilder
     /// as <see cref="AddSends"/> but anchored on the one endpoint's body, so the trace and the Map's
     /// entry→target reflect exactly what THIS route dispatches (not the whole registration type). A
     /// method that only queries adds no Sends edge, so it correctly resolves to no command.</summary>
-    private static void AddDispatchEdgesFromBody(CodeGraphBuilder g, NodeId fromId, string body, string? provenance, NameResolver names)
+    internal static void AddDispatchEdgesFromBody(CodeGraphBuilder g, NodeId fromId, string body, string? provenance, NameResolver names)
     {
         foreach (Match match in Regex.Matches(body,
             @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
@@ -1120,7 +1135,7 @@ public sealed class GraphBuilder
     /// <summary>True for names the body-scan Sends/Raises regexes pick up but that are never a real
     /// request/event — chiefly framework exceptions (<c>new ArgumentNullException(...)</c> caught by the
     /// variable-arg .Send() heuristic). Keeps the trace's indirection seams honest.</summary>
-    private static bool IsNoiseType(string name)
+    internal static bool IsNoiseType(string name)
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
@@ -1251,7 +1266,7 @@ public sealed class GraphBuilder
     /// (e.g. <c>new IdentifiedCommand&lt;CreateOrderCommand,bool&gt;(...)</c>), extract the
     /// first generic argument as the actual request type. Returns the original typeName
     /// if no generic wrapper is detected.</summary>
-    private static string UnwrapGenericArg(string body, int typeNamePos, string typeName)
+    internal static string UnwrapGenericArg(string body, int typeNamePos, string typeName)
     {
         var after = typeNamePos + typeName.Length;
         if (after >= body.Length || body[after] != '<') return typeName;
@@ -1271,7 +1286,7 @@ public sealed class GraphBuilder
     /// <summary>True for an EndpointDetection that is a framework/infrastructure pseudo-entry — OpenAPI/Scalar
     /// root routes registered in ServiceDefaults or extension files — not genuine application surface. The
     /// guard matches on both source and route, not just <c>"/"</c>, so a real root route isn't falsely dropped.</summary>
-    private static bool IsInfrastructureEntry(EndpointDetection ep)
+    internal static bool IsInfrastructureEntry(EndpointDetection ep)
     {
         if (ep.RouteTemplate is "/" or "" or "/index.html" or "/openapi" or "/scalar")
         {
@@ -1284,7 +1299,7 @@ public sealed class GraphBuilder
     }
 
     /// <summary>Normalizes a route template for dedup comparison.</summary>
-    private static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
+    internal static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
 
     /// <summary>Resolves the event type for a variable-form raise (<c>AddDomainEvent(evt)</c>): prefers the
     /// variable's own <c>evt = new X(...)</c> assignment before the call, else the last <c>new X(...)</c>
