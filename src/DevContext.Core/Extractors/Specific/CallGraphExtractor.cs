@@ -212,6 +212,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             seedFiles = EntrySeedFiles(model);
             if (seedFiles.Count == 0) seedFiles = ResolveFocusSeedFiles(context, model); // fallback
         }
+
+        // Upper bound on the seedless full-bind fallback below (see the `else` branch).
+        const int SeedlessBindFileCap = 100;
         if (seedFiles.Count > 0)
         {
             var typeToFile = BuildTypeToFile(model);
@@ -247,6 +250,15 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
             model.AddDiagnostic(DiagnosticLevel.Info, Name,
                 $"Entry-scoped call graph: bound {bound.Count} of {trees.Count} files from the handler seed.");
+        }
+        else if (trees.Count is > 0 and <= SeedlessBindFileCap)
+        {
+            // No entry points and no focus (a library, a small tool, or a unit-test fixture): there is no
+            // seed to scope from, so bind every file. Capped — a *large* no-entry repo (e.g. a big library
+            // in Map mode) wouldn't render these call edges anyway and shouldn't pay the full-bind cost.
+            Parallel.ForEach(trees, parallelOpts, t => BindOne(t.Path, t.Tree, null));
+            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+                $"No entry/focus seed — bound all {trees.Count} files (seedless fallback).");
         }
         swBind.Stop();
 
