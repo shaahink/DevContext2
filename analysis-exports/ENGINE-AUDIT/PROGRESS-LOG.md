@@ -29,8 +29,14 @@ dirs** (never cloned here), so `Directory.Exists` is true (tests don't skip) but
 Confirmed by running the same `TraceQualityTests.Trace_bridges_indirection` on the **main worktree** (populated
 eval-repos) → **4/4 pass**. Fix: junctioned `C:\code\DevContext2-analysis\eval-repos` →
 `C:\code\DevContext2\eval-repos` (populated). **Next agent: ensure eval-repos are present here before running
-`eval/gates.ps1`** (junction to the main worktree, or clone per `eval-repos.json`). Gate re-run with the
-junction in progress.
+`eval/gates.ps1`** (junction to the main worktree, or clone per `eval-repos.json`).
+
+**Outcome — full gate PASS** (with populated eval-repos): build ✅ · fast tests ✅ · **eval 27/27** ✅ · CLI
+`--strict` matrix ✅. W1 **committed** as the Phase 10.A checkpoint:
+- `b4321d8` fix(graph): exclude non-runtime sources from the entry inventory (W1, root-relative)
+- `8e9e159` docs(engine-audit): resumable workspace + output contract + phased plan + AGENTS.md
+`analysis-repos/` added to `.gitignore`. Working tree clean.
+**Next: Phase 10.A continues — W6 (solution selection) + W8 (entry→target), then 10.B/W3.**
 
 ---
 

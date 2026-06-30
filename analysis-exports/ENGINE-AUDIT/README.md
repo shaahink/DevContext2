@@ -49,7 +49,7 @@ Branch: `feat/engine-cross-repo-analysis`. Legend: ✅ done · 🔄 in progress 
 
 | Theme | ID | Item | Status |
 |-------|----|------|--------|
-| **B · Entry-point fidelity** | W1 | Exclude test-asset / stress / template entries from inventory | ✅ done — aspnetcore HTTP entries 518→10, 296 Core tests green (full eval gate pending) |
+| **B · Entry-point fidelity** | W1 | Exclude test-asset / stress / template entries from inventory | ✅ committed `b4321d8` — aspnetcore 518→10, full gate green (eval 27/27) |
 | **C · Trace dive-in** | W3 | Library / type-rooted traces follow member call edges | ⬜ |
 | **C · Trace dive-in** | W3b | Honest message when a focus resolves but has no out-edges | ⬜ |
 | **A · Archetype** | W5 | Desktop-app archetype + entry points (WinUI/WPF/Avalonia); fix auxiliary-exe heuristic | ⬜ |
