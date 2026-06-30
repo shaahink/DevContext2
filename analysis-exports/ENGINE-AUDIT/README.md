@@ -56,7 +56,7 @@ Branch: `feat/engine-cross-repo-analysis`. Legend: ✅ done · 🔄 in progress 
 | **C · Trace dive-in** | W3 | Library / type-rooted traces follow member call edges | ✅ this session |
 | **C · Trace dive-in** | W3b | Honest message when a focus resolves but has no out-edges | ✅ this session |
 | **A · Archetype** | W5 | Desktop-app archetype + entry points (WinUI/WPF/Avalonia); fix auxiliary-exe heuristic | ✅ this session |
-| **D · At-a-glance Map** | W4 | Structural section caps + ranking for huge repos (NOT token-driven) | ⬜ |
+| **D · At-a-glance Map** | W4 | Structural section caps + ranking for huge repos (NOT token-driven) | ✅ this session |
 | **A · Archetype** | W7 | API-gateway / reverse-proxy archetype (Ocelot, YARP) | ✅ this session |
 | **E · Engine hygiene** | W9 | Quarantine/retire the legacy catalog + token machinery | 🔬 |
 | **Coverage** | C-* | Add missing archetypes to the benchmark matrix (CLI, worker, gRPC, Blazor, MAUI, MVC, serverless) | 🔬 |

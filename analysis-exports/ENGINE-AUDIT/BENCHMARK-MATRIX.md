@@ -13,7 +13,7 @@ Legend: ✅ good · ⚠️ partial/misleading · ❌ wrong/empty · — n/a. IDs
 | **Serilog** | Library | ✅ clean library surface (facade/builder/abstractions ranked) | — (library) | ✅ `--focus Log` → 153-line trace | — |
 | **Ocelot** | API gateway | ✅ Gateway + ROUTES section | ✅ HTTP (3) with targets | ✅ `POST /configuration` trace | — |
 | **Files** | Desktop (WinUI 3) | ✅ MAP Files (App) + UI(69) entries | ✅ MainPage, App, [RelayCommand] etc. | ⚠️ App entry trace is shallow | — |
-| **aspnetcore** | Framework / monorepo | ⚠️ topology dump → W4 | ✅ W1: 518→10 | ✅ L2: no test DbContext | W4 |
+| **aspnetcore** | Framework / monorepo | ✅ topology capped at 50 + disclosure | ✅ W1: 518→10 | ✅ L2: no test DbContext | — |
 
 ## Tier 2 — existing eval repos (`eval-repos/`, registered in `eval-repos.json`)
 

@@ -1,7 +1,7 @@
 {
   "repo": "analysis-repos/ocelot",
   "checks": [
-    { "id": "map-header-product", "type": "output-contains", "format": "markdown", "value": "MAP  Ocelot  ", "status": "expected", "note": "W6: product solution Ocelot not Ocelot.Samples" },
+    { "id": "map-header-product", "type": "output-contains", "format": "markdown", "value": "GATEWAY  Ocelot", "status": "expected", "note": "W6+W7: product solution Ocelot as Gateway archetype" },
     { "id": "get-config-target", "type": "output-contains", "format": "markdown", "value": "GET /configuration  →", "status": "expected", "note": "W8: GET /configuration has a fallback target" },
     { "id": "gateway-routes", "type": "output-contains", "format": "markdown", "value": "ROUTES", "status": "expected", "note": "W7: gateway Routes section from ocelot.json" }
   ]

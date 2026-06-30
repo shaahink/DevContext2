@@ -6,8 +6,8 @@ STYLE  CleanArchitecture  (confidence high)
        evidence: DDD folder layers: Domain, Application, Infrastructure; MediatR with 1 handlers
 
 TOPOLOGY (depends-on)
-   Application ── Domain
    Domain
+   Application ── Domain
    Infrastructure ── Domain
    Web ── Application, Infrastructure
 

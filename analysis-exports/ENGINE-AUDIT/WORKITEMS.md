@@ -100,7 +100,7 @@ matched `<focus>`") before the Map. Pairs with W3.
 
 ## Theme D — Map "at a glance" readability
 
-### W4 ⬜ Structural section caps + ranking for huge repos (NOT token-driven)
+### W4 ✅ Structural section caps + ranking for huge repos (NOT token-driven)
 **Root cause (verified):** the narrative Map has **no truncation** — `MapRenderer.AppendEntryPoints`
 (`Rendering/MapRenderer.cs:146-163`) lists ALL entries ("no '... and N more'") and `AppendTopology` (126-144)
 lists ALL projects (aspnetcore: 395). The token budget is intentionally out of this path

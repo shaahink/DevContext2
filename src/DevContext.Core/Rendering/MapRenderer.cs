@@ -51,7 +51,12 @@ public static class MapRenderer
     {
         var sln = model.Solution?.Name ?? "unknown";
         var projCount = ctx.Map.Topology.Length;
-        sb.AppendLine($"MAP  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
+        var label = ctx.Map.Archetype switch
+        {
+            Archetype.Gateway => "GATEWAY",
+            _ => "MAP",
+        };
+        sb.AppendLine($"{label}  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
         if (ctx.Map.ScopeNote is { Length: > 0 } scope)
             sb.AppendLine($"SCOPE  {scope} — style/topology are local to this slice, not the whole system");
         sb.AppendLine();
@@ -127,33 +132,60 @@ public static class MapRenderer
     private static void AppendTopology(StringBuilder sb, MapModel map)
     {
         if (map.Topology.IsDefaultOrEmpty) return;
-        sb.AppendLine("TOPOLOGY (depends-on)");
 
+        // W4: rank projects by "most-depended-on" (reverse dependency count) so the
+        // framework roots and shared libraries surface first — not alphabetical noise.
+        var dependedOn = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var proj in map.Topology)
         {
-            if (proj.DependsOn.Length == 0)
+            if (!dependedOn.ContainsKey(proj.Name)) dependedOn[proj.Name] = 0;
+            foreach (var dep in proj.DependsOn)
             {
-                sb.AppendLine($"   {proj.Name}");
+                var key = dep;
+                dependedOn[key] = dependedOn.GetValueOrDefault(key) + 1;
             }
+        }
+
+        var ranked = map.Topology
+            .OrderByDescending(p => dependedOn.GetValueOrDefault(p.Name))
+            .ThenBy(p => p.Name)
+            .ToList();
+
+        var shown = ranked.Take(MaxTopologyProjects).ToList();
+        var omitted = ranked.Count - shown.Count;
+
+        sb.AppendLine("TOPOLOGY (depends-on)");
+        foreach (var proj in shown)
+        {
+            if (proj.DependsOn.Length == 0)
+                sb.AppendLine($"   {proj.Name}");
             else
             {
                 var deps = string.Join(", ", proj.DependsOn);
                 sb.AppendLine($"   {proj.Name} ── {deps}");
             }
         }
+        if (omitted > 0)
+            sb.AppendLine($"   … and {omitted} more projects (use --focus for a scoped slice)");
         sb.AppendLine();
     }
 
     private static void AppendGatewayRoutes(StringBuilder sb, MapModel map)
     {
         if (map.Routes.IsDefaultOrEmpty) return;
+
+        var shown = map.Routes.Take(MaxRoutes).ToList();
+        var omitted = map.Routes.Length - shown.Count;
+
         sb.AppendLine("ROUTES");
-        foreach (var route in map.Routes)
+        foreach (var route in shown)
         {
             sb.Append($"   {route.UpstreamMethods} {route.UpstreamTemplate}");
             sb.Append($"  →  {route.DownstreamHosts}{route.DownstreamTemplate}");
             sb.AppendLine();
         }
+        if (omitted > 0)
+            sb.AppendLine($"   … and {omitted} more routes");
         sb.AppendLine();
     }
 
@@ -162,16 +194,24 @@ public static class MapRenderer
         if (map.Entries.IsDefaultOrEmpty) return;
         sb.AppendLine("ENTRY POINTS");
 
-        // The Map is the entry-discovery surface and the launch pad for tracing, so list ALL entries
-        // (no "... and N more"). Each shows its dispatch target (route → command/handler) when the
-        // graph resolved one, plus a short file:line.
+        // W4: cap each kind group at MaxEntriesPerKind, ranked production-first (entries
+        // with resolved targets → those without), then by title. Groups beyond the cap get
+        // an explicit "… and N more" disclosure.
         var byKind = map.Entries.GroupBy(e => e.Kind).OrderBy(g => g.Key);
         foreach (var group in byKind)
         {
-            var list = group.ToList();
+            var list = group
+                .OrderByDescending(e => e.Target is not null)
+                .ThenBy(e => e.Title)
+                .ToList();
+            var shown = list.Take(MaxEntriesPerKind).ToList();
+            var omitted = list.Count - shown.Count;
+
             sb.AppendLine($"   {GroupLabel(group.Key)} ({list.Count})");
-            foreach (var ep in list)
+            foreach (var ep in shown)
                 sb.AppendLine($"      {ep.Title}{Target(ep)}{Where(ep, basePath)}");
+            if (omitted > 0)
+                sb.AppendLine($"      … and {omitted} more ({GroupLabel(group.Key).ToLowerInvariant()} entries — use --focus for a drill-in)");
         }
         sb.AppendLine();
     }
@@ -229,6 +269,12 @@ public static class MapRenderer
 
     /// <summary>Cap per-group package lists so PACKAGES stays a signal, not a manifest dump (G9).</summary>
     private const int MaxPackagesPerGroup = 8;
+    /// <summary>Max topology projects shown — ranked by most-depended-on, remainder disclosed (W4).</summary>
+    private const int MaxTopologyProjects = 50;
+    /// <summary>Max entries shown per kind group — ranked production-first, remainder disclosed (W4).</summary>
+    private const int MaxEntriesPerKind = 20;
+    /// <summary>Max gateway routes shown, remainder disclosed (W4).</summary>
+    private const int MaxRoutes = 30;
 
     private static void AppendFooter(StringBuilder sb)
     {
