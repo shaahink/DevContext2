@@ -137,7 +137,7 @@ public sealed class DiscoveryPipeline
         }
 
         var graphResolver = new SyntacticSymbolResolver();
-        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects));
+        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();

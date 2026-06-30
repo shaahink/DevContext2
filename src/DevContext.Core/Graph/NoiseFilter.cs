@@ -91,9 +91,19 @@ public sealed class ProjectClassifier
 public sealed class NoiseFilter
 {
     private readonly ProjectClassifier _projects;
+    private readonly string? _root; // normalized analysis-root prefix; path-convention checks are relative to it
 
-    /// <summary>Creates a filter over the given project classification.</summary>
-    public NoiseFilter(ProjectClassifier projects) => _projects = projects;
+    /// <summary>Creates a filter over the given project classification. <paramref name="analysisRoot"/> is the
+    /// resolved root of the system being analysed: the test/non-runtime <i>path-convention</i> checks
+    /// (<c>/test/</c>, <c>/testassets/</c>, …) are applied to the portion of a file path <b>below</b> that
+    /// root, so analysing a repo that itself lives under a <c>…/tests/…</c> path (e.g. our own
+    /// <c>tests/fixtures/ControllerApp</c>) doesn't exclude its entire surface. Null = match absolute paths
+    /// (the unit-test default).</summary>
+    public NoiseFilter(ProjectClassifier projects, string? analysisRoot = null)
+    {
+        _projects = projects;
+        _root = string.IsNullOrEmpty(analysisRoot) ? null : NormalizePath(analysisRoot);
+    }
 
     /// <summary>True when the type is production code worth modelling.</summary>
     public bool IsProductionCode(TypeDiscovery type)
@@ -107,11 +117,57 @@ public sealed class NoiseFilter
     /// <summary>True when a detection's source file is a production entry source — not a test project,
     /// generated code, or a samples/snippets path. Gates the entry-point inventory so a library's (or an
     /// app's) test fixtures and sample apps don't surface as application entry points (e.g. MediatR's
-    /// samples/MediatR.Examples handlers + the MediatR.Tests handlers).</summary>
+    /// samples/MediatR.Examples handlers + the MediatR.Tests handlers).
+    ///
+    /// On framework-scale repos (aspnetcore) the entry list is otherwise flooded with non-runtime routes:
+    /// the project-level test classifier can't catch <i>test assets</i> (web/console apps used BY tests —
+    /// they don't reference xunit and aren't named <c>*Tests</c>), so we add the path conventions
+    /// (<see cref="ProjectClassifier.IsTestPath"/> for the <c>/test/</c> tree, plus stress/perf harnesses,
+    /// test-server infrastructure, and project-template scaffolding). Measured: aspnetcore HTTP entries
+    /// 518 → production-only after this gate (assessment W1).</summary>
     public bool IsProductionEntrySource(string filePath)
-        => !_projects.IsInTestProject(filePath)
-            && !IsGeneratedPath(filePath)
-            && !ProjectClassifier.IsSamplePath(filePath);
+    {
+        if (_projects.IsInTestProject(filePath)) return false;
+        if (IsGeneratedPath(filePath)) return false;
+        // Path-convention checks run on the portion below the analysis root (see ctor): a repo's own
+        // internal test/sample/template dirs are excluded, but the repo's root path itself never is.
+        var below = RelativeToRoot(filePath);
+        return !ProjectClassifier.IsSamplePath(below)
+            && !ProjectClassifier.IsTestPath(below)
+            && !IsNonRuntimeEntrySource(below);
+    }
+
+    /// <summary>Strips the analysis-root prefix so path-convention matching is repo-relative. No root → the
+    /// path is returned unchanged (absolute matching, the unit-test default).</summary>
+    private string RelativeToRoot(string filePath)
+    {
+        if (_root is null) return filePath;
+        var norm = NormalizePath(filePath);
+        if (norm.Length > _root.Length
+            && norm.StartsWith(_root, StringComparison.OrdinalIgnoreCase)
+            && norm[_root.Length] == '/')
+            return norm[_root.Length..];
+        return norm;
+    }
+
+    private static string NormalizePath(string path) => path.Replace('\\', '/').TrimEnd('/');
+
+    /// <summary>True for source that registers entry points but is NOT application runtime: stress/perf
+    /// harnesses, test-server <c>testassets</c>/<c>Testing</c> infrastructure (a support library, often
+    /// outside a <c>/test/</c> tree), and project-template scaffolding (<c>.cs</c> under
+    /// <c>ProjectTemplates/.../content/</c> that is stamped into NEW projects, never executed here). These
+    /// are <i>path</i> conventions, not test <i>projects</i>, so the project classifier misses them — but
+    /// they make a framework repo's Map read as if the framework itself were a pile of test apps.</summary>
+    private static bool IsNonRuntimeEntrySource(string filePath)
+    {
+        var norm = filePath.Replace('\\', '/');
+        return norm.Contains("/testassets/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/Testing/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/stress/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/perf/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/FunctionalTests/", StringComparison.OrdinalIgnoreCase)
+            || norm.Contains("/ProjectTemplates/", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool IsGeneratedPath(string filePath)
     {
