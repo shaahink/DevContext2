@@ -1,0 +1,7 @@
+{
+  "repo": "analysis-repos/ocelot",
+  "checks": [
+    { "id": "map-header-product", "type": "output-contains", "format": "markdown", "value": "MAP  Ocelot  ", "status": "expected", "note": "W6: product solution Ocelot not Ocelot.Samples" },
+    { "id": "get-config-target", "type": "output-contains", "format": "markdown", "value": "GET /configuration  →", "status": "expected", "note": "W8: GET /configuration has a fallback target" }
+  ]
+}

@@ -48,13 +48,43 @@ public sealed class SolutionDiscoveryExtractor : IDiscoveryExtractor
 
         // Prefer the solution closest to the root — the canonical one. AllDirectories order can
         // otherwise surface a nested solution first (e.g. eShop's src/ClientApp client app over the
-        // root eShop.slnx). OrderBy is stable, so the .sln-before-.slnx order holds at equal depth.
-        var primary = slnFiles
+        // root eShop.slnx).
+        // At equal depth, deprioritise *.Samples/*.Tests/*.Benchmarks (those are scaffolding, not the
+        // product) and prefer the solution whose name matches the repo directory (W6).
+        var byDepth = slnFiles
             .OrderBy(f => f.Count(c => c is '/' or '\\'))
+            .GroupBy(f => f.Count(c => c is '/' or '\\'))
             .First();
+        var repoName = Path.GetFileName(context.RootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var candidates = byDepth.ToList();
+        var primary = PickPrimarySolution(candidates, repoName);
+        if (candidates.Count > 1)
+            model.AddDiagnostic(DiagnosticLevel.Info, Name,
+                $"Selected {Path.GetFileName(primary)} over {string.Join(", ", candidates.Where(f => f != primary).Select(Path.GetFileName))}");
+
         var content = await context.FileSystem.ReadAllTextAsync(primary, ct);
         var projects = SolutionFileParser.ParseProjectPaths(content, primary);
 
         model.Solution = new SolutionInfo(primary, Path.GetFileNameWithoutExtension(primary), projects);
+    }
+
+    private static string PickPrimarySolution(List<string> candidates, string repoName)
+    {
+        if (candidates.Count == 1) return candidates[0];
+
+        var scored = candidates.Select(f =>
+        {
+            var name = Path.GetFileNameWithoutExtension(f);
+            var score = 0;
+            if (name.Contains(".Samples", StringComparison.OrdinalIgnoreCase)
+                || name.Contains(".Tests", StringComparison.OrdinalIgnoreCase)
+                || name.Contains(".Benchmarks", StringComparison.OrdinalIgnoreCase))
+                score -= 100;
+            if (string.Equals(name, repoName, StringComparison.OrdinalIgnoreCase))
+                score += 1;
+            return (file: f, score);
+        }).ToList();
+
+        return scored.OrderByDescending(x => x.score).First().file;
     }
 }

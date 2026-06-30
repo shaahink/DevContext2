@@ -38,12 +38,12 @@ public sealed class GraphBuilder
             .AddRange(AddWorkerEntryPoints(g, model, scope, names)) // hosted services + scheduled jobs (DntSite audit)
             .AddRange(AddDomainEventHandlerEntries(g, model, scope, names)) // domain-event handlers
             .AddRange(AddMessageConsumerEntries(g, model, scope, names));  // integration-event consumers
-        AddHandlerJoins(g, model, names, scope);            // worked example (Handles edge from MediatR detections)
-        AddPipelineBehaviors(g, model, names, scope);       // B3: IPipelineBehavior → WrappedBy edges
+        AddHandlerJoins(g, model, names, scope, _noise);            // worked example (Handles edge from MediatR detections)
+        AddPipelineBehaviors(g, model, names, scope, _noise);       // B3: IPipelineBehavior → WrappedBy edges
 
         // ── P1 Map-facing seams ───────────────────────────────────────────
-        AddEntityNodes(g, model, names, scope);             // B1: Entity nodes + aggregate tags
-        AddEventConsumers(g, model, names, scope);          // B1: Event nodes + Consumes edges
+        AddEntityNodes(g, model, names, scope, _noise);             // B1: Entity nodes + aggregate tags
+        AddEventConsumers(g, model, names, scope, _noise);          // B1: Event nodes + Consumes edges
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
         // ── P2 Trace-facing seams ─────────────────────────────────────────
@@ -71,8 +71,33 @@ public sealed class GraphBuilder
         if (entries.IsDefaultOrEmpty) return entries;
         var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
         foreach (var e in entries)
-            b.Add(e with { Target = ResolveEntryTarget(graph, e) });
+        {
+            var target = ResolveEntryTarget(graph, e)
+                ?? ResolveOwningTypeFallback(graph, e);
+            b.Add(e with { Target = target });
+        }
         return b.ToImmutable();
+    }
+
+    /// <summary>When <see cref="ResolveEntryTarget"/> finds no dispatch target (e.g. a view-returning
+    /// controller action with no service call and no MediatR send), fall back to the owning controller
+    /// type — honest (it's the declaring type) and more useful than a blank drill-in hint (W8).</summary>
+    private static string? ResolveOwningTypeFallback(CodeGraph graph, EntryPoint entry)
+    {
+        if (entry.HandlerNode is not { } hn) return null;
+        var handler = graph.Node(hn);
+        if (handler is null) return null;
+
+        if (handler.Kind == NodeKind.Type)
+            return handler.Title;
+
+        if (handler.Kind == NodeKind.Member)
+        {
+            var typeKey = ExtractTypeKey(handler.Id.Key);
+            return graph.Node(NodeId.ForType(typeKey))?.Title;
+        }
+
+        return null;
     }
 
     /// <summary>Resolves an entry's primary target by following the entry's Calls edge to the
@@ -452,11 +477,12 @@ public sealed class GraphBuilder
     /// <summary>WORKED EXAMPLE — join MediatR detections into Request + Handler nodes and a Handles edge.
     /// Note the FQN resolution (<paramref name="names"/>): node keys are canonical even though detections
     /// carry short names. Every other join seam follows this exact pattern.</summary>
-    private static void AddHandlerJoins(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private static void AddHandlerJoins(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
             if (!scope.Contains(h.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
             var requestId = NodeId.ForType(names.Resolve(h.RequestType));
             var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
 
@@ -484,13 +510,14 @@ public sealed class GraphBuilder
     /// <summary>B3: Detects IPipelineBehavior registrations from DI detections and creates
     /// WrappedBy edges from every Request node to each pipeline behavior. The trace renders
     /// pipeline behaviors as a "pipeline" seam under the first send that reaches a Request.</summary>
-    private static void AddPipelineBehaviors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private static void AddPipelineBehaviors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
         var behaviors = new HashSet<(string BehaviorType, string? SourceFile, int? LineNumber)>();
 
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
             if (!scope.Contains(di.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(di.SourceFile)) continue;
 
             // Direct registration: services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
             if (di.ServiceType.Contains("IPipelineBehavior", StringComparison.Ordinal))
@@ -567,12 +594,13 @@ public sealed class GraphBuilder
     /// <summary>B1: EfEntityDetection → Entity nodes + aggregate tags PLUS subtypes of detected entity
     /// bases so entities registered via reflection (e.g. DntSite's RegisterAllDerivedEntities) are also
     /// tagged — Iteration 6 deferred / DntSite TOUCHES gap.</summary>
-    private static void AddEntityNodes(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private static void AddEntityNodes(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
         var knownEntityFqns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             if (!scope.Contains(e.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(e.SourceFile)) continue;
             var entityId = NodeId.ForType(names.Resolve(e.EntityType));
             var tags = e.IsAggregate
                 ? ImmutableArray.Create(RoleTags.Entity, RoleTags.Aggregate)
@@ -610,13 +638,14 @@ public sealed class GraphBuilder
     /// <summary>B1: MediatR notification handlers + message bus consumers → Event nodes + Consumes edges.
     /// Domain events (INotificationHandler) and integration events (MessageConsumer) are unified as
     /// Event nodes; both feed into Handler nodes via Consumes edges.</summary>
-    private static void AddEventConsumers(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private static void AddEventConsumers(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
         // Notification handlers (domain events via MediatR)
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
             if (h.Kind != MediatRKind.Notification) continue;
             if (!scope.Contains(h.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
             var eventId = NodeId.ForType(names.Resolve(h.RequestType));
             var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
 
@@ -640,6 +669,7 @@ public sealed class GraphBuilder
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
             if (!scope.Contains(mc.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
             var eventId = NodeId.ForType(names.Resolve(mc.MessageType));
             var consumerType = names.Resolve(mc.ConsumerType);
             var handlerId = NodeId.ForType(consumerType);

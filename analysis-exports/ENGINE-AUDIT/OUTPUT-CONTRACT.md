@@ -93,9 +93,9 @@ For each repo capture Map (+ one Trace) and mark each cell **PASS / GAP(W#) / FA
 | Repo | Archetype | Q1 what-is-this | Q2 entries/surface | Q3 dive-in | Noise-free (W1) |
 |------|-----------|-----------------|--------------------|------------|-----------------|
 | Serilog | Library | PASS | PASS | **GAP W3** (empty trace) | PASS |
-| Ocelot | Gateway | **GAP W7/W6** (reads as admin app) | **GAP W7** (routes hidden) | PASS (admin ep) | PASS |
+| Ocelot | Gateway | **GAP W7** (reads as admin app, routes hidden) | **PASS (W6+W8)** 3/3→target, product-scoped | PASS (admin ep) | PASS |
 | Files | Desktop | **FAIL W5** (→Library) | **FAIL W5** (no entries) | **FAIL W3/W5** | PASS |
-| aspnetcore | Framework | GAP W4 (topology dump) | **PASS (W1)** 518→10 | GAP L2 (test DbContext) | **PASS (W1)** |
+| aspnetcore | Framework | GAP W4 (topology dump) | **PASS (W1)** 518→10 | **PASS (L2)** | **PASS (W1)** |
 | eShop / TodoApi / VerticalSlice | Web app | PASS | PASS | PASS | PASS |
 | AutoMapper / FluentValidation / Polly | Library | PASS* | PASS | GAP W3 | PASS |
 

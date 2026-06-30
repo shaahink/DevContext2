@@ -39,7 +39,7 @@ YARP `ReverseProxy:Routes`) + the middleware pipeline, instead of the empty endp
 ## Theme B — Entry-point fidelity ("how to use / where to start")
 
 ### W1 ✅ Exclude test-asset / stress / template entries from the inventory
-**Done (this session).** `Graph/NoiseFilter.cs` — `IsProductionEntrySource` now also rejects
+**Done (prior session).** `Graph/NoiseFilter.cs` — `IsProductionEntrySource` now also rejects
 `ProjectClassifier.IsTestPath` (the `/test/` tree, catching `testassets/`) and a new `IsNonRuntimeEntrySource`
 (`/testassets/`, `/Testing/`, `/stress/`, `/perf/`, `/FunctionalTests/`, `/ProjectTemplates/`). Project-level
 classifier can't see *test assets* (web/console apps used by tests — no xunit, not `*Tests`); these are path
@@ -48,10 +48,11 @@ conventions. **Root-relative:** the path-convention checks match the portion **b
 itself lives under a `…/tests/…` path (our own `tests/fixtures/ControllerApp`) doesn't exclude its surface.
 **Verified:** `NoiseFilterTests.cs` (13 cases incl. root-relative) + `Server AnalyzeFlowTests` 7/7 + full Core
 296 + e2e aspnetcore **518→10** (real Identity API only). Gate: see `PROGRESS-LOG.md`.
-**Also closes L2** (test DbContext in traces) once the same root-relative predicate is shared by
-`TraceBuilder` — small follow-up: route trace `TOUCHES`/boundary through the test-path check.
+**L2 done (this session):** `NoiseFilter` checks added to `GraphBuilder` node-creation methods that were
+missing them (`AddEntityNodes`, `AddEventConsumers`, `AddHandlerJoins`, `AddPipelineBehaviors`) — test
+DbContexts and entities no longer leak into the graph or traces.
 
-### W6 ⬜ Prefer the product solution when several sit at the repo root
+### W6 ✅ Prefer the product solution when several sit at the repo root
 **Root cause (verified):** `Extractors/Generic/SolutionDiscoveryExtractor.cs:49-54` picks root-closest, then
 breaks same-depth ties by **enumeration order** + `.First()`. Ocelot ships `Ocelot.slnx` **and**
 `Ocelot.Samples.slnx` at root → it picked **Samples**, scoping the whole Map to the sample aggregator.
@@ -60,7 +61,7 @@ solution with the most non-sample/non-test projects. Emit an Info diagnostic nam
 **VERIFY:** `SolutionDiscoveryExtractorTests`: `Ocelot.slnx`+`Ocelot.Samples.slnx` equal depth → selects
 `Ocelot`. Observable: `analyze .../ocelot` header reads `MAP Ocelot`.
 
-### W8 ⬜ Entry→target fallback for view / no-call controller actions
+### W8 ✅ Entry→target fallback for view / no-call controller actions
 **Root cause (verified):** `Graph/GraphBuilder.cs` `ResolveEntryTarget`(80-114)/`ResolvePrimaryCall`(122-148)
 return null when an action has no MediatR send and no in-scope, non-framework, non-self callee (e.g. returns a
 view or a property). Ocelot `GET /configuration` → no target (Map shows `2/3 → target`).

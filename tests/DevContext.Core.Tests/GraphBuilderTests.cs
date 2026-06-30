@@ -258,4 +258,44 @@ public sealed class GraphBuilderTests
         Assert.NotNull(orderNode);
         Assert.Contains("aggregate", orderNode!.Tags);
     }
+
+    [Fact]
+    public void Entry_target_falls_back_to_owning_controller_for_view_actions()
+    {
+        // W8: a view-returning controller action (no service call, no MediatR send) gets the owning
+        // controller type as its target — honest + more useful than a blank drill-in hint.
+        // Ocelot's GET /configuration is the canonical case.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Web.Controllers.FileConfigurationController", new TypeDiscovery
+        {
+            Id = "Web.Controllers.FileConfigurationController",
+            Name = "FileConfigurationController",
+            Namespace = "Web.Controllers",
+            FilePath = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Presentation,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/configuration",
+            "FileConfigurationController", "Get", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            LineNumber = 23,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        Assert.Equal("GET /configuration", entry.Title);
+        Assert.NotNull(entry.Target);
+        Assert.Equal("FileConfigurationController", entry.Target);
+    }
 }

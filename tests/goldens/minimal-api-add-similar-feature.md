@@ -12,7 +12,7 @@ TOPOLOGY (depends-on)
 
 ENTRY POINTS
    HTTP (2)
-      POST /orders  (src/Api/Program.cs:15)
+      POST /orders  → CreateOrderCommand  (src/Api/Program.cs:15)
       GET /orders  → GetOrdersQuery  (src/Api/Program.cs:9)
 
 PACKAGES

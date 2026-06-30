@@ -133,4 +133,72 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
         Assert.Null(model.Solution);
         Assert.NotEmpty(model.Diagnostics);
     }
+
+    [Fact]
+    public async Task ExtractAsync_PrefersProductOverSamples_AtEqualDepth()
+    {
+        // W6: repos that ship both Product.slnx and Product.Samples.slnx at the root should scope
+        // to the product solution, not the samples aggregator. Ocelot is the canonical case.
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\project\Ocelot.slnx", """
+            <Solution><Project Path="src/Ocelot/Ocelot.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\project\Ocelot.Samples.slnx", """
+            <Solution><Project Path="samples/Ocelot.Samples/Ocelot.Samples.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\project\src\Ocelot\Ocelot.csproj", "");
+        fs.AddFile(@"C:\project\samples\Ocelot.Samples\Ocelot.Samples.csproj", "");
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = @"C:\project",
+            Options = new ExtractionOptions(),
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = new FakeAnalysisCache(fs),
+            Analysis = new SharedAnalysisContext(),
+            Logger = new NullLogger<DiscoveryContext>(),
+        };
+
+        var model = new DiscoveryModel();
+        await new SolutionDiscoveryExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+
+        Assert.NotNull(model.Solution);
+        Assert.Equal("Ocelot", model.Solution.Name);
+        Assert.Contains(model.Diagnostics, d =>
+            d.Message.Contains("Selected Ocelot.slnx", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ExtractAsync_PrefersProductOverTests_AtEqualDepth()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\project\MyProject.slnx", """
+            <Solution><Project Path="src/MyProject/MyProject.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\project\MyProject.Tests.slnx", """
+            <Solution><Project Path="tests/MyProject.Tests/MyProject.Tests.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\project\src\MyProject\MyProject.csproj", "");
+        fs.AddFile(@"C:\project\tests\MyProject.Tests\MyProject.Tests.csproj", "");
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = @"C:\project",
+            Options = new ExtractionOptions(),
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = new FakeAnalysisCache(fs),
+            Analysis = new SharedAnalysisContext(),
+            Logger = new NullLogger<DiscoveryContext>(),
+        };
+
+        var model = new DiscoveryModel();
+        await new SolutionDiscoveryExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+
+        Assert.NotNull(model.Solution);
+        Assert.Equal("MyProject", model.Solution.Name);
+    }
 }

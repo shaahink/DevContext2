@@ -1,4 +1,4 @@
-MAP  Ocelot.Samples     (16 projects)
+MAP  Ocelot     (2 projects)
 
 STACK  net8.0;net9.0;net10.0 · Minimal APIs · Controllers · FluentValidation
 
@@ -7,27 +7,13 @@ STYLE  ControllerBased  (confidence moderate)
 
 TOPOLOGY (depends-on)
    Ocelot
-   Ocelot.Samples.Basic ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.Configuration ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.Eureka.ApiGateway ── Ocelot.Samples.Web
-   Ocelot.Samples.Eureka.DownstreamService ── Ocelot.Samples.Web
-   Ocelot.Samples.GraphQL ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.Kubernetes.ApiGateway ── Ocelot.Samples.Web
-   Ocelot.Samples.Kubernetes.DownstreamService ── Ocelot.Samples.Web
-   Ocelot.Samples.Metadata ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.OpenTracing ── Ocelot.Samples.Web
-   Ocelot.Samples.ServiceDiscovery.ApiGateway ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.ServiceDiscovery.DownstreamService ── Ocelot.Samples.Web
-   Ocelot.Samples.ServiceFabric.ApiGateway ── Ocelot, Ocelot.Samples.Web
-   Ocelot.Samples.ServiceFabric.DownstreamService ── Ocelot.Samples.Web
-   Ocelot.Samples.Web
-   Ocelot.Samples.WebSocket ── Ocelot, Ocelot.Samples.Web
+   Ocelot.Benchmarks ── Ocelot, Ocelot.Testing
 
 ENTRY POINTS
    HTTP (3)
       DELETE /outputcache/{region}  → DefaultMemoryCache.ClearRegion  (src/Administration/OutputCacheController.cs:20)
       POST /configuration  → FileAndInternalConfigurationSetter.SetAsync  (src/Administration/FileConfigurationController.cs:41)
-      GET /configuration  (src/Administration/FileConfigurationController.cs:23)
+      GET /configuration  → FileConfigurationController  (src/Administration/FileConfigurationController.cs:23)
 
 PACKAGES
    Web/API:  Microsoft.AspNetCore.Authentication.JwtBearer 10.0.9, Microsoft.AspNetCore.MiddlewareAnalysis 10.0.9, Microsoft.AspNetCore.Mvc.NewtonsoftJson 10.0.9, Microsoft.AspNetCore.TestHost 10.0.9, Microsoft.ServiceFabric.AspNetCore.Kestrel 8.4.268, Serilog.AspNetCore 10.0.0, Swashbuckle.AspNetCore 10.2.1
