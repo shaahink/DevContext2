@@ -74,7 +74,8 @@ public static class NarrativeHtmlConverter
                 continue;
             }
 
-            // Section headers (TOPOLOGY, ENTRY POINTS, CROSS-CUTTING, PACKAGES, TOUCHES, EMITS)
+            // Section headers — app Map (TOPOLOGY, ENTRY POINTS, CROSS-CUTTING, PACKAGES, TOUCHES, EMITS)
+            // and library surface (ENTRY API, ABSTRACTIONS, GENERATORS, PUBLIC SURFACE, CONSUMER PATHS)
             if (IsSectionHeader(line))
             {
                 if (inTraceTree) { sb.AppendLine("</pre>"); inTraceTree = false; }
@@ -196,6 +197,10 @@ public static class NarrativeHtmlConverter
         var trimmed = line.TrimStart();
         return trimmed.StartsWith("TOPOLOGY") || trimmed.StartsWith("ENTRY POINTS")
             || trimmed.StartsWith("CROSS-CUTTING") || trimmed.StartsWith("PACKAGES")
-            || trimmed.StartsWith("TOUCHES ") || trimmed.StartsWith("EMITS ");
+            || trimmed.StartsWith("TOUCHES ") || trimmed.StartsWith("EMITS ")
+            // Library-surface sections (LibrarySurfaceRenderer)
+            || trimmed.StartsWith("ENTRY API") || trimmed.StartsWith("ABSTRACTIONS")
+            || trimmed.StartsWith("GENERATORS") || trimmed.StartsWith("PUBLIC SURFACE")
+            || trimmed.StartsWith("CONSUMER PATHS");
     }
 }
