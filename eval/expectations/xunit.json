@@ -1,0 +1,11 @@
+{
+  "repo": "eval-repos/xUnit",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "xUnit is a testing framework library; its console runner is a thin tool on top, not the primary identity." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "entry-api", "type": "output-contains", "format": "markdown", "value": "ENTRY API", "status": "expected" },
+    { "id": "abstractions", "type": "output-contains", "format": "markdown", "value": "ABSTRACTIONS", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}

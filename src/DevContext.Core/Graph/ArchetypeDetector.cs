@@ -27,6 +27,13 @@ public static class ArchetypeDetector
         // W7: gateway packages (Ocelot, Microsoft.ReverseProxy) → Gateway archetype
         if (model.Architecture.Has(ArchitectureSignals.Keys.Gateway))
             return Archetype.Gateway;
+
+        // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
+        // libraries regardless of whether their test hosts or internal management APIs
+        // create application entry points. Check BEFORE entry inspection.
+        if (IsLibraryWithOptionalAppSurface(model))
+            return Archetype.Library;
+
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
         // ignore their entries and projects so they don't flip the archetype to App.
         if (!entries.IsDefaultOrEmpty && entries.Any(e =>
@@ -67,5 +74,28 @@ public static class ArchetypeDetector
             && !ProjectClassifier.IsSamplePath(t.FilePath));
 
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
+    }
+
+    // F1: Framework libraries that have internal HTTP endpoints (management API, test hosts)
+    // but whose primary identity is a library — not an app.
+    private static readonly string[] LibraryFrameworkSignals =
+    [
+        ArchitectureSignals.Keys.SignalR,
+        ArchitectureSignals.Keys.Grpc,
+        ArchitectureSignals.Keys.MassTransit,
+        ArchitectureSignals.Keys.Orleans,
+        ArchitectureSignals.Keys.GraphQL,
+        ArchitectureSignals.Keys.Functions,
+        ArchitectureSignals.Keys.Quartz,
+        ArchitectureSignals.Keys.Hangfire,
+        ArchitectureSignals.Keys.Testing,
+    ];
+
+    private static bool IsLibraryWithOptionalAppSurface(DiscoveryModel model)
+    {
+        foreach (var sig in LibraryFrameworkSignals)
+            if (model.Architecture.Has(sig))
+                return true;
+        return false;
     }
 }

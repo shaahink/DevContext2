@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/Functions",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "Azure Functions worker is a framework library." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

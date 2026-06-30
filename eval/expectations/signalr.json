@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/SignalR/src/SignalR",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "SignalR is a real-time framework library. Code-based signal detection via 'Microsoft.AspNetCore.SignalR' project name." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "signal-signalr", "type": "signal-present", "value": "signalr", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/Orleans",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "Orleans is a virtual actor framework library. Code-based signal detection via 'Orleans' project name." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "signal-orleans", "type": "signal-present", "value": "orleans", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 2000, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}

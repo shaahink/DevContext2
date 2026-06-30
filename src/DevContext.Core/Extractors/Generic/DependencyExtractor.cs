@@ -140,7 +140,50 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
             }
         }
 
+        // ── F2: Code-based signal detection ────────────────────────────────
+        // A framework's own source doesn't reference itself as a NuGet package.
+        // Detect signals from project/solution names for self-referencing repos.
+        foreach (var projectInfo in model.Projects)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName))
+                model.Architecture.Register(FeatureSignal.CreateDetected(
+                    signalKey, confidence: 0.7f, via: "ProjectName", matchedName));
+        }
+
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
+    }
+
+    private static readonly Dictionary<string, string> ProjectNameSignalMap = new()
+    {
+        ["Microsoft.AspNetCore.SignalR"] = ArchitectureSignals.Keys.SignalR,
+        ["Grpc"] = ArchitectureSignals.Keys.Grpc,
+        ["MassTransit"] = ArchitectureSignals.Keys.MassTransit,
+        ["Yarp"] = ArchitectureSignals.Keys.Gateway,
+        ["ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
+        ["Orleans"] = ArchitectureSignals.Keys.Orleans,
+        ["Microsoft.Orleans"] = ArchitectureSignals.Keys.Orleans,
+        ["HotChocolate"] = ArchitectureSignals.Keys.GraphQL,
+        ["GreenDonut"] = ArchitectureSignals.Keys.GraphQL,
+        ["xunit"] = ArchitectureSignals.Keys.Testing,
+        ["nunit"] = ArchitectureSignals.Keys.Testing,
+    };
+
+    private static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
+    {
+        foreach (var (pattern, key) in ProjectNameSignalMap)
+        {
+            if (projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase)
+                || projectName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                signalKey = key;
+                matchedKey = pattern;
+                return true;
+            }
+        }
+        signalKey = null!;
+        matchedKey = null!;
+        return false;
     }
 
     /// <summary>Matches a package name against the signal map with exact and prefix strategies.</summary>

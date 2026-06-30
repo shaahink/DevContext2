@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/Quartz.NET",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "Quartz.NET is a scheduling library; its internal HTTP management API does not make it an app. Code-based signal detection via 'Quartz' project name." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "signal-quartz", "type": "signal-present", "value": "quartz", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

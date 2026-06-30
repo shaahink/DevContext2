@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/gRPC",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "gRPC-dotnet is a framework library, not an app." },
+    { "id": "signal-grpc", "type": "signal-present", "value": "grpc", "status": "expected", "note": "Code-based signal detection from project name 'Grpc'." },
+    { "id": "library-surface", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 1000, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 180000, "status": "expected" }
+  ]
+}

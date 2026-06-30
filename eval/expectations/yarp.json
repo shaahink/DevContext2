@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/YARP",
+  "checks": [
+    { "id": "archetype-gateway", "type": "json-equals", "path": "$.archetype", "value": "Gateway", "status": "expected", "note": "YARP (Microsoft.ReverseProxy) is a Gateway archetype, not an app." },
+    { "id": "signal-gateway", "type": "signal-present", "value": "gateway", "status": "expected", "note": "Code-based signal detection from project name 'Yarp'/'ReverseProxy'." },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

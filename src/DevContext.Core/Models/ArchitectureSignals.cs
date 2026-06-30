@@ -56,5 +56,9 @@ public sealed class ArchitectureSignals
         public const string NServiceBus = "nservicebus";
         public const string DesktopUi = "desktop-ui";
         public const string Gateway = "gateway";
+        public const string Orleans = "orleans";
+        public const string Functions = "azure-functions";
+        public const string GraphQL = "graphql";
+        public const string Testing = "testing";
     }
 }
