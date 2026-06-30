@@ -88,7 +88,7 @@ Zero-config, seconds (warm), genuinely useful on each shape:
 | Minimal API | TodoApi | correct entries + trace + TOUCHES |
 | Blazor / front-end | `eval-repos/blazor-samples/9.0/BlazorWebAppMovies` | component entries, topology |
 | CQRS / DDD / events | eShop Ordering.API | correct `POST /api/orders` trace (no sibling edges), matches IDEAL-OUTPUT-TARGET §2 shape |
-| Library | AutoMapper | useful surface map (not a call-stack dump) |
+| Library | FluentValidation / Polly | ranked surface (ENTRY API · ABSTRACTIONS · CONSUMER PATHS · runtime-only packages), not a call-stack dump; sample/benchmark apps don't flip it to App |
 
 ## The periodic LLM probe (capability acceptance)
 

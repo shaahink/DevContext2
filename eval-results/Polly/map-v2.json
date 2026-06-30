@@ -1,0 +1,2811 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-06-29T22:19:29.759399Z",
+  "solution": {
+    "name": "Polly",
+    "filePath": "C:\\Code\\DevContext2\\eval-repos\\Polly\\Polly.slnx",
+    "projectPaths": [
+      "bench/Polly.Benchmarks/Polly.Benchmarks.csproj",
+      "bench/Polly.Core.Benchmarks/Polly.Core.Benchmarks.csproj",
+      "src/Polly.Core/Polly.Core.csproj",
+      "src/Polly.Extensions/Polly.Extensions.csproj",
+      "src/Polly.RateLimiting/Polly.RateLimiting.csproj",
+      "src/Polly.Testing/Polly.Testing.csproj",
+      "src/Polly/Polly.csproj",
+      "src/Snippets/Snippets.csproj",
+      "test/Polly.AotTest/Polly.AotTest.csproj",
+      "test/Polly.Core.Tests/Polly.Core.Tests.csproj",
+      "test/Polly.Extensions.Tests/Polly.Extensions.Tests.csproj",
+      "test/Polly.RateLimiting.Tests/Polly.RateLimiting.Tests.csproj",
+      "test/Polly.Specs/Polly.Specs.csproj",
+      "test/Polly.Testing.Tests/Polly.Testing.Tests.csproj",
+      "test/Polly.TestUtils/Polly.TestUtils.csproj"
+    ]
+  },
+  "architecture": {
+    "style": "MinimalApi",
+    "confidence": 0.65
+  },
+  "archetype": "App",
+  "signals": [
+    {
+      "key": "minimal-apis",
+      "confidence": 0.8,
+      "detected": true
+    },
+    {
+      "key": "polly",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "refit",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "projects": {
+    "count": 21,
+    "names": [
+      "Chaos",
+      "DependencyInjection",
+      "Extensibility",
+      "GenericPipelines",
+      "Intro",
+      "Polly",
+      "Polly.AotTest",
+      "Polly.Benchmarks",
+      "Polly.Core",
+      "Polly.Core.Benchmarks",
+      "Polly.Core.Tests",
+      "Polly.Extensions",
+      "Polly.Extensions.Tests",
+      "Polly.RateLimiting",
+      "Polly.RateLimiting.Tests",
+      "Polly.Specs",
+      "Polly.Testing",
+      "Polly.Testing.Tests",
+      "Polly.TestUtils",
+      "Retries",
+      "Snippets"
+    ]
+  },
+  "typesSummary": {
+    "found": 759,
+    "inOutput": 15,
+    "prunedPercent": 98
+  },
+  "detections": [
+    {
+      "type": "DiRegistrationDetection",
+      "serviceType": "AddHttpContextAccessor",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpContextAccessor"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\samples\\Chaos\\Program.cs",
+      "lineNumber": 14,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "client =\u003E client.BaseAddress = new 
+Uri(\u0022https://jsonplaceholder.typicode.com\u0022)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\samples\\Chaos\\Program.cs",
+      "lineNumber": 16,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "key",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 43,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelines",
+      "implementationType": "(context) =\u003E\r\n        {\r\n            
+context.AddResiliencePipeline(key, configure);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelines"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 80,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "key",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 110,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelines",
+      "implementationType": "(context) =\u003E\r\n        {\r\n            
+context.AddResiliencePipeline(key, configure);\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelines"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 146,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": 
+"ConfigureResiliencePipelineRegistryOptions\u003CTKey\u003E",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 178,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "TKey",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 185,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "TKey",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 208,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineBuilder",
+      "implementationType": "?",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineBuilder"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 238,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "ResiliencePipelineRegistryOptions\u003CTKey\u003E",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 257,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "TelemetryOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 269,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022chaos-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 54,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022chaos-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 114,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022chaos-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 142,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline-1\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 166,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline-1\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 216,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline-2\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Chaos.Index.cs",
+      "lineNumber": 224,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "\u0022my-client\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\CircuitBreaker.c
+s",
+      "lineNumber": 217,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResilienceHandler",
+      "implementationType": "\u0022circuit-breaker\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResilienceHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\CircuitBreaker.c
+s",
+      "lineNumber": 217,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-key\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-key\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 31,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 64,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 95,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 101,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelines",
+      "implementationType": "(ctx) =\u003E\r\n            {\r\n                
+var config = 
+ctx.ServiceProvider.GetRequiredService\u003CIConfiguration\u003E();\r\n\r\n
+var configSection = config.GetSection(\u0022ResiliencePipelines\u0022);\r\n
+if (configSection is not null)\r\n                {\r\n                    
+foreach (var pipelineConfig in configSection.GetChildren())\r\n
+{\r\n                        var pipelineName = 
+pipelineConfig.GetValue\u003Cstring\u003E(\u0022Name\u0022);\r\n
+if (!string.IsNullOrEmpty(pipelineName))\r\n                        {\r\n
+ctx.AddResiliencePipeline(pipelineName, (builder, context) =\u003E\r\n
+{\r\n                                // Load configuration and configure 
+pipeline...\r\n                            });\r\n                        }\r\n
+}\r\n                }\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelines"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 135,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 164,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 185,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "new MyPipelineKey(\u0022my-pipeline\u0022, 
+string.Empty)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 212,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "options =\u003E\r\n            {\r\n
+options.BuilderComparer = new PipelineNameComparer();\r\n\r\n                
+options.InstanceNameFormatter = key =\u003E key.InstanceName;\r\n\r\n
+options.BuilderNameFormatter = key =\u003E key.PipelineName;\r\n            }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 237,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022myFavoriteStrategy\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 270,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022myFavoriteStrategy\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 291,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "HttpClientName",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 42,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResilienceHandler",
+      "implementationType": "\u0022httpclient_based_pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResilienceHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 42,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddRefitClient",
+      "implementationType": "IHttpStatusApi",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddRefitClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 65,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResilienceHandler",
+      "implementationType": "\u0022refit_based_pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResilienceHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 65,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "HttpClientName",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 85,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResilienceHandler",
+      "implementationType": "\u0022flurl_based_pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResilienceHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 85,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddHttpClient",
+      "implementationType": "HttpClientName",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddHttpClient"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 107,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResilienceHandler",
+      "implementationType": "\u0022restsharp_based_pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResilienceHandler"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 107,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\RateLimiter.cs",
+      "lineNumber": 173,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Readme.cs",
+      "lineNumber": 34,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022pipeline-A\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\ResiliencePipeli
+nes.cs",
+      "lineNumber": 76,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022pipeline-B\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\ResiliencePipeli
+nes.cs",
+      "lineNumber": 77,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-strategy\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Telemetry.cs",
+      "lineNumber": 144,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Testing.cs",
+      "lineNumber": 115,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "MyApi",
+      "implementationType": "MyApi",
+      "lifetime": "Singleton",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 1,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Testing.cs",
+      "lineNumber": 115,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 387,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "(ILoggerFactory)loggerFactory",
+      "implementationType": "(ILoggerFactory)loggerFactory",
+      "lifetime": "Singleton",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 387,
+      "confidence": 1
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "options =\u003E options.BuilderFactory = () =\u003E
+new ResiliencePipelineBuilder\r\n        {\r\n            ContextPool = 
+pool,\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.DynamicContextPool_1687.cs",
+      "lineNumber": 47,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "key",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.DynamicContextPool_1687.cs",
+      "lineNumber": 52,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022library-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.OverrideLibraryStrategies_1072.cs",
+      "lineNumber": 22,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022library-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.OverrideLibraryStrategies_1072.cs",
+      "lineNumber": 66,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022dummy\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.OverrideLoggerFactory_1783.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022shared-limiter\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.PartitionedRateLimiter_1365.cs",
+      "lineNumber": 20,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "string",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.StrategiesPerEndpoint_1365.cs",
+      "lineNumber": 24,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddOptions",
+      "implementationType": "EndpointsOptions",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddOptions"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.StrategiesPerEndpoint_1365.cs",
+      "lineNumber": 25,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "new EndpointKey(\u0022endpoint-pipeline\u0022, 
+string.Empty, string.Empty)",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.StrategiesPerEndpoint_1365.cs",
+      "lineNumber": 28,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipelineRegistry",
+      "implementationType": "options =\u003E\r\n        {\r\n            
+options.BuilderComparer = new EndpointKey.BuilderComparer();\r\n            
+options.PipelineComparer = new EndpointKey.StrategyComparer();\r\n\r\n
+// format the key for telemetry\r\n            options.InstanceNameFormatter = 
+key =\u003E $\u0022{key.EndpointName}/{key.Resource}\u0022;\r\n\r\n            
+// format the builder name for telemetry\r\n            
+options.BuilderNameFormatter = key =\u003E key.BuilderName;\r\n        }",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipelineRegistry"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.StrategiesPerEndpoint_1365.cs",
+      "lineNumber": 77,
+      "confidence": 0.7
+    },
+    {
+      "serviceType": "AddResiliencePipeline",
+      "implementationType": "\u0022my-pipeline\u0022",
+      "lifetime": "Extension",
+      "extensionsUsed": [
+        "AddResiliencePipeline"
+      ],
+      "shape": 0,
+      "extractorName": "DiRegistrationExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Reloada
+bleResiliencePipelineTests.cs",
+      "lineNumber": 42,
+      "confidence": 0.7
+    },
+    {
+      "type": "EndpointDetection",
+      "httpMethod": "GET",
+      "routeTemplate": "/",
+      "handlerType": "async (TodosClient client, HttpContext httpContext, 
+CancellationToken cancellationToken) =\u003E\r\n{\r\n    return await 
+client.GetTodosAsync(cancellationToken);\r\n}",
+      "handlerMethod": "\u003Clambda\u003E",
+      "authAttributes": [],
+      "parameterTypes": [],
+      "handlerLine": 72,
+      "handlerBody": "async (TodosClient client, HttpContext httpContext, 
+CancellationToken cancellationToken) =\u003E\r\n{\r\n    return await 
+client.GetTodosAsync(cancellationToken);\r\n}",
+      "extractorName": "EndpointExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\samples\\Chaos\\Program.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    },
+    {
+      "type": "IndirectWiringDetection",
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipeline",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 75,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipeline",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 141,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineRegistry",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 242,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineRegistry",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 243,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineRegistry",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 254,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineBuilder",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 273,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineBuilder",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 279,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensions",
+      "callerMethod": "AddResiliencePipelineBuilder",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Polly.Extensions\\DependencyInje
+ction\\PollyServiceCollectionExtensions.cs",
+      "lineNumber": 281,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DependencyInjection",
+      "callerMethod": "AddResiliencePipeline",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DependencyInjection",
+      "callerMethod": "AddResiliencePipelineGeneric",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 79,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DependencyInjection",
+      "callerMethod": "ConfigureRegistry",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 254,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DependencyInjection",
+      "callerMethod": "AntiPattern_1",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\DependencyInject
+ion.cs",
+      "lineNumber": 277,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HttpClientIntegrations",
+      "callerMethod": "HttpClientExample",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 50,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HttpClientIntegrations",
+      "callerMethod": "RefitExample",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HttpClientIntegrations",
+      "callerMethod": "FlurlExample",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 93,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "HttpClientIntegrations",
+      "callerMethod": "RestSharpExample",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\HttpClientIntegr
+ations.cs",
+      "lineNumber": 115,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "Readme",
+      "callerMethod": "QuickStartDi",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\src\\Snippets\\Docs\\Readme.cs",
+      "lineNumber": 45,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 71,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 73,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 74,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_EnsureRegisteredServices",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 75,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 91,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 92,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 93,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 95,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 96,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipeline_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 97,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 359,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 360,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 361,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_ConfigureCallback_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 371,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_ConfigureCallback_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 372,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelineRegistry_ConfigureCallback_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 373,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 480,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 481,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 482,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 484,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 485,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "PollyServiceCollectionExtensionTests",
+      "callerMethod": "AddResiliencePipelines_MultipleRegistries_Ok",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Depende
+ncyInjection\\PollyServiceCollectionExtensionTests.cs",
+      "lineNumber": 486,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DisposablePipelineTests",
+      "callerMethod": "DisposePipeline_EnsureLinkedResourcesDisposedToo",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Disposa
+blePipelineTests.cs",
+      "lineNumber": 36,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DisposablePipelineTests",
+      "callerMethod": "DisposePipeline_EnsureLinkedResourcesDisposedToo",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Disposa
+blePipelineTests.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "DisposablePipelineTests",
+      "callerMethod": "DisposePipeline_OnPipelineDisposed_Throws_NullArg",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Disposa
+blePipelineTests.cs",
+      "lineNumber": 84,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "IssuesTests",
+      "callerMethod": "OverrideLibraryStrategies_1072",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.OverrideLibraryStrategies_1072.cs",
+      "lineNumber": 37,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "IssuesTests",
+      "callerMethod": "PartitionedRateLimiter_EnsureUserLimited_1365",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.PartitionedRateLimiter_1365.cs",
+      "lineNumber": 44,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "IssuesTests",
+      "callerMethod": "StrategiesPerEndpoint_1365",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Issues\
+\IssuesTests.StrategiesPerEndpoint_1365.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 2,
+      "callerType": "ReloadableResiliencePipelineTests",
+      "callerMethod": "AddResiliencePipeline_EnsureReloadable",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Extensions.Tests\\Reloada
+bleResiliencePipelineTests.cs",
+      "lineNumber": 62,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "BulkheadAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncBulkheadPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Bulkhead\\Bulkhead
+AsyncSpecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "BulkheadSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "BulkheadPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Bulkhead\\Bulkhead
+Specs.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "BulkheadTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncBulkheadPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Bulkhead\\Bulkhead
+TResultAsyncSpecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "BulkheadTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "BulkheadPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Bulkhead\\Bulkhead
+TResultSpecs.cs",
+      "lineNumber": 19,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CacheAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncCachePolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Caching\\CacheAsyn
+cSpecs.cs",
+      "lineNumber": 26,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CacheSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "CachePolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Caching\\CacheSpec
+s.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CacheTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncCachePolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Caching\\CacheTRes
+ultAsyncSpecs.cs",
+      "lineNumber": 25,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CacheTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "CachePolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Caching\\CacheTRes
+ultSpecs.cs",
+      "lineNumber": 20,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CircuitBreakerTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncCircuitBreakerPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\CircuitBreaker\\Ci
+rcuitBreakerTResultAsyncSpecs.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "CircuitBreakerTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "CircuitBreakerPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\CircuitBreaker\\Ci
+rcuitBreakerTResultSpecs.cs",
+      "lineNumber": 29,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "FallbackTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncFallbackPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Fallback\\Fallback
+TResultAsyncSpecs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "FallbackTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "FallbackPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Fallback\\Fallback
+TResultSpecs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "NoOpAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncNoOpPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\NoOp\\NoOpAsyncSpe
+cs.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "NoOpSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "NoOpPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\NoOp\\NoOpSpecs.cs
+",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "NoOpTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncNoOpPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\NoOp\\NoOpTResultA
+syncSpecs.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "NoOpTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "NoOpPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\NoOp\\NoOpTResultS
+pecs.cs",
+      "lineNumber": 11,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "AsyncRateLimitPolicySpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncRateLimitPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\RateLimit\\AsyncRa
+teLimitPolicySpecs.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "AsyncRateLimitPolicyTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncRateLimitPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\RateLimit\\AsyncRa
+teLimitPolicyTResultSpecs.cs",
+      "lineNumber": 59,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RateLimitPolicySpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "RateLimitPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\RateLimit\\RateLim
+itPolicySpecs.cs",
+      "lineNumber": 42,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RateLimitPolicyTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "RateLimitPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\RateLimit\\RateLim
+itPolicyTResultSpecs.cs",
+      "lineNumber": 59,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RetryAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncRetryPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Retry\\RetryAsyncS
+pecs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RetrySpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "RetryPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Retry\\RetrySpecs.
+cs",
+      "lineNumber": 16,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RetryTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncRetryPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Retry\\RetryTResul
+tAsyncSpecs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "RetryTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "RetryPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Retry\\RetryTResul
+tSpecs.cs",
+      "lineNumber": 18,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "TimeoutAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncTimeoutPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Timeout\\TimeoutAs
+yncSpecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "TimeoutSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "TimeoutPolicy",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Timeout\\TimeoutSp
+ecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "TimeoutTResultAsyncSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "AsyncTimeoutPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Timeout\\TimeoutTR
+esultAsyncSpecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "kind": 0,
+      "callerType": "TimeoutTResultSpecs",
+      "callerMethod": "Should_throw_when_action_is_null",
+      "targetType": "TimeoutPolicy\u003CEmptyStruct\u003E",
+      "extractorName": "IndirectWiringDetector",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\test\\Polly.Specs\\Timeout\\TimeoutTR
+esultSpecs.cs",
+      "lineNumber": 17,
+      "confidence": 1
+    },
+    {
+      "type": "MiddlewareDetection",
+      "middlewareType": "MapGet",
+      "pipelineOrder": 1,
+      "kind": 1,
+      "extractorName": "ProgramCsFlowExtractor",
+      "sourceFile": 
+"C:\\Code\\DevContext2\\eval-repos\\Polly\\samples\\Chaos\\Program.cs",
+      "lineNumber": 72,
+      "confidence": 1
+    }
+  ],
+  "pruningSummary": "PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.CircuitBreakerTResultSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.LockFreeTokenBucketRateLimiterTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.PreExecute.PreExecutePolicy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.OutcomeGeneratorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.IsolatedCircuitExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingDelayGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.ChaosStrategyTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Caching.CacheAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyAsyncSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.ExecuteParameters\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.DictionaryHelpers\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Telemetry.ExecutionAttemptArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.InvalidResiliencePipelineOptions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.CompositePipelineComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.TaskHelperTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Timeout.TimeoutSpecsBase\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.DelegatingComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.StubCacheKeyStrategy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Telemetry.ResilienceEventTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryForeverTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.AsyncRateLimitPolicyTResultSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.ContextSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.Hedging.HedgingActions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.ContextualTtlSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Core.Tests.Fallback.FallbackHelper\u0027;
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutRejectedExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Controller.CircuitStateControllerTests\u00
+27; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.ExecutionTrackingComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Utilities.SystemClockSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Retry.RetryTResultMixedResultExceptionSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.AdvancedCircuitBreakerAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.CacheTResultAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Bulkhead.BulkheadTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.DependencyInjection.TestStrategy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerPredicateArgumentsTests\u002
+7; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.NoWaitingTimeProvider\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.ChaosStrategyOptionsTTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AsyncAddBehaviourIfHandleS
+yntax\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.PipelineComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Registry.ConcurrentPolicyRegistrySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryResiliencePipelineBuilderExtensionsTests\u0027
+; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Constants\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Fallback.FallbackStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryDelayGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Bulkhead.AnnotatedOutputHelper\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Timeout.TimeoutSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.Helpers.DisposableResult\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.ChaosLatencyPipelineBuilderExtensionsTests\
+u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.ChaosFaultConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.ComponentWithDisposeCallbacksTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.RetryForeverSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.EndpointOptions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.GenericCacheProviderAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.RetryAsyncSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.Utils.LegacySupportTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.ChaosBehaviorConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.TestChaosStrategy\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.InjectionRateGeneratorArgumentsTests\u0027
+; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.RateLimit.ResultClassWithRetryAfter\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.GenericCacheProviderSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Timeout.TimeoutTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Controller.AdvancedCircuitBehaviorTests\u0
+027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.OnOutcomeInjectedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.ChaosLatencyStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Helpers.Bulkhead.AssertionFailure\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.Inner\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Core.Tests.Utils.TestOptions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.CacheItem\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.ChaosBehaviorStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyKeyAsyncSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.Issues.IssuesTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.OutcomeUtilitiesTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.CacheTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.NoOp.NoOpTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.ResultTtlSpecs\u0027; PatternRelevancePruner: excluded
+test-project type \u0027Polly.Specs.Bulkhead.BulkheadSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Registry.ReadOnlyPolicyRegistrySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.EmptyActionEnumerable\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingResilienceStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.ChaosFaultStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Telemetry.TelemetryEventArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.CircuitBreakerAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.TestChaosStrategyOptions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.ReloadableStrategyOptions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Testing.Tests.ResiliencePipelineExtensionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.ServiceProviderStrategy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.ICircuitBreakerPolicySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.CallbackComponent\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ContextualPolicyTResultExtensions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryConstantsTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AsyncAddBehaviourIfHandleP
+olicy\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Utils.GeneratorHelperTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.PolicyExtensions\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryResilienceStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Custom.CustomSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Specs.Fallback.FallbackSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.TimerEntry\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Caching.CacheSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.EndpointKey\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.RateLimiting.Tests.RateLimiterResilienceStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.ValidationHelperTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.ExceptionUtilitiesTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Telemetry.TelemetryOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.PredicateResultTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.NoOp.NoOpTResultSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.OnCircuitOpenedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.StubSerialized\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Timeout.TimeoutTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ContextualPolicyExtensionsAsync\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.PolicyTResultExtensionsAsync\u0027; 
+PatternRelevancePruner: penalized name-pattern type 
+\u0027Polly.Tests.StrongNameTests\u0027 (RoleScore=0); PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Telemetry.ResilienceStrategyTelemetryTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.ReloadableResiliencePipelineTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryForeverAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ExceptionAndOrCancellationScenario\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.DisposablePipelineTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.FaultGeneratorTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingPredicateArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Health.SingleHealthMetricsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.StubSerializer\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.BridgePipelineComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitSpecsBase\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.IAsyncPolicyExtensionsSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Telemetry.CallbackEnricher\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.TimeProviderExtensionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CustomException\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Specs.Helpers.Custom.PreExecute.AsyncPreExecuteEngine\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Registry.ConfigureBuilderContextExtensionsTests\u00
+27; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.TypeNameFormatterTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.RelativeTtlSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapTResultContextAndKeyAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AddBehaviourIfHandlePolicy
+\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.ICircuitBreakerTResultPolicySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.InvalidResiliencePipelineBuilder\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Strategy\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Utils.CancellationTokenSourcePoolTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.OnHedgingArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.NoOp.NoOpAsyncSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Extensions.Tests.Issues.ContextCreationTestStrategy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResiliencePipelineTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Bulkhead.BulkheadScenario\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.AsyncSerializingCacheProviderSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.ChaosOutcomeStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.StrategyBuilderContextTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResilienceContextPoolTests\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.ChaosStrategyTTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Retry.RetrySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Registry.ResiliencePipelineRegistryOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Testing.Tests.CustomStrategy\u0027; PatternRelevancePruner: excluded
+test-project type \u0027Polly.Extensions.Tests.Telemetry.TagsListTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyKeySpecs\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.OnLatencyInjectedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Fallback.FallbackTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.PreExecute.AsyncPreExecutePolicy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryHelperTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Fallback.FallbackTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitPolicyTResultSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Bulkhead.SilentOutputHelper\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryForeverTResultSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AddBehaviourIfHandleEngine
+\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.MyDisposable\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapContextAndKeySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.AsyncRateLimitPolicySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.StubErroringCacheProvider\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.FaultGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.OnRetryArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResilienceStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Bulkhead.IBulkheadPolicySpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Bulkhead.BulkheadTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Extensions.Tests.Registry.Options\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.CircuitBreakerTResultMixedResultExceptionSpecs\
+u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.Controller.HedgingControllerTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.BehaviorGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.OutcomeTests\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.ChaosFaultStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Caching.StubCacheProvider\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Wrap.IPolicyWrapExtensionSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Retry.WaitAndRetrySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Telemetry.PipelineExecutedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyTResultKeySpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Specs.Bulkhead.BulkheadSpecsBase\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ContextualPolicyTResultExtensionsAsync\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResiliencePipelineBuilderTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.SlidingTtlSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.ChaosOutcomePipelineBuilderExtensionsTests
+\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Timeout.TimeoutAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.RateLimiterRejectedExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResiliencePropertiesTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.RateLimiting.Tests.RateLimiterStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Bulkhead.TraceableAction\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Fallback.FallbackHandlerTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.GenericResiliencePipelineBuilderTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutUtilTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.ChaosStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingTimeProvider\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.OnCircuitHalfOpenedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerStateProviderTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerManualControlTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ExecutionRejectedExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Bulkhead.BulkheadAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Helpers.ContextualPolicyExtensions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Caching.AbsoluteTtlSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingActionGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResiliencePropertyKeyTests\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027Polly.Core.Tests.Utils.ConcurrencyDetector\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Registry.ResiliencePipelineRegistryTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.BreakDurationGeneratorArgumentsTests\u0027
+; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.OutcomeGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.ChaosOutcomeStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.OnCircuitClosedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.PolicyTResultExtensions\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027Polly.Core.Tests.Utils.DisposeHelperTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.AdvancedCircuitBreakerSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.ChaosOutcomeConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingResiliencePipelineBuilderExtensionsTests\u
+0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.CustomResilienceContextPool\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Bulkhead.BulkheadScenarios\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Retry.WaitAndRetryAsyncSpecs\u0027;
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerResiliencePipelineBuilderTes
+ts\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.ResiliencePipelineConversionExtensionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.PrimaryStringTasks\u0027; PatternRelevancePruner:
+excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.PreExecute.PreExecuteEngine\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Outcomes.EnabledGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.LibraryApi\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.Controller.TaskExecutionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.ChaosBehaviorStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.TokenBucketRateLimiterTestsBase\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.RetryTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Retry.WaitAndRetryForeverSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutResilienceStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Registry.StrategyId\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Fallback.FallbackResiliencePipelineBuilderExtensionsTests
+\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.LatencyGeneratorArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.OnBehaviorInjectedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ResultAndOrCancellationScenario\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.RollingHealthMetricsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.OnFaultInjectedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.HedgingHelper\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.Registry.ConfigureBuilderContextTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.PipelineComponentFactoryTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.BuilderComparer\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Controller.ScheduledTaskExecutorTests\u002
+7; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Registry.PolicyRegistrySpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Utilities.LockTimeoutExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.ChaosLatencyConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicySpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Core.Tests.PredicateBuilderTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.CircuitBreakerTResultAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.RetryStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Fallback.FallbackAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.IssuesTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.RateLimiting.Tests.OnRateLimiterRejectedArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.RateLimit.IRateLimiterExtensions\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutTestUtils\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Custom.CustomAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.NonParallelizableCollection\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.CircuitBreakerResilienceStrategyTests\u002
+7; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Telemetry.TelemetryListenerImplTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.ShouldRetryArgumentsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Hedging.Controller.HedgingExecutionContextTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyTResultSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.ReloadablePipelineComponentTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Testing.Tests.TestOptions\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Specs.Caching.SerializingCacheProviderSpecs\u0027;
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ResilienceContextTests\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.Retry.RetryForeverAsyncSpecs\u0027;
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AddBehaviourIfHandleSyntax
+\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.ISyncPolicyExtensionsSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Extensions.Tests.Telemetry.TelemetrySourceTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Custom.AddBehaviourIfHandle.AsyncAddBehaviourIfHandleE
+ngine\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Latency.ChaosLatencyStrategyOptionsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.Bulkhead.Item\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.RateLimiting.Tests.RateLimiterResiliencePipelineBuilderExtensionsTes
+ts\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.DependencyInjection.PollyServiceCollectionExtension
+Tests\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapContextAndKeyAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Simmy.Behavior.ChaosBehaviorPipelineBuilderExtensionsTest
+s\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Registry.ResiliencePipelineProviderTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Fallback.FallbackResilienceStrategyTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ExecuteCallbackTwiceStrategy\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Retry.RetryTResultAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Extensions.Tests.Issues.StrategyComparer\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Telemetry.TelemetryUtilTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.ReloadableStrategy\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.CircuitBreaker.CircuitBreakerSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitPolicyTResultSpecsBase\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.PolicyTResultAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Health.RollingHealthMetricsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.RateLimiting.Tests.RateLimiterConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.PolicyExtensionsAsync\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Caching.DefaultCacheKeyStrategySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Helpers.ResultClass\u0027; PatternRelevancePruner: excluded 
+test-project type 
+\u0027Polly.Specs.Wrap.PolicyWrapTResultContextAndKeySpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.Pipeline.Strategy\u0027; PatternRelevancePruner: 
+excluded test-project type \u0027Polly.Specs.PolicyTResultKeyAsyncSpecs\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.ChaosStrategyConstantsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.BrokenCircuitExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Registry.BuilderResilienceKeyComparer\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.Custom.CustomTResultSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.Custom.CustomTResultAsyncSpecs\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitPolicySpecsBase\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Retry.Arbitraries\u0027; PatternRelevancePruner: excluded
+test-project type 
+\u0027Polly.Core.Tests.CircuitBreaker.Health.HealthMetricsTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Telemetry.TelemetryResiliencePipelineBuilderExtensi
+onsTests\u0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.NoOp.NoOpSpecs\u0027; PatternRelevancePruner: excluded 
+test-project type \u0027Polly.Extensions.Tests.ReloadableConfiguration\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Registry.Provider\u0027; PatternRelevancePruner: excluded
+test-project type 
+\u0027Polly.Core.Tests.Simmy.Fault.ChaosFaultPipelineBuilderExtensionsTests\u002
+7; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Extensions.Tests.Utils.TelemetryUtilTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Utils.RandomUtilTests\u0027; PatternRelevancePruner: 
+excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitRejectedExceptionTests\u0027; 
+PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Core.Tests.Timeout.TimeoutResiliencePipelineBuilderExtensionsTests\u
+0027; PatternRelevancePruner: excluded test-project type 
+\u0027Polly.Specs.RateLimit.RateLimitPolicySpecs\u0027; TokenBudgetEnforcer: 
+kept 14 types (745 pruned for budget 7500)",
+  "maxTokens": 8000,
+  "runReport": {
+    "stages": [
+      {
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.1789110",
+        "ordinal": 1
+      },
+      {
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.8157047",
+        "ordinal": 2
+      },
+      {
+        "stage": "SignalSealing",
+        "elapsed": "00:00:00.0014162",
+        "ordinal": 3
+      },
+      {
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:02.5178778",
+        "ordinal": 4
+      },
+      {
+        "stage": "Scoring",
+        "elapsed": "00:00:00.0397234",
+        "ordinal": 5
+      },
+      {
+        "stage": "Compression",
+        "elapsed": "00:00:00.0275750",
+        "ordinal": 6
+      }
+    ],
+    "extractors": [
+      {
+        "name": "EndpointExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:01.8695760",
+        "typesAdded": 0,
+        "detectionsAdded": 77,
+        "skipped": false
+      },
+      {
+        "name": "SyntaxStructureExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.8093383",
+        "typesAdded": 759,
+        "detectionsAdded": 61,
+        "skipped": false
+      },
+      {
+        "name": "DiRegistrationExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:01.7729197",
+        "typesAdded": 0,
+        "detectionsAdded": 61,
+        "skipped": false
+      },
+      {
+        "name": "InMemoryEventBusExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.7882914",
+        "typesAdded": 0,
+        "detectionsAdded": 76,
+        "skipped": false
+      },
+      {
+        "name": "SourceBodyExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.6434021",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "IndirectWiringDetector",
+        "tier": "Fast",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.4603566",
+        "typesAdded": 0,
+        "detectionsAdded": 76,
+        "skipped": false
+      },
+      {
+        "name": "CallGraphExtractor",
+        "tier": "Deep",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00.3380122",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProgramCsFlowExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.2474116",
+        "typesAdded": 0,
+        "detectionsAdded": 1,
+        "skipped": false
+      },
+      {
+        "name": "SolutionDiscovery",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0680966",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "FileTreeExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0430883",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "ProjectStructure",
+        "tier": "Fast",
+        "category": "",
+        "stage": "DiscoveryAndCacheWarmup",
+        "elapsed": "00:00:00.0419772",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "DependencyExtractor",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0386495",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "LayerClassifier",
+        "tier": "Fast",
+        "category": "",
+        "stage": "GenericExtraction",
+        "elapsed": "00:00:00.0336409",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": false
+      },
+      {
+        "name": "AntiPatternDetector",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "gated by ShouldRun"
+      },
+      {
+        "name": "AspireExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs aspire"
+      },
+      {
+        "name": "ControllerActionExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs controllers"
+      },
+      {
+        "name": "EfCoreExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs efcore"
+      },
+      {
+        "name": "EventBusExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs masstransit or nservicebus"
+      },
+      {
+        "name": "MediatRExtractor",
+        "tier": "",
+        "category": "",
+        "stage": "SpecificExtraction",
+        "elapsed": "00:00:00",
+        "typesAdded": 0,
+        "detectionsAdded": 0,
+        "skipped": true,
+        "skipReason": "signal gate: needs mediatr"
+      }
+    ],
+    "scorers": [
+      {
+        "name": "TokenBudgetEnforcer",
+        "typesBefore": 759,
+        "typesAfter": 14
+      },
+      {
+        "name": "PatternRelevancePruner",
+        "typesBefore": 759,
+        "typesAfter": 759
+      }
+    ],
+    "compressions": [
+      {
+        "name": "LlmFriendlyFormatter",
+        "tokensSaved": 1203
+      },
+      {
+        "name": "NamespaceGrouper",
+        "tokensSaved": 0
+      },
+      {
+        "name": "StructuralDeduplicator",
+        "tokensSaved": 10
+      },
+      {
+        "name": "BoilerplateCompressor",
+        "tokensSaved": 0
+      },
+      {
+        "name": "TrivialMemberCompressor",
+        "tokensSaved": 5
+      }
+    ],
+    "cache": {
+      "textHits": 0,
+      "textMisses": 815,
+      "syntaxTreeHits": 5443,
+      "syntaxTreeMisses": 796
+    },
+    "corpus": {
+      "totalFiles": 0,
+      "cSharpFiles": 794,
+      "projects": 0
+    },
+    "funnel": {
+      "typesDiscovered": 0,
+      "typesHardExcluded": 0,
+      "typesIncluded": 0,
+      "rawEstimatedTokens": 0,
+      "renderedEstimatedTokens": 0,
+      "budget": 8000
+    },
+    "parallelism": {
+      "stage2Wall": "00:00:01.8157047",
+      "stage2CpuSum": "00:00:03.9019599",
+      "stage3Wall": "00:00:02.5178778",
+      "stage3CpuSum": "00:00:04.0996383"
+    },
+    "totalWall": "00:00:05.4622007"
+  }
+}
+analyzed 794 files · 15 types kept of 759 · 26848/8000 tokens · 5.5s stage2 ×2.1
+stage3 ×1.6
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      Polly.slnx      │
+│   Time   │        6306ms        │
+│  Tokens  │ ~26848 (budget 8000) │
+│ Version  │ v1.0.5-preview.0.134 │
+╰──────────┴──────────────────────╯

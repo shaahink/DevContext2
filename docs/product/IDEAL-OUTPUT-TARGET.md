@@ -190,24 +190,38 @@ section checkboxes.
 
 ---
 
-## 4. Library archetype (AutoMapper)
+## 4. Library archetype — IMPLEMENTED (FluentValidation, Polly, CommunityToolkit.Mvvm)
 
-No application entries → **surface map**, organized by capability, not call stack:
+No application entries → a ranked **surface map**, organized by how a consumer uses the library, not a
+call stack. Shipped: archetype auto-detection (sample/benchmark apps don't flip a library to App) →
+`LibrarySurfaceRenderer`. Worked examples + gates: `eval-results/{FluentValidation,Polly}/BENCHMARK.md`,
+`eval/expectations/{fluentvalidation,polly}.json` (all `expected`, green).
+
+Real output (FluentValidation), build-free (syntax + `///` docs only):
 
 ```
-LIBRARY  AutoMapper      (object-object mapper · 147 public types / 2713 total)
+LIBRARY  FluentValidation     (92 public types)
 
-PUBLIC SURFACE (by capability)
-   Configure   MapperConfiguration · Profile · IMappingExpression<S,D> (ForMember, ForPath, ConstructUsing…)
-   Execute     IMapper / Mapper — Map<D>(src) · Map(src,dst) · ProjectTo<D>(IQueryable)
-   Extend      ITypeConverter<,> · IValueResolver<,,> · IValueConverter<,>
-   Register    ServiceCollectionExtensions.AddAutoMapper(...)
-CONSUMER PATHS  "define a map" → Profile.CreateMap     "run a map" → IMapper.Map
-INTERNALS (pruned)  ExpressionBuilder · TypeMapPlanBuilder · … (large; available on request)
+ENTRY API                       (ranked: register → build → derive/implement → extend, with /// summary)
+   register  ServiceCollectionExtensions.AddValidatorsFromAssembly      "Adds all validators in specified assembly"
+   derive    AbstractValidator                                          "Base class for object validators."
+   extend    DefaultValidatorExtensions                                 "…the default set of validators."  (this IRuleBuilder)
+ABSTRACTIONS                    (seats consumers implement/derive, by implementor count)
+   AbstractValidator (class) · IPropertyValidator (interface) · IValidationRule (interface) · …
+PUBLIC SURFACE                  (by namespace · docs · *.Internal demoted)
+   FluentValidation · FluentValidation.Results · FluentValidation.Validators · …
+   INTERNAL  (15 types in *.Internal — available on request)
+CONSUMER PATHS
+   wire into DI → AddValidatorsFromAssembly(...)   ·   build one → derive AbstractValidator
+PACKAGES                        (runtime only — test/benchmark/sample deps excluded)
 ```
 
-Traces are off by default for libraries (a public method's "call stack down" is library internals,
-rarely what a consumer wants); available on demand for a chosen public method.
+Builder-shaped libraries get a `build` entry: Polly's `ResiliencePipelineBuilder` (a `*Builder` with a
+public `Build()`) leads its surface. **Source-generator libraries** (e.g. CommunityToolkit.Mvvm) lead with
+their marker attributes as an `annotate` tier (`[ObservableProperty]`, `[RelayCommand]`) and get a
+`GENERATORS` section listing the source generators / analyzers / code fixers they ship. Traces are off by
+default for libraries (a public method's "call stack down" is library internals, rarely what a consumer
+wants); available on demand for a chosen method.
 
 ---
 

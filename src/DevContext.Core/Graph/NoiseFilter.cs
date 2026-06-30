@@ -35,6 +35,33 @@ public sealed class ProjectClassifier
         return false;
     }
 
+    /// <summary>True when the file lives under a samples / snippets / examples / demos path. A library's
+    /// sample apps are not the library — they must not flip its archetype to App or pollute its surface.</summary>
+    public static bool IsSamplePath(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath)) return false;
+        var p = Normalize(filePath);
+        return p.Contains("/samples/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/sample/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/snippets/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/snippet/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/examples/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/example/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/demos/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/demo/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>True when the file lives under a <c>test</c>/<c>tests</c> path segment. Catches shared test
+    /// source (e.g. <c>test/Shared/*.cs</c> linked into several test projects) that the project-directory
+    /// classifier misses. Used only by the library surface — never by the app graph filter.</summary>
+    public static bool IsTestPath(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath)) return false;
+        var p = Normalize(filePath);
+        return p.Contains("/test/", StringComparison.OrdinalIgnoreCase)
+            || p.Contains("/tests/", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsTestProject(ProjectInfo p)
     {
         var name = p.Name;
@@ -76,6 +103,15 @@ public sealed class NoiseFilter
         // NOTE: deliberately NO type-name-suffix rule. "OrderSpec" / "...Should" are production code.
         return true;
     }
+
+    /// <summary>True when a detection's source file is a production entry source — not a test project,
+    /// generated code, or a samples/snippets path. Gates the entry-point inventory so a library's (or an
+    /// app's) test fixtures and sample apps don't surface as application entry points (e.g. MediatR's
+    /// samples/MediatR.Examples handlers + the MediatR.Tests handlers).</summary>
+    public bool IsProductionEntrySource(string filePath)
+        => !_projects.IsInTestProject(filePath)
+            && !IsGeneratedPath(filePath)
+            && !ProjectClassifier.IsSamplePath(filePath);
 
     private static bool IsGeneratedPath(string filePath)
     {

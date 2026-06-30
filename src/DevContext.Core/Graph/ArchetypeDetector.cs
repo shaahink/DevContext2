@@ -22,11 +22,18 @@ public static class ArchetypeDetector
     /// reference the library (so AutoMapper's Benchmark/TestApp don't flip it to App). App otherwise.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
-        if (!entries.IsDefaultOrEmpty && entries.Any(e => AppEntryKinds.Contains(e.Kind)))
+        // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
+        // ignore their entries and projects so they don't flip the archetype to App.
+        if (!entries.IsDefaultOrEmpty && entries.Any(e =>
+            AppEntryKinds.Contains(e.Kind)
+            && !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov))))
             return Archetype.App;
 
         var classifier = new ProjectClassifier(model.Projects);
-        var nonTest = model.Projects.Where(p => !classifier.IsInTestProject(p.FilePath)).ToList();
+        var nonTest = model.Projects
+            .Where(p => !classifier.IsInTestProject(p.FilePath))
+            .Where(p => !ProjectClassifier.IsSamplePath(p.FilePath))
+            .ToList();
         if (nonTest.Count == 0)
             return Archetype.App;
 
@@ -45,7 +52,8 @@ public static class ArchetypeDetector
         var packable = nonExe.Any(p => p.IsPackable);
         var hasPublicSurface = model.Types.Values.Any(t =>
             t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
-            && !classifier.IsInTestProject(t.FilePath));
+            && !classifier.IsInTestProject(t.FilePath)
+            && !ProjectClassifier.IsSamplePath(t.FilePath));
 
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
     }

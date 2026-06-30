@@ -114,6 +114,22 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void NoiseFilter_IsProductionEntrySource_excludes_test_and_sample_sources()
+    {
+        // Entry points must come from production code only — a library's (or app's) test-project handlers
+        // and sample-app handlers/endpoints must not surface as application entry points (MediatR audit:
+        // samples/MediatR.Examples + MediatR.Tests handlers were leaking 18 phantom entries).
+        var projects = ImmutableArray.Create(
+            new ProjectInfo("Orders.Core", @"C:\repo\src\Orders.Core\Orders.Core.csproj", "C#", ["net10.0"], [], []),
+            new ProjectInfo("Orders.Tests", @"C:\repo\test\Orders.Tests\Orders.Tests.csproj", "C#", ["net10.0"], [], []));
+        var noise = new NoiseFilter(new ProjectClassifier(projects));
+
+        Assert.True(noise.IsProductionEntrySource(@"C:\repo\src\Orders.Core\Endpoints\OrderEndpoints.cs"));
+        Assert.False(noise.IsProductionEntrySource(@"C:\repo\test\Orders.Tests\PingHandler.cs"));
+        Assert.False(noise.IsProductionEntrySource(@"C:\repo\samples\Demo\PingHandler.cs"));
+    }
+
+    [Fact]
     public void SolutionScope_scopes_to_resolved_solution_projects()
     {
         var model = new DiscoveryModel

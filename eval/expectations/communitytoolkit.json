@@ -1,0 +1,16 @@
+{
+  "repo": "eval-repos/CommunityToolkit.Mvvm",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "Source-generator/MVVM toolkit -> Library archetype." },
+    { "id": "surface-header", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "entry-api", "type": "output-contains", "format": "markdown", "value": "ENTRY API", "status": "expected" },
+    { "id": "abstractions", "type": "output-contains", "format": "markdown", "value": "ABSTRACTIONS", "status": "expected" },
+    { "id": "generators-section", "type": "output-contains", "format": "markdown", "value": "GENERATORS", "status": "expected", "note": "WP6 — source generators / analyzers / code fixers surfaced as their own section." },
+    { "id": "public-surface", "type": "output-contains", "format": "markdown", "value": "PUBLIC SURFACE", "status": "expected" },
+    { "id": "consumer-paths", "type": "output-contains", "format": "markdown", "value": "CONSUMER PATHS", "status": "expected" },
+    { "id": "annotate-observableproperty", "type": "output-contains", "format": "markdown", "value": "[ObservableProperty]", "status": "expected", "note": "WP6 — marker attributes lead ENTRY API as 'annotate' front doors." },
+    { "id": "annotate-relaycommand", "type": "output-contains", "format": "markdown", "value": "[RelayCommand]", "status": "expected" },
+    { "id": "source-generator", "type": "output-contains", "format": "markdown", "value": "ObservablePropertyGenerator", "status": "expected", "note": "WP6 — IIncrementalGenerator detected." },
+    { "id": "relay-generator", "type": "output-contains", "format": "markdown", "value": "RelayCommandGenerator", "status": "expected" }
+  ]
+}

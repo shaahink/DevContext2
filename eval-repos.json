@@ -45,6 +45,46 @@
       "expectedEndpointCount": 20,
       "profile": "focused",
       "scenarios": ["overview"]
+    },
+    {
+      "name": "FluentValidation",
+      "url": "https://github.com/FluentValidation/FluentValidation.git",
+      "ref": "943979089b55664ceb8390547ea1eb84ee99252a",
+      "description": "Validation library — AbstractValidator<T> (derive seat), RuleFor fluent DSL, AddValidatorsFromAssembly DI extension",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Polly",
+      "url": "https://github.com/App-vNext/Polly.git",
+      "ref": "7a1d10f47e2ec667ceada49deb6bdd9a765753bd",
+      "description": "Resilience & transient-fault library — ResiliencePipelineBuilder fluent API (v8), retry/timeout/circuit-breaker strategy options",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "CommunityToolkit.Mvvm",
+      "url": "https://github.com/CommunityToolkit/dotnet.git",
+      "ref": "b135626dd54d33b8f05f2ff31591592c004aa848",
+      "description": "MVVM Toolkit — source generators ([ObservableProperty]/[RelayCommand]), analyzers, code fixers + ObservableObject/RelayCommand/IMessenger runtime",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "MediatR",
+      "url": "https://github.com/jbogard/MediatR.git",
+      "ref": "1fd25f5beb40aafd6859d9225a37d0c4f5062cfa",
+      "description": "Mediator library — IMediator/ISender/IPublisher + IRequest/IRequestHandler/INotificationHandler/IPipelineBehavior contracts + AddMediatR DI; defines the handler interfaces (no handlers in src/)",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
     }
   ]
 }

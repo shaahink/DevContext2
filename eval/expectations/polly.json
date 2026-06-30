@@ -1,0 +1,18 @@
+{
+  "repo": "eval-repos/Polly",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "expected", "note": "Sample/snippet apps (samples/Chaos Minimal-API) excluded from archetype detection (It2)." },
+    { "id": "surface-header", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "expected" },
+    { "id": "entry-api", "type": "output-contains", "format": "markdown", "value": "ENTRY API", "status": "expected" },
+    { "id": "abstractions", "type": "output-contains", "format": "markdown", "value": "ABSTRACTIONS", "status": "expected" },
+    { "id": "public-surface", "type": "output-contains", "format": "markdown", "value": "PUBLIC SURFACE", "status": "expected" },
+    { "id": "consumer-paths", "type": "output-contains", "format": "markdown", "value": "CONSUMER PATHS", "status": "expected" },
+    { "id": "v8-builder", "type": "output-contains", "format": "markdown", "value": "ResiliencePipelineBuilder", "status": "expected", "note": "The v8 fluent builder is surfaced." },
+    { "id": "di-front-door", "type": "output-contains", "format": "markdown", "value": "AddResiliencePipeline", "status": "expected", "note": "DI registration extension leads the ENTRY API." },
+    { "id": "di-detection", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 1, "max": 500, "status": "expected" },
+    { "id": "no-sample-package-refit", "type": "output-not-contains", "format": "markdown", "value": "Refit", "status": "expected", "note": "Refit is a samples-only dep; excluded by sample/exe package scoping (It2)." },
+    { "id": "no-sample-package-restsharp", "type": "output-not-contains", "format": "markdown", "value": "RestSharp", "status": "expected" },
+    { "id": "no-benchmark-types", "type": "output-not-contains", "format": "markdown", "value": "Polly.Benchmarks", "status": "expected", "note": "Benchmark exe-project types excluded from the surface (It2)." },
+    { "id": "no-test-type-leak", "type": "output-not-contains", "format": "markdown", "value": "StrongNameTests", "status": "expected", "note": "Shared test source (test/Shared/*) excluded from the surface via ProjectClassifier.IsTestPath." }
+  ]
+}

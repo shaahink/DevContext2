@@ -225,13 +225,13 @@ public sealed class GraphBuilder
 
     /// <summary>WORKED EXAMPLE — in-scope HTTP endpoints become EntryPoint nodes + inventory entries.
     /// Links entry → handler type/class with a Calls edge so the trace can step out from the entry.</summary>
-    private static ImmutableArray<EntryPoint> AddHttpEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    private ImmutableArray<EntryPoint> AddHttpEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var dedup = new HashSet<(string Verb, string Route, string File, int Line)>();
         foreach (var ep in model.Detections.OfType<EndpointDetection>())
         {
-            if (!scope.Contains(ep.SourceFile)) continue;
+            if (!scope.Contains(ep.SourceFile) || !_noise.IsProductionEntrySource(ep.SourceFile)) continue;
 
             // Filter infrastructure pseudo-entries (Iteration 2 Phase 2 Step 3): OpenAPI/Scalar root
             // routes registered in ServiceDefaults or framework extension files — not application surface.
@@ -371,13 +371,13 @@ public sealed class GraphBuilder
     /// become entry points so the Map's inventory and the Trace can start from them — not just HTTP.
     /// Anchored on the worker's implementation type; deduped by short type name. (DntSite audit: 24 jobs
     /// were detected but never surfaced as entries.)</summary>
-    private static ImmutableArray<EntryPoint> AddWorkerEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    private ImmutableArray<EntryPoint> AddWorkerEntryPoints(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var bw in model.Detections.OfType<BackgroundWorkerDetection>())
         {
-            if (!scope.Contains(bw.SourceFile)) continue;
+            if (!scope.Contains(bw.SourceFile) || !_noise.IsProductionEntrySource(bw.SourceFile)) continue;
             var impl = bw.ImplementationType;
             if (string.IsNullOrEmpty(impl) || impl == "?") continue;
             var shortName = impl.Contains('.') ? impl[(impl.LastIndexOf('.') + 1)..] : impl;
@@ -406,14 +406,14 @@ public sealed class GraphBuilder
 
     /// <summary>MediatR notification handlers become DomainEventHandler entry points so the Map and
     /// desktop picker list them alongside HTTP endpoints.</summary>
-    private static ImmutableArray<EntryPoint> AddDomainEventHandlerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    private ImmutableArray<EntryPoint> AddDomainEventHandlerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
             if (h.Kind != MediatRKind.Notification) continue;
-            if (!scope.Contains(h.SourceFile)) continue;
+            if (!scope.Contains(h.SourceFile) || !_noise.IsProductionEntrySource(h.SourceFile)) continue;
             if (!seen.Add(h.HandlerType)) continue;
 
             var id = NodeId.ForEntry($"domain:{h.HandlerType}");
@@ -429,13 +429,13 @@ public sealed class GraphBuilder
 
     /// <summary>Message bus consumers become MessageConsumer entry points so the Map shows integration
     /// event consumers grouped under Bus alongside HTTP routes.</summary>
-    private static ImmutableArray<EntryPoint> AddMessageConsumerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
+    private ImmutableArray<EntryPoint> AddMessageConsumerEntries(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, NameResolver names)
     {
         var entries = ImmutableArray.CreateBuilder<EntryPoint>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
-            if (!scope.Contains(mc.SourceFile)) continue;
+            if (!scope.Contains(mc.SourceFile) || !_noise.IsProductionEntrySource(mc.SourceFile)) continue;
             if (!seen.Add(mc.ConsumerType)) continue;
 
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");

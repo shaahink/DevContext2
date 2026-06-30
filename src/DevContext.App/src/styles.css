@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-base: var(--vibe-base);
+  --color-surface: var(--vibe-surface);
+  --color-surface-2: var(--vibe-surface-2);
+  --color-elevated: var(--vibe-elevated);
+  --color-line: var(--vibe-line);
+  --color-line-strong: var(--vibe-line-strong);
+  --color-ink: var(--vibe-ink);
+  --color-ink-muted: var(--vibe-ink-muted);
+  --color-ink-subtle: var(--vibe-ink-subtle);
+  --color-accent: var(--vibe-accent);
+  --color-accent-ink: var(--vibe-accent-ink);
+  --color-success: var(--vibe-success);
+  --color-warn: var(--vibe-warn);
+  --color-danger: var(--vibe-danger);
+
+  --font-sans: var(--vibe-font-sans);
+  --font-mono: var(--vibe-font-mono);
+  --radius-sm: var(--vibe-radius-sm);
+  --radius-md: var(--vibe-radius-md);
+  --radius-lg: var(--vibe-radius-lg);
+}
+
+:root {
+  --vibe-base: #0b0e14;
+  --vibe-surface: #11151c;
+  --vibe-surface-2: #161b22;
+  --vibe-elevated: #1c232c;
+  --vibe-line: #232a33;
+  --vibe-line-strong: #2f3742;
+  --vibe-ink: #e6edf3;
+  --vibe-ink-muted: #9aa4b2;
+  --vibe-ink-subtle: #6b7480;
+  --vibe-accent: #4493f8;
+  --vibe-accent-ink: #ffffff;
+  --vibe-success: #3fb950;
+  --vibe-warn: #d29922;
+  --vibe-danger: #f85149;
+  --vibe-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-radius-sm: 0.25rem;
+  --vibe-radius-md: 0.375rem;
+  --vibe-radius-lg: 0.5rem;
+  --vibe-density: normal;
+  --vibe-motion: normal;
+  color-scheme: dark;
+}
+
+[data-vibe="modern"][data-theme="dark"] {
+  --vibe-base: #0b0e14;
+  --vibe-surface: #11151c;
+  --vibe-surface-2: #161b22;
+  --vibe-elevated: #1c232c;
+  --vibe-line: #232a33;
+  --vibe-line-strong: #2f3742;
+  --vibe-ink: #e6edf3;
+  --vibe-ink-muted: #9aa4b2;
+  --vibe-ink-subtle: #6b7480;
+  --vibe-accent: #4493f8;
+  --vibe-accent-ink: #ffffff;
+  --vibe-success: #3fb950;
+  --vibe-warn: #d29922;
+  --vibe-danger: #f85149;
+  color-scheme: dark;
+}
+
+[data-vibe="modern"][data-theme="light"] {
+  --vibe-base: #ffffff;
+  --vibe-surface: #f6f8fa;
+  --vibe-surface-2: #eef1f5;
+  --vibe-elevated: #ffffff;
+  --vibe-line: #d1d9e0;
+  --vibe-line-strong: #b0bac5;
+  --vibe-ink: #1a1c20;
+  --vibe-ink-muted: #556270;
+  --vibe-ink-subtle: #8b95a1;
+  --vibe-accent: #205ea6;
+  --vibe-accent-ink: #ffffff;
+  --vibe-success: #1a7f37;
+  --vibe-warn: #9a6700;
+  --vibe-danger: #cf222e;
+  color-scheme: light;
+}
+
+[data-vibe="terminal"][data-theme="dark"] {
+  --vibe-base: #0c0c0c;
+  --vibe-surface: #141414;
+  --vibe-surface-2: #1a1a1a;
+  --vibe-elevated: #1f1f1f;
+  --vibe-line: #2a2a2a;
+  --vibe-line-strong: #3a3a3a;
+  --vibe-ink: #c4c4c4;
+  --vibe-ink-muted: #808080;
+  --vibe-ink-subtle: #5a5a5a;
+  --vibe-accent: #e6a817;
+  --vibe-accent-ink: #0c0c0c;
+  --vibe-success: #60c060;
+  --vibe-warn: #e6a817;
+  --vibe-danger: #e06060;
+  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-radius-sm: 0;
+  --vibe-radius-md: 0;
+  --vibe-radius-lg: 0;
+  --vibe-density: compact;
+  color-scheme: dark;
+}
+
+[data-vibe="hacker"][data-theme="dark"] {
+  --vibe-base: #0a0a0a;
+  --vibe-surface: #0d0d0d;
+  --vibe-surface-2: #111111;
+  --vibe-elevated: #181818;
+  --vibe-line: #1f331f;
+  --vibe-line-strong: #2a4a2a;
+  --vibe-ink: #00ff41;
+  --vibe-ink-muted: #00cc33;
+  --vibe-ink-subtle: #008f22;
+  --vibe-accent: #00ff41;
+  --vibe-accent-ink: #0a0a0a;
+  --vibe-success: #00ff41;
+  --vibe-warn: #ffcc00;
+  --vibe-danger: #ff2200;
+  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-radius-sm: 0;
+  --vibe-radius-md: 0;
+  --vibe-radius-lg: 0;
+  --vibe-density: compact;
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--vibe-base);
+  color: var(--vibe-ink);
+  font-family: var(--vibe-font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--vibe-line-strong);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vibe-ink-subtle);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

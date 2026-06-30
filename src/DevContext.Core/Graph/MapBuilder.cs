@@ -38,7 +38,7 @@ public sealed class MapBuilder
             StyleEvidence = model.StyleDetectedVia,
             Entries = entries,
             Topology = topology,
-            Packages = BuildPackages(model),
+            Packages = BuildPackages(model.Projects),
             Aggregates = BuildAggregates(model),
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
@@ -86,11 +86,13 @@ public sealed class MapBuilder
         ];
     }
 
-    private static ImmutableArray<PackageGroup> BuildPackages(DiscoveryModel model)
+    /// <summary>Groups NuGet package references (dedup by name, highest version) by category. Takes an
+    /// explicit project set so callers can scope it — the Library surface passes only runtime projects.</summary>
+    internal static ImmutableArray<PackageGroup> BuildPackages(IEnumerable<ProjectInfo> projects)
     {
         // Dedup by name, keep highest version
         var best = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var pkg in model.Projects.SelectMany(p => p.PackageReferences))
+        foreach (var pkg in projects.SelectMany(p => p.PackageReferences))
         {
             if (!best.TryGetValue(pkg.Name, out var existing)
                 || CompareVersions(pkg.Version, existing) > 0)

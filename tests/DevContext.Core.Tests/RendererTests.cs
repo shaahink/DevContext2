@@ -175,6 +175,30 @@ public sealed class RendererTests
     }
 
     [Fact]
+    public async Task JsonContextRenderer_DefaultsArchetypeToApp()
+    {
+        var model = new DiscoveryModel();
+        var options = new RenderOptions(false, false, 8000);
+
+        var renderer = new JsonContextRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("\"archetype\": \"App\"", result.Content);
+    }
+
+    [Fact]
+    public async Task JsonContextRenderer_EmitsLibraryArchetype()
+    {
+        var model = new DiscoveryModel { Archetype = "Library" };
+        var options = new RenderOptions(false, false, 8000);
+
+        var renderer = new JsonContextRenderer();
+        var result = await renderer.RenderAsync(model, options, default);
+
+        Assert.Contains("\"archetype\": \"Library\"", result.Content);
+    }
+
+    [Fact]
     public async Task MarkdownRenderer_LibraryMode_ShowsNamespaceSummary()
     {
         var model = new DiscoveryModel();
