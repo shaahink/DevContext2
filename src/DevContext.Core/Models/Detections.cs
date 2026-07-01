@@ -22,6 +22,7 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(GrpcServiceDetection), "GrpcServiceDetection")]
 [JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
 [JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
+[JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -159,4 +160,11 @@ public sealed record FunctionEntryDetection(
     string ClassName,
     string MethodName,
     ImmutableArray<string> Triggers
+) : Detection;
+
+/// <summary>Detection for an Orleans grain class (implements IGrainWithXKey or inherits Grain).</summary>
+public sealed record GrainDetection(
+    string GrainType,
+    string InterfaceType,
+    ImmutableArray<string> Methods
 ) : Detection;

@@ -393,6 +393,7 @@ public sealed class EvalExpectationTests : IDisposable
             new SignalRHubExtractor(),
             new AzureFunctionsExtractor(),
             new RazorPagesExtractor(),
+            new OrleansGrainExtractor(),
         };
 
         var pruners = new List<IPruner>

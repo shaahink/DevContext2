@@ -33,6 +33,7 @@ public sealed class GraphBuilder
         new GrpcEntryPointBuilder(),
         new SignalrEntryPointBuilder(),
         new FunctionsEntryPointBuilder(),
+        new OrleansGrainEntryPointBuilder(),
     ];
 
     /// <summary>Creates a graph builder with a symbol resolver (syntactic now, semantic in P3) and a noise filter.</summary>

@@ -139,9 +139,9 @@ public static class EntrySurfaceCatalog
             SelfNamePatterns: ["MassTransit"]),
 
         new(SignalKey: ArchitectureSignals.Keys.Orleans,
-            Kind:       null,
-            RenderLabel:"",
-            Role:       SurfaceRole.FrameworkLibrary,
+            Kind:       EntryPointKind.GrainMethod,
+            RenderLabel:"Orleans",
+            Role:       SurfaceRole.AppEntry,
             Packages:   [],
             SdkHints:   [],
             SelfNamePatterns: ["Orleans", "Microsoft.Orleans"]),
