@@ -281,6 +281,8 @@ public static class MapRenderer
         sb.AppendLine("→ drill in:  --focus \"<entry>\"   (e.g. --focus \"POST /api/orders/\" or --focus <TypeName>)");
     }
 
+    internal static string GroupLabelForKind(EntryPointKind kind) => GroupLabel(kind);
+
     private static string GroupLabel(EntryPointKind kind) => kind switch
     {
         EntryPointKind.HttpEndpoint => "HTTP",
@@ -290,6 +292,10 @@ public static class MapRenderer
         EntryPointKind.ScheduledJob => "Scheduled",
         EntryPointKind.PublicApi => "Public API",
         EntryPointKind.UiEntry => "UI",
+        EntryPointKind.BlazorPage => "Blazor",
+        EntryPointKind.GrpcService => "gRPC",
+        EntryPointKind.SignalRHub => "SignalR",
+        EntryPointKind.FunctionEntry => "Functions",
         _ => kind.ToString(),
     };
 }

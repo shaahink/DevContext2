@@ -31,9 +31,9 @@ public static class ArchetypeDetector
             return Archetype.Gateway;
 
         // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
-        // libraries regardless of whether their test hosts or internal management APIs
-        // create application entry points. Check BEFORE entry inspection.
-        if (IsLibraryWithOptionalAppSurface(model))
+        // libraries only when the signal is self-sourced (ProjectName/ProjectReference).
+        // Consumer apps that reference these via NuGet packages stay App.
+        if (IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
 
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
@@ -78,8 +78,9 @@ public static class ArchetypeDetector
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
     }
 
-    // F1: Framework libraries that have internal HTTP endpoints (management API, test hosts)
-    // but whose primary identity is a library — not an app.
+    // Framework-library signals that, when self-sourced (ProjectName/ProjectReference), mean
+    // this repo IS the framework itself — not a consumer app. PackageReference/ProjectSdk sources
+    // indicate a consumer app and do NOT force Library.
     private static readonly string[] LibraryFrameworkSignals =
     [
         ArchitectureSignals.Keys.SignalR,
@@ -93,11 +94,14 @@ public static class ArchetypeDetector
         ArchitectureSignals.Keys.Testing,
     ];
 
-    private static bool IsLibraryWithOptionalAppSurface(DiscoveryModel model)
+    private static bool IsSelfSourcedFrameworkSignal(DiscoveryModel model)
     {
         foreach (var sig in LibraryFrameworkSignals)
-            if (model.Architecture.Has(sig))
+        {
+            var signal = model.Architecture.Get(sig);
+            if (signal is { Detected: true } && signal.DetectedVia is "ProjectName" or "ProjectReference")
                 return true;
+        }
         return false;
     }
 }

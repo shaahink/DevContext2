@@ -35,6 +35,7 @@ public static class LibrarySurfaceRenderer
         Add(sections, "Generators", sb => AppendGenerators(sb, surface));
         Add(sections, "Public surface", sb => AppendSurface(sb, surface));
         Add(sections, "Consumer paths", sb => AppendConsumerPaths(sb, surface));
+        Add(sections, "Entry points", sb => AppendLibraryEntryPoints(sb, ctx));
         Add(sections, "Packages", sb => AppendPackages(sb, surface));
         Add(sections, "Footer", sb =>
             sb.AppendLine($"→ drill in:  --focus \"<TypeName>\"   (e.g. --focus {ExampleFocus(surface)})"));
@@ -145,5 +146,37 @@ public static class LibrarySurfaceRenderer
         var entry = surface?.EntryApi.FirstOrDefault(e => !e.Title.StartsWith('['));
         if (entry is not null) return entry.Title.Split('.')[0];
         return surface?.Groups.FirstOrDefault()?.Types.FirstOrDefault()?.Name ?? "TypeName";
+    }
+
+    private const int MaxEntriesPerKind = 20;
+
+    private static void AppendLibraryEntryPoints(StringBuilder sb, MapRenderContext ctx)
+    {
+        var entries = ctx.Map.Entries;
+        if (entries.IsDefaultOrEmpty) return;
+        sb.AppendLine("ENTRY POINTS");
+        var byKind = entries.GroupBy(e => e.Kind).OrderBy(g => g.Key);
+        foreach (var group in byKind)
+        {
+            var list = group
+                .OrderByDescending(e => e.Target is not null)
+                .ThenBy(e => e.Title)
+                .ToList();
+            var shown = list.Take(MaxEntriesPerKind).ToList();
+            var omitted = list.Count - shown.Count;
+            var label = MapRenderer.GroupLabelForKind(group.Key);
+            sb.AppendLine($"   {label} ({list.Count})");
+            foreach (var ep in shown)
+            {
+                var target = string.IsNullOrEmpty(ep.Target) ? "" : $"  → {ep.Target}";
+                var where = ep.Provenance is { Length: > 0 } p
+                    ? $"  ({PathDisplay.RelativeProvenance(ctx.Snapshot.RootPath, p)})"
+                    : "";
+                sb.AppendLine($"      {ep.Title}{target}{where}");
+            }
+            if (omitted > 0)
+                sb.AppendLine($"      … and {omitted} more ({label.ToLowerInvariant()} entries)");
+        }
+        sb.AppendLine();
     }
 }

@@ -38,6 +38,9 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["Ocelot"] = ArchitectureSignals.Keys.Gateway,
         ["Microsoft.ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
         ["Microsoft.AspNetCore.Components"] = ArchitectureSignals.Keys.Blazor,
+        ["Grpc.AspNetCore"] = ArchitectureSignals.Keys.Grpc,
+        ["Microsoft.AspNetCore.SignalR"] = ArchitectureSignals.Keys.SignalR,
+        ["Microsoft.Azure.Functions.Worker"] = ArchitectureSignals.Keys.Functions,
     }.ToFrozenDictionary();
 
     /// <summary>Gets the name of this extractor.</summary>
@@ -60,6 +63,24 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     {
         var adjacency = new Dictionary<string, ImmutableArray<string>>();
 
+        // ── F2: Code-based signal detection (MUST run first) ────────────────
+        // A framework's own source doesn't reference itself as a NuGet package.
+        // Detect signals from project/solution names for self-referencing repos.
+        // These self-source keys are remembered so PackageReference-based detection
+        // below cannot override them — a framework repo's own extension libraries
+        // that reference the core package via NuGet must not flip the archetype.
+        var selfSourcedKeys = new HashSet<string>();
+        foreach (var projectInfo in model.Projects)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName))
+            {
+                model.Architecture.Register(FeatureSignal.CreateDetected(
+                    signalKey, confidence: 0.7f, via: "ProjectName", matchedName));
+                selfSourcedKeys.Add(signalKey);
+            }
+        }
+
         foreach (var projectInfo in model.Projects)
         {
             ct.ThrowIfCancellationRequested();
@@ -68,6 +89,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
             {
                 if (TryMatchSignal(pkg.Name, out var signalKey, out var matchedKey))
                 {
+                    if (selfSourcedKeys.Contains(signalKey)
+                        || Graph.ProjectClassifier.IsSamplePath(projectInfo.FilePath)
+                        || Graph.ProjectClassifier.IsTestPath(projectInfo.FilePath))
+                        continue;
+
                     model.Architecture.Register(FeatureSignal.CreateDetected(
                         signalKey, confidence: 1.0f, via: "PackageReference", matchedKey));
                 }
@@ -95,6 +121,13 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                             ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk));
                     }
 
+                    // Detect Azure Functions from project SDK
+                    if (sdk == "Microsoft.NET.Sdk.Functions")
+                    {
+                        model.Architecture.Register(FeatureSignal.CreateDetected(
+                            ArchitectureSignals.Keys.Functions, confidence: 0.9f, via: "ProjectSdk", sdk));
+                    }
+
                     // Detect WPF desktop apps from SDK + UseWPF property
                     var outputType = projectInfo.OutputType;
                     var isWinExe = outputType is { } ot && ot.Contains("WinExe", StringComparison.OrdinalIgnoreCase);
@@ -113,6 +146,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     {
                         if (TryMatchSignal(pkgName, out var extraSignalKey, out var matchedKey2))
                         {
+                            if (selfSourcedKeys.Contains(extraSignalKey)
+                                || Graph.ProjectClassifier.IsSamplePath(csprojPath)
+                                || Graph.ProjectClassifier.IsTestPath(csprojPath))
+                                continue;
+
                             model.Architecture.Register(FeatureSignal.CreateDetected(
                                 extraSignalKey, confidence: 1.0f, via: "PackageReference", matchedKey2));
                         }
@@ -129,6 +167,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     {
                         if (PackageSignalMap.TryGetValue(projName, out var projSignalKey))
                         {
+                            if (selfSourcedKeys.Contains(projSignalKey)
+                                || Graph.ProjectClassifier.IsSamplePath(csprojPath)
+                                || Graph.ProjectClassifier.IsTestPath(csprojPath))
+                                continue;
+
                             model.Architecture.Register(FeatureSignal.CreateDetected(
                                 projSignalKey, confidence: 0.9f, via: "ProjectReference", projName));
                         }
@@ -139,17 +182,6 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {csprojPath}: {ex.Message}");
                 }
             }
-        }
-
-        // ── F2: Code-based signal detection ────────────────────────────────
-        // A framework's own source doesn't reference itself as a NuGet package.
-        // Detect signals from project/solution names for self-referencing repos.
-        foreach (var projectInfo in model.Projects)
-        {
-            ct.ThrowIfCancellationRequested();
-            if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName))
-                model.Architecture.Register(FeatureSignal.CreateDetected(
-                    signalKey, confidence: 0.7f, via: "ProjectName", matchedName));
         }
 
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
@@ -176,8 +208,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     {
         foreach (var (pattern, key) in ProjectNameSignalMap)
         {
-            if (projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase)
-                || projectName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            if (projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase))
             {
                 signalKey = key;
                 matchedKey = pattern;
