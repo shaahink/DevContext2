@@ -68,6 +68,38 @@ const ENTRY_KIND_LABELS: Record<string, string> = {
   PublicApi: 'Public API',
 };
 
+export const KIND_LABELS: Record<string, string> = {
+  HttpEndpoint: 'HTTP',
+  MessageConsumer: 'Bus',
+  DomainEventHandler: 'Domain',
+  HostedService: 'Background',
+  ScheduledJob: 'Scheduled',
+  PublicApi: 'Public API',
+  UiEntry: 'UI',
+  GrpcService: 'gRPC',
+  SignalRHub: 'SignalR',
+  FunctionEntry: 'Functions',
+  GrainMethod: 'Orleans',
+  GraphQlField: 'GraphQL',
+  CliCommand: 'CLI',
+};
+
+export const KIND_ICONS: Record<string, string> = {
+  HttpEndpoint: 'webhook',
+  MessageConsumer: 'network',
+  DomainEventHandler: 'arrow-right',
+  HostedService: 'boxes',
+  ScheduledJob: 'refresh',
+  PublicApi: 'code',
+  UiEntry: 'square',
+  GrpcService: 'plug',
+  SignalRHub: 'network',
+  FunctionEntry: 'play',
+  GrainMethod: 'database',
+  GraphQlField: 'map',
+  CliCommand: 'code',
+};
+
 const ENTRY_KIND_ORDER = [
   'HttpEndpoint',
   'MessageConsumer',
