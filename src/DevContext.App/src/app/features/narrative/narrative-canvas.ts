@@ -7,6 +7,9 @@ import { AppHeader } from '../../shell/header/app-header';
 import { AppFooter } from '../../shell/footer/app-footer';
 import { ScrollSpy } from '../../shell/scroll-spy/scroll-spy';
 import { SectionCard } from '../../ui/section-card/section-card';
+import { SectionLanding } from './section-landing';
+import { SectionIdentity } from './section-identity';
+import { SectionEntries } from './section-entries';
 
 const ALL_SECTIONS = [
   'landing',
@@ -22,7 +25,7 @@ const ALL_SECTIONS = [
 
 @Component({
   selector: 'app-narrative-canvas',
-  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard],
+  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, SectionLanding, SectionIdentity, SectionEntries],
   template: `
     <app-header [transparent]="!isAtTop()">
       <ng-container analyze />
@@ -35,30 +38,15 @@ const ALL_SECTIONS = [
 
     <main class="mx-auto max-w-4xl px-4 pb-8 pt-14">
       @if (!session.ready()) {
-        <app-section-card id="landing">
-          <div class="flex min-h-[60vh] flex-col items-center justify-center text-center">
-            <span class="mb-3 text-4xl text-accent">&diams;</span>
-            <h1 class="mb-2 text-2xl font-bold text-ink">DevContext</h1>
-            <p class="mb-8 max-w-md text-sm text-ink-muted">
-              The devtool lens for any .NET repository.
-              Instant architecture understanding.
-            </p>
-            <ng-content select="[source]" />
-          </div>
-        </app-section-card>
+        <app-section-landing />
       }
 
       @if (session.ready()) {
-        <app-section-card id="identity" title="Identity">
-          <p class="text-sm text-ink-muted">Analyzing&hellip;</p>
-        </app-section-card>
-
-        <app-section-card id="entries" title="Entry Points">
-          <p class="text-sm text-ink-muted">Loading entries&hellip;</p>
-        </app-section-card>
+        <app-section-identity />
+        <app-section-entries />
 
         <app-section-card id="trace" title="Trace">
-          <p class="text-xs text-ink-subtle">Select an entry to trace its call chain.</p>
+          <p class="text-xs text-ink-subtle">Select an entry above to trace its call chain.</p>
         </app-section-card>
 
         <app-section-card id="architecture" title="Architecture">
