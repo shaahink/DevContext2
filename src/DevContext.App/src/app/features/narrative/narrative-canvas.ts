@@ -12,6 +12,7 @@ import { SectionIdentity } from './section-identity';
 import { SectionEntries } from './section-entries';
 import { SectionTrace } from './section-trace';
 import { SectionArchitecture } from './section-architecture';
+import { SectionGraph } from './section-graph';
 
 const ALL_SECTIONS = [
   'landing',
@@ -27,7 +28,7 @@ const ALL_SECTIONS = [
 
 @Component({
   selector: 'app-narrative-canvas',
-  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture],
+  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph],
   template: `
     <app-header [transparent]="!isAtTop()">
       <ng-container analyze />
@@ -49,9 +50,7 @@ const ALL_SECTIONS = [
         <app-section-trace />
         <app-section-architecture />
 
-        <app-section-card id="graph" title="Graph">
-          <p class="text-xs text-ink-subtle">Expand to view the call graph.</p>
-        </app-section-card>
+        <app-section-graph />
 
         <app-section-card id="stats" title="Pipeline">
           <p class="text-sm text-ink-muted">Loading stats&hellip;</p>
