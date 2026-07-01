@@ -122,7 +122,8 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     }
 
                     // Detect Azure Functions from project SDK
-                    if (sdk == "Microsoft.NET.Sdk.Functions")
+                    if (sdk == "Microsoft.NET.Sdk.Functions"
+                        && !selfSourcedKeys.Contains(ArchitectureSignals.Keys.Functions))
                     {
                         model.Architecture.Register(FeatureSignal.CreateDetected(
                             ArchitectureSignals.Keys.Functions, confidence: 0.9f, via: "ProjectSdk", sdk));
@@ -200,7 +201,6 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         ["GreenDonut"] = ArchitectureSignals.Keys.GraphQL,
         ["xunit"] = ArchitectureSignals.Keys.Testing,
         ["nunit"] = ArchitectureSignals.Keys.Testing,
-        ["Functions"] = ArchitectureSignals.Keys.Functions,
         ["Azure.Functions"] = ArchitectureSignals.Keys.Functions,
     };
 

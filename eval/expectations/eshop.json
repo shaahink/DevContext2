@@ -12,6 +12,7 @@
     { "id": "detection-mediatr", "type": "detection-count", "detectionType": "MediatRHandlerDetection", "min": 1, "max": 200, "status": "expected" },
     { "id": "no-infra-openapi-entry", "type": "output-not-contains", "format": "markdown", "value": "OpenApi.Extensions.cs", "status": "expected", "note": "Phase 2: Scalar/OpenAPI GET / pseudo-entry from ServiceDefaults is filtered (Step 3 infra filter)." },
     { "id": "no-msbuild-vars", "type": "output-not-contains", "format": "markdown", "value": "$(", "status": "expected", "note": "Phase 4 / Low 16: no unevaluated MSBuild variables in STACK/PACKAGES." },
+    { "id": "entry-kind-grpc", "type": "entry-kind-present", "value": "GrpcServiceDetection", "format": "gRPC", "status": "expected", "note": "G1-G3 fix: Basket.BasketService gRPC entry must be detected and rendered." },
     { "id": "analysis-time",  "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
   ]
 }

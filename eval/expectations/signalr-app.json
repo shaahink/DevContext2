@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/signalr-app",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "A consumer app using SignalR via NuGet package must stay App." },
+    { "id": "signal-signalr", "type": "signal-present", "value": "signalr", "status": "expected", "note": "Microsoft.AspNetCore.SignalR package → signalr signal." },
+    { "id": "entry-kind-signalr", "type": "entry-kind-present", "value": "SignalRHubDetection", "format": "SignalR", "status": "expected", "note": "ChatHub must be detected and rendered as a SignalR entry." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}

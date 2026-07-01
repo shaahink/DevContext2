@@ -110,6 +110,7 @@ public sealed class EvalExpectationTests : IDisposable
             "output-not-contains" => EvaluateOutputNotContains(check, markdown, json),
             "signal-present" => EvaluateSignalPresent(check, jsonRoot),
             "detection-count" => EvaluateDetectionCount(check, jsonRoot),
+            "entry-kind-present" => EvaluateEntryKindPresent(check, jsonRoot, markdown),
             "max-elapsed-ms" => EvaluateMaxElapsed(check, jsonResult),
             _ => (false, $"Unknown check type: {check.Type}")
         };
@@ -222,6 +223,31 @@ public sealed class EvalExpectationTests : IDisposable
         var max = check.Max ?? int.MaxValue;
         var ok = count >= min && count <= max;
         return (ok, $"Found {count} '{type}' detections (range [{min}, {max}])");
+    }
+
+    private static (bool, string) EvaluateEntryKindPresent(EvalCheck check, JsonNode? root, string markdown)
+    {
+        if (root is null) return (false, "JSON not parseable");
+
+        // Value = detection type (e.g. "GrpcServiceDetection")
+        var detectionType = check.Value?.ToString() ?? "";
+        // Format = expected label in markdown (e.g. "gRPC")
+        var label = check.Format ?? detectionType;
+
+        var detections = root["detections"]?.AsArray();
+        if (detections is null || detections.Count == 0)
+            return (false, $"No detections array in JSON");
+
+        var count = detections.Count(d => d?["type"]?.ToString() == detectionType);
+        if (count == 0)
+            return (false, $"Detection type '{detectionType}' not found in $.detections");
+
+        var header = label + " (";
+        var foundLabel = markdown.Contains(header, StringComparison.Ordinal);
+        if (!foundLabel)
+            return (false, $"Rendered group header '{header}' not found in markdown output");
+
+        return (true, $"Entry kind '{detectionType}' ({label}) present with {count} detections and rendered header '{header}'");
     }
 
     private static (bool, string) EvaluateMaxElapsed(EvalCheck check, RenderedContext jsonResult)
@@ -361,6 +387,11 @@ public sealed class EvalExpectationTests : IDisposable
             new AspireExtractor(),
             new ProgramCsFlowExtractor(),
             new DiRegistrationExtractor(),
+            new DesktopEntryExtractor(),
+            new BlazorEntryExtractor(),
+            new GrpcServiceExtractor(),
+            new SignalRHubExtractor(),
+            new AzureFunctionsExtractor(),
         };
 
         var pruners = new List<IPruner>

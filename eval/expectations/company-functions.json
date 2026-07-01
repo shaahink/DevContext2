@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/company-functions",
+  "checks": [
+    { "id": "archetype-app-guard", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "G5 guard: an App with a Company.Functions helper project must stay App — not flip to Library because of a Contains('Functions') match." },
+    { "id": "no-functions-signal", "type": "output-not-contains", "format": "json", "value": "azure-functions", "status": "expected", "note": "Company.Functions project name must NOT emit azure-functions signal (StartsWith only, not Contains)." },
+    { "id": "has-http-entries", "type": "output-contains", "format": "markdown", "value": "HTTP (", "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}
