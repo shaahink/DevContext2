@@ -30,10 +30,10 @@ public sealed class RazorPagesExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        // Pass 1: scan .cshtml files for @page directives
+        // Pass 1: scan .cshtml files for @page directives (markup lives in AllContentFiles — text-scanned)
         var pageRoutes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var filePath in context.Analysis.AllSourceFiles)
+        foreach (var filePath in context.Analysis.AllContentFiles)
         {
             ct.ThrowIfCancellationRequested();
             if (!filePath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase)) continue;

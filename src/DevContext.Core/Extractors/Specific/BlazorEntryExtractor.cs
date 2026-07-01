@@ -28,7 +28,8 @@ public sealed class BlazorEntryExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        foreach (var filePath in context.Analysis.AllSourceFiles)
+        // .razor markup lives in AllContentFiles; ComponentBase .cs partials in AllSourceFiles.
+        foreach (var filePath in context.Analysis.AllContentFiles.Concat(context.Analysis.AllSourceFiles))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -75,7 +76,7 @@ public sealed class BlazorEntryExtractor : IDiscoveryExtractor
                 {
                     // Only create an entry if also .razor file exists alongside
                     var razorPath = Path.ChangeExtension(filePath, ".razor");
-                    if (context.Analysis.AllSourceFiles.Contains(razorPath))
+                    if (context.Analysis.AllContentFiles.Contains(razorPath))
                         continue; // .razor file handles the @page detection
 
                     // Standalone component class — no @page, not an entry

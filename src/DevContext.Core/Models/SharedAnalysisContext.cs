@@ -13,8 +13,14 @@ public sealed record FileSyntaxNodes(
 /// <summary>Aggregates analysis data shared across pipeline stages.</summary>
 public sealed class SharedAnalysisContext
 {
-    /// <summary>All .cs source file paths discovered in the project.</summary>
+    /// <summary>All .cs source file paths discovered in the project. INVARIANT: C# compilation units only —
+    /// every consumer parses these with <c>CSharpSyntaxTree.ParseText</c>. Razor markup (.razor/.cshtml)
+    /// is text-only and lives in <see cref="AllContentFiles"/>; never add it here or it gets parsed as C#
+    /// and folded into the semantic compilation (huge perf hit on Razor-heavy repos + garbage trees).</summary>
     public IReadOnlyList<string> AllSourceFiles { get; set; } = [];
+    /// <summary>Razor markup file paths (.razor / .cshtml). Consumed as TEXT (regex/@page scanning) by the
+    /// Razor Pages and Blazor extractors — never Roslyn-parsed as C#.</summary>
+    public IReadOnlyList<string> AllContentFiles { get; set; } = [];
     /// <summary>All .csproj project file paths discovered.</summary>
     public IReadOnlyList<string> AllProjectFiles { get; set; } = [];
     /// <summary>Focus points extracted from user input to guide extraction.</summary>

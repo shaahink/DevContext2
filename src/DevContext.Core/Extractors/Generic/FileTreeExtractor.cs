@@ -23,6 +23,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         var sourceFiles = new List<string>();
+        var contentFiles = new List<string>();
         var projectFiles = new List<string>();
 
         // Hybrid scope (G1): when a closure scan set was resolved, walk the union of those project
@@ -33,6 +34,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
             : context.ScopedProjectDirs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
         var seenSource = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenContent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var seenProject = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var root in roots)
@@ -46,23 +48,23 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
                 context.Cache.RegisterPath(file);
             }
 
-            // Include .razor files for Blazor component detection
+            // Razor markup (.razor for Blazor, .cshtml for Razor Pages) is TEXT-scanned by the Razor/Blazor
+            // extractors, not compiled — keep it out of AllSourceFiles so it is never parsed as C#.
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.razor", SearchOption.AllDirectories, ct))
             {
                 if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
-                if (!seenSource.Add(file)) continue;
-                sourceFiles.Add(file);
+                if (!seenContent.Add(file)) continue;
+                contentFiles.Add(file);
                 context.Cache.RegisterPath(file);
             }
 
-            // Include .cshtml files for Razor Pages detection
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.cshtml", SearchOption.AllDirectories, ct))
             {
                 if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
-                if (!seenSource.Add(file)) continue;
-                sourceFiles.Add(file);
+                if (!seenContent.Add(file)) continue;
+                contentFiles.Add(file);
                 context.Cache.RegisterPath(file);
             }
 
@@ -85,6 +87,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         }
 
         context.Analysis.AllSourceFiles = sourceFiles;
+        context.Analysis.AllContentFiles = contentFiles;
         context.Analysis.AllProjectFiles = projectFiles;
     }
 
