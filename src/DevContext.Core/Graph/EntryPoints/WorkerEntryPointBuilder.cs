@@ -34,7 +34,11 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
                     Resolution = Resolution.Join,
                 });
 
-            entries.Add(new EntryPoint(kind, shortName, id) { Provenance = $"{bw.SourceFile}:{bw.LineNumber}" });
+            entries.Add(new EntryPoint(kind, shortName, id)
+            {
+                Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
+                HandlerNode = typeId,
+            });
         }
         return entries.ToImmutable();
     }

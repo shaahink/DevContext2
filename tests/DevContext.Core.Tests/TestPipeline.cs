@@ -25,6 +25,18 @@ internal static class TestPipeline
             new AspireExtractor(),
             new ProgramCsFlowExtractor(),
             new DiRegistrationExtractor(),
+            new DesktopEntryExtractor(),
+            new BlazorEntryExtractor(),
+            new GrpcServiceExtractor(),
+            new SignalRHubExtractor(),
+            new AzureFunctionsExtractor(),
+            new RazorPagesExtractor(),
+            new OrleansGrainExtractor(),
+            new NServiceBusExtractor(),
+            new WolverineExtractor(),
+            new AwsLambdaExtractor(),
+            new GraphQlResolverExtractor(),
+            new CliCommandExtractor(),
         };
 
         var pruners = new List<IPruner>

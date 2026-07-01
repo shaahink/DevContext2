@@ -18,10 +18,19 @@ public sealed class DomainEventHandlerEntryBuilder : IEntryPointBuilder
 
             var id = NodeId.ForEntry($"domain:{h.HandlerType}");
             g.AddNode(new GraphNode(id, h.HandlerType, NodeKind.EntryPoint) { FilePath = h.SourceFile });
+
+            var typeId = NodeId.ForType(names.Resolve(h.HandlerType));
+            if (g.HasNode(typeId))
+                g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
+                {
+                    Provenance = $"{h.SourceFile}:{h.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+
             entries.Add(new EntryPoint(EntryPointKind.DomainEventHandler, h.HandlerType, id)
             {
                 Provenance = $"{h.SourceFile}:{h.LineNumber}",
-                Target = h.RequestType,
+                HandlerNode = typeId,
             });
         }
         return entries.ToImmutable();

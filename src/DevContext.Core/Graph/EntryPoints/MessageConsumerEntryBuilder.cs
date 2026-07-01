@@ -17,10 +17,19 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
 
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
             g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile });
+
+            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType));
+            if (g.HasNode(typeId))
+                g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
+                {
+                    Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+
             entries.Add(new EntryPoint(EntryPointKind.MessageConsumer, mc.ConsumerType, id)
             {
                 Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
-                Target = mc.MessageType,
+                HandlerNode = typeId,
             });
         }
         return entries.ToImmutable();

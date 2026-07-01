@@ -4,7 +4,7 @@ namespace DevContext.Core.Graph;
 public enum EntryPointKind
 {
     HttpEndpoint, MessageConsumer, HostedService, ScheduledJob, DomainEventHandler, PublicApi,
-    UiEntry, BlazorPage, GrpcService, SignalRHub, FunctionEntry, GrainMethod,
+    UiEntry, GrpcService, SignalRHub, FunctionEntry, GrainMethod,
     GraphQlField, CliCommand,
 }
 

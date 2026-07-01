@@ -1,3 +1,4 @@
+using DevContext.Core.Graph;
 using Xunit;
 
 namespace DevContext.Core.Tests;
@@ -182,6 +183,53 @@ public sealed class TraceQualityTests
 
         // Step 4 — truncation is explicit, not silent.
         Assert.Contains("omitted", trace, StringComparison.Ordinal);
+    }
+
+    // ── F3: Indirect-wiring regression guard ─────────────────────────
+
+    [Fact]
+    public async Task Graph_seam_counts_on_reference_repo_do_not_regress()
+    {
+        var repoPath = RepoPath("eval-repos/eShop");
+        if (!Directory.Exists(repoPath))
+            return;
+
+        var fs = new RealFileSystem();
+        var cache = new AnalysisCache(fs);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+        var options = new ExtractionOptions { MaxOutputTokens = 8000, OutputFormat = OutputFormat.Markdown, AllowRoslyn = true };
+        var loggerFactory = LoggerFactory.Create(_ => { });
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            Options = options,
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = cache,
+            Analysis = new SharedAnalysisContext(),
+            Logger = loggerFactory.CreateLogger("GraphQuality"),
+        };
+
+        var pipeline = TestPipeline.Build(loggerFactory);
+        var snapshot = await pipeline.AnalyzeAsync(ctx);
+        Assert.NotNull(snapshot.Graph);
+        Assert.False(snapshot.Entries.IsDefaultOrEmpty);
+
+        var (seams, withTarget) = GraphStats.Compute(snapshot.Graph, snapshot.Entries);
+        var counts = seams.ToDictionary(s => s.Seam, s => s.Count);
+
+        // Minimum seam-edge thresholds — these must not regress.
+        // Represents the indirection-bridged wiring: Handles (MediatR),
+        // Resolves (DI), Raises (domain events), WrappedBy (pipeline).
+        Assert.True(counts.GetValueOrDefault("Calls") >= 80, $"Calls seams: {counts.GetValueOrDefault("Calls")}");
+        Assert.True(counts.GetValueOrDefault("Handles") >= 4, $"Handles seams: {counts.GetValueOrDefault("Handles")}");
+        Assert.True(counts.GetValueOrDefault("Resolves") >= 20, $"Resolves seams: {counts.GetValueOrDefault("Resolves")}");
+        Assert.True(counts.GetValueOrDefault("Sends") >= 4, $"Sends seams: {counts.GetValueOrDefault("Sends")}");
+        Assert.True(counts.GetValueOrDefault("Raises") >= 2, $"Raises seams: {counts.GetValueOrDefault("Raises")}");
+        Assert.True(counts.GetValueOrDefault("WrappedBy") >= 4, $"WrappedBy seams: {counts.GetValueOrDefault("WrappedBy")}");
+        Assert.True(withTarget >= 30, $"Entries with target: {withTarget}");
     }
 
     private static async Task<string> RunTraceAsync(string repoPath, string entry, bool includeMap = false)

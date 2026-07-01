@@ -9,9 +9,6 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     private static readonly FrozenDictionary<string, string> PackageSignalMap = BuildPackageSignalMap();
     private static readonly FrozenDictionary<string, string> ProjectNameSignalMap = BuildProjectNameSignalMap();
     private static readonly FrozenDictionary<string, string> SdkSignalMap = BuildSdkSignalMap();
-    private static readonly ImmutableArray<EntrySurfaceDescriptor> AppEntryDescriptors = EntrySurfaceCatalog.All
-        .Where(d => d.Kind is not null && d.Role == SurfaceRole.AppEntry)
-        .ToImmutableArray();
 
     private static FrozenDictionary<string, string> BuildPackageSignalMap()
     {

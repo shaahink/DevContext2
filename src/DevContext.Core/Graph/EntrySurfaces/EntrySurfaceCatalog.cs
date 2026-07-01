@@ -79,8 +79,8 @@ public static class EntrySurfaceCatalog
             SelfNamePatterns: []),
 
         new(SignalKey: ArchitectureSignals.Keys.Blazor,
-            Kind:       EntryPointKind.BlazorPage,
-            RenderLabel:"Blazor",
+            Kind:       EntryPointKind.HttpEndpoint,
+            RenderLabel:"HTTP",
             Role:       SurfaceRole.AppEntry,
             Packages:   ["Microsoft.AspNetCore.Components"],
             SdkHints:   [],
