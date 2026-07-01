@@ -1,14 +1,44 @@
-# Go-To Program (2026-07-02)
+# Go-To Program (2026-07-02) — docs index & live tracker
 
-The engine/tool audit against the "go-to for every .NET repo" goal, and the phased program derived
-from it. Written on `docs/go-to-engine-audit` (worktree-isolated, base `develop` @ `7228d1e`).
+The engine/tool audit against the "go-to for every .NET repo" goal, the phased strategy, the faces
+design, and the **execution iterations** written for agent sessions (DeepSeek v4 Pro). Branch
+`docs/go-to-engine-audit` (base `develop` @ `7228d1e`).
 
-1. [`ENGINE-VALUE-AUDIT.md`](ENGINE-VALUE-AUDIT.md) — current support matrix per repo shape,
-   the entry/common/interesting-points model per archetype, the per-type value packs (F1–F12,
-   mostly data-already-captured), the wiring hardening audit (incl. one confirmed bug), and the
-   kernel-hygiene assessment.
-2. [`PROGRAM-PLAN.md`](PROGRAM-PLAN.md) — phases V1–V5 (trust → value → interestingness →
-   kernel/faces/MCP → scale), one session each, with all decision forks voted and recorded.
+## Read in this order (fresh session)
 
-Not yet linked from `docs/dev/plans/README.md` to keep this branch purely additive — add the
-pointer row when merging.
+1. [`ENGINE-VALUE-AUDIT.md`](ENGINE-VALUE-AUDIT.md) — where the engine stands per repo shape; the
+   hardening findings (incl. one confirmed bug); F1–F12 facet inventory; kernel-hygiene verdicts.
+2. [`PROGRAM-PLAN.md`](PROGRAM-PLAN.md) — strategy phases V1–V5 with every fork voted.
+3. [`FACES-DESIGN.md`](FACES-DESIGN.md) — CLI v2 signature, desktop UX direction, the Insights spec.
+4. [`DEV-PAINS.md`](DEV-PAINS.md) — demand-side: pains → features, CORE/MENU/LATER tiers.
+5. The iteration guide whose Status below ≠ DONE. Do its Step 0 first; guides cite `file:line` as of
+   authoring — verify before editing.
+
+## Iteration tracker
+
+| # | Guide | Phase | Depends on | Status |
+|---|---|---|---|---|
+| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **NOT STARTED** (first) |
+| I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | BLOCKED |
+| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | BLOCKED |
+| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | BLOCKED |
+| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | MENU (record picks here) |
+| I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | BLOCKED |
+| I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | BLOCKED · repeatable |
+| — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
+
+**Order rule:** CORE spine is I1 → I2 → I3 → I4/I6; I5 picks interleave anywhere after I2; I7 closes
+each batch. Bugs/trust always outrank features (the votes in PROGRAM-PLAN §0 explain why).
+
+## Maintenance protocol (applies to every iteration)
+
+1. **Docs move with code, same commit:** any flag/op change edits `docs/product/cli-reference.md`;
+   any UI change edits `docs/product/desktop-ui.md`; any insight/facet edits its reference doc.
+   The gate for each iteration includes "reference docs match `--help`/screenshot".
+2. **Goldens are ratcheted, never silently re-baselined:** eval expectations and seam-count goldens
+   change only with the before/after numbers in the commit message. New features land with a positive
+   AND a negative expectation (absent gate ⇒ absent output).
+3. **One wire contract:** anything a face shows must exist as a `GraphQuery` op / kernel JSON field
+   first. If a face needs data the kernel can't answer, the kernel work comes first.
+4. **Screenshots for UI work** — green checks don't catch dead UX (the WPF D1–D11 lesson).
+5. Update this tracker's Status column (+ record I5 picks) at every iteration boundary.

@@ -3,6 +3,14 @@
 > Authored 2026-07-02 · Base: `develop` @ `7228d1e` · Derived from [`ENGINE-VALUE-AUDIT.md`](ENGINE-VALUE-AUDIT.md).
 > Style: same fresh-session-resumable convention as `docs/dev/plans/` — one phase ≈ one session, one gate.
 > Options are presented with a **VOTE** recorded (per the working agreement: document the vote, carry on).
+>
+> **Execution note (2026-07-02, second pass):** the V-phases below are the *strategy*; the runnable
+> per-session guides live in `ITERATION-I1…I7` (see [`README.md`](README.md) tracker). Mapping:
+> I1=V1 · I2=V4.1/V4.2+CLI sweep (pulled forward — the wire contract unblocks everything) ·
+> I3=insights (new, extends V2/V3) · I4=V3.4/V7 desktop · I5=V2 facets+V3 as a pick-any menu ·
+> I6=V4.3 MCP · I7=V5.4-adjacent benchmark/insight audit loop. V5 scale items stay LATER backlog.
+> Faces design (CLI v2, UX, insights) is contracted in [`FACES-DESIGN.md`](FACES-DESIGN.md);
+> demand-side tiers in [`DEV-PAINS.md`](DEV-PAINS.md).
 
 ---
 
