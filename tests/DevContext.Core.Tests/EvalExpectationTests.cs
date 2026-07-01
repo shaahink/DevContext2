@@ -368,64 +368,7 @@ public sealed class EvalExpectationTests : IDisposable
             Logger = loggerFactory.CreateLogger("Eval")
         };
 
-        var extractors = new List<IDiscoveryExtractor>
-        {
-            new FileTreeExtractor(),
-            new SolutionDiscoveryExtractor(),
-            new ProjectStructureExtractor(),
-            new DependencyExtractor(),
-            new SyntaxStructureExtractor(),
-            new LayerClassifier(),
-            new EndpointExtractor(),
-            new MediatRExtractor(),
-            new ControllerActionExtractor(),
-            new EfCoreExtractor(),
-            new EventBusExtractor(),
-            new CallGraphExtractor(),
-            new SourceBodyExtractor(),
-            new IndirectWiringDetector(),
-            new AspireExtractor(),
-            new ProgramCsFlowExtractor(),
-            new DiRegistrationExtractor(),
-            new DesktopEntryExtractor(),
-            new BlazorEntryExtractor(),
-            new GrpcServiceExtractor(),
-            new SignalRHubExtractor(),
-            new AzureFunctionsExtractor(),
-            new RazorPagesExtractor(),
-            new OrleansGrainExtractor(),
-            new NServiceBusExtractor(),
-            new WolverineExtractor(),
-            new AwsLambdaExtractor(),
-            new GraphQlResolverExtractor(),
-            new CliCommandExtractor(),
-        };
-
-        var pruners = new List<IPruner>
-        {
-            new PatternRelevancePruner(),
-            new TokenBudgetEnforcer(),
-        };
-
-        var compressors = new List<ICompressionStrategy>
-        {
-            new TrivialMemberCompressor(),
-            new BoilerplateCompressor(),
-            new StructuralDeduplicator(),
-            new NamespaceGrouper(),
-            new LlmFriendlyFormatter(),
-            new AggressiveTruncator(),
-        };
-
-        var renderers = new Dictionary<string, IContextRenderer>
-        {
-            ["markdown"] = new MarkdownRenderer(),
-            ["json"] = new JsonContextRenderer(),
-        };
-
-        var pipeline = new DiscoveryPipeline(
-            extractors, pruners, compressors, renderers,
-            loggerFactory.CreateLogger<DiscoveryPipeline>());
+        var pipeline = TestPipeline.Build(loggerFactory);
 
         return await pipeline.RunAsync(ctx);
     }

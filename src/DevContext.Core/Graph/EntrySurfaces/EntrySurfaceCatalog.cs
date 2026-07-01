@@ -202,14 +202,6 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: ["Orleans", "Microsoft.Orleans"]),
 
-        new(SignalKey: ArchitectureSignals.Keys.GraphQL,
-            Kind:       null,
-            RenderLabel:"",
-            Role:       SurfaceRole.FrameworkLibrary,
-            Packages:   [],
-            SdkHints:   [],
-            SelfNamePatterns: ["HotChocolate", "GreenDonut"]),
-
         new(SignalKey: ArchitectureSignals.Keys.Quartz,
             Kind:       null,
             RenderLabel:"",
