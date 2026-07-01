@@ -2,7 +2,7 @@ namespace DevContext.Server.Sessions;
 
 /// <summary>What the caller asked us to analyze. The transport layer builds this from the gRPC
 /// request; the engine layer turns it into the canonical DevContext analyze recipe.</summary>
-public sealed record AnalyzeSpec(string Path, string? Focus, int? Depth, string? Detail, bool NoRoslyn);
+public sealed record AnalyzeSpec(string Path, string? Focus, int? Depth, string? Detail, bool NoRoslyn, string? Cleanup = null);
 
 /// <summary>A coarse progress tick streamed back while the engine runs.</summary>
 public sealed record AnalysisProgress(string Stage, double Percent, string Message);

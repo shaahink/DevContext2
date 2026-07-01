@@ -41,7 +41,7 @@ function timeAgo(dateStr: string | null): string {
           @if (repo().description) {
             <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">{{ repo().description }}</p>
           }
-          <div class="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-ink-subtle">
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-2xs text-ink-subtle">
             @if (repo().language) {
               <span class="flex items-center gap-1">
                 <span class="h-2 w-2 rounded-full bg-accent"></span>
@@ -65,7 +65,7 @@ function timeAgo(dateStr: string | null): string {
           [href]="repo().htmlUrl"
           target="_blank"
           rel="noopener"
-          class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-ink-muted hover:text-ink"
+          class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-3xs text-ink-muted hover:text-ink"
         >
           <app-icon name="network" [size]="11" /> GitHub
         </a>

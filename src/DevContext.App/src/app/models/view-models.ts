@@ -59,7 +59,7 @@ export interface EdgeVm {
   readonly otherTitle: string;
 }
 
-const ENTRY_KIND_LABELS: Record<string, string> = {
+export const KIND_LABELS: Record<string, string> = {
   HttpEndpoint: 'HTTP',
   MessageConsumer: 'Bus consumers',
   HostedService: 'Hosted services',
@@ -67,6 +67,17 @@ const ENTRY_KIND_LABELS: Record<string, string> = {
   DomainEventHandler: 'Domain events',
   PublicApi: 'Public API',
 };
+
+export const KIND_ICONS: Record<string, string> = {
+  HttpEndpoint: 'webhook',
+  MessageConsumer: 'arrow-right',
+  HostedService: 'play',
+  ScheduledJob: 'refresh',
+  DomainEventHandler: 'dot',
+  PublicApi: 'network',
+};
+
+const ENTRY_KIND_LABELS: Record<string, string> = KIND_LABELS;
 
 const ENTRY_KIND_ORDER = [
   'HttpEndpoint',

@@ -59,7 +59,8 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
 
         return new EngineResult(
             snapshot, host.Pipeline, label, projectCount, sw.ElapsedMilliseconds,
-            resolvedIntent.Explanation, resolvedIntent.Warnings, gitClonePath);
+            resolvedIntent.Explanation, resolvedIntent.Warnings, gitClonePath,
+            spec.Cleanup);
     }
 
     private static async Task<(string InputPath, string? GitClonePath)> PrepareSourceAsync(

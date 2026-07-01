@@ -54,6 +54,7 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
 
     public async ValueTask DisposeAsync()
     {
+        if (Engine.Cleanup == "keep") return;
         if (Engine.GitClonePath is { } clone)
             GitCloneService.Cleanup(clone);
     }

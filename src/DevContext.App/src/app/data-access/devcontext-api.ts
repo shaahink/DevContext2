@@ -21,6 +21,7 @@ export interface AnalyzeSpec {
   readonly depth?: number;
   readonly detail?: string;
   readonly noRoslyn?: boolean;
+  readonly cleanup?: 'auto' | 'keep';
 }
 
 export type AnalyzeOutcome =
@@ -45,6 +46,7 @@ export class DevContextApi {
         depth: spec.depth,
         detail: spec.detail,
         noRoslyn: spec.noRoslyn ?? false,
+        cleanup: spec.cleanup,
       },
       { signal },
     );

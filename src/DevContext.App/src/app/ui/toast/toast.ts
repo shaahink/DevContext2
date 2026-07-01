@@ -12,13 +12,10 @@ export interface ToastMessage {
     <div class="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
       @for (msg of messages(); track msg.id) {
         <div
-          class="pointer-events-auto flex items-center gap-2 rounded-md px-3 py-2 text-sm shadow-lg"
+          class="pointer-events-auto flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-accent-ink shadow-lg"
           [class.bg-accent]="msg.kind === 'info'"
-          [class.text-accent-ink]="msg.kind === 'info'"
           [class.bg-success]="msg.kind === 'success'"
-          [class.text-accent-ink]="msg.kind === 'success'"
           [class.bg-danger]="msg.kind === 'error'"
-          [class.text-accent-ink]="msg.kind === 'error'"
         >
           {{ msg.text }}
         </div>

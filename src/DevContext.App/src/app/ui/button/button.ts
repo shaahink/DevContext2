@@ -5,7 +5,12 @@ import { Component, input } from '@angular/core';
   template: '<ng-content />',
   host: {
     class:
-      'inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-40',
+      'inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
+    // `app-button` is a custom element, so the Tailwind `disabled:` variant
+    // (which keys off the `:disabled` pseudo-class) never matches. Bind the
+    // disabled appearance + interaction-block directly off the signal instead.
+    '[class.pointer-events-none]': 'disabled()',
+    '[class.opacity-40]': 'disabled()',
     '[class.bg-accent]': 'variant() === "primary"',
     '[class.text-accent-ink]': 'variant() === "primary"',
     '[class.hover:brightness-110]': 'variant() === "primary"',
@@ -23,8 +28,8 @@ import { Component, input } from '@angular/core';
     '[class.px-4]': 'size() === "lg"',
     '[class.py-2]': 'size() === "lg"',
     role: 'button',
-    '[attr.tabindex]': '"0"',
-    '[attr.disabled]': 'disabled() ? "" : null',
+    '[attr.tabindex]': 'disabled() ? -1 : 0',
+    '[attr.aria-disabled]': 'disabled() ? true : null',
   },
 })
 export class Button {

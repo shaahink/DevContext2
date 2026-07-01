@@ -23,6 +23,18 @@
   --radius-lg: var(--vibe-radius-lg);
 }
 
+@utility text-2xs {
+  font-size: 0.625rem;
+}
+
+@utility text-3xs {
+  font-size: 0.6875rem;
+}
+
+@utility tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 :root {
   --vibe-base: #0b0e14;
   --vibe-surface: #11151c;
@@ -43,6 +55,7 @@
   --vibe-radius-sm: 0.25rem;
   --vibe-radius-md: 0.375rem;
   --vibe-radius-lg: 0.5rem;
+  --vibe-border-width: 1px;
   --vibe-density: normal;
   --vibe-motion: normal;
   color-scheme: dark;
@@ -108,6 +121,30 @@
   color-scheme: dark;
 }
 
+[data-vibe="terminal"][data-theme="light"] {
+  --vibe-base: #f5f5f0;
+  --vibe-surface: #eeede8;
+  --vibe-surface-2: #e6e5e0;
+  --vibe-elevated: #f5f5f0;
+  --vibe-line: #d4d3ce;
+  --vibe-line-strong: #b8b7b2;
+  --vibe-ink: #1a1a1a;
+  --vibe-ink-muted: #555555;
+  --vibe-ink-subtle: #888888;
+  --vibe-accent: #b8860b;
+  --vibe-accent-ink: #ffffff;
+  --vibe-success: #2d8a2d;
+  --vibe-warn: #b8860b;
+  --vibe-danger: #c04040;
+  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-radius-sm: 0;
+  --vibe-radius-md: 0;
+  --vibe-radius-lg: 0;
+  --vibe-density: compact;
+  color-scheme: light;
+}
+
 [data-vibe="hacker"][data-theme="dark"] {
   --vibe-base: #0a0a0a;
   --vibe-surface: #0d0d0d;
@@ -132,9 +169,53 @@
   color-scheme: dark;
 }
 
+[data-vibe="hacker"][data-theme="light"] {
+  --vibe-base: #f0fff0;
+  --vibe-surface: #e8ffe8;
+  --vibe-surface-2: #d8f8d8;
+  --vibe-elevated: #f0fff0;
+  --vibe-line: #b8d8b8;
+  --vibe-line-strong: #90b890;
+  --vibe-ink: #0a3a0a;
+  --vibe-ink-muted: #2a6a2a;
+  --vibe-ink-subtle: #4a8a4a;
+  --vibe-accent: #0a7a0a;
+  --vibe-accent-ink: #ffffff;
+  --vibe-success: #0a7a0a;
+  --vibe-warn: #8a6a00;
+  --vibe-danger: #aa2020;
+  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-radius-sm: 0;
+  --vibe-radius-md: 0;
+  --vibe-radius-lg: 0;
+  --vibe-density: compact;
+  color-scheme: light;
+}
+
+[data-vibe="modern"][data-theme="high-contrast"] {
+  --vibe-base: #000000;
+  --vibe-surface: #0a0a0a;
+  --vibe-surface-2: #141414;
+  --vibe-elevated: #1a1a1a;
+  --vibe-line: #ffffff;
+  --vibe-line-strong: #ffffff;
+  --vibe-ink: #ffffff;
+  --vibe-ink-muted: #cccccc;
+  --vibe-ink-subtle: #aaaaaa;
+  --vibe-accent: #4493f8;
+  --vibe-accent-ink: #000000;
+  --vibe-success: #3fb950;
+  --vibe-warn: #d29922;
+  --vibe-danger: #f85149;
+  --vibe-border-width: 2px;
+  color-scheme: dark;
+}
+
 html,
 body {
   height: 100%;
+  overflow: hidden;
   margin: 0;
   background: var(--vibe-base);
   color: var(--vibe-ink);
@@ -142,6 +223,14 @@ body {
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 *,
@@ -163,4 +252,28 @@ body {
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* ── Terminal vibe: scanline texture (static, motion-safe) ── */
+[data-vibe="terminal"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.4) 2px,
+    rgba(0, 0, 0, 0.4) 4px
+  );
+}
+
+/* ── Terminal vibe: phosphor glow on focus (amber, not blue) ── */
+[data-vibe="terminal"] *:focus-visible {
+  outline-color: var(--vibe-accent);
+  outline-offset: 1px;
+  box-shadow: 0 0 6px 1px rgba(230, 168, 23, 0.35);
 }

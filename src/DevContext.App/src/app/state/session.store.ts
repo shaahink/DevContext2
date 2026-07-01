@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
 import type { AnalysisSummary, MapResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { ActivityService } from '../core/activity/activity.service';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EntryGroupVm, groupEntries } from '../models/view-models';
 import { RecentStore } from './recent.store';
@@ -14,11 +15,10 @@ export interface ProgressVm {
 @Injectable({ providedIn: 'root' })
 export class SessionStore {
   private readonly api = inject(DevContextApi);
+  private readonly activity = inject(ActivityService);
   private readonly recentStore = inject(RecentStore);
-  private abort: AbortController | null = null;
 
   private readonly _status = signal<AnalysisStatus>('idle');
-  private readonly _progress = signal<ProgressVm>({ stage: '', percent: 0, message: '' });
   private readonly _error = signal<string | null>(null);
   private readonly _handle = signal<string | null>(null);
   private readonly _summary = signal<AnalysisSummary | null>(null);
@@ -27,7 +27,6 @@ export class SessionStore {
   private readonly _entryGroups = signal<readonly EntryGroupVm[]>([]);
 
   readonly status = this._status.asReadonly();
-  readonly progress = this._progress.asReadonly();
   readonly error = this._error.asReadonly();
   readonly handle = this._handle.asReadonly();
   readonly summary = this._summary.asReadonly();
@@ -40,9 +39,7 @@ export class SessionStore {
   readonly entryCount = computed(() => this._entryGroups().reduce((n, g) => n + g.entries.length, 0));
 
   async analyze(spec: AnalyzeSpec): Promise<void> {
-    this.abort?.abort();
-    const abort = new AbortController();
-    this.abort = abort;
+    this.activity.start(isRepoUrl(spec.path) ? 'Cloning…' : 'Analyzing…');
 
     this._error.set(null);
     this._handle.set(null);
@@ -51,18 +48,30 @@ export class SessionStore {
     this._mapMarkdown.set('');
     this._entryGroups.set([]);
     this._status.set(isRepoUrl(spec.path) ? 'cloning' : 'analyzing');
-    this._progress.set({ stage: 'Starting', percent: 0, message: 'Starting…' });
 
     try {
-      const outcome = await this.api.analyze(
-        spec,
-        (p) => this._progress.set({ stage: p.stage, percent: p.percent, message: p.message }),
-        abort.signal,
-      );
+      const ctrl = this.activity.controller;
+      const outcome = await ctrl!.run(async (signal) => {
+        return await this.api.analyze(
+          spec,
+          (p) => {
+            this.activity.setProgress(p.stage, Math.round(p.percent), p.message);
+            this._status.set(p.stage.includes('Clon') ? 'cloning' : 'analyzing');
+          },
+          signal,
+        );
+      });
+
+      if (!outcome) {
+        this._status.set('idle');
+        this.activity.clear();
+        return;
+      }
 
       if (!outcome.ok) {
         if (outcome.code === 'Cancelled') {
           this._status.set('idle');
+          this.activity.clear();
           return;
         }
         this.fail(outcome.message);
@@ -80,11 +89,13 @@ export class SessionStore {
       this._mapMarkdown.set(map.markdown);
       this._entryGroups.set(groupEntries(entries.entryPoints));
       this._status.set('ready');
+      this.activity.clear();
 
       this.recentStore.add(spec.path, outcome.summary.label);
     } catch (err) {
-      if (abort.signal.aborted) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
         this._status.set('idle');
+        this.activity.clear();
         return;
       }
       this.fail(describeError(err));
@@ -92,12 +103,13 @@ export class SessionStore {
   }
 
   cancel(): void {
-    this.abort?.abort();
+    this.activity.controller?.cancel();
   }
 
   private fail(message: string): void {
     this._error.set(message);
     this._status.set('error');
+    this.activity.setError(message);
   }
 }
 

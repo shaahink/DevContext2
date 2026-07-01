@@ -25,7 +25,8 @@ public sealed class DevContextGrpcService(
             request.HasFocus ? request.Focus : null,
             request.HasDepth ? request.Depth : null,
             request.HasDetail ? request.Detail : null,
-            request.NoRoslyn);
+            request.NoRoslyn,
+            request.HasCleanup ? request.Cleanup : null);
 
         var channel = Channel.CreateUnbounded<Proto.AnalyzeEvent>(
             new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });

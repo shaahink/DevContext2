@@ -4,7 +4,7 @@ import { Component, input } from '@angular/core';
   selector: 'app-badge',
   template: '<ng-content />',
   host: {
-    class: 'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium',
+    class: 'inline-flex items-center rounded px-1.5 py-0.5 text-2xs font-medium',
     '[class.bg-surface-2]': 'variant() === "default"',
     '[class.text-ink-muted]': 'variant() === "default"',
     '[class.bg-accent]': 'variant() === "accent"',

@@ -2,9 +2,15 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessC
 import { provideRouter, Routes } from '@angular/router';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', loadComponent: () => import('./features/workspace/workspace').then((m) => m.Workspace) },
-  { path: '**', redirectTo: '/home' },
+  { path: '', loadComponent: () => import('./features/source/source-view').then((m) => m.SourceView) },
+  { path: 'overview', loadComponent: () => import('./features/overview/overview-view').then((m) => m.OverviewView) },
+  { path: 'entries', loadComponent: () => import('./features/entries/entries-view').then((m) => m.EntriesView) },
+  { path: 'browse', loadComponent: () => import('./features/browse/browse-view').then((m) => m.BrowseView) },
+  { path: 'trace', loadComponent: () => import('./features/trace/trace-view').then((m) => m.TraceView) },
+  { path: 'document', loadComponent: () => import('./features/document/document-view').then((m) => m.DocumentView) },
+  { path: 'stats', loadComponent: () => import('./features/stats/stats-view').then((m) => m.StatsView) },
+  { path: 'cache', loadComponent: () => import('./features/cache/cache-view').then((m) => m.CacheView) },
+  { path: '**', redirectTo: '' },
 ];
 
 export const appConfig: ApplicationConfig = {

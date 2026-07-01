@@ -80,8 +80,8 @@ export class ThemeService {
   }
 
   private loadVibe(): string {
-    try { return localStorage.getItem(STORAGE_KEY_VIBE) ?? VIBES[0].id; }
-    catch { return VIBES[0].id; }
+    try { return localStorage.getItem(STORAGE_KEY_VIBE) ?? 'terminal'; }
+    catch { return 'terminal'; }
   }
 
   private loadTheme(): string {

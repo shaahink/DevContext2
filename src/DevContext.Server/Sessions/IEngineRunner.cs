@@ -21,4 +21,5 @@ public sealed record EngineResult(
     long ElapsedMs,
     string Explanation,
     ImmutableArray<string> Warnings,
-    string? GitClonePath);
+    string? GitClonePath,
+    string? Cleanup = null);
