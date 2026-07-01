@@ -1,47 +1,53 @@
 namespace DevContext.Core.Extractors.Generic;
 
+using DevContext.Core.Graph.EntrySurfaces;
+
 /// <summary>Detects NuGet package references to emit architecture signals and builds the project dependency graph.</summary>
 [ExtractorOrder(10)]
 public sealed class DependencyExtractor : IDiscoveryExtractor
 {
-    private static readonly FrozenDictionary<string, string> PackageSignalMap = new Dictionary<string, string>
+    private static readonly FrozenDictionary<string, string> PackageSignalMap = BuildPackageSignalMap();
+    private static readonly FrozenDictionary<string, string> ProjectNameSignalMap = BuildProjectNameSignalMap();
+    private static readonly FrozenDictionary<string, string> SdkSignalMap = BuildSdkSignalMap();
+    private static readonly ImmutableArray<EntrySurfaceDescriptor> AppEntryDescriptors = EntrySurfaceCatalog.All
+        .Where(d => d.Kind is not null && d.Role == SurfaceRole.AppEntry)
+        .ToImmutableArray();
+
+    private static FrozenDictionary<string, string> BuildPackageSignalMap()
     {
-        ["MediatR"] = ArchitectureSignals.Keys.MediatR,
-        ["Mediator"] = ArchitectureSignals.Keys.MediatR,
-        ["Microsoft.EntityFrameworkCore"] = ArchitectureSignals.Keys.EfCore,
-        ["Microsoft.AspNetCore.OpenApi"] = ArchitectureSignals.Keys.MinimalApis,
-        ["MassTransit"] = ArchitectureSignals.Keys.MassTransit,
-        ["Dapper"] = ArchitectureSignals.Keys.Dapper,
-        ["FluentValidation"] = ArchitectureSignals.Keys.FluentValidation,
-        ["Microsoft.EntityFrameworkCore.SqlServer"] = ArchitectureSignals.Keys.EfCore,
-        ["Microsoft.EntityFrameworkCore.Sqlite"] = ArchitectureSignals.Keys.EfCore,
-        ["Microsoft.EntityFrameworkCore.InMemory"] = ArchitectureSignals.Keys.EfCore,
-        ["Npgsql.EntityFrameworkCore.PostgreSQL"] = ArchitectureSignals.Keys.EfCore,
-        ["Pomelo.EntityFrameworkCore.MySql"] = ArchitectureSignals.Keys.EfCore,
-        ["Hangfire"] = ArchitectureSignals.Keys.Hangfire,
-        ["Scrutor"] = ArchitectureSignals.Keys.Scrutor,
-        ["Refit"] = ArchitectureSignals.Keys.Refit,
-        ["Aspire.Hosting"] = ArchitectureSignals.Keys.Aspire,
-        ["FastEndpoints"] = ArchitectureSignals.Keys.FastEndpoints,
-        ["Serilog"] = ArchitectureSignals.Keys.Serilog,
-        ["Polly"] = ArchitectureSignals.Keys.Polly,
-        ["AutoMapper"] = ArchitectureSignals.Keys.AutoMapper,
-        ["Swashbuckle.AspNetCore"] = ArchitectureSignals.Keys.Swagger,
-        ["Microsoft.AspNetCore.Identity"] = ArchitectureSignals.Keys.Identity,
-        ["NLog"] = ArchitectureSignals.Keys.NLog,
-        ["Quartz"] = ArchitectureSignals.Keys.Quartz,
-        ["StackExchange.Redis"] = ArchitectureSignals.Keys.Redis,
-        ["AspNetCore.HealthChecks"] = ArchitectureSignals.Keys.HealthChecks,
-        ["Microsoft.WindowsAppSDK"] = ArchitectureSignals.Keys.DesktopUi,
-        ["CommunityToolkit.WinUI"] = ArchitectureSignals.Keys.DesktopUi,
-        ["CommunityToolkit.Mvvm"] = ArchitectureSignals.Keys.DesktopUi,
-        ["Ocelot"] = ArchitectureSignals.Keys.Gateway,
-        ["Microsoft.ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
-        ["Microsoft.AspNetCore.Components"] = ArchitectureSignals.Keys.Blazor,
-        ["Grpc.AspNetCore"] = ArchitectureSignals.Keys.Grpc,
-        ["Microsoft.AspNetCore.SignalR"] = ArchitectureSignals.Keys.SignalR,
-        ["Microsoft.Azure.Functions.Worker"] = ArchitectureSignals.Keys.Functions,
-    }.ToFrozenDictionary();
+        var map = new Dictionary<string, string>();
+        foreach (var d in EntrySurfaceCatalog.All)
+        {
+            if (d.SignalKey.Length == 0) continue;
+            foreach (var pkg in d.Packages)
+                map[pkg] = d.SignalKey;
+        }
+        return map.ToFrozenDictionary();
+    }
+
+    private static FrozenDictionary<string, string> BuildProjectNameSignalMap()
+    {
+        var map = new Dictionary<string, string>();
+        foreach (var d in EntrySurfaceCatalog.All)
+        {
+            if (d.SignalKey.Length == 0) continue;
+            foreach (var pattern in d.SelfNamePatterns)
+                map[pattern] = d.SignalKey;
+        }
+        return map.ToFrozenDictionary();
+    }
+
+    private static FrozenDictionary<string, string> BuildSdkSignalMap()
+    {
+        var map = new Dictionary<string, string>();
+        foreach (var d in EntrySurfaceCatalog.All)
+        {
+            if (d.SignalKey.Length == 0) continue;
+            foreach (var sdk in d.SdkHints)
+                map[sdk] = d.SignalKey;
+        }
+        return map.ToFrozenDictionary();
+    }
 
     /// <summary>Gets the name of this extractor.</summary>
     public string Name => "DependencyExtractor";
@@ -113,30 +119,24 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                 {
                     var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
 
-                    // Detect minimal APIs from project SDK
+                    // Detect signals from project SDK via catalog
                     var sdk = doc.Root?.Attribute("Sdk")?.Value;
-                    if (sdk == "Microsoft.NET.Sdk.Web")
+                    if (sdk is not null
+                        && SdkSignalMap.TryGetValue(sdk, out var sdkSignalKey)
+                        && !selfSourcedKeys.Contains(sdkSignalKey))
                     {
                         model.Architecture.Register(FeatureSignal.CreateDetected(
-                            ArchitectureSignals.Keys.MinimalApis, confidence: 0.8f, via: "ProjectSdk", sdk));
+                            sdkSignalKey, confidence: 0.9f, via: "ProjectSdk", sdk));
                     }
 
-                    // Detect Azure Functions from project SDK
-                    if (sdk == "Microsoft.NET.Sdk.Functions"
-                        && !selfSourcedKeys.Contains(ArchitectureSignals.Keys.Functions))
-                    {
-                        model.Architecture.Register(FeatureSignal.CreateDetected(
-                            ArchitectureSignals.Keys.Functions, confidence: 0.9f, via: "ProjectSdk", sdk));
-                    }
-
-                    // Detect WPF desktop apps from SDK + UseWPF property
+                    // Detect WPF desktop apps from SDK (WinExe + Microsoft.NET.Sdk requires extra check)
                     var outputType = projectInfo.OutputType;
                     var isWinExe = outputType is { } ot && ot.Contains("WinExe", StringComparison.OrdinalIgnoreCase);
-                    if (sdk == "Microsoft.NET.Sdk.WindowsDesktop"
-                        || (sdk == "Microsoft.NET.Sdk" && isWinExe))
+                    if (sdk == "Microsoft.NET.Sdk" && isWinExe
+                        && !selfSourcedKeys.Contains(ArchitectureSignals.Keys.DesktopUi))
                     {
                         model.Architecture.Register(FeatureSignal.CreateDetected(
-                            ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectSdk", sdk ?? outputType ?? "WinExe"));
+                            ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectSdk", outputType ?? "WinExe"));
                     }
 
                     var packageRefs = doc.Descendants("PackageReference")
@@ -187,22 +187,6 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
 
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
     }
-
-    private static readonly Dictionary<string, string> ProjectNameSignalMap = new()
-    {
-        ["Microsoft.AspNetCore.SignalR"] = ArchitectureSignals.Keys.SignalR,
-        ["Grpc"] = ArchitectureSignals.Keys.Grpc,
-        ["MassTransit"] = ArchitectureSignals.Keys.MassTransit,
-        ["Yarp"] = ArchitectureSignals.Keys.Gateway,
-        ["ReverseProxy"] = ArchitectureSignals.Keys.Gateway,
-        ["Orleans"] = ArchitectureSignals.Keys.Orleans,
-        ["Microsoft.Orleans"] = ArchitectureSignals.Keys.Orleans,
-        ["HotChocolate"] = ArchitectureSignals.Keys.GraphQL,
-        ["GreenDonut"] = ArchitectureSignals.Keys.GraphQL,
-        ["xunit"] = ArchitectureSignals.Keys.Testing,
-        ["nunit"] = ArchitectureSignals.Keys.Testing,
-        ["Azure.Functions"] = ArchitectureSignals.Keys.Functions,
-    };
 
     private static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
     {

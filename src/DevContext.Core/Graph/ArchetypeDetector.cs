@@ -1,5 +1,7 @@
 namespace DevContext.Core.Graph;
 
+using DevContext.Core.Graph.EntrySurfaces;
+
 /// <summary>
 /// What kind of codebase this is — independent of architecture <c>Style</c>. An <see cref="App"/> has
 /// application entry points (HTTP/bus/hosted/scheduled); a <see cref="Library"/> is a packable component
@@ -11,14 +13,11 @@ public enum Archetype { App, Library, Gateway }
 /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.</summary>
 public static class ArchetypeDetector
 {
-    private static readonly EntryPointKind[] AppEntryKinds =
-    [
-        EntryPointKind.HttpEndpoint, EntryPointKind.MessageConsumer,
-        EntryPointKind.HostedService, EntryPointKind.ScheduledJob,
-        EntryPointKind.UiEntry, EntryPointKind.BlazorPage,
-        EntryPointKind.GrpcService, EntryPointKind.SignalRHub,
-        EntryPointKind.FunctionEntry,
-    ];
+    private static readonly EntryPointKind[] AppEntryKinds = EntrySurfaceCatalog.All
+        .Where(d => d.Kind is not null && d.Role == SurfaceRole.AppEntry)
+        .Select(d => d.Kind!.Value)
+        .Distinct()
+        .ToArray();
 
     /// <summary>Library ⇔ no application entry points AND a non-executable project with a public
     /// surface exists, where any executable projects are merely auxiliary samples/benchmarks that
@@ -81,18 +80,14 @@ public static class ArchetypeDetector
     // Framework-library signals that, when self-sourced (ProjectName/ProjectReference), mean
     // this repo IS the framework itself — not a consumer app. PackageReference/ProjectSdk sources
     // indicate a consumer app and do NOT force Library.
-    private static readonly string[] LibraryFrameworkSignals =
-    [
-        ArchitectureSignals.Keys.SignalR,
-        ArchitectureSignals.Keys.Grpc,
-        ArchitectureSignals.Keys.MassTransit,
-        ArchitectureSignals.Keys.Orleans,
-        ArchitectureSignals.Keys.GraphQL,
-        ArchitectureSignals.Keys.Functions,
-        ArchitectureSignals.Keys.Quartz,
-        ArchitectureSignals.Keys.Hangfire,
-        ArchitectureSignals.Keys.Testing,
-    ];
+    // A signal can be both an AppEntry surface (when package-sourced) AND a framework-library
+    // indicator (when self-sourced via SelfNamePatterns).
+    private static readonly string[] LibraryFrameworkSignals = EntrySurfaceCatalog.All
+        .Where(d => d.SignalKey.Length > 0
+            && (d.Role == SurfaceRole.FrameworkLibrary || d.SelfNamePatterns.Length > 0))
+        .Select(d => d.SignalKey)
+        .Distinct()
+        .ToArray();
 
     private static bool IsSelfSourcedFrameworkSignal(DiscoveryModel model)
     {

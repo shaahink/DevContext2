@@ -2,6 +2,7 @@ using System.Text;
 
 using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
+using DevContext.Core.Graph.EntrySurfaces;
 using DevContext.Core.Pipeline;
 
 namespace DevContext.Core.Rendering;
@@ -283,19 +284,11 @@ public static class MapRenderer
 
     internal static string GroupLabelForKind(EntryPointKind kind) => GroupLabel(kind);
 
-    private static string GroupLabel(EntryPointKind kind) => kind switch
-    {
-        EntryPointKind.HttpEndpoint => "HTTP",
-        EntryPointKind.MessageConsumer => "Bus",
-        EntryPointKind.DomainEventHandler => "Domain",
-        EntryPointKind.HostedService => "Background",
-        EntryPointKind.ScheduledJob => "Scheduled",
-        EntryPointKind.PublicApi => "Public API",
-        EntryPointKind.UiEntry => "UI",
-        EntryPointKind.BlazorPage => "Blazor",
-        EntryPointKind.GrpcService => "gRPC",
-        EntryPointKind.SignalRHub => "SignalR",
-        EntryPointKind.FunctionEntry => "Functions",
-        _ => kind.ToString(),
-    };
+    private static readonly FrozenDictionary<EntryPointKind, string> KindLabels = EntrySurfaceCatalog.All
+        .Where(d => d.Kind is not null)
+        .GroupBy(d => d.Kind!.Value)
+        .ToFrozenDictionary(g => g.Key, g => g.First().RenderLabel);
+
+    private static string GroupLabel(EntryPointKind kind)
+        => KindLabels.GetValueOrDefault(kind, kind.ToString());
 }
