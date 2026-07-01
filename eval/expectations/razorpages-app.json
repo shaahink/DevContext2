@@ -1,0 +1,9 @@
+{
+  "repo": "eval-repos/razorpages-app",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Razor Pages app must be detected as App." },
+    { "id": "signal-razor-pages", "type": "signal-present", "value": "razor-pages", "status": "expected", "note": "PageModel subclass → razor-pages signal." },
+    { "id": "entry-kind-razor-pages", "type": "entry-kind-present", "value": "EndpointDetection", "format": "HTTP", "status": "expected", "note": "Razor Pages @page routes must render as HTTP entries." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}

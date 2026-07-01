@@ -56,6 +56,16 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
                 context.Cache.RegisterPath(file);
             }
 
+            // Include .cshtml files for Razor Pages detection
+            await foreach (var file in context.FileSystem.EnumerateFilesAsync(
+                root, "*.cshtml", SearchOption.AllDirectories, ct))
+            {
+                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (!seenSource.Add(file)) continue;
+                sourceFiles.Add(file);
+                context.Cache.RegisterPath(file);
+            }
+
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.csproj", SearchOption.AllDirectories, ct))
             {

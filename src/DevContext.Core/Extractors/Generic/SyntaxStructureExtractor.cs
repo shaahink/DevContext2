@@ -95,6 +95,14 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                         ArchitectureSignals.Keys.Controllers, 0.9f, "SyntaxPattern",
                         $"Class {typeDiscovery.Name} derives from {string.Join(", ", typeDiscovery.BaseTypes)}"));
                 }
+
+                // Razor Pages: detect PageModel base type
+                if (typeDiscovery.BaseTypes.Any(b => b == "PageModel"))
+                {
+                    model.Architecture.Register(FeatureSignal.CreateDetected(
+                        ArchitectureSignals.Keys.RazorPages, 0.9f, "SyntaxPattern",
+                        $"Class {typeDiscovery.Name} derives from PageModel"));
+                }
             }
         }
     }

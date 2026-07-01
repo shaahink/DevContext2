@@ -60,5 +60,6 @@ public sealed class ArchitectureSignals
         public const string Functions = "azure-functions";
         public const string GraphQL = "graphql";
         public const string Testing = "testing";
+        public const string RazorPages = "razor-pages";
     }
 }

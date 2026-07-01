@@ -118,6 +118,16 @@ public static class EntrySurfaceCatalog
             SdkHints:   ["Microsoft.NET.Sdk.WindowsDesktop"],
             SelfNamePatterns: []),
 
+        // ── Razor Pages — detected via PageModel base types, not packages ──
+
+        new(SignalKey: ArchitectureSignals.Keys.RazorPages,
+            Kind:       EntryPointKind.HttpEndpoint,
+            RenderLabel:"HTTP",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   [],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
         // ── Framework-library signals (self-source means the repo IS the framework) ──
 
         new(SignalKey: ArchitectureSignals.Keys.MassTransit,
