@@ -1,5 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
 import { DevContextApi } from '../../data-access/devcontext-api';
@@ -9,28 +8,30 @@ import { Button } from '../../ui/button/button';
 
 @Component({
   selector: 'app-section-export',
-  imports: [FormsModule, Icon, Button],
+  imports: [Icon, Button],
   template: `
     <div class="fixed inset-0 z-50 flex" [class.hidden]="!open()">
       <div
         class="absolute inset-0 bg-base/80 backdrop-blur-sm"
         role="button"
         tabindex="0"
+        aria-label="Close export"
         (click)="emitDismissed()"
         (keydown.enter)="emitDismissed()"
         (keydown.space)="emitDismissed()"
       ></div>
-      <div class="relative mx-auto my-8 flex w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-2xl">
+      <div class="relative mx-auto my-6 flex w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-line bg-elevated shadow-2xl">
         <div class="flex items-center gap-3 border-b border-line px-4 py-3">
-          <h2 class="text-sm font-semibold text-ink">LLM Context</h2>
-          <span class="text-2xs text-ink-subtle">Export structured context for LLMs</span>
+          <app-icon name="file-text" [size]="16" class="text-accent" />
+          <h2 class="text-sm font-semibold text-ink">LLM Context Export</h2>
+          <span class="text-xs text-ink-subtle">Structured context for LLMs</span>
           <div class="ml-auto flex items-center gap-2">
             @if (tokenCount() > 0) {
-              <span class="text-2xs tabular-nums text-ink-muted">{{ fmt(tokenCount()) }} tok</span>
+              <span class="text-xs tabular-nums text-ink-muted">{{ fmt(tokenCount()) }} tok</span>
             }
             <app-button variant="secondary" size="sm" (click)="render()" [disabled]="loading()">
               <app-icon [name]="loading() ? 'loader' : 'refresh'" [size]="12" />
-              Render
+              Re-render
             </app-button>
             <app-button variant="secondary" size="sm" (click)="copy()" [disabled]="!content()">
               <app-icon name="copy" [size]="12" />
@@ -43,14 +44,20 @@ import { Button } from '../../ui/button/button';
         </div>
 
         <div class="flex min-h-0 flex-1">
-          @if (sections().length) {
-            <div class="w-56 shrink-0 overflow-y-auto border-r border-line p-3">
-              <p class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Sections</p>
+          @if (sectionData().length) {
+            <div class="w-52 shrink-0 overflow-y-auto border-r border-line p-3">
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-subtle">Sections</p>
               <div class="space-y-0.5">
-                @for (s of sections(); track s) {
-                  <label class="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-2xs hover:bg-surface-2">
-                    <input type="checkbox" [checked]="true" class="rounded border-line" disabled />
-                    <span class="flex-1 truncate text-ink-muted">{{ s }}</span>
+                @for (s of sectionData(); track s.key) {
+                  <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs hover:bg-surface-2 transition-colors">
+                    <input
+                      type="checkbox"
+                      [checked]="s.enabled"
+                      (change)="toggleSection(s.key)"
+                      class="rounded border-line accent-accent"
+                    />
+                    <span class="flex-1 truncate text-ink">{{ s.key }}</span>
+                    <span class="text-2xs tabular-nums text-ink-subtle">{{ s.tokens }}</span>
                   </label>
                 }
               </div>
@@ -59,11 +66,14 @@ import { Button } from '../../ui/button/button';
 
           <div class="min-h-0 flex-1 overflow-auto p-4">
             @if (content()) {
-              <pre class="whitespace-pre-wrap font-mono text-xs text-ink leading-relaxed">{{ content() }}</pre>
+              <pre class="whitespace-pre-wrap font-mono text-sm text-ink leading-relaxed">{{ content() }}</pre>
             } @else if (loading()) {
-              <div class="flex h-full items-center justify-center text-xs text-ink-muted">Rendering&hellip;</div>
+              <div class="flex h-full items-center justify-center gap-2 text-xs text-ink-muted">
+                <app-icon name="loader" [size]="14" class="animate-spin" />
+                Rendering…
+              </div>
             } @else {
-              <div class="flex h-full items-center justify-center text-xs text-ink-subtle">Click Render to generate LLM context from the analysis snapshot.</div>
+              <div class="flex h-full items-center justify-center text-xs text-ink-subtle">Rendering context…</div>
             }
           </div>
         </div>
@@ -81,9 +91,17 @@ export class SectionExport {
   private readonly toast = inject(ToastService);
 
   protected readonly content = signal('');
-  protected readonly sections = signal<string[]>([]);
+  protected readonly sectionData = signal<{ key: string; tokens: number; enabled: boolean }[]>([]);
   protected readonly tokenCount = signal(0);
   protected readonly loading = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.open() && this.session.handle()) {
+        void this.render();
+      }
+    });
+  }
 
   protected emitDismissed(): void {
     this.dismissed.emit();
@@ -94,15 +112,26 @@ export class SectionExport {
     if (!handle) return;
     this.loading.set(true);
     try {
-      const res = await this.api.render(handle, { format: 'markdown' });
+      const res = await this.api.render(handle, {
+        format: 'markdown',
+        sections: this.sectionData().filter((s) => s.enabled).map((s) => s.key),
+      });
       this.content.set(res.content);
-      this.sections.set(res.sections?.map((s) => s.key) ?? []);
       this.tokenCount.set(res.estimatedTokens);
+      const data = (res.sections ?? []).map((s) => ({ key: s.key, tokens: s.tokens, enabled: true }));
+      this.sectionData.set(data);
     } catch {
       this.toast.show('Render failed', 'error');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  protected toggleSection(key: string): void {
+    this.sectionData.update((data) =>
+      data.map((s) => (s.key === key ? { ...s, enabled: !s.enabled } : s)),
+    );
+    void this.render();
   }
 
   protected async copy(): Promise<void> {

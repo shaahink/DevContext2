@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 
 import { ConnectionStore } from '../../state/connection.store';
 import { SessionStore } from '../../state/session.store';
@@ -18,18 +18,6 @@ import { SectionStats } from './section-stats';
 import { SectionExport } from './section-export';
 import { SectionSettings } from './section-settings';
 
-const ALL_SECTIONS = [
-  'landing',
-  'identity',
-  'entries',
-  'trace',
-  'architecture',
-  'graph',
-  'stats',
-  'export',
-  'settings',
-] as const;
-
 @Component({
   selector: 'app-narrative-canvas',
   imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport, SectionSettings],
@@ -43,7 +31,7 @@ const ALL_SECTIONS = [
       [active]="activeSection()"
     />
 
-    <main class="mx-auto max-w-4xl px-4 pb-8 pt-14">
+    <main class="mx-auto max-w-4xl px-5 pb-10 pt-12">
       @if (session.error()) {
         <div class="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-xs text-ink">
           <div class="flex items-start gap-2">
@@ -99,7 +87,12 @@ export class NarrativeCanvas {
   readonly isAtTop = signal(true);
   readonly isAtBottom = signal(false);
   readonly activeSection = signal('landing');
-  readonly visibleSections = signal<readonly string[]>(ALL_SECTIONS);
+  readonly visibleSections = computed(() => {
+    if (this.session.ready()) {
+      return ['landing', 'identity', 'entries', 'trace', 'architecture', 'graph', 'stats', 'export', 'settings'] as const;
+    }
+    return ['landing', 'settings'] as const;
+  });
   readonly exportOpen = signal(false);
 
   constructor() {
@@ -119,7 +112,7 @@ export class NarrativeCanvas {
   }
 
   private detectActiveSection(scrollY: number, winH: number): void {
-    for (const id of ALL_SECTIONS) {
+    for (const id of this.visibleSections()) {
       const el = document.getElementById(id);
       if (!el) continue;
       const rect = el.getBoundingClientRect();

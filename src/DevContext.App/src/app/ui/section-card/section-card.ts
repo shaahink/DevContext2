@@ -5,15 +5,15 @@ import { Component, input } from '@angular/core';
   template: `
     <section
       [id]="id()"
-      class="scroll-mt-14 py-10"
+      class="scroll-mt-14 py-8"
       [class.border-b]="!last()"
-      [class.border-line]="!last()"
+      [class.border-line/50]="!last()"
     >
       @if (title()) {
-        <div class="mb-5 flex items-center gap-2">
-          <h2 class="text-xs font-semibold uppercase tracking-widest text-ink-muted">{{ title() }}</h2>
+        <div class="mb-4 flex items-center gap-2">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-ink-muted">{{ title() }}</h2>
           @if (subtitle()) {
-            <span class="text-2xs tabular-nums text-ink-subtle">{{ subtitle() }}</span>
+            <span class="text-xs tabular-nums text-ink-subtle">{{ subtitle() }}</span>
           }
         </div>
       }

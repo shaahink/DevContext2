@@ -15,27 +15,31 @@ const SECTION_NAMES: Record<string, string> = {
 @Component({
   selector: 'app-scroll-spy',
   template: `
-    <nav class="fixed right-2 top-1/2 z-30 -translate-y-1/2 space-y-1.5">
-      @for (id of sections(); track id) {
-        <button
-          class="group flex w-full items-center justify-end gap-1.5 rounded py-1 pl-2 pr-1.5 transition-colors hover:bg-surface/50"
-          (click)="scrollTo(id)"
-          [title]="nameFor(id)"
-        >
-          <span
-            class="inline text-2xs font-medium transition-opacity duration-200"
-            [class.text-accent]="active() === id"
-            [class.text-ink-subtle]="active() !== id"
-          >{{ nameFor(id) }}</span>
-          <span
-            class="inline-block h-2.5 w-2.5 rounded-full border transition-all duration-200"
+    <nav class="fixed right-3 top-1/2 z-30 -translate-y-1/2">
+      <div class="rounded-lg border border-line/60 bg-surface/90 backdrop-blur-sm shadow-md p-1.5 space-y-0.5">
+        @for (id of sections(); track id) {
+          <button
+            class="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-medium transition-all duration-150"
             [class.bg-accent]="active() === id"
-            [class.border-accent]="active() === id"
-            [class.border-ink-subtle]="active() !== id"
-            [class.bg-transparent]="active() !== id"
-          ></span>
-        </button>
-      }
+            [class.text-accent-ink]="active() === id"
+            [class.shadow-sm]="active() === id"
+            [class.text-ink-muted]="active() !== id"
+            [class.hover:bg-surface-2]="active() !== id"
+            [class.hover:text-ink]="active() !== id"
+            [class.bg-surface]="active() !== id"
+            (click)="scrollTo(id)"
+            [title]="'Scroll to ' + nameFor(id)"
+          >
+            <span
+              class="inline-block h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200"
+              [class.bg-accent-ink]="active() === id"
+              [class.bg-ink-subtle]="active() !== id"
+              [class.scale-125]="active() === id"
+            ></span>
+            <span>{{ nameFor(id) }}</span>
+          </button>
+        }
+      </div>
     </nav>
   `,
   host: { class: 'contents' },
@@ -50,6 +54,6 @@ export class ScrollSpy {
 
   scrollTo(id: string): void {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
