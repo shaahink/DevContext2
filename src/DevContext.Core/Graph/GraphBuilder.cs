@@ -34,6 +34,8 @@ public sealed class GraphBuilder
         new SignalrEntryPointBuilder(),
         new FunctionsEntryPointBuilder(),
         new OrleansGrainEntryPointBuilder(),
+        new GraphQlEntryPointBuilder(),
+        new CliCommandEntryPointBuilder(),
     ];
 
     /// <summary>Creates a graph builder with a symbol resolver (syntactic now, semantic in P3) and a noise filter.</summary>

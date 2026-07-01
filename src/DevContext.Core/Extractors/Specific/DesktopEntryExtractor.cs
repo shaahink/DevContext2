@@ -71,9 +71,10 @@ public sealed class DesktopEntryExtractor : IDiscoveryExtractor
                 }
 
                 // Window / Page / UserControl subclasses (WinUI, WPF, Avalonia, MAUI)
+                // plus Form (WinForms) and ContentPage (MAUI/Xamarin)
                 var baseType = GetBaseTypeName(classDecl);
                 if (baseType is "Window" or "Page" or "UserControl" or "ContentDialog"
-                    or "Application" && className != "App")
+                    or "Form" or "ContentPage" or "Shell" or "Application" && className != "App")
                 {
                     model.Detections.Add(new DesktopEntryDetection(className, MapBaseToKind(baseType))
                     {
@@ -112,7 +113,8 @@ public sealed class DesktopEntryExtractor : IDiscoveryExtractor
             // Return the last segment (simple name)
             var dot = name.LastIndexOf('.');
             var simple = dot >= 0 ? name[(dot + 1)..] : name;
-            if (simple is "Window" or "Page" or "UserControl" or "ContentDialog" or "Application")
+            if (simple is "Window" or "Page" or "UserControl" or "ContentDialog" or "Application"
+                or "Form" or "ContentPage" or "Shell")
                 return simple;
         }
         return null;
@@ -141,6 +143,9 @@ public sealed class DesktopEntryExtractor : IDiscoveryExtractor
         "Page" => DesktopEntryKind.Page,
         "UserControl" => DesktopEntryKind.UserControl,
         "ContentDialog" => DesktopEntryKind.Page,
+        "Form" => DesktopEntryKind.Window,
+        "ContentPage" => DesktopEntryKind.Page,
+        "Shell" => DesktopEntryKind.Page,
         "Application" => DesktopEntryKind.AppStartup,
         _ => DesktopEntryKind.Window,
     };

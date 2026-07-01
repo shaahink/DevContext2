@@ -394,6 +394,11 @@ public sealed class EvalExpectationTests : IDisposable
             new AzureFunctionsExtractor(),
             new RazorPagesExtractor(),
             new OrleansGrainExtractor(),
+            new NServiceBusExtractor(),
+            new WolverineExtractor(),
+            new AwsLambdaExtractor(),
+            new GraphQlResolverExtractor(),
+            new CliCommandExtractor(),
         };
 
         var pruners = new List<IPruner>

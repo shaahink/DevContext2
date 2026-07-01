@@ -23,6 +23,8 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
 [JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
 [JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
+[JsonDerivedType(typeof(GraphQlFieldDetection), "GraphQlFieldDetection")]
+[JsonDerivedType(typeof(CliCommandDetection), "CliCommandDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -167,4 +169,18 @@ public sealed record GrainDetection(
     string GrainType,
     string InterfaceType,
     ImmutableArray<string> Methods
+) : Detection;
+
+/// <summary>Detection for a GraphQL resolver field (query/mutation/subscription type).</summary>
+public sealed record GraphQlFieldDetection(
+    string TypeName,
+    string FieldName,
+    string OperationType
+) : Detection;
+
+/// <summary>Detection for a CLI command handler (Spectre.Console.Cli / System.CommandLine).</summary>
+public sealed record CliCommandDetection(
+    string CommandType,
+    string SettingsType,
+    string ExecuteMethod
 ) : Detection;

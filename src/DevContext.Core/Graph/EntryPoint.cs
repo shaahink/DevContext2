@@ -5,6 +5,7 @@ public enum EntryPointKind
 {
     HttpEndpoint, MessageConsumer, HostedService, ScheduledJob, DomainEventHandler, PublicApi,
     UiEntry, BlazorPage, GrpcService, SignalRHub, FunctionEntry, GrainMethod,
+    GraphQlField, CliCommand,
 }
 
 /// <summary>

@@ -128,6 +128,62 @@ public static class EntrySurfaceCatalog
             SdkHints:   [],
             SelfNamePatterns: []),
 
+        // ── E4: Messaging breadth ────────────────────────────────────
+
+        new(SignalKey: ArchitectureSignals.Keys.NServiceBus,
+            Kind:       EntryPointKind.MessageConsumer,
+            RenderLabel:"Bus",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["NServiceBus", "NServiceBus.Extensions.Hosting"],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
+        new(SignalKey: ArchitectureSignals.Keys.AzureServiceBus,
+            Kind:       EntryPointKind.MessageConsumer,
+            RenderLabel:"Bus",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["Azure.Messaging.ServiceBus"],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
+        new(SignalKey: ArchitectureSignals.Keys.Wolverine,
+            Kind:       EntryPointKind.MessageConsumer,
+            RenderLabel:"Bus",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["WolverineFx"],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
+        // ── E5: AWS Lambda ───────────────────────────────────────────
+
+        new(SignalKey: ArchitectureSignals.Keys.AwsLambda,
+            Kind:       EntryPointKind.FunctionEntry,
+            RenderLabel:"Functions",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["Amazon.Lambda.Core", "Amazon.Lambda.Annotations"],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
+        // ── E6: GraphQL resolvers ────────────────────────────────────
+
+        new(SignalKey: ArchitectureSignals.Keys.GraphQL,
+            Kind:       EntryPointKind.GraphQlField,
+            RenderLabel:"GraphQL",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["HotChocolate.AspNetCore", "HotChocolate"],
+            SdkHints:   [],
+            SelfNamePatterns: ["HotChocolate", "GreenDonut"]),
+
+        // ── E7: CLI commands ─────────────────────────────────────────
+
+        new(SignalKey: ArchitectureSignals.Keys.CliCommands,
+            Kind:       EntryPointKind.CliCommand,
+            RenderLabel:"CLI",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["Spectre.Console.Cli", "System.CommandLine"],
+            SdkHints:   [],
+            SelfNamePatterns: []),
+
         // ── Framework-library signals (self-source means the repo IS the framework) ──
 
         new(SignalKey: ArchitectureSignals.Keys.MassTransit,

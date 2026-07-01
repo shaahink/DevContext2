@@ -61,5 +61,9 @@ public sealed class ArchitectureSignals
         public const string GraphQL = "graphql";
         public const string Testing = "testing";
         public const string RazorPages = "razor-pages";
+        public const string Wolverine = "wolverine";
+        public const string AzureServiceBus = "azure-servicebus";
+        public const string AwsLambda = "aws-lambda";
+        public const string CliCommands = "cli-commands";
     }
 }
