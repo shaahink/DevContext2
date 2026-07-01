@@ -7,12 +7,15 @@ import { AppHeader } from '../../shell/header/app-header';
 import { AppFooter } from '../../shell/footer/app-footer';
 import { ScrollSpy } from '../../shell/scroll-spy/scroll-spy';
 import { SectionCard } from '../../ui/section-card/section-card';
+import { Icon } from '../../ui/icon/icon';
 import { SectionLanding } from './section-landing';
 import { SectionIdentity } from './section-identity';
 import { SectionEntries } from './section-entries';
 import { SectionTrace } from './section-trace';
 import { SectionArchitecture } from './section-architecture';
 import { SectionGraph } from './section-graph';
+import { SectionStats } from './section-stats';
+import { SectionExport } from './section-export';
 
 const ALL_SECTIONS = [
   'landing',
@@ -28,7 +31,7 @@ const ALL_SECTIONS = [
 
 @Component({
   selector: 'app-narrative-canvas',
-  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph],
+  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport],
   template: `
     <app-header [transparent]="!isAtTop()">
       <ng-container analyze />
@@ -52,12 +55,18 @@ const ALL_SECTIONS = [
 
         <app-section-graph />
 
-        <app-section-card id="stats" title="Pipeline">
-          <p class="text-sm text-ink-muted">Loading stats&hellip;</p>
-        </app-section-card>
+        <app-section-stats />
 
-        <app-section-card id="export" title="LLM Context">
-          <p class="text-xs text-ink-subtle">Generate structured context for LLMs.</p>
+        <app-section-card id="export" title="LLM Context" [last]="true">
+          <div class="flex items-center justify-center py-4">
+            <button
+              class="flex cursor-pointer items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-xs text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+              (click)="exportOpen.set(true)"
+            >
+              <app-icon name="file-text" [size]="14" />
+              Open LLM Context Exporter
+            </button>
+          </div>
         </app-section-card>
       }
 
@@ -65,6 +74,8 @@ const ALL_SECTIONS = [
         <p class="text-sm text-ink-muted">Loading settings&hellip;</p>
       </app-section-card>
     </main>
+
+    <app-section-export [open]="exportOpen()" (dismissed)="exportOpen.set(false)" />
 
     <app-footer [transparent]="!isAtBottom()" />
   `,
@@ -78,6 +89,7 @@ export class NarrativeCanvas {
   readonly isAtBottom = signal(false);
   readonly activeSection = signal('landing');
   readonly visibleSections = signal<readonly string[]>(ALL_SECTIONS);
+  readonly exportOpen = signal(false);
 
   constructor() {
     this.connection.start();

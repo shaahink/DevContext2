@@ -1,6 +1,6 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
-import type { AnalysisSummary, MapResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { AnalysisSummary, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ActivityService } from '../core/activity/activity.service';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EntryGroupVm, groupEntries } from '../models/view-models';
@@ -25,6 +25,7 @@ export class SessionStore {
   private readonly _mapResponse = signal<MapResponse | null>(null);
   private readonly _mapMarkdown = signal('');
   private readonly _entryGroups = signal<readonly EntryGroupVm[]>([]);
+  private readonly _stats = signal<StatsResponse | null>(null);
 
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
@@ -33,10 +34,27 @@ export class SessionStore {
   readonly mapResponse = this._mapResponse.asReadonly();
   readonly mapMarkdown = this._mapMarkdown.asReadonly();
   readonly entryGroups = this._entryGroups.asReadonly();
+  readonly stats = this._stats.asReadonly();
 
   readonly busy = computed(() => this._status() === 'analyzing' || this._status() === 'cloning');
   readonly ready = computed(() => this._status() === 'ready');
   readonly entryCount = computed(() => this._entryGroups().reduce((n, g) => n + g.entries.length, 0));
+
+  constructor() {
+    effect(() => {
+      const handle = this._handle();
+      if (handle) void this.fetchStats(handle);
+    });
+  }
+
+  private async fetchStats(handle: string): Promise<void> {
+    try {
+      const stats = await this.api.getStats(handle);
+      this._stats.set(stats);
+    } catch {
+      this._stats.set(null);
+    }
+  }
 
   async analyze(spec: AnalyzeSpec): Promise<void> {
     this.activity.start(isRepoUrl(spec.path) ? 'Cloning…' : 'Analyzing…');
@@ -47,6 +65,7 @@ export class SessionStore {
     this._mapResponse.set(null);
     this._mapMarkdown.set('');
     this._entryGroups.set([]);
+    this._stats.set(null);
     this._status.set(isRepoUrl(spec.path) ? 'cloning' : 'analyzing');
 
     try {

@@ -16,7 +16,7 @@ import { FormsModule } from '@angular/forms';
         <div class="mb-3 flex items-center gap-3 text-2xs">
           <label class="flex items-center gap-1.5">
             <span class="text-ink-subtle">Depth</span>
-            <select class="rounded border border-line bg-base px-1.5 py-1 text-xs text-ink outline-none focus:border-accent" [(ngModel)]="graphDepth" (ngModelChange)="onDepthChange($event)">
+            <select class="rounded border border-line bg-base px-1.5 py-1 text-xs text-ink outline-none focus:border-accent" [(ngModel)]="graphDepth" (ngModelChange)="onDepthChange()">
               <option [value]="1">1</option>
               <option [value]="2">2</option>
               <option [value]="3">3</option>
