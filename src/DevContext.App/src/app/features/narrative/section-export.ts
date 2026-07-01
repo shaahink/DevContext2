@@ -78,7 +78,6 @@ export class SectionExport {
 
   private readonly session = inject(SessionStore);
   private readonly api = inject(DevContextApi);
-  private readonly activity = inject(ActivityService);
   private readonly toast = inject(ToastService);
 
   protected readonly content = signal('');

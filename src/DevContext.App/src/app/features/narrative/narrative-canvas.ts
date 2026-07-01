@@ -16,6 +16,7 @@ import { SectionArchitecture } from './section-architecture';
 import { SectionGraph } from './section-graph';
 import { SectionStats } from './section-stats';
 import { SectionExport } from './section-export';
+import { SectionSettings } from './section-settings';
 
 const ALL_SECTIONS = [
   'landing',
@@ -31,7 +32,7 @@ const ALL_SECTIONS = [
 
 @Component({
   selector: 'app-narrative-canvas',
-  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport],
+  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport, SectionSettings],
   template: `
     <app-header [transparent]="!isAtTop()">
       <ng-container analyze />
@@ -70,9 +71,7 @@ const ALL_SECTIONS = [
         </app-section-card>
       }
 
-      <app-section-card id="settings" title="Settings" [last]="true">
-        <p class="text-sm text-ink-muted">Loading settings&hellip;</p>
-      </app-section-card>
+      <app-section-settings />
     </main>
 
     <app-section-export [open]="exportOpen()" (dismissed)="exportOpen.set(false)" />
