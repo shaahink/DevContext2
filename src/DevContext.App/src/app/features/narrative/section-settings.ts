@@ -55,7 +55,7 @@ import { Icon } from '../../ui/icon/icon';
                 <div class="flex items-center gap-2 rounded border border-line bg-surface px-2 py-1.5">
                   <div class="min-w-0 flex-1">
                     <p class="truncate font-mono text-xs text-ink">{{ r.label }}</p>
-                    <p class="truncate text-3xs text-ink-subtle">{{ r.path }}</p>
+                    <p class="truncate text-2xs text-ink-subtle">{{ r.path }}</p>
                   </div>
                   <button
                     class="shrink-0 rounded p-0.5 text-ink-muted hover:bg-surface-2 hover:text-ink"

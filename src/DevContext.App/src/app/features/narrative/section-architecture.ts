@@ -3,17 +3,7 @@ import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
 import { SectionCard } from '../../ui/section-card/section-card';
 import { Badge } from '../../ui/badge/badge';
-
-const SEAM_COLORS: Record<string, string> = {
-  Handle: '#3fb950',
-  Call: '#8b949e',
-  Send: '#a371f7',
-  Raise: '#d29922',
-  Consume: '#e8752a',
-  Data: '#39c5cf',
-  Resolve: '#6b7480',
-  Pipeline: '#a371f7',
-};
+import { SEAM_COLORS } from '../../models/seam-colors';
 
 @Component({
   selector: 'app-section-architecture',
@@ -107,12 +97,11 @@ export class SectionArchitecture {
   protected readonly aggregates = computed(() => this.map()?.aggregates ?? []);
   protected readonly packages = computed(() => this.map()?.packages ?? []);
   protected readonly seamPct = computed(() => {
-    const seams = this.map()?.stack ?? [];
-    const counts: Record<string, number> = {};
-    for (const s of seams) counts[s] = (counts[s] ?? 0) + 1;
-    const max = Math.max(...Object.values(counts), 1);
-    return Object.entries(counts)
-      .map(([seam, count]) => ({ seam, count, pct: Math.round((count / max) * 100) }))
+    const stats = this.session.stats();
+    if (!stats?.seams.length) return [];
+    const max = Math.max(...stats.seams.map((s) => s.count), 1);
+    return stats.seams
+      .map((s) => ({ seam: s.seam, count: s.count, pct: Math.round((s.count / max) * 100) }))
       .sort((a, b) => b.count - a.count);
   });
 

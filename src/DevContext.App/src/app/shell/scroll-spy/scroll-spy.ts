@@ -15,18 +15,20 @@ const SECTION_NAMES: Record<string, string> = {
 @Component({
   selector: 'app-scroll-spy',
   template: `
-    <nav class="fixed right-3 top-1/2 z-30 -translate-y-1/2 space-y-2">
+    <nav class="fixed right-2 top-1/2 z-30 -translate-y-1/2 space-y-1.5">
       @for (id of sections(); track id) {
         <button
-          class="group flex w-full items-center justify-end gap-2 py-0.5"
+          class="group flex w-full items-center justify-end gap-1.5 rounded py-1 pl-2 pr-1.5 transition-colors hover:bg-surface/50"
           (click)="scrollTo(id)"
           [title]="nameFor(id)"
         >
           <span
-            class="hidden text-2xs text-ink-subtle opacity-0 transition-opacity group-hover:inline group-hover:opacity-100"
+            class="inline text-2xs font-medium transition-opacity duration-200"
+            [class.text-accent]="active() === id"
+            [class.text-ink-subtle]="active() !== id"
           >{{ nameFor(id) }}</span>
           <span
-            class="inline-block h-2 w-2 rounded-full border transition-all duration-200"
+            class="inline-block h-2.5 w-2.5 rounded-full border transition-all duration-200"
             [class.bg-accent]="active() === id"
             [class.border-accent]="active() === id"
             [class.border-ink-subtle]="active() !== id"

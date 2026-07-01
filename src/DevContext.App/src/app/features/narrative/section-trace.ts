@@ -14,7 +14,7 @@ import { Icon } from '../../ui/icon/icon';
     <app-section-card id="trace" title="Trace" [subtitle]="traceStore.focus() ?? ''">
       @if (traceStore.active()) {
         <div class="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-line bg-surface px-3 py-2">
-          <div class="flex items-center gap-2">
+          <div class="relative flex items-center gap-2">
             <span class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Focus</span>
             <input
               class="w-56 rounded border border-line bg-base px-2 py-1 font-mono text-xs text-ink outline-none focus:border-accent"

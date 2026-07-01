@@ -67,8 +67,5 @@ export class SectionGraph {
     const handle = this.session.handle();
     if (!handle || !nodeId) return;
     void this.traceStore.trace(handle, nodeId);
-    setTimeout(() => {
-      document.getElementById('trace')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   }
 }

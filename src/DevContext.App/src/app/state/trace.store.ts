@@ -21,6 +21,7 @@ export type TraceDetail = 'signature' | 'salient' | 'full';
 export class TraceStore {
   private readonly api = inject(DevContextApi);
   private handle: string | null = null;
+  private abortController: AbortController | null = null;
 
   private readonly _focus = signal<string | null>(null);
   private readonly _depth = signal(6);
@@ -71,6 +72,7 @@ export class TraceStore {
   }
 
   clear(): void {
+    this.abortController?.abort();
     this._focus.set(null);
     this._tree.set(null);
     this._markdown.set('');
@@ -98,21 +100,29 @@ export class TraceStore {
     const focus = this._focus();
     if (!handle || !focus) return;
 
+    this.abortController?.abort();
+    const ac = new AbortController();
+    this.abortController = ac;
+
     this._loading.set(true);
     this._error.set(null);
     try {
       const res = await this.api.getTrace(handle, focus, this._depth(), this._detail());
+      if (ac.signal.aborted) return;
       this._found.set(res.found);
       this._tree.set(res.found && res.root ? toTraceVm(res.root) : null);
       this._markdown.set(res.markdown);
       this._touched.set(res.touchedEntities);
       this._emitted.set(res.emittedEvents);
     } catch (err) {
+      if (ac.signal.aborted) return;
       this._error.set(err instanceof Error ? err.message : 'Trace request failed');
       this._found.set(false);
       this._tree.set(null);
     } finally {
-      this._loading.set(false);
+      if (this.abortController === ac) {
+        this._loading.set(false);
+      }
     }
   }
 }

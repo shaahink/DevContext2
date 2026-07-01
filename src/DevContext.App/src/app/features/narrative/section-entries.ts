@@ -134,8 +134,5 @@ export class SectionEntries {
     const handle = this.session.handle();
     if (!handle) return;
     void this.trace.trace(handle, entry.focus);
-    setTimeout(() => {
-      document.getElementById('trace')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   }
 }

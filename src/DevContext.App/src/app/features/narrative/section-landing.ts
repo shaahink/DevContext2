@@ -56,13 +56,16 @@ type InputType = 'local' | 'github' | null;
             <div class="space-y-2 rounded-md border border-line bg-surface px-3 py-2.5 text-left">
               <div class="flex items-center gap-2 text-xs">
                 <app-spinner />
-                <span class="text-ink">{{ activity.label() || 'Working…' }}</span>
-                @if (activity.stage()) {
-                  <span class="font-mono text-ink-subtle">{{ activity.stage() }}</span>
-                }
+                <span class="flex-1 text-ink">{{ activity.label() || 'Working…' }}</span>
                 @if (activity.percent() > 0) {
-                  <span class="ml-auto font-mono tabular-nums text-accent">{{ activity.percent() }}%</span>
+                  <span class="font-mono tabular-nums text-accent">{{ activity.percent() }}%</span>
                 }
+                <button
+                  class="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-2xs text-ink-muted hover:bg-surface-2 hover:text-danger transition-colors"
+                  (click)="session.cancel()"
+                >
+                  <app-icon name="x" [size]="11" /> Cancel
+                </button>
               </div>
               @if (activity.percent() > 0) {
                 <div class="h-1 w-full overflow-hidden rounded-full bg-surface-2">
@@ -86,7 +89,7 @@ type InputType = 'local' | 'github' | null;
                   <app-icon name="folder-open" [size]="14" class="shrink-0 text-ink-muted" />
                   <div class="min-w-0 flex-1">
                     <p class="truncate font-mono text-sm text-ink">{{ r.label }}</p>
-                    <p class="truncate text-3xs text-ink-subtle">{{ r.path }}</p>
+                    <p class="truncate text-2xs text-ink-subtle">{{ r.path }}</p>
                   </div>
                 </button>
               }
@@ -99,11 +102,11 @@ type InputType = 'local' | 'github' | null;
           <div class="mt-3 space-y-3 rounded-md border border-line bg-surface p-3">
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-1">
-                <span class="text-3xs text-ink-subtle">Depth (1–10)</span>
+                <span class="text-2xs text-ink-subtle">Depth (1–10)</span>
                 <input type="number" min="1" max="10" class="rounded border border-line bg-base px-2 py-1 font-mono text-xs text-ink outline-none focus:border-accent" [(ngModel)]="depth" [disabled]="session.busy()" />
               </label>
               <label class="flex flex-col gap-1">
-                <span class="text-3xs text-ink-subtle">Detail</span>
+                <span class="text-2xs text-ink-subtle">Detail</span>
                 <select class="rounded border border-line bg-base px-2 py-1 text-xs text-ink outline-none focus:border-accent" [(ngModel)]="detail" [disabled]="session.busy()">
                   <option value="salient">Salient</option>
                   <option value="signature">Signature</option>
@@ -116,7 +119,7 @@ type InputType = 'local' | 'github' | null;
               No Roslyn
             </label>
             <div class="flex items-center gap-3">
-              <span class="text-3xs text-ink-subtle">Clone cleanup</span>
+              <span class="text-2xs text-ink-subtle">Clone cleanup</span>
               <label class="flex items-center gap-1.5 text-xs text-ink-muted">
                 <input type="radio" name="landing-cleanup" value="auto" [(ngModel)]="cleanup" [disabled]="session.busy()" />
                 Auto

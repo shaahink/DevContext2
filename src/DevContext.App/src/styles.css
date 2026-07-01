@@ -27,8 +27,8 @@
   font-size: 0.625rem;
 }
 
-@utility text-3xs {
-  font-size: 0.6875rem;
+@utility text-xs {
+  font-size: 0.75rem;
 }
 
 @utility tabular-nums {

@@ -44,6 +44,18 @@ const ALL_SECTIONS = [
     />
 
     <main class="mx-auto max-w-4xl px-4 pb-8 pt-14">
+      @if (session.error()) {
+        <div class="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-xs text-ink">
+          <div class="flex items-start gap-2">
+            <app-icon name="x" [size]="14" class="mt-0.5 shrink-0 text-danger" />
+            <div>
+              <p class="font-medium text-danger">Analysis failed</p>
+              <p class="mt-0.5 text-ink-muted">{{ session.error() }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (!session.ready()) {
         <app-section-landing />
       }

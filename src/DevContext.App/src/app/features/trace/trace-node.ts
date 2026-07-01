@@ -12,7 +12,7 @@ import { Badge } from '../../ui/badge/badge';
         <span class="shrink-0 rounded bg-surface-2 px-1 py-0.5 font-mono text-2xs text-accent">{{ node().seam }}</span>
         <div class="min-w-0">
           <p class="font-mono text-xs text-ink">{{ node().title }}</p>
-          @if (node().salient) { <p class="mt-0.5 text-3xs text-ink-muted line-clamp-2">{{ node().salient }}</p> }
+          @if (node().salient) { <p class="mt-0.5 text-xs text-ink-muted line-clamp-2">{{ node().salient }}</p> }
           <div class="mt-0.5 flex items-center gap-1.5 text-2xs">
             @if (node().resolution === 'Syntactic') { <app-badge variant="warn">approx</app-badge> }
             @if (node().truncated) { <app-badge variant="default">truncated</app-badge> }
