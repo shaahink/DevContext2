@@ -6,8 +6,9 @@ The audit and expansion that made DevContext detect **27 .NET repos** across all
 
 | File | Purpose |
 |------|---------|
-| `MASTER-PLAN.md` | **Start here for the next work.** Resumable V2 plan — corrected archetype model, the detected≠rendered gap, the Entry Surface Catalog (anti-explosion), prioritized workstreams (WS-A…G), target output specs, eval strategy. Supersedes the order in FINDINGS-AND-PLAN. |
-| `HANDOVER.md` | What P0/P3/P1 delivered — kernel hygiene rules, the 10 entry kinds, resume instructions for the *completed* phase. |
+| `HANDOVER-V2.md` | **Current.** What WS-A through WS-F delivered — full V2 handover, architecture guide, performance note, resume instructions. |
+| `MASTER-PLAN.md` | Original V2 plan — corrected archetype model, workstream descriptions, output specs. |
+| `HANDOVER.md` | What P0/P3/P1 delivered (phase 1 — now superseded by V2). |
 | `FINDINGS-AND-PLAN.md` | Raw 27-repo analysis matrix, systemic failure diagnosis, priority-ordered fix plan. |
 | `run-all.ps1` | Re-run the batch analysis across all 27 repos (`--Fast` skips the 6 huge ones). |
 | `analysis/` | Raw JSON + Markdown outputs from every repo analysis (pre-fix baselines). |
