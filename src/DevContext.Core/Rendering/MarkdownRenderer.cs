@@ -225,7 +225,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         var activeTypes = includedIds is not null
             ? includedIds.Count
             : model.Types.Values.Count(t => !t.IsHardExcluded);
-        sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} (budget {model.Budget.MaxTokens}) | **Types**: {activeTypes} in output");
+        sb.AppendLine($"**Profile**: {options.ProfileDisplayName ?? "default"} | **Tokens**: ~{options.EstimatedTokens} | **Types**: {activeTypes} in output");
         sb.AppendLine();
     }
 

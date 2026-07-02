@@ -11,7 +11,6 @@ global using DevContext.Core.IO;
 global using DevContext.Core.Models;
 global using DevContext.Core.Observers;
 global using DevContext.Core.Pipeline;
-global using DevContext.Core.Pruning;
 global using DevContext.Core.Rendering;
 global using DevContext.Core.Resolvers;
 global using DevContext.Core.Utilities;

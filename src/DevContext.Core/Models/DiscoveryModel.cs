@@ -35,8 +35,6 @@ public sealed class DiscoveryModel
     public ConcurrentDictionary<string, ConcurrentBag<InclusionReason>> Provenance { get; } = new();
     /// <summary>Diagnostic entries recorded during the pipeline run.</summary>
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
-    /// <summary>Token budget configuration for the model.</summary>
-    public TokenBudget Budget { get; internal set; } = TokenBudget.Default;
     /// <summary>Compression results recorded sequentially during the compression stage.</summary>
     public List<CompressionResult> AppliedCompressions { get; } = [];
 

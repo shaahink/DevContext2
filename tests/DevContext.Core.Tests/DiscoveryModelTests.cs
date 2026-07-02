@@ -41,11 +41,4 @@ public sealed class DiscoveryModelTests
         await Task.WhenAll(tasks);
         Assert.Equal(10, model.Detections.Count);
     }
-
-    [Fact]
-    public void DefaultBudget_Is8000()
-    {
-        var model = new DiscoveryModel();
-        Assert.Equal(8000, model.Budget.MaxTokens);
-    }
 }

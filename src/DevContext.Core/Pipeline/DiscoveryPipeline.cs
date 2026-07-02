@@ -93,7 +93,7 @@ public sealed class DiscoveryPipeline
         if (context.Options.Profile == ExtractionProfile.Debug && _validationWarnings.Count > 0)
             _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
 
-        var model = new DiscoveryModel { Budget = new TokenBudget { MaxTokens = context.Options.MaxOutputTokens } };
+        var model = new DiscoveryModel();
         context.Observer.OnPipelineStarted(context);
 
         var collector = (context.Observer as CompositeDiscoveryObserver)?.GetInner()
@@ -153,7 +153,6 @@ public sealed class DiscoveryPipeline
         // I3 — compute insights post-graph (pure, cheap, no scoring)
         var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
 
-        await RunScoringAsync(context, model, ct);
         await RunCompressionAsync(context, model, ct);
 
         context.Observer.OnPipelineCompleted(model);
@@ -615,40 +614,11 @@ public sealed class DiscoveryPipeline
         return rendered with { SelfCheckFailures = failures.ToImmutable() };
     }
 
-    private async Task RunScoringAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
-    {
-        // PLAN-10 E1: scoring stage shell kept for observer compatibility; the
-        // weighted FinalScore + PathProximityPruner + CallReachabilityPruner are retired.
-        // Noise filtering moved to NoiseFilter at graph-build time. Trace reachability
-        // is now the TraceBuilder traversal over CodeGraph, not a global flat scorer.
-        // NOTE (Iteration 1): these pruners (TokenBudgetEnforcer, PatternRelevancePruner) run AFTER the
-        // graph is frozen and mutate only model.Types (IsPruned/RoleScore) for the legacy catalog
-        // RenderPlan → JSON/HTML. The Map/Trace graph is independent of them. They are slated to retire
-        // together with the catalog render path; until then they stay so JSON/HTML keep sizing.
-        ctx.Observer.OnStageStarted(PipelineStage.Scoring);
-        var sw = Stopwatch.StartNew();
-
-        foreach (var pruner in _pruners.OrderBy(p => p.Order))
-        {
-            ct.ThrowIfCancellationRequested();
-            var before = model.Types.Values.Count(t => !t.IsPruned);
-            await pruner.PruneAsync(ctx, model, ct);
-            var after = model.Types.Values.Count(t => !t.IsPruned);
-            ctx.Observer.OnPrunerCompleted(pruner.Name, before, after);
-        }
-
-        // Simple role-score fallback for legacy render path: detection-bearing types rank higher.
-        foreach (var type in model.Types.Values)
-            type.FinalScore = type.RoleScore;
-
-        ctx.Observer.OnStageCompleted(PipelineStage.Scoring, sw.Elapsed);
-    }
-
     private async Task RunCompressionAsync(DiscoveryContext ctx, DiscoveryModel model, CancellationToken ct)
     {
         ctx.Observer.OnStageStarted(PipelineStage.Compression);
         var sw = Stopwatch.StartNew();
-        var options = new CompressionOptions(model.Budget.MaxTokens, ctx.ActiveScenario.Compression.PerTypeCharCap);
+        var options = new CompressionOptions(ctx.Options.MaxOutputTokens, ctx.ActiveScenario.Compression.PerTypeCharCap);
 
         foreach (var strategy in _compressionStrategies.OrderBy(s => s.Order))
         {

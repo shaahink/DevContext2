@@ -84,7 +84,7 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""MyApp"", ""MyApp.csproj"
         Assert.Contains("PipelineCompleted", observer.Events[^1]);
     }
 
-    [Fact]
+    [Fact(Skip = "Pruners retired (W9)")]
     public async Task RunPruningAsync_ReportsPerPrunerBeforeCounts()
     {
         var fs = new FakeFileSystem();
