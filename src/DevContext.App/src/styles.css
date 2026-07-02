@@ -27,8 +27,8 @@
   font-size: 0.625rem;
 }
 
-@utility text-3xs {
-  font-size: 0.6875rem;
+@utility text-xs {
+  font-size: 0.75rem;
 }
 
 @utility tabular-nums {
@@ -215,14 +215,17 @@
 html,
 body {
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   margin: 0;
   background: var(--vibe-base);
   color: var(--vibe-ink);
   font-family: var(--vibe-font-sans);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
