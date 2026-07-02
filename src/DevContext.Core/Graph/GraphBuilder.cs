@@ -752,11 +752,20 @@ public sealed class GraphBuilder
                 }
             }
 
-            // new TIntegrationEvent(...) — constructor calls for integration events
-            foreach (Match match in Regex.Matches(body,
-                @"new\s+(\w*IntegrationEvent\w*)\s*\(", RegexOptions.Compiled))
+            // I1.4 — build event type-set from model (BaseTypes / ImplementedInterfaces)
+            // so the body-scan matches the real event types, not just *IntegrationEvent* by name.
+            var eventTypeNames = BuildEventTypeNameSet(model);
+
+            // new TEvent(...) where TEvent ∈ model-derived event type set (I1.4)
+            foreach (Match match in Regex.Matches(body, @"new\s+(\w+)\s*\(", RegexOptions.Compiled))
             {
                 var eventName = match.Groups[1].Value;
+                if (!eventTypeNames.Contains(eventName))
+                {
+                    // Fallback: legacy *IntegrationEvent* name regex for repos without event base types
+                    if (!eventName.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                }
                 var eventId = NodeId.ForType(names.Resolve(eventName));
 
                 g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
@@ -1150,6 +1159,56 @@ public sealed class GraphBuilder
         ImmutableArray<MethodSpan> spans, int pos, string receiverName)
     {
         return ResolveVariableFromModel(type, spans, pos, receiverName);
+    }
+
+    /// <summary>Builds a set of type short names that are events/commands/notifications by checking
+    /// each type's BaseTypes and ImplementedInterfaces against known event markers (I1.4).</summary>
+    private static HashSet<string> BuildEventTypeNameSet(DiscoveryModel model)
+    {
+        var knownSuffixes = new[]
+        {
+            "IntegrationEvent", "DomainEvent", "Event", "Message",
+            "INotification", "IDomainEvent", "IEvent", "IMessage",
+            "IRequest", "ICommand", "IQuery",
+        };
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+        {
+            var isEvent = false;
+            foreach (var bt in type.BaseTypes)
+            {
+                var stripped = StripGenerics(bt);
+                foreach (var suffix in knownSuffixes)
+                {
+                    if (stripped.EndsWith(suffix, StringComparison.Ordinal))
+                    {
+                        isEvent = true;
+                        break;
+                    }
+                }
+                if (isEvent) break;
+            }
+            if (!isEvent)
+            {
+                foreach (var iface in type.ImplementedInterfaces)
+                {
+                    var stripped = StripGenerics(iface);
+                    foreach (var suffix in knownSuffixes)
+                    {
+                        if (stripped.EndsWith(suffix, StringComparison.Ordinal))
+                        {
+                            isEvent = true;
+                            break;
+                        }
+                    }
+                    if (isEvent) break;
+                }
+            }
+            if (isEvent)
+                names.Add(type.Name);
+        }
+        return names;
     }
 
     /// <summary>Returns the portion of a type's SourceBody that is outside all method spans —
