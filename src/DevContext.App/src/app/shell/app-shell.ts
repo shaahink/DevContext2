@@ -26,6 +26,7 @@ const TOP_ITEMS: readonly NavItem[] = [
 const LENS_ITEMS: readonly NavItem[] = [
   { route: '/overview', icon: 'map', label: 'Overview', gateSession: true },
   { route: '/entries', icon: 'webhook', label: 'Entries', gateSession: true },
+  { route: '/graph', icon: 'share-2', label: 'Graph', gateSession: true },
   { route: '/insights', icon: 'lightbulb', label: 'Insights', gateSession: true },
   { route: '/browse', icon: 'search', label: 'Browse', gateSession: true },
   { route: '/trace', icon: 'network', label: 'Trace', gateSession: true },

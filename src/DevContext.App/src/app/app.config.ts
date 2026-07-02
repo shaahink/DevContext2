@@ -10,6 +10,7 @@ const routes: Routes = [
   { path: 'document', loadComponent: () => import('./features/document/document-view').then((m) => m.DocumentView) },
   { path: 'stats', loadComponent: () => import('./features/stats/stats-view').then((m) => m.StatsView) },
   { path: 'insights', loadComponent: () => import('./features/insights/insights-view').then((m) => m.InsightsView) },
+  { path: 'graph', loadComponent: () => import('./features/graph/graph-view').then((m) => m.GraphView) },
   { path: 'cache', loadComponent: () => import('./features/cache/cache-view').then((m) => m.CacheView) },
   { path: '**', redirectTo: '' },
 ];
