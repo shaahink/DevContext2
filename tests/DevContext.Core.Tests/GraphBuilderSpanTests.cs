@@ -90,4 +90,57 @@ public sealed class GraphBuilderSpanTests
         var raisesFromApply = graph.OutEdges(applyMemberId, EdgeKind.Raises);
         Assert.DoesNotContain(raisesFromApply, edge => edge.To == startedEventId);
     }
+
+    [Fact]
+    public void Send_of_parameter_type_resolves_via_method_signature()
+    {
+        // I1.2: B(BetaCommand cmd) has no in-span new, but cmd's type IS BetaCommand
+        // from the method signature — the fallback should resolve it.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Handler.Api", @"C:\repo\src\Handler.Api\Handler.Api.csproj",
+                    "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("Handler.Api.Handler", new TypeDiscovery
+        {
+            Id = "Handler.Api.Handler",
+            Name = "Handler",
+            Namespace = "Handler.Api",
+            FilePath = @"C:\repo\src\Handler.Api\Handler.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            Methods =
+            [
+                new MethodSignature("Handle",
+                    "Task",
+                    ["BetaCommand"],
+                    ["cmd"],
+                    Microsoft.CodeAnalysis.Accessibility.Public,
+                    false, false),
+            ],
+            SourceBody = """
+                public class Handler
+                {
+                    private readonly IMediator _m;
+                    public Task Handle(BetaCommand cmd) => _m.Send(cmd);
+                }
+                """,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        // Handle's Send(cmd) should resolve to BetaCommand via param-type fallback
+        var handleMemberId = NodeId.ForMember("Handler.Api.Handler", "Handle");
+        var betaCmdId = NodeId.ForType("BetaCommand");
+        var sendsFromHandle = graph.OutEdges(handleMemberId, EdgeKind.Sends);
+        Assert.Contains(sendsFromHandle, edge => edge.To == betaCmdId);
+    }
 }

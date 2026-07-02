@@ -827,6 +827,7 @@ public sealed class GraphBuilder
                 RegexOptions.Compiled))
             {
                 string? requestName;
+                var isParamFallback = false;
                 if (match.Groups[2].Success)
                 {
                     // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
@@ -835,17 +836,24 @@ public sealed class GraphBuilder
                 else
                 {
                     // Variable: .Send(cmd) — try to find `cmd` assignment via `new T()` before this call,
-                    // bounded to the enclosing method span (I1.1 — span-bound variable resolution).
+                    // bounded to the enclosing method span (I1.1).
                     var varName = match.Groups[3].Value;
                     var pos = match.Index;
                     if (pos <= 0) continue;
                     var (spanStart, _) = EnclosingSpan(spans, pos, body.Length);
                     var before = body[spanStart..pos];
-                    // Find `new XType ` occurring before this Send, closest to the call
                     var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-                    if (newMatches.Count == 0) continue;
-                    var lastMatch = newMatches[^1];
-                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                    if (newMatches.Count > 0)
+                    {
+                        var lastMatch = newMatches[^1];
+                        requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                    }
+                    else
+                    {
+                        // I1.2 — no in-span new: fall back to param/property types (dataflow-lite)
+                        requestName = ResolveVariableFromModel(type, spans, pos, varName);
+                        isParamFallback = requestName is not null;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
@@ -861,7 +869,7 @@ public sealed class GraphBuilder
                 {
                     Provenance = prov,
                     Resolution = Resolution.Syntactic,
-                    Confidence = 0.55f,
+                    Confidence = isParamFallback ? 0.35f : 0.55f,
                 });
             }
         }
@@ -1059,6 +1067,77 @@ public sealed class GraphBuilder
         if (assign.Count > 0) return assign[^1].Groups[1].Value;
         var news = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
         return news.Count > 0 ? news[^1].Groups[1].Value : null;
+    }
+
+    /// <summary>Resolves a variable name to its declared type using model data when the body-scan finds
+    /// no in-span <c>new</c>: (1) method parameter, (2) property, (3) field from SourceBody outside method
+    /// spans. Returns null when none match — callers then emit no edge (honesty > guess).</summary>
+    private static string? ResolveVariableFromModel(TypeDiscovery type,
+        ImmutableArray<MethodSpan> spans, int pos, string varName)
+    {
+        // (1) Method parameter — use EnclosingMethod to find which method, then match param name→type
+        var methodName = EnclosingMethod(spans, pos);
+        if (methodName is not null && !type.Methods.IsDefaultOrEmpty)
+        {
+            foreach (var m in type.Methods)
+            {
+                if (!string.Equals(m.Name, methodName, StringComparison.Ordinal)) continue;
+                if (m.ParameterNames.IsDefaultOrEmpty) break;
+                for (var i = 0; i < Math.Min(m.ParameterNames.Length, m.ParameterTypes.Length); i++)
+                {
+                    if (string.Equals(m.ParameterNames[i], varName, StringComparison.Ordinal))
+                        return StripGenerics(m.ParameterTypes[i]);
+                }
+                break;
+            }
+        }
+
+        // (2) Property — directly declared on the type
+        if (!type.Properties.IsDefaultOrEmpty)
+        {
+            foreach (var p in type.Properties)
+            {
+                if (string.Equals(p.Name, varName, StringComparison.Ordinal))
+                    return StripGenerics(p.PropertyType);
+            }
+        }
+
+        // (3) Field — regex on class-level text outside method bodies (best-effort, no Roslyn)
+        if (type.SourceBody is { Length: > 0 } body)
+        {
+            var classLevel = GetClassLevelBody(body, spans);
+            var fieldMatch = Regex.Match(classLevel,
+                $@"(?:private|protected|internal|public|static|readonly|const)\s+(?:[\w<>,.\s]+\s)?({Regex.Escape(varName)}|[\w.]*\b{Regex.Escape(varName)})\s*[=;]",
+                RegexOptions.Compiled);
+            if (fieldMatch.Success)
+            {
+                // Try to extract the type: the token before the variable name
+                return null; // field resolution too fragile without Roslyn — defer
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Returns the portion of a type's SourceBody that is outside all method spans —
+    /// field/property declarations live here and nowhere else. When spans is empty, the whole body
+    /// is returned (the type was unparseable).</summary>
+    private static string GetClassLevelBody(string body, ImmutableArray<MethodSpan> spans)
+    {
+        if (spans.IsDefaultOrEmpty) return body;
+        var sb = new System.Text.StringBuilder();
+        var pos = 0;
+        // spans are in declaration order from BuildMethodSpans — iterate directly
+        for (var i = 0; i < spans.Length; i++)
+        {
+            var s = spans[i];
+            if (s.Start > pos)
+                sb.Append(body.AsSpan(pos, s.Start - pos));
+            pos = s.End;
+        }
+        if (pos < body.Length)
+            sb.Append(body.AsSpan(pos));
+        return sb.ToString();
     }
 
 }
