@@ -146,14 +146,25 @@ export class DocumentView {
     }
   }
 
-  protected applyPreset(preset: string): void {
-    const secs = this.sections();
-    if (!secs.length) return;
+  protected async applyPreset(preset: string): Promise<void> {
+    // Sections are only known after a render (they come back from the API, not declared
+    // up front) — but Presets sit above Sections and are the obvious first click. Render
+    // once on demand instead of silently no-oping when a preset is picked cold.
+    if (!this.sections().length) {
+      await this.renderDoc();
+      if (!this.sections().length) return;
+    }
 
+    // Keys here must match the real NarrativeSection keys MapRenderer emits (Overview, Topology,
+    // Routes, Entry points, Cross-cutting, Packages, Footer — see MapRenderer.cs) — the previous
+    // keywords ('identity', 'entries', 'stack', 'insights', 'coverage') never matched any real
+    // section, so Review/Trace Pack silently selected nothing and Onboarding only ever matched
+    // "Topology". Insights/coverage aren't Map sections at all (they're a separate data stream —
+    // the Insights view) so Review can't include them here yet.
     const presets: Record<string, string[]> = {
-      onboarding: ['identity', 'entries', 'topology', 'stack'],
-      trace: ['trace'],
-      review: ['insights', 'entries', 'coverage'],
+      onboarding: ['overview', 'topology', 'entry points', 'packages'],
+      trace: ['entry points'],
+      review: ['entry points', 'packages', 'footer', 'cross-cutting', 'routes'],
     };
 
     const wanted = presets[preset] ?? [];
