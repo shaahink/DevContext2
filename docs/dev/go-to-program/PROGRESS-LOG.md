@@ -120,3 +120,47 @@
 
 **Next:** E1 remaining 6 insight sources (highest engine leverage, unchanged from prior handover) →
 I10.3 needs I8 first (server LRU/rehydrate) → I9 release readiness → E4 remaining facets.
+
+## 2026-07-02 — Unified Iteration 1: merge + Tiers 1-2 delivery
+
+**Branch:** `feat/unified-iteration-1` (off `develop` after merging both `go-to/implement-iterations` and `feat/narrative-canvas`).
+
+**Merges:**
+- Merged `go-to/implement-iterations` (34 commits: I1-I10 engine + desktop) into develop — fast-forward
+- Merged `feat/narrative-canvas` (9 commits: P0-P6 single scroll canvas) on top — resolved 11 conflicts:
+  6 modify/delete (old views deleted by canvas) + 5 content conflicts (stores/config/views).
+  Kept narrative-canvas UI, retained go-to WorkspaceStore/NodeLink/infrastructure.
+- All merges verified: build 0w, tests 356/0 (12 server + 280 core + 64 desktop, 3 skipped).
+
+**Tier 1 — Perf + Library Surface (delivered):**
+- `--fast` mode: CLI flag skips `InMemoryEventBusExtractor`, `AntiPatternDetector`, `IndirectWiringDetector`.
+  Wired through `ExtractionOptions.Fast` → `AnalyzeCommand` → `DiscoverPipeline` exclude list.
+- WS-G-a: `LibrarySurfaceBuilder` now detects `AbstractValidator<T>`/`AbstractAuthorizationHandler` as
+  consumer "derive" seats. xUnit `[Fact]`/`[Theory]`/`[InlineData]`/`[Trait]` now appear as annotate entries
+  even without generators.
+
+**Tier 2 — E1 + E3 (delivered):**
+- E1 — 6 insight sources: `wiring.hubs`, `graph.orphans`, `wiring.external-events`,
+  `data.busiest-aggregate`, `topology.chokepoint`, `wiring.multi-impl`. Each implements `IInsightSource`,
+  registered in `DiscoveryPipeline.ComputeInsights`. Total: 10 insight sources (4 existing + 6 new).
+- E3 — Full W9 deletion: deleted `Pruning/` (TokenBudgetEnforcer + PatternRelevancePruner),
+  `RenderPlanBuilder.cs` (replaced with stub), `TokenBudget.cs`, `OutputSelfCheckTests.cs`.
+  Cleaned `DiscoveryModel.Budget`, `TypeDiscovery` FinalScore/FocusScore/GraphProximity/PathProximity,
+  global usings, `MarkdownRenderer` budget display, `PipelineTests` pruner test.
+  Build 0w, tests 356/0.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 356/0 (12+280+64, 3 skipped).
+pnpm check NOT run (TypeScript unchanged from narrative-canvas merge — the only TS file touched was
+trace-node.ts which took go-to's NodeLink version, identical to what was already on narrative-canvas
+before the merge).
+
+**Next — remaining items (all tiers documented below):**
+- E2: Pattern-zoo corpus (`tests/fixtures/PatternZoo/`) — modern C# through seam scanners
+- E4: Remaining facets F1-F12 (auth surface, message matrix, middleware, data map, etc.)
+- E5: Benchmark expansion — 8 missing-archetype repos
+- I8: Caching & storage — repo-hash snapshot cache (unblocks I10.3)
+- I10.3: Server MaxLiveSessions + LRU + rehydrate (depends on I8)
+- A: Harder repos — F14 EF depth, F15 build intelligence
+- I9: Release readiness
+- V3 P2: Live Console + real Stats streaming
+- V3 P3: Synced Human↔LLM lens

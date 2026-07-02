@@ -18,6 +18,11 @@
 > multi-tab workspace** — I10.1 (WorkspaceStore facade), I10.2 (tab strip), I10.4 (persistence) are
 > DONE and verified live including the actual concurrent-analyze scenario; I10.3 (server LRU) is
 > correctly blocked on I8. See PROGRESS-LOG's round-3 entry and HANDOVER.md for detail.
+>
+> **Unified Iteration 1 (2026-07-02):** Merged all branches into develop on new `feat/unified-iteration-1`.
+> Delivered: `--fast` mode, WS-G-a library surface, **E1 (6 remaining insight sources → 10 total)**,
+> **E3 (full W9 deletion)**. Build 0w, tests 356/0. Remaining: E2, E4, E5, I8, I10.3, A, I9, V3 P2/P3.
+> See PROGRESS-LOG unified-iteration-1 entry.
 
 ## Resume protocol (cold start)
 
@@ -71,7 +76,7 @@ All items below are code-complete and verified present in this branch. Re-verifi
 
 ## I2 — CLI v2 + kernel wire format (W9 retirement)
 
-**Phase:** V4 · **Guide:** `ITERATION-I2-cli-kernel.md` · **Status:** ⬜ · **Depends on:** I1
+**Phase:** V4 · **Guide:** `ITERATION-I2-cli-kernel.md` · **Status:** ✅ DONE (E3: W9 deletion complete, see unified-iteration-1) · **Depends on:** I1
 
 | Step | Task |
 |------|------|
@@ -88,13 +93,13 @@ All items below are code-complete and verified present in this branch. Re-verifi
 
 ## I3 — Insights engine
 
-**Phase:** V2/V3 · **Guide:** `ITERATION-I3-insights.md` · **Status:** ⬜ · **Depends on:** I2
+**Phase:** V2/V3 · **Guide:** `ITERATION-I3-insights.md` · **Status:** ✅ DONE (10 sources: 4 original + 6 E1 from unified-iteration-1) · **Depends on:** I2
 
-| Step | Task |
-|------|------|
-| I3.1 | Kernel: `Insight.cs`, `IInsightSource`, `InsightsBuilder` — catalog-registered |
-| I3.2 | 10 launch sources (`auth.anonymous`, `wiring.hubs`, `graph.orphans`, etc.) |
-| I3.3 | Faces: CLI `--stats` prints insights first; Map Overview top-3; desktop cards |
+| Step | Task | Status |
+|------|------|--------|
+| I3.1 | Kernel: `Insight.cs`, `IInsightSource`, `InsightsBuilder` — catalog-registered | ✅ |
+| I3.2 | 10 launch sources (`entry-mix`, `anonymous-endpoints`, `di-lifetimes`, `coverage-honesty`, `wiring.hubs`, `graph.orphans`, `wiring.external-events`, `data.busiest-aggregate`, `topology.chokepoint`, `wiring.multi-impl`) | ✅  E1 delivered |
+| I3.3 | Faces: CLI `--stats` prints insights first; Map Overview top-3; desktop cards | ✅ R2.1 wired through proto/gRPC/store/desktop |
 
 **Gate:** gates green · eShop shows ≥4 non-Info insights · TodoApi stays quiet.
 
