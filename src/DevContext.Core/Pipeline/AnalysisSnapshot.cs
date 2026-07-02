@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
+
 using DevContext.Core.Graph;
+using DevContext.Core.Insights;
 
 namespace DevContext.Core.Pipeline;
 
@@ -23,4 +26,6 @@ public sealed record AnalysisSnapshot
     public MapModel? Map { get; init; }
     /// <summary>Entry-point inventory — the roots a Trace can start from (PLAN-10).</summary>
     public ImmutableArray<EntryPoint> Entries { get; init; } = [];
+    /// <summary>Ranked, capped insights computed after GraphAssembly (I3).</summary>
+    public ImmutableArray<Insight> Insights { get; init; } = [];
 }

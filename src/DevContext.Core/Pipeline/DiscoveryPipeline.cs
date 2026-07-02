@@ -5,6 +5,7 @@ using System.Text;
 using DevContext.Core.Analysis;
 using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
+using DevContext.Core.Insights;
 using DevContext.Core.Observers;
 using DevContext.Core.Rendering;
 using DevContext.Core.Validation;
@@ -149,6 +150,9 @@ public sealed class DiscoveryPipeline
             $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
             + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
 
+        // I3 — compute insights post-graph (pure, cheap, no scoring)
+        var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
+
         await RunScoringAsync(context, model, ct);
         await RunCompressionAsync(context, model, ct);
 
@@ -173,6 +177,7 @@ public sealed class DiscoveryPipeline
             Graph = codeGraph,
             Map = mapModel,
             Entries = entryPoints,
+            Insights = insights,
             Report = collector?.Build() ?? new RunReport
             {
                 Stages = [],
@@ -736,5 +741,44 @@ public sealed class DiscoveryPipeline
                 .Where(h => h.Length > 0);
             return string.Join(", ", hosts);
         }
+    }
+
+    /// <summary>I3 — runs all registered insight sources after GraphAssembly and stores the
+    /// ranked, capped result. Pure post-graph computation; no scoring or scoring system.</summary>
+    private static ImmutableArray<Insight> ComputeInsights(DiscoveryModel model, CodeGraph graph,
+        ImmutableArray<EntryPoint> entries, MapModel map)
+    {
+        var sources = new IInsightSource[]
+        {
+            new EntryMixSource(),
+            new AnonymousEndpointsSource(),
+            new DiLifetimesSource(),
+            new CoverageHonestySource(),
+        };
+
+        var all = new List<Insight>();
+        foreach (var source in sources)
+        {
+            try { all.AddRange(source.Compute(model, graph, entries)); }
+            catch { }
+        }
+
+        var ranked = all
+            .OrderByDescending(i => i.Severity)
+            .ThenBy(i => i.Id)
+            .ToList();
+
+        var byCat = new Dictionary<InsightCategory, int>();
+        var capped = new List<Insight>();
+        foreach (var i in ranked)
+        {
+            if (!byCat.TryGetValue(i.Category, out var c)) c = 0;
+            if (c >= 3) continue;
+            byCat[i.Category] = c + 1;
+            capped.Add(i);
+            if (capped.Count >= 10) break;
+        }
+
+        return capped.ToImmutableArray();
     }
 }
