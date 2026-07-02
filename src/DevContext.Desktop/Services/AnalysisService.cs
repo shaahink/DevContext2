@@ -129,7 +129,6 @@ public class AnalysisService : IAnalysisService
             OutputFormat = opts.Format == "json" ? OutputFormat.Json
                 : opts.Format == "html" ? OutputFormat.Html
                 : OutputFormat.Markdown,
-            ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
             ExcludeExtractors = scenario.DisableExtractors,
         };
 

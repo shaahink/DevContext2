@@ -15,7 +15,7 @@ public sealed record ExtractionOptions
     public ImmutableArray<string> ExcludeExtractors { get; init; } = [];
     /// <summary>Directory/file patterns to exclude from analysis.</summary>
     public ImmutableArray<string> ExcludePatterns { get; init; } =
-        [".git", "bin", "obj", ".vs", "node_modules", ".idea"];
+        [".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos"];
     /// <summary>Desired output format (markdown or json).</summary>
     public OutputFormat OutputFormat { get; init; } = OutputFormat.Markdown;
     /// <summary>Whether to include provenance tracking in the output.</summary>

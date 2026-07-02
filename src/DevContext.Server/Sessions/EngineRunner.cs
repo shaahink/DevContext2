@@ -25,7 +25,6 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             AllowRoslyn = !spec.NoRoslyn,
             BuildFullGraph = true,
             OutputFormat = OutputFormat.Markdown,
-            ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", ".idea"],
             ExcludeExtractors = resolvedIntent.Scenario.DisableExtractors,
         };
 
