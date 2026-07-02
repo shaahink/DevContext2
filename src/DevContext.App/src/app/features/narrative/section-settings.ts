@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 
 import { ThemeService } from '../../core/theme/theme.service';
+import { ConnectionStore } from '../../state/connection.store';
 import { RecentStore } from '../../state/recent.store';
 import { SectionCard } from '../../ui/section-card/section-card';
 import { Icon } from '../../ui/icon/icon';
@@ -77,12 +78,36 @@ import { Icon } from '../../ui/icon/icon';
           <div class="rounded border border-line bg-surface p-3">
             <div class="flex items-start gap-3">
               <span class="text-lg text-accent">&diams;</span>
-              <div>
+              <div class="flex-1">
                 <p class="text-sm font-semibold text-ink">DevContext</p>
                 <p class="text-xs text-ink-muted">The devtool lens for any .NET repository. Instant architecture understanding.</p>
-                <p class="mt-1 text-2xs text-ink-subtle">
-                  Built with Angular + Tauri. Engine via gRPC.
-                </p>
+                <div class="mt-2 space-y-1 text-2xs">
+                  <div class="flex items-center gap-2">
+                    <span class="text-ink-subtle">Version</span>
+                    <span class="font-mono tabular-nums text-ink">{{ conn.version() || 'checking…' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-ink-subtle">Server</span>
+                    <span class="h-1.5 w-1.5 rounded-full" [class.bg-success]="conn.online()" [class.bg-danger]="!conn.online()"></span>
+                    <span class="text-ink">{{ conn.online() ? 'Connected' : 'Offline' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-ink-subtle">Stack</span>
+                    <span class="text-ink-muted">Angular + Tauri &middot; gRPC-Web &middot; .NET engine</span>
+                  </div>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <a class="text-2xs text-accent hover:underline" href="https://github.com/anomalyco/DevContext" target="_blank">
+                    <app-icon name="github" [size]="11" /> GitHub
+                  </a>
+                  <a class="text-2xs text-accent hover:underline" href="https://github.com/anomalyco/DevContext/issues/new" target="_blank">
+                    <app-icon name="bug" [size]="11" /> Report issue
+                  </a>
+                  <a class="text-2xs text-accent hover:underline" href="https://github.com/anomalyco/DevContext/releases" target="_blank">
+                    <app-icon name="refresh" [size]="11" /> Check updates
+                  </a>
+                </div>
+                <p class="mt-2 text-2xs text-ink-subtle">Everything runs locally. Your code never leaves your machine. No telemetry.</p>
               </div>
             </div>
           </div>
@@ -93,6 +118,7 @@ import { Icon } from '../../ui/icon/icon';
 })
 export class SectionSettings {
   protected readonly theme = inject(ThemeService);
+  protected readonly conn = inject(ConnectionStore);
   protected readonly recentStore = inject(RecentStore);
   protected readonly recents = this.recentStore.recents;
 

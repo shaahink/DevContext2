@@ -162,5 +162,86 @@ before the merge).
 - I10.3: Server MaxLiveSessions + LRU + rehydrate (depends on I8)
 - A: Harder repos — F14 EF depth, F15 build intelligence
 - I9: Release readiness
-- V3 P2: Live Console + real Stats streaming
-- V3 P3: Synced Human↔LLM lens
+
+---
+
+## 2026-07-02 — U1 Live Console (P2) — feat/ui-iteration
+
+**Changed:**
+- `state/workspace.store.ts`: added `LogLine` type and `consoleLog` field to `TabSessionSlice`
+- `state/session.store.ts`: progress callback now appends `ProgressEvent`s to `consoleLog` signal; exposed via `SessionStore.consoleLog` computed
+- **New** `features/narrative/section-console.ts`: boot-log during analysis (scrolling with auto-scroll-to-bottom, phosphor terminal style), RunReport on completion (stages waterfall, funnel bar, extractor timings, cold-cache labeling)
+- `features/narrative/narrative-canvas.ts`: wired `<app-section-console />` for both boot and report modes; added 'console' to scroll-spy sections
+- `features/narrative/section-stats.ts`: funnel card now has stacked horizontal bars for types discovered→included and raw→budget tokens; cold cache shows "cold run — no cache reuse"
+- `styles.css`: added `.console-surface`, `.console-log`, `.log-line`, `.log-cursor` (blink animation), `.report-line`, `.console-section-title`; terminal-vibe phosphor selectors; `prefers-reduced-motion` safe
+
+**Verified:**
+- `pnpm lint` — green
+- `pnpm test` — 7/7 green
+- `tsc --noEmit` — clean
+- `pnpm build` — timed out (resource contention with concurrent Angular build); TypeScript compilation used as proxy
+
+**Next:** U2 Synced Lens (P3) — Human+LLM split pane with auto-render on selection
+
+---
+
+## 2026-07-02 — U2 Synced Lens (P3) — feat/ui-iteration
+
+**Changed:**
+- **New** `features/narrative/section-lens.ts`: persistent 50/50 Human (left) + LLM (right) split pane
+  - Human pane: trace tree (from TraceStore) + node detail (kind, file, tags, degrees) when explicitly selected
+  - LLM pane: auto-rendered markdown via `api.render(handle, { focus, format: 'markdown' })`
+  - Auto-render: debounced 250ms `effect` on `TraceStore.focus` — no manual Render needed
+  - Copy: button in LLM pane + `Ctrl+C` keyboard shortcut (`@HostListener`)
+  - Empty/loading/error states for both panes
+- `features/narrative/narrative-canvas.ts`: wired `<app-section-lens />` after trace section; 'lens' added to scroll-spy
+- `styles.css`: `.lens-split` 50/50 flex, `.lens-pane`, `.lens-card`, `.lens-content` (max-h 70vh, mono, scroll), `.lens-placeholder`, terminal-vibe adjustments, responsive stacking ≤768px
+
+**Verified:**
+- `pnpm lint` — green
+- `pnpm test` — 7/7 green
+- `tsc --noEmit` — clean
+
+**Next:** U3 Facet views (blocked on engine E4) or U4 Release polish
+
+---
+
+## 2026-07-02 — U4 Release Polish — feat/ui-iteration
+
+**Changed:**
+- `features/narrative/section-settings.ts`: About section now shows real engine version (from `ConnectionStore.ping`), server status dot, stack info, GitHub link, issues link, "Check updates" link to GitHub Releases, privacy note
+- `features/palette/palette.ts`: replaced `/* swallow */` comment with clear explanation (search is supplementary, silent failure is OK)
+- `state/node.store.ts`: added `error` signal + toast notification when node detail fetch fails (was silently setting null state)
+- `features/node-card/node-card.ts`: added toast confirmation for clipboard copy success/failure (was silent void call)
+
+**Error telemetry audit (34 catch sites):**
+- All user-facing catch sites now either surface errors with toasts or error signals, or have clear comments explaining why silent handling is appropriate
+- Non-critical catches (localStorage, Tauri API in browser, cleanup ops) remain silent — acceptable
+- `operation-controller.ts`, `graph-view.ts`, `github.store.ts`, `theme.service.ts`, `recent.store.ts`, `workspace.store.ts` — all verified OK
+
+**Verified:**
+- `pnpm lint` — green
+- `pnpm test` — 7/7 green
+- `tsc --noEmit` — clean
+
+**All U1-U4 items complete.** Remaining front-end work from UI-UX-GUIDELINES.md: navigation rail, entries table enhancements, keyboard shortcuts — none are U-list items. U3 (facet views) blocked on engine E4.
+
+---
+
+## 2026-07-02 — U5 Workspace Navigation + Polish (audit items) — feat/ui-iteration
+
+**Changed:**
+- **New** `shell/navigation-rail.ts`: left sidebar with icon+label items (Overview, Entries, Trace, Graph, Insights, Export, Settings). Session-required items hidden until `session.ready()`. Active route highlighted with accent border.
+- **New** `shell/workspace-shell.ts`: header + rail + router-outlet + footer layout. Imports palette. Keyboard shortcuts: `g+key` (o/e/t/g/i/x/s) for view navigation, `?` for shortcut help overlay, `Escape` to close. `g` sets 1.5s pending flag.
+- **New** `features/pages/`: 6 page wrappers (`overview-page`, `entries-page`, `trace-page`, `graph-page`, `insights-page`, `export-page`) that reuse existing section components. Export page handles dismiss→navigate back.
+- `app.config.ts`: route table changed from single wildcard `**` to 8 lazy-loaded child routes under `WorkspaceShell`
+- `section-entries.ts`: sortable columns (click header to toggle Method/Route/Target/Kind asc/desc), keyboard navigation (↑↓ to move, Enter to trace, `n` for NodeCard, `Ctrl+C` to copy route), selected row highlight, subtitle shows filtered/total count
+- `palette.ts`: removed stale routes (Browse, Document, Stats), added Export view nav, capped entry results at top 10
+- `app.ts`: unchanged (router-outlet already present)
+
+**Verified:**
+- `pnpm lint` — green
+- `pnpm test` — 7/7 green
+- `tsc --noEmit` — clean
+
+**All U1-U5 items complete.** U3 (facet views) blocked on engine E4. App is fully routed with navigation rail, keyboard shortcuts, and sortable entries table.

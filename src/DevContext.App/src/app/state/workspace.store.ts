@@ -13,6 +13,13 @@ export interface ProgressVm {
   readonly message: string;
 }
 
+export interface LogLine {
+  readonly stage: string;
+  readonly message: string;
+  readonly percent: number;
+  readonly timestamp: number;
+}
+
 /** Everything SessionStore used to hold as its own private signals — now one tab's slice. */
 export interface TabSessionSlice {
   readonly status: AnalysisStatus;
@@ -26,6 +33,7 @@ export interface TabSessionSlice {
   readonly statsError: string | null;
   readonly statsLoading: boolean;
   readonly progress: ProgressVm;
+  readonly consoleLog: readonly LogLine[];
 }
 
 /** Everything TraceStore used to hold as its own private signals — now one tab's slice. */
@@ -70,6 +78,7 @@ export const DEFAULT_SESSION_SLICE: TabSessionSlice = {
   statsError: null,
   statsLoading: false,
   progress: { stage: '', percent: 0, message: '' },
+  consoleLog: [],
 };
 
 export const DEFAULT_TRACE_SLICE: TabTraceSlice = {

@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { Sheet } from '../../ui/sheet/sheet';
 import { NodeStore } from '../../state/node.store';
 import { TraceStore } from '../../state/trace.store';
+import { ToastService } from '../../ui/toast/toast';
 import { NodeLink } from '../../ui/node-link/node-link';
 import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 
@@ -72,6 +73,7 @@ import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 export class NodeCard {
   readonly store = inject(NodeStore);
   readonly traceStore = inject(TraceStore);
+  private readonly toast = inject(ToastService);
 
   readonly nid = computed(() => this.store.nodeId());
   readonly incomingEdges = computed(() => {
@@ -91,6 +93,8 @@ export class NodeCard {
   }
 
   copyId(id: string): void {
-    navigator.clipboard?.writeText(id);
+    navigator.clipboard?.writeText(id)
+      .then(() => this.toast.show('Node ID copied', 'info'))
+      .catch(() => this.toast.show('Copy failed', 'error'));
   }
 }

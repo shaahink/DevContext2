@@ -77,9 +77,14 @@ import { SEAM_COLORS } from '../../models/seam-colors';
             @if (s.cache) {
               <div class="rounded border border-line bg-surface p-2">
                 <div class="text-2xs font-semibold text-ink-muted">Cache</div>
-                <div class="mt-1 text-xs tabular-nums text-ink">
-                  {{ cacheHitRate() }}% hit
-                </div>
+                @if (s.cache.textHits + s.cache.textMisses > 0) {
+                  <div class="mt-1 text-xs tabular-nums text-ink">
+                    {{ cacheHitRate() }}% hit
+                  </div>
+                  <div class="text-2xs text-ink-subtle">{{ s.cache.textHits }} hits / {{ s.cache.textMisses }} misses</div>
+                } @else {
+                  <div class="mt-1 text-xs text-ink-muted">cold run — no cache reuse</div>
+                }
               </div>
             }
             @if (s.corpus) {
@@ -90,8 +95,24 @@ import { SEAM_COLORS } from '../../models/seam-colors';
             }
             @if (s.funnel) {
               <div class="rounded border border-line bg-surface p-2">
-                <div class="text-2xs font-semibold text-ink-muted">Tokens</div>
-                <div class="mt-1 text-xs tabular-nums text-ink">{{ fmt(s.funnel.renderedTokens) }} / {{ fmt(s.funnel.budget) }}</div>
+                <div class="text-2xs font-semibold text-ink-muted">Funnel</div>
+                <div class="mt-1 space-y-1">
+                  <div class="flex items-center gap-1 text-2xs">
+                    <span class="w-9 tabular-nums text-ink">{{ s.funnel.typesDiscovered }}</span>
+                    <div class="flex-1 h-1.5 rounded-sm overflow-hidden bg-surface-2">
+                      <div class="h-full bg-accent" [style.width]="funnelTypesPct() + '%'"></div>
+                    </div>
+                    <span class="w-9 text-right tabular-nums text-ink">{{ s.funnel.typesIncluded }}</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-2xs">
+                    <span class="w-9 tabular-nums text-ink-muted">{{ fmtK(s.funnel.rawTokens) }}</span>
+                    <div class="flex-1 h-1.5 rounded-sm overflow-hidden bg-surface-2">
+                      <div class="h-full bg-warn" [style.width]="funnelTokensPct() + '%'"></div>
+                    </div>
+                    <span class="w-9 text-right tabular-nums text-ink-muted">{{ s.funnel.budget }}</span>
+                  </div>
+                  <div class="text-2xs text-ink-subtle">rendered {{ fmtK(s.funnel.renderedTokens) }} tokens</div>
+                </div>
               </div>
             }
           </div>
@@ -115,6 +136,18 @@ export class SectionStats {
     const c = this.session.stats()?.cache;
     if (!c || c.textHits + c.textMisses === 0) return 0;
     return Math.round(c.textHits / (c.textHits + c.textMisses) * 100);
+  });
+
+  protected readonly funnelTypesPct = computed(() => {
+    const f = this.session.stats()?.funnel;
+    if (!f || f.typesDiscovered === 0) return 0;
+    return Math.round(f.typesIncluded / f.typesDiscovered * 100);
+  });
+
+  protected readonly funnelTokensPct = computed(() => {
+    const f = this.session.stats()?.funnel;
+    if (!f || f.budget === 0) return 0;
+    return Math.round(f.renderedTokens / f.budget * 100);
   });
 
   protected pct(ms: number, max: number): number {
@@ -141,5 +174,10 @@ export class SectionStats {
     const v = Number(n);
     if (v >= 1000) return (v / 1000).toFixed(1) + 'K';
     return String(v);
+  }
+
+  protected fmtK(n: number): string {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
   }
 }

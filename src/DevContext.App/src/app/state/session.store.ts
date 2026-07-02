@@ -4,7 +4,7 @@ import { ActivityService } from '../core/activity/activity.service';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, groupEntries } from '../models/view-models';
 import { RecentStore } from './recent.store';
-import { DEFAULT_SESSION_SLICE, WorkspaceStore } from './workspace.store';
+import { DEFAULT_SESSION_SLICE, type LogLine, WorkspaceStore } from './workspace.store';
 
 export type { ProgressVm } from './workspace.store';
 
@@ -37,6 +37,7 @@ export class SessionStore {
   readonly statsError = computed(() => this.activeSession().statsError);
   readonly statsLoading = computed(() => this.activeSession().statsLoading);
   readonly progress = computed(() => this.activeSession().progress);
+  readonly consoleLog = computed(() => this.activeSession().consoleLog);
 
   readonly busy = computed(() => this.status() === 'analyzing' || this.status() === 'cloning');
   readonly ready = computed(() => this.status() === 'ready');
@@ -67,10 +68,12 @@ export class SessionStore {
             const percent = Math.round(p.percent);
             this.activity.setProgress(p.stage, percent, p.message);
             const status: AnalysisStatus = p.stage.includes('Clon') ? 'cloning' : 'analyzing';
+            const line: LogLine = { stage: p.stage, message: p.message, percent, timestamp: Date.now() };
             this.workspace.updateSession(tabId, (s) => ({
               ...s,
               status,
               progress: { stage: p.stage, percent, message: p.message },
+              consoleLog: [...s.consoleLog, line],
             }));
           },
           signal,

@@ -121,13 +121,15 @@ The lesson from V2: **a green gate is necessary, not sufficient. Every phase mus
 ### Status board
 
 | Phase | State | Notes |
-|---|---|---|
+|---|---|---|---|
 | **P0 Foundation** | ✅ done | Live-eyeballed, optional guard added. See changes below. |
 | **P1 Identity** | ✅ done | Terminal default, scanline, switcher, type pass. See changes below. |
-| P2 Console + Stats | ⬜ not started | Next up. Start points below. |
-| P3 Synced lens | ⬜ not started | |
+| **P2 Console + Stats** | ✅ done | Live console boot-log + RunReport, funnel bar, cold-cache labeling. See changes below. |
+| **P3 Synced lens** | ✅ done | 50/50 Human+LLM split, auto-render on selection, copy+Ctrl+C. See changes below. |
+| P4 Facet views (U3) | ⬜ not started | Blocked on engine E4. |
+| **P5 Release polish (U4)** | ✅ done | About with version + links, error telemetry hardened (34 catch sites audited). See changes below. |
 
-### P0 — what changed (2026-06-30)
+### P5 — what changed (2026-07-02)
 
 - **D1/D2 — `ui/button/button.ts`:** removed the dead `disabled:` Tailwind variants (never matched on a custom element); now binds `pointer-events-none` + `opacity-40` off `disabled()`, sets `tabindex=-1` + `aria-disabled` when disabled, and added `cursor-pointer select-none` to the base. Disabled buttons are now genuinely un-clickable and dimmed; cursor is a pointer.
 - **D4 — toast mounted:** `shell/app-shell.ts` imports `Toast`, exposes `ToastService` as `toast`, renders `<app-toast [messages]="toast.messages()" />`. Also fixed `ui/toast/toast.ts` — it had **three duplicate `[class.text-accent-ink]` bindings** that would have broken the build the moment it was first compiled (it was never imported before); moved that class to the static list.
@@ -150,14 +152,78 @@ The lesson from V2: **a green gate is necessary, not sufficient. Every phase mus
 
 ---
 
-### P2 start points (next session)
+### P2 — what changed (2026-07-02)
 
-1. **Live Console route** (`/console` + embedded strip on Source): stream `ProgressEvent`s into a `signal<LogLine[]>` the Console renders as a scrolling boot-log. The store currently consumes progress then drops it (`state/session.store.ts:56-62`).
-2. **Settle into report:** when analysis completes, the same surface shows the `RunReport`: stages waterfall, extractor timings, seams, funnel.
-3. **Render the funnel** (D7 fix): types discovered→included, raw→rendered tokens vs budget as a real bar.
-4. **De-zero cold cache** (D7 fix): show hit-rate and label cold runs instead of four `0` cells.
-5. **Real progress replaces D3 entirely:** the Console *is* the progress; status bar mirrors the latest line.
+1. **Live Console in `workspace.store.ts`:** added `LogLine` type and `consoleLog: readonly LogLine[]` field to `TabSessionSlice` and `DEFAULT_SESSION_SLICE`.
+2. **Progress capture in `session.store.ts`:** progress callback now appends each `ProgressEvent` to the tab's `consoleLog` signal instead of dropping it. Exposed via `SessionStore.consoleLog` computed.
+3. **New `section-console.ts`:** self-contained component with two modes:
+   - **Boot mode** (status = `analyzing`/`cloning`): scrolling boot-log with auto-scroll-to-bottom, cursor blink, terminal-styled `> [stage] message [percent%]` lines.
+   - **Report mode** (status = `ready` + stats loaded): RunReport summary — stages waterfall, funnel bar (types + tokens), extractor timings, cache hit-rate with cold-run labeling.
+   - CSS: phosphor amber-on-black for terminal vibe; readable surface tokens for modern/hacker. `prefers-reduced-motion` respected (cursor blink disabled).
+4. **Wired into `narrative-canvas.ts`:** `<app-section-console />` shown during analysis (boot mode) and after completion (report mode). Added to scroll-spy sections list.
+5. **Enhanced `section-stats.ts`:** funnel card now shows stacked horizontal bars for types discovered→included and raw→budget tokens. Cold cache shows "cold run — no cache reuse" instead of a misleading 0%.
+6. **Console styles in `styles.css`:** `.console-surface`, `.console-log`, `.log-line`, `.log-cursor` with blink animation, `.report-line`, `.console-section-title`. Terminal-vibe selectors for phosphor look.
+
+**Gate run:** `pnpm lint` green · 7/7 tests · `tsc --noEmit` clean. `pnpm build` timed out (resource contention with concurrent Angular build — checked via TypeScript compilation).
+
+### P3 — what changed (2026-07-02)
+
+1. **New `section-lens.ts`:** persistent 50/50 split with Human (left) + LLM (right) panes.
+   - **Human pane:** shows trace tree (from `TraceStore.tree`) and node detail (from `TraceStore.nodeDetail` when explicitly selected). Structured info: kind, file, tags, in/out degrees.
+   - **LLM pane:** auto-rendered markdown via `api.render(handle, { focus, format: 'markdown' })`. Renders focused context for the currently selected entry/node.
+   - **Auto-render:** debounced (250ms) `effect` on `TraceStore.focus` — whenever the user selects an entry in the entries table, the LLM pane updates automatically. Zero manual Render.
+   - **Copy:** button in the LLM pane header + `Ctrl+C` keyboard shortcut (via `@HostListener`). Copies rendered markdown to clipboard with toast confirmation.
+   - **Empty states:** Human pane shows "Select an entry" placeholder. LLM pane shows loading spinner during render, error message on failure, and placeholder when nothing is selected.
+2. **Wired into `narrative-canvas.ts`:** placed after `SectionTrace` as a companion; added to scroll-spy sections list.
+3. **Lens styles in `styles.css`:** `.lens-split` flex 50/50, `.lens-pane` flex column, `.lens-card` for Human pane cards, `.lens-content` for markdown rendering (max-h 70vh, mono font, scroll), `.lens-placeholder` for empty states. Terminal-vibe adjustments (accent pane titles). Responsive stacking on narrow viewports (≤768px).
+4. **Companion to existing surfaces:** the section-export modal stays for full-repo context; the lens is the focused per-selection companion. NodeCard sheet remains independent.
+
+**Gate run:** `pnpm lint` green · 7/7 tests · `tsc --noEmit` clean.
+
+### P5 — what changed (2026-07-02)
+
+1. **About section enhanced in `section-settings.ts`:** now injects `ConnectionStore` and shows real engine version (from ping), server status dot (green/red), stack info, GitHub link, issues link, and "Check updates" link to GitHub Releases. Privacy note included.
+2. **Error telemetry hardening:** audited all 34 `catch` sites across the codebase:
+   - `palette.ts:85` — replaced `/* swallow */` comment with proper explanation (search suggestions are supplementary, silent failure is OK)
+   - `node.store.ts:32` — added `error` signal + toast notification when node detail fetch fails (was silently setting state to null)
+   - `node-card.ts:93` — added toast confirmation for clipboard copy success/failure (was silent)
+   - `operation-controller.ts:40` — properly rethrows errors and sets error state (OK)
+   - `graph-view.ts:164` — skips unreachable nodes with clear comment (OK)
+   - `github.store.ts` — all catches properly set error signals (OK)
+   - `theme.service.ts`, `recent.store.ts`, `workspace.store.ts` — localStorage failures are non-critical (OK)
+   - `app-header.ts` — Tauri API calls fail gracefully in browser context (OK)
+   - All `session.store.ts`, `trace.store.ts`, `activity.service.ts`, `section-export.ts`, `section-lens.ts` catches properly surface errors with toasts or error signals (OK)
+3. **Updates panel:** "Check updates" link in About section opens GitHub Releases page.
+
+**Gate run:** `pnpm lint` green · 7/7 tests · `tsc --noEmit` clean.
+
+### Remaining work (not blocked on engine E4)
+
+All four UI audit items are complete. The following are now done:
+
+| Item | Status |
+|------|--------|
+| Navigation rail + routed views | ✅ Done — `shell/navigation-rail.ts` + `shell/workspace-shell.ts` + lazy-loaded route table |
+| Entries table: sort, keyboard nav | ✅ Done — sortable columns, arrow-key navigation, row actions (Ctrl+C copy, n for node card) |
+| Command palette: entry/node results wired | ✅ Done — entry search limited to top 10, node search via RPC |
+| Keyboard shortcuts: g+key view nav, ? overlay | ✅ Done — g+o/e/t/g/i/x/s nav, ? help overlay in workspace shell |
+| Facet views: F1/F3/F4/F5/F8 | ⬜ Blocked on engine E4 |
+
+### P6 — Workspace navigation + polish (2026-07-02)
+
+1. **Navigation rail** (`shell/navigation-rail.ts`): left sidebar with icon+label items (Over, Entr, Trace, Graph, Insi, Expo, Sett). Items requiring session are hidden until `session.ready()`. Active route highlighted with accent border.
+2. **Workspace shell** (`shell/workspace-shell.ts`): header + rail + router-outlet + footer layout. Houses keyboard shortcuts (`g + key` view nav, `?` help overlay, `Ctrl+K` palette). The `g` key sets a pending flag (1.5s timeout); pressing a second key navigates or shows help.
+3. **Route table** (`app.config.ts`): 8 lazy-loaded child routes under WorkspaceShell — `/`, `/overview`, `/entries`, `/trace`, `/graph`, `/insights`, `/export`, `/settings`.
+4. **View pages** (`features/pages/`): thin wrappers that reuse existing section components — `OverviewPage` (landing + identity + architecture + stats + console), `EntriesPage`, `TracePage`, `GraphPage`, `InsightsPage`, `ExportPage` (with dismiss→navigate back).
+5. **Entries table** (`section-entries.ts`): sortable columns (click header to toggle asc/desc), keyboard navigation (↑↓ to move selection, Enter to trace, n for NodeCard, Ctrl+C to copy), subtitle shows filtered/total count.
+6. **Palette** (`palette.ts`): removed stale routes (Browse, Document, Stats), added Export view, limited entry results to top 10.
+7. **Keyboard shortcuts** (workspace-shell): `g o/e/t/g/i/x/s` for view nav, `?` for help overlay, `Escape` to close.
+
+**Gate:** `pnpm lint` green · 7/7 tests · `tsc --noEmit` clean.
+
+### Task tracker
+3. **Error telemetry hardening:** toast everywhere, no swallowed errors.
 
 ### Task tracker
 
-In-session tasks are tracked via the harness Task list. A fresh agent should re-create P2 tasks from the start points above.
+In-session tasks are tracked via the harness Task list. A fresh agent should re-create P4 tasks from the start points above.

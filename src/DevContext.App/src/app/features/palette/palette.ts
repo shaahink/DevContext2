@@ -82,7 +82,7 @@ export class Palette {
       this.api.searchNodes(h, val, 8).then(r => {
         this.searchResults.set(r.nodes?.map(n => n.nodeId) ?? []);
         this.buildItems();
-      }).catch(() => { /* swallow */ });
+      }).catch(() => { /* non-critical: search suggestions are supplementary, silent failure is OK */ });
     }
   }
 
@@ -97,22 +97,25 @@ export class Palette {
     const items: PaletteItem[] = [];
 
     items.push({ label: 'Analyze repo...', sub: 'Local path or URL', section: 'Action', action: () => { this.router.navigate(['/']); } });
-    items.push({ label: 'Go to Trace', section: 'View', action: () => { this.router.navigate(['/trace']); } });
-    items.push({ label: 'Go to Entries', section: 'View', action: () => { this.router.navigate(['/entries']); } });
     items.push({ label: 'Go to Overview', section: 'View', action: () => { this.router.navigate(['/overview']); } });
-    items.push({ label: 'Go to Insights', section: 'View', action: () => { this.router.navigate(['/insights']); } });
+    items.push({ label: 'Go to Entries', section: 'View', action: () => { this.router.navigate(['/entries']); } });
+    items.push({ label: 'Go to Trace', section: 'View', action: () => { this.router.navigate(['/trace']); } });
     items.push({ label: 'Go to Graph', section: 'View', action: () => { this.router.navigate(['/graph']); } });
-    items.push({ label: 'Go to Browse', section: 'View', action: () => { this.router.navigate(['/browse']); } });
-    items.push({ label: 'Go to Document', section: 'View', action: () => { this.router.navigate(['/document']); } });
+    items.push({ label: 'Go to Insights', section: 'View', action: () => { this.router.navigate(['/insights']); } });
+    items.push({ label: 'Go to Export', section: 'View', action: () => { this.router.navigate(['/export']); } });
     items.push({ label: 'Go to Settings', section: 'View', action: () => { this.router.navigate(['/settings']); } });
-    items.push({ label: 'Go to Stats', section: 'View', action: () => { this.router.navigate(['/stats']); } });
 
     const entries = this.session.entryGroups();
+    let entryCount = 0;
     for (const g of entries ?? []) {
       for (const e of g.entries) {
-        if (!q || e.title.toLowerCase().includes(q) || e.focus.toLowerCase().includes(q))
+        if (entryCount >= 10) break;
+        if (!q || e.title.toLowerCase().includes(q) || e.focus.toLowerCase().includes(q)) {
           items.push({ label: e.title, sub: e.focus, section: g.label, action: () => { this.traceStore.trace(this.session.handle()!, e.focus); this.router.navigate(['/trace']); } });
+          entryCount++;
+        }
       }
+      if (entryCount >= 10) break;
     }
 
     for (const nid of this.searchResults()) {

@@ -1,5 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { SessionStore } from './session.store';
+import { ToastService } from '../ui/toast/toast';
 import { DevContextApi } from '../data-access/devcontext-api';
 import { NodeResponse, NeighborsResponse, NeighborsResponseSchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { create } from '@bufbuild/protobuf';
@@ -8,12 +9,14 @@ import { create } from '@bufbuild/protobuf';
 export class NodeStore {
   private api = inject(DevContextApi);
   private session = inject(SessionStore);
+  private toast = inject(ToastService);
 
   readonly open = signal(false);
   readonly nodeId = signal<string | null>(null);
   readonly node = signal<NodeResponse | null>(null);
   readonly neighbors = signal<NeighborsResponse | null>(null);
   readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
 
   async show(nodeId: string): Promise<void> {
     const handle = this.session.handle();
@@ -21,6 +24,7 @@ export class NodeStore {
     this.nodeId.set(nodeId);
     this.open.set(true);
     this.loading.set(true);
+    this.error.set(null);
     try {
       const [n, outNeigh, inNeigh] = await Promise.all([
         this.api.getNode(handle, nodeId),
@@ -32,6 +36,8 @@ export class NodeStore {
     } catch {
       this.node.set(null);
       this.neighbors.set(null);
+      this.error.set('Failed to load node details');
+      this.toast.show('Failed to load node details', 'error');
     } finally {
       this.loading.set(false);
     }
@@ -42,6 +48,7 @@ export class NodeStore {
     this.nodeId.set(null);
     this.node.set(null);
     this.neighbors.set(null);
+    this.error.set(null);
   }
 
   /** Exposed for NodeCard's Trace button. */

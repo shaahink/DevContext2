@@ -16,11 +16,13 @@ import { SectionArchitecture } from './section-architecture';
 import { SectionGraph } from './section-graph';
 import { SectionStats } from './section-stats';
 import { SectionExport } from './section-export';
+import { SectionConsole } from './section-console';
+import { SectionLens } from './section-lens';
 import { SectionSettings } from './section-settings';
 
 @Component({
   selector: 'app-narrative-canvas',
-  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport, SectionSettings],
+  imports: [AppHeader, AppFooter, ScrollSpy, SectionCard, Icon, SectionLanding, SectionIdentity, SectionEntries, SectionTrace, SectionArchitecture, SectionGraph, SectionStats, SectionExport, SectionConsole, SectionLens, SectionSettings],
   template: `
     <app-header [transparent]="!isAtTop()">
       <ng-container analyze />
@@ -48,12 +50,19 @@ import { SectionSettings } from './section-settings';
         <app-section-landing />
       }
 
+      @if (session.busy()) {
+        <app-section-console />
+      }
+
       @if (session.ready()) {
+        <app-section-console />
         <app-section-identity />
         <app-section-entries />
         <app-section-trace />
-        <app-section-architecture />
 
+        <app-section-lens />
+
+        <app-section-architecture />
         <app-section-graph />
 
         <app-section-stats />
@@ -89,9 +98,9 @@ export class NarrativeCanvas {
   readonly activeSection = signal('landing');
   readonly visibleSections = computed(() => {
     if (this.session.ready()) {
-      return ['landing', 'identity', 'entries', 'trace', 'architecture', 'graph', 'stats', 'export', 'settings'] as const;
+      return ['landing', 'console', 'identity', 'entries', 'trace', 'lens', 'architecture', 'graph', 'stats', 'export', 'settings'] as const;
     }
-    return ['landing', 'settings'] as const;
+    return ['landing', 'console', 'settings'] as const;
   });
   readonly exportOpen = signal(false);
 
