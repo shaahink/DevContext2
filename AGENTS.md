@@ -1,31 +1,29 @@
-# AGENTS.md — DevContext engine audit worktree
+# AGENTS.md — DevContext go-to program worktree
 
-You are working in the `feat/engine-cross-repo-analysis` worktree. **Mission:** make DevContext (a .NET
-static-analysis CLI) the go-to lens for **any** .NET repo — at a glance answer *"what is this / how do I use
-it / how does any part work"* via correct **archetype**, real **entry points**, and faithful **trace**
-dive-ins. Output quality (the Map/Trace the CLI and UI emit) is the product; detection counts are a substrate.
+You are working in the `docs/go-to-engine-audit` worktree. **Mission:** execute the go-to program — make
+DevContext (a .NET static-analysis CLI) the go-to lens for **any** .NET repo. The program covers engine
+trust/fidelity (I1), CLI v2 + kernel wire (I2), Insights engine (I3), desktop UX (I4), facet menu (I5),
+MCP server (I6), and benchmark/coverage (I7).
 
 ## Start here (every session, before editing code)
-1. Read `analysis-exports/ENGINE-AUDIT/README.md` — the hub + resume protocol.
-2. Then `analysis-exports/ENGINE-AUDIT/PHASED-PLAN.md` (what to do next, in order) and
-   `OUTPUT-CONTRACT.md` (the bar each output must meet). Follow the README per-item loop exactly.
-3. Verdicts/evidence for prior findings: `analysis-exports/VERIFIED-PLAN.md`. Canonical output contract:
-   `docs/product/ACCEPTANCE.md` + `docs/product/IDEAL-OUTPUT-TARGET.md`. This audit = Phase 10 of
-   `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md`.
+1. Read `docs/dev/go-to-program/README.md` — the hub + iteration tracker.
+2. Then `docs/dev/go-to-program/PROGRAM-PLAN.md` (phases V1–V5 with votes) and the specific iteration
+   guide for the work item you're picking up.
+3. Reference docs: `ENGINE-VALUE-AUDIT.md` (engine per-shape status), `FACES-DESIGN.md` (CLI v2 + UX spec),
+   `DEV-PAINS.md` (demand-side), `UI-UX-GUIDELINES.md` (design contract for UI work).
 
 ## State of truth lives in the repo
-Code + tests + `eval/expectations/*.json` + the `ENGINE-AUDIT/` docs. After each work item: verify, grade the
-re-captured output against `OUTPUT-CONTRACT.md`, update the scorecard + `BENCHMARK-MATRIX.md` +
-`PROGRESS-LOG.md`, and commit. Keep these docs current — the next session resumes from them.
+Code + tests + `eval/expectations/*.json` + the `docs/dev/go-to-program/` docs. After each work item: verify,
+update the iteration guide's status section, and commit. Keep these docs current — the next session resumes
+from them.
 
 ## Hard rules
 - **Reform in place; never rewrite extractors.** Evolve the existing engine.
 - **Do-not-regress anchors:** `BudgetIndependenceTests` (Map/Trace must stay budget-independent) and the
   `TraceQualityTests` sibling-divergence Facts (the narrow handler bridge stays narrow) must remain green.
-- **Token budgeting is NOT the goal** — it governs a dead legacy catalog path and is a removal candidate
-  (W9). Do not "fix" the token budget to change the Map/Trace; that path is budget-independent by design.
-- **`analyze` needs an ABSOLUTE repo path** — a relative `owner/repo`-shaped path is treated as a GitHub
-  clone target. Cloned test repos are in `analysis-repos/`; eval repos in `eval-repos/`.
+- **Docs move with code, same commit:** any flag/op change edits `docs/product/cli-reference.md`; any UI
+  change edits `docs/product/desktop-ui.md`.
+- **One wire contract:** anything a face shows must exist as a `GraphQuery` op / kernel JSON field first.
 - Ask the user before any large, destructive, or scope-expanding change.
 
 ## Verify loop
@@ -34,9 +32,6 @@ dotnet build DevContext.slnx                            # 0 warnings (analyzer w
 dotnet test  DevContext.slnx --filter "Category!=Eval"  # fast tests
 powershell -File eval/gates.ps1                         # full gate (build + tests + eval + CLI matrix)
 ```
-Flip an eval check `aspirational` → `expected` in the **same commit** that fixes its issue.
 
-**Before the gate:** `eval-repos/` here must be populated, else the Eval tier fails on empty repo dirs
-(they don't skip). It's junctioned to `C:\code\DevContext2\eval-repos`; if that's gone, re-create with
-`New-Item -ItemType Junction -Path eval-repos -Target C:\code\DevContext2\eval-repos` or clone per
-`eval-repos.json`. Test repos for the cross-repo audit are separate, in `analysis-repos/`.
+**Before the gate:** `eval-repos/` must be populated, else the Eval tier fails on empty repo dirs
+(they don't skip). Junction to `C:\code\DevContext2\eval-repos` or clone per `eval-repos.json`.
