@@ -89,6 +89,10 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--lite")]
     public bool Lite { get; set; }
 
+    [Description("Fast mode: skip heavy extractors (call graph, anti-patterns, unconditional scanners) for max speed")]
+    [CommandOption("--fast")]
+    public bool Fast { get; set; }
+
     [Description("Info-level logging")]
     [CommandOption("--verbose")]
     public bool Verbose { get; set; }

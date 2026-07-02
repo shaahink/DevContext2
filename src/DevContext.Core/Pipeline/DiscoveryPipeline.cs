@@ -754,6 +754,12 @@ public sealed class DiscoveryPipeline
             new AnonymousEndpointsSource(),
             new DiLifetimesSource(),
             new CoverageHonestySource(),
+            new WiringHubsSource(),
+            new GraphOrphansSource(),
+            new ExternalEventsSource(),
+            new BusiestAggregateSource(),
+            new TopologyChokepointSource(),
+            new MultiImplSource(),
         };
 
         var all = new List<Insight>();

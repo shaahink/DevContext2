@@ -108,6 +108,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             MaxOutputTokens = settings.MaxTokens ?? config?.MaxOutputTokens ?? 8000,
             AllowRoslyn = !settings.NoRoslyn,
             BuildFullGraph = !settings.Lite,
+            Fast = settings.Fast,
             DryRun = settings.DryRun,
             IncludeProvenance = settings.IncludeProvenance,
             IncludeDiagnostics = settings.IncludeDiagnostics,
@@ -122,7 +123,10 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             },
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
                 ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos"],
-            ExcludeExtractors = resolvedIntent.Scenario.DisableExtractors,
+            ExcludeExtractors = settings.Fast
+                ? resolvedIntent.Scenario.DisableExtractors
+                    .AddRange((string[])["InMemoryEventBusExtractor", "AntiPatternDetector", "IndirectWiringDetector"])
+                : resolvedIntent.Scenario.DisableExtractors,
         };
 
         var scenario = resolvedIntent.Scenario;

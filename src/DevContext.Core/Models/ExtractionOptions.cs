@@ -36,6 +36,10 @@ public sealed record ExtractionOptions
     /// resolves dispatch targets even in overview. Default on; the opt-out (CLI <c>--lite</c>) reverts
     /// to the old profile-gated behavior for users who don't want the upfront cost.</summary>
     public bool BuildFullGraph { get; init; } = true;
+    /// <summary>If true, skip heavy extractors (call graph, anti-patterns, unconditional scanners)
+    /// for maximum speed on large repos. The Map still renders entry points and topology; deep traces,
+    /// insights, and cross-cutting seams are reduced.</summary>
+    public bool Fast { get; init; }
 }
 
 /// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>
