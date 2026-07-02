@@ -23,10 +23,10 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 |---|---|---|---|---|
 | I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** (I1.5 deferred) |
 | I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | **DONE** (eval migration + full W9 deletion deferred) |
-| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **PARTIAL** — 4/10 sources built but **not on the wire** (see [R2](ITERATION-R2-verify-and-finish.md) F1) |
-| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view broken, no NodeLink/Graph/Settings (see [R2](ITERATION-R2-verify-and-finish.md)) |
-| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **PARTIAL** — catalog + F13 only (F1–F12 open, see [R2](ITERATION-R2-verify-and-finish.md) E4) |
-| **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **CURRENT** — start here |
+| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **PARTIAL** — 4/10 sources **on wire** (R2.1). Remaining 6 → E1. |
+| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view, NodeLink, Graph, Settings, Entries table, trace/palette/connection/overview/export all delivered (R2). MCP deferred. |
+| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **PARTIAL** — catalog + F13 only (F1–F12 open, see E4) |
+| **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **DONE** — R2.1–R2.10 delivered. E1–E5 engine carry-over still pending. |
 | I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
 | I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
 | I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | NOT STARTED |
