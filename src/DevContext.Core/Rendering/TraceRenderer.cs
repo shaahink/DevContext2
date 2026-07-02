@@ -112,6 +112,10 @@ public static class TraceRenderer
                 sb.Append(" [verified]");
         }
 
+        // I1.6 — multi-impl honesty: when DI has >1 impl for this Resolve
+        if (step.MultiImplCount > 1)
+            sb.Append($" [×{step.MultiImplCount} impls]");
+
         sb.AppendLine();
 
         // Salient body lines at --detail salient or full

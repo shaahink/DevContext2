@@ -113,6 +113,9 @@ public sealed record GraphEdge(
     public Resolution Resolution { get; init; } = Resolution.Join;
     /// <summary>0..1 confidence.</summary>
     public float Confidence { get; init; } = 1.0f;
+    /// <summary>When >1, how many DI implementations exist for this Resolves edge's service type
+    /// (I1.6 multi-impl honesty). Zero otherwise.</summary>
+    public int MultiImplCount { get; init; }
 }
 
 /// <summary>Immutable, queryable graph. Construct via <see cref="CodeGraphBuilder"/>.</summary>

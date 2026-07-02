@@ -540,10 +540,14 @@ public sealed class GraphBuilder
                 Tags = [RoleTags.Service],
             });
 
+            // I1.6 — tag Resolves edges with multi-impl count for render annotation
+            var svcShort = StripGenerics(di.ServiceType);
+            var multiCount = implCounts.TryGetValue(svcShort, out var c) && c > 1 ? c : 0;
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
                 Provenance = $"{di.SourceFile}:{di.LineNumber}",
                 Resolution = Resolution.Join,
+                MultiImplCount = multiCount,
             });
         }
 
@@ -565,10 +569,12 @@ public sealed class GraphBuilder
             if (!g.HasNode(svcNodeId) || !g.HasNode(implNodeId)) continue;
             if (diResolvedSvcIds.Contains(svcNodeId)) continue; // already resolved via DI
 
+            var fallbackMultiCount = implCounts.TryGetValue(ifaceShort, out var fc) && fc > 1 ? fc : 0;
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
                 Resolution = Resolution.Syntactic,
                 Confidence = 0.7f,
+                MultiImplCount = fallbackMultiCount,
             });
         }
     }

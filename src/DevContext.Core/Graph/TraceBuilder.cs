@@ -25,6 +25,9 @@ public sealed record TraceStep(
     public ImmutableArray<string> Pipeline { get; init; } = [];
     /// <summary>Salient source lines around the provenance site (1-3 lines, for --detail salient).</summary>
     public ImmutableArray<string> Salient { get; init; } = [];
+    /// <summary>When >0, how many DI implementations exist for this Resolves step's service type
+    /// (I1.6 multi-impl honesty).</summary>
+    public int MultiImplCount { get; init; }
 }
 
 /// <summary>An entry-rooted trace: the call stack down the wiring, with indirection bridged.</summary>
@@ -221,7 +224,8 @@ public sealed class TraceBuilder
     }
 
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
-        int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
+        int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited,
+        int multiImplCount = 0)
     {
         if (!visited.Add(node.Id) || depth >= opts.MaxDepth)
         {
@@ -288,12 +292,13 @@ public sealed class TraceBuilder
                     Resolution = edge.Resolution,
                     Salient = salient,
                     Pipeline = pipeline,
+                    MultiImplCount = edge.MultiImplCount,
                 });
                 continue;
             }
 
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
-                depth + 1, opts, follow, visited) with { Salient = salient, Pipeline = pipeline });
+                depth + 1, opts, follow, visited, edge.MultiImplCount) with { Salient = salient, Pipeline = pipeline });
         }
 
         return new TraceStep(node, seam, depth)
@@ -303,6 +308,7 @@ public sealed class TraceBuilder
             Children = children.ToImmutable(),
             Truncated = ranked.Count > taken.Count,
             Omitted = ranked.Count - taken.Count,
+            MultiImplCount = multiImplCount,
         };
     }
 
