@@ -3,8 +3,6 @@ import { SessionStore } from '../../state/session.store';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { NodeStore } from '../../state/node.store';
 import { ViewFrame } from '../../shell/view-frame';
-import { Icon } from '../../ui/icon/icon';
-import { Badge } from '../../ui/badge/badge';
 import { NodeLink } from '../../ui/node-link/node-link';
 
 interface GraphNode {
@@ -29,7 +27,7 @@ const SEAM_COLORS: Record<string, string> = {
 @Component({
   selector: 'app-graph-view',
   standalone: true,
-  imports: [ViewFrame, Icon, Badge, NodeLink],
+  imports: [ViewFrame, NodeLink],
   template: `
     <app-view-frame>
       <div sidebar class="flex flex-col h-full p-3 space-y-2">

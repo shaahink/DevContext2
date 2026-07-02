@@ -90,7 +90,7 @@ const LENS_ITEMS: readonly NavItem[] = [
         <!-- I4.5 Honesty ribbon -->
         @if (session.ready() && session.summary(); as s) {
           <div class="flex items-center gap-3 border-b border-line bg-surface px-3 py-1.5 text-xs text-ink-muted">
-            <span class="font-semibold text-ink">{{ s.label?.split(' ')[0] ?? '—' }}</span>
+            <span class="font-semibold text-ink">{{ s.label.split(' ')[0] ?? '—' }}</span>
             @if (s.archetype) { <span>·</span><span>{{ s.archetype }}</span> }
             <span>·</span>
             <span>{{ s.projects }} projects</span>

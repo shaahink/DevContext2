@@ -2,15 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ConnectionStore } from '../../state/connection.store';
-import { Icon } from '../../ui/icon/icon';
-import { Badge } from '../../ui/badge/badge';
 
 type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
 
 @Component({
   selector: 'app-settings-view',
   standalone: true,
-  imports: [FormsModule, Icon, Badge],
+  imports: [FormsModule],
   template: `
     <div class="flex h-full">
       <!-- Left tabs -->
@@ -33,12 +31,12 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
             <div class="space-y-2">
               <p class="text-2xs text-ink-muted uppercase">Theme / Vibe</p>
               <div class="flex flex-wrap gap-2">
-                @for (vibe of theme.vibes; track vibe.id) {
+                @for (vibe of theme.vibes(); track vibe.id) {
                   <button class="rounded border px-3 py-2 text-xs transition-colors"
-                          [class.border-accent]="theme.activeVibe() === vibe.id"
-                          [class.text-accent]="theme.activeVibe() === vibe.id"
-                          [class.border-line]="theme.activeVibe() !== vibe.id"
-                          [class.text-ink-muted]="theme.activeVibe() !== vibe.id"
+                          [class.border-accent]="theme.vibe() === vibe.id"
+                          [class.text-accent]="theme.vibe() === vibe.id"
+                          [class.border-line]="theme.vibe() !== vibe.id"
+                          [class.text-ink-muted]="theme.vibe() !== vibe.id"
                           (click)="theme.setVibe(vibe.id)">
                     <div class="font-medium">{{ vibe.name }}</div>
                   </button>

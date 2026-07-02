@@ -80,7 +80,7 @@ export class Palette {
     const h = this.session.handle();
     if (h && val.length >= 2) {
       this.api.searchNodes(h, val, 8).then(r => {
-        this.searchResults.set(r.results?.map(n => n.nodeId) ?? []);
+        this.searchResults.set(r.nodes?.map(n => n.nodeId) ?? []);
         this.buildItems();
       }).catch(() => { /* swallow */ });
     }

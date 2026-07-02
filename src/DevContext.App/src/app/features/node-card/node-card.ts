@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Sheet } from '../../ui/sheet/sheet';
 import { NodeStore } from '../../state/node.store';
 import { TraceStore } from '../../state/trace.store';
 import { NodeLink } from '../../ui/node-link/node-link';
+import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 
 @Component({
   selector: 'app-node-card',
@@ -25,7 +26,7 @@ import { NodeLink } from '../../ui/node-link/node-link';
               <p class="text-sm text-ink">{{ n.kind }}</p></div>
             @if (n.filePath) {
               <div><span class="text-2xs text-ink-muted uppercase">Location</span>
-                <p class="text-xs font-mono text-ink">{{ n.filePath }}{{ n.line ? ':' + n.line : '' }}</p></div>
+                <p class="text-xs font-mono text-ink">{{ n.filePath }}</p></div>
             }
             @if (n.tags?.length) {
               <div><span class="text-2xs text-ink-muted uppercase">Tags</span>
@@ -39,16 +40,16 @@ import { NodeLink } from '../../ui/node-link/node-link';
               <span class="text-xs text-ink-muted">Out: {{ n.outDegree ?? 0 }}</span></div>
 
             @if (store.neighbors(); as neigh) {
-              @if (neigh.incoming?.length) {
+              @if (incomingEdges().length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Called by</span>
-                  @for (e of neigh.incoming; track e.from) {
+                  @for (e of incomingEdges(); track e.from) {
                     <app-node-link class="block" [nodeId]="e.from" [label]="e.otherTitle || e.from" />
                   }
                 </div>
               }
-              @if (neigh.outgoing?.length) {
+              @if (outgoingEdges().length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Calls</span>
-                  @for (e of neigh.outgoing; track e.to) {
+                  @for (e of outgoingEdges(); track e.to) {
                     <app-node-link class="block" [nodeId]="e.to" [label]="e.otherTitle || e.to" />
                   }
                 </div>
@@ -71,6 +72,18 @@ import { NodeLink } from '../../ui/node-link/node-link';
 export class NodeCard {
   readonly store = inject(NodeStore);
   readonly traceStore = inject(TraceStore);
+
+  readonly nid = computed(() => this.store.nodeId());
+  readonly incomingEdges = computed(() => {
+    const id = this.nid();
+    if (!id) return [] as Edge[];
+    return (this.store.neighbors()?.edges ?? []).filter(e => e.to === id);
+  });
+  readonly outgoingEdges = computed(() => {
+    const id = this.nid();
+    if (!id) return [] as Edge[];
+    return (this.store.neighbors()?.edges ?? []).filter(e => e.from === id);
+  });
 
   traceFromNode(nodeId: string): void {
     const h = this.store.sessionHandle();

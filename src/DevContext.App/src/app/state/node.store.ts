@@ -1,7 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { SessionStore } from './session.store';
 import { DevContextApi } from '../data-access/devcontext-api';
-import { NodeResponse, NeighborsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { NodeResponse, NeighborsResponse, NeighborsResponseSchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { create } from '@bufbuild/protobuf';
 
 @Injectable({ providedIn: 'root' })
 export class NodeStore {
@@ -21,12 +22,13 @@ export class NodeStore {
     this.open.set(true);
     this.loading.set(true);
     try {
-      const [n, neigh] = await Promise.all([
+      const [n, outNeigh, inNeigh] = await Promise.all([
         this.api.getNode(handle, nodeId),
-        this.api.getNeighbors(handle, nodeId, 'both'),
+        this.api.getNeighbors(handle, nodeId, 'out'),
+        this.api.getNeighbors(handle, nodeId, 'in'),
       ]);
       this.node.set(n);
-      this.neighbors.set(neigh);
+      this.neighbors.set(create(NeighborsResponseSchema, { edges: [...outNeigh.edges, ...inNeigh.edges] }));
     } catch {
       this.node.set(null);
       this.neighbors.set(null);

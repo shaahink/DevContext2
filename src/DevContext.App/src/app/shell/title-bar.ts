@@ -21,7 +21,7 @@ import { ThemeService } from '../core/theme/theme.service';
             Connected
           </span>
         } @else if (connection.checked()) {
-          <span class="flex items-center gap-1 text-2xs text-danger" [title]="'Server unreachable — check if it\'s running on http://127.0.0.1:5179'">
+          <span class="flex items-center gap-1 text-2xs text-danger" [title]="'Server unreachable at http://127.0.0.1:5179'">
             <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
             Offline
           </span>

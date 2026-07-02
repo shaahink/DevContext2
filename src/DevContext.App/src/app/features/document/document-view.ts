@@ -138,7 +138,7 @@ export class DocumentView {
     this.loading.set(false);
   }
 
-  protected onDocClick(event: MouseEvent): void {
+  protected onDocClick(event: Event): void {
     const target = event.target as HTMLElement;
     if (target.tagName === 'BUTTON') {
       const nodeId = target.textContent;
