@@ -66,6 +66,7 @@ public sealed class GraphBuilder
 
         // ── P1 Map-facing seams ───────────────────────────────────────────
         AddEntityNodes(g, model, names, scope, _noise);             // B1: Entity nodes + aggregate tags
+        AddEntityNavigationEdges(g, model, names, scope);        // A-F14: Entity→Entity relation edges
         AddEventConsumers(g, model, names, scope, _noise);          // B1: Event nodes + Consumes edges
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
@@ -431,6 +432,116 @@ public sealed class GraphBuilder
                 }
             }
         }
+    }
+
+    /// <summary>A-F14: Creates EntityRelation edges between entity type nodes by inspecting each entity's
+    /// declared navigation properties. Creates edges in the BelongsTo direction (child entity → parent
+    /// aggregate/entity) for depth-from-aggregate-root traversal. For reference properties (OrderItem.Order),
+    /// the child entity owns the property → edge goes child→parent. For collection properties
+    /// (Order.ICollection&lt;OrderItem&gt;), the parent owns the property → edge is reversed to child→parent.
+    /// Honesty note: declared-shape only; fluent-API <c>HasMany</c> mappings are not parsed in v1.</summary>
+    private static void AddEntityNavigationEdges(CodeGraphBuilder g, DiscoveryModel model,
+        NameResolver names, SolutionScope scope)
+    {
+        // Build a set of known entity short names from detections + already entity-tagged graph nodes
+        var entityShortNames = model.Detections.OfType<EfEntityDetection>()
+            .Select(d => d.EntityType)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in g.Nodes)
+        {
+            if (node.Kind != NodeKind.Type || !node.Tags.Contains(RoleTags.Entity))
+                continue;
+            entityShortNames.Add(node.Title);
+        }
+
+        foreach (var type in model.Types.Values)
+        {
+            if (!scope.Contains(type.FilePath)) continue;
+            if (!entityShortNames.Contains(type.Name)) continue;
+            if (type.Properties.IsDefaultOrEmpty) continue;
+
+            var entityId = NodeId.ForType(type.Id);
+
+            foreach (var prop in type.Properties)
+            {
+                var (targetName, isCollection) = ExtractInnerEntityNameWithDir(prop.PropertyType);
+                if (targetName is null || targetName == type.Name) continue;
+                if (!entityShortNames.Contains(targetName)) continue;
+
+                var targetFqn = names.Resolve(targetName);
+                var targetId = NodeId.ForType(targetFqn);
+
+                // BelongsTo direction: edge from child → parent.
+                // For collection properties (e.g. Order has ICollection<OrderItem>), the owning type
+                // is the parent; edge direction is reversed so OrderItem → Order.
+                // For reference properties (e.g. OrderItem has Order Order), the owning type IS the
+                // child, so edge direction is already child→parent.
+                if (isCollection)
+                    g.AddEdge(new GraphEdge(targetId, entityId, EdgeKind.EntityRelation)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.6f,
+                    });
+                else
+                    g.AddEdge(new GraphEdge(entityId, targetId, EdgeKind.EntityRelation)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.6f,
+                    });
+            }
+        }
+    }
+
+    /// <summary>Extracts the inner entity name and collection-direction flag from a property type string.
+    /// Returns (name, isCollection) where isCollection is true for <c>ICollection&lt;T&gt;</c>,
+    /// <c>List&lt;T&gt;</c>, <c>IEnumerable&lt;T&gt;</c>, <c>T[]</c> patterns.
+    /// Returns null for non-entity property types like <c>string</c>, <c>int</c>, <c>DateTime</c>.</summary>
+    private static (string? Name, bool IsCollection) ExtractInnerEntityNameWithDir(string propertyType)
+    {
+        if (string.IsNullOrEmpty(propertyType)) return (null, false);
+        var type = propertyType.AsSpan().Trim();
+
+        // Array: OrderItem[] → collection
+        if (type.EndsWith("[]"))
+        {
+            var inner = type[..^2].Trim();
+            return inner.IsEmpty ? (null, false) : (inner.ToString(), true);
+        }
+
+        // Generic collection: ICollection<OrderItem>, List<Product>, IEnumerable<Entity>, etc.
+        var open = type.IndexOf('<');
+        var close = type.LastIndexOf('>');
+        if (open >= 0 && close > open)
+        {
+            var inner = type[(open + 1)..close].Trim();
+            if (inner.EndsWith("?"))
+                inner = inner[..^1];
+            return inner.IsEmpty ? (null, false) : (inner.ToString(), true);
+        }
+
+        // Nullable reference: Order?
+        if (type.EndsWith("?"))
+            type = type[..^1];
+
+        // Skip primitives and framework types
+        if (type is "string" or "int" or "long" or "short" or "byte" or "float" or "double"
+            or "bool" or "char" or "decimal" or "DateTime" or "Guid" or "TimeSpan" or "DateTimeOffset"
+            or "Uri" or "object" or "String")
+            return (null, false);
+
+        return (type.ToString(), false);
+    }
+
+    /// <summary>Extracts the inner entity name from a property type string like
+    /// <c>ICollection&lt;OrderItem&gt;</c> → "OrderItem",
+    /// <c>List&lt;Product&gt;</c> → "Product",
+    /// <c>Order</c> → "Order".
+    /// Returns null for non-entity property types like <c>string</c>, <c>int</c>, <c>DateTime</c>.</summary>
+    private static string? ExtractInnerEntityName(string propertyType)
+    {
+        var (name, _) = ExtractInnerEntityNameWithDir(propertyType);
+        return name;
     }
 
     /// <summary>B1: MediatR notification handlers + message bus consumers → Event nodes + Consumes edges.

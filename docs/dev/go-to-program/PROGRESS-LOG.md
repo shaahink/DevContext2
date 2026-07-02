@@ -214,3 +214,24 @@ before the merge).
 
 **Next:** A-F14 (EF depth tracking) → E5 (Benchmark expansion) → I8 (Caching).
 
+## 2026-07-02 — A-F14: EF depth tracking (entity navigation + depth annotation)
+
+**Changed:**
+- `EdgeKind.EntityRelation` — new edge kind for entity-to-entity navigation relationships.
+- `GraphBuilder.AddEntityNavigationEdges()` — scans entity types' declared properties for
+  navigation properties referencing other known entities. Creates `EntityRelation` edges in
+  the BelongsTo direction (child entity → parent aggregate/entity). Handles both direct
+  references (`OrderItem.Order`) and collection properties (`Order.Items: ICollection<OrderItem>`).
+- `GraphBuilder.ExtractInnerEntityNameWithDir()` — extracts the inner entity name from property
+  type strings, distinguishing collection types (ICollection<>, List<>, arrays) from direct
+  references. Filters out primitive/framework types.
+- `TraceBuilder.AnnotateEntityDepths()` — post-collection step that computes depth from each
+  touched entity to its nearest aggregate root by BFS-traversing EntityRelation edges.
+  Aggregate roots get "(root)" annotation; connected entities get "(depth N from AggregateName)".
+  Unconnected entities unchanged.
+- `GraphBuilderTests` — 2 new tests: direct reference navigation and collection navigation.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 383/0 (+2 entity nav tests, no regressions).
+
+**Next:** E5 (Benchmark expansion) → I8 (Caching).
+

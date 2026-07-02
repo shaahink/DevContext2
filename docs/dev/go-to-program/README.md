@@ -32,7 +32,7 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 | I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | NOT STARTED |
 | I9 | [Release readiness](ITERATION-I9-release-readiness.md) — about/updates/logs/errors, CLI polish floor | V7 | I4, I8 | NOT STARTED |
 | I10 | [Workspace tabs](ITERATION-I10-workspace-tabs.md) — up to 6 repos, VS Code-grade tab strip, memory-honest | V7 | I4 (+I8) | **PARTIAL** — I10.1 (WorkspaceStore facade), I10.2 (tab strip), I10.4 (persist+lazy-reanalyze) DONE and verified live incl. concurrent analyze across tabs. I10.3 (server MaxLiveSessions/LRU/rehydrate) blocked on I8. |
-| A | [Harder repos](ADDENDUM-A-harder-repos.md) — F14 EF depth ★, F15 build intelligence ★, extended insights | V3/V5 | I1, I2 | **F15 DONE**, F14 remaining |
+| A | [Harder repos](ADDENDUM-A-harder-repos.md) — F14 EF depth ★, F15 build intelligence ★, extended insights | V3/V5 | I1, I2 | **DONE** |
 | — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
 
 **Order rule:** CORE spine is I1 → I2 → I3 → I4 → **I8 → I10 → I9** (+ I6 MCP anywhere after I2;

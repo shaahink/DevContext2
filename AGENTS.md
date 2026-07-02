@@ -39,10 +39,12 @@ Repo-hash snapshot cache → instant re-opens. Settings→Storage backend.
 - Locus: `src/DevContext.Server/Sessions/` — LRU eviction, rehydrate from I8 cache.
 - Gate: open 7 tabs → oldest evicted; rehydrate from cache is instant.
 
-### A-F14 — EF depth tracking
+### A-F14 — EF depth tracking  **DONE**
 Entity relationship depth analysis (entity→aggregate root distance).
-- Locus: `src/DevContext.Core/Extractors/Specific/EfCoreExtractor.cs`
-- Gate: eShop TOUCHES shows entity chain depth.
+- Locus: `src/DevContext.Core/Graph/GraphBuilder.cs` — `AddEntityNavigationEdges()` + `ExtractInnerEntityNameWithDir()`
+  `src/DevContext.Core/Graph/TraceBuilder.cs` — `AnnotateEntityDepths()`
+  `src/DevContext.Core/Graph/CodeGraph.cs` — `EdgeKind.EntityRelation`
+- Gate: entity navigation relationship tests green; TOUCHES annotated with chain depth.
 
 ### A-F15 — Build intelligence  **DONE**
 CPM detection + Directory.Build.props fix (bug-grade: CPM packages not detected).
