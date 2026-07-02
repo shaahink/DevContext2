@@ -29,10 +29,16 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 | **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **CURRENT** — start here |
 | I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
 | I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
+| I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | NOT STARTED |
+| I9 | [Release readiness](ITERATION-I9-release-readiness.md) — about/updates/logs/errors, CLI polish floor | V7 | I4, I8 | NOT STARTED |
+| I10 | [Workspace tabs](ITERATION-I10-workspace-tabs.md) — up to 6 repos, VS Code-grade tab strip, memory-honest | V7 | I4 (+I8) | NOT STARTED |
+| A | [Harder repos](ADDENDUM-A-harder-repos.md) — F14 EF depth ★, F15 build intelligence ★, extended insights | V3/V5 | I1, I2 | NOT STARTED |
 | — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
 
-**Order rule:** CORE spine is I1 → I2 → I3 → I4/I6; I5 picks interleave anywhere after I2; I7 closes
-each batch. Bugs/trust always outrank features (the votes in PROGRAM-PLAN §0 explain why).
+**Order rule:** CORE spine is I1 → I2 → I3 → I4 → **I8 → I10 → I9** (+ I6 MCP anywhere after I2;
+I5/A picks interleave; I7 closes each batch and now includes A5's repos). Bugs/trust always outrank
+features. Addendum rationale: I8 before I10 (tabs need snapshot rehydration), I9 last (release gate
+audits everything shipped before it).
 
 ## Maintenance protocol (applies to every iteration)
 

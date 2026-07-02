@@ -158,6 +158,47 @@ Prereq: **FacetCatalog** descriptor plumbing (shared by all picks).
 
 ---
 
+## I8 — Caching & storage (addendum)
+
+**Phase:** V5 · **Guide:** `ITERATION-I8-caching-storage.md` · **Status:** ⬜ · **Depends on:** I2
+
+| Step | Task |
+|------|------|
+| I8.1 | Snapshot store: repoKey + versionKey hashing, JSON.gz persistence |
+| I8.2 | Cache hit path: analyze → load snapshot → serve instantly |
+| I8.3 | Clone consolidation: fetch+checkout over re-clone |
+| I8.4 | Settings → Storage face: cache list, sizes, clear, disk bar |
+| I8.5 | CLI `devcontext cache list/clear/path` |
+
+---
+
+## I9 — Release readiness (addendum)
+
+**Phase:** V7 · **Guide:** `ITERATION-I9-release-readiness.md` · **Status:** ⬜ · **Depends on:** I4, I8
+
+| Step | Task |
+|------|------|
+| I9.1 | About panel: versions, license, third-party notices |
+| I9.2 | Windowing: size/position persisted, single-instance, graceful exit |
+| I9.3 | Server supervision: crash→auto-restart, port conflict handling |
+| I9.4 | Errors/logs: global error boundary, log files, update check |
+| I9.5 | CLI polish: exit codes, stdout/stderr discipline, --quiet, completions |
+
+---
+
+## I10 — Workspace tabs (addendum)
+
+**Phase:** V7 · **Guide:** `ITERATION-I10-workspace-tabs.md` · **Status:** ⬜ · **Depends on:** I4 (+I8 for full cap)
+
+| Step | Task |
+|------|------|
+| I10.1 | WorkspaceStore: multi-tab state, SessionStore/TraceStore facades |
+| I10.2 | Tab strip UX: 32px strip, tab anatomy, + button, interactions |
+| I10.3 | Server: MaxLiveSessions + LRU + rehydrate path |
+| I10.4 | URL & persistence: active tab view in URL, restore idle tabs |
+
+---
+
 ## 10.E — Coverage gaps (not yet benchmarked)
 
 **Status:** ⬜ · Added in I7. The 8 missing archetypes from the cross-repo audit:
@@ -175,15 +216,15 @@ Prereq: **FacetCatalog** descriptor plumbing (shared by all picks).
 
 ---
 
-## Delivery order (CORE spine)
+## Delivery order (CORE spine + addendum)
 
 ```
 I1 (trust) ──► I2 (CLI/kernel/W9) ──┬──► I3 (insights) ──┐
                                      ├──► I4 (desktop UX)  ├──► I7 (benchmark/close)
                                      └──► I5 (facet menu)  │
-                                                           │
-                                    I6 (MCP) ←─────────────┘ (deferred)
-```
+                       ┌─► I8 (cache/storage) ──► I10 (tabs) ──► I9 (release)
+                       │                                    │
+               I6 (MCP) ←───────────────────────────────────┘ (deferred)
 
 Per-commit delivery: each I1.1–I1.7 step is one commit; each I2 step one commit; etc.
 Ratchet rule: flip eval `aspirational` → `expected` in the same commit that fixes the issue.
