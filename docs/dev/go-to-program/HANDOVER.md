@@ -130,20 +130,75 @@ Addendum docs sourced from `C:\Code\DevContext2-addendum` (branch `docs/go-to-pr
 
 ## Resume protocol (cold start)
 
+### Warm-start prompt — paste this into the next agent session
+
+```
+You are resuming the DevContext go-to program.
+
+Worktree: C:\Code\DevContext2-goto-audit
+Branch:   go-to/implement-iterations (tracks origin/go-to/implement-iterations)
+Commit:   f927e7a "docs(handover): complete round-2 handover"
+Base:     develop @ 7228d1e
+
+Do NOT touch C:\Code\DevContext2 (main checkout, different branch).
+Addendum docs source: C:\Code\DevContext2-addendum (branch docs/go-to-program-addendum) — already merged into this worktree.
+
+Read in this order:
+  1. docs/dev/go-to-program/HANDOVER.md       (this file — review checklist, caveats, next items)
+  2. docs/dev/go-to-program/README.md          (iteration tracker)
+  3. docs/dev/go-to-program/PROGRESS-LOG.md    (what happened in prior sessions)
+  4. docs/dev/go-to-program/ITERATION-R2-verify-and-finish.md  (plan for remaining engine items E1-E5)
+  5. docs/dev/go-to-program/UI-UX-GUIDELINES.md                (design contract for any UI work)
+
+Verify baseline before editing:
+  dotnet build DevContext.slnx                            # must be 0 warnings
+  dotnet test  DevContext.slnx --filter "Category!=Eval"   # must be 385/0 green
+  Set-Location src/DevContext.App; pnpm check              # lint + test + build — must be green
+
+Do-not-regress anchors:
+  BudgetIndependenceTests · TraceQualityTests sibling-divergence Facts
+  GraphBuilderSpanTests (3) · NoiseFilterTests · ArchetypeDetectorTests
+
+What to do first:
+  A. Desktop smoke test (verify R2 faces render live data):
+     pnpm dev   # launch desktop
+     Analyze a known-good .NET repo (e.g. eval-repos/eShop)
+     Check: Insights cards show real data · rail badge has count · Entry target NodeLink opens NodeCard
+            Graph loads · Settings>About shows version · Overview shows top insights · Trace breadcrumb works
+
+  B. If smoke test passes → next item is E1 (remaining 6 engine insight sources).
+     Each source: 1 Insight subclass + 1 unit test + 1 positive eval check + 1 negative.
+     Guide: docs/dev/go-to-program/ITERATION-I3-insights.md
+     Sources become visible in Insights view automatically (R2.1 closed the wire).
+
+  C. After E1 → I8 (caching/snapshots) → I10 (workspace tabs) → I9 (release readiness).
+     Full delivery order in HANDOVER.md §Engine state & next items.
+
+Delivery rules:
+  - One commit per item: type(scope): what · update README/UNIFIED-TRACKER status same commit
+  - Append PROGRESS-LOG.md after every session (date · changed · verified · next)
+  - Docs move with code: cli-reference.md for CLI changes, desktop-ui.md for UI changes
+  - No screenshot required (user waived this rule for R2)
+  - eval-repos/ must be populated before running eval/gates.ps1 (junction to C:\code\DevContext2\eval-repos)
+```
+
+### Manual cold-start commands
+
 ```
 git -C C:/Code/DevContext2-goto-audit checkout go-to/implement-iterations
 git -C C:/Code/DevContext2-goto-audit pull
 
 # Read in order:
-docs/dev/go-to-program/HANDOVER.md    (this)
-docs/dev/go-to-program/README.md      (tracker)
-docs/dev/go-to-program/PROGRESS-LOG.md (what happened)
-ITERATION-R2-verify-and-finish.md     (plan for E1-E5)
+docs/dev/go-to-program/HANDOVER.md
+docs/dev/go-to-program/README.md
+docs/dev/go-to-program/PROGRESS-LOG.md
+docs/dev/go-to-program/ITERATION-R2-verify-and-finish.md
+docs/dev/go-to-program/UI-UX-GUIDELINES.md
 
 # Verify baseline:
-dotnet build DevContext.slnx                           # 0w
-dotnet test DevContext.slnx --filter "Category!=Eval"  # 385/0
-cd src/DevContext.App; pnpm check                       # lint + test + build green
+dotnet build DevContext.slnx                            # 0w
+dotnet test DevContext.slnx --filter "Category!=Eval"    # 385/0
+Set-Location src/DevContext.App; pnpm check              # lint + test + build green
 
-# Pick next item from HANDOVER above or README tracker
+# Pick next item from HANDOVER.md §Engine state & next items
 ```
