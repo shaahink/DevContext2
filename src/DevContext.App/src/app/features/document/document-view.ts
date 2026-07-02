@@ -19,6 +19,13 @@ interface SectionToggle { key: string; tokens: number; included: boolean; }
   template: `
     <app-view-frame>
       <div sidebar class="flex flex-col h-full p-3 space-y-1">
+        <p class="mb-2 text-2xs font-semibold uppercase text-ink-subtle">Presets</p>
+        <div class="flex flex-wrap gap-1 mb-2">
+          <button class="rounded border border-line px-2 py-1 text-2xs text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="applyPreset('onboarding')">Onboarding</button>
+          <button class="rounded border border-line px-2 py-1 text-2xs text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="applyPreset('trace')">Trace Pack</button>
+          <button class="rounded border border-line px-2 py-1 text-2xs text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="applyPreset('review')">Review</button>
+        </div>
+        <div class="border-t border-line pt-2"></div>
         <p class="mb-2 text-2xs font-semibold uppercase text-ink-subtle">Sections</p>
         @if (sections().length) {
           @for (s of sections(); track s.key) {
@@ -137,5 +144,21 @@ export class DocumentView {
       const nodeId = target.textContent;
       if (nodeId) this.nodeStore.show(nodeId);
     }
+  }
+
+  protected applyPreset(preset: string): void {
+    const secs = this.sections();
+    if (!secs.length) return;
+
+    const presets: Record<string, string[]> = {
+      onboarding: ['identity', 'entries', 'topology', 'stack'],
+      trace: ['trace'],
+      review: ['insights', 'entries', 'coverage'],
+    };
+
+    const wanted = presets[preset] ?? [];
+    this.sections.update(list =>
+      list.map(s => ({ ...s, included: wanted.some(w => s.key.toLowerCase().includes(w)) }))
+    );
   }
 }

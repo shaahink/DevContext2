@@ -101,6 +101,10 @@ export class Palette {
     items.push({ label: 'Go to Entries', section: 'View', action: () => { this.router.navigate(['/entries']); } });
     items.push({ label: 'Go to Overview', section: 'View', action: () => { this.router.navigate(['/overview']); } });
     items.push({ label: 'Go to Insights', section: 'View', action: () => { this.router.navigate(['/insights']); } });
+    items.push({ label: 'Go to Graph', section: 'View', action: () => { this.router.navigate(['/graph']); } });
+    items.push({ label: 'Go to Browse', section: 'View', action: () => { this.router.navigate(['/browse']); } });
+    items.push({ label: 'Go to Document', section: 'View', action: () => { this.router.navigate(['/document']); } });
+    items.push({ label: 'Go to Settings', section: 'View', action: () => { this.router.navigate(['/settings']); } });
     items.push({ label: 'Go to Stats', section: 'View', action: () => { this.router.navigate(['/stats']); } });
 
     const entries = this.session.entryGroups();

@@ -16,14 +16,19 @@ import { ThemeService } from '../core/theme/theme.service';
           {{ theme.vibeDef().name.toUpperCase() }}
         </button>
         @if (connection.online()) {
-          <span class="flex items-center gap-1 text-2xs text-success">
+          <span class="flex items-center gap-1 text-2xs text-success" [title]="'Server v' + connection.version() + ' · http://127.0.0.1:5179'">
             <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
             Connected
           </span>
-        } @else {
-          <span class="flex items-center gap-1 text-2xs text-danger">
+        } @else if (connection.checked()) {
+          <span class="flex items-center gap-1 text-2xs text-danger" [title]="'Server unreachable — check if it\'s running on http://127.0.0.1:5179'">
             <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
             Offline
+          </span>
+        } @else {
+          <span class="flex items-center gap-1 text-2xs text-amber-500" [title]="'Checking server…'">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+            Connecting
           </span>
         }
       </div>

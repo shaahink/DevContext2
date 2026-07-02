@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
 import { ViewFrame } from '../../shell/view-frame';
@@ -25,6 +25,18 @@ import { Icon } from '../../ui/icon/icon';
 
       @if (session.ready()) {
         <div class="p-5 space-y-5">
+          <!-- Top insights (Severity >= Notable, gated per I3) -->
+          @if (topInsights().length) {
+            <app-card>
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-subtle">Notable</h3>
+              <ul class="mt-2 space-y-1">
+                @for (insight of topInsights(); track insight.id) {
+                  <li class="text-xs text-ink-muted">&#8226; {{ insight.title }}</li>
+                }
+              </ul>
+            </app-card>
+          }
+
           @if (session.mapResponse(); as m) {
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <app-card>
@@ -141,4 +153,10 @@ import { Icon } from '../../ui/icon/icon';
 })
 export class OverviewView {
   protected readonly session = inject(SessionStore);
+
+  protected readonly topInsights = computed(() => {
+    return this.session.insights()
+      .filter(i => i.severity === 'warning' || i.severity === 'notable')
+      .slice(0, 3);
+  });
 }
