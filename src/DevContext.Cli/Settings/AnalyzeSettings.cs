@@ -124,4 +124,12 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Fail with exit code 2 on any self-check invariant violation")]
     [CommandOption("--strict")]
     public bool Strict { get; set; }
+
+    [Description("Skip snapshot cache — always perform a fresh analysis (result still cached for future)")]
+    [CommandOption("--no-cache")]
+    public bool NoCache { get; set; }
+
+    [Description("Fail if cached snapshot is not available (CI reproducibility)")]
+    [CommandOption("--cache-only")]
+    public bool CacheOnly { get; set; }
 }

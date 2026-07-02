@@ -151,6 +151,25 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         inner.Add(collector);
         var observer = new CompositeDiscoveryObserver([.. inner]);
 
+        // I8 — snapshot cache check
+        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+        var snapCache = new DevContext.Core.Analysis.SnapshotCacheService();
+        var fromCache = false;
+        if (!settings.NoCache && snapCache.Exists(repoKey, versionKey))
+        {
+            snapshot = await snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct);
+            if (snapshot is not null)
+            {
+                fromCache = true;
+                snapshot = snapshot with { Options = options, RootPath = rootResult.EffectiveRootPath };
+            }
+        }
+        if (!fromCache && settings.CacheOnly)
+        {
+            AnsiConsole.MarkupLine("[red]No cached snapshot available and --cache-only was specified.[/]");
+            return 3;
+        }
+
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
@@ -164,43 +183,35 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             Logger = _loggerFactory.CreateLogger("DevContext")
         };
 
-        await AnsiConsole.Status()
-            .StartAsync("Analyzing project...", async statusCtx =>
-            {
-                var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
-                snapshot = capturedSnapshot;
-
-                if (capturedSnapshot.IsDryRun)
+        if (!fromCache)
+        {
+            await AnsiConsole.Status()
+                .StartAsync("Analyzing project...", async statusCtx =>
                 {
-                    result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
-                }
-                else
-                {
-                    var traceDetail = settings.Detail?.ToLowerInvariant() switch
-                    {
-                        "signature" => TraceDetail.Signature,
-                        "salient" => TraceDetail.Salient,
-                        "full" => TraceDetail.Full,
-                        _ => TraceDetail.Salient,
-                    };
+                    var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
+                    snapshot = capturedSnapshot;
 
-                    var request = new RenderRequest
-                    {
-                        Format = options.OutputFormat.ToString().ToLowerInvariant(),
-                        MaxTokens = options.MaxOutputTokens,
-                        Sections = scenario.RequiredSections,
-                        IncludeProvenance = options.IncludeProvenance,
-                        IncludeDiagnostics = options.IncludeDiagnostics,
-                        TokenView = options.TokenView,
-                        Entry = focusText,
-                        Depth = settings.Depth,
-                        Detail = traceDetail,
-                        IncludeMapWithTrace = settings.IncludeMapWithTrace,
-                    };
+                    // I8 — save snapshot to cache (write-behind after analysis)
+                    _ = snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
 
-                    result = await pipeline.RenderAsync(capturedSnapshot, request, ct);
-                }
-            });
+                    if (capturedSnapshot.IsDryRun)
+                    {
+                        result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+                    }
+                    else
+                    {
+                        result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
+                    }
+                });
+        }
+        else
+        {
+            // I8 — render from cached snapshot (no re-analysis needed)
+            result = await Render(snapshot!, pipeline, settings, options, scenario, focusText, ct);
+            var elapsed = sw.ElapsedMilliseconds;
+            var fromCacheStamp = $"  from cache · {versionKey[..Math.Min(7, versionKey.Length)]} · {elapsed}ms";
+            AnsiConsole.MarkupLine($"[dim]{fromCacheStamp}[/]");
+        }
 
         await WriteOutput(settings, result);
         if (settings.Strict && HandleStrictMode(result))
@@ -255,6 +266,37 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         services.AddSingleton(_loggerFactory.CreateLogger<DiscoveryPipeline>());
         var sp = services.BuildServiceProvider();
         return sp.GetRequiredService<DiscoveryPipeline>();
+    }
+
+    private static async Task<RenderedContext> Render(AnalysisSnapshot snapshot, DiscoveryPipeline pipeline,
+        AnalyzeSettings settings, ExtractionOptions options, Scenario scenario, string? focusText, CancellationToken ct)
+    {
+        if (snapshot.IsDryRun)
+            return new RenderedContext(snapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+
+        var traceDetail = settings.Detail?.ToLowerInvariant() switch
+        {
+            "signature" => TraceDetail.Signature,
+            "salient" => TraceDetail.Salient,
+            "full" => TraceDetail.Full,
+            _ => TraceDetail.Salient,
+        };
+
+        var request = new RenderRequest
+        {
+            Format = options.OutputFormat.ToString().ToLowerInvariant(),
+            MaxTokens = options.MaxOutputTokens,
+            Sections = scenario.RequiredSections,
+            IncludeProvenance = options.IncludeProvenance,
+            IncludeDiagnostics = options.IncludeDiagnostics,
+            TokenView = options.TokenView,
+            Entry = focusText,
+            Depth = settings.Depth,
+            Detail = traceDetail,
+            IncludeMapWithTrace = settings.IncludeMapWithTrace,
+        };
+
+        return await pipeline.RenderAsync(snapshot, request, ct);
     }
 
     private static async Task WriteOutput(AnalyzeSettings settings, RenderedContext result)
