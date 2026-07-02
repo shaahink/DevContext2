@@ -26,4 +26,23 @@
 - `dotnet test DevContext.slnx --filter Category!=Eval` — 385/0 green
 - `pnpm lint` — green (pre-existing build errors in node-card/palette/node.store unrelated to R2)
 
-**Next:** E1–E5 engine carry-over (remaining insight sources, pattern-zoo, W9 deletion, facets, benchmark) · I8 caching & storage · I10 workspace tabs · I9 release readiness
+## 2026-07-02 — Pre-existing TS errors + handover (session 1 cleanup)
+
+**Changed:**
+- Fixed 5 pre-existing TypeScript build errors from round-1 session that prevented `pnpm build`:
+  - `node-card.ts`: removed `n.line` (not in NodeResponse proto); replaced `neigh.incoming`/`neigh.outgoing` with edge-filtering via computed signals
+  - `palette.ts`: `r.results` → `r.nodes` (SearchResponse field name)
+  - `app-shell.ts`: removed unnecessary `?.` on `label` (required proto field)
+  - `node.store.ts`: `'both'` → `'out'` + `'in'` with merged edges via `create(NeighborsResponseSchema)`
+- Fixed 4 self-inflicted errors from R2 code:
+  - `settings-view.ts`: `theme.vibes`→`theme.vibes()`, `theme.activeVibe`→`theme.vibe()`, removed unused imports
+  - `graph-view.ts`: removed unused Icon/Badge imports
+  - `document-view.ts`: `onDocClick(MouseEvent)` → `onDocClick(Event)` for keyboard event compatibility
+  - `title-bar.ts`: fixed template string literal parsing error with single quote
+- Rewrote HANDOVER.md: round-2 delivery summary, review checklist, known caveats, next-items table, resume protocol
+
+**Verified:**
+- `pnpm check` fully green: lint · 4/4 tests · build success (app bundle generated, 0 errors, 0 warnings)
+- All 12 lazy chunks built: entries-view, source-view, trace-view, document-view, settings-view, browse-view, overview-view, stats-view, graph-view, insights-view, cache-view
+
+**Next:** Desktop smoke test (verify faces render real data) → E1 remaining insight sources

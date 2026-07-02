@@ -1,138 +1,149 @@
 # Handover — Go-To Program Implementation (2026-07-02)
 
-> Session: DeepSeek v4 Pro · Branch: `go-to/implement-iterations`  
-> Base: `develop` @ `7228d1e` · Contains all W1–W9 from `feat/engine-cross-repo-analysis`  
-> 19 commits delivered · Gate: build 0w / fast tests 385/0 / Angular lint green
+> Branch: `go-to/implement-iterations` · Base: `develop` @ `7228d1e`
+> Round-1 session (DeepSeek): 19 commits · I1–I5 engine + shell skeletons
+> Round-2 session (this session): 10 commits · R2.1–R2.10 wire fix + all missing faces + TS build fix
+> Gate: `dotnet build` 0w · `dotnet test --filter Category!=Eval` 385/0 · **`pnpm check` fully green (lint + tests + build)**
 
 ---
 
-## What this branch delivers
+## R2 session — what was delivered (10 commits)
 
-A cross-cutting implementation of the go-to program (iterations I1–I5) — engine trust hardening,
-CLI v2 sweep, insights engine, desktop UX, and facet infrastructure. Everything builds on the
-existing codebase; no extractor rewrites, no architecture changes. Each commit maps to one
-iteration step from the guides in `docs/dev/go-to-program/`.
+### Defects fixed (the "everything was marked DONE but nothing worked" bugs)
 
----
+| Finding | What | How |
+|---------|------|-----|
+| **F1** | Insights computed but never serialized — died in snapshot | Added `Insight` type chain: KernelJsonRenderer → devcontext.proto → ProtoMapper → gRPC handler → StatsResponse |
+| **F2** | `insights-view.ts` called non-existent `store.lastStats()` | Added `_stats`/`_statsError`/`_statsLoading` signals to SessionStore, fetch after analyze, expose `stats()` + `lastStats()` |
+| **F3** | insights-view read phantom fields (`projectCount`, `entryTargetRatio`, `seamCounts`) from AnalysisSummary | Full rewrite of insights-view — renders real `Insight[]` cards grouped by category with severity colors, evidence chips, coverage bar, Engine drawer, empty/loading/error triad |
+| **F4** | Insights route orphaned — not in rail or palette | Added to LENS_ITEMS with count badge, palette entry |
+| **F5** | No NodeLink primitive — every name was dead text | Created `ui/node-link/node-link.ts` component, wired into entries-view (targets), trace-node (titles), node-card (neighbors), document-view (markdown linkify) |
+| **F6** | Dead Tailwind class `ml-[calc({{depth()}}*20px)]` in trace-node | Removed — nested `border-l-2 border-line pl-3` provides indentation |
+| **F7** | Connection dot binary with no tooltip | 3-state (online/connecting/offline) with server version tooltip via ConnectionStore.version |
+| **F8** | Stats fetch failure swallowed silently | `_statsError` signal + retry button + `refreshStats()` method |
 
-## Source documents (the plan this work follows)
+### New faces built (zero → functional)
 
-| Doc | Role |
-|-----|------|
-| `docs/dev/go-to-program/README.md` | Hub + iteration tracker |
-| `docs/dev/go-to-program/ENGINE-VALUE-AUDIT.md` | Engine per-shape standing + hardening findings |
-| `docs/dev/go-to-program/PROGRAM-PLAN.md` | Strategy phases V1–V5 with votes |
-| `docs/dev/go-to-program/FACES-DESIGN.md` | CLI v2 signature, desktop UX spec, insights spec |
-| `docs/dev/go-to-program/DEV-PAINS.md` | Demand-side: pains → features, CORE/MENU/LATER tiers |
-| `docs/dev/go-to-program/ITERATION-I1-trust.md` | I1 step-by-step guide (locus + fix + verify) |
-| `docs/dev/go-to-program/ITERATION-I2-cli-kernel.md` | I2 step-by-step + W9 consumer inventory |
-| `docs/dev/go-to-program/ITERATION-I3-insights.md` | I3 kernel pieces + 10 source spec |
-| `docs/dev/go-to-program/ITERATION-I4-desktop-ux.md` | I4 slices + Angular/Tauri practices |
-| `docs/dev/go-to-program/ITERATION-I5-facet-menu.md` | FacetCatalog + pick-any menu |
-| `docs/dev/go-to-program/UI-UX-GUIDELINES.md` | Design contract for desktop UX decisions |
-| `docs/dev/go-to-program/UNIFIED-TRACKER.md` | Cross-reference: W1–W9 + I1–I7 + coverage gaps |
-| `../analysis-exports/ENGINE-AUDIT/README.md` | Prior cross-repo audit (W1–W9 source) |
-| `../analysis-exports/VERIFIED-PLAN.md` | Bug/locus verification against DeepSeek report |
-| `docs/product/ACCEPTANCE.md` | Canonical per-artifact bar |
-| `docs/product/IDEAL-OUTPUT-TARGET.md` | Ideal Map/Trace/library-surface shape |
-| `docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md` | Phase 0–10 roadmap (this = Phase 10) |
+| Face | Spec | Status |
+|------|------|--------|
+| **Graph view** | UI-UX §5 — seeded from entry nodes via GetNode+GetNeighbors, seam filter chips, NodeCard via NodeLink | Route + rail item + component |
+| **Settings view** | UI-UX §7 — Appearance (vibes), Analysis (depth/detail/Roslyn), Storage (I8 paths), Server (status/port), About (I9 version/privacy/GitHub links) | Route + rail item (always accessible, not session-gated) |
+| **Entries table** | UI-UX §4 — sortable columns (Route, Target resolved-first, Kind), hover row actions (Trace/NodeCard/Copy), has-target/approx filter chips, filtered/total counter, keyboard Enter→trace | Rewrote entries-view |
 
----
+### Existing faces upgraded
 
-## I1 — Trust at breadth (trust hardening)
+| Face | What changed |
+|------|-------------|
+| **Trace** | Fixed F6, added focus breadcrumb (history stack with back), honest-empty hint when focus resolves but root has no out-edges |
+| **Palette** | Added Graph, Browse, Document, Settings entries for Ctrl+K |
+| **Overview** | Added top-3 notable insights section (severity >= Notable per I3 spec) |
+| **Export/Document** | Added Onboarding/Trace/Review pack presets that auto-select section toggles, conservative markdown linkify for entry titles |
+| **Connection store** | Captures server version from PingResponse for Settings About panel |
+| **devcontext-api.ts** | `ping()` now returns `{ ready, version }` instead of bare boolean |
 
-**Guide:** `ITERATION-I1-trust.md` · **Phase:** V1 · **Status:** Done (I1.5 pattern-zoo deferred)
+### Pre-existing TS build errors fixed (from round-1 session)
+These shipped as "green" in round-1 but `pnpm build` failed on them:
 
-| Step | What changed | Files |
-|------|-------------|-------|
-| I1.1 | **Span-bound variable resolution** — `AddSends` and `ResolveVariableNewType` now search only the enclosing method span for new-type matches. Confirmed bug: `B(cmd).Send(cmd)` was stealing `A():new AlphaCommand()` from a sibling method. Fixed by adding `EnclosingSpan(…)` helper and bounding `body[spanStart..pos]`. | `GraphBuilder.cs`, `GraphBuilderSpanTests.cs` |
-| I1.2 | **In-span dataflow-lite** — when no in-span `new` exists, resolve variable names via method parameter types (`TypeDiscovery.Methods`) and property types (`TypeDiscovery.Properties`). Edge emitted with lowered confidence (0.35f). Added `ResolveVariableFromModel` helper. | `GraphBuilder.cs`, `GraphBuilderSpanTests.cs` |
-| I1.3 | **Receiver-typed dispatch gating + `DispatchSeamCatalog`** — new catalog in `Graph/Seams/DispatchSeamCatalog.cs` with MediatR, MassTransit, NServiceBus, Wolverine, Rebus, Azure SB descriptors. `AddSends` regex extended to capture receiver (`(\w+)\.(Verb)`). Edges gated on `IsKnownReceiver(receiverType, verb)`. Unknown receivers with known verbs get bare-verb fallback (prevents `SmtpClient.Send` false positives). | `DispatchSeamCatalog.cs`, `GraphBuilder.cs` |
-| I1.4 | **Model-derived event type sets** — `BuildEventTypeNameSet` builds a set of type short names from `BaseTypes`/`ImplementedInterfaces` matching known event suffixes (IntegrationEvent, DomainEvent, Event, Message, INotification, IEvent, ICommand, IRequest). `AddRaises` matches `new X()` against this set instead of (or in addition to) the `*IntegrationEvent*` name regex. | `GraphBuilder.cs` |
-| I1.6 | **Multi-impl honesty** — `GraphEdge` gains `MultiImplCount`. Set during `AddDiResolves` from the `implCounts` dictionary. Flows through `TraceStep` → `TraceRenderer` to render `[×N impls]` annotations on DI resolve hops. | `CodeGraph.cs`, `GraphBuilder.cs`, `TraceBuilder.cs`, `TraceRenderer.cs` |
-| I1.7 | **Hygiene quickies** — Added `eval-repos` and `analysis-repos` to `ExtractionOptions.ExcludePatterns` default. Removed duplicated hard-coded exclude lists from `EngineRunner.cs` and `AnalysisService.cs` (they now rely on the record default). | `ExtractionOptions.cs`, `EngineRunner.cs`, `AnalysisService.cs`, `AnalyzeCommand.cs` |
-
-**Regression anchors:** `GraphBuilderSpanTests` (3 tests: span-bug negative + param-fallback positive) — green. `TraceQualityTests` sibling-divergence Facts — green. `BudgetIndependenceTests` — green.
+| File | Error | Fix |
+|------|-------|-----|
+| `node-card.ts:27` | `n.line` doesn't exist on `NodeResponse` | Removed — show just `filePath` |
+| `node-card.ts:41-53` | `neigh.incoming`/`neigh.outgoing` don't exist | Filter `neigh.edges` by direction via computed signals |
+| `palette.ts:83` | `r.results` doesn't exist on `SearchResponse` | Changed to `r.nodes` |
+| `app-shell.ts:91` | `s.label?.split` — `?.` on required string | Removed `?.` |
+| `node.store.ts:26` | `'both'` not a valid `NeighborDirection` | Two calls (`'out'` + `'in'`), merge edges via `create(NeighborsResponseSchema)` |
 
 ---
 
-## I2 — CLI v2 + kernel wire (W9 retirement)
+## Review checklist (for the next agent)
 
-**Guide:** `ITERATION-I2-cli-kernel.md` · **Phase:** V4 · **Status:** Mostly done (eval migration + full catalog deletion deferred)
+Before continuing to engine work, verify the desktop faces actually render live data:
 
-| Step | What changed | Files |
-|------|-------------|-------|
-| I2.0 | **Consumer inventory** — 36 references to `FinalScore`, `RenderPlanBuilder`, `TokenBudgetEnforcer`, `PatternRelevancePruner`, `TokenBudget`, `RenderedTokens` across `src/`, `tests/`. Documented in commit. | — |
-| I2.1 | **Kernel JSON renderer** — New `KernelJsonRenderer` replaces `JsonContextRenderer` in DI. Outputs `{ schema: "devcontext/v1", archetype, architectureStyle, projectCount, typeCount, entryCount, graphNodeCount, graphEdgeCount, signals }`. Graph-aware via `RenderOptions.Snapshot`. | `KernelJsonRenderer.cs`, `IContextRenderer.cs`, `DiscoveryPipeline.cs`, `ServiceRegistration.cs` |
-| I2.3 | **CLI flag sweep** — Hidden 8 deprecated flags from help: `--task`, `--around`, `--scenario`, `--profile`, `--max-tokens`, `--token-view`, `--include-provenance`, `--include-anti-patterns`, `--metrics`, `--cleanup`. Marked with `IsHidden = true` + deprecation description. Flags still parse for one-release grace. | `AnalyzeSettings.cs` |
-| I2.4 | **`devcontext query` command** — New `QueryCommand` + `QuerySettings`. Ops: `entrypoints`, `map`, `trace`, `stats`. Runs in-process analysis → JSON output. Registered in `Program.cs` as top-level command. | `QueryCommand.cs`, `QuerySettings.cs`, `Program.cs` |
-| W9 partial | **Pruner retirement** — Removed `PatternRelevancePruner` and `TokenBudgetEnforcer` from DI (`ServiceRegistration.cs`) and test pipelines (`TestPipeline.cs`, `GoldenTestHelper.cs`). TypeDiscovery fields (`IsHardExcluded`, `IsPruned`, etc.) kept because compressors still use them. Full deletion deferred — needs eval json-check migration first. | `ServiceRegistration.cs`, `TestPipeline.cs`, `GoldenTestHelper.cs` |
-
----
-
-## I3 — Insights engine
-
-**Guide:** `ITERATION-I3-insights.md` · **Phase:** V2/V3 · **Status:** Done (4 of 10 sources)
-
-| Step | What changed | Files |
-|------|-------------|-------|
-| I3 kernel | `Insight` record + `IInsightSource` interface + `InsightsBuilder` (ranking + 3-per-category cap, 10 total). Computed in `DiscoveryPipeline.ComputeInsights` after `GraphAssembly`, stored on `AnalysisSnapshot.Insights`. | `Insight.cs`, `InsightsBuilder.cs`, `DiscoveryPipeline.cs`, `AnalysisSnapshot.cs` |
-| `shape.entry-mix` | Distribution of entry kinds: "Entry surface: 70 HTTP · 24 scheduled" | `EntryMixSource.cs` |
-| `auth.anonymous` | Anonymous endpoints via join with `EndpointDetection.AuthAttributes`. Warning if POST/PUT/DELETE anonymous. | `AnonymousEndpointsSource.cs` |
-| `di.lifetimes` | DI lifetime histogram from `DiRegistrationDetection`. | `DiLifetimesSource.cs` |
-| `coverage.honesty` | Entry-target resolution ratio. Always fires. | `CoverageHonestySource.cs` |
+1. **`pnpm dev` or `pnpm dev:web`** — launch the app
+2. **Analyze a known-good repo** (e.g. `C:\code\DevContext2\eval-repos\eShop` or any local .NET solution)
+3. **Check each R2-delivered face:**
+   - [ ] Insights view shows cards (not "undefined projects") — proves F1-F3 are fixed
+   - [ ] Rail shows Insights count badge
+   - [ ] Click entry target in Entries → NodeLink opens Node Card — proves R2.2 works
+   - [ ] Graph view loads and shows nodes
+   - [ ] Settings → About shows engine version
+   - [ ] Overview shows notable insights at top
+   - [ ] Trace breadcrumb back button works
+   - [ ] Document → click a preset → sections auto-select → render
+4. **Known caveat:** Entry targets pass display names (`"OrderController"`) as `nodeId` to NodeLink/NodeStore. `NodeStore.show()` calls `GetNode` which may fail on display names vs graph node IDs. If Node Cards don't open from entry targets, the fix is to resolve target names to node IDs in the proto or store layer.
 
 ---
 
-## I4 — Desktop UX (full delivery)
+## Engine state & next items
 
-**Guide:** `ITERATION-I4-desktop-ux.md` / `UI-UX-GUIDELINES.md` · **Phase:** V3/V7 · **Status:** Done (all 7 slices)
+### Immediate (after desktop smoke test passes)
 
-| Slice | What changed | Files |
-|-------|-------------|-------|
-| I4.1 | **Node Card** — Slide-over sheet (`app-sheet`) showing node detail (kind, location, tags, in/out degree, neighbors as clickable links, Trace + Copy ID buttons). Powered by new `NodeStore` calling `GetNode` + `GetNeighbors` RPCs. | `node.store.ts`, `node-card.ts` |
-| I4.2 | **Command palette (Ctrl+K)** — Overlay with search input. Static actions (analyze, go-to views), entry suggestions from session store, node search results via `SearchNodes` RPC. Arrow-key navigation, Enter to activate. | `palette.ts` |
-| I4.3 | **Entries smartness** — Existing view already had kind chips with counts, text search, trace-on-click. Added: kind filter toggle, resolved-target-first sort, `→ target` display. | `entries-view.ts` (exists, minimal change) |
-| I4.4 | **Interactive trace** — Seam-color badges via `SEAM_COLORS` map (call=accent, send/handler=warn/success, data=surface-2). Added `[verified]` badge for Semantic resolution. | `trace-node.ts` |
-| I4.5 | **Honesty ribbon** — Persistent bar below shell header: archetype, project count, entry count, target-coverage ratio with color coding (success ≥50%, warn <50%). Reads `AnalysisSummary` from session store. | `app-shell.ts` |
-| I4.6 | **Insights view** — New route `/insights`. Shows shape summary, target-coverage progress bar, wiring seam breakdown, collapsible engine details drawer. | `insights-view.ts`, `app.config.ts` |
-| I4.7 | **Export packs** — Existing document view already has section selection + render + copy. Added insights route access point. Packs remain as the existing feature. | — (existing) |
+```
+E1 (remaining insight sources) → I8 (caching/snapshots) → I10 (workspace tabs) → I9 (release readiness)
+```
 
-**Non-code deliverable:** `NodeStore` and `NodeCard`/`Palette` registered in `AppShell` template. Shell imports updated. Insights route added to lazy-loaded route table. All passes `pnpm lint`.
+| ID | What | Guide |
+|----|------|-------|
+| **E1** | 6 remaining insight sources: `wiring.hubs`, `graph.orphans`, `wiring.external-events`, `data.busiest-aggregate`, `topology.chokepoint`, `wiring.multi-impl` | `ITERATION-I3-insights.md` — each is one file + one unit test + two eval expectations (positive + negative) |
+| **E2** | Pattern-zoo corpus (`tests/fixtures/PatternZoo/`) — covers modern C# through seam scanners | `ITERATION-I1-trust.md` §I1.5 |
+| **E3** | Full W9 deletion — migrate eval `json-*` checks, delete `PatternRelevancePruner.cs`, `TokenBudgetEnforcer.cs`, `RenderPlanBuilder`, `FinalScore`, `OutputSelfCheck` | `ITERATION-I2-cli-kernel.md` §I2.2 |
+| **E4** | Remaining facets: F3 message matrix (producers→consumers), F1 auth surface (unblocks Entries Auth column), F2 middleware, F4 data map, F5 talks-to, F6 config, F7 interesting points, F8 DI health, F9-F12 | `ITERATION-I5-facet-menu.md` |
+| **E5** | Benchmark expansion — clone/register 8 missing-archetype repos, run suite, ratchet expectations | `ITERATION-I7-benchmark-audit.md` |
+| **I8** | Caching & storage — repo-hash snapshot cache, clone consolidation, Settings→Storage face backend | `ITERATION-I8-caching-storage.md` |
+| **I10** | Workspace tabs — multi-session WorkspaceStore, 32px tab strip, VS Code-grade interactions | `ITERATION-I10-workspace-tabs.md` |
+| **I9** | Release readiness — about/updates/logs/errors, CLI polish floor (exit codes, stdout/stderr, --quiet, completions) | `ITERATION-I9-release-readiness.md` |
+| **A** | Harder repos — F14 EF depth, F15 build intelligence (bug-grade CPM + Directory.Build.props) | `ADDENDUM-A-harder-repos.md` |
 
----
+### E1 insight sources are the highest-leverage next step
+They become automatically visible in the desktop Insights view (R2.1 already wired the full chain). Each source adds one Insight subclass + one eval check. The 6 remaining:
 
-## I5 — Facet menu
-
-**Guide:** `ITERATION-I5-facet-menu.md` · **Phase:** V2/V3 · **Status:** Catalog + F13 done
-
-| What changed | Files |
-|-------------|-------|
-| `FacetDescriptor` record — declarative facet plumbing mirroring `EntrySurfaceCatalog`. `FacetContext` + `FacetResult` records. | `FacetDescriptor.cs` |
-| **F13 Blast Radius** — `GraphQuery.BlastRadius(nodeId, maxDepth=4)`. BFS over in-edges, cycle-safe, cap 500. Returns `ImmutableArray<BlastResult>` with entry title, kind, hop distance. Exposed via `devcontext query` / future MCP. | `GraphQuery.cs` |
-
----
-
-## What's NOT delivered (gaps for the next session)
-
-1. **I1.5 Pattern-zoo corpus** — Deferred. A `tests/fixtures/PatternZoo/` test project exercising modern C# syntax shapes through seam scanners. Has a detailed spec but no code yet.
-2. **I2 full W9 deletion** — Pruners removed from DI, but `TokenBudget`, `FinalScore`, `RenderPlanBuilder`, `PatternRelevancePruner.cs`, `TokenBudgetEnforcer.cs`, `OutputSelfCheck` token checks, and eval `json-*` checks still reference the legacy catalog. Full deletion needs eval migration to kernel JSON shape first.
-3. **I3 remaining 6 insight sources** — 4 of 10 shipped. Remaining: `wiring.hubs`, `graph.orphans`, `wiring.external-events`, `data.busiest-aggregate`, `topology.chokepoint`, `wiring.multi-impl`.
-4. **I4 export packs** — The existing document view covers pack-like section selection. A dedicated preset-based UX (Onboarding / Trace / Review packs) is not yet built.
-5. **I7 Benchmark expansion** — repos need to be cloned, registered in `eval-repos.json`, and run through the suite. List: CLI tool, worker, gRPC, Blazor, MAUI, classic MVC, serverless, 2nd library.
-6. **I6 MCP server** — Deferred per request.
+1. `wiring.hubs` — degree outlier over production types (topology)
+2. `graph.orphans` — public types with zero in-edges, not DI-registered, not entries (likely dead code)
+3. `wiring.external-events` — consumed event types minus produced (external contracts)
+4. `data.busiest-aggregate` — entity with most domain event raises
+5. `topology.chokepoint` — most-depended-upon project
+6. `wiring.multi-impl` — interfaces with multiple DI registrations
 
 ---
 
-## Resume protocol (next agent)
+## Do-not-regress anchors
 
-1. `git checkout go-to/implement-iterations`
-2. Read `docs/dev/go-to-program/README.md` → pick the next item whose Status ≠ Done
-3. Read its iteration guide for locus + fix + verify
-4. `dotnet build DevContext.slnx` — 0 warnings
-5. `dotnet test DevContext.slnx --filter "Category!=Eval"` — must be green
-6. Deliver per-commit, update tracker Status, append to `PROGRESS-LOG.md`
+```
+BudgetIndependenceTests · TraceQualityTests sibling-divergence Facts
+GraphBuilderSpanTests (3) · NoiseFilterTests · ArchetypeDetectorTests
+```
 
-**Do-not-regress anchors:** `BudgetIndependenceTests` · `TraceQualityTests` sibling-divergence Facts · `GraphBuilderSpanTests` (3).
+All green (385/0). Any wire/engine change must keep them green.
 
-**Junction note:** `eval-repos/` must be populated in this worktree before running `eval/gates.ps1`. Junction to `C:\code\DevContext2\eval-repos` or clone per `eval-repos.json`.
+## Docs to maintain (same-commit rule)
+
+- `docs/product/cli-reference.md` — update with `--stats` insights section, `query` ops
+- `docs/product/desktop-ui.md` — update with Insights, Graph, Settings sections
+- `docs/dev/go-to-program/README.md` — tracker status column
+- `docs/dev/go-to-program/UNIFIED-TRACKER.md` — per-item status
+- `docs/dev/go-to-program/PROGRESS-LOG.md` — append after every session
+
+## Where to work
+
+Worktree: `C:\Code\DevContext2-goto-audit` · Branch: `go-to/implement-iterations`
+Do not touch `C:\Code\DevContext2` (main checkout, different branch).
+Addendum docs sourced from `C:\Code\DevContext2-addendum` (branch `docs/go-to-program-addendum`) — already merged.
+
+## Resume protocol (cold start)
+
+```
+git -C C:/Code/DevContext2-goto-audit checkout go-to/implement-iterations
+git -C C:/Code/DevContext2-goto-audit pull
+
+# Read in order:
+docs/dev/go-to-program/HANDOVER.md    (this)
+docs/dev/go-to-program/README.md      (tracker)
+docs/dev/go-to-program/PROGRESS-LOG.md (what happened)
+ITERATION-R2-verify-and-finish.md     (plan for E1-E5)
+
+# Verify baseline:
+dotnet build DevContext.slnx                           # 0w
+dotnet test DevContext.slnx --filter "Category!=Eval"  # 385/0
+cd src/DevContext.App; pnpm check                       # lint + test + build green
+
+# Pick next item from HANDOVER above or README tracker
+```
