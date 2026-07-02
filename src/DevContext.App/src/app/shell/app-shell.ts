@@ -21,6 +21,7 @@ interface NavItem {
 const TOP_ITEMS: readonly NavItem[] = [
   { route: '/', icon: 'folder-open', label: 'Source', gateSession: false },
   { route: '/cache', icon: 'boxes', label: 'Cache', gateSession: false },
+  { route: '/settings', icon: 'settings', label: 'Settings', gateSession: false },
 ];
 
 const LENS_ITEMS: readonly NavItem[] = [

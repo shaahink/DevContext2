@@ -11,6 +11,7 @@ const routes: Routes = [
   { path: 'stats', loadComponent: () => import('./features/stats/stats-view').then((m) => m.StatsView) },
   { path: 'insights', loadComponent: () => import('./features/insights/insights-view').then((m) => m.InsightsView) },
   { path: 'graph', loadComponent: () => import('./features/graph/graph-view').then((m) => m.GraphView) },
+  { path: 'settings', loadComponent: () => import('./features/settings/settings-view').then((m) => m.SettingsView) },
   { path: 'cache', loadComponent: () => import('./features/cache/cache-view').then((m) => m.CacheView) },
   { path: '**', redirectTo: '' },
 ];

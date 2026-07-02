@@ -10,9 +10,11 @@ export class ConnectionStore {
 
   private readonly _online = signal(false);
   private readonly _checked = signal(false);
+  private readonly _version = signal('');
 
   readonly online = this._online.asReadonly();
   readonly checked = this._checked.asReadonly();
+  readonly version = this._version.asReadonly();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -28,8 +30,9 @@ export class ConnectionStore {
   }
 
   private async poll(): Promise<void> {
-    const ok = await this.api.ping();
-    this._online.set(ok);
+    const res = await this.api.ping();
+    this._online.set(res.ready);
+    this._version.set(res.version);
     this._checked.set(true);
   }
 }

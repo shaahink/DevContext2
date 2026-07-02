@@ -111,12 +111,12 @@ export class DevContextApi {
     return this.client.closeSession({ handle });
   }
 
-  async ping(): Promise<boolean> {
+  async ping(): Promise<{ ready: boolean; version: string }> {
     try {
       const res = await this.client.ping({});
-      return res.ready;
+      return { ready: res.ready, version: res.version };
     } catch {
-      return false;
+      return { ready: false, version: '' };
     }
   }
 }
