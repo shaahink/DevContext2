@@ -20,7 +20,7 @@ const SEAM_COLORS: Record<string, string> = {
   selector: 'app-trace-node',
   imports: [Badge, NodeLink],
   template: `
-    <div class="ml-[calc({{depth()}}*20px)] border-l-2 border-line pl-3 py-1">
+    <div class="border-l-2 border-line pl-3 py-1">
       <div class="flex items-start gap-2">
         <span class="shrink-0 rounded border px-1 py-0.5 font-mono text-2xs"
               [class]="seamColor()">

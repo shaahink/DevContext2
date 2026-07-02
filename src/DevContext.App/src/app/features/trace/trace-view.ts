@@ -49,16 +49,28 @@ import { TraceNodeComponent } from './trace-node';
 
       <div header class="flex items-center gap-3 border-b border-line bg-surface px-3 py-2">
         <h2 class="text-sm font-semibold text-ink">Trace</h2>
-        @if (traceStore.focus()) { <span class="font-mono text-xs text-ink-muted">{{ traceStore.focus() }}</span> }
+        @if (traceStore.focus()) {
+          <span class="font-mono text-xs text-ink-muted">{{ traceStore.focus() }}</span>
+          @if (focusHistory().length > 1) {
+            <button class="text-ink-subtle hover:text-ink text-xs" (click)="popFocus()">&#8592; back</button>
+          }
+        }
       </div>
 
       @if (session.ready()) {
         @if (traceStore.loading()) {
           <div class="flex h-full items-center justify-center text-ink-muted"><p class="text-sm">Tracing…</p></div>
         } @else if (traceStore.tree(); as root) {
-          <div class="overflow-auto p-4">
-            <app-trace-node [node]="root" [depth]="0" />
-          </div>
+          @if (root.children.length === 0 && !root.truncated) {
+            <div class="flex flex-col h-full items-center justify-center text-ink-muted gap-1">
+              <p class="text-sm">Focus resolved but has no out-edges.</p>
+              <p class="text-xs">Try a method focus like &quot;{{ root.title }}:Method&quot; or enable the call graph with a deeper profile.</p>
+            </div>
+          } @else {
+            <div class="overflow-auto p-4">
+              <app-trace-node [node]="root" [depth]="0" />
+            </div>
+          }
         } @else if (!traceStore.found()) {
           <div class="flex h-full items-center justify-center text-ink-muted"><p class="text-sm">Trace not found for this focus.</p></div>
         } @else {
@@ -76,6 +88,7 @@ export class TraceView {
 
   protected readonly focusQuery = signal('');
   protected readonly filteredEntries = signal<{ focus: string; title: string; kind: string }[]>([]);
+  protected readonly focusHistory = signal<string[]>([]);
 
   constructor() {
     effect(() => {
@@ -96,6 +109,20 @@ export class TraceView {
   protected trace(focus: string): void {
     const handle = this.session.handle();
     if (!handle) return;
+    this.focusHistory.update(h => {
+      if (h.length > 0 && h[h.length - 1] === focus) return h;
+      return [...h, focus];
+    });
     void this.traceStore.trace(handle, focus);
+  }
+
+  protected popFocus(): void {
+    this.focusHistory.update(h => {
+      if (h.length <= 1) return h;
+      const prev = h[h.length - 2];
+      const handle = this.session.handle();
+      if (handle) void this.traceStore.trace(handle, prev);
+      return h.slice(0, -1);
+    });
   }
 }
