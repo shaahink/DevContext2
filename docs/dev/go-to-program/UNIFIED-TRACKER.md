@@ -2,12 +2,22 @@
 
 > Single source of truth combining the cross-repo engine audit (W1–W9) and the go-to program (I1–I7).
 > Branch: `go-to/implement-iterations` (base: `develop` @ `7228d1e`; contains all W1–W9 code).
-> Gate: `build 0w · fast tests 382/0`.
+> Gate: `build 0w · fast tests 386/0` (.NET) · `pnpm check` green (lint + 7/7 tests + build).
 
 > **Round-2 status (2026-07-02):** I1/I2 landed; I3+I4+I5 are **PARTIAL, not DONE** — verification found
 > insights never reach any face (the "one wire contract" was skipped) and NodeLink/Graph/Settings were
 > never built. The current plan is **[`ITERATION-R2-verify-and-finish.md`](ITERATION-R2-verify-and-finish.md)** —
 > start there. The step-level `⬜` boxes below are the original plan grid, not live status.
+
+> **Round-3 status (2026-07-02):** Ran the desktop smoke test R2 called for — found and fixed a real
+> **engine bug** (`FileTreeExtractor.IsExcluded` substring-matched `eval-repos`/`analysis-repos`
+> anywhere in the path, so analyzing any repo living under such a folder — the exact smoke-test path
+> HANDOVER.md names — silently returned 0 projects) plus **three desktop interaction bugs** (NodeLink
+> not stopping propagation, Sheet not grabbing focus so Escape did nothing, Document preset section
+> keys not matching the real `MapRenderer` keys). All fixed and verified live. Then delivered **I10
+> multi-tab workspace** — I10.1 (WorkspaceStore facade), I10.2 (tab strip), I10.4 (persistence) are
+> DONE and verified live including the actual concurrent-analyze scenario; I10.3 (server LRU) is
+> correctly blocked on I8. See PROGRESS-LOG's round-3 entry and HANDOVER.md for detail.
 
 ## Resume protocol (cold start)
 
@@ -188,14 +198,18 @@ Prereq: **FacetCatalog** descriptor plumbing (shared by all picks).
 
 ## I10 — Workspace tabs (addendum)
 
-**Phase:** V7 · **Guide:** `ITERATION-I10-workspace-tabs.md` · **Status:** ⬜ · **Depends on:** I4 (+I8 for full cap)
+**Phase:** V7 · **Guide:** `ITERATION-I10-workspace-tabs.md` · **Status:** 🔄 PARTIAL — I10.1/I10.2/I10.4 done, I10.3 open · **Depends on:** I4 (+I8 for full cap)
 
-| Step | Task |
-|------|------|
-| I10.1 | WorkspaceStore: multi-tab state, SessionStore/TraceStore facades |
-| I10.2 | Tab strip UX: 32px strip, tab anatomy, + button, interactions |
-| I10.3 | Server: MaxLiveSessions + LRU + rehydrate path |
-| I10.4 | URL & persistence: active tab view in URL, restore idle tabs |
+| Step | Task | Status |
+|------|------|--------|
+| I10.1 | WorkspaceStore: multi-tab state, SessionStore/TraceStore facades | ✅ `workspace.store.ts` + rewritten `session.store.ts`/`trace.store.ts` as facades, zero consumer changes. Race-safety unit test (analyze A, switch to B mid-flight, complete → A ready/B untouched) + cap + close-neighbor tests, `workspace.store.spec.ts` |
+| I10.2 | Tab strip UX: 32px strip, tab anatomy, + button, interactions | ✅ `shell/tab-strip.ts` — status dot, close on hover/active, middle-click close, Ctrl+T/W/1-6, cap tooltip, per-tab route memory. No drag-reorder (spec: optional v1) |
+| I10.3 | Server: MaxLiveSessions + LRU + rehydrate path | ⬜ Blocked on I8 (no snapshot cache to rehydrate from yet). Reduced-v1 stands in: tab cap (6) is the only ceiling; `closeTab()` calls `CloseSession` to free the handle immediately |
+| I10.4 | URL & persistence: active tab view in URL, restore idle tabs | ✅ `{path,label,route}` + activeIndex persisted to localStorage; restored as idle tabs on boot; only the persisted ACTIVE tab lazily re-analyzes (structural — the trigger effect only reads `activeTab()`); boot navigates straight to its remembered route |
+
+**Verified live (Playwright, 2026-07-02):** independent data per tab on switch · route restored on
+switch · concurrent analyze proven (Serilog analyzing in tab 1, TodoApi analyzed to completion in tab
+2 meanwhile, tab 1 unaffected) · full restart-persistence round trip. See PROGRESS-LOG round-3 entry.
 
 ---
 
