@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 
-import type { AnalysisSummary, MapResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { AnalysisSummary, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ActivityService } from '../core/activity/activity.service';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EntryGroupVm, groupEntries } from '../models/view-models';
@@ -25,6 +25,9 @@ export class SessionStore {
   private readonly _mapResponse = signal<MapResponse | null>(null);
   private readonly _mapMarkdown = signal('');
   private readonly _entryGroups = signal<readonly EntryGroupVm[]>([]);
+  private readonly _stats = signal<StatsResponse | null>(null);
+  private readonly _statsError = signal<string | null>(null);
+  private readonly _statsLoading = signal(false);
 
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
@@ -37,6 +40,12 @@ export class SessionStore {
   readonly busy = computed(() => this._status() === 'analyzing' || this._status() === 'cloning');
   readonly ready = computed(() => this._status() === 'ready');
   readonly entryCount = computed(() => this._entryGroups().reduce((n, g) => n + g.entries.length, 0));
+  readonly stats = this._stats.asReadonly();
+  readonly statsError = this._statsError.asReadonly();
+  readonly statsLoading = this._statsLoading.asReadonly();
+  readonly insights = computed(() => this._stats()?.insights ?? []);
+  readonly insightCount = computed(() => this.insights().length);
+  lastStats = () => this._stats();
 
   async analyze(spec: AnalyzeSpec): Promise<void> {
     this.activity.start(isRepoUrl(spec.path) ? 'Cloning…' : 'Analyzing…');
@@ -47,6 +56,9 @@ export class SessionStore {
     this._mapResponse.set(null);
     this._mapMarkdown.set('');
     this._entryGroups.set([]);
+    this._stats.set(null);
+    this._statsError.set(null);
+    this._statsLoading.set(false);
     this._status.set(isRepoUrl(spec.path) ? 'cloning' : 'analyzing');
 
     try {
@@ -91,6 +103,11 @@ export class SessionStore {
       this._status.set('ready');
       this.activity.clear();
 
+      this._statsLoading.set(true);
+      this.api.getStats(outcome.handle)
+        .then(s => { this._stats.set(s); this._statsLoading.set(false); })
+        .catch(err => { this._statsError.set(describeError(err)); this._statsLoading.set(false); });
+
       this.recentStore.add(spec.path, outcome.summary.label);
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -104,6 +121,16 @@ export class SessionStore {
 
   cancel(): void {
     this.activity.controller?.cancel();
+  }
+
+  refreshStats(): void {
+    const h = this._handle();
+    if (!h) return;
+    this._statsError.set(null);
+    this._statsLoading.set(true);
+    this.api.getStats(h)
+      .then(s => { this._stats.set(s); this._statsLoading.set(false); })
+      .catch(err => { this._statsError.set(describeError(err)); this._statsLoading.set(false); });
   }
 
   private fail(message: string): void {

@@ -179,7 +179,8 @@ public sealed class DevContextGrpcService(
                 snapshot.Entries.Length,
                 seams,
                 entriesWithTarget,
-                (long)(snapshot.Report?.TotalWall.TotalMilliseconds ?? session.Engine.ElapsedMs));
+                (long)(snapshot.Report?.TotalWall.TotalMilliseconds ?? session.Engine.ElapsedMs),
+                snapshot.Insights);
         });
 
     public override async Task<Proto.RenderResponse> Render(Proto.RenderRequest request, ServerCallContext context)

@@ -100,6 +100,7 @@ export class Palette {
     items.push({ label: 'Go to Trace', section: 'View', action: () => { this.router.navigate(['/trace']); } });
     items.push({ label: 'Go to Entries', section: 'View', action: () => { this.router.navigate(['/entries']); } });
     items.push({ label: 'Go to Overview', section: 'View', action: () => { this.router.navigate(['/overview']); } });
+    items.push({ label: 'Go to Insights', section: 'View', action: () => { this.router.navigate(['/insights']); } });
     items.push({ label: 'Go to Stats', section: 'View', action: () => { this.router.navigate(['/stats']); } });
 
     const entries = this.session.entryGroups();

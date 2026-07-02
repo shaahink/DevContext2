@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using DevContext.Core.Graph;
+using DevContext.Core.Insights;
 
 namespace DevContext.Core.Rendering;
 
@@ -46,6 +47,19 @@ public sealed class KernelJsonRenderer : IContextRenderer
             output.TopologyProjectCount = snapshot.Map?.Topology.IsDefaultOrEmpty == false ? snapshot.Map.Topology.Length : null;
             output.GraphNodeCount = snapshot.Graph?.NodeCount;
             output.GraphEdgeCount = snapshot.Graph?.EdgeCount;
+
+            if (!snapshot.Insights.IsDefaultOrEmpty)
+            {
+                output.Insights = [.. snapshot.Insights.Select(i => new InsightDto
+                {
+                    Id = i.Id,
+                    Category = i.Category.ToString(),
+                    Severity = i.Severity.ToString(),
+                    Title = i.Title,
+                    Detail = "",
+                    Evidence = [.. i.Evidence],
+                })];
+            }
         }
 
         var json = JsonSerializer.Serialize(output, JsonOptions);
@@ -71,6 +85,17 @@ internal sealed class KernelJsonOutput
     public int? GraphNodeCount { get; set; }
     public int? GraphEdgeCount { get; set; }
     public List<KernelSignal> Signals { get; set; } = [];
+    public List<InsightDto> Insights { get; set; } = [];
+}
+
+internal sealed class InsightDto
+{
+    public string Id { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Severity { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Detail { get; set; } = "";
+    public List<string> Evidence { get; set; } = [];
 }
 
 internal sealed class KernelSignal(string Key, float Confidence, bool Detected)

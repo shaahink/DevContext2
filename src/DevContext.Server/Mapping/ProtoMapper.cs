@@ -1,3 +1,4 @@
+using DevContext.Core.Insights;
 using DevContext.Server.Sessions;
 
 using Proto = DevContext.Protos;
@@ -136,7 +137,8 @@ internal static class ProtoMapper
         RunReport? report,
         int nodeCount, int edgeCount, int entryCount,
         ImmutableArray<SeamStat> seams, int entriesWithTarget,
-        long totalWallMs)
+        long totalWallMs,
+        ImmutableArray<Insight> insights)
     {
         var resp = new Proto.StatsResponse { TotalWallMs = totalWallMs };
 
@@ -144,6 +146,20 @@ internal static class ProtoMapper
 
         foreach (var s in seams)
             resp.Seams.Add(new Proto.SeamStat { Seam = s.Seam, Count = s.Count, Approx = s.Approx });
+
+        foreach (var i in insights)
+        {
+            var pi = new Proto.Insight
+            {
+                Id = i.Id,
+                Category = i.Category.ToString(),
+                Severity = i.Severity.ToString(),
+                Title = i.Title,
+                Detail = "",
+            };
+            pi.Evidence.AddRange(i.Evidence);
+            resp.Insights.Add(pi);
+        }
 
         if (report is null) return resp;
 

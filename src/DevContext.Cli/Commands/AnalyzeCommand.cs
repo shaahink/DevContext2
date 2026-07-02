@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 using DevContext.Cli.Observers;
 using DevContext.Cli.Settings;
+using DevContext.Core.Insights;
 using DevContext.Core.Services;
 
 namespace DevContext.Cli.Commands;
@@ -209,7 +210,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         if (settings.Stats || settings.Metrics)
-            ShowStats(snapshot?.Report, result.GraphSummary);
+            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default);
 
         ShowSummary(sw, rootResult, options, result);
 
@@ -265,11 +266,36 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         AnsiConsole.WriteLine(result.Content);
     }
 
-    private static void ShowStats(RunReport? report, GraphSummary? graph = null)
+    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default)
     {
         if (report is null) return;
 
         AnsiConsole.WriteLine();
+
+        // Insights (per I3.3 — render first)
+        if (insights is { IsDefaultOrEmpty: false })
+        {
+            var insightTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Insights")
+                .AddColumn("Sev")
+                .AddColumn("Category")
+                .AddColumn("Title")
+                .AddColumn("Evidence");
+
+            foreach (var i in insights)
+            {
+                var sev = i.Severity switch
+                {
+                    Severity.Warning => "[red]WARN[/]",
+                    Severity.Notable => "[yellow]NOTE[/]",
+                    _ => "[blue]INFO[/]",
+                };
+                insightTable.AddRow(sev, i.Category.ToString(), i.Title, string.Join(", ", i.Evidence.Take(3)));
+            }
+
+            AnsiConsole.Write(insightTable);
+        }
 
         // Stage waterfall
         var waterfall = new Table()

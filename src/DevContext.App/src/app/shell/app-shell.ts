@@ -26,6 +26,7 @@ const TOP_ITEMS: readonly NavItem[] = [
 const LENS_ITEMS: readonly NavItem[] = [
   { route: '/overview', icon: 'map', label: 'Overview', gateSession: true },
   { route: '/entries', icon: 'webhook', label: 'Entries', gateSession: true },
+  { route: '/insights', icon: 'lightbulb', label: 'Insights', gateSession: true },
   { route: '/browse', icon: 'search', label: 'Browse', gateSession: true },
   { route: '/trace', icon: 'network', label: 'Trace', gateSession: true },
   { route: '/document', icon: 'code', label: 'Document', gateSession: true },
@@ -72,7 +73,12 @@ const LENS_ITEMS: readonly NavItem[] = [
               [title]="session.ready() ? item.label : item.label + ' — Analyze a repo first'"
             >
               <app-icon [name]="item.icon" [size]="18" />
-              <span class="leading-none">{{ item.label }}</span>
+              <span class="leading-none flex items-center gap-1">
+                {{ item.label }}
+                @if (item.route === '/insights' && session.insightCount()) {
+                  <span class="inline-flex items-center justify-center rounded-full bg-accent px-1 text-3xs leading-none text-ink">{{ session.insightCount() }}</span>
+                }
+              </span>
             </a>
           }
         </div>
