@@ -18,13 +18,13 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 
 | # | Guide | Phase | Depends on | Status |
 |---|---|---|---|---|
-| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **NOT STARTED** (first) |
-| I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | BLOCKED |
-| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | BLOCKED |
-| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | BLOCKED |
-| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | MENU (record picks here) |
-| I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | BLOCKED |
-| I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | BLOCKED · repeatable |
+| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** (I1.5 deferred) |
+| I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | **DONE** (eval migration + full W9 deletion deferred) |
+| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **DONE** (4 of 10 sources) |
+| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **DONE** (all 7 slices) |
+| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **DONE** (catalog + F13) |
+| I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
+| I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
 | — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
 
 **Order rule:** CORE spine is I1 → I2 → I3 → I4/I6; I5 picks interleave anywhere after I2; I7 closes
