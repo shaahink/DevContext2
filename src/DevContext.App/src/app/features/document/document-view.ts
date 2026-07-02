@@ -1,9 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 import { ActivityService } from '../../core/activity/activity.service';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
+import { NodeStore } from '../../state/node.store';
 import { ViewFrame } from '../../shell/view-frame';
 import { Button } from '../../ui/button/button';
 import { Icon } from '../../ui/icon/icon';
@@ -42,8 +44,8 @@ interface SectionToggle { key: string; tokens: number; included: boolean; }
       </div>
 
       @if (session.ready()) {
-        @if (content()) {
-          <pre class="whitespace-pre-wrap p-5 font-mono text-xs leading-relaxed text-ink">{{ content() }}</pre>
+        @if (contentHtml()) {
+          <div #docContainer class="whitespace-pre-wrap p-5 font-mono text-xs leading-relaxed text-ink" [innerHTML]="contentHtml()" (click)="onDocClick($event)" (keyup.enter)="onDocClick($event)" (keyup.space)="onDocClick($event)" role="button" tabindex="0"></div>
         } @else {
           <div class="flex h-full items-center justify-center text-ink-muted"><p class="text-sm">Click Render to load the document.</p></div>
         }
@@ -58,12 +60,26 @@ export class DocumentView {
   private readonly api = inject(DevContextApi);
   private readonly activity = inject(ActivityService);
   private readonly toast = inject(ToastService);
+  private readonly nodeStore = inject(NodeStore);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly loading = signal(false);
   protected readonly sections = signal<SectionToggle[]>([]);
   protected readonly content = signal('');
+  protected readonly contentHtml = signal<SafeHtml>('');
   protected readonly format = signal('markdown');
   protected readonly budget = signal(4000);
+
+  private readonly titleNodeMap = computed(() => {
+    const map = new Map<string, string>();
+    for (const g of this.session.entryGroups() ?? []) {
+      for (const e of g.entries) {
+        if (e.title) map.set(e.title, e.nodeId);
+        if (e.target) map.set(e.target, e.target);
+      }
+    }
+    return map;
+  });
 
   protected totalTokens(): number { return this.sections().filter((s) => s.included).reduce((n, s) => n + s.tokens, 0); }
   protected toggleSection(index: number): void { this.sections.update((list) => list.map((s, i) => (i === index ? { ...s, included: !s.included } : s))); }
@@ -75,9 +91,31 @@ export class DocumentView {
     await this.activity.runSecondary('Rendering…', async () => {
       const res = await this.api.render(handle, { format: this.format() });
       this.content.set(res.content);
+      this.contentHtml.set(this.sanitizer.bypassSecurityTrustHtml(this.linkify(res.content)));
       this.sections.set(res.sections.map((s) => ({ key: s.key, tokens: s.tokens, included: true })));
     });
     this.loading.set(false);
+  }
+
+  private linkify(text: string): string {
+    const map = this.titleNodeMap();
+    if (map.size === 0) return this.escapeHtml(text);
+
+    const titles = [...map.keys()].filter(t => t.length >= 2).sort((a, b) => b.length - a.length);
+    let result = this.escapeHtml(text);
+
+    for (const title of titles) {
+      const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b(${escaped})\\b`, 'g');
+      const nodeId = map.get(title)!;
+      result = result.replace(regex, `<button class="underline decoration-dotted font-mono text-accent hover:text-ink cursor-pointer bg-transparent border-none p-0 text-xs" onclick="document.dispatchEvent(new CustomEvent('devcontext-node-link',{detail:{nodeId:'${nodeId}'}}))">${title}</button>`);
+    }
+
+    return result;
+  }
+
+  private escapeHtml(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   protected async copyContent(): Promise<void> {
@@ -91,5 +129,13 @@ export class DocumentView {
       this.toast.show('Clipboard unavailable', 'error');
     }
     this.loading.set(false);
+  }
+
+  protected onDocClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'BUTTON') {
+      const nodeId = target.textContent;
+      if (nodeId) this.nodeStore.show(nodeId);
+    }
   }
 }

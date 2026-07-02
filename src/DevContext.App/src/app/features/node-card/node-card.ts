@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { Sheet } from '../../ui/sheet/sheet';
 import { NodeStore } from '../../state/node.store';
 import { TraceStore } from '../../state/trace.store';
+import { NodeLink } from '../../ui/node-link/node-link';
 
 @Component({
   selector: 'app-node-card',
   standalone: true,
-  imports: [Sheet],
+  imports: [Sheet, NodeLink],
   template: `
     <app-sheet [open]="store.open()" (closed)="store.hide()">
       <div class="flex flex-col h-full">
@@ -41,16 +42,14 @@ import { TraceStore } from '../../state/trace.store';
               @if (neigh.incoming?.length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Called by</span>
                   @for (e of neigh.incoming; track e.from) {
-                    <button class="block w-full text-left text-xs font-mono text-accent hover:underline truncate"
-                            (click)="store.show(e.from)">{{ e.otherTitle || e.from }}</button>
+                    <app-node-link class="block" [nodeId]="e.from" [label]="e.otherTitle || e.from" />
                   }
                 </div>
               }
               @if (neigh.outgoing?.length) {
                 <div><span class="text-2xs text-ink-muted uppercase">Calls</span>
                   @for (e of neigh.outgoing; track e.to) {
-                    <button class="block w-full text-left text-xs font-mono text-accent hover:underline truncate"
-                            (click)="store.show(e.to)">{{ e.otherTitle || e.to }}</button>
+                    <app-node-link class="block" [nodeId]="e.to" [label]="e.otherTitle || e.to" />
                   }
                 </div>
               }

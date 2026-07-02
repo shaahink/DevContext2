@@ -2,6 +2,7 @@ import { Component, input } from '@angular/core';
 
 import type { TraceNodeVm } from '../../models/view-models';
 import { Badge } from '../../ui/badge/badge';
+import { NodeLink } from '../../ui/node-link/node-link';
 
 const SEAM_COLORS: Record<string, string> = {
   call: 'bg-accent/10 text-accent border-accent/30',
@@ -17,7 +18,7 @@ const SEAM_COLORS: Record<string, string> = {
 
 @Component({
   selector: 'app-trace-node',
-  imports: [Badge],
+  imports: [Badge, NodeLink],
   template: `
     <div class="ml-[calc({{depth()}}*20px)] border-l-2 border-line pl-3 py-1">
       <div class="flex items-start gap-2">
@@ -26,7 +27,7 @@ const SEAM_COLORS: Record<string, string> = {
           {{ node().seam }}
         </span>
         <div class="min-w-0">
-          <p class="font-mono text-xs text-ink">{{ node().title }}</p>
+          <app-node-link [nodeId]="node().id" [label]="node().title" />
           @if (node().salient) { <p class="mt-0.5 text-3xs text-ink-muted line-clamp-2">{{ node().salient }}</p> }
           <div class="mt-0.5 flex items-center gap-1.5 text-2xs">
             @if (node().resolution === 'Syntactic') { <app-badge variant="warn">approx</app-badge> }

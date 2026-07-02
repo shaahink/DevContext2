@@ -9,10 +9,11 @@ import { ViewFrame } from '../../shell/view-frame';
 import { Badge } from '../../ui/badge/badge';
 import { Icon } from '../../ui/icon/icon';
 import { SearchField } from '../../ui/search-field/search-field';
+import { NodeLink } from '../../ui/node-link/node-link';
 
 @Component({
   selector: 'app-entries-view',
-  imports: [Icon, Badge, SearchField, ViewFrame],
+  imports: [Icon, Badge, SearchField, ViewFrame, NodeLink],
   template: `
     <app-view-frame>
       <div sidebar class="flex flex-col h-full">
@@ -56,7 +57,7 @@ import { SearchField } from '../../ui/search-field/search-field';
               >
                 <div class="min-w-0 flex-1">
                   <p class="truncate font-mono text-ink">{{ entry.route || entry.title }}</p>
-                  @if (entry.target) { <p class="truncate text-ink-muted">&rarr; {{ entry.target }}</p> }
+                  @if (entry.target) { <p class="truncate text-ink-muted">&rarr; <app-node-link [nodeId]="entry.target" [label]="entry.target" /></p> }
                 </div>
                 <div class="flex shrink-0 items-center gap-1.5">
                   @if (entry.provenance === 'Syntactic') { <app-badge variant="warn">approx</app-badge> }
