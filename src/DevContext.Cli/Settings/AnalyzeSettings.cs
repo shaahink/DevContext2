@@ -132,4 +132,8 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Fail if cached snapshot is not available (CI reproducibility)")]
     [CommandOption("--cache-only")]
     public bool CacheOnly { get; set; }
+
+    [Description("Suppress all output on success; errors still printed to stderr")]
+    [CommandOption("--quiet")]
+    public bool Quiet { get; set; }
 }

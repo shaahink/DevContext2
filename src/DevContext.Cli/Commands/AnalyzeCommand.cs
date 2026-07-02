@@ -53,7 +53,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     _ => "Unknown error"
                 };
                 AnsiConsole.MarkupLine($"[red]{msg}[/]");
-                return 1;
+                return 4;
             }
 
             gitClonePath = repoUrl.ClonePath;
@@ -62,7 +62,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             if (cloneResult is null)
             {
                 AnsiConsole.MarkupLine("[red]Clone failed[/]");
-                return 1;
+                return 4;
             }
 
             inputPath = gitClonePath;
@@ -220,14 +220,15 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         if (snapshot?.Report is { } report)
         {
             var summary = RunReportFormatter.Summary(report, result.RenderFunnel, result.GraphSummary, result.EstimatedTokens);
-            if (!settings.DryRun)
+            if (!settings.DryRun && !settings.Quiet)
                 AnsiConsole.MarkupLine($"[dim]{summary}[/]");
         }
 
-        if (settings.Stats || settings.Metrics)
+        if ((settings.Stats || settings.Metrics) && !settings.Quiet)
             ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default);
 
-        ShowSummary(sw, rootResult, options, result);
+        if (!settings.Quiet)
+            ShowSummary(sw, rootResult, options, result);
 
         // Clean up clone if auto-clean
         if (gitClonePath is not null)
@@ -304,12 +305,16 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         if (settings.Output is not null)
         {
             await File.WriteAllTextAsync(settings.Output, result.Content);
-            AnsiConsole.MarkupLine($"[green]Output written to {Path.GetFullPath(settings.Output)}[/]");
+            if (!settings.Quiet)
+                AnsiConsole.MarkupLine($"[green]Output written to {Path.GetFullPath(settings.Output)}[/]");
             return;
         }
 
-        AnsiConsole.WriteLine();
-        AnsiConsole.WriteLine(result.Content);
+        if (!settings.Quiet)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.WriteLine(result.Content);
+        }
     }
 
     private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default)
