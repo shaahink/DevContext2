@@ -42,7 +42,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.cs", SearchOption.AllDirectories, ct))
             {
-                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (IsExcluded(file, root, context.FileSystem, context.Options.ExcludePatterns)) continue;
                 if (!seenSource.Add(file)) continue;
                 sourceFiles.Add(file);
                 context.Cache.RegisterPath(file);
@@ -53,7 +53,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.razor", SearchOption.AllDirectories, ct))
             {
-                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (IsExcluded(file, root, context.FileSystem, context.Options.ExcludePatterns)) continue;
                 if (!seenContent.Add(file)) continue;
                 contentFiles.Add(file);
                 context.Cache.RegisterPath(file);
@@ -62,7 +62,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.cshtml", SearchOption.AllDirectories, ct))
             {
-                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (IsExcluded(file, root, context.FileSystem, context.Options.ExcludePatterns)) continue;
                 if (!seenContent.Add(file)) continue;
                 contentFiles.Add(file);
                 context.Cache.RegisterPath(file);
@@ -71,7 +71,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
             await foreach (var file in context.FileSystem.EnumerateFilesAsync(
                 root, "*.csproj", SearchOption.AllDirectories, ct))
             {
-                if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+                if (IsExcluded(file, root, context.FileSystem, context.Options.ExcludePatterns)) continue;
                 if (!seenProject.Add(file)) continue;
                 projectFiles.Add(file);
                 context.Cache.RegisterPath(file);
@@ -82,7 +82,7 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         await foreach (var file in context.FileSystem.EnumerateFilesAsync(
             context.RootPath, "*.sln*", SearchOption.AllDirectories, ct))
         {
-            if (IsExcluded(file, context.Options.ExcludePatterns)) continue;
+            if (IsExcluded(file, context.RootPath, context.FileSystem, context.Options.ExcludePatterns)) continue;
             context.Cache.RegisterPath(file);
         }
 
@@ -91,12 +91,22 @@ public sealed class FileTreeExtractor : IDiscoveryExtractor
         context.Analysis.AllProjectFiles = projectFiles;
     }
 
-    private static bool IsExcluded(string path, ImmutableArray<string> patterns)
+    /// <summary>Excludes by exact directory/file NAME match on the path segments below <paramref name="root"/>
+    /// — never against the root's own ancestors. A substring-anywhere check (the previous behavior) made
+    /// analysis of any repo living under a folder merely named e.g. "eval-repos" silently return zero
+    /// files, since every absolute path under it contains that substring.</summary>
+    private static bool IsExcluded(string path, string root, IFileSystem fileSystem, ImmutableArray<string> patterns)
     {
-        foreach (var pattern in patterns)
+        if (patterns.IsDefaultOrEmpty) return false;
+        var relative = fileSystem.GetRelativePath(root, path);
+        var segments = relative.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries);
+        foreach (var segment in segments)
         {
-            if (path.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-                return true;
+            foreach (var pattern in patterns)
+            {
+                if (segment.Equals(pattern, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
         }
         return false;
     }

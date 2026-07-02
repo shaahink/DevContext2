@@ -46,13 +46,40 @@ public sealed class FileTreeExtractorTests
         Assert.Contains(analysis.AllSourceFiles, f => f.Contains("Program.cs"));
     }
 
+    [Fact]
+    public async Task ExtractAsync_DoesNotExcludeRootWhenRootPathContainsExcludedSegment()
+    {
+        // Regression: analyzing a repo that itself lives under a folder literally named "eval-repos"
+        // must not be treated as fully excluded — only nested subfolders named "eval-repos" should be
+        // pruned. A naive Contains(pattern) check over the full path previously excluded every file.
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"code\eval-repos\TodoApi\Program.cs", "class Program {}");
+        fs.AddFile(@"code\eval-repos\TodoApi\Todo.Api\TodoApi.csproj", "<Project />");
+        fs.AddFile(@"code\eval-repos\TodoApi\nested\eval-repos\Ignored.cs", "class Ignored {}");
+
+        var cache = new FakeAnalysisCache(fs);
+        var analysis = new SharedAnalysisContext();
+        var options = new ExtractionOptions
+        {
+            ExcludePatterns = [".git", "bin", "obj", ".vs", "node_modules", "eval-repos", "analysis-repos"],
+        };
+        var ctx = CreateContext(fs, cache, analysis, options, rootPath: @"code\eval-repos\TodoApi");
+
+        var extractor = new FileTreeExtractor();
+        await extractor.ExtractAsync(ctx, new DiscoveryModel(), CancellationToken.None);
+
+        Assert.Contains(analysis.AllSourceFiles, f => f.Contains("Program.cs"));
+        Assert.Single(analysis.AllProjectFiles);
+        Assert.DoesNotContain(analysis.AllSourceFiles, f => f.Contains("Ignored.cs"));
+    }
+
     private static DiscoveryContext CreateContext(
         IFileSystem fs, IAnalysisCache cache, SharedAnalysisContext analysis,
-        ExtractionOptions? options = null)
+        ExtractionOptions? options = null, string rootPath = "src")
     {
         return new DiscoveryContext
         {
-            RootPath = "src",
+            RootPath = rootPath,
             Options = options ?? new ExtractionOptions(),
             ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
             Observer = new NullDiscoveryObserver(),
