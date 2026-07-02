@@ -8,6 +8,8 @@ import { Icon } from '../ui/icon/icon';
 import { Toast, ToastService } from '../ui/toast/toast';
 import { StatusBar } from './status-bar';
 import { TitleBar } from './title-bar';
+import { NodeCard } from '../features/node-card/node-card';
+import { Palette } from '../features/palette/palette';
 
 interface NavItem {
   route: string;
@@ -32,7 +34,7 @@ const LENS_ITEMS: readonly NavItem[] = [
 
 @Component({
   selector: 'app-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, TitleBar, StatusBar, Toast],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, TitleBar, StatusBar, Toast, NodeCard, Palette],
   template: `
     <div class="grid h-screen overflow-hidden" style="grid-template-rows: 36px 1fr 24px; grid-template-columns: 48px 1fr;">
       <app-title-bar />
@@ -77,12 +79,30 @@ const LENS_ITEMS: readonly NavItem[] = [
       </nav>
 
       <main class="row-start-2 col-start-2 min-w-0 overflow-auto">
+        <!-- I4.5 Honesty ribbon -->
+        @if (session.ready() && session.summary(); as s) {
+          <div class="flex items-center gap-3 border-b border-line bg-surface px-3 py-1.5 text-xs text-ink-muted">
+            <span class="font-semibold text-ink">{{ s.label?.split(' ')[0] ?? '—' }}</span>
+            @if (s.archetype) { <span>·</span><span>{{ s.archetype }}</span> }
+            <span>·</span>
+            <span>{{ s.projects }} projects</span>
+            @if (s.entries) { <span>·</span><span>{{ s.entries }} entries</span> }
+            @if (s.entriesWithTarget !== null && s.entries) {
+              <span>·</span>
+              <span [class.text-success]="s.entriesWithTarget / s.entries >= 0.5"
+                    [class.text-warn]="s.entriesWithTarget / s.entries < 0.5">
+                {{ s.entriesWithTarget }}/{{ s.entries }} targets
+              </span>
+            }
+          </div>
+        }
         <router-outlet />
       </main>
 
       <app-status-bar />
-
       <app-toast [messages]="toast.messages()" />
+      <app-node-card />
+      <app-palette />
     </div>
   `,
 })
