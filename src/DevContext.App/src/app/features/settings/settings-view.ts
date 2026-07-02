@@ -66,7 +66,7 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
                 </select>
               </div>
               <div class="flex items-center gap-2">
-                <input type="checkbox" [(ngModel)]="noRoslyn" />
+                <input type="checkbox" [(ngModel)]="useRoslyn" />
                 <span class="text-xs text-ink">Use Roslyn semantic tier</span>
               </div>
             </div>
@@ -80,13 +80,15 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
             <div>
               <p class="text-2xs text-ink-muted uppercase">Cache location</p>
               <p class="text-xs font-mono text-ink mt-1">%LOCALAPPDATA%/DevContext/cache</p>
-              <button class="mt-1 text-xs text-accent hover:underline" onclick="alert('Open folder coming with I8 snapshot cache')">Open folder</button>
             </div>
             <div class="border-t border-line pt-3">
               <p class="text-2xs text-ink-muted uppercase mb-1">Clone folder</p>
               <p class="text-xs font-mono text-ink">%LOCALAPPDATA%/DevContext/clones</p>
-              <button class="mt-1 text-xs text-accent hover:underline" onclick="alert('Open folder coming with I8 snapshot cache')">Open folder</button>
             </div>
+            <p class="border-t border-line pt-3 text-2xs text-ink-subtle">
+              Snapshot cache (SHA256 + git HEAD keyed, LRU) is managed automatically. Per-repo cache
+              listing, sizes, and clear/open-in-explorer actions require a Tauri file command — tracked for a follow-up.
+            </p>
           </section>
         }
 
@@ -97,7 +99,7 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
             <div>
               <p class="text-2xs text-ink-muted uppercase">Status</p>
               <div class="flex items-center gap-2 mt-1">
-                <span class="rounded-full w-2 h-2" [class.bg-green-500]="conn.online()" [class.bg-red-500]="!conn.online()"></span>
+                <span class="rounded-full w-2 h-2" [class.bg-success]="conn.online()" [class.bg-danger]="!conn.online()"></span>
                 <span class="text-xs text-ink">{{ conn.online() ? 'Connected' : 'Offline' }}</span>
               </div>
             </div>
@@ -117,8 +119,9 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
               <p>Engine version: {{ conn.version() || '—' }}</p>
               <p>Everything runs locally. Your code never leaves your machine. No telemetry.</p>
               <div class="border-t border-line pt-2 space-y-1">
-                <a class="block text-accent hover:underline" href="https://github.com/anomalyco/DevContext" target="_blank">GitHub repository</a>
-                <a class="block text-accent hover:underline" href="https://github.com/anomalyco/DevContext/issues/new" target="_blank">Report an issue</a>
+                <a class="block text-accent hover:underline" href="https://github.com/shaahink/DevContext2" target="_blank" rel="noopener">GitHub repository</a>
+                <a class="block text-accent hover:underline" href="https://github.com/shaahink/DevContext2/issues/new" target="_blank" rel="noopener">Report an issue</a>
+                <a class="block text-accent hover:underline" href="https://github.com/shaahink/DevContext2/releases" target="_blank" rel="noopener">Check for updates</a>
               </div>
             </div>
           </section>
@@ -142,5 +145,5 @@ export class SettingsView {
   protected readonly activeTab = signal<SettingsTab>('appearance');
   protected readonly defaultDepth = signal(6);
   protected readonly defaultDetail = signal('salient');
-  protected readonly noRoslyn = signal(false);
+  protected readonly useRoslyn = signal(true);
 }

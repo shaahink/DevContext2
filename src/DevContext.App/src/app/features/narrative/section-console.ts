@@ -1,4 +1,4 @@
-import { afterRender, Component, computed, ElementRef, inject, viewChild } from '@angular/core';
+import { afterEveryRender, Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
 import { SectionCard } from '../../ui/section-card/section-card';
@@ -189,7 +189,7 @@ export class SectionConsole {
   });
 
   constructor() {
-    afterRender(() => {
+    afterEveryRender(() => {
       if (this.mode() !== 'boot') return;
       const el = this.scrollAnchor()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;

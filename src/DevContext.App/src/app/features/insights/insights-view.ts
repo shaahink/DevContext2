@@ -4,15 +4,15 @@ import { Card } from '../../ui/card/card';
 import { RouterLink } from '@angular/router';
 
 const SEVERITY_CLASS: Record<string, string> = {
-  warning: 'border-red-500',
-  notable: 'border-amber-500',
-  info: 'border-blue-500',
+  warning: 'border-danger',
+  notable: 'border-warn',
+  info: 'border-accent',
 };
 
 const SEVERITY_LABEL_CLASS: Record<string, string> = {
-  warning: 'bg-red-500/10 text-red-400',
-  notable: 'bg-amber-500/10 text-amber-400',
-  info: 'bg-blue-500/10 text-blue-400',
+  warning: 'bg-danger/10 text-danger',
+  notable: 'bg-warn/10 text-warn',
+  info: 'bg-accent/10 text-accent',
 };
 
 interface InsightGroup {
@@ -39,8 +39,8 @@ interface InsightGroup {
       }
       <!-- Error -->
       @else if (store.statsError(); as err) {
-        <div class="flex items-center gap-3 rounded border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm">
-          <span class="text-red-400">Failed to load stats.</span>
+        <div class="flex items-center gap-3 rounded border border-danger/30 bg-danger/10 px-3 py-2.5 text-sm">
+          <span class="text-danger">Failed to load stats.</span>
           <span class="text-ink-muted text-xs">{{ err }}</span>
           <button class="ml-auto text-xs text-accent hover:underline" (click)="retryStats()">Retry</button>
         </div>
@@ -49,7 +49,7 @@ interface InsightGroup {
       @else if (!store.ready()) {
         <div class="text-sm text-ink-muted">
           <p>Analyze a repo to see insights.</p>
-          <a routerLink="/" class="text-accent text-xs hover:underline">Go to source</a>
+          <a routerLink="/" class="text-accent text-xs hover:underline">Go to overview</a>
         </div>
       }
       <!-- Empty — analyzed, zero insights -->
@@ -70,6 +70,9 @@ interface InsightGroup {
                         <span class="text-xs font-semibold text-ink">{{ insight.title }}</span>
                         <span class="rounded px-1.5 py-px text-2xs" [class]="severityLabelClass(insight.severity)">{{ insight.severity }}</span>
                       </div>
+                      @if (insight.detail) {
+                        <p class="mt-1 text-2xs text-ink-muted">{{ insight.detail }}</p>
+                      }
                       @if (insight.evidence.length) {
                         <div class="mt-1.5 flex flex-wrap gap-1">
                           @for (ev of insight.evidence; track ev) {

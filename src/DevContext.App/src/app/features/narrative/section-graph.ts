@@ -16,7 +16,7 @@ import { FormsModule } from '@angular/forms';
         <div class="mb-3 flex items-center gap-3 text-2xs">
           <label class="flex items-center gap-1.5">
             <span class="text-ink-subtle">Depth</span>
-            <select class="rounded border border-line bg-base px-1.5 py-1 text-xs text-ink outline-none focus:border-accent" [(ngModel)]="graphDepth" (ngModelChange)="onDepthChange()">
+            <select class="rounded border border-line bg-base px-1.5 py-1 text-xs text-ink outline-none focus:border-accent" [ngModel]="graphDepth()" (ngModelChange)="graphDepth.set(+$event)">
               <option [value]="1">1</option>
               <option [value]="2">2</option>
               <option [value]="3">3</option>
@@ -34,13 +34,11 @@ import { FormsModule } from '@angular/forms';
           </button>
         </div>
         <div [class.max-h-[500px]]="!expanded()" class="transition-all">
-          @if (renderKey(); as k) {
-            <app-graph-canvas
-              [trace]="root"
-              [maxDepth]="graphDepth()"
-              (nodeSelected)="onNodeSelected($event)"
-            />
-          }
+          <app-graph-canvas
+            [trace]="root"
+            [maxDepth]="graphDepth()"
+            (nodeSelected)="onNodeSelected($event)"
+          />
         </div>
       } @else {
         <p class="py-8 text-center text-xs text-ink-subtle">
@@ -57,11 +55,6 @@ export class SectionGraph {
 
   protected readonly graphDepth = signal(2);
   protected readonly expanded = signal(false);
-  protected readonly renderKey = signal(0);
-
-  protected onDepthChange(): void {
-    this.renderKey.update((k) => k + 1);
-  }
 
   protected onNodeSelected(nodeId: string): void {
     const handle = this.session.handle();

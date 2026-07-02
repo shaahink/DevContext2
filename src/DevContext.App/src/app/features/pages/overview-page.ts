@@ -6,11 +6,10 @@ import { SectionIdentity } from '../../features/narrative/section-identity';
 import { SectionArchitecture } from '../../features/narrative/section-architecture';
 import { SectionStats } from '../../features/narrative/section-stats';
 import { SectionConsole } from '../../features/narrative/section-console';
-import { SectionLens } from '../../features/narrative/section-lens';
 
 @Component({
   selector: 'app-overview-page',
-  imports: [SectionLanding, SectionIdentity, SectionArchitecture, SectionStats, SectionConsole, SectionLens],
+  imports: [SectionLanding, SectionIdentity, SectionArchitecture, SectionStats, SectionConsole],
   template: `
     <div class="mx-auto max-w-4xl px-5 pb-10 pt-6">
       @if (!session.ready()) {

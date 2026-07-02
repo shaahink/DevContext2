@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SessionStore } from '../../state/session.store';
@@ -218,17 +218,6 @@ export class SectionEntries {
       navigator.clipboard?.writeText(text)
         .then(() => this.toast.show('Copied: ' + text, 'info'))
         .catch(() => this.toast.show('Copy failed', 'error'));
-    }
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  onGlobalKey(e: KeyboardEvent): void {
-    if ((e.ctrlKey || e.metaKey) || e.altKey) return;
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      if (document.querySelector('app-section-entries')?.contains(e.target as Node)) {
-        this.onTableKey(e);
-      }
     }
   }
 

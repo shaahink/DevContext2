@@ -21,8 +21,10 @@ import { Icon } from '../../ui/icon/icon';
               placeholder="Search entry or symbol…"
               [value]="focusQuery()"
               (input)="onFocusInput($event)"
+              (focus)="focusOpen.set(true)"
+              (blur)="onFocusBlur()"
             />
-            @if (filteredEntries().length) {
+            @if (focusOpen() && filteredEntries().length) {
               <div class="absolute top-full left-0 z-10 mt-1 max-h-40 w-72 overflow-auto rounded border border-line bg-elevated shadow-lg">
                 @for (e of filteredEntries(); track e.focus) {
                   <button
@@ -89,6 +91,7 @@ export class SectionTrace {
   protected readonly traceStore = inject(TraceStore);
 
   protected readonly focusQuery = signal('');
+  protected readonly focusOpen = signal(false);
   protected readonly filteredEntries = signal<{ focus: string; title: string; kind: string }[]>([]);
 
   constructor() {
@@ -105,9 +108,16 @@ export class SectionTrace {
 
   protected onFocusInput(e: Event): void {
     this.focusQuery.set((e.target as HTMLInputElement).value);
+    this.focusOpen.set(true);
+  }
+
+  // Delay closing so a click on a suggestion (which blurs the input first) still registers.
+  protected onFocusBlur(): void {
+    setTimeout(() => this.focusOpen.set(false), 150);
   }
 
   protected trace(focus: string): void {
+    this.focusOpen.set(false);
     const handle = this.session.handle();
     if (!handle) return;
     void this.traceStore.trace(handle, focus);

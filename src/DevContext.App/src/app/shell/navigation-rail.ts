@@ -2,8 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { SessionStore } from '../../state/session.store';
-import { Icon } from '../../ui/icon/icon';
+import { SessionStore } from '../state/session.store';
+import { Icon } from '../ui/icon/icon';
 
 export interface RailItem {
   id: string;
