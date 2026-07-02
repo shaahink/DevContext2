@@ -235,3 +235,22 @@ before the merge).
 
 **Next:** E5 (Benchmark expansion) → I8 (Caching).
 
+## 2026-07-02 — I8 snapshot cache + I10.3 server rehydrate + I9 CLI polish
+
+**Changed:**
+- **I8 — Snapshot cache:** `SnapshotCacheService` in `Core/Analysis/` — computes cache keys from
+  repo path (SHA256) + git HEAD (or manifest hash), saves/loads `AnalysisSnapshot` as JSON.gz,
+  LRU eviction (10 versions/repo, 2GB cap), CLI `cache list/clear/path` stubs.
+- **I8 — CLI integration:** `AnalyzeCommand` checks snapshot cache before running analysis;
+  cache hit → render from cached snapshot with `"from cache · sha7 · Nms"` stamp; cache miss
+  → save write-behind. New flags: `--no-cache` (force fresh), `--cache-only` (fail if cold).
+- **I10.3 — Server rehydrate:** `EngineRunner` checks I8 cache before full analysis; cache hit
+  → instant `EngineResult` with fresh pipeline from `EngineHostCache`. Write-behind saves after
+  analysis.
+- **I9 — CLI polish:** Exit codes (0=ok, 1=usage, 2=strict-fail, 3=cache-only-miss, 4=network/
+  clone). `--quiet` flag suppresses all output on success.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 383/0 (no regressions).
+
+**Next:** E5 (Benchmark expansion — remaining item).
+

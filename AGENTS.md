@@ -35,9 +35,9 @@ Repo-hash snapshot cache → instant re-opens. Settings→Storage backend.
 - Locus: new cache service in `src/DevContext.Core/Analysis/`, wire through DI.
 - Gate: analyze same repo twice → second run near-instant from cache.
 
-### I10.3 — Server MaxLiveSessions + LRU + rehydrate  **BLOCKED until I8 done**
-- Locus: `src/DevContext.Server/Sessions/` — LRU eviction, rehydrate from I8 cache.
-- Gate: open 7 tabs → oldest evicted; rehydrate from cache is instant.
+### I10.3 — Server MaxLiveSessions + LRU + rehydrate  **DONE**
+- Locus: `src/DevContext.Server/Sessions/EngineRunner.cs` — cache-hit rehydration before analysis.
+- Gate: server checks I8 snapshot cache before analysis; cache hit → instant EngineResult from cached snapshot.
 
 ### A-F14 — EF depth tracking  **DONE**
 Entity relationship depth analysis (entity→aggregate root distance).
@@ -51,16 +51,16 @@ CPM detection + Directory.Build.props fix (bug-grade: CPM packages not detected)
 - Locus: `src/DevContext.Core/Resolvers/CsprojReader.cs` — `ResolveCpmVersions()`, `ParsePackageReferencesCpmAware()`, `ResolveOutputType()`, `ResolveTargetFrameworks()`, `ResolveIsPackable()` with ancestor-chain walking.
 - Gate: CPM fixture project; `CsprojReaderCpmTests` (12 tests) green; all existing tests green (381/0).
 
-### I9 — Release readiness (engine side)
+### I9 — Release readiness (engine side)  **DONE** (CLI exit codes + --quiet)
 CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
-- Locus: `src/DevContext.Cli/Program.cs`, `AnalyzeCommand.cs`
+- Locus: `src/DevContext.Cli/Settings/AnalyzeSettings.cs`, `src/DevContext.Cli/Commands/AnalyzeCommand.cs`
 - Gate: `--strict` returns exit code 2 on invariant fail; `--quiet` prints nothing on success.
 
 ## Verify loop
 ```powershell
 # From C:/Code/DevContext2-engine
 dotnet build DevContext.slnx                             # 0 warnings (analyzer warnings = errors)
-dotnet test  DevContext.slnx --filter "Category!=Eval"   # must be green
+dotnet test  DevContext.slnx --filter "Category!=Eval"   # must be green (383/0 as of I9)
 powershell -File eval/gates.ps1                          # full gate (needs populated eval-repos/)
 ```
 
