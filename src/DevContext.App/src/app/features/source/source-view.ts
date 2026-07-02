@@ -2,7 +2,6 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { ActivityService } from '../../core/activity/activity.service';
 import { SessionStore } from '../../state/session.store';
 import { RecentStore } from '../../state/recent.store';
 import { Icon } from '../../ui/icon/icon';
@@ -56,17 +55,17 @@ type InputType = 'local' | 'github' | null;
           <div class="space-y-2 rounded-md border border-line bg-surface px-3 py-2.5">
             <div class="flex items-center gap-2 text-xs">
               <app-spinner />
-              <span class="text-ink">{{ activity.label() || 'Working…' }}</span>
-              @if (activity.stage()) {
-                <span class="font-mono text-ink-subtle">{{ activity.stage() }}</span>
+              <span class="text-ink">{{ session.progress().message || 'Working…' }}</span>
+              @if (session.progress().stage) {
+                <span class="font-mono text-ink-subtle">{{ session.progress().stage }}</span>
               }
-              @if (activity.percent() > 0) {
-                <span class="ml-auto font-mono text-accent">{{ activity.percent() }}%</span>
+              @if (session.progress().percent > 0) {
+                <span class="ml-auto font-mono text-accent">{{ session.progress().percent }}%</span>
               }
             </div>
-            @if (activity.percent() > 0) {
+            @if (session.progress().percent > 0) {
               <div class="h-1 w-full overflow-hidden rounded-full bg-surface-2">
-                <div class="h-full bg-accent transition-all" [style.width.%]="activity.percent()"></div>
+                <div class="h-full bg-accent transition-all" [style.width.%]="session.progress().percent"></div>
               </div>
             }
           </div>
@@ -130,7 +129,6 @@ type InputType = 'local' | 'github' | null;
 })
 export class SourceView {
   protected readonly session = inject(SessionStore);
-  protected readonly activity = inject(ActivityService);
   private readonly router = inject(Router);
   private readonly recentStore = inject(RecentStore);
 

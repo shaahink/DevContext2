@@ -10,6 +10,7 @@ import { StatusBar } from './status-bar';
 import { TitleBar } from './title-bar';
 import { NodeCard } from '../features/node-card/node-card';
 import { Palette } from '../features/palette/palette';
+import { TabStrip } from './tab-strip';
 
 interface NavItem {
   route: string;
@@ -37,12 +38,14 @@ const LENS_ITEMS: readonly NavItem[] = [
 
 @Component({
   selector: 'app-app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, TitleBar, StatusBar, Toast, NodeCard, Palette],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, TitleBar, StatusBar, Toast, NodeCard, Palette, TabStrip],
   template: `
-    <div class="grid h-screen overflow-hidden" style="grid-template-rows: 36px 1fr 24px; grid-template-columns: 48px 1fr;">
+    <div class="grid h-screen overflow-hidden" style="grid-template-rows: 36px 32px 1fr 24px; grid-template-columns: 48px 1fr;">
       <app-title-bar />
 
-      <nav class="row-start-2 flex flex-col border-r border-line bg-surface py-2">
+      <app-tab-strip class="row-start-2 col-start-2 min-w-0" />
+
+      <nav class="row-start-2 row-span-2 flex flex-col border-r border-line bg-surface py-2">
         <div class="flex flex-col items-center gap-1">
           @for (item of topItems; track item.route) {
             <a
@@ -86,7 +89,7 @@ const LENS_ITEMS: readonly NavItem[] = [
         </div>
       </nav>
 
-      <main class="row-start-2 col-start-2 min-w-0 overflow-auto">
+      <main class="row-start-3 col-start-2 min-w-0 overflow-auto">
         <!-- I4.5 Honesty ribbon -->
         @if (session.ready() && session.summary(); as s) {
           <div class="flex items-center gap-3 border-b border-line bg-surface px-3 py-1.5 text-xs text-ink-muted">

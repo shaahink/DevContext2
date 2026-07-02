@@ -1,0 +1,137 @@
+import { Component, HostListener, inject } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
+
+import { type TabState, WorkspaceStore } from '../state/workspace.store';
+
+/**
+ * The 32px multi-tab strip (I10) — sits under the header, to the right of the icon rail. Up to
+ * WorkspaceStore.MAX_TABS independent repo sessions; switching rewrites the URL to that tab's last
+ * route (replaceUrl, tab identity itself never appears in the URL).
+ *
+ * Reduced v1 (documented in ITERATION-I10-workspace-tabs.md §2): no server-side MaxLiveSessions/LRU
+ * rehydration yet (that needs I8's snapshot cache, not built) — the tab cap alone keeps this safe at
+ * small scale. No drag-reorder (spec marks it optional for v1).
+ */
+@Component({
+  selector: 'app-tab-strip',
+  imports: [],
+  template: `
+    <div class="flex h-full items-stretch border-b border-line bg-surface">
+      <div class="flex flex-1 items-stretch overflow-x-auto">
+        @for (tab of workspace.tabs(); track tab.id) {
+          <div
+            class="group flex min-w-0 max-w-48 cursor-pointer items-center gap-1.5 border-r border-line px-2.5 text-2xs transition-colors"
+            [class.bg-surface-2]="tab.id === workspace.activeId()"
+            [class.text-ink]="tab.id === workspace.activeId()"
+            [class.text-ink-subtle]="tab.id !== workspace.activeId()"
+            [class.hover:bg-surface-2]="tab.id !== workspace.activeId()"
+            [class.border-b-2]="tab.id === workspace.activeId()"
+            [class.border-b-accent]="tab.id === workspace.activeId()"
+            [title]="tab.path || tab.label"
+            role="tab"
+            tabindex="0"
+            [attr.aria-selected]="tab.id === workspace.activeId()"
+            (click)="switchTo(tab.id)"
+            (keydown.enter)="switchTo(tab.id)"
+            (auxclick)="onAuxClick(tab.id, $event)"
+          >
+            @if (dotClass(tab); as dc) {
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full" [class]="dc"></span>
+            }
+            <span class="min-w-0 flex-1 truncate font-mono">{{ shortLabel(tab.label) }}</span>
+            <button
+              type="button"
+              class="shrink-0 rounded px-1 text-ink-subtle opacity-0 hover:bg-surface hover:text-ink group-hover:opacity-100"
+              [class.opacity-100]="tab.id === workspace.activeId()"
+              (click)="closeTab(tab.id, $event)"
+              [title]="'Close ' + tab.label"
+            >✕</button>
+          </div>
+        }
+      </div>
+      <button
+        class="shrink-0 border-l border-line px-3 text-xs text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+        [disabled]="workspace.atCap()"
+        [title]="workspace.atCap() ? ('Tab limit (' + maxTabs + ') — close one to open another') : 'New tab (Ctrl+T)'"
+        (click)="newTab()"
+      >+</button>
+    </div>
+  `,
+})
+export class TabStrip {
+  protected readonly workspace = inject(WorkspaceStore);
+  protected readonly maxTabs = WorkspaceStore.MAX_TABS;
+  private readonly router = inject(Router);
+
+  constructor() {
+    // Keep each tab's stored route current as the user navigates within it, so switching away and
+    // back restores the view instead of dumping them back on Overview.
+    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+      const activeId = this.workspace.activeId();
+      if (activeId) this.workspace.setRoute(activeId, e.urlAfterRedirects);
+    });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKey(e: KeyboardEvent): void {
+    if (!(e.ctrlKey || e.metaKey)) return;
+
+    if (e.key === 't') {
+      e.preventDefault();
+      this.newTab();
+    } else if (e.key === 'w') {
+      const activeId = this.workspace.activeId();
+      if (activeId) {
+        e.preventDefault();
+        this.closeTab(activeId);
+      }
+    } else if (/^[1-6]$/.test(e.key)) {
+      const idx = Number(e.key) - 1;
+      const tab = this.workspace.tabs()[idx];
+      if (tab) {
+        e.preventDefault();
+        this.switchTo(tab.id);
+      }
+    }
+  }
+
+  protected switchTo(id: string): void {
+    if (id === this.workspace.activeId()) return;
+    this.workspace.setActive(id);
+    const tab = this.workspace.tabById(id);
+    void this.router.navigateByUrl(tab?.route || '/', { replaceUrl: true });
+  }
+
+  protected onAuxClick(id: string, event: MouseEvent): void {
+    if (event.button === 1) this.closeTab(id, event); // middle-click closes
+  }
+
+  protected closeTab(id: string, event?: Event): void {
+    event?.stopPropagation();
+    const wasActive = this.workspace.activeId() === id;
+    this.workspace.closeTab(id);
+    if (wasActive) {
+      const next = this.workspace.activeTab();
+      void this.router.navigateByUrl(next?.route || '/', { replaceUrl: true });
+    }
+  }
+
+  protected newTab(): void {
+    if (this.workspace.atCap()) return;
+    this.workspace.createTab('', 'New tab');
+    void this.router.navigateByUrl('/');
+  }
+
+  protected shortLabel(label: string): string {
+    const first = label.split(' ')[0] || label;
+    return first.length > 18 ? first.slice(0, 17) + '…' : first;
+  }
+
+  protected dotClass(tab: TabState): string | null {
+    const status = tab.session.status;
+    if (status === 'analyzing' || status === 'cloning') return 'bg-accent animate-pulse';
+    if (status === 'error') return 'bg-danger';
+    return null;
+  }
+}
