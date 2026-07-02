@@ -733,7 +733,8 @@ public sealed class GraphBuilder
                 {
                     var eventName = match.Groups[1].Success
                         ? match.Groups[1].Value
-                        : ResolveVariableNewType(body, match.Index, match.Groups[2].Value);
+                        : ResolveVariableNewType(body, match.Index, match.Groups[2].Value,
+                            EnclosingSpan(spans, match.Index, body.Length).Start);
                     if (string.IsNullOrEmpty(eventName) || IsNoiseType(eventName)) continue;
                     var eventId = NodeId.ForType(names.Resolve(eventName));
 
@@ -833,11 +834,13 @@ public sealed class GraphBuilder
                 }
                 else
                 {
-                    // Variable: .Send(cmd) — try to find `cmd` assignment via `new T()` before this call
+                    // Variable: .Send(cmd) — try to find `cmd` assignment via `new T()` before this call,
+                    // bounded to the enclosing method span (I1.1 — span-bound variable resolution).
                     var varName = match.Groups[3].Value;
                     var pos = match.Index;
                     if (pos <= 0) continue;
-                    var before = body[..pos];
+                    var (spanStart, _) = EnclosingSpan(spans, pos, body.Length);
+                    var before = body[spanStart..pos];
                     // Find `new XType ` occurring before this Send, closest to the call
                     var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
                     if (newMatches.Count == 0) continue;
@@ -951,6 +954,18 @@ public sealed class GraphBuilder
         return null;
     }
 
+    /// <summary>Resolves a SourceBody character offset to the start/end of the enclosing method span,
+    /// or (0, <paramref name="wholeBodyEnd"/>) when outside every method — the variable search is then
+    /// the whole body before the match, as it was before span-bounding (field/ctor-less init).</summary>
+    private static (int Start, int End) EnclosingSpan(
+        ImmutableArray<MethodSpan> spans, int offset, int wholeBodyEnd)
+    {
+        foreach (var s in spans)
+            if (offset >= s.Start && offset < s.End)
+                return (s.Start, s.End);
+        return (0, wholeBodyEnd);
+    }
+
     /// <summary>Ensures a Member node exists for <paramref name="type"/>.<paramref name="method"/>, carrying
     /// the owning Type's file, and returns its id. First-write-wins merge keeps any body/edges already
     /// attached by the call graph or HTTP-entry passes.</summary>
@@ -1035,11 +1050,11 @@ public sealed class GraphBuilder
 
     /// <summary>Resolves the event type for a variable-form raise (<c>AddDomainEvent(evt)</c>): prefers the
     /// variable's own <c>evt = new X(...)</c> assignment before the call, else the last <c>new X(...)</c>
-    /// before it (the same approximate heuristic <see cref="AddSends"/> uses for <c>.Send(cmd)</c>).</summary>
-    private static string? ResolveVariableNewType(string body, int callPos, string varName)
+    /// before it — span-bounded to the enclosing method (I1.1).</summary>
+    private static string? ResolveVariableNewType(string body, int callPos, string varName, int spanStart)
     {
         if (callPos <= 0 || string.IsNullOrEmpty(varName)) return null;
-        var before = body[..callPos];
+        var before = body[spanStart..callPos];
         var assign = Regex.Matches(before, $@"\b{Regex.Escape(varName)}\s*=\s*new\s+(\w+)");
         if (assign.Count > 0) return assign[^1].Groups[1].Value;
         var news = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
