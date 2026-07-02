@@ -136,4 +136,41 @@ public sealed class GraphQuery
         }
         return best?.Id;
     }
+
+    /// <summary>I5 F13 — Blast Radius: BFS over in-edges from a node to find which entry points
+    /// reach it. Returns the entry titles with hop distances. Depth-capped, cycle-safe.</summary>
+    public ImmutableArray<BlastResult> BlastRadius(NodeId from, int maxDepth = 4)
+    {
+        var results = ImmutableArray.CreateBuilder<BlastResult>();
+        var visited = new HashSet<NodeId>();
+        var queue = new Queue<(NodeId, int)>();
+        queue.Enqueue((from, 0));
+
+        var entrySet = new HashSet<NodeId>(_entries.Select(e => e.Node));
+
+        while (queue.Count > 0 && results.Count < 500)
+        {
+            var (current, dist) = queue.Dequeue();
+            if (dist > maxDepth || !visited.Add(current)) continue;
+
+            if (entrySet.Contains(current) && current != from)
+            {
+                var entry = _entries.FirstOrDefault(e => e.Node == current);
+                if (entry is not null)
+                    results.Add(new BlastResult(
+                        entry.Title,
+                        entry.Kind.ToString(),
+                        dist));
+            }
+
+            foreach (var edge in _graph.InEdges(current))
+                if (!visited.Contains(edge.From))
+                    queue.Enqueue((edge.From, dist + 1));
+        }
+
+        return results.ToImmutable();
+    }
 }
+
+/// <summary>Blast radius result: an entry point reachable from a target node.</summary>
+public sealed record BlastResult(string EntryTitle, string Kind, int Hops);
