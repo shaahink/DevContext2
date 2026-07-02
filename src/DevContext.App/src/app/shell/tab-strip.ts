@@ -1,7 +1,8 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, effect, HostListener, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
+import { SessionStore } from '../state/session.store';
 import { type TabState, WorkspaceStore } from '../state/workspace.store';
 
 /**
@@ -63,6 +64,7 @@ export class TabStrip {
   protected readonly workspace = inject(WorkspaceStore);
   protected readonly maxTabs = WorkspaceStore.MAX_TABS;
   private readonly router = inject(Router);
+  private readonly session = inject(SessionStore);
 
   constructor() {
     // Keep each tab's stored route current as the user navigates within it, so switching away and
@@ -70,6 +72,24 @@ export class TabStrip {
     this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
       const activeId = this.workspace.activeId();
       if (activeId) this.workspace.setRoute(activeId, e.urlAfterRedirects);
+    });
+
+    // On boot, restored tabs land on screen idle (I10.4 — never auto-analyze all of them). If the
+    // one that was active when the app last closed carries a path, jump straight to its remembered
+    // route and lazily re-analyze it (below) — the OTHER restored tabs stay untouched until clicked.
+    const initialActive = this.workspace.activeTab();
+    if (initialActive?.path && this.router.url === '/') {
+      void this.router.navigateByUrl(initialActive.route || '/', { replaceUrl: true });
+    }
+
+    // The one reactive rule behind "first activation analyzes lazily": whenever the active tab is
+    // idle with a remembered path but no handle yet (a restored tab, or one just switched into),
+    // kick off its analysis automatically.
+    effect(() => {
+      const tab = this.workspace.activeTab();
+      if (tab && tab.session.status === 'idle' && tab.path && !tab.session.handle) {
+        void this.session.analyze({ path: tab.path });
+      }
     });
   }
 

@@ -1,7 +1,8 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import type { AnalysisSummary, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { OperationController } from '../core/activity/operation-controller';
+import { DevContextApi } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EdgeVm, type EntryGroupVm, type NodeDetailVm, type TraceNodeVm } from '../models/view-models';
 
 export type TraceDetail = 'signature' | 'salient' | 'full';
@@ -96,9 +97,24 @@ export const DEFAULT_TRACE_SLICE: TabTraceSlice = {
  * never `activeId()` re-read at completion time — otherwise a background tab's result can bleed into
  * whatever tab the user has since switched to.
  */
+const STORAGE_KEY = 'devcontext-workspace';
+
+interface PersistedTab {
+  readonly path: string;
+  readonly label: string;
+  readonly route: string;
+}
+
+interface PersistedWorkspace {
+  readonly tabs: readonly PersistedTab[];
+  readonly activeIndex: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WorkspaceStore {
   static readonly MAX_TABS = 6;
+
+  private readonly api = inject(DevContextApi);
 
   private readonly _tabs = signal<TabState[]>([]);
   private readonly _activeId = signal<string | null>(null);
@@ -107,6 +123,13 @@ export class WorkspaceStore {
   readonly activeId = this._activeId.asReadonly();
   readonly activeTab = computed(() => this._tabs().find((t) => t.id === this._activeId()) ?? null);
   readonly atCap = computed(() => this._tabs().length >= WorkspaceStore.MAX_TABS);
+
+  constructor() {
+    this.restore();
+    // Persist path/label/route (never session/trace data or the handle) after every change, so a
+    // restart reopens the same tabs as idle placeholders — never auto-re-analyzing all of them.
+    effect(() => this.persist(this._tabs(), this._activeId()));
+  }
 
   /** Creates a new idle tab, activates it, and returns its id. No-op (returns the active id
    * unchanged) if already at the tab cap. */
@@ -129,14 +152,17 @@ export class WorkspaceStore {
     return id;
   }
 
-  /** Closes a tab, cancelling its in-flight operation. Activates the neighbor that slid into its
-   * place (or the previous one) if the closed tab was active. */
+  /** Closes a tab, cancelling its in-flight operation and freeing its server-side snapshot (if any).
+   * Activates the neighbor that slid into its place (or the previous one) if the closed tab was active. */
   closeTab(id: string): void {
     const list = this._tabs();
     const idx = list.findIndex((t) => t.id === id);
     if (idx === -1) return;
 
-    list[idx].controller.cancel();
+    const closing = list[idx];
+    closing.controller.cancel();
+    if (closing.session.handle) void this.api.closeSession(closing.session.handle).catch(() => undefined);
+
     const next = list.filter((t) => t.id !== id);
     this._tabs.set(next);
 
@@ -172,5 +198,46 @@ export class WorkspaceStore {
 
   setPathLabel(id: string, path: string, label: string): void {
     this.updateTab(id, (t) => ({ ...t, path, label }));
+  }
+
+  private restore(): void {
+    const parsed = this.readPersisted();
+    if (!parsed?.tabs?.length) return;
+
+    const restored: TabState[] = parsed.tabs.slice(0, WorkspaceStore.MAX_TABS).map((t) => ({
+      id: crypto.randomUUID(),
+      path: t.path,
+      label: t.label,
+      session: DEFAULT_SESSION_SLICE,
+      trace: DEFAULT_TRACE_SLICE,
+      route: t.route || '/',
+      controller: new OperationController(),
+    }));
+    this._tabs.set(restored);
+
+    const activeIdx = Math.min(Math.max(parsed.activeIndex, 0), restored.length - 1);
+    this._activeId.set(restored[activeIdx]?.id ?? restored[0]?.id ?? null);
+  }
+
+  private persist(tabs: readonly TabState[], activeId: string | null): void {
+    const activeIndex = Math.max(0, tabs.findIndex((t) => t.id === activeId));
+    const payload: PersistedWorkspace = {
+      tabs: tabs.map((t) => ({ path: t.path, label: t.label, route: t.route })),
+      activeIndex,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      /* quota exceeded – drop */
+    }
+  }
+
+  private readPersisted(): PersistedWorkspace | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as PersistedWorkspace) : null;
+    } catch {
+      return null;
+    }
   }
 }
