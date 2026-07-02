@@ -39,11 +39,7 @@ internal static class TestPipeline
             new CliCommandExtractor(),
         };
 
-        var pruners = new List<IPruner>
-        {
-            new PatternRelevancePruner(),
-            new TokenBudgetEnforcer(),
-        };
+        var pruners = new List<IPruner>();
 
         var compressors = new List<ICompressionStrategy>
         {

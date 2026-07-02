@@ -141,11 +141,7 @@ public static partial class GoldenTestHelper
             new DiRegistrationExtractor(),
         };
 
-        var pruners = new List<IPruner>
-        {
-            new PatternRelevancePruner(),
-            new TokenBudgetEnforcer(),
-        };
+        var pruners = new List<IPruner>();
 
         var compressors = new List<ICompressionStrategy>
         {
