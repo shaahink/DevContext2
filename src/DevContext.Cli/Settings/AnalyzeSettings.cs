@@ -20,25 +20,49 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--detail")]
     public string? Detail { get; set; }
 
-    [Description("Entry point (alias for --focus)")]
-    [CommandOption("-a|--around")]
+    // ── Deprecated / removed flags (kept as invisible stubs for one-release grace) ──
+
+    [Description("(removed) use --focus")]
+    [CommandOption("-a|--around", IsHidden = true)]
     public string[]? Around { get; set; }
 
-    [Description("Analysis scenario: overview | deep-dive (advanced — derived from --focus)")]
-    [CommandOption("-s|--scenario")]
+    [Description("(removed) use --focus")]
+    [CommandOption("-s|--scenario", IsHidden = true)]
     public string? Scenario { get; set; }
 
-    [Description("Profile: focused | debug | full (advanced — derived from --focus)")]
-    [CommandOption("-p|--profile")]
+    [Description("(removed) use --focus")]
+    [CommandOption("-p|--profile", IsHidden = true)]
     public string? Profile { get; set; }
 
-    [Description("Free-text intent (deprecated — use --focus instead)")]
-    [CommandOption("-t|--task")]
+    [Description("(removed) use --focus")]
+    [CommandOption("-t|--task", IsHidden = true)]
     public string? Task { get; set; }
 
-    [Description("Token cap (default 8000)")]
-    [CommandOption("--max-tokens")]
+    [Description("(removed) no longer needed — the token budget is retired")]
+    [CommandOption("--max-tokens", IsHidden = true)]
     public int? MaxTokens { get; set; }
+
+    [Description("(removed) token view is retired with the catalog")]
+    [CommandOption("--token-view", IsHidden = true)]
+    public bool TokenView { get; set; }
+
+    [Description("(removed) provenance is always on in narrative traces")]
+    [CommandOption("--include-provenance", IsHidden = true)]
+    public bool IncludeProvenance { get; set; }
+
+    [Description("(removed) anti-patterns are an insight source now")]
+    [CommandOption("--include-anti-patterns", IsHidden = true)]
+    public bool IncludeAntiPatterns { get; set; }
+
+    [Description("(removed) --stats already shows the RunReport")]
+    [CommandOption("--metrics", IsHidden = true)]
+    public bool Metrics { get; set; }
+
+    [Description("(removed) --keep is the inverse")]
+    [CommandOption("--cleanup", IsHidden = true)]
+    public string? Cleanup { get; set; }
+
+    // ── Active flags ──
 
     [Description("Write output to file")]
     [CommandOption("-o|--output")]
@@ -47,10 +71,6 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Output format: markdown | json")]
     [CommandOption("--format")]
     public string? Format { get; set; }
-
-    [Description("Include provenance info in output")]
-    [CommandOption("--include-provenance")]
-    public bool IncludeProvenance { get; set; }
 
     [Description("Include diagnostics in output")]
     [CommandOption("--include-diagnostics")]
@@ -81,21 +101,9 @@ public sealed class AnalyzeSettings : CommandSettings
     [CommandOption("--dry-run")]
     public bool DryRun { get; set; }
 
-    [Description("Emit structured per-extractor timing report")]
-    [CommandOption("--metrics")]
-    public bool Metrics { get; set; }
-
-    [Description("Show full RunReport statistics (--metrics is an alias)")]
+    [Description("Show full RunReport statistics")]
     [CommandOption("--stats")]
     public bool Stats { get; set; }
-
-    [Description("Show per-section token accounting table in HTML comments")]
-    [CommandOption("--token-view")]
-    public bool TokenView { get; set; }
-
-    [Description("Include anti-pattern detection in output")]
-    [CommandOption("--include-anti-patterns")]
-    public bool IncludeAntiPatterns { get; set; }
 
     [Description("GitHub repo URL to clone and analyze")]
     [CommandOption("--repo")]
@@ -104,10 +112,6 @@ public sealed class AnalyzeSettings : CommandSettings
     [Description("Branch or tag to check out (default: repo default)")]
     [CommandOption("--ref")]
     public string? Ref { get; set; }
-
-    [Description("Clone cleanup: auto (default — delete after analysis) | keep (retain clone)")]
-    [CommandOption("--cleanup")]
-    public string? Cleanup { get; set; }
 
     [Description("Keep cloned repo after analysis")]
     [CommandOption("--keep")]
