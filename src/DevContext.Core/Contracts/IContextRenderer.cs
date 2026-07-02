@@ -34,6 +34,8 @@ public sealed record RenderOptions(
     public RenderPlan? Plan { get; init; }
     /// <summary>The RunReport from the analysis phase. Populated in JSON output.</summary>
     public RunReport? Report { get; init; }
+    /// <summary>The analysis snapshot for graph-aware renderers (kernel JSON, etc).</summary>
+    public AnalysisSnapshot? Snapshot { get; init; }
 }
 
 /// <summary>The result of rendering a discovery model into a specific output format.</summary>

@@ -418,6 +418,7 @@ public sealed class DiscoveryPipeline
         {
             Plan = plan,
             Report = snapshot.Report,
+            Snapshot = snapshot,
         };
 
         if (!_renderers.TryGetValue(format, out var renderer))
