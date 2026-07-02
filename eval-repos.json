@@ -85,6 +85,86 @@
       "expectedSignals": [],
       "profile": "focused",
       "scenarios": ["overview"]
+    },
+    {
+      "name": "gRPC",
+      "url": "https://github.com/grpc/grpc-dotnet.git",
+      "ref": "main",
+      "description": "gRPC for .NET — code-first + proto-first service/stub generation, Grpc.AspNetCore server, Grpc.Net.Client, interceptors, deadline propagation",
+      "expectedArchetype": "Library",
+      "expectedSignals": ["grpc"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "MassTransit",
+      "url": "https://github.com/MassTransit/MassTransit.git",
+      "ref": "main",
+      "description": "Distributed application framework — message bus abstractions (IBus, ISendEndpoint, IPublishEndpoint), sagas, consumers, RabbitMQ/AzureSB/AmazonSQS transports",
+      "expectedArchetype": "Library",
+      "expectedSignals": ["masstransit"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Ocelot",
+      "url": "https://github.com/ThreeMammals/Ocelot.git",
+      "ref": "main",
+      "description": "API Gateway — ocelot.json route config, middleware pipeline, rate limiting, caching, load balancing, authentication delegation",
+      "expectedArchetype": "App",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "AzureFunctions",
+      "url": "https://github.com/Azure/azure-functions-dotnet-worker.git",
+      "ref": "main",
+      "description": "Azure Functions .NET isolated worker — IFunctionsWorker, FunctionDefinition, worker startup, gRPC host communication, trigger/input/output bindings",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "RazorPages",
+      "url": "https://github.com/dotnet/AspNetCore.Docs.git",
+      "ref": "main",
+      "description": "Razor Pages app sample — @page directive, PageModel (.cshtml.cs), OnGet/OnPost handlers, bind properties, tag helpers, layout, partial views",
+      "expectedArchetype": "App",
+      "expectedSignals": ["razor-pages"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "CLI",
+      "url": "https://github.com/dotnet/command-line-api.git",
+      "ref": "main",
+      "description": "System.CommandLine — CLI app with Command/Argument/Option descriptors, RootCommand, help/parse directives, middleware pipeline, resource-name invocation",
+      "expectedArchetype": "App",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Blazor",
+      "url": "https://github.com/dotnet/blazor-samples.git",
+      "ref": "main",
+      "description": "Blazor sample app — .razor pages, @page directive, interactive render modes (Server/WASM/Auto), component lifecycle, cascading parameters, navigation manager",
+      "expectedArchetype": "App",
+      "expectedSignals": ["blazor"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Desktop",
+      "url": "https://github.com/AvaloniaUI/Avalonia.Samples.git",
+      "ref": "main",
+      "description": "Avalonia desktop sample — .axaml views, data templates, MVVM (ObservableObject, RelayCommand), Dependency Injection, control library, native platform integration",
+      "expectedArchetype": "App",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
     }
   ]
 }

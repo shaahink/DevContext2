@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/blazor-app",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Blazor app must be detected as App archetype." },
+    { "id": "signal-blazor", "type": "signal-present", "value": "blazor", "status": "expected", "note": "Blazor signal from Blazor Server/WASM component detection." },
+    { "id": "map-header", "type": "output-contains", "format": "markdown", "value": "MAP", "status": "expected", "note": "Blazor apps must render a Map header." },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}
