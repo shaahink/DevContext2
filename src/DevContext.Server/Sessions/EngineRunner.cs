@@ -1,8 +1,11 @@
+using DevContext.Core.Analysis;
+
 namespace DevContext.Server.Sessions;
 
 public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache hostCache) : IEngineRunner
 {
     private readonly RealFileSystem _fs = new();
+    private readonly SnapshotCacheService _snapCache = new();
 
     public async Task<EngineResult> AnalyzeAsync(AnalyzeSpec spec, IProgress<AnalysisProgress>? progress, CancellationToken ct)
     {
@@ -28,13 +31,32 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             ExcludeExtractors = resolvedIntent.Scenario.DisableExtractors,
         };
 
+        // I10.3 — check snapshot cache before running full analysis
+        var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+        if (_snapCache.Exists(repoKey, versionKey))
+        {
+            var cached = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct)
+                .ConfigureAwait(false);
+            if (cached is not null)
+            {
+                var host = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
+                var rehydrated = cached with { Options = options, RootPath = rootResult.EffectiveRootPath };
+                var label = Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.RootPath.TrimEnd('\\', '/'));
+                var projectCount = rehydrated.Map?.Topology.Length ?? 0;
+                sw.Stop();
+                return new EngineResult(rehydrated, host.Pipeline, label, projectCount,
+                    sw.ElapsedMilliseconds, resolvedIntent.Explanation, resolvedIntent.Warnings,
+                    gitClonePath, spec.Cleanup);
+            }
+        }
+
         var analysis = new SharedAnalysisContext
         {
             UnresolvedFocusPoints = resolvedIntent.FocusPoints,
             FocusPoints = resolvedIntent.FocusPoints,
         };
 
-        var host = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
+        var host2 = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
 
         var ctx = new DiscoveryContext
         {
@@ -44,20 +66,24 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             ActiveScenario = resolvedIntent.Scenario,
             Observer = new StreamingProgressObserver(progress),
             FileSystem = _fs,
-            Cache = host.Cache,
+            Cache = host2.Cache,
             Analysis = analysis,
             Logger = loggerFactory.CreateLogger("DevContext"),
             CancellationToken = ct,
         };
 
-        var snapshot = await host.Pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
+        var snapshot = await host2.Pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
+
+        // I10.3 — save snapshot to cache write-behind
+        _ = _snapCache.SaveAsync(repoKey, versionKey, snapshot, ct);
+
         sw.Stop();
 
-        var label = Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.RootPath.TrimEnd('\\', '/'));
-        var projectCount = snapshot.Map?.Topology.Length ?? 0;
+        var label2 = Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.RootPath.TrimEnd('\\', '/'));
+        var projectCount2 = snapshot.Map?.Topology.Length ?? 0;
 
         return new EngineResult(
-            snapshot, host.Pipeline, label, projectCount, sw.ElapsedMilliseconds,
+            snapshot, host2.Pipeline, label2, projectCount2, sw.ElapsedMilliseconds,
             resolvedIntent.Explanation, resolvedIntent.Warnings, gitClonePath,
             spec.Cleanup);
     }

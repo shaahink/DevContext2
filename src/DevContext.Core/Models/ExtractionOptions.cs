@@ -40,6 +40,12 @@ public sealed record ExtractionOptions
     /// for maximum speed on large repos. The Map still renders entry points and topology; deep traces,
     /// insights, and cross-cutting seams are reduced.</summary>
     public bool Fast { get; init; }
+    /// <summary>If true, skip reading from the snapshot cache — always perform a fresh analysis.
+    /// The result is still written to the cache for future use.</summary>
+    public bool NoSnapshotCache { get; init; }
+    /// <summary>If true, fail when a cached snapshot is not available rather than performing a fresh
+    /// analysis. For CI environments where analysis must be reproducible from cache.</summary>
+    public bool CacheOnly { get; init; }
 }
 
 /// <summary>Defines the breadth and depth of extraction (Focused, Debug, Full).</summary>

@@ -298,4 +298,131 @@ public sealed class GraphBuilderTests
         Assert.NotNull(entry.Target);
         Assert.Equal("FileConfigurationController", entry.Target);
     }
+
+    [Fact]
+    public void Entity_navigation_property_creates_entity_relation_edge()
+    {
+        // A-F14: OrderItem has a property of type Order (a known entity), so we create
+        // an EntityRelation edge OrderItem → Order (BelongsTo direction).
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Domain", @"C:\repo\src\Orders.Domain\Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Domain.Order", new TypeDiscovery
+        {
+            Id = "Orders.Domain.Order",
+            Name = "Order",
+            Namespace = "Orders.Domain",
+            FilePath = @"C:\repo\src\Orders.Domain\Order.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Orders.Domain.OrderItem", new TypeDiscovery
+        {
+            Id = "Orders.Domain.OrderItem",
+            Name = "OrderItem",
+            Namespace = "Orders.Domain",
+            FilePath = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+            Properties =
+            [
+                new PropertySignature("Order", "Order", Microsoft.CodeAnalysis.Accessibility.Public,
+                    false, false, true, true),
+            ],
+        });
+        model.Detections.Add(new EfEntityDetection("Order", "OrdersDbContext", true, ["Id"])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Orders.Domain\Order.cs",
+            LineNumber = 5,
+        });
+        model.Detections.Add(new EfEntityDetection("OrderItem", "OrdersDbContext", false, ["Id"])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var orderItemId = NodeId.ForType("Orders.Domain.OrderItem");
+        var orderId = NodeId.ForType("Orders.Domain.Order");
+        Assert.Contains(graph.OutEdges(orderItemId, EdgeKind.EntityRelation),
+            e => e.To == orderId);
+
+        var orderNode = graph.Node(orderId);
+        Assert.NotNull(orderNode);
+        Assert.Contains("aggregate", orderNode!.Tags);
+        Assert.Contains("entity", orderNode.Tags);
+
+        var orderItemNode = graph.Node(orderItemId);
+        Assert.NotNull(orderItemNode);
+        Assert.Contains("entity", orderItemNode!.Tags);
+        Assert.DoesNotContain("aggregate", orderItemNode.Tags);
+    }
+
+    [Fact]
+    public void Entity_collection_navigation_creates_entity_relation_edge()
+    {
+        // A-F14: Order has ICollection<OrderItem> → creates EntityRelation OrderItem→Order
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Domain", @"C:\repo\src\Orders.Domain\Orders.Domain.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Domain.Order", new TypeDiscovery
+        {
+            Id = "Orders.Domain.Order",
+            Name = "Order",
+            Namespace = "Orders.Domain",
+            FilePath = @"C:\repo\src\Orders.Domain\Order.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+            Properties =
+            [
+                new PropertySignature("Items", "ICollection<OrderItem>",
+                    Microsoft.CodeAnalysis.Accessibility.Public, false, false, true, false),
+            ],
+        });
+        model.Types.TryAdd("Orders.Domain.OrderItem", new TypeDiscovery
+        {
+            Id = "Orders.Domain.OrderItem",
+            Name = "OrderItem",
+            Namespace = "Orders.Domain",
+            FilePath = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Detections.Add(new EfEntityDetection("Order", "OrdersDbContext", true, ["Id"])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Orders.Domain\Order.cs",
+            LineNumber = 5,
+        });
+        model.Detections.Add(new EfEntityDetection("OrderItem", "OrdersDbContext", false, ["Id"])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Orders.Domain\OrderItem.cs",
+            LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var orderItemId = NodeId.ForType("Orders.Domain.OrderItem");
+        var orderId = NodeId.ForType("Orders.Domain.Order");
+        Assert.Contains(graph.OutEdges(orderItemId, EdgeKind.EntityRelation),
+            e => e.To == orderId);
+    }
 }

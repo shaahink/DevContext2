@@ -157,11 +157,10 @@ before the merge).
 **Next — remaining items (all tiers documented below):**
 - E2: Pattern-zoo corpus (`tests/fixtures/PatternZoo/`) — modern C# through seam scanners
 - E4: Remaining facets F1-F12 (auth surface, message matrix, middleware, data map, etc.)
-- E5: Benchmark expansion — 8 missing-archetype repos
-- I8: Caching & storage — repo-hash snapshot cache (unblocks I10.3)
-- I10.3: Server MaxLiveSessions + LRU + rehydrate (depends on I8)
-- A: Harder repos — F14 EF depth, F15 build intelligence
-- I9: Release readiness
+### I9 — Release readiness (engine side)  **DONE** (CLI exit codes + --quiet)
+CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
+- Locus: `src/DevContext.Cli/Settings/AnalyzeSettings.cs`, `src/DevContext.Cli/Commands/AnalyzeCommand.cs`
+- Gate: `--strict` returns exit code 2 on invariant fail; `--quiet` prints nothing on success.
 
 ---
 
@@ -245,3 +244,92 @@ before the merge).
 - `tsc --noEmit` — clean
 
 **All U1-U5 items complete.** U3 (facet views) blocked on engine E4. App is fully routed with navigation rail, keyboard shortcuts, and sortable entries table.
+
+## 2026-07-02 — E2 Pattern-Zoo + I1.3/I1.5 fixes
+
+**Changed:**
+- E2 — Created `tests/fixtures/PatternZoo/PatternZoo/` with 9 C# fixture files covering:
+  primary constructor, expression body, record with body, local function, required init,
+  collection expression, conditional block (`#if`), raw string literal trap, and parameter-type
+  Send resolution. Each file contains a known seam (`IMediator.Send(new X())`).
+- `PatternZooTests.cs` — 13 parameterized/inline Facts asserting Sends edges across all syntax
+  shapes plus negative guards: non-mediator Send (SmtpClient) produces no edge, raw string
+  literal `"""...Send(new FakeCommand())..."""` produces no fabricated edge, parameter-type
+  fallback resolves correctly, multiple seams in one class all detected, Publish/SendAsync
+  variants work.
+- **I1.5 fix — String literal stripping:** Added `GraphBuilder.StripStringLiterals()` — a
+  character-level pre-pass that replaces C# string literal contents (regular `"..."`,
+  verbatim `@"..."`, raw `"""..."""`, interpolated `$"..."`) with spaces preserving offsets.
+  Applied in `AddSends` so in-literal seam-like patterns never produce fabricated edges.
+- **I1.3 fix — Conjunction gate:** When `AddSends` hits a bare-verb fallback (unknown receiver
+  but known verb like `Send`), now also checks `IsLikelyRequestType()` — the target type name
+  must end with Command/Query/Event/Notification/Request/Response or be in the model's event
+  type set. Kills the `SmtpClient.Send(new MailMessage())` false positive.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 369/0 (up from 356,
++13 PatternZoo tests, no regressions).
+
+**Next:** A-F15 (Build intelligence — CPM + Directory.Build.props) → A-F14 (EF depth).
+
+## 2026-07-02 — A-F15: Build intelligence (CPM + Directory.Build.props)
+
+**Changed:**
+- **CPM (`Directory.Packages.props`):** `CsprojReader.ResolveCpmVersions()` walks the ancestor
+  directory chain from each csproj looking for `Directory.Packages.props`, parses its
+  `<PackageVersion Include="X" Version="Y" />` elements. `ParsePackageReferencesCpmAware()`
+  resolves PackageReference versions from CPM when inline Version is missing.
+- **`Directory.Build.props` chain:** `ResolveOutputType()`, `ResolveTargetFrameworks()`,
+  `ResolveIsPackable()` walk the ancestor chain for `Directory.Build.props`. csproj values
+  win; ancestor values fill in when csproj doesn't set them. Nearest ancestor wins among
+  Directory.Build.props imports.
+- `ProjectStructureExtractor` updated to use the new CsprojReader resolution methods.
+- CPM fixture project: `tests/fixtures/CpmProject/` with `Directory.Build.props` (sets
+  OutputType+TargetFramework) and `Directory.Packages.props` (MediatR 12.0.0,
+  FluentValidation 11.5.0, Microsoft.Extensions.Hosting 10.0.0).
+- `CsprojReaderCpmTests` (12 tests): CPM version resolution, inline-override, OutputType
+  from Directory.Build.props, TargetFramework from ancestor, IsPackable fallback, empty
+  returns when no CPM/ancestor files exist.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 381/0 (+12 CPM tests, no regressions).
+
+**Next:** A-F14 (EF depth tracking) → E5 (Benchmark expansion) → I8 (Caching).
+
+## 2026-07-02 — A-F14: EF depth tracking (entity navigation + depth annotation)
+
+**Changed:**
+- `EdgeKind.EntityRelation` — new edge kind for entity-to-entity navigation relationships.
+- `GraphBuilder.AddEntityNavigationEdges()` — scans entity types' declared properties for
+  navigation properties referencing other known entities. Creates `EntityRelation` edges in
+  the BelongsTo direction (child entity → parent aggregate/entity). Handles both direct
+  references (`OrderItem.Order`) and collection properties (`Order.Items: ICollection<OrderItem>`).
+- `GraphBuilder.ExtractInnerEntityNameWithDir()` — extracts the inner entity name from property
+  type strings, distinguishing collection types (ICollection<>, List<>, arrays) from direct
+  references. Filters out primitive/framework types.
+- `TraceBuilder.AnnotateEntityDepths()` — post-collection step that computes depth from each
+  touched entity to its nearest aggregate root by BFS-traversing EntityRelation edges.
+  Aggregate roots get "(root)" annotation; connected entities get "(depth N from AggregateName)".
+  Unconnected entities unchanged.
+- `GraphBuilderTests` — 2 new tests: direct reference navigation and collection navigation.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 383/0 (+2 entity nav tests, no regressions).
+
+**Next:** E5 (Benchmark expansion) → I8 (Caching).
+
+## 2026-07-02 — I8 snapshot cache + I10.3 server rehydrate + I9 CLI polish
+
+**Changed:**
+- **I8 — Snapshot cache:** `SnapshotCacheService` in `Core/Analysis/` — computes cache keys from
+  repo path (SHA256) + git HEAD (or manifest hash), saves/loads `AnalysisSnapshot` as JSON.gz,
+  LRU eviction (10 versions/repo, 2GB cap), CLI `cache list/clear/path` stubs.
+- **I8 — CLI integration:** `AnalyzeCommand` checks snapshot cache before running analysis;
+  cache hit → render from cached snapshot with `"from cache · sha7 · Nms"` stamp; cache miss
+  → save write-behind. New flags: `--no-cache` (force fresh), `--cache-only` (fail if cold).
+- **I10.3 — Server rehydrate:** `EngineRunner` checks I8 cache before full analysis; cache hit
+  → instant `EngineResult` with fresh pipeline from `EngineHostCache`. Write-behind saves after
+  analysis.
+- **I9 — CLI polish:** Exit codes (0=ok, 1=usage, 2=strict-fail, 3=cache-only-miss, 4=network/
+  clone). `--quiet` flag suppresses all output on success.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 383/0 (no regressions).
+
+**Next:** E5 (Benchmark expansion — remaining item).

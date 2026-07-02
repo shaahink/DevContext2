@@ -57,6 +57,10 @@ public enum EdgeKind
     Resolves,
     /// <summary>A request is wrapped by a pipeline behavior: request → behavior.</summary>
     WrappedBy,
+    /// <summary>Entity-to-entity navigation relationship (HasOne/HasMany/BelongsTo): entity → entity.
+    /// Derived from navigation properties; the arrow direction is BelongsTo (child → parent) for
+    /// depth-from-aggregate-root computation.</summary>
+    EntityRelation,
 }
 
 /// <summary>How confidently an edge was established — surfaced in the report (P3: show your work).</summary>

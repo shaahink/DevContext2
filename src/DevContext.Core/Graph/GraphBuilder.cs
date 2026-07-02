@@ -66,6 +66,7 @@ public sealed class GraphBuilder
 
         // ── P1 Map-facing seams ───────────────────────────────────────────
         AddEntityNodes(g, model, names, scope, _noise);             // B1: Entity nodes + aggregate tags
+        AddEntityNavigationEdges(g, model, names, scope);        // A-F14: Entity→Entity relation edges
         AddEventConsumers(g, model, names, scope, _noise);          // B1: Event nodes + Consumes edges
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
@@ -431,6 +432,116 @@ public sealed class GraphBuilder
                 }
             }
         }
+    }
+
+    /// <summary>A-F14: Creates EntityRelation edges between entity type nodes by inspecting each entity's
+    /// declared navigation properties. Creates edges in the BelongsTo direction (child entity → parent
+    /// aggregate/entity) for depth-from-aggregate-root traversal. For reference properties (OrderItem.Order),
+    /// the child entity owns the property → edge goes child→parent. For collection properties
+    /// (Order.ICollection&lt;OrderItem&gt;), the parent owns the property → edge is reversed to child→parent.
+    /// Honesty note: declared-shape only; fluent-API <c>HasMany</c> mappings are not parsed in v1.</summary>
+    private static void AddEntityNavigationEdges(CodeGraphBuilder g, DiscoveryModel model,
+        NameResolver names, SolutionScope scope)
+    {
+        // Build a set of known entity short names from detections + already entity-tagged graph nodes
+        var entityShortNames = model.Detections.OfType<EfEntityDetection>()
+            .Select(d => d.EntityType)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in g.Nodes)
+        {
+            if (node.Kind != NodeKind.Type || !node.Tags.Contains(RoleTags.Entity))
+                continue;
+            entityShortNames.Add(node.Title);
+        }
+
+        foreach (var type in model.Types.Values)
+        {
+            if (!scope.Contains(type.FilePath)) continue;
+            if (!entityShortNames.Contains(type.Name)) continue;
+            if (type.Properties.IsDefaultOrEmpty) continue;
+
+            var entityId = NodeId.ForType(type.Id);
+
+            foreach (var prop in type.Properties)
+            {
+                var (targetName, isCollection) = ExtractInnerEntityNameWithDir(prop.PropertyType);
+                if (targetName is null || targetName == type.Name) continue;
+                if (!entityShortNames.Contains(targetName)) continue;
+
+                var targetFqn = names.Resolve(targetName);
+                var targetId = NodeId.ForType(targetFqn);
+
+                // BelongsTo direction: edge from child → parent.
+                // For collection properties (e.g. Order has ICollection<OrderItem>), the owning type
+                // is the parent; edge direction is reversed so OrderItem → Order.
+                // For reference properties (e.g. OrderItem has Order Order), the owning type IS the
+                // child, so edge direction is already child→parent.
+                if (isCollection)
+                    g.AddEdge(new GraphEdge(targetId, entityId, EdgeKind.EntityRelation)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.6f,
+                    });
+                else
+                    g.AddEdge(new GraphEdge(entityId, targetId, EdgeKind.EntityRelation)
+                    {
+                        Resolution = Resolution.Syntactic,
+                        Confidence = 0.6f,
+                    });
+            }
+        }
+    }
+
+    /// <summary>Extracts the inner entity name and collection-direction flag from a property type string.
+    /// Returns (name, isCollection) where isCollection is true for <c>ICollection&lt;T&gt;</c>,
+    /// <c>List&lt;T&gt;</c>, <c>IEnumerable&lt;T&gt;</c>, <c>T[]</c> patterns.
+    /// Returns null for non-entity property types like <c>string</c>, <c>int</c>, <c>DateTime</c>.</summary>
+    private static (string? Name, bool IsCollection) ExtractInnerEntityNameWithDir(string propertyType)
+    {
+        if (string.IsNullOrEmpty(propertyType)) return (null, false);
+        var type = propertyType.AsSpan().Trim();
+
+        // Array: OrderItem[] → collection
+        if (type.EndsWith("[]"))
+        {
+            var inner = type[..^2].Trim();
+            return inner.IsEmpty ? (null, false) : (inner.ToString(), true);
+        }
+
+        // Generic collection: ICollection<OrderItem>, List<Product>, IEnumerable<Entity>, etc.
+        var open = type.IndexOf('<');
+        var close = type.LastIndexOf('>');
+        if (open >= 0 && close > open)
+        {
+            var inner = type[(open + 1)..close].Trim();
+            if (inner.EndsWith("?"))
+                inner = inner[..^1];
+            return inner.IsEmpty ? (null, false) : (inner.ToString(), true);
+        }
+
+        // Nullable reference: Order?
+        if (type.EndsWith("?"))
+            type = type[..^1];
+
+        // Skip primitives and framework types
+        if (type is "string" or "int" or "long" or "short" or "byte" or "float" or "double"
+            or "bool" or "char" or "decimal" or "DateTime" or "Guid" or "TimeSpan" or "DateTimeOffset"
+            or "Uri" or "object" or "String")
+            return (null, false);
+
+        return (type.ToString(), false);
+    }
+
+    /// <summary>Extracts the inner entity name from a property type string like
+    /// <c>ICollection&lt;OrderItem&gt;</c> → "OrderItem",
+    /// <c>List&lt;Product&gt;</c> → "Product",
+    /// <c>Order</c> → "Order".
+    /// Returns null for non-entity property types like <c>string</c>, <c>int</c>, <c>DateTime</c>.</summary>
+    private static string? ExtractInnerEntityName(string propertyType)
+    {
+        var (name, _) = ExtractInnerEntityNameWithDir(propertyType);
+        return name;
     }
 
     /// <summary>B1: MediatR notification handlers + message bus consumers → Event nodes + Consumes edges.
@@ -830,16 +941,22 @@ public sealed class GraphBuilder
     private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
         Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
+        // Build event/request type name set once for the conjunction gate (I1.3/I1.4)
+        var eventTypeNames = BuildEventTypeNameSet(model);
+
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
             var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
+            // Strip string literals so in-literal seam-like patterns don't produce fabricated edges
+            var scanBody = StripStringLiterals(body);
+
             // Find all Send/Publish calls with the receiver captured for dispatch-gating (I1.3).
             // Pattern: receiver.Send(expr) where expr is either `new Type(...)` or a local name.
             // Groups: 1=receiver, 2=verb, 3=inline-new-type, 4=variable-name.
-            foreach (Match match in Regex.Matches(body,
+            foreach (Match match in Regex.Matches(scanBody,
                 @"(\w+)\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
                 RegexOptions.Compiled))
             {
@@ -886,9 +1003,17 @@ public sealed class GraphBuilder
                 }
 
                 // Unknown receiver — emit only for known verbs (bare-verb fallback),
-                // skip completely unknown patterns (I1.3 false-positive prevention).
-                if (!isKnown && !DispatchSeamCatalog.IsKnownVerb(verb))
-                    continue;
+                // AND only when the target type carries request/event markers — the conjunction
+                // gate kills false positives like SmtpClient.Send(new MailMessage()) (I1.3).
+                if (!isKnown)
+                {
+                    if (!DispatchSeamCatalog.IsKnownVerb(verb))
+                        continue;
+                    // Conjunction: also require the target type looks like a request/event
+                    if (!string.IsNullOrEmpty(requestName)
+                        && !IsLikelyRequestType(requestName, eventTypeNames))
+                        continue;
+                }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
                 var requestFqn = names.Resolve(requestName);
@@ -916,6 +1041,98 @@ public sealed class GraphBuilder
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
+
+    /// <summary>Strips C# string literal contents (regular, verbatim, raw, interpolated) from the
+    /// body, replacing them with spaces to preserve character offsets. This prevents the body-scan
+    /// Sends/Raises regexes from matching seam-like patterns inside string literals (a known regex trap).</summary>
+    internal static string StripStringLiterals(string body)
+    {
+        if (string.IsNullOrEmpty(body)) return body;
+        var chars = body.ToCharArray();
+        var i = 0;
+        while (i < chars.Length)
+        {
+            // Raw string literal: """...""" (C# 11+)
+            if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+            {
+                i += 3;
+                if (i < chars.Length && chars[i] == '\n') i++;
+                else if (i + 1 < chars.Length && chars[i] == '\r' && chars[i + 1] == '\n') i += 2;
+                while (i < chars.Length)
+                {
+                    if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+                    {
+                        i += 3;
+                        break;
+                    }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            // Verbatim string: @"..." (handle before regular " to avoid false match on @)
+            if (i + 1 < chars.Length && chars[i] == '@' && chars[i + 1] == '"')
+            {
+                i += 2;
+                while (i < chars.Length)
+                {
+                    if (chars[i] == '"')
+                    {
+                        if (i + 1 < chars.Length && chars[i + 1] == '"') { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
+                        i++; break;
+                    }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            // Interpolated $@"..." or $"..." or $"""...""" — skip $ prefix, handle next char
+            if (chars[i] == '$')
+            {
+                i++;
+                if (i < chars.Length && chars[i] == '@') continue; // $@" handled as verbatim next
+                if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+                    continue; // $""" handled as raw next
+                if (i < chars.Length && chars[i] == '"') { } // $" handled as regular next (fall through to below)
+                else continue; // not a string, continue
+            }
+
+            // Regular string: "..."
+            if (chars[i] == '"')
+            {
+                i++;
+                while (i < chars.Length)
+                {
+                    if (chars[i] == '\\' && i + 1 < chars.Length) { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
+                    if (chars[i] == '"') { i++; break; }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            i++;
+        }
+        return new string(chars);
+    }
+
+    /// <summary>Best-effort guard: returns true when the type name carries request/command/event
+    /// markers (suffix or known base types) — used as a conjunction gate for the bare-verb fallback
+    /// in Sends detection (I1.3 false-positive prevention).</summary>
+    private static bool IsLikelyRequestType(string typeName, HashSet<string> eventTypeNames)
+    {
+        if (eventTypeNames.Contains(typeName)) return true;
+        var knownRequestSuffixes = new[]
+        {
+            "Command", "Query", "Event", "Notification", "Request", "Response",
+        };
+        foreach (var suffix in knownRequestSuffixes)
+            if (typeName.EndsWith(suffix, StringComparison.Ordinal))
+                return true;
+        return false;
+    }
 
     /// <summary>True for a self-call target that is syntactic-resolver noise, not real wiring: the
     /// <c>nameof</c> pseudo-call, and the common ASP.NET <c>ControllerBase</c> result helpers (inherited,

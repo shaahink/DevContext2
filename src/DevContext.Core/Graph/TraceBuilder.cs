@@ -184,6 +184,69 @@ public sealed class TraceBuilder
                 }
             }
         }
+
+        // Post-collection: A-F14 — annotate entity titles with chain depth from aggregate root
+        AnnotateEntityDepths(touched);
+    }
+
+    /// <summary>Computes and annotates depth-from-aggregate-root for each touched entity by traversing
+    /// <see cref="EdgeKind.EntityRelation"/> edges (which point child → parent / BelongsTo direction).
+    /// Entities that are themselves aggregate roots get " (root)"; connected entities get
+    /// " (depth N from AggregateName)" appended to their title in <paramref name="touched"/>.
+    /// Unconnected entities (no path to any aggregate) are left unchanged.</summary>
+    private void AnnotateEntityDepths(List<string> touched)
+    {
+        // Build entity title → NodeId map
+        var titleToId = new Dictionary<string, NodeId>(StringComparer.OrdinalIgnoreCase);
+        foreach (var node in _graph.Nodes)
+        {
+            if (IsEntityNode(node) && !IsNoiseEntity(node))
+                titleToId[node.Title] = node.Id;
+        }
+
+        for (var i = 0; i < touched.Count; i++)
+        {
+            var title = touched[i];
+            if (!titleToId.TryGetValue(title, out var nodeId)) continue;
+
+            // Check if this entity itself is an aggregate root
+            var selfNode = _graph.Node(nodeId);
+            if (selfNode is not null && selfNode.Tags.Contains(RoleTags.Aggregate))
+            {
+                touched[i] = $"{title} (root)";
+                continue;
+            }
+
+            // BFS along EntityRelation edges to find nearest aggregate root
+            var visited = new HashSet<NodeId> { nodeId };
+            var queue = new Queue<(NodeId Id, int Depth)>();
+            queue.Enqueue((nodeId, 0));
+            string? aggregateTitle = null;
+            var aggregateDepth = 0;
+
+            while (queue.Count > 0)
+            {
+                var (current, depth) = queue.Dequeue();
+                foreach (var edge in _graph.OutEdges(current, EdgeKind.EntityRelation))
+                {
+                    if (!visited.Add(edge.To)) continue;
+                    var targetNode = _graph.Node(edge.To);
+                    if (targetNode is null) continue;
+
+                    if (targetNode.Tags.Contains(RoleTags.Aggregate))
+                    {
+                        aggregateTitle = targetNode.Title;
+                        aggregateDepth = depth + 1;
+                        break;
+                    }
+                    queue.Enqueue((edge.To, depth + 1));
+                }
+                if (aggregateTitle is not null) break;
+            }
+
+            if (aggregateTitle is not null && aggregateDepth > 0)
+                touched[i] = $"{title} (depth {aggregateDepth} from {aggregateTitle})";
+        }
     }
 
     /// <summary>Filters EF artifacts that get mistaken for entities: synthetic names (&lt;OnModelCreating&gt;),

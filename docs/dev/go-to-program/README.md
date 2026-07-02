@@ -21,7 +21,7 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 
 | # | Guide | Phase | Depends on | Status |
 |---|---|---|---|---|
-| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** (I1.5 deferred) |
+| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** |
 | I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | **DONE** — E3: full W9 deletion (unified-iteration-1) |
 | I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **DONE** — 10/10 sources (E1 delivered, unified-iteration-1) |
 | I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view, NodeLink, Graph, Settings, Entries table, trace/palette/connection/overview/export all delivered (R2). MCP deferred. |
@@ -29,10 +29,10 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 | **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **DONE** — R2.1–R2.10 delivered. E1–E5 engine carry-over still pending. |
 | I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
 | I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
-| I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | NOT STARTED |
-| I9 | [Release readiness](ITERATION-I9-release-readiness.md) — about/updates/logs/errors, CLI polish floor | V7 | I4, I8 | NOT STARTED |
-| I10 | [Workspace tabs](ITERATION-I10-workspace-tabs.md) — up to 6 repos, VS Code-grade tab strip, memory-honest | V7 | I4 (+I8) | **PARTIAL** — I10.1 (WorkspaceStore facade), I10.2 (tab strip), I10.4 (persist+lazy-reanalyze) DONE and verified live incl. concurrent analyze across tabs. I10.3 (server MaxLiveSessions/LRU/rehydrate) blocked on I8. |
-| A | [Harder repos](ADDENDUM-A-harder-repos.md) — F14 EF depth ★, F15 build intelligence ★, extended insights | V3/V5 | I1, I2 | NOT STARTED |
+| I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | **DONE** |
+| I9 | [Release readiness](ITERATION-I9-release-readiness.md) — about/updates/logs/errors, CLI polish floor | V7 | I4, I8 | **PARTIAL** — CLI exit codes + --quiet done; desktop/updates/error boundary remaining |
+| I10 | [Workspace tabs](ITERATION-I10-workspace-tabs.md) — up to 6 repos, VS Code-grade tab strip, memory-honest | V7 | I4 (+I8) | **DONE** — I10.1/I10.2/I10.4 desktop tabs + I10.3 server cache rehydrate all complete |
+| A | [Harder repos](ADDENDUM-A-harder-repos.md) — F14 EF depth ★, F15 build intelligence ★, extended insights | V3/V5 | I1, I2 | **DONE** |
 | — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
 
 **Order rule:** CORE spine is I1 → I2 → I3 → I4 → **I8 → I10 → I9** (+ I6 MCP anywhere after I2;

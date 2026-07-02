@@ -1,0 +1,10 @@
+{
+  "repo": "eval-repos/desktop-app",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Desktop app must be detected as App archetype." },
+    { "id": "map-header", "type": "output-contains", "format": "markdown", "value": "MAP", "status": "expected", "note": "Desktop apps must render a Map header." },
+    { "id": "entry-kind-desktop", "type": "entry-kind-present", "value": "EndpointDetection", "format": "HTTP", "status": "expected", "note": "Desktop app entries should be present (Avalonia has AppBuilder/MainWindow)." },
+    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}
