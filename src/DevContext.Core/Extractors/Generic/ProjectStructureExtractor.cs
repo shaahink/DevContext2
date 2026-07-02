@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 using DevContext.Core.Resolvers;
 
 namespace DevContext.Core.Extractors.Generic;
@@ -34,15 +32,15 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
             {
                 var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
                 var name = Path.GetFileNameWithoutExtension(csprojPath);
-                var tfms = ParseTargetFrameworks(doc);
+                var tfms = CsprojReader.ResolveTargetFrameworks(doc, csprojPath);
                 var refs = CsprojReader.ParseProjectReferences(doc);
-                var packages = ParsePackageReferences(doc);
+                var packages = CsprojReader.ParsePackageReferencesCpmAware(doc, csprojPath);
 
                 projects.Add(new ProjectInfo(
                     name, csprojPath, "C#",
                     tfms, refs, packages,
-                    CsprojReader.ParseOutputType(doc),
-                    CsprojReader.ParseIsPackable(doc)));
+                    CsprojReader.ResolveOutputType(doc, csprojPath),
+                    CsprojReader.ResolveIsPackable(doc, csprojPath)));
             }
             catch (Exception ex)
             {
@@ -53,19 +51,4 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
 
         model.Projects = projects.ToImmutableArray();
     }
-
-    private static ImmutableArray<string> ParseTargetFrameworks(XDocument doc)
-    {
-        var tfm = doc.Descendants("TargetFramework").FirstOrDefault()?.Value
-               ?? doc.Descendants("TargetFrameworks").FirstOrDefault()?.Value;
-        return tfm != null ? [tfm] : [];
-    }
-
-    private static ImmutableArray<PackageReferenceInfo> ParsePackageReferences(XDocument doc)
-        => doc.Descendants("PackageReference")
-            .Select(r => new PackageReferenceInfo(
-                r.Attribute("Include")?.Value ?? r.Attribute("Update")?.Value ?? "",
-                r.Attribute("Version")?.Value ?? ""))
-            .Where(p => !string.IsNullOrEmpty(p.Name))
-            .ToImmutableArray();
 }

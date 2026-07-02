@@ -44,10 +44,10 @@ Entity relationship depth analysis (entity→aggregate root distance).
 - Locus: `src/DevContext.Core/Extractors/Specific/EfCoreExtractor.cs`
 - Gate: eShop TOUCHES shows entity chain depth.
 
-### A-F15 — Build intelligence
+### A-F15 — Build intelligence  **DONE**
 CPM detection + Directory.Build.props fix (bug-grade: CPM packages not detected).
-- Locus: `src/DevContext.Core/Extractors/Generic/DependencyExtractor.cs`
-- Gate: repo with CPM shows package versions in STACK.
+- Locus: `src/DevContext.Core/Resolvers/CsprojReader.cs` — `ResolveCpmVersions()`, `ParsePackageReferencesCpmAware()`, `ResolveOutputType()`, `ResolveTargetFrameworks()`, `ResolveIsPackable()` with ancestor-chain walking.
+- Gate: CPM fixture project; `CsprojReaderCpmTests` (12 tests) green; all existing tests green (381/0).
 
 ### I9 — Release readiness (engine side)
 CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.

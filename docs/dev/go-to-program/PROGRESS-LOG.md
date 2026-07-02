@@ -190,3 +190,27 @@ before the merge).
 +13 PatternZoo tests, no regressions).
 
 **Next:** A-F15 (Build intelligence — CPM + Directory.Build.props) → A-F14 (EF depth).
+
+## 2026-07-02 — A-F15: Build intelligence (CPM + Directory.Build.props)
+
+**Changed:**
+- **CPM (`Directory.Packages.props`):** `CsprojReader.ResolveCpmVersions()` walks the ancestor
+  directory chain from each csproj looking for `Directory.Packages.props`, parses its
+  `<PackageVersion Include="X" Version="Y" />` elements. `ParsePackageReferencesCpmAware()`
+  resolves PackageReference versions from CPM when inline Version is missing.
+- **`Directory.Build.props` chain:** `ResolveOutputType()`, `ResolveTargetFrameworks()`,
+  `ResolveIsPackable()` walk the ancestor chain for `Directory.Build.props`. csproj values
+  win; ancestor values fill in when csproj doesn't set them. Nearest ancestor wins among
+  Directory.Build.props imports.
+- `ProjectStructureExtractor` updated to use the new CsprojReader resolution methods.
+- CPM fixture project: `tests/fixtures/CpmProject/` with `Directory.Build.props` (sets
+  OutputType+TargetFramework) and `Directory.Packages.props` (MediatR 12.0.0,
+  FluentValidation 11.5.0, Microsoft.Extensions.Hosting 10.0.0).
+- `CsprojReaderCpmTests` (12 tests): CPM version resolution, inline-override, OutputType
+  from Directory.Build.props, TargetFramework from ancestor, IsPackable fallback, empty
+  returns when no CPM/ancestor files exist.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 381/0 (+12 CPM tests, no regressions).
+
+**Next:** A-F14 (EF depth tracking) → E5 (Benchmark expansion) → I8 (Caching).
+
