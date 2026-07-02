@@ -26,6 +26,10 @@ public static class LibrarySurfaceBuilder
         ["IServiceCollection", "IApplicationBuilder", "IEndpointRouteBuilder", "IHostBuilder",
          "IHostApplicationBuilder", "WebApplicationBuilder", "IMvcBuilder", "IServiceProvider"];
 
+    // Abstract base classes that are consumer "seats" (derive to implement their validation/authorization logic).
+    private static readonly string[] AbstractConsumerSeats =
+        ["AbstractValidator", "AbstractAuthorizationHandler"];
+
     public static LibrarySurface Build(DiscoveryModel model)
     {
         var classifier = new ProjectClassifier(model.Projects);
@@ -131,10 +135,18 @@ public static class LibrarySurfaceBuilder
         var ranked = new List<(int Tier, string Sort, SurfaceEntry Entry)>();
 
         // Tier 0: marker attributes — the consumer API of an attribute-driven (source-gen) library.
-        if (hasGenerators)
+        // Also detect testing-framework attributes (xUnit Fact/Theory) even without generators.
+        var testingAttributes = mainTypes.Where(IsTestingAttribute).ToList();
+        if (hasGenerators || testingAttributes.Count > 0)
+        {
             foreach (var t in mainTypes.Where(IsMarkerAttribute))
                 ranked.Add((0, t.Name, new SurfaceEntry($"[{t.Name[..^AttributeSuffix.Length]}]", "annotate",
                     OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+            foreach (var t in testingAttributes)
+                if (!mainTypes.Any(mt => mt.Name == t.Name + AttributeSuffix)) // don't duplicate with Attribute-suffixed
+                    ranked.Add((0, t.Name, new SurfaceEntry($"[{t.Name}]", "annotate",
+                        OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
+        }
 
         foreach (var t in mainTypes)
             foreach (var m in PublicMethods(t).Where(IsFrameworkFrontDoor))
@@ -151,6 +163,10 @@ public static class LibrarySurfaceBuilder
             ranked.Add((3, a.Name, new SurfaceEntry(a.Name, kind, OneLine(t?.XmlDoc),
                 t is null ? null : ShortLocation(t.FilePath))));
         }
+
+        // Tier 3b: abstract consumer seats (e.g. FluentValidation AbstractValidator<T>)
+        foreach (var t in mainTypes.Where(t => IsAbstractConsumerSeat(t, abstractions)))
+            ranked.Add((3, t.Name, new SurfaceEntry(t.Name, "derive", OneLine(t.XmlDoc), ShortLocation(t.FilePath))));
 
         foreach (var t in mainTypes)
             if (PublicMethods(t).Any(m => m.IsExtension && !IsFrameworkFrontDoor(m)))
@@ -183,6 +199,15 @@ public static class LibrarySurfaceBuilder
         => t.Kind == TypeKind.Class
             && t.Name.Length > AttributeSuffix.Length
             && t.Name.EndsWith(AttributeSuffix, StringComparison.Ordinal);
+
+    private static bool IsAbstractConsumerSeat(TypeDiscovery t, ImmutableArray<SurfaceAbstraction> abstractions)
+        => t.Kind == TypeKind.Class
+            && AbstractConsumerSeats.Any(s => StripGenerics(t.Name).Equals(s, StringComparison.Ordinal))
+            && abstractions.Any(a => a.Name == t.Name);
+
+    private static bool IsTestingAttribute(TypeDiscovery t)
+        => t.Kind == TypeKind.Class
+            && t.BaseTypes.Any(b => b is "FactAttribute" or "TheoryAttribute" or "InlineDataAttribute" or "TraitAttribute");
 
     /// <summary>Detects the Roslyn tooling a library ships — source generators (IIncrementalGenerator /
     /// ISourceGenerator), analyzers (DiagnosticAnalyzer / DiagnosticSuppressor), and code fixers
