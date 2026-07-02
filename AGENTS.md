@@ -1,37 +1,92 @@
-# AGENTS.md — DevContext go-to program worktree
+# AGENTS.md — DevContext Engine worktree
 
-You are working in the `docs/go-to-engine-audit` worktree. **Mission:** execute the go-to program — make
-DevContext (a .NET static-analysis CLI) the go-to lens for **any** .NET repo. The program covers engine
-trust/fidelity (I1), CLI v2 + kernel wire (I2), Insights engine (I3), desktop UX (I4), facet menu (I5),
-MCP server (I6), and benchmark/coverage (I7).
+You are in `C:\Code\DevContext2-engine` on branch `feat/engine-iteration`.
+**Mission:** Deliver E2 (pattern-zoo), E5 (benchmark expansion), I8 (snapshot cache), I10.3 (server LRU),
+A-F14/F15 (harder repos), and I9 (release readiness engine side).
+You work in `src/DevContext.Core/**`, `tests/**`, `src/DevContext.Cli/**`, `src/DevContext.Server/**` —
+**zero TypeScript changes needed.**
 
-## Start here (every session, before editing code)
-1. Read `docs/dev/go-to-program/README.md` — the hub + iteration tracker.
-2. Then `docs/dev/go-to-program/PROGRAM-PLAN.md` (phases V1–V5 with votes) and the specific iteration
-   guide for the work item you're picking up.
-3. Reference docs: `ENGINE-VALUE-AUDIT.md` (engine per-shape status), `FACES-DESIGN.md` (CLI v2 + UX spec),
-   `DEV-PAINS.md` (demand-side), `UI-UX-GUIDELINES.md` (design contract for UI work).
+## Start here (every session)
+1. Read this file — work items below are ordered by dependency.
+2. `docs/dev/go-to-program/HANDOVER.md` — round-1/2/3 delivery summary + engine state section.
+3. `docs/dev/go-to-program/PROGRESS-LOG.md` — last entry has unified-iteration-1 summary.
+4. `docs/dev/go-to-program/ITERATION-I1-trust.md` — §I1.5 for E2 pattern-zoo.
+5. `docs/dev/go-to-program/ITERATION-I7-benchmark-audit.md` — E5 benchmark expansion.
+6. `docs/dev/go-to-program/ITERATION-I8-caching-storage.md` — I8 snapshot cache.
+7. `docs/dev/go-to-program/ITERATION-I10-workspace-tabs.md` — I10.3 server LRU (depends on I8).
+8. `docs/dev/go-to-program/ADDENDUM-A-harder-repos.md` — A-F14/F15 harder repos.
+9. `docs/dev/go-to-program/ITERATION-I9-release-readiness.md` — I9 release readiness.
 
-## State of truth lives in the repo
-Code + tests + `eval/expectations/*.json` + the `docs/dev/go-to-program/` docs. After each work item: verify,
-update the iteration guide's status section, and commit. Keep these docs current — the next session resumes
-from them.
+## Work items (ordered — each builds on the prior; I10.3 is blocked until I8 done)
 
-## Hard rules
-- **Reform in place; never rewrite extractors.** Evolve the existing engine.
-- **Do-not-regress anchors:** `BudgetIndependenceTests` (Map/Trace must stay budget-independent) and the
-  `TraceQualityTests` sibling-divergence Facts (the narrow handler bridge stays narrow) must remain green.
-- **Docs move with code, same commit:** any flag/op change edits `docs/product/cli-reference.md`; any UI
-  change edits `docs/product/desktop-ui.md`.
-- **One wire contract:** anything a face shows must exist as a `GraphQuery` op / kernel JSON field first.
-- Ask the user before any large, destructive, or scope-expanding change.
+### E2 — Pattern-zoo corpus  **DONE**
+- Locus: `tests/fixtures/PatternZoo/PatternZoo/` (9 fixture files) + `tests/DevContext.Core.Tests/PatternZooTests.cs` (13 tests).
+- Also shipped I1.3 (conjunction gate for bare-verb fallback) + I1.5 (string literal stripping in GraphBuilder).
+- Gate: `PatternZooTests` green (13/0); all existing seam tests still green (369/0).
+
+### E5 — Benchmark expansion
+Clone 8 missing-archetype repos → register in `eval-repos.json` + `eval/expectations/` → capture Map+Trace.
+- Locus: `eval-repos.json`, `eval/expectations/*.json`
+- Archetypes: CLI, Worker, gRPC, Blazor, MAUI/Avalonia, classic MVC, serverless, 2nd library.
+- Gate: `dotnet test --filter Category=Eval` green with new expectations.
+
+### I8 — Caching & storage
+Repo-hash snapshot cache → instant re-opens. Settings→Storage backend.
+- Locus: new cache service in `src/DevContext.Core/Analysis/`, wire through DI.
+- Gate: analyze same repo twice → second run near-instant from cache.
+
+### I10.3 — Server MaxLiveSessions + LRU + rehydrate  **BLOCKED until I8 done**
+- Locus: `src/DevContext.Server/Sessions/` — LRU eviction, rehydrate from I8 cache.
+- Gate: open 7 tabs → oldest evicted; rehydrate from cache is instant.
+
+### A-F14 — EF depth tracking
+Entity relationship depth analysis (entity→aggregate root distance).
+- Locus: `src/DevContext.Core/Extractors/Specific/EfCoreExtractor.cs`
+- Gate: eShop TOUCHES shows entity chain depth.
+
+### A-F15 — Build intelligence
+CPM detection + Directory.Build.props fix (bug-grade: CPM packages not detected).
+- Locus: `src/DevContext.Core/Extractors/Generic/DependencyExtractor.cs`
+- Gate: repo with CPM shows package versions in STACK.
+
+### I9 — Release readiness (engine side)
+CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
+- Locus: `src/DevContext.Cli/Program.cs`, `AnalyzeCommand.cs`
+- Gate: `--strict` returns exit code 2 on invariant fail; `--quiet` prints nothing on success.
 
 ## Verify loop
 ```powershell
-dotnet build DevContext.slnx                            # 0 warnings (analyzer warnings = errors)
-dotnet test  DevContext.slnx --filter "Category!=Eval"  # fast tests
-powershell -File eval/gates.ps1                         # full gate (build + tests + eval + CLI matrix)
+# From C:/Code/DevContext2-engine
+dotnet build DevContext.slnx                             # 0 warnings (analyzer warnings = errors)
+dotnet test  DevContext.slnx --filter "Category!=Eval"   # must be green
+powershell -File eval/gates.ps1                          # full gate (needs populated eval-repos/)
 ```
 
-**Before the gate:** `eval-repos/` must be populated, else the Eval tier fails on empty repo dirs
-(they don't skip). Junction to `C:\code\DevContext2\eval-repos` or clone per `eval-repos.json`.
+## Hard rules
+- **No TypeScript changes** — you work in the engine. The UI agent handles desktop.
+- **Reform in place; never rewrite extractors.**
+- **Do-not-regress anchors:** `BudgetIndependenceTests`, `TraceQualityTests` sibling-divergence Facts,
+  `GraphBuilderSpanTests`, `NoiseFilterTests`, `ArchetypeDetectorTests`.
+- **Docs move with code, same commit.** Update `docs/product/cli-reference.md` for CLI changes.
+- **One wire contract:** anything a face shows must exist as `GraphQuery` op / kernel JSON first.
+
+### Before running eval/gates.ps1
+`eval-repos/` in this worktree may be empty. Junction to the populated copy:
+```powershell
+New-Item -ItemType Junction -Path C:\Code\DevContext2-engine\eval-repos -Target C:\Code\DevContext2\eval-repos
+```
+
+## Resume protocol (cold start)
+```
+git -C C:/Code/DevContext2-engine checkout feat/engine-iteration
+git -C C:/Code/DevContext2-engine pull
+
+# Pre-flight
+dotnet build C:/Code/DevContext2-engine/DevContext.slnx
+dotnet test C:/Code/DevContext2-engine/DevContext.slnx --filter "Category!=Eval"
+
+# Ensure eval-repos junction exists (see above)
+
+# Pick the first work item whose Status != DONE in this file
+# Do Step 0 (reproduce) first, then execute. Commit per item.
+```

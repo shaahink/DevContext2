@@ -164,3 +164,29 @@ before the merge).
 - I9: Release readiness
 - V3 P2: Live Console + real Stats streaming
 - V3 P3: Synced Human↔LLM lens
+
+## 2026-07-02 — E2 Pattern-Zoo + I1.3/I1.5 fixes
+
+**Changed:**
+- E2 — Created `tests/fixtures/PatternZoo/PatternZoo/` with 9 C# fixture files covering:
+  primary constructor, expression body, record with body, local function, required init,
+  collection expression, conditional block (`#if`), raw string literal trap, and parameter-type
+  Send resolution. Each file contains a known seam (`IMediator.Send(new X())`).
+- `PatternZooTests.cs` — 13 parameterized/inline Facts asserting Sends edges across all syntax
+  shapes plus negative guards: non-mediator Send (SmtpClient) produces no edge, raw string
+  literal `"""...Send(new FakeCommand())..."""` produces no fabricated edge, parameter-type
+  fallback resolves correctly, multiple seams in one class all detected, Publish/SendAsync
+  variants work.
+- **I1.5 fix — String literal stripping:** Added `GraphBuilder.StripStringLiterals()` — a
+  character-level pre-pass that replaces C# string literal contents (regular `"..."`,
+  verbatim `@"..."`, raw `"""..."""`, interpolated `$"..."`) with spaces preserving offsets.
+  Applied in `AddSends` so in-literal seam-like patterns never produce fabricated edges.
+- **I1.3 fix — Conjunction gate:** When `AddSends` hits a bare-verb fallback (unknown receiver
+  but known verb like `Send`), now also checks `IsLikelyRequestType()` — the target type name
+  must end with Command/Query/Event/Notification/Request/Response or be in the model's event
+  type set. Kills the `SmtpClient.Send(new MailMessage())` false positive.
+
+**Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 369/0 (up from 356,
++13 PatternZoo tests, no regressions).
+
+**Next:** A-F15 (Build intelligence — CPM + Directory.Build.props) → A-F14 (EF depth).

@@ -830,16 +830,22 @@ public sealed class GraphBuilder
     private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
         Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
     {
+        // Build event/request type name set once for the conjunction gate (I1.3/I1.4)
+        var eventTypeNames = BuildEventTypeNameSet(model);
+
         foreach (var type in model.Types.Values)
         {
             if (type.SourceBody is not { Length: > 0 } body) continue;
             var typeId = NodeId.ForType(type.Id);
             var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
+            // Strip string literals so in-literal seam-like patterns don't produce fabricated edges
+            var scanBody = StripStringLiterals(body);
+
             // Find all Send/Publish calls with the receiver captured for dispatch-gating (I1.3).
             // Pattern: receiver.Send(expr) where expr is either `new Type(...)` or a local name.
             // Groups: 1=receiver, 2=verb, 3=inline-new-type, 4=variable-name.
-            foreach (Match match in Regex.Matches(body,
+            foreach (Match match in Regex.Matches(scanBody,
                 @"(\w+)\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
                 RegexOptions.Compiled))
             {
@@ -886,9 +892,17 @@ public sealed class GraphBuilder
                 }
 
                 // Unknown receiver — emit only for known verbs (bare-verb fallback),
-                // skip completely unknown patterns (I1.3 false-positive prevention).
-                if (!isKnown && !DispatchSeamCatalog.IsKnownVerb(verb))
-                    continue;
+                // AND only when the target type carries request/event markers — the conjunction
+                // gate kills false positives like SmtpClient.Send(new MailMessage()) (I1.3).
+                if (!isKnown)
+                {
+                    if (!DispatchSeamCatalog.IsKnownVerb(verb))
+                        continue;
+                    // Conjunction: also require the target type looks like a request/event
+                    if (!string.IsNullOrEmpty(requestName)
+                        && !IsLikelyRequestType(requestName, eventTypeNames))
+                        continue;
+                }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
                 var requestFqn = names.Resolve(requestName);
@@ -916,6 +930,98 @@ public sealed class GraphBuilder
         => name.EndsWith("Exception", StringComparison.Ordinal)
             || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
                 or "String" or "Object" or "Guid" or "CancellationToken";
+
+    /// <summary>Strips C# string literal contents (regular, verbatim, raw, interpolated) from the
+    /// body, replacing them with spaces to preserve character offsets. This prevents the body-scan
+    /// Sends/Raises regexes from matching seam-like patterns inside string literals (a known regex trap).</summary>
+    internal static string StripStringLiterals(string body)
+    {
+        if (string.IsNullOrEmpty(body)) return body;
+        var chars = body.ToCharArray();
+        var i = 0;
+        while (i < chars.Length)
+        {
+            // Raw string literal: """...""" (C# 11+)
+            if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+            {
+                i += 3;
+                if (i < chars.Length && chars[i] == '\n') i++;
+                else if (i + 1 < chars.Length && chars[i] == '\r' && chars[i + 1] == '\n') i += 2;
+                while (i < chars.Length)
+                {
+                    if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+                    {
+                        i += 3;
+                        break;
+                    }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            // Verbatim string: @"..." (handle before regular " to avoid false match on @)
+            if (i + 1 < chars.Length && chars[i] == '@' && chars[i + 1] == '"')
+            {
+                i += 2;
+                while (i < chars.Length)
+                {
+                    if (chars[i] == '"')
+                    {
+                        if (i + 1 < chars.Length && chars[i + 1] == '"') { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
+                        i++; break;
+                    }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            // Interpolated $@"..." or $"..." or $"""...""" — skip $ prefix, handle next char
+            if (chars[i] == '$')
+            {
+                i++;
+                if (i < chars.Length && chars[i] == '@') continue; // $@" handled as verbatim next
+                if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
+                    continue; // $""" handled as raw next
+                if (i < chars.Length && chars[i] == '"') { } // $" handled as regular next (fall through to below)
+                else continue; // not a string, continue
+            }
+
+            // Regular string: "..."
+            if (chars[i] == '"')
+            {
+                i++;
+                while (i < chars.Length)
+                {
+                    if (chars[i] == '\\' && i + 1 < chars.Length) { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
+                    if (chars[i] == '"') { i++; break; }
+                    chars[i] = ' ';
+                    i++;
+                }
+                continue;
+            }
+
+            i++;
+        }
+        return new string(chars);
+    }
+
+    /// <summary>Best-effort guard: returns true when the type name carries request/command/event
+    /// markers (suffix or known base types) — used as a conjunction gate for the bare-verb fallback
+    /// in Sends detection (I1.3 false-positive prevention).</summary>
+    private static bool IsLikelyRequestType(string typeName, HashSet<string> eventTypeNames)
+    {
+        if (eventTypeNames.Contains(typeName)) return true;
+        var knownRequestSuffixes = new[]
+        {
+            "Command", "Query", "Event", "Notification", "Request", "Response",
+        };
+        foreach (var suffix in knownRequestSuffixes)
+            if (typeName.EndsWith(suffix, StringComparison.Ordinal))
+                return true;
+        return false;
+    }
 
     /// <summary>True for a self-call target that is syntactic-resolver noise, not real wiring: the
     /// <c>nameof</c> pseudo-call, and the common ASP.NET <c>ControllerBase</c> result helpers (inherited,

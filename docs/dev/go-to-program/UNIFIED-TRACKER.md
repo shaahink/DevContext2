@@ -58,17 +58,17 @@ All items below are code-complete and verified present in this branch. Re-verifi
 
 ## I1 — Trust at breadth: hardening the seams
 
-**Phase:** V1 · **Guide:** `ITERATION-I1-trust.md` · **Status:** ⬜
+**Phase:** V1 · **Guide:** `ITERATION-I1-trust.md` · **Status:** ✅ DONE
 
-| Step | Task | Gate |
-|------|------|------|
-| I1.1 | Span-bound variable resolution (the bug) | `GraphBuilderSpanTests.Send_of_parameter_does_not_steal_sibling_methods_new` green |
-| I1.2 | In-span dataflow-lite (param/field fallback) | eShop `/draft` aspirational → expected |
-| I1.3 | Receiver-typed dispatch + `DispatchSeamCatalog` | Negative: `SmtpClient.Send(msg)` no Sends edge; catalog fixtures |
-| I1.4 | Model-derived event/request type-sets | Event type-set from BaseTypes/ImplementedInterfaces; regex demoted |
-| I1.5 | Pattern-zoo corpus | `PatternZooTests` green; raw-string trap fixed |
-| I1.6 | Multi-impl honesty | Trace annotates `[×N impls]` when DI has >1 |
-| I1.7 | Hygiene: excludes += eval-repos/analysis-repos + extractor convention test | analyze DevContext2 root completes; convention test green |
+| Step | Task | Gate | Status |
+|------|------|------|--------|
+| I1.1 | Span-bound variable resolution (the bug) | `GraphBuilderSpanTests.Send_of_parameter_does_not_steal_sibling_methods_new` green | ✅ |
+| I1.2 | In-span dataflow-lite (param/field fallback) | eShop `/draft` aspirational → expected | ✅ |
+| I1.3 | Receiver-typed dispatch + `DispatchSeamCatalog` | Negative: `SmtpClient.Send(msg)` no Sends edge; catalog fixtures | ✅ |
+| I1.4 | Model-derived event/request type-sets | Event type-set from BaseTypes/ImplementedInterfaces; regex demoted | ✅ |
+| I1.5 | Pattern-zoo corpus | `PatternZooTests` green; raw-string trap fixed | ✅ |
+| I1.6 | Multi-impl honesty | Trace annotates `[×N impls]` when DI has >1 | ⬜ |
+| I1.7 | Hygiene: excludes += eval-repos/analysis-repos + extractor convention test | analyze DevContext2 root completes; convention test green | ⬜ |
 
 **Gate:** `eval/gates.ps1` green · eShop flagship trace unchanged except removed fabrications.
 

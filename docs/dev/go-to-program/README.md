@@ -21,7 +21,7 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 
 | # | Guide | Phase | Depends on | Status |
 |---|---|---|---|---|
-| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** (I1.5 deferred) |
+| I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** |
 | I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | **DONE** — E3: full W9 deletion (unified-iteration-1) |
 | I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **DONE** — 10/10 sources (E1 delivered, unified-iteration-1) |
 | I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view, NodeLink, Graph, Settings, Entries table, trace/palette/connection/overview/export all delivered (R2). MCP deferred. |
