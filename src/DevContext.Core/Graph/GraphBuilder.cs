@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 
+using DevContext.Core.Graph.Seams;
 using DevContext.Core.Models;
 
 using Microsoft.CodeAnalysis;
@@ -820,24 +821,35 @@ public sealed class GraphBuilder
             var typeId = NodeId.ForType(type.Id);
             var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
 
-            // Find all Send/Publish calls with either inline `new T()` or a variable arg.
-            // Pattern: .Send(expr) where expr is either `new Type(...)` or a local name.
+            // Find all Send/Publish calls with the receiver captured for dispatch-gating (I1.3).
+            // Pattern: receiver.Send(expr) where expr is either `new Type(...)` or a local name.
+            // Groups: 1=receiver, 2=verb, 3=inline-new-type, 4=variable-name.
             foreach (Match match in Regex.Matches(body,
-                @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
+                @"(\w+)\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
                 RegexOptions.Compiled))
             {
+                var receiverName = match.Groups[1].Value;
+                var verb = match.Groups[2].Value;
                 string? requestName;
                 var isParamFallback = false;
-                if (match.Groups[2].Success)
+
+                // I1.3 — gate on known dispatch receiver to prevent false positives
+                var receiverType = ResolveReceiverType(type, spans, match.Index, receiverName);
+                var catalogConfidence = 0f;
+                var isKnown = receiverType is not null
+                    && DispatchSeamCatalog.IsKnownReceiver(receiverType, verb, out catalogConfidence);
+                float confidence;
+
+                if (match.Groups[3].Success)
                 {
-                    // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
-                    requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
+                    // Inline: .Send(new X(...))
+                    requestName = UnwrapGenericArg(body, match.Groups[3].Index, match.Groups[3].Value);
+                    confidence = isKnown ? catalogConfidence : 0.35f;
                 }
                 else
                 {
-                    // Variable: .Send(cmd) — try to find `cmd` assignment via `new T()` before this call,
-                    // bounded to the enclosing method span (I1.1).
-                    var varName = match.Groups[3].Value;
+                    // Variable: .Send(cmd)
+                    var varName = match.Groups[4].Value;
                     var pos = match.Index;
                     if (pos <= 0) continue;
                     var (spanStart, _) = EnclosingSpan(spans, pos, body.Length);
@@ -847,14 +859,21 @@ public sealed class GraphBuilder
                     {
                         var lastMatch = newMatches[^1];
                         requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                        confidence = isKnown ? catalogConfidence : 0.35f;
                     }
                     else
                     {
-                        // I1.2 — no in-span new: fall back to param/property types (dataflow-lite)
+                        // I1.2 — fall back to param/property types
                         requestName = ResolveVariableFromModel(type, spans, pos, varName);
                         isParamFallback = requestName is not null;
+                        confidence = isKnown ? catalogConfidence : 0.35f;
                     }
                 }
+
+                // Unknown receiver — emit only for known verbs (bare-verb fallback),
+                // skip completely unknown patterns (I1.3 false-positive prevention).
+                if (!isKnown && !DispatchSeamCatalog.IsKnownVerb(verb))
+                    continue;
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
                 var requestFqn = names.Resolve(requestName);
@@ -869,7 +888,7 @@ public sealed class GraphBuilder
                 {
                     Provenance = prov,
                     Resolution = Resolution.Syntactic,
-                    Confidence = isParamFallback ? 0.35f : 0.55f,
+                    Confidence = confidence,
                 });
             }
         }
@@ -1106,17 +1125,31 @@ public sealed class GraphBuilder
         if (type.SourceBody is { Length: > 0 } body)
         {
             var classLevel = GetClassLevelBody(body, spans);
+            // Match patterns like: private readonly IMediator _m; (type before the field name)
             var fieldMatch = Regex.Match(classLevel,
-                $@"(?:private|protected|internal|public|static|readonly|const)\s+(?:[\w<>,.\s]+\s)?({Regex.Escape(varName)}|[\w.]*\b{Regex.Escape(varName)})\s*[=;]",
+                $@"\b(\w+(?:<[^>]+>)?(?:\?)?)\s+_{Regex.Escape(varName)}\b",
                 RegexOptions.Compiled);
             if (fieldMatch.Success)
-            {
-                // Try to extract the type: the token before the variable name
-                return null; // field resolution too fragile without Roslyn — defer
-            }
+                return StripGenerics(fieldMatch.Groups[1].Value);
+
+            // Also try without underscore prefix: IMediator mediator;
+            var bareMatch = Regex.Match(classLevel,
+                $@"\b(\w+(?:<[^>]+>)?(?:\?)?)\s+{Regex.Escape(varName)}\b",
+                RegexOptions.Compiled);
+            if (bareMatch.Success)
+                return StripGenerics(bareMatch.Groups[1].Value);
         }
 
         return null;
+    }
+
+    /// <summary>Resolves a receiver variable name to its short type name — for gating dispatch seams
+    /// on known interfaces (I1.3). Uses the same sources as <see cref="ResolveVariableFromModel"/>:
+    /// properties, method params, and field declarations.</summary>
+    private static string? ResolveReceiverType(TypeDiscovery type,
+        ImmutableArray<MethodSpan> spans, int pos, string receiverName)
+    {
+        return ResolveVariableFromModel(type, spans, pos, receiverName);
     }
 
     /// <summary>Returns the portion of a type's SourceBody that is outside all method spans —
