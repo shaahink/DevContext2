@@ -4,6 +4,11 @@
 > Branch: `go-to/implement-iterations` (base: `develop` @ `7228d1e`; contains all W1–W9 code).
 > Gate: `build 0w · fast tests 382/0`.
 
+> **Round-2 status (2026-07-02):** I1/I2 landed; I3+I4+I5 are **PARTIAL, not DONE** — verification found
+> insights never reach any face (the "one wire contract" was skipped) and NodeLink/Graph/Settings were
+> never built. The current plan is **[`ITERATION-R2-verify-and-finish.md`](ITERATION-R2-verify-and-finish.md)** —
+> start there. The step-level `⬜` boxes below are the original plan grid, not live status.
+
 ## Resume protocol (cold start)
 
 1. Read this tracker + the iteration guide for the current item.

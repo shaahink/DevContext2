@@ -11,7 +11,10 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 2. [`PROGRAM-PLAN.md`](PROGRAM-PLAN.md) — strategy phases V1–V5 with every fork voted.
 3. [`FACES-DESIGN.md`](FACES-DESIGN.md) — CLI v2 signature, desktop UX direction, the Insights spec.
 4. [`DEV-PAINS.md`](DEV-PAINS.md) — demand-side: pains → features, CORE/MENU/LATER tiers.
-5. The iteration guide whose Status below ≠ DONE. Do its Step 0 first; guides cite `file:line` as of
+5. [`ITERATION-R2-verify-and-finish.md`](ITERATION-R2-verify-and-finish.md) — **current** round-2 plan:
+   the verification result (what the tracker over-claims), the finding list, and the remaining UI/UX +
+   engine work. MCP stays deferred.
+6. The iteration guide whose Status below ≠ DONE. Do its Step 0 first; guides cite `file:line` as of
    authoring — verify before editing.
 
 ## Iteration tracker
@@ -20,9 +23,10 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 |---|---|---|---|---|
 | I1 | [Trust at breadth](ITERATION-I1-trust.md) — span bug, dispatch catalog, event type-sets, pattern zoo, hygiene | V1 | — | **DONE** (I1.5 deferred) |
 | I2 | [CLI v2 + kernel wire](ITERATION-I2-cli-kernel.md) — W9 retirement, kernel JSON, `query`, flag sweep | V4→pulled fwd | I1 | **DONE** (eval migration + full W9 deletion deferred) |
-| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **DONE** (4 of 10 sources) |
-| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **DONE** (all 7 slices) |
-| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **DONE** (catalog + F13) |
+| I3 | [Insights engine](ITERATION-I3-insights.md) — 10 sources, `--stats` reshape, desktop cards | V2/V3 | I2 (soft) | **PARTIAL** — 4/10 sources built but **not on the wire** (see [R2](ITERATION-R2-verify-and-finish.md) F1) |
+| I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view broken, no NodeLink/Graph/Settings (see [R2](ITERATION-R2-verify-and-finish.md)) |
+| I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **PARTIAL** — catalog + F13 only (F1–F12 open, see [R2](ITERATION-R2-verify-and-finish.md) E4) |
+| **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **CURRENT** — start here |
 | I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
 | I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
 | — | Scale backlog: persistent index · GitHub-URL hardening · huge-repo scoping · snapshot diff (P9) · tests lens (P13) | V5 | I2 | LATER |
