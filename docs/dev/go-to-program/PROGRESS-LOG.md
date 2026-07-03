@@ -959,3 +959,70 @@ build/test cycle on this nuance.
 
 `pnpm check` green. Commit is standalone (not folded into W6 checkpoint 2) so it's
 bisectable from the checkpoint commits that follow.
+
+## 2026-07-03 — W6 checkpoint 1: sidecar engine lifecycle (packaging deferred)
+
+`lib.rs` rewritten: dynamic port picking (`TcpListener::bind("127.0.0.1:0")`, drop, reuse
+the number), the main window now built programmatically in `setup()` via
+`WebviewWindowBuilder` instead of `tauri.conf.json`'s declarative `windows` array (needed
+so an `.initialization_script()` can inject `globalThis.__DEVCONTEXT_SERVER__` before
+Angular boots — `core/config.ts` already anticipated this global, unused until now), a
+`ServerProcess` supervisor (`Arc<Mutex<Option<Child>>>` + `AtomicBool` shutdown flag)
+polling `try_wait()` every 500ms — never a blocking `wait()` while holding the lock, so
+`RunEvent::Exit` can always grab it to kill the child — with 1s/5s/15s crash-restart
+backoff capped at 5 attempts, reusing the same port across restarts (avoids re-injecting
+config into an already-loaded page). Folded in the no-flash half of checkpoint 2 while
+already rebuilding the window (`visible(false)` + dark `background_color`, `app.ts` calls
+`getCurrentWindow().show()` after `afterNextRender`) to avoid doing the window-builder
+work twice. Extracted `core/tauri-env.ts`'s `isTauri()` (shared with `titlebar.ts`, which
+previously had its own copy). `capabilities/default.json` gained
+`core:window:allow-show`.
+
+Live-verified directly against the raw `target/debug/app.exe` binary (not just
+lint/build) with `DEVCONTEXT_SERVER_DLL` pointed at the already-built server DLL: dynamic
+port picked fresh each launch (confirmed three different ports across three launches),
+`Analyze`/`Ping` succeeded against that port (proves the injection reached
+`config.ts` before Angular's gRPC client was constructed), graceful window close (a real
+WM_CLOSE, not a force-kill) leaves no orphaned `dotnet.exe` behind, and force-killing just
+the `dotnet.exe` child (simulating a crash) produced `"DevContext server down, restarting
+in 1s (attempt 2)"` in the log followed by a fresh server on the same port.
+
+**A test-methodology gotcha worth remembering, not a product bug:** running the raw
+`app.exe` directly (bypassing `pnpm dev`'s `concurrently`-managed `ng serve`) with no
+frontend dev server up produces a `chrome-error://chromewebdata/` page — Angular never
+bootstraps, so `afterNextRender`'s `show()` call never fires, and the window sits
+permanently invisible (`MainWindowHandle: 0` via `Get-Process`, confirmed with a small
+`Add-Type`-based `IsWindowVisible` P/Invoke check). This looked exactly like a broken
+no-flash implementation until re-tested with a dedicated `ng serve` actually running,
+which showed a real `MainWindowHandle`, `IsWindowVisible: True`, and a normal graceful
+`taskkill` close. Confirmed via a throwaway `playwright` + `chromium.connectOverCDP`
+script against `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>`
+(written, run, deleted — same throwaway-script discipline as W4/W5's Playwright checks).
+Lesson: any future raw-binary Tauri test needs its own frontend dev server running, not
+borrowed from whatever happens to still be up on :4200.
+
+**Packaging (self-contained `externalBin` sidecar) explored and de-risked, not fully
+wired — deferred, per the plan's own stated fallback for oversized sub-scopes.** Findings
+worth keeping so the next attempt doesn't redo this research: `dotnet publish
+DevContext.Server -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true`
+alone still leaves `git2-*.dll` (LibGit2Sharp's native binding) as a loose companion file
+next to the exe — single-file publish does NOT embed native (non-.NET) libraries by
+default. Adding `-p:IncludeNativeLibrariesForSelfExtract=true` embeds it too, producing a
+genuinely standalone ~127MB `DevContext.Server.exe` with zero companion files — verified
+by copying just that one exe into an empty directory and confirming `/health` returns 200
+with no `dotnet` runtime installed reliance. `DevContext.Server` has no `appsettings.json`
+or `wwwroot`, so there's nothing else to ship alongside it. What's left before this is
+real: Tauri's `externalBin` mechanism expects the source file pre-named
+`devcontext-server-x86_64-pc-windows-msvc.exe` at build time, but the exact filename it
+produces post-bundle (whether the target-triple suffix is stripped) isn't confirmed from
+docs alone; the safe, documented way to spawn a registered sidecar is
+`tauri_plugin_shell::ShellExt::shell().sidecar(name)` (a new Cargo + capability
+dependency), which returns an async `(Receiver<CommandEvent>, CommandChild)` pair —
+structurally different from the `std::process::Child` polling model this checkpoint's
+dev-mode supervisor already uses and verified, so it needs its own supervisor logic
+(`tauri::async_runtime::spawn` + matching `CommandEvent::Terminated`), not a trivial
+reuse. None of this touches the dev-mode path already shipped in this commit.
+
+`pnpm check` and `cargo check` both green. No regressions in the everyday `pnpm dev` flow
+(re-verified after the rewrite — window opened, Analyze succeeded against the ordinary
+fixed port 5179, no panics).

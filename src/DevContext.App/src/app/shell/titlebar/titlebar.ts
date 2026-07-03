@@ -8,12 +8,7 @@ import { RecentStore } from '../../state/recent.store';
 import { PrefsStore } from '../../state/prefs.store';
 import type { AnalyzeSpec } from '../../data-access/devcontext-api';
 import { Icon } from '../../ui/icon/icon';
-
-declare global {
-  interface Window {
-    __TAURI_INTERNALS__?: unknown;
-  }
-}
+import { isTauri } from '../../core/tauri-env';
 
 let tauriWindowApi: {
   getCurrentWindow(): { minimize(): Promise<void>; maximize(): Promise<void>; unmaximize(): Promise<void>; isMaximized(): Promise<boolean>; close(): Promise<void> };
@@ -27,10 +22,6 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
   } catch {
     return null;
   }
-}
-
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && window.__TAURI_INTERNALS__ !== undefined;
 }
 
 /**
