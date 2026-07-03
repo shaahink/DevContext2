@@ -1,25 +1,35 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, effect, inject, output, signal } from '@angular/core';
 
+import { DevContextApi } from '../../data-access/devcontext-api';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
+import { Skeleton } from '../../ui/skeleton/skeleton';
+import { ToastService } from '../../ui/toast/toast';
 
 type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
+
+const RENDER_DEBOUNCE_MS = 250;
 
 /**
  * Inspector (F proposal §2) — the right panel. Content is driven ENTIRELY by the
  * current selection; sections collapse independently. Details fill instantly from
  * local data (selection echo, §5.2) while RPC-backed sections follow.
  *
- * TODO(W4): LLM section renders via the Render RPC (migrate section-lens debounce);
- *   until then it shows the trace markdown already in the store — real, just coarser.
- * TODO(W4): Call stack hosts a compact ProgressiveTraceTree at depth 2.
+ * LLM context renders via the Render RPC (250ms debounce, real token count from
+ * `estimatedTokens`) — migrated from section-lens.ts, which this supersedes.
+ *
+ * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
  * TODO(W5): Insights section filters stats().insights by the current selection;
- *   "Reached by N flows" line reads AtlasStore.reachedBy(nodeId).
- * TODO(W4): file path row gets "Reveal in Explorer" via the Tauri opener plugin (W6).
+ *   "Reached by N flows" line reads AtlasStore.reachedBy(nodeId) — deliberately not
+ *   pulled forward even though AtlasStore already has it, to keep the W4 gate honest.
+ * TODO(W4 remainder): file path row gets "Reveal in Explorer" via the Tauri opener
+ *   plugin (W6); copy uses navigator.clipboard (flaky in WebView2 without focus) until
+ *   the clipboard plugin lands, also W6.
  */
 @Component({
   selector: 'app-inspector',
+  imports: [Skeleton],
   host: { class: 'panel flex h-full min-h-0 flex-col overflow-y-auto' },
   template: `
     <!-- Details -->
@@ -55,12 +65,18 @@ type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
       }
     }
 
-    <!-- LLM context -->
-    <button type="button" class="section-h border-b border-line" (click)="toggle('llm')">
-      <span class="text-2xs">{{ open('llm') ? '▾' : '▸' }}</span> LLM context
-      <span class="flex-1"></span>
-      @if (trace.markdown()) {
-        <span class="tabular-nums text-2xs text-ink-subtle">≈{{ tokenEstimate() }} tok</span>
+    <!-- LLM context (Render RPC, 250ms debounce — proposal §2/§5.1). A plain div, not a
+         button, because the row also hosts the Copy button — nested <button>s are
+         invalid HTML and Angular's DOM renderer won't sanitize that away (it never
+         parses HTML text, so the browser never gets a chance to auto-correct it). -->
+    <div class="section-h border-b border-line">
+      <button type="button" class="flex min-w-0 flex-1 items-center gap-1" (click)="toggle('llm')">
+        <span class="text-2xs">{{ open('llm') ? '▾' : '▸' }}</span> LLM context
+      </button>
+      @if (renderContent()) {
+        <span class="tabular-nums text-2xs text-ink-subtle" [class.animate-pulse]="renderLoading()">
+          ≈{{ fmtK(tokenEstimate()) }} tok
+        </span>
         <button
           type="button"
           class="chip"
@@ -71,12 +87,24 @@ type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
           {{ copied() ? 'copied' : 'copy' }}
         </button>
       }
-    </button>
+    </div>
     @if (open('llm')) {
-      @if (trace.markdown(); as markdown) {
+      @if (renderContent(); as markdown) {
         <pre
-          class="prose-zone max-h-96 overflow-y-auto whitespace-pre-wrap break-words border-b border-line px-2 py-2 font-mono text-2xs"
+          class="prose-zone max-h-96 overflow-y-auto whitespace-pre-wrap break-words border-b border-line px-2 py-2 font-mono text-2xs transition-opacity"
+          [class.opacity-60]="renderLoading()"
         >{{ markdown }}</pre>
+      } @else if (renderLoading()) {
+        <div class="space-y-1.5 border-b border-line px-2 py-2">
+          <app-skeleton />
+          <app-skeleton width="80%" />
+          <app-skeleton width="60%" />
+        </div>
+      } @else if (renderError(); as err) {
+        <div class="border-b border-line px-2 py-3 text-2xs text-danger">
+          {{ err }} —
+          <button type="button" class="text-accent hover:underline" (click)="render()">Retry</button>
+        </div>
       } @else {
         <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
           Trace something to build LLM-ready context.
@@ -128,6 +156,8 @@ export class Inspector {
   protected readonly session = inject(SessionStore);
   protected readonly trace = inject(TraceStore);
   protected readonly trail = inject(TrailStore);
+  private readonly api = inject(DevContextApi);
+  private readonly toast = inject(ToastService);
 
   /** Emitted when the user jumps the trail — parent re-traces the restored step. */
   readonly restore = output<TrailStep>();
@@ -135,7 +165,29 @@ export class Inspector {
   private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set());
   protected readonly copied = signal(false);
 
-  protected readonly tokenEstimate = computed(() => Math.round(this.trace.markdown().length / 4));
+  protected readonly renderContent = signal('');
+  protected readonly tokenEstimate = signal(0);
+  protected readonly renderLoading = signal(false);
+  protected readonly renderError = signal<string | null>(null);
+
+  private renderTimer: ReturnType<typeof setTimeout> | null = null;
+  private renderedFocus: string | null = null;
+
+  constructor() {
+    effect(() => {
+      const focus = this.trace.focus();
+      if (!focus) {
+        this.renderedFocus = null;
+        this.renderContent.set('');
+        this.renderError.set(null);
+        return;
+      }
+      if (focus === this.renderedFocus) return;
+      const handle = this.session.handle();
+      if (!handle) return;
+      this.debouncedRender(handle, focus);
+    });
+  }
 
   protected open(id: SectionId): boolean {
     return !this.collapsed().has(id);
@@ -162,10 +214,44 @@ export class Inspector {
 
   protected copy(event: Event): void {
     event.stopPropagation();
-    void navigator.clipboard?.writeText(this.trace.markdown()).then(() => {
+    void navigator.clipboard?.writeText(this.renderContent()).then(() => {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 1500);
     });
+  }
+
+  protected fmtK(n: number): string {
+    return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n);
+  }
+
+  /** Manual retry (error state) — bypasses the "already rendered this focus" guard. */
+  protected render(): void {
+    const handle = this.session.handle();
+    const focus = this.trace.focus();
+    if (!handle || !focus) return;
+    void this.doRender(handle, focus);
+  }
+
+  private debouncedRender(handle: string, focus: string): void {
+    if (this.renderTimer) clearTimeout(this.renderTimer);
+    this.renderTimer = setTimeout(() => void this.doRender(handle, focus), RENDER_DEBOUNCE_MS);
+  }
+
+  private async doRender(handle: string, focus: string): Promise<void> {
+    this.renderedFocus = focus;
+    this.renderLoading.set(true);
+    this.renderError.set(null);
+    try {
+      const res = await this.api.render(handle, { focus, detail: this.trace.detail(), format: 'markdown' });
+      this.renderContent.set(res.content);
+      this.tokenEstimate.set(res.estimatedTokens);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Render failed — is the server running?';
+      this.renderError.set(msg);
+      this.toast.show(msg, 'error');
+    } finally {
+      this.renderLoading.set(false);
+    }
   }
 
   protected stepGlyph(step: TrailStep): string {
