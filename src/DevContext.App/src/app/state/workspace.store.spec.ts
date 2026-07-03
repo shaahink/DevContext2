@@ -89,6 +89,36 @@ describe('WorkspaceStore tab isolation (I10)', () => {
     expect(workspace.activeId()).toBe(c);
   });
 
+  it('maintains an MRU stack for Ctrl+Tab cycling (GAP-T5)', () => {
+    const workspace = TestBed.inject(WorkspaceStore);
+    const a = workspace.createTab('a', 'a');
+    const b = workspace.createTab('b', 'b'); // creating also activates + pushes MRU
+    const c = workspace.createTab('c', 'c');
+    expect(workspace.mru()).toEqual([c, b, a]);
+
+    workspace.setActive(a);
+    expect(workspace.mru()).toEqual([a, c, b]);
+
+    // Re-activating the current tab must not duplicate its MRU entry.
+    workspace.setActive(a);
+    expect(workspace.mru()).toEqual([a, c, b]);
+
+    workspace.setActive(b);
+    expect(workspace.mru()).toEqual([b, a, c]);
+  });
+
+  it('drops a closed tab from the MRU stack and promotes the neighbor that becomes active', () => {
+    const workspace = TestBed.inject(WorkspaceStore);
+    const a = workspace.createTab('a', 'a');
+    workspace.createTab('b', 'b');
+    workspace.createTab('c', 'c');
+    workspace.setActive(a); // mru: [a, c, b]
+
+    workspace.closeTab(a); // a was active -> its neighbor becomes active and is promoted
+    expect(workspace.mru()).not.toContain(a);
+    expect(workspace.mru()[0]).toBe(workspace.activeId());
+  });
+
   it('analyzing a path already open in another tab switches to it instead of duplicating (GAP-T4)', async () => {
     const analyze = vi.fn().mockResolvedValue({
       ok: true,

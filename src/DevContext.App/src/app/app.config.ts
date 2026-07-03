@@ -14,6 +14,8 @@ const routes: Routes = [
       // F-proposal Workbench (deck │ stage │ inspector). Old /entries /trace /graph
       // keep working during W1-W3; they become redirects here at the W4 cutover.
       { path: 'explore', loadComponent: () => import('./features/pages/workbench-page').then((m) => m.WorkbenchPage) },
+      // Stub (proposal W1.6) — real Atlas (map/topology/event board/hub radar) is W4/W5.
+      { path: 'atlas', loadComponent: () => import('./features/pages/atlas-page').then((m) => m.AtlasPage) },
       { path: 'insights', loadComponent: () => import('./features/pages/insights-page').then((m) => m.InsightsPage) },
       { path: 'export', loadComponent: () => import('./features/pages/export-page').then((m) => m.ExportPage) },
       { path: 'settings', loadComponent: () => import('./features/settings/settings-view').then((m) => m.SettingsView) },

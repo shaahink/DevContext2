@@ -97,6 +97,17 @@ export class TabStrip {
   onGlobalKey(e: KeyboardEvent): void {
     if (!(e.ctrlKey || e.metaKey)) return;
 
+    if (e.key === 'Tab') {
+      // MRU cycle (GAP-T5) — mru[0] is always the current tab, so the "next" tab to
+      // cycle TO is mru[1]; Shift+Tab goes the other way, to the least-recently-used.
+      const mru = this.workspace.mru();
+      if (mru.length < 2) return;
+      e.preventDefault();
+      const targetId = e.shiftKey ? mru[mru.length - 1] : mru[1];
+      this.switchTo(targetId);
+      return;
+    }
+
     if (e.key === 't') {
       e.preventDefault();
       this.newTab();
@@ -144,8 +155,8 @@ export class TabStrip {
   }
 
   protected shortLabel(label: string): string {
-    const first = label.split(' ')[0] || label;
-    return first.length > 18 ? first.slice(0, 17) + '…' : first;
+    const last = label.split(/[\\/]/).pop() || label;
+    return last.length > 18 ? last.slice(0, 17) + '…' : last;
   }
 
   protected dotClass(tab: TabState): string | null {

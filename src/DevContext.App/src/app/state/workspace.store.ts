@@ -127,9 +127,12 @@ export class WorkspaceStore {
 
   private readonly _tabs = signal<TabState[]>([]);
   private readonly _activeId = signal<string | null>(null);
+  /** Most-recently-active tab ids, front = current. Drives Ctrl+Tab/Ctrl+Shift+Tab (GAP-T5). */
+  private readonly _mru = signal<readonly string[]>([]);
 
   readonly tabs = this._tabs.asReadonly();
   readonly activeId = this._activeId.asReadonly();
+  readonly mru = this._mru.asReadonly();
   readonly activeTab = computed(() => this._tabs().find((t) => t.id === this._activeId()) ?? null);
   readonly atCap = computed(() => this._tabs().length >= WorkspaceStore.MAX_TABS);
 
@@ -158,6 +161,7 @@ export class WorkspaceStore {
     };
     this._tabs.set([...existing, tab]);
     this._activeId.set(id);
+    this.pushMru(id);
     return id;
   }
 
@@ -174,15 +178,24 @@ export class WorkspaceStore {
 
     const next = list.filter((t) => t.id !== id);
     this._tabs.set(next);
+    this._mru.update((mru) => mru.filter((mid) => mid !== id));
 
     if (this._activeId() === id) {
       const neighbor = next[idx] ?? next[idx - 1] ?? null;
       this._activeId.set(neighbor?.id ?? null);
+      if (neighbor) this.pushMru(neighbor.id);
     }
   }
 
   setActive(id: string): void {
-    if (this._tabs().some((t) => t.id === id)) this._activeId.set(id);
+    if (!this._tabs().some((t) => t.id === id)) return;
+    this._activeId.set(id);
+    this.pushMru(id);
+  }
+
+  /** Unshifts `id` to the front of the MRU list, deduping. */
+  private pushMru(id: string): void {
+    this._mru.update((mru) => [id, ...mru.filter((mid) => mid !== id)]);
   }
 
   tabById(id: string): TabState | null {
