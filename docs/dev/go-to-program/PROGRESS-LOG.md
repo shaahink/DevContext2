@@ -1046,3 +1046,26 @@ assert real OS window geometry/visibility from outside the app when Playwright/C
 reach into native window chrome.
 
 `pnpm check` and `cargo check` both green, no TypeScript changes this checkpoint.
+
+## 2026-07-03 — W6 checkpoint 3: single-instance plugin
+
+`tauri-plugin-single-instance` registered as the first plugin in the builder chain (a
+hard Tauri requirement). Its callback focuses/unminimizes/shows the existing "main"
+window, and forwards `args.get(1)` (a path argument — Explorer's "Open with…", or a
+second CLI launch) to the frontend as a `single-instance-path` event rather than
+silently dropping it. New `core/single-instance.service.ts` (mirrors
+`WebviewShortcutsService`'s `start()`-guard pattern) listens for that event and opens
+the path as a **new tab** via `WorkspaceStore.createTab` + `SessionStore.analyze` —
+deliberately not reusing `Titlebar.selectRecent`'s replace-current-tab behavior, since
+the whole point of a path argument arriving while the app is already open is "don't
+destroy what I was already looking at."
+
+Live-verified end to end, not just "doesn't crash twice": launched the raw debug binary,
+then launched it again with a `tests/fixtures/MinimalApiProject` path argument. The
+second process exited immediately (no second window — confirmed via `tasklist` staying
+at one `app.exe`); the first instance's own server log shows a fresh, unprompted
+`Analyze` → `GetMap`/`ListEntryPoints`/`GetTrace`×2/`GetStats` sequence appearing on its
+own right after the second launch — proof the event reached the frontend and drove the
+real analyze flow, not just that the process count stayed at one.
+
+`pnpm check` and `cargo check` both green.

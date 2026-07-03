@@ -7,6 +7,7 @@ import { SessionStore } from '../state/session.store';
 import { ThemeService } from '../core/theme/theme.service';
 import { TICKER_PRIORITY, TickerService, type TickerItem } from '../core/ticker.service';
 import { WebviewShortcutsService } from '../core/webview-shortcuts.service';
+import { SingleInstanceService } from '../core/single-instance.service';
 import { Titlebar } from './titlebar/titlebar';
 import { TabStrip } from './tab-strip';
 import { OfflineBanner } from './offline-banner';
@@ -117,6 +118,7 @@ export class WorkspaceShell {
     inject(ConnectionStore).start();
     inject(ThemeService);
     inject(WebviewShortcutsService).start();
+    inject(SingleInstanceService).start();
 
     const session = inject(SessionStore);
     const atlas = inject(AtlasStore);

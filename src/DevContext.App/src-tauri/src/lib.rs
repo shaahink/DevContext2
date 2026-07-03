@@ -6,7 +6,7 @@ use std::thread;
 use std::time::Duration;
 
 use tauri::webview::{Color, WebviewWindowBuilder};
-use tauri::{Manager, RunEvent, Theme, WebviewUrl};
+use tauri::{Emitter, Manager, RunEvent, Theme, WebviewUrl};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 /// Backoff schedule for server crash-restart attempts (§7.1) — indexed by `attempt - 2`
@@ -25,6 +25,20 @@ struct ServerProcess {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Must be the first plugin registered (Tauri requirement). Second launch focuses the
+        // existing window instead of opening a duplicate; a path argument (e.g. "Open with…"
+        // from Explorer, or a second CLI invocation) is forwarded to the frontend as a
+        // "single-instance-path" event to open as a new tab, not replace the current session.
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+            if let Some(path) = args.get(1) {
+                let _ = app.emit("single-instance-path", path.clone());
+            }
+        }))
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
