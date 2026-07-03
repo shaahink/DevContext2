@@ -10,7 +10,7 @@ import { TabStrip } from './tab-strip';
 import { OfflineBanner } from './offline-banner';
 import { ActivityBar } from './activity-bar';
 import { Statusbar } from './statusbar/statusbar';
-import { Palette } from '../features/palette/palette';
+import { Omnibox } from '../features/omnibox/omnibox';
 
 const VIEW_SHORTCUTS: Record<string, string> = {
   o: '/overview',
@@ -52,7 +52,7 @@ const SHORTCUT_HELP = [
  */
 @Component({
   selector: 'app-workspace-shell',
-  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Palette],
+  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Omnibox],
   template: `
     <app-titlebar />
     <app-tab-strip />
@@ -64,7 +64,7 @@ const SHORTCUT_HELP = [
       </main>
     </div>
     <app-statusbar />
-    <app-palette />
+    <app-omnibox />
 
     @if (helpOpen()) {
       <div class="fixed inset-0 z-[60] flex items-center justify-center" (click)="helpOpen.set(false)" (keydown.escape)="helpOpen.set(false)" role="dialog" tabindex="0">

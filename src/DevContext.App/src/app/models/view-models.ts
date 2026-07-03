@@ -15,6 +15,7 @@ export interface EntryVm {
   readonly route?: string;
   readonly target?: string;
   readonly provenance?: string;
+  readonly project?: string;
   /** The string passed to GetTrace to trace this entry. */
   readonly focus: string;
 }
@@ -98,6 +99,7 @@ export function toEntryVm(e: EntryPoint): EntryVm {
     route: e.route,
     target: e.target,
     provenance: e.provenance,
+    project: e.project,
     focus,
   };
 }

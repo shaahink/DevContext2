@@ -1,7 +1,7 @@
 import { computed, effect, inject, Injectable } from '@angular/core';
 
 import { isStale, LatestGate } from '../core/rpc-call';
-import { DevContextApi } from '../data-access/devcontext-api';
+import { DevContextApi, type NeighborDirection } from '../data-access/devcontext-api';
 import { toEdgeVm, toNodeDetailVm, toTraceVm } from '../models/view-models';
 import { DEFAULT_TRACE_SLICE, type TraceDetail, WorkspaceStore } from './workspace.store';
 
@@ -54,6 +54,7 @@ export class TraceStore {
   readonly selectedNodeId = computed(() => this.activeTrace().selectedNodeId);
   readonly nodeDetail = computed(() => this.activeTrace().nodeDetail);
   readonly neighbors = computed(() => this.activeTrace().neighbors);
+  readonly neighborDirection = computed(() => this.activeTrace().neighborDirection);
   readonly active = computed(() => this.focus() !== null);
 
   async trace(handle: string, focus: string): Promise<void> {
@@ -86,17 +87,18 @@ export class TraceStore {
     this.workspace.updateTrace(tabId, (s) => ({ ...DEFAULT_TRACE_SLICE, depth: s.depth, detail: s.detail }));
   }
 
-  async selectNode(nodeId: string): Promise<void> {
+  async selectNode(nodeId: string, direction?: NeighborDirection): Promise<void> {
     const tabId = this.workspace.activeId();
     if (!tabId) return;
     const handle = this.workspace.tabById(tabId)?.session.handle;
     if (!handle) return;
 
-    this.workspace.updateTrace(tabId, (s) => ({ ...s, selectedNodeId: nodeId }));
+    const dir = direction ?? this.workspace.tabById(tabId)?.trace.neighborDirection ?? 'out';
+    this.workspace.updateTrace(tabId, (s) => ({ ...s, selectedNodeId: nodeId, neighborDirection: dir }));
     const res = await this.gate.run(`${tabId}:node`, async (signal) => {
       const [node, neighbors] = await Promise.all([
         this.api.getNode(handle, nodeId, signal),
-        this.api.getNeighbors(handle, nodeId, 'out', signal),
+        this.api.getNeighbors(handle, nodeId, dir, signal),
       ]);
       return { node, neighbors };
     });

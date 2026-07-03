@@ -39,11 +39,10 @@ function isTauri(): boolean {
  * hygiene (§7.2): only the non-interactive left brand strip carries
  * `data-tauri-drag-region`; every clickable child explicitly opts out.
  *
- * The omnibox itself arrives in W4 — until then this is a TRIGGER that dispatches the
- * same Ctrl+K keydown `Palette` already listens for globally, so no direct coupling to
- * Palette is needed here. The repo-label dropdown (recents + New analysis) is preserved
- * from the old header — it does something the palette doesn't yet (GAP-B3, W4): jump
- * straight to a specific past repo.
+ * The title bar's search field is a TRIGGER that dispatches the same Ctrl+K keydown
+ * `Omnibox` listens for globally, so no direct coupling to Omnibox is needed here. The
+ * repo-label dropdown (recents + New analysis) is preserved from the old header for a
+ * one-click jump to a specific past repo without opening the omnibox first.
  */
 @Component({
   selector: 'app-titlebar',
@@ -205,8 +204,7 @@ export class Titlebar {
     void this.session.analyze(spec);
   }
 
-  /** Dispatches the same Ctrl+K keydown `Palette` listens for globally — the omnibox
-   * overlay itself is a W4 build; until then the trigger opens the existing palette. */
+  /** Dispatches the same Ctrl+K keydown `Omnibox` listens for globally. */
   protected openOmnibox(): void {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
   }

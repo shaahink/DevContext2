@@ -2,7 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import type { AnalysisSummary, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { OperationController } from '../core/activity/operation-controller';
-import { DevContextApi } from '../data-access/devcontext-api';
+import { DevContextApi, type NeighborDirection } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EdgeVm, type EntryGroupVm, type NodeDetailVm, type TraceNodeVm } from '../models/view-models';
 
 export type TraceDetail = 'signature' | 'salient' | 'full';
@@ -51,6 +51,8 @@ export interface TabTraceSlice {
   readonly selectedNodeId: string | null;
   readonly nodeDetail: NodeDetailVm | null;
   readonly neighbors: readonly EdgeVm[];
+  /** Direction of `neighbors` (Stage's Node altitude toggle, proposal §2). */
+  readonly neighborDirection: NeighborDirection;
 }
 
 export interface TabState {
@@ -95,6 +97,7 @@ export const DEFAULT_TRACE_SLICE: TabTraceSlice = {
   selectedNodeId: null,
   nodeDetail: null,
   neighbors: [],
+  neighborDirection: 'out',
 };
 
 /**
