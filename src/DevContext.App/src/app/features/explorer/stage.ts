@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, model, output, signal } from '@angular/core';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
@@ -191,7 +191,8 @@ export class Stage {
   /** System altitude project click — parent filters the Entry Deck to it. */
   readonly projectSelected = output<string>();
 
-  protected readonly altitude = signal<StageAltitude>('flow');
+  /** `model()` so the Workbench can lift it into `?view` URL state (proposal §8.3). */
+  readonly altitude = model<StageAltitude>('flow');
   protected readonly flowMode = signal<FlowMode>('tree');
   protected readonly graphDepth = signal(3);
   protected readonly nodeViewMode = signal<NodeViewMode>('list');

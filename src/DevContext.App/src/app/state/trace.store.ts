@@ -98,6 +98,23 @@ export class TraceStore {
     this.workspace.updateTrace(tabId, (s) => ({ ...DEFAULT_TRACE_SLICE, depth: s.depth, detail: s.detail }));
   }
 
+  /** Esc-ladder rung 1 (proposal §8.4): abort the in-flight trace, keeping whatever
+   * content is already on screen (content-preserving, §5.2) — just stops the spinner. */
+  cancelTrace(): void {
+    const tabId = this.workspace.activeId();
+    if (!tabId) return;
+    this.gate.cancel(`${tabId}:trace`);
+    this.workspace.updateTrace(tabId, (s) => (s.loading ? { ...s, loading: false } : s));
+  }
+
+  /** Esc-ladder rung (proposal §8.4): clear node selection only — Details/LLM/neighbors —
+   * without touching the current trace tree. */
+  deselectNode(): void {
+    const tabId = this.workspace.activeId();
+    if (!tabId) return;
+    this.workspace.updateTrace(tabId, (s) => ({ ...s, selectedNodeId: null, nodeDetail: null, neighbors: [] }));
+  }
+
   /** Double-click "re-trace from it" (proposal §2), done client-side with ZERO new RPC:
    * `GetTrace`'s `focus` only resolves registered entry-point keys (confirmed by hand —
    * an internal node id like `Member:Foo.<lambda>` comes back `found: false`), so a real

@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AtlasStore } from '../../state/atlas.store';
 import { PrefsStore } from '../../state/prefs.store';
@@ -10,22 +10,29 @@ import { WorkspaceStore } from '../../state/workspace.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { EntryDeck } from '../explorer/entry-deck';
-import { Stage } from '../explorer/stage';
+import { Stage, type StageAltitude } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
 
 const TRACE_DEBOUNCE_MS = 150;
 /** Inspector width per dock level (% of the workbench). Level 3 = focus mode. */
 const DOCK_WIDTHS = [0, 30, 40, 100] as const;
+const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
 
 /**
  * Workbench (F proposal §2) — Entry Deck │ Stage │ Inspector around ONE selection.
  * This page owns what selection MEANS: deck scrubs commit a debounced trace + trail
  * push; stage node clicks select + push; trail restores re-trace WITHOUT pushing.
  *
- * TODO(W4): URL state (?focus&view) read/write; Esc-ladder; audit-table overlay
- *   (Shift+E currently no-ops via openAudit); dock drag handles; move global
- *   shortcuts (Ctrl+Shift+L, Ctrl+Z/Y) into workspace-shell so they work on every
- *   page — window-level here is a stopgap.
+ * URL state (`?focus&view&kind&q`, proposal §8.3) is read once on load (deep-link
+ * compat — a restoreFocus effect self-destructs after firing) and mirrored back with
+ * `replaceUrl: true` so it never grows browser history, matching TracePage's existing
+ * `?focus` convention.
+ *
+ * TODO(W4 remainder): dock drag handles (Ctrl+Shift+L is the only control today).
+ * Global shortcuts (Ctrl+Shift+L, Ctrl+Z/Y, Esc-ladder, p, Alt+←/→) are deliberately
+ * kept window-level HERE rather than promoted to workspace-shell: they all act on the
+ * Inspector/Trail/Trace, which only exist while this page is mounted, so promoting
+ * would need the same logic duplicated for no benefit until other pages grow a Trail.
  * NOTE: Atlas indexing auto-starts once per snapshot handle (see effect below) and
  *   its progress is read from `atlas.progressLabel()` — surface it in the statusbar
  *   segment in W5.
@@ -48,12 +55,15 @@ const DOCK_WIDTHS = [0, 30, 40, 100] as const;
             [groups]="session.entryGroups()"
             [selectedFocus]="trace.focus()"
             [projectFilter]="projectFilter()"
+            [(activeKind)]="deckKind"
+            [(filterText)]="deckFilterText"
             (selectionChange)="onEntry($event)"
             (openAudit)="onOpenAudit()"
             (projectFilterCleared)="projectFilter.set(null)"
           />
           <app-stage
             class="min-w-0 flex-1"
+            [(altitude)]="stageAltitude"
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
@@ -82,11 +92,17 @@ export class WorkbenchPage implements OnDestroy {
   private readonly atlas = inject(AtlasStore);
   private readonly workspace = inject(WorkspaceStore);
   private readonly prefs = inject(PrefsStore);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly dockLevel = signal(this.prefs.dockLevel());
   protected readonly dockWidth = computed(() => DOCK_WIDTHS[this.dockLevel()]);
   /** Set by Stage's System altitude (project click); cleared from the deck's own chip. */
   protected readonly projectFilter = signal<string | null>(null);
+  /** Lifted from Stage/EntryDeck's `model()`s so they can mirror into `?view&kind&q`. */
+  protected readonly stageAltitude = signal<StageAltitude>('flow');
+  protected readonly deckKind = signal<string | null>(null);
+  protected readonly deckFilterText = signal('');
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -110,6 +126,43 @@ export class WorkbenchPage implements OnDestroy {
     effect(() => {
       if (this.trace.loading()) this.atlas.pause();
       else this.atlas.resume();
+    });
+
+    // Read URL state once (deep-link compat, proposal §8.3) — never re-read reactively,
+    // since we're the ones writing it below (would otherwise fight the write effect).
+    const params = this.route.snapshot.queryParamMap;
+    const urlView = params.get('view');
+    if (isStageAltitude(urlView)) this.stageAltitude.set(urlView);
+    const urlKind = params.get('kind');
+    if (urlKind) this.deckKind.set(urlKind);
+    const urlQuery = params.get('q');
+    if (urlQuery) this.deckFilterText.set(urlQuery);
+
+    const urlFocus = params.get('focus');
+    if (urlFocus) {
+      const restoreFocus = effect(() => {
+        const handle = this.session.handle();
+        if (!handle || !this.session.ready()) return;
+        restoreFocus.destroy();
+        void this.trace.trace(handle, urlFocus);
+      });
+    }
+
+    // Mirror state back — replaceUrl so it never grows browser history (same convention
+    // as TracePage's existing `?focus`).
+    effect(() => {
+      const queryParams = {
+        focus: this.trace.focus() || null,
+        view: this.stageAltitude() === 'flow' ? null : this.stageAltitude(),
+        kind: this.deckKind(),
+        q: this.deckFilterText() || null,
+      };
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams,
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
     });
   }
 
@@ -162,10 +215,14 @@ export class WorkbenchPage implements OnDestroy {
   }
 
   protected onOpenAudit(): void {
-    // TODO(W4): open the full sortable audit table overlay (today's section-entries).
+    // TODO(W4 remainder): open the full sortable audit table overlay (today's section-entries).
   }
 
   protected onGlobalKey(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      this.onEscape();
+      return;
+    }
     if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'l') {
       event.preventDefault();
       this.toggleDock();
@@ -181,6 +238,44 @@ export class WorkbenchPage implements OnDestroy {
       event.preventDefault();
       const step = this.trail.redo();
       if (step) this.onRestore(step);
+      return;
+    }
+    if (event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      event.preventDefault();
+      const step = event.key === 'ArrowLeft' ? this.trail.undo() : this.trail.redo();
+      if (step) this.onRestore(step);
+      return;
+    }
+    if (event.key === 'p' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTypingTarget(event.target)) {
+      const current = this.trail.current();
+      if (current) {
+        event.preventDefault();
+        this.trail.togglePin(current);
+      }
+    }
+  }
+
+  /** Esc-ladder (proposal §8.4): cancel in-flight trace → deselect node → clear focus →
+   * clear deck filter. The full spec also has "close overlay" / "unpin peek" rungs above
+   * "deselect node" — added once the audit-table overlay / node-peek exist. Runs
+   * unconditionally (not gated on focus) — that's the point of a ladder: Escape always
+   * does the highest-priority thing that's currently true, same as VS Code's. */
+  private onEscape(): void {
+    if (this.trace.loading()) {
+      this.trace.cancelTrace();
+      return;
+    }
+    if (this.trace.selectedNodeId()) {
+      this.trace.deselectNode();
+      return;
+    }
+    if (this.trace.focus()) {
+      this.trace.clear();
+      return;
+    }
+    if (this.deckFilterText() || this.deckKind()) {
+      this.deckFilterText.set('');
+      this.deckKind.set(null);
     }
   }
 
@@ -199,4 +294,13 @@ export class WorkbenchPage implements OnDestroy {
 function shortNodeTitle(nodeId: string): string {
   const parts = nodeId.split(/[./:]/).filter(Boolean);
   return parts.length > 1 ? parts.slice(-2).join('.') : nodeId;
+}
+
+function isStageAltitude(value: string | null): value is StageAltitude {
+  return value !== null && (VALID_ALTITUDES as readonly string[]).includes(value);
+}
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  const tag = (target as HTMLElement | null)?.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA';
 }

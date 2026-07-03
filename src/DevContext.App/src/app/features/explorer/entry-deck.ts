@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, input, model, output, viewChild } from '@angular/core';
 
 import { type EntryGroupVm, type EntryVm, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
@@ -125,9 +125,11 @@ export class EntryDeck {
   readonly openAudit = output<void>();
   readonly projectFilterCleared = output<void>();
 
-  protected readonly filterText = signal('');
+  /** `model()` (not a plain signal) so the Workbench can lift both into `?q&kind` URL
+   * state (proposal §8.3) without owning the deck's internals. */
+  readonly filterText = model('');
   /** Single-select kind chip; null = all kinds. */
-  protected readonly activeKind = signal<string | null>(null);
+  readonly activeKind = model<string | null>(null);
 
   private readonly filterBox = viewChild.required<ElementRef<HTMLInputElement>>('filterBox');
 
