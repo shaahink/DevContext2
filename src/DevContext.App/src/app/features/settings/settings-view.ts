@@ -93,7 +93,10 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
               <div class="flex items-center justify-between">
                 <p class="text-2xs text-ink-muted uppercase">Cache — %LOCALAPPDATA%/DevContext/cache</p>
                 @if (isTauriEnv) {
-                  <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearCache()">Clear</button>
+                  <span class="flex items-center gap-2">
+                    <button class="text-2xs text-ink-subtle hover:text-ink hover:underline" (click)="openInExplorer('cache')">Open in Explorer</button>
+                    <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearCache()">Clear</button>
+                  </span>
                 }
               </div>
               @if (cache(); as c) {
@@ -110,7 +113,10 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
               <div class="flex items-center justify-between">
                 <p class="mb-1 text-2xs text-ink-muted uppercase">Repos — %LOCALAPPDATA%/DevContext/repos</p>
                 @if (isTauriEnv) {
-                  <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearRepos()">Clear</button>
+                  <span class="flex items-center gap-2">
+                    <button class="text-2xs text-ink-subtle hover:text-ink hover:underline" (click)="openInExplorer('repos')">Open in Explorer</button>
+                    <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearRepos()">Clear</button>
+                  </span>
                 }
               </div>
               @if (repos(); as r) {
@@ -206,6 +212,10 @@ export class SettingsView {
   protected async clearRepos(): Promise<void> {
     await this.storage.clearRepos();
     void this.loadStorage();
+  }
+
+  protected openInExplorer(root: 'cache' | 'repos'): void {
+    void this.storage.openInExplorer(root);
   }
 
   protected formatBytes(bytes: number): string {

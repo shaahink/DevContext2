@@ -7,6 +7,7 @@ import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { ToastService } from '../../ui/toast/toast';
+import { isTauri } from '../../core/tauri-env';
 
 type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
 
@@ -22,9 +23,8 @@ const RENDER_DEBOUNCE_MS = 250;
  *
  * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
  * TODO(W5): Insights section filters stats().insights by the current selection.
- * TODO(W4 remainder): file path row gets "Reveal in Explorer" via the Tauri opener
- *   plugin (W6); copy uses navigator.clipboard (flaky in WebView2 without focus) until
- *   the clipboard plugin lands, also W6.
+ * TODO(W6 remainder): copy uses navigator.clipboard (flaky in WebView2 without focus)
+ *   until the clipboard plugin lands (checkpoint 6).
  */
 @Component({
   selector: 'app-inspector',
@@ -41,7 +41,12 @@ const RENDER_DEBOUNCE_MS = 250;
           <p class="break-all font-mono text-xs text-ink">{{ node.title }}</p>
           <p class="text-2xs text-ink-muted">{{ node.kind }}</p>
           @if (node.filePath) {
-            <p class="break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath">{{ node.filePath }}</p>
+            <p class="flex items-start gap-1.5 break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath">
+              <span class="min-w-0 flex-1">{{ node.filePath }}</span>
+              @if (isTauriEnv) {
+                <button type="button" class="shrink-0 text-ink-subtle hover:text-ink hover:underline" (click)="revealInExplorer(node.filePath)" title="Reveal in Explorer">reveal</button>
+              }
+            </p>
           }
           <p class="text-2xs tabular-nums text-ink-muted">in {{ node.inDegree }} · out {{ node.outDegree }}</p>
           @if (node.tags.length > 0) {
@@ -167,6 +172,8 @@ export class Inspector {
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
 
+  protected readonly isTauriEnv = isTauri();
+
   /** §3.4 impact lens. Null (not 0) when no node is selected — `count` can legitimately
    * be 0, so this can't be an `@if` truthiness check on a bare number. */
   protected readonly reachedBy = computed<{ count: number; incomplete: boolean } | null>(() => {
@@ -234,6 +241,13 @@ export class Inspector {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 1500);
     });
+  }
+
+  protected revealInExplorer(filePath: string | undefined): void {
+    if (!filePath) return;
+    void import('@tauri-apps/plugin-opener')
+      .then(({ revealItemInDir }) => revealItemInDir(filePath))
+      .catch(() => this.toast.show('Could not reveal file — it may not exist on this machine.', 'error'));
   }
 
   protected fmtK(n: number): string {

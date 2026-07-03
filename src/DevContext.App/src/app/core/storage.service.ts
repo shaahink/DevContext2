@@ -45,6 +45,18 @@ export class StorageService {
     await this.clear(REPOS_ROOT);
   }
 
+  /** Opens the cache or repos root folder in the OS file explorer (opener plugin). */
+  async openInExplorer(root: 'cache' | 'repos'): Promise<void> {
+    if (!isTauri()) return;
+    const [{ localDataDir, join }, { openPath }] = await Promise.all([
+      import('@tauri-apps/api/path'),
+      import('@tauri-apps/plugin-opener'),
+    ]);
+    const base = await localDataDir();
+    const sub = root === 'cache' ? CACHE_ROOT : REPOS_ROOT;
+    await openPath(await join(base, ...sub.split('/')));
+  }
+
   private async summarize(root: string): Promise<StorageSummary> {
     if (!isTauri()) return { entries: [], totalBytes: 0 };
     const fs = await import('@tauri-apps/plugin-fs');

@@ -31,6 +31,7 @@
     "@connectrpc/connect-web": "^2.1.2",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-fs": "^2.5.1",
+    "@tauri-apps/plugin-opener": "^2.5.4",
     "cytoscape": "^3.34.0",
     "cytoscape-dagre": "^4.0.0",
     "lucide": "^1.22.0",

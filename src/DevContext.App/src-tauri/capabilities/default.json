@@ -20,6 +20,11 @@
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "$LOCALDATA/DevContext" }, { "path": "$LOCALDATA/DevContext/**" }]
+    },
+    "opener:allow-reveal-item-in-dir",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [{ "path": "$LOCALDATA/DevContext" }, { "path": "$LOCALDATA/DevContext/**" }]
     }
   ]
 }

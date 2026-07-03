@@ -1112,3 +1112,34 @@ first (or add a short explicit wait) before waiting for it to *disappear*, or th
 races ahead of the real work and captures stale content.
 
 `pnpm check` and `cargo check` both green.
+
+## 2026-07-03 — W6 checkpoint 5: opener plugin (Reveal/Open in Explorer)
+
+`tauri-plugin-opener` added. Inspector's file-path row (`inspector.ts`) gets a "reveal"
+link calling `revealItemInDir(node.filePath)` — `node.filePath` turned out to already be
+an absolute path (Roslyn's `SyntaxTree`-derived `SourceFile`, confirmed live, not
+guessed), so no repo-root joining was needed. Settings·Storage's two "Open in Explorer"
+buttons (added alongside checkpoint 4's Clear buttons) call a new
+`StorageService.openInExplorer('cache' | 'repos')`, resolving the absolute root via
+`@tauri-apps/api/path`'s `localDataDir()` + `join()`.
+
+**A real, worth-remembering scope gotcha, not a guess:** `opener:allow-reveal-item-in-dir`
+worked immediately with no scope configuration, for a path nowhere near any configured
+scope (the fixture repo, outside `$LOCALDATA` entirely) — but `opener:allow-open-path`
+rejected every call with `"Not allowed to open path ..."` until given an explicit
+`{"identifier": "opener:allow-open-path", "allow": [...]}` scope, exactly like `fs:scope`.
+The two commands are NOT symmetric: `reveal-item-in-dir` appears unrestricted once the
+bare permission is granted; `open-path` is scope-gated like the `fs` plugin. Found live,
+not from documentation (which didn't clearly state this asymmetry) — the error message
+itself was the giveaway. Scoped it to `$LOCALDATA/DevContext/**`, matching `fs:scope`,
+since that's the only thing this checkpoint's `openInExplorer` ever opens.
+
+Live-verified both actions for real, not just "the call didn't throw": traced a real
+entry, selected a node, clicked "reveal" — confirmed via PowerShell's `Shell.Application`
+COM automation (`$shell.Windows() | % LocationURL`) that a genuine Explorer window opened
+at `.../MinimalApiProject/src/Api` (the exact folder containing the selected node's
+`Program.cs`). Same technique confirmed "Open in Explorer" (cache) opened a window at
+the real `%LOCALAPPDATA%\DevContext\cache` path. Closed both test-opened windows
+afterward, left the user's own pre-existing Explorer window untouched.
+
+`pnpm check` and `cargo check` both green.
