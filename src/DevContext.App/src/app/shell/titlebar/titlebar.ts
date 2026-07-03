@@ -11,7 +11,7 @@ import { Icon } from '../../ui/icon/icon';
 
 declare global {
   interface Window {
-    __TAURI__?: unknown;
+    __TAURI_INTERNALS__?: unknown;
   }
 }
 
@@ -30,14 +30,16 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
 }
 
 function isTauri(): boolean {
-  return typeof window !== 'undefined' && window.__TAURI__ !== undefined;
+  return typeof window !== 'undefined' && window.__TAURI_INTERNALS__ !== undefined;
 }
 
 /**
  * TitleBar (proposal §8.1, 30px) — renamed/restyled from the old 44px app-header. Solid
  * `bg-base`, no blur/shadow (proposal §4.4: resting chrome never floats). Drag-region
- * hygiene (§7.2): only the non-interactive left brand strip carries
- * `data-tauri-drag-region`; every clickable child explicitly opts out.
+ * hygiene (§7.2): the three top-level strips (brand, search/repo, status/window-controls)
+ * carry `data-tauri-drag-region`; Tauri only starts a drag when the mousedown's exact
+ * event target is the tagged element itself (not a descendant), so real buttons/inputs
+ * stay fully clickable and only each strip's bare flex background is draggable.
  *
  * The title bar's search field is a TRIGGER that dispatches the same Ctrl+K keydown
  * `Omnibox` listens for globally, so no direct coupling to Omnibox is needed here. The
@@ -62,7 +64,7 @@ function isTauri(): boolean {
         </span>
       </div>
 
-      <div class="flex flex-1 items-center justify-center gap-1 px-2">
+      <div class="flex flex-1 items-center justify-center gap-1 px-2" data-tauri-drag-region>
         @if (session.busy() || session.ready()) {
           <div class="relative">
             <button

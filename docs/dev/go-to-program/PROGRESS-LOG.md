@@ -913,3 +913,49 @@ green, zero console/page errors, script written and deleted per this project's e
 
 **W5 status: DONE, all 8 checkpoints complete.** Next: W6-W7 per the proposal's waterfall
 (§10) — not scoped yet, AGENTS.md's F section needs its next-stage read before starting.
+
+## 2026-07-03 — W6 scoped + Step 0: window drag/buttons bug fixed
+
+W6 ("Tauri Hardening", proposal §10) scoped from a fresh read: sidecar engine lifecycle
+(§7.1), no-flash + window-state (§7.2), single-instance, fs plugin → Settings·Storage
+live (S3), opener plugin, CSP + capability scoping (§7.4), DPI pass at 125%/150%.
+
+Before starting the waterfall, the user reported the live Tauri window was not movable
+and had no minimize/maximize/close buttons. Root-caused by reading the actual v2
+permission schema rather than guessing, two independent bugs:
+
+1. `titlebar.ts`'s `isTauri()` checked `window.__TAURI__ !== undefined`. That global only
+   exists when `tauri.conf.json` sets `app.withGlobalTauri: true` (confirmed via
+   `node_modules/@tauri-apps/api/core.js`'s own doc comment) — not set in this project,
+   which correctly uses ESM plugin imports elsewhere. So `isTauri()` was always `false` in
+   the real app and the entire `@if (isTauri())` block holding the window buttons never
+   rendered. Fixed to check `window.__TAURI_INTERNALS__` instead — the internals global
+   Tauri v2 always injects regardless of `withGlobalTauri`.
+2. `capabilities/default.json` only granted `core:window:default`. Reading
+   `src-tauri/gen/schemas/desktop-schema.json` directly, that default set explicitly
+   excludes `allow-start-dragging`, `allow-minimize`, `allow-maximize`,
+   `allow-unmaximize`, `allow-close` — separate opt-in permissions. `data-tauri-drag-region`
+   itself works by invoking the `start_dragging` command on mousedown, so without the
+   permission the window was inert to drag independent of bug #1. Added all five
+   permissions to `capabilities/default.json`.
+
+Live-verified by the user directly (`pnpm dev`, real native window): buttons work, drag
+works. One follow-up UX nuance found by the user's own testing: dragging only worked in
+the strip overlapping the top-right buttons, not most of the bar. Root cause (inferred,
+not separately rebuilt/re-tested per explicit instruction to move on): Tauri's drag
+listener triggers only when the mousedown's exact `event.target` is the tagged element
+itself, not a descendant. The left brand strip's `data-tauri-drag-region` div has a single
+child span that fills its entire area, so `event.target` there always resolves to the
+span, never the div — zero draggable pixels despite the attribute. The middle
+repo-menu/search section had no `data-tauri-drag-region` at all. The right strip worked
+because its flex children (`gap-2`) leave real background gaps where `event.target`
+actually resolves to the tagged div. Fix applied on the same reasoning, matching the
+already-working right-strip pattern: added `data-tauri-drag-region` to the middle
+section's wrapper div (its two children are real `<button>`s, which still win hit-testing
+on their own pixels, so clicks on them are unaffected — only the `justify-center` gaps
+around them become draggable). Not independently re-verified live per the user's request
+to apply the best-guess fix and move on to the W6 checkpoints rather than spend another
+build/test cycle on this nuance.
+
+`pnpm check` green. Commit is standalone (not folded into W6 checkpoint 2) so it's
+bisectable from the checkpoint commits that follow.
