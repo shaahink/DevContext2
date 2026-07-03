@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
+import { AtlasStore } from '../../state/atlas.store';
 import { SessionStore } from '../../state/session.store';
 import { StatCell } from '../../ui/stat-cell/stat-cell';
 import { Badge } from '../../ui/badge/badge';
@@ -32,12 +33,14 @@ import { Badge } from '../../ui/badge/badge';
         }
       </div>
 
-      <div class="grid grid-cols-5 gap-2">
+      <div class="grid grid-cols-3 gap-2 sm:grid-cols-7">
         <app-stat-cell [value]="summary()?.nodes ?? 0" label="nodes" />
         <app-stat-cell [value]="summary()?.edges ?? 0" label="edges" />
         <app-stat-cell [value]="summary()?.entries ?? 0" label="entries" />
         <app-stat-cell [value]="wired()" label="wired" />
+        <app-stat-cell [value]="unwired()" label="unwired" />
         <app-stat-cell [value]="coverage() + '%'" label="coverage" />
+        <app-stat-cell [value]="confidence() === null ? '—' : confidence() + '%'" label="confidence" />
       </div>
 
       @if (stack().length) {
@@ -54,6 +57,7 @@ import { Badge } from '../../ui/badge/badge';
 })
 export class IdentityStrip {
   protected readonly session = inject(SessionStore);
+  private readonly atlas = inject(AtlasStore);
 
   protected readonly summary = this.session.summary;
   protected readonly map = this.session.mapResponse;
@@ -65,9 +69,19 @@ export class IdentityStrip {
   protected readonly stack = computed(() => this.map()?.stack ?? []);
 
   protected readonly wired = computed(() => this.summary()?.entriesWithTarget ?? 0);
+  /** §3.6 — `summary.entries - summary.entriesWithTarget`, the same subtraction the
+   * server-computed `entriesWithTarget` implies; no new field needed. */
+  protected readonly unwired = computed(() => {
+    const s = this.summary();
+    return s ? s.entries - s.entriesWithTarget : 0;
+  });
   protected readonly coverage = computed(() => {
     const s = this.summary();
     if (!s || s.entries === 0) return 0;
     return Math.round((s.entriesWithTarget / s.entries) * 100);
   });
+
+  /** §3.5 repo-wide confidence, from the Flow Atlas's indexed flows — null (rendered
+   * "—") until at least one flow has been indexed, not 0, since 0% is a real value. */
+  protected readonly confidence = this.atlas.overallVerifiedPct;
 }

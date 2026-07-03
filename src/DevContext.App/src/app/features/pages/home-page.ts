@@ -13,6 +13,14 @@ const SEVERITY_ORDER: Record<string, number> = { warning: 0, notable: 1, info: 2
 const MAX_TOP_FLOWS = 7;
 const MAX_INSIGHTS = 3;
 
+/** Lightweight display shape shared by real (server) insights and the client-synthesized
+ * unwired-entries card below — only the fields the template actually reads. */
+interface InsightRowVm {
+  readonly id: string;
+  readonly severity: string;
+  readonly title: string;
+}
+
 /**
  * Home (proposal §2) — `/` when a session exists: console during analysis, then a
  * card-free digest (identity, Top Flows, insight headlines, run report). The
@@ -107,9 +115,24 @@ export class HomePage {
     return flatEntries.slice(0, MAX_TOP_FLOWS);
   });
 
-  protected readonly topInsights = computed(() =>
-    [...this.session.insights()]
+  /** §3.6 — a client-synthesized "unwired entries" card, competing for a slot by
+   * severity alongside the server's real insights (not a separate list — same
+   * "Insights" heading, same "See all" link semantics apply to the real ones). */
+  private readonly unwiredInsight = computed<InsightRowVm | null>(() => {
+    const s = this.session.summary();
+    if (!s || s.entries === 0) return null;
+    const unwired = s.entries - s.entriesWithTarget;
+    if (unwired <= 0) return null;
+    const severity = unwired / s.entries > 0.2 ? 'warning' : 'notable';
+    return { id: 'unwired-entries', severity, title: `${unwired} of ${s.entries} entries have no resolved target` };
+  });
+
+  protected readonly topInsights = computed<readonly InsightRowVm[]>(() => {
+    const real: InsightRowVm[] = this.session.insights().map((i) => ({ id: i.id, severity: i.severity, title: i.title }));
+    const synthetic = this.unwiredInsight();
+    const all = synthetic ? [synthetic, ...real] : real;
+    return all
       .sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 3) - (SEVERITY_ORDER[b.severity] ?? 3))
-      .slice(0, MAX_INSIGHTS),
-  );
+      .slice(0, MAX_INSIGHTS);
+  });
 }

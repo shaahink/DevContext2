@@ -1,9 +1,11 @@
 import { Component, computed, inject, model, output, signal } from '@angular/core';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
+import { filterApproxTree, type TraceNodeVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { GraphCanvas } from '../../ui/graph-canvas/graph-canvas';
+import { Meter, type MeterVariant } from '../../ui/meter/meter';
 import { TraceNodeComponent } from '../trace/trace-node';
 
 export type StageAltitude = 'system' | 'flow' | 'node';
@@ -31,7 +33,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
  */
 @Component({
   selector: 'app-stage',
-  imports: [GraphCanvas, TraceNodeComponent],
+  imports: [GraphCanvas, TraceNodeComponent, Meter],
   host: { class: 'panel relative flex h-full min-h-0 flex-col' },
   template: `
     @if (trace.loading()) {
@@ -70,6 +72,17 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
             }
           </select>
         }
+        @if (flowMode() === 'tree') {
+          <button
+            type="button"
+            class="chip"
+            [class.active]="approxOnly()"
+            (click)="approxOnly.set(!approxOnly())"
+            title="Show only approx-resolved nodes (and their ancestors, so they stay reachable from the root)"
+          >
+            approx only
+          </button>
+        }
       }
       @if (altitude() === 'node') {
         @for (dir of directions; track dir.id) {
@@ -86,6 +99,12 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
         </button>
       }
       <span class="flex-1"></span>
+      @if (altitude() === 'flow' && verifiedPct() !== null) {
+        <div class="flex items-center gap-1.5" title="Verified vs approx resolution across this trace">
+          <app-meter [value]="verifiedPct()!" [variant]="meterVariant(verifiedPct()!)" class="w-12" />
+          <span class="tabular-nums text-2xs text-ink-subtle">{{ verifiedPct() }}%</span>
+        </div>
+      }
       @if (trace.focus(); as focus) {
         <span class="truncate font-mono text-2xs text-ink-subtle" [title]="focus">{{ focus }}</span>
       }
@@ -107,15 +126,21 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           }
         }
         @case ('flow') {
-          @if (trace.tree(); as tree) {
+          @if (trace.tree(); as rawTree) {
             @if (flowMode() === 'tree') {
-              <div class="p-2">
-                <app-trace-node [node]="tree" (nodeSelected)="nodeSelected.emit($event)" />
-              </div>
+              @if (displayedTree(); as tree) {
+                <div class="p-2">
+                  <app-trace-node [node]="tree" (nodeSelected)="nodeSelected.emit($event)" />
+                </div>
+              } @else {
+                <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
+                  Nothing approx in this trace &mdash; fully verified.
+                </div>
+              }
             } @else {
               <app-graph-canvas
                 class="block h-full"
-                [data]="{ mode: 'trace', root: tree, maxDepth: graphDepth() }"
+                [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
                 (nodeSelected)="onFlowTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />
@@ -198,6 +223,32 @@ export class Stage {
   protected readonly nodeViewMode = signal<NodeViewMode>('list');
   protected readonly directions = DIRECTIONS;
 
+  /** §3.5 Confidence Ledger. Tree-mode only — graph mode always shows the raw tree,
+   * scope decision (the canvas has no per-node badge system to filter against today). */
+  protected readonly approxOnly = signal(false);
+  protected readonly displayedTree = computed<TraceNodeVm | null>(() => {
+    const tree = this.trace.tree();
+    if (!tree) return null;
+    return this.approxOnly() ? filterApproxTree(tree) : tree;
+  });
+
+  /** Walks the currently loaded (unfiltered) tree — independent of AtlasStore's indexer,
+   * so this works instantly for ANY trace, not just ones the background indexer reached. */
+  protected readonly verifiedPct = computed<number | null>(() => {
+    const tree = this.trace.tree();
+    if (!tree) return null;
+    let total = 0;
+    let verified = 0;
+    const stack: TraceNodeVm[] = [tree];
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+      total++;
+      if (node.resolution === 'Semantic') verified++;
+      for (const child of node.children) stack.push(child);
+    }
+    return total > 0 ? Math.round((verified / total) * 100) : null;
+  });
+
   protected readonly altitudes: readonly { id: StageAltitude; label: string; hint: string }[] = [
     { id: 'system', label: 'System', hint: 'Project topology (v s)' },
     { id: 'flow', label: 'Flow', hint: 'Current trace (v t / v g)' },
@@ -226,5 +277,11 @@ export class Stage {
 
   protected onNodeTap(nodeId: string): void {
     if (nodeId) this.nodeSelected.emit(nodeId);
+  }
+
+  protected meterVariant(pct: number): MeterVariant {
+    if (pct >= 80) return 'success';
+    if (pct >= 50) return 'accent';
+    return 'warn';
   }
 }

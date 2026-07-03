@@ -128,6 +128,19 @@ function orderIndex(kind: string): number {
   return i === -1 ? ENTRY_KIND_ORDER.length : i;
 }
 
+/** Confidence Ledger tree filter (proposal §3.5) — keeps a node if it's itself
+ * non-`Semantic` OR any descendant is, so matches stay reachable from the root
+ * instead of orphaning them by cutting a fully-verified ancestor. Returns null
+ * when nothing in the (sub)tree matches. */
+export function filterApproxTree(node: TraceNodeVm): TraceNodeVm | null {
+  const children = node.children
+    .map(filterApproxTree)
+    .filter((c): c is TraceNodeVm => c !== null);
+  const selfMatches = node.resolution !== 'Semantic';
+  if (!selfMatches && children.length === 0) return null;
+  return { ...node, children };
+}
+
 export function toTraceVm(node: TraceNode): TraceNodeVm {
   return {
     id: node.nodeId,
