@@ -78,20 +78,74 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   (Overview/Entries/Trace/Graph/Insights/Export/Settings) rather than collapsing to the proposal's
   eventual 5-icon layout — that collapse assumes `/explore` has already absorbed Entries/Trace/Graph,
   which is a W4 cutover, not a W1 one; collapsing now would make working pages nav-undiscoverable.
-- W2 (component build) — **partial seed**: `entry-deck`, `stage`, `inspector`, `trail-bar` exist and
-  are wired into a real `/explore` route (ahead of spec — normally W2 stays store-free until W4).
-- W3 (state/RPC hardening) — **mostly done**: `LatestGate` (`core/rpc-call.ts`) now threads through
-  `TraceStore.trace()`/`selectNode()` (keys `${tabId}:trace`/`${tabId}:node`), with abort-on-tab-close;
-  `TrailStore`/`AtlasStore` skeletons exist; `SessionStore` has the duplicate-path guard (GAP-T4);
-  `PrefsStore` has `dockLevel` (wired into the Workbench's Ctrl+Shift+L, replacing raw localStorage).
-  Remaining: analyze-stream cancel sweep beyond what `OperationController` already does, omnibox
-  search (`searchNodes`) onto `runLatest` (GAP-B1).
-- W4-W7 — not started (the big wiring, derived insights, Tauri hardening, polish).
-- Known pre-existing bug noticed in passing, NOT fixed (out of scope for W0/W1): `section-console.ts`
+- W2 (component build) — **done, blended with W4** (see note below). `entry-deck`, `stage`,
+  `inspector`, `trail-bar`, `audit-table` all exist, wired into a real `/explore` route with real
+  store data (ahead of spec — normally W2 stays store-free until W4; this project already decided in
+  W1/W2 to skip that intermediate store-free stage, since it would mean building each component
+  twice). Not built: `mini-map` (thumbnail for tree mode) — low value, skipped; `node-peek` — spec
+  itself defers this to W7.
+- W3 (state/RPC hardening) — **done**. `LatestGate` (`core/rpc-call.ts`) threads through
+  `TraceStore.trace()`/`selectNode()` (keys `${tabId}:trace`/`${tabId}:node`) and the omnibox's node
+  search (key `'search'`), all abort-on-supersede; `TrailStore`/`AtlasStore` fully built (not just
+  skeletons — `AtlasStore` already computes `topFlows`/`hubs`/`eventWiring`/`reachedBy`, pulled ahead
+  of its nominal W5 slot since the indexer needed those shapes anyway); `SessionStore` has the
+  duplicate-path guard (GAP-T4); `PrefsStore` has `dockLevel`. Analyze-stream cancel sweep audited
+  and confirmed complete (`OperationController` + `WorkspaceStore.closeTab` + the trace/atlas
+  tab-close effects) — no gap found, no code needed.
+- W4 (the great wiring) — **6 of 9 checkpoints done**, each its own commit, each `pnpm check` green,
+  each verified live via headless Chrome (playwright, `channel: 'chrome'`) against a real analyzed
+  repo (`tests/fixtures/MinimalApiProject`) — not just lint/build. Full narrative + every bug found
+  during verification: `docs/dev/go-to-program/PROGRESS-LOG.md`'s "W3 remainder + W4 partial" entry.
+  Done: **omnibox live** (replaces Palette entirely — GAP-B1-B5, C2 closed); **stage altitudes live**
+  (System topology graph, Node List/Graph + out/in/usages toggle, Flow dblclick "re-trace" — which
+  turned out to need a client-side `TraceStore.reroot()` instead of a fresh `GetTrace`, see below);
+  **workbench URL state** (`?focus&view&kind&q`) **+ Esc-ladder** (cancel trace → close overlay →
+  deselect node → clear focus → clear filter) **+ `p`/Alt+←→ shortcuts**; **inspector LLM section**
+  migrated to the Render RPC (was raw `trace.markdown()`); **audit table overlay** (Shift+E, replaces
+  the standalone entries page as an overlay). Remaining for the W4 gate:
+  1. **Export drawer** (Ctrl+E): section toggles + Onboarding/Flow-Review/Full/From-Trail presets,
+     porting `section-export.ts`'s render logic; "From Trail" renders each `TrailStore.pins()` step
+     via the Render RPC, concatenated, tokens summed.
+  2. **Home page assembly**: identity strip, Top Flows card row (`AtlasStore.topFlows()` — already
+     computed), insight headline row, run report — restyled card-free. Console during analysis stays
+     as-is.
+  3. **Atlas page assembly**: map markdown (prose-zone), topology graph (`GraphCanvas` `topology`
+     mode — already built in checkpoint 3, just needs binding here too), packages/pipeline list. Since
+     `AtlasStore.eventWiring()`/`hubs()` already exist (pulled ahead in W3), surface them here too
+     instead of stubbing to W5 — near-zero incremental cost.
+  4. **Route cutover**: make `/entries` `/trace` `/graph` redirect into `/explore` (preserving
+     `?focus` where present); `/overview` redirect to `/` (Home). Delete
+     `section-entries`/`-trace`/`-graph`/`-lens`/`-export` + their standalone pages
+     (`entries-page`/`trace-page`/`graph-page`) + `SectionCard`, once nothing references them (grep
+     first — `styleguide-page.ts` may still demo some primitives independently).
+  5. Full manual gate sweep per proposal §10's W4 table (flows A-E walked end-to-end, deep links land
+     traced, deleting files broke nothing, kill-server-mid-trace degrades correctly).
+- W5-W7 — not started. Note that `AtlasStore`'s W5 data layer (topFlows/hubs/eventWiring/reachedBy)
+  already exists from W3 — W5 itself is now mostly "bind it to Home/Atlas/Inspector," which the W4
+  remainder above is already starting to do opportunistically. Inspector's "Reached by N flows" line
+  and Insights-for-selection section were deliberately left for W5 proper (see PROGRESS-LOG) even
+  though the data exists, to keep the W4 gate meaning something.
+- **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
+  only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
+  node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`, confirmed against the live server.
+  So "double-click any graph node → re-trace from it" (proposal §2) is implemented as a **client-side
+  re-root** (`TraceStore.reroot()`, finds the node inside the tree already loaded and redisplays that
+  subtree) rather than a fresh `GetTrace` call — the proposal implies zero engine changes are needed
+  for this feature but doesn't explain how; this is the how. Depth is capped at whatever was already
+  fetched relative to the original root. `NeighborsRequest`/`NodeRequest` (used by `selectNode`/
+  `getNode`), by contrast, DO accept arbitrary node ids fine — only `GetTrace`'s focus resolution is
+  this restrictive.
+- Known pre-existing bug noticed in passing, NOT fixed (out of scope): `section-console.ts`
   tracks its `@for` by `line.timestamp` (`Date.now()`) — two progress events landing in the same
   millisecond collide (`NG0955` console warning, harmless but real). Worth a look whenever that file
-  is next touched.
-- Gate for resuming: `pnpm check` green (real exit code) → start W2 completion or W3's remainder.
+  is next touched (it may not survive the W4 route cutover anyway).
+- **Playwright verification tip for whoever resumes:** the first headless Chrome launch immediately
+  after a `pnpm check` sometimes hits a `<vite-error-overlay>` intercepting clicks — `ng serve` (still
+  running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
+  retry of the identical script always passed clean in this session. Don't dismiss an overlay that
+  survives a retry, but don't chase one that only appears once either.
+- Gate for resuming: `pnpm check` green (real exit code) → pick up the W4 remainder above, starting
+  with the export drawer.
 
 ## Verify loop
 ```powershell
@@ -127,8 +181,18 @@ git -C C:/Code/DevContext2-ui pull
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App
 pnpm check > check.log; echo $LASTEXITCODE   # real exit code, never pipe to tail
 ```
-Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) and pick up at W3's
-remaining item (analyze-stream cancel sweep, omnibox onto `runLatest`) or start W1.
+Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — W0-W3 are done, W4
+is 6/9 checkpoints done. Pick up the W4 remainder in this order: export drawer (Ctrl+E) → Home page
+assembly → Atlas page assembly → route cutover + deletion → full manual gate sweep. See this file's
+"F — Fable Workbench Redesign" section above for exactly what each remaining item needs, and
+`docs/dev/go-to-program/PROGRESS-LOG.md`'s latest entry for the bugs already found/fixed and the
+`vite-error-overlay` retry gotcha when Playwright-verifying a fresh change.
+
+For each remaining item: implement → `pnpm check` green → verify live (start `pnpm server` +
+`pnpm dev:web`, drive it with a headless Chrome via `playwright`, `channel: 'chrome'`, against
+`tests/fixtures/MinimalApiProject` — see recent commits for smoke-script examples, none are kept in
+the repo) → commit → append a PROGRESS-LOG.md entry → move to the next item. One commit per
+checkpoint, same discipline as the W4 commits already on this branch.
 
 ---
 

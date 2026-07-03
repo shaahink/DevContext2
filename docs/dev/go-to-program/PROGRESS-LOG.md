@@ -518,3 +518,79 @@ field rather than keep two conflicting theme-persistence paths.
 **Next:** W2 completion (progressive `trace-tree.ts` to replace `trace-node.ts`'s reuse in Stage;
 `audit-table.ts`; `graph-canvas` topology/neighbors builders) or W3's remainder (analyze-stream cancel
 sweep, omnibox onto `runLatest`) — see `AGENTS.md`'s "F — Fable Workbench Redesign" for current status.
+
+**Changed — W3 remainder + W4 partial (commits `bf23e31`..`7de783d`, this session):**
+Resumed cold per AGENTS.md's own resume protocol; W0/W1 were already done, W3 was "mostly done."
+Closed out W3, then pushed six W4 checkpoints, each its own commit, `pnpm check` green before every
+one, and each verified live against a headless Chrome (playwright, `channel: 'chrome'`) analyzing
+`tests/fixtures/MinimalApiProject` through the real server — not just lint/build. That verification
+step caught four real bugs no amount of type-checking would have: see below.
+
+1. **W3 remainder** (`bf23e31`): palette search debounced (150ms) through `LatestGate` — closes
+   GAP-B1. Audited the analyze-stream/tab-close cancel sweep (`OperationController` +
+   `WorkspaceStore.closeTab` + `TraceStore`/`AtlasStore`'s tab-close effects) — already complete, no
+   code change needed.
+2. **Omnibox** (`0af42ca`): new `features/omnibox/omnibox.ts` replaces `features/palette/palette.ts`
+   (deleted). Ctrl+K/Ctrl+P, Tab-cycle verbs (Trace/Node/Usages/Copy) applied to the selected
+   entry/node row, sections Action/Recents/Entries/Nodes, static sections computed once (GAP-C2).
+   `TraceStore.selectNode()` gained an optional `NeighborDirection` param (was hardcoded `'out'`).
+   **Bugs found live, not by lint:** the input never received DOM focus on open — typing only
+   "worked" by whatever residual focus was left over from a prior interaction, a real keyboard-first
+   regression; Escape didn't close the overlay (the panel's blanket `(keydown)="$event.stopPropagation()"`
+   swallowed it before it reached the overlay's own handler); static action items weren't filtered by
+   query at all (the code path was simply missing). All three fixed same commit.
+3. **Stage altitudes** (`8d1c181`): `GraphCanvas` now takes a discriminated `data` input
+   (`mode: trace|topology|neighbors`) instead of a lone `trace` input. System altitude renders real
+   topology the instant analysis completes (zero traces run — the "graph is never blank" promise);
+   clicking a project filters the Entry Deck to it (`EntryVm` gained `project` from
+   `EntryPoint.project`). Node altitude gained a List/Graph toggle plus an out/in/usages direction
+   toggle. **Engine-constraint discovery, confirmed by hand against the live server, not from
+   docs:** `GetTrace`'s `focus` only resolves registered entry-point keys — passing a raw internal
+   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`. So "double-click any graph node →
+   re-trace from it" is NOT a fresh `GetTrace` call (the proposal assumed no RPC needed this would
+   suffice, but doesn't say how); `TraceStore.reroot()` instead finds the node inside the
+   already-loaded tree and re-roots the display at it client-side — zero new RPCs, depth capped at
+   whatever was already fetched. Trail gained a `reroot` step kind whose restore path calls
+   `reroot()` instead of re-tracing (its id isn't a valid focus string, so the normal restore path
+   would also 404).
+4. **Workbench URL state + Esc-ladder** (`0278a48`): `/explore` mirrors selection into
+   `?focus&view&kind&q` (read once on load for deep-link compat, written back with `replaceUrl`,
+   same convention as `TracePage`'s existing `?focus`). `EntryDeck.filterText`/`activeKind` and
+   `Stage.altitude` became `model()` so the Workbench can lift them. Esc-ladder: cancel in-flight
+   trace → deselect node → clear focus → clear filter (the "close overlay" rung was added in
+   checkpoint 6 once there was an overlay). Added `p` (pin current trail step) and Alt+←/→ (trail
+   undo/redo aliases). `TraceStore` gained `cancelTrace()`/`deselectNode()` for the ladder's first
+   two rungs.
+5. **Inspector Render-RPC LLM section** (`4a56501`): migrated off `trace.markdown()` onto the Render
+   RPC (250ms debounce, real `estimatedTokens`), superseding `section-lens.ts`'s pattern for this
+   surface. First load shows `Skeleton` blocks; a refresh dims existing content instead (per the
+   content-preserving loading policy — skeletons are first-load only). **Found live:** the LLM
+   header nested a `<button>` (Copy) inside another `<button>` (the section-h collapse toggle) —
+   invalid HTML that Angular's DOM renderer never sanitizes (it builds the DOM via direct node
+   creation, so the browser's HTML-parse-time nesting correction never triggers). This was
+   pre-existing (inherited from the original `trace.markdown()` version, not introduced this
+   session) but squarely in the code being touched, so fixed: the toggle is now an inner button
+   inside a plain div, Copy is a sibling not a descendant. Deliberately NOT done: Insights-for-
+   selection and "Reached by N flows" via `AtlasStore` — the data already exists (built ahead of
+   schedule in W3) but wiring it now would jump the waterfall past a real W4 gate for no urgent
+   reason; left for W5 as the proposal itself places them.
+6. **Audit table overlay** (`7de783d`): new `features/explorer/audit-table.ts`, the sortable/
+   filterable entry table ported from `section-entries.ts`, as a Shift+E overlay instead of a
+   standalone page. Self-contained filter/sort state (no URL sync — unlike `section-entries`'s old
+   `?sort&dir&kind&q`, syncing would fight the Workbench's own `?kind&q`). Row "Trace" behaves like a
+   deck selection and closes the overlay.
+
+**Process note for whoever resumes:** three of the four Playwright smoke runs in this session hit a
+`<vite-error-overlay>` intercepting clicks on the VERY FIRST browser launch immediately after a
+`pnpm check` (which runs its own one-shot `ng build` concurrently with the already-running `ng serve`
+dev server — they likely contend over `.angular/cache`). Every single time, a bare retry of the exact
+same script one more time passed clean with zero console errors. Treat this specific symptom (overlay
+appears only on the first post-check run, never on the second) as this known flakiness, not a product
+bug — but don't dismiss a `vite-error-overlay` that persists across a retry; read its text.
+
+**Remaining for a clean W4 gate** (see `AGENTS.md` — updated same session): export drawer (Ctrl+E,
+presets, From Trail), Home page assembly (identity strip, top-flow list, insight headlines), Atlas
+page assembly (map/topology/packages — `eventWiring`/`hubs` already computed in `AtlasStore` since
+W3, just needs binding), route cutover (`/explore` canonical, old routes redirect, delete
+`section-entries/-trace/-graph/-lens/-export` + their pages + `SectionCard`), then the full manual
+gate sweep in proposal §10's W4 table.
