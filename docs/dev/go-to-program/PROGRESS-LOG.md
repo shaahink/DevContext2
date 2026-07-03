@@ -752,6 +752,32 @@ the app shell didn't crash, then restarted the exact same server process (`DevCo
 exactly as it was found.
 
 **W4 status: DONE, 9/9 checkpoints, gate passed.** `pnpm check` exit 0 throughout. Next: W5
-(derived insight layer) — see AGENTS.md's F section for the item list; the atlas indexer trigger
-(`AtlasStore.start()` on analysis-ready) is the natural first item since everything else on
-Home/Atlas from W4 is already wired and waiting on real indexed data.
+(derived insight layer) — see AGENTS.md's F section for the item list.
+
+---
+
+## 2026-07-03 — Branch merge + W5 correction (session wrap-up, no new checkpoint)
+
+Merged `feat/w4-export-drawer` into `feat/fable-redesign-skeleton` (`--no-ff`, commit `94533da`) —
+clean merge, no conflicts, `pnpm check` still green on the merged branch. Neither branch is pushed
+to `origin` (no upstream tracking ref on either) — this is all local. `feat/w4-export-drawer` still
+exists, fully merged, not deleted.
+
+**Correction to the note above** (the previous entry claimed "the atlas indexer trigger
+(`AtlasStore.start()` on analysis-ready) is the natural first item" for W5, implying the trigger
+doesn't exist — that's wrong, caught before it could cost a future session real time). Verified
+live with temporary `console.log` instrumentation in `workbench-page.ts` (added, tested, reverted —
+zero diff against the committed version afterward): `atlas.start(tabId, handle, entries)` already
+exists and already works correctly — watched it go `indexing 0/2 → 1/2 → done 2/2` against
+`MinimalApiProject`, `topFlows()` populating to 2. The real, verified gap is *where* it triggers:
+only inside `WorkbenchPage`'s constructor, i.e. the first time a user visits `/explore`. Since Home
+(`/`) is the actual cold-start landing page now (post-W4 cutover) and the proposal's Core Flow A
+expects Top Flows ranked on the Home digest *before* ever visiting Explore, a user who never leaves
+Home never triggers indexing at all — Home's Top Flows row stays on its flat-entry-list fallback
+forever in that path. Also confirmed live: `shell/statusbar/statusbar.ts` has zero references to
+`atlas` (grepped) — the proposal's "▸ atlas 42/94" progress segment genuinely doesn't exist, that
+part was accurate. And `atlas-page.ts`'s Event Wiring Board / Hub Radar are correctly wired to the
+live `AtlasStore` signals already (checkpoint 9) — their empty result against `MinimalApiProject`
+(a trivial 2-endpoint fixture with no messaging) is the *correct* output, not a bug; don't spend W5
+time "fixing" that fixture result. Full corrected W5 item list is in AGENTS.md's F section — start
+there, not here, since this note will go stale the moment W5 work begins.

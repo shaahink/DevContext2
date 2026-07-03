@@ -127,16 +127,35 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   `.isVisible()` on the host tag itself is empty box around a `position:fixed` child — check the
   inner `.fixed` div instead, don't "fix" the component just to make it Playwright-friendly (its
   sibling `omnibox.ts` has the same host shape and works fine in the real app).
-- W5 (derived insight layer) — **not started, now unblocked** (W4 gate passed). `AtlasStore`'s data
-  layer (topFlows/hubs/eventWiring/reachedBy) already exists from W3 and is already surfaced on
-  Home/Atlas from W4 — but the indexer itself (`AtlasStore.start()`) is never called anywhere yet,
-  so all of it renders empty on a fresh analysis. W5 is mostly "trigger the indexer + polish what's
-  already wired," per proposal §10: (1) call `AtlasStore.start()` on analysis-ready with
-  pause-on-user-trace (already implemented in `workbench-page.ts`'s constructor — just needs the
-  `start()` call to exist somewhere), statusbar progress segment; (2) Top Flows *ranking* on Home
-  (currently a flat entry-list fallback); (3) Event Wiring Board polish; (4) impact lens
-  ("Reached by N flows") in Inspector + omnibox verb; (5) confidence meters + approx filter;
-  (6) unwired-entries surfacing; (7) Hub Radar polish; (8) `TickerService` + statusbar ticker.
+- W5 (derived insight layer) — **not started, now unblocked** (W4 gate passed). **Corrected
+  finding (2026-07-03, verified live with temporary instrumentation, not just read from code):**
+  the indexer trigger already exists and already works —
+  `workbench-page.ts`'s constructor effect calls `atlas.start(tabId, handle, entries)` and it was
+  confirmed live going `indexing 0/2 → 1/2 → done 2/2`, `topFlows()` populating correctly. The real
+  gap is *where* it triggers: only on `WorkbenchPage` construction, i.e. the first time the user
+  visits `/explore` — not on analysis-ready itself. Since Home (`/`) is the actual cold-start
+  landing page now (post W4 cutover) and proposal Core Flow A expects "Top Flows ranked and
+  clickable" on the Home digest *before* ever visiting Explore, a user who stays on Home never
+  triggers indexing at all. W5 item 1 is therefore "move the trigger earlier" (e.g. into
+  `SessionStore.analyze()`'s success path or a `home-page.ts`/`workspace-shell.ts` effect), not
+  "add the trigger" — it already exists in `workbench-page.ts` and should probably be deleted from
+  there once it lives somewhere that fires on analysis-ready regardless of route. Also confirmed
+  live: `shell/statusbar/statusbar.ts` has **zero** references to `atlas` anywhere (grepped) — the
+  proposal's "▸ atlas 42/94" progress segment genuinely doesn't exist yet, that part of the W4-era
+  note was right. And Atlas's Event Wiring Board / Hub Radar (`atlas-page.ts`) are correctly wired
+  to the live `AtlasStore.eventWiring()`/`hubs()` signals already (checkpoint 9) — their empty
+  state against `MinimalApiProject` is legitimate (a 2-endpoint fixture with no messaging simply
+  has no hubs or event wiring to show), not a wiring bug; don't "fix" that fixture result.
+  W5 per proposal §10, in light of the above: (1) relocate the atlas-start trigger to fire on
+  analysis-ready (not lazily on `/explore` mount) + wire the statusbar progress segment (doesn't
+  exist) + pause-on-user-trace (already implemented, just currently only reachable from
+  `/explore`); (2) make Home's Top Flows prefer `atlasStore.topFlows()` once populated, falling
+  back to the current flat entry-list only while indexing hasn't produced results yet — the
+  fallback itself (`home-page.ts`) stays as the correct empty/loading state, don't remove it;
+  (3) Event Wiring Board *polish* (interactivity, click-through) — the data plumbing itself is
+  done; (4) impact lens ("Reached by N flows") in Inspector + omnibox verb; (5) confidence meters +
+  approx filter; (6) unwired-entries surfacing; (7) Hub Radar polish (same story as the event
+  board — plumbing done, polish remains); (8) `TickerService` + statusbar ticker.
 - W6-W7 — not started.
 - **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
   only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
@@ -190,15 +209,17 @@ pnpm check
 
 To resume the **F — Fable Workbench Redesign** specifically (the active redesign track):
 ```
-git -C C:/Code/DevContext2-ui checkout feat/w4-export-drawer
+git -C C:/Code/DevContext2-ui checkout feat/fable-redesign-skeleton
 git -C C:/Code/DevContext2-ui pull
 
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App
 pnpm check > check.log; echo $LASTEXITCODE   # real exit code, never pipe to tail
 ```
-`feat/w4-export-drawer` (off `feat/fable-redesign-skeleton`) now has the whole W4 gate — check with
-whoever's driving whether it's been merged back to `feat/fable-redesign-skeleton` yet before
-branching further work.
+`feat/w4-export-drawer` (the temporary branch W4's checkpoints 7-11 were built on) has already been
+merged back into `feat/fable-redesign-skeleton` (`--no-ff`, 2026-07-03) — **that merge itself has
+not been pushed to any remote**, this is all local. `feat/fable-redesign-skeleton` is once again the
+one branch to work from; `feat/w4-export-drawer` still exists but is fully merged (safe to delete,
+not yet deleted — ask before deleting branches you didn't create this session).
 
 Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W4 are all
 done**, W5 (derived insight layer) is next, entry criterion already met. See this file's "F — Fable
