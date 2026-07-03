@@ -1026,3 +1026,23 @@ reuse. None of this touches the dev-mode path already shipped in this commit.
 `pnpm check` and `cargo check` both green. No regressions in the everyday `pnpm dev` flow
 (re-verified after the rewrite — window opened, Analyze succeeded against the ordinary
 fixed port 5179, no panics).
+
+## 2026-07-03 — W6 checkpoint 2: window-state plugin (no-flash already done in checkpoint 1)
+
+No-flash startup was folded into checkpoint 1 (the window-builder rewrite), so this
+checkpoint is just `tauri-plugin-window-state`: registered in the builder chain,
+`window.restore_state(StateFlags::all())` called right after `builder.build()` (while
+still hidden pre-`show()`, so there's no visible jump), `window-state:default` added to
+capabilities. Saving is automatic per the plugin's own design (hooks window move/resize/
+close events once registered) — no explicit save call needed.
+
+Live-verified precisely, not just "it didn't crash": moved/resized the real OS window via
+a `user32.dll` `MoveWindow` P/Invoke (PowerShell `Add-Type`) to an arbitrary rectangle
+(222, 111, 1111×777), closed it gracefully, relaunched the same binary, and read the new
+window's rect via `GetWindowRect` — restored bounds matched the pre-close rectangle
+exactly (same four numbers). Reused the `IsWindowVisible`/`GetWindowRect` P/Invoke
+pattern from checkpoint 1's verification for this — worth keeping as the standard way to
+assert real OS window geometry/visibility from outside the app when Playwright/CDP can't
+reach into native window chrome.
+
+`pnpm check` and `cargo check` both green, no TypeScript changes this checkpoint.

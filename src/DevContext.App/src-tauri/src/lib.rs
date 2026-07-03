@@ -7,6 +7,7 @@ use std::time::Duration;
 
 use tauri::webview::{Color, WebviewWindowBuilder};
 use tauri::{Manager, RunEvent, Theme, WebviewUrl};
+use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 /// Backoff schedule for server crash-restart attempts (§7.1) — indexed by `attempt - 2`
 /// (attempt 1 is the initial, unthrottled start). Capped at 5 total attempts so a genuinely
@@ -24,6 +25,7 @@ struct ServerProcess {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -72,7 +74,10 @@ pub fn run() {
                 ));
             }
 
-            builder.build()?;
+            let window = builder.build()?;
+            // Restore size/position/maximized from the previous session (§7.2). No-op on
+            // first launch (nothing saved yet) — the builder's inner_size above still applies.
+            let _ = window.restore_state(StateFlags::all());
 
             Ok(())
         })
