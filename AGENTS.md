@@ -157,8 +157,31 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   signal from one effect run. All 8 checkpoints live-verified against `MinimalApiProject` with
   throwaway Playwright scripts (written, run, deleted each time — not committed), `pnpm check`
   green on every commit.
-- W6-W7 — not started, not yet scoped. Read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`
-  §10 for what they cover before starting.
+- W6 (Tauri Hardening) — **DONE, all 7 checkpoints, gate mostly passed** (2026-07-04). Full
+  narrative: `PROGRESS-LOG.md`'s W6 entries. Summary: (0) a real window drag/buttons bug found
+  and fixed before starting the waterfall proper (wrong `isTauri()` global, missing window
+  capabilities — see PROGRESS-LOG for the two-bug diagnosis); (1) sidecar engine lifecycle —
+  dynamic port picking, `WebviewWindowBuilder` + `initialization_script` injecting
+  `globalThis.__DEVCONTEXT_SERVER__`, crash-restart backoff (1s/5s/15s, capped), no-flash window
+  (folded in here) — all live-verified against the raw binary; self-contained `externalBin`
+  packaging **explored and de-risked but NOT wired** (single-file publish +
+  `IncludeNativeLibrariesForSelfExtract` confirmed viable — see PROGRESS-LOG for exactly what's
+  left); (2) `tauri-plugin-window-state`, verified via a real `MoveWindow`/`GetWindowRect`
+  round-trip; (3) `tauri-plugin-single-instance`, verified with two real process launches (path
+  arg opens a new tab, doesn't clobber the current session); (4) `tauri-plugin-fs` →
+  Settings·Storage tab live (also fixed a wrong hardcoded path — engine uses `.../repos`, UI said
+  `.../clones`); (5) `tauri-plugin-opener` → Reveal/Open in Explorer, verified via
+  `Shell.Application` COM automation; (6) real CSP set + verified live (WebView2 remote debugging
+  + `getComputedStyle`), `tauri-plugin-clipboard-manager` wired across all 5
+  `navigator.clipboard` call sites, verified via a real OS clipboard round-trip; (7) the
+  proposal's literal "DPI pass at 125%/150%" was redirected by the user to a type-scale
+  legibility bump instead (no system settings touched) — verified via an actual screenshot.
+  **What's NOT done, both already flagged rather than silently dropped:** the packaging half of
+  checkpoint 1, and the literal 125%/150% Windows-scaling test (superseded by the legibility
+  redirect). Next session resuming W6 should treat the packaging half as the one real remaining
+  gap if the full proposal gate is ever needed word-for-word.
+- W7 — not started, not yet scoped. Read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10
+  for what it covers before starting.
 - **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
   only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`, confirmed against the live server.
@@ -179,8 +202,12 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
-- Gate for resuming: `pnpm check` green (real exit code) → W5 is DONE (all 8 checkpoints, gate
-  passed) → read the F proposal's §10 for W6's scope before starting it, nothing pre-decided yet.
+- Gate for resuming: `pnpm check` green (real exit code) → W6 is DONE (all 7 checkpoints,
+  2026-07-04) → read the F proposal's §10 for W7's scope before starting it, nothing pre-decided
+  yet. If picking up the deferred self-contained sidecar packaging instead, read the W6
+  checkpoint 1 PROGRESS-LOG entry first — it documents exactly what's already confirmed working
+  (single-file publish + `IncludeNativeLibrariesForSelfExtract`) and what's still open
+  (`tauri_plugin_shell`'s sidecar API, the exact post-bundle filename convention).
 
 ## Verify loop
 ```powershell
@@ -223,23 +250,30 @@ not been pushed to any remote**, this is all local. `feat/fable-redesign-skeleto
 one branch to work from; `feat/w4-export-drawer` still exists but is fully merged (safe to delete,
 not yet deleted — ask before deleting branches you didn't create this session).
 
-Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W5 are all
-done** (W5 gate passed 2026-07-03, all 8 checkpoints). W6 is next but not yet scoped — read §10's
-W6 entry fresh, nothing pre-decided. See this file's "F — Fable Workbench Redesign" section above
-for the W5 summary, and `docs/dev/go-to-program/PROGRESS-LOG.md`'s W5 entries for full narrative,
-every bug found/fixed (including a real tab-freezing bug in the ticker wiring, checkpoint 8 —
-worth reading before writing any new `effect()` that both reads and writes a shared service's
-signal), and the `vite-error-overlay` retry gotcha when Playwright-verifying a fresh change.
+Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W6 are all
+done** (W6 done 2026-07-04, all 7 checkpoints — see this file's F section above for the summary
+and exactly what's deferred). W7 is next but not yet scoped — read §10's W7 entry fresh, nothing
+pre-decided. `docs/dev/go-to-program/PROGRESS-LOG.md`'s W6 entries have the full narrative and
+every bug found/fixed this stage, including: the window drag/buttons root cause (wrong `isTauri()`
+global + missing Tauri window capabilities — worth reading before assuming any `@if (isTauri())`
+gate or window-command call works untested), the `opener:allow-open-path` vs
+`allow-reveal-item-in-dir` scope asymmetry (one is scope-gated like `fs`, the other isn't), and a
+`CopyFromScreen`-captures-the-wrong-window gotcha (needs `SetForegroundWindow` first) for any
+future screenshot-based verification.
 
 Two committed smoke scripts already exist and are the pattern to extend rather than reinvent:
 `scripts/smoke-export-drawer.mts` (export drawer) and `scripts/smoke-w4-gate.mts` (flows A-E, Atlas,
 audit table, omnibox, deep links) — both `npx ng serve` (`shell:true`) + `taskkill /PID <pid> /T /F`
 for cleanup (plain `.kill('SIGTERM')` leaks the process tree on Windows), fixture path
-`resolve('../../tests/fixtures/MinimalApiProject')` from `cwd=src/DevContext.App`. W5's checkpoints
-used the same pattern but as throwaway scripts (written, run, deleted — not committed); W6 should
-keep whichever of the two habits fits each checkpoint. For each item: implement → `pnpm check`
-green → verify live → commit → append a PROGRESS-LOG.md entry → move to the next item. One commit
-per checkpoint, same discipline as W4/W5.
+`resolve('../../tests/fixtures/MinimalApiProject')` from `cwd=src/DevContext.App`. W5/W6's
+checkpoints used the same pattern but as throwaway scripts (written, run, deleted — not
+committed) — W6 additionally needed `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>`
++ `playwright`'s `chromium.connectOverCDP()` for anything Tauri-window-specific (no-flash
+visibility, window-state bounds, single-instance forwarding), since those aren't reachable through
+`ng serve`'s plain browser tab. W7 should keep whichever of these habits fits each checkpoint. For
+each item: implement → `pnpm check` (and `cargo check` for any Rust change) green → verify live →
+commit → append a PROGRESS-LOG.md entry → move to the next item. One commit per checkpoint, same
+discipline as W4/W5/W6.
 
 ---
 
