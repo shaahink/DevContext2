@@ -8,6 +8,7 @@ import { ToastService } from '../../ui/toast/toast';
 import { Icon } from '../../ui/icon/icon';
 import { Button } from '../../ui/button/button';
 import { Skeleton } from '../../ui/skeleton/skeleton';
+import { copyToClipboard } from '../../core/clipboard';
 
 type ExportPreset = 'full' | 'onboarding' | 'flow' | 'trail';
 
@@ -363,7 +364,7 @@ export class ExportDrawer {
 
   protected async copy(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(this.effectiveContent());
+      await copyToClipboard(this.effectiveContent());
       this.toast.show('Copied to clipboard', 'info');
     } catch {
       this.toast.show('Copy failed', 'error');

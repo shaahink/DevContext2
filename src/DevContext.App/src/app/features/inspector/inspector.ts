@@ -8,6 +8,7 @@ import { TraceStore } from '../../state/trace.store';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { ToastService } from '../../ui/toast/toast';
 import { isTauri } from '../../core/tauri-env';
+import { copyToClipboard } from '../../core/clipboard';
 
 type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
 
@@ -23,8 +24,6 @@ const RENDER_DEBOUNCE_MS = 250;
  *
  * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
  * TODO(W5): Insights section filters stats().insights by the current selection.
- * TODO(W6 remainder): copy uses navigator.clipboard (flaky in WebView2 without focus)
- *   until the clipboard plugin lands (checkpoint 6).
  */
 @Component({
   selector: 'app-inspector',
@@ -237,7 +236,7 @@ export class Inspector {
 
   protected copy(event: Event): void {
     event.stopPropagation();
-    void navigator.clipboard?.writeText(this.renderContent()).then(() => {
+    void copyToClipboard(this.renderContent()).then(() => {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 1500);
     });

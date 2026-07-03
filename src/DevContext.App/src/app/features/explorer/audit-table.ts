@@ -4,6 +4,7 @@ import { KIND_LABELS, type EntryGroupVm, type EntryVm } from '../../models/view-
 import { Icon } from '../../ui/icon/icon';
 import { KindIcon } from '../../ui/kind-icon/kind-icon';
 import { ToastService } from '../../ui/toast/toast';
+import { copyToClipboard } from '../../core/clipboard';
 
 type SortColumn = 'method' | 'route' | 'target' | 'kind';
 type SortDir = 'asc' | 'desc';
@@ -244,8 +245,7 @@ export class AuditTable {
   protected copyRoute(entry: EntryVm, event: Event): void {
     event.stopPropagation();
     const text = entry.route || entry.title;
-    navigator.clipboard
-      ?.writeText(text)
+    void copyToClipboard(text)
       .then(() => this.toast.show('Copied: ' + text, 'info'))
       .catch(() => this.toast.show('Copy failed', 'error'));
   }

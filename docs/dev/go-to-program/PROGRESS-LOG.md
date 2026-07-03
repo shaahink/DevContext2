@@ -1143,3 +1143,50 @@ the real `%LOCALAPPDATA%\DevContext\cache` path. Closed both test-opened windows
 afterward, left the user's own pre-existing Explorer window untouched.
 
 `pnpm check` and `cargo check` both green.
+
+## 2026-07-04 — W6 checkpoint 6: CSP + capability scoping, clipboard-manager
+
+`tauri.conf.json`'s `security.csp` was `null` (unrestricted); set to `default-src 'self';
+script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src
+'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*` — the
+`http://127.0.0.1:*` port wildcard is required since checkpoint 1's sidecar picks a fresh
+port every launch, so a fixed port could never be listed. `'unsafe-inline'` on style-src
+is needed for Angular's `ViewEncapsulation`-emulated `<style>` tags (real inline elements,
+not attribute styles — CSP doesn't distinguish nonced vs. unnonced `<style>` tags without
+extra plumbing not worth adding here).
+
+**Genuinely uncertain going in, resolved by testing rather than assumption:** whether a
+configured CSP is even enforced when the frontend loads from an external `devUrl`
+(`http://localhost:4200` via `ng serve`, this project's dev setup) rather than Tauri's own
+bundled `frontendDist` — conflicting signals from documentation. Settled it by testing:
+built + ran the raw debug binary with the new CSP in place, connected via WebView2 remote
+debugging, and checked `getComputedStyle` on real elements rather than trusting "the page
+didn't visibly break." `body` background was the exact `#16181d` dark base color,
+`header` height was the exact `30px` titlebar class, zero console CSP-violation messages,
+and a full `Analyze → GetMap → ListEntryPoints → GetTrace → GetStats → Render` gRPC
+sequence succeeded end to end. Whatever the enforcement semantics turn out to be exactly,
+this specific CSP value doesn't break this specific dev setup — good enough to ship, and a
+useful data point for whoever eventually does the deferred production `tauri build` (W6
+checkpoint 1's other deferred half): if CSP causes a break there, this dev-mode pass at
+least rules out the CSP value itself as generically wrong.
+
+Capability audit: every custom permission added since W6 started (window buttons, fs,
+opener, now clipboard) was checked against its actual call site — none were dead. Left
+`core:default` as the broad baseline (not narrowed to individual `core:*` sub-permissions)
+— a bigger, separate refactor with unclear benefit here, not attempted.
+
+`tauri-plugin-clipboard-manager` added. New `core/clipboard.ts`'s `copyToClipboard()`
+(the same reuse-worthy-immediately pattern as `tauri-env.ts` — 6 call sites across 5
+files, not a hypothetical) replaces every `navigator.clipboard` use in `inspector.ts`,
+`export-drawer.ts`, `audit-table.ts`, `omnibox.ts`, and `node-card.ts` (×2) — all had
+existing comments/TODOs calling out `navigator.clipboard`'s WebView2 flakiness without
+focus, now resolved for real. `clipboard-manager:allow-write-text` only (this app never
+reads the clipboard).
+
+Live-verified with the strongest possible signal, not just "the call didn't throw": set
+the real OS clipboard to a sentinel string via PowerShell's `Set-Clipboard`, clicked
+Inspector's copy button through a live trace, then read it back with `Get-Clipboard` —
+content changed to the exact rendered LLM trace text, proving the plugin path actually
+executes end to end, not just that the promise resolved without an exception.
+
+`pnpm check` and `cargo check` both green.

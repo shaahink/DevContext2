@@ -5,6 +5,7 @@ import { TraceStore } from '../../state/trace.store';
 import { ToastService } from '../../ui/toast/toast';
 import { NodeLink } from '../../ui/node-link/node-link';
 import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { copyToClipboard } from '../../core/clipboard';
 
 @Component({
   selector: 'app-node-card',
@@ -105,7 +106,7 @@ export class NodeCard {
   }
 
   copyId(id: string): void {
-    navigator.clipboard?.writeText(id)
+    void copyToClipboard(id)
       .then(() => this.toast.show('Node ID copied', 'info'))
       .catch(() => this.toast.show('Copy failed', 'error'));
   }
@@ -118,7 +119,7 @@ export class NodeCard {
   copyError(): void {
     const err = this.store.error();
     if (err) {
-      navigator.clipboard?.writeText(err)
+      void copyToClipboard(err)
         .then(() => this.toast.show('Error copied', 'info'))
         .catch(() => this.toast.show('Copy failed', 'error'));
     }

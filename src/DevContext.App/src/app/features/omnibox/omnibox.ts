@@ -13,6 +13,7 @@ import { TraceStore } from '../../state/trace.store';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { KindIcon } from '../../ui/kind-icon/kind-icon';
 import { ToastService } from '../../ui/toast/toast';
+import { copyToClipboard } from '../../core/clipboard';
 
 type Verb = 'trace' | 'node' | 'usages' | 'impact' | 'copy';
 const VERBS: readonly Verb[] = ['trace', 'node', 'usages', 'impact', 'copy'];
@@ -314,7 +315,7 @@ export class Omnibox {
         break;
       }
       case 'copy':
-        void navigator.clipboard?.writeText(item.nodeId);
+        void copyToClipboard(item.nodeId);
         break;
     }
     this.close();
