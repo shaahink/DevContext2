@@ -126,7 +126,14 @@ export type FlowMode = 'tree' | 'graph';
                 {{ nodeId }} — outgoing edges (direction toggle lands in W4)
               </p>
               @for (edge of trace.neighbors(); track edge.to) {
-                <div class="list-row" (click)="nodeSelected.emit(edge.to)">
+                <div
+                  class="list-row"
+                  role="button"
+                  tabindex="0"
+                  (click)="nodeSelected.emit(edge.to)"
+                  (keydown.enter)="nodeSelected.emit(edge.to)"
+                  (keydown.space)="nodeSelected.emit(edge.to); $event.preventDefault()"
+                >
                   <span class="chip shrink-0">{{ edge.kind }}</span>
                   <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || edge.to }}</span>
                   <span
@@ -161,7 +168,7 @@ export class Stage {
   protected readonly flowMode = signal<FlowMode>('tree');
   protected readonly graphDepth = signal(3);
 
-  protected readonly altitudes: ReadonlyArray<{ id: StageAltitude; label: string; hint: string }> = [
+  protected readonly altitudes: readonly { id: StageAltitude; label: string; hint: string }[] = [
     { id: 'system', label: 'System', hint: 'Project topology (v s)' },
     { id: 'flow', label: 'Flow', hint: 'Current trace (v t / v g)' },
     { id: 'node', label: 'Node', hint: 'Selected node neighborhood (v n)' },

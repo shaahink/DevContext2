@@ -59,9 +59,12 @@ interface KindStat {
         <div
           class="list-row"
           role="option"
+          tabindex="0"
           [class.selected]="entry.focus === selectedFocus()"
           [attr.aria-selected]="entry.focus === selectedFocus()"
           (click)="select(i)"
+          (keydown.enter)="select(i)"
+          (keydown.space)="select(i); $event.preventDefault()"
         >
           @if (entry.httpMethod) {
             <span class="w-9 shrink-0 text-2xs font-semibold" [class]="methodClass(entry.httpMethod)">

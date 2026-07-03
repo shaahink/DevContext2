@@ -54,7 +54,7 @@ interface AtlasSlice {
 interface IndexerControl {
   cancelled: boolean;
   paused: boolean;
-  waiters: Array<() => void>;
+  waiters: (() => void)[];
 }
 
 const EMPTY_SLICE: AtlasSlice = { flows: {}, status: 'idle', indexed: 0, total: 0 };

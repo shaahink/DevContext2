@@ -94,7 +94,15 @@ type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
     </button>
     @if (open('trail')) {
       @for (step of trail.breadcrumb(); track step.ts; let i = $index) {
-        <div class="list-row" [class.selected]="i === trail.cursor()" (click)="jump(i)">
+        <div
+          class="list-row"
+          role="button"
+          tabindex="0"
+          [class.selected]="i === trail.cursor()"
+          (click)="jump(i)"
+          (keydown.enter)="jump(i)"
+          (keydown.space)="jump(i); $event.preventDefault()"
+        >
           <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
           <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
           <button
