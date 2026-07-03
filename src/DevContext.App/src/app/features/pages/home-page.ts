@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
+import { AtlasStore } from '../../state/atlas.store';
 import { KIND_LABELS, type EntryVm } from '../../models/view-models';
 import { StartHero } from '../home/start-hero';
 import { IdentityStrip } from '../home/identity-strip';
@@ -18,10 +19,12 @@ const MAX_INSIGHTS = 3;
  * no-session state is `StartHero`. Replaces the old overview-page.ts, which wrapped
  * this content in the now-deleted SectionCard.
  *
- * Top Flows shows a plain entry list for now — `AtlasStore`'s importance ranking
- * (breadth × boundary crossings, proposal §3.2) lands in W5 once the background
- * indexer is triggered; until then this is literally `session.entryGroups()`
- * flattened, per the proposal's own W4 note.
+ * Top Flows prefers `AtlasStore`'s importance ranking (breadth × boundary crossings,
+ * proposal §3.2, `atlas.topFlows()`) once the background indexer (triggered from
+ * `SessionStore.analyze()`, W5 checkpoint 1) has produced results, mapped back to the
+ * full `EntryVm` by focus for its httpMethod/route display fields — `FlowStat` itself
+ * doesn't carry those. Falls back to the flat `session.entryGroups()` list while
+ * indexing hasn't found anything yet (empty/loading state, not a bug).
  */
 @Component({
   selector: 'app-home-page',
@@ -90,11 +93,19 @@ const MAX_INSIGHTS = 3;
 })
 export class HomePage {
   protected readonly session = inject(SessionStore);
+  protected readonly atlas = inject(AtlasStore);
   protected readonly KIND_LABELS = KIND_LABELS;
 
-  protected readonly topFlows = computed<readonly EntryVm[]>(() =>
-    this.session.entryGroups().flatMap((g) => g.entries).slice(0, MAX_TOP_FLOWS),
-  );
+  protected readonly topFlows = computed<readonly EntryVm[]>(() => {
+    const flatEntries = this.session.entryGroups().flatMap((g) => g.entries);
+    const ranked = this.atlas.topFlows();
+    if (ranked.length > 0) {
+      const byFocus = new Map(flatEntries.map((e) => [e.focus, e] as const));
+      const mapped = ranked.map((f) => byFocus.get(f.focus)).filter((e): e is EntryVm => !!e);
+      if (mapped.length > 0) return mapped.slice(0, MAX_TOP_FLOWS);
+    }
+    return flatEntries.slice(0, MAX_TOP_FLOWS);
+  });
 
   protected readonly topInsights = computed(() =>
     [...this.session.insights()]

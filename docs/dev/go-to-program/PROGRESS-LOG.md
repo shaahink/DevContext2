@@ -823,3 +823,29 @@ slower fixture solely for this.
 once populated, falling back to the current flat entry-list only while indexing hasn't produced
 results yet (`home-page.ts`'s `topFlows` computed is still hardcoded to the flat-list fallback,
 confirmed by reading it in this session — `AtlasStore` injection not yet added there).
+
+---
+
+## 2026-07-03 — W5 checkpoint 2: Home Top Flows prefer atlas ranking
+
+**Checkpoint 2** of W5. `home-page.ts`'s `topFlows` computed now prefers
+`atlas.topFlows()` (importance-ranked by `AtlasStore`, breadth × boundary crossings,
+proposal §3.2) once the background indexer has produced results, mapping each `FlowStat`
+back to its full `EntryVm` by `focus` (`FlowStat` itself doesn't carry `httpMethod`/`route`,
+needed for the row's chip/label). Falls back to the flat `session.entryGroups()` list —
+unchanged — whenever the ranked map comes up empty (indexing not done yet, or genuinely no
+found flows), so the loading/empty state is unaffected.
+
+Live-verified with a throwaway Playwright script (written, run, deleted): analyzed
+`MinimalApiProject`, waited for the (fast, 2-entry) indexer to finish, confirmed 2 Top Flow
+rows rendered with correct `focus=` hrefs, clicked the first one and landed traced in
+`/explore`, zero console/page errors throughout. `MinimalApiProject`'s 2 flat entries don't
+exercise the *ranking* itself in a visibly different order from the old flat-list fallback
+(too small a fixture to have a meaningfully different score) — worth eyeballing on a
+bigger fixture (eShop-scale) whenever one is next in use for other verification, same note
+as checkpoint 1's statusbar segment.
+
+`pnpm check` green.
+
+**W5 status: checkpoints 1-2/8 done.** Next: item 3, Event Wiring Board polish
+(interactivity/click-through — the data plumbing is already done from W4 checkpoint 9).

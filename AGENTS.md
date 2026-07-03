@@ -127,7 +127,7 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   `.isVisible()` on the host tag itself is empty box around a `position:fixed` child — check the
   inner `.fixed` div instead, don't "fix" the component just to make it Playwright-friendly (its
   sibling `omnibox.ts` has the same host shape and works fine in the real app).
-- W5 (derived insight layer) — **in progress, checkpoint 1/8 done** (W4 gate passed).
+- W5 (derived insight layer) — **in progress, checkpoints 1-2/8 done** (W4 gate passed).
   **Checkpoint 1 (2026-07-03, live-verified):** relocated the atlas-start trigger from
   `WorkbenchPage`'s constructor effect (fired only on first `/explore` visit) into
   `SessionStore.analyze()`'s success path — `this.atlas.start(tabId, outcome.handle,
@@ -138,15 +138,22 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   (`shell/statusbar/statusbar.ts`, shown while `atlas.running()`) — didn't exist before. Verified
   live with a throwaway Playwright script + temporary console.log instrumentation (both
   added/run/reverted, `git status` clean after): analyzed `MinimalApiProject` from Home, never
-  visited `/explore`, watched `indexed 1/2 → 2/2 → status=done` in the console. Full narrative:
-  `PROGRESS-LOG.md`'s latest entry. Atlas's Event Wiring Board / Hub Radar (`atlas-page.ts`) were
-  already correctly wired to live `AtlasStore` signals pre-W5 (checkpoint 9) — their empty state
-  against `MinimalApiProject` (2-endpoint fixture, no messaging) is legitimate, not a bug.
-  Remaining W5 items per proposal §10: (2) make Home's Top Flows prefer `atlasStore.topFlows()`
-  once populated, falling back to the current flat entry-list only while indexing hasn't produced
-  results yet — `home-page.ts`'s `topFlows` computed is still hardcoded to the flat-list fallback,
-  confirmed by reading it, `AtlasStore` not yet injected there — the fallback itself stays as the
-  correct empty/loading state, don't remove it; (3) Event Wiring Board *polish* (interactivity,
+  visited `/explore`, watched `indexed 1/2 → 2/2 → status=done` in the console.
+  **Checkpoint 2 (2026-07-03, live-verified):** `home-page.ts`'s `topFlows` computed now prefers
+  `atlas.topFlows()` (importance-ranked) once populated, mapping each `FlowStat` back to its full
+  `EntryVm` by `focus` (`FlowStat` doesn't carry `httpMethod`/`route`), falling back to the flat
+  `session.entryGroups()` list — unchanged — whenever the ranked map is empty (indexing not done,
+  or genuinely nothing found). Verified live: 2 Top Flow rows rendered against `MinimalApiProject`
+  with correct `focus=` hrefs, click-through landed traced in `/explore`, zero console errors.
+  Full narrative both checkpoints: `PROGRESS-LOG.md`'s latest two entries. Atlas's Event Wiring
+  Board / Hub Radar (`atlas-page.ts`) were already correctly wired to live `AtlasStore` signals
+  pre-W5 (checkpoint 9) — their empty state against `MinimalApiProject` (2-endpoint fixture, no
+  messaging) is legitimate, not a bug. **Both checkpoints share a fixture-size caveat:** the
+  2-entry `MinimalApiProject` is too small to show the *ranking* or the *progress segment*
+  meaningfully differently from trivial cases (indexing finishes in well under a second, and 2
+  flows barely differ in score) — worth eyeballing both on a bigger fixture (eShop-scale) whenever
+  one is next in use for other verification, not worth building a slower fixture solely for this.
+  Remaining W5 items per proposal §10: (3) Event Wiring Board *polish* (interactivity,
   click-through) — the data plumbing itself is done; (4) impact lens ("Reached by N flows") in
   Inspector + omnibox verb; (5) confidence meters + approx filter; (6) unwired-entries surfacing;
   (7) Hub Radar polish (same story as the event board — plumbing done, polish remains);
@@ -172,8 +179,8 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
-- Gate for resuming: `pnpm check` green (real exit code) → W5 checkpoint 1 is done, pick up
-  checkpoint 2 (Home's Top Flows preferring `atlasStore.topFlows()`) next.
+- Gate for resuming: `pnpm check` green (real exit code) → W5 checkpoints 1-2 are done, pick up
+  checkpoint 3 (Event Wiring Board polish) next.
 
 ## Verify loop
 ```powershell
