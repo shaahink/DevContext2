@@ -16,8 +16,9 @@ import { Ticker } from '../../ui/ticker/ticker';
  * `calc(100vh - ...)` height math in the middle region).
  *
  * Segments left→right: Context (repo summary, click → Home) · Task (busy state) ·
- * Ticker (statusbar insight ticker — inert placeholder until W5 wires sources) ·
- * Connection · Vibe cycler.
+ * Ticker (statusbar insight ticker, sources wired in `workspace-shell.ts`'s constructor —
+ * analysis facts, engine insights, Flow Atlas discoveries, keyboard tips) · Connection ·
+ * Vibe cycler.
  */
 @Component({
   selector: 'app-statusbar',

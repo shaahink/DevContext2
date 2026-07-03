@@ -5,9 +5,9 @@ import { TickerService } from '../../core/ticker.service';
 import { Icon } from '../icon/icon';
 
 /** StatusBar insight ticker (proposal §6) — presentational shell around `TickerService`.
- * The service is inert (empty `current()`) until something calls `post()`; sources get
- * wired in W5 (SessionStore analysis events, insights, AtlasStore). Until then this
- * renders nothing, which is the correct "static placeholder" state for W1. */
+ * Sources (`workspace-shell.ts`'s constructor: analysis facts, insights, AtlasStore
+ * discoveries, static tips) call `post()`; this renders `current()` and nothing when
+ * the pool is empty (e.g. no session yet). */
 @Component({
   selector: 'app-ticker',
   imports: [Icon],

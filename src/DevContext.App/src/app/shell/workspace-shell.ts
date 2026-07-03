@@ -1,9 +1,11 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, effect, HostListener, inject, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 
+import { AtlasStore } from '../state/atlas.store';
 import { ConnectionStore } from '../state/connection.store';
 import { SessionStore } from '../state/session.store';
 import { ThemeService } from '../core/theme/theme.service';
+import { TICKER_PRIORITY, TickerService, type TickerItem } from '../core/ticker.service';
 import { WebviewShortcutsService } from '../core/webview-shortcuts.service';
 import { Titlebar } from './titlebar/titlebar';
 import { TabStrip } from './tab-strip';
@@ -11,6 +13,15 @@ import { OfflineBanner } from './offline-banner';
 import { ActivityBar } from './activity-bar';
 import { Statusbar } from './statusbar/statusbar';
 import { Omnibox } from '../features/omnibox/omnibox';
+
+/** Static filler tips (proposal §6 "at most 1-in-4") — posted once at shell startup;
+ * `TickerService` persists which ones a user has already seen across sessions. */
+const STATUSBAR_TIPS: readonly TickerItem[] = [
+  { id: 'tip:ctrl-k', text: 'Ctrl+K opens the omnibox — search entries, nodes, or run a command', priority: TICKER_PRIORITY.tip },
+  { id: 'tip:shift-e', text: 'Shift+E opens the full entry audit table', priority: TICKER_PRIORITY.tip },
+  { id: 'tip:pin', text: 'Press p to pin a trail step into your export pack', priority: TICKER_PRIORITY.tip },
+  { id: 'tip:esc-ladder', text: 'Escape backs out one step at a time: cancel, close, deselect, clear', priority: TICKER_PRIORITY.tip },
+];
 
 const VIEW_SHORTCUTS: Record<string, string> = {
   o: '/overview',
@@ -105,8 +116,62 @@ export class WorkspaceShell {
   constructor() {
     inject(ConnectionStore).start();
     inject(ThemeService);
-    inject(SessionStore);
     inject(WebviewShortcutsService).start();
+
+    const session = inject(SessionStore);
+    const atlas = inject(AtlasStore);
+    const ticker = inject(TickerService);
+
+    for (const tip of STATUSBAR_TIPS) ticker.post(tip);
+
+    // Analysis facts (§6). `replaceGroup` — NOT `dismissAll` + `post` — see that
+    // method's doc comment: two separate writes to the same signal in one effect
+    // execution reproducibly freezes the tab (found the hard way in this checkpoint).
+    effect(() => {
+      const s = session.summary();
+      const item: TickerItem | null =
+        session.ready() && s
+          ? {
+              id: `active:analysis:${s.label}`,
+              text: `${s.label} — ${s.nodes} nodes, ${s.edges} edges, ${s.entries} entries`,
+              icon: 'check',
+              priority: TICKER_PRIORITY.analysis,
+            }
+          : null;
+      ticker.replaceGroup('active:analysis:', item ? [item] : []);
+    });
+
+    // Engine insight headlines (§6).
+    effect(() => {
+      const items: TickerItem[] = session.insights().slice(0, 5).map((i) => ({
+        id: `active:insight:${i.id}`,
+        text: i.title,
+        icon: 'zap',
+        link: '/insights',
+        priority: TICKER_PRIORITY.insight,
+      }));
+      ticker.replaceGroup('active:insight:', items);
+    });
+
+    // Atlas discoveries (§6) — only once indexing settles, so partial/still-changing
+    // scores don't cycle a "discovery" through the ticker and then quietly change.
+    effect(() => {
+      const items: TickerItem[] =
+        atlas.status() === 'done'
+          ? [...atlas.flows()]
+              .filter((f) => f.found && f.boundaryCrossings > 0)
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 3)
+              .map((f) => ({
+                id: `active:atlas:${f.focus}`,
+                text: `${f.title} crosses ${f.boundaryCrossings} boundar${f.boundaryCrossings === 1 ? 'y' : 'ies'}`,
+                icon: 'boxes',
+                link: `/explore?focus=${encodeURIComponent(f.focus)}`,
+                priority: TICKER_PRIORITY.atlas,
+              }))
+          : [];
+      ticker.replaceGroup('active:atlas:', items);
+    });
   }
 
   @HostListener('window:keydown', ['$event'])

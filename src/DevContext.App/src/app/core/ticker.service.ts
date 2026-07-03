@@ -36,9 +36,9 @@ const TIP_SPACING = 4;
  * pause() on hover so the user can actually read; tips are persisted as seen so
  * they never nag twice across sessions.
  *
- * Wiring (W5): SessionStore pushes analysis facts + insight headlines, AtlasStore
- * discoveries; the statusbar renders `current()` and calls pause()/resume() on
- * mouseenter/leave. Until then this service is inert and harmless.
+ * Wired from `workspace-shell.ts`'s constructor: analysis facts + insight headlines
+ * (via SessionStore), AtlasStore discoveries, and static keyboard tips; the statusbar
+ * renders `current()` and calls pause()/resume() on mouseenter/leave.
  */
 @Injectable({ providedIn: 'root' })
 export class TickerService {
@@ -77,6 +77,32 @@ export class TickerService {
   dismissAll(prefix: string): void {
     this._items.update((items) => items.filter((i) => !i.id.startsWith(prefix)));
     if (this._current() && this._current()!.id.startsWith(prefix)) this.rotate();
+  }
+
+  /** Atomically replaces every item under `prefix` with a fresh set (0 or more) in a
+   * SINGLE `_items` write. Use this instead of `dismissAll(prefix)` immediately
+   * followed by `post(...)` from the same call site (e.g. inside an `effect()`) —
+   * two separate reads-then-writes of `_items` within one synchronous execution
+   * reproducibly freezes the tab: Angular's reactive graph treats the second write as
+   * invalidating a dependency the same execution already read, and re-schedules that
+   * execution synchronously forever (confirmed by hand via bisection, W5 checkpoint 8 —
+   * no exception is thrown, so nothing appears in the console; the JS thread just stops
+   * yielding, and even `page.evaluate(() => document.title)` never resolves). Every
+   * other effect in this codebase that both reads and writes the same signal defers the
+   * write into a microtask (e.g. `AtlasStore`'s degree-cache effect writes inside a
+   * `getNode().then()`) — this method is the synchronous equivalent: one write, not two. */
+  replaceGroup(prefix: string, items: readonly TickerItem[]): void {
+    const keep = items.filter((i) => !(i.priority === TICKER_PRIORITY.tip && this.seenTips.has(i.id)));
+    this._items.update((prev) => {
+      const rest = prev.filter((i) => !i.id.startsWith(prefix));
+      return [...rest, ...keep].sort((a, b) => a.priority - b.priority);
+    });
+    if (this._current() === null) {
+      if (keep.length > 0) this.rotate();
+    } else if (keep.length === 0 && this._current()!.id.startsWith(prefix)) {
+      this.rotate();
+    }
+    if (keep.length > 0) this.ensureTimer();
   }
 
   pause(): void {
