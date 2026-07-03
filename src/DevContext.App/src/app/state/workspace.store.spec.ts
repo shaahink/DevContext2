@@ -88,4 +88,69 @@ describe('WorkspaceStore tab isolation (I10)', () => {
     expect(workspace.tabs().map((t) => t.id)).toEqual([a, c]);
     expect(workspace.activeId()).toBe(c);
   });
+
+  it('analyzing a path already open in another tab switches to it instead of duplicating (GAP-T4)', async () => {
+    const analyze = vi.fn().mockResolvedValue({
+      ok: true,
+      handle: 'handle-A',
+      summary: { label: 'repoA', projects: 1, entries: 0, entriesWithTarget: 0 },
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: DevContextApi,
+          useValue: {
+            analyze,
+            getMap: vi.fn().mockResolvedValue({ markdown: '' }),
+            listEntryPoints: vi.fn().mockResolvedValue({ entryPoints: [] }),
+            getStats: vi.fn().mockResolvedValue({ insights: [] }),
+          },
+        },
+      ],
+    });
+    const workspace = TestBed.inject(WorkspaceStore);
+    const session = TestBed.inject(SessionStore);
+
+    await session.analyze({ path: 'C:\\repoA' });
+    const tabA = workspace.activeId();
+
+    const tabB = workspace.createTab('C:\\repoB', 'repoB');
+    expect(workspace.activeId()).toBe(tabB);
+
+    // Re-analyzing repoA's path while parked on B must switch to A, not spawn a third tab.
+    await session.analyze({ path: 'C:\\repoA' });
+
+    expect(workspace.activeId()).toBe(tabA);
+    expect(workspace.tabs().length).toBe(2);
+    expect(analyze).toHaveBeenCalledTimes(1); // only the original analyze() call ran
+  });
+
+  it('does not duplicate-guard when re-analyzing the path already open in the active tab', async () => {
+    const analyze = vi.fn().mockResolvedValue({
+      ok: true,
+      handle: 'handle-A',
+      summary: { label: 'repoA', projects: 1, entries: 0, entriesWithTarget: 0 },
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: DevContextApi,
+          useValue: {
+            analyze,
+            getMap: vi.fn().mockResolvedValue({ markdown: '' }),
+            listEntryPoints: vi.fn().mockResolvedValue({ entryPoints: [] }),
+            getStats: vi.fn().mockResolvedValue({ insights: [] }),
+          },
+        },
+      ],
+    });
+    const workspace = TestBed.inject(WorkspaceStore);
+    const session = TestBed.inject(SessionStore);
+
+    await session.analyze({ path: 'C:\\repoA' });
+    await session.analyze({ path: 'C:\\repoA' });
+
+    expect(workspace.tabs().length).toBe(1);
+    expect(analyze).toHaveBeenCalledTimes(2); // deliberate re-analyze of the active tab, not blocked
+  });
 });

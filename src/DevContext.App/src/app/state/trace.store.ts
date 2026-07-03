@@ -1,5 +1,6 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, effect, inject, Injectable } from '@angular/core';
 
+import { isStale, LatestGate } from '../core/rpc-call';
 import { DevContextApi } from '../data-access/devcontext-api';
 import { toEdgeVm, toNodeDetailVm, toTraceVm } from '../models/view-models';
 import { DEFAULT_TRACE_SLICE, type TraceDetail, WorkspaceStore } from './workspace.store';
@@ -13,13 +14,32 @@ export type { TraceDetail } from './workspace.store';
  * Every public method captures its tabId once at the top and threads it through the whole async
  * chain, so a response that lands after the user has switched tabs still updates the tab that
  * asked for it, not whichever tab is active by the time it resolves.
+ *
+ * `trace()`/`selectNode()` go through a LatestGate (proposal §5.1, keyed `${tabId}:trace` /
+ * `${tabId}:node`) so rapid re-triggers (j/k scrub) can never let a stale response paint over a
+ * newer one, even if it resolves last.
  */
 @Injectable({ providedIn: 'root' })
 export class TraceStore {
   private readonly api = inject(DevContextApi);
   private readonly workspace = inject(WorkspaceStore);
+  private readonly gate = new LatestGate();
+  private liveTabIds = new Set<string>();
 
   private readonly activeTrace = computed(() => this.workspace.activeTab()?.trace ?? DEFAULT_TRACE_SLICE);
+
+  constructor() {
+    // Abort any in-flight trace/node RPCs for a tab the moment it closes — a response landing
+    // after close would just be discarded state-wise, but there's no reason to let it finish
+    // over the wire.
+    effect(() => {
+      const live = new Set(this.workspace.tabs().map((t) => t.id));
+      for (const id of this.liveTabIds) {
+        if (!live.has(id)) this.gate.cancelAll(`${id}:`);
+      }
+      this.liveTabIds = live;
+    });
+  }
 
   readonly focus = computed(() => this.activeTrace().focus);
   readonly depth = computed(() => this.activeTrace().depth);
@@ -73,14 +93,18 @@ export class TraceStore {
     if (!handle) return;
 
     this.workspace.updateTrace(tabId, (s) => ({ ...s, selectedNodeId: nodeId }));
-    const [node, neighbors] = await Promise.all([
-      this.api.getNode(handle, nodeId),
-      this.api.getNeighbors(handle, nodeId, 'out'),
-    ]);
+    const res = await this.gate.run(`${tabId}:node`, async (signal) => {
+      const [node, neighbors] = await Promise.all([
+        this.api.getNode(handle, nodeId, signal),
+        this.api.getNeighbors(handle, nodeId, 'out', signal),
+      ]);
+      return { node, neighbors };
+    });
+    if (isStale(res)) return;
     this.workspace.updateTrace(tabId, (s) => ({
       ...s,
-      nodeDetail: node.found ? toNodeDetailVm(node) : null,
-      neighbors: neighbors.edges.map(toEdgeVm),
+      nodeDetail: res.node.found ? toNodeDetailVm(res.node) : null,
+      neighbors: res.neighbors.edges.map(toEdgeVm),
     }));
   }
 
@@ -89,9 +113,12 @@ export class TraceStore {
     if (!focus) return;
 
     this.workspace.updateTrace(tabId, (s) => ({ ...s, loading: true, error: null }));
+    const t = this.workspace.tabById(tabId)?.trace;
+    const depth = t?.depth ?? DEFAULT_TRACE_SLICE.depth;
+    const detail = t?.detail ?? DEFAULT_TRACE_SLICE.detail;
     try {
-      const t = this.workspace.tabById(tabId)?.trace;
-      const res = await this.api.getTrace(handle, focus, t?.depth ?? DEFAULT_TRACE_SLICE.depth, t?.detail ?? DEFAULT_TRACE_SLICE.detail);
+      const res = await this.gate.run(`${tabId}:trace`, (signal) => this.api.getTrace(handle, focus, depth, detail, signal));
+      if (isStale(res)) return;
       this.workspace.updateTrace(tabId, (s) => ({
         ...s,
         found: res.found,

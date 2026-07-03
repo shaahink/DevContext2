@@ -1,8 +1,16 @@
 # Fable Skeleton — Handoff to the Build/Verify Agent
 
-> Branch: `feat/fable-redesign-skeleton` · Written 2026-07-03 · **STATIC — never compiled or run.**
+> Branch: `feat/fable-redesign-skeleton` · Written 2026-07-03 · **UPDATE 2026-07-03: compiled, run,
+> and smoke-tested since this was written — see `PROGRESS-LOG.md` "Fable branch: commit backlog +
+> lint fixes + W3 completion" for what changed and how it was verified. The lint errors this doc
+> warned about were real and are fixed (commit `1729b90`). W3 (state/RPC hardening) is now mostly
+> done — LatestGate threads through `TraceStore`, dup-path guard and dockLevel/theme prefs landed.
+> The step-by-step file table and design-intent rules below are still accurate; treat the framing
+> above ("never compiled") as historical, and check `AGENTS.md`'s "F — Fable Workbench Redesign"
+> section for current per-stage status before resuming.**
 > Implements the foundations of `ui-ux-redesign-proposal-fable.md` (W0 partial + W2/W3 seeds).
-> Your job: make `pnpm check` green, then smoke-test `/explore`, then continue the waterfall.
+> Your job: continue the waterfall from where AGENTS.md says W3 leaves off (W3 remainder → W0
+> finish → W1).
 
 ## Step zero (before touching anything)
 
@@ -11,9 +19,8 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App
 pnpm check > check.log; echo $LASTEXITCODE     # REAL exit code — never pipe through tail
 ```
 
-Expect compile errors from my code, not the pre-existing tree. Fix mine; if a fix
-requires changing a pre-existing file beyond what's listed below, stop and log it in
-PROGRESS-LOG first.
+This should already be green. If it isn't, something regressed since the last verified session —
+bisect before writing new code.
 
 ## What this branch adds (file by file)
 
@@ -33,37 +40,55 @@ PROGRESS-LOG first.
 | `src/styles.css` (edit) | Graphite palette (§4.2) in `:root` + modern dark/light; new tokens `accent-dim`/`hover`/`info` (color-mix — works because `data-vibe` sits on `<html>`); motion + overlay-shadow tokens; base font 14→13px; `@layer components` vocabulary: `.panel .list-row .chip .kbd .section-h .prose-zone .overlay-float .hairline .skeleton`. | 13px base + new palette WILL shift old pages — that's the redesign, but eyeball Console/Entries for breakage. Terminal/hacker vibes inherit the derived washes automatically. |
 | `app/models/seam-colors.ts` (edit) | New seam palette (§4.2 table). | Graph + trace chips change color. Check contrast on the graph canvas bg. |
 
-## Verify (in order)
+## Verify (in order) — done as of 2026-07-03, re-check after further changes
 
-1. `pnpm check` green (real exit code).
-2. `pnpm server` + `pnpm dev:web` → analyze a repo → navigate to `/explore`:
-   - j/k in the deck sweeps entries; tree updates ~150ms after you stop; rapid
-     scrubbing never shows a stale tree (LatestGate isn't wired into TraceStore yet —
-     see next steps — so verify no *crash*, and expect occasional staleness until then).
+1. `pnpm check` green (real exit code). ✅ lint 0/0 · test 25/25 · build 0w/0e.
+2. `pnpm server` + `pnpm dev:web` → analyze a repo → navigate to `/explore` (client-side —
+   a full `page.goto`/URL-bar reload loses in-memory session state, same as it would for a
+   real user; `WorkspaceStore` deliberately doesn't persist session/trace/handle):
+   - j/k in the deck sweeps entries; tree updates ~150ms after you stop. ✅ Verified via
+     Playwright against `tests/fixtures/MinimalApiProject`: focusing the deck and scrubbing
+     produced a correct trace tree + populated Inspector, no stale/blank content, zero
+     console errors. LatestGate is now wired into `TraceStore` (§ below), so this is no
+     longer just "no crash" — rapid scrubbing is structurally protected against stale trees.
    - Stage: System shows topology with zero traces run; Flow tree↔graph toggles;
-     clicking a tree node fills Inspector Details; Node altitude lists neighbors.
+     clicking a tree node fills Inspector Details; Node altitude lists neighbors. (Not
+     re-verified this pass beyond Flow/Tree — System/Node altitudes still worth a manual look.)
    - Trail bar appears after first selection; ⟲⟳ walk it; Ctrl+Z/Y too; crumb click jumps.
-   - Ctrl+Shift+L hides/restores the Inspector; survives reload (localStorage).
+     ✅ Breadcrumb populated correctly after a scrub-selection.
+   - Ctrl+Shift+L hides/restores the Inspector; survives reload (localStorage). ✅ Verified —
+     now backed by `PrefsStore.dockLevel` (`devcontext-prefs` key), not the old
+     `devcontext-dock` key (confirmed absent from localStorage after the toggle).
    - Statusbar equivalent not wired: check atlas progress via
      `window` devtools → network: ~4 concurrent getTrace calls after analyze, pausing
-     while your own trace is in flight, stopping at ≤100.
-   - Close the tab mid-indexing → atlas requests stop (GC effect cancels).
+     while your own trace is in flight, stopping at ≤100. (Not re-verified this pass.)
+   - Close the tab mid-indexing → atlas requests stop (GC effect cancels). (Not re-verified.)
 3. Old routes (`/entries`, `/trace`, `/graph`) still work, restyled by the new tokens.
+   (Not re-verified this pass — the consolidation commit `0947011` touched several of these
+   files for unrelated gap-fixes; `pnpm check`/build passing is the only signal so far.)
 
 ## Next steps (the waterfall, from `ui-ux-redesign-proposal-fable.md` §10)
 
-1. **Finish W0:** bundle Inter/JetBrains Mono into `/assets/fonts` (remove any remote
-   font path); `/styleguide` dev route showcasing tokens + these components.
-2. **W3 completion:** thread `LatestGate` through `TraceStore.run()`/`selectNode()`
-   (key `${tabId}:trace`) and the omnibox search; add duplicate-path guard in
-   SessionStore; PrefsStore `dockLevel/theme` (replace WorkbenchPage's localStorage).
-3. **W4:** URL state on `/explore`, Esc-ladder, audit-table overlay, Render-RPC LLM
+1. **W3 remainder:** omnibox/palette search (`searchNodes`) onto `runLatest` (GAP-B1 —
+   currently every keystroke fires ungated); audit whether analyze-stream cancellation needs
+   more than what `WorkspaceStore.closeTab()`'s `OperationController.cancel()` already does.
+   ~~thread `LatestGate` through `TraceStore.run()`/`selectNode()`~~ **done** (`core/rpc-call.ts`
+   `LatestGate`, keys `${tabId}:trace`/`${tabId}:node`, abort-on-tab-close via a constructor
+   effect). ~~duplicate-path guard in SessionStore~~ **done** (GAP-T4). ~~PrefsStore
+   dockLevel/theme~~ **done** — `theme` is stored but not yet applied to the DOM (needs W0's
+   `ThemeService`).
+2. **Finish W0:** bundle Inter/JetBrains Mono into `/assets/fonts` (remove any remote
+   font path); `ThemeService` (`data-theme`, reads `PrefsStore.theme`); `/styleguide` dev
+   route showcasing tokens + these components.
+3. **W1:** shell skeleton — titlebar/activity-bar/statusbar renames + restyle, wire
+   `tab-strip` (built but orphaned), WebView shortcut interception (§7.3), offline banner.
+4. **W4:** URL state on `/explore`, Esc-ladder, audit-table overlay, Render-RPC LLM
    section, omnibox, export drawer + From Trail (pins are already collected!),
    old-route redirects, delete superseded sections.
-4. **W5:** statusbar segments + ticker wiring (`TickerService.post` from SessionStore
+5. **W5:** statusbar segments + ticker wiring (`TickerService.post` from SessionStore
    analysis events, insights, AtlasStore), Home Top Flows (`atlas.topFlows()`),
    Atlas page (event board = `atlas.eventWiring()`, hubs = `atlas.hubs()`).
-5. **W6:** Tauri (sidecar, dialog picker, no-flash, shortcut interception — §7).
+6. **W6:** Tauri (sidecar, dialog picker, no-flash, shortcut interception — §7).
 
 ## Design intents you must not "fix"
 

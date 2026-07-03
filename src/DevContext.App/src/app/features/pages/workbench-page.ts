@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, OnDestroy, signal } from '@angular
 import { RouterLink } from '@angular/router';
 
 import { AtlasStore } from '../../state/atlas.store';
+import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
@@ -13,7 +14,6 @@ import { Stage } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
 
 const TRACE_DEBOUNCE_MS = 150;
-const DOCK_KEY = 'devcontext-dock';
 /** Inspector width per dock level (% of the workbench). Level 3 = focus mode. */
 const DOCK_WIDTHS = [0, 30, 40, 100] as const;
 
@@ -74,8 +74,9 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly trail = inject(TrailStore);
   private readonly atlas = inject(AtlasStore);
   private readonly workspace = inject(WorkspaceStore);
+  private readonly prefs = inject(PrefsStore);
 
-  protected readonly dockLevel = signal(this.loadDock());
+  protected readonly dockLevel = signal(this.prefs.dockLevel());
   protected readonly dockWidth = computed(() => DOCK_WIDTHS[this.dockLevel()]);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
@@ -169,20 +170,7 @@ export class WorkbenchPage implements OnDestroy {
     } else {
       this.dockLevel.set(this.lastVisibleDock);
     }
-    try {
-      localStorage.setItem(DOCK_KEY, String(this.dockLevel()));
-    } catch {
-      /* quota exceeded – drop */
-    }
-  }
-
-  private loadDock(): number {
-    try {
-      const raw = Number(localStorage.getItem(DOCK_KEY));
-      return raw >= 0 && raw <= 3 ? raw : 2;
-    } catch {
-      return 2;
-    }
+    this.prefs.setDockLevel(this.dockLevel());
   }
 }
 

@@ -47,6 +47,14 @@ export class SessionStore {
   lastStats = () => this.stats();
 
   async analyze(spec: AnalyzeSpec): Promise<void> {
+    const openElsewhere = this.workspace
+      .tabs()
+      .find((t) => t.path === spec.path && t.id !== this.workspace.activeId() && (t.session.handle !== null || t.session.status === 'analyzing' || t.session.status === 'cloning'));
+    if (openElsewhere) {
+      this.workspace.setActive(openElsewhere.id);
+      return;
+    }
+
     const reusingTab = this.workspace.activeId() !== null;
     const tabId: string = this.workspace.activeId() ?? this.workspace.createTab(spec.path, spec.path);
     if (reusingTab) this.workspace.setPathLabel(tabId, spec.path, spec.path);

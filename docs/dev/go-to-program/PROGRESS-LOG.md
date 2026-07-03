@@ -379,3 +379,61 @@ CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
 - Wire tab strip (I10 — built but orphaned) — highest-impact unshipped feature
 - Persistent Lens panel (eliminates page-hop on entry exploration)
 - Nav rail polish (icons, count badges, disabled tooltips)
+
+---
+
+## 2026-07-03 — Fable branch: commit backlog + lint fixes + W3 completion (LatestGate/dup-guard/prefs)
+
+**Context:** `feat/fable-redesign-skeleton` (branched from `develop` at `cab2800`) carried two
+uncommitted, already-verified changesets in its working tree left over from `develop` (the "V4 audit
++ P0-P2" and "Audit + Bug Fix Pass" entries above) — never committed before the branch was cut.
+Committed those first so the tree matches what was actually tested, then continued the Fable
+waterfall (`docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10) per the skeleton HANDOFF's
+"next steps" ordering.
+
+**Changed:**
+- **Commits `0947011`/`1729b90`:** the two pending changesets above, plus lint fixes for the F-skeleton
+  commit (`entry-deck.ts`/`stage.ts`/`inspector.ts` needed `keydown.enter`/`space` + `tabindex` paired
+  with `(click)` for `@angular-eslint/template` a11y rules; `atlas.store.ts`/`stage.ts` used the banned
+  `Array<T>`/`ReadonlyArray<T>` generic form). `pnpm check` had never been run on the skeleton commit
+  before this session — HANDOFF said as much ("STATIC — never compiled or run").
+- **W3 — LatestGate threading (proposal §5.1):** `DevContextApi.getTrace/getNode/getNeighbors` take an
+  optional `AbortSignal` now (mirrors the existing `analyze()` pattern), threaded to the ConnectRPC
+  `CallOptions`. `TraceStore` now routes `trace()`'s `run()` and `selectNode()` through a `LatestGate`
+  keyed `${tabId}:trace`/`${tabId}:node` — a stale response from a superseded j/k scrub can no longer
+  paint over a newer one. A constructor `effect()` (same pattern as `TrailStore`'s GC effect) aborts a
+  tab's in-flight gate entries the moment the tab closes.
+- **W3 — SessionStore duplicate-path guard (GAP-T4):** `analyze()` now checks all tabs (not just the
+  active one) for a matching `path` with a handle or in-flight analysis; if found, switches to that tab
+  instead of creating a duplicate. Re-analyzing the path already open in the *active* tab is unaffected
+  (deliberate re-analyze, not blocked).
+- **W3 — PrefsStore `dockLevel`/`theme`:** added to the `Prefs` interface (schema stays version 1 — the
+  existing `{...DEFAULTS, ...parsed}` merge already backfills missing keys from old blobs).
+  `WorkbenchPage`'s Inspector dock toggle (`Ctrl+Shift+L`) now reads/writes `PrefsStore` instead of its
+  own `devcontext-dock` localStorage key. `theme` is stored but **not yet applied to the DOM** — that's
+  W0-finish's `ThemeService`, still open.
+- **Tests:** `trail.store.spec.ts` (new, 7 tests — push/undo/redo, forward-branch truncation on push-
+  after-undo, duplicate-push collapse, `jumpTo`, pin toggle, tab-close self-GC, per-tab isolation).
+  `workspace.store.spec.ts` (+2 tests — the dup-path guard switches tabs and does *not* re-call
+  `analyze()`; re-analyzing the active tab's own path is unaffected).
+
+**Verified:**
+- `pnpm check` green (real exit code): lint 0/0 · test 25/25 · build 0w/0e.
+- Manual smoke via `pnpm dev:web` + Playwright (`chromium-cli` isn't installed in this environment;
+  used `playwright-core` with `channel: 'chrome'` against the system Chrome instead — no browser
+  download needed): analyzed `tests/fixtures/MinimalApiProject`, SPA-navigated to `/explore` (a real
+  `page.goto` would reset in-memory session state, same as it would for a user typing the URL fresh —
+  `WorkspaceStore` deliberately doesn't persist session/trace/handle), focused the deck and scrubbed
+  with `j` — trace tree + Inspector Details/LLM/Trail all populated correctly, trail breadcrumb showed
+  `POST /orders`. Toggled the dock (`Ctrl+Shift+L`) twice — Inspector hid and restored with content
+  intact. Confirmed `localStorage['devcontext-prefs']` carries `dockLevel`/`theme` and the old
+  `devcontext-dock` key is never written. Zero console errors throughout.
+
+**Next (HANDOFF's waterfall order, unchanged):**
+- W3 remainder: analyze-stream cancel + tab-close abort sweep beyond what `OperationController`
+  already does (it already cancels + closes the session on tab close — audit whether more is needed);
+  omnibox/palette search (`searchNodes`) onto `runLatest` (currently ungated — GAP-B1).
+- W0 finish: bundle Inter/JetBrains Mono locally, `ThemeService` (to actually apply `PrefsStore.theme`),
+  `/styleguide` dev route.
+- W1: shell skeleton rename/restyle (titlebar/activity-bar/statusbar), wire tab-strip, WebView shortcut
+  interception — see `AGENTS.md` "F — Fable Workbench Redesign" for the up-to-date per-stage status.

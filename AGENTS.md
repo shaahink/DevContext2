@@ -40,18 +40,36 @@ Navigation rail + routed views replacing single-page scroll. Entries table sorti
 - Done: `shell/navigation-rail.ts` — left sidebar with icon+label navigation. `shell/workspace-shell.ts` — header + rail + router-outlet + footer, `g+key` view nav, `?` help overlay. `app.config.ts` — 8 lazy-loaded routes. `features/pages/` — overview, entries, trace, graph, insights, export page wrappers. `section-entries.ts` — sortable columns, arrow-key nav, row actions. `palette.ts` — entry search top 10, stale routes removed.
 - Gate: clicking rail items navigates views; sort headers work; Ctrl+K palette searches entries; `?` shows shortcuts.
 
-### I11 — Focus Workspace (unified context-thinking shell) ⬜ READY — START HERE
+### I11 — Focus Workspace (unified context-thinking shell) ⬜ SUPERSEDED — see F below
 **Spec:** `docs/dev/go-to-program/ITERATION-I11-focus-workspace.md`
-**Gaps:** `docs/dev/GAP-TRACKER.md` (23 gaps, all addressed in I11 phases)
+**Gaps:** `docs/dev/GAP-TRACKER.md` (23 gaps — closed by the F0-F7 fixes below, rest carried into F's waterfall)
 **Flow explainer:** `docs/dev/FEATURE-FLOW-EXPLAINER.md` (for LLM context)
 
-Complete redesign from page-based navigation to context-thinking workspace:
-- **Phase 1 — Foundation:** Wire tab strip (built but orphaned). Restyle chrome: TitleBar (30px, solid), ActivityBar (5 icons+count badges), StatusBar (22px, connection dot+progress). Fix GAPs T1-T5, N1, S5-S7.
-- **Phase 2 — Explorer:** EntryListbox (j/k scrub, 150ms debounced trace). ProgressiveTraceTree (twisties, seam chips). Stage (trace↔graph toggle). MiniGraph thumbnail. `/explore` route replaces `/entries`+`/trace`+`/graph`.
-- **Phase 3 — Context Panel:** Details, Call Stack, Metrics (placeholder nerd data), Insights, LLM sections. Smart Dock (Ctrl+1-4, PrefsStore). Collapsible to thin token-count strip.
-- **Phase 4 — History:** History stack per tab (undo/redo). Breadcrumb bar. Esc ladder. Ctrl+Z/Y.
-- **Phase 5 — Polish:** Quick Peek hover overlays. Export drawer (slide-out, 3 pack presets). Palette fixes (B1-B5). Restyle all views: no card wrappers, no shadows, 1px panel dividers, borderless inputs, ghost buttons. Ctrl+R re-analyze with focus restore.
-- Gate: zero page navigations during exploration. j/k scrubs entries, Context Panel updates live. Ctrl+Z walks history. Tabs work. No web-page feel — IDE-native visual language.
+I11 was synthesized from two independent proposals (C, CT) but was itself superseded by a third
+("F proposal", `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`) before implementation started —
+see that doc's §11 for the diff. Kept here for history; do not resume I11 directly, resume **F**.
+
+### F — Fable Workbench Redesign (active — supersedes I11) 🔶 IN PROGRESS
+**Branch:** `feat/fable-redesign-skeleton` · **Spec:** `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`
+**Handoff:** `docs/dev/briefs/fable-skeleton-HANDOFF.md` (file-by-file risk notes for the skeleton)
+
+Same "one workbench, one selection, one trail" redesign as I11 aimed for, but with an exact design
+system (Graphite tokens), a named cancellation architecture (LatestGate), and client-side derived
+insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7 (proposal §10) —
+**do not start Wn+1 until Wn's gate passes.**
+- W0 (design tokens) — **partial**: Graphite palette + `@layer components` vocabulary landed in
+  `styles.css`. Still open: bundle Inter/JetBrains Mono locally, `ThemeService`, `/styleguide` route.
+- W1 (shell skeleton) — not started. Old shell/chrome still serves old routes untouched.
+- W2 (component build) — **partial seed**: `entry-deck`, `stage`, `inspector`, `trail-bar` exist and
+  are wired into a real `/explore` route (ahead of spec — normally W2 stays store-free until W4).
+- W3 (state/RPC hardening) — **mostly done**: `LatestGate` (`core/rpc-call.ts`) now threads through
+  `TraceStore.trace()`/`selectNode()` (keys `${tabId}:trace`/`${tabId}:node`), with abort-on-tab-close;
+  `TrailStore`/`AtlasStore` skeletons exist; `SessionStore` has the duplicate-path guard (GAP-T4);
+  `PrefsStore` has `dockLevel`/`theme` (wired into the Workbench's Ctrl+Shift+L, replacing raw
+  localStorage). Remaining: analyze-stream cancel sweep beyond what `OperationController` already
+  does, omnibox search onto `runLatest`.
+- W4-W7 — not started (the big wiring, derived insights, Tauri hardening, polish).
+- Gate for resuming: `pnpm check` green (real exit code) → pick up at W3's remaining item or start W1.
 
 ## Verify loop
 ```powershell
@@ -79,6 +97,16 @@ pnpm check
 # Pick the first work item whose Status != DONE in this file
 # Do Step 0 (reproduce) first, then execute
 ```
+
+To resume the **F — Fable Workbench Redesign** specifically (the active redesign track):
+```
+git -C C:/Code/DevContext2-ui checkout feat/fable-redesign-skeleton
+git -C C:/Code/DevContext2-ui pull
+Set-Location C:/Code/DevContext2-ui/src/DevContext.App
+pnpm check > check.log; echo $LASTEXITCODE   # real exit code, never pipe to tail
+```
+Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) and pick up at W3's
+remaining item (analyze-stream cancel sweep, omnibox onto `runLatest`) or start W1.
 
 ---
 

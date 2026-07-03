@@ -75,16 +75,16 @@ export class DevContextApi {
     return this.client.listEntryPoints({ handle });
   }
 
-  getTrace(handle: string, focus: string, depth: number, detail: string): Promise<TraceResponse> {
-    return this.client.getTrace({ handle, focus, depth, detail });
+  getTrace(handle: string, focus: string, depth: number, detail: string, signal?: AbortSignal): Promise<TraceResponse> {
+    return this.client.getTrace({ handle, focus, depth, detail }, { signal });
   }
 
-  getNode(handle: string, nodeId: string): Promise<NodeResponse> {
-    return this.client.getNode({ handle, nodeId });
+  getNode(handle: string, nodeId: string, signal?: AbortSignal): Promise<NodeResponse> {
+    return this.client.getNode({ handle, nodeId }, { signal });
   }
 
-  getNeighbors(handle: string, nodeId: string, direction: NeighborDirection): Promise<NeighborsResponse> {
-    return this.client.getNeighbors({ handle, nodeId, direction });
+  getNeighbors(handle: string, nodeId: string, direction: NeighborDirection, signal?: AbortSignal): Promise<NeighborsResponse> {
+    return this.client.getNeighbors({ handle, nodeId, direction }, { signal });
   }
 
   searchNodes(handle: string, query: string, limit: number): Promise<SearchResponse> {
