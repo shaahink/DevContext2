@@ -45,11 +45,11 @@
 }
 
 @utility text-2xs {
-  font-size: 0.625rem;
+  font-size: 0.6875rem; /* 11px — was 10px, bumped for legibility */
 }
 
 @utility text-xs {
-  font-size: 0.75rem;
+  font-size: 0.8125rem; /* 13px — was 12px, bumped for legibility */
 }
 
 @utility tabular-nums {
@@ -260,8 +260,9 @@ body {
   background: var(--vibe-base);
   color: var(--vibe-ink);
   font-family: var(--vibe-font-sans);
-  /* 13px UI base (F proposal §4.3) — IDE density. Prose zones opt up via .prose-zone. */
-  font-size: 13px;
+  /* 14px UI base (was 13px, F proposal §4.3's original) — bumped for legibility, still IDE
+     density. Prose zones opt up via .prose-zone. */
+  font-size: 14px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -325,7 +326,7 @@ body {
 .console-surface {
   overflow: hidden;
   font-family: var(--vibe-font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.7;
 }
 
@@ -356,7 +357,7 @@ body {
 .line-stage {
   color: var(--vibe-ink-muted);
   flex-shrink: 0;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
 }
 
 .line-msg {
@@ -367,7 +368,7 @@ body {
 .line-pct {
   color: var(--vibe-accent);
   flex-shrink: 0;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
 }
 
 .log-cursor {
@@ -389,17 +390,17 @@ body {
 
 .report-label {
   color: var(--vibe-ink-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .report-value {
   color: var(--vibe-ink);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .console-section-title {
   margin-bottom: 0.375rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -470,7 +471,7 @@ body {
 
 .lens-pane-title {
   margin-bottom: 0.75rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -488,7 +489,7 @@ body {
 .lens-card-title {
   margin-bottom: 0.5rem;
   font-family: var(--vibe-font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--vibe-ink);
   word-break: break-word;
@@ -501,7 +502,7 @@ body {
   flex: 1;
   padding: 2rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--vibe-ink-subtle);
 }
 
@@ -563,7 +564,7 @@ body {
     gap: 0.375rem;
     min-height: 1.75rem;
     padding: 0 0.5rem;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     border-left: 2px solid transparent;
     cursor: default;
     user-select: none;
@@ -584,7 +585,7 @@ body {
     gap: 0.25rem;
     height: 1.25rem;
     padding: 0 0.375rem;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     line-height: 1;
     border: 1px solid var(--vibe-line);
     border-radius: var(--vibe-radius-sm);
@@ -600,7 +601,7 @@ body {
   /* Keyboard hint. */
   .kbd {
     font-family: var(--vibe-font-mono);
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     padding: 0.0625rem 0.25rem;
     border: 1px solid var(--vibe-line);
     border-bottom-width: 2px;
@@ -616,7 +617,7 @@ body {
     gap: 0.25rem;
     height: 1.5rem;
     padding: 0 0.5rem;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 500;
     color: var(--vibe-ink-muted);
     user-select: none;
@@ -629,7 +630,7 @@ body {
   /* Where reading happens (LLM pane, insight detail, Home digest): Telegram warmth —
      bigger type, relaxed leading, bounded measure. */
   .prose-zone {
-    font-size: 0.8438rem; /* 13.5px */
+    font-size: 0.9375rem; /* 15px — was 13.5px; bumped so it stays clearly bigger than the new 14px base */
     line-height: 1.6;
     max-width: 68ch;
     color: var(--vibe-ink);

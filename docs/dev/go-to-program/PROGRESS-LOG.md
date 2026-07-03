@@ -1190,3 +1190,46 @@ content changed to the exact rendered LLM trace text, proving the plugin path ac
 executes end to end, not just that the promise resolved without an exception.
 
 `pnpm check` and `cargo check` both green.
+
+## 2026-07-04 — W6 checkpoint 7: legibility bump (redirected from "DPI pass")
+
+The proposal's original W6 checkpoint 7 was "DPI pass at 125%/150%" — testing the app at
+higher Windows display-scaling factors. Asked the user how to handle it (own machine,
+Claude via PowerShell/registry, or skip); the user redirected the ask entirely: don't
+touch any system display settings (a global, hard-to-reverse desktop change, correctly
+out of bounds for an unattended agent action), and instead just make the app's own text
+less small by default, using judgment — the proposal's deliberate "13px IDE density" base
+(§4.3) reads as genuinely too small in real use, not a DPI-scaling artifact.
+
+Bumped the whole type scale proportionally rather than cherry-picking one size, so the
+existing size hierarchy (2xs < xs < body < prose) stays intact, just shifted up ~1px
+across the board: `text-2xs` 10px→11px, `text-xs` 12px→13px, body base 13px→14px (§4.3's
+own original value), `.prose-zone` (LLM pane/Home digest reading zone) 13.5px→15px — kept
+deliberately larger than the new 14px base so its "bigger type for reading" purpose still
+holds. Found and bumped every OTHER hardcoded `font-size: 0.625rem`/`0.75rem` literal in
+`styles.css` too (`.chip`, `.kbd`, `.section-h`, `.list-row`, the boot-console/run-report
+classes, etc.) — these don't use the `text-2xs`/`text-xs` utilities but are visually the
+same sizes, so leaving them alone would've produced a visibly inconsistent app (some text
+bumped, adjacent text not). Did NOT touch the confirmed-dead `.lens-*` classes (grepped —
+zero references anywhere in `src/app`, leftover from the deleted `section-lens.ts`).
+
+**Verified with an actual screenshot, not just a build check** — the only way to honestly
+confirm a legibility/layout claim. First attempt captured the wrong window entirely (this
+Claude Code terminal, which happened to be the foreground window at those screen
+coordinates — `CopyFromScreen` captures whatever's visually on top, not a specific
+window, regardless of which HWND's rect you fed it). Fixed by calling `SetForegroundWindow`
+first. The corrected screenshot shows clearly larger, comfortably-padded text throughout
+(titlebar, deck rows, trace-tree chips, Inspector panels) with nothing clipped or
+overflowing in the tightest spots (20px-tall chips, the 30px titlebar) — real confirmation
+this was a legibility win, not a layout regression. Worth remembering as a pattern for any
+future "does this look right" question that a computed-style check can't answer.
+
+`pnpm check` green (pure CSS change, no Rust touched — `cargo check` not re-run this
+checkpoint).
+
+**W6 status:** checkpoints 1-7 all done. Two things intentionally NOT done, both already
+called out in earlier entries rather than silently dropped: the self-contained
+`externalBin` sidecar packaging (checkpoint 1 — lifecycle hardening is done and verified,
+only the installer-bundling half is deferred), and the literal "test at 125%/150% Windows
+scaling" ask (superseded by this session's legibility-bump redirect, per the user).
+`AGENTS.md`'s F section needs updating to reflect W6 done, W7 next per the proposal's §10.
