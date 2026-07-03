@@ -333,3 +333,49 @@ CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
 **Verified:** `dotnet build` 0w · `dotnet test --filter Category!=Eval` 383/0 (no regressions).
 
 **Next:** E5 (Benchmark expansion — remaining item).
+
+---
+
+## 2026-07-02 — V4 Audit fixes + P0 header/cleanup + P1 entries/deep-link + P2 prefs/lens
+
+**Changed:**
+- **V4 Audit fixes (F0-F7):** Build breaks (wrong imports in `navigation-rail.ts`, `afterRender→afterEveryRender`, dead `graph-view.ts`); wired Synced Lens onto Trace page; fixed blank graph on first trace + ngModel-on-signal bug; trace dropdown focus gating; entries arrow-key double-jump; insights semantic colors + detail rendering; settings GitHub links + Roslyn toggle.
+- **P0.1 — Header repo affordance:** Replaced dead `<ng-content select="[analyze]"/>` with repo-label dropdown showing current repo, recents list, and "New analysis…" action. "New" button now resets workspace state (`closeTab + navigateByUrl('/')`) instead of `window.location.reload()`.
+- **P0.2 — Landing recents ×:** Ported remove-recent button from deleted `SectionSettings` to `SectionLanding` recents list (hover-visible, stopPropagation).
+- **P0.3 — Dead code deleted:** `narrative-canvas.ts`, `section-settings.ts`, `scroll-spy/scroll-spy.ts` — all only imported each other, nothing referenced them.
+- **P1 — Entries table spec:** Count badges on filter chips (`HTTP 23`); "approx" and "has target" quick-filter toggle chips; sort persisted in URL (`?sort=route&dir=asc`); visible row-action buttons on hover (Trace · Node card · Copy route); sticky header + 500px max-height scroll; filter/sort state synced to URL via `replaceUrl`.
+- **P1 — Trace deep-linking:** `/trace?focus=X` — `trace-page.ts` reads `focus` from query params and triggers trace on nav; `effect` writes focus back to URL on change.
+- **P2.7 — `prefs.store`:** New state store (`state/prefs.store.ts`) — persists analysis defaults (depth/detail/roslyn/cleanup) to localStorage under schema-versioned key. `SettingsView` reads/writes prefs. `SectionLanding` and `AppHeader.selectRecent()` apply prefs defaults on analyze.
+- **P2.9 — Lens node detail wired:** `trace-node.ts` now emits `nodeSelected` output on click; wired in `section-trace.ts` and `section-lens.ts` to call `traceStore.selectNode()`. `section-graph.ts` calls `selectNode()` alongside `trace()` on graph node click. Lens Human pane now shows node detail card when a node is selected.
+- **Bonus:** Removed unused `RouterLinkActive` import from `navigation-rail.ts` and unused `Icon` import from `workspace-shell.ts`.
+
+**Verified:**
+- `pnpm check` green: lint 0/0 · test 7/7 · build 0w 0e
+- 14 files changed, +340/−446 lines
+
+**Next from AUDIT-V4-VERIFICATION §6:**
+- P3: U3 facets / E4 (needs engine facet layer first — deferred multi-iteration)
+- Verification debt: Eval gate (`dotnet test --filter Category=Eval`), manual smoke test
+- Follow-ups: file:line column (needs engine proto change), CDK v22 virtual scroll API, Tauri storage commands
+
+---
+
+## 2026-07-02 — Audit + Bug Fix Pass + Window Buttons + Gap Tracker
+
+**Changed:**
+- **Window buttons fixed:** Silent-catch pattern replaced with Tauri detection (`window.__TAURI__`). Buttons now hidden in browser mode (where Tauri APIs don't exist). Tauri API module cached after first lazy load. `isTauri()` guard in template.
+- **Footer wired:** Added `ConnectionStore` + `ActivityService` — footer now shows connection dot + server version + progress % during analysis + error state.
+- **NodeCard error state:** Added error display with Retry + Copy details buttons. Added empty-state for zero callers/callees. Skeleton spinner (not text "Loading..."). 
+- **SectionArchitecture empty states:** Added "Analyze a repo first" when no session + "No architecture data available" when analysis produced no data. `hasContent()` gate on all subsections.
+- **SectionIdentity empty states:** Added guard — shows prompt text instead of `0 nodes / 0 edges` before analysis.
+- **SectionStats error state:** `statsError` signal now read — shows inline error with Retry button during loading.
+- **SectionExport toggle fix:** User's section enable/disable state now preserved across re-renders (was: overwritten to all `true`). Added inline error state with Retry.
+- **Two documents created:** `docs/dev/GAP-TRACKER.md` — 23 remaining gaps with doc refs, expected fixes, and priority ordering. `docs/dev/FEATURE-FLOW-EXPLAINER.md` — app identity, technology wiring, current flows, 5 proposed UX improvements (tabs, persistent lens, one-click re-analyze, graph seeding, quick popover), request for review.
+
+**Verified:**
+- `pnpm check` green: lint 0/0 · test 7/7 · build 0w 0e
+
+**Next:**
+- Wire tab strip (I10 — built but orphaned) — highest-impact unshipped feature
+- Persistent Lens panel (eliminates page-hop on entry exploration)
+- Nav rail polish (icons, count badges, disabled tooltips)

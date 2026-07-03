@@ -65,7 +65,12 @@ import { Button } from '../../ui/button/button';
           }
 
           <div class="min-h-0 flex-1 overflow-auto p-4">
-            @if (content()) {
+            @if (renderError()) {
+              <div class="flex h-full flex-col items-center justify-center gap-3">
+                <span class="text-danger text-xs">{{ renderError() }}</span>
+                <button class="rounded bg-surface-2 px-3 py-1.5 text-xs text-ink hover:bg-surface-1" (click)="render()">Retry</button>
+              </div>
+            } @else if (content()) {
               <pre class="whitespace-pre-wrap font-mono text-sm text-ink leading-relaxed">{{ content() }}</pre>
             } @else if (loading()) {
               <div class="flex h-full items-center justify-center gap-2 text-xs text-ink-muted">
@@ -95,6 +100,8 @@ export class SectionExport {
   protected readonly tokenCount = signal(0);
   protected readonly loading = signal(false);
 
+  protected readonly renderError = signal<string | null>(null);
+
   constructor() {
     effect(() => {
       if (this.open() && this.session.handle()) {
@@ -111,16 +118,21 @@ export class SectionExport {
     const handle = this.session.handle();
     if (!handle) return;
     this.loading.set(true);
+    this.renderError.set(null);
     try {
+      const currentToggles = this.sectionData().filter((s) => s.enabled).map((s) => s.key);
       const res = await this.api.render(handle, {
         format: 'markdown',
-        sections: this.sectionData().filter((s) => s.enabled).map((s) => s.key),
+        sections: currentToggles.length ? currentToggles : undefined,
       });
       this.content.set(res.content);
       this.tokenCount.set(res.estimatedTokens);
-      const data = (res.sections ?? []).map((s) => ({ key: s.key, tokens: s.tokens, enabled: true }));
+      // Preserve user toggles: only add new sections, keep existing enabled state
+      const existing = new Map(this.sectionData().map((s) => [s.key, s.enabled]));
+      const data = (res.sections ?? []).map((s) => ({ key: s.key, tokens: s.tokens, enabled: existing.get(s.key) ?? true }));
       this.sectionData.set(data);
     } catch {
+      this.renderError.set('Render failed — check server connection.');
       this.toast.show('Render failed', 'error');
     } finally {
       this.loading.set(false);

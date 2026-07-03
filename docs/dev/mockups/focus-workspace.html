@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
+<title>DevContext</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Pixel-perfect VSCode light theme.
+   Every hex value taken directly from VSCode's TypeScript
+   color token definitions (src/vs/workbench/common/theme.ts,
+   src/vs/platform/theme/common/colors/baseColors.ts).
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Font stacks — exact VSCode */
+  --ui:    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:  "Cascadia Code", "JetBrains Mono", "Fira Code", "Consolas", "Courier New", monospace;
+
+  /* ── From baseColors.ts (light) ── */
+  --fg:                 #616161;
+  --bg:                 #FFFFFF;
+  --selection-bg:       #0060C0;
+  --selection-fg:       #FFFFFF;
+  --focus:              #0090F1;
+  --link:               #006AB1;
+
+  /* ── From theme.ts (light) ── */
+  --workbench:          #F3F3F3;           /* WORKBENCH_BACKGROUND */
+  --titlebar-bg:        #DDDDDD;           /* titleBar.activeBackground */
+  --titlebar-fg:        #333333;           /* titleBar.activeForeground */
+  --activitybar-bg:     #2C2C2C;           /* activityBar.background */
+  --activitybar-fg:     #FFFFFF;           /* activityBar.foreground */
+  --activitybar-ifg:    rgba(255,255,255,0.4); /* activityBar.inactiveForeground */
+  --activitybar-badge:  #007ACC;           /* activityBarBadge.background */
+  --sidebar-bg:         #F3F3F3;           /* sideBar.background */
+  --sidebar-hdr:        #6F6F6F;
+  --editor-bg:          #FFFFFF;           /* editorBackground */
+  --editor-tabs-bg:     #F3F3F3;           /* editorGroupHeader.tabsBackground */
+  --tab-active-bg:      #FFFFFF;           /* tab.activeBackground = editorBackground */
+  --tab-active-fg:      #333333;           /* tab.activeForeground */
+  --tab-inactive-bg:    #ECECEC;           /* tab.inactiveBackground */
+  --tab-inactive-fg:    rgba(51,51,51,0.7);/* tab.inactiveForeground = transparent(#333,70%) */
+  --tab-border:         #F3F3F3;           /* tab.border (same as side bar bg) */
+  --tab-hover-bg:       #E8E8E8;
+  --statusbar-bg:       #007ACC;           /* statusBar.background */
+  --statusbar-fg:       #FFFFFF;           /* statusBar.foreground */
+  --panel-border:       rgba(128,128,128,0.35); /* panel.border */
+  --list-hover:         #E8E8E8;
+  --list-active-bg:     #0060C0;           /* list.activeSelectionBackground (approx) */
+  --list-active-fg:     #FFFFFF;           /* list.activeSelectionForeground */
+  --list-focus-bg:      #D6EBFF;
+  --editor-group-border:#E7E7E7;           /* editorGroup.border */
+  --input-border:       #CECECE;
+  --input-focus:        #0090F1;           /* focusBorder */
+  --icon-fg:            #424242;           /* icon.foreground */
+  --badge-bg:           #007ACC;
+  --badge-fg:           #FFFFFF;
+  --scrollbar:          rgba(121,121,121,0.4);
+  --scrollbar-hover:    rgba(100,100,100,0.7);
+  --sash-hover:         #0090F1;           /* --vscode-sash-hoverBorder */
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  height:100vh; overflow:hidden;
+  background:var(--bg); color:var(--fg);
+  font-family:var(--ui); font-size:13px; line-height:22px;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-corner{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--scrollbar); }
+::-webkit-scrollbar-thumb:hover{ background:var(--scrollbar-hover); }
+::-webkit-scrollbar-track{ background:transparent; }
+
+#app{ display:flex; flex-direction:column; height:100vh; }
+
+/* ═══════════ TITLE BAR ═══════════
+   Exact VSCode: 30px, #DDDDDD bg, menu buttons, drag region, window controls */
+#titlebar{
+  display:flex; align-items:stretch; height:30px; min-height:30px;
+  background:var(--titlebar-bg); color:var(--titlebar-fg);
+  -webkit-app-region:drag; app-region:drag;
+}
+#titlebar>*{ -webkit-app-region:no-drag; app-region:no-drag; }
+#titlebar .icon{
+  width:36px; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; order:1;
+}
+#titlebar .icon svg{ width:16px; height:16px; }
+#titlebar .menubar{
+  display:flex; align-items:stretch; height:100%; order:2; z-index:10;
+  min-width:36px;
+}
+#titlebar .menubar button{
+  height:100%; padding:0 8px; border:none; background:none;
+  color:var(--titlebar-fg); font-size:13px; cursor:pointer;
+  font-family:var(--ui);
+}
+#titlebar .menubar button:hover{ background:rgba(0,0,0,0.06); }
+#titlebar .title{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  font-size:12px; color:var(--titlebar-fg); min-width:0;
+}
+#titlebar .title span{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  padding:0 8px;
+}
+#titlebar .actions{
+  display:flex; align-items:stretch; height:100%; order:3;
+}
+#titlebar .actions button{
+  height:100%; padding:0 8px; border:none; background:none;
+  color:var(--titlebar-fg); font-size:13px; cursor:pointer;
+  font-family:var(--ui);
+}
+#titlebar .actions button:hover{ background:rgba(0,0,0,0.06); }
+#titlebar .winctl{
+  display:flex; height:100%; order:4; -webkit-app-region:no-drag; app-region:no-drag;
+}
+#titlebar .winctl button{
+  width:46px; height:100%; border:none; background:none;
+  color:var(--titlebar-fg); cursor:pointer; display:flex;
+  align-items:center; justify-content:center; font-size:16px;
+}
+#titlebar .winctl button:hover{ background:rgba(0,0,0,0.1); }
+#titlebar .winctl button.close:hover{ background:#E81123; color:#fff; }
+
+/* ═══════════ TAB STRIP ═══════════
+   Exact VSCode: 35px, #F3F3F3 bg (editorGroupHeader.tabsBackground).
+   Active tab: #FFF bg, #333 fg, no bottom border (blends into editor).
+   Inactive: #ECECEC bg, transparent(#333, 0.7) fg. */
+#tabs{
+  display:flex; height:35px; min-height:35px;
+  background:var(--editor-tabs-bg);
+}
+#tabs .tab-row{
+  display:flex; flex:1; overflow-x:hidden; height:100%;
+}
+#tabs .tab{
+  display:flex; align-items:center; gap:5px; padding:0 10px; cursor:pointer;
+  font-size:13px; height:100%; white-space:nowrap;
+  background:var(--tab-inactive-bg); color:var(--tab-inactive-fg);
+  border-right:1px solid var(--tab-border);
+  font-family:var(--ui); position:relative;
+  transition:background 0.1s;
+}
+#tabs .tab:hover{ background:var(--tab-hover-bg); }
+#tabs .tab.active{
+  background:var(--tab-active-bg); color:var(--tab-active-fg);
+  border-bottom:1px solid var(--tab-active-bg); /* seamless blend */
+}
+#tabs .tab .dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+#tabs .tab .dot.ok{ background:#388A34; }
+#tabs .tab .dot.busy{ background:var(--focus); animation:pulse 1.2s infinite; }
+#tabs .tab .close{
+  opacity:0; font-size:12px; width:16px; height:16px; display:flex;
+  align-items:center; justify-content:center; border-radius:2px;
+  transition:opacity 0.1s,background 0.1s; color:inherit;
+}
+#tabs .tab:hover .close, #tabs .tab.active .close{ opacity:1; }
+#tabs .tab .close:hover{ background:rgba(0,0,0,0.15); }
+#tabs .add{
+  display:flex; align-items:center; justify-content:center;
+  min-width:28px; height:100%; border:none; border-left:1px solid var(--tab-border);
+  background:var(--editor-tabs-bg); color:var(--fg); font-size:16px;
+  cursor:pointer;
+}
+#tabs .add:hover{ background:var(--tab-hover-bg); }
+
+/* ═══════════ BREADCRUMB ═══════════
+   Exact VSCode: 22px, editor bg, 13px font, separator arrows. */
+#bread{
+  display:flex; align-items:center; height:22px; min-height:22px;
+  padding:0 8px; background:var(--editor-bg); font-size:13px;
+}
+#bread .crumb{
+  cursor:pointer; padding:0 2px; color:var(--fg); white-space:nowrap;
+}
+#bread .crumb:hover{ color:var(--tab-active-fg); }
+#bread .sep{ padding:0 2px; color:var(--fg); opacity:0.5; pointer-events:none; }
+
+/* ═══════════ MAIN LAYOUT ═══════════ */
+#main{ display:flex; flex:1; overflow:hidden; }
+
+/* ═══════════ ACTIVITY BAR ═══════════
+   Exact VSCode: 48px, #2C2C2C bg (light), white icons.
+   Inactive: transparent(white, 0.4). Active: white left bar. */
+#activity{
+  display:flex; flex-direction:column; align-items:center;
+  width:48px; min-width:48px;
+  background:var(--activitybar-bg); position:relative;
+}
+#activity button{
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:48px; height:48px; border:none; background:none; cursor:pointer;
+  color:var(--activitybar-ifg); transition:color 0.1s;
+}
+#activity button:hover{ color:var(--activitybar-fg); }
+#activity button.active{ color:var(--activitybar-fg); }
+#activity button.active::before{
+  content:''; position:absolute; left:0; top:6px; bottom:6px;
+  width:2px; background:var(--activitybar-fg);
+}
+#activity button.disabled{ opacity:0.4; pointer-events:none; }
+#activity button .badge{
+  position:absolute; top:4px; right:6px; min-width:16px; height:16px;
+  border-radius:8px; background:var(--activitybar-badge); color:var(--badge-fg);
+  font-size:10px; font-weight:600; display:flex; align-items:center;
+  justify-content:center; line-height:1; padding:0 3px;
+}
+#activity svg{ width:24px; height:24px; stroke-width:1.5; }
+#activity .spacer{ flex:1; }
+
+/* ═══════════ SIDEBAR ═══════════
+   Exact VSCode: #F3F3F3, 13px items, 22px row height.
+   Header: 11px uppercase bold, 35px height. */
+#sidebar{
+  width:280px; min-width:170px; display:flex; flex-direction:column;
+  background:var(--sidebar-bg); border-right:1px solid var(--panel-border);
+}
+#sidebar .hd{
+  padding:0 20px; line-height:35px; min-height:35px; font-size:11px;
+  font-weight:600; text-transform:uppercase; letter-spacing:0.8px;
+  color:var(--sidebar-hdr); border-bottom:1px solid var(--panel-border);
+}
+#sidebar .inp{ padding:2px 8px; }
+#sidebar .inp input{
+  width:100%; border:1px solid var(--input-border); background:var(--input-bg);
+  color:var(--tab-active-fg); font-size:13px; padding:2px 4px; outline:none;
+  font-family:var(--ui); height:22px; line-height:22px;
+}
+#sidebar .inp input:focus{ border-color:var(--input-focus); }
+#sidebar .inp input::placeholder{ color:var(--fg); }
+#sidebar .body{ flex:1; overflow-y:auto; }
+#sidebar .row{
+  display:flex; align-items:center; gap:6px; padding:0 20px; height:22px;
+  font-size:13px; cursor:pointer; white-space:nowrap; overflow:hidden;
+}
+#sidebar .row:hover{ background:var(--list-hover); }
+#sidebar .row.focused{ background:var(--list-focus-bg); }
+#sidebar .row.selected{ background:var(--list-active-bg); color:var(--list-active-fg); }
+#sidebar .row .label{
+  font-family:var(--mono); flex:1; overflow:hidden; text-overflow:ellipsis;
+}
+#sidebar .row .tag{ font-size:12px; opacity:0.8; flex-shrink:0; font-family:var(--ui); }
+#sidebar .empty{
+  display:flex; align-items:center; justify-content:center;
+  height:100px; color:var(--fg); font-size:13px;
+}
+
+/* ═══════════ EDITOR AREA ═══════════
+   Exact VSCode: #FFF bg. Editor tabs on top, trace tree below.
+   Tree uses 22px line height, 18px indent, 1px left border. */
+#editor{
+  flex:1; display:flex; flex-direction:column; overflow:hidden;
+  background:var(--editor-bg);
+}
+#editor .etabs{
+  display:flex; height:35px; min-height:35px;
+  background:var(--editor-tabs-bg);
+}
+#editor .etab{
+  display:flex; align-items:center; gap:6px; padding:0 10px; cursor:pointer;
+  font-size:13px; height:100%; white-space:nowrap;
+  background:var(--tab-inactive-bg); color:var(--tab-inactive-fg);
+  border-right:1px solid var(--tab-border); font-family:var(--ui);
+}
+#editor .etab.active{ background:var(--tab-active-bg); color:var(--tab-active-fg); border-bottom:1px solid var(--tab-active-bg); }
+#editor .etab:hover{ background:var(--tab-hover-bg); }
+#editor .ebody{ flex:1; overflow-y:auto; }
+#editor .tree{ padding:4px 0; }
+#editor .tnode{ border-left:1px solid rgba(128,128,128,0.12); padding:0 0 0 18px; }
+#editor .tnode.collapsed>.tn-children{ display:none; }
+#editor .tnrow{
+  display:flex; align-items:center; gap:5px; padding:0 4px; cursor:pointer;
+  font-family:var(--mono); font-size:13px; line-height:22px; height:22px;
+  color:var(--tab-active-fg);
+}
+#editor .tnrow:hover{ background:var(--list-hover); }
+#editor .tnrow .twisty{ width:16px; text-align:center; font-size:10px; color:var(--fg); flex-shrink:0; cursor:pointer; }
+#editor .tnrow .chip{
+  font-size:10px; padding:0 4px; border-radius:2px; font-family:var(--ui); font-weight:500;
+}
+#editor .tnrow .chip.call{ background:#E5F0FF; color:#003D80; }
+#editor .tnrow .chip.send{ background:#FFF3CC; color:#664A00; }
+#editor .tnrow .chip.handler{ background:#E5F8E5; color:#003300; }
+#editor .tnrow .chip.pipe{ background:#E0E0E0; color:#555; }
+#editor .tnrow .res{ font-size:10px; font-family:var(--ui); }
+#editor .tnrow .res.ok{ color:#388A34; }
+#editor .tnrow .res.apx{ color:#BF8803; }
+
+#editor .gspot{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; gap:12px; color:var(--fg);
+}
+#editor .gspot .gbox{
+  width:380px; height:240px; border:1px dashed rgba(128,128,128,0.3);
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  font-size:13px; gap:6px;
+}
+
+/* ═══════════ CONTEXT PANEL ═══════════
+   Exact VSCode: sideBar background, panel-border separator.
+   Section headers: 22px, 11px uppercase bold.
+   Collapse twisty + content below. */
+#ctx{
+  width:340px; min-width:30px; display:flex; flex-direction:column;
+  background:var(--sidebar-bg); border-left:1px solid var(--panel-border);
+  overflow:hidden;
+}
+#ctx.collapsed{ width:30px; min-width:30px; }
+#ctx.collapsed>*:not(.ctx-strip){ display:none; }
+#ctx .ctx-strip{
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; font-size:10px; color:var(--fg); padding:4px; writing-mode:vertical-rl; gap:6px;
+}
+#ctx.collapsed .ctx-strip{ display:flex; }
+#ctx .hd{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; line-height:35px; min-height:35px; font-size:11px;
+  font-weight:600; text-transform:uppercase; letter-spacing:0.8px;
+  color:var(--sidebar-hdr); border-bottom:1px solid var(--panel-border);
+}
+#ctx .hd .acts button{
+  border:none; background:none; color:var(--fg); cursor:pointer;
+  font-size:12px; padding:0 4px; font-family:var(--ui);
+}
+#ctx .hd .acts button:hover{ color:var(--tab-active-fg); }
+#ctx .body{ flex:1; overflow-y:auto; }
+#ctx .sec{}
+#ctx .sec .shdr{
+  display:flex; align-items:center; gap:6px; padding:0 20px; line-height:22px;
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;
+  color:var(--sidebar-hdr); cursor:pointer;
+}
+#ctx .sec .shdr .twsty{ font-size:10px; width:12px; flex-shrink:0; color:var(--fg); }
+#ctx .sec .sbody{
+  padding:4px 20px 12px; font-size:13px; color:var(--fg);
+}
+#ctx .sec .sbody .mono{ font-family:var(--mono); color:var(--tab-active-fg); }
+#ctx .sec .sbody .tag{
+  display:inline-flex; padding:0 4px; font-size:11px; font-family:var(--ui); border-radius:2px; margin-right:4px;
+}
+#ctx .sec .sbody .tag.blue{ background:#E5F0FF; color:#003D80; }
+#ctx .sec .sbody .tag.gray{ background:#E0E0E0; color:#555; }
+#ctx .sec .sbody .metric{ display:flex; justify-content:space-between; padding:1px 0; font-size:12px; }
+#ctx .sec .sbody .metric .val{ font-family:var(--mono); color:var(--tab-active-fg); }
+#ctx .sec .sbody .metric .val.est{ font-style:italic; color:var(--fg); }
+#ctx .sec .sbody .ins{ display:flex; align-items:center; gap:6px; padding:1px 0; cursor:pointer; font-size:12px; }
+#ctx .sec .sbody .ins .dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+#ctx .sec .sbody .ins .dot.warn{ background:#BF8803; }
+#ctx .sec .sbody .ins .dot.info{ background:var(--focus); }
+#ctx .sec .sbody .llm{ font-family:var(--mono); font-size:13px; line-height:22px; white-space:pre-wrap; max-height:200px; overflow-y:auto; color:var(--tab-active-fg); }
+#ctx .sec .sbody .acts{ display:flex; gap:6px; padding:4px 0; align-items:center; }
+#ctx .sec .sbody .acts .ml{ margin-left:auto; font-size:11px; }
+
+/* ═══════════ STATUS BAR ═══════════
+   Exact VSCode: 22px, #007ACC bg, #FFF fg. */
+#status{
+  display:flex; align-items:center; justify-content:space-between;
+  height:22px; min-height:22px; padding:0 10px;
+  background:var(--statusbar-bg); color:var(--statusbar-fg); font-size:12px;
+}
+#status .sl, #status .sr{ display:flex; align-items:center; gap:8px; }
+#status button{ color:var(--statusbar-fg); border:none; background:none; cursor:pointer; font-size:12px; padding:0 4px; font-family:var(--ui); }
+#status button:hover{ opacity:0.8; }
+
+/* ═══════════ EXPORT PANEL ═══════════ */
+#drawer{
+  position:fixed; top:0; right:-380px; width:360px; height:100vh;
+  background:var(--editor-bg); border-left:1px solid var(--panel-border);
+  z-index:100; transition:right 0.15s ease; display:flex; flex-direction:column;
+  box-shadow:-2px 0 8px rgba(0,0,0,0.08);
+}
+#drawer.open{ right:0; }
+#backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.08); z-index:99; display:none; }
+#backdrop.open{ display:block; }
+#drawer .dh{ display:flex; align-items:center; justify-content:space-between; padding:0 20px; line-height:35px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:var(--sidebar-hdr); border-bottom:1px solid var(--panel-border); }
+#drawer .dp{ display:flex; gap:4px; padding:4px 20px; border-bottom:1px solid var(--panel-border); }
+#drawer .dp button{ padding:1px 10px; font-size:12px; cursor:pointer; border:1px solid var(--input-border); background:var(--bg); color:var(--fg); font-family:var(--ui); transition:background 0.1s; }
+#drawer .dp button:hover{ background:var(--list-hover); }
+#drawer .dp button.on{ background:var(--list-active-bg); color:var(--list-active-fg); border-color:var(--list-active-bg); }
+#drawer .dl{ padding:4px 20px; border-bottom:1px solid var(--panel-border); }
+#drawer .dl label{ display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; line-height:22px; }
+#drawer .dl label .ml{ margin-left:auto; font-size:11px; }
+#drawer .db{ flex:1; overflow-y:auto; padding:4px 20px; font-family:var(--mono); font-size:13px; line-height:22px; white-space:pre-wrap; }
+#drawer .df{ padding:4px 20px; border-top:1px solid var(--panel-border); display:flex; align-items:center; justify-content:space-between; }
+#drawer .df button{ padding:1px 10px; font-size:12px; cursor:pointer; border:1px solid var(--input-border); background:var(--bg); color:var(--fg); font-family:var(--ui); }
+#drawer .df button:hover{ background:var(--list-hover); }
+
+/* ═══════════ QUICK PEEK ═══════════ */
+#peek{
+  position:fixed; z-index:200; pointer-events:none;
+  background:var(--editor-bg); border:1px solid var(--panel-border);
+  box-shadow:0 4px 12px rgba(0,0,0,0.12); padding:6px 12px; font-size:12px;
+  min-width:200px; display:none; line-height:1.5; font-family:var(--ui);
+}
+#peek.show{ display:block; }
+#peek .pt{ font-family:var(--mono); font-weight:600; color:var(--tab-active-fg); }
+#peek .pr{ display:flex; justify-content:space-between; color:var(--fg); }
+
+/* ═══════════ HELP OVERLAY ═══════════ */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.2); z-index:300; display:none; align-items:center; justify-content:center; }
+.overlay.show{ display:flex; }
+.help{ background:var(--editor-bg); border:1px solid var(--panel-border); box-shadow:0 4px 16px rgba(0,0,0,0.15); padding:20px 28px; min-width:500px; }
+.help h3{ display:flex; justify-content:space-between; font-size:14px; font-weight:600; margin-bottom:12px; color:var(--tab-active-fg); }
+.help hr{ border:none; border-bottom:1px solid var(--panel-border); margin:6px 0; }
+.help .hr{ display:flex; justify-content:space-between; gap:24px; padding:3px 0; font-size:13px; }
+.help .hr kbd{ font-family:var(--mono); font-size:11px; background:rgba(128,128,128,0.1); padding:1px 4px; border:1px solid rgba(128,128,128,0.3); color:var(--tab-active-fg); }
+
+/* ═══════════ VSCode-style buttons ═══════════ */
+.vbtn{ border:none; background:none; cursor:pointer; font-size:13px; padding:1px 10px; color:var(--fg); font-family:var(--ui); transition:background 0.1s; }
+.vbtn:hover{ background:var(--list-hover); }
+
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<div id="titlebar">
+  <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--focus)" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/></svg></div>
+  <div class="menubar">
+    <button>File</button><button>Edit</button><button>Selection</button><button>View</button><button>Go</button><button>Help</button>
+  </div>
+  <div class="title"><span>DevContext — eShop</span></div>
+  <div class="actions">
+    <button onclick="toggleTheme()" title="Toggle theme">☀</button>
+    <button onclick="toggleHelp()" title="Keyboard shortcuts (?)">?</button>
+  </div>
+  <div class="winctl">
+    <button><svg width="10" height="10"><rect y="4" width="10" height="2" fill="currentColor"/></svg></button>
+    <button><svg width="10" height="10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    <button class="close"><svg width="10" height="10"><line x1="2" y1="2" x2="8" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="2" x2="2" y2="8" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  </div>
+</div>
+
+<div id="tabs">
+  <div class="tab-row">
+    <div class="tab active" onclick="pickTab(this)"><span class="dot ok"></span>eShop<span class="close" onclick="event.stopPropagation()">×</span></div>
+    <div class="tab" onclick="pickTab(this)"><span class="dot busy"></span>TodoApi<span class="close" onclick="event.stopPropagation()">×</span></div>
+    <div class="tab" onclick="pickTab(this)"><span class="dot ok"></span>DntSite<span class="close" onclick="event.stopPropagation()">×</span></div>
+  </div>
+  <button class="add">+</button>
+</div>
+
+<div id="bread">
+  <span class="crumb" onclick="navHome()">eShop</span><span class="sep">›</span>
+  <span class="crumb">OrdersController</span><span class="sep">›</span>
+  <span class="crumb" style="color:var(--tab-active-fg)" id="crumbFocus">GET /api/orders</span>
+</div>
+
+<div id="main">
+
+  <div id="activity">
+    <button class="disabled" title="Explorer — analyze a repo first">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <button class="active" title="Search (Ctrl+Shift+F)">
+      <span class="badge">94</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <button class="disabled" title="Architecture — analyze a repo first">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </button>
+    <button class="disabled" title="Insights — analyze a repo first">
+      <span class="badge">7</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    </button>
+    <button class="disabled" title="Export — analyze a repo first">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <div class="spacer"></div>
+    <button title="Manage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <div id="sidebar">
+    <div class="hd">EXPLORER: ENTRY POINTS</div>
+    <div class="inp"><input id="entryFilter" placeholder="Filter entries…" oninput="refresh()" onkeydown="onFilterKey(event)"></div>
+    <div class="body" id="elBody"></div>
+  </div>
+
+  <div id="editor">
+    <div class="etabs">
+      <div class="etab active" id="edTrace" onclick="setStage('trace')">Trace</div>
+      <div class="etab" id="edGraph" onclick="setStage('graph')">Graph</div>
+    </div>
+    <div class="ebody" id="edBody"></div>
+  </div>
+
+  <div id="ctx">
+    <div class="ctx-strip">2.3K · Copy</div>
+    <div class="hd">CONTEXT<div class="acts"><button onclick="dock(0)" title="Collapse">◀◀</button><button onclick="dock(2)" title="Default">◀</button></div></div>
+    <div class="body" id="ctxBody"></div>
+  </div>
+</div>
+
+<div id="status">
+  <div class="sl"><span>eShop</span><span>·</span><span>94 entries</span><span>·</span><span>512 nodes</span><span>·</span><span>89% wired</span></div>
+  <div class="sr"><button onclick="toggleDrawer()">📤 Export</button><span>v1.2.3</span></div>
+</div>
+
+</div><!-- /#app -->
+
+<div id="backdrop" onclick="toggleDrawer()"></div>
+<div id="drawer">
+  <div class="dh">EXPORT LLM CONTEXT <button class="vbtn" onclick="toggleDrawer()">✕</button></div>
+  <div class="dp"><button class="on" onclick="selPreset(this)">Onboarding</button><button onclick="selPreset(this)">Trace</button><button onclick="selPreset(this)">Review</button></div>
+  <div class="dl"><label><input type="checkbox" checked> Identity <span class="ml">1.2K</span></label><label><input type="checkbox" checked> Architecture <span class="ml">3.4K</span></label><label><input type="checkbox" checked> Entries <span class="ml">5.1K</span></label><label><input type="checkbox"> Trace <span class="ml">2.8K</span></label></div>
+  <div class="db">## eShop Architecture Overview&#10;- 12 projects · 94 entries · 512 nodes&#10;- Archetype: Microservices&#10;&#10;## Entry Points&#10;GET /api/orders → OrderService&#10;POST /api/orders → OrderService&#10;GET /api/customers → CustomerService</div>
+  <div class="df"><span style="font-size:12px">12.5K tokens</span><button onclick="alert('Copied!')">Copy</button></div>
+</div>
+
+<div class="overlay" id="helpOverlay">
+  <div class="help">
+    <h3>Keyboard Shortcuts <button class="vbtn" onclick="toggleHelp()">✕</button></h3>
+    <div class="hr"><span>j / k</span><span><kbd>j</kbd> <kbd>k</kbd> — Move entry highlight</span></div>
+    <div class="hr"><span>/</span><span><kbd>/</kbd> — Focus filter</span></div>
+    <div class="hr"><span>Enter</span><span><kbd>Enter</kbd> — Pin selection</span></div>
+    <hr>
+    <div class="hr"><span>Ctrl+1–4</span><span><kbd>Ctrl+1</kbd>–<kbd>4</kbd> — Dock panel</span></div>
+    <div class="hr"><span>Ctrl+R</span><span><kbd>Ctrl+R</kbd> — Re‑analyze</span></div>
+    <div class="hr"><span>Ctrl+E</span><span><kbd>Ctrl+E</kbd> — Export drawer</span></div>
+    <hr>
+    <div class="hr"><span>Ctrl+Z / Y</span><span><kbd>Ctrl+Z</kbd> <kbd>Ctrl+Y</kbd> — Undo / Redo</span></div>
+    <div class="hr"><span>Ctrl+K</span><span><kbd>Ctrl+K</kbd> — Command palette</span></div>
+    <div class="hr"><span>Ctrl+T / W</span><span><kbd>Ctrl+T</kbd> <kbd>Ctrl+W</kbd> — Tab new / close</span></div>
+    <div class="hr"><span>Esc</span><span><kbd>Esc</kbd> — Close drawer, step back</span></div>
+  </div>
+</div>
+
+<div id="peek"></div>
+
+<script>
+const ENTRIES=[
+  {v:'GET',  p:'/api/orders',               k:'HTTP',t:'OrderService',     apx:false},
+  {v:'POST', p:'/api/orders',               k:'HTTP',t:'OrderService',     apx:false},
+  {v:'GET',  p:'/api/orders/{id}',          k:'HTTP',t:'OrderService',     apx:false},
+  {v:'PUT',  p:'/api/orders/{id}/status',   k:'HTTP',t:'OrderService',     apx:true},
+  {v:'GET',  p:'/api/customers',            k:'HTTP',t:'CustomerService',  apx:false},
+  {v:'POST', p:'/api/customers',            k:'HTTP',t:'CustomerService',  apx:false},
+  {v:'GET',  p:'/api/products',             k:'HTTP',t:'CatalogService',   apx:false},
+  {v:'POST', p:'/api/products',             k:'HTTP',t:'CatalogService',   apx:true},
+  {v:'GET',  p:'/api/inventory/{sku}',      k:'HTTP',t:'InventoryService', apx:false},
+  {v:'PUT',  p:'/api/inventory/{sku}',      k:'HTTP',t:'InventoryService', apx:false},
+  {v:'POST', p:'/api/checkout',             k:'HTTP',t:'CheckoutService',  apx:false},
+  {v:'GET',  p:'/api/reports/sales',        k:'HTTP',t:'ReportingService', apx:true},
+  {v:'GET',  p:'/api/reports/inventory',    k:'HTTP',t:'ReportingService', apx:false},
+  {v:'BUS',  p:'OrderPlacedHandler',        k:'Bus', t:'OrderService',     apx:false},
+  {v:'BUS',  p:'PaymentProcessedHandler',   k:'Bus', t:'PaymentService',   apx:false},
+  {v:'BUS',  p:'InventoryUpdatedHandler',   k:'Bus', t:'InventoryService', apx:true},
+  {v:'BUS',  p:'ShippingLabelGenerated',    k:'Bus', t:'ShippingService',  apx:false},
+  {v:'JOB',  p:'DailyReportJob',            k:'Jobs',t:'ReportingService', apx:false},
+  {v:'JOB',  p:'CleanupExpiredCartsJob',    k:'Jobs',t:'CartService',      apx:true},
+  {v:'JOB',  p:'RebuildSearchIndexJob',     k:'Jobs',t:'SearchService',    apx:false},
+  {v:'PUB',  p:'IOrderRepository',          k:'Public',t:'OrderService',   apx:false},
+  {v:'PUB',  p:'IPaymentGateway',           k:'Public',t:'PaymentService', apx:false},
+  {v:'PUB',  p:'ICatalogService',           k:'Public',t:'CatalogService', apx:false},
+];
+let sel=0;
+function hc(s){let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h+s.charCodeAt(i))|0;return Math.abs(h)}
+
+function refresh(){
+  const q=(document.getElementById('entryFilter').value||'').toLowerCase(),body=document.getElementById('elBody');
+  let list=ENTRIES; if(q) list=list.filter(e=>e.p.toLowerCase().includes(q)||e.t.toLowerCase().includes(q));
+  if(!list.length){ body.innerHTML='<div class="empty">No entries match.<br>Clear filters to see all.</div>'; return; }
+  body.innerHTML=list.map((e,i)=>`<div class="row${i===sel?' selected':''}" data-idx="${i}" onclick="pick(${i})" onmouseenter="peek(event,'${e.p.replace(/'/g,"\\'")}','${e.v}','${e.t}',${e.apx})" onmouseleave="unpeek()"><span class="label">${e.p}</span><span class="tag">${e.v}</span></div>`).join('');
+}
+
+function renderEditor(){
+  const body=document.getElementById('edBody'),trace=document.getElementById('edTrace').classList.contains('active');
+  if(trace){
+    body.innerHTML=`<div class="tree"><div class="tnode"><div class="tnrow" onclick="pickNode('OrderController')"><span class="twisty" onclick="event.stopPropagation();twist(this)">▾</span><span class="chip call">call</span>OrderController <span class="res ok">✓</span></div><div class="tn-children"><div class="tnode"><div class="tnrow" onclick="pickNode('OrderService.ProcessAsync')"><span class="twisty" onclick="event.stopPropagation();twist(this)">▾</span><span class="chip call">call</span>OrderService.ProcessAsync <span class="res ok">✓</span></div><div class="tn-children"><div class="tnode"><div class="tnrow" onclick="pickNode('PricingService')"><span class="twisty" style="visibility:hidden">▸</span><span class="chip call">call</span>PricingService.CalculateTotal <span class="res apx">~</span></div></div><div class="tnode"><div class="tnrow" onclick="pickNode('OrderRepository.GetById')"><span class="twisty" style="visibility:hidden">▸</span><span class="chip call">call</span>OrderRepository.GetById <span class="res ok">✓</span></div></div><div class="tnode"><div class="tnrow" onclick="pickNode('OrderRepository.Save')"><span class="twisty" style="visibility:hidden">▸</span><span class="chip call">call</span>OrderRepository.Save <span class="res ok">✓</span></div></div></div></div><div class="tnode"><div class="tnrow" onclick="pickNode('PaymentGateway.Charge')"><span class="twisty" style="visibility:hidden">▸</span><span class="chip send">send</span>PaymentGateway.Charge <span class="res ok">✓</span></div></div><div class="tnode"><div class="tnrow" onclick="pickNode('ShippingService')"><span class="twisty" onclick="event.stopPropagation();twist(this)">▸</span><span class="chip send">send</span>ShippingService.CreateLabel <span class="res apx">~</span></div><div class="tn-children" style="display:none"><div class="tnode"><div class="tnrow"><span class="twisty" style="visibility:hidden">▸</span><span class="chip call">call</span>CarrierApi.SubmitShipment <span class="res ok">✓</span></div></div></div></div><div class="tnode"><div class="tnrow" onclick="pickNode('InventoryService')"><span class="twisty" style="visibility:hidden">▸</span><span class="chip call">call</span>InventoryService.ReserveStock <span class="res ok">✓</span></div></div></div></div></div>`;
+  }else{
+    body.innerHTML=`<div class="gspot"><div class="gbox">Cytoscape Call Graph<br><span style="font-size:12px">— seeded from GET /api/orders —</span></div><span style="font-size:12px">Space — expand · F — focus · Double-click — explore neighbourhood</span></div>`;
+  }
+}
+
+function renderCtx(){
+  const body=document.getElementById('ctxBody'),e=ENTRIES[sel],lh=hc(e.p);
+  body.innerHTML=`<div class="sec"><div class="shdr" onclick="toggSec(this)"><span class="twsty">▾</span>Details</div><div class="sbody"><div class="mono" style="font-size:14px;line-height:22px">${e.p}</div><div style="margin:2px 0"><span class="tag blue">${e.v}</span><span class="tag gray">${e.k}</span></div><div class="mono">${e.t}</div><div style="font-size:12px">OrdersController.cs:${42+lh%200}</div><div style="font-size:12px;margin-top:2px">[anon] — no auth policy enforced</div></div></div>
+<div class="sec"><div class="shdr" onclick="toggSec(this)"><span class="twsty">▾</span>Call Stack</div><div class="sbody"><div style="display:flex;align-items:center;gap:4px;line-height:22px"><span class="chip call" style="font-size:10px;padding:0 4px;background:#E5F0FF;color:#003D80;border-radius:2px">call</span><span class="mono">OrderService.ProcessAsync</span> <span class="res ok" style="font-size:10px;color:#388A34">✓</span></div><div style="margin-left:12px"><div style="display:flex;align-items:center;gap:4px;line-height:22px"><span class="chip call" style="font-size:10px;padding:0 4px;background:#E5F0FF;color:#003D80;border-radius:2px">call</span><span class="mono">OrderRepository.GetById</span> <span class="res ok" style="font-size:10px;color:#388A34">✓</span></div><div style="display:flex;align-items:center;gap:4px;line-height:22px"><span class="chip send" style="font-size:10px;padding:0 4px;background:#FFF3CC;color:#664A00;border-radius:2px">send</span><span class="mono">PaymentGateway.Charge</span> ${e.apx?'<span class="res apx" style="font-size:10px;color:#BF8803">~</span>':'<span class="res ok" style="font-size:10px;color:#388A34">✓</span>'}</div></div></div></div>
+<div class="sec"><div class="shdr" onclick="toggSec(this)"><span class="twsty">▾</span>Metrics</div><div class="sbody"><div class="metric"><span>Lines of code</span><span class="val est">~${20+lh%480}</span></div><div class="metric"><span>Complexity</span><span class="val est">CC ~${1+lh%20}</span></div><div class="metric"><span>Fan-in</span><span class="val est">~${lh%12}</span></div><div class="metric"><span>Fan-out</span><span class="val est">~${hc(e.t)%18}</span></div><div class="metric"><span>Instability</span><span class="val est">~0.${lh%100}</span></div><div style="font-size:11px;margin-top:2px;font-style:italic">~ = placeholder — engine doesn't provide yet</div></div></div>
+<div class="sec"><div class="shdr" onclick="toggSec(this)"><span class="twsty">▾</span>Insights</div><div class="sbody"><div class="ins"><span class="dot warn"></span>Missing auth on POST ${e.p.replace('/api/','/')}</div><div class="ins"><span class="dot info"></span>Possible N+1 in ${e.t}.Process</div><div class="ins"><span class="dot info"></span>No rate limiting on ${e.p}</div></div></div>
+<div class="sec"><div class="shdr" onclick="toggSec(this)"><span class="twsty">▾</span>LLM Context</div><div class="sbody"><div class="llm">## ${e.p}&#10;**Method:** ${e.v}&#10;**Target:** ${e.t}&#10;**Source:** OrdersController.cs&#10;&#10;This endpoint handles ${e.p.includes('orders')?'order management':e.p.includes('customers')?'customer data':'resource operations'} for eShop.&#10;&#10;**Auth:** Optional&#10;**Tokens:** 2.3K</div><div class="acts"><button class="vbtn" style="background:var(--list-active-bg);color:var(--list-active-fg)" onclick="alert('Copied!')">Copy</button><button class="vbtn" onclick="alert('Explain')">Explain</button><span class="ml" style="font-size:11px">2.3K tok</span></div></div></div>`;
+}
+
+function pick(i){ sel=i; refresh(); renderCtx(); updBread(); }
+function pickNode(n){ document.getElementById('crumbFocus').textContent=ENTRIES[sel].p+' › '+n; }
+function updBread(){ document.getElementById('crumbFocus').textContent=ENTRIES[sel].p; }
+function setStage(m){ document.querySelectorAll('#editor .etab').forEach(t=>t.classList.remove('active')); document.getElementById(m==='trace'?'edTrace':'edGraph').classList.add('active'); renderEditor(); }
+function twist(el){ const n=el.closest('.tnode'); n.classList.toggle('collapsed'); el.textContent=n.classList.contains('collapsed')?'▸':'▾'; }
+function toggSec(el){ const b=el.closest('.sec').querySelector('.sbody'),tw=el.querySelector('.twsty'); if(!b||!tw)return; b.style.display=b.style.display==='none'?'':'none'; tw.textContent=b.style.display==='none'?'▸':'▾'; }
+function pickTab(tab){ document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); }
+function dock(lvl){ const c=document.getElementById('ctx'); if(lvl===0)c.classList.add('collapsed'); else{c.classList.remove('collapsed');c.style.width='340px';} }
+function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('backdrop').classList.toggle('open'); }
+function toggleHelp(){ document.getElementById('helpOverlay').classList.toggle('show'); }
+function toggleTheme(){
+  const r=document.documentElement.style;
+  if(r.getPropertyValue('--sidebar-bg')==='#F3F3F3'){
+    /* Switch to dark */
+    r.setProperty('--workbench','#252526'); r.setProperty('--titlebar-bg','#3C3C3C'); r.setProperty('--titlebar-fg','#CCCCCC');
+    r.setProperty('--sidebar-bg','#252526'); r.setProperty('--sidebar-hdr','#BBBBBB');
+    r.setProperty('--editor-bg','#1E1E1E'); r.setProperty('--editor-tabs-bg','#252526');
+    r.setProperty('--tab-active-bg','#1E1E1E'); r.setProperty('--tab-active-fg','#FFFFFF');
+    r.setProperty('--tab-inactive-bg','#2D2D2D'); r.setProperty('--tab-inactive-fg','rgba(255,255,255,0.5)');
+    r.setProperty('--tab-border','#252526'); r.setProperty('--tab-hover-bg','#2A2D2E');
+    r.setProperty('--fg','#CCCCCC'); r.setProperty('--bg','#1E1E1E');
+    r.setProperty('--list-hover','#2A2D2E'); r.setProperty('--list-focus-bg','#062F4A');
+    r.setProperty('--list-active-bg','#094771'); r.setProperty('--list-active-fg','#FFFFFF');
+    r.setProperty('--input-bg','#3C3C3C'); r.setProperty('--input-border','#3C3C3C');
+    r.setProperty('--panel-border','rgba(128,128,128,0.35)');
+    r.setProperty('--scrollbar','rgba(121,121,121,0.4)');
+    r.setProperty('--focus','#007FD4'); r.setProperty('--link','#3794FF');
+    r.setProperty('--icon-fg','#C5C5C5');
+  } else {
+    location.reload();
+  }
+}
+function selPreset(btn){ document.querySelectorAll('#drawer .dp button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
+function navHome(){ alert('Navigate → Home / Overview'); }
+function peek(e,title,verb,target,apx){
+  const p=document.getElementById('peek');
+  p.innerHTML=`<div class="pt">${title}</div><div class="pr"><span>${verb} · ${target}</span><span>LOC ~${20+hc(title)%400}</span></div>${apx?'<div style="font-size:11px;color:#BF8803;margin-top:2px">Syntactic resolution</div>':'<div style="font-size:11px;color:#388A34;margin-top:2px">Semantic resolution</div>'}`;
+  p.classList.add('show'); p.style.left=(e.clientX+12)+'px'; p.style.top=(e.clientY+10)+'px';
+}
+function unpeek(){ document.getElementById('peek').classList.remove('show'); }
+function onFilterKey(e){ if(e.key==='j'||e.key==='k'){ e.preventDefault(); const max=document.querySelectorAll('#elBody .row').length; if(e.key==='j')sel=Math.min(sel+1,max-1); if(e.key==='k')sel=Math.max(sel-1,0); refresh(); renderCtx(); updBread(); } if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } }
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'&&e.target.id!=='entryFilter')return;
+  if(e.ctrlKey||e.metaKey){ switch(e.key.toLowerCase()){ case'e':e.preventDefault();toggleDrawer();return; case'r':e.preventDefault();alert('Re-analyze');return; case'z':e.preventDefault();alert('Undo');return; case'y':e.preventDefault();alert('Redo');return; case'k':e.preventDefault();alert('Command palette');return; } if(e.key>='1'&&e.key<='4'){ e.preventDefault(); dock(parseInt(e.key)); return; } return; }
+  if(e.key==='j'||e.key==='k'){ const max=document.querySelectorAll('#elBody .row').length; if(!max)return; if(e.key==='j')sel=Math.min(sel+1,max-1); if(e.key==='k')sel=Math.max(sel-1,0); refresh(); renderCtx(); updBread(); return; }
+  if(e.key==='/'&&document.activeElement?.tagName!=='INPUT'){ e.preventDefault(); document.getElementById('entryFilter').focus(); return; }
+  if(e.key==='?'){ toggleHelp(); return; }
+  if(e.key==='Escape'){ if(document.getElementById('drawer').classList.contains('open')){toggleDrawer();return;} document.getElementById('helpOverlay').classList.remove('show'); return; }
+});
+refresh(); renderEditor(); renderCtx();
+</script>
+</body>
+</html>

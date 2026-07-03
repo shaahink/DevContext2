@@ -72,7 +72,7 @@ import { Icon } from '../../ui/icon/icon';
           <div class="flex items-center justify-center py-12 text-xs text-ink-muted">Tracing&hellip;</div>
         } @else if (traceStore.tree(); as root) {
           <div class="max-h-[70vh] overflow-auto py-1">
-            <app-trace-node [node]="root" [depth]="0" />
+            <app-trace-node [node]="root" [depth]="0" (nodeSelected)="onNodeSelect($event)" />
           </div>
         } @else if (!traceStore.found()) {
           <p class="py-8 text-center text-xs text-ink-subtle">Trace not found for this focus.</p>
@@ -121,5 +121,9 @@ export class SectionTrace {
     const handle = this.session.handle();
     if (!handle) return;
     void this.traceStore.trace(handle, focus);
+  }
+
+  protected onNodeSelect(nodeId: string): void {
+    void this.traceStore.selectNode(nodeId);
   }
 }

@@ -48,7 +48,7 @@ import { TraceNodeComponent } from '../trace/trace-node';
             <div class="lens-card">
               <div class="lens-card-title">Trace</div>
               <div class="max-h-[50vh] overflow-auto">
-                <app-trace-node [node]="root" [depth]="0" />
+                <app-trace-node [node]="root" [depth]="0" (nodeSelected)="onNodeSelect($event)" />
               </div>
             </div>
           } @else if (traceStore.active() && traceStore.loading()) {
@@ -163,6 +163,10 @@ export class SectionLens {
   protected fmtK(n: number): string {
     if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
     return String(n);
+  }
+
+  protected onNodeSelect(nodeId: string): void {
+    void this.traceStore.selectNode(nodeId);
   }
 
   private debouncedRender(handle: string, focus: string): void {

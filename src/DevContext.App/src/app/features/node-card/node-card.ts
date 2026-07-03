@@ -20,7 +20,16 @@ import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
           <button class="text-ink-muted hover:text-ink text-xs px-1" (click)="store.hide()">✕</button>
         </div>
         @if (store.loading()) {
-          <div class="flex-1 flex items-center justify-center text-ink-muted text-sm">Loading...</div>
+          <div class="flex-1 flex items-center justify-center gap-2">
+            <div class="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <span class="text-xs text-ink-muted">Loading…</span>
+          </div>
+        } @else if (store.error()) {
+          <div class="flex-1 flex flex-col items-center justify-center gap-3 p-6">
+            <span class="text-danger text-xs">{{ store.error() }}</span>
+            <button class="rounded bg-surface-2 px-3 py-1.5 text-xs text-ink hover:bg-surface-1" (click)="retry()">Retry</button>
+            <button class="text-2xs text-ink-subtle hover:text-ink" (click)="copyError()">Copy details</button>
+          </div>
         } @else if (store.node(); as n) {
           <div class="flex-1 overflow-y-auto p-3 space-y-3">
             <div><span class="text-2xs text-ink-muted uppercase">Kind</span>
@@ -54,6 +63,9 @@ import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
                     <app-node-link class="block" [nodeId]="e.to" [label]="e.otherTitle || e.to" />
                   }
                 </div>
+              }
+              @if (!incomingEdges().length && !outgoingEdges().length) {
+                <p class="text-xs text-ink-subtle py-2">No callers or callees.</p>
               }
             }
             @if (store.nodeId(); as nid) {
@@ -96,5 +108,19 @@ export class NodeCard {
     navigator.clipboard?.writeText(id)
       .then(() => this.toast.show('Node ID copied', 'info'))
       .catch(() => this.toast.show('Copy failed', 'error'));
+  }
+
+  retry(): void {
+    const nid = this.store.nodeId();
+    if (nid) void this.store.show(nid);
+  }
+
+  copyError(): void {
+    const err = this.store.error();
+    if (err) {
+      navigator.clipboard?.writeText(err)
+        .then(() => this.toast.show('Error copied', 'info'))
+        .catch(() => this.toast.show('Copy failed', 'error'));
+    }
   }
 }

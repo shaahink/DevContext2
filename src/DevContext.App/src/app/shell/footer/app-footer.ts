@@ -2,6 +2,8 @@ import { Component, computed, inject, input } from '@angular/core';
 
 import { ThemeService } from '../../core/theme/theme.service';
 import { SessionStore } from '../../state/session.store';
+import { ConnectionStore } from '../../state/connection.store';
+import { ActivityService } from '../../core/activity/activity.service';
 import { Icon } from '../../ui/icon/icon';
 
 @Component({
@@ -17,7 +19,12 @@ import { Icon } from '../../ui/icon/icon';
       [class.border-transparent]="transparent()"
     >
       <div class="flex items-center gap-3 text-2xs tabular-nums text-ink-muted">
-        @if (session.ready()) {
+        @if (session.busy()) {
+          <span class="text-accent">{{ activityLabel() }}</span>
+          @if (activity.percent() > 0) {
+            <span class="tabular-nums">{{ activity.percent() }}%</span>
+          }
+        } @else if (session.ready()) {
           <span class="font-medium text-ink">{{ summaryLabel() }}</span>
           <span class="text-ink-subtle">&middot;</span>
           <span>{{ session.entryCount() }} entries</span>
@@ -29,12 +36,29 @@ import { Icon } from '../../ui/icon/icon';
             <span class="text-ink-subtle">&middot;</span>
             <span>{{ cov }}% wired</span>
           }
+        } @else if (session.status() === 'error') {
+          <span class="text-danger">Analysis failed</span>
         } @else {
           <span>Ready</span>
         }
       </div>
 
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-2">
+        <span
+          class="flex items-center gap-1 text-2xs"
+          [class.text-success]="connection.online()"
+          [class.text-danger]="connection.checked() && !connection.online()"
+          [class.text-ink-subtle]="!connection.checked()"
+          [title]="connection.online() ? 'Server v' + (connection.version() || '') : 'Server offline'"
+        >
+          <span
+            class="inline-block h-1.5 w-1.5 rounded-full"
+            [class.bg-success]="connection.online()"
+            [class.bg-danger]="connection.checked() && !connection.online()"
+            [class.bg-ink-muted]="!connection.checked()"
+          ></span>
+          <span>{{ connection.version() || '' }}</span>
+        </span>
         <span class="text-2xs text-ink-subtle">{{ theme.vibe() }}</span>
         <button
           class="flex cursor-pointer items-center rounded p-0.5 text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink"
@@ -52,8 +76,11 @@ export class AppFooter {
   readonly transparent = input(false);
   protected readonly session = inject(SessionStore);
   protected readonly theme = inject(ThemeService);
+  protected readonly connection = inject(ConnectionStore);
+  protected readonly activity = inject(ActivityService);
 
   protected readonly summaryLabel = computed(() => this.session.summary()?.label ?? '');
+  protected readonly activityLabel = computed(() => this.activity.label() || 'Working…');
   protected readonly coverage = computed(() => {
     const s = this.session.summary();
     if (!s || !s.entries) return null;

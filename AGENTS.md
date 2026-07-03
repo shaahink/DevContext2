@@ -40,6 +40,19 @@ Navigation rail + routed views replacing single-page scroll. Entries table sorti
 - Done: `shell/navigation-rail.ts` — left sidebar with icon+label navigation. `shell/workspace-shell.ts` — header + rail + router-outlet + footer, `g+key` view nav, `?` help overlay. `app.config.ts` — 8 lazy-loaded routes. `features/pages/` — overview, entries, trace, graph, insights, export page wrappers. `section-entries.ts` — sortable columns, arrow-key nav, row actions. `palette.ts` — entry search top 10, stale routes removed.
 - Gate: clicking rail items navigates views; sort headers work; Ctrl+K palette searches entries; `?` shows shortcuts.
 
+### I11 — Focus Workspace (unified context-thinking shell) ⬜ READY — START HERE
+**Spec:** `docs/dev/go-to-program/ITERATION-I11-focus-workspace.md`
+**Gaps:** `docs/dev/GAP-TRACKER.md` (23 gaps, all addressed in I11 phases)
+**Flow explainer:** `docs/dev/FEATURE-FLOW-EXPLAINER.md` (for LLM context)
+
+Complete redesign from page-based navigation to context-thinking workspace:
+- **Phase 1 — Foundation:** Wire tab strip (built but orphaned). Restyle chrome: TitleBar (30px, solid), ActivityBar (5 icons+count badges), StatusBar (22px, connection dot+progress). Fix GAPs T1-T5, N1, S5-S7.
+- **Phase 2 — Explorer:** EntryListbox (j/k scrub, 150ms debounced trace). ProgressiveTraceTree (twisties, seam chips). Stage (trace↔graph toggle). MiniGraph thumbnail. `/explore` route replaces `/entries`+`/trace`+`/graph`.
+- **Phase 3 — Context Panel:** Details, Call Stack, Metrics (placeholder nerd data), Insights, LLM sections. Smart Dock (Ctrl+1-4, PrefsStore). Collapsible to thin token-count strip.
+- **Phase 4 — History:** History stack per tab (undo/redo). Breadcrumb bar. Esc ladder. Ctrl+Z/Y.
+- **Phase 5 — Polish:** Quick Peek hover overlays. Export drawer (slide-out, 3 pack presets). Palette fixes (B1-B5). Restyle all views: no card wrappers, no shadows, 1px panel dividers, borderless inputs, ghost buttons. Ctrl+R re-analyze with focus restore.
+- Gate: zero page navigations during exploration. j/k scrubs entries, Context Panel updates live. Ctrl+Z walks history. Tabs work. No web-page feel — IDE-native visual language.
+
 ## Verify loop
 ```powershell
 # From C:/Code/DevContext2-ui/src/DevContext.App

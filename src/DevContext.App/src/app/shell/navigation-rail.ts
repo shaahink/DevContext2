@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 import { SessionStore } from '../state/session.store';
@@ -25,7 +25,7 @@ const RAIL_ITEMS: RailItem[] = [
 
 @Component({
   selector: 'app-navigation-rail',
-  imports: [RouterLink, RouterLinkActive, Icon],
+  imports: [RouterLink, Icon],
   template: `
     <nav class="flex h-full w-14 shrink-0 flex-col border-r border-line bg-surface py-2 select-none">
       @for (item of visibleItems(); track item.id) {

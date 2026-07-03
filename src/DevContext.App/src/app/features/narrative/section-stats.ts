@@ -9,7 +9,17 @@ import { SEAM_COLORS } from '../../models/seam-colors';
   imports: [SectionCard],
   template: `
     <app-section-card id="stats" title="Pipeline">
-      @if (session.stats(); as s) {
+      @if (session.statsLoading()) {
+        <div class="flex items-center justify-center gap-2 py-8">
+          <div class="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+          <span class="text-xs text-ink-muted">Loading pipeline stats…</span>
+        </div>
+      } @else if (session.statsError()) {
+        <div class="flex flex-col items-center gap-3 py-8">
+          <span class="text-danger text-xs">{{ session.statsError() }}</span>
+          <button class="rounded bg-surface-2 px-3 py-1.5 text-xs text-ink hover:bg-surface-1" (click)="session.refreshStats()">Retry</button>
+        </div>
+      } @else if (session.stats(); as s) {
         <div class="space-y-5">
           @if (s.stages.length) {
             <div>

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 import type { TraceNodeVm } from '../../models/view-models';
 import { Badge } from '../../ui/badge/badge';
@@ -21,7 +21,7 @@ const SEAM_COLORS: Record<string, string> = {
   imports: [Badge, NodeLink],
   template: `
     <div class="border-l-2 border-line pl-3 py-1">
-      <div class="flex items-start gap-2">
+      <div class="flex items-start gap-2 group cursor-pointer hover:bg-surface-2 rounded -ml-0.5 px-0.5 transition-colors" (click)="nodeSelected.emit(node().id)" (keydown.enter)="nodeSelected.emit(node().id)" (keydown.space)="nodeSelected.emit(node().id); $event.preventDefault()" tabindex="0" role="button">
         <span class="shrink-0 rounded border px-1 py-0.5 font-mono text-2xs"
               [class]="seamColor()">
           {{ node().seam }}
@@ -38,7 +38,7 @@ const SEAM_COLORS: Record<string, string> = {
         </div>
       </div>
       @for (child of node().children; track child.id) {
-        <app-trace-node [node]="child" [depth]="depth() + 1" />
+        <app-trace-node [node]="child" [depth]="depth() + 1" (nodeSelected)="onChildSelected($event)" />
       }
     </div>
   `,
@@ -46,6 +46,11 @@ const SEAM_COLORS: Record<string, string> = {
 export class TraceNodeComponent {
   readonly node = input.required<TraceNodeVm>();
   readonly depth = input(0);
+  readonly nodeSelected = output<string>();
+
+  protected onChildSelected(nodeId: string): void {
+    this.nodeSelected.emit(nodeId);
+  }
 
   seamColor(): string {
     return SEAM_COLORS[this.node().seam] ?? 'bg-surface-2 text-ink-muted';

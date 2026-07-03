@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 import { SessionStore } from '../../state/session.store';
 import { RecentStore } from '../../state/recent.store';
+import { PrefsStore } from '../../state/prefs.store';
 import { ActivityService } from '../../core/activity/activity.service';
 import { Icon } from '../../ui/icon/icon';
 import { Button } from '../../ui/button/button';
@@ -80,17 +81,22 @@ type InputType = 'local' | 'github' | null;
               <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-subtle">Recent</p>
               <div class="grid gap-1.5">
                 @for (r of recents(); track r.path) {
-                  <button
-                    class="flex w-full items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 text-left transition-colors hover:border-line-strong hover:bg-surface-2"
-                    (click)="selectRecent(r.path)"
-                    [disabled]="session.busy()"
-                  >
-                    <app-icon name="folder-open" [size]="14" class="shrink-0 text-ink-muted" />
-                    <div class="min-w-0 flex-1">
-                      <p class="truncate font-mono text-sm text-ink">{{ r.label }}</p>
-                      <p class="truncate text-2xs text-ink-subtle">{{ r.path }}</p>
-                    </div>
-                  </button>
+                  <div class="group flex items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 transition-colors hover:border-line-strong hover:bg-surface-2">
+                    <button class="flex flex-1 items-center gap-2 text-left min-w-0" (click)="selectRecent(r.path)" [disabled]="session.busy()">
+                      <app-icon name="folder-open" [size]="14" class="shrink-0 text-ink-muted" />
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-mono text-sm text-ink">{{ r.label }}</p>
+                        <p class="truncate text-2xs text-ink-subtle">{{ r.path }}</p>
+                      </div>
+                    </button>
+                    <button
+                      class="shrink-0 cursor-pointer rounded p-0.5 text-ink-muted opacity-0 group-hover:opacity-100 hover:bg-surface-2 hover:text-ink transition-all"
+                      (click)="recentStore.remove(r.path); $event.stopPropagation()"
+                      title="Remove from recents"
+                    >
+                      <app-icon name="x" [size]="12" />
+                    </button>
+                  </div>
                 }
               </div>
             </div>
@@ -138,13 +144,14 @@ type InputType = 'local' | 'github' | null;
 export class SectionLanding {
   protected readonly session = inject(SessionStore);
   protected readonly activity = inject(ActivityService);
-  private readonly recentStore = inject(RecentStore);
+  protected readonly recentStore = inject(RecentStore);
+  private readonly prefs = inject(PrefsStore);
 
   protected readonly path = signal('');
-  protected readonly depth = signal(6);
-  protected readonly detail = signal<'salient' | 'signature' | 'full'>('salient');
-  protected readonly noRoslyn = signal(false);
-  protected readonly cleanup = signal<'auto' | 'keep'>('auto');
+  protected readonly depth = signal(this.prefs.defaultDepth());
+  protected readonly detail = signal(this.prefs.defaultDetail());
+  protected readonly noRoslyn = signal(!this.prefs.useRoslyn());
+  protected readonly cleanup = signal(this.prefs.autoCleanup() ? 'auto' : 'keep' as 'auto' | 'keep');
   protected readonly inputType = signal<InputType>(null);
   protected readonly recents = this.recentStore.recents;
 

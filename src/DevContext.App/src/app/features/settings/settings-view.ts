@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ConnectionStore } from '../../state/connection.store';
+import { PrefsStore } from '../../state/prefs.store';
 
 type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
 
@@ -50,30 +51,35 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
         @if (activeTab() === 'analysis') {
           <section class="space-y-4">
             <h2 class="text-sm font-semibold text-ink">Analysis Defaults</h2>
+            <p class="text-2xs text-ink-subtle">Applied to every new analysis.</p>
             <div class="space-y-3">
               <div>
                 <p class="text-2xs text-ink-muted uppercase">Default depth</p>
-                <select class="mt-1 rounded border border-line bg-surface-2 px-2 py-1 text-xs text-ink" [(ngModel)]="defaultDepth">
+                <select class="mt-1 rounded border border-line bg-surface-2 px-2 py-1 text-xs text-ink" [(ngModel)]="depthModel" (ngModelChange)="prefs.setDepth(+$event)">
                   @for (d of [1,2,3,4,5,6,7,8,9,10]; track d) { <option [value]="d">{{ d }}</option> }
                 </select>
               </div>
               <div>
                 <p class="text-2xs text-ink-muted uppercase">Default detail</p>
-                <select class="mt-1 rounded border border-line bg-surface-2 px-2 py-1 text-xs text-ink" [(ngModel)]="defaultDetail">
+                <select class="mt-1 rounded border border-line bg-surface-2 px-2 py-1 text-xs text-ink" [(ngModel)]="detailModel" (ngModelChange)="prefs.setDetail($event)">
                   <option value="salient">Salient</option>
                   <option value="signature">Signature</option>
                   <option value="full">Full</option>
                 </select>
               </div>
               <div class="flex items-center gap-2">
-                <input type="checkbox" [(ngModel)]="useRoslyn" />
+                <input type="checkbox" [(ngModel)]="roslynModel" (ngModelChange)="prefs.setUseRoslyn($event)" />
                 <span class="text-xs text-ink">Use Roslyn semantic tier</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" [(ngModel)]="cleanupModel" (ngModelChange)="prefs.setAutoCleanup($event)" />
+                <span class="text-xs text-ink">Auto-cleanup clones</span>
               </div>
             </div>
           </section>
         }
 
-        <!-- Storage (I8) -->
+        <!-- Storage -->
         @if (activeTab() === 'storage') {
           <section class="space-y-4">
             <h2 class="text-sm font-semibold text-ink">Storage</h2>
@@ -86,8 +92,8 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
               <p class="text-xs font-mono text-ink">%LOCALAPPDATA%/DevContext/clones</p>
             </div>
             <p class="border-t border-line pt-3 text-2xs text-ink-subtle">
-              Snapshot cache (SHA256 + git HEAD keyed, LRU) is managed automatically. Per-repo cache
-              listing, sizes, and clear/open-in-explorer actions require a Tauri file command — tracked for a follow-up.
+              Snapshot cache (SHA256 + git HEAD keyed, LRU) is managed automatically.
+              Per-repo cache listing, sizes, and clear/open-in-explorer require Tauri file commands — tracked for a follow-up.
             </p>
           </section>
         }
@@ -110,7 +116,7 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
           </section>
         }
 
-        <!-- About (I9) -->
+        <!-- About -->
         @if (activeTab() === 'about') {
           <section class="space-y-4">
             <h2 class="text-sm font-semibold text-ink">About DevContext</h2>
@@ -133,6 +139,7 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
 export class SettingsView {
   readonly theme = inject(ThemeService);
   readonly conn = inject(ConnectionStore);
+  readonly prefs = inject(PrefsStore);
 
   protected readonly tabs: { key: SettingsTab; label: string }[] = [
     { key: 'appearance', label: 'Appearance' },
@@ -143,7 +150,9 @@ export class SettingsView {
   ];
 
   protected readonly activeTab = signal<SettingsTab>('appearance');
-  protected readonly defaultDepth = signal(6);
-  protected readonly defaultDetail = signal('salient');
-  protected readonly useRoslyn = signal(true);
+
+  protected depthModel = this.prefs.defaultDepth();
+  protected detailModel = this.prefs.defaultDetail();
+  protected roslynModel = this.prefs.useRoslyn();
+  protected cleanupModel = this.prefs.autoCleanup();
 }

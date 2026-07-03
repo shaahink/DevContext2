@@ -7,7 +7,6 @@ import { ThemeService } from '../core/theme/theme.service';
 import { AppHeader } from './header/app-header';
 import { AppFooter } from './footer/app-footer';
 import { NavigationRail } from './navigation-rail';
-import { Icon } from '../ui/icon/icon';
 import { Palette } from '../features/palette/palette';
 
 const VIEW_SHORTCUTS: Record<string, string> = {
@@ -35,7 +34,7 @@ const SHORTCUT_HELP = [
 
 @Component({
   selector: 'app-workspace-shell',
-  imports: [RouterOutlet, AppHeader, AppFooter, NavigationRail, Icon, Palette],
+  imports: [RouterOutlet, AppHeader, AppFooter, NavigationRail, Palette],
   template: `
     <app-header />
     <div class="flex flex-1 overflow-hidden" style="height: calc(100vh - 2.75rem - 1.75rem); margin-top: 2.75rem;">
