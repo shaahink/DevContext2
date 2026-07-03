@@ -677,3 +677,81 @@ in `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`.
 
 **W4 status: 7/9 checkpoints done.** See `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md` for the
 detailed handoff including file-by-file risk notes, verification receipt, and the resume protocol.
+
+---
+
+## 2026-07-03 — W4 — Home + Atlas assembly, route cutover, gate sweep (checkpoints 8-11, W4 DONE)
+
+**Branch:** `feat/w4-export-drawer` · resumed from the 7/9 handoff above, in the same session.
+
+**Correction made first:** the export-drawer checkpoint's "11/12, one false negative" receipt was
+itself wrong — `smoke-export-drawer.mts`'s fixture path resolved to a nonexistent directory, so
+every analyze attempt had silently failed and the deck never rendered. Fixed the path, a
+false-positive content assertion, and an orphaned-`ng serve`-process leak on Windows (`taskkill
+/T` instead of `.kill('SIGTERM')`); dropped an unneeded `playwright-core` devDependency. Re-ran
+for real: 15/15. Full detail + corrected receipt in `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`.
+Committed as `6eb762e`.
+
+**Checkpoint 8 — Home page assembled** (`08a5e0c`). New `pages/home-page.ts` wired at `/`: Start
+hero (no session) → boot console (analyzing) → digest (identity strip, Top Flows, insight
+headlines, run report), card-free. Ported rather than rewritten from the old narrative sections —
+each verified via grep to have zero other referrers — into `features/home/{start-hero,
+identity-strip, run-console}.ts`. Top Flows is a flat entry-list fallback (`AtlasStore`'s ranking
+is W5, gated behind the W4 exit). The old `section-identity/-console/-landing.ts` were **not**
+deleted at this checkpoint — `overview-page.ts` (still live at `/overview` until cutover) still
+imported them; deleting early would have broken that route. Deferred to checkpoint 10.
+
+**Checkpoint 9 — Atlas page assembled** (`8181ddb`). Replaced the `atlas-page.ts` stub: map
+prose-zone (`session.mapMarkdown()` as raw text — no markdown-to-HTML dependency exists anywhere
+in this app; follows the Export Drawer's existing convention), topology graph (same `graph-canvas`
+`topology` binding as `Stage`'s System altitude), new `features/atlas/architecture-panel.ts`
+(ported card-free from `section-architecture.ts`). Also surfaced a basic Event Wiring Board and
+Hub Radar off `AtlasStore.eventWiring()`/`hubs()` now (per AGENTS.md's already-recorded pull-forward
+decision, since the computeds already existed from W3) — both render an explanatory empty state
+since the indexer that populates them is still W5. `section-stats.ts` was **not** ported anywhere:
+it duplicated `section-console.ts`'s report-mode stages/extractors block (both rendered
+simultaneously on the old `overview-page.ts` — a pre-existing redundancy, not something this
+checkpoint carried forward). `insights-view.ts`'s "link into workbench" ask from the proposal
+turned out to be a no-op: the `Insight` protobuf type (`devcontext_pb.ts`) has no nodeId/focus
+field to link with — left untouched rather than inventing one the engine doesn't provide.
+
+**Checkpoint 10 — route cutover + deletion** (`8519ca8`). `app.config.ts`: `/overview` → `/`;
+`/entries` `/trace` `/graph` → `/explore` via a `RedirectFunction` preserving `?focus`; `/export` →
+`/explore`. `activity-bar.ts` collapsed from the old 7-item rail to the proposal's 5 icons
+(Home/Explore/Atlas/Insights/Settings). Deleted: `overview-page.ts`, `entries-page.ts`,
+`trace-page.ts`, `graph-page.ts`, `export-page.ts`, all of `narrative/section-*.ts`, and
+`ui/section-card/section-card.ts` — every deletion grep-verified beforehand for zero referrers
+outside the deleted set. `pnpm check` exit 0 is the actual proof nothing broke (a stray import
+would fail the build, not just look wrong).
+
+**Checkpoint 11 — full gate sweep** (this entry). New `scripts/smoke-w4-gate.mts` (committed,
+extends the `smoke-export-drawer.mts` pattern): flows A-E end-to-end, Atlas topology with zero
+traces run yet, Shift+E audit table, omnibox Ctrl+K + Tab verb-cycle, deep link with a real ready
+session landing traced in `/explore`. **Two bugs found and fixed in the test script itself, not
+the product** — both worth remembering for whoever writes the next Playwright script here:
+- A `j`/`k`/`Shift+E` keydown handler lives on `entry-deck.ts`'s own host (`tabindex="0"`), not
+  window-global — a prior click anywhere else (a link, another component) silently no-ops it until
+  the deck is explicitly re-focused. Same documented gotcha as the memory note about sibling-focus
+  stealing; confirmed again the hard way with a raw-keydown-listener diagnostic before finding it.
+- `<app-audit-table>`'s host has no `display` override, so the custom-element tag wraps its
+  `position:fixed` overlay div with an empty layout box — Playwright's `.isVisible()` on the host
+  tag is a false negative. Checked `omnibox.ts` (same shape, same non-issue in the real browser)
+  before considering "fixing" `audit-table.ts` to add `host: { class: 'contents' }` like
+  `export-drawer.ts` has — decided against it: 2 of 3 sibling overlay components already omit it
+  and the app behaves identically either way in a real browser: this was a test-selector problem,
+  not a product inconsistency. Fixed the script to check the inner `.fixed` div instead.
+- Also a **real selector bug** (not app bug): `a[href*="/explore"]` in the Top-Flow-click check
+  matched the activity bar's own "Explore" rail link before Home's actual Top Flow row link ever
+  got a chance — narrowed to `a[href*="focus="]`.
+
+17/17 scripted checks pass. Also ran a one-off manual kill-server-mid-session check (not scripted
+— see AGENTS.md's rationale for why): killed the shared long-running `dotnet` server (`taskkill
+/F`) while a session was ready, confirmed the offline banner appeared within one 5s poll cycle and
+the app shell didn't crash, then restarted the exact same server process (`DevContext.Server.exe
+--urls http://127.0.0.1:5179`) and confirmed the banner cleared on reconnect — dev environment left
+exactly as it was found.
+
+**W4 status: DONE, 9/9 checkpoints, gate passed.** `pnpm check` exit 0 throughout. Next: W5
+(derived insight layer) — see AGENTS.md's F section for the item list; the atlas indexer trigger
+(`AtlasStore.start()` on analysis-ready) is the natural first item since everything else on
+Home/Atlas from W4 is already wired and waiting on real indexed data.
