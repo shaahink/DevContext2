@@ -781,3 +781,45 @@ live `AtlasStore` signals already (checkpoint 9) — their empty result against 
 (a trivial 2-endpoint fixture with no messaging) is the *correct* output, not a bug; don't spend W5
 time "fixing" that fixture result. Full corrected W5 item list is in AGENTS.md's F section — start
 there, not here, since this note will go stale the moment W5 work begins.
+
+---
+
+## 2026-07-03 — W5 checkpoint 1: atlas trigger relocated + statusbar segment wired
+
+**Checkpoint 1** of W5 (derived insight layer). Two changes, both live-verified, one commit:
+
+1. **Moved the Atlas indexing trigger** from `WorkbenchPage`'s constructor effect (fired only on
+   first `/explore` visit) into `SessionStore.analyze()`'s success path, right after
+   `entryGroups` is computed — `this.atlas.start(tabId, outcome.handle, entryGroups.flatMap((g) =>
+   g.entries))`. Fires on analysis-ready regardless of which page the user is on next. Deleted the
+   now-redundant `atlasStartedFor`-guarded effect and the unused `workspace` field/import from
+   `workbench-page.ts` (its pause/resume-on-user-trace effect stays — that's a UI-interaction
+   concern, correctly still page-local).
+2. **Wired the statusbar `atlas N/M` progress segment** (`shell/statusbar/statusbar.ts`) — the
+   proposal's "▸ atlas 42/94" that never existed (confirmed by grep in the prior session's note).
+   Shown next to the wired-% chip only while `atlas.running()`.
+
+**Live-verified** with a throwaway Playwright script (`scripts/smoke-w5-item1.mts`, written,
+run, then deleted — not a permanent addition) plus temporary `console.log` instrumentation in
+`SessionStore.analyze()` and `AtlasStore`'s worker/`start()` (added, run, reverted — `git status`
+clean afterward, zero diff). Against `MinimalApiProject`: analyzed via Home's hero, **never
+navigated to `/explore`**, and observed the full sequence in the console — `atlas.start` fired
+from `SessionStore.analyze`, `indexed 1/2` → `indexed 2/2` → `status= done`. Confirms Home's Top
+Flows will have ranked data available without a detour through Explore, which was the actual W5
+item-1 gap (the trigger itself already existed pre-W5, see the prior entry's correction). The
+statusbar segment itself wasn't caught by a live poll in the same run — `MinimalApiProject` has
+only 2 entries and indexes in well under a second, so the "running" window is too narrow for a
+150ms poll to reliably land inside it. Not treated as a failure: the template compiles and binds
+against `AtlasStore`'s real `running()`/`progressLabel()` signals (confirmed by the green
+`pnpm check` build — a bad binding fails the build, not just looks wrong), and the same segment
+already free-rides on `AtlasStore`'s existing state machine used by the instrumented run above.
+Worth a manual look on a bigger fixture (eShop-scale, dozens of entries) whenever one is next
+being used for other verification, just to eyeball the segment rendering — not worth building a
+slower fixture solely for this.
+
+`pnpm check` green throughout (before instrumentation, and again after reverting it).
+
+**W5 item 1 status: DONE.** Next: item 2 — make Home's Top Flows prefer `atlasStore.topFlows()`
+once populated, falling back to the current flat entry-list only while indexing hasn't produced
+results yet (`home-page.ts`'s `topFlows` computed is still hardcoded to the flat-list fallback,
+confirmed by reading it in this session — `AtlasStore` injection not yet added there).

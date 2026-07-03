@@ -6,7 +6,6 @@ import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
-import { WorkspaceStore } from '../../state/workspace.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { AuditTable } from '../explorer/audit-table';
@@ -35,9 +34,10 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  * kept window-level HERE rather than promoted to workspace-shell: they all act on the
  * Inspector/Trail/Trace, which only exist while this page is mounted, so promoting
  * would need the same logic duplicated for no benefit until other pages grow a Trail.
- * NOTE: Atlas indexing auto-starts once per snapshot handle (see effect below) and
- *   its progress is read from `atlas.progressLabel()` — surface it in the statusbar
- *   segment in W5.
+ * NOTE: Atlas indexing itself starts in `SessionStore.analyze()`'s success path (fires
+ *   on analysis-ready, regardless of route) — this page only pauses/resumes it around
+ *   user-initiated traces (see effect below). Progress reads from `atlas.progressLabel()`,
+ *   surfaced in the statusbar segment.
  */
 @Component({
   selector: 'app-workbench-page',
@@ -104,7 +104,6 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly trace = inject(TraceStore);
   protected readonly trail = inject(TrailStore);
   private readonly atlas = inject(AtlasStore);
-  private readonly workspace = inject(WorkspaceStore);
   private readonly prefs = inject(PrefsStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -123,20 +122,11 @@ export class WorkbenchPage implements OnDestroy {
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
   private lastVisibleDock = this.dockLevel() > 0 ? this.dockLevel() : 2;
-  private atlasStartedFor: string | null = null;
 
   constructor() {
-    // Kick off background flow indexing once per snapshot (§3.1). Captures the tabId
-    // NOW — results land in the tab that asked even if the user switches away.
-    effect(() => {
-      const handle = this.session.handle();
-      const tabId = this.workspace.activeId();
-      if (!handle || !tabId || !this.session.ready()) return;
-      if (this.atlasStartedFor === handle) return;
-      this.atlasStartedFor = handle;
-      const entries = this.session.entryGroups().flatMap((g) => g.entries);
-      this.atlas.start(tabId, handle, entries);
-    });
+    // Background flow indexing itself starts on analysis-ready (SessionStore.analyze()'s
+    // success path), not here — that's what makes Home's Top Flows work without ever
+    // visiting /explore. This page only cares about pausing it during a user trace.
 
     // User latency beats background indexing: park the atlas while a trace is in flight.
     effect(() => {

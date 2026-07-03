@@ -3,6 +3,7 @@ import { computed, inject, Injectable } from '@angular/core';
 import { ActivityService } from '../core/activity/activity.service';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, groupEntries } from '../models/view-models';
+import { AtlasStore } from './atlas.store';
 import { RecentStore } from './recent.store';
 import { DEFAULT_SESSION_SLICE, type LogLine, WorkspaceStore } from './workspace.store';
 
@@ -23,6 +24,7 @@ export class SessionStore {
   private readonly activity = inject(ActivityService);
   private readonly recentStore = inject(RecentStore);
   private readonly workspace = inject(WorkspaceStore);
+  private readonly atlas = inject(AtlasStore);
 
   private readonly activeSession = computed(() => this.workspace.activeTab()?.session ?? DEFAULT_SESSION_SLICE);
 
@@ -111,14 +113,19 @@ export class SessionStore {
         this.api.getMap(outcome.handle),
         this.api.listEntryPoints(outcome.handle),
       ]);
+      const entryGroups = groupEntries(entries.entryPoints);
       this.workspace.updateSession(tabId, (s) => ({
         ...s,
         mapResponse: map,
         mapMarkdown: map.markdown,
-        entryGroups: groupEntries(entries.entryPoints),
+        entryGroups,
         status: 'ready',
       }));
       this.activity.clear();
+
+      // Kick off background flow indexing (§3.1) on analysis-ready, regardless of which
+      // page the user is on — Home's Top Flows needs this without a detour through /explore.
+      this.atlas.start(tabId, outcome.handle, entryGroups.flatMap((g) => g.entries));
 
       this.workspace.updateSession(tabId, (s) => ({ ...s, statsLoading: true }));
       this.api

@@ -127,35 +127,30 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   `.isVisible()` on the host tag itself is empty box around a `position:fixed` child — check the
   inner `.fixed` div instead, don't "fix" the component just to make it Playwright-friendly (its
   sibling `omnibox.ts` has the same host shape and works fine in the real app).
-- W5 (derived insight layer) — **not started, now unblocked** (W4 gate passed). **Corrected
-  finding (2026-07-03, verified live with temporary instrumentation, not just read from code):**
-  the indexer trigger already exists and already works —
-  `workbench-page.ts`'s constructor effect calls `atlas.start(tabId, handle, entries)` and it was
-  confirmed live going `indexing 0/2 → 1/2 → done 2/2`, `topFlows()` populating correctly. The real
-  gap is *where* it triggers: only on `WorkbenchPage` construction, i.e. the first time the user
-  visits `/explore` — not on analysis-ready itself. Since Home (`/`) is the actual cold-start
-  landing page now (post W4 cutover) and proposal Core Flow A expects "Top Flows ranked and
-  clickable" on the Home digest *before* ever visiting Explore, a user who stays on Home never
-  triggers indexing at all. W5 item 1 is therefore "move the trigger earlier" (e.g. into
-  `SessionStore.analyze()`'s success path or a `home-page.ts`/`workspace-shell.ts` effect), not
-  "add the trigger" — it already exists in `workbench-page.ts` and should probably be deleted from
-  there once it lives somewhere that fires on analysis-ready regardless of route. Also confirmed
-  live: `shell/statusbar/statusbar.ts` has **zero** references to `atlas` anywhere (grepped) — the
-  proposal's "▸ atlas 42/94" progress segment genuinely doesn't exist yet, that part of the W4-era
-  note was right. And Atlas's Event Wiring Board / Hub Radar (`atlas-page.ts`) are correctly wired
-  to the live `AtlasStore.eventWiring()`/`hubs()` signals already (checkpoint 9) — their empty
-  state against `MinimalApiProject` is legitimate (a 2-endpoint fixture with no messaging simply
-  has no hubs or event wiring to show), not a wiring bug; don't "fix" that fixture result.
-  W5 per proposal §10, in light of the above: (1) relocate the atlas-start trigger to fire on
-  analysis-ready (not lazily on `/explore` mount) + wire the statusbar progress segment (doesn't
-  exist) + pause-on-user-trace (already implemented, just currently only reachable from
-  `/explore`); (2) make Home's Top Flows prefer `atlasStore.topFlows()` once populated, falling
-  back to the current flat entry-list only while indexing hasn't produced results yet — the
-  fallback itself (`home-page.ts`) stays as the correct empty/loading state, don't remove it;
-  (3) Event Wiring Board *polish* (interactivity, click-through) — the data plumbing itself is
-  done; (4) impact lens ("Reached by N flows") in Inspector + omnibox verb; (5) confidence meters +
-  approx filter; (6) unwired-entries surfacing; (7) Hub Radar polish (same story as the event
-  board — plumbing done, polish remains); (8) `TickerService` + statusbar ticker.
+- W5 (derived insight layer) — **in progress, checkpoint 1/8 done** (W4 gate passed).
+  **Checkpoint 1 (2026-07-03, live-verified):** relocated the atlas-start trigger from
+  `WorkbenchPage`'s constructor effect (fired only on first `/explore` visit) into
+  `SessionStore.analyze()`'s success path — `this.atlas.start(tabId, outcome.handle,
+  entryGroups.flatMap(...))` right after `entryGroups` is computed — so it fires on
+  analysis-ready regardless of route. Deleted the now-redundant `atlasStartedFor` effect and the
+  unused `workspace` field from `workbench-page.ts` (its pause/resume-on-user-trace effect stays,
+  that's still page-local UI behavior). Wired the statusbar `atlas N/M` progress segment
+  (`shell/statusbar/statusbar.ts`, shown while `atlas.running()`) — didn't exist before. Verified
+  live with a throwaway Playwright script + temporary console.log instrumentation (both
+  added/run/reverted, `git status` clean after): analyzed `MinimalApiProject` from Home, never
+  visited `/explore`, watched `indexed 1/2 → 2/2 → status=done` in the console. Full narrative:
+  `PROGRESS-LOG.md`'s latest entry. Atlas's Event Wiring Board / Hub Radar (`atlas-page.ts`) were
+  already correctly wired to live `AtlasStore` signals pre-W5 (checkpoint 9) — their empty state
+  against `MinimalApiProject` (2-endpoint fixture, no messaging) is legitimate, not a bug.
+  Remaining W5 items per proposal §10: (2) make Home's Top Flows prefer `atlasStore.topFlows()`
+  once populated, falling back to the current flat entry-list only while indexing hasn't produced
+  results yet — `home-page.ts`'s `topFlows` computed is still hardcoded to the flat-list fallback,
+  confirmed by reading it, `AtlasStore` not yet injected there — the fallback itself stays as the
+  correct empty/loading state, don't remove it; (3) Event Wiring Board *polish* (interactivity,
+  click-through) — the data plumbing itself is done; (4) impact lens ("Reached by N flows") in
+  Inspector + omnibox verb; (5) confidence meters + approx filter; (6) unwired-entries surfacing;
+  (7) Hub Radar polish (same story as the event board — plumbing done, polish remains);
+  (8) `TickerService` + statusbar ticker.
 - W6-W7 — not started.
 - **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
   only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
@@ -177,8 +172,8 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
-- Gate for resuming: `pnpm check` green (real exit code) → W4 is done, pick up W5 (atlas indexer
-  trigger first — everything else on Home/Atlas is already wired and waiting on real data).
+- Gate for resuming: `pnpm check` green (real exit code) → W5 checkpoint 1 is done, pick up
+  checkpoint 2 (Home's Top Flows preferring `atlasStore.topFlows()`) next.
 
 ## Verify loop
 ```powershell

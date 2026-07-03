@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { ThemeService } from '../../core/theme/theme.service';
 import { SessionStore } from '../../state/session.store';
+import { AtlasStore } from '../../state/atlas.store';
 import { ConnectionStore } from '../../state/connection.store';
 import { ActivityService } from '../../core/activity/activity.service';
 import { Icon } from '../../ui/icon/icon';
@@ -41,6 +42,10 @@ import { Ticker } from '../../ui/ticker/ticker';
             @if (coverage(); as cov) {
               <span class="text-ink-subtle">&middot;</span>
               <span>{{ cov }}% wired</span>
+            }
+            @if (atlas.running()) {
+              <span class="text-ink-subtle">&middot;</span>
+              <span>{{ atlas.progressLabel() }}</span>
             }
           } @else if (session.status() === 'error') {
             <span class="text-danger">Analysis failed</span>
@@ -85,6 +90,7 @@ import { Ticker } from '../../ui/ticker/ticker';
 export class Statusbar {
   protected readonly session = inject(SessionStore);
   protected readonly theme = inject(ThemeService);
+  protected readonly atlas = inject(AtlasStore);
   protected readonly connection = inject(ConnectionStore);
   protected readonly activity = inject(ActivityService);
   private readonly router = inject(Router);
