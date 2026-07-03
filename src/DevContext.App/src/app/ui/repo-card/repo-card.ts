@@ -65,7 +65,7 @@ function timeAgo(dateStr: string | null): string {
           [href]="repo().htmlUrl"
           target="_blank"
           rel="noopener"
-          class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-2xs text-ink-muted hover:text-ink"
+          class="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs text-ink-muted hover:text-ink"
         >
           <app-icon name="network" [size]="11" /> GitHub
         </a>

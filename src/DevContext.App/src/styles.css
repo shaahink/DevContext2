@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Bundled locally (W0 §4.3) — a desktop app never fetches fonts at runtime, and it keeps
+   Windows/macOS/Linux pixel-identical. Latin-subset variable fonts, ~110KB combined. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/assets/fonts/JetBrainsMonoVariable.woff2") format("woff2");
+}
+
 @theme inline {
   --color-base: var(--vibe-base);
   --color-surface: var(--vibe-surface);
@@ -60,7 +78,7 @@
   --vibe-accent-dim: color-mix(in srgb, var(--vibe-accent) 15%, transparent);
   --vibe-hover: color-mix(in srgb, var(--vibe-ink) 5%, transparent);
   --vibe-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
   /* Square bones, softened touch points: 0 on panels (via .panel), sm on controls,
      lg on floating overlays only. */
   --vibe-radius-sm: 3px;
@@ -133,8 +151,8 @@
   --vibe-success: #60c060;
   --vibe-warn: #e6a817;
   --vibe-danger: #e06060;
-  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
-  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-sans: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
   --vibe-radius-sm: 0;
   --vibe-radius-md: 0;
   --vibe-radius-lg: 0;
@@ -157,8 +175,8 @@
   --vibe-success: #2d8a2d;
   --vibe-warn: #b8860b;
   --vibe-danger: #c04040;
-  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
-  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-sans: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
   --vibe-radius-sm: 0;
   --vibe-radius-md: 0;
   --vibe-radius-lg: 0;
@@ -181,8 +199,8 @@
   --vibe-success: #00ff41;
   --vibe-warn: #ffcc00;
   --vibe-danger: #ff2200;
-  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
-  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-sans: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
   --vibe-radius-sm: 0;
   --vibe-radius-md: 0;
   --vibe-radius-lg: 0;
@@ -205,8 +223,8 @@
   --vibe-success: #0a7a0a;
   --vibe-warn: #8a6a00;
   --vibe-danger: #aa2020;
-  --vibe-font-sans: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
-  --vibe-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+  --vibe-font-sans: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
+  --vibe-font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
   --vibe-radius-sm: 0;
   --vibe-radius-md: 0;
   --vibe-radius-lg: 0;

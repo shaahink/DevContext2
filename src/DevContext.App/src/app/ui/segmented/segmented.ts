@@ -3,7 +3,7 @@ import { Component, input, model } from '@angular/core';
 @Component({
   selector: 'app-segmented',
   template: `
-    <div class="flex items-center overflow-hidden rounded-md border border-line">
+    <div class="flex items-center overflow-hidden rounded-sm border border-line">
       @for (opt of options(); track opt.value) {
         <button
           (click)="selected.set(opt.value)"

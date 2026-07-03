@@ -5,7 +5,7 @@ import { Component, input } from '@angular/core';
   template: '<ng-content />',
   host: {
     class:
-      'inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
+      'inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-sm text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent',
     // `app-button` is a custom element, so the Tailwind `disabled:` variant
     // (which keys off the `:disabled` pseudo-class) never matches. Bind the
     // disabled appearance + interaction-block directly off the signal instead.

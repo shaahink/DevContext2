@@ -5,7 +5,7 @@ import { Icon } from '../icon/icon';
   selector: 'app-search-field',
   imports: [Icon],
   template: `
-    <div class="flex items-center gap-2 rounded-md border border-line bg-base px-2 py-1 focus-within:border-accent">
+    <div class="flex items-center gap-2 rounded-sm border border-line bg-base px-2 py-1 focus-within:border-accent">
       <app-icon name="search" [size]="13" class="text-ink-subtle" />
       <input
         class="w-full bg-transparent text-xs text-ink outline-none placeholder:text-ink-subtle"

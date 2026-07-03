@@ -95,7 +95,7 @@ function buildElements(root: TraceNodeVm, maxDepth: number): cytoscape.ElementDe
       </div>
     </div>
   `,
-  host: { class: 'block h-[500px] w-full relative rounded-md border border-line bg-surface overflow-hidden' },
+  host: { class: 'block h-[500px] w-full relative border border-line bg-surface overflow-hidden' },
 })
 export class GraphCanvas {
   readonly trace = input.required<TraceNodeVm>();

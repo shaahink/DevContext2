@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, Routes } from '@angular/router';
 
 const routes: Routes = [
@@ -17,6 +17,10 @@ const routes: Routes = [
       { path: 'insights', loadComponent: () => import('./features/pages/insights-page').then((m) => m.InsightsPage) },
       { path: 'export', loadComponent: () => import('./features/pages/export-page').then((m) => m.ExportPage) },
       { path: 'settings', loadComponent: () => import('./features/settings/settings-view').then((m) => m.SettingsView) },
+      // Dev-only token sheet + component gallery (proposal W0.4) — never in a prod build's nav.
+      ...(isDevMode()
+        ? [{ path: 'styleguide', loadComponent: () => import('./features/pages/styleguide-page').then((m) => m.StyleguidePage) }]
+        : []),
     ],
   },
 ];

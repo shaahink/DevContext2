@@ -1,7 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 
-export type Theme = 'graphite' | 'paper' | 'system';
-
 export interface Prefs {
   readonly schemaVersion: 1;
   readonly defaultDepth: number;
@@ -10,8 +8,6 @@ export interface Prefs {
   readonly autoCleanup: boolean;
   /** Inspector dock level on the Workbench (0 = hidden, 3 = focus mode). Proposal §8.2. */
   readonly dockLevel: number;
-  /** Not yet applied to the DOM — ThemeService (W0 finish) will read this. Proposal §4.2/§8.2. */
-  readonly theme: Theme;
 }
 
 const STORAGE_KEY = 'devcontext-prefs';
@@ -23,7 +19,6 @@ const DEFAULTS: Prefs = {
   useRoslyn: true,
   autoCleanup: true,
   dockLevel: 2,
-  theme: 'graphite',
 };
 
 /**
@@ -42,7 +37,6 @@ export class PrefsStore {
   readonly useRoslyn = () => this._prefs().useRoslyn;
   readonly autoCleanup = () => this._prefs().autoCleanup;
   readonly dockLevel = () => this._prefs().dockLevel;
-  readonly theme = () => this._prefs().theme;
 
   setDepth(d: number): void {
     this.update({ defaultDepth: clamp(d, 1, 10) });
@@ -62,10 +56,6 @@ export class PrefsStore {
 
   setDockLevel(level: number): void {
     this.update({ dockLevel: clamp(level, 0, 3) });
-  }
-
-  setTheme(theme: Theme): void {
-    this.update({ theme });
   }
 
   /** Returns a partial AnalyzeSpec with the user's defaults, ready to merge. */

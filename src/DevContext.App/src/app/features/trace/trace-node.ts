@@ -3,29 +3,15 @@ import { Component, input, output } from '@angular/core';
 import type { TraceNodeVm } from '../../models/view-models';
 import { Badge } from '../../ui/badge/badge';
 import { NodeLink } from '../../ui/node-link/node-link';
-
-const SEAM_COLORS: Record<string, string> = {
-  call: 'bg-accent/10 text-accent border-accent/30',
-  send: 'bg-warn/10 text-warn border-warn/30',
-  handler: 'bg-success/10 text-success border-success/30',
-  raises: 'bg-warn/10 text-warn border-warn/30',
-  consumes: 'bg-success/10 text-success border-success/30',
-  data: 'bg-surface-2 text-ink-muted',
-  di: 'bg-accent/10 text-accent',
-  pipeline: 'bg-surface-2 text-ink-muted',
-  resolve: 'bg-accent/10 text-accent',
-};
+import { SeamChip } from '../../ui/seam-chip/seam-chip';
 
 @Component({
   selector: 'app-trace-node',
-  imports: [Badge, NodeLink],
+  imports: [Badge, NodeLink, SeamChip],
   template: `
     <div class="border-l-2 border-line pl-3 py-1">
       <div class="flex items-start gap-2 group cursor-pointer hover:bg-surface-2 rounded -ml-0.5 px-0.5 transition-colors" (click)="nodeSelected.emit(node().id)" (keydown.enter)="nodeSelected.emit(node().id)" (keydown.space)="nodeSelected.emit(node().id); $event.preventDefault()" tabindex="0" role="button">
-        <span class="shrink-0 rounded border px-1 py-0.5 font-mono text-2xs"
-              [class]="seamColor()">
-          {{ node().seam }}
-        </span>
+        <app-seam-chip [seam]="node().seam" class="shrink-0" />
         <div class="min-w-0">
           <app-node-link [nodeId]="node().id" [label]="node().title" />
           @if (node().salient) { <p class="mt-0.5 text-3xs text-ink-muted line-clamp-2">{{ node().salient }}</p> }
@@ -50,9 +36,5 @@ export class TraceNodeComponent {
 
   protected onChildSelected(nodeId: string): void {
     this.nodeSelected.emit(nodeId);
-  }
-
-  seamColor(): string {
-    return SEAM_COLORS[this.node().seam] ?? 'bg-surface-2 text-ink-muted';
   }
 }
