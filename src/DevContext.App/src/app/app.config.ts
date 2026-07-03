@@ -6,7 +6,7 @@ const routes: Routes = [
     path: '',
     loadComponent: () => import('./shell/workspace-shell').then((m) => m.WorkspaceShell),
     children: [
-      { path: '', loadComponent: () => import('./features/pages/overview-page').then((m) => m.OverviewPage) },
+      { path: '', loadComponent: () => import('./features/pages/home-page').then((m) => m.HomePage) },
       { path: 'overview', loadComponent: () => import('./features/pages/overview-page').then((m) => m.OverviewPage) },
       { path: 'entries', loadComponent: () => import('./features/pages/entries-page').then((m) => m.EntriesPage) },
       { path: 'trace', loadComponent: () => import('./features/pages/trace-page').then((m) => m.TracePage) },
