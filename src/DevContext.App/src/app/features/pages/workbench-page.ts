@@ -12,6 +12,7 @@ import { TrailBar } from '../../shell/trail-bar';
 import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
 import { Stage, type StageAltitude } from '../explorer/stage';
+import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
 
 const TRACE_DEBOUNCE_MS = 150;
@@ -40,7 +41,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, AuditTable],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, AuditTable, ExportDrawer],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -91,6 +92,11 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       (selectionChange)="onAuditSelect($event)"
       (dismissed)="auditOpen.set(false)"
     />
+
+    <app-export-drawer
+      [open]="exportOpen()"
+      (dismissed)="exportOpen.set(false)"
+    />
   `,
 })
 export class WorkbenchPage implements OnDestroy {
@@ -112,6 +118,7 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly auditOpen = signal(false);
+  protected readonly exportOpen = signal(false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -247,6 +254,11 @@ export class WorkbenchPage implements OnDestroy {
       this.toggleDock();
       return;
     }
+    if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
+      event.preventDefault();
+      this.exportOpen.set(true);
+      return;
+    }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'z') {
       event.preventDefault();
       const step = this.trail.undo();
@@ -286,6 +298,10 @@ export class WorkbenchPage implements OnDestroy {
     }
     if (this.auditOpen()) {
       this.auditOpen.set(false);
+      return;
+    }
+    if (this.exportOpen()) {
+      this.exportOpen.set(false);
       return;
     }
     if (this.trace.selectedNodeId()) {

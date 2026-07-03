@@ -54,13 +54,12 @@ export class ActivityBar {
 
   private readonly _currentUrl = signal('');
 
+  /** Proposal §8.1's 5-icon rail: map(Home) layers(Explore) boxes(Atlas) info(Insights) settings. */
   protected readonly railItems: readonly RailItem[] = [
-    { id: 'overview', label: 'Overview', icon: 'map', route: '/overview', shortKey: 'o', requiresSession: true },
-    { id: 'entries', label: 'Entries', icon: 'layers', route: '/entries', shortKey: 'e', requiresSession: true, badge: () => this.session.entryCount() },
-    { id: 'trace', label: 'Trace', icon: 'arrow-right', route: '/trace', shortKey: 't', requiresSession: true },
-    { id: 'graph', label: 'Graph', icon: 'network', route: '/graph', shortKey: 'g', requiresSession: true },
+    { id: 'home', label: 'Home', icon: 'map', route: '/', shortKey: 'h', requiresSession: false },
+    { id: 'explore', label: 'Explore', icon: 'layers', route: '/explore', shortKey: 'e', requiresSession: true, badge: () => this.session.entryCount() },
+    { id: 'atlas', label: 'Atlas', icon: 'boxes', route: '/atlas', shortKey: 'a', requiresSession: true },
     { id: 'insights', label: 'Insights', icon: 'zap', route: '/insights', shortKey: 'i', requiresSession: true, badge: () => this.session.insightCount() },
-    { id: 'export', label: 'Export', icon: 'file-text', route: '/export', shortKey: 'x', requiresSession: true },
     { id: 'settings', label: 'Settings', icon: 'settings', route: '/settings', shortKey: 's', requiresSession: false },
   ];
 
