@@ -127,38 +127,38 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   `.isVisible()` on the host tag itself is empty box around a `position:fixed` child — check the
   inner `.fixed` div instead, don't "fix" the component just to make it Playwright-friendly (its
   sibling `omnibox.ts` has the same host shape and works fine in the real app).
-- W5 (derived insight layer) — **in progress, checkpoints 1-2/8 done** (W4 gate passed).
-  **Checkpoint 1 (2026-07-03, live-verified):** relocated the atlas-start trigger from
-  `WorkbenchPage`'s constructor effect (fired only on first `/explore` visit) into
-  `SessionStore.analyze()`'s success path — `this.atlas.start(tabId, outcome.handle,
-  entryGroups.flatMap(...))` right after `entryGroups` is computed — so it fires on
-  analysis-ready regardless of route. Deleted the now-redundant `atlasStartedFor` effect and the
-  unused `workspace` field from `workbench-page.ts` (its pause/resume-on-user-trace effect stays,
-  that's still page-local UI behavior). Wired the statusbar `atlas N/M` progress segment
-  (`shell/statusbar/statusbar.ts`, shown while `atlas.running()`) — didn't exist before. Verified
-  live with a throwaway Playwright script + temporary console.log instrumentation (both
-  added/run/reverted, `git status` clean after): analyzed `MinimalApiProject` from Home, never
-  visited `/explore`, watched `indexed 1/2 → 2/2 → status=done` in the console.
-  **Checkpoint 2 (2026-07-03, live-verified):** `home-page.ts`'s `topFlows` computed now prefers
-  `atlas.topFlows()` (importance-ranked) once populated, mapping each `FlowStat` back to its full
-  `EntryVm` by `focus` (`FlowStat` doesn't carry `httpMethod`/`route`), falling back to the flat
-  `session.entryGroups()` list — unchanged — whenever the ranked map is empty (indexing not done,
-  or genuinely nothing found). Verified live: 2 Top Flow rows rendered against `MinimalApiProject`
-  with correct `focus=` hrefs, click-through landed traced in `/explore`, zero console errors.
-  Full narrative both checkpoints: `PROGRESS-LOG.md`'s latest two entries. Atlas's Event Wiring
-  Board / Hub Radar (`atlas-page.ts`) were already correctly wired to live `AtlasStore` signals
-  pre-W5 (checkpoint 9) — their empty state against `MinimalApiProject` (2-endpoint fixture, no
-  messaging) is legitimate, not a bug. **Both checkpoints share a fixture-size caveat:** the
-  2-entry `MinimalApiProject` is too small to show the *ranking* or the *progress segment*
-  meaningfully differently from trivial cases (indexing finishes in well under a second, and 2
-  flows barely differ in score) — worth eyeballing both on a bigger fixture (eShop-scale) whenever
-  one is next in use for other verification, not worth building a slower fixture solely for this.
-  Remaining W5 items per proposal §10: (3) Event Wiring Board *polish* (interactivity,
-  click-through) — the data plumbing itself is done; (4) impact lens ("Reached by N flows") in
-  Inspector + omnibox verb; (5) confidence meters + approx filter; (6) unwired-entries surfacing;
-  (7) Hub Radar polish (same story as the event board — plumbing done, polish remains);
-  (8) `TickerService` + statusbar ticker.
-- W6-W7 — not started.
+- W5 (derived insight layer) — **DONE, all 8 checkpoints, gate passed** (2026-07-03). Full
+  narrative + every bug found: `PROGRESS-LOG.md`'s W5 entries (7 entries — one per checkpoint,
+  checkpoints 5+6 and 3+7 each share one entry/commit since they touch the same files). Summary:
+  (1) atlas-start trigger relocated from `WorkbenchPage`'s constructor into
+  `SessionStore.analyze()`'s success path, fires on analysis-ready regardless of route + statusbar
+  `atlas N/M` progress segment; (2) Home's Top Flows prefers `atlas.topFlows()`'s importance
+  ranking once populated, flat-list fallback while indexing hasn't produced results; (3+7) Atlas
+  page Event Wiring Board rows link publisher/consumer into a traced `/explore` (badged
+  `[approx]`), Hub Radar rows show real in/out-degree via a new `AtlasStore.hubsWithDegree`
+  `getNode`-enrichment effect and click through via `selectNode`; (4) Impact lens — Inspector
+  Details "Reached by N flows" line (`AtlasStore.reachedBy`) + a 5th omnibox verb; (5) Confidence
+  Ledger — Stage header verified% meter (computed by walking the loaded trace tree, independent of
+  the indexer) + an "approx only" tree filter (`filterApproxTree`, new in `view-models.ts`) + a
+  repo-wide "confidence" stat cell on Home; (6) Unwired Entries — Home gets an "unwired" stat cell
+  + a client-synthesized insight card (the deck marker and audit-table filter already existed
+  pre-W5); (8) `TickerService` sources wired in `workspace-shell.ts` (analysis facts, insight
+  headlines, Atlas discoveries, static tips). **A real, serious bug found and fixed during
+  checkpoint 8's live verification, not a test artifact:** calling `TickerService.dismissAll(prefix)`
+  immediately followed by `post(item)` from the same `effect()` execution — two separate writes to
+  the same `_items` signal in one synchronous run — froze the tab's JS thread completely (confirmed
+  via bisection: `page.evaluate(() => document.title)` never resolved, no exception, nothing in the
+  console). Fixed with a new `TickerService.replaceGroup(prefix, items)` doing ONE atomic write;
+  see that method's doc comment for the full mechanism and why `AtlasStore`'s degree-enrichment
+  effect (checkpoint 3+7, which also reads+writes a signal) doesn't have the same problem — its
+  write happens inside a `getNode().then()`, deferred outside the effect's synchronous execution.
+  **Rule for any future effect that both reads and writes a signal:** batch into one write (like
+  `replaceGroup`) or defer the write asynchronously — never two synchronous writes to the same
+  signal from one effect run. All 8 checkpoints live-verified against `MinimalApiProject` with
+  throwaway Playwright scripts (written, run, deleted each time — not committed), `pnpm check`
+  green on every commit.
+- W6-W7 — not started, not yet scoped. Read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`
+  §10 for what they cover before starting.
 - **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
   only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`, confirmed against the live server.
@@ -179,8 +179,8 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
-- Gate for resuming: `pnpm check` green (real exit code) → W5 checkpoints 1-2 are done, pick up
-  checkpoint 3 (Event Wiring Board polish) next.
+- Gate for resuming: `pnpm check` green (real exit code) → W5 is DONE (all 8 checkpoints, gate
+  passed) → read the F proposal's §10 for W6's scope before starting it, nothing pre-decided yet.
 
 ## Verify loop
 ```powershell
@@ -223,20 +223,23 @@ not been pushed to any remote**, this is all local. `feat/fable-redesign-skeleto
 one branch to work from; `feat/w4-export-drawer` still exists but is fully merged (safe to delete,
 not yet deleted — ask before deleting branches you didn't create this session).
 
-Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W4 are all
-done**, W5 (derived insight layer) is next, entry criterion already met. See this file's "F — Fable
-Workbench Redesign" section above for W5's item list, and
-`docs/dev/go-to-program/PROGRESS-LOG.md`'s latest entries for the bugs already found/fixed and the
-`vite-error-overlay` retry gotcha when Playwright-verifying a fresh change.
+Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W5 are all
+done** (W5 gate passed 2026-07-03, all 8 checkpoints). W6 is next but not yet scoped — read §10's
+W6 entry fresh, nothing pre-decided. See this file's "F — Fable Workbench Redesign" section above
+for the W5 summary, and `docs/dev/go-to-program/PROGRESS-LOG.md`'s W5 entries for full narrative,
+every bug found/fixed (including a real tab-freezing bug in the ticker wiring, checkpoint 8 —
+worth reading before writing any new `effect()` that both reads and writes a shared service's
+signal), and the `vite-error-overlay` retry gotcha when Playwright-verifying a fresh change.
 
 Two committed smoke scripts already exist and are the pattern to extend rather than reinvent:
 `scripts/smoke-export-drawer.mts` (export drawer) and `scripts/smoke-w4-gate.mts` (flows A-E, Atlas,
 audit table, omnibox, deep links) — both `npx ng serve` (`shell:true`) + `taskkill /PID <pid> /T /F`
 for cleanup (plain `.kill('SIGTERM')` leaks the process tree on Windows), fixture path
-`resolve('../../tests/fixtures/MinimalApiProject')` from `cwd=src/DevContext.App`. For each new W5
-item: implement → `pnpm check` green → verify live → commit → append a PROGRESS-LOG.md entry → move
-to the next item. One commit per checkpoint, same discipline as the W4 commits already on this
-branch.
+`resolve('../../tests/fixtures/MinimalApiProject')` from `cwd=src/DevContext.App`. W5's checkpoints
+used the same pattern but as throwaway scripts (written, run, deleted — not committed); W6 should
+keep whichever of the two habits fits each checkpoint. For each item: implement → `pnpm check`
+green → verify live → commit → append a PROGRESS-LOG.md entry → move to the next item. One commit
+per checkpoint, same discipline as W4/W5.
 
 ---
 

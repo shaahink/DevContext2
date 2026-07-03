@@ -849,3 +849,67 @@ as checkpoint 1's statusbar segment.
 
 **W5 status: checkpoints 1-2/8 done.** Next: item 3, Event Wiring Board polish
 (interactivity/click-through — the data plumbing is already done from W4 checkpoint 9).
+
+---
+
+## 2026-07-03 — W5 checkpoints 3-8: derived insight layer complete, W5 DONE
+
+All remaining W5 items landed in one session, verified together with a single
+consolidated Playwright script (written, run, then deleted — not a permanent addition),
+four commits:
+
+**Checkpoints 3+7 (`4211893`) — Atlas page click-through polish.** Event Wiring Board
+rows link publisher/consumer into a traced `/explore` (routerLink + `?focus=`, same
+pattern as Home's Top Flow links), badged `[approx]` since the join is a heuristic
+name-match. Hub Radar rows now show real in/out-degree via `AtlasStore.hubsWithDegree`
+(a new best-effort `getNode` enrichment effect, capped at the existing top-10 hubs) and
+click through via `TraceStore.selectNode` + `?view=node` (hub node ids are raw internal
+ids, not `GetTrace`-resolvable entry focuses — can't use a routerLink here).
+
+**Checkpoint 4 (`bf5342f`) — Impact lens.** Inspector's Details section shows "Reached
+by N flows" (`AtlasStore.reachedBy(nodeId)`) with an "atlas indexing" caveat while
+incomplete. Omnibox gets a 5th verb (Impact) — selects the node, navigates to
+`/explore?view=node`, and shows an instant toast with the count.
+
+**Checkpoints 5+6 (`a707fcb`) — Confidence Ledger + Unwired Entries**, combined into one
+commit (both touch `identity-strip.ts`'s stat-cell grid). Stage's flow-altitude header
+shows a verified% meter computed by walking the currently loaded trace tree — decoupled
+from the Atlas indexer, works instantly for any trace, not just indexed entries. An
+"approx only" toggle filters the tree via a new `filterApproxTree` (view-models.ts) that
+keeps ancestors of matching nodes so results stay reachable from the root. Home's
+identity strip gains "confidence" (repo-wide, from `AtlasStore.overallVerifiedPct`) and
+"unwired" (`entries - entriesWithTarget`) stat cells; Home's Insights list gets a
+client-synthesized "N of M entries have no resolved target" card competing for a slot by
+severity alongside the server's real insights. The deck's unwired marker and the audit
+table's "has target" filter already existed pre-W5 — only the Home-facing pieces (the
+proposal's "Insight card" + "Home count") were missing.
+
+**Checkpoint 8 (`009dda0`) — statusbar ticker wiring**, and a real bug found and fixed
+along the way, worth remembering for any future effect that touches a shared mutable
+service from an `effect()`: `TickerService.dismissAll(prefix)` called immediately
+followed by `post(item)` from the SAME effect execution — two separate reads-then-writes
+of the same `_items` signal within one synchronous run — froze the tab's JS thread
+completely. Not a slow test, not a slow analyze: `page.evaluate(() => document.title)`
+itself never resolved, and nothing appeared in the console (no exception thrown, so
+nothing to catch). Found via bisection (disable all 3 new effects → fine; re-enable one
+at a time → the analysis-facts effect alone reproduced it; strip it down call-by-call →
+`dismissAll` alone fine, `post` alone fine, both together in one execution → frozen every
+time). Root-caused and fixed by adding `TickerService.replaceGroup(prefix, items)` — ONE
+atomic `_items` write per call — and switching all three ticker effects to use it instead
+of the two-call pattern. Matches the pattern `AtlasStore`'s degree-enrichment effect
+(checkpoint 3+7) already used correctly: that effect also reads and writes `degreeCache`,
+but the write happens inside a `getNode().then()` callback — deferred to a later
+microtask, outside the effect's own synchronous execution — which is exactly why it
+doesn't loop. Any future effect that both reads and writes the same signal should either
+batch into one write (like `replaceGroup`) or defer the write asynchronously, never do
+two separate synchronous writes to the same signal from the same effect execution.
+
+`pnpm check` green on every commit. Live-verified end to end against `MinimalApiProject`
+via a single consolidated script covering all six checkpoints (analyze → Home stat cells
+→ ticker text → Explore trace → confidence meter → approx-only toggle → node select →
+Inspector reached-by line → omnibox Impact verb + toast → Atlas page render) — 9/9 checks
+green, zero console/page errors, script written and deleted per this project's established
+"live-verify with a throwaway script, don't leave it committed" discipline.
+
+**W5 status: DONE, all 8 checkpoints complete.** Next: W6-W7 per the proposal's waterfall
+(§10) — not scoped yet, AGENTS.md's F section needs its next-stage read before starting.
