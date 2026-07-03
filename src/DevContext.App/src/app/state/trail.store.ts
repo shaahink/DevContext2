@@ -2,14 +2,16 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import { WorkspaceStore } from './workspace.store';
 
-export type TrailStepKind = 'entry' | 'node' | 'insight';
+export type TrailStepKind = 'entry' | 'node' | 'insight' | 'reroot';
 
 export interface TrailStep {
   readonly kind: TrailStepKind;
-  /** nodeId for entries/nodes, insight title for insights. */
+  /** nodeId for entries/nodes/reroots, insight title for insights. */
   readonly id: string;
   readonly title: string;
-  /** The trace focus that reproduces this step — what undo/redo/jump re-traces. */
+  /** The trace focus that reproduces this step — what undo/redo/jump re-traces. Unused
+   * for `reroot` steps, which restore via `TraceStore.reroot(id)` instead (client-side,
+   * see its doc comment for why a real re-fetch isn't possible). */
   readonly focus: string;
   readonly ts: number;
 }

@@ -198,7 +198,7 @@ const MOCK_TRACE: TraceNodeVm = {
         <app-segmented [options]="segmentedOptions" [selected]="'tree'" />
       </div>
       <div class="mb-4 h-64 max-w-xl border border-line">
-        <app-graph-canvas [trace]="mockTrace" />
+        <app-graph-canvas [data]="{ mode: 'trace', root: mockTrace, maxDepth: 3 }" />
       </div>
     </div>
   `,

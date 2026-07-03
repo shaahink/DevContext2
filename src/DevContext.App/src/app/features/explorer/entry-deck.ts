@@ -25,6 +25,15 @@ interface KindStat {
     '(keydown)': 'onKey($event)',
   },
   template: `
+    @if (projectFilter()) {
+      <div class="flex items-center gap-1.5 border-b border-line bg-hover px-2 py-1 text-2xs text-ink-muted">
+        <span>Project</span>
+        <span class="chip active font-mono">{{ projectFilter() }}</span>
+        <button type="button" class="ml-auto text-ink-subtle hover:text-ink" (click)="projectFilterCleared.emit()" title="Clear project filter">
+          ✕
+        </button>
+      </div>
+    }
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
       <app-icon name="search" [size]="12" class="shrink-0 text-ink-subtle" />
       <input
@@ -83,9 +92,14 @@ interface KindStat {
         <div class="px-3 py-6 text-center text-xs text-ink-subtle">
           @if (totalCount() === 0) {
             Analyze a repo to list its entry points.
-          } @else {
+          } @else if (filterText()) {
             No entries match “{{ filterText() }}” —
             <button type="button" class="text-accent hover:underline" (click)="clearFilter()">
+              clear filters
+            </button>
+          } @else {
+            No entries in this project —
+            <button type="button" class="text-accent hover:underline" (click)="clearFilter(); projectFilterCleared.emit()">
               clear filters
             </button>
           }
@@ -104,9 +118,12 @@ interface KindStat {
 export class EntryDeck {
   readonly groups = input<readonly EntryGroupVm[]>([]);
   readonly selectedFocus = input<string | null>(null);
+  /** Set by the Stage's System altitude (click a project -> filter, proposal §2). */
+  readonly projectFilter = input<string | null>(null);
 
   readonly selectionChange = output<EntryVm>();
   readonly openAudit = output<void>();
+  readonly projectFilterCleared = output<void>();
 
   protected readonly filterText = signal('');
   /** Single-select kind chip; null = all kinds. */
@@ -126,10 +143,12 @@ export class EntryDeck {
 
   protected readonly flat = computed<readonly EntryVm[]>(() => {
     const kind = this.activeKind();
+    const project = this.projectFilter();
     const query = this.filterText().trim().toLowerCase();
     return this.groups()
       .filter((g) => kind === null || g.kind === kind)
       .flatMap((g) => g.entries)
+      .filter((e) => project === null || e.project === project)
       .filter(
         (e) =>
           query === '' ||

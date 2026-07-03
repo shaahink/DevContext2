@@ -2,8 +2,19 @@ import { computed, effect, inject, Injectable } from '@angular/core';
 
 import { isStale, LatestGate } from '../core/rpc-call';
 import { DevContextApi, type NeighborDirection } from '../data-access/devcontext-api';
-import { toEdgeVm, toNodeDetailVm, toTraceVm } from '../models/view-models';
+import { toEdgeVm, toNodeDetailVm, toTraceVm, type TraceNodeVm } from '../models/view-models';
 import { DEFAULT_TRACE_SLICE, type TraceDetail, WorkspaceStore } from './workspace.store';
+
+/** DFS lookup used by `TraceStore.reroot` — a tree is rarely more than a few hundred
+ * nodes (capped by trace depth), so a plain walk is plenty fast. */
+function findNode(root: TraceNodeVm, nodeId: string): TraceNodeVm | null {
+  if (root.id === nodeId) return root;
+  for (const child of root.children) {
+    const found = findNode(child, nodeId);
+    if (found) return found;
+  }
+  return null;
+}
 
 export type { TraceDetail } from './workspace.store';
 
@@ -85,6 +96,24 @@ export class TraceStore {
     const tabId = this.workspace.activeId();
     if (!tabId) return;
     this.workspace.updateTrace(tabId, (s) => ({ ...DEFAULT_TRACE_SLICE, depth: s.depth, detail: s.detail }));
+  }
+
+  /** Double-click "re-trace from it" (proposal §2), done client-side with ZERO new RPC:
+   * `GetTrace`'s `focus` only resolves registered entry-point keys (confirmed by hand —
+   * an internal node id like `Member:Foo.<lambda>` comes back `found: false`), so a real
+   * re-fetch from an arbitrary node isn't possible without an engine change. Instead this
+   * finds `nodeId` inside the tree ALREADY loaded and re-roots the display at it — instant,
+   * but depth is capped at whatever was already fetched relative to the original root.
+   * Returns false (no-op) if the id isn't in the current tree. */
+  reroot(nodeId: string): boolean {
+    const tabId = this.workspace.activeId();
+    if (!tabId) return false;
+    const current = this.workspace.tabById(tabId)?.trace.tree;
+    if (!current) return false;
+    const sub = findNode(current, nodeId);
+    if (!sub) return false;
+    this.workspace.updateTrace(tabId, (s) => ({ ...s, tree: sub, selectedNodeId: null, nodeDetail: null, neighbors: [] }));
+    return true;
   }
 
   async selectNode(nodeId: string, direction?: NeighborDirection): Promise<void> {

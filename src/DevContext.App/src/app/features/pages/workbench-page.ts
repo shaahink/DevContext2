@@ -47,10 +47,17 @@ const DOCK_WIDTHS = [0, 30, 40, 100] as const;
             class="w-64 shrink-0 border-r border-line"
             [groups]="session.entryGroups()"
             [selectedFocus]="trace.focus()"
+            [projectFilter]="projectFilter()"
             (selectionChange)="onEntry($event)"
             (openAudit)="onOpenAudit()"
+            (projectFilterCleared)="projectFilter.set(null)"
           />
-          <app-stage class="min-w-0 flex-1" (nodeSelected)="onNode($event)" />
+          <app-stage
+            class="min-w-0 flex-1"
+            (nodeSelected)="onNode($event)"
+            (retrace)="onRetrace($event)"
+            (projectSelected)="projectFilter.set($event)"
+          />
         }
         @if (dockLevel() > 0) {
           <app-inspector
@@ -78,6 +85,8 @@ export class WorkbenchPage implements OnDestroy {
 
   protected readonly dockLevel = signal(this.prefs.dockLevel());
   protected readonly dockWidth = computed(() => DOCK_WIDTHS[this.dockLevel()]);
+  /** Set by Stage's System altitude (project click); cleared from the deck's own chip. */
+  protected readonly projectFilter = signal<string | null>(null);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -131,8 +140,21 @@ export class WorkbenchPage implements OnDestroy {
     });
   }
 
+  /** Double-click on a Flow-altitude graph node — re-root the tree at it (proposal §2),
+   * distinct from a plain click which only selects it for the Inspector. Client-side only
+   * (see `TraceStore.reroot`'s doc comment for why); a no-op if the node isn't in the
+   * currently-loaded tree (stale click). */
+  protected onRetrace(nodeId: string): void {
+    if (!this.trace.reroot(nodeId)) return;
+    this.trail.push({ kind: 'reroot', id: nodeId, title: shortNodeTitle(nodeId), focus: '' });
+  }
+
   /** Trail undo/redo/jump — restore WITHOUT pushing (that would fork the history). */
   protected onRestore(step: TrailStep): void {
+    if (step.kind === 'reroot') {
+      this.trace.reroot(step.id);
+      return;
+    }
     const handle = this.session.handle();
     if (!handle || !step.focus) return;
     if (step.focus !== this.trace.focus()) void this.trace.trace(handle, step.focus);

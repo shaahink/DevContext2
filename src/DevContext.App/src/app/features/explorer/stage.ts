@@ -1,5 +1,6 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 
+import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { GraphCanvas } from '../../ui/graph-canvas/graph-canvas';
@@ -7,18 +8,26 @@ import { TraceNodeComponent } from '../trace/trace-node';
 
 export type StageAltitude = 'system' | 'flow' | 'node';
 export type FlowMode = 'tree' | 'graph';
+export type NodeViewMode = 'list' | 'graph';
+
+const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string }[] = [
+  { id: 'out', label: 'Out', hint: 'What this node calls' },
+  { id: 'in', label: 'In', hint: 'Direct graph callers' },
+  { id: 'usages', label: 'Usages', hint: 'Resolved usages across the codebase' },
+];
 
 /**
  * Stage (F proposal §2) — one center canvas, three altitudes, never blank:
  *  - system: project topology from MapResponse.topology[] — available the moment
  *    analysis completes, before any trace (kills the blank-graph pain structurally);
  *  - flow: the current trace as Tree or Graph (today's /trace + /graph merged);
- *  - node: one-hop neighborhood of the selected node from GetNeighbors.
+ *  - node: one-hop neighborhood of the selected node from GetNeighbors, direction
+ *    toggle (out/in/usages), List (resolution detail) or Graph view.
  * Loading is content-preserving: previous content dims to 60% under a hairline.
  *
- * TODO(W4): system altitude gets a real GraphCanvas topology builder
- * (`buildFromTopology`) — the list below is the correct data through the wrong lens.
- * TODO(W4): node altitude gets a direction toggle (out | in | usages).
+ * Double-click on any graph node, any altitude, re-traces from it (`retrace` output).
+ * Single-click on a System project node filters the deck to that project instead of
+ * selecting a "node" (projects aren't traceable entries) — `projectSelected` output.
  */
 @Component({
   selector: 'app-stage',
@@ -62,6 +71,20 @@ export type FlowMode = 'tree' | 'graph';
           </select>
         }
       }
+      @if (altitude() === 'node') {
+        @for (dir of directions; track dir.id) {
+          <button type="button" class="chip" [class.active]="trace.neighborDirection() === dir.id" [title]="dir.hint" (click)="onDirection(dir.id)">
+            {{ dir.label }}
+          </button>
+        }
+        <span class="mx-1 h-4 w-px bg-line"></span>
+        <button type="button" class="chip" [class.active]="nodeViewMode() === 'list'" (click)="nodeViewMode.set('list')">
+          List
+        </button>
+        <button type="button" class="chip" [class.active]="nodeViewMode() === 'graph'" (click)="nodeViewMode.set('graph')">
+          Graph
+        </button>
+      }
       <span class="flex-1"></span>
       @if (trace.focus(); as focus) {
         <span class="truncate font-mono text-2xs text-ink-subtle" [title]="focus">{{ focus }}</span>
@@ -72,19 +95,11 @@ export type FlowMode = 'tree' | 'graph';
       @switch (altitude()) {
         @case ('system') {
           @if (topology().length > 0) {
-            <div class="p-2">
-              <p class="mb-2 text-2xs text-ink-subtle">
-                Project topology — {{ topology().length }} projects. Click filtering + graph canvas land in W4.
-              </p>
-              @for (project of topology(); track project.name) {
-                <div class="list-row">
-                  <span class="font-mono text-xs text-ink">{{ project.name }}</span>
-                  @if (project.dependsOn.length > 0) {
-                    <span class="truncate text-2xs text-ink-subtle">→ {{ project.dependsOn.join(', ') }}</span>
-                  }
-                </div>
-              }
-            </div>
+            <app-graph-canvas
+              class="block h-full"
+              [data]="{ mode: 'topology', projects: topology() }"
+              (nodeSelected)="onProjectTap($event)"
+            />
           } @else {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
               Analyze a repo to see its project topology.
@@ -100,9 +115,9 @@ export type FlowMode = 'tree' | 'graph';
             } @else {
               <app-graph-canvas
                 class="block h-full"
-                [trace]="tree"
-                [maxDepth]="graphDepth()"
-                (nodeSelected)="nodeSelected.emit($event)"
+                [data]="{ mode: 'trace', root: tree, maxDepth: graphDepth() }"
+                (nodeSelected)="onFlowTap($event)"
+                (nodeActivated)="retrace.emit($event)"
               />
             }
           } @else if (!trace.found()) {
@@ -121,33 +136,41 @@ export type FlowMode = 'tree' | 'graph';
         }
         @case ('node') {
           @if (trace.selectedNodeId(); as nodeId) {
-            <div class="p-2">
-              <p class="mb-2 truncate font-mono text-2xs text-ink-subtle" [title]="nodeId">
-                {{ nodeId }} — outgoing edges (direction toggle lands in W4)
-              </p>
-              @for (edge of trace.neighbors(); track edge.to) {
-                <div
-                  class="list-row"
-                  role="button"
-                  tabindex="0"
-                  (click)="nodeSelected.emit(edge.to)"
-                  (keydown.enter)="nodeSelected.emit(edge.to)"
-                  (keydown.space)="nodeSelected.emit(edge.to); $event.preventDefault()"
-                >
-                  <span class="chip shrink-0">{{ edge.kind }}</span>
-                  <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || edge.to }}</span>
-                  <span
-                    class="shrink-0 text-2xs"
-                    [class.text-success]="edge.resolution === 'Semantic'"
-                    [class.text-warn]="edge.resolution !== 'Semantic'"
+            @if (nodeViewMode() === 'graph') {
+              <app-graph-canvas
+                class="block h-full"
+                [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
+                (nodeSelected)="onNodeTap($event)"
+                (nodeActivated)="retrace.emit($event)"
+              />
+            } @else {
+              <div class="p-2">
+                <p class="mb-2 truncate font-mono text-2xs text-ink-subtle" [title]="nodeId">{{ nodeId }}</p>
+                @for (edge of trace.neighbors(); track edge.to) {
+                  <div
+                    class="list-row"
+                    role="button"
+                    tabindex="0"
+                    (click)="onNodeTap(edge.to)"
+                    (dblclick)="retrace.emit(edge.to)"
+                    (keydown.enter)="onNodeTap(edge.to)"
+                    (keydown.space)="onNodeTap(edge.to); $event.preventDefault()"
                   >
-                    {{ edge.resolution === 'Semantic' ? 'verified' : 'approx' }}
-                  </span>
-                </div>
-              } @empty {
-                <p class="text-xs text-ink-subtle">No outgoing edges.</p>
-              }
-            </div>
+                    <span class="chip shrink-0">{{ edge.kind }}</span>
+                    <span class="min-w-0 flex-1 truncate font-mono text-xs">{{ edge.otherTitle || edge.to }}</span>
+                    <span
+                      class="shrink-0 text-2xs"
+                      [class.text-success]="edge.resolution === 'Semantic'"
+                      [class.text-warn]="edge.resolution !== 'Semantic'"
+                    >
+                      {{ edge.resolution === 'Semantic' ? 'verified' : 'approx' }}
+                    </span>
+                  </div>
+                } @empty {
+                  <p class="text-xs text-ink-subtle">No {{ trace.neighborDirection() }} edges.</p>
+                }
+              </div>
+            }
           } @else {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
               Select a node in a trace to inspect its neighborhood.
@@ -163,10 +186,16 @@ export class Stage {
   protected readonly trace = inject(TraceStore);
 
   readonly nodeSelected = output<string>();
+  /** Double-click anywhere on the canvas — parent re-traces from this node (proposal §2). */
+  readonly retrace = output<string>();
+  /** System altitude project click — parent filters the Entry Deck to it. */
+  readonly projectSelected = output<string>();
 
   protected readonly altitude = signal<StageAltitude>('flow');
   protected readonly flowMode = signal<FlowMode>('tree');
   protected readonly graphDepth = signal(3);
+  protected readonly nodeViewMode = signal<NodeViewMode>('list');
+  protected readonly directions = DIRECTIONS;
 
   protected readonly altitudes: readonly { id: StageAltitude; label: string; hint: string }[] = [
     { id: 'system', label: 'System', hint: 'Project topology (v s)' },
@@ -178,5 +207,23 @@ export class Stage {
 
   protected onGraphDepth(event: Event): void {
     this.graphDepth.set(Number((event.target as HTMLSelectElement).value));
+  }
+
+  protected onDirection(direction: NeighborDirection): void {
+    const nodeId = this.trace.selectedNodeId();
+    if (nodeId) void this.trace.selectNode(nodeId, direction);
+  }
+
+  /** System altitude: '' means "tapped empty canvas" (GraphCanvas's deselect signal) — ignored. */
+  protected onProjectTap(name: string): void {
+    if (name) this.projectSelected.emit(name);
+  }
+
+  protected onFlowTap(nodeId: string): void {
+    if (nodeId) this.nodeSelected.emit(nodeId);
+  }
+
+  protected onNodeTap(nodeId: string): void {
+    if (nodeId) this.nodeSelected.emit(nodeId);
   }
 }

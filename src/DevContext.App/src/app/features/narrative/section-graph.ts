@@ -35,8 +35,7 @@ import { FormsModule } from '@angular/forms';
         </div>
         <div [class.max-h-[500px]]="!expanded()" class="transition-all">
           <app-graph-canvas
-            [trace]="root"
-            [maxDepth]="graphDepth()"
+            [data]="{ mode: 'trace', root, maxDepth: graphDepth() }"
             (nodeSelected)="onNodeSelected($event)"
           />
         </div>

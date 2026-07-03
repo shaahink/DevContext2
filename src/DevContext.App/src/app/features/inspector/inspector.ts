@@ -174,6 +174,8 @@ export class Inspector {
         return '⌂';
       case 'node':
         return '·';
+      case 'reroot':
+        return '↳';
       case 'insight':
         return '⚑';
     }
