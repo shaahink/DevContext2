@@ -57,24 +57,46 @@ Same "one workbench, one selection, one trail" redesign as I11 aimed for, but wi
 system (Graphite tokens), a named cancellation architecture (LatestGate), and client-side derived
 insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7 (proposal §10) —
 **do not start Wn+1 until Wn's gate passes.**
-- W0 (design tokens) — **partial**: Graphite palette + `@layer components` vocabulary landed in
-  `styles.css`. Still open: bundle Inter/JetBrains Mono locally, `ThemeService`, `/styleguide` route.
-- W1 (shell skeleton) — not started. Old shell/chrome still serves old routes untouched.
+- W0 (design tokens) — **done**. Graphite palette + `@layer components` vocabulary in `styles.css`;
+  Inter/JetBrains Mono bundled locally (`public/assets/fonts`, zero remote font requests, verified);
+  `ThemeService` — turned out to already exist pre-branch and already implement "data-theme alongside
+  data-vibe" with vibes as accent remaps, so nothing new was built there; 6 new `ui/` primitives
+  (Skeleton, Meter, SeamChip, KindIcon, EmptyState, Ticker); `/styleguide` dev route (isDevMode()-gated,
+  confirmed tree-shaken from prod builds). Along the way: fixed a real bug where `trace-node.ts`'s own
+  stale seam-color map never matched the wire's actual values (every seam chip, old and new routes,
+  was silently falling back to gray) — it now uses `SeamChip`.
+- W1 (shell skeleton) — **done**. `titlebar.ts`/`activity-bar.ts`/`statusbar/statusbar.ts` replace
+  `header/app-header.ts`/`navigation-rail.ts`/`footer/app-footer.ts` (30/48px-wide/22px, no `fixed`
+  positioning — normal document flow, the old `calc(100vh - ...)` height math is gone). `tab-strip.ts`
+  finally wired in (GAP-T1 — it was fully built, just never imported); `shortLabel` fixed (GAP-T3);
+  MRU stack + Ctrl+Tab (GAP-T5). Activity bar: registry-safe icons (GAP-S7 — three rail items had been
+  rendering with literally no icon this whole time), count badges (GAP-S6), disabled-visible+tooltip
+  (GAP-S5). `offline-banner.ts` (live-verified: kill the server, banner+red dots appear within one poll
+  cycle, clear on revive). `core/webview-shortcuts.service.ts` intercepts Ctrl+P/Ctrl+R/F5/Ctrl+F/zoom
+  (§7.3) — Ctrl+R does a real light re-analyze instead of reloading (verified), full focus-restore
+  after is deferred. `/atlas` stub route. The activity bar deliberately still shows all 7 old items
+  (Overview/Entries/Trace/Graph/Insights/Export/Settings) rather than collapsing to the proposal's
+  eventual 5-icon layout — that collapse assumes `/explore` has already absorbed Entries/Trace/Graph,
+  which is a W4 cutover, not a W1 one; collapsing now would make working pages nav-undiscoverable.
 - W2 (component build) — **partial seed**: `entry-deck`, `stage`, `inspector`, `trail-bar` exist and
   are wired into a real `/explore` route (ahead of spec — normally W2 stays store-free until W4).
 - W3 (state/RPC hardening) — **mostly done**: `LatestGate` (`core/rpc-call.ts`) now threads through
   `TraceStore.trace()`/`selectNode()` (keys `${tabId}:trace`/`${tabId}:node`), with abort-on-tab-close;
   `TrailStore`/`AtlasStore` skeletons exist; `SessionStore` has the duplicate-path guard (GAP-T4);
-  `PrefsStore` has `dockLevel`/`theme` (wired into the Workbench's Ctrl+Shift+L, replacing raw
-  localStorage). Remaining: analyze-stream cancel sweep beyond what `OperationController` already
-  does, omnibox search onto `runLatest`.
+  `PrefsStore` has `dockLevel` (wired into the Workbench's Ctrl+Shift+L, replacing raw localStorage).
+  Remaining: analyze-stream cancel sweep beyond what `OperationController` already does, omnibox
+  search (`searchNodes`) onto `runLatest` (GAP-B1).
 - W4-W7 — not started (the big wiring, derived insights, Tauri hardening, polish).
-- Gate for resuming: `pnpm check` green (real exit code) → pick up at W3's remaining item or start W1.
+- Known pre-existing bug noticed in passing, NOT fixed (out of scope for W0/W1): `section-console.ts`
+  tracks its `@for` by `line.timestamp` (`Date.now()`) — two progress events landing in the same
+  millisecond collide (`NG0955` console warning, harmless but real). Worth a look whenever that file
+  is next touched.
+- Gate for resuming: `pnpm check` green (real exit code) → start W2 completion or W3's remainder.
 
 ## Verify loop
 ```powershell
 # From C:/Code/DevContext2-ui/src/DevContext.App
-pnpm check          # lint + 7/7 vitest tests + build — must be GREEN
+pnpm check          # lint + vitest tests (27 as of this writing — check current) + build — must be GREEN
 pnpm server         # start .NET server (separate terminal)
 pnpm dev:web        # start Angular dev server → http://localhost:4200
 ```

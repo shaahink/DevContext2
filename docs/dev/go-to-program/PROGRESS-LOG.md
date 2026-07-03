@@ -437,3 +437,84 @@ waterfall (`docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10) per the skel
   `/styleguide` dev route.
 - W1: shell skeleton rename/restyle (titlebar/activity-bar/statusbar), wire tab-strip, WebView shortcut
   interception — see `AGENTS.md` "F — Fable Workbench Redesign" for the up-to-date per-stage status.
+
+---
+
+## 2026-07-03 — Fable branch: W0 finish (fonts/primitives/styleguide) + W1 (shell skeleton)
+
+**Context:** continuing `feat/fable-redesign-skeleton` immediately after the W3-completion session
+above, in the same session. Corrected course on one thing that session got wrong: it added a
+`PrefsStore.theme: 'graphite'|'paper'|'system'` field as an inert placeholder for "W0 finish's
+ThemeService" — but `ThemeService` (`core/theme/theme.service.ts`) turned out to already exist
+pre-branch, with its own `data-vibe`/`data-theme` model (vibe = modern/terminal/hacker, theme =
+dark/light/high-contrast per vibe) that doesn't match the vocabulary that field assumed. Removed the
+field rather than keep two conflicting theme-persistence paths.
+
+**Changed — W0 (commit `d465717`):**
+- Inter Variable + JetBrains Mono, Latin-subset woff2 (~110KB combined), fetched once from Google
+  Fonts' own CDN and vendored into `public/assets/fonts` — not an npm dependency. Removed the remote
+  `<link>` from `index.html`; reordered every vibe's font fallback chain to try the bundled font
+  first instead of assuming the OS has Cascadia Code/JetBrains Mono installed.
+- Six new `ui/` primitives: `Skeleton`, `Meter`, `SeamChip`, `KindIcon`, `EmptyState`, `Ticker` — all
+  presentational, zero store imports (grepped to confirm). Building `SeamChip` surfaced a real,
+  previously-unverified bug the skeleton HANDOFF had flagged as a risk: `trace-node.ts` had its own
+  local seam-color map with lowercase/plural keys (`'raises'`, `'consumes'`, `'handler'`) that never
+  matched the wire's actual values — confirmed against `DevContext.Core/Graph/TraceBuilder.cs`'s
+  `SeamKind` enum, the wire is `SeamKind.ToString()`, PascalCase singular (`Entry`, `Call`, `Send`,
+  `Handle`, `Raise`, `Consume`, `Data`, `Resolve`, `Pipeline`). Every seam chip in every trace view —
+  old `/trace` page and the new `/explore` Flow altitude alike — has been falling back to the default
+  gray this whole time. `trace-node.ts` now uses `SeamChip`, which does a correct case-insensitive
+  lookup against `models/seam-colors.ts` (which also gained the missing `Entry` color).
+- `pages/styleguide-page.ts`, dev-only route (`isDevMode()`-gated — confirmed tree-shaken from the
+  production bundle via `grep`, not just hidden). Token sheet, seam palette, type ramp, the
+  `@layer components` vocabulary, every `ui/*` primitive in at least one state.
+- Gate cleanup: `grep 'shadow-sm|rounded-md' src/app/ui` was NOT clean — 8 pre-existing components
+  used `rounded-md`, outside the proposal's two-bucket radius scale (§4.4: 3px controls, 6px floating
+  overlays). Fixed: controls → `rounded-sm`; the floating `Toast` → `rounded-lg` + the exact
+  `--shadow-overlay` token instead of a generic `shadow-lg`; `GraphCanvas` (a structural panel, not a
+  control) → no radius at all.
+- Verified: `pnpm check` green (lint 0/0, test 25/25, build 0w/0e); grep clean; Playwright smoke of
+  `/styleguide` — zero console errors, `document.fonts` reports both fonts loaded, zero requests to
+  `fonts.googleapis.com`/`gstatic.com`.
+
+**Changed — W1 (commit `485e431`):**
+- `shell/titlebar/titlebar.ts` (new, replaces `shell/header/app-header.ts`): 30px, solid `bg-base`,
+  no blur/shadow. Drag-region hygiene (§7.2). Omnibox trigger dispatches the same Ctrl+K keydown
+  `Palette` already listens for globally (no new coupling). Repo-label dropdown (recents + New
+  analysis) preserved — palette doesn't cover that yet.
+- `shell/tab-strip.ts` wired into `workspace-shell` (**GAP-T1** — fully built already, including its
+  own Ctrl+T/W/1-6 handling, just never imported). `shortLabel()` fixed to use the last path segment
+  (**GAP-T3**). MRU stack added to `WorkspaceStore` + Ctrl+Tab/Ctrl+Shift+Tab cycling (**GAP-T5**), 2
+  new unit tests.
+- `shell/activity-bar.ts` (new, replaces `shell/navigation-rail.ts`): registry-safe icons (**GAP-S7**
+  — `'home'`/`'list'`/`'lightbulb'` were never in the icon registry, so those three rail items
+  rendered with literally no icon this whole time; now `map`/`layers`/`zap`). Disabled items stay in
+  the DOM with a tooltip instead of being filtered out (**GAP-S5**). Count badges on Entries/Insights
+  (**GAP-S6**). 3px left-accent active indicator. Deliberately keeps all 7 existing items rather than
+  collapsing to the proposal's eventual 5-icon layout — see AGENTS.md note.
+- `shell/statusbar/statusbar.ts` (new, replaces `shell/footer/app-footer.ts`): 22px, moved out of
+  `fixed bottom-0` into normal document flow — `workspace-shell`'s `calc(100vh - 2.75rem - 1.75rem)`
+  height hack is gone, the shell is a plain flex column now. New `Ticker` primitive mounted (inert
+  until W5).
+- `shell/offline-banner.ts` (new), `core/webview-shortcuts.service.ts` (new, §7.3 — Ctrl+P/Ctrl+R/F5/
+  Ctrl+F/zoom interception), `/atlas` stub route.
+- Verified live end-to-end via Playwright against a real analyzed repo (two gotchas hit and worked
+  around, noted in case they recur): (1) Playwright's `keyboard.press('Control+T')` sends `key: 'T'`
+  (uppercase), not `'t'` — the app's handlers correctly check lowercase to match real keyboards, so
+  the combo string needs lowercase too, e.g. `'Control+t'`. (2) `concurrently -k` (used by
+  `pnpm dev:web`) kills `ng serve` the instant the .NET server process dies, so testing the offline
+  banner needs the two processes started independently (`pnpm server` — or a direct
+  `dotnet .../DevContext.Server.dll` invocation — and `ng serve`, separately) rather than through the
+  combined script. Confirmed: 30px titlebar; Ctrl+T/W/Tab/1 all change tab state correctly; help
+  overlay lists the new shortcuts; Ctrl+R doesn't reload (page-lifetime JS marker survives) AND
+  visibly triggers a real re-analyze ("Discovering files… 10%" in the statusbar) — not just "nothing
+  broke"; F5 doesn't reload; killing the server surfaces the offline banner + red connection dots
+  within one 5s poll cycle, reviving it clears both. Zero console errors except one pre-existing,
+  unrelated bug incidentally surfaced by rapid concurrent-tab analysis: `NG0955` duplicate track keys
+  — `section-console.ts` tracks `@for` by `line.timestamp` (`Date.now()`), and two progress events in
+  the same millisecond collide. Not fixed here (out of scope), noted in AGENTS.md.
+- `pnpm check` green throughout: lint 0/0 · test 27/27 · build 0w/0e.
+
+**Next:** W2 completion (progressive `trace-tree.ts` to replace `trace-node.ts`'s reuse in Stage;
+`audit-table.ts`; `graph-canvas` topology/neighbors builders) or W3's remainder (analyze-stream cancel
+sweep, omnibox onto `runLatest`) — see `AGENTS.md`'s "F — Fable Workbench Redesign" for current status.

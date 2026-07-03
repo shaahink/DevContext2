@@ -1,16 +1,12 @@
 # Fable Skeleton — Handoff to the Build/Verify Agent
 
-> Branch: `feat/fable-redesign-skeleton` · Written 2026-07-03 · **UPDATE 2026-07-03: compiled, run,
-> and smoke-tested since this was written — see `PROGRESS-LOG.md` "Fable branch: commit backlog +
-> lint fixes + W3 completion" for what changed and how it was verified. The lint errors this doc
-> warned about were real and are fixed (commit `1729b90`). W3 (state/RPC hardening) is now mostly
-> done — LatestGate threads through `TraceStore`, dup-path guard and dockLevel/theme prefs landed.
-> The step-by-step file table and design-intent rules below are still accurate; treat the framing
-> above ("never compiled") as historical, and check `AGENTS.md`'s "F — Fable Workbench Redesign"
-> section for current per-stage status before resuming.**
-> Implements the foundations of `ui-ux-redesign-proposal-fable.md` (W0 partial + W2/W3 seeds).
-> Your job: continue the waterfall from where AGENTS.md says W3 leaves off (W3 remainder → W0
-> finish → W1).
+> Branch: `feat/fable-redesign-skeleton` · Written 2026-07-03, superseded by events since — **this
+> doc is now historical narrative, not current status.** As of 2026-07-03 the branch has been
+> compiled, run, and smoke-tested repeatedly across several sessions; W0 and W1 are done, W3 is
+> mostly done. **For current per-stage status, always check `AGENTS.md`'s "F — Fable Workbench
+> Redesign" section first** — it's updated every session and is the source of truth. The file-by-file
+> risk-note table and "design intents you must not fix" list below are still accurate and worth
+> reading once; the "Next steps" list below is not (AGENTS.md's is current).
 
 ## Step zero (before touching anything)
 
@@ -69,20 +65,14 @@ bisect before writing new code.
 
 ## Next steps (the waterfall, from `ui-ux-redesign-proposal-fable.md` §10)
 
-1. **W3 remainder:** omnibox/palette search (`searchNodes`) onto `runLatest` (GAP-B1 —
-   currently every keystroke fires ungated); audit whether analyze-stream cancellation needs
-   more than what `WorkspaceStore.closeTab()`'s `OperationController.cancel()` already does.
-   ~~thread `LatestGate` through `TraceStore.run()`/`selectNode()`~~ **done** (`core/rpc-call.ts`
-   `LatestGate`, keys `${tabId}:trace`/`${tabId}:node`, abort-on-tab-close via a constructor
-   effect). ~~duplicate-path guard in SessionStore~~ **done** (GAP-T4). ~~PrefsStore
-   dockLevel/theme~~ **done** — `theme` is stored but not yet applied to the DOM (needs W0's
-   `ThemeService`).
-2. **Finish W0:** bundle Inter/JetBrains Mono into `/assets/fonts` (remove any remote
-   font path); `ThemeService` (`data-theme`, reads `PrefsStore.theme`); `/styleguide` dev
-   route showcasing tokens + these components.
-3. **W1:** shell skeleton — titlebar/activity-bar/statusbar renames + restyle, wire
-   `tab-strip` (built but orphaned), WebView shortcut interception (§7.3), offline banner.
-4. **W4:** URL state on `/explore`, Esc-ladder, audit-table overlay, Render-RPC LLM
+**Stop — this list is stale. Read `AGENTS.md`'s "F — Fable Workbench Redesign" section instead;**
+it has the accurate, currently-maintained per-stage status. As of the last update: W0 and W1 are
+done, W3 is mostly done (only the omnibox-onto-`runLatest` and analyze-stream-cancel-audit items
+remain), W2 is a partial seed, W4-W7 haven't started. The list below is kept only as a reminder of
+the overall shape — do not treat its checkmarks as current.
+
+1. ~~W3 remainder~~ / ~~Finish W0~~ / ~~W1~~ — see AGENTS.md.
+2. **W4:** URL state on `/explore`, Esc-ladder, audit-table overlay, Render-RPC LLM
    section, omnibox, export drawer + From Trail (pins are already collected!),
    old-route redirects, delete superseded sections.
 5. **W5:** statusbar segments + ticker wiring (`TickerService.post` from SessionStore
