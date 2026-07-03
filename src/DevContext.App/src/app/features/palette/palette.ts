@@ -4,7 +4,10 @@ import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { NodeStore } from '../../state/node.store';
 import { DevContextApi } from '../../data-access/devcontext-api';
+import { isStale, LatestGate } from '../../core/rpc-call';
 import { Router } from '@angular/router';
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 interface PaletteItem {
   label: string;
@@ -59,6 +62,8 @@ export class Palette {
   readonly searchResults = signal<string[]>([]);
 
   private actions: PaletteItem[] = [];
+  private readonly searchGate = new LatestGate();
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   @HostListener('window:keydown', ['$event'])
   onGlobalKey(e: KeyboardEvent) {
@@ -71,18 +76,36 @@ export class Palette {
     }
   }
 
-  close(): void { this.open.set(false); }
+  close(): void {
+    this.open.set(false);
+    if (this.searchTimer !== null) clearTimeout(this.searchTimer);
+  }
 
   onQuery(val: string): void {
     this.query.set(val);
     this.selectedIndex.set(0);
     this.buildItems();
+
+    if (this.searchTimer !== null) clearTimeout(this.searchTimer);
     const h = this.session.handle();
-    if (h && val.length >= 2) {
-      this.api.searchNodes(h, val, 8).then(r => {
-        this.searchResults.set(r.nodes?.map(n => n.nodeId) ?? []);
-        this.buildItems();
-      }).catch(() => { /* non-critical: search suggestions are supplementary, silent failure is OK */ });
+    if (!h || val.length < 2) {
+      this.searchResults.set([]);
+      return;
+    }
+    this.searchTimer = setTimeout(() => {
+      this.searchTimer = null;
+      void this.runSearch(h, val);
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  private async runSearch(handle: string, query: string): Promise<void> {
+    try {
+      const res = await this.searchGate.run('search', () => this.api.searchNodes(handle, query, 8));
+      if (isStale(res)) return; // a newer keystroke superseded this search
+      this.searchResults.set(res.nodes?.map((n) => n.nodeId) ?? []);
+      this.buildItems();
+    } catch {
+      /* non-critical: search suggestions are supplementary, silent failure is OK */
     }
   }
 
