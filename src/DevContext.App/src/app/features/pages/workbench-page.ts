@@ -9,6 +9,7 @@ import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
+import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
 import { Stage, type StageAltitude } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
@@ -39,7 +40,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, AuditTable],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -83,6 +84,13 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
         <a routerLink="/" class="text-accent hover:underline">Analyze one on the Home screen →</a>
       </div>
     }
+
+    <app-audit-table
+      [open]="auditOpen()"
+      [groups]="session.entryGroups()"
+      (selectionChange)="onAuditSelect($event)"
+      (dismissed)="auditOpen.set(false)"
+    />
   `,
 })
 export class WorkbenchPage implements OnDestroy {
@@ -103,6 +111,7 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly stageAltitude = signal<StageAltitude>('flow');
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
+  protected readonly auditOpen = signal(false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -215,7 +224,17 @@ export class WorkbenchPage implements OnDestroy {
   }
 
   protected onOpenAudit(): void {
-    // TODO(W4 remainder): open the full sortable audit table overlay (today's section-entries).
+    this.auditOpen.set(true);
+  }
+
+  /** Audit table row "Trace" — same as picking the entry in the deck (trace + trail
+   * push), then close the overlay since that's the point of selecting from it. */
+  protected onAuditSelect(entry: EntryVm): void {
+    this.auditOpen.set(false);
+    const handle = this.session.handle();
+    if (!handle) return;
+    this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
+    void this.trace.trace(handle, entry.focus);
   }
 
   protected onGlobalKey(event: KeyboardEvent): void {
@@ -255,14 +274,18 @@ export class WorkbenchPage implements OnDestroy {
     }
   }
 
-  /** Esc-ladder (proposal §8.4): cancel in-flight trace → deselect node → clear focus →
-   * clear deck filter. The full spec also has "close overlay" / "unpin peek" rungs above
-   * "deselect node" — added once the audit-table overlay / node-peek exist. Runs
+  /** Esc-ladder (proposal §8.4): cancel in-flight trace → close overlay → deselect node
+   * → clear focus → clear deck filter. The full spec's "unpin peek" rung (between close
+   * overlay and deselect node) is still a TODO — node-peek doesn't exist yet (W7). Runs
    * unconditionally (not gated on focus) — that's the point of a ladder: Escape always
    * does the highest-priority thing that's currently true, same as VS Code's. */
   private onEscape(): void {
     if (this.trace.loading()) {
       this.trace.cancelTrace();
+      return;
+    }
+    if (this.auditOpen()) {
+      this.auditOpen.set(false);
       return;
     }
     if (this.trace.selectedNodeId()) {
