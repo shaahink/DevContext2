@@ -1,12 +1,8 @@
 # Fable Skeleton — Handoff to the Build/Verify Agent
 
-> Branch: `feat/fable-redesign-skeleton` · Written 2026-07-03, superseded by events since — **this
-> doc is now historical narrative, not current status.** As of 2026-07-03 the branch has been
-> compiled, run, and smoke-tested repeatedly across several sessions; W0 and W1 are done, W3 is
-> mostly done. **For current per-stage status, always check `AGENTS.md`'s "F — Fable Workbench
-> Redesign" section first** — it's updated every session and is the source of truth. The file-by-file
-> risk-note table and "design intents you must not fix" list below are still accurate and worth
-> reading once; the "Next steps" list below is not (AGENTS.md's is current).
+> **Superseded.** This was the handoff for the initial Fable skeleton (W0-W3). For the current
+> W4 export-drawer build, see `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`. For the overall
+> waterfall status, see `AGENTS.md`'s "F — Fable Workbench Redesign" section.
 
 ## Step zero (before touching anything)
 

@@ -92,7 +92,7 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   duplicate-path guard (GAP-T4); `PrefsStore` has `dockLevel`. Analyze-stream cancel sweep audited
   and confirmed complete (`OperationController` + `WorkspaceStore.closeTab` + the trace/atlas
   tab-close effects) — no gap found, no code needed.
-- W4 (the great wiring) — **6 of 9 checkpoints done**, each its own commit, each `pnpm check` green,
+- W4 (the great wiring) — **7 of 9 checkpoints done**, each its own commit, each `pnpm check` green,
   each verified live via headless Chrome (playwright, `channel: 'chrome'`) against a real analyzed
   repo (`tests/fixtures/MinimalApiProject`) — not just lint/build. Full narrative + every bug found
   during verification: `docs/dev/go-to-program/PROGRESS-LOG.md`'s "W3 remainder + W4 partial" entry.
@@ -101,25 +101,25 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   turned out to need a client-side `TraceStore.reroot()` instead of a fresh `GetTrace`, see below);
   **workbench URL state** (`?focus&view&kind&q`) **+ Esc-ladder** (cancel trace → close overlay →
   deselect node → clear focus → clear filter) **+ `p`/Alt+←→ shortcuts**; **inspector LLM section**
-  migrated to the Render RPC (was raw `trace.markdown()`); **audit table overlay** (Shift+E, replaces
-  the standalone entries page as an overlay). Remaining for the W4 gate:
-  1. **Export drawer** (Ctrl+E): section toggles + Onboarding/Flow-Review/Full/From-Trail presets,
-     porting `section-export.ts`'s render logic; "From Trail" renders each `TrailStore.pins()` step
-     via the Render RPC, concatenated, tokens summed.
-  2. **Home page assembly**: identity strip, Top Flows card row (`AtlasStore.topFlows()` — already
-     computed), insight headline row, run report — restyled card-free. Console during analysis stays
-     as-is.
-  3. **Atlas page assembly**: map markdown (prose-zone), topology graph (`GraphCanvas` `topology`
-     mode — already built in checkpoint 3, just needs binding here too), packages/pipeline list. Since
-     `AtlasStore.eventWiring()`/`hubs()` already exist (pulled ahead in W3), surface them here too
-     instead of stubbing to W5 — near-zero incremental cost.
-  4. **Route cutover**: make `/entries` `/trace` `/graph` redirect into `/explore` (preserving
-     `?focus` where present); `/overview` redirect to `/` (Home). Delete
-     `section-entries`/`-trace`/`-graph`/`-lens`/`-export` + their standalone pages
-     (`entries-page`/`trace-page`/`graph-page`) + `SectionCard`, once nothing references them (grep
-     first — `styleguide-page.ts` may still demo some primitives independently).
-  5. Full manual gate sweep per proposal §10's W4 table (flows A-E walked end-to-end, deep links land
-     traced, deleting files broke nothing, kill-server-mid-trace degrades correctly).
+   migrated to the Render RPC (was raw `trace.markdown()`); **audit table overlay** (Shift+E, replaces
+   the standalone entries page as an overlay); **export drawer** (Ctrl+E: section toggles +
+   Onboarding/Flow-Review/Full/From-Trail presets; "From Trail" renders each `TrailStore.pins()` step
+   via the Render RPC, concatenated, tokens summed — built on `feat/w4-export-drawer`, see
+   `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`). Remaining for the W4 gate:
+   1. **Home page assembly**: identity strip, Top Flows card row (`AtlasStore.topFlows()` — already
+      computed), insight headline row, run report — restyled card-free. Console during analysis stays
+      as-is.
+   2. **Atlas page assembly**: map markdown (prose-zone), topology graph (`GraphCanvas` `topology`
+      mode — already built in checkpoint 3, just needs binding here too), packages/pipeline list. Since
+      `AtlasStore.eventWiring()`/`hubs()` already exist (pulled ahead in W3), surface them here too
+      instead of stubbing to W5 — near-zero incremental cost.
+   3. **Route cutover**: make `/entries` `/trace` `/graph` redirect into `/explore` (preserving
+      `?focus` where present); `/overview` redirect to `/` (Home). Delete
+      `section-entries`/`-trace`/`-graph`/`-lens`/`-export` + their standalone pages
+      (`entries-page`/`trace-page`/`graph-page`) + `SectionCard`, once nothing references them (grep
+      first — `styleguide-page.ts` may still demo some primitives independently).
+   4. Full manual gate sweep per proposal §10's W4 table (flows A-E walked end-to-end, deep links land
+      traced, deleting files broke nothing, kill-server-mid-trace degrades correctly).
 - W5-W7 — not started. Note that `AtlasStore`'s W5 data layer (topFlows/hubs/eventWiring/reachedBy)
   already exists from W3 — W5 itself is now mostly "bind it to Home/Atlas/Inspector," which the W4
   remainder above is already starting to do opportunistically. Inspector's "Reached by N flows" line
@@ -145,7 +145,7 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
 - Gate for resuming: `pnpm check` green (real exit code) → pick up the W4 remainder above, starting
-  with the export drawer.
+  with the Home page assembly.
 
 ## Verify loop
 ```powershell
@@ -178,13 +178,17 @@ To resume the **F — Fable Workbench Redesign** specifically (the active redesi
 ```
 git -C C:/Code/DevContext2-ui checkout feat/fable-redesign-skeleton
 git -C C:/Code/DevContext2-ui pull
+
+# Or the export-drawer branch if picking up from that checkpoint:
+# git -C C:/Code/DevContext2-ui checkout feat/w4-export-drawer
+
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App
 pnpm check > check.log; echo $LASTEXITCODE   # real exit code, never pipe to tail
 ```
 Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — W0-W3 are done, W4
-is 6/9 checkpoints done. Pick up the W4 remainder in this order: export drawer (Ctrl+E) → Home page
-assembly → Atlas page assembly → route cutover + deletion → full manual gate sweep. See this file's
-"F — Fable Workbench Redesign" section above for exactly what each remaining item needs, and
+is 7/9 checkpoints done. Pick up the W4 remainder in this order: Home page assembly → Atlas page
+assembly → route cutover + deletion → full manual gate sweep. See this file's "F — Fable Workbench
+Redesign" section above for exactly what each remaining item needs, and
 `docs/dev/go-to-program/PROGRESS-LOG.md`'s latest entry for the bugs already found/fixed and the
 `vite-error-overlay` retry gotcha when Playwright-verifying a fresh change.
 

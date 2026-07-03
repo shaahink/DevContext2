@@ -594,3 +594,86 @@ page assembly (map/topology/packages — `eventWiring`/`hubs` already computed i
 W3, just needs binding), route cutover (`/explore` canonical, old routes redirect, delete
 `section-entries/-trace/-graph/-lens/-export` + their pages + `SectionCard`), then the full manual
 gate sweep in proposal §10's W4 table.
+
+---
+
+## 2026-07-03 — W4 — Export Drawer (Ctrl+E) with From Trail + Presets
+
+**Branch:** `feat/w4-export-drawer` (off `feat/fable-redesign-skeleton`)
+
+**Changed:**
+- **New** `features/export/export-drawer.ts` (377 lines) — right-side 480px drawer overlay on Ctrl+E,
+  following the same parent-controlled overlay pattern as `audit-table.ts` (open/dismissed signals).
+  Ports and extends `section-export.ts`'s render logic:
+  - 4 preset chips: **Full** (all map sections), **Onboarding** (Overview/Topology/Routes/Entry points),
+    **Flow Review** (current `TraceStore.focus()` single-focus render), **From Trail** (each pinned
+    `TrailStep` rendered via `api.render({ focus })`, concatenated with `## [title]` headers, tokens
+    summed per-step with progress indicator).
+  - Section toggles with per-section token counts (ported from `section-export.ts`: user toggles
+    preserved across re-renders; new sections default to enabled).
+  - Content-preserving loading per proposal §5.2: existing content dimmed at 60% on refresh, skeleton
+    blocks on first load only (5 skeleton rows).
+  - Empty/error/populated states for every preset: "No pinned steps yet" with `p` key tip (From Trail),
+    "No entry selected" (Flow Review), "Choose a preset to render" (Full/Onboarding before first render),
+    inline error + Retry.
+  - Copy button (`navigator.clipboard`) + Re-render button + Escape dismiss + backdrop click-to-dismiss.
+  - Token counter in header (`1.2K tok` formatting).
+- **Modified** `features/pages/workbench-page.ts`:
+  - Added `exportOpen` signal, `Ctrl+E` handler in `onGlobalKey()` (after `Ctrl+Shift+L`, before `Ctrl+Z`),
+    `ExportDrawer` in imports array.
+  - Added Esc-ladder rung for export drawer (between audit-table close and deselect-node).
+  - Template: `<app-export-drawer [open]="exportOpen()" (dismissed)="exportOpen.set(false)" />` after
+    `<app-audit-table>`.
+- Smoke-test script `scripts/smoke-export-drawer.mts` — auto-starts ng serve, analyzes
+  `MinimalApiProject`, navigates to `/explore` via popstate (client-side, avoids full-reload
+  session-loss), verifies: drawer visible, 4 presets, Full render, Copy button, Escape dismiss,
+  backdrop dismiss, no console errors.
+
+**Verified (corrected this session — see below):**
+- `pnpm lint` — 0/0 (green)
+- `pnpm test` — 27/27 (green, no regressions)
+- `pnpm build` — success (new chunk: `workbench-page` grew to 59KB from ~56KB; all lazy chunks
+  produced)
+- Playwright smoke (headless Chrome, real server, `MinimalApiProject`): 15/15 checks passed —
+  analysis actually completed, deck rendered with 2 entries, entry pinned, drawer opened via
+  Ctrl+E, all 4 presets rendered (Full/Onboarding/Flow Review/From Trail, including From Trail's
+  pinned-step render), Copy button present, Escape and backdrop dismiss both worked, reopened
+  cleanly, zero app console errors.
+
+**Correction (2026-07-03, resuming session):** the original "11/12, one false negative" receipt
+below was wrong — the smoke script's fixture path resolved to a nonexistent directory
+(`tests/fixtures/MinimalApiProject` from `cwd=src/DevContext.App`, missing the `../../` up to
+repo root — c.f. `scripts/grpcweb-smoke.mts`'s correct `resolve('../../tests/fixtures/...')`), so
+every analyze attempt in that session had actually failed silently ("Analysis failed" toast) and
+the deck never had a chance to render — not a locator/dockLevel false negative. "Full preset
+content rendered" was itself a false positive: it asserted `.flex-1 > *` is visible, which is
+equally true of the empty-state placeholder div. Fixed the path, tightened that assertion to
+require the real `<pre>` render, and fixed an orphaned `ng serve` process leak on Windows
+(`shell:true` + `.kill('SIGTERM')` only kills the `cmd.exe` wrapper, not the real process —
+switched to `taskkill /PID <pid> /T /F`, confirmed port 4200 is released after every run). Also
+dropped an unneeded `playwright-core` devDependency the prior (opencode/deepseek) session added —
+the full `playwright` package was already present; the script now matches
+`scripts/audit-screenshots.mts`'s `import { chromium } from 'playwright'` convention. Full detail
+in `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`.
+
+**Known issues (not fixed, out of scope):**
+- The old `section-export.ts` and `/export` route still exist — to be deleted in W4 checkpoint 4
+  (route cutover). The export drawer is additive; the old modal-based export still works.
+- Client-side navigation to `/explore` after analysis requires the popstate trick (`page.goto` does
+  a full reload which drops in-memory WorkspaceStore session state). The existing Playwright scripts
+  on this branch use SPA-link clicks or the known popstate workaround. This is a test-infra concern,
+  not a product bug — real users navigate via the activity bar which uses `RouterLink`.
+- The `layout: 480px` right-side drawer may need responsive adjustments for narrow viewports (proposal
+  assumes >= 960px; Tauri min is 960×640).
+
+**Next — remaining W4 items (unchanged from prior handoff):**
+1. Home page assembly (identity strip, Top Flows from `AtlasStore.topFlows()`, insight headlines,
+   run report — card-free restyle).
+2. Atlas page assembly (map markdown, topology graph, packages/pipeline + `eventWiring()`/`hubs()`
+   surfaces).
+3. Route cutover + deletion (`/entries` `/trace` `/graph` `/overview` → redirect; delete
+   `section-entries/-trace/-graph/-lens/-export` + their pages + `SectionCard`).
+4. Full manual gate sweep per proposal §10's W4 table (flows A-E).
+
+**W4 status: 7/9 checkpoints done.** See `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md` for the
+detailed handoff including file-by-file risk notes, verification receipt, and the resume protocol.
