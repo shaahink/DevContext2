@@ -42,6 +42,11 @@ export interface HubStat {
   readonly flowCount: number;
 }
 
+export interface NodeDegree {
+  readonly inDegree: number;
+  readonly outDegree: number;
+}
+
 export type AtlasStatus = 'idle' | 'indexing' | 'paused' | 'done' | 'cancelled';
 
 interface AtlasSlice {
@@ -84,6 +89,9 @@ export class AtlasStore {
   private readonly _slices = signal<ReadonlyMap<string, AtlasSlice>>(new Map());
   /** Imperative control blocks — deliberately NOT signals (workers mutate them). */
   private readonly controls = new Map<string, IndexerControl>();
+  /** §3.7 degree enrichment — best-effort `getNode` cache, keyed by node id (node ids
+   * are effectively unique per analyzed repo, so no per-tab scoping needed here). */
+  private readonly degreeCache = signal<ReadonlyMap<string, NodeDegree>>(new Map());
 
   private readonly active = computed(
     () => this._slices().get(this.workspace.activeId() ?? '') ?? EMPTY_SLICE,
@@ -131,6 +139,12 @@ export class AtlasStore {
       .map(([nodeId, flowCount]) => ({ nodeId, title: shortTitle(nodeId), flowCount }));
   });
 
+  /** §3.7 — `hubs()` enriched with real in/out-degree, once `getNode` resolves (see the
+   * enrichment effect below). `degree` is null until then — render without it, don't wait. */
+  readonly hubsWithDegree = computed<readonly (HubStat & { readonly degree: NodeDegree | null })[]>(() =>
+    this.hubs().map((h) => ({ ...h, degree: this.degreeCache().get(h.nodeId) ?? null })),
+  );
+
   /** §3.3 — heuristic publisher→event→consumer join. Rows with consumerFocus === null
    * are orphan events. Heuristic name-match → present as [approx] in the UI. */
   readonly eventWiring = computed<readonly EventWire[]>(() => {
@@ -169,6 +183,26 @@ export class AtlasStore {
       const slices = this._slices();
       if ([...slices.keys()].some((id) => !live.has(id))) {
         this._slices.set(new Map([...slices].filter(([id]) => live.has(id))));
+      }
+    });
+
+    // §3.7 degree enrichment — batch (best-effort, unbounded concurrency: hubs() is
+    // already capped to 10) getNode over hub node ids not yet cached. Re-runs
+    // automatically as hubs() changes (more flows indexed → different top-10).
+    effect(() => {
+      const handle = this.workspace.activeTab()?.session.handle;
+      const hubList = this.hubs();
+      if (!handle) return;
+      const cache = this.degreeCache();
+      for (const h of hubList) {
+        if (cache.has(h.nodeId)) continue;
+        void this.api
+          .getNode(handle, h.nodeId)
+          .then((res) => {
+            if (!res.found) return;
+            this.degreeCache.update((m) => new Map(m).set(h.nodeId, { inDegree: res.inDegree, outDegree: res.outDegree }));
+          })
+          .catch(() => { /* best-effort enrichment, silent failure OK */ });
       }
     });
   }
