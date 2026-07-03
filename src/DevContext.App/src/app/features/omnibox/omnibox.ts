@@ -5,16 +5,18 @@ import { Router } from '@angular/router';
 import { isStale, LatestGate } from '../../core/rpc-call';
 import { type AnalyzeSpec, DevContextApi } from '../../data-access/devcontext-api';
 import { KIND_ICONS } from '../../models/view-models';
+import { AtlasStore } from '../../state/atlas.store';
 import { PrefsStore } from '../../state/prefs.store';
 import { RecentStore } from '../../state/recent.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { WorkspaceStore } from '../../state/workspace.store';
 import { KindIcon } from '../../ui/kind-icon/kind-icon';
+import { ToastService } from '../../ui/toast/toast';
 
-type Verb = 'trace' | 'node' | 'usages' | 'copy';
-const VERBS: readonly Verb[] = ['trace', 'node', 'usages', 'copy'];
-const VERB_LABELS: Record<Verb, string> = { trace: 'Trace', node: 'Node', usages: 'Usages', copy: 'Copy' };
+type Verb = 'trace' | 'node' | 'usages' | 'impact' | 'copy';
+const VERBS: readonly Verb[] = ['trace', 'node', 'usages', 'impact', 'copy'];
+const VERB_LABELS: Record<Verb, string> = { trace: 'Trace', node: 'Node', usages: 'Usages', impact: 'Impact', copy: 'Copy' };
 const SEARCH_DEBOUNCE_MS = 150;
 const SECTION_ORDER = ['Action', 'Recents', 'Entries', 'Nodes'] as const;
 
@@ -116,10 +118,12 @@ export class Omnibox {
   private readonly api = inject(DevContextApi);
   private readonly session = inject(SessionStore);
   private readonly traceStore = inject(TraceStore);
+  private readonly atlasStore = inject(AtlasStore);
   private readonly workspace = inject(WorkspaceStore);
   private readonly recentStore = inject(RecentStore);
   private readonly prefs = inject(PrefsStore);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly verbs = VERBS;
 
@@ -300,6 +304,15 @@ export class Omnibox {
         void this.traceStore.selectNode(item.nodeId, 'usages');
         void this.router.navigate(['/explore'], { queryParams: { view: 'node' } });
         break;
+      case 'impact': {
+        // §3.4 — lands on the same Inspector line the persistent lens shows, plus an
+        // instant toast so the count doesn't wait on the Details section to render.
+        void this.traceStore.selectNode(item.nodeId, 'usages');
+        void this.router.navigate(['/explore'], { queryParams: { view: 'node' } });
+        const count = this.atlasStore.reachedBy(item.nodeId).length;
+        this.toast.show(`Reached by ${count} flow${count === 1 ? '' : 's'}`, 'info');
+        break;
+      }
       case 'copy':
         void navigator.clipboard?.writeText(item.nodeId);
         break;

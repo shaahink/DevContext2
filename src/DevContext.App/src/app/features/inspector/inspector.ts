@@ -1,6 +1,7 @@
-import { Component, effect, inject, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, output, signal } from '@angular/core';
 
 import { DevContextApi } from '../../data-access/devcontext-api';
+import { AtlasStore } from '../../state/atlas.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
@@ -20,9 +21,7 @@ const RENDER_DEBOUNCE_MS = 250;
  * `estimatedTokens`) — migrated from section-lens.ts, which this supersedes.
  *
  * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
- * TODO(W5): Insights section filters stats().insights by the current selection;
- *   "Reached by N flows" line reads AtlasStore.reachedBy(nodeId) — deliberately not
- *   pulled forward even though AtlasStore already has it, to keep the W4 gate honest.
+ * TODO(W5): Insights section filters stats().insights by the current selection.
  * TODO(W4 remainder): file path row gets "Reveal in Explorer" via the Tauri opener
  *   plugin (W6); copy uses navigator.clipboard (flaky in WebView2 without focus) until
  *   the clipboard plugin lands, also W6.
@@ -51,6 +50,14 @@ const RENDER_DEBOUNCE_MS = 250;
                 <span class="chip">{{ tag }}</span>
               }
             </div>
+          }
+          @if (reachedBy(); as r) {
+            <p class="pt-1 text-2xs text-ink-muted">
+              Reached by <span class="tabular-nums text-ink">{{ r.count }}</span> flow{{ r.count === 1 ? '' : 's' }}
+              @if (r.incomplete) {
+                <span class="text-ink-subtle"> &middot; atlas indexing, may be incomplete</span>
+              }
+            </p>
           }
         </div>
       } @else if (trace.focus(); as focus) {
@@ -156,8 +163,17 @@ export class Inspector {
   protected readonly session = inject(SessionStore);
   protected readonly trace = inject(TraceStore);
   protected readonly trail = inject(TrailStore);
+  private readonly atlas = inject(AtlasStore);
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
+
+  /** §3.4 impact lens. Null (not 0) when no node is selected — `count` can legitimately
+   * be 0, so this can't be an `@if` truthiness check on a bare number. */
+  protected readonly reachedBy = computed<{ count: number; incomplete: boolean } | null>(() => {
+    const nodeId = this.trace.selectedNodeId();
+    if (!nodeId) return null;
+    return { count: this.atlas.reachedBy(nodeId).length, incomplete: this.atlas.status() !== 'done' };
+  });
 
   /** Emitted when the user jumps the trail — parent re-traces the restored step. */
   readonly restore = output<TrailStep>();
