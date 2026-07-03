@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ConnectionStore } from '../../state/connection.store';
 import { PrefsStore } from '../../state/prefs.store';
+import { isTauri } from '../../core/tauri-env';
+import { StorageService, type StorageSummary } from '../../core/storage.service';
 
 type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
 
@@ -19,7 +21,7 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
                   [class.bg-accent/10]="activeTab() === tab.key" [class.text-accent]="activeTab() === tab.key"
                   [class.text-ink-muted]="activeTab() !== tab.key"
                   [class.hover:bg-surface-2]="activeTab() !== tab.key"
-                  (click)="activeTab.set(tab.key)">{{ tab.label }}</button>
+                  (click)="selectTab(tab.key)">{{ tab.label }}</button>
         }
       </nav>
 
@@ -83,17 +85,47 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
         @if (activeTab() === 'storage') {
           <section class="space-y-4">
             <h2 class="text-sm font-semibold text-ink">Storage</h2>
+            @if (!isTauriEnv) {
+              <p class="text-2xs text-ink-subtle">Real file listing is only available in the desktop app.</p>
+            }
+
             <div>
-              <p class="text-2xs text-ink-muted uppercase">Cache location</p>
-              <p class="text-xs font-mono text-ink mt-1">%LOCALAPPDATA%/DevContext/cache</p>
+              <div class="flex items-center justify-between">
+                <p class="text-2xs text-ink-muted uppercase">Cache — %LOCALAPPDATA%/DevContext/cache</p>
+                @if (isTauriEnv) {
+                  <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearCache()">Clear</button>
+                }
+              </div>
+              @if (cache(); as c) {
+                <p class="text-xs font-mono text-ink mt-1">{{ formatBytes(c.totalBytes) }} across {{ c.entries.length }} repo{{ c.entries.length === 1 ? '' : 's' }}</p>
+                @for (e of c.entries; track e.name) {
+                  <p class="truncate text-2xs font-mono text-ink-subtle">{{ e.name }} — {{ formatBytes(e.bytes) }}</p>
+                }
+              } @else if (storageLoading()) {
+                <p class="text-2xs text-ink-subtle">Scanning…</p>
+              }
             </div>
+
             <div class="border-t border-line pt-3">
-              <p class="text-2xs text-ink-muted uppercase mb-1">Clone folder</p>
-              <p class="text-xs font-mono text-ink">%LOCALAPPDATA%/DevContext/clones</p>
+              <div class="flex items-center justify-between">
+                <p class="mb-1 text-2xs text-ink-muted uppercase">Repos — %LOCALAPPDATA%/DevContext/repos</p>
+                @if (isTauriEnv) {
+                  <button class="text-2xs text-danger hover:underline disabled:opacity-50" [disabled]="storageLoading()" (click)="clearRepos()">Clear</button>
+                }
+              </div>
+              @if (repos(); as r) {
+                <p class="text-xs font-mono text-ink">{{ formatBytes(r.totalBytes) }} across {{ r.entries.length }} clone{{ r.entries.length === 1 ? '' : 's' }}</p>
+                @for (e of r.entries; track e.name) {
+                  <p class="truncate text-2xs font-mono text-ink-subtle">{{ e.name }} — {{ formatBytes(e.bytes) }}</p>
+                }
+              } @else if (storageLoading()) {
+                <p class="text-2xs text-ink-subtle">Scanning…</p>
+              }
             </div>
+
             <p class="border-t border-line pt-3 text-2xs text-ink-subtle">
-              Snapshot cache (SHA256 + git HEAD keyed, LRU) is managed automatically.
-              Per-repo cache listing, sizes, and clear/open-in-explorer require Tauri file commands — tracked for a follow-up.
+              Snapshot cache (SHA256 + git HEAD keyed, LRU) is managed automatically. GitHub
+              clones are removed at session end unless "Keep" cleanup is selected.
             </p>
           </section>
         }
@@ -140,6 +172,7 @@ export class SettingsView {
   readonly theme = inject(ThemeService);
   readonly conn = inject(ConnectionStore);
   readonly prefs = inject(PrefsStore);
+  private readonly storage = inject(StorageService);
 
   protected readonly tabs: { key: SettingsTab; label: string }[] = [
     { key: 'appearance', label: 'Appearance' },
@@ -150,9 +183,46 @@ export class SettingsView {
   ];
 
   protected readonly activeTab = signal<SettingsTab>('appearance');
+  protected readonly isTauriEnv = isTauri();
+  protected readonly cache = signal<StorageSummary | null>(null);
+  protected readonly repos = signal<StorageSummary | null>(null);
+  protected readonly storageLoading = signal(false);
 
   protected depthModel = this.prefs.defaultDepth();
   protected detailModel = this.prefs.defaultDetail();
   protected roslynModel = this.prefs.useRoslyn();
   protected cleanupModel = this.prefs.autoCleanup();
+
+  protected selectTab(tab: SettingsTab): void {
+    this.activeTab.set(tab);
+    if (tab === 'storage' && this.isTauriEnv) void this.loadStorage();
+  }
+
+  protected async clearCache(): Promise<void> {
+    await this.storage.clearCache();
+    void this.loadStorage();
+  }
+
+  protected async clearRepos(): Promise<void> {
+    await this.storage.clearRepos();
+    void this.loadStorage();
+  }
+
+  protected formatBytes(bytes: number): string {
+    if (bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  }
+
+  private async loadStorage(): Promise<void> {
+    this.storageLoading.set(true);
+    try {
+      const [cache, repos] = await Promise.all([this.storage.cacheSummary(), this.storage.reposSummary()]);
+      this.cache.set(cache);
+      this.repos.set(repos);
+    } finally {
+      this.storageLoading.set(false);
+    }
+  }
 }

@@ -1069,3 +1069,46 @@ own right after the second launch — proof the event reached the frontend and d
 real analyze flow, not just that the process count stayed at one.
 
 `pnpm check` and `cargo check` both green.
+
+## 2026-07-03 — W6 checkpoint 4: fs plugin, Settings·Storage tab live (S3)
+
+Settings' Storage tab (`settings-view.ts`) was a static stub with a hardcoded, and wrong,
+path — it displayed `%LOCALAPPDATA%/DevContext/clones`, but `DevContext.Core.Models.RepoUrl
+.ClonePath` (grepped, not guessed) actually uses `%LOCALAPPDATA%/DevContext/repos`. Fixed
+while wiring real data. `tauri-plugin-fs` added, scoped via `capabilities/default.json`'s
+`fs:scope` to exactly `$LOCALDATA/DevContext` + `$LOCALDATA/DevContext/**` — `$LOCALDATA`
+(→ `BaseDirectory.LocalData` in JS) is the raw `%LOCALAPPDATA%` root; `AppLocalData` would
+have been wrong here since it nests under Tauri's own bundle identifier, not the literal
+`DevContext` folder name `SnapshotCacheRoot`/`RepoUrl` hardcode in the C# engine.
+
+New `core/storage.service.ts` lists top-level entries under `cache`/`repos` and recursively
+sums real file sizes (no shortcut exists — confirmed from the plugin's own `.d.ts`, not
+assumed: `readDir` is NOT recursive by default despite an initial web-search summary
+claiming otherwise — always walks one level, and `stat()` on a directory doesn't report
+recursive content size, so summing means a manual walk, one `stat()` IPC call per file).
+`settings-view.ts`'s Storage tab now shows real per-repo sizes and a "Clear" action per
+root, reusing `formatBytes` (small local helper — no `core/format.ts` module exists yet to
+extend, per W7's still-pending C1 dedupe item).
+
+Live-verified against REAL pre-existing data from prior sessions (not a clean fixture) via
+a throwaway Playwright+CDP script (written, run, deleted): 6 stale cache repo-key dirs and
+4 real git clones, including a 1.1GB packed `dotnet-runtime` clone and a 5837-file unpacked
+`VahidN-DntSite` clone — a genuine test of the recursive-walk performance concern raised
+while designing this. It settled in well under a second either way (packed repos are a
+handful of big files; local Tauri IPC is fast enough that even ~5800 individual `stat()`
+calls don't add up to a noticeable delay) — worth knowing before assuming this needs a
+native Rust walker for performance; it doesn't, at least not at this scale. Clearing cache
+verified two ways: the UI's own re-render on next tab visit ("0 B across 0 repos"), and
+independently confirmed at the OS level (`ls` on the real `%LOCALAPPDATA%\DevContext\cache`
+path — directory gone entirely). Deliberately did NOT test the Repos "Clear" button against
+these real clones (would force expensive re-cloning for future benchmark/eval sessions) —
+the code path is identical to Cache's, already proven.
+
+**Playwright/CDP gotcha worth remembering:** a `waitForFunction` checking `!includes(
+'Scanning…')` placed immediately after a `.click()` can resolve instantly and wrongly if
+the click's async handler chain hasn't started yet (the "Scanning" text hasn't appeared in
+the DOM to *not* match against) — always wait for the loading state to actually *appear*
+first (or add a short explicit wait) before waiting for it to *disappear*, or the check
+races ahead of the real work and captures stale content.
+
+`pnpm check` and `cargo check` both green.
