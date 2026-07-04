@@ -47,6 +47,32 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
                 }
               </div>
             </div>
+            <div class="space-y-2">
+              <p class="text-2xs text-ink-muted uppercase">Appearance mode</p>
+              <div class="flex flex-wrap gap-2">
+                <button class="rounded border px-3 py-2 text-xs transition-colors"
+                        [class.border-accent]="theme.theme() === 'dark'"
+                        [class.text-accent]="theme.theme() === 'dark'"
+                        [class.border-line]="theme.theme() !== 'dark'"
+                        [class.text-ink-muted]="theme.theme() !== 'dark'"
+                        (click)="theme.setTheme('dark')">Dark</button>
+                @if (theme.vibeDef().themes.includes('light')) {
+                  <button class="rounded border px-3 py-2 text-xs transition-colors"
+                          [class.border-accent]="theme.theme() === 'light'"
+                          [class.text-accent]="theme.theme() === 'light'"
+                          [class.border-line]="theme.theme() !== 'light'"
+                          [class.text-ink-muted]="theme.theme() !== 'light'"
+                          (click)="theme.setTheme('light')">Light</button>
+                }
+                <button class="rounded border px-3 py-2 text-xs transition-colors"
+                        [class.border-accent]="theme.theme() === 'system'"
+                        [class.text-accent]="theme.theme() === 'system'"
+                        [class.border-line]="theme.theme() !== 'system'"
+                        [class.text-ink-muted]="theme.theme() !== 'system'"
+                        (click)="theme.setTheme('system')"
+                        title="Follows the OS light/dark setting">System</button>
+              </div>
+            </div>
           </section>
         }
 
