@@ -372,7 +372,10 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L0.7 CLI-command gating (E7) | 74bdb9b | DONE |
 | L0.8 Style/stack honesty (E8) | cdfc93a | DONE |
 | L0.9 Input honesty (E9) | 2ddb83f | DONE (partial — see note) |
-| L1.1 … L1.4 | — | NOT STARTED |
+| L1.1 | Persistent clone registry: shallow-first, shared, disk-backed | f692e5a | DONE |
+| L1.2 | Snapshot-first open: registry+snapshot before clone, staleness probe | 22c7b8b | DONE |
+| L1.3 | Progress v2: git phase parsing, event throttling, phase checklist | b977f1a | DONE |
+| L1.4 | Responsiveness: async disposals, BELOW_NORMAL priority, coalesce UI | 1ed766b | DONE |
 | L2.1 … L2.4 | — | NOT STARTED |
 | L3.1 … L3.6 | — | NOT STARTED |
 | L4.1 … L4.4 | — | NOT STARTED |

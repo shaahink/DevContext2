@@ -49,7 +49,24 @@ I11 was synthesized from two independent proposals (C, CT) but was itself supers
 ("F proposal", `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`) before implementation started —
 see that doc's §11 for the diff. Kept here for history; do not resume I11 directly, resume **F**.
 
-### F — Fable Workbench Redesign (active — supersedes I11) 🔶 IN PROGRESS
+### L — Lighthouse: Repo Intelligence Iteration 🔶 IN PROGRESS
+**Branch:** `feat/lighthouse-l1` · **Spec:** `docs/dev/briefs/proposal-lighthouse.md`
+**Handoff:** `docs/dev/HANDOVER-FABLE-FINAL.md`
+
+Same "one truth pass, one perf pass, one harness, one insight engine" program — see the proposal's
+§10 waterfall for the full L0→L7 plan. L0 (truth pass) fixed 9 trust-breakers (E1-E9). L1
+(open fast, reopen instantly, stay responsive) is now complete.
+
+- L0 (truth pass, engine-only) — **done**. All 9 checkpoints.
+- L1 (open fast) — **done** (2026-07-04, 4 checkpoints):
+  L1.1 Persistent clone registry (`CloneRegistry` JSON, shallow-first, DI), L1.2 Snapshot-first
+  open (EngineRunner reorder, `git fetch --dry-run` staleness probe, "Re-analyze?" chip),
+  L1.3 Progress v2 (clone phase parsing, 250ms event throttle, extractor interpolation, phase
+  checklist), L1.4 Responsiveness (async disposals, sidecar BELOW_NORMAL_PRIORITY_CLASS,
+  ActivityService coalesced). 4 commits, each `pnpm check` + `dotnet build` + `cargo check` green.
+- Next: **L2** (CLI `report` + bench loop). Switch to engine worktree for L2 (engine-only stage).
+
+### F — Fable Workbench Redesign (superseded by L) ✅ DONE
 **Branch:** `feat/fable-redesign-skeleton` · **Spec:** `docs/dev/briefs/ui-ux-redesign-proposal-fable.md`
 **Handoff:** `docs/dev/briefs/fable-skeleton-HANDOFF.md` (file-by-file risk notes for the skeleton)
 
@@ -396,7 +413,22 @@ powershell -File eval/gates.ps1                          # full gate (needs popu
 New-Item -ItemType Junction -Path C:\Code\DevContext2-engine\eval-repos -Target C:\Code\DevContext2\eval-repos
 ```
 
-## Resume protocol (cold start)
+## Resume protocol (cold start — L track)
+```
+git -C C:/Code/DevContext2-ui checkout feat/lighthouse-l1
+git -C C:/Code/DevContext2-ui pull
+
+# Pre-flight
+cd C:\Code\DevContext2-ui\src\DevContext.App; pnpm check
+dotnet build C:\Code\DevContext2-ui\DevContext.slnx
+
+# Pick the first work item whose Status != DONE in this file
+# Do Step 0 (reproduce) first, then execute
+```
+
+Next: **L2** (CLI `report` + bench loop) — engine-only. Read `docs/dev/briefs/proposal-lighthouse.md` §L2.
+
+## Resume protocol (cold start — engine worktree)
 ```
 git -C C:/Code/DevContext2-engine checkout feat/engine-iteration
 git -C C:/Code/DevContext2-engine pull

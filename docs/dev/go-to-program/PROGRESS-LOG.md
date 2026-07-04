@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-07-04 — Lighthouse L1: Open fast, reopen instantly, stay responsive
+
+**Changed:**
+- **L1.1** Persistent clone registry: `CloneRegistry` at `%LocalAppData%/DevContext/repos/registry.json` — JSON keyed by owner+repo+ref, thread-safe via `ReaderWriterLockSlim`, file-locked writes (`FileShare.None`). `GitCloneService` now receives registry via constructor and queries it before cloning. Clone order flipped: git CLI shallow (`--depth 1 --single-branch`) first, LibGit2Sharp fallback. Registry registered as singleton in DI (`Program.cs`). CLI/Desktop callers updated.
+- **L1.2** Snapshot-first open: `EngineRunner.AnalyzeAsync` reordered — for GitHub URLs, checks registry→snapshot cache BEFORE any network I/O (clone bypassed entirely on cache hit). Background `git fetch --dry-run` staleness probe compares `origin/HEAD` vs local HEAD. `EngineResult` now has `Stale`/`StaleMessage`. Proto `AnalysisSummary` extended with `stale`/`stale_message` fields. UI `identity-strip.ts` renders amber "Repo moved ahead — Re-analyze?" chip with click action calling `SessionStore.reAnalyze()`.
+- **L1.3** Progress v2: Clone — `TryCloneGitCli` adds `--progress`, parses stderr for phase transitions (Enumerating/Counting/Compressing/Receiving/Resolving) via `ParseCloneProgress` with weighted 0-100 mapping. Analysis — `StreamingProgressObserver` throttled to ≤250ms between reports, uses `OnExtractorCompleted` to interpolate within-stage progress (typesAdded). UI — `run-console.ts` boot mode now renders a phase checklist (checkmark/spinner/gray icons with live message + percent) instead of only a linear log. Raw log hidden behind `<details>`.
+- **L1.4** Responsiveness: `AnalysisSessionManager` all three sync-over-async sites (`GetAwaiter().GetResult()`) replaced with proper `await` — `CloseSession`→`CloseSessionAsync` (Task<bool>), `EvictIfNeeded`→`EvictIfNeededAsync`. Tauri `spawn_child` now sets sidecar to `BELOW_NORMAL_PRIORITY_CLASS` via `SetPriorityClass` (Windows only, `windows` crate Win32_System_Threading). `ActivityService.setProgress` coalesced with 80ms debounce (intermediate sets skip change detection but store latest values).
+
+**Verified:**
+- `dotnet build DevContext.slnx` — green on all 4 commits
+- `pnpm check` (lint+test+build) — green on all 4 commits
+- `cargo check` (`src-tauri/`) — green on L1.4
+
+**Next:** L2 — CLI `report` + bench loop (engine-only). See `docs/dev/briefs/proposal-lighthouse.md` §L2.
+
 ## 2026-07-02 — R2 execution (session 1)
 
 **Changed:**
