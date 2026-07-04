@@ -22,7 +22,7 @@ export interface RailItem {
     <nav class="flex h-full w-12 shrink-0 flex-col border-r border-line bg-surface py-2 select-none">
       @for (item of railItems; track item.id) {
         <a
-          class="group relative flex flex-col items-center gap-0.5 py-2 text-2xs transition-colors"
+          class="group relative flex flex-col items-center justify-center py-2.5 text-2xs transition-colors"
           [class.text-accent]="isActive(item.route)"
           [class.text-ink-subtle]="!isActive(item.route) && enabled(item)"
           [class.opacity-40]="!enabled(item)"
@@ -35,14 +35,13 @@ export interface RailItem {
             <span class="absolute left-0 top-1 bottom-1 w-[3px] rounded-r bg-accent"></span>
           }
           <span class="relative">
-            <app-icon [name]="item.icon" [size]="16" />
+            <app-icon [name]="item.icon" [size]="18" />
             @if (item.badge && item.badge(); as count) {
               <span class="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[9px] font-medium leading-none text-accent-ink tabular-nums">
                 {{ count > 99 ? '99+' : count }}
               </span>
             }
           </span>
-          <span class="leading-tight">{{ item.label.slice(0, 3) }}</span>
         </a>
       }
     </nav>

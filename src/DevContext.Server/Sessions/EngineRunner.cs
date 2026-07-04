@@ -58,13 +58,21 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
 
         var host2 = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
 
+        // Without a RunReportCollector in the observer chain, DiscoveryPipeline.AnalyzeAsync's
+        // `context.Observer as CompositeDiscoveryObserver` lookup fails and every StatsResponse
+        // (stages, extractors, funnel, cache hit/miss) falls back to the hardcoded all-zero
+        // RunReport — the desktop UI always showed "cold run" regardless of real cache reuse.
+        var collector = new RunReportCollector();
+        collector.SetBudget(options.MaxOutputTokens);
+        var observer = new CompositeDiscoveryObserver(new StreamingProgressObserver(progress), collector);
+
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
             ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = resolvedIntent.Scenario,
-            Observer = new StreamingProgressObserver(progress),
+            Observer = observer,
             FileSystem = _fs,
             Cache = host2.Cache,
             Analysis = analysis,

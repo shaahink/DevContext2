@@ -235,6 +235,16 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   API and the exact post-bundle filename convention), and the two engine-blocked gaps (S1 auth
   column, S2 line numbers) whenever the engine side is ready to take them. Otherwise this track
   has no more waterfall stages — any further work here is genuinely new scope, not a resume.
+- **Track closed, 2026-07-04.** `docs/dev/HANDOVER-FABLE-FINAL.md` is the full close-out report —
+  read it before any further work here. It covers: a post-hoc audit that found and fixed 3 real bugs
+  (wrong default theme causing the whole redesign to render in the pre-Fable look, activity-bar label
+  truncation, and run-report/cache stats being silently zeroed on the desktop server), a reconciliation
+  with the separate engine-side "Universal Lens" correctness program (`docs/dev/plans/
+  UNIVERSAL-LENS-ROADMAP.md` — its own Phases 0-6 are done and fixed the class-scoped call-edge bug,
+  controller entry resolution, and classifier scope-awareness that older `docs/dev/audit/*` docs still
+  describe as open), and one concrete backend/UI integration gap worth a follow-up (`GraphQuery
+  .BlastRadius` exists and works but has no RPC — Impact lens reinvents it client-side instead of
+  calling it directly).
 
 ## Verify loop
 ```powershell

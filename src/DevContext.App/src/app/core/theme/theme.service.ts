@@ -104,8 +104,8 @@ export class ThemeService {
   }
 
   private loadVibe(): string {
-    try { return localStorage.getItem(STORAGE_KEY_VIBE) ?? 'terminal'; }
-    catch { return 'terminal'; }
+    try { return localStorage.getItem(STORAGE_KEY_VIBE) ?? 'modern'; }
+    catch { return 'modern'; }
   }
 
   private loadTheme(): string {

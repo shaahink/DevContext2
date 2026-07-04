@@ -232,3 +232,17 @@ After tree construction, two summary passes run:
 3. **No inverse edge indexing**: The graph only stores out-edges. Finding "what sends to this node" requires a full scan.
 4. **No persistent graph cache**: Every run rebuilds the graph from scratch. A content-hash-keyed graph cache would make solution re-opening instant. Designed but deferred.
 5. **Flood-fan-out on big services**: DntSite's `FeedsService` has the entire app wired through it (calls 30+ other services), causing massive fan-out that hits the 12-child cap and truncates most branches. The ranking helps but structural deduplication doesn't exist.
+
+---
+
+### 2026-07-04 addendum — status of the above, do not treat this file as current without reading this
+
+This audit is from 2026-06-23 (`2c40662`), before the "Universal Lens" engine iterations
+(`docs/dev/plans/UNIVERSAL-LENS-ROADMAP.md`). Since then: **gap 1 fixed** (Phase 2 — controller
+entry→target resolution), **gap 3 fixed** (Phase 5 — `GraphQuery` added inverse edges +
+`Neighbors(id, In)`/`FindUsages`), **gap 4 fixed** (`SnapshotCacheService`, iteration I10.3 — a
+content-hash+git-HEAD-keyed persistent snapshot cache now exists). The class-scoped call-edge
+attribution bug referenced elsewhere in this file (see §Resolution Confidence above) is **also fixed**
+(Phase 1, member-scoped edges, confirmed live in `GraphBuilder.AddCallEdges`). **Gap 2 (Sends/Raises
+always `[approx]`) and gap 5 (flood-fan-out, improved but not solved) are still open.** Full current
+status: `docs/dev/HANDOVER-FABLE-FINAL.md` §6.

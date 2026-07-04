@@ -98,10 +98,18 @@ import { formatCompact } from '../../core/format';
                 @if (s.cache.textHits + s.cache.textMisses > 0) {
                   <div class="flex items-center gap-1 text-2xs tabular-nums">
                     <span class="text-ink-muted">text</span>
-                    <span class="text-ink">{{ cacheHitRate() }}% hit</span>
+                    <span class="text-ink">{{ textCacheHitRate() }}% hit</span>
                     <span class="text-ink-subtle">({{ s.cache.textHits }} hits / {{ s.cache.textMisses }} misses)</span>
                   </div>
-                } @else {
+                }
+                @if (s.cache.syntaxTreeHits + s.cache.syntaxTreeMisses > 0) {
+                  <div class="flex items-center gap-1 text-2xs tabular-nums">
+                    <span class="text-ink-muted">syntax</span>
+                    <span class="text-ink">{{ syntaxCacheHitRate() }}% hit</span>
+                    <span class="text-ink-subtle">({{ s.cache.syntaxTreeHits }} hits / {{ s.cache.syntaxTreeMisses }} misses)</span>
+                  </div>
+                }
+                @if (s.cache.textHits + s.cache.textMisses + s.cache.syntaxTreeHits + s.cache.syntaxTreeMisses === 0) {
                   <span class="text-2xs text-ink-muted">cold run — no cache reuse</span>
                 }
               </div>
@@ -161,10 +169,16 @@ export class RunConsole {
     return Math.max(...s.stages.map((st) => Number(st.elapsedMs)));
   });
 
-  protected readonly cacheHitRate = computed(() => {
+  protected readonly textCacheHitRate = computed(() => {
     const c = this.session.stats()?.cache;
     if (!c || c.textHits + c.textMisses === 0) return 0;
     return Math.round(c.textHits / (c.textHits + c.textMisses) * 100);
+  });
+
+  protected readonly syntaxCacheHitRate = computed(() => {
+    const c = this.session.stats()?.cache;
+    if (!c || c.syntaxTreeHits + c.syntaxTreeMisses === 0) return 0;
+    return Math.round(c.syntaxTreeHits / (c.syntaxTreeHits + c.syntaxTreeMisses) * 100);
   });
 
   protected readonly funnelTypesPct = computed(() => {
