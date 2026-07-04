@@ -1,45 +1,22 @@
 # AGENTS.md — DevContext monorepo
 
-You are in `C:\Code\DevContext2-ui` on branch `feat/lighthouse-l2`.
-**Mission:** Lighthouse iteration — open fast, truth pass, harness, insight engine.
-The monorepo contains the engine (C#), server (C#), CLI (C#), and desktop app (Angular + Rust/Tauri).
+Branch `feat/lighthouse-l2`. Monorepo: engine + server + CLI (C#), desktop app (Angular + Rust/Tauri).
 
-## Start here (every session)
-1. Read this file — work items below.
-2. `docs/dev/briefs/proposal-lighthouse.md` — the full L0→L7 waterfall plan.
-3. `src/DevContext.App/AGENTS.md` — app conventions, run commands, architecture layering.
+## Cold start
+1. Read `L3-START.md` — the current stage card (branch, checkpoints, key files, gate).
+2. `src/DevContext.App/AGENTS.md` — app conventions, run commands, architecture layering.
 
 ## Verify loop
 ```powershell
 # From C:/Code/DevContext2-ui/src/DevContext.App
-pnpm check          # lint + vitest + build — must be GREEN
+pnpm check          # lint + vitest + build
 pnpm server         # start .NET server (separate terminal)
-pnpm dev:web        # start Angular dev server → http://localhost:4200
-```
+pnpm dev:web        # start Angular dev server
 
-```powershell
 # From C:/Code/DevContext2-ui
 dotnet build DevContext.slnx                         # 0 warnings
 dotnet test  DevContext.slnx --filter "Category!=Eval"
 ```
-
-## Work items
-
-### L — Lighthouse: Repo Intelligence Iteration ✅ L0–L2 DONE
-**Branch:** `feat/lighthouse-l2` · **Spec:** `docs/dev/briefs/proposal-lighthouse.md`
-
-- L0 (truth pass) — **done**. 9 trust-breakers fixed (E1-E9).
-- L1 (open fast) — **done** (2026-07-04, 4 commits). Clone registry, snapshot-first open, progress v2, responsiveness.
-- L2 (report + bench + query) — **done** (2026-07-04, 4 commits). `devcontext report`, `scripts/bench.ps1`, benchmark set v2, query surface parity (8 ops).
-- **Next: L3** — Kernel answers: Impact RPC, Top Flows server-side ranking, InterestingPoints, graph completeness. See proposal §L3.
-
-### F — Fable Workbench Redesign ✅ DONE
-**Branch:** `feat/fable-redesign-skeleton` · W0-W7 complete. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
-Deferred: sidecar `externalBin` packaging, engine-blocked S1/S2 gaps.
-
-### U3 — Facet views ⬜ BLOCKED (engine must deliver E4 first)
-
-### I11 — Focus Workspace ⬜ SUPERSEDED by F, which is superseded by L
 
 ## Hard rules
 - `pnpm check` green before every commit. `dotnet build` green for engine changes.
@@ -47,14 +24,18 @@ Deferred: sidecar `externalBin` packaging, engine-blocked S1/S2 gaps.
 - Append `docs/dev/go-to-program/PROGRESS-LOG.md` after every session.
 - Do not write new C# extractors — reform in place.
 
-## Resume protocol (cold start)
+## Work items
+- **Lighthouse L0–L2** ✅ — truth pass, open fast, report + bench + query. See `docs/dev/briefs/proposal-lighthouse.md`.
+- **L3** 🔶 — Kernel answers. Read `L3-START.md`.
+- **Fable** ✅ — W0-W7 done. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
+- **U3 Facet views** ⬜ — blocked on engine E4.
+- **I11 Focus Workspace** ⬜ — superseded by F, superseded by L.
+
+## Resume protocol
 ```
 git -C C:/Code/DevContext2-ui checkout feat/lighthouse-l2
 git -C C:/Code/DevContext2-ui pull
-
-Set-Location C:/Code/DevContext2-ui/src/DevContext.App
-pnpm check
 dotnet build C:/Code/DevContext2-ui/DevContext.slnx
-
-# Next: L3 — Kernel answers. See docs/dev/briefs/proposal-lighthouse.md §L3
+Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
+# Read L3-START.md for current stage
 ```
