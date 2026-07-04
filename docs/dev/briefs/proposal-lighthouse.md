@@ -371,7 +371,7 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L0.6 Minimal-API target selection (E6) | — | NOT STARTED |
 | L0.7 CLI-command gating (E7) | — | NOT STARTED |
 | L0.8 Style/stack honesty (E8) | — | NOT STARTED |
-| L0.9 Input honesty (E9) | this commit | DONE (partial — see note) |
+| L0.9 Input honesty (E9) | 2ddb83f | DONE (partial — see note) |
 | L1.1 … L1.4 | — | NOT STARTED |
 | L2.1 … L2.4 | — | NOT STARTED |
 | L3.1 … L3.6 | — | NOT STARTED |
