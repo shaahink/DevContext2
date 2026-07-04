@@ -152,7 +152,7 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 |-------|-------|--------|
 | L0 | Truth pass — fix the nine trust-breakers | 9/9 DONE (L0.9 partial-scope, see note below) |
 | L1 | Open fast, reopen instantly, stay responsive (GitHub/persistence/progress) | NOT STARTED |
-| L2 | CLI `report` + bench loop (the iteration harness) | NOT STARTED |
+| L2 | CLI `report` + bench loop (the iteration harness) | 4/4 DONE (2026-07-04) |
 | L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | NOT STARTED |
 | L4 | Insight engine v2 + archetype lenses (facets that matter) | NOT STARTED |
 | L5 | MCP server + context packs (the agent surface) | NOT STARTED |
@@ -376,7 +376,10 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L1.2 | Snapshot-first open: registry+snapshot before clone, staleness probe | 22c7b8b | DONE |
 | L1.3 | Progress v2: git phase parsing, event throttling, phase checklist | b977f1a | DONE |
 | L1.4 | Responsiveness: async disposals, BELOW_NORMAL priority, coalesce UI | 1ed766b | DONE |
-| L2.1 … L2.4 | — | NOT STARTED |
+| L2.1 | `devcontext report` command | 799a1f9 | DONE |
+| L2.2 | `scripts/bench.ps1` benchmark loop | db6aeab | DONE |
+| L2.3 | Benchmark set v2 | dafcfd1 | DONE |
+| L2.4 | Query surface parity (node, neighbors, usages, search) | dcc7e6c | DONE |
 | L3.1 … L3.6 | — | NOT STARTED |
 | L4.1 … L4.4 | — | NOT STARTED |
 | L5.1 … L5.4 | — | NOT STARTED |

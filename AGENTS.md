@@ -1,6 +1,6 @@
 # AGENTS.md — DevContext monorepo
 
-You are in `C:\Code\DevContext2-ui` on branch `feat/lighthouse-l1`.
+You are in `C:\Code\DevContext2-ui` on branch `feat/lighthouse-l2`.
 **Mission:** Lighthouse iteration — open fast, truth pass, harness, insight engine.
 The monorepo contains the engine (C#), server (C#), CLI (C#), and desktop app (Angular + Rust/Tauri).
 
@@ -25,12 +25,13 @@ dotnet test  DevContext.slnx --filter "Category!=Eval"
 
 ## Work items
 
-### L — Lighthouse: Repo Intelligence Iteration 🔶 IN PROGRESS
-**Branch:** `feat/lighthouse-l1` · **Spec:** `docs/dev/briefs/proposal-lighthouse.md`
+### L — Lighthouse: Repo Intelligence Iteration ✅ L0–L2 DONE
+**Branch:** `feat/lighthouse-l2` · **Spec:** `docs/dev/briefs/proposal-lighthouse.md`
 
 - L0 (truth pass) — **done**. 9 trust-breakers fixed (E1-E9).
-- L1 (open fast) — **done** (2026-07-04, 4 commits). Clone registry, snapshot-first open, progress v2, responsiveness. `pnpm check` + `dotnet build` + `cargo check` green on each.
-- **Next: L2** — CLI `report` + bench loop (engine-only stage). See proposal §L2.
+- L1 (open fast) — **done** (2026-07-04, 4 commits). Clone registry, snapshot-first open, progress v2, responsiveness.
+- L2 (report + bench + query) — **done** (2026-07-04, 4 commits). `devcontext report`, `scripts/bench.ps1`, benchmark set v2, query surface parity (8 ops).
+- **Next: L3** — Kernel answers: Impact RPC, Top Flows server-side ranking, InterestingPoints, graph completeness. See proposal §L3.
 
 ### F — Fable Workbench Redesign ✅ DONE
 **Branch:** `feat/fable-redesign-skeleton` · W0-W7 complete. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
@@ -48,13 +49,12 @@ Deferred: sidecar `externalBin` packaging, engine-blocked S1/S2 gaps.
 
 ## Resume protocol (cold start)
 ```
-git -C C:/Code/DevContext2-ui checkout feat/lighthouse-l1
+git -C C:/Code/DevContext2-ui checkout feat/lighthouse-l2
 git -C C:/Code/DevContext2-ui pull
 
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App
 pnpm check
 dotnet build C:/Code/DevContext2-ui/DevContext.slnx
 
-# Pick the first work item whose Status != DONE above
-# Do Step 0 (reproduce) first, then execute
+# Next: L3 — Kernel answers. See docs/dev/briefs/proposal-lighthouse.md §L3
 ```

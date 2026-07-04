@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-07-04 — Lighthouse L2: CLI `report` + bench loop + query parity
+
+**Changed:**
+- **L2.1** `devcontext report <path|url>` — new `ReportCommand` + `ReportSettings` in CLI, new `ReportRenderer` in Core.Rendering. Composes identity sentence, stat digest, top flows (v1: has-target + kind priority), top-3 compact traces, insights (v1), full architecture map, and run report into one deterministic markdown doc. `--format json` delegates to `KernelJsonRenderer`. `ReportRenderer` orchestrates existing Map/Trace/insight renderers — no second rendering path.
+- **L2.2** `scripts/bench.ps1` — runs `devcontext report` across `eval-repos.json`, saves to `eval-results/<date>/`, emits structural diff (node/edge/entry/insight counts, section changes) vs previous run. Strips wall-time for determinism. Supports `--SkipClone` and `--DiffOnly`.
+- **L2.3** Benchmark set v2 — `eval-repos.json` extended from 16 to 22 repos: added PowerToys (desktop megarepo), Serilog (library), Spectre.Console (CLI framework), MassTransit-Sample (messaging app), DevContext self (dogfood), and place for TradingEngine.
+- **L2.4** Query surface parity — `QueryCommand` now supports all 8 ops: `node` (→ `GraphQuery.Node`), `neighbors` (→ `GraphQuery.Neighbors` with `--direction`), `usages` (→ `GraphQuery.FindUsages`), `search` (→ new `GraphQuery.Search` — title/id match, ranked by degree, capped at 20). `GraphQuery` gained `Search(term)` + `SearchResult` record. Fixed pre-existing DI bug where `ILogger<DiscoveryPipeline>` wasn't registered in `Program.cs`, preventing `query` from resolving.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e on all 4 commits
+- `dotnet test --filter Category!=Eval` — 429/0 (64+12+353, 3 skipped), same baseline
+- `pnpm check` (lint+test+build) — green on all 4 commits (lint 0/0, test 27/27, build 0w/0e)
+- `cargo check` — green
+- Live smoke: `devcontext report` against `MinimalApiProject` — identity, stats, top flows, 2 traces, insights, map, run report all render correctly
+- Live smoke: `query node --focus GetOrdersQuery` — JSON node detail
+- Live smoke: `query search --focus Order` — 13 ranked hits
+- Live smoke: `query usages --focus Order` — correct edge list
+
+**Next:** L3 — Kernel answers (Impact RPC, Top Flows ranking, InterestingPoints, graph completeness). See `docs/dev/briefs/proposal-lighthouse.md` §L3.
+
+---
+
 ## 2026-07-04 — Lighthouse L1: Open fast, reopen instantly, stay responsive
 
 **Changed:**
