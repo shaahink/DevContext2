@@ -270,9 +270,16 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  /* :not(.animate-spin) — a frozen spinner mid-rotation reads as "the app is stuck",
+     not as "motion was reduced" (W7.6 audit). Indeterminate-progress motion (this,
+     .hairline, .skeleton below) is the one category deliberately exempted — it's the
+     app's only signal that something is still running, not decoration. Everything
+     else (hover washes, section-collapse, overlay slide/fade) still collapses to 0. */
+  *:not(.animate-spin), *:not(.animate-spin)::before, *:not(.animate-spin)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+  *, *::before, *::after {
     transition-duration: 0.01ms !important;
   }
 }
