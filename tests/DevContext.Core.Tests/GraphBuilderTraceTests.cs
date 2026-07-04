@@ -79,6 +79,84 @@ public sealed class GraphBuilderTraceTests
     }
 
     [Fact]
+    public void C1_raises_fires_for_a_genuine_event_constructor()
+    {
+        // Positive counterpart to the substring/gate tests below: a plain `new TEvent(...)` (no
+        // AddDomainEvent/RaiseDomainEvent wrapper) for a type in the model-derived event set must still
+        // raise.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.CreateOrderCommandHandler", new TypeDiscovery
+        {
+            Id = "Orders.Api.CreateOrderCommandHandler", Name = "CreateOrderCommandHandler",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\CreateOrderCommandHandler.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            SourceBody = "public async Task Handle() { var evt = new OrderStartedIntegrationEvent(orderId); await _service.AddAndSaveEventAsync(evt); }",
+        });
+        model.Types.TryAdd("Orders.Api.OrderStartedIntegrationEvent", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrderStartedIntegrationEvent", Name = "OrderStartedIntegrationEvent",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrderStartedIntegrationEvent.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+            BaseTypes = ["IntegrationEvent"],
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var handlerId = NodeId.ForType("Orders.Api.CreateOrderCommandHandler");
+        var eventId = NodeId.ForType("Orders.Api.OrderStartedIntegrationEvent");
+        Assert.Contains(graph.OutEdges(handlerId), e => e.Kind == EdgeKind.Raises && e.To == eventId);
+    }
+
+    [Fact]
+    public void C1_raises_does_not_fire_for_mediatr_command_construction()
+    {
+        // E5: a MediatR command implements IRequest<T> — BuildEventTypeNameSet (shared with the Sends
+        // conjunction gate) treats IRequest as an event-ish marker, so a plain `new CreateOrderCommand(...)`
+        // construction used to be misread as "raises CreateOrderCommand", duplicating the real Sends seam.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.OrdersApi", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrdersApi", Name = "OrdersApi",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrdersApi.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Api,
+            SourceBody = "public async Task CreateOrderAsync() { var cmd = new CreateOrderCommand(items); await _mediator.Send(cmd); }",
+        });
+        model.Types.TryAdd("Orders.Api.CreateOrderCommand", new TypeDiscovery
+        {
+            Id = "Orders.Api.CreateOrderCommand", Name = "CreateOrderCommand",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\CreateOrderCommand.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            ImplementedInterfaces = ["IRequest<bool>"],
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var apiId = NodeId.ForType("Orders.Api.OrdersApi");
+        var commandId = NodeId.ForType("Orders.Api.CreateOrderCommand");
+        Assert.DoesNotContain(graph.OutEdges(apiId), e => e.Kind == EdgeKind.Raises && e.To == commandId);
+        // The genuine seam (Sends) must still be present — this isn't a case of losing the edge entirely.
+        Assert.Contains(graph.OutEdges(apiId), e => e.Kind == EdgeKind.Sends && e.To == commandId);
+    }
+
+    [Fact]
     public void C1_sends_from_mediator_send_pattern()
     {
         var model = new DiscoveryModel

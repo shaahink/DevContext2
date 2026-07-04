@@ -895,7 +895,11 @@ public sealed class GraphBuilder
 
             // I1.4 — build event type-set from model (BaseTypes / ImplementedInterfaces)
             // so the body-scan matches the real event types, not just *IntegrationEvent* by name.
-            var eventTypeNames = BuildEventTypeNameSet(model);
+            // E5: a dedicated events-only set — BuildEventTypeNameSet (shared with AddSends' broader
+            // request-or-event conjunction gate) also treats IRequest/ICommand/IQuery bases as "events",
+            // so a MediatR command's own `new CreateOrderCommand(...)` construction was misread as a
+            // raised event, duplicating the real Sends seam under a fabricated Raises edge.
+            var eventTypeNames = BuildDomainEventTypeNameSet(model);
 
             // new TEvent(...) where TEvent ∈ model-derived event type set (I1.4)
             foreach (Match match in Regex.Matches(body, @"new\s+(\w+)\s*\(", RegexOptions.Compiled))
@@ -1411,18 +1415,32 @@ public sealed class GraphBuilder
     /// <summary>Builds a set of type short names that are events/commands/notifications by checking
     /// each type's BaseTypes and ImplementedInterfaces against known event markers (I1.4).</summary>
     private static HashSet<string> BuildEventTypeNameSet(DiscoveryModel model)
-    {
-        var knownSuffixes = new[]
-        {
+        => BuildBaseTypeNameSet(model,
+        [
             "IntegrationEvent", "DomainEvent", "Event", "Message",
             "INotification", "IDomainEvent", "IEvent", "IMessage",
             "IRequest", "ICommand", "IQuery",
-        };
+        ]);
 
+    /// <summary>E5: events only — unlike <see cref="BuildEventTypeNameSet"/> (shared with the Sends
+    /// conjunction gate, where a command/request target is a legitimate match), this set excludes
+    /// IRequest/ICommand/IQuery so a MediatR command's own constructor is never mistaken for a raised
+    /// event. Used exclusively by <see cref="AddRaises"/>.</summary>
+    private static HashSet<string> BuildDomainEventTypeNameSet(DiscoveryModel model)
+        => BuildBaseTypeNameSet(model,
+        [
+            "IntegrationEvent", "DomainEvent", "Event", "Message",
+            "INotification", "IDomainEvent", "IEvent", "IMessage",
+        ]);
+
+    /// <summary>Collects the short names of every model type whose BaseTypes/ImplementedInterfaces end
+    /// with one of <paramref name="knownSuffixes"/> (generics stripped first).</summary>
+    private static HashSet<string> BuildBaseTypeNameSet(DiscoveryModel model, string[] knownSuffixes)
+    {
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var type in model.Types.Values)
         {
-            var isEvent = false;
+            var isMatch = false;
             foreach (var bt in type.BaseTypes)
             {
                 var stripped = StripGenerics(bt);
@@ -1430,13 +1448,13 @@ public sealed class GraphBuilder
                 {
                     if (stripped.EndsWith(suffix, StringComparison.Ordinal))
                     {
-                        isEvent = true;
+                        isMatch = true;
                         break;
                     }
                 }
-                if (isEvent) break;
+                if (isMatch) break;
             }
-            if (!isEvent)
+            if (!isMatch)
             {
                 foreach (var iface in type.ImplementedInterfaces)
                 {
@@ -1445,14 +1463,14 @@ public sealed class GraphBuilder
                     {
                         if (stripped.EndsWith(suffix, StringComparison.Ordinal))
                         {
-                            isEvent = true;
+                            isMatch = true;
                             break;
                         }
                     }
-                    if (isEvent) break;
+                    if (isMatch) break;
                 }
             }
-            if (isEvent)
+            if (isMatch)
                 names.Add(type.Name);
         }
         return names;

@@ -150,7 +150,7 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 
 | Stage | Theme | Status |
 |-------|-------|--------|
-| L0 | Truth pass — fix the nine trust-breakers | IN PROGRESS (5/9: L0.1, L0.2, L0.3, L0.4, L0.9 done) |
+| L0 | Truth pass — fix the nine trust-breakers | IN PROGRESS (6/9: L0.1, L0.2, L0.3, L0.4, L0.5, L0.9 done) |
 | L1 | Open fast, reopen instantly, stay responsive (GitHub/persistence/progress) | NOT STARTED |
 | L2 | CLI `report` + bench loop (the iteration harness) | NOT STARTED |
 | L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | NOT STARTED |
@@ -367,7 +367,7 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L0.2 Multi-impl semantics + no-`?` (E2) | fa4618d | DONE |
 | L0.3 Salient snippet correctness (E3) | 4bfd388 | DONE |
 | L0.4 Span-bound data edges (E4) | 24f0c3e | DONE |
-| L0.5 Raises gating (E5) | — | NOT STARTED |
+| L0.5 Raises gating (E5) | this commit | DONE |
 | L0.6 Minimal-API target selection (E6) | — | NOT STARTED |
 | L0.7 CLI-command gating (E7) | — | NOT STARTED |
 | L0.8 Style/stack honesty (E8) | — | NOT STARTED |
