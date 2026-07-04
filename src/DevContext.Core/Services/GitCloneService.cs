@@ -219,6 +219,7 @@ public sealed class GitCloneService : IDisposable
             return await Task.Run(() =>
             {
                 ct.ThrowIfCancellationRequested();
+                progress?.Report(new CloneProgress("Starting", 0, "Connecting to GitHub…"));
                 var co = new CloneOptions
                 {
                     BranchName = branch,
@@ -229,12 +230,13 @@ public sealed class GitCloneService : IDisposable
                     var pct = transfer.ReceivedObjects > 0 && transfer.TotalObjects > 0
                         ? (int)(transfer.ReceivedObjects * 100 / transfer.TotalObjects)
                         : 0;
-                    progress?.Report(new CloneProgress("Transferring", pct,
+                    progress?.Report(new CloneProgress("Receiving", 20 + (int)(pct * 0.70),
                         $"Receiving: {transfer.ReceivedObjects}/{transfer.TotalObjects} objects"));
                     return true;
                 };
 
                 Repository.Clone(url, targetPath, co);
+                progress?.Report(new CloneProgress("Checkout", 95, "Checking out files…"));
                 return true;
             }, ct).ConfigureAwait(false);
         }
@@ -247,12 +249,12 @@ public sealed class GitCloneService : IDisposable
     {
         try
         {
-            var args = $"clone --depth 1 --single-branch";
+            var args = $"clone --depth 1 --single-branch --progress";
             if (!string.IsNullOrEmpty(branch))
                 args += $" --branch {branch}";
             args += $" \"{url}\" \"{targetPath}\"";
 
-            progress?.Report(new CloneProgress("Cloning", 0, "Cloning from GitHub (git CLI)..."));
+            progress?.Report(new CloneProgress("Starting", 0, "Cloning from GitHub…"));
 
             using var p = Process.Start(new ProcessStartInfo
             {
@@ -267,7 +269,12 @@ public sealed class GitCloneService : IDisposable
             if (p is null) return false;
 
             var stderr = new System.Text.StringBuilder();
-            p.ErrorDataReceived += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
+            p.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data is null) return;
+                stderr.AppendLine(e.Data);
+                ParseCloneProgress(e.Data, progress);
+            };
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
             await p.WaitForExitAsync(ct).ConfigureAwait(false);
@@ -282,6 +289,77 @@ public sealed class GitCloneService : IDisposable
         }
         catch (OperationCanceledException) { throw; }
         catch { return false; }
+    }
+
+    private static void ParseCloneProgress(string line, IProgress<CloneProgress>? progress)
+    {
+        if (progress is null) return;
+
+        // Git outputs progress to stderr with a format like:
+        //   "remote: Enumerating objects: 1234, done."
+        //   "remote: Counting objects: 100% (1234/1234), done."
+        //   "remote: Compressing objects: 100% (890/890), done."
+        //   "Receiving objects: 100% (1234/1234), 2.5 MiB | 5.0 MiB/s, done."
+        //   "Receiving objects:  25% (312/1234)"
+        //   "Resolving deltas: 100% (456/456), done."
+
+        var trimmed = line.Trim();
+        if (trimmed.StartsWith("remote: Enumerating"))
+        {
+            if (TryParsePercent(trimmed, out var pct))
+                progress.Report(new CloneProgress("Enumerating", (int)pct, trimmed));
+            else
+                progress.Report(new CloneProgress("Enumerating", 5, "Enumerating objects…"));
+        }
+        else if (trimmed.StartsWith("remote: Counting"))
+        {
+            if (TryParsePercent(trimmed, out var pct))
+                progress.Report(new CloneProgress("Counting", 10 + (int)(pct / 10), trimmed));
+            else
+                progress.Report(new CloneProgress("Counting", 10, "Counting objects…"));
+        }
+        else if (trimmed.StartsWith("remote: Compressing"))
+        {
+            if (TryParsePercent(trimmed, out var pct))
+                progress.Report(new CloneProgress("Compressing", 20 + (int)(pct / 10), trimmed));
+            else
+                progress.Report(new CloneProgress("Compressing", 20, "Compressing objects…"));
+        }
+        else if (trimmed.StartsWith("Receiving objects:"))
+        {
+            if (TryParsePercent(trimmed, out var pct))
+                progress.Report(new CloneProgress("Receiving", 30 + (int)(pct * 0.55), trimmed));
+            else
+                progress.Report(new CloneProgress("Receiving", 30, "Receiving objects…"));
+        }
+        else if (trimmed.StartsWith("Resolving deltas:"))
+        {
+            if (TryParsePercent(trimmed, out var pct))
+                progress.Report(new CloneProgress("Resolving", 85 + (int)(pct / 10), trimmed));
+            else
+                progress.Report(new CloneProgress("Resolving", 85, "Resolving deltas…"));
+        }
+    }
+
+    private static bool TryParsePercent(string line, out double pct)
+    {
+        pct = 0;
+        var pctIdx = line.IndexOf('%');
+        if (pctIdx < 0) return false;
+
+        var start = pctIdx - 1;
+        while (start >= 0 && char.IsDigit(line[start]) || line[start] == '.')
+            start--;
+        start++;
+
+        if (double.TryParse(line[start..pctIdx],
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out pct))
+        {
+            return true;
+        }
+        return false;
     }
 
     public static void Cleanup(string localPath)
