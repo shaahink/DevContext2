@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { PrefsStore } from '../state/prefs.store';
 import { SessionStore } from '../state/session.store';
+import { SnapshotDiffStore } from '../state/snapshot-diff.store';
 import { WorkspaceStore } from '../state/workspace.store';
 import type { AnalyzeSpec } from '../data-access/devcontext-api';
 
@@ -25,6 +26,7 @@ export class WebviewShortcutsService {
   private readonly workspace = inject(WorkspaceStore);
   private readonly session = inject(SessionStore);
   private readonly prefs = inject(PrefsStore);
+  private readonly snapshotDiff = inject(SnapshotDiffStore);
 
   private started = false;
 
@@ -69,9 +71,11 @@ export class WebviewShortcutsService {
   private reanalyze(): void {
     const tab = this.workspace.activeTab();
     if (!tab?.path) return;
+    const path = tab.path;
+    this.snapshotDiff.captureBaseline(path);
     const defs = this.prefs.analyzeDefaults();
-    const spec: AnalyzeSpec = { path: tab.path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
-    void this.session.analyze(spec);
+    const spec: AnalyzeSpec = { path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
+    void this.session.analyze(spec).then(() => this.snapshotDiff.armReport(path));
   }
 
   private focusDeckFilter(): void {
