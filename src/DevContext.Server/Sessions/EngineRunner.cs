@@ -1,8 +1,9 @@
 using DevContext.Core.Analysis;
+using DevContext.Core.Services;
 
 namespace DevContext.Server.Sessions;
 
-public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache hostCache) : IEngineRunner
+public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache hostCache, CloneRegistry cloneRegistry) : IEngineRunner
 {
     private readonly RealFileSystem _fs = new();
     private readonly SnapshotCacheService _snapCache = new();
@@ -96,7 +97,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
             spec.Cleanup);
     }
 
-    private static async Task<(string InputPath, string? GitClonePath)> PrepareSourceAsync(
+    private async Task<(string InputPath, string? GitClonePath)> PrepareSourceAsync(
         string path, IProgress<AnalysisProgress>? progress, CancellationToken ct)
     {
         var repoUrl = RepoUrl.Parse(path);
@@ -105,7 +106,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
 
         progress?.Report(new AnalysisProgress("Cloning", 2, "Cloning repository…"));
 
-        using var git = new GitCloneService();
+        using var git = new GitCloneService(cloneRegistry);
         if (!git.IsGitAvailable)
             throw new AnalysisException("GitNotInstalled",
                 "Git is not installed. Install Git to clone GitHub repositories.");

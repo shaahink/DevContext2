@@ -65,7 +65,7 @@ public class GitHubAnalysisE2ETests
     [Fact]
     public async Task Validate_repo_exists()
     {
-        var git = new GitCloneService();
+        var git = new GitCloneService(new CloneRegistry());
         if (!git.IsGitAvailable)
             return; // skip if git not installed
 
@@ -79,7 +79,7 @@ public class GitHubAnalysisE2ETests
     [Fact]
     public async Task Full_clone_and_analyze_flow()
     {
-        var git = new GitCloneService();
+        var git = new GitCloneService(new CloneRegistry());
         if (!git.IsGitAvailable)
             return; // skip
 
@@ -111,7 +111,7 @@ public class GitHubAnalysisE2ETests
     [Fact]
     public async Task Validation_returns_not_found_for_bad_repo()
     {
-        var git = new GitCloneService();
+        var git = new GitCloneService(new CloneRegistry());
         if (!git.IsGitAvailable)
             return;
 

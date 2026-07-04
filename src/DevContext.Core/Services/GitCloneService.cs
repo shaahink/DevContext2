@@ -21,8 +21,13 @@ public sealed record CloneProgress(string Phase, int PercentComplete, string Mes
 public sealed class GitCloneService : IDisposable
 {
     private readonly SemaphoreSlim _cloneLock = new(1, 1);
-    private readonly Dictionary<string, (string Path, DateTime ClonedAt)> _cache = new();
+    private readonly CloneRegistry _registry;
     private bool? _gitAvailable;
+
+    public GitCloneService(CloneRegistry registry)
+    {
+        _registry = registry;
+    }
 
     public bool IsGitAvailable
     {
@@ -126,13 +131,24 @@ public sealed class GitCloneService : IDisposable
         await _cloneLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            var cacheKey = $"{repo.Owner}/{repo.Repo}-{branch ?? "default"}";
-            if (_cache.TryGetValue(cacheKey, out var cached)
-                && Directory.Exists(cached.Path)
-                && (DateTime.UtcNow - cached.ClonedAt).TotalHours < 24)
+            // Check persistent registry first
+            var registryEntry = _registry.Get(repo.Owner, repo.Repo, branch);
+            if (registryEntry is not null && Directory.Exists(registryEntry.Path))
             {
-                progress?.Report(new CloneProgress("Cached", 100, "Using cached clone"));
-                return cached.Path;
+                var head = ResolveHead(registryEntry.Path);
+                if (head is not null && registryEntry.Head is not null
+                    && head == registryEntry.Head)
+                {
+                    progress?.Report(new CloneProgress("Cached", 100, "Using cached clone"));
+                    return registryEntry.Path;
+                }
+            }
+
+            // If the target path is stale (different from registry), clean it
+            if (Directory.Exists(targetPath) && registryEntry is not null
+                && !string.Equals(targetPath, registryEntry.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                DeleteDirectoryRobust(targetPath);
             }
 
             if (Directory.Exists(targetPath))
@@ -141,30 +157,57 @@ public sealed class GitCloneService : IDisposable
             Directory.CreateDirectory(targetPath);
             var url = $"https://github.com/{repo.Owner}/{repo.Repo}.git";
 
-            // Try LibGit2Sharp first
-            var cloned = await TryCloneLibGit2Sharp(url, targetPath, branch ?? repo.Ref, progress, ct).ConfigureAwait(false);
-            if (cloned)
+            // Try shallow git CLI first (L1 — shallow, fast, skip full history)
+            string? clonedPath = null;
+            if (IsGitAvailable)
             {
-                _cache[cacheKey] = (targetPath, DateTime.UtcNow);
-                progress?.Report(new CloneProgress("Complete", 100, "Done"));
-                return targetPath;
+                var cloned = await TryCloneGitCli(url, targetPath, branch ?? repo.Ref ?? "", progress, ct)
+                    .ConfigureAwait(false);
+                if (cloned)
+                    clonedPath = targetPath;
             }
 
-            // Fallback to git CLI
-            if (!IsGitAvailable) return null;
-            cloned = await TryCloneGitCli(url, targetPath, branch ?? repo.Ref ?? "", progress, ct).ConfigureAwait(false);
-            if (cloned)
+            // Fallback to LibGit2Sharp
+            if (clonedPath is null)
             {
-                _cache[cacheKey] = (targetPath, DateTime.UtcNow);
-                progress?.Report(new CloneProgress("Complete", 100, "Done"));
-                return targetPath;
+                var cloned = await TryCloneLibGit2Sharp(url, targetPath, branch ?? repo.Ref, progress, ct)
+                    .ConfigureAwait(false);
+                if (cloned)
+                    clonedPath = targetPath;
             }
 
-            return null;
+            if (clonedPath is null) return null;
+
+            var clonedHead = ResolveHead(clonedPath);
+
+            _registry.Set(new CloneEntry(
+                repo.Owner,
+                repo.Repo,
+                branch ?? "default",
+                clonedPath,
+                clonedHead,
+                DateTime.UtcNow));
+
+            progress?.Report(new CloneProgress("Complete", 100, "Done"));
+            return clonedPath;
         }
         finally
         {
             _cloneLock.Release();
+        }
+    }
+
+    private static string? ResolveHead(string repoPath)
+    {
+        try
+        {
+            var headFile = Path.Combine(repoPath, ".git", "HEAD");
+            if (!File.Exists(headFile)) return null;
+            return File.ReadAllText(headFile).Trim();
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -262,7 +305,6 @@ public sealed class GitCloneService : IDisposable
     public void Dispose()
     {
         _cloneLock.Dispose();
-        _cache.Clear();
         GC.SuppressFinalize(this);
     }
 }

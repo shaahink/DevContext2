@@ -1,9 +1,11 @@
 using DevContext.Server.Endpoints;
 using DevContext.Server.Sessions;
+using DevContext.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<EngineHostCache>();
+builder.Services.AddSingleton<CloneRegistry>();
 
 var serverOptions = new ServerOptions();
 builder.Configuration.GetSection("DevContext").Bind(serverOptions);

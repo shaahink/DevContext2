@@ -17,7 +17,7 @@ namespace DevContext.Desktop.ViewModels;
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IAnalysisService _svc;
-    private readonly GitCloneService _git = new();
+    private readonly GitCloneService _git = new(new CloneRegistry());
     private readonly SectionSelectionModel _sections = new();
     private readonly OutputViewModel _output = new();
     private readonly CancellableOperation _analyzeOp = new();

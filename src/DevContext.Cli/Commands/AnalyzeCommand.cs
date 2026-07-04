@@ -42,7 +42,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             : inputExistsLocally ? null : RepoUrl.Parse(inputPath);
         if (repoUrl is { IsValid: true })
         {
-            var git = new GitCloneService();
+            var git = new GitCloneService(new CloneRegistry());
             if (!git.IsGitAvailable)
             {
                 AnsiConsole.MarkupLine("[red]Git is not installed. Install Git to clone GitHub repositories.[/]");
