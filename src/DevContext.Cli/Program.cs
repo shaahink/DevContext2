@@ -3,6 +3,7 @@ using DevContext.Cli.Commands;
 
 var services = new ServiceCollection();
 services.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(b => b.AddSerilog(dispose: true)));
+services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger<DiscoveryPipeline>());
 services.AddDevContextServices(".");
 
 var registrar = new TypeRegistrar(services);

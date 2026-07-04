@@ -170,7 +170,32 @@ public sealed class GraphQuery
 
         return results.ToImmutable();
     }
+
+    /// <summary>search(term) — finds nodes whose title or id key contain the term.
+    /// Capped at 20 results, ranked by degree (most-connected first).</summary>
+    public ImmutableArray<SearchResult> Search(string term, int cap = 20)
+    {
+        var results = new List<SearchResult>();
+        foreach (var n in _graph.Nodes)
+        {
+            if (n.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || n.Id.Key.Contains(term, StringComparison.OrdinalIgnoreCase))
+            {
+                var outD = _graph.OutEdges(n.Id).Length;
+                var inD = _graph.InEdges(n.Id).Length;
+                results.Add(new SearchResult(n.Id, n.Title, n.Kind, outD + inD));
+            }
+        }
+
+        return results
+            .OrderByDescending(r => r.Degree)
+            .Take(cap)
+            .ToImmutableArray();
+    }
 }
 
 /// <summary>Blast radius result: an entry point reachable from a target node.</summary>
 public sealed record BlastResult(string EntryTitle, string Kind, int Hops);
+
+/// <summary>Search result: a node matching a keyword query, with its degree for ranking.</summary>
+public sealed record SearchResult(NodeId Id, string Title, NodeKind Kind, int Degree);

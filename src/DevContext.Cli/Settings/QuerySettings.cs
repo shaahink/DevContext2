@@ -26,6 +26,10 @@ public sealed class QuerySettings : CommandSettings
     [CommandOption("--depth")]
     public int? Depth { get; set; }
 
+    [Description("Direction for neighbors op: out (default) | in")]
+    [CommandOption("--direction")]
+    public string? Direction { get; set; }
+
     [Description("gRPC server to attach to (host:port)")]
     [CommandOption("--attach")]
     public string? Attach { get; set; }
