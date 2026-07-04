@@ -300,6 +300,190 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Entry_target_never_points_at_a_raw_data_access_call()
+    {
+        // E6: eShop's GetItemPictureById does nothing but `context.CatalogItems.FindAsync(id)` — the
+        // resolved target used to be "CatalogContext.FindAsync", the single most-read column pointing at
+        // noise. A DataStore-tagged callee must never be chosen as the target; the owning-type fallback
+        // (honest, not a wrong specific claim) applies instead.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Api,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogItem", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogItem", Name = "CatalogItem",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogItem.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Detections.Add(new EfEntityDetection("CatalogItem", "CatalogContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogItem.cs", LineNumber = 5,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items/{id}/pic",
+            "CatalogApi", "GetItemPictureById", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            LineNumber = 46,
+        });
+        model.CallEdges.Add(new CallEdge(
+            "Catalog.Api.CatalogApi", "GetItemPictureById",
+            "Catalog.Api.CatalogContext", "FindAsync",
+            @"C:\repo\src\Catalog.Api\CatalogApi.cs:50"));
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        Assert.NotEqual("CatalogContext.FindAsync", entry.Target);
+    }
+
+    [Fact]
+    public void Entry_target_prefers_real_collaborator_over_data_access_noise()
+    {
+        // E6 positive counterpart: when a handler calls both a DbContext method AND a genuine in-scope
+        // collaborator, the collaborator must win — the noise filter shouldn't blank out a real target
+        // that happens to sit alongside a data-access call.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Api,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogItem", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogItem", Name = "CatalogItem",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogItem.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Catalog.Api.ImageStore", new TypeDiscovery
+        {
+            Id = "Catalog.Api.ImageStore", Name = "ImageStore",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\ImageStore.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Detections.Add(new EfEntityDetection("CatalogItem", "CatalogContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogItem.cs", LineNumber = 5,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items/{id}/pic",
+            "CatalogApi", "GetItemPictureById", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            LineNumber = 46,
+        });
+        model.CallEdges.Add(new CallEdge(
+            "Catalog.Api.CatalogApi", "GetItemPictureById",
+            "Catalog.Api.CatalogContext", "FindAsync",
+            @"C:\repo\src\Catalog.Api\CatalogApi.cs:50"));
+        model.CallEdges.Add(new CallEdge(
+            "Catalog.Api.CatalogApi", "GetItemPictureById",
+            "Catalog.Api.ImageStore", "ReadImageAsync",
+            @"C:\repo\src\Catalog.Api\CatalogApi.cs:52"));
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        Assert.Equal("ImageStore.ReadImageAsync", entry.Target);
+    }
+
+    [Fact]
+    public void Entry_target_for_lambda_with_only_noise_calls_reports_inline_count()
+    {
+        // E6: a minimal-API lambda whose only calls are data-access noise (e.g. eShop's
+        // /catalogtypes/-shaped inline handlers) has nothing honest to name as "the target" — say so
+        // ("inline (N calls)") instead of naming the whole registration type, which reads as a real handler.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Catalog.Api", @"C:\repo\src\Catalog.Api\Catalog.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Catalog.Api.CatalogApi", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogApi", Name = "CatalogApi",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Api,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogContext", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogContext", Name = "CatalogContext",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogContext.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Types.TryAdd("Catalog.Api.CatalogType", new TypeDiscovery
+        {
+            Id = "Catalog.Api.CatalogType", Name = "CatalogType",
+            Namespace = "Catalog.Api", FilePath = @"C:\repo\src\Catalog.Api\CatalogType.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Detections.Add(new EfEntityDetection("CatalogType", "CatalogContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.Api\CatalogType.cs", LineNumber = 5,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/api/catalog/catalogtypes",
+            "CatalogApi", "<lambda>", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Catalog.Api\CatalogApi.cs",
+            LineNumber = 77,
+            HandlerBody = "async (CatalogContext context) => await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync()",
+        });
+        model.CallEdges.Add(new CallEdge(
+            "Catalog.Api.CatalogApi", "<lambda> GET /api/catalog/catalogtypes",
+            "Catalog.Api.CatalogContext", "ToListAsync",
+            @"C:\repo\src\Catalog.Api\CatalogApi.cs:77"));
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        Assert.Equal("inline (1 call)", entry.Target);
+    }
+
+    [Fact]
     public void Entity_navigation_property_creates_entity_relation_edge()
     {
         // A-F14: OrderItem has a property of type Order (a known entity), so we create

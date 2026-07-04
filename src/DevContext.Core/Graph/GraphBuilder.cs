@@ -105,7 +105,10 @@ public sealed class GraphBuilder
 
     /// <summary>When <see cref="ResolveEntryTarget"/> finds no dispatch target (e.g. a view-returning
     /// controller action with no service call and no MediatR send), fall back to the owning controller
-    /// type — honest (it's the declaring type) and more useful than a blank drill-in hint (W8).</summary>
+    /// type — honest (it's the declaring type) and more useful than a blank drill-in hint (W8). E6: a
+    /// minimal-API lambda with real work inside but no single named collaborator (every call was a
+    /// data-access noise verb, or several tied on out-degree) says so — "inline (N calls)" — rather than
+    /// naming the whole registration type, which the reader would mistake for a real handler.</summary>
     private static string? ResolveOwningTypeFallback(CodeGraph graph, EntryPoint entry)
     {
         if (entry.HandlerNode is not { } hn) return null;
@@ -117,6 +120,12 @@ public sealed class GraphBuilder
 
         if (handler.Kind == NodeKind.Member)
         {
+            if (handler.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+            {
+                var callCount = graph.OutEdges(handler.Id, EdgeKind.Calls).Length;
+                if (callCount > 0) return $"inline ({callCount} call{(callCount == 1 ? "" : "s")})";
+            }
+
             var typeKey = ExtractTypeKey(handler.Id.Key);
             return graph.Node(NodeId.ForType(typeKey))?.Title;
         }
@@ -163,15 +172,18 @@ public sealed class GraphBuilder
     }
 
     /// <summary>Resolves an entry whose handler dispatches no MediatR request (e.g. a plain controller
-    /// action) to the primary service it calls: the dominant in-scope callee of the action <b>member</b>.
-    /// Prefers a DI-resolved <c>service</c>-tagged callee, else the first in-scope, non-self, non-framework
-    /// callee. Returns its title (member form, e.g. "ProductService.GetByIdAsync"), or null when the action
-    /// calls nothing meaningful — honest, never guessed via the whole class (member-origin made the action's
-    /// own Calls edges precise, so the old <c>ResolveViaParentType</c> whole-type crutch is retired).</summary>
+    /// action or a minimal-API lambda) to the primary service it calls: the dominant in-scope callee of
+    /// the action <b>member</b>. Prefers a DI-resolved <c>service</c>-tagged callee, else the in-scope,
+    /// non-self, non-framework callee with the most outgoing calls of its own (E6: a real collaborator
+    /// keeps working, a data-access leaf doesn't). Returns its title (member form, e.g.
+    /// "ProductService.GetByIdAsync"), or null when the action calls nothing meaningful — honest, never
+    /// guessed via the whole class (member-origin made the action's own Calls edges precise, so the old
+    /// <c>ResolveViaParentType</c> whole-type crutch is retired).</summary>
     private static string? ResolvePrimaryCall(CodeGraph graph, GraphNode member)
     {
         var ownerTypeKey = ExtractTypeKey(member.Id.Key);
-        GraphNode? firstInScope = null;
+        GraphNode? bestFallback = null;
+        var bestOutDegree = -1;
         foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
             var callee = graph.Node(call.To);
@@ -187,14 +199,55 @@ public sealed class GraphBuilder
             var calleeType = graph.Node(NodeId.ForType(calleeTypeKey));
             if (calleeType?.FilePath is null) continue;
 
-            // Prefer a DI-resolved service (the action's real collaborator); else remember the first
-            // in-scope callee as a fallback.
+            // E6: a raw data-access call is an implementation detail, not the endpoint's meaning — skip a
+            // callee on a DataStore-tagged type (a DbContext) and any call whose OWN method name is a bare
+            // EF/LINQ verb (Where/FindAsync/SaveChangesAsync/...), even when the syntactic resolver
+            // attributed it to a wrapper type (e.g. an `[AsParameters]` services struct) rather than the
+            // DbContext itself.
+            if (calleeType.Tags.Contains(RoleTags.DataStore)
+                || IsDataAccessNoiseMethod(callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null))
+                continue;
+
+            // Prefer a DI-resolved service (the action's real collaborator) outright; else remember the
+            // meaningful callee with the highest out-degree of its own — a real handler keeps working,
+            // a leaf call doesn't.
             if (calleeType.Tags.Contains(RoleTags.Service))
                 return callee.Title;
-            firstInScope ??= callee;
+
+            var outDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
+            if (outDegree > bestOutDegree)
+            {
+                bestOutDegree = outDegree;
+                bestFallback = callee;
+            }
         }
-        return firstInScope?.Title;
+        return bestFallback?.Title;
     }
+
+    /// <summary>"TypeFqn.MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
+    private static string ExtractMemberName(string memberKey)
+    {
+        var dot = memberKey.LastIndexOf('.');
+        return dot >= 0 ? memberKey[(dot + 1)..] : memberKey;
+    }
+
+    /// <summary>E6: bare EF Core / LINQ verbs — never a meaningful entry target on their own, whichever
+    /// type the syntactic resolver happened to attribute the call to.</summary>
+    private static readonly HashSet<string> _dataAccessNoiseMethods = new(StringComparer.Ordinal)
+    {
+        "Where", "Select", "SelectMany", "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending",
+        "Include", "ThenInclude", "Skip", "Take", "GroupBy", "Distinct",
+        "Any", "AnyAsync", "All", "Count", "CountAsync", "Sum", "SumAsync", "Average",
+        "First", "FirstAsync", "FirstOrDefault", "FirstOrDefaultAsync",
+        "Single", "SingleAsync", "SingleOrDefault", "SingleOrDefaultAsync",
+        "ToList", "ToListAsync", "ToArray", "ToArrayAsync", "ToDictionary", "ToDictionaryAsync",
+        "Find", "FindAsync", "Add", "AddAsync", "AddRange", "AddRangeAsync",
+        "Remove", "RemoveRange", "Update", "UpdateRange", "SaveChanges", "SaveChangesAsync",
+        "Attach", "AsNoTracking", "AsQueryable", "AsEnumerable",
+    };
+
+    private static bool IsDataAccessNoiseMethod(string? methodName)
+        => methodName is not null && _dataAccessNoiseMethods.Contains(methodName);
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn" (strips the trailing member segment from a Member key).</summary>
     private static string ExtractTypeKey(string memberKey)
