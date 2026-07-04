@@ -11,7 +11,7 @@ import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
-import { Stage, type StageAltitude } from '../explorer/stage';
+import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
 
@@ -67,6 +67,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
           <app-stage
             class="min-w-0 flex-1"
             [(altitude)]="stageAltitude"
+            [(flowMode)]="stageFlowMode"
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
@@ -98,6 +99,12 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       [open]="exportOpen()"
       (dismissed)="exportOpen.set(false)"
     />
+
+    @if (vPending()) {
+      <div class="fixed bottom-12 left-1/2 z-50 -translate-x-1/2 overlay-float px-3 py-1.5 font-mono text-xs text-ink-muted">
+        Stage: <kbd class="text-accent">t</kbd>ree · <kbd class="text-accent">g</kbd>raph · <kbd class="text-accent">s</kbd>ystem · <kbd class="text-accent">n</kbd>ode
+      </div>
+    }
   `,
 })
 export class WorkbenchPage implements OnDestroy {
@@ -116,6 +123,7 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly projectFilter = signal<string | null>(null);
   /** Lifted from Stage/EntryDeck's `model()`s so they can mirror into `?view&kind&q`. */
   protected readonly stageAltitude = signal<StageAltitude>('flow');
+  protected readonly stageFlowMode = signal<FlowMode>('tree');
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly auditOpen = signal(false);
@@ -124,6 +132,10 @@ export class WorkbenchPage implements OnDestroy {
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
   private lastVisibleDock = this.dockLevel() > 0 ? this.dockLevel() : 2;
+  /** `v` prefix for stage altitude switching (§8.4 "v t/v g/v s/v n"), same 1.5s-window
+   * chord pattern as workspace-shell.ts's `g` prefix for view nav. */
+  private vTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly vPending = signal(false);
 
   constructor() {
     // Background flow indexing itself starts on analysis-ready (SessionStore.analyze()'s
@@ -176,6 +188,7 @@ export class WorkbenchPage implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.pendingTrace !== null) clearTimeout(this.pendingTrace);
+    if (this.vTimer !== null) clearTimeout(this.vTimer);
   }
 
   /** Deck scrub — debounced so j/k sweeps commit once, then trace + trail push. */
@@ -274,6 +287,38 @@ export class WorkbenchPage implements OnDestroy {
       if (current) {
         event.preventDefault();
         this.trail.togglePin(current);
+      }
+      return;
+    }
+    if (event.key === 'v' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTypingTarget(event.target)) {
+      event.preventDefault();
+      this.vPending.set(true);
+      if (this.vTimer) clearTimeout(this.vTimer);
+      this.vTimer = setTimeout(() => this.vPending.set(false), 1500);
+      return;
+    }
+    if (this.vPending()) {
+      this.vPending.set(false);
+      if (this.vTimer) clearTimeout(this.vTimer);
+      switch (event.key) {
+        case 't':
+          event.preventDefault();
+          this.stageAltitude.set('flow');
+          this.stageFlowMode.set('tree');
+          break;
+        case 'g':
+          event.preventDefault();
+          this.stageAltitude.set('flow');
+          this.stageFlowMode.set('graph');
+          break;
+        case 's':
+          event.preventDefault();
+          this.stageAltitude.set('system');
+          break;
+        case 'n':
+          event.preventDefault();
+          this.stageAltitude.set('node');
+          break;
       }
     }
   }

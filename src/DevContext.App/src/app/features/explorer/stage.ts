@@ -218,7 +218,8 @@ export class Stage {
 
   /** `model()` so the Workbench can lift it into `?view` URL state (proposal §8.3). */
   readonly altitude = model<StageAltitude>('flow');
-  protected readonly flowMode = signal<FlowMode>('tree');
+  /** `model()` so the Workbench's `v t`/`v g` shortcuts (§8.4) can drive it directly. */
+  readonly flowMode = model<FlowMode>('tree');
   protected readonly graphDepth = signal(3);
   protected readonly nodeViewMode = signal<NodeViewMode>('list');
   protected readonly directions = DIRECTIONS;

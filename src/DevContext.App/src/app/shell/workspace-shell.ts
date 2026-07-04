@@ -26,31 +26,44 @@ const STATUSBAR_TIPS: readonly TickerItem[] = [
   { id: 'tip:esc-ladder', text: 'Escape backs out one step at a time: cancel, close, deselect, clear', priority: TICKER_PRIORITY.tip },
 ];
 
+/** Must match `activity-bar.ts`'s `railItems` route+shortKey pairing exactly — that
+ * array is the source of truth (proposal §8.1's 5-icon rail); this is a second,
+ * hand-kept copy purely because the rail's items also carry icon/badge/requiresSession
+ * concerns that don't belong in a keyboard-shortcut table. The pre-W7 version of this
+ * map drifted from the rail during the W4 route cutover (stale /overview,/entries,
+ * /trace,/graph,/export; missing 'h' for Home and 'a' for Atlas entirely) — GAP-T2. */
 const VIEW_SHORTCUTS: Record<string, string> = {
-  o: '/overview',
-  e: '/entries',
-  t: '/trace',
-  g: '/graph',
+  h: '/',
+  e: '/explore',
+  a: '/atlas',
   i: '/insights',
-  x: '/export',
   s: '/settings',
 };
 
+/** Full §8.4 keyboard map (GAP-T2) — every row here corresponds to a real, currently
+ * wired handler: `omnibox.ts` (Ctrl+K/P), `tab-strip.ts` (Ctrl+T/W/1-6/Tab), this file
+ * (g-prefix nav, ?, Escape-for-help), `workbench-page.ts`'s `onGlobalKey`/`onEscape`
+ * (everything else — Ctrl+Shift+L, Ctrl+E, Ctrl+Z/Y, Alt+←→, p, v-prefix, the full
+ * Esc-ladder, j/k//,Enter,Shift+E live in `entry-deck.ts`). */
 const SHORTCUT_HELP = [
-  { keys: 'g o', desc: 'Go to Overview' },
-  { keys: 'g e', desc: 'Go to Entries' },
-  { keys: 'g t', desc: 'Go to Trace' },
-  { keys: 'g g', desc: 'Go to Graph' },
-  { keys: 'g i', desc: 'Go to Insights' },
-  { keys: 'g x', desc: 'Go to Export' },
-  { keys: 'g s', desc: 'Go to Settings' },
-  { keys: 'Ctrl+K', desc: 'Command palette' },
+  { keys: 'Ctrl+K / Ctrl+P', desc: 'Omnibox — Tab cycles verbs: Trace · Node · Usages · Copy' },
   { keys: 'Ctrl+T', desc: 'New tab' },
   { keys: 'Ctrl+W', desc: 'Close active tab' },
-  { keys: 'Ctrl+1-6', desc: 'Jump to tab' },
-  { keys: 'Ctrl+Tab', desc: 'Cycle tabs (MRU)' },
-  { keys: 'Escape', desc: 'Close modal / palette' },
+  { keys: 'Ctrl+1–6', desc: 'Jump to tab' },
+  { keys: 'Ctrl+Tab / Ctrl+Shift+Tab', desc: 'Cycle tabs (MRU)' },
+  { keys: 'Ctrl+Shift+L', desc: 'Inspector dock toggle (0 ↔ last)' },
+  { keys: 'Ctrl+E', desc: 'Export drawer' },
+  { keys: 'Ctrl+Z / Ctrl+Y · Alt+←/→', desc: 'Trail undo / redo' },
+  { keys: 'Ctrl+R', desc: 'Re-analyze (restores focus)' },
+  { keys: 'j / k', desc: 'Scrub the entry deck' },
+  { keys: '/', desc: 'Filter the entry deck' },
+  { keys: 'Enter', desc: 'Trace the selected entry' },
+  { keys: 'Shift+E', desc: 'Open the entry audit table' },
+  { keys: 'v t / v g / v s / v n', desc: 'Stage: tree · graph · system · node' },
+  { keys: 'p', desc: 'Pin the current selection to the trail' },
+  { keys: 'g h/e/a/i/s', desc: 'Go to Home / Explore / Atlas / Insights / Settings' },
   { keys: '?', desc: 'Show this help' },
+  { keys: 'Escape', desc: 'Esc-ladder: cancel trace → close overlay → unpin peek → deselect node → clear focus → clear filter' },
 ];
 
 /**
@@ -85,16 +98,16 @@ const SHORTCUT_HELP = [
     @if (helpOpen()) {
       <div class="fixed inset-0 z-[60] flex items-center justify-center" (click)="helpOpen.set(false)" (keydown.escape)="helpOpen.set(false)" role="dialog" tabindex="0">
         <div class="absolute inset-0 bg-base/80 backdrop-blur-sm"></div>
-        <div class="overlay-float relative max-h-[70vh] w-[420px] overflow-y-auto" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
+        <div class="overlay-float relative max-h-[70vh] w-[560px] overflow-y-auto" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
           <div class="flex items-center justify-between border-b border-line px-4 py-3">
             <h2 class="text-sm font-semibold text-ink">Keyboard Shortcuts</h2>
             <button class="px-1 text-xs text-ink-muted hover:text-ink" (click)="helpOpen.set(false)" (keydown.enter)="helpOpen.set(false)" (keydown.space)="helpOpen.set(false); $event.preventDefault()">✕</button>
           </div>
           <div class="space-y-2 p-4">
             @for (s of helpItems; track s.keys) {
-              <div class="flex items-center justify-between">
+              <div class="flex items-start justify-between gap-4">
                 <span class="text-xs text-ink">{{ s.desc }}</span>
-                <span class="kbd">{{ s.keys }}</span>
+                <span class="kbd shrink-0 whitespace-nowrap">{{ s.keys }}</span>
               </div>
             }
           </div>
