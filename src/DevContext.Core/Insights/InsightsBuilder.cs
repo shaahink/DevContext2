@@ -27,7 +27,19 @@ public sealed class InsightsBuilder
         {
             try
             {
-                all.AddRange(source.Compute(model, graph, entries));
+                foreach (var insight in source.Compute(model, graph, entries))
+                {
+                    // Global honesty invariant (E2): no insight may surface an unresolved-name
+                    // placeholder ("? (16 impls)") — the source should have filtered it out itself, but
+                    // this is the last line of defense before it reaches a human.
+                    if (HasUnresolvedPlaceholder(insight))
+                    {
+                        model.AddDiagnostic(DiagnosticLevel.Warning, nameof(InsightsBuilder),
+                            $"Dropped insight '{insight.Id}' — unresolved '?' placeholder in output");
+                        continue;
+                    }
+                    all.Add(insight);
+                }
             }
             catch
             {
@@ -56,5 +68,21 @@ public sealed class InsightsBuilder
         }
 
         return capped.ToImmutableArray();
+    }
+
+    /// <summary>
+    /// True when the title or any evidence line carries a bare "?" token — the shape an unresolved
+    /// name leaves behind ("? (16 impls)", "options (7 impls)" is fine, "? (9 impls)" is not). Trims
+    /// surrounding punctuation so "? (16 impls)" matches but a genuine question ("...ready?") doesn't,
+    /// since its "?" is glued to a word.
+    /// </summary>
+    private static bool HasUnresolvedPlaceholder(Insight insight)
+    {
+        static bool HasBareQuestionMark(string text) => text
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Any(tok => tok.Trim('(', ')', ',', ':', ';', '.') == "?");
+
+        if (HasBareQuestionMark(insight.Title)) return true;
+        return insight.Evidence.Any(HasBareQuestionMark);
     }
 }
