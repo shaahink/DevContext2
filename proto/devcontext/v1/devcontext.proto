@@ -336,6 +336,8 @@ message GraphStat {
   int32 edges = 2;
   int32 entries = 3;
   int32 entries_with_target = 4;
+  bool sparse_graph = 5;
+  int32 hub_scope_nodes = 6;
 }
 
 message FunnelStat {

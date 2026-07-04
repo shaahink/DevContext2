@@ -159,6 +159,11 @@ public sealed class CodeGraph
     public int NodeCount => _nodes.Count;
     /// <summary>Total edge count.</summary>
     public int EdgeCount => _outEdges.Values.Sum(e => e.Length);
+    /// <summary>L3.4 — True when the graph required hub-scoping because normal call-edge binding produced
+    /// too few edges (entries &lt; 5 or edge/node ratio &lt; 0.1). Reported honestly in Stats.</summary>
+    public bool IsSparseGraph { get; init; }
+    /// <summary>L3.4 — Number of hub-scoped nodes additional edges were bound for.</summary>
+    public int HubScopeNodeCount { get; init; }
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -211,6 +216,7 @@ public sealed class CodeGraphBuilder
                 FilePath = existing.FilePath ?? node.FilePath,
                 SourceBody = existing.SourceBody ?? node.SourceBody,
                 Project = existing.Project ?? node.Project,
+                LineNumber = existing.LineNumber ?? node.LineNumber,
             };
             _nodes[node.Id] = merged;
             return merged;
@@ -237,14 +243,20 @@ public sealed class CodeGraphBuilder
     /// <summary>True if a node with the given id has been added.</summary>
     public bool HasNode(NodeId id) => _nodes.ContainsKey(id);
 
+    /// <summary>Total nodes added so far.</summary>
+    public int NodeCount => _nodes.Count;
+
+    /// <summary>Total edges added so far.</summary>
+    public int EdgeCount => _edgeKeys.Count;
+
     /// <summary>The node with the given id, or null. Lets passes inspect what's already there
     /// (e.g. restrict Calls edges to declared in-scope types, which carry a FilePath).</summary>
     public GraphNode? GetNode(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
 
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
-    public CodeGraph Build()
+    public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen);
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount };
     }
 }

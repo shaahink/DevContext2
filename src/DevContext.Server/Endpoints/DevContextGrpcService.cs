@@ -187,6 +187,7 @@ public sealed class DevContextGrpcService(
             var (seams, entriesWithTarget) = session.Query.Stats();
             return ProtoMapper.ToStatsResponse(
                 snapshot.Report,
+                snapshot.Graph,
                 snapshot.Graph?.NodeCount ?? 0,
                 snapshot.Graph?.EdgeCount ?? 0,
                 snapshot.Entries.Length,

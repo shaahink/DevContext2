@@ -81,8 +81,9 @@ public sealed class GraphBuilder
         AddSends(g, model, names, methodSpans);             // C1: Sends edges from .Send(new X()) (member-origin)
         AddDataEdges(g, model, names, methodSpans);         // C1: ReadsWrites edges from entities (member-origin)
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
+        var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
 
-        var graph = g.Build();
+        var graph = g.Build(isSparse, hubCount);
         return (graph, EnrichEntryScores(
             EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope),
             graph, scope));
@@ -1005,6 +1006,93 @@ public sealed class GraphBuilder
                 Confidence = ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f,
             });
         }
+    }
+
+    /// <summary>L3.4 — Broadens call-edge binding for sparse graphs (library/tool archetypes where
+    /// normal CallEdges produce very few edges because one or both endpoints lack a FilePath).
+    /// Detects sparseness (entries &lt; 5 or edge/node ratio &lt; 0.1), identifies top-K central
+    /// type nodes by degree, and binds their inter-type call edges from the model's CallEdges.
+    /// Budget-capped at 500 additional edges; honest scope reported in Stats.</summary>
+    private static (bool IsSparse, int HubCount) AddHubScopeEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        ImmutableArray<EntryPoint> entries)
+    {
+        var nodeCount = g.NodeCount;
+        var edgeCount = g.EdgeCount;
+        var ratio = nodeCount > 0 ? (double)edgeCount / nodeCount : 0;
+
+        if (entries.Length >= 5 && ratio >= 0.1) return (false, 0);
+
+        // Compute degree centrality for all types with a FilePath (in-scope, production code)
+        var typeDegrees = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var ce in model.CallEdges)
+        {
+            var cfqn = names.Resolve(ce.CallerType);
+            var dfqn = names.Resolve(ce.CalleeType);
+            if (cfqn != ce.CallerType) typeDegrees[cfqn] = typeDegrees.GetValueOrDefault(cfqn) + 1;
+            if (dfqn != ce.CalleeType) typeDegrees[dfqn] = typeDegrees.GetValueOrDefault(dfqn) + 1;
+        }
+
+        // Build a set of type nodes already present with FilePath (production code)
+        var existingTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var node in g.Nodes)
+            if (node.Kind == NodeKind.Type && node.FilePath is not null)
+                existingTypes.Add(node.Id.Key);
+
+        // Top-K hubs
+        var k = Math.Min(50, Math.Min(nodeCount / 4, typeDegrees.Count / 2));
+        if (k < 5) return (false, 0);
+
+        var hubs = typeDegrees
+            .Where(kv => existingTypes.Contains(kv.Key))
+            .OrderByDescending(kv => kv.Value)
+            .Take(k)
+            .Select(kv => kv.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Track edges already present to avoid duplicates
+        var existingEdges = new HashSet<(NodeId, NodeId)>();
+        foreach (var node in g.Nodes)
+        {
+            // We can't enumerate builder edges — skip the dedup and let AddEdge's _edgeKeys handle it
+        }
+
+        var added = 0;
+        foreach (var ce in model.CallEdges)
+        {
+            if (added >= 500) break;
+
+            var cfqn = names.Resolve(ce.CallerType);
+            var dfqn = names.Resolve(ce.CalleeType);
+            if (cfqn == dfqn) continue;
+
+            // At least one endpoint must be a hub
+            if (!hubs.Contains(cfqn) && !hubs.Contains(dfqn)) continue;
+
+            var callerId = NodeId.ForMember(cfqn, ce.CallerMethod);
+            var calleeId = NodeId.ForMember(dfqn, ce.CalleeMethod);
+            if (callerId == calleeId) continue;
+
+            var callerNode = g.GetNode(NodeId.ForType(cfqn));
+            var calleeNode = g.GetNode(NodeId.ForType(dfqn));
+
+            g.AddNode(new GraphNode(callerId, $"{callerNode?.Title ?? cfqn}.{ce.CallerMethod}", NodeKind.Member)
+            {
+                FilePath = callerNode?.FilePath,
+            });
+            g.AddNode(new GraphNode(calleeId, $"{calleeNode?.Title ?? dfqn}.{ce.CalleeMethod}", NodeKind.Member)
+            {
+                FilePath = calleeNode?.FilePath,
+            });
+
+            if (g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
+            {
+                Provenance = ce.CallSiteLocation,
+                Resolution = ce.Resolution,
+                Confidence = (ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f) * 0.8f,
+            }))
+                added++;
+        }
+        return (true, hubs.Count);
     }
 
     /// <summary>C1: Link EF entities to their data store and to the code that touches them. Entity→

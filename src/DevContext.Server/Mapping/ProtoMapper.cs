@@ -143,6 +143,7 @@ internal static class ProtoMapper
 
     public static Proto.StatsResponse ToStatsResponse(
         RunReport? report,
+        CodeGraph? graph,
         int nodeCount, int edgeCount, int entryCount,
         ImmutableArray<SeamStat> seams, int entriesWithTarget,
         long totalWallMs,
@@ -150,7 +151,15 @@ internal static class ProtoMapper
     {
         var resp = new Proto.StatsResponse { TotalWallMs = totalWallMs };
 
-        resp.Graph = new Proto.GraphStat { Nodes = nodeCount, Edges = edgeCount, Entries = entryCount, EntriesWithTarget = entriesWithTarget };
+        resp.Graph = new Proto.GraphStat
+        {
+            Nodes = nodeCount,
+            Edges = edgeCount,
+            Entries = entryCount,
+            EntriesWithTarget = entriesWithTarget,
+            SparseGraph = graph?.IsSparseGraph ?? false,
+            HubScopeNodes = graph?.HubScopeNodeCount ?? 0,
+        };
 
         foreach (var s in seams)
             resp.Seams.Add(new Proto.SeamStat { Seam = s.Seam, Count = s.Count, Approx = s.Approx });
