@@ -369,7 +369,7 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L0.4 Span-bound data edges (E4) | 24f0c3e | DONE |
 | L0.5 Raises gating (E5) | a186563 | DONE |
 | L0.6 Minimal-API target selection (E6) | 5ebbaaa | DONE |
-| L0.7 CLI-command gating (E7) | this commit | DONE |
+| L0.7 CLI-command gating (E7) | 74bdb9b | DONE |
 | L0.8 Style/stack honesty (E8) | — | NOT STARTED |
 | L0.9 Input honesty (E9) | 2ddb83f | DONE (partial — see note) |
 | L1.1 … L1.4 | — | NOT STARTED |
