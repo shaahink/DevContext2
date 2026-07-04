@@ -254,4 +254,39 @@ public sealed class ArchitectureStyleDetectorTests
         var (style, _, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.Microservices, style);
     }
+
+    [Fact]
+    public void ModularMonolith_detected_from_real_module_segment_naming()
+    {
+        // E8 positive: a genuine bounded-context naming convention ("Module" as a whole dot-separated
+        // name segment) still triggers ModularMonolith.
+        var model = new DiscoveryModel();
+        model.Projects =
+        [
+            Project("Ordering.Module"), Project("Catalog.Module"), Project("Shipping.Module"),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.ModularMonolith, style);
+    }
+
+    [Fact]
+    public void ModularMonolith_not_claimed_from_product_name_substring_or_test_projects()
+    {
+        // E8 negative: DevContext's own self-analysis shape. Every project name contains "context" as a
+        // SUBSTRING (the product is called "DevContext") but none of them is a bounded-context module by
+        // naming convention, and a *.Tests project must never count towards the module tally even when it
+        // does carry a real "Module" segment.
+        var model = new DiscoveryModel();
+        model.Projects =
+        [
+            new ProjectInfo("DevContext.Cli", @"C:\repo\src\DevContext.Cli\DevContext.Cli.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Core", @"C:\repo\src\DevContext.Core\DevContext.Core.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Server", @"C:\repo\src\DevContext.Server\DevContext.Server.csproj", "C#", [], [], []),
+            new ProjectInfo("Catalog.Module.Tests", @"C:\repo\tests\Catalog.Module.Tests\Catalog.Module.Tests.csproj", "C#", [], [], []),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.ModularMonolith, style);
+    }
 }

@@ -112,9 +112,19 @@ public sealed class ArchitectureStyleDetector
                 $"Minimal APIs + {projectCount} project(s); no MediatR");
         }
 
-        // ModularMonolith: bounded-context / module naming in projects
-        var moduleNames = model.Projects.Select(p => p.Name.ToLowerInvariant())
-            .Where(n => n.Contains("module") || n.Contains("bounded") || n.Contains("context"))
+        // ModularMonolith: bounded-context / module naming in projects. E8: match a whole dot-separated
+        // NAME SEGMENT, not any substring — a bare "context" substring matched DevContext's own product
+        // name ("DevContext.Cli", "DevContext.Core", ...), giving every project in this repo a false
+        // "module" credit ("9 module-like sub-projects"). Test/bench projects never count either — a
+        // *.Tests or benchmarks project is never itself a bounded-context module.
+        var moduleNames = model.Projects
+            .Where(p => !projectClassifier.IsInTestProject(p.FilePath) && !Graph.ProjectClassifier.IsSamplePath(p.FilePath))
+            .Select(p => p.Name)
+            .Where(n => n.Split('.').Any(seg =>
+                seg.Equals("Module", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Modules", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("BoundedContext", StringComparison.OrdinalIgnoreCase)))
+            .Select(n => n.ToLowerInvariant())
             .ToList();
         if (moduleNames.Count >= 2 && !scores.ContainsKey(ArchitectureStyle.Microservices))
         {
