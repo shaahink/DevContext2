@@ -366,7 +366,7 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L0.1 Auth truth (E1) | 829417e | DONE |
 | L0.2 Multi-impl semantics + no-`?` (E2) | fa4618d | DONE |
 | L0.3 Salient snippet correctness (E3) | 4bfd388 | DONE |
-| L0.4 Span-bound data edges (E4) | this commit | DONE |
+| L0.4 Span-bound data edges (E4) | 24f0c3e | DONE |
 | L0.5 Raises gating (E5) | — | NOT STARTED |
 | L0.6 Minimal-API target selection (E6) | — | NOT STARTED |
 | L0.7 CLI-command gating (E7) | — | NOT STARTED |
