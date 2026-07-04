@@ -190,9 +190,13 @@ public static class ReportRenderer
         return sb.ToString();
     }
 
+    /// <summary>L3.2 — Ranks entries by graph-aware composite score (reach × seams × entities ×
+    /// cross-project depth), falling back to has-target + kind priority when scores are identical.
+    /// The scores are pre-computed during graph construction so this method is a pure sort.</summary>
     public static ImmutableArray<EntryPoint> RankEntries(ImmutableArray<EntryPoint> entries)
         => entries
-            .OrderByDescending(e => e.Target is not null)
+            .OrderByDescending(e => e.Score)
+            .ThenByDescending(e => e.Target is not null)
             .ThenBy(e => KindPriority(e.Kind))
             .ThenBy(e => e.Title)
             .ToImmutableArray();

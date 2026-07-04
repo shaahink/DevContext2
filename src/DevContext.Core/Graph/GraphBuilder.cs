@@ -83,7 +83,9 @@ public sealed class GraphBuilder
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
 
         var graph = g.Build();
-        return (graph, EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope));
+        return (graph, EnrichEntryScores(
+            EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope),
+            graph, scope));
     }
 
     /// <summary>After the graph is assembled, resolve each entry's dispatch target (the command it
@@ -404,6 +406,117 @@ public sealed class GraphBuilder
         if (lastSlash >= 0 && path[lastSlash + 1] == '{')
             path = path[..lastSlash];
         return path switch { "" => null, var p => p };
+    }
+
+    /// <summary>L3.2 — Computes graph-aware scores for each entry: BFS from the entry's node outward
+    /// through Calls/Sends edges to count reach, seam richness, entity touches, and cross-project depth.
+    /// Produces a composite 0..1 score for ranking.</summary>
+    private static ImmutableArray<EntryPoint> EnrichEntryScores(
+        ImmutableArray<EntryPoint> entries, CodeGraph graph, SolutionScope scope)
+    {
+        if (entries.IsDefaultOrEmpty) return entries;
+
+        var projectByPath = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var node in graph.Nodes)
+        {
+            if (node.FilePath is not { } fp) continue;
+            var proj = scope.ProjectForFile(fp) ?? Path.GetFileNameWithoutExtension(fp);
+            if (!projectByPath.ContainsKey(proj))
+                projectByPath[proj] = [];
+        }
+
+        var maxReach = 0d;
+        var maxSeam = 0d;
+        var maxEntity = 0d;
+        var (reach, seam, ent, xProjects) = ScoreEntries(entries, graph);
+
+        if (reach.Length > 0) { maxReach = reach.Max(); maxSeam = Math.Max(maxSeam, seam.Max()); maxEntity = Math.Max(maxEntity, ent.Max()); }
+
+        var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var normReach = maxReach > 0 ? reach[i] / maxReach : 0;
+            var normSeam = maxSeam > 0 ? seam[i] / maxSeam : 0;
+            var normEntity = maxEntity > 0 ? ent[i] / maxEntity : 0;
+            var normProj = reach.Length > 0 ? xProjects[i] / Math.Max(xProjects.Max(), 1) : 0;
+
+            var score = normReach * 0.4 + normSeam * 0.3 + normEntity * 0.2 + normProj * 0.1;
+            b.Add(entries[i] with
+            {
+                Score = Math.Round(score, 3),
+                Reach = reach[i],
+                SeamRichness = seam[i],
+                EntityTouches = ent[i],
+                CrossProjects = xProjects[i],
+            });
+        }
+        return b.ToImmutable();
+    }
+
+    private static (int[] Reach, int[] Seam, int[] Entity, int[] XProj) ScoreEntries(
+        ImmutableArray<EntryPoint> entries, CodeGraph graph)
+    {
+        var n = entries.Length;
+        var reach = new int[n];
+        var seam = new int[n];
+        var entity = new int[n];
+        var xProj = new int[n];
+
+        for (var i = 0; i < n; i++)
+        {
+            var (r, s, e, x) = BfsEntryScore(graph, entries[i]);
+            reach[i] = r;
+            seam[i] = s;
+            entity[i] = e;
+            xProj[i] = x;
+        }
+        return (reach, seam, entity, xProj);
+    }
+
+    private static (int Reach, int Seam, int Entity, int XProj) BfsEntryScore(CodeGraph graph, EntryPoint entry)
+    {
+        var visited = new HashSet<NodeId>();
+        var queue = new Queue<(NodeId, int)>();
+        queue.Enqueue((entry.Node, 0));
+        visited.Add(entry.Node);
+
+        var reach = 0;
+        var seam = 0;
+        var entity = 0;
+        var projects = new HashSet<string>();
+
+        while (queue.Count > 0)
+        {
+            var (current, depth) = queue.Dequeue();
+            if (depth > 6) continue;
+            if (current != entry.Node) reach++;
+
+            foreach (var edge in graph.OutEdges(current))
+            {
+                // Track seam richness
+                if (edge.Kind is EdgeKind.Sends or EdgeKind.Raises or EdgeKind.Consumes)
+                    seam++;
+                if (edge.Kind == EdgeKind.ReadsWrites)
+                {
+                    var target = graph.Node(edge.To);
+                    if (target is not null && (target.Tags.Contains(RoleTags.Entity)
+                        || target.Tags.Contains(RoleTags.Aggregate)))
+                        entity++;
+                }
+                // Track cross-project
+                var targetNode = graph.Node(edge.To);
+                if (targetNode?.FilePath is { } fp)
+                {
+                    var proj = Path.GetFileNameWithoutExtension(fp);
+                    if (proj is not null) projects.Add(proj);
+                }
+
+                if (visited.Add(edge.To) && depth < 6)
+                    queue.Enqueue((edge.To, depth + 1));
+            }
+        }
+
+        return (reach, seam, entity, projects.Count);
     }
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>

@@ -42,6 +42,9 @@ internal static class ProtoMapper
         if (e.Target is { } t) p.Target = t;
         if (e.GroupPath is { } gp) p.GroupPath = gp;
         if (!e.AuthAttributes.IsDefaultOrEmpty) p.AuthAttributes.AddRange(e.AuthAttributes);
+        p.Score = e.Score;
+        p.Reach = e.Reach;
+        p.CrossProjects = e.CrossProjects;
         return p;
     }
 
