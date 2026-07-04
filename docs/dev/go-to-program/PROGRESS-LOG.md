@@ -1233,3 +1233,177 @@ called out in earlier entries rather than silently dropped: the self-contained
 only the installer-bundling half is deferred), and the literal "test at 125%/150% Windows
 scaling" ask (superseded by this session's legibility-bump redirect, per the user).
 `AGENTS.md`'s F section needs updating to reflect W6 done, W7 next per the proposal's §10.
+
+## 2026-07-04 — W7 checkpoint 1: node-peek hover card wired to every NodeLink
+
+New `NodePeekStore` + `features/peek/node-peek.ts`: 200ms hover shows a lightweight
+real-fields-only card (title, kind, location, degree — no neighbor lists, no actions),
+Ctrl pins it open past `mouseleave`, Escape/click-outside/close-button dismiss. Uses a
+`LatestGate` (key `'peek'`) so sweeping the mouse across many links can't let a stale
+`getNode()` land after a newer hover already took over. A short (150ms) hide-grace timer
+lets the pointer travel from the trigger `NodeLink` down into the peek card itself
+without it vanishing mid-transit — the timer snapshots which node it means to close, so
+a stale timer from an abandoned hover can never kill a different, newer peek.
+
+**A real, unrelated bug found while wiring this:** `NodeCard` (the click-through full
+detail sheet) was never mounted anywhere in the app. `grep`ping for `NodeCard` turned up
+only its own file, `NodeStore`'s doc comment, and `Skeleton`'s doc comment — every
+`NodeLink` click called `NodeStore.show()`, set signals, fetched data, and then rendered
+nothing, because no template anywhere had `<app-node-card>`. Root cause: `NodeCard`'s
+only referrers used to be the old `section-entries`/trace/graph pages, deleted during
+W4's route cutover — the cutover's own "zero surviving referrers" grep check verified the
+*deleted* files had no referrers, but never checked whether deleting them silently
+orphaned a *surviving* component they used to mount. Fixed by mounting both
+`<app-node-card>` and `<app-node-peek>` globally in `workspace-shell.ts`, same pattern as
+`<app-omnibox>`.
+
+Folded "unpin peek" into `workbench-page.ts`'s existing Esc-ladder as its own rung
+(§8.4 order: cancel trace → close overlay → unpin peek → deselect node → clear focus →
+clear filter) instead of leaving it as `node-peek.ts`'s own independent
+`window:keydown.escape` listener. First attempt kept both — live testing caught the bug
+immediately: NodePeek's listener (mounted at app root, registered first) always fired
+before the ladder's, clearing `nodeId()` before the ladder ever saw a peek open, so every
+Escape silently fell through to *also* deselect the node in the same keystroke. Fixed by
+making `node-peek.ts`'s standalone handler a no-op while on `/explore` (where the ladder
+now owns the rung exclusively) — it still fires normally on Home/Atlas/Insights/Settings,
+which have no ladder of their own.
+
+Verified live end-to-end (analyzed `MinimalApiProject`, headless Chrome): hover-delay
+timing (no premature flash, appears after 200ms), grace-period survival crossing the
+gap, Ctrl+hover pinning + surviving `mouseleave`, Escape dismissing a pinned peek, and —
+the regression check — clicking a `NodeLink` now actually opens the `NodeCard` sheet with
+real content. `pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 2: NodeCard skeleton loading (GAP-B8)
+
+Replaced `node-card.ts`'s spinner-loading state with `app-skeleton` placeholders shaped
+like the real sections (kind, location, degree, callers) — content-preserving loading
+per proposal §5.2, the exact principle `ui/skeleton/skeleton.ts` was built for back in W0
+but never actually applied to the one component its own doc comment names. Also added a
+`found: false` branch ("Node not found") instead of rendering whatever zero-value fields
+a not-found `NodeResponse` carries — trust principle (§1.4), never show fabricated data.
+
+Verified live: local `getNode`/`getNeighbors` calls normally resolve in a handful of ms,
+too fast to see the loading state, so throttled that one round-trip via a CDP
+`Network.emulateNetworkConditions` session to confirm the skeleton actually renders
+mid-load (7 `app-skeleton` placeholders, zero leftover spinner) and clears once real
+content lands. `pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 3: dedupe compact-count/bytes/timeAgo helpers (GAP-C1)
+
+The "1.2K" compact-count formatter was byte-for-byte duplicated (as `fmtK`/`fmt`/
+`formatStars`) in `inspector.ts`, `export-drawer.ts`, `run-console.ts`, and
+`repo-card.ts`. New `core/format.ts` holds `formatCompact` (a `unit: 'K'|'k'` param
+covers `repo-card`'s lower-case star convention), `formatBytes` (was only in
+`settings-view.ts`), and `timeAgo` (was only in `repo-card.ts`, but the same class of
+shared display logic). Each component keeps a thin `protected` wrapper delegating to the
+shared function — templates can only call class members, so this is dedupe of the logic
+itself, not a template rewrite. Pure refactor, verified the extracted functions produce
+identical output to the original inline expressions for the same inputs; `pnpm check`
+green (27/27 tests, build 0w/0e).
+
+## 2026-07-04 — W7 checkpoint 4: `?` help overlay = full §8.4 map (GAP-T2)
+
+The help overlay was stale from before the W4 route cutover: `VIEW_SHORTCUTS` still
+routed `g` + o/e/t/g/i/x/s to dead pages (`/overview`, `/entries`, `/trace`, `/graph`,
+`/export`), and was missing `h` (Home) and `a` (Atlas) entirely — even though
+`activity-bar.ts`'s own `railItems` already declare those exact `shortKey`s in their
+tooltips ("g h" was promised, silently did nothing). Rewrote both the routing map and the
+displayed table against the real, current keymap.
+
+Along the way, implemented the one row that didn't functionally exist yet: "v t/v g/v
+s/v n" stage-altitude switching — Stage only had mouse-click chips before this.
+Promoted `stage.ts`'s `flowMode` from a private signal to a `model()` (same pattern
+already used for `altitude`) so `workbench-page.ts`'s new v-prefix handler — mirroring
+`workspace-shell`'s existing g-prefix chord pattern, 1.5s window, hint bubble — can drive
+both altitude and flow-mode together. The spec's 4 stage shortcuts map onto this app's
+real 3-altitude + tree/graph-submode model exactly: `v t`/`v g` both select the `'flow'`
+altitude with the matching sub-mode, `v s`/`v n` select `'system'`/`'node'`.
+
+Verified live: help overlay content matches, `g h`/`g a` actually navigate (previously
+silent no-ops), all four v-shortcuts switch the right altitude/mode combination.
+`pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 5: Paper light theme + system-follow (§4.2)
+
+The Paper palette itself already existed pre-W7 (`[data-vibe="modern"][data-theme=
+"light"]`, exact values from §4.2, literally commented "Paper (F proposal §4.2)") but had
+zero UI path to reach it — Settings only exposed a vibe picker, no dark/light/system
+toggle, and `ThemeService` had no concept of "system" at all.
+
+`ThemeService`: `theme()` can now hold the raw preference `'system'`; new
+`resolvedTheme` computed resolves it against a live `prefers-color-scheme` media-query
+listener (updates without reload) — falls back to the vibe's own default for dark-only
+vibes like Terminal, which only declares one theme by design, not an oversight. The
+`data-theme` DOM-attribute effect and `setVibe()`'s reset-if-unsupported guard both
+switched from the raw preference to the resolved value / a system-aware check (`'system'`
+is always valid regardless of which vibe is active). Settings → Appearance gets a
+Dark/Light/System segmented toggle; Light only renders for vibes that actually declare a
+light theme (Modern, Hacker) — Terminal correctly shows just Dark.
+
+Verified live: Dark/Light apply the exact expected `--vibe-base` values (`#16181d` /
+`#f6f7f9`), System tracks `page.emulateMedia({colorScheme})` changes with no reload, and
+switching to the dark-only Terminal vibe under System stays sane (hides the Light
+button, resolves to dark, no crash). `pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 6: reduced-motion audit — exempt spinners (§4.4)
+
+Audited every animation/transition path (no `@angular/animations`, no
+`requestAnimationFrame`, everything is Tailwind `transition-*`/`animate-*` utilities)
+against the global `prefers-reduced-motion` rule in `styles.css`. Found one real gap: the
+blanket rule froze `.animate-spin` (`ui/spinner/spinner.ts`, plus the loader icons in
+`export-drawer.ts`/`run-console.ts`) to a single static frame mid-rotation — the same
+category of anti-pattern the app had already avoided for `.hairline`/`.skeleton` (both
+already have their own explicit `animation: none` override further down the same file),
+just never extended to spinners. A frozen spinner reads as "the app is stuck", not as
+"motion was reduced" — indeterminate-progress motion is functional feedback, not
+decoration, and is conventionally exempted from this preference industry-wide (macOS/
+iOS/VS Code/GitHub all keep spinners moving under it).
+
+Carved `.animate-spin` out of the blanket freeze; decorative `.animate-pulse`/
+`.animate-bounce` and all CSS transitions still correctly collapse. Verified with
+synthetic elements against the real stylesheet (decoupled from app-timing flakiness):
+spin keeps a real 1s/infinite animation under reduced-motion, pulse/transitions collapse
+to ~0, and the same rules play normally with reduced-motion off. `pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 7: snapshot diff (§3.9, stretch)
+
+Ctrl+R (re-analyze same path) now captures a before/after comparison and posts it as a
+ticker item: entry counts by kind (§3.9's own example, "+3 endpoints, −1 consumer") plus
+the Flow Atlas's repo-wide confidence (`AtlasStore.overallVerifiedPct`, §3.5 — "wired
+87→91%"). Zero new engine calls, pure client-side diff of data this app already fetches
+on every analyze. New `state/snapshot-diff.store.ts`; wired into
+`WebviewShortcutsService.reanalyze()` (the one real "re-analyze same path" entry point).
+
+The "after" confidence reading deliberately waits for `AtlasStore.status() === 'done'`
+(an `effect()` keyed off a pending-path signal) rather than reading it the instant
+`analyze()` resolves: atlas indexing restarts fresh on every analyze and runs in the
+background, so an early read would compare a fully-settled "before" percentage against a
+half-indexed "after" one — a misleading comparison dressed up as a regression, not a real
+one. Trust principle: the summary builder returns `null` (nothing posted) when literally
+nothing changed, rather than a fabricated "no changes" line.
+
+Verified live end-to-end against a scratch copy of the fixture repo in the OS temp dir
+(never touched the committed fixture): re-analyzing with zero repo changes posts no diff;
+adding one real `MapDelete` endpoint and re-analyzing produces "+1 endpoint" in the
+ticker within the atlas-done window. `pnpm check` green.
+
+## 2026-07-04 — W7 checkpoint 8: acceptance sweep + gate
+
+Ran the proposal §10 final-gate checklist against everything W7 touched (not
+re-litigating W4/W5/W6's own already-passed gates from scratch, since W7 didn't touch
+most of that surface): `pnpm check` real-exit-code green (lint 0/0, 27/27 tests, build
+0w/0e); Home digest renders after analyze; Atlas still shows topology with zero traces
+run (the actual W4 "never-blank graph" requirement — first draft of this sweep mistakenly
+checked Explore's Stage default altitude instead, which defaults to `'flow'` not
+`'system'` and is unrelated to that gate line); Atlas/Insights/Settings all navigate
+clean; the full Esc-ladder chain exercised end-to-end including the two rungs this stage
+touched directly (unpin-peek closes only the peek and leaves the node selection intact,
+one step at a time, not two); help overlay open/close still clean; zero console/page
+errors across the whole sweep.
+
+**W7 status:** all 8 items done, including the §3.9 stretch goal. Every one of the 23
+gaps from §9 is now closed except the two the proposal itself calls engine-blocked (S1
+auth column, S2 line numbers) — T2 and B8/C1 were W7's own assignments and are done;
+everything else was already closed by W1-W6. `AGENTS.md`'s F section needs updating to
+mark W7 done — this was the last stage in the proposal's §10 waterfall.

@@ -180,8 +180,32 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   checkpoint 1, and the literal 125%/150% Windows-scaling test (superseded by the legibility
   redirect). Next session resuming W6 should treat the packaging half as the one real remaining
   gap if the full proposal gate is ever needed word-for-word.
-- W7 — not started, not yet scoped. Read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10
-  for what it covers before starting.
+- W7 (Polish & Acceptance) — **DONE, all 8 items, gate passed** (2026-07-04, same session as
+  W6). Full narrative + every bug found: `PROGRESS-LOG.md`'s W7 entries. Summary: (1) node-peek
+  (200ms hover, real fields only, Ctrl to pin) wired to every `NodeLink`, via a new
+  `NodePeekStore` using `LatestGate` — found and fixed a real, unrelated regression along the
+  way: `NodeCard` (the click-through detail sheet) had been silently orphaned during W4's route
+  cutover (its only referrers were the pages deleted then) and was never mounted anywhere, so
+  every `NodeLink` click had been a silent no-op since W4; also folded "unpin peek" into
+  `workbench-page.ts`'s Esc-ladder as its own rung rather than a competing independent listener
+  (the first attempt raced the ladder and caused every Escape to also deselect the node — caught
+  live, not by inspection); (2) `NodeCard`'s spinner replaced with `app-skeleton` placeholders
+  (GAP-B8) + a `found:false` "not found" state; (3) compact-count/bytes/timeAgo helpers deduped
+  into `core/format.ts` (GAP-C1) — were byte-for-byte duplicated across 4 components; (4) `?`
+  help overlay rebuilt against the real current keymap (GAP-T2) — was stale from before the W4
+  cutover (dead routes, missing Home/Atlas nav keys); implemented the one row that didn't exist
+  yet, `v t/v g/v s/v n` stage-altitude switching (Stage's `flowMode` promoted to a `model()`,
+  same pattern as `altitude`); (5) Paper theme + system-follow (§4.2) — the palette already
+  existed but had zero UI path to it; `ThemeService` gained a `'system'` preference resolved live
+  against `prefers-color-scheme`, Settings gained a Dark/Light/System toggle; (6) reduced-motion
+  audit — found spinners (`.animate-spin`) were being frozen mid-rotation by the blanket rule,
+  same anti-pattern the app had already avoided for `.hairline`/`.skeleton`; carved out an
+  exemption (indeterminate-progress motion is functional, not decorative); (7) snapshot diff
+  (§3.9, stretch) — Ctrl+R re-analyze now posts a ticker item diffing entry counts by kind and
+  Flow Atlas confidence, gated on `atlas.status() === 'done'` so it never compares a settled
+  "before" against a half-indexed "after"; (8) full acceptance sweep, all green. Every one of the
+  23 gaps in §9 is now closed except the two the proposal itself calls engine-blocked (S1 auth
+  column, S2 line numbers). This was the last stage in the proposal's §10 waterfall.
 - **Notable deviation from the spec, discovered by hand, not from docs:** `GetTrace`'s `focus` param
   only resolves registered entry-point keys (e.g. `"POST /orders"`) — passing a raw internal graph
   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`, confirmed against the live server.
@@ -202,12 +226,15 @@ insights (Flow Atlas) that I11 left unspecified. Executed as a waterfall W0→W7
   running) and `pnpm check`'s own one-shot `ng build` likely contend over `.angular/cache`. A bare
   retry of the identical script always passed clean in this session. Don't dismiss an overlay that
   survives a retry, but don't chase one that only appears once either.
-- Gate for resuming: `pnpm check` green (real exit code) → W6 is DONE (all 7 checkpoints,
-  2026-07-04) → read the F proposal's §10 for W7's scope before starting it, nothing pre-decided
-  yet. If picking up the deferred self-contained sidecar packaging instead, read the W6
-  checkpoint 1 PROGRESS-LOG entry first — it documents exactly what's already confirmed working
-  (single-file publish + `IncludeNativeLibrariesForSelfExtract`) and what's still open
-  (`tauri_plugin_shell`'s sidecar API, the exact post-bundle filename convention).
+- Gate for resuming: `pnpm check` green (real exit code) → **W0-W7 are all DONE** — the F
+  proposal's §10 waterfall is complete. What's left, if anyone picks this back up: the deferred
+  self-contained sidecar packaging (W6 checkpoint 1 — lifecycle hardening is done and verified,
+  only the installer-bundling half is deferred; read that PROGRESS-LOG entry first, it documents
+  exactly what's already confirmed working — single-file publish +
+  `IncludeNativeLibrariesForSelfExtract` — and what's still open, `tauri_plugin_shell`'s sidecar
+  API and the exact post-bundle filename convention), and the two engine-blocked gaps (S1 auth
+  column, S2 line numbers) whenever the engine side is ready to take them. Otherwise this track
+  has no more waterfall stages — any further work here is genuinely new scope, not a resume.
 
 ## Verify loop
 ```powershell
@@ -250,16 +277,18 @@ not been pushed to any remote**, this is all local. `feat/fable-redesign-skeleto
 one branch to work from; `feat/w4-export-drawer` still exists but is fully merged (safe to delete,
 not yet deleted — ask before deleting branches you didn't create this session).
 
-Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W6 are all
-done** (W6 done 2026-07-04, all 7 checkpoints — see this file's F section above for the summary
-and exactly what's deferred). W7 is next but not yet scoped — read §10's W7 entry fresh, nothing
-pre-decided. `docs/dev/go-to-program/PROGRESS-LOG.md`'s W6 entries have the full narrative and
-every bug found/fixed this stage, including: the window drag/buttons root cause (wrong `isTauri()`
-global + missing Tauri window capabilities — worth reading before assuming any `@if (isTauri())`
-gate or window-command call works untested), the `opener:allow-open-path` vs
-`allow-reveal-item-in-dir` scope asymmetry (one is scope-gated like `fs`, the other isn't), and a
+Then read `docs/dev/briefs/ui-ux-redesign-proposal-fable.md` §10 (the waterfall) — **W0-W7 are all
+done** (W7 done 2026-07-04, all 8 items, gate passed — see this file's F section above for the
+full summary). The proposal's waterfall has no further stages; this track's remaining open items
+are the deferred sidecar packaging (W6 checkpoint 1) and the two engine-blocked gaps (S1, S2), not
+a new Wn. `docs/dev/go-to-program/PROGRESS-LOG.md`'s W6/W7 entries have the full narrative and
+every bug found/fixed across both stages, including: the window drag/buttons root cause (wrong
+`isTauri()` global + missing Tauri window capabilities — worth reading before assuming any
+`@if (isTauri())` gate or window-command call works untested), the `opener:allow-open-path` vs
+`allow-reveal-item-in-dir` scope asymmetry (one is scope-gated like `fs`, the other isn't), a
 `CopyFromScreen`-captures-the-wrong-window gotcha (needs `SetForegroundWindow` first) for any
-future screenshot-based verification.
+future screenshot-based verification, and W7's `NodeCard` dead-component regression (silently
+orphaned by W4's route cutover, never mounted anywhere until W7 caught it).
 
 Two committed smoke scripts already exist and are the pattern to extend rather than reinvent:
 `scripts/smoke-export-drawer.mts` (export drawer) and `scripts/smoke-w4-gate.mts` (flows A-E, Atlas,
