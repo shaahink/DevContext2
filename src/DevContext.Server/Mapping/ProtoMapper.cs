@@ -40,6 +40,7 @@ internal static class ProtoMapper
         if (e.Provenance is { } pr) p.Provenance = pr;
         if (e.Project is { } proj) p.Project = proj;
         if (e.Target is { } t) p.Target = t;
+        if (e.GroupPath is { } gp) p.GroupPath = gp;
         return p;
     }
 

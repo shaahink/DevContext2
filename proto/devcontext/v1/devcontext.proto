@@ -123,6 +123,7 @@ message EntryPoint {
   optional string provenance = 6;
   optional string project = 7;
   optional string target = 8;
+  optional string group_path = 9;
 }
 
 // ---------------------------------------------------------------------------

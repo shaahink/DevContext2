@@ -34,4 +34,7 @@ public sealed record EntryPoint(
     /// <summary>The graph node (Type or Member) that this entry's Calls edge points to. Set during
     /// graph construction so EnrichEntryTargets can resolve targets without scanning by name.</summary>
     public NodeId? HandlerNode { get; init; }
+    /// <summary>Namespace- or project-derived grouping path (e.g. "Controllers/Orders", "Services/Ordering").
+    /// Surfaces as the grouping column in the entries table and powers per-module rollups.</summary>
+    public string? GroupPath { get; init; }
 }

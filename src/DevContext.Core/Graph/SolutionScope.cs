@@ -73,5 +73,28 @@ public sealed class SolutionScope
             ? path
             : Path.GetFullPath(Path.Combine(baseDir, path));
 
+    /// <summary>
+    /// Returns the project name that contains the given file path, or null when no project matches.
+    /// Uses normalized directory-prefix matching (file path must be under the project directory).</summary>
+    public string? ProjectForFile(string filePath)
+    {
+        if (_projectDirs.IsDefaultOrEmpty) return null;
+        var norm = Normalize(filePath);
+        string? bestDir = null;
+        foreach (var dir in _projectDirs)
+        {
+            if (norm.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
+                && (bestDir is null || dir.Length > bestDir.Length))
+                bestDir = dir;
+        }
+        if (bestDir is null) return null;
+        foreach (var p in Projects)
+        {
+            var pd = Normalize(Path.GetDirectoryName(p.FilePath)!);
+            if (pd == bestDir) return p.Name;
+        }
+        return null;
+    }
+
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
 }

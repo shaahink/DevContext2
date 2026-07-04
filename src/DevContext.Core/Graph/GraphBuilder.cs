@@ -83,7 +83,7 @@ public sealed class GraphBuilder
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
 
         var graph = g.Build();
-        return (graph, EnrichEntryTargets(graph, entries));
+        return (graph, EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope));
     }
 
     /// <summary>After the graph is assembled, resolve each entry's dispatch target (the command it
@@ -310,6 +310,101 @@ public sealed class GraphBuilder
                 || name.StartsWith("Patch", StringComparison.OrdinalIgnoreCase),
         _ => false,
     };
+
+    /// <summary>L3.6 — Derives a project-relative GroupPath for each entry. Uses the handler type's
+    /// namespace (resolved via NameResolver) and strips the project's typical root-namespace prefix
+    /// to produce a grouping key like "Controllers/Orders" or "Services/Ordering".</summary>
+    private static ImmutableArray<EntryPoint> EnrichEntryGroupPaths(
+        ImmutableArray<EntryPoint> entries, NameResolver names, SolutionScope scope)
+    {
+        if (entries.IsDefaultOrEmpty) return entries;
+        var b = ImmutableArray.CreateBuilder<EntryPoint>(entries.Length);
+        foreach (var e in entries)
+        {
+            var gp = DeriveGroupPath(e, names, scope);
+            b.Add(e with { GroupPath = gp });
+        }
+        return b.ToImmutable();
+    }
+
+    private static string? DeriveGroupPath(EntryPoint entry, NameResolver names, SolutionScope scope)
+    {
+        // 1. Resolve the handler type's FQN (via HandlerNode or by parsing Provenance)
+        string? ns = null;
+        string? project = null;
+
+        // Extract project name from provenance (file:line string)
+        if (entry.Provenance is { } provenance)
+        {
+            var colon = provenance.LastIndexOf(':');
+            var filePath = colon > 0 ? provenance[..colon] : provenance;
+            project = scope.ProjectForFile(filePath);
+        }
+
+        if (entry.HandlerNode is { } hn)
+        {
+            var fqn = ExtractTypeKey(hn.Key);
+            ns = names.GetNamespace(fqn);
+        }
+
+        // 2. Fall back to route-based grouping for HTTP entries with no handler namespace
+        if (ns is null && entry.Kind == EntryPointKind.HttpEndpoint && entry.Route is { } route)
+            return HttpRouteGroupPath(route);
+
+        if (ns is null) return project;
+
+        // 3. Derive GroupPath from namespace, stripping project-root prefix
+        return NamespaceGroupPath(ns, project);
+    }
+
+    /// <summary>Derives a GroupPath from the last 1-2 meaningful namespace segments, stripping
+    /// common project/root prefixes (e.g. "MyApp.Api.Controllers.Orders" → "Controllers/Orders"
+    /// when project is "MyApp.Api").</summary>
+    private static string? NamespaceGroupPath(string ns, string? project)
+    {
+        var parts = ns.Split('.');
+        if (parts.Length <= 1) return ns;
+
+        // Find where the namespace diverges from the project (typically namespaces mirror projects)
+        var start = 0;
+        if (project is not null)
+        {
+            var projParts = project.Split('.');
+            for (var i = 0; i < Math.Min(parts.Length, projParts.Length); i++)
+            {
+                if (string.Equals(parts[i], projParts[i], StringComparison.OrdinalIgnoreCase))
+                    start = i + 1;
+                else break;
+            }
+        }
+
+        // Take the remaining meaningful segments, skip "Controllers"/"Endpoints" as redundant
+        var remaining = parts[start..];
+        if (remaining.Length == 0) return project;
+        if (remaining.Length == 1) return remaining[0];
+
+        // Skip the ubiquitous first segment if it's a well-known structural layer marker
+        if (remaining.Length >= 2
+            && (remaining[0] == "Controllers" || remaining[0] == "Endpoints"
+                || remaining[0] == "Handlers" || remaining[0] == "Services"
+                || remaining[0] == "Consumers" || remaining[0] == "Hubs"))
+            return string.Join("/", remaining[1..]);
+
+        return string.Join("/", remaining);
+    }
+
+    /// <summary>Derives GroupPath from an HTTP route template (e.g. "GET /api/orders/{id}" → "api/orders").</summary>
+    private static string? HttpRouteGroupPath(string route)
+    {
+        var space = route.IndexOf(' ');
+        var path = space > 0 ? route[(space + 1)..] : route;
+        path = path.TrimStart('/');
+        // Strip trailing parameter segments
+        var lastSlash = path.LastIndexOf('/');
+        if (lastSlash >= 0 && path[lastSlash + 1] == '{')
+            path = path[..lastSlash];
+        return path switch { "" => null, var p => p };
+    }
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)

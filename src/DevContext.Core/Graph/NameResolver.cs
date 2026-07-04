@@ -12,18 +12,21 @@ public sealed class NameResolver
 {
     private readonly HashSet<string> _fqns;
     private readonly Dictionary<string, List<string>> _byShort;
+    private readonly Dictionary<string, string> _namespaceByFqn;
 
     /// <summary>Indexes the discovered types by FQN and short name.</summary>
     public NameResolver(IEnumerable<TypeDiscovery> types)
     {
         _fqns = new HashSet<string>(StringComparer.Ordinal);
         _byShort = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        _namespaceByFqn = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var t in types)
         {
             _fqns.Add(t.Id);
             if (!_byShort.TryGetValue(t.Name, out var list))
                 _byShort[t.Name] = list = [];
             if (!list.Contains(t.Id)) list.Add(t.Id);
+            _namespaceByFqn[t.Id] = t.Namespace;
         }
     }
 
@@ -48,7 +51,16 @@ public sealed class NameResolver
             var best = fqns.FirstOrDefault(f => f.StartsWith(namespaceHint + ".", StringComparison.Ordinal));
             if (best is not null) return best;
         }
-        // TODO(agent, P2): disambiguate by implemented interface (e.g. the IRequestHandler<T> impl) or file path.
         return fqns[0];
+    }
+
+    /// <summary>
+    /// Resolves <paramref name="name"/> (short or FQN) to its namespace. Returns the input unchanged
+    /// when unknown (external/framework type).</summary>
+    public string GetNamespace(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+        var fqn = Resolve(name);
+        return _namespaceByFqn.TryGetValue(fqn, out var ns) ? ns : name;
     }
 }
