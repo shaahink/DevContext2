@@ -806,14 +806,18 @@ public sealed class GraphBuilder
     }
 
     /// <summary>Adds one ReadsWrites edge from <paramref name="fromId"/> to the first entity its body
-    /// names (syntactic, approximate). Shared by the type-body and member-body passes.</summary>
+    /// names (syntactic, approximate). Shared by the type-body and member-body passes. Matching is
+    /// whole-word (E4): a plain substring check let short entity names like "Order" or "CardType" match
+    /// inside unrelated identifiers that merely start with them ("OrderId", "IOrderQueries",
+    /// "CardTypeId") — e.g. eShop's CreateOrderAsync never touches the CardType entity, but its request
+    /// DTO carries a CardTypeId property, which a substring match wrongly read as "touches CardType".</summary>
     private static void LinkBodyToEntity(CodeGraphBuilder g, NodeId fromId, string? body,
         Dictionary<string, NodeId> entityIdByName)
     {
         if (body is not { Length: > 0 } || !g.HasNode(fromId)) return;
         foreach (var (entityName, entityId) in entityIdByName)
         {
-            if (entityName.Length < 3 || !body.Contains(entityName, StringComparison.Ordinal)) continue;
+            if (entityName.Length < 3 || !ContainsWholeWord(body, entityName)) continue;
             if (fromId == entityId || !g.HasNode(entityId)) continue;
             g.AddEdge(new GraphEdge(fromId, entityId, EdgeKind.ReadsWrites)
             {
@@ -823,6 +827,26 @@ public sealed class GraphBuilder
             break;
         }
     }
+
+    /// <summary>True if <paramref name="word"/> occurs in <paramref name="body"/> as a whole identifier —
+    /// not merely as a prefix/substring of a longer identifier. Plain <c>string.Contains</c> is unsafe for
+    /// entity-name matching: "Order" is a substring of "OrderId"/"IOrderQueries" and "CardType" is a
+    /// substring of "CardTypeId" (E4).</summary>
+    private static bool ContainsWholeWord(string body, string word)
+    {
+        var idx = 0;
+        while ((idx = body.IndexOf(word, idx, StringComparison.Ordinal)) >= 0)
+        {
+            var before = idx == 0 || !IsIdentifierChar(body[idx - 1]);
+            var afterPos = idx + word.Length;
+            var after = afterPos >= body.Length || !IsIdentifierChar(body[afterPos]);
+            if (before && after) return true;
+            idx++;
+        }
+        return false;
+    }
+
+    private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c == '_';
 
     /// <summary>C1: Scan handler/ctor SourceBody for domain/integration event creation → Raises edges.
     /// Per R4: matches method-name set {AddDomainEvent, RaiseDomainEvent, AddEvent} with new TEvent()

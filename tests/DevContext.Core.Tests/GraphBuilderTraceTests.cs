@@ -144,6 +144,108 @@ public sealed class GraphBuilderTraceTests
     }
 
     [Fact]
+    public void C1_data_edges_reject_entity_name_as_prefix_of_longer_identifier()
+    {
+        // E4: a plain substring match let "CardType" match inside "CardTypeId" (a DTO property name),
+        // fabricating a ReadsWrites edge to an entity the body never actually touches.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.Handler", new TypeDiscovery
+        {
+            Id = "Orders.Api.Handler", Name = "Handler",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\Handler.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            SourceBody = "var requestId = request.CardTypeId;",
+        });
+        model.Types.TryAdd("Orders.Api.CardType", new TypeDiscovery
+        {
+            Id = "Orders.Api.CardType", Name = "CardType",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\Domain\CardType.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Orders.Api.OrderingContext", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrderingContext", Name = "OrderingContext",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrderingContext.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Detections.Add(new EfEntityDetection("CardType", "OrderingContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Domain\CardType.cs", LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var handlerId = NodeId.ForType("Orders.Api.Handler");
+        var cardTypeId = NodeId.ForType("Orders.Api.CardType");
+        Assert.DoesNotContain(graph.OutEdges(handlerId), e => e.Kind == EdgeKind.ReadsWrites && e.To == cardTypeId);
+    }
+
+    [Fact]
+    public void C1_data_edges_are_member_scoped_not_leaked_to_sibling_method()
+    {
+        // E4 (eShop shape): OrdersApi.CreateOrderAsync only carries a CardTypeId property — it never
+        // touches the CardType entity — while the sibling OrdersApi.GetCardTypesAsync genuinely returns
+        // CardType. Each method's own data edge must land on its own Member node, not bleed into the
+        // other's.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Orders.Api", @"C:\repo\src\Orders.Api\Orders.Api.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Orders.Api.OrdersApi", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrdersApi", Name = "OrdersApi",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrdersApi.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Api,
+            SourceBody = "public static class OrdersApi { "
+                + "public static async Task CreateOrderAsync(CreateOrderRequest request) { var cmd = new CreateOrderCommand(request.CardTypeId); } "
+                + "public static async Task<CardType> GetCardTypesAsync(IOrderQueries orderQueries) { return await orderQueries.GetCardTypeAsync(); } "
+                + "}",
+        });
+        model.Types.TryAdd("Orders.Api.CardType", new TypeDiscovery
+        {
+            Id = "Orders.Api.CardType", Name = "CardType",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\Domain\CardType.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Orders.Api.OrderingContext", new TypeDiscovery
+        {
+            Id = "Orders.Api.OrderingContext", Name = "OrderingContext",
+            Namespace = "Orders.Api", FilePath = @"C:\repo\src\Orders.Api\OrderingContext.cs",
+            Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Infrastructure,
+        });
+        model.Detections.Add(new EfEntityDetection("CardType", "OrderingContext", true, ["Id"])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Orders.Api\Domain\CardType.cs", LineNumber = 5,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var createOrderMemberId = NodeId.ForMember("Orders.Api.OrdersApi", "CreateOrderAsync");
+        var getCardTypesMemberId = NodeId.ForMember("Orders.Api.OrdersApi", "GetCardTypesAsync");
+        var cardTypeId = NodeId.ForType("Orders.Api.CardType");
+
+        Assert.DoesNotContain(graph.OutEdges(createOrderMemberId), e => e.Kind == EdgeKind.ReadsWrites && e.To == cardTypeId);
+        Assert.Contains(graph.OutEdges(getCardTypesMemberId), e => e.Kind == EdgeKind.ReadsWrites && e.To == cardTypeId);
+    }
+
+    [Fact]
     public void Full_trace_path_entry_to_event()
     {
         var model = new DiscoveryModel
