@@ -230,6 +230,16 @@ export type AnalysisSummary = Message<"devcontext.v1.AnalysisSummary"> & {
    * @generated from field: string archetype = 11;
    */
   archetype: string;
+
+  /**
+   * @generated from field: bool stale = 12;
+   */
+  stale: boolean;
+
+  /**
+   * @generated from field: string stale_message = 13;
+   */
+  staleMessage: string;
 };
 
 /**

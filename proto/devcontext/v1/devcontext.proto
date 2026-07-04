@@ -94,6 +94,8 @@ message AnalysisSummary {
   repeated string warnings = 9;
   bool is_library = 10;
   string archetype = 11;
+  bool stale = 12;
+  string stale_message = 13;
 }
 
 message SessionRequest {

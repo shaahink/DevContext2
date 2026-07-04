@@ -152,6 +152,14 @@ export class SessionStore {
     this.workspace.tabById(tabId)?.controller.cancel();
   }
 
+  /** Re-triggers analysis for the active tab using its current path — used by the
+   * "Repo moved ahead — Re-analyze?" chip (L1.2 staleness probe). */
+  reAnalyze(): void {
+    const tab = this.workspace.activeTab();
+    if (!tab || !tab.path) return;
+    void this.analyze({ path: tab.path });
+  }
+
   refreshStats(): void {
     const tabId = this.workspace.activeId();
     const h = this.handle();

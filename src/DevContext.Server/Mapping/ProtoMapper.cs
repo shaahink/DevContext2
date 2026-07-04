@@ -20,6 +20,8 @@ internal static class ProtoMapper
             ElapsedMs = engine.ElapsedMs,
             Explanation = engine.Explanation,
             IsLibrary = snapshot.Map?.Archetype == Archetype.Library,
+            Stale = engine.Stale,
+            StaleMessage = engine.StaleMessage ?? string.Empty,
         };
         summary.Warnings.AddRange(engine.Warnings);
         return summary;

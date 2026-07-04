@@ -16,6 +16,18 @@ import { Badge } from '../../ui/badge/badge';
   imports: [StatCell, Badge, DecimalPipe],
   template: `
     <div class="space-y-5">
+      @if (stale(); as msg) {
+        <div class="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
+          <span class="i-lucide-alert-triangle h-4 w-4 shrink-0"></span>
+          <span>{{ msg }}</span>
+          <button type="button"
+            class="ml-auto rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300 hover:bg-amber-500/30 transition-colors"
+            (click)="reanalyze()">
+            Re-analyze
+          </button>
+        </div>
+      }
+
       <div class="flex flex-wrap items-center gap-3">
         @if (archetype(); as a) {
           <app-badge variant="accent" class="text-xs">{{ a }}</app-badge>
@@ -62,6 +74,11 @@ export class IdentityStrip {
   protected readonly summary = this.session.summary;
   protected readonly map = this.session.mapResponse;
 
+  protected readonly stale = computed(() => {
+    const s = this.summary();
+    return s?.stale ? (s.staleMessage || 'Repo has changed — Re-analyze?') : null;
+  });
+
   protected readonly archetype = computed(() => this.map()?.archetype);
   protected readonly style = computed(() => this.map()?.style);
   protected readonly styleConfidence = computed(() => this.map()?.styleConfidence ?? 0);
@@ -84,4 +101,9 @@ export class IdentityStrip {
   /** §3.5 repo-wide confidence, from the Flow Atlas's indexed flows — null (rendered
    * "—") until at least one flow has been indexed, not 0, since 0% is a real value. */
   protected readonly confidence = this.atlas.overallVerifiedPct;
+
+  protected reanalyze() {
+    void this.session.reAnalyze();
+  }
 }
+
