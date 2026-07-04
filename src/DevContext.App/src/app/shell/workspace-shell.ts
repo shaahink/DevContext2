@@ -14,6 +14,8 @@ import { OfflineBanner } from './offline-banner';
 import { ActivityBar } from './activity-bar';
 import { Statusbar } from './statusbar/statusbar';
 import { Omnibox } from '../features/omnibox/omnibox';
+import { NodeCard } from '../features/node-card/node-card';
+import { NodePeek } from '../features/peek/node-peek';
 
 /** Static filler tips (proposal §6 "at most 1-in-4") — posted once at shell startup;
  * `TickerService` persists which ones a user has already seen across sessions. */
@@ -64,7 +66,7 @@ const SHORTCUT_HELP = [
  */
 @Component({
   selector: 'app-workspace-shell',
-  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Omnibox],
+  imports: [RouterOutlet, Titlebar, TabStrip, OfflineBanner, ActivityBar, Statusbar, Omnibox, NodeCard, NodePeek],
   template: `
     <app-titlebar />
     <app-tab-strip />
@@ -77,6 +79,8 @@ const SHORTCUT_HELP = [
     </div>
     <app-statusbar />
     <app-omnibox />
+    <app-node-card />
+    <app-node-peek />
 
     @if (helpOpen()) {
       <div class="fixed inset-0 z-[60] flex items-center justify-center" (click)="helpOpen.set(false)" (keydown.escape)="helpOpen.set(false)" role="dialog" tabindex="0">

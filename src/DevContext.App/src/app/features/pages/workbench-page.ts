@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, OnDestroy, signal } from '@angular
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AtlasStore } from '../../state/atlas.store';
+import { NodePeekStore } from '../../state/node-peek.store';
 import { PrefsStore } from '../../state/prefs.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
@@ -104,6 +105,7 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly trace = inject(TraceStore);
   protected readonly trail = inject(TrailStore);
   private readonly atlas = inject(AtlasStore);
+  private readonly nodePeek = inject(NodePeekStore);
   private readonly prefs = inject(PrefsStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -276,11 +278,13 @@ export class WorkbenchPage implements OnDestroy {
     }
   }
 
-  /** Esc-ladder (proposal §8.4): cancel in-flight trace → close overlay → deselect node
-   * → clear focus → clear deck filter. The full spec's "unpin peek" rung (between close
-   * overlay and deselect node) is still a TODO — node-peek doesn't exist yet (W7). Runs
-   * unconditionally (not gated on focus) — that's the point of a ladder: Escape always
-   * does the highest-priority thing that's currently true, same as VS Code's. */
+  /** Esc-ladder (proposal §8.4): cancel in-flight trace → close overlay → unpin peek →
+   * deselect node → clear focus → clear deck filter. Runs unconditionally (not gated on
+   * focus) — that's the point of a ladder: Escape always does the highest-priority thing
+   * that's currently true, same as VS Code's. The peek rung must come from here rather
+   * than `NodePeek`'s own standalone `window:keydown.escape` fallback (which only
+   * matters outside the workbench, e.g. Home/Atlas) — otherwise a single Escape press
+   * both dismisses the peek AND falls through to deselect the node in the same tick. */
   private onEscape(): void {
     if (this.trace.loading()) {
       this.trace.cancelTrace();
@@ -292,6 +296,10 @@ export class WorkbenchPage implements OnDestroy {
     }
     if (this.exportOpen()) {
       this.exportOpen.set(false);
+      return;
+    }
+    if (this.nodePeek.nodeId()) {
+      this.nodePeek.dismiss();
       return;
     }
     if (this.trace.selectedNodeId()) {
