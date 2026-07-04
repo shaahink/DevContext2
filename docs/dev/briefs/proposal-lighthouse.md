@@ -150,7 +150,7 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 
 | Stage | Theme | Status |
 |-------|-------|--------|
-| L0 | Truth pass — fix the nine trust-breakers | NOT STARTED |
+| L0 | Truth pass — fix the nine trust-breakers | IN PROGRESS (4/9: L0.1, L0.2, L0.3, L0.9 done) |
 | L1 | Open fast, reopen instantly, stay responsive (GitHub/persistence/progress) | NOT STARTED |
 | L2 | CLI `report` + bench loop (the iteration harness) | NOT STARTED |
 | L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | NOT STARTED |
@@ -363,7 +363,15 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 
 | Stage.checkpoint | Commit | Status |
 |---|---|---|
-| L0.1 … L0.9 | — | NOT STARTED |
+| L0.1 Auth truth (E1) | 829417e | DONE |
+| L0.2 Multi-impl semantics + no-`?` (E2) | fa4618d | DONE |
+| L0.3 Salient snippet correctness (E3) | 4bfd388 | DONE |
+| L0.4 Span-bound data edges (E4) | — | NOT STARTED |
+| L0.5 Raises gating (E5) | — | NOT STARTED |
+| L0.6 Minimal-API target selection (E6) | — | NOT STARTED |
+| L0.7 CLI-command gating (E7) | — | NOT STARTED |
+| L0.8 Style/stack honesty (E8) | — | NOT STARTED |
+| L0.9 Input honesty (E9) | this commit | DONE (partial — see note) |
 | L1.1 … L1.4 | — | NOT STARTED |
 | L2.1 … L2.4 | — | NOT STARTED |
 | L3.1 … L3.6 | — | NOT STARTED |
@@ -373,3 +381,19 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L7.1 … L7.3 | — | NOT STARTED |
 
 *Maintain per the conventions in §4's preamble: status + commit hash in the same commit as the work.*
+
+**L0.9 partial-scope note:** fixed (a) `RepoUrl.Parse` hijacking any one-slash local path as GitHub
+shorthand — now excludes drive letters/backslashes/leading `.`or`/`, and `AnalyzeCommand` additionally
+prefers local-path existence over shorthand parsing for the positional arg; (b) a genuinely empty/
+invalid directory (no `.sln`/`.slnx`/`.csproj` reachable at all) now hard-errors with guidance at exit
+2 instead of silently analyzing nothing at exit 0; (c) the stale `--profile debug` (removed flag)
+reference in `MarkdownRenderer.AppendCallGraphAvailability` is gone. **Deferred:** the specific
+`ProjectRootResolver` `WalkedUp`/`WalkedDown` case — pointing at an empty subfolder that has an
+unrelated ancestor/descendant solution — still resolves that ancestor and renders "No types discovered"
+at exit 0 rather than hard-erroring or scoping to the ancestor's real content; needs a `ScopeResolver`-
+level decision (next session: does an empty resolved scope under a found-but-irrelevant solution count
+as "invalid input" or "valid input, empty result"?). "Delete the legacy renderer fallback path entirely"
+was also **not done wholesale**: `MarkdownRenderer`/`RenderPlanBuilder` are still the live path for
+`--format json`/`html` and for markdown when a host registers its own renderer (verified this is a
+real extensibility contract — `GoldenTests.BasicProject_Analysis` exercises it directly) — only the one
+stale message was fixed. Re-scope this as its own L0.9b or fold into L1 if a deeper fix is wanted.
