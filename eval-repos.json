@@ -165,6 +165,55 @@
       "expectedSignals": [],
       "profile": "focused",
       "scenarios": ["overview"]
+    },
+    {
+      "name": "PowerToys",
+      "url": "https://github.com/microsoft/PowerToys.git",
+      "ref": "main",
+      "description": "Desktop megarepo — WPF + WinUI utilities, CmdPal extensibility, native interop, ~120 projects, ~3600 files",
+      "expectedArchetype": "App",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Serilog",
+      "url": "https://github.com/serilog/serilog.git",
+      "ref": "main",
+      "description": "Structured logging library — ILogger, LoggerConfiguration, enrichers, sinks, format providers, public API surface",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "Spectre.Console",
+      "url": "https://github.com/spectreconsole/spectre.console.git",
+      "ref": "main",
+      "description": "CLI framework library — AnsiConsole, Command<T>, live displays, tables, trees, progress bars, prompts",
+      "expectedArchetype": "Library",
+      "expectedSignals": [],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "MassTransit-Sample",
+      "url": "https://github.com/MassTransit/Sample-GettingStarted.git",
+      "ref": "main",
+      "description": "MassTransit getting-started sample app — message publishing/consuming, RabbitMQ transport, sagas",
+      "expectedArchetype": "App",
+      "expectedSignals": ["masstransit"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "DevContext",
+      "localPath": ".",
+      "description": "Dogfood — DevContext analyzing itself. CLI + Server + Desktop + Core engine",
+      "expectedArchetype": "App",
+      "expectedSignals": ["minimal-apis"],
+      "profile": "focused",
+      "scenarios": ["overview"]
     }
   ]
 }
