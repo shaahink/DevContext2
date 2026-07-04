@@ -416,6 +416,7 @@ public sealed class GraphBuilder
             {
                 FilePath = type.FilePath,
                 SourceBody = type.SourceBody,
+                LineNumber = type.StartLine,
             });
         }
     }

@@ -37,4 +37,7 @@ public sealed record EntryPoint(
     /// <summary>Namespace- or project-derived grouping path (e.g. "Controllers/Orders", "Services/Ordering").
     /// Surfaces as the grouping column in the entries table and powers per-module rollups.</summary>
     public string? GroupPath { get; init; }
+    /// <summary>Authorization attributes applied to this entry (e.g. "[Authorize]", "[AllowAnonymous]"),
+    /// surfaces the auth column in entries and powers security insight cards.</summary>
+    public ImmutableArray<string> AuthAttributes { get; init; } = [];
 }

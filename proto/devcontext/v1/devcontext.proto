@@ -124,6 +124,7 @@ message EntryPoint {
   optional string project = 7;
   optional string target = 8;
   optional string group_path = 9;
+  repeated string auth_attributes = 10;
 }
 
 // ---------------------------------------------------------------------------
@@ -226,6 +227,7 @@ message NodeResponse {
   optional string file_path = 6;
   int32 out_degree = 7;
   int32 in_degree = 8;
+  optional int32 line_number = 9;
 }
 
 message NeighborsRequest {

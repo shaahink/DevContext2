@@ -101,6 +101,8 @@ public sealed record GraphNode(
     public string? Project { get; init; }
     /// <summary>Full source body text of the type declaration (when applicable).</summary>
     public string? SourceBody { get; init; }
+    /// <summary>1-based start line of this node's declaration in its source file.</summary>
+    public int? LineNumber { get; init; }
     /// <summary>Free-form labels (e.g. "aggregate", "command", "scoped").</summary>
     public ImmutableArray<string> Tags { get; init; } = [];
 }

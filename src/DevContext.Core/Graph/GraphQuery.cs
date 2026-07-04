@@ -13,7 +13,8 @@ public sealed record NodeDetail(
     ImmutableArray<string> Tags,
     string? FilePath,
     int OutDegree,
-    int InDegree);
+    int InDegree,
+    int? LineNumber = null);
 
 /// <summary>A directed edge as a navigation result: the edge plus the resolved title of the node on the
 /// other end (the one the caller is navigating TO).</summary>
@@ -74,7 +75,7 @@ public sealed class GraphQuery
         var n = _graph.Node(id);
         if (n is null) return null;
         return new NodeDetail(n.Id, n.Title, n.Kind, n.Tags, n.FilePath,
-            _graph.OutEdges(id).Length, _graph.InEdges(id).Length);
+            _graph.OutEdges(id).Length, _graph.InEdges(id).Length, n.LineNumber);
     }
 
     /// <summary>neighbors(id, direction) — the edges out of (callees) or into (callers) a node, as

@@ -122,6 +122,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                 Route = ep.RouteTemplate,
                 Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                 HandlerNode = handlerNodeId,
+                AuthAttributes = ep.AuthAttributes,
             });
         }
         return entries.ToImmutable();

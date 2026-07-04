@@ -41,6 +41,7 @@ internal static class ProtoMapper
         if (e.Project is { } proj) p.Project = proj;
         if (e.Target is { } t) p.Target = t;
         if (e.GroupPath is { } gp) p.GroupPath = gp;
+        if (!e.AuthAttributes.IsDefaultOrEmpty) p.AuthAttributes.AddRange(e.AuthAttributes);
         return p;
     }
 
@@ -106,6 +107,7 @@ internal static class ProtoMapper
             InDegree = d.InDegree,
         };
         if (d.FilePath is { } f) resp.FilePath = f;
+        if (d.LineNumber is { } ln) resp.LineNumber = ln;
         resp.Tags.AddRange(d.Tags);
         return resp;
     }
