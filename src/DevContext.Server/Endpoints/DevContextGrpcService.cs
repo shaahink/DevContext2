@@ -72,10 +72,10 @@ public sealed class DevContextGrpcService(
         }
     }
 
-    public override Task<Proto.CloseResponse> CloseSession(Proto.SessionRequest request, ServerCallContext context)
+    public override async Task<Proto.CloseResponse> CloseSession(Proto.SessionRequest request, ServerCallContext context)
     {
-        var closed = sessions.CloseSession(request.Handle);
-        return Task.FromResult(new Proto.CloseResponse { Closed = closed });
+        var closed = await sessions.CloseSessionAsync(request.Handle).ConfigureAwait(false);
+        return new Proto.CloseResponse { Closed = closed };
     }
 
     public override Task<Proto.EntryPointsResponse> ListEntryPoints(Proto.SessionRequest request, ServerCallContext context)

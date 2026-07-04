@@ -39,7 +39,23 @@ export class ActivityService {
     return ctrl;
   }
 
+  private _lastProgressMs = 0;
+
   setProgress(stage: string, percent: number, message: string): void {
+    // L1.4 — coalesce progress writes: signals trigger change detection which,
+    // at 80+ calls/s, causes layout thrash in the statusbar. The server-side
+    // throttle (L1.3) brings this down to 4/s, but we add a client-side guard
+    // for call paths that haven't been throttled yet (e.g. clone progress).
+    const now = Date.now();
+    if (now - this._lastProgressMs < 80) {
+      // Skip intermediate — but always store the latest values so the final
+      // paint (which arrives after a quiet period) shows the right thing.
+      this._stage.set(stage);
+      this._percent.set(percent);
+      this._label.set(message);
+      return;
+    }
+    this._lastProgressMs = now;
     this._stage.set(stage);
     this._percent.set(percent);
     this._label.set(message);

@@ -169,7 +169,8 @@ fn supervise(dll: String, port: u16, state: Arc<ServerProcess>) {
     }
 }
 
-/// Spawns the DevContext .NET server as a managed child on the given port.
+/// Spawns the DevContext .NET server as a managed child on the given port, with
+/// below-normal process priority so the UI stays responsive under Roslyn compilation.
 fn spawn_child(dll: &str, port: u16) -> Option<Child> {
     match Command::new("dotnet")
         .arg(dll)
@@ -178,13 +179,35 @@ fn spawn_child(dll: &str, port: u16) -> Option<Child> {
         .stdin(Stdio::null())
         .spawn()
     {
-        Ok(child) => {
+        Ok(mut child) => {
             log::info!("Spawned DevContext server from {dll} on port {port}");
+
+            #[cfg(target_os = "windows")]
+            set_below_normal_priority(&mut child);
+
             Some(child)
         }
         Err(err) => {
             log::error!("Failed to spawn DevContext server: {err}");
             None
         }
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn set_below_normal_priority(child: &mut Child) {
+    use std::os::windows::io::AsRawHandle;
+    use windows::Win32::System::Threading::{
+        SetPriorityClass, BELOW_NORMAL_PRIORITY_CLASS,
+    };
+    use windows::Win32::Foundation::HANDLE;
+
+    let handle = child.as_raw_handle();
+    if handle.is_null() { return; }
+    unsafe {
+        let _ = SetPriorityClass(
+            HANDLE(handle as *mut _),
+            BELOW_NORMAL_PRIORITY_CLASS,
+        );
     }
 }

@@ -6,5 +6,5 @@ public interface IAnalysisSessionManager
 
     AnalysisSession? Get(string handle);
 
-    bool CloseSession(string handle);
+    Task<bool> CloseSessionAsync(string handle);
 }

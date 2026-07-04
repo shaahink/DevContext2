@@ -18,7 +18,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
 
     public async Task<AnalysisSession> AnalyzeAsync(AnalyzeSpec spec, IProgress<AnalysisProgress>? progress, CancellationToken ct)
     {
-        EvictIfNeeded();
+        await EvictIfNeededAsync().ConfigureAwait(false);
 
         var engine = await _runner.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
         var handle = Guid.NewGuid().ToString("N");
@@ -34,10 +34,10 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         return entry.Session;
     }
 
-    public bool CloseSession(string handle)
+    public async Task<bool> CloseSessionAsync(string handle)
     {
         if (!_sessions.TryRemove(handle, out var entry)) return false;
-        entry.Session.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        await entry.Session.DisposeAsync().ConfigureAwait(false);
         return true;
     }
 
@@ -49,7 +49,7 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         await _hostCache.DisposeAsync().ConfigureAwait(false);
     }
 
-    private void EvictIfNeeded()
+    private async Task EvictIfNeededAsync()
     {
         var capacity = _options.SessionCapacity;
         if (_sessions.Count < capacity) return;
@@ -67,14 +67,14 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         foreach (var key in expired)
         {
             if (_sessions.TryRemove(key, out var entry))
-                entry.Session.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                await entry.Session.DisposeAsync().ConfigureAwait(false);
         }
 
         if (_sessions.Count >= capacity)
         {
             var lru = _sessions.Values.OrderBy(e => e.LastAccess).First();
             if (_sessions.TryRemove(lru.Session.Handle, out var lruEntry))
-                lruEntry.Session.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                await lruEntry.Session.DisposeAsync().ConfigureAwait(false);
         }
     }
 
