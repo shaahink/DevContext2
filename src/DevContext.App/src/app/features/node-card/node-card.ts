@@ -4,13 +4,14 @@ import { NodeStore } from '../../state/node.store';
 import { TraceStore } from '../../state/trace.store';
 import { ToastService } from '../../ui/toast/toast';
 import { NodeLink } from '../../ui/node-link/node-link';
+import { Skeleton } from '../../ui/skeleton/skeleton';
 import type { Edge } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { copyToClipboard } from '../../core/clipboard';
 
 @Component({
   selector: 'app-node-card',
   standalone: true,
-  imports: [Sheet, NodeLink],
+  imports: [Sheet, NodeLink, Skeleton],
   template: `
     <app-sheet [open]="store.open()" (closed)="store.hide()">
       <div class="flex flex-col h-full">
@@ -21,9 +22,13 @@ import { copyToClipboard } from '../../core/clipboard';
           <button class="text-ink-muted hover:text-ink text-xs px-1" (click)="store.hide()">✕</button>
         </div>
         @if (store.loading()) {
-          <div class="flex-1 flex items-center justify-center gap-2">
-            <div class="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent"></div>
-            <span class="text-xs text-ink-muted">Loading…</span>
+          <!-- Content-preserving loading (proposal §5.2, GAP-B8): shapes of the sections
+               below, not a spinner — first-load only, so the sheet never blanks. -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-3">
+            <div class="space-y-1"><app-skeleton width="2.5rem" height="0.625rem" /><app-skeleton width="60%" /></div>
+            <div class="space-y-1"><app-skeleton width="3.5rem" height="0.625rem" /><app-skeleton width="85%" /></div>
+            <app-skeleton width="35%" />
+            <div class="space-y-1 pt-1"><app-skeleton width="4rem" height="0.625rem" /><app-skeleton width="70%" /></div>
           </div>
         } @else if (store.error()) {
           <div class="flex-1 flex flex-col items-center justify-center gap-3 p-6">
@@ -32,6 +37,13 @@ import { copyToClipboard } from '../../core/clipboard';
             <button class="text-2xs text-ink-subtle hover:text-ink" (click)="copyError()">Copy details</button>
           </div>
         } @else if (store.node(); as n) {
+          @if (!n.found) {
+            <!-- Trust principle (§1.4): never show fabricated field values for a node
+                 the server couldn't actually resolve. -->
+            <div class="flex-1 flex items-center justify-center p-6">
+              <p class="text-xs text-ink-subtle">Node not found.</p>
+            </div>
+          } @else {
           <div class="flex-1 overflow-y-auto p-3 space-y-3">
             <div><span class="text-2xs text-ink-muted uppercase">Kind</span>
               <p class="text-sm text-ink">{{ n.kind }}</p></div>
@@ -78,6 +90,7 @@ import { copyToClipboard } from '../../core/clipboard';
               </div>
             }
           </div>
+          }
         }
       </div>
     </app-sheet>
