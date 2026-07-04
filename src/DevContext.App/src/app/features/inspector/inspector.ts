@@ -9,6 +9,7 @@ import { Skeleton } from '../../ui/skeleton/skeleton';
 import { ToastService } from '../../ui/toast/toast';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
+import { formatCompact } from '../../core/format';
 
 type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
 
@@ -250,7 +251,7 @@ export class Inspector {
   }
 
   protected fmtK(n: number): string {
-    return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n);
+    return formatCompact(n);
   }
 
   /** Manual retry (error state) — bypasses the "already rendered this focus" guard. */

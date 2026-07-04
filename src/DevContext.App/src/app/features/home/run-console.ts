@@ -2,6 +2,7 @@ import { afterEveryRender, Component, computed, ElementRef, inject, viewChild } 
 
 import { SessionStore } from '../../state/session.store';
 import { Icon } from '../../ui/icon/icon';
+import { formatCompact } from '../../core/format';
 
 /**
  * Home's console ⇄ report (proposal §2 "console during analysis → digest"). Two
@@ -195,5 +196,5 @@ export class RunConsole {
   protected ms(v: bigint): string { return (Number(v) / 1000).toFixed(1); }
   protected ms2(v: bigint): string { return (Number(v) / 1000).toFixed(2); }
   protected pct(ms: number, max: number): number { return max > 0 ? Math.max((ms / max) * 100, 3) : 0; }
-  protected fmtK(n: number): string { if (n >= 1000) return (n / 1000).toFixed(1) + 'K'; return String(n); }
+  protected fmtK(n: number): string { return formatCompact(n); }
 }

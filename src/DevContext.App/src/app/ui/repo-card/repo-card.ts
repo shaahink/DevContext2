@@ -4,22 +4,7 @@ import type { GitHubRepo } from '../../data-access/github-api';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
 import { Icon } from '../icon/icon';
-
-function formatStars(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
-
-function timeAgo(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days < 1) return 'today';
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
+import { formatCompact, timeAgo } from '../../core/format';
 
 @Component({
   selector: 'app-repo-card',
@@ -77,6 +62,6 @@ export class RepoCard {
   readonly repo = input.required<GitHubRepo>();
   readonly analyze = output<string>();
 
-  protected formatStars(n: number): string { return formatStars(n); }
+  protected formatStars(n: number): string { return formatCompact(n, 'k'); }
   protected timeAgo(d: string | null): string { return timeAgo(d); }
 }

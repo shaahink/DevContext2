@@ -9,6 +9,7 @@ import { Icon } from '../../ui/icon/icon';
 import { Button } from '../../ui/button/button';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { copyToClipboard } from '../../core/clipboard';
+import { formatCompact } from '../../core/format';
 
 type ExportPreset = 'full' | 'onboarding' | 'flow' | 'trail';
 
@@ -372,7 +373,6 @@ export class ExportDrawer {
   }
 
   protected fmt(n: number): string {
-    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-    return String(n);
+    return formatCompact(n);
   }
 }
