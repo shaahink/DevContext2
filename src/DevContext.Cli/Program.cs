@@ -23,6 +23,11 @@ app.Configure(config =>
         .WithExample(new[] { "query", "entrypoints", "--path", "." })
         .WithExample(new[] { "query", "trace", "--focus", "POST /api/orders" });
 
+    config.AddCommand<ReportCommand>("report")
+        .WithDescription("Produce a full report doc — identity, stats, top flows, traces, insights, map, run report")
+        .WithExample(new[] { "report", "." })
+        .WithExample(new[] { "report", ".", "--format", "json", "--output", "report.json" });
+
     config.AddCommand<InitCommand>("init")
         .WithDescription("Create devcontext.json in the current directory");
 
