@@ -43,6 +43,9 @@ service DevContextService {
 
   // Liveness/readiness probe.
   rpc Ping(PingRequest) returns (PingResponse);
+
+  // Impact analysis: finds which entry points reach a given node via BFS over in-edges.
+  rpc GetImpact(ImpactRequest) returns (ImpactResponse);
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +367,26 @@ message RenderResponse {
 message SectionInfo {
   string key = 1;
   int32 tokens = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Impact (blast-radius analysis)
+// ---------------------------------------------------------------------------
+
+message ImpactRequest {
+  string handle = 1;
+  string node_id = 2;
+  int32 max_depth = 3;
+}
+
+message ImpactResponse {
+  repeated ImpactResult results = 1;
+}
+
+message ImpactResult {
+  string entry_title = 1;
+  string kind = 2;
+  int32 hops = 3;
 }
 
 // ---------------------------------------------------------------------------

@@ -205,6 +205,21 @@ internal static class ProtoMapper
         return resp;
     }
 
+    public static Proto.ImpactResponse ToImpactResponse(System.Collections.Immutable.ImmutableArray<BlastResult> results)
+    {
+        var resp = new Proto.ImpactResponse();
+        foreach (var r in results)
+        {
+            resp.Results.Add(new Proto.ImpactResult
+            {
+                EntryTitle = r.EntryTitle,
+                Kind = r.Kind,
+                Hops = r.Hops,
+            });
+        }
+        return resp;
+    }
+
     public static Proto.RenderResponse ToRenderResponse(RenderedContext ctx)
     {
         var resp = new Proto.RenderResponse

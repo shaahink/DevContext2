@@ -166,6 +166,19 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToSearchResponse(results);
         });
 
+    public override Task<Proto.ImpactResponse> GetImpact(Proto.ImpactRequest request, ServerCallContext context)
+        => Wrap(() =>
+        {
+            var session = Require(request.Handle);
+            var nodeId = ResolveNode(session, request.NodeId);
+            if (nodeId is null)
+                return new Proto.ImpactResponse();
+
+            var maxDepth = request.MaxDepth > 0 ? request.MaxDepth : 4;
+            var results = session.Query.BlastRadius(nodeId.Value, maxDepth);
+            return ProtoMapper.ToImpactResponse(results);
+        });
+
     public override Task<Proto.StatsResponse> GetStats(Proto.SessionRequest request, ServerCallContext context)
         => Wrap(() =>
         {
