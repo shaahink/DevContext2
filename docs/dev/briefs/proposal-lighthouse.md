@@ -151,9 +151,9 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 | Stage | Theme | Status |
 |-------|-------|--------|
 | L0 | Truth pass — fix the nine trust-breakers | 9/9 DONE (L0.9 partial-scope, see note below) |
-| L1 | Open fast, reopen instantly, stay responsive (GitHub/persistence/progress) | NOT STARTED |
-| L2 | CLI `report` + bench loop (the iteration harness) | 4/4 DONE (2026-07-04) |
-| L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | NOT STARTED |
+| L1 | Open fast, reopen instantly, stay responsive (GitHub/persistence/progress) | 4/4 DONE |
+| L2 | CLI `report` + bench loop (the iteration harness) | 4/4 DONE |
+| L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | 6/6 DONE (2026-07-05) |
 | L4 | Insight engine v2 + archetype lenses (facets that matter) | NOT STARTED |
 | L5 | MCP server + context packs (the agent surface) | NOT STARTED |
 | L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | NOT STARTED |
@@ -380,7 +380,12 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L2.2 | `scripts/bench.ps1` benchmark loop | db6aeab | DONE |
 | L2.3 | Benchmark set v2 | dafcfd1 | DONE |
 | L2.4 | Query surface parity (node, neighbors, usages, search) | dcc7e6c | DONE |
-| L3.1 … L3.6 | — | NOT STARTED |
+| L3.1 | Impact RPC | 60ae224 | DONE |
+| L3.2 | Top Flows ranking | b82d203 | DONE |
+| L3.3 | InterestingPoints(archetype) | ba736e1 | DONE |
+| L3.4 | Graph completeness / hub-scoping | cbb759b | DONE |
+| L3.5 | Node line numbers + auth on payloads | ed1ca35 | DONE |
+| L3.6 | Module/feature grouping (GroupPath + gRPC per-method) | 4d2d027 | DONE |
 | L4.1 … L4.4 | — | NOT STARTED |
 | L5.1 … L5.4 | — | NOT STARTED |
 | L6.1 … L6.9 | — | NOT STARTED |

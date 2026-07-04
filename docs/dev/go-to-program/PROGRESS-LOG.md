@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-07-05 — Lighthouse L3: Kernel answers (all 6 checkpoints)
+
+**Changed:**
+- **L3.6** `GroupPath` on `EntryPoint` + proto `EntryPoint.group_path` + namespace-derived grouping via `NameResolver.GetNamespace()`. `GrpcEntryPointBuilder` expanded from service-level to per-method entries (one entry per gRPC method with service name as GroupPath). `HttpRouteGroupPath()` fallback for HTTP lambdas.
+- **L3.5** `int? LineNumber` on `GraphNode`, `NodeDetail`, `proto NodeResponse.line_number`. Populated from `TypeDiscovery.StartLine` (set during `SourceBodyExtractor`). `AuthAttributes` on `EntryPoint` + `proto EntryPoint.auth_attributes`, piped from `EndpointDetection.AuthAttributes` (already detected by `EndpointExtractor`/`ControllerActionExtractor`). `CodeGraphBuilder.AddNode` merge now respects `LineNumber`.
+- **L3.1** `rpc GetImpact(ImpactRequest) returns (ImpactResponse)` — wraps the already-implemented `GraphQuery.BlastRadius()` (BFS over in-edges to find reachable entry points). gRPC handler + `ProtoMapper.ToImpactResponse()`.
+- **L3.2** Graph-aware entry scoring: `BfsEntryScore` performs BFS (depth 6) from each entry node, counting reach, seam richness (Sends/Raises/Consumes), entity touches (ReadsWrites to entity/aggregate tags), and cross-project depth. `EnrichEntryScores` normalizes into a composite 0..1 `Score` stored on `EntryPoint`. `Proto EntryPoint` gained `score`, `reach`, `cross_projects` fields. `ReportRenderer.RankEntries` now sorts by score first, falling back to has-target + kind + title.
+- **L3.4** Hub-scoping for sparse graphs: `AddHubScopeEdges` detects sparseness (entries < 5 or edge/node ratio < 0.1), identifies top-K central types by degree centrality from the model's `CallEdges`, and binds their inter-type call edges (even when one endpoint lacks FilePath — the normal gate). Budget-capped at 500 edges. `CodeGraph.IsSparseGraph` + `HubScopeNodeCount` populated and reported via `GraphStat.sparse_graph`/`hub_scope_nodes` in Stats.
+- **L3.3** `GraphQuery.GetInterestingPoints(archetype?)` — 5 per-archetype strategies: **web** (auth boundary entries + data hubs + pipeline middleware), **library** (top-degree public API hubs + implementor seats with ≥2 Resolves edges), **messaging** (message producers via Sends/Raises + consumer entries), **desktop** (top-3 centrality per-project as module hubs), **CLI** (command entry points). Centrality fallback for unknown/empty archetype (top-20 by degree). New `rpc GetInterestingPoints` in proto + gRPC handler + `ProtoMapper`.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e on all 6 commits
+- `dotnet test --filter Category!=Eval` — 429/0 (12+64+353, 3 skipped), same baseline throughout
+- `pnpm check` (lint+test+build) — green on all 6 commits (lint 0/0, test 27/27, build 0w/0e)
+
+**Next:** L4 — Insight engine v2 + archetype lenses. See `docs/dev/briefs/proposal-lighthouse.md` §L4.
+
+---
+
 ## 2026-07-04 — Lighthouse L2: CLI `report` + bench loop + query parity
 
 **Changed:**

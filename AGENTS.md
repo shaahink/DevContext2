@@ -25,11 +25,11 @@ dotnet test  DevContext.slnx --filter "Category!=Eval"
 - Do not write new C# extractors — reform in place.
 
 ## Work items
-- **Lighthouse L0–L2** ✅ — truth pass, open fast, report + bench + query. See `docs/dev/briefs/proposal-lighthouse.md`.
-- **L3** 🔶 — Kernel answers. Read `L3-START.md`.
+- **Lighthouse L0–L3** ✅ — truth pass, open fast, report + bench + query, kernel answers. See `docs/dev/briefs/proposal-lighthouse.md`.
+- **L4** 🔶 — Insight engine v2 + archetype lenses. Read `docs/dev/briefs/proposal-lighthouse.md` §L4.
+- **L5** ⬜ — MCP server + context packs (the agent surface).
 - **Fable** ✅ — W0-W7 done. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
 - **U3 Facet views** ⬜ — blocked on engine E4.
-- **I11 Focus Workspace** ⬜ — superseded by F, superseded by L.
 
 ## Resume protocol
 ```
@@ -37,5 +37,5 @@ git -C C:/Code/DevContext2-ui checkout feat/lighthouse-l2
 git -C C:/Code/DevContext2-ui pull
 dotnet build C:/Code/DevContext2-ui/DevContext.slnx
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
-# Read L3-START.md for current stage
+# Read docs/dev/briefs/proposal-lighthouse.md §L4 for next stage
 ```
