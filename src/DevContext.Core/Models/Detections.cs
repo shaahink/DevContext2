@@ -25,6 +25,7 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
 [JsonDerivedType(typeof(GraphQlFieldDetection), "GraphQlFieldDetection")]
 [JsonDerivedType(typeof(CliCommandDetection), "CliCommandDetection")]
+[JsonDerivedType(typeof(GlobalAuthPolicyDetection), "GlobalAuthPolicyDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -58,6 +59,13 @@ public sealed record EndpointDetection(
     int HandlerLine = 0,
     string? HandlerBody = null
 ) : Detection;
+
+/// <summary>
+/// App-wide fallback/default authorization policy signal (e.g.
+/// <c>AddAuthorization(o =&gt; o.FallbackPolicy = ...RequireAuthenticatedUser())</c>). When present, an
+/// endpoint with no per-endpoint or per-group auth metadata is protected by default, not anonymous.
+/// </summary>
+public sealed record GlobalAuthPolicyDetection(bool HasFallbackPolicy) : Detection;
 
 /// <summary>Detection for a MediatR handler implementation.</summary>
 public sealed record MediatRHandlerDetection(

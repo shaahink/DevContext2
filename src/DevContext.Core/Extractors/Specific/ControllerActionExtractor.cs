@@ -90,7 +90,7 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
                         httpMethod = InferHttpVerbFromMethodName(method.Identifier.ValueText);
 
                     var lineNumber = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                    var authAttrs = ExtractAuthAttributes(method);
+                    var authAttrs = ExtractAuthAttributes(method, classDecl);
                     var paramTypes = method.ParameterList.Parameters
                         .Select(p => p.Type?.ToString() ?? "?")
                         .ToImmutableArray();
@@ -317,17 +317,27 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
             .Replace("[action]", actionName, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static ImmutableArray<string> ExtractAuthAttributes(MethodDeclarationSyntax method)
+    /// <summary>
+    /// Merges class- and method-level auth attributes (E1). A class-level `[Authorize]` protects every
+    /// action unless the action itself carries `[AllowAnonymous]`, which always wins — mirroring ASP.NET
+    /// Core's own precedence. Reporting only method-level attributes made every action on an
+    /// `[Authorize]`-decorated controller look anonymous.
+    /// </summary>
+    private static ImmutableArray<string> ExtractAuthAttributes(MethodDeclarationSyntax method, ClassDeclarationSyntax classDecl)
     {
-        var result = new List<string>();
+        var methodAttrs = method.AttributeLists.SelectMany(a => a.Attributes)
+            .Select(a => a.Name.ToString())
+            .Where(n => n.Contains("Authorize") || n.Contains("AllowAnonymous"))
+            .ToList();
 
-        foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
-        {
-            var attrName = attr.Name.ToString();
-            if (attrName.Contains("Authorize"))
-                result.Add(attrName);
-        }
+        if (methodAttrs.Any(n => n.Contains("AllowAnonymous")))
+            return [.. methodAttrs];
 
-        return [.. result];
+        var classAttrs = classDecl.AttributeLists.SelectMany(a => a.Attributes)
+            .Select(a => a.Name.ToString())
+            .Where(n => n.Contains("Authorize") && !n.Contains("AllowAnonymous"))
+            .ToList();
+
+        return [.. methodAttrs, .. classAttrs];
     }
 }

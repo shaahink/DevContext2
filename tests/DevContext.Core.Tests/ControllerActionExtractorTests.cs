@@ -202,4 +202,72 @@ public sealed class ControllerActionExtractorTests
         Assert.Single(endpoints);
         Assert.Equal("Visible", endpoints[0].HandlerMethod);
     }
+
+    [Fact]
+    public async Task ClassLevel_Authorize_propagates_to_actions_without_their_own_attribute()
+    {
+        var (ctx, model) = Setup("""
+            [ApiController]
+            [Route("api/[controller]")]
+            [Authorize]
+            public class SecretController : ControllerBase
+            {
+                [HttpGet]
+                public IActionResult Get() => Ok();
+            }
+            """);
+        var extractor = new ControllerActionExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var endpoint = model.Detections.OfType<EndpointDetection>().Single();
+        Assert.Contains("Authorize", endpoint.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task Method_AllowAnonymous_overrides_class_level_Authorize()
+    {
+        var (ctx, model) = Setup("""
+            [ApiController]
+            [Route("api/[controller]")]
+            [Authorize]
+            public class MixedController : ControllerBase
+            {
+                [HttpGet("public")]
+                [AllowAnonymous]
+                public IActionResult PublicGet() => Ok();
+
+                [HttpGet("private")]
+                public IActionResult PrivateGet() => Ok();
+            }
+            """);
+        var extractor = new ControllerActionExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
+        var pub = endpoints.Single(e => e.HandlerMethod == "PublicGet");
+        var priv = endpoints.Single(e => e.HandlerMethod == "PrivateGet");
+
+        Assert.Contains("AllowAnonymous", pub.AuthAttributes);
+        Assert.DoesNotContain(pub.AuthAttributes, a => a.Contains("Authorize") && !a.Contains("AllowAnonymous"));
+        Assert.Contains("Authorize", priv.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task No_class_or_method_Authorize_leaves_endpoint_with_no_auth_attributes()
+    {
+        var (ctx, model) = Setup("""
+            [ApiController]
+            [Route("api/[controller]")]
+            public class OpenController : ControllerBase
+            {
+                [HttpGet]
+                public IActionResult Get() => Ok();
+            }
+            """);
+        var extractor = new ControllerActionExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var endpoint = model.Detections.OfType<EndpointDetection>().Single();
+        Assert.Empty(endpoint.AuthAttributes);
+    }
 }
