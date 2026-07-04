@@ -232,6 +232,25 @@ internal static class ProtoMapper
         return resp;
     }
 
+    public static Proto.InterestingPointsResponse ToInterestingPointsResponse(
+        System.Collections.Immutable.ImmutableArray<InterestingPoint> points)
+    {
+        var resp = new Proto.InterestingPointsResponse();
+        foreach (var p in points)
+        {
+            var pp = new Proto.InterestingPoint
+            {
+                NodeId = p.Id.ToString(),
+                Title = p.Title,
+                Kind = p.Kind.ToString(),
+                Why = p.Why,
+            };
+            pp.Tags.AddRange(p.Tags);
+            resp.Points.Add(pp);
+        }
+        return resp;
+    }
+
     public static Proto.RenderResponse ToRenderResponse(RenderedContext ctx)
     {
         var resp = new Proto.RenderResponse

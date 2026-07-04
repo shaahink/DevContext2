@@ -46,6 +46,9 @@ service DevContextService {
 
   // Impact analysis: finds which entry points reach a given node via BFS over in-edges.
   rpc GetImpact(ImpactRequest) returns (ImpactResponse);
+
+  // Archetype-aware interesting starting points ("where to start reading").
+  rpc GetInterestingPoints(InterestingPointsRequest) returns (InterestingPointsResponse);
 }
 
 // ---------------------------------------------------------------------------
@@ -392,6 +395,27 @@ message ImpactResult {
   string entry_title = 1;
   string kind = 2;
   int32 hops = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Interesting points (archetype-aware starting points)
+// ---------------------------------------------------------------------------
+
+message InterestingPointsRequest {
+  string handle = 1;
+  optional string archetype = 2;
+}
+
+message InterestingPointsResponse {
+  repeated InterestingPoint points = 1;
+}
+
+message InterestingPoint {
+  string node_id = 1;
+  string title = 2;
+  string kind = 3;
+  string why = 4;
+  repeated string tags = 5;
 }
 
 // ---------------------------------------------------------------------------

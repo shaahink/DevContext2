@@ -179,6 +179,16 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToImpactResponse(results);
         });
 
+    public override Task<Proto.InterestingPointsResponse> GetInterestingPoints(
+        Proto.InterestingPointsRequest request, ServerCallContext context)
+        => Wrap(() =>
+        {
+            var session = Require(request.Handle);
+            var archetype = request.HasArchetype ? request.Archetype : null;
+            var points = session.Query.GetInterestingPoints(archetype);
+            return ProtoMapper.ToInterestingPointsResponse(points);
+        });
+
     public override Task<Proto.StatsResponse> GetStats(Proto.SessionRequest request, ServerCallContext context)
         => Wrap(() =>
         {

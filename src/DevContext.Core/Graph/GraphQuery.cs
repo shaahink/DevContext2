@@ -138,6 +138,185 @@ public sealed class GraphQuery
         return best?.Id;
     }
 
+    /// <summary>L3.3 — Returns archetype-aware interesting starting points. Each archetype gets a
+    /// tailored strategy; unknown/empty archetypes fall back to top-centrality. Returns up to 20
+    /// points, each with a human-readable "why" explanation.</summary>
+    public ImmutableArray<InterestingPoint> GetInterestingPoints(string? archetype = null)
+    {
+        return (archetype?.ToLowerInvariant()) switch
+        {
+            "web" => InterestingForWeb(),
+            "library" => InterestingForLibrary(),
+            "messaging" => InterestingForMessaging(),
+            "desktop" => InterestingForDesktop(),
+            "cli" => InterestingForCli(),
+            _ => InterestingByCentrality(),
+        };
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingForWeb()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+        var seen = new HashSet<NodeId>();
+
+        // Auth boundary entries
+        foreach (var e in _entries.Where(e => !e.AuthAttributes.IsDefaultOrEmpty))
+        {
+            var node = _graph.Node(e.Node);
+            if (node is null || !seen.Add(e.Node)) continue;
+            results.Add(new InterestingPoint(e.Node, e.Title, node.Kind,
+                $"Auth boundary: {string.Join(", ", e.AuthAttributes)}", node.Tags));
+        }
+
+        // Data hubs: most-connected entity/aggregate nodes
+        foreach (var n in _graph.Nodes)
+        {
+            if (!seen.Add(n.Id)) continue;
+            if (!n.Tags.Contains(RoleTags.Entity) && !n.Tags.Contains(RoleTags.Aggregate)) continue;
+            var degree = _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length;
+            if (degree >= 3)
+                results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                    $"Data hub: {degree} connections", n.Tags));
+        }
+
+        // Middleware: Pipeline-tagged nodes
+        foreach (var n in _graph.Nodes)
+        {
+            if (!seen.Add(n.Id)) continue;
+            if (!n.Tags.Contains(RoleTags.Pipeline)) continue;
+            results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                "Pipeline/middleware", n.Tags));
+        }
+
+        return results.OrderByDescending(r => Score(r, _graph)).Take(20).ToImmutableArray();
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingForLibrary()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+        var seen = new HashSet<NodeId>();
+
+        // Public API: top-degree types (they're the surface)
+        foreach (var n in _graph.Nodes.OrderByDescending(n =>
+            _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length).Take(15))
+        {
+            if (!seen.Add(n.Id)) continue;
+            if (n.Kind != NodeKind.Type) continue;
+            var deg = _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length;
+            results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                $"Public API hub: {deg} connections", n.Tags));
+        }
+
+        // Implementor seats: interfaces/abstract types with most Resolves edges
+        foreach (var n in _graph.Nodes)
+        {
+            if (!seen.Add(n.Id)) continue;
+            var resolveCount = _graph.OutEdges(n.Id).Count(e => e.Kind == EdgeKind.Resolves);
+            if (resolveCount >= 2)
+                results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                    $"Seat: {resolveCount} implementations", n.Tags));
+        }
+
+        return results.Take(20).ToImmutableArray();
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingForMessaging()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+        var seen = new HashSet<NodeId>();
+
+        // Message producers: entry points with Raises/Sends edges
+        foreach (var e in _entries)
+        {
+            var sends = _graph.OutEdges(e.Node).Count(ed => ed.Kind is EdgeKind.Sends or EdgeKind.Raises);
+            if (sends == 0) continue;
+            var node = _graph.Node(e.Node);
+            if (node is null || !seen.Add(e.Node)) continue;
+            results.Add(new InterestingPoint(e.Node, e.Title, node.Kind,
+                $"Producer: {sends} message edges", node.Tags));
+        }
+
+        // Consumers: Event/Notification handler entries
+        foreach (var e in _entries.Where(e => e.Kind == EntryPointKind.DomainEventHandler
+            || e.Kind == EntryPointKind.MessageConsumer))
+        {
+            var node = _graph.Node(e.Node);
+            if (node is null || !seen.Add(e.Node)) continue;
+            results.Add(new InterestingPoint(e.Node, e.Title, node.Kind,
+                "Message consumer", node.Tags));
+        }
+
+        return results.Take(20).ToImmutableArray();
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingForDesktop()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+
+        // Module hubs: top-central types per project
+        var byProject = new Dictionary<string, List<GraphNode>>();
+        foreach (var n in _graph.Nodes)
+        {
+            if (n.FilePath is not { } fp) continue;
+            var proj = Path.GetFileNameWithoutExtension(fp) ?? fp;
+            if (!byProject.ContainsKey(proj)) byProject[proj] = [];
+            byProject[proj].Add(n);
+        }
+
+        var seen = new HashSet<NodeId>();
+        foreach (var (proj, nodes) in byProject)
+        {
+            var top = nodes.OrderByDescending(n =>
+                _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length).Take(3);
+            foreach (var n in top)
+            {
+                if (!seen.Add(n.Id)) continue;
+                var deg = _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length;
+                results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                    $"Module hub ({proj}): {deg} connections", n.Tags));
+            }
+        }
+
+        return results.Take(20).ToImmutableArray();
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingForCli()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+        var seen = new HashSet<NodeId>();
+
+        // Command tree root: top-level CLI command entries
+        foreach (var e in _entries.Where(e => e.Kind == EntryPointKind.CliCommand))
+        {
+            var node = _graph.Node(e.Node);
+            if (node is null || !seen.Add(e.Node)) continue;
+            var deg = _graph.OutEdges(e.Node).Length + _graph.InEdges(e.Node).Length;
+            results.Add(new InterestingPoint(e.Node, e.Title, node.Kind,
+                $"CLI entry: {deg} connections", node.Tags));
+        }
+
+        return results.Take(20).ToImmutableArray();
+    }
+
+    private ImmutableArray<InterestingPoint> InterestingByCentrality()
+    {
+        var results = ImmutableArray.CreateBuilder<InterestingPoint>();
+        foreach (var n in _graph.Nodes.OrderByDescending(n =>
+            _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length).Take(20))
+        {
+            var deg = _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length;
+            results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,
+                $"Central type: {deg} connections", n.Tags));
+        }
+        return results.ToImmutable();
+    }
+
+    private static int Score(InterestingPoint ip, CodeGraph graph)
+    {
+        var deg = graph.OutEdges(ip.Id).Length + graph.InEdges(ip.Id).Length;
+        return deg + (ip.Why.StartsWith("Auth") ? 10 : 0);
+    }
+
     /// <summary>I5 F13 — Blast Radius: BFS over in-edges from a node to find which entry points
     /// reach it. Returns the entry titles with hop distances. Depth-capped, cycle-safe.</summary>
     public ImmutableArray<BlastResult> BlastRadius(NodeId from, int maxDepth = 4)
@@ -200,3 +379,13 @@ public sealed record BlastResult(string EntryTitle, string Kind, int Hops);
 
 /// <summary>Search result: a node matching a keyword query, with its degree for ranking.</summary>
 public sealed record SearchResult(NodeId Id, string Title, NodeKind Kind, int Degree);
+
+/// <summary>L3.3 — A curated starting point for understanding a repo, returned by
+/// <see cref="GraphQuery.GetInterestingPoints"/>. The <c>Why</c> field explains the rationale
+/// (e.g. "auth boundary", "central type", "public API seat").</summary>
+public sealed record InterestingPoint(
+    NodeId Id,
+    string Title,
+    NodeKind Kind,
+    string Why,
+    ImmutableArray<string> Tags);
