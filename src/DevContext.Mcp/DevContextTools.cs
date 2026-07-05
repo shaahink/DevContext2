@@ -344,4 +344,77 @@ public sealed class DevContextTools
             }).ToArray(),
         });
     }
+
+    [McpServerTool]
+    public string GetContext(string handle, string focus, int budgetTokens = 8000)
+    {
+        var s = Require(handle);
+        var builder = new ContextPackBuilder(s.Query, s.Snapshot);
+        var pack = builder.Build(focus, budgetTokens);
+        var envelope = s.Envelope();
+        return McpSessionManager.Serialize(new
+        {
+            envelope.Scope, envelope.Confidence,
+            focus,
+            budgetTokens,
+            totalTokens = pack.TotalTokens,
+            sections = pack.Sections.Select(sec => new { section = sec.Section, tokens = sec.Tokens }).ToArray(),
+            omitted = pack.Omitted.ToArray(),
+            content = pack.Content,
+        });
+    }
+
+    [McpServerTool]
+    public string ReadSource(string handle, string nodeId)
+    {
+        var s = Require(handle);
+        var id = s.Query.ResolveNodeId(nodeId);
+        if (id is null)
+            return McpSessionManager.Serialize(new { found = false, query = nodeId });
+
+        var node = s.Query.Node(id.Value);
+        if (node is null || node.FilePath is null)
+            return McpSessionManager.Serialize(new { found = false, nodeId = id.Value.Key, error = "Node has no file path." });
+
+        try
+        {
+            if (!File.Exists(node.FilePath))
+                return McpSessionManager.Serialize(new
+                {
+                    found = true,
+                    nodeId = node.Id.Key,
+                    filePath = node.FilePath,
+                    error = "File not found on disk.",
+                });
+
+            var lines = File.ReadAllLines(node.FilePath);
+            var lineNum = node.LineNumber ?? 1;
+            var start = Math.Max(0, lineNum - 6);
+            var end = Math.Min(lines.Length, lineNum + 15);
+            var selectedLines = lines.Skip(start).Take(end - start).ToArray();
+
+            return McpSessionManager.Serialize(new
+            {
+                found = true,
+                nodeId = node.Id.Key,
+                title = node.Title,
+                filePath = node.FilePath,
+                lineNumber = lineNum,
+                startLine = start + 1,
+                endLine = end,
+                totalLines = lines.Length,
+                content = string.Join("\n", selectedLines),
+            });
+        }
+        catch (Exception ex)
+        {
+            return McpSessionManager.Serialize(new
+            {
+                found = true,
+                nodeId = node.Id.Key,
+                filePath = node.FilePath,
+                error = ex.Message,
+            });
+        }
+    }
 }
