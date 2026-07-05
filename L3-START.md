@@ -1,34 +1,29 @@
-# L4 — Insight engine v2 ✅ DONE (2026-07-05)
+# L5+L6 — MCP server + UI/UX round ✅ DONE (2026-07-05)
 
-**Branch:** `feat/lighthouse-l2` · **Status:** L0–L4 done, L5 next
+**Branch:** `feat/lighthouse-l2` · **Status:** L0–L6 done, L7 next
 
 ## Verify gate (end-of-stage snapshot)
 ```
 dotnet build C:/Code/DevContext2-ui/DevContext.slnx        # 0w 0e
 dotnet test DevContext.slnx --filter "Category!=Eval"      # 429/0 (3 skipped)
-pnpm check                                                  # from src/DevContext.App — lint + test + build
+pnpm check                                                  # from src/DevContext.App — lint 0/0 + test 27/27 + build
 ```
 
-## L3 delivery audit findings (fixed pre-L4)
-| # | Finding | Commit |
-|---|---------|--------|
-| F1 | BfsEntryScore cross-project counting uses file names not project names | 2d9002e |
-| F2–F6 | Angular integration gaps: Impact/InterestingPoints RPCs, GroupPath, LineNumber, AuthAttributes, Score | 6a1564d |
-| F7 | InterestingForDesktop uses file name not GraphNode.Project | (in 92ea35b) |
-| F8 | Dead hub-scope dedup loop removed | 5b7469b |
-| F9 | BlastRadius O(1) entry lookup via Dictionary | (in 92ea35b) |
-
-## L4 checkpoints (see `docs/dev/briefs/proposal-lighthouse.md` §L4)
+## L5 checkpoints (see `docs/dev/briefs/proposal-lighthouse.md` §L5)
 | # | What | Commit |
 |---|------|--------|
-| 4.1 | **Insight envelope v2** — Confidence, WhyItMatters, Action/ActionTarget on Insight; enriched AnonymousEndpointsSource; Angular insight cards with action buttons | 7c7e515 |
-| 4.2 | **Per-archetype composition** — 6 sources (Web, Library, Messaging, Desktop, CLI, Gateway) with gates + honest confidence | 269cb90 |
-| 4.3 | **Confidence Ledger** — per-seam breakdown, auth coverage, entry target %; proto + gRPC integration | b5f37c3 |
-| 4.4 | **Doc-summary hygiene** — vendored namespace exclusion (JetBrains.Annotations, System.Runtime.*, Microsoft.CodeAnalysis) | b5f37c3 |
-| — | **L4 audit fixes** — GatewayArchetypeSource + Angular Confidence Ledger display | bf53ff0 |
+| 5.1 | DevContext.Mcp project scaffold + session manager + 13 tools | 85b15ad |
+| 5.4 | ContextPackBuilder (kernel) + get_context tool | fe09351 |
+| 5.5 | read_source tool | fe09351 |
 
-## Next: L5 (see `docs/dev/briefs/proposal-lighthouse.md` §L5)
-- MCP server + context packs (the agent surface)
-- Tools v1: analyze, status, map, entrypoints, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
-- get_context(focus, budget_tokens, intent) — ContextPackBuilder
-- read_source(node_id, span?) — precise file:line reads
+## L6 checkpoints (see `docs/dev/briefs/proposal-lighthouse.md` §L6)
+| # | What | Commit |
+|---|------|--------|
+| 6.1 | Identity strip: human sentence + stat labels + hover tooltips | e9d1ab1 |
+| 6.2 | Home insights: "What needs attention" / "Good to know" grouping | e9d1ab1 |
+| 6.3 | Insight cards: impact grouping, evidence dedup + workbench links | e9d1ab1 |
+| 6.4 | Deck identity: subtitles (target per row), group count badges | e9d1ab1 |
+| 6.5 | Statusbar cleanup: remove node/edge plumbing | e9d1ab1 |
+| 6.7 | Zen mode: F key full-screen, Escape exit, double-click header | e9d1ab1 |
+| 6.8 | Focus dimming: hover dims non-neighbors; legend → popover | e9d1ab1 |
+| — | Audit fixes: Ledger clickable, statusbar cleanup, intent param | 3a68938 |

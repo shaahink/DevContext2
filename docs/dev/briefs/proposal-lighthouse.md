@@ -155,8 +155,8 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 | L2 | CLI `report` + bench loop (the iteration harness) | 4/4 DONE |
 | L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | 6/6 DONE (2026-07-05) |
 | L4 | Insight engine v2 + archetype lenses (facets that matter) | DONE (2026-07-05) |
-| L5 | MCP server + context packs (the agent surface) | NOT STARTED |
-| L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | NOT STARTED |
+| L5 | MCP server + context packs (the agent surface) | DONE |
+| L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | DONE |
 | L7 | Benchmark audit + close-out gate | NOT STARTED |
 
 ### L0 — Truth pass (engine correctness; nothing else ships on lies)
@@ -391,8 +391,9 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L4.3 | Confidence Ledger honesty | b5f37c3 | DONE |
 | L4.4 | Doc-summary hygiene | b5f37c3 | DONE |
 | — | L4 audit fixes (Gateway source + Angular ledger) | bf53ff0 | DONE |
-| L5.1 … L5.4 | — | NOT STARTED |
-| L6.1 … L6.9 | — | NOT STARTED |
+| L5.1 … L5.5 | MCP server + ContextPackBuilder + read_source | 85b15ad, fe09351 | DONE |
+| L6.1 … L6.8 | UI/UX round (Home reframe + graph readability) | e9d1ab1 | DONE |
+| — | L5+L6 audit fixes (3 gaps) | 3a68938 | DONE |
 | L7.1 … L7.3 | — | NOT STARTED |
 
 *Maintain per the conventions in §4's preamble: status + commit hash in the same commit as the work.*

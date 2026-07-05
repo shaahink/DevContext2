@@ -1507,3 +1507,40 @@ mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 **Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check (lint + vitest 27/27 + build) green.
 
 **Next:** L5 — MCP server + context packs (proposal-lighthouse.md §L5).
+
+---
+
+## 2026-07-05 — Lighthouse L5+L6: MCP server + UI/UX round + audit fixes
+
+**Changed (L5.1):**
+- New \src/DevContext.Mcp/\ project: stdio MCP server using \ModelContextProtocol\ 1.4.0 SDK
+- \McpSessionManager\: non-blocking analyze, status polling, LRU (3 snapshots), Serilog file-only logging
+- \DevContextTools\: 13 MCP tools — analyze, status, entrypoints, map, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
+- Every response envelope carries scope + coverage + confidence from ConfidenceLedger
+
+**Changed (L5.4+L5.5):**
+- \ContextPackBuilder\ in \DevContext.Core/Graph/\ (kernel): trace skeleton, callee signatures, salient bodies, DI wiring — ranked by distance, budgeted with per-section token attribution + omitted list
+- \get_context(handle, focus, budget_tokens, intent)\ MCP tool
+- \ead_source(handle, node_id)\ MCP tool — file:line anchored read (20-line window)
+
+**Changed (L6.1-L6.6):**
+- \identity-strip.ts\: identity sentence, human stat labels with hover tooltips, confidence clickable ? Ledger
+- \home-page.ts\: insights grouped "What needs attention" / "Good to know"; Engine details collapsed to \<details>\
+- \insights-view.ts\: impact grouping, evidence chips dedup+linked, action buttons
+- \entry-deck.ts\: subtitles (target per row), group-path chips, kind-filter count badges
+- \statusbar.ts\: removed node/edge/entry plumbing; ticker retains insight headlines
+
+**Changed (L6.7+L6.8):**
+- \stage.ts\: Zen mode — F key full-screen overlay, Escape exits, double-click header toggle
+- \graph-canvas.ts\: hover focus dimming (non-neighbors 15% opacity), legend ? popover
+
+**Audit fixes:**
+| # | Finding | Fix |
+|---|---------|-----|
+| A1 | Confidence Ledger unreachable (showLedger never toggled) | Confidence label now clickable button |
+| A2 | Statusbar showing node/edge/entry counts | Removed; ticker retains insight headlines |
+| A3 | get_context missing intent parameter | Added intent param (trace/explain/review) |
+
+**Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+
+**Next:** L7 — Benchmark audit + close-out gate. See \docs/dev/briefs/proposal-lighthouse.md\ §L7.
