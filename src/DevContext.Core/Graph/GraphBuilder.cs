@@ -417,19 +417,10 @@ public sealed class GraphBuilder
     {
         if (entries.IsDefaultOrEmpty) return entries;
 
-        var projectByPath = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var node in graph.Nodes)
-        {
-            if (node.FilePath is not { } fp) continue;
-            var proj = scope.ProjectForFile(fp) ?? Path.GetFileNameWithoutExtension(fp);
-            if (!projectByPath.ContainsKey(proj))
-                projectByPath[proj] = [];
-        }
-
         var maxReach = 0d;
         var maxSeam = 0d;
         var maxEntity = 0d;
-        var (reach, seam, ent, xProjects) = ScoreEntries(entries, graph);
+        var (reach, seam, ent, xProjects) = ScoreEntries(entries, graph, scope);
 
         if (reach.Length > 0) { maxReach = reach.Max(); maxSeam = Math.Max(maxSeam, seam.Max()); maxEntity = Math.Max(maxEntity, ent.Max()); }
 
@@ -455,7 +446,7 @@ public sealed class GraphBuilder
     }
 
     private static (int[] Reach, int[] Seam, int[] Entity, int[] XProj) ScoreEntries(
-        ImmutableArray<EntryPoint> entries, CodeGraph graph)
+        ImmutableArray<EntryPoint> entries, CodeGraph graph, SolutionScope scope)
     {
         var n = entries.Length;
         var reach = new int[n];
@@ -465,7 +456,7 @@ public sealed class GraphBuilder
 
         for (var i = 0; i < n; i++)
         {
-            var (r, s, e, x) = BfsEntryScore(graph, entries[i]);
+            var (r, s, e, x) = BfsEntryScore(graph, entries[i], scope);
             reach[i] = r;
             seam[i] = s;
             entity[i] = e;
@@ -474,7 +465,7 @@ public sealed class GraphBuilder
         return (reach, seam, entity, xProj);
     }
 
-    private static (int Reach, int Seam, int Entity, int XProj) BfsEntryScore(CodeGraph graph, EntryPoint entry)
+    private static (int Reach, int Seam, int Entity, int XProj) BfsEntryScore(CodeGraph graph, EntryPoint entry, SolutionScope scope)
     {
         var visited = new HashSet<NodeId>();
         var queue = new Queue<(NodeId, int)>();
@@ -504,11 +495,11 @@ public sealed class GraphBuilder
                         || target.Tags.Contains(RoleTags.Aggregate)))
                         entity++;
                 }
-                // Track cross-project
+                // Track cross-project: resolve the owning project from the target node's file path.
                 var targetNode = graph.Node(edge.To);
                 if (targetNode?.FilePath is { } fp)
                 {
-                    var proj = Path.GetFileNameWithoutExtension(fp);
+                    var proj = scope.ProjectForFile(fp) ?? targetNode.Project ?? Path.GetFileNameWithoutExtension(fp);
                     if (proj is not null) projects.Add(proj);
                 }
 
