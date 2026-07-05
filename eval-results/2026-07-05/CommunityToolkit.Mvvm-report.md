@@ -15,7 +15,7 @@ _13 projects  ·  net472;net8.0;net9.0, net472;net8.0;net9.0;net10.0_
 | Entries | 0 |
 | With target | 0/0 |
 | Verified edges | 0% |
-| Analyzed in | 4.8s |
+| Analyzed in | 4.4s |
 
 ## Top Flows
 
@@ -34,11 +34,11 @@ _3 info · 2 notable_
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- ObservableValidatorValidateAllPropertiesGenerator
-- StringExtensions
-- IRefAction
-- ObjectMarshal
-- BoxExtensions
+- IMessenger
+- IAsyncRelayCommandExtensions
+- DeferredEventArgs
+- SuppressionDescriptors
+- StreamExtensions
 
 ### _INFO_: Command inventory: 9 ICommand implementations
 *(Wiring)*
@@ -408,29 +408,29 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 435ms |
-| GenericExtraction | 2249ms |
+| DiscoveryAndCacheWarmup | 409ms |
+| GenericExtraction | 2132ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 711ms |
-| Compression | 132ms |
-| **Total** | **4837ms** |
+| SpecificExtraction | 628ms |
+| Compression | 166ms |
+| **Total** | **4407ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| SyntaxStructureExtractor | 2244ms | 480 | 0 |
-| DiRegistrationExtractor | 2239ms | 0 | 0 |
-| SourceBodyExtractor | 426ms | 0 | 0 |
-| ProjectStructure | 355ms | 0 | 0 |
-| InMemoryEventBusExtractor | 281ms | 0 | 51 |
-| ProgramCsFlowExtractor | 191ms | 0 | 0 |
-| IndirectWiringDetector | 104ms | 0 | 51 |
-| CallGraphExtractor | 103ms | 0 | 0 |
-| FileTreeExtractor | 39ms | 0 | 0 |
-| SolutionDiscovery | 37ms | 0 | 0 |
-| LayerClassifier | 21ms | 0 | 0 |
-| DependencyExtractor | 21ms | 0 | 0 |
+| SyntaxStructureExtractor | 2130ms | 480 | 0 |
+| DiRegistrationExtractor | 2126ms | 0 | 0 |
+| SourceBodyExtractor | 383ms | 0 | 0 |
+| ProjectStructure | 296ms | 0 | 0 |
+| InMemoryEventBusExtractor | 242ms | 0 | 51 |
+| ProgramCsFlowExtractor | 185ms | 0 | 0 |
+| CallGraphExtractor | 140ms | 0 | 0 |
+| IndirectWiringDetector | 74ms | 0 | 51 |
+| FileTreeExtractor | 69ms | 0 | 0 |
+| SolutionDiscovery | 40ms | 0 | 0 |
+| LayerClassifier | 20ms | 0 | 0 |
+| DependencyExtractor | 20ms | 0 | 0 |
 | AntiPatternDetector | 0ms | 0 | 0 |
 | AspireExtractor | 0ms | 0 | 0 |
 | AwsLambdaExtractor | 0ms | 0 | 0 |

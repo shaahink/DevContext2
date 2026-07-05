@@ -207,6 +207,15 @@
       "scenarios": ["overview"]
     },
     {
+      "name": "eshop-microservices",
+      "localPath": "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src",
+      "description": "Dogfood repo — Carter + MediatR + Marten + MassTransit/RabbitMQ + gRPC + YARP + Refit + Razor Pages, 11 projects",
+      "expectedArchetype": "App",
+      "expectedSignals": ["mediatr", "grpc", "masstransit", "razor-pages"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
       "name": "DevContext",
       "localPath": ".",
       "description": "Dogfood — DevContext analyzing itself. CLI + Server + Desktop + Core engine",

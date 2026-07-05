@@ -15,7 +15,7 @@ _2 projects  ·  net10.0, net8.0 + fluentvalidation_
 | Entries | 0 |
 | With target | 0/0 |
 | Verified edges | 12% |
-| Analyzed in | 2.3s |
+| Analyzed in | 2.2s |
 
 ## Top Flows
 
@@ -33,11 +33,11 @@ _2 info · 3 notable_
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- IMaximumLengthValidator
-- WelshLanguage
-- ChineseTraditionalLanguage
-- EventDisposable
-- GreaterThanValidator
+- ITestValidationContinuation
+- CaptureDisposable
+- IChildValidatorAdaptor
+- VietnameseLanguage
+- IEmailValidator
 
 ### **NOTABLE**: Extension seats: AddValidatorsFromAssembly (3 impls)
 *(Wiring)*
@@ -246,29 +246,29 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 199ms |
-| GenericExtraction | 1267ms |
+| DiscoveryAndCacheWarmup | 189ms |
+| GenericExtraction | 1163ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 301ms |
-| Compression | 51ms |
-| **Total** | **2333ms** |
+| SpecificExtraction | 323ms |
+| Compression | 42ms |
+| **Total** | **2226ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| SyntaxStructureExtractor | 1263ms | 371 | 4 |
-| DiRegistrationExtractor | 1261ms | 0 | 4 |
-| SourceBodyExtractor | 193ms | 0 | 0 |
-| ProgramCsFlowExtractor | 168ms | 0 | 0 |
-| ProjectStructure | 144ms | 0 | 0 |
-| CallGraphExtractor | 119ms | 0 | 0 |
-| InMemoryEventBusExtractor | 104ms | 0 | 2 |
-| SolutionDiscovery | 35ms | 0 | 0 |
-| IndirectWiringDetector | 27ms | 0 | 2 |
-| DependencyExtractor | 18ms | 0 | 0 |
-| LayerClassifier | 18ms | 0 | 0 |
-| FileTreeExtractor | 16ms | 0 | 0 |
+| SyntaxStructureExtractor | 1160ms | 371 | 4 |
+| DiRegistrationExtractor | 1158ms | 0 | 4 |
+| SourceBodyExtractor | 181ms | 0 | 0 |
+| ProgramCsFlowExtractor | 151ms | 0 | 0 |
+| InMemoryEventBusExtractor | 137ms | 0 | 2 |
+| ProjectStructure | 107ms | 0 | 0 |
+| CallGraphExtractor | 98ms | 0 | 0 |
+| IndirectWiringDetector | 54ms | 0 | 2 |
+| SolutionDiscovery | 43ms | 0 | 0 |
+| FileTreeExtractor | 34ms | 0 | 0 |
+| LayerClassifier | 16ms | 0 | 0 |
+| DependencyExtractor | 16ms | 0 | 0 |
 | AntiPatternDetector | 0ms | 0 | 0 |
 | AspireExtractor | 0ms | 0 | 0 |
 | AwsLambdaExtractor | 0ms | 0 | 0 |

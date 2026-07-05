@@ -10,12 +10,12 @@ _7 projects  ·  1 HttpEndpoint, 4 UiEntry, 23 GrpcService, 3 CliCommand  ·  ne
 |--------|-------|
 | Files | 314 |
 | Projects | 22 |
-| Nodes | 380 |
-| Edges | 46 |
+| Nodes | 384 |
+| Edges | 47 |
 | Entries | 31 |
 | With target | 31/31 |
 | Verified edges | 89% |
-| Analyzed in | 10.4s |
+| Analyzed in | 16.9s |
 
 ## Top Flows
 
@@ -90,20 +90,20 @@ _5 info · 4 notable · 1 warning_
 ### **NOTABLE**: Downstream wiring: 6 target services detected
 *(Wiring)*
 
-- DevContextGrpcService
 - MainViewModel
-- QueryCommand
+- DevContextGrpcService
 - ReportCommand
 - AnalyzeCommand
+- <lambda> GET /health
 
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- NamespaceGrouper
-- OrleansGrainEntryPointBuilder
-- AspireRelationshipDetection
-- MapRenderContext
-- RenderedContext
+- ArchitectureSignals
+- EventFlowDetection
+- Keys
+- GraphBuilder
+- RunReportHtmlRenderer
 
 ### _INFO_: Command tree: 3 CLI commands, 3 top-level groups
 *(Shape)*
@@ -200,32 +200,32 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 6836ms |
-| GenericExtraction | 549ms |
+| DiscoveryAndCacheWarmup | 12963ms |
+| GenericExtraction | 687ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 2073ms |
-| Compression | 63ms |
-| **Total** | **10358ms** |
+| SpecificExtraction | 2256ms |
+| Compression | 85ms |
+| **Total** | **16911ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| FileTreeExtractor | 4915ms | 0 | 0 |
-| SolutionDiscovery | 1885ms | 0 | 0 |
-| CallGraphExtractor | 1054ms | 0 | 0 |
-| EndpointExtractor | 1016ms | 0 | 30 |
-| SyntaxStructureExtractor | 546ms | 451 | 55 |
-| DiRegistrationExtractor | 545ms | 0 | 55 |
-| CliCommandExtractor | 506ms | 0 | 27 |
-| ControllerActionExtractor | 344ms | 0 | 22 |
-| InMemoryEventBusExtractor | 342ms | 0 | 19 |
-| GrpcServiceExtractor | 332ms | 0 | 19 |
-| MediatRExtractor | 305ms | 0 | 18 |
-| DesktopEntryExtractor | 262ms | 0 | 15 |
-| SourceBodyExtractor | 212ms | 0 | 0 |
-| BlazorEntryExtractor | 169ms | 0 | 12 |
-| ProgramCsFlowExtractor | 165ms | 0 | 7 |
+| FileTreeExtractor | 9582ms | 0 | 0 |
+| SolutionDiscovery | 3340ms | 0 | 0 |
+| EndpointExtractor | 1159ms | 0 | 30 |
+| CallGraphExtractor | 1092ms | 0 | 0 |
+| SyntaxStructureExtractor | 684ms | 453 | 55 |
+| DiRegistrationExtractor | 683ms | 0 | 55 |
+| CliCommandExtractor | 569ms | 0 | 27 |
+| InMemoryEventBusExtractor | 413ms | 0 | 22 |
+| MediatRExtractor | 401ms | 0 | 22 |
+| ControllerActionExtractor | 370ms | 0 | 20 |
+| GrpcServiceExtractor | 343ms | 0 | 17 |
+| DesktopEntryExtractor | 270ms | 0 | 15 |
+| BlazorEntryExtractor | 232ms | 0 | 12 |
+| IndirectWiringDetector | 232ms | 0 | 12 |
+| ProgramCsFlowExtractor | 174ms | 0 | 7 |
 
 ### Graph Seams
 
@@ -233,6 +233,6 @@ PACKAGES
 |------|-------|--------|
 | Calls | 31 | 0 |
 | Raises | 3 | 3 |
-| Resolves | 12 | 2 |
+| Resolves | 13 | 2 |
 
 _314 files · 0 projects_

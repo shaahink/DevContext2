@@ -15,7 +15,7 @@ _7 projects  ·  net10.0, net10.0;net9.0;net8.0 + minimal-apis + polly_
 | Entries | 0 |
 | With target | 0/0 |
 | Verified edges | 84% |
-| Analyzed in | 8.2s |
+| Analyzed in | 7.7s |
 
 ## Top Flows
 
@@ -33,11 +33,11 @@ _1 info · 4 notable_
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- IAsyncPolicyPolicyWrapExtensions
-- ResilienceContext
-- ResilienceContextPool
-- MemoryCacheProvider
-- TelemetryEventStrategy
+- PolicyWrap
+- ChaosBehaviorPipelineBuilderExtensions
+- HedgingDelayGeneratorArguments
+- TelemetryBenchmark
+- OnRetryArguments
 
 ### **NOTABLE**: Extension seats: AddResiliencePipeline (15 impls) · AddResiliencePipelineRegistry (5 impls) · AddResilienceHandler (5 impls)
 *(Wiring)*
@@ -505,30 +505,30 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 509ms |
-| GenericExtraction | 4136ms |
+| DiscoveryAndCacheWarmup | 469ms |
+| GenericExtraction | 3901ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 2055ms |
-| Compression | 145ms |
-| **Total** | **8204ms** |
+| SpecificExtraction | 1956ms |
+| Compression | 129ms |
+| **Total** | **7689ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| SyntaxStructureExtractor | 4133ms | 762 | 61 |
-| DiRegistrationExtractor | 4120ms | 0 | 61 |
-| EndpointExtractor | 1834ms | 0 | 77 |
-| InMemoryEventBusExtractor | 491ms | 0 | 76 |
-| ProjectStructure | 413ms | 0 | 0 |
-| ProgramCsFlowExtractor | 401ms | 0 | 1 |
-| SourceBodyExtractor | 217ms | 0 | 0 |
-| CallGraphExtractor | 197ms | 0 | 0 |
-| IndirectWiringDetector | 161ms | 0 | 76 |
-| FileTreeExtractor | 48ms | 0 | 0 |
-| SolutionDiscovery | 44ms | 0 | 0 |
-| DependencyExtractor | 29ms | 0 | 0 |
-| LayerClassifier | 19ms | 0 | 0 |
+| SyntaxStructureExtractor | 3898ms | 762 | 61 |
+| DiRegistrationExtractor | 3894ms | 0 | 61 |
+| EndpointExtractor | 1744ms | 0 | 77 |
+| InMemoryEventBusExtractor | 498ms | 0 | 76 |
+| ProgramCsFlowExtractor | 372ms | 0 | 1 |
+| ProjectStructure | 333ms | 0 | 0 |
+| SourceBodyExtractor | 209ms | 0 | 0 |
+| CallGraphExtractor | 208ms | 0 | 0 |
+| IndirectWiringDetector | 149ms | 0 | 76 |
+| FileTreeExtractor | 92ms | 0 | 0 |
+| SolutionDiscovery | 40ms | 0 | 0 |
+| DependencyExtractor | 25ms | 0 | 0 |
+| LayerClassifier | 23ms | 0 | 0 |
 | AntiPatternDetector | 0ms | 0 | 0 |
 | AspireExtractor | 0ms | 0 | 0 |
 

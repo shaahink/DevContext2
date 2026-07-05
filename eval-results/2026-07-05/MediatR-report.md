@@ -15,7 +15,7 @@ _12 projects  ·  1 DomainEventHandler  ·  net10.0, net6.0 + mediatr_
 | Entries | 1 |
 | With target | 1/1 |
 | Verified edges | 82% |
-| Analyzed in | 3.5s |
+| Analyzed in | 3.4s |
 
 ## Top Flows
 
@@ -41,11 +41,11 @@ _2 info · 5 notable_
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- PingProtectedResource
-- GenericRequestPostProcessor
-- HandlersOrderer
-- Pong
-- PingProtectedResourceHandler
+- IPipelineBehavior
+- RequestExceptionActionProcessorBehavior
+- ServerException
+- MediatRServiceCollectionExtensions
+- Program
 
 ### **NOTABLE**: Internal hubs: 4 heavily-referenced internal types
 *(Topology)*
@@ -123,30 +123,30 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 325ms |
-| GenericExtraction | 1033ms |
+| DiscoveryAndCacheWarmup | 280ms |
+| GenericExtraction | 1082ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 1600ms |
-| Compression | 36ms |
-| **Total** | **3483ms** |
+| SpecificExtraction | 1440ms |
+| Compression | 28ms |
+| **Total** | **3350ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| CallGraphExtractor | 1574ms | 0 | 0 |
-| SyntaxStructureExtractor | 1030ms | 348 | 164 |
-| DiRegistrationExtractor | 806ms | 0 | 164 |
-| ProgramCsFlowExtractor | 312ms | 0 | 0 |
-| ProjectStructure | 272ms | 0 | 0 |
-| SourceBodyExtractor | 83ms | 0 | 0 |
-| SolutionDiscovery | 32ms | 0 | 0 |
+| CallGraphExtractor | 1417ms | 0 | 0 |
+| SyntaxStructureExtractor | 1078ms | 348 | 164 |
+| DiRegistrationExtractor | 811ms | 0 | 164 |
+| ProgramCsFlowExtractor | 330ms | 0 | 0 |
+| ProjectStructure | 207ms | 0 | 0 |
+| SourceBodyExtractor | 81ms | 0 | 0 |
+| FileTreeExtractor | 35ms | 0 | 0 |
+| SolutionDiscovery | 34ms | 0 | 0 |
+| InMemoryEventBusExtractor | 21ms | 0 | 155 |
 | MediatRExtractor | 21ms | 0 | 155 |
-| DependencyExtractor | 21ms | 0 | 0 |
-| InMemoryEventBusExtractor | 19ms | 0 | 143 |
-| LayerClassifier | 19ms | 0 | 0 |
-| FileTreeExtractor | 18ms | 0 | 0 |
-| IndirectWiringDetector | 11ms | 0 | 103 |
+| DependencyExtractor | 20ms | 0 | 0 |
+| LayerClassifier | 15ms | 0 | 0 |
+| IndirectWiringDetector | 11ms | 0 | 108 |
 | AntiPatternDetector | 0ms | 0 | 0 |
 | AspireExtractor | 0ms | 0 | 0 |
 

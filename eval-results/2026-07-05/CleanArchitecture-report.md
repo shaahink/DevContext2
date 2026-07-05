@@ -15,7 +15,7 @@ _6 projects  ·  5 HttpEndpoint, 2 DomainEventHandler  ·  net10.0, net9.0 + min
 | Entries | 7 |
 | With target | 7/7 |
 | Verified edges | 29% |
-| Analyzed in | 4.3s |
+| Analyzed in | 2.3s |
 
 ## Top Flows
 
@@ -98,20 +98,20 @@ _5 info · 3 notable · 2 warning_
 ### **NOTABLE**: Downstream wiring: 10 target services detected
 *(Wiring)*
 
-- Delete
-- Update.HandleAsync
-- GetById.Get
-- GetById.AllowAnonymous
-- GetById.Summary
+- Delete.Delete
+- Delete.AllowAnonymous
+- Delete.Summary
+- Delete.Tags
+- Delete.Description
 
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- UpdateContributorMapper
-- IDeleteContributorService
-- AppDbContext
+- LoggerConfigs
 - ServiceConfigs
-- ContributorByIdSpec
+- DataSchemaConstants
+- CreateContributorHandler
+- GetContributorByIdMapper
 
 ### **NOTABLE**: Extension seats: AddDbContext (8 impls) · AddMediator (4 impls) · IEmailSender (2 impls)
 *(Wiring)*
@@ -198,32 +198,32 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 585ms |
-| GenericExtraction | 1599ms |
+| DiscoveryAndCacheWarmup | 137ms |
+| GenericExtraction | 252ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 1720ms |
-| Compression | 39ms |
-| **Total** | **4299ms** |
+| SpecificExtraction | 1510ms |
+| Compression | 24ms |
+| **Total** | **2260ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| SyntaxStructureExtractor | 1596ms | 381 | 90 |
-| DiRegistrationExtractor | 1594ms | 0 | 90 |
-| CallGraphExtractor | 1436ms | 0 | 0 |
-| ProjectStructure | 447ms | 0 | 0 |
-| ProgramCsFlowExtractor | 291ms | 0 | 4 |
-| EndpointExtractor | 281ms | 0 | 75 |
-| SourceBodyExtractor | 106ms | 0 | 0 |
-| SolutionDiscovery | 78ms | 0 | 0 |
-| EfCoreExtractor | 71ms | 0 | 52 |
-| MediatRExtractor | 62ms | 0 | 47 |
-| InMemoryEventBusExtractor | 61ms | 0 | 47 |
-| FileTreeExtractor | 55ms | 0 | 0 |
-| DependencyExtractor | 24ms | 0 | 0 |
-| IndirectWiringDetector | 22ms | 0 | 30 |
-| LayerClassifier | 16ms | 0 | 0 |
+| CallGraphExtractor | 1268ms | 0 | 0 |
+| SyntaxStructureExtractor | 248ms | 381 | 90 |
+| DiRegistrationExtractor | 246ms | 0 | 90 |
+| EndpointExtractor | 239ms | 0 | 75 |
+| ProgramCsFlowExtractor | 147ms | 0 | 4 |
+| SourceBodyExtractor | 87ms | 0 | 0 |
+| EfCoreExtractor | 63ms | 0 | 52 |
+| InMemoryEventBusExtractor | 55ms | 0 | 47 |
+| ProjectStructure | 52ms | 0 | 0 |
+| MediatRExtractor | 52ms | 0 | 47 |
+| FileTreeExtractor | 50ms | 0 | 0 |
+| SolutionDiscovery | 30ms | 0 | 0 |
+| DependencyExtractor | 23ms | 0 | 0 |
+| IndirectWiringDetector | 18ms | 0 | 30 |
+| LayerClassifier | 17ms | 0 | 0 |
 
 ### Graph Seams
 

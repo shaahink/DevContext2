@@ -22,7 +22,7 @@ $dateStamp = Get-Date -Format "yyyy-MM-dd"
 $runDir = Join-Path $resultsRoot $dateStamp
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
 
-# Ensure CLI is built
+# Build CLI
 Write-Host "Building DevContext CLI..." -ForegroundColor Yellow
 $buildResult = & dotnet build "$cliPath" --nologo 2>&1
 if ($LASTEXITCODE -ne 0) {
@@ -30,8 +30,10 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+$script:stubFailures = 0
+
 if ($DiffOnly) {
-    Write-Host "Diff-only mode — skipping analyze runs." -ForegroundColor Yellow
+    Write-Host "Diff-only mode -- skipping analyze runs." -ForegroundColor Yellow
 }
 else {
     $total = ($config.repos | Measure-Object).Count
@@ -50,11 +52,22 @@ else {
             $path
         }
         else {
-            $evalDir = Join-Path $rootDir "eval-repos" $name
-            if (-not (Test-Path $evalDir)) {
+            $evalDir = Join-Path (Join-Path $rootDir "eval-repos") $name
+            $dirEmpty = $false
+            if (Test-Path $evalDir) {
+                $hasContent = Get-ChildItem $evalDir -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1
+                if (-not $hasContent) {
+                    Write-Host "  Empty clone detected - removing and re-cloning..." -ForegroundColor Yellow
+                    Remove-Item $evalDir -Recurse -Force -ErrorAction SilentlyContinue
+                    $dirEmpty = $true
+                }
+            }
+            if ((-not (Test-Path $evalDir)) -or $dirEmpty) {
                 Write-Host "  Cloning $($repo.url)..." -ForegroundColor Yellow
                 New-Item -ItemType Directory -Path $evalDir -Force | Out-Null
                 $isSha = $repo.ref -match '^[0-9a-fA-F]{40}$'
+                $previousEAP = $ErrorActionPreference
+                $ErrorActionPreference = "Continue"
                 if ($isSha) {
                     git clone --no-checkout $repo.url $evalDir 2>&1 | Out-Null
                     if ($LASTEXITCODE -eq 0) {
@@ -67,6 +80,7 @@ else {
                     $refArg = if ($repo.ref) { @("--branch", $repo.ref) } else { @() }
                     git clone --depth 1 $refArg $repo.url $evalDir 2>&1 | Out-Null
                 }
+                $ErrorActionPreference = $previousEAP
                 if ($LASTEXITCODE -ne 0) {
                     Write-Host "  ## Clone failed, skipping." -ForegroundColor Red
                     continue
@@ -88,19 +102,37 @@ else {
         $result = & dotnet run --project "$cliPath" --no-build -- report $repoPath --no-cache -o $outFile 2>&1
         $sw.Stop()
 
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "  Done in $([math]::Round($sw.Elapsed.TotalSeconds, 1))s -> $outFile" -ForegroundColor Green
-        }
-        else {
+        if ($LASTEXITCODE -ne 0) {
             Write-Host "  Failed (exit $LASTEXITCODE)" -ForegroundColor Red
             $result | Out-File (Join-Path $runDir "$name-error.txt")
+            $script:stubFailures++
+            continue
         }
+
+        # Content-assert: a stub report (no analysis data) is a hard failure
+        $reportContent = Get-Content $outFile -Raw -ErrorAction SilentlyContinue
+        $isStub = $reportContent -match '_No analysis data available\._'
+        $hasStats = $reportContent -match '## Stats'
+        $hasTopFlows = $reportContent -match '## Top Flows'
+
+        if ($isStub -or -not $hasStats -or -not $hasTopFlows) {
+            Write-Host "  ASSERTION FAILED: stub report or missing structural sections (Stats=$hasStats, TopFlows=$hasTopFlows, Stub=$isStub)" -ForegroundColor Red
+            $script:stubFailures++
+            continue
+        }
+
+        Write-Host "  Done in $([math]::Round($sw.Elapsed.TotalSeconds, 1))s -> $outFile (Stats ok, TopFlows ok)" -ForegroundColor Green
+    }
+
+    if ($script:stubFailures -gt 0) {
+        Write-Error "$($script:stubFailures) report(s) failed content assertion - stub reports or missing structural sections"
+        exit 1
     }
 
     Write-Host "`n===== Reports saved to $runDir =====" -ForegroundColor Cyan
 }
 
-# ── Diff vs previous run ──
+# ---- Diff vs previous run ----
 $runs = Get-ChildItem $resultsRoot -Directory | Sort-Object Name -Descending
 if ($runs.Count -ge 2) {
     $currentRun = $runs[0].Name
@@ -110,14 +142,14 @@ if ($runs.Count -ge 2) {
     $diffReport = @()
     foreach ($repo in $config.repos) {
         $name = $repo.name
-        $curFile = Join-Path $resultsRoot $currentRun "$name-report.md"
-        $prevFile = Join-Path $resultsRoot $previousRun "$name-report.md"
+        $curFile = Join-Path (Join-Path $resultsRoot $currentRun) "$name-report.md"
+        $prevFile = Join-Path (Join-Path $resultsRoot $previousRun) "$name-report.md"
 
         if (-not (Test-Path $curFile)) { continue }
 
         if (-not (Test-Path $prevFile)) {
             $diffReport += "## NEW: $name"
-            $diffReport += "> First run — no previous report to diff against."
+            $diffReport += "> First run -- no previous report to diff against."
             $diffReport += ""
             continue
         }
@@ -125,7 +157,7 @@ if ($runs.Count -ge 2) {
         $cur = Get-Content $curFile -Raw
         $prev = Get-Content $prevFile -Raw
 
-        # ── Strip non-deterministic sections for diff purposes ──
+        # Strip non-deterministic sections for diff purposes
         $strip = {
             param($txt)
             # Strip wall-time sections (Run Report stages, extractor timing, analyzed-in stat)
@@ -189,7 +221,7 @@ if ($runs.Count -ge 2) {
         Write-Host "Diff written to $diffFile" -ForegroundColor Green
     }
     else {
-        Write-Host "(No diff report generated — all identical.)" -ForegroundColor Gray
+        Write-Host "(No diff report generated -- all identical.)" -ForegroundColor Gray
     }
 }
 

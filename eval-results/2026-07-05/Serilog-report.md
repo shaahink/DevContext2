@@ -15,7 +15,7 @@ _3 projects  ·  net10.0, net10.0;net9.0;net8.0_
 | Entries | 0 |
 | With target | 0/0 |
 | Verified edges | 0% |
-| Analyzed in | 2.2s |
+| Analyzed in | 2.7s |
 
 ## Top Flows
 
@@ -28,11 +28,11 @@ _1 info · 2 notable_
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- LevelOutputFormat
-- SettingValueConversions
-- FilteringSink
-- ConditionalSink
-- DummyWithLevelSwitchSink
+- DisposingAggregateSink
+- ByteArrayScalarConversionPolicy
+- LoggerExtensions
+- PropertiesOutputFormat
+- BatchingOptions
 
 ### **NOTABLE**: Most depended-upon: Serilog (5 dependents) · TestDummies (1 dependents)
 *(Topology)*
@@ -282,29 +282,29 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 204ms |
-| GenericExtraction | 1032ms |
+| DiscoveryAndCacheWarmup | 255ms |
+| GenericExtraction | 1323ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 271ms |
-| Compression | 101ms |
-| **Total** | **2189ms** |
+| SpecificExtraction | 305ms |
+| Compression | 105ms |
+| **Total** | **2666ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| SyntaxStructureExtractor | 1029ms | 248 | 0 |
-| DiRegistrationExtractor | 1022ms | 0 | 0 |
-| ProgramCsFlowExtractor | 272ms | 0 | 0 |
-| SourceBodyExtractor | 182ms | 0 | 0 |
-| ProjectStructure | 126ms | 0 | 0 |
-| CallGraphExtractor | 121ms | 0 | 0 |
-| InMemoryEventBusExtractor | 85ms | 0 | 0 |
-| FileTreeExtractor | 37ms | 0 | 0 |
-| SolutionDiscovery | 37ms | 0 | 0 |
-| IndirectWiringDetector | 33ms | 0 | 0 |
-| DependencyExtractor | 29ms | 0 | 0 |
-| LayerClassifier | 22ms | 0 | 0 |
+| SyntaxStructureExtractor | 1319ms | 248 | 0 |
+| DiRegistrationExtractor | 1314ms | 0 | 0 |
+| ProgramCsFlowExtractor | 283ms | 0 | 0 |
+| SourceBodyExtractor | 198ms | 0 | 0 |
+| CallGraphExtractor | 159ms | 0 | 0 |
+| ProjectStructure | 135ms | 0 | 0 |
+| InMemoryEventBusExtractor | 100ms | 0 | 0 |
+| FileTreeExtractor | 58ms | 0 | 0 |
+| SolutionDiscovery | 56ms | 0 | 0 |
+| IndirectWiringDetector | 42ms | 0 | 0 |
+| DependencyExtractor | 33ms | 0 | 0 |
+| LayerClassifier | 25ms | 0 | 0 |
 | AntiPatternDetector | 0ms | 0 | 0 |
 | AspireExtractor | 0ms | 0 | 0 |
 | AwsLambdaExtractor | 0ms | 0 | 0 |
