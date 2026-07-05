@@ -149,7 +149,7 @@ export class AtlasPage {
   /** Topology node tap ('' = empty-canvas tap, ignored) — land on Explore's System altitude. */
   protected onProjectTap(name: string): void {
     if (!name) return;
-    void this.router.navigate(['/explore'], { queryParams: { view: 'system' } });
+    void this.router.navigate(['/explore'], { queryParams: { view: 'system', project: name } });
   }
 
   /** Hub Radar row click — raw node id, not a registered entry focus, so this goes

@@ -1,4 +1,4 @@
-import { Component, computed, inject, model, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, model, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
@@ -295,15 +295,17 @@ export class Stage {
   }
 
   constructor() {
-    // Window-level F key for zen mode toggle
-    window.addEventListener('keydown', (event: KeyboardEvent) => {
+    const onKey = (event: KeyboardEvent): void => {
       if (event.key === 'F' && !event.ctrlKey && !event.metaKey && !event.altKey) {
         const tag = (event.target as HTMLElement | null)?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
         event.preventDefault();
         this.zenMode.update((z) => !z);
       }
-    });
+    };
+    // Window-level F key for zen mode toggle
+    window.addEventListener('keydown', onKey);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('keydown', onKey));
   }
 
   protected meterVariant(pct: number): MeterVariant {

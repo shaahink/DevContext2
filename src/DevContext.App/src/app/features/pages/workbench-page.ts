@@ -157,6 +157,8 @@ export class WorkbenchPage implements OnDestroy {
     if (urlKind) this.deckKind.set(urlKind);
     const urlQuery = params.get('q');
     if (urlQuery) this.deckFilterText.set(urlQuery);
+    const urlProject = params.get('project');
+    if (urlProject) this.projectFilter.set(urlProject);
 
     const urlFocus = params.get('focus');
     if (urlFocus) {

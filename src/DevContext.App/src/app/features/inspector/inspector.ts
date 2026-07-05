@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, output, signal } from '@angular/core';
 
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { AtlasStore } from '../../state/atlas.store';
@@ -198,6 +198,10 @@ export class Inspector {
   private renderedFocus: string | null = null;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      if (this.renderTimer) clearTimeout(this.renderTimer);
+    });
+
     effect(() => {
       const focus = this.trace.focus();
       if (!focus) {
@@ -269,11 +273,11 @@ export class Inspector {
   }
 
   private async doRender(handle: string, focus: string): Promise<void> {
-    this.renderedFocus = focus;
     this.renderLoading.set(true);
     this.renderError.set(null);
     try {
       const res = await this.api.render(handle, { focus, detail: this.trace.detail(), format: 'markdown' });
+      this.renderedFocus = focus;
       this.renderContent.set(res.content);
       this.tokenEstimate.set(res.estimatedTokens);
     } catch (err) {
@@ -295,6 +299,8 @@ export class Inspector {
         return '↳';
       case 'insight':
         return '⚑';
+      default:
+        return '·';
     }
   }
 }

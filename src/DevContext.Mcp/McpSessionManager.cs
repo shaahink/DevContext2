@@ -16,6 +16,8 @@ namespace DevContext.Mcp;
 public sealed class McpSessionManager : IDisposable
 {
     private readonly ConcurrentDictionary<string, SessionEntry> _sessions = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, string> _pathToHandle = new(StringComparer.OrdinalIgnoreCase);
+    private readonly SnapshotCacheService _snapCache = new();
     private readonly DiscoveryPipeline _pipeline;
     private readonly IFileSystem _fs;
     private readonly ILogger<McpSessionManager> _logger;
@@ -37,10 +39,21 @@ public sealed class McpSessionManager : IDisposable
 
     public string StartAnalysis(string path)
     {
+        // Reuse existing handle for this path if already analyzing or ready.
+        var normalized = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        if (_pathToHandle.TryGetValue(normalized, out var existingHandle)
+            && _sessions.TryGetValue(existingHandle, out var existingEntry)
+            && existingEntry.Status is "analyzing" or "ready")
+        {
+            existingEntry.LastAccess = DateTime.UtcNow;
+            return existingHandle;
+        }
+
         EvictLru();
         var handle = Guid.NewGuid().ToString("N");
         var entry = new SessionEntry(handle) { Status = "analyzing" };
         _sessions[handle] = entry;
+        _pathToHandle[normalized] = handle;
         _ = RunAnalysisAsync(handle, path);
         return handle;
     }
@@ -69,6 +82,33 @@ public sealed class McpSessionManager : IDisposable
         return entry.Session;
     }
 
+    public bool CloseSession(string handle)
+    {
+        if (!_sessions.TryRemove(handle, out var entry)) return false;
+        // Clean up path→handle mapping.
+        foreach (var kv in _pathToHandle)
+            if (kv.Value == handle)
+                _pathToHandle.TryRemove(kv.Key, out _);
+        return true;
+    }
+
+    public SessionStatusResult[] ListSessions()
+    {
+        return _sessions.Values
+            .OrderByDescending(e => e.LastAccess)
+            .Select(e => new SessionStatusResult
+            {
+                Handle = e.Handle,
+                Found = true,
+                Status = e.Status,
+                ProgressPercent = e.ProgressPercent,
+                ProgressMessage = e.ProgressMessage,
+                Summary = e.Summary,
+                ElapsedMs = e.ElapsedMs,
+            })
+            .ToArray();
+    }
+
     private async Task RunAnalysisAsync(string handle, string path)
     {
         try
@@ -83,37 +123,60 @@ public sealed class McpSessionManager : IDisposable
                 return;
             }
 
-            var options = new ExtractionOptions
+            var rootPath = rootResult.EffectiveRootPath;
+
+            // ── I8 snapshot cache check ──
+            var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootPath);
+            var fromCache = false;
+            AnalysisSnapshot? snapshot = null;
+            if (_snapCache.Exists(repoKey, versionKey))
             {
-                Profile = ExtractionProfile.Focused,
-                AllowRoslyn = true,
-                BuildFullGraph = true,
-                OutputFormat = OutputFormat.Json,
-            };
+                snapshot = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, CancellationToken.None);
+                if (snapshot is not null)
+                {
+                    fromCache = true;
+                    snapshot = snapshot with { RootPath = rootPath };
+                }
+            }
 
-            var scenario = ScenarioRegistry.BuiltIn["overview"];
-            var cache = new AnalysisCache(_fs);
-            var analysis = new SharedAnalysisContext();
-
-            var observer = new McpPipelineObserver(
-                stage => OnProgress(handle, StageToPercent(stage), stage.ToString()));
-
-            var ctx = new DiscoveryContext
+            if (!fromCache)
             {
-                RootPath = rootResult.EffectiveRootPath,
-                Options = options,
-                ActiveScenario = scenario,
-                Observer = observer,
-                FileSystem = _fs,
-                Cache = cache,
-                Analysis = analysis,
-                Logger = _logger,
-            };
+                var options = new ExtractionOptions
+                {
+                    Profile = ExtractionProfile.Focused,
+                    AllowRoslyn = true,
+                    BuildFullGraph = true,
+                    OutputFormat = OutputFormat.Json,
+                };
 
-            var snapshot = await _pipeline.AnalyzeAsync(ctx);
+                var scenario = ScenarioRegistry.BuiltIn["overview"];
+                var cache = new AnalysisCache(_fs);
+                var analysis = new SharedAnalysisContext();
+
+                var observer = new McpPipelineObserver(
+                    stage => OnProgress(handle, StageToPercent(stage), stage.ToString()));
+
+                var ctx = new DiscoveryContext
+                {
+                    RootPath = rootPath,
+                    Options = options,
+                    ActiveScenario = scenario,
+                    Observer = observer,
+                    FileSystem = _fs,
+                    Cache = cache,
+                    Analysis = analysis,
+                    Logger = _logger,
+                };
+
+                snapshot = await _pipeline.AnalyzeAsync(ctx);
+
+                // Write through cache (fire-and-forget — failure is non-fatal).
+                _ = _snapCache.SaveAsync(repoKey, versionKey, snapshot, CancellationToken.None);
+            }
+
             sw.Stop();
 
-            var graph = snapshot.Graph!;
+            var graph = snapshot!.Graph!;
             var query = new GraphQuery(graph, snapshot.Entries, snapshot.Map);
             var (seams, entriesWithTarget) = query.Stats();
 
@@ -125,10 +188,10 @@ public sealed class McpSessionManager : IDisposable
                 Status = "ready",
                 Session = new McpAnalysisSession(snapshot, query),
                 ProgressPercent = 100,
-                ProgressMessage = "Analysis complete",
+                ProgressMessage = fromCache ? "Analysis complete (from cache)" : "Analysis complete",
                 Summary = new AnalysisSummaryResult
                 {
-                    Label = Path.GetFileName(rootResult.SolutionFilePath ?? rootResult.EffectiveRootPath.TrimEnd('\\', '/')),
+                    Label = Path.GetFileName(rootResult.SolutionFilePath ?? rootPath.TrimEnd('\\', '/')),
                     Projects = snapshot.Map?.Topology.Length ?? 0,
                     Nodes = nodeCount,
                     Edges = edgeCount,
@@ -175,6 +238,9 @@ public sealed class McpSessionManager : IDisposable
             var oldest = _sessions.Values.OrderBy(e => e.LastAccess).FirstOrDefault();
             if (oldest is null) break;
             _sessions.TryRemove(oldest.Handle, out _);
+            foreach (var kv in _pathToHandle)
+                if (kv.Value == oldest.Handle)
+                    _pathToHandle.TryRemove(kv.Key, out _);
         }
     }
 
@@ -232,6 +298,7 @@ public sealed record SessionEntry(string Handle)
 
 public sealed class SessionStatusResult
 {
+    public string? Handle { get; set; }
     public bool Found { get; set; }
     public string? Error { get; set; }
     public string Status { get; set; } = "unknown";

@@ -28,50 +28,109 @@ public sealed class ContextPackBuilder
         var sb = new StringBuilder();
         var sections = new List<SectionAllocation>();
         var omitted = new List<string>();
+        var mode = intent?.ToLowerInvariant() switch
+        {
+            "explain" => "explain",
+            "review" => "review",
+            _ => "trace",
+        };
 
-        // ── 1. Identity ──
+        // ── 1. Identity (all modes, largest share for explain) ──
         var map = _query.Map();
         var archetype = map?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
         var identity = $"# {_snapshot.Explanation}\nArchetype: {archetype} | {_snapshot.Entries.Length} entries | {_snapshot.Graph?.NodeCount ?? 0} nodes\n";
-        AppendSection(sb, sections, omitted, budgetTokens, "identity", identity);
+        var idBudget = mode == "explain" ? budgetTokens : budgetTokens;
+        AppendSection(sb, sections, omitted, idBudget, "identity", identity);
 
-        // ── 2. Trace skeleton ──
-        var trace = _query.Trace(focus, depth: 4);
-        if (trace is not null)
+        var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
+        if (trace is null)
+            return Finalize(sb, sections, omitted);
+
+        // ── Explain mode: prioritize concepts over code ──
+        if (mode == "explain")
         {
+            // DI wiring first (architecture understanding)
+            var regs = BuildDiRegistrations(trace);
+            if (regs.Length > 0)
+                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
+
+            // Entities
+            if (!trace.TouchedEntities.IsDefaultOrEmpty)
+            {
+                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
+                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
+            }
+
+            // Signatures (conceptual, not full bodies)
+            var sigs = BuildCalleeSignatures(trace);
+            AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs);
+
+            // Bodies trimmed — conceptual docs only, skip if tight
+            var bodies = BuildSalientBodies(trace);
+            AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies);
+
+            // Trace skeleton last (least important for explain)
+            var traceText = BuildTraceSkeleton(trace);
+            AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText);
+        }
+        // ── Review mode: prioritize code depth ──
+        else if (mode == "review")
+        {
+            // Trace skeleton
             var traceText = BuildTraceSkeleton(trace);
             if (!AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText))
                 return Finalize(sb, sections, omitted);
-        }
 
-        // ── 3. Callee signatures ──
-        if (trace is not null)
-        {
+            // Signatures
             var sigs = BuildCalleeSignatures(trace);
             if (!AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs))
                 return Finalize(sb, sections, omitted);
-        }
 
-        // ── 4. Salient bodies ──
-        if (trace is not null)
+            // Full bodies (primary value for review)
+            var bodies = BuildSalientBodies(trace);
+            AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies);
+
+            // DI wiring (helpful for review)
+            var regs = BuildDiRegistrations(trace);
+            if (regs.Length > 0)
+                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
+
+            // Entities (secondary)
+            if (!trace.TouchedEntities.IsDefaultOrEmpty)
+            {
+                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
+                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
+            }
+        }
+        // ── Trace mode (default): balanced ──
+        else
         {
+            // Trace skeleton
+            var traceText = BuildTraceSkeleton(trace);
+            if (!AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText))
+                return Finalize(sb, sections, omitted);
+
+            // Signatures
+            var sigs = BuildCalleeSignatures(trace);
+            if (!AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs))
+                return Finalize(sb, sections, omitted);
+
+            // Bodies
             var bodies = BuildSalientBodies(trace);
             if (!AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies))
                 return Finalize(sb, sections, omitted);
-        }
 
-        // ── 5. DI registrations ──
-        var regs = BuildDiRegistrations(trace);
-        if (regs.Length > 0)
-        {
-            AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
-        }
+            // DI wiring
+            var regs = BuildDiRegistrations(trace);
+            if (regs.Length > 0)
+                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
 
-        // ── 6. Touched entities ──
-        if (trace is not null && !trace.TouchedEntities.IsDefaultOrEmpty)
-        {
-            var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-            AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
+            // Entities
+            if (!trace.TouchedEntities.IsDefaultOrEmpty)
+            {
+                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
+                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
+            }
         }
 
         return Finalize(sb, sections, omitted);

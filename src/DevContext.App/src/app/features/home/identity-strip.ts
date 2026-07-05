@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 import { SessionStore } from '../../state/session.store';
@@ -29,7 +29,7 @@ import { formatCompact } from '../../core/format';
       <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
         @for (label of statLabels(); track label[0]) {
           @if (label[0] === 'confidence') {
-            <button type="button" class="tabular-nums cursor-pointer hover:text-accent transition-colors" [title]="label[2]" (click)="showLedger = !showLedger">
+            <button type="button" class="tabular-nums cursor-pointer hover:text-accent transition-colors" [title]="label[2]" (click)="showLedger.update(v => !v)">
               <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
             </button>
           } @else {
@@ -60,7 +60,7 @@ import { formatCompact } from '../../core/format';
       </div>
 
       <!-- Confidence Ledger (collapsed by default) -->
-      @if (showLedger && ledger(); as l) {
+      @if (showLedger() && ledger(); as l) {
         <div class="rounded-lg border border-line bg-surface-2 p-3 space-y-2 text-xs">
           <p class="font-semibold text-ink">Confidence Ledger</p>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-muted">
@@ -94,7 +94,7 @@ export class IdentityStrip {
   protected readonly summary = this.session.summary;
   protected readonly map = this.session.mapResponse;
   protected readonly ledger = this.session.confidenceLedger;
-  protected showLedger = false;
+  protected showLedger = signal(false);
 
   /** Human-readable identity sentence: "ASP.NET Core web API · 85 endpoints across 3 services · EF Core + RabbitMQ" */
   protected readonly identitySentence = computed(() => {

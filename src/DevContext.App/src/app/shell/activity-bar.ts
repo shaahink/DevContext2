@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -64,9 +64,10 @@ export class ActivityBar {
 
   constructor() {
     this._currentUrl.set(this.router.url);
-    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+    const sub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
       this._currentUrl.set(e.urlAfterRedirects);
     });
+    inject(DestroyRef).onDestroy(() => sub.unsubscribe());
   }
 
   protected enabled(item: RailItem): boolean {

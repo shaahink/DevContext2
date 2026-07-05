@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SessionStore } from '../../state/session.store';
@@ -158,6 +158,12 @@ export class StartHero {
   protected readonly recents = this.recentStore.recents;
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    });
+  }
 
   protected onPathInput(e: Event): void {
     const val = (e.target as HTMLInputElement).value;

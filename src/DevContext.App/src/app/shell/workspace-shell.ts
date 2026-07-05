@@ -1,4 +1,4 @@
-import { Component, effect, HostListener, inject, signal } from '@angular/core';
+import { Component, effect, HostListener, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 
 import { AtlasStore } from '../state/atlas.store';
@@ -123,7 +123,7 @@ const SHORTCUT_HELP = [
   `,
   host: { class: 'flex h-screen flex-col' },
 })
-export class WorkspaceShell {
+export class WorkspaceShell implements OnDestroy {
   private readonly router = inject(Router);
   protected readonly helpItems = SHORTCUT_HELP;
   protected readonly helpOpen = signal(false);
@@ -227,5 +227,9 @@ export class WorkspaceShell {
       this.gPending.set(false);
       if (this.gTimer) clearTimeout(this.gTimer);
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.gTimer) clearTimeout(this.gTimer);
   }
 }

@@ -156,7 +156,7 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 | L3 | Kernel answers: Impact RPC, Top Flows, InterestingPoints, graph completeness | 6/6 DONE (2026-07-05) |
 | L4 | Insight engine v2 + archetype lenses (facets that matter) | DONE (2026-07-05) |
 | L5 | MCP server + context packs (the agent surface) | DONE |
-| L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | DONE |
+| L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | DONE-WITH-GAPS — see §6 tracker note (graph-lib adoption + LLM-pane restyle + Playwright gate never done) |
 | L7 | Benchmark audit + close-out gate | NOT STARTED |
 
 ### L0 — Truth pass (engine correctness; nothing else ships on lies)
@@ -392,8 +392,12 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L4.4 | Doc-summary hygiene | b5f37c3 | DONE |
 | — | L4 audit fixes (Gateway source + Angular ledger) | bf53ff0 | DONE |
 | L5.1 … L5.5 | MCP server + ContextPackBuilder + read_source | 85b15ad, fe09351 | DONE |
-| L6.1 … L6.8 | UI/UX round (Home reframe + graph readability) | e9d1ab1 | DONE |
+| L6.1 … L6.8 | UI/UX round (Home reframe + graph readability) | e9d1ab1 | DONE (see gaps below — 6.6/6.9 in this table's numbering were never done; commit renumbered around them) |
 | — | L5+L6 audit fixes (3 gaps) | 3a68938 | DONE |
+| — | L5+L6 2nd audit pass (MCP snapshot-cache reuse, intent modes, insights.detail bug, Angular memory-leak cleanup, Atlas→Workbench project-filter wiring) | (this commit) | DONE |
+| L6.6 | Adopt voted layout lib (elkjs Flow / fcose+compound System clustering), centrality node-size, label-density, minimap | — | **NOT DONE** — `graph-canvas.ts` still the pre-Lighthouse flat `cytoscape-dagre` layout for all altitudes (present since scaffold commit `03c32e6`); no clustering ⇒ §4 L6.9 gate ("stranger names the clusters unprompted" on PowerToys) can't be honestly claimed |
+| L6.4-b | LLM context pane restyle (styled pack preview backed by `ContextPackBuilder`, not raw `<pre>`) | — | **NOT DONE** — `export-drawer.ts` still renders via the old Render RPC as raw wrapped markdown |
+| L6.9 | Gate: Playwright + screenshots for L6 | — | **NOT DONE** — no Playwright specs/screenshots exist for any L6 surface; L6 was marked DONE on code review alone |
 | L7.1 … L7.3 | — | NOT STARTED |
 
 *Maintain per the conventions in §4's preamble: status + commit hash in the same commit as the work.*

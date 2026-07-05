@@ -1,6 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
-import { Card } from '../../ui/card/card';
 import { RouterLink } from '@angular/router';
 
 const SEVERITY_CLASS: Record<string, string> = {
@@ -34,7 +33,7 @@ interface InsightGroup {
 @Component({
   selector: 'app-insights-view',
   standalone: true,
-  imports: [Card, RouterLink],
+  imports: [RouterLink],
   template: `
     <div class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
       <h2 class="text-lg font-semibold text-ink">Insights</h2>
@@ -75,7 +74,7 @@ interface InsightGroup {
               <span class="text-2xs text-ink-muted uppercase tracking-wider">{{ group.impact }}</span>
               <div class="mt-1.5 space-y-2">
                 @for (insight of group.insights; track insight.id) {
-                  <app-card>
+                  <div class="rounded border border-line bg-surface-1 p-3">
                     <div class="border-l-2 pl-3" [class]="insight.severityClass">
                       <div class="flex items-center gap-2">
                         <span class="text-xs font-semibold text-ink">{{ insight.title }}</span>
@@ -109,7 +108,7 @@ interface InsightGroup {
                         </a>
                       }
                     </div>
-                  </app-card>
+                  </div>
                 }
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Component, effect, HostListener, inject } from '@angular/core';
+import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -67,12 +67,11 @@ export class TabStrip {
   private readonly session = inject(SessionStore);
 
   constructor() {
-    // Keep each tab's stored route current as the user navigates within it, so switching away and
-    // back restores the view instead of dumping them back on Overview.
-    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+    const sub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
       const activeId = this.workspace.activeId();
       if (activeId) this.workspace.setRoute(activeId, e.urlAfterRedirects);
     });
+    inject(DestroyRef).onDestroy(() => sub.unsubscribe());
 
     // On boot, restored tabs land on screen idle (I10.4 — never auto-analyze all of them). If the
     // one that was active when the app last closed carries a path, jump straight to its remembered

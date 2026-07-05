@@ -2,7 +2,6 @@ import { afterEveryRender, Component, computed, inject, viewChild, ElementRef } 
 
 import { SessionStore } from '../../state/session.store';
 import { Icon } from '../../ui/icon/icon';
-import { Meter } from '../../ui/meter/meter';
 import { formatCompact } from '../../core/format';
 
 interface PhaseStatus {
@@ -22,7 +21,7 @@ interface PhaseStatus {
  */
 @Component({
   selector: 'app-run-console',
-  imports: [Icon, Meter],
+  imports: [Icon],
   template: `
     <div class="console-surface" #surface>
       @if (mode() === 'boot') {

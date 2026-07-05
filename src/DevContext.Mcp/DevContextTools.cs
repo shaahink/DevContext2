@@ -45,15 +45,65 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    public string Entrypoints(string handle)
+    public string CloseSession(string handle)
+    {
+        var removed = _sessions.CloseSession(handle);
+        return McpSessionManager.Serialize(new { closed = removed, handle });
+    }
+
+    [McpServerTool]
+    public string ListSessions()
+    {
+        var sessions = _sessions.ListSessions();
+        return McpSessionManager.Serialize(new { count = sessions.Length, sessions });
+    }
+
+    [McpServerTool]
+    public string Stats(string handle)
     {
         var s = Require(handle);
-        var entries = s.Query.EntryPoints();
+        var (seams, entriesWithTarget) = s.Query.Stats();
+        var envelope = s.Envelope();
+        var summary = _sessions.GetStatus(handle);
+        return McpSessionManager.Serialize(new
+        {
+            envelope.Scope, envelope.Coverage, envelope.Confidence,
+            projectCount = s.Snapshot.Map?.Topology.Length ?? 0,
+            nodeCount = s.Snapshot.Graph?.NodeCount ?? 0,
+            edgeCount = s.Snapshot.Graph?.EdgeCount ?? 0,
+            entryCount = s.Snapshot.Entries.Length,
+            entriesWithTarget,
+            targetCoverage = s.Snapshot.Entries.Length > 0
+                ? (double)entriesWithTarget / s.Snapshot.Entries.Length
+                : 0,
+            seams = seams.Select(seam => new
+            {
+                kind = seam.Seam,
+                total = seam.Count,
+                verified = seam.Count - seam.Approx,
+                approx = seam.Approx,
+            }).ToArray(),
+            archetype = s.Snapshot.Map?.Archetype.ToString() ?? "unknown",
+            style = s.Snapshot.Map?.Style ?? "Unknown",
+            elapsedMs = summary.ElapsedMs,
+            warnings = summary.Summary?.Warnings?.ToArray() ?? [],
+        });
+    }
+
+    [McpServerTool]
+    public string Entrypoints(string handle, string? kind = null)
+    {
+        var s = Require(handle);
+        EntryPointKind? kindFilter = kind is not null && Enum.TryParse<EntryPointKind>(kind, ignoreCase: true, out var parsed)
+            ? parsed
+            : null;
+        var entries = s.Query.EntryPoints(kindFilter);
         var envelope = s.Envelope();
         return McpSessionManager.Serialize(new
         {
             envelope.Scope, envelope.Coverage, envelope.Confidence,
             count = entries.Length,
+            kind = kindFilter?.ToString(),
             entries = entries.Select(e => new
             {
                 kind = e.Kind.ToString(),
@@ -333,7 +383,7 @@ public sealed class DevContextTools
                 category = i.Category.ToString(),
                 severity = i.Severity.ToString(),
                 title = i.Title,
-                detail = i.Title,
+                detail = string.Join("; ", i.Evidence.Take(3)),
                 evidence = i.Evidence.ToArray(),
                 confidence = i.Confidence,
                 confidenceBasis = i.ConfidenceBasis,
@@ -365,7 +415,7 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    public string ReadSource(string handle, string nodeId)
+    public string ReadSource(string handle, string nodeId, int windowLines = 20)
     {
         var s = Require(handle);
         var id = s.Query.ResolveNodeId(nodeId);
@@ -389,8 +439,10 @@ public sealed class DevContextTools
 
             var lines = File.ReadAllLines(node.FilePath);
             var lineNum = node.LineNumber ?? 1;
-            var start = Math.Max(0, lineNum - 6);
-            var end = Math.Min(lines.Length, lineNum + 15);
+            var before = Math.Max(0, windowLines / 3);
+            var after = windowLines - before;
+            var start = Math.Max(0, lineNum - before);
+            var end = Math.Min(lines.Length, lineNum + after);
             var selectedLines = lines.Skip(start).Take(end - start).ToArray();
 
             return McpSessionManager.Serialize(new
