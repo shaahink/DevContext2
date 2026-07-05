@@ -46,6 +46,7 @@ export class SessionStore {
   readonly entryCount = computed(() => this.entryGroups().reduce((n, g) => n + g.entries.length, 0));
   readonly insights = computed(() => this.stats()?.insights ?? []);
   readonly insightCount = computed(() => this.insights().length);
+  readonly confidenceLedger = computed(() => this.stats()?.confidenceLedger);
   lastStats = () => this.stats();
 
   async analyze(spec: AnalyzeSpec): Promise<void> {

@@ -1,7 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
-import { AtlasStore } from '../../state/atlas.store';
 import { SessionStore } from '../../state/session.store';
 import { StatCell } from '../../ui/stat-cell/stat-cell';
 import { Badge } from '../../ui/badge/badge';
@@ -52,8 +51,36 @@ import { Badge } from '../../ui/badge/badge';
         <app-stat-cell [value]="wired()" label="wired" />
         <app-stat-cell [value]="unwired()" label="unwired" />
         <app-stat-cell [value]="coverage() + '%'" label="coverage" />
-        <app-stat-cell [value]="confidence() === null ? '—' : confidence() + '%'" label="confidence" />
+        <button type="button" class="contents cursor-pointer" (click)="showLedger = !showLedger">
+          <app-stat-cell [value]="confPct()" label="confidence" />
+        </button>
       </div>
+
+      @if (showLedger && ledger(); as l) {
+        <div class="rounded-lg border border-line bg-surface-2 p-3 space-y-2 text-xs">
+          <p class="font-semibold text-ink">Confidence Ledger</p>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-muted">
+            <span>Overall</span><span class="tabular-nums font-mono text-ink">{{ (l.overall * 100).toFixed(0) }}%</span>
+            <span>Verified edges</span><span class="tabular-nums font-mono text-ink">{{ (l.verifiedEdgePct * 100).toFixed(0) }}%</span>
+            <span>Approximate edges</span><span class="tabular-nums font-mono text-ink">{{ (l.approxEdgePct * 100).toFixed(0) }}%</span>
+            <span>Auth coverage</span><span class="tabular-nums font-mono text-ink">{{ l.endpointsWithAuth }}/{{ l.totalEndpoints }}</span>
+            <span>Entry targets</span><span class="tabular-nums font-mono text-ink">{{ l.entriesWithTarget }}/{{ l.totalEntries }}</span>
+          </div>
+          @if (l.perSeam.length) {
+            <div class="pt-1">
+              <span class="text-2xs text-ink-subtle">Per seam</span>
+              <div class="mt-1 grid grid-cols-4 gap-x-2 gap-y-0.5 text-2xs">
+                @for (s of l.perSeam; track s.seam) {
+                  <span class="font-mono">{{ s.seam }}</span>
+                  <span class="tabular-nums text-ink-muted">{{ s.total }}</span>
+                  <span class="tabular-nums text-accent">{{ s.verified }}&#x2713;</span>
+                  <span class="tabular-nums text-warn">{{ s.approx }}~</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       @if (stack().length) {
         <div class="flex flex-wrap items-center gap-1.5">
@@ -69,10 +96,11 @@ import { Badge } from '../../ui/badge/badge';
 })
 export class IdentityStrip {
   protected readonly session = inject(SessionStore);
-  private readonly atlas = inject(AtlasStore);
 
   protected readonly summary = this.session.summary;
   protected readonly map = this.session.mapResponse;
+  protected readonly ledger = this.session.confidenceLedger;
+  protected showLedger = false;
 
   protected readonly stale = computed(() => {
     const s = this.summary();
@@ -86,8 +114,6 @@ export class IdentityStrip {
   protected readonly stack = computed(() => this.map()?.stack ?? []);
 
   protected readonly wired = computed(() => this.summary()?.entriesWithTarget ?? 0);
-  /** §3.6 — `summary.entries - summary.entriesWithTarget`, the same subtraction the
-   * server-computed `entriesWithTarget` implies; no new field needed. */
   protected readonly unwired = computed(() => {
     const s = this.summary();
     return s ? s.entries - s.entriesWithTarget : 0;
@@ -98,9 +124,10 @@ export class IdentityStrip {
     return Math.round((s.entriesWithTarget / s.entries) * 100);
   });
 
-  /** §3.5 repo-wide confidence, from the Flow Atlas's indexed flows — null (rendered
-   * "—") until at least one flow has been indexed, not 0, since 0% is a real value. */
-  protected readonly confidence = this.atlas.overallVerifiedPct;
+  protected readonly confPct = computed(() => {
+    const l = this.ledger();
+    return l ? `${Math.round(l.overall * 100)}%` : '—';
+  });
 
   protected reanalyze() {
     void this.session.reAnalyze();

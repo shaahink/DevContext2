@@ -736,6 +736,7 @@ public sealed class DiscoveryPipeline
             new MessagingArchetypeSource(),
             new DesktopArchetypeSource(),
             new CliArchetypeSource(),
+            new GatewayArchetypeSource(),
         };
 
         var all = new List<Insight>();
