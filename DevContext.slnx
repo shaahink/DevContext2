@@ -7,6 +7,7 @@
     <Project Path="src/DevContext.Contracts/DevContext.Contracts.csproj" />
     <Project Path="src/DevContext.Core/DevContext.Core.csproj" />
     <Project Path="src/DevContext.Desktop/DevContext.Desktop.csproj" />
+    <Project Path="src/DevContext.Mcp/DevContext.Mcp.csproj" />
     <Project Path="src/DevContext.Server/DevContext.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
