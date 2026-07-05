@@ -173,7 +173,12 @@ internal static class ProtoMapper
                 Severity = i.Severity.ToString(),
                 Title = i.Title,
                 Detail = "",
+                Confidence = i.Confidence,
+                Action = i.Action.ToString(),
             };
+            if (i.ConfidenceBasis is { } cb) pi.ConfidenceBasis = cb;
+            if (i.WhyItMatters is { } wm) pi.WhyItMatters = wm;
+            if (i.ActionTarget is { } at) pi.ActionTarget = at;
             pi.Evidence.AddRange(i.Evidence);
             resp.Insights.Add(pi);
         }

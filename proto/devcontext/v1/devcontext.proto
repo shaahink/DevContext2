@@ -298,6 +298,11 @@ message Insight {
   string title = 4;
   string detail = 5;
   repeated string evidence = 6;
+  double confidence = 7;
+  optional string confidence_basis = 8;
+  optional string why_it_matters = 9;
+  string action = 10;
+  optional string action_target = 11;
 }
 
 message StageStat {

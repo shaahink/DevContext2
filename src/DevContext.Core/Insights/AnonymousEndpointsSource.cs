@@ -57,13 +57,25 @@ public sealed class AnonymousEndpointsSource : IInsightSource
             if (unverifiable.Count > 0)
                 suffix += $"; {unverifiable.Count} more not individually verifiable (app-wide default policy present)";
             var title = $"{anon.Count}/{httpEntries.Count} endpoints anonymous{suffix}";
-            yield return Insight.Create(Id, Category, sev, title, anon.Take(5));
+
+            var authCoverage = httpEntries.Count > 0
+                ? (double)(httpEntries.Count - anon.Count) / httpEntries.Count
+                : 0;
+            yield return Insight.Create(Id, Category, sev, title, anon.Take(5),
+                confidence: Math.Round(authCoverage, 2),
+                confidenceBasis: $"{httpEntries.Count - anon.Count}/{httpEntries.Count} endpoints have known auth",
+                whyItMatters: "Unauthenticated write endpoints are a security risk — verify each is intentionally public.",
+                action: InsightAction.Trace,
+                actionTarget: httpEntries.FirstOrDefault(e => anon.Contains($"{e.HttpMethod ?? "GET"} {e.Route}"))?.Node.ToString());
         }
         else
         {
             // Never claim "anonymous" when a fallback policy exists and no endpoint overrides it (E1).
             var title = $"Auth present via app-wide default policy — {unverifiable.Count} endpoints not individually verifiable";
-            yield return Insight.Create(Id, Category, Severity.Notable, title, unverifiable.Take(5));
+            yield return Insight.Create(Id, Category, Severity.Notable, title, unverifiable.Take(5),
+                confidence: 0.7,
+                confidenceBasis: "App-wide fallback policy detected; per-endpoint annotations may be incomplete",
+                whyItMatters: "Global auth policy protects all endpoints by default — individual annotations confirm intent.");
         }
     }
 }

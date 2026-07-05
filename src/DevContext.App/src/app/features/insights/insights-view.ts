@@ -17,7 +17,12 @@ const SEVERITY_LABEL_CLASS: Record<string, string> = {
 
 interface InsightGroup {
   category: string;
-  insights: { id: string; title: string; severity: string; severityClass: string; detail: string; evidence: string[] }[];
+  insights: {
+    id: string; title: string; severity: string; severityClass: string;
+    detail: string; evidence: string[];
+    confidence: number; confidenceBasis?: string;
+    whyItMatters?: string; action: string; actionTarget?: string;
+  }[];
 }
 
 @Component({
@@ -69,7 +74,13 @@ interface InsightGroup {
                       <div class="flex items-center gap-2">
                         <span class="text-xs font-semibold text-ink">{{ insight.title }}</span>
                         <span class="rounded px-1.5 py-px text-2xs" [class]="severityLabelClass(insight.severity)">{{ insight.severity }}</span>
+                        @if (insight.confidence > 0) {
+                          <span class="text-2xs tabular-nums text-ink-subtle" [title]="insight.confidenceBasis ?? ''">{{ (insight.confidence * 100).toFixed(0) }}% conf</span>
+                        }
                       </div>
+                      @if (insight.whyItMatters) {
+                        <p class="mt-1 text-2xs text-ink-muted italic">{{ insight.whyItMatters }}</p>
+                      }
                       @if (insight.detail) {
                         <p class="mt-1 text-2xs text-ink-muted">{{ insight.detail }}</p>
                       }
@@ -79,6 +90,13 @@ interface InsightGroup {
                             <span class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted">{{ ev }}</span>
                           }
                         </div>
+                      }
+                      @if (insight.action !== 'None' && insight.actionTarget) {
+                        <a class="mt-1.5 inline-block text-2xs text-accent hover:underline"
+                           [routerLink]="['/explore']"
+                           [queryParams]="{ focus: insight.actionTarget }">
+                          {{ insight.action === 'Trace' ? 'Trace it →' : insight.action === 'Usages' ? 'See usages →' : 'Export →' }}
+                        </a>
                       }
                     </div>
                   </app-card>
@@ -128,7 +146,12 @@ export class InsightsView {
     const list = this.store.insights();
     if (!list.length) return [] as InsightGroup[];
 
-    const map = new Map<string, { id: string; title: string; severity: string; severityClass: string; detail: string; evidence: string[] }[]>();
+    const map = new Map<string, {
+      id: string; title: string; severity: string; severityClass: string;
+      detail: string; evidence: string[];
+      confidence: number; confidenceBasis?: string;
+      whyItMatters?: string; action: string; actionTarget?: string;
+    }[]>();
     for (const i of list) {
       const cat = i.category || 'Other';
       if (!map.has(cat)) map.set(cat, []);
@@ -139,6 +162,11 @@ export class InsightsView {
         severityClass: SEVERITY_CLASS[i.severity] ?? SEVERITY_CLASS['info'],
         detail: i.detail,
         evidence: i.evidence,
+        confidence: i.confidence,
+        confidenceBasis: i.confidenceBasis,
+        whyItMatters: i.whyItMatters,
+        action: i.action,
+        actionTarget: i.actionTarget,
       });
     }
     return [...map.entries()].map(([category, insights]) => ({ category, insights }));
