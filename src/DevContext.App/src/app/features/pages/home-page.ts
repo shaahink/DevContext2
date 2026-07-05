@@ -106,12 +106,8 @@ export class HomePage {
 
   protected readonly topFlows = computed<readonly EntryVm[]>(() => {
     const flatEntries = this.session.entryGroups().flatMap((g) => g.entries);
-    const ranked = this.atlas.topFlows();
-    if (ranked.length > 0) {
-      const byFocus = new Map(flatEntries.map((e) => [e.focus, e] as const));
-      const mapped = ranked.map((f) => byFocus.get(f.focus)).filter((e): e is EntryVm => !!e);
-      if (mapped.length > 0) return mapped.slice(0, MAX_TOP_FLOWS);
-    }
+    const ranked = flatEntries.filter((e) => e.score !== undefined).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    if (ranked.length > 0) return ranked.slice(0, MAX_TOP_FLOWS);
     return flatEntries.slice(0, MAX_TOP_FLOWS);
   });
 

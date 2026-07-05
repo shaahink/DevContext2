@@ -83,6 +83,12 @@ interface KindStat {
           <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="entry.title">
             {{ entry.route || entry.title }}
           </span>
+          @if (entry.groupPath) {
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ entry.groupPath }}</span>
+          }
+          @if (entry.authAttributes?.length) {
+            <span class="shrink-0 text-2xs text-accent" [title]="entry.authAttributes.join(', ')">&#128274;</span>
+          }
           @if (!entry.target) {
             <span class="shrink-0 text-2xs text-warn" title="Unwired: no resolved target">○</span>
           }

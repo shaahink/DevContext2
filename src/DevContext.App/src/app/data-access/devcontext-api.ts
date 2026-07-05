@@ -5,6 +5,8 @@ import type {
   AnalysisSummary,
   CloseResponse,
   EntryPointsResponse,
+  ImpactResponse,
+  InterestingPointsResponse,
   MapResponse,
   NeighborsResponse,
   NodeResponse,
@@ -109,6 +111,14 @@ export class DevContextApi {
 
   closeSession(handle: string): Promise<CloseResponse> {
     return this.client.closeSession({ handle });
+  }
+
+  getImpact(handle: string, nodeId: string, maxDepth?: number): Promise<ImpactResponse> {
+    return this.client.getImpact({ handle, nodeId, maxDepth: maxDepth ?? 0 });
+  }
+
+  getInterestingPoints(handle: string, archetype?: string): Promise<InterestingPointsResponse> {
+    return this.client.getInterestingPoints({ handle, archetype });
   }
 
   async ping(): Promise<{ ready: boolean; version: string }> {

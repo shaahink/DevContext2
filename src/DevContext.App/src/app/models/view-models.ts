@@ -16,6 +16,11 @@ export interface EntryVm {
   readonly target?: string;
   readonly provenance?: string;
   readonly project?: string;
+  readonly groupPath?: string;
+  /** L3.2 — Graph-aware composite score (0..1) for ranking entries by importance. */
+  readonly score?: number;
+  /** L3.5 — Authorization attributes (e.g. "[Authorize]", "[AllowAnonymous]"). */
+  readonly authAttributes?: readonly string[];
   /** The string passed to GetTrace to trace this entry. */
   readonly focus: string;
 }
@@ -49,6 +54,7 @@ export interface NodeDetailVm {
   readonly filePath?: string;
   readonly outDegree: number;
   readonly inDegree: number;
+  readonly lineNumber?: number;
 }
 
 export interface EdgeVm {
@@ -67,6 +73,13 @@ export const KIND_LABELS: Record<string, string> = {
   ScheduledJob: 'Scheduled jobs',
   DomainEventHandler: 'Domain events',
   PublicApi: 'Public API',
+  GrpcService: 'gRPC',
+  SignalRHub: 'SignalR hubs',
+  FunctionEntry: 'Functions',
+  GrainMethod: 'Grains',
+  GraphQlField: 'GraphQL',
+  CliCommand: 'CLI',
+  UiEntry: 'UI',
 };
 
 export const KIND_ICONS: Record<string, string> = {
@@ -100,6 +113,9 @@ export function toEntryVm(e: EntryPoint): EntryVm {
     target: e.target,
     provenance: e.provenance,
     project: e.project,
+    groupPath: e.groupPath,
+    score: e.score,
+    authAttributes: e.authAttributes,
     focus,
   };
 }
@@ -167,6 +183,7 @@ export function toNodeDetailVm(n: NodeResponse): NodeDetailVm {
     filePath: n.filePath,
     outDegree: n.outDegree,
     inDegree: n.inDegree,
+    lineNumber: n.lineNumber,
   };
 }
 

@@ -43,6 +43,7 @@ const RENDER_DEBOUNCE_MS = 250;
           @if (node.filePath) {
             <p class="flex items-start gap-1.5 break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath">
               <span class="min-w-0 flex-1">{{ node.filePath }}</span>
+              @if (node.lineNumber) {<span class="shrink-0 tabular-nums">:{{ node.lineNumber }}</span>}
               @if (isTauriEnv) {
                 <button type="button" class="shrink-0 text-ink-subtle hover:text-ink hover:underline" (click)="revealInExplorer(node.filePath)" title="Reveal in Explorer">reveal</button>
               }
