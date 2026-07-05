@@ -6,6 +6,17 @@
 > per stage, M0 harness gates everything. Branch: `feat/meridian-m0` off
 > `feat/lighthouse-l2` (or off `develop` after Lighthouse merges).
 >
+> **Executing agents: `meridian-agent-playbook.md` (same folder) is mandatory reading
+> before any stage** — quality bar, anti-patterns, per-surface UI specs, run/test
+> instructions, and the session handoff protocol. Tracker: `MERIDIAN-START.md` at repo
+> root.
+>
+> **v2 (2026-07-05, explicit renumber — never renumber silently):** added M8 Context
+> Studio (new user feature: merged Export + LLM pane into a graph-driven context
+> builder); M2 gains 2.4 (layer/feature classification); M3.3 upgraded from "MCP
+> panel" to a dedicated MCP page; M7 expanded with chrome/affordances (7.4) and Table
+> lens v2 (7.5); former M8 close-out is now **M9**. Decision log gains D7–D9.
+>
 > **Nominated dogfood repo (all stages):** `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`
 > (`eshop-microservices.sln`) — Carter + MediatR + Marten + MassTransit/RabbitMQ +
 > gRPC + YARP + Refit + Razor Pages, 11 projects. It is the repo in the user's
@@ -52,6 +63,9 @@ MCP transport starvation + empty tool descriptions, Atlas = raw CLI text.
 | D4 | **Trace/context output is compact text, not pretty JSON**, for agent-facing tools; JSON stays for UI RPCs. Relative repo paths everywhere; no confidence float on every envelope. | Token discipline. Measured: envelope + absolute paths ≈ 30–40% of every MCP response today. |
 | D5 | Archetype vocabulary gains `microservices`; style becomes **per-service** with a solution-level rollup. | GATEWAY/CleanArchitecture solution-wide claims are wrong on the dogfood repo. |
 | D6 | Insight actions become **typed** (`focus:<entry>` / `node:<id>` / `filter:<kind>` / none) — the UI never navigates on raw evidence strings. | The broken-jump class of bug becomes unrepresentable. |
+| D7 | **Context Studio replaces both the Export drawer and the Explore LLM-context pane.** One surface where a user composes precise LLM-ready context from the graph — scope seeds (flow / class / service / trail / "I'm changing this endpoint"), per-section toggles incl. with/without code bodies, live token meter, copy/export. | The two panes duplicate `ContextPackBuilder` output with different UIs and neither lets the user *choose* what goes in. The job-to-be-done: update an endpoint without dumping whole files into a web LLM. |
+| D8 | **MCP becomes a dedicated left-rail page**, not a settings panel: status + host config snippets, session list, live token-metered tool-call feed, budget caps, kill switch, manual "try a tool" console. | A rail page has room to be genuinely informative (the user's ask); a buried panel doesn't. |
+| D9 | **The graph is modeled with three node facets — `Service`, `Layer`, `Feature` — plus flows, and every surface renders its own *lens* (projection), never the same System canvas.** Lenses: Service map, Layered view (with dependency-violation edges), Feature columns, Flow stepper. Per-archetype facet mapping: web/microservices (service = runnable project; layer = Api/Application/Domain/Infrastructure/Contracts), library (layer = Public API/Core/Internals; feature = namespace area), desktop (service = module; layer = View/ViewModel/Domain/Platform). | "System-level graph is the same every page" — because there is only one projection today. Layering/feature structure is statically derivable and is exactly the architecture picture devs want. |
 
 ## 4. The waterfall — stages M0 → M8
 
@@ -130,9 +144,15 @@ Session B — cross-service (W4), each join is detection + `ServiceLink` edge + 
   but excludes Razor pages from "endpoints" counting).
 - **2.3** (D6) Typed insight actions end-to-end (engine → proto → UI); evidence chips
   render as links **only** when carrying a resolvable target.
+- **2.4** (D9) Layer/feature classification: every Type node gains `Layer` and
+  `Feature` facets, evidence-based (project role + folder conventions + base types +
+  reference direction), per-archetype mapping per D9. Emit `LayerViolation`
+  detections (e.g., Domain → Infrastructure reference). Ships as node metadata +
+  stats; **rendering waits for M6/M7 lenses** — no UI in this stage.
 - **Gate:** on the dogfood repo, every insight card's every click lands on a working
   view; insight set reviewed against "would a senior dev nod?" per item in the PR
-  description.
+  description; layer facet coverage ≥90% of Type nodes on dogfood + CleanArchitecture
+  with spot-check table in the PR.
 
 ### M3 — MCP re-architecture (D1/D2 plumbing)
 *One session.*
@@ -145,12 +165,15 @@ Session B — cross-service (W4), each join is detection + `ServiceLink` edge + 
 - **3.2** Tool schema hygiene: every tool gets a written description + param docs +
   1-line example (the agent's onboarding — budget ~40 tokens each); envelope trimmed
   (D4): repo-relative paths, no per-response confidence, single compact `meta` line.
-- **3.3** Observability stream: server broadcasts tool-call events (tool, session,
-  args digest, bytes, est. tokens, ms). UI MCP panel (D2): start/stop, live feed,
-  token totals, session eviction. Config surface: which agent hosts are pointed at
-  the shim (copy-paste snippet for Claude Code/Cursor).
-- **Gate:** M0.2 harness green including cold-start and flush regressions; UI shows a
-  live feed of the harness run; killing the panel's toggle stops new MCP sessions.
+- **3.3** (D2/D8) Observability stream + **dedicated MCP page** (left rail, own
+  route): server broadcasts tool-call events (tool, session, args digest, bytes,
+  est. tokens, ms); the page shows server status + start/stop, host config snippets
+  (Claude Code / Cursor / VS Code, copy with feedback), session list (repo, age,
+  token total, evict), live feed with per-call token chips, and a "try a tool"
+  console (pick tool, fill args, see raw response + cost). Functional this stage;
+  visual polish rides M7.0 tokens. Nominated layout in the playbook §UI-MCP.
+- **Gate:** M0.2 harness green including cold-start and flush regressions; the MCP
+  page shows a live feed of the harness run; toggling MCP off stops new sessions.
 
 ### M4 — MCP feature set (what an agent actually needs against a .NET repo)
 *Two sessions. Derived from the dogfood transcript, not speculation.*
@@ -218,8 +241,8 @@ Session B — cross-service (W4), each join is detection + `ServiceLink` edge + 
 - **Gate:** M0.3 screenshots; the "hand it to a new joiner" review on the dogfood
   repo; Atlas one-pager export opens standalone.
 
-### M7 — Explore: graph↔code, legibility, connection
-*Two sessions.*
+### M7 — Explore, chrome, and the Table lens
+*Three sessions: (A) tokens+chrome+affordances, (B) graph↔code + lenses, (C) Table lens v2.*
 
 - **7.0** Design-token pass (do first, sweeps all surfaces): minimum body text 12px,
   icons 14–16px with per-kind color coding, contrast audit for chips/subtle text —
@@ -228,25 +251,75 @@ Session B — cross-service (W4), each join is detection + `ServiceLink` edge + 
   highlighted) in the inspector *simultaneously* with graph focus; selecting a trace
   step highlights the corresponding edge + scrolls code to the line; ESC returns.
   Code pane is a first-class Explore citizen, not a peek.
-- **7.2** System altitude renders the D3 service layer (cards + ServiceLinks) with
-  drill-in to project/type level; Flow altitude gets the M6 stepper as an alternative
-  linear view for the selected flow; label collision fixed by the service-card
-  approach (no more free-floating overlapping labels).
+- **7.2** (D9) Lenses land: System altitude = Service map lens with drill-in;
+  **Layered lens** (layer bands, violation edges highlighted) and **Feature lens**
+  (feature columns) selectable; Flow altitude gets the M6 stepper as an alternative
+  linear view. Each page owns its default lens + remembers it — the identical
+  System canvas repeated on every page is retired. Label collision fixed by the
+  card-based lens layouts (no free-floating overlapping labels).
 - **7.3** Trail: dedupe consecutive visits, group by flow, cap visible length with
   "n earlier" expander; deck rows get service-colored kind dots and full-route
   tooltips.
+- **7.4** Chrome pass (the VS Code comparison): top bar (workspace picker + omnibox —
+  clearer hit targets and active states), left rail (persistent labels or hover
+  labels + active indicator bar + legible badges), **tabs** (taller, readable title,
+  hover close, strong active contrast — today they're hard to see), footer status
+  bar (segmented: repo/stats | health/version, each segment clickable). Plus the
+  **feedback affordance rule** everywhere: any click that performs an action shows
+  visible confirmation (copy → icon morphs to check + "Copied" toast; export →
+  progress → done state). No silent buttons survive this checkpoint.
+- **7.5** Table lens v2 (Shift+E — today "a big table"): becomes the repo
+  spreadsheet with graph-derived metadata columns and row relationships —
+  per-archetype:
+  *web/microservices*: route · service · target handler · flow depth · downstream
+  services touched · events published · auth · validation · **shares-logic-with**
+  (entries whose flows converge on the same handler/entity/repository, rendered as
+  linked chips: "shares OrderRepository with 3 endpoints") · **touch-risk** ("changing
+  this affects N flows in M services", from impact);
+  *library*: public type · kind · extension seats · in-repo usage count · doc
+  presence · derive/override seats;
+  *desktop*: view · viewmodel · commands · events · module.
+  Row expand = mini flow stepper. Group by service/feature; column sets are
+  archetype defaults, user-toggleable.
 - **Gate:** M0.3 interaction scripts (select node → code visible; select step → edge
-  highlighted) pass; before/after screenshots in PR.
+  highlighted; lens switch; copy feedback visible) pass; before/after screenshots per
+  checkpoint in PR; Table lens renders correct columns for dogfood repo, Serilog, and
+  a desktop fixture.
 
-### M8 — Close-out (the honesty gate, done right this time)
+### M8 — Context Studio (D7: the precise-context builder)
+*One to two sessions. Requires M1 wiring + M4 get_context v2.*
+
+- **8.1** Surface: new rail page + "Build context" entry points from Explore (from
+  current trail/selection) and Home (from a top flow). Replaces the Export drawer
+  (Ctrl+E) and the Explore LLM-context pane — both retire; their routes/shortcuts
+  redirect here.
+- **8.2** Composition model: a context is an ordered set of **cards** — flow
+  skeleton, member signatures, member bodies (per-member toggle), DI wiring, config
+  keys, entities/contracts, tests-for, repo identity line. Scope seeds: entry/flow,
+  type, service, insight, trail, or free pick via omnibox. "I'm changing this
+  endpoint" preset = flow + target member bodies + contracts + validators + tests.
+- **8.3** Controls: with/without code bodies globally and per card; budget slider
+  with **live token meter per card and total** (server-side estimate, same tokenizer
+  as MCP); intent selector (trace/explain/review) reordering sections; format
+  (markdown / plain); Copy + Save-to-file with feedback affordances (7.4 rule).
+- **8.4** Fidelity: every card shows its graph provenance (file:line chips); a
+  "stale" banner if the session snapshot is older than the working tree (reuses the
+  freshness probe). Output must round-trip through `ContextPackBuilder` v2 — no
+  UI-side string assembly.
+- **Gate:** scripted Playwright flow — load dogfood repo, seed "update PUT /products",
+  toggle bodies off/on, budget 4k, copy — produces deterministic context whose
+  token count matches the meter ±5%; golden context file checked into eval; both old
+  panes gone with no dead routes/shortcuts.
+
+### M9 — Close-out (the honesty gate, done right this time)
 *One session.*
 
-- **8.1** Full bench: all M0.1 repos **plus** PowerToys and MassTransit (the two
+- **9.1** Full bench: all M0.1 repos **plus** PowerToys and MassTransit (the two
   Lighthouse deferred forever); stub reports impossible (M0.1).
-- **8.2** `eval-results/<date>/AUDIT.md` scores every W-finding and every M-stage gate
+- **9.2** `eval-results/<date>/AUDIT.md` scores every W-finding and every M-stage gate
   with fresh evidence; any FIXED verdict must cite a re-run artifact, not code
   existence.
-- **8.3** `HANDOVER-MERIDIAN.md` + memory updates + tracker close.
+- **9.3** `HANDOVER-MERIDIAN.md` + memory updates + tracker close.
 - **Gate:** the three M0 harnesses green on every repo in scope; no deferred-forever
   list without owner + date.
 
@@ -262,22 +335,34 @@ Session B — cross-service (W4), each join is detection + `ServiceLink` edge + 
 5. Home passes the ten-second test on the dogfood repo; Atlas exports a one-pager
    that reads as an architecture doc; no insight click dead-ends; no 10px text.
 6. Library/report quality of Lighthouse is not regressed (bench diff clean).
+7. A dev updating one endpoint builds a precise, body-toggled, token-metered context
+   in Context Studio in under a minute — without opening a single file by hand.
+8. The Table lens answers "which endpoints share logic?" and "what should I worry
+   about if I touch this?" as sortable columns, for web, library, and desktop shapes.
+9. Every actionable button in the app visibly confirms it acted (no silent copies);
+   tabs/rail/status bar pass the "can you see where you are at a glance?" check.
 
 ## 6. Tracker
+
+**Live tracker: `MERIDIAN-START.md` at repo root** — per-checkpoint status, evidence
+links, and the session handoff block. This table is the plan-side summary only;
+update BOTH when a stage closes.
 
 | Stage | Sessions | Status | Evidence |
 |-------|----------|--------|----------|
 | M0 harnesses | 1 | TODO | |
 | M1 wiring truth (A in-service, B cross-service) | 2 | TODO | |
-| M2 insight relevance | 1 | TODO | |
-| M3 MCP re-architecture | 1 | TODO | |
+| M2 insight relevance + layer/feature facets | 1 | TODO | |
+| M3 MCP re-architecture + MCP page | 1 | TODO | |
 | M4 MCP feature set | 2 | TODO | |
 | M5 agent eval ratchet | 1 | TODO | |
 | M6 Home + Atlas | 2 | TODO | |
-| M7 Explore + tokens | 2 | TODO | |
-| M8 close-out | 1 | TODO | |
+| M7 Explore + chrome + Table lens (A/B/C) | 3 | TODO | |
+| M8 Context Studio | 1–2 | TODO | |
+| M9 close-out | 1 | TODO | |
 
-Resume protocol per stage: read this doc's stage section + `lighthouse-delivery-audit.md`
-+ the M0 baseline table; run the relevant harness before and after; update this tracker
-with commit refs and artifact paths. A stage is DONE only when its **Gate** line has
-fresh artifacts — code existing is not evidence (Lighthouse lesson, encoded).
+Resume protocol per stage: read `meridian-agent-playbook.md`, then this doc's stage
+section + `lighthouse-delivery-audit.md` + the M0 baseline table; run the relevant
+harness before and after; update `MERIDIAN-START.md` with commit refs and artifact
+paths. A stage is DONE only when its **Gate** line has fresh artifacts — code existing
+is not evidence (Lighthouse lesson, encoded).
