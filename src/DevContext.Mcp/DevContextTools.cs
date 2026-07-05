@@ -346,11 +346,11 @@ public sealed class DevContextTools
     }
 
     [McpServerTool]
-    public string GetContext(string handle, string focus, int budgetTokens = 8000)
+    public string GetContext(string handle, string focus, int budgetTokens = 8000, string intent = "trace")
     {
         var s = Require(handle);
         var builder = new ContextPackBuilder(s.Query, s.Snapshot);
-        var pack = builder.Build(focus, budgetTokens);
+        var pack = builder.Build(focus, budgetTokens, intent);
         var envelope = s.Envelope();
         return McpSessionManager.Serialize(new
         {

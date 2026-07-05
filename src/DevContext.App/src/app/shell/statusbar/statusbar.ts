@@ -34,16 +34,6 @@ import { Ticker } from '../../ui/ticker/ticker';
             }
           } @else if (session.ready()) {
             <span class="font-medium text-ink">{{ summaryLabel() }}</span>
-            <span class="text-ink-subtle">&middot;</span>
-            <span>{{ session.entryCount() }} entries</span>
-            <span class="text-ink-subtle">&middot;</span>
-            <span>{{ session.summary()?.nodes ?? 0 }} nodes</span>
-            <span class="text-ink-subtle">&middot;</span>
-            <span>{{ session.summary()?.edges ?? 0 }} edges</span>
-            @if (coverage(); as cov) {
-              <span class="text-ink-subtle">&middot;</span>
-              <span>{{ cov }}% wired</span>
-            }
             @if (atlas.running()) {
               <span class="text-ink-subtle">&middot;</span>
               <span>{{ atlas.progressLabel() }}</span>

@@ -28,9 +28,15 @@ import { formatCompact } from '../../core/format';
       <!-- Stat strip — human labels -->
       <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
         @for (label of statLabels(); track label[0]) {
-          <span class="tabular-nums" [title]="label[2]">
-            <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
-          </span>
+          @if (label[0] === 'confidence') {
+            <button type="button" class="tabular-nums cursor-pointer hover:text-accent transition-colors" [title]="label[2]" (click)="showLedger = !showLedger">
+              <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
+            </button>
+          } @else {
+            <span class="tabular-nums" [title]="label[2]">
+              <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
+            </span>
+          }
         }
       </div>
 
