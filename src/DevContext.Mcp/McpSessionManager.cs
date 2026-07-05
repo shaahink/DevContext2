@@ -176,7 +176,13 @@ public sealed class McpSessionManager : IDisposable
 
             sw.Stop();
 
-            var graph = snapshot!.Graph!;
+            if (snapshot?.Graph is null)
+            {
+                _sessions[handle] = entry with { Status = "error", Error = "Analysis produced no graph." };
+                return;
+            }
+
+            var graph = snapshot.Graph;
             var query = new GraphQuery(graph, snapshot.Entries, snapshot.Map);
             var (seams, entriesWithTarget) = query.Stats();
 

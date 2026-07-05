@@ -1,4 +1,4 @@
-import { afterEveryRender, Component, computed, inject, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, effect, inject, viewChild, ElementRef } from '@angular/core';
 
 import { SessionStore } from '../../state/session.store';
 import { Icon } from '../../ui/icon/icon';
@@ -265,8 +265,9 @@ export class RunConsole {
   });
 
   constructor() {
-    afterEveryRender(() => {
+    effect(() => {
       if (this.mode() !== 'boot') return;
+      this.session.consoleLog();
       const el = this.scrollAnchor()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;
     });

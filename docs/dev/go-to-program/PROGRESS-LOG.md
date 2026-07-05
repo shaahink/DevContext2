@@ -1,4 +1,4 @@
-# Progress Log â€” go-to program
+ï»¿# Progress Log â€” go-to program
 
 > Append-only session log. Date Â· Changed Â· Verified Â· Next.
 
@@ -1464,9 +1464,9 @@ auth column, S2 line numbers) â€” T2 and B8/C1 were W7's own assignments and are
 everything else was already closed by W1-W6. `AGENTS.md`'s F section needs updating to
 mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 
-## 2026-07-05 — L3 audit fixes + L4 delivery: Insight engine v2
+## 2026-07-05 ï¿½ L3 audit fixes + L4 delivery: Insight engine v2
 
-**Changed (L3 audit fixes — 6 engine + 5 Angular):**
+**Changed (L3 audit fixes ï¿½ 6 engine + 5 Angular):**
 - **F1** BfsEntryScore cross-project counting: Path.GetFileNameWithoutExtension(fp) ? scope.ProjectForFile(fp). Dead projectByPath dict removed.
 - **F2** Angular devcontext-api.ts: getImpact() and getInterestingPoints() RPC wrappers added.
 - **F3** EntryVm.groupPath + mapping in 	oEntryVm(). Entry deck shows groupPath chip per row.
@@ -1477,13 +1477,13 @@ mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 - **F8** Dead hub-scope dedup loop (4 lines) removed.
 - **F9** BlastRadius O(n)?O(1) entry lookup via Dictionary<NodeId, EntryPoint>.
 
-**Changed (L4.1 — Insight envelope v2):**
+**Changed (L4.1 ï¿½ Insight envelope v2):**
 - Insight record extended: Confidence (double), ConfidenceBasis (string?), WhyItMatters (string?), Action (InsightAction enum: None/Trace/Usages/Export), ActionTarget (string?). Insight.Create() factory stays backward-compatible (new params have neutral defaults).
 - Proto Insight message: confidence (7), confidence_basis (8), why_it_matters (9), action (10), action_target (11).
 - ProtoMapper.ToStatsResponse: maps all new fields. AnonymousEndpointsSource enriched with auth coverage confidence, why-it-matters, action=Trace.
 - Angular insights-view.ts: shows confidence % with basis tooltip, why-it-matters italic text, and action buttons (Trace it/See usages/Export).
 
-**Changed (L4.2 — Per-archetype composition):**
+**Changed (L4.2 ï¿½ Per-archetype composition):**
 - 6 new IInsightSource implementations in Core/Insights/Archetype/:
   - **WebArchetypeSource**: auth surface card (protected/public/unannotated counts), data map (entities per scope), middleware pipeline (behaviour count)
   - **LibraryArchetypeSource**: public surface size (interfaces/classes), internal hubs (heavily-referenced internal types), seat implementors (DI multi-impl interfaces)
@@ -1494,34 +1494,35 @@ mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 - Each source gates on archetype signals and yields zero insights when not applicable.
 - Registered in DiscoveryPipeline.cs insight sources array.
 
-**Changed (L4.3 — Confidence Ledger):**
+**Changed (L4.3 ï¿½ Confidence Ledger):**
 - ConfidenceLedger record: overall confidence, verified/approx edge %, per-seam breakdown (SeamConfidence: seam/total/verified/approx), auth coverage %, entry target %.
 - ConfidenceLedger.Compute(graph, entries): O(n) pass over all edges + entries.
 - Proto ConfidenceLedger message + SeamConfidence in StatsResponse (field 10). Mapped in ProtoMapper.ToStatsResponse.
 - Angular identity-strip.ts: confidence stat now reads from stats.confidenceLedger.overall (not AtlasStore). Clicking opens an expandable Ledger panel showing overall, verified/approx edges, auth coverage, entry targets, and per-seam breakdown.
 
-**Changed (L4.4 — Doc-summary hygiene):**
+**Changed (L4.4 ï¿½ Doc-summary hygiene):**
 - LibrarySurfaceBuilder.IsVendoredNamespace: excludes JetBrains.Annotations, System.Runtime.CompilerServices, System.Diagnostics.CodeAnalysis, Microsoft.CodeAnalysis, *.GeneratedCode.
 - Applied in publicTypes filter before surface grouping.
 
 **Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check (lint + vitest 27/27 + build) green.
 
-**Next:** L5 — MCP server + context packs (proposal-lighthouse.md §L5).
+**Next:** L5 ï¿½ MCP server + context packs (proposal-lighthouse.md ï¿½L5).
 
 ---
 
-## 2026-07-05 — Lighthouse L5+L6: MCP server + UI/UX round + audit fixes
+## 2026-07-05 ï¿½ Lighthouse L5+L6: MCP server + UI/UX round + audit fixes
 
 **Changed (L5.1):**
 - New \src/DevContext.Mcp/\ project: stdio MCP server using \ModelContextProtocol\ 1.4.0 SDK
 - \McpSessionManager\: non-blocking analyze, status polling, LRU (3 snapshots), Serilog file-only logging
-- \DevContextTools\: 13 MCP tools — analyze, status, entrypoints, map, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
+- \DevContextTools\: 13 MCP tools ï¿½ analyze, status, entrypoints, map, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
 - Every response envelope carries scope + coverage + confidence from ConfidenceLedger
 
 **Changed (L5.4+L5.5):**
-- \ContextPackBuilder\ in \DevContext.Core/Graph/\ (kernel): trace skeleton, callee signatures, salient bodies, DI wiring — ranked by distance, budgeted with per-section token attribution + omitted list
+- \ContextPackBuilder\ in \DevContext.Core/Graph/\ (kernel): trace skeleton, callee signatures, salient bodies, DI wiring ï¿½ ranked by distance, budgeted with per-section token attribution + omitted list
 - \get_context(handle, focus, budget_tokens, intent)\ MCP tool
-- \ead_source(handle, node_id)\ MCP tool — file:line anchored read (20-line window)
+- \
+ead_source(handle, node_id)\ MCP tool ï¿½ file:line anchored read (20-line window)
 
 **Changed (L6.1-L6.6):**
 - \identity-strip.ts\: identity sentence, human stat labels with hover tooltips, confidence clickable ? Ledger
@@ -1531,7 +1532,7 @@ mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 - \statusbar.ts\: removed node/edge/entry plumbing; ticker retains insight headlines
 
 **Changed (L6.7+L6.8):**
-- \stage.ts\: Zen mode — F key full-screen overlay, Escape exits, double-click header toggle
+- \stage.ts\: Zen mode ï¿½ F key full-screen overlay, Escape exits, double-click header toggle
 - \graph-canvas.ts\: hover focus dimming (non-neighbors 15% opacity), legend ? popover
 
 **Audit fixes:**
@@ -1543,4 +1544,43 @@ mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
 
 **Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check green (lint 0/0, test 27/27, build 0w/0e)
 
-**Next:** L7 — Benchmark audit + close-out gate. See \docs/dev/briefs/proposal-lighthouse.md\ §L7.
+
+---
+
+## 2026-07-05 -- L7: Benchmark Audit + Close-Out Gate
+
+**Agent:** L7 delivery session (full 6-phase execution in one session).
+
+### Phase 1 -- Bench run
+- Ran devcontext report across 10 repos covering all archetypes (DevContext, TodoApi, eShop, Serilog, FluentValidation, Polly, MediatR, Spectre.Console, CommunityToolkit.Mvvm, CleanArchitecture).
+- Results in eval-results/2026-07-05/.
+- PowerToys deferred to separate session (largest repo, ~120 projects).
+- eShop/TodoApi hit stale pre-Lighthouse snapshot cache --> empty graphs; diagnosed as cache versioning gap.
+
+### Phase 2 -- AUDIT.md
+- Wrote comprehensive audit scoring all 9 trust-breakers + 6 performance + 3 value gaps.
+- Verdict: 18/21 FIXED, 2 IMPROVED, 1 DEFERRED (PowerToys).
+
+### Phase 3 -- Fix top 3 regressions
+1. Snapshot cache versioning (SnapshotSchema.Version = 1, SnapshotEnvelope wrapper).
+2. Bench script SHA-clone fix (40-char hex SHA detection).
+3. McpSessionManager NPE fix (snapshot?.Graph is null guard).
+
+### Phase 4 -- Static audit
+- Full read-through of 110 changed files (~11k insertions).
+- 12 findings: 1 HIGH, 5 MEDIUM, 6 LOW.
+
+### Phase 5 -- Deliver 7 audit fixes
+1. McpSessionManager.cs null-safe graph check (HIGH).
+2. graph-canvas.ts merged duplicate effect; legendItems->signal (HIGH + MEDIUM).
+3. export-drawer.ts contentPreserved reset in finally (MEDIUM).
+4. un-console.ts afterEveryRender->effect (MEDIUM).
+5. insights-view.ts dedupe pre-compute + NaN guard (MEDIUM + LOW).
+
+### Phase 6 -- Handover doc + final updates
+- Created docs/dev/HANDOVER-LIGHTHOUSE.md (8 sections, Fable handover template style).
+- Updated L3-START.md, AGENTS.md, proposal-lighthouse.md tracker.
+
+**Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check green.
+
+**Next:** Review and merge. PowerToys verification session recommended as first next step. See docs/dev/HANDOVER-LIGHTHOUSE.md for full project state.

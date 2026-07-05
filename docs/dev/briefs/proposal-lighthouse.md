@@ -157,7 +157,7 @@ Rules carried from the Fable/go-to conventions, binding on every stage:
 | L4 | Insight engine v2 + archetype lenses (facets that matter) | DONE (2026-07-05) |
 | L5 | MCP server + context packs (the agent surface) | DONE |
 | L6 | UI/UX round: answers-first Home, insight cards with actions, readable graphs | DONE (graph-lib adoption + LLM-pane restyle closed in the L5+L6 2nd audit pass, Playwright-verified — see §6 tracker) |
-| L7 | Benchmark audit + close-out gate | NOT STARTED |
+| L7 | Benchmark audit + close-out gate | DONE (2026-07-05) |
 
 ### L0 — Truth pass (engine correctness; nothing else ships on lies)
 
@@ -398,7 +398,7 @@ hovers). Re-run the W7 reduced-motion audit on new graph animations.
 | L6.6 | Adopt fcose (System clustering) alongside dagre (Flow/Node), centrality node-size, zoom-relative label-density, zen-mode minimap | this session | DONE — Playwright-verified against cached PowerToys clone (~100 projects); see L3-START.md for screenshots list and the cy.style().update() bug this verification caught |
 | L6.4-b | LLM context pane restyle: `GetContext` gRPC RPC (proto + server) wraps `ContextPackBuilder` with per-section content; export drawer Flow/Trail presets render collapsible per-section cards + real token meter + intent/budget controls, not raw `<pre>` | this session | DONE — Playwright-verified single-focus and multi-pin (From Trail) packs round-trip correctly |
 | L6.9 | Gate: Playwright + screenshots for L6 | this session | DONE — `pnpm dev:web` + `playwright` (`channel:'chrome'`) drove analyze → System altitude → zen mode → Flow altitude → export drawer (all 4 presets) against a real repo |
-| L7.1 … L7.3 | — | NOT STARTED |
+| L7.1 … L7.3 | Benchmark audit, close-out gate, handover doc | this session | DONE — `eval-results/2026-07-05/AUDIT.md` (18/21 FIXED), snapshot cache versioning, bench script fix, static audit (12 findings, 7 fixed), `HANDOVER-LIGHTHOUSE.md` |
 
 *Maintain per the conventions in §4's preamble: status + commit hash in the same commit as the work.*
 

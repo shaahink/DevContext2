@@ -54,8 +54,19 @@ else {
             if (-not (Test-Path $evalDir)) {
                 Write-Host "  Cloning $($repo.url)..." -ForegroundColor Yellow
                 New-Item -ItemType Directory -Path $evalDir -Force | Out-Null
-                $refArg = if ($repo.ref) { @("--branch", $repo.ref) } else { @() }
-                git clone --depth 1 $refArg $repo.url $evalDir 2>&1 | Out-Null
+                $isSha = $repo.ref -match '^[0-9a-fA-F]{40}$'
+                if ($isSha) {
+                    git clone --no-checkout $repo.url $evalDir 2>&1 | Out-Null
+                    if ($LASTEXITCODE -eq 0) {
+                        Push-Location $evalDir
+                        git checkout $repo.ref 2>&1 | Out-Null
+                        Pop-Location
+                    }
+                }
+                else {
+                    $refArg = if ($repo.ref) { @("--branch", $repo.ref) } else { @() }
+                    git clone --depth 1 $refArg $repo.url $evalDir 2>&1 | Out-Null
+                }
                 if ($LASTEXITCODE -ne 0) {
                     Write-Host "  ## Clone failed, skipping." -ForegroundColor Red
                     continue

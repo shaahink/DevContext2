@@ -180,7 +180,7 @@ function nodeSizeForDegree(degree: number): number {
         <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-[10px] backdrop-blur shadow-overlay">
           <div class="mb-1 font-semibold uppercase text-ink-subtle">Legend</div>
           <div class="grid grid-cols-3 gap-x-4 gap-y-1">
-            @for (item of legendItems; track item.label) {
+            @for (item of legendItems(); track item.label) {
               <div class="flex items-center gap-1.5">
                 <span class="h-2 w-2 rounded-sm" [style.background-color]="item.color"></span>
                 <span class="text-ink-muted">{{ item.label }}</span>
@@ -234,7 +234,7 @@ export class GraphCanvas {
     Consume: '#d29922', Data: '#39c5cf', Resolve: '#6b7480', Pipeline: '#a371f7', Call: '#8b949e',
   };
 
-  readonly legendItems: { label: string; color: string }[] = [];
+  readonly legendItems = signal<{ label: string; color: string }[]>([]);
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.cy?.destroy());
@@ -246,8 +246,7 @@ export class GraphCanvas {
         Consume: p.warn, Data: '#39c5cf', Resolve: p.inkSubtle, Pipeline: '#a371f7', Call: p.inkMuted,
       };
       this.updateLegend();
-      this.rebuild();
-    });
+    }, { allowSignalWrites: true });
 
     effect(() => void this.rebuild());
   }
@@ -257,7 +256,7 @@ export class GraphCanvas {
     for (const [key, color] of Object.entries(this.seamColors)) {
       if (SEAM_LABELS[key]) items.push({ label: SEAM_LABELS[key], color });
     }
-    (this.legendItems as { label: string; color: string }[]).splice(0, this.legendItems.length, ...items);
+    this.legendItems.set(items);
   }
 
   private rebuild(): void {

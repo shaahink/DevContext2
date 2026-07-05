@@ -448,11 +448,11 @@ export class ExportDrawer {
       }));
       this.sectionData.set(data);
       this.hasLoaded = true;
-      this.contentPreserved.set(false);
     } catch {
       this.renderError.set('Render failed — check server connection.');
       this.toast.show('Render failed', 'error');
     } finally {
+      this.contentPreserved.set(false);
       this.loading.set(false);
     }
   }
@@ -478,11 +478,11 @@ export class ExportDrawer {
       this.tokenCount.set(res.totalTokens);
       this.trailGroups.set([]);
       this.hasLoaded = true;
-      this.contentPreserved.set(false);
     } catch {
       this.renderError.set('Render failed — check server connection.');
       this.toast.show('Render failed', 'error');
     } finally {
+      this.contentPreserved.set(false);
       this.loading.set(false);
     }
   }

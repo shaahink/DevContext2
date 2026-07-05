@@ -6,6 +6,13 @@ using System.Text.Json.Serialization;
 
 namespace DevContext.Core.Analysis;
 
+/// <summary>Increment this when the AnalysisSnapshot schema changes incompatibly.
+/// Stale snapshots with a different version are rejected on load.</summary>
+public static class SnapshotSchema
+{
+    public const int Version = 1;
+}
+
 public static class SnapshotCacheRoot
 {
     public static string DefaultPath =>
@@ -59,7 +66,8 @@ public sealed class SnapshotCacheService
         var path = GetSnapshotPath(repoKey, versionKey);
         try
         {
-            var json = JsonSerializer.Serialize(data, JsonOptions);
+            var envelope = new SnapshotEnvelope { SchemaVersion = SnapshotSchema.Version, Payload = JsonSerializer.Serialize(data, JsonOptions) };
+            var json = JsonSerializer.Serialize(envelope, JsonOptions);
             await using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
             await using var gz = new GZipStream(fs, CompressionLevel.Fastest);
             await using var sw = new StreamWriter(gz, Encoding.UTF8);
@@ -86,7 +94,10 @@ public sealed class SnapshotCacheService
             await using var gz = new GZipStream(fs, CompressionMode.Decompress);
             using var sr = new StreamReader(gz, Encoding.UTF8);
             var json = await sr.ReadToEndAsync(ct);
-            var data = JsonSerializer.Deserialize<T>(json, JsonOptions);
+            var envelope = JsonSerializer.Deserialize<SnapshotEnvelope>(json, JsonOptions);
+            if (envelope is null) return null;
+            if (envelope.SchemaVersion != SnapshotSchema.Version) return null;
+            var data = JsonSerializer.Deserialize<T>(envelope.Payload ?? "null", JsonOptions);
             if (data is not null)
                 TouchMeta(repoKey);
             return data;
@@ -95,6 +106,12 @@ public sealed class SnapshotCacheService
         {
             return null;
         }
+    }
+
+    private sealed record SnapshotEnvelope
+    {
+        public int SchemaVersion { get; init; }
+        public string? Payload { get; init; }
     }
 
     public bool Exists(string repoKey, string versionKey)

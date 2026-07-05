@@ -91,7 +91,7 @@ interface InsightGroup {
                       }
                       @if (insight.evidence.length) {
                         <div class="mt-1.5 flex flex-wrap gap-1">
-                          @for (ev of dedupe(insight.evidence); track ev) {
+                          @for (ev of insight.evidence; track ev) {
                             <a
                               class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-surface-3 hover:text-accent transition-colors"
                               [routerLink]="['/explore']"
@@ -170,7 +170,7 @@ export class InsightsView {
         severity: i.severity,
         severityClass: SEVERITY_CLASS[i.severity] ?? SEVERITY_CLASS['info'],
         detail: i.detail,
-        evidence: i.evidence,
+        evidence: [...new Set(i.evidence)],
         confidence: i.confidence,
         confidenceBasis: i.confidenceBasis,
         whyItMatters: i.whyItMatters,
@@ -184,13 +184,8 @@ export class InsightsView {
   readonly coveragePct = computed(() => {
     const g = this.store.stats()?.graph;
     if (!g || !g.entries) return 0;
-    return Math.round((g.entriesWithTarget / g.entries) * 100);
+    return Math.round(((g.entriesWithTarget ?? 0) / g.entries) * 100);
   });
-
-  /** Deduplicate evidence entries by value. */
-  dedupe(items: readonly string[]): string[] {
-    return [...new Set(items)];
-  }
 
   severityLabelClass(severity: string): string {
     return SEVERITY_LABEL_CLASS[severity] ?? SEVERITY_LABEL_CLASS['info'];
