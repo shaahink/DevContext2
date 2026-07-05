@@ -147,7 +147,8 @@ internal static class ProtoMapper
         int nodeCount, int edgeCount, int entryCount,
         ImmutableArray<SeamStat> seams, int entriesWithTarget,
         long totalWallMs,
-        ImmutableArray<Insight> insights)
+        ImmutableArray<Insight> insights,
+        ImmutableArray<DevContext.Core.Graph.EntryPoint> entries)
     {
         var resp = new Proto.StatsResponse { TotalWallMs = totalWallMs };
 
@@ -218,6 +219,33 @@ internal static class ProtoMapper
             RenderedTokens = report.Funnel.RenderedEstimatedTokens,
             Budget = report.Funnel.Budget,
         };
+
+        // L4.3 — Confidence Ledger
+        if (graph is not null && !entries.IsDefaultOrEmpty)
+        {
+            var ledger = ConfidenceLedger.Compute(graph, entries);
+            var pl = resp.ConfidenceLedger = new Proto.ConfidenceLedger
+            {
+                Overall = ledger.OverallConfidence,
+                VerifiedEdgePct = ledger.VerifiedEdgePct,
+                ApproxEdgePct = ledger.ApproxEdgePct,
+                TotalEdges = ledger.TotalEdges,
+                AuthCoveragePct = ledger.AuthCoveragePct,
+                EndpointsWithAuth = ledger.EndpointsWithAuth,
+                TotalEndpoints = ledger.TotalEndpoints,
+                EntryTargetPct = ledger.EntryTargetPct,
+                EntriesWithTarget = ledger.EntriesWithTarget,
+                TotalEntries = ledger.TotalEntries,
+            };
+            foreach (var s in ledger.PerSeam)
+                pl.PerSeam.Add(new Proto.SeamConfidence
+                {
+                    Seam = s.Seam,
+                    Total = s.Total,
+                    Verified = s.Verified,
+                    Approx = s.Approx,
+                });
+        }
 
         return resp;
     }

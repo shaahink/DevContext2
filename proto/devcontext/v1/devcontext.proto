@@ -289,6 +289,28 @@ message StatsResponse {
   FunnelStat funnel = 7;
   int64 total_wall_ms = 8;
   repeated Insight insights = 9;
+  ConfidenceLedger confidence_ledger = 10;
+}
+
+message ConfidenceLedger {
+  double overall = 1;
+  double verified_edge_pct = 2;
+  double approx_edge_pct = 3;
+  int32 total_edges = 4;
+  repeated SeamConfidence per_seam = 5;
+  double auth_coverage_pct = 6;
+  int32 endpoints_with_auth = 7;
+  int32 total_endpoints = 8;
+  double entry_target_pct = 9;
+  int32 entries_with_target = 10;
+  int32 total_entries = 11;
+}
+
+message SeamConfidence {
+  string seam = 1;
+  int32 total = 2;
+  int32 verified = 3;
+  int32 approx = 4;
 }
 
 message Insight {

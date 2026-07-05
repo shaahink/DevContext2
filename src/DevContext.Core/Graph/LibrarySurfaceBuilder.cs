@@ -40,6 +40,7 @@ public static class LibrarySurfaceBuilder
             .Where(t => !ProjectClassifier.IsSamplePath(t.FilePath))
             .Where(t => !ProjectClassifier.IsTestPath(t.FilePath))
             .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
+            .Where(t => !IsVendoredNamespace(t.Namespace))
             // Stable order: model.Types is a ConcurrentDictionary (nondeterministic enumeration), so order
             // by FQN here — every downstream grouping/dedup then produces a byte-deterministic surface.
             .OrderBy(t => t.Id, StringComparer.Ordinal)
@@ -78,6 +79,15 @@ public static class LibrarySurfaceBuilder
         => ns.EndsWith(".Internal", StringComparison.Ordinal)
             || ns.Contains(".Internal.", StringComparison.Ordinal)
             || ns.EndsWith(".Internals", StringComparison.Ordinal);
+
+    /// <summary>L4.4 — Exclude well-known vendored/infrastructure namespaces from the public surface
+    /// (JetBrains.Annotations, System.* attributes, code-generation markers, etc.).</summary>
+    private static bool IsVendoredNamespace(string ns)
+        => ns.StartsWith("JetBrains.Annotations", StringComparison.Ordinal)
+            || ns.StartsWith("System.Runtime.CompilerServices", StringComparison.Ordinal)
+            || ns.StartsWith("System.Diagnostics.CodeAnalysis", StringComparison.Ordinal)
+            || ns.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
+            || ns.Contains(".GeneratedCode", StringComparison.Ordinal);
 
     private static ImmutableArray<SurfaceGroup> GroupByNamespace(IEnumerable<TypeDiscovery> types) =>
     [
