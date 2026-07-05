@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 5305b12 + this commit — audit, plan v2, playbook, tracker created
-stage: not started — M0 is next
-gate: n/a — phase not begun
+last: 09f5215 feat(m0.3): Playwright visual gate
+stage: M0 — DONE
+gate: run — eval-results/2026-07-05/ (bench 19/22 + mcp-qa.md + ui/)
 dirty: none
-next: M0.1 — build the app-repo bench gate (content-asserted reports), then M0.2 MCP QA harness (seed from the audit session's mcp-dogfood.js pattern: poll list_sessions in parallel with analyze until M3 fixes the flush bug)
-trap: MCP transport won't flush the analyze reply until the next inbound request (fixed only in M3); MCP DI startup crash already fixed in 5305b12
+next: M1.1 — handler joins via interface closure (W1): build interface-derivation closure, match handlers transitively, golden >=14 Handles on dogfood
+trap: MCP transport won't flush analyze reply until next inbound request (M3 fix). M0.2 harness works around it by polling list_sessions in parallel.
 
 ## Checkpoints
 
@@ -21,10 +21,10 @@ run this phase (a code path is not evidence). Scope changes get a `> scope chang
 line under the row — never silent renumbering.
 
 | # | Checkpoint | Status | Commit | Evidence |
-|---|-----------|--------|--------|----------|
-| M0.1 | App-repo bench gate (stub reports ⇒ fail; regen eShop/TodoApi) | TODO | | |
-| M0.2 | MCP agent-QA harness (`eval/mcp-qa/`) + transport regressions | TODO | | |
-| M0.3 | Playwright visual gate, 4 surfaces, interaction steps | TODO | | |
+| |-----------|--------|--------|----------|
+| M0.1 | App-repo bench gate (content-asserted reports) | DONE | e1e971b | eval-results/2026-07-05/ (19/22 reports, 0 stubs) |
+| M0.2 | MCP agent-QA harness (`eval/mcp-qa/`) + transport regressions | DONE | fdfc45f | eval-results/2026-07-05/mcp-qa.md (5/5 QA baseline, transport checks green) |
+| M0.3 | Playwright visual gate, 4 surfaces, interaction steps | DONE | 09f5215 | eval-results/2026-07-05/ui/ (8 screenshots, 1 interaction) |
 | M1.1 | Handler joins via interface closure (W1) — dogfood Handles ≥14 | TODO | | |
 | M1.2 | Semantic Sends (Adapt/factory/local) (W2) | TODO | | |
 | M1.3 | Trace traverses Sends→Handles→Raises (W3) | TODO | | |
