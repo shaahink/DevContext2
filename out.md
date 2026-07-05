@@ -11,11 +11,11 @@ _11 projects  ·  27 HttpEndpoint, 3 MessageConsumer, 2 DomainEventHandler, 4 Gr
 | Files | 146 |
 | Projects | 11 |
 | Nodes | 488 |
-| Edges | 303 |
+| Edges | 310 |
 | Entries | 36 |
 | With target | 35/36 |
-| Verified edges | 60% |
-| Analyzed in | 2.7s |
+| Verified edges | 59% |
+| Analyzed in | 2.8s |
 
 ## Top Flows
 
@@ -61,7 +61,7 @@ TRACE  DELETE /orders/{id}
             ├─ call ApplicationDbContext.Remove  (Services/Ordering/Ordering.Application/Orders/Commands/DeleteOrder/DeleteOrderHandler.cs:20) [approx]
             └─ call ApplicationDbContext.SaveChangesAsync  (Services/Ordering/Ordering.Application/Orders/Commands/DeleteOrder/DeleteOrderHandler.cs:21) [verified]
 
-TOUCHES  Order, OrderItem, Product, Customer
+TOUCHES  Order, Customer, Product, OrderItem
 RESULT   200 OK / 204 No Content · failure → 404 Not Found
 
 ---
@@ -128,20 +128,20 @@ _5 info · 3 notable · 2 warning_
 ### **NOTABLE**: Downstream wiring: 10 target services detected
 *(Wiring)*
 
+- CreateProductCommand
+- CreateProductRequest.Adapt
 - <lambda> DELETE /basket/{userName}
-- Address.Of
-- Order.Create
-- OrderId.Of
-- CustomerId.Of
+- DeleteBasketCommand
+- IBasketService.GetBasket
 
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
-- Product
-- BadRequestException
-- CreateProductCommand
-- PaymentModel
-- Extensions
+- CreateOrderCommandValidator
+- DeleteOrder
+- Extentions
+- <OnModelCreating>
+- BasketCheckoutModel
 
 ### **NOTABLE**: Extension seats: AddRefitClient (3 impls) · AddDbContext (2 impls) · ISaveChangesInterceptor (2 impls)
 *(Wiring)*
@@ -260,39 +260,39 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 223ms |
-| GenericExtraction | 263ms |
+| DiscoveryAndCacheWarmup | 173ms |
+| GenericExtraction | 292ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 1693ms |
-| Compression | 26ms |
-| **Total** | **2744ms** |
+| SpecificExtraction | 1750ms |
+| Compression | 25ms |
+| **Total** | **2841ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| CallGraphExtractor | 1500ms | 0 | 0 |
-| SyntaxStructureExtractor | 259ms | 205 | 53 |
-| DiRegistrationExtractor | 254ms | 0 | 53 |
-| EndpointExtractor | 190ms | 0 | 70 |
-| ProgramCsFlowExtractor | 186ms | 0 | 14 |
-| FileTreeExtractor | 101ms | 0 | 0 |
-| RazorPagesExtractor | 86ms | 0 | 54 |
-| SolutionDiscovery | 74ms | 0 | 0 |
-| EventBusExtractor | 67ms | 0 | 43 |
-| SourceBodyExtractor | 57ms | 0 | 0 |
-| EfCoreExtractor | 53ms | 0 | 33 |
-| MediatRExtractor | 44ms | 0 | 31 |
-| ProjectStructure | 41ms | 0 | 0 |
-| IndirectWiringDetector | 39ms | 0 | 23 |
-| GrpcServiceExtractor | 38ms | 0 | 23 |
+| CallGraphExtractor | 1542ms | 0 | 0 |
+| SyntaxStructureExtractor | 253ms | 205 | 53 |
+| DiRegistrationExtractor | 249ms | 0 | 53 |
+| EndpointExtractor | 204ms | 0 | 70 |
+| ProgramCsFlowExtractor | 180ms | 0 | 14 |
+| RazorPagesExtractor | 92ms | 0 | 54 |
+| FileTreeExtractor | 87ms | 0 | 0 |
+| EventBusExtractor | 81ms | 0 | 44 |
+| GrpcServiceExtractor | 69ms | 0 | 43 |
+| EfCoreExtractor | 57ms | 0 | 33 |
+| MediatRExtractor | 57ms | 0 | 33 |
+| SourceBodyExtractor | 49ms | 0 | 0 |
+| InMemoryEventBusExtractor | 46ms | 0 | 21 |
+| SolutionDiscovery | 45ms | 0 | 0 |
+| ProjectStructure | 35ms | 0 | 0 |
 
 ### Graph Seams
 
 | Seam | Edges | Approx |
 |------|-------|--------|
 | Calls | 121 | 30 |
-| Sends | 19 | 19 |
+| Sends | 26 | 26 |
 | Handles | 18 | 0 |
 | Raises | 2 | 2 |
 | Consumes | 5 | 0 |

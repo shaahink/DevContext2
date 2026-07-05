@@ -1414,10 +1414,19 @@ public sealed class GraphBuilder
             {
                 var pos = match.Index;
                 if (pos <= 0) continue;
+                var varName = match.Groups[4].Value;
                 var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-                if (newMatches.Count == 0) continue;
-                var lastMatch = newMatches[^1];
-                requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                if (newMatches.Count > 0)
+                {
+                    var lastMatch = newMatches[^1];
+                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                }
+                else
+                {
+                    // M1.2 W2: try Adapt<T>/Map<T> factory pattern in the handler body
+                    requestName = ResolveVariableFromAdapt(body, 0, pos, varName);
+                    if (requestName is null) continue;
+                }
             }
 
             if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
@@ -1492,10 +1501,17 @@ public sealed class GraphBuilder
                     }
                     else
                     {
-                        // I1.2 — fall back to param/property types
-                        requestName = ResolveVariableFromModel(type, spans, pos, varName);
-                        isParamFallback = requestName is not null;
-                        confidence = isKnown ? catalogConfidence : 0.35f;
+                        // M1.2 W2: check for Adapt<T>/Map<T>/Create<T> factory patterns
+                        // before falling back to param/property types. Covers the dogfood
+                        // pattern: var cmd = request.Adapt<CheckoutBasketCommand>();
+                        requestName = ResolveVariableFromAdapt(body, spanStart, pos, varName);
+                        if (requestName is null)
+                        {
+                            // I1.2 — fall back to param/property types
+                            requestName = ResolveVariableFromModel(type, spans, pos, varName);
+                            isParamFallback = requestName is not null;
+                        }
+                        confidence = isKnown ? catalogConfidence : 0.45f;
                     }
                 }
 
@@ -1815,6 +1831,34 @@ public sealed class GraphBuilder
         if (assign.Count > 0) return assign[^1].Groups[1].Value;
         var news = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
         return news.Count > 0 ? news[^1].Groups[1].Value : null;
+    }
+
+    /// <summary>M1.2 W2 — resolves a local variable whose declared type is a generic argument of an
+    /// Adapt&lt;T&gt; / Map&lt;T&gt; / Create&lt;T&gt; call, e.g. <c>var cmd = request.Adapt&lt;CheckoutBasketCommand&gt;()</c>.
+    /// Returns the generic type argument, or null when no matching factory pattern is found in the
+    /// method body before the Send position.</summary>
+    private static string? ResolveVariableFromAdapt(string body, int spanStart, int sendPos, string varName)
+    {
+        if (string.IsNullOrEmpty(varName)) return null;
+        var before = body.AsSpan(spanStart, sendPos - spanStart);
+
+        // Factory patterns: varName = expression.GenericMethod<TargetType>()
+        // The Adapt<T>/Map<T>/Create<T> pattern names the target type in the generic argument.
+        var adaptMatch = Regex.Match(before.ToString(),
+            $@"\b{Regex.Escape(varName)}\s*=\s*[^;]*?\.\s*(?:Adapt|Map|Create)\s*<\s*(\w+)",
+            RegexOptions.Compiled | RegexOptions.RightToLeft);
+        if (adaptMatch.Success)
+            return adaptMatch.Groups[1].Value;
+
+        // Generic return type on the same assignment line:
+        // varName = ...Method<TargetType>(...); before the Send call
+        var genericAssign = Regex.Match(before.ToString(),
+            $@"\b{Regex.Escape(varName)}\s*=\s*[^;]*<\s*(\w+)\s*>",
+            RegexOptions.Compiled | RegexOptions.RightToLeft);
+        if (genericAssign.Success)
+            return genericAssign.Groups[1].Value;
+
+        return null;
     }
 
     /// <summary>Resolves a variable name to its declared type using model data when the body-scan finds
