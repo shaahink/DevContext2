@@ -97,7 +97,17 @@ public sealed class RazorPagesExtractor : IDiscoveryExtractor
                 }
 
                 var primaryMethod = methods.FirstOrDefault() ?? "OnGet";
-                var route = pageRoutes.GetValueOrDefault(className, "/" + className);
+                // M1.5: PageModel class names typically have a "Model" suffix (e.g. ProductDetailModel)
+                // while pageRoutes is keyed by the .cshtml file name (e.g. ProductDetail). Try
+                // the raw class name first, then strip the Model suffix for a second lookup.
+                var route = pageRoutes.GetValueOrDefault(className, "");
+                if (route.Length == 0 && className.EndsWith("Model", StringComparison.OrdinalIgnoreCase))
+                {
+                    var pageNameGuess = className[..^5]; // strip "Model"
+                    route = pageRoutes.GetValueOrDefault(pageNameGuess, "/" + pageNameGuess);
+                }
+                if (route.Length == 0)
+                    route = "/" + className;
 
                 model.Detections.Add(new EndpointDetection(
                     "GET", route, className, primaryMethod,

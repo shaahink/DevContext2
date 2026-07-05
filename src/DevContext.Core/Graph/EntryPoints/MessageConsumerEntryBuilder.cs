@@ -13,6 +13,8 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
             if (!scope.Contains(mc.SourceFile) || !noise.IsProductionEntrySource(mc.SourceFile)) continue;
+            // M1.5: filter DI registration noise (AddMassTransit, UsingRabbitMq etc.)
+            if (mc.MessageType == "<registration>") continue;
             if (!seen.Add(mc.ConsumerType)) continue;
 
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");

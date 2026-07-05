@@ -2,7 +2,7 @@
 **eshop-microservices**
 
 Style: CleanArchitecture
-_11 projects  ·  27 HttpEndpoint, 3 MessageConsumer, 2 DomainEventHandler, 4 GrpcService  ·  net8.0 + minimal-apis + refit + mediatr + scrutor + masstransit + efcore + razor-pages + grpc + fluentvalidation + gateway + healthchecks_
+_11 projects  ·  27 HttpEndpoint, 1 MessageConsumer, 2 DomainEventHandler, 4 GrpcService  ·  net8.0 + minimal-apis + refit + mediatr + scrutor + masstransit + efcore + razor-pages + grpc + fluentvalidation + gateway + healthchecks_
 
 ## Stats
 
@@ -10,12 +10,12 @@ _11 projects  ·  27 HttpEndpoint, 3 MessageConsumer, 2 DomainEventHandler, 4 Gr
 |--------|-------|
 | Files | 146 |
 | Projects | 11 |
-| Nodes | 488 |
+| Nodes | 486 |
 | Edges | 310 |
-| Entries | 36 |
-| With target | 35/36 |
+| Entries | 34 |
+| With target | 33/34 |
 | Verified edges | 59% |
-| Analyzed in | 2.8s |
+| Analyzed in | 2.0s |
 
 ## Top Flows
 
@@ -26,7 +26,7 @@ _11 projects  ·  27 HttpEndpoint, 3 MessageConsumer, 2 DomainEventHandler, 4 Gr
 5. **DELETE /basket/{userName}** → `DeleteBasketCommand` *(HttpEndpoint)*
 6. **DELETE /products/{id}** → `DeleteProductCommand` *(HttpEndpoint)*
 7. **GET /basket/{userName}** → `GetBasketQuery` *(HttpEndpoint)*
-8. **GET /ProductDetailModel** → `ICatalogService.GetProduct` *(HttpEndpoint)*
+8. **GET /ProductDetail** → `ICatalogService.GetProduct` *(HttpEndpoint)*
 9. **GET /products/{id}** → `GetProductByIdQuery` *(HttpEndpoint)*
 10. **GET /products/category/{category}** → `GetProductByCategoryQuery` *(HttpEndpoint)*
 
@@ -61,7 +61,7 @@ TRACE  DELETE /orders/{id}
             ├─ call ApplicationDbContext.Remove  (Services/Ordering/Ordering.Application/Orders/Commands/DeleteOrder/DeleteOrderHandler.cs:20) [approx]
             └─ call ApplicationDbContext.SaveChangesAsync  (Services/Ordering/Ordering.Application/Orders/Commands/DeleteOrder/DeleteOrderHandler.cs:21) [verified]
 
-TOUCHES  Order, Customer, Product, OrderItem
+TOUCHES  Order, Product, OrderItem, Customer
 RESULT   200 OK / 204 No Content · failure → 404 Not Found
 
 ---
@@ -114,11 +114,11 @@ _5 info · 3 notable · 2 warning_
 ### **WARNING**: 27/27 endpoints anonymous, incl. 9 POST/PUT/DELETE
 *(Risk)*
 
-- PUT /products
-- GET /products
-- GET /products/{id}
-- GET /products/category/{category}
-- DELETE /products/{id}
+- GET /ProductList
+- GET /ProductDetail
+- GET /Privacy
+- GET /OrderList
+- GET /Index
 
 ### **WARNING**: Auth surface: 0 protected, 27 unannotated of 27 endpoints
 *(Risk)*
@@ -128,20 +128,20 @@ _5 info · 3 notable · 2 warning_
 ### **NOTABLE**: Downstream wiring: 10 target services detected
 *(Wiring)*
 
-- CreateProductCommand
-- CreateProductRequest.Adapt
-- <lambda> DELETE /basket/{userName}
-- DeleteBasketCommand
-- IBasketService.GetBasket
+- BasketCheckoutEventHandler
+- <lambda> GET /products/category/{category}
+- PrivacyModel.OnGet
+- ErrorModel.OnGet
+- ProductListModel.OnGetAsync
 
 ### **NOTABLE**: Possible dead code: 5 public types with zero inbound references
 *(Wiring)*
 
 - CreateOrderCommandValidator
-- DeleteOrder
-- Extentions
-- <OnModelCreating>
+- DependencyInjection
 - BasketCheckoutModel
+- ConfirmationModel
+- DeleteProductCommandValidator
 
 ### **NOTABLE**: Extension seats: AddRefitClient (3 impls) · AddDbContext (2 impls) · ISaveChangesInterceptor (2 impls)
 *(Wiring)*
@@ -150,7 +150,7 @@ _5 info · 3 notable · 2 warning_
 - AddDbContext (2 impls)
 - ISaveChangesInterceptor (2 impls)
 
-### _INFO_: Entry targets resolved 35/36 (97%) — use --focus for deeper traces
+### _INFO_: Entry targets resolved 33/34 (97%) — use --focus for deeper traces
 *(Coverage)*
 
 ### _INFO_: Module map: 8 feature areas
@@ -165,11 +165,11 @@ _5 info · 3 notable · 2 warning_
 ### _INFO_: Routing surface: 8 routes exposed
 *(Shape)*
 
-- PUT /products
-- GET /products
-- GET /products/{id}
-- GET /products/category/{category}
-- DELETE /products/{id}
+- GET /ProductList
+- GET /ProductDetail
+- GET /Privacy
+- GET /OrderList
+- GET /Index
 
 ### _INFO_: Public surface: 12 interfaces, 99 classes (198 total public types)
 *(Shape)*
@@ -210,27 +210,25 @@ ENTRY POINTS
       DELETE /orders/{id}  → DeleteOrderCommand  (Services/Ordering/Ordering.API/Endpoints/DeleteOrder.cs:17)
       DELETE /products/{id}  → DeleteProductCommand  (Services/Catalog/Catalog.API/Products/DeleteProduct/DeleteProductEndpoint.cs:11)
       GET /basket/{userName}  → GetBasketQuery  (Services/Basket/Basket.API/Basket/GetBasket/GetBasketEndpoints.cs:10)
-      GET /CartModel  → IBasketService.LoadUserBasket  (WebApps/Shopping.Web/Pages/Cart.cshtml.cs:3)
-      GET /CheckoutModel  → IBasketService.LoadUserBasket  (WebApps/Shopping.Web/Pages/Checkout.cshtml.cs:3)
-      GET /ConfirmationModel  → ConfirmationModel  (WebApps/Shopping.Web/Pages/Confirmation.cshtml.cs:3)
-      GET /ContactModel  → ContactModel  (WebApps/Shopping.Web/Pages/Contact.cshtml.cs:6)
-      GET /ErrorModel  → ErrorModel  (WebApps/Shopping.Web/Pages/Error.cshtml.cs:6)
-      GET /IndexModel  → ICatalogService.GetProducts  (WebApps/Shopping.Web/Pages/Index.cshtml.cs:2)
-      GET /OrderListModel  → IOrderingService.GetOrdersByCustomer  (WebApps/Shopping.Web/Pages/OrderList.cshtml.cs:3)
+      GET /Cart  → IBasketService.LoadUserBasket  (WebApps/Shopping.Web/Pages/Cart.cshtml.cs:3)
+      GET /Checkout  → IBasketService.LoadUserBasket  (WebApps/Shopping.Web/Pages/Checkout.cshtml.cs:3)
+      GET /Confirmation  → ConfirmationModel  (WebApps/Shopping.Web/Pages/Confirmation.cshtml.cs:3)
+      GET /Contact  → ContactModel  (WebApps/Shopping.Web/Pages/Contact.cshtml.cs:6)
+      GET /Error  → ErrorModel  (WebApps/Shopping.Web/Pages/Error.cshtml.cs:6)
+      GET /Index  → ICatalogService.GetProducts  (WebApps/Shopping.Web/Pages/Index.cshtml.cs:2)
+      GET /OrderList  → IOrderingService.GetOrdersByCustomer  (WebApps/Shopping.Web/Pages/OrderList.cshtml.cs:3)
       GET /orders  → GetOrdersQuery  (Services/Ordering/Ordering.API/Endpoints/GetOrders.cs:17)
       GET /orders/{orderName}  → GetOrdersByNameQuery  (Services/Ordering/Ordering.API/Endpoints/GetOrdersByName.cs:16)
       GET /orders/customer/{customerId}  → GetOrdersByCustomerQuery  (Services/Ordering/Ordering.API/Endpoints/GetOrdersByCustomer.cs:16)
-      GET /PrivacyModel  → PrivacyModel  (WebApps/Shopping.Web/Pages/Privacy.cshtml.cs:5)
-      GET /ProductDetailModel  → ICatalogService.GetProduct  (WebApps/Shopping.Web/Pages/ProductDetail.cshtml.cs:3)
-      GET /ProductListModel  → ICatalogService.GetProducts  (WebApps/Shopping.Web/Pages/ProductList.cshtml.cs:3)
+      GET /Privacy  → PrivacyModel  (WebApps/Shopping.Web/Pages/Privacy.cshtml.cs:5)
+      GET /ProductDetail  → ICatalogService.GetProduct  (WebApps/Shopping.Web/Pages/ProductDetail.cshtml.cs:3)
+      GET /ProductList  → ICatalogService.GetProducts  (WebApps/Shopping.Web/Pages/ProductList.cshtml.cs:3)
       GET /products  → GetProductsRequest  (Services/Catalog/Catalog.API/Products/GetProducts/GetProductsEndpoint.cs:10)
       GET /products/{id}  → GetProductByIdQuery  (Services/Catalog/Catalog.API/Products/GetProductById/GetProductByIdEndpoint.cs:11)
       GET /products/category/{category}  → GetProductByCategoryQuery  (Services/Catalog/Catalog.API/Products/GetProductByCategory/GetProductByCategoryEndpoint.cs:11)
       … and 7 more (http entries — use --focus for a drill-in)
-   Bus (3)
-      AddMassTransit  → AddMassTransit  (BuildingBlocks/BuildingBlocks.Messaging/MassTransit/Extentions.cs:12)
+   Bus (1)
       BasketCheckoutEventHandler  → BasketCheckoutEventHandler  (Services/Ordering/Ordering.Application/Orders/EventHandlers/Integration/BasketCheckoutEventHandler.cs:6)
-      UsingRabbitMq  → UsingRabbitMq  (BuildingBlocks/BuildingBlocks.Messaging/MassTransit/Extentions.cs:19)
    Domain (2)
       OrderCreatedEventHandler  → OrderCreatedEventHandler  (Services/Ordering/Ordering.Application/Orders/EventHandlers/Domain/OrderCreatedEventHandler.cs:5)
       OrderUpdatedEventHandler  → OrderUpdatedEventHandler  (Services/Ordering/Ordering.Application/Orders/EventHandlers/Domain/OrderUpdatedEventHandler.cs:2)
@@ -260,32 +258,32 @@ PACKAGES
 
 | Stage | Time |
 |-------|------|
-| DiscoveryAndCacheWarmup | 173ms |
-| GenericExtraction | 292ms |
+| DiscoveryAndCacheWarmup | 161ms |
+| GenericExtraction | 223ms |
 | SignalSealing | 0ms |
-| SpecificExtraction | 1750ms |
-| Compression | 25ms |
-| **Total** | **2841ms** |
+| SpecificExtraction | 1181ms |
+| Compression | 27ms |
+| **Total** | **2017ms** |
 
 ### Extractors
 
 | Name | Time | +Types | +Dets |
 |------|------|--------|-------|
-| CallGraphExtractor | 1542ms | 0 | 0 |
-| SyntaxStructureExtractor | 253ms | 205 | 53 |
-| DiRegistrationExtractor | 249ms | 0 | 53 |
-| EndpointExtractor | 204ms | 0 | 70 |
-| ProgramCsFlowExtractor | 180ms | 0 | 14 |
-| RazorPagesExtractor | 92ms | 0 | 54 |
+| CallGraphExtractor | 1030ms | 0 | 0 |
+| SyntaxStructureExtractor | 219ms | 205 | 53 |
+| DiRegistrationExtractor | 215ms | 0 | 53 |
+| ProgramCsFlowExtractor | 155ms | 0 | 14 |
+| EndpointExtractor | 148ms | 0 | 70 |
 | FileTreeExtractor | 87ms | 0 | 0 |
-| EventBusExtractor | 81ms | 0 | 44 |
-| GrpcServiceExtractor | 69ms | 0 | 43 |
-| EfCoreExtractor | 57ms | 0 | 33 |
-| MediatRExtractor | 57ms | 0 | 33 |
-| SourceBodyExtractor | 49ms | 0 | 0 |
-| InMemoryEventBusExtractor | 46ms | 0 | 21 |
-| SolutionDiscovery | 45ms | 0 | 0 |
-| ProjectStructure | 35ms | 0 | 0 |
+| RazorPagesExtractor | 75ms | 0 | 54 |
+| EventBusExtractor | 59ms | 0 | 43 |
+| MediatRExtractor | 49ms | 0 | 33 |
+| EfCoreExtractor | 47ms | 0 | 25 |
+| InMemoryEventBusExtractor | 46ms | 0 | 25 |
+| SolutionDiscovery | 40ms | 0 | 0 |
+| SourceBodyExtractor | 40ms | 0 | 0 |
+| GrpcServiceExtractor | 32ms | 0 | 10 |
+| ProjectStructure | 30ms | 0 | 0 |
 
 ### Graph Seams
 
@@ -301,4 +299,4 @@ PACKAGES
 | WrappedBy | 36 | 0 |
 | EntityRelation | 1 | 1 |
 
-_146 files · 0 projects_
+_146 files · 11 projects_

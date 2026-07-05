@@ -160,7 +160,7 @@ public sealed class DiscoveryPipeline
         if (collector is not null)
         {
             var csharpFiles = context.Analysis.AllSourceFiles?.Count ?? 0;
-            collector.SetCorpusFileCounts(0, csharpFiles);
+            collector.SetCorpusFileCounts(0, csharpFiles, model.Projects.Length);
 
             if (context.Cache is ICacheStatsSource ac)
                 collector.SetCacheStats(ac.GetStats());

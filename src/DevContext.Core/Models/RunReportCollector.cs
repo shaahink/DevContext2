@@ -84,8 +84,8 @@ public sealed class RunReportCollector : IDiscoveryObserver
 
     public void SetCacheStats(CacheStats stats) => _cacheStats = stats;
 
-    public void SetCorpusFileCounts(int totalFiles, int csharpFiles)
-        => _corpusStats = _corpusStats with { TotalFiles = totalFiles, CSharpFiles = csharpFiles };
+    public void SetCorpusFileCounts(int totalFiles, int csharpFiles, int projects)
+        => _corpusStats = _corpusStats with { TotalFiles = totalFiles, CSharpFiles = csharpFiles, Projects = projects };
 
     public void SetBudget(int budget) => _budget = budget;
 
