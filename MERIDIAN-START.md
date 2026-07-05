@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 09f5215 feat(m0.3): Playwright visual gate
-stage: M0 — DONE
-gate: run — eval-results/2026-07-05/ (bench 19/22 + mcp-qa.md + ui/)
-dirty: none
-next: M1.1 — handler joins via interface closure (W1): build interface-derivation closure, match handlers transitively, golden >=14 Handles on dogfood
-trap: MCP transport won't flush analyze reply until next inbound request (M3 fix). M0.2 harness works around it by polling list_sessions in parallel.
+last: dca278c feat(m1.5): 3 fixes (Razor routes, bus noise, footer projects)
+stage: M1 — DONE (M1.1–M1.5)
+gate: run — out.md (Handles 2→18, Sends 19→26, Razor real, Bus clean, 11 projects)
+dirty: out.md in tree (remove before next session)
+next: M1.6 — ServiceLink: bus publish→consume (W4): BasketCheckoutEvent → Basket.API Publish → Ordering.Application IConsumer
+trap: checkout Adapt<T> Sends edge still missing (lambda body parsing gap) — investigate in M2 session or M1.6
 
 ## Checkpoints
 
@@ -25,11 +25,11 @@ line under the row — never silent renumbering.
 | M0.1 | App-repo bench gate (content-asserted reports) | DONE | e1e971b | eval-results/2026-07-05/ (19/22 reports, 0 stubs) |
 | M0.2 | MCP agent-QA harness (`eval/mcp-qa/`) + transport regressions | DONE | fdfc45f | eval-results/2026-07-05/mcp-qa.md (5/5 QA baseline, transport checks green) |
 | M0.3 | Playwright visual gate, 4 surfaces, interaction steps | DONE | 09f5215 | eval-results/2026-07-05/ui/ (8 screenshots, 1 interaction) |
-| M1.1 | Handler joins via interface closure (W1) — dogfood Handles ≥14 | TODO | | |
-| M1.2 | Semantic Sends (Adapt/factory/local) (W2) | TODO | | |
-| M1.3 | Trace traverses Sends→Handles→Raises (W3) | TODO | | |
-| M1.4 | Project-scoped NameResolver (W5) | TODO | | |
-| M1.5 | Razor routes real; bus entries de-noised; footer fix | TODO | | |
+| M1.1 | Handler joins via interface closure (W1) — dogfood Handles ≥14 | DONE | 9002d50 | out.md (Handles 2→18, golden ≥14) |
+| M1.2 | Semantic Sends (Adapt/factory/local) (W2) | DONE | be1001e | out.md (Sends 19→26) |
+| M1.3 | Trace traverses Sends→Handles→Raises (W3) | DONE | 2de8605 | DELETE /orders trace depth 5, TOUCHES populated |
+| M1.4 | Project-scoped NameResolver (W5) | DONE | b80e6a7 | out.md (all resolve call sites updated, build+tests green) |
+| M1.5 | Razor routes real; bus entries de-noised; footer fix | DONE | dca278c | out.md (GET /ProductDetail, Bus 3→1, 11 projects)
 | M1.6 | ServiceLink: bus publish→consume (W4) | TODO | | |
 | M1.7 | ServiceLink: gRPC client→server (W4) | TODO | | |
 | M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | TODO | | |
@@ -80,7 +80,6 @@ cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```
 
-Baseline numbers (2026-07-05, pre-M0, dogfood repo): 474 nodes · 213 edges ·
-36 entries · **2 Handles edges** · 0 ServiceLinks · checkout trace = 2 steps ·
-`impact(CheckoutBasketCommandHandler)` = 0 results · MCP full session ≈ 9.7k tok.
-Meridian exists to make every number in this line embarrassing.
+Baseline numbers (2026-07-05, post-M1, dogfood repo): 470 nodes · 271 edges ·
+36 entries · **18 Handles edges** · 26 Sends edges · 0 ServiceLinks · checkout trace = 2 steps (Adapt gap) ·
+1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.

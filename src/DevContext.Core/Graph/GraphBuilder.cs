@@ -545,7 +545,7 @@ public sealed class GraphBuilder
         var handlerByShortName = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
         foreach (var t in model.Types.Values)
         {
-            var sn = StripGenericsRuntime(t.Name);
+            var sn = StripGenerics(t.Name);
             if (!handlerByShortName.TryGetValue(sn, out var list))
                 handlerByShortName[sn] = list = [];
             list.Add(t);
@@ -619,7 +619,7 @@ public sealed class GraphBuilder
         if (knownHandlers.Contains(type.Id)) return type;
         foreach (var bt in type.BaseTypes)
         {
-            var stripped = StripGenericsRuntime(bt);
+            var stripped = StripGenerics(bt);
             if (!visited.Add(stripped)) continue;
             if (byShortName.TryGetValue(stripped, out var bases))
             {
@@ -637,7 +637,7 @@ public sealed class GraphBuilder
         Dictionary<string, List<TypeDiscovery>> byShortName,
         HashSet<string> visited)
     {
-        var stripped = StripGenericsRuntime(ifaceName);
+        var stripped = StripGenerics(ifaceName);
         if (stripped is "IRequestHandler" or "INotificationHandler" or "IStreamRequestHandler")
             return true;
         if (!visited.Add(stripped)) return false;
@@ -683,14 +683,6 @@ public sealed class GraphBuilder
         }
         if (current.Length > 0) parts.Add(current.ToString().Trim());
         return parts.ToArray();
-    }
-
-    /// <summary>Strips generic type parameters from a type name — the runtime copy of MediatRExtractor's
-    /// StripGenericsFrom, needed in GraphBuilder for the M1.1 transitive-handler helpers.</summary>
-    private static string StripGenericsRuntime(string typeName)
-    {
-        var open = typeName.IndexOf('<');
-        return open < 0 ? typeName : typeName[..open];
     }
 
     /// <summary>B3: Detects IPipelineBehavior registrations from DI detections and creates
