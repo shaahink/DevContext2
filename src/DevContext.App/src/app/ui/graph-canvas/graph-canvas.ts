@@ -1,12 +1,27 @@
 import { Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
+import fcose from 'cytoscape-fcose';
 
 import type { ProjectNode } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import { ThemeService } from '../../core/theme/theme.service';
 
 cytoscape.use(dagre);
+cytoscape.use(fcose);
+
+/** Below this many nodes, labels never hide — small graphs have room for every label
+ * and hiding them would just be annoying. Above it, label density kicks in. */
+const LABEL_DENSITY_NODE_THRESHOLD = 30;
+/** Non-entry labels only show once the user has zoomed in this far *past* the initial
+ * fit-to-view level. Fit-to-view zoom shrinks as the graph grows, so a fixed absolute
+ * zoom threshold doesn't track "is this dense right now" — this one does (L6.6 gate:
+ * no overlapping labels at default zoom, verified against PowerToys' ~100-project System
+ * view, which is dense enough that every label showing at fit-zoom was unreadable). */
+const LABEL_ZOOM_FIT_MULTIPLIER = 1.6;
+/** Minimap only earns its screen space in zen mode, and only once a graph is
+ * big enough that the viewport can't already see everything at a glance. */
+const MINIMAP_NODE_THRESHOLD = 40;
 
 /**
  * What the Stage renders on one canvas across its three altitudes (proposal §2, §8.1
@@ -125,6 +140,30 @@ function buildElements(data: GraphCanvasData): cytoscape.ElementDefinition[] {
   }
 }
 
+/** Degree centrality (in+out edge count) per node, written back onto each node's data
+ * so the style layer can size nodes by how central they are — cheap, honest (no extra
+ * graph query), and enough to make hubs visually pop out of a dense System/Flow view. */
+function annotateDegree(els: cytoscape.ElementDefinition[]): void {
+  const degree = new Map<string, number>();
+  for (const el of els) {
+    const d = el.data as { source?: string; target?: string };
+    if (d.source === undefined || d.target === undefined) continue;
+    degree.set(d.source, (degree.get(d.source) ?? 0) + 1);
+    degree.set(d.target, (degree.get(d.target) ?? 0) + 1);
+  }
+  for (const el of els) {
+    const d = el.data as { id?: string; source?: string };
+    if (d.source !== undefined) continue; // edge, not a node
+    (el.data as { degree?: number }).degree = degree.get(d.id ?? '') ?? 0;
+  }
+}
+
+/** Sqrt scale so a handful of hub nodes (high degree) stand out without the long tail of
+ * leaf nodes (degree 1) shrinking to nothing. Entry nodes override this (see `node.entry`). */
+function nodeSizeForDegree(degree: number): number {
+  return Math.min(30, 12 + Math.sqrt(Math.max(0, degree)) * 4);
+}
+
 @Component({
   selector: 'app-graph-canvas',
   template: `
@@ -156,20 +195,39 @@ function buildElements(data: GraphCanvasData): cytoscape.ElementDefinition[] {
         <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="zoomOut()" title="Zoom out">−</button>
         <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="fitGraph()" title="Fit">⊡</button>
       </div>
+
+      <!-- Minimap: zen mode only, and only once the graph is big enough to need one -->
+      @if (zenMode() && nodeCount() > minimapThreshold) {
+        <canvas
+          #minimap
+          width="160" height="110"
+          class="pointer-events-auto absolute bottom-3 right-3 z-10 cursor-pointer rounded border border-line bg-surface/90 backdrop-blur"
+          title="Minimap — click to jump"
+          (click)="onMinimapClick($event)"
+        ></canvas>
+      }
     </div>
   `,
   host: { class: 'block h-[500px] w-full relative border border-line bg-surface overflow-hidden' },
 })
 export class GraphCanvas {
   readonly data = input.required<GraphCanvasData>();
+  /** Minimap only renders in zen mode (Stage passes its zenMode signal through). */
+  readonly zenMode = input(false);
   readonly nodeSelected = output<string>();
   readonly nodeActivated = output<string>();
 
   protected readonly legendOpen = signal(false);
+  protected readonly nodeCount = signal(0);
+  protected readonly minimapThreshold = MINIMAP_NODE_THRESHOLD;
 
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('cy');
+  private readonly minimapCanvas = viewChild<ElementRef<HTMLCanvasElement>>('minimap');
   private readonly theme = inject(ThemeService);
   private cy: cytoscape.Core | null = null;
+  /** Set once per render, right after fit-to-view — the baseline the label-density
+   * mapper compares the live zoom against (see LABEL_ZOOM_FIT_MULTIPLIER). */
+  private fitZoom = 1;
 
   private seamColors: SeamColors = {
     Entry: '#4493f8', Send: '#a371f7', Handle: '#3fb950', Raise: '#d29922',
@@ -219,10 +277,16 @@ export class GraphCanvas {
 
     const p = this.theme.palette();
     const colors = this.seamColors;
+    const els = buildElements(data);
+    annotateDegree(els);
+    const nodeCount = els.filter((el) => (el.data as { source?: string }).source === undefined).length;
+    this.nodeCount.set(nodeCount);
+    this.fitZoom = 1;
+    const densityActive = nodeCount > LABEL_DENSITY_NODE_THRESHOLD;
 
     this.cy = cytoscape({
       container: host,
-      elements: buildElements(data),
+      elements: els,
       wheelSensitivity: 0.3,
       style: [
         {
@@ -232,7 +296,10 @@ export class GraphCanvas {
             'border-width': 1.5,
             'border-color': (ele: cytoscape.NodeSingular) =>
               colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted,
-            label: 'data(label)',
+            label: (ele: cytoscape.NodeSingular) =>
+              densityActive && !ele.hasClass('entry') && (this.cy?.zoom() ?? 1) < this.fitZoom * LABEL_ZOOM_FIT_MULTIPLIER
+                ? ''
+                : (ele.data('label') as string),
             color: p.ink,
             'font-size': 10,
             'font-family': 'Cascadia Code, JetBrains Mono, Consolas, monospace',
@@ -241,8 +308,8 @@ export class GraphCanvas {
             'text-margin-x': 10,
             'text-wrap': 'wrap',
             'text-max-width': '200px',
-            width: 14,
-            height: 14,
+            width: (ele: cytoscape.NodeSingular) => nodeSizeForDegree(ele.data('degree') as number),
+            height: (ele: cytoscape.NodeSingular) => nodeSizeForDegree(ele.data('degree') as number),
             shape: 'round-rectangle',
           },
         },
@@ -310,14 +377,29 @@ export class GraphCanvas {
           },
         },
       ],
-      layout: {
-        name: 'dagre',
-        rankDir: 'LR',
-        nodeSep: 60,
-        rankSep: 140,
-        padding: 40,
-        animate: false,
-      } as cytoscape.LayoutOptions,
+      // System altitude is a dependency graph, not a call hierarchy — fcose's force-directed
+      // layout clusters connected projects together and spreads unrelated ones apart, instead
+      // of forcing everything into dagre's layered ranks (the wrong shape for "what groups with
+      // what"). Flow/Node stay on dagre: a call chain genuinely has a rank direction.
+      layout:
+        data.mode === 'topology'
+          ? ({
+              name: 'fcose',
+              quality: 'default',
+              animate: false,
+              nodeSeparation: 90,
+              idealEdgeLength: 120,
+              nodeRepulsion: 8000,
+              padding: 40,
+            } as cytoscape.LayoutOptions)
+          : ({
+              name: 'dagre',
+              rankDir: 'LR',
+              nodeSep: 60,
+              rankSep: 140,
+              padding: 40,
+              animate: false,
+            } as cytoscape.LayoutOptions),
     });
 
     this.cy.on('tap', 'node', (e) => this.nodeSelected.emit(e.target.data('nodeId') as string));
@@ -337,8 +419,23 @@ export class GraphCanvas {
       this.cy?.elements().removeClass('dimmed');
     });
 
-    this.cy.ready(() => {
+    this.cy.on('pan', () => this.drawMinimap());
+    // Function-valued style properties (the label mapper) are only re-evaluated on an explicit
+    // style().update() — cytoscape does NOT re-run them on every zoom/pan for you. Without this,
+    // the label-density decision freezes at whatever it was on the first paint.
+    this.cy.on('zoom', () => {
+      this.cy?.style().update();
+      this.drawMinimap();
+    });
+
+    // 'layoutstop' (not 'ready') because fcose runs asynchronously — positions aren't final
+    // until the layout actually finishes, so fitting/measuring on 'ready' would race it for
+    // System altitude. Covers dagre too: it fires 'layoutstop' immediately since dagre is sync.
+    this.cy.on('layoutstop', () => {
       this.cy?.fit(undefined, 50);
+      this.fitZoom = this.cy?.zoom() ?? 1;
+      this.cy?.style().update(); // re-evaluate the label mapper now that fitZoom is known
+      this.drawMinimap();
     });
   }
 
@@ -352,5 +449,66 @@ export class GraphCanvas {
 
   protected fitGraph(): void {
     this.cy?.fit(undefined, 50);
+  }
+
+  /** Draws node positions + the current viewport rectangle into the minimap canvas, in the
+   * graph's own model coordinates scaled to fit. No extra cytoscape instance — just the
+   * positions the main layout already computed. */
+  private drawMinimap(): void {
+    const cy = this.cy;
+    const canvas = this.minimapCanvas()?.nativeElement;
+    if (!cy || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const bb = cy.elements().boundingBox();
+    if (!isFinite(bb.w) || !isFinite(bb.h) || bb.w === 0 || bb.h === 0) return;
+    const pad = 6;
+    const scale = Math.min((w - pad * 2) / bb.w, (h - pad * 2) / bb.h);
+    const toX = (x: number) => pad + (x - bb.x1) * scale;
+    const toY = (y: number) => pad + (y - bb.y1) * scale;
+
+    const p = this.theme.palette();
+    ctx.fillStyle = p.inkSubtle;
+    cy.nodes().forEach((n) => {
+      const pos = n.position();
+      ctx.globalAlpha = n.hasClass('entry') ? 1 : 0.6;
+      ctx.beginPath();
+      ctx.arc(toX(pos.x), toY(pos.y), n.hasClass('entry') ? 2.5 : 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    const ext = cy.extent();
+    ctx.strokeStyle = p.accent;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(toX(ext.x1), toY(ext.y1), (ext.x2 - ext.x1) * scale, (ext.y2 - ext.y1) * scale);
+
+    // Stash the mapping so click-to-jump can invert it without recomputing the bounding box.
+    this.minimapMap = { bb, scale, pad };
+  }
+
+  private minimapMap: { bb: { x1: number; y1: number }; scale: number; pad: number } | null = null;
+
+  /** Click anywhere on the minimap to recenter the main viewport there. */
+  protected onMinimapClick(event: MouseEvent): void {
+    const cy = this.cy;
+    const map = this.minimapMap;
+    const canvas = this.minimapCanvas()?.nativeElement;
+    if (!cy || !map || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+    const modelX = map.bb.x1 + (clickX - map.pad) / map.scale;
+    const modelY = map.bb.y1 + (clickY - map.pad) / map.scale;
+    const zoom = cy.zoom();
+    const container = cy.container();
+    const w = container?.clientWidth ?? 0;
+    const h = container?.clientHeight ?? 0;
+    cy.pan({ x: w / 2 - modelX * zoom, y: h / 2 - modelY * zoom });
   }
 }

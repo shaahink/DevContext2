@@ -35,6 +35,7 @@
     "@tauri-apps/plugin-opener": "^2.5.4",
     "cytoscape": "^3.34.0",
     "cytoscape-dagre": "^4.0.0",
+    "cytoscape-fcose": "^2.2.0",
     "lucide": "^1.22.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

@@ -1,8 +1,7 @@
-# L5+L6 — MCP server + UI/UX round ⚠ DONE-WITH-GAPS (2026-07-05, second audit pass)
+# L5+L6 — MCP server + UI/UX round ✅ DONE (2026-07-05, gaps closed same day)
 
-**Branch:** `feat/lighthouse-l2` · **Status:** L0–L6 code-complete but L6 graph-readability and
-LLM-pane checkpoints were never actually done (see "Known gaps" below) — do not treat L6 as a clean
-gate for L7. L0–L5 solid.
+**Branch:** `feat/lighthouse-l2` · **Status:** L0–L6 done, including the two gaps this audit found
+(graph-layout-lib adoption, LLM context-pane restyle) and a Playwright-verified gate. L7 next.
 
 ## Verify gate (end-of-stage snapshot)
 ```
@@ -32,28 +31,40 @@ pnpm check                                                  # from src/DevContex
 | — | Audit fixes: Ledger clickable, statusbar cleanup, intent param | 3a68938 |
 | — | 2nd audit pass: memory-leak cleanup (unremoved `window` keydown listener in Stage, unsubscribed Router.events in ActivityBar/TabStrip, uncleared timers in StartHero/Inspector/WorkspaceShell); `identity-strip` ledger toggle was a plain field mutated from a template handler (not a signal) — converted, since a zoneless app has no guarantee that re-renders on a non-signal mutation; Inspector `renderedFocus` was marked before the async render resolved, so a failed render silently blocked the effect from ever retrying the same focus; Atlas → Explore project tap didn't actually filter the Workbench deck (`project` query param was dropped, `projectFilter` signal existed but nothing fed it) | (this commit) |
 
-## Known gaps (found in this audit, NOT fixed — need a scoping decision before L7)
+## Gaps found in this audit — now closed (commit: this session, post-44e25f0)
 
-1. **L6 Session B checkpoint "adopt the voted layout lib" was never done.** The proposal's decision
-   log (§3) explicitly voted for elkjs (Flow, layered DAG) + fcose/Cytoscape compound clustering
-   (System). `graph-canvas.ts` still uses the same flat `cytoscape-dagre` layout for all three
-   altitudes that has been in the repo since the original Tauri/Angular scaffold commit (`03c32e6`,
-   pre-dates Lighthouse entirely) — nothing new was adopted. No System-altitude clustering/compound
-   nodes/expand-collapse, no node-size-by-centrality, no label-density zoom thresholds, no minimap.
-   Commit `e9d1ab1` silently renumbers L6 checkpoints (its own message calls "confidence chip in
-   identity strip" **6.6**) and drops this item with no tracker line at all. Zen mode (6.7) and focus
-   dimming (6.8) are real and good, but they're polish on the *same* layout the plan called clutter —
-   the plan's own gate ("a stranger can name the main clusters unprompted" on PowerToys-class System
-   views) cannot honestly be claimed passed.
-2. **L6 Session A item 4, "LLM context pane" restyle, was never done.** `export-drawer.ts` still
-   renders content as a raw `<pre>` block via the old Render RPC — the exact "looks like an accident"
-   flaw the plan called out — rather than a styled preview backed by the new `ContextPackBuilder`
-   (L5.4). Section token counts exist (a partial "token meter"), but the pack itself isn't sourced
-   from `get_context`.
-3. **L6's own verify gate was never run.** The proposal mandates "Playwright against a real analyzed
-   repo... plus screenshots" before a UI stage is marked DONE. There are no Playwright specs and no
-   screenshots anywhere in history for L6 — only unit tests (vitest, 27 tests, none of which touch
-   `graph-canvas.ts` or the export drawer). This is very likely *why* gaps 1 and 2 shipped as "DONE."
+1. **L6 Session B "adopt the voted layout lib" — CLOSED.** `graph-canvas.ts` now uses `cytoscape-fcose`
+   (force-directed) for System altitude instead of reusing the pre-Lighthouse flat `cytoscape-dagre`
+   layout for everything; dagre stays for Flow/Node (call chains genuinely have rank direction, fcose
+   doesn't fit them). Added: degree-centrality node sizing (sqrt scale, entry nodes still override),
+   zoom-relative label-density hiding (threshold scales off the graph's own fit-zoom, not a fixed
+   constant — a fixed constant doesn't track "is this dense right now" across graph sizes), and a
+   canvas-drawn minimap (zen mode + >40 nodes only, click-to-recenter).
+   *Verified live* against the cached PowerToys clone (`%LOCALAPPDATA%/DevContext/repos/microsoft-powertoys-default`,
+   ~100 projects/5175 nodes on System altitude) via Playwright (`channel:'chrome'`, headless) against
+   `pnpm dev:web`: fcose produces visibly distinct clusters + hub nodes (screenshots
+   `04-system-altitude-clustered.png`, `05-system-zen-minimap.png`); labels correctly hidden at
+   fit-zoom and reappear on zoom-in (`10-labels-at-fit-zoom.png`, `11-labels-after-zoom-in.png`).
+   **Bug caught by this verification, not by code review:** cytoscape does *not* re-evaluate
+   function-valued styles (the label mapper) on pan/zoom automatically — only on an explicit
+   `cy.style().update()`. The first cut looked right in isolation (labels hidden/shown once, at
+   whatever zoom the graph first painted at) but froze after that; zooming in never revealed labels.
+   Fixed by calling `style().update()` on the `zoom` event. This is exactly the class of bug the
+   proposal's "verify live, not just code review" gate exists to catch.
+2. **L6 Session A "LLM context pane" restyle — CLOSED.** Added a `GetContext` gRPC RPC
+   (proto + `DevContext.Server` handler) wrapping `ContextPackBuilder` with per-section *content*
+   (not just token counts — `SectionAllocation` gained a `Content` field), so the desktop client can
+   render a real pack instead of a raw markdown blob. `export-drawer.ts`'s Flow Review / From Trail
+   presets now render collapsible per-section cards (real token meter per section, intent selector
+   trace/explain/review, budget selector) instead of one `<pre>`-wrapped blob; Full/Onboarding stay on
+   the old Render RPC (correct — those are whole-document renders, not context packs).
+   *Verified live*: single-focus pack (screenshots `13-15`) and multi-pin From Trail pack
+   (`17-export-trail-with-pins.png`, two pinned steps, 192+219=411 tok header sum confirmed correct)
+   both round-trip through the real RPC against a live analysis.
+3. **L6's own verify gate — now run.** Playwright (`playwright`, `channel:'chrome'`, headless) drove
+   `pnpm dev:web` (server + `ng serve`, no Tauri needed since it's plain gRPC-web) through: analyze →
+   System altitude → zen mode → Flow altitude with a real focus → export drawer, all four presets.
+   Screenshots retained in the session scratchpad.
 
-Recommend folding 1+2 into a proper `L6.9` checkpoint (with the Playwright gate this time) before
-opening L7, since L7's whole job is auditing claims like these against evidence.
+Gate snapshot after these fixes: `dotnet build` 0w/0e; `dotnet test --filter Category!=Eval` 429/0
+(3 skipped); `pnpm check` (lint 0/0 + test 27/27 + build) clean.

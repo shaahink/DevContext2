@@ -189,6 +189,17 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToInterestingPointsResponse(points);
         });
 
+    public override Task<Proto.ContextResponse> GetContext(Proto.ContextRequest request, ServerCallContext context)
+        => Wrap(() =>
+        {
+            var session = Require(request.Handle);
+            var builder = new ContextPackBuilder(session.Query, session.Snapshot);
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var intent = request.HasIntent ? request.Intent : null;
+            var pack = builder.Build(request.Focus, budget, intent);
+            return ProtoMapper.ToContextResponse(request.Focus, pack);
+        });
+
     public override Task<Proto.StatsResponse> GetStats(Proto.SessionRequest request, ServerCallContext context)
         => Wrap(() =>
         {

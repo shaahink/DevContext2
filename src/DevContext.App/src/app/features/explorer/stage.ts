@@ -130,6 +130,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
             <app-graph-canvas
               class="block h-full"
               [data]="{ mode: 'topology', projects: topology() }"
+              [zenMode]="zenMode()"
               (nodeSelected)="onProjectTap($event)"
             />
           } @else {
@@ -154,6 +155,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
+                [zenMode]="zenMode()"
                 (nodeSelected)="onFlowTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />
@@ -178,6 +180,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
+                [zenMode]="zenMode()"
                 (nodeSelected)="onNodeTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />

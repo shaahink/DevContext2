@@ -49,6 +49,11 @@ service DevContextService {
 
   // Archetype-aware interesting starting points ("where to start reading").
   rpc GetInterestingPoints(InterestingPointsRequest) returns (InterestingPointsResponse);
+
+  // Budget-priced context pack for a trace focus, with per-section content (not just a
+  // flat markdown blob) — the desktop export drawer's Flow/Trail presets and the MCP
+  // get_context tool share this one builder (L5.4 ContextPackBuilder).
+  rpc GetContext(ContextRequest) returns (ContextResponse);
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +448,31 @@ message InterestingPoint {
   string kind = 3;
   string why = 4;
   repeated string tags = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Context pack (budgeted, per-section — desktop export drawer + MCP get_context)
+// ---------------------------------------------------------------------------
+
+message ContextRequest {
+  string handle = 1;
+  string focus = 2;
+  optional int32 budget_tokens = 3;  // default 8000
+  optional string intent = 4;        // "trace" (default) | "explain" | "review"
+}
+
+message ContextResponse {
+  bool found = 1;
+  string focus = 2;
+  int32 total_tokens = 3;
+  repeated ContextSection sections = 4;
+  repeated string omitted = 5;       // human-readable notes on what got cut/trimmed
+}
+
+message ContextSection {
+  string key = 1;       // "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
+  int32 tokens = 2;
+  string content = 3;
 }
 
 // ---------------------------------------------------------------------------

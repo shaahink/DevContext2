@@ -4,6 +4,7 @@ import { DEVCONTEXT_CLIENT } from '../core/grpc/client';
 import type {
   AnalysisSummary,
   CloseResponse,
+  ContextResponse,
   EntryPointsResponse,
   ImpactResponse,
   InterestingPointsResponse,
@@ -119,6 +120,10 @@ export class DevContextApi {
 
   getInterestingPoints(handle: string, archetype?: string): Promise<InterestingPointsResponse> {
     return this.client.getInterestingPoints({ handle, archetype });
+  }
+
+  getContext(handle: string, focus: string, options?: { budgetTokens?: number; intent?: 'trace' | 'explain' | 'review' }): Promise<ContextResponse> {
+    return this.client.getContext({ handle, focus, budgetTokens: options?.budgetTokens, intent: options?.intent });
   }
 
   async ping(): Promise<{ ready: boolean; version: string }> {

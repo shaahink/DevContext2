@@ -153,7 +153,7 @@ public sealed class ContextPackBuilder
                     var trimTokens = EstimateTokens(trimmed);
                     sb.AppendLine($"## {sectionName} (trimmed)");
                     sb.AppendLine(trimmed);
-                    sections.Add(new SectionAllocation(sectionName, trimTokens));
+                    sections.Add(new SectionAllocation(sectionName, trimTokens, trimmed));
                     omitted.Add($"{sectionName}: trimmed from {tokens} to {trimTokens} tokens");
                 }
                 else
@@ -170,7 +170,7 @@ public sealed class ContextPackBuilder
 
         sb.AppendLine($"## {sectionName}");
         sb.AppendLine(text);
-        sections.Add(new SectionAllocation(sectionName, tokens));
+        sections.Add(new SectionAllocation(sectionName, tokens, text));
         return true;
     }
 
@@ -289,4 +289,4 @@ public sealed record ContextPack(
     ImmutableArray<SectionAllocation> Sections,
     ImmutableArray<string> Omitted);
 
-public sealed record SectionAllocation(string Section, int Tokens);
+public sealed record SectionAllocation(string Section, int Tokens, string Content);

@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
@@ -7,11 +8,13 @@ import { TrailStore } from '../../state/trail.store';
 import { ToastService } from '../../ui/toast/toast';
 import { Icon } from '../../ui/icon/icon';
 import { Button } from '../../ui/button/button';
+import { Meter } from '../../ui/meter/meter';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { copyToClipboard } from '../../core/clipboard';
 import { formatCompact } from '../../core/format';
 
 type ExportPreset = 'full' | 'onboarding' | 'flow' | 'trail';
+type ContextIntent = 'trace' | 'explain' | 'review';
 
 interface SectionToggle {
   key: string;
@@ -19,10 +22,21 @@ interface SectionToggle {
   enabled: boolean;
 }
 
-interface PinnedRender {
+/** A ContextPackBuilder section, ready to render as its own card instead of one undifferentiated
+ * blob — this is the "styled pack preview" the proposal's L6 LLM-context-pane item asked for. */
+interface ContextSectionVm {
+  key: string;
   title: string;
-  content: string;
   tokens: number;
+  content: string;
+  code: boolean;
+}
+
+interface TrailGroupVm {
+  title: string;
+  totalTokens: number;
+  sections: ContextSectionVm[];
+  omitted: string[];
 }
 
 const ONBOARDING_SECTIONS = ['Overview', 'Topology', 'Routes', 'Entry points'];
@@ -34,22 +48,44 @@ const PRESET_LABELS: Record<ExportPreset, string> = {
   trail: 'From Trail',
 };
 
+const INTENT_LABELS: Record<ContextIntent, string> = {
+  trace: 'Trace',
+  explain: 'Explain',
+  review: 'Review',
+};
+
+const BUDGET_OPTIONS = [2000, 4000, 8000, 16000] as const;
+
+const SECTION_TITLES: Record<string, string> = {
+  identity: 'Identity',
+  trace: 'Trace skeleton',
+  signatures: 'Callee signatures',
+  bodies: 'Salient code',
+  di_wiring: 'DI wiring',
+  entities: 'Touched entities',
+};
+
+function sectionTitle(key: string): string {
+  const base = key.replace(/ \(trimmed\)$/, '');
+  const label = SECTION_TITLES[base] ?? base;
+  return key === base ? label : `${label} (trimmed)`;
+}
+
 /**
  * Export drawer (proposal §2/§3.8) — Ctrl+E overlay from the Workbench.
- * Ports section-export.ts render logic into a right-side drawer with 4 presets:
- *   Full — all map sections
- *   Onboarding — Identity + Architecture + Entries
- *   Flow Review — current trace focus (single focused render)
- *   From Trail — each pinned trail step rendered via Render RPC, concatenated
+ * Two families of preset:
+ *   Full / Onboarding — map-wide document renders (Render RPC), section toggles, raw markdown.
+ *     These are whole-repo documents; a flat scrollable render is the right shape for them.
+ *   Flow Review / From Trail — a budget-priced ContextPackBuilder pack for one (or each pinned)
+ *     trace focus, rendered as per-section cards with a real token meter and an intent selector
+ *     (trace/explain/review — L5.2), instead of one raw wrapped-ASCII blob (the flaw the L6 UI/UX
+ *     audit called out: "the product's crown jewel... looks like an accident").
  *
  * Follows the same overlay pattern as AuditTable (parent-controlled open/dismissed).
- * Map-wide render preserves user section toggles across re-renders (ported from
- * section-export.ts). Content-preserving loading per proposal §5.2: existing
- * content is dimmed on refresh, not cleared; skeleton blocks on first load only.
  */
 @Component({
   selector: 'app-export-drawer',
-  imports: [Icon, Button, Skeleton],
+  imports: [Icon, Button, Meter, Skeleton, NgTemplateOutlet],
   template: `
     <div class="fixed inset-0 z-50" [class.hidden]="!open()">
       <!-- Backdrop scrim -->
@@ -89,8 +125,35 @@ const PRESET_LABELS: Record<ExportPreset, string> = {
           }
         </div>
 
+        <!-- Context pack controls (Flow / Trail): intent + budget -->
+        @if (isContextPreset()) {
+          <div class="flex flex-wrap items-center gap-1.5 border-b border-line px-4 py-2">
+            <span class="text-2xs uppercase tracking-wider text-ink-subtle">Intent</span>
+            @for (i of intents; track i) {
+              <button
+                type="button"
+                class="chip text-2xs"
+                [class.active]="intent() === i"
+                [title]="intentHint(i)"
+                (click)="setIntent(i)"
+              >{{ INTENT_LABELS[i] }}</button>
+            }
+            <span class="mx-1 h-4 w-px bg-line"></span>
+            <span class="text-2xs uppercase tracking-wider text-ink-subtle">Budget</span>
+            <select
+              class="bg-transparent text-2xs text-ink-muted focus:outline-none"
+              [value]="budgetTokens()"
+              (change)="onBudgetChange($event)"
+            >
+              @for (b of budgetOptions; track b) {
+                <option [value]="b">{{ fmt(b) }} tok</option>
+              }
+            </select>
+          </div>
+        }
+
         <!-- Section toggles (map-wide renders only) -->
-        @if (sectionData().length > 0 && activePreset() !== 'trail') {
+        @if (sectionData().length > 0 && !isContextPreset()) {
           <div class="border-b border-line px-4 py-2">
             <p class="mb-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Sections</p>
             <div class="space-y-0.5 max-h-48 overflow-y-auto">
@@ -123,26 +186,56 @@ const PRESET_LABELS: Record<ExportPreset, string> = {
                 <app-icon name="loader" [size]="14" class="animate-spin" />
                 Rendering {{ trailProgress() }}
               </div>
-            } @else if (pinnedContent().length > 0) {
-              <pre
-                class="whitespace-pre-wrap font-mono text-xs text-ink leading-relaxed"
-                [class.opacity-60]="contentPreserved()"
-              >@for (pr of pinnedContent(); track pr.title) {## [{{ pr.title }}]
-
-        {{ pr.content }}
-
-        }</pre>
+            } @else if (trailGroups().length > 0) {
+              <div class="space-y-4" [class.opacity-60]="contentPreserved()">
+                @for (group of trailGroups(); track group.title) {
+                  <div>
+                    <div class="mb-1.5 flex items-center gap-2">
+                      <span class="text-xs font-semibold text-ink">{{ group.title }}</span>
+                      <span class="text-2xs tabular-nums text-ink-subtle">{{ fmt(group.totalTokens) }} tok</span>
+                    </div>
+                    <div class="space-y-2 border-l-2 border-line pl-3">
+                      @for (s of group.sections; track s.key) {
+                        <ng-container [ngTemplateOutlet]="sectionCard" [ngTemplateOutletContext]="{ $implicit: s }" />
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
             } @else if (!loading()) {
               <div class="flex h-full flex-col items-center justify-center gap-3 px-4">
                 <span class="text-xs text-ink-subtle">No pinned steps yet.</span>
                 <span class="text-2xs text-ink-subtle">Press <kbd class="kbd">p</kbd> in the Workbench to pin steps, then build a trail-based context pack here.</span>
               </div>
             }
-          } @else if (activePreset() === 'flow' && !trace.focus() && !loading()) {
-            <div class="flex h-full flex-col items-center justify-center gap-3 px-4">
-              <span class="text-xs text-ink-subtle">No entry selected.</span>
-              <span class="text-2xs text-ink-subtle">Select an entry in the Workbench deck first, then come back for the flow review.</span>
-            </div>
+          } @else if (activePreset() === 'flow') {
+            @if (!trace.focus() && !loading()) {
+              <div class="flex h-full flex-col items-center justify-center gap-3 px-4">
+                <span class="text-xs text-ink-subtle">No entry selected.</span>
+                <span class="text-2xs text-ink-subtle">Select an entry in the Workbench deck first, then come back for the flow review.</span>
+              </div>
+            } @else if (contextSections().length > 0) {
+              <div class="space-y-2" [class.opacity-60]="contentPreserved()">
+                @for (s of contextSections(); track s.key) {
+                  <ng-container [ngTemplateOutlet]="sectionCard" [ngTemplateOutletContext]="{ $implicit: s }" />
+                }
+                @if (contextOmitted().length > 0) {
+                  <div class="rounded border border-warn/40 bg-warn/10 px-3 py-2 text-2xs text-ink-muted">
+                    <p class="mb-1 font-semibold text-warn">Omitted (budget-cut)</p>
+                    @for (o of contextOmitted(); track o) {
+                      <p>{{ o }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            } @else if (loading()) {
+              <div class="space-y-3">
+                @for (i of [1,2,3]; track i) {
+                  <app-skeleton class="block" width="100%" height="12px" />
+                  <app-skeleton class="block" [width]="(65 + i * 7) + '%'" height="12px" />
+                }
+              </div>
+            }
           } @else if (content()) {
             <pre
               class="whitespace-pre-wrap font-mono text-xs text-ink leading-relaxed"
@@ -161,6 +254,25 @@ const PRESET_LABELS: Record<ExportPreset, string> = {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">Choose a preset to render</div>
           }
         </div>
+
+        <!-- One context-pack section: header (title, token count, meter), collapsible, content -->
+        <ng-template #sectionCard let-s>
+          <div class="rounded border border-line" [class.bg-surface-2]="s.code">
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left hover:bg-surface-2"
+              (click)="toggleCollapsed(s.key)"
+            >
+              <app-icon [name]="isCollapsed(s.key) ? 'chevron-right' : 'chevron-down'" [size]="12" class="text-ink-subtle shrink-0" />
+              <span class="flex-1 truncate text-xs font-semibold text-ink">{{ s.title }}</span>
+              <app-meter [value]="budgetPct(s.tokens)" variant="accent" class="w-10 shrink-0" />
+              <span class="shrink-0 text-2xs tabular-nums text-ink-subtle">{{ s.tokens }}</span>
+            </button>
+            @if (!isCollapsed(s.key)) {
+              <pre class="whitespace-pre-wrap border-t border-line px-2.5 py-2 font-mono text-2xs leading-relaxed text-ink">{{ s.content }}</pre>
+            }
+          </div>
+        </ng-template>
 
         <!-- Bottom bar -->
         <div class="flex items-center gap-2 border-t border-line px-4 py-2">
@@ -190,24 +302,39 @@ export class ExportDrawer {
   private readonly toast = inject(ToastService);
 
   protected readonly presets: readonly ExportPreset[] = ['full', 'onboarding', 'flow', 'trail'];
+  protected readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
+  protected readonly budgetOptions = BUDGET_OPTIONS;
   protected readonly PRESET_LABELS = PRESET_LABELS;
+  protected readonly INTENT_LABELS = INTENT_LABELS;
 
   protected readonly activePreset = signal<ExportPreset>('full');
+  protected readonly intent = signal<ContextIntent>('trace');
+  protected readonly budgetTokens = signal<number>(8000);
   protected readonly sectionData = signal<SectionToggle[]>([]);
   protected readonly content = signal('');
-  protected readonly pinnedContent = signal<PinnedRender[]>([]);
+  protected readonly contextSections = signal<ContextSectionVm[]>([]);
+  protected readonly contextOmitted = signal<string[]>([]);
+  protected readonly trailGroups = signal<TrailGroupVm[]>([]);
   protected readonly tokenCount = signal(0);
   protected readonly loading = signal(false);
   protected readonly trailRendering = signal(false);
   protected readonly trailProgress = signal('');
   protected readonly renderError = signal<string | null>(null);
+  protected readonly collapsed = signal<ReadonlySet<string>>(new Set());
   /** True when this is a refresh (not first load) — dims existing content. */
   protected readonly contentPreserved = signal(false);
   private hasLoaded = false;
 
+  protected readonly isContextPreset = computed(() => this.activePreset() === 'flow' || this.activePreset() === 'trail');
+
   protected readonly effectiveContent = computed(() => {
     if (this.activePreset() === 'trail') {
-      return this.pinnedContent().map((pr) => `## [${pr.title}]\n\n${pr.content}`).join('\n\n');
+      return this.trailGroups()
+        .map((g) => `## [${g.title}]\n\n${g.sections.map((s) => `### ${s.title}\n${s.content}`).join('\n\n')}`)
+        .join('\n\n');
+    }
+    if (this.activePreset() === 'flow') {
+      return this.contextSections().map((s) => `## ${s.title}\n${s.content}`).join('\n\n');
     }
     return this.content();
   });
@@ -231,11 +358,48 @@ export class ExportDrawer {
         d.map((s) => ({ ...s, enabled: ONBOARDING_SECTIONS.includes(s.key) })),
       );
       void this.render();
-    } else if (preset === 'flow') {
-      void this.render();
-    } else if (preset === 'trail') {
+    } else {
       void this.render();
     }
+  }
+
+  protected setIntent(i: ContextIntent): void {
+    this.intent.set(i);
+    void this.render();
+  }
+
+  protected intentHint(i: ContextIntent): string {
+    switch (i) {
+      case 'explain':
+        return 'Concepts first: DI wiring, entities, signatures — code trimmed if tight on budget.';
+      case 'review':
+        return 'Code first: full trace + signatures + salient bodies, deepest trace.';
+      default:
+        return 'Balanced: trace skeleton, signatures, salient bodies, then wiring/entities.';
+    }
+  }
+
+  protected onBudgetChange(event: Event): void {
+    this.budgetTokens.set(Number((event.target as HTMLSelectElement).value));
+    void this.render();
+  }
+
+  protected budgetPct(tokens: number): number {
+    const budget = this.budgetTokens();
+    return budget > 0 ? Math.min(100, (tokens / budget) * 100) : 0;
+  }
+
+  protected isCollapsed(key: string): boolean {
+    return this.collapsed().has(key);
+  }
+
+  protected toggleCollapsed(key: string): void {
+    this.collapsed.update((set) => {
+      const next = new Set(set);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }
 
   protected async render(): Promise<void> {
@@ -249,9 +413,8 @@ export class ExportDrawer {
       return;
     }
 
-    // Flow Review: single focused render
     if (preset === 'flow') {
-      await this.renderFocused(handle, this.trace.focus());
+      await this.renderContextFocused(handle, this.trace.focus());
       return;
     }
 
@@ -273,7 +436,8 @@ export class ExportDrawer {
 
       this.content.set(res.content);
       this.tokenCount.set(res.estimatedTokens);
-      this.pinnedContent.set([]);
+      this.contextSections.set([]);
+      this.trailGroups.set([]);
 
       // Preserve user toggles: only add new sections, keep existing enabled state
       const existing = new Map(this.sectionData().map((s) => [s.key, s.enabled]));
@@ -293,11 +457,12 @@ export class ExportDrawer {
     }
   }
 
-  private async renderFocused(handle: string, focus: string | null): Promise<void> {
+  private async renderContextFocused(handle: string, focus: string | null): Promise<void> {
     if (!focus) {
-      this.content.set('');
+      this.contextSections.set([]);
+      this.contextOmitted.set([]);
       this.tokenCount.set(0);
-      this.pinnedContent.set([]);
+      this.trailGroups.set([]);
       this.renderError.set(null);
       return;
     }
@@ -307,10 +472,11 @@ export class ExportDrawer {
     if (this.hasLoaded) this.contentPreserved.set(true);
 
     try {
-      const res = await this.api.render(handle, { focus, format: 'markdown' });
-      this.content.set(res.content);
-      this.tokenCount.set(res.estimatedTokens);
-      this.pinnedContent.set([]);
+      const res = await this.api.getContext(handle, focus, { budgetTokens: this.budgetTokens(), intent: this.intent() });
+      this.contextSections.set(res.sections.map(toSectionVm));
+      this.contextOmitted.set(res.omitted);
+      this.tokenCount.set(res.totalTokens);
+      this.trailGroups.set([]);
       this.hasLoaded = true;
       this.contentPreserved.set(false);
     } catch {
@@ -324,9 +490,8 @@ export class ExportDrawer {
   private async renderTrail(handle: string): Promise<void> {
     const pins = this.trail.pins();
     if (pins.length === 0) {
-      this.content.set('');
+      this.trailGroups.set([]);
       this.tokenCount.set(0);
-      this.pinnedContent.set([]);
       this.renderError.set(null);
       return;
     }
@@ -335,22 +500,22 @@ export class ExportDrawer {
     this.renderError.set(null);
     this.contentPreserved.set(false);
 
-    const results: PinnedRender[] = [];
+    const groups: TrailGroupVm[] = [];
     let totalTokens = 0;
 
     for (let i = 0; i < pins.length; i++) {
       const pin = pins[i];
       this.trailProgress.set(`step ${i + 1} of ${pins.length}`);
       try {
-        const res = await this.api.render(handle, { focus: pin.focus, format: 'markdown' });
-        results.push({ title: pin.title, content: res.content, tokens: res.estimatedTokens });
-        totalTokens += res.estimatedTokens;
+        const res = await this.api.getContext(handle, pin.focus, { budgetTokens: this.budgetTokens(), intent: this.intent() });
+        groups.push({ title: pin.title, totalTokens: res.totalTokens, sections: res.sections.map(toSectionVm), omitted: res.omitted });
+        totalTokens += res.totalTokens;
       } catch {
-        results.push({ title: pin.title, content: `⚠ Render failed for "${pin.title}"`, tokens: 0 });
+        groups.push({ title: pin.title, totalTokens: 0, sections: [], omitted: [`Render failed for "${pin.title}"`] });
       }
     }
 
-    this.pinnedContent.set(results);
+    this.trailGroups.set(groups);
     this.tokenCount.set(totalTokens);
     this.hasLoaded = true;
     this.trailRendering.set(false);
@@ -375,4 +540,14 @@ export class ExportDrawer {
   protected fmt(n: number): string {
     return formatCompact(n);
   }
+}
+
+function toSectionVm(s: { key: string; tokens: number; content: string }): ContextSectionVm {
+  return {
+    key: s.key,
+    title: sectionTitle(s.key),
+    tokens: s.tokens,
+    content: s.content,
+    code: s.key.startsWith('bodies') || s.key.startsWith('signatures'),
+  };
 }

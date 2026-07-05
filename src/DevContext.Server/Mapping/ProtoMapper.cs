@@ -265,6 +265,20 @@ internal static class ProtoMapper
         return resp;
     }
 
+    public static Proto.ContextResponse ToContextResponse(string focus, ContextPack pack)
+    {
+        var resp = new Proto.ContextResponse
+        {
+            Found = true,
+            Focus = focus,
+            TotalTokens = pack.TotalTokens,
+        };
+        foreach (var s in pack.Sections)
+            resp.Sections.Add(new Proto.ContextSection { Key = s.Section, Tokens = s.Tokens, Content = s.Content });
+        resp.Omitted.AddRange(pack.Omitted);
+        return resp;
+    }
+
     public static Proto.InterestingPointsResponse ToInterestingPointsResponse(
         System.Collections.Immutable.ImmutableArray<InterestingPoint> points)
     {
