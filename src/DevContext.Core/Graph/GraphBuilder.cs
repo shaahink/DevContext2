@@ -527,37 +527,170 @@ public sealed class GraphBuilder
     }
 
 
-    /// <summary>WORKED EXAMPLE — join MediatR detections into Request + Handler nodes and a Handles edge.
-    /// Note the FQN resolution (<paramref name="names"/>): node keys are canonical even though detections
-    /// carry short names. Every other join seam follows this exact pattern.</summary>
+    /// <summary>Creates Handles edges from MediatRHandlerDetection detections AND from
+    /// TypeDiscovery objects that transitively implement known handler interfaces (M1.1 closure).
+    /// Transitive detection catches classes that inherit from a handler base class (not common
+    /// but required for the "match handlers transitively" golden).</summary>
     private static void AddHandlerJoins(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
         {
             if (!scope.Contains(h.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
-            var requestId = NodeId.ForType(names.Resolve(h.RequestType, h.SourceFile));
-            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
-
-            g.AddNode(new GraphNode(requestId, h.RequestType, NodeKind.Type)
-            {
-                Tags = [h.Kind.ToString().ToLowerInvariant()],
-            });
-            g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Type)
-            {
-                FilePath = h.SourceFile,
-                Tags = [RoleTags.Handler],
-                SourceBody = model.Types.Values
-                    .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType, h.SourceFile))
-                    ?.SourceBody,
-            });
-            g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
-            {
-                Provenance = $"{h.SourceFile}:{h.LineNumber}",
-                Resolution = Resolution.Join,
-            });
-            // TODO(agent, P2): add the Sends edge — the member that constructs + dispatches h.RequestType → requestId.
+            EmitHandlerJoin(g, model, names, h.RequestType, h.HandlerType, h.Kind, h.SourceFile, h.LineNumber);
         }
+
+        // M1.1 transitive: scan model types for classes whose BaseTypes transitively
+        // implement handler interfaces but weren't picked up by the syntax-level extractor.
+        var handlerByShortName = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
+        foreach (var t in model.Types.Values)
+        {
+            var sn = StripGenericsRuntime(t.Name);
+            if (!handlerByShortName.TryGetValue(sn, out var list))
+                handlerByShortName[sn] = list = [];
+            list.Add(t);
+        }
+
+        var knownHandlerTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
+            knownHandlerTypes.Add(names.Resolve(h.HandlerType, h.SourceFile));
+
+        foreach (var type in model.Types.Values)
+        {
+            if (type.Kind != Models.TypeKind.Class) continue;
+            if (!scope.Contains(type.FilePath)) continue;
+            if (!noise.IsProductionCode(type)) continue;
+            if (knownHandlerTypes.Contains(type.Id)) continue;
+
+            // Check if any BaseType transitively reaches a known handler type
+            var reached = FindHandlerBaseType(type, handlerByShortName, knownHandlerTypes, []);
+            if (reached is null) continue;
+
+            // Find the most-specific handler interface in the chain
+            var handlerIfaces = reached.ImplementedInterfaces
+                .Where(i => IsHandlerInterface(i, handlerByShortName, []))
+                .ToArray();
+            if (handlerIfaces.Length == 0) continue;
+
+            var handlerInterface = handlerIfaces[0];
+            var args = ExtractGenericArgs(handlerInterface);
+            if (args.Length < 1) continue;
+
+            var requestType = args[0];
+            var responseType = args.Length >= 2 ? args[1] : "Unit";
+            var kind = handlerInterface.Contains("Notification", StringComparison.Ordinal)
+                ? MediatRKind.Notification
+                : MediatRKind.Command;
+
+            EmitHandlerJoin(g, model, names, requestType, type.Name, kind, type.FilePath, type.StartLine ?? 1);
+        }
+    }
+
+    private static void EmitHandlerJoin(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        string requestType, string handlerShortName, MediatRKind kind, string sourceFile, int lineNumber)
+    {
+        var requestId = NodeId.ForType(names.Resolve(requestType, sourceFile));
+        var handlerId = NodeId.ForType(names.Resolve(handlerShortName, sourceFile));
+
+        g.AddNode(new GraphNode(requestId, requestType, NodeKind.Type)
+        {
+            Tags = [kind.ToString().ToLowerInvariant()],
+        });
+        g.AddNode(new GraphNode(handlerId, handlerShortName, NodeKind.Type)
+        {
+            FilePath = sourceFile,
+            Tags = [RoleTags.Handler],
+            SourceBody = model.Types.Values
+                .FirstOrDefault(t => t.Id == names.Resolve(handlerShortName, sourceFile))
+                ?.SourceBody,
+        });
+        g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
+        {
+            Provenance = $"{sourceFile}:{lineNumber}",
+            Resolution = Resolution.Join,
+        });
+    }
+
+    private static TypeDiscovery? FindHandlerBaseType(TypeDiscovery type,
+        Dictionary<string, List<TypeDiscovery>> byShortName,
+        HashSet<string> knownHandlers,
+        HashSet<string> visited)
+    {
+        if (knownHandlers.Contains(type.Id)) return type;
+        foreach (var bt in type.BaseTypes)
+        {
+            var stripped = StripGenericsRuntime(bt);
+            if (!visited.Add(stripped)) continue;
+            if (byShortName.TryGetValue(stripped, out var bases))
+            {
+                foreach (var baseType in bases)
+                {
+                    var result = FindHandlerBaseType(baseType, byShortName, knownHandlers, visited);
+                    if (result is not null) return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static bool IsHandlerInterface(string ifaceName,
+        Dictionary<string, List<TypeDiscovery>> byShortName,
+        HashSet<string> visited)
+    {
+        var stripped = StripGenericsRuntime(ifaceName);
+        if (stripped is "IRequestHandler" or "INotificationHandler" or "IStreamRequestHandler")
+            return true;
+        if (!visited.Add(stripped)) return false;
+        if (byShortName.TryGetValue(stripped, out var matches))
+        {
+            foreach (var match in matches)
+            {
+                if (match.Kind != Models.TypeKind.Interface) continue;
+                foreach (var parent in match.ImplementedInterfaces)
+                {
+                    if (IsHandlerInterface(parent, byShortName, visited))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static string[] ExtractGenericArgs(string typeName)
+    {
+        var open = typeName.IndexOf('<');
+        if (open < 0) return [];
+        var close = typeName.LastIndexOf('>');
+        if (close <= open) return [];
+        var inner = typeName.Substring(open + 1, close - open - 1);
+        return SplitGenericCsv(inner);
+    }
+
+    private static string[] SplitGenericCsv(string args)
+    {
+        var depth = 0;
+        var parts = new List<string>();
+        var current = new System.Text.StringBuilder();
+        foreach (var ch in args)
+        {
+            switch (ch)
+            {
+                case '<': depth++; current.Append(ch); break;
+                case '>': depth--; current.Append(ch); break;
+                case ',' when depth == 0: parts.Add(current.ToString().Trim()); current.Clear(); break;
+                default: current.Append(ch); break;
+            }
+        }
+        if (current.Length > 0) parts.Add(current.ToString().Trim());
+        return parts.ToArray();
+    }
+
+    /// <summary>Strips generic type parameters from a type name — the runtime copy of MediatRExtractor's
+    /// StripGenericsFrom, needed in GraphBuilder for the M1.1 transitive-handler helpers.</summary>
+    private static string StripGenericsRuntime(string typeName)
+    {
+        var open = typeName.IndexOf('<');
+        return open < 0 ? typeName : typeName[..open];
     }
 
     /// <summary>B3: Detects IPipelineBehavior registrations from DI detections and creates
