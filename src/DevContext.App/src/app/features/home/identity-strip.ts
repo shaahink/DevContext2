@@ -2,17 +2,12 @@ import { Component, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 import { SessionStore } from '../../state/session.store';
-import { StatCell } from '../../ui/stat-cell/stat-cell';
 import { Badge } from '../../ui/badge/badge';
+import { formatCompact } from '../../core/format';
 
-/**
- * Home's identity strip (proposal §2 "identity strip"): archetype/style/scope,
- * node/edge/entry/wired/coverage stats, detected stack. Card-free (ported from the
- * old section-identity.ts, which wrapped this in the now-deleted SectionCard).
- */
 @Component({
   selector: 'app-identity-strip',
-  imports: [StatCell, Badge, DecimalPipe],
+  imports: [Badge, DecimalPipe],
   template: `
     <div class="space-y-5">
       @if (stale(); as msg) {
@@ -27,35 +22,38 @@ import { Badge } from '../../ui/badge/badge';
         </div>
       }
 
-      <div class="flex flex-wrap items-center gap-3">
+      <!-- Identity sentence -->
+      <p class="text-base leading-relaxed text-ink">{{ identitySentence() }}</p>
+
+      <!-- Stat strip — human labels -->
+      <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
+        @for (label of statLabels(); track label[0]) {
+          <span class="tabular-nums" [title]="label[2]">
+            <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
+          </span>
+        }
+      </div>
+
+      <!-- Archetype + style badges -->
+      <div class="flex flex-wrap items-center gap-2">
         @if (archetype(); as a) {
           <app-badge variant="accent" class="text-xs">{{ a }}</app-badge>
         }
         @if (style(); as s) {
-          <span class="text-xs text-ink-muted">
-            {{ s }}
+          <span class="text-xs text-ink-muted">{{ s }}
             @if (styleConfidence() > 0) {
               <span class="font-mono tabular-nums text-ink-subtle"> &middot; {{ (styleConfidence() * 100) | number:'1.0-0' }}%</span>
             }
           </span>
         }
-        @if (scope(); as sc) {
-          <span class="text-2xs text-ink-subtle">&#8212; {{ sc }}</span>
+        @if (stack().length) {
+          @for (item of stack(); track item) {
+            <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-2xs text-ink-muted">{{ item }}</span>
+          }
         }
       </div>
 
-      <div class="grid grid-cols-3 gap-2 sm:grid-cols-7">
-        <app-stat-cell [value]="summary()?.nodes ?? 0" label="nodes" />
-        <app-stat-cell [value]="summary()?.edges ?? 0" label="edges" />
-        <app-stat-cell [value]="summary()?.entries ?? 0" label="entries" />
-        <app-stat-cell [value]="wired()" label="wired" />
-        <app-stat-cell [value]="unwired()" label="unwired" />
-        <app-stat-cell [value]="coverage() + '%'" label="coverage" />
-        <button type="button" class="contents cursor-pointer" (click)="showLedger = !showLedger">
-          <app-stat-cell [value]="confPct()" label="confidence" />
-        </button>
-      </div>
-
+      <!-- Confidence Ledger (collapsed by default) -->
       @if (showLedger && ledger(); as l) {
         <div class="rounded-lg border border-line bg-surface-2 p-3 space-y-2 text-xs">
           <p class="font-semibold text-ink">Confidence Ledger</p>
@@ -81,26 +79,59 @@ import { Badge } from '../../ui/badge/badge';
           }
         </div>
       }
-
-      @if (stack().length) {
-        <div class="flex flex-wrap items-center gap-1.5">
-          <span class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Stack</span>
-          @for (item of stack(); track item) {
-            <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-2xs text-ink-muted">{{ item }}</span>
-          }
-        </div>
-      }
     </div>
   `,
   host: { class: 'contents' },
 })
 export class IdentityStrip {
   protected readonly session = inject(SessionStore);
-
   protected readonly summary = this.session.summary;
   protected readonly map = this.session.mapResponse;
   protected readonly ledger = this.session.confidenceLedger;
   protected showLedger = false;
+
+  /** Human-readable identity sentence: "ASP.NET Core web API · 85 endpoints across 3 services · EF Core + RabbitMQ" */
+  protected readonly identitySentence = computed(() => {
+    const s = this.summary();
+    const m = this.map();
+    if (!s) return 'Analyze a repo to get started.';
+    const parts: string[] = [];
+    if (s.label) parts.push(s.label);
+    if (m?.archetype) parts.push(m.archetype.toLowerCase());
+    if (s.entries > 0) parts.push(`${s.entries} endpoints`);
+    if (s.projects > 1) parts.push(`${s.projects} services`);
+    if (s.nodes > 0) parts.push(`${formatCompact(s.nodes)} types`);
+    if (s.elapsedMs > 0) {
+      const sec = (Number(s.elapsedMs) / 1000).toFixed(1);
+      parts.push(`analyzed in ${sec}s`);
+    }
+    return parts.join(' · ') + '.';
+  });
+
+  /** Stat labels: [label, value, tooltip] */
+  protected readonly statLabels = computed((): readonly (readonly [string, string, string])[] => {
+    const s = this.summary();
+    const l = this.ledger();
+    if (!s) return [];
+    const wired = s.entriesWithTarget ?? 0;
+    const total = s.entries ?? 0;
+    const labels: [string, string, string][] = [
+      ['endpoints', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)'],
+    ];
+    if (s.projects > 0) {
+      labels.push(['services', String(s.projects), 'Projects in the solution']);
+    }
+    if (s.nodes > 0) {
+      labels.push(['types', formatCompact(s.nodes), 'Types discovered in the graph']);
+    }
+    if (total > 0) {
+      labels.push(['wired', `${wired}/${total}`, `${wired} of ${total} entries have resolved targets`]);
+    }
+    if (l) {
+      labels.push(['confidence', `${Math.round(l.overall * 100)}%`, `${Math.round(l.verifiedEdgePct * 100)}% edges verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
+    }
+    return labels;
+  });
 
   protected readonly stale = computed(() => {
     const s = this.summary();
@@ -110,27 +141,9 @@ export class IdentityStrip {
   protected readonly archetype = computed(() => this.map()?.archetype);
   protected readonly style = computed(() => this.map()?.style);
   protected readonly styleConfidence = computed(() => this.map()?.styleConfidence ?? 0);
-  protected readonly scope = computed(() => this.map()?.scopeNote);
   protected readonly stack = computed(() => this.map()?.stack ?? []);
-
-  protected readonly wired = computed(() => this.summary()?.entriesWithTarget ?? 0);
-  protected readonly unwired = computed(() => {
-    const s = this.summary();
-    return s ? s.entries - s.entriesWithTarget : 0;
-  });
-  protected readonly coverage = computed(() => {
-    const s = this.summary();
-    if (!s || s.entries === 0) return 0;
-    return Math.round((s.entriesWithTarget / s.entries) * 100);
-  });
-
-  protected readonly confPct = computed(() => {
-    const l = this.ledger();
-    return l ? `${Math.round(l.overall * 100)}%` : '—';
-  });
 
   protected reanalyze() {
     void this.session.reAnalyze();
   }
 }
-

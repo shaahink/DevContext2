@@ -1,14 +1,4 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  input,
-  output,
-  viewChild,
-} from '@angular/core';
+import { Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 
@@ -141,8 +131,14 @@ function buildElements(data: GraphCanvasData): cytoscape.ElementDefinition[] {
     <div class="relative h-full w-full">
       <div #cy class="h-full w-full"></div>
 
-      @if (showLegend()) {
-        <div class="pointer-events-none absolute bottom-3 left-3 z-10 rounded border border-line bg-surface/90 px-3 py-2 text-[10px] backdrop-blur">
+      <!-- Legend popover -->
+      <button
+        class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-[10px]"
+        (click)="legendOpen.set(!legendOpen())"
+        title="Legend"
+      >Legend</button>
+      @if (legendOpen()) {
+        <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-[10px] backdrop-blur shadow-overlay">
           <div class="mb-1 font-semibold uppercase text-ink-subtle">Legend</div>
           <div class="grid grid-cols-3 gap-x-4 gap-y-1">
             @for (item of legendItems; track item.label) {
@@ -166,12 +162,10 @@ function buildElements(data: GraphCanvasData): cytoscape.ElementDefinition[] {
 })
 export class GraphCanvas {
   readonly data = input.required<GraphCanvasData>();
-  /** Single click/tap — selection (Inspector detail for trace/neighbors, project pick for topology). */
   readonly nodeSelected = output<string>();
-  /** Double click/tap on any node, any altitude — "re-trace from it" (proposal §2). */
   readonly nodeActivated = output<string>();
 
-  protected readonly showLegend = computed(() => this.data().mode === 'trace');
+  protected readonly legendOpen = signal(false);
 
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('cy');
   private readonly theme = inject(ThemeService);
@@ -308,6 +302,13 @@ export class GraphCanvas {
             'target-arrow-color': p.accent,
           },
         },
+        {
+          selector: '.dimmed',
+          style: {
+            opacity: 0.15,
+            'text-opacity': 0.15,
+          },
+        },
       ],
       layout: {
         name: 'dagre',
@@ -323,6 +324,17 @@ export class GraphCanvas {
     this.cy.on('dbltap', 'node', (e) => this.nodeActivated.emit(e.target.data('nodeId') as string));
     this.cy.on('tap', (_evt) => {
       if (_evt.target === this.cy) this.nodeSelected.emit('');
+    });
+
+    // Focus dimming: hover a node -> dim non-neighbors
+    this.cy.on('mouseover', 'node', (e) => {
+      const node = e.target;
+      const neighbors = node.neighborhood();
+      this.cy?.elements().removeClass('dimmed');
+      this.cy?.elements().not(neighbors).not(node).addClass('dimmed');
+    });
+    this.cy.on('mouseout', 'node', () => {
+      this.cy?.elements().removeClass('dimmed');
     });
 
     this.cy.ready(() => {

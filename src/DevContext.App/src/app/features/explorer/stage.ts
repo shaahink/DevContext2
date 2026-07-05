@@ -1,4 +1,5 @@
 import { Component, computed, inject, model, output, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { filterApproxTree, type TraceNodeVm } from '../../models/view-models';
@@ -33,15 +34,27 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
  */
 @Component({
   selector: 'app-stage',
-  imports: [GraphCanvas, TraceNodeComponent, Meter],
+  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass],
   host: { class: 'panel relative flex h-full min-h-0 flex-col' },
   template: `
-    @if (trace.loading()) {
-      <div class="hairline"></div>
-    }
+    <div
+      [ngClass]="zenMode() ? 'fixed inset-0 z-50 flex flex-col bg-base' : 'contents'"
+      (keydown.escape)="zenMode.set(false)"
+      tabindex="0"
+    >
+      @if (trace.loading()) {
+        <div class="hairline"></div>
+      }
 
-    <div class="flex items-center gap-1 border-b border-line px-2 py-1">
-      @for (alt of altitudes; track alt.id) {
+      <div class="flex items-center gap-1 border-b border-line px-2 py-1" (dblclick)="zenMode.set(!zenMode())" title="Double-click for zen mode">
+        <button
+          type="button"
+          class="chip shrink-0"
+          [class.active]="zenMode()"
+          (click)="zenMode.set(!zenMode()); $event.stopPropagation()"
+          title="Zen mode (F)"
+        >&#9641;</button>
+        @for (alt of altitudes; track alt.id) {
         <button
           type="button"
           class="chip"
@@ -209,6 +222,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
 export class Stage {
   protected readonly session = inject(SessionStore);
   protected readonly trace = inject(TraceStore);
+  protected readonly zenMode = signal(false);
 
   readonly nodeSelected = output<string>();
   /** Double-click anywhere on the canvas — parent re-traces from this node (proposal §2). */
@@ -278,6 +292,18 @@ export class Stage {
 
   protected onNodeTap(nodeId: string): void {
     if (nodeId) this.nodeSelected.emit(nodeId);
+  }
+
+  constructor() {
+    // Window-level F key for zen mode toggle
+    window.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'F' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const tag = (event.target as HTMLElement | null)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        event.preventDefault();
+        this.zenMode.update((z) => !z);
+      }
+    });
   }
 
   protected meterVariant(pct: number): MeterVariant {

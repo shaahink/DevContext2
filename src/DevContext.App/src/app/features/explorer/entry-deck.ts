@@ -80,9 +80,12 @@ interface KindStat {
               {{ entry.httpMethod }}
             </span>
           }
-          <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="entry.title">
-            {{ entry.route || entry.title }}
-          </span>
+          <div class="min-w-0 flex-1 truncate">
+            <span class="font-mono text-xs text-ink" [title]="entry.title">{{ entry.route || entry.title }}</span>
+            @if (entry.target) {
+              <span class="ml-1 text-2xs text-ink-subtle">{{ entry.target }}</span>
+            }
+          </div>
           @if (entry.groupPath) {
             <span class="shrink-0 text-2xs text-ink-subtle">{{ entry.groupPath }}</span>
           }

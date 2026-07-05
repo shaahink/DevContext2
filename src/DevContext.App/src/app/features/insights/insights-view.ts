@@ -15,8 +15,14 @@ const SEVERITY_LABEL_CLASS: Record<string, string> = {
   info: 'bg-accent/10 text-accent',
 };
 
+const IMPACT_GROUPS: Record<string, string> = {
+  warning: 'Act on this',
+  notable: 'Act on this',
+  info: 'Know this',
+};
+
 interface InsightGroup {
-  category: string;
+  impact: string;
   insights: {
     id: string; title: string; severity: string; severityClass: string;
     detail: string; evidence: string[];
@@ -64,9 +70,9 @@ interface InsightGroup {
       <!-- Loaded -->
       @else {
         <div class="space-y-3">
-          @for (group of groups(); track group.category) {
+          @for (group of groups(); track group.impact) {
             <div>
-              <span class="text-2xs text-ink-muted uppercase tracking-wider">{{ group.category }}</span>
+              <span class="text-2xs text-ink-muted uppercase tracking-wider">{{ group.impact }}</span>
               <div class="mt-1.5 space-y-2">
                 @for (insight of group.insights; track insight.id) {
                   <app-card>
@@ -86,8 +92,12 @@ interface InsightGroup {
                       }
                       @if (insight.evidence.length) {
                         <div class="mt-1.5 flex flex-wrap gap-1">
-                          @for (ev of insight.evidence; track ev) {
-                            <span class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted">{{ ev }}</span>
+                          @for (ev of dedupe(insight.evidence); track ev) {
+                            <a
+                              class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-surface-3 hover:text-accent transition-colors"
+                              [routerLink]="['/explore']"
+                              [queryParams]="{ focus: ev }"
+                            >{{ ev }}</a>
                           }
                         </div>
                       }
@@ -107,7 +117,7 @@ interface InsightGroup {
         </div>
       }
 
-      <!-- Coverage bar (always when stats loaded) -->
+      <!-- Coverage bar -->
       @if (store.stats(); as s) {
         <div class="border-t border-line pt-3">
           <span class="text-2xs text-ink-muted uppercase">Coverage</span>
@@ -122,7 +132,7 @@ interface InsightGroup {
         </div>
       }
 
-      <!-- Engine drawer -->
+      <!-- Engine details -->
       @if (store.stats(); as s) {
         <details class="border-t border-line pt-3">
           <summary class="text-xs text-ink-muted cursor-pointer hover:text-ink">Engine details</summary>
@@ -153,9 +163,9 @@ export class InsightsView {
       whyItMatters?: string; action: string; actionTarget?: string;
     }[]>();
     for (const i of list) {
-      const cat = i.category || 'Other';
-      if (!map.has(cat)) map.set(cat, []);
-      map.get(cat)!.push({
+      const impact = IMPACT_GROUPS[i.severity] ?? 'Know this';
+      if (!map.has(impact)) map.set(impact, []);
+      map.get(impact)!.push({
         id: i.id,
         title: i.title,
         severity: i.severity,
@@ -169,7 +179,7 @@ export class InsightsView {
         actionTarget: i.actionTarget,
       });
     }
-    return [...map.entries()].map(([category, insights]) => ({ category, insights }));
+    return [...map.entries()].map(([impact, insights]) => ({ impact, insights }));
   });
 
   readonly coveragePct = computed(() => {
@@ -177,6 +187,11 @@ export class InsightsView {
     if (!g || !g.entries) return 0;
     return Math.round((g.entriesWithTarget / g.entries) * 100);
   });
+
+  /** Deduplicate evidence entries by value. */
+  dedupe(items: readonly string[]): string[] {
+    return [...new Set(items)];
+  }
 
   severityLabelClass(severity: string): string {
     return SEVERITY_LABEL_CLASS[severity] ?? SEVERITY_LABEL_CLASS['info'];
