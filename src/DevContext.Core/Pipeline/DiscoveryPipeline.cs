@@ -730,6 +730,12 @@ public sealed class DiscoveryPipeline
             new BusiestAggregateSource(),
             new TopologyChokepointSource(),
             new MultiImplSource(),
+            // L4.2 — per-archetype composition
+            new WebArchetypeSource(),
+            new LibraryArchetypeSource(),
+            new MessagingArchetypeSource(),
+            new DesktopArchetypeSource(),
+            new CliArchetypeSource(),
         };
 
         var all = new List<Insight>();
