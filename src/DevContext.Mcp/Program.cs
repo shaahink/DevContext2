@@ -17,7 +17,7 @@ try
 {
     var services = new ServiceCollection();
 
-    services.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(b => b.AddSerilog(dispose: true)));
+    services.AddLogging(b => b.AddSerilog(dispose: true));
     services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DevContext.Mcp"));
 
     services.AddDevContextServices(".");
