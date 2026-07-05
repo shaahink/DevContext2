@@ -18,7 +18,7 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
             g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType));
+            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType, mc.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {

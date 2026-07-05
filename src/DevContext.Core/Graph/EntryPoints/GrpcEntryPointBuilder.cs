@@ -14,7 +14,7 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
         {
             if (!scope.Contains(svc.SourceFile) || !noise.IsProductionEntrySource(svc.SourceFile)) continue;
 
-            var svcTypeFqn = names.Resolve(svc.ImplementationType);
+            var svcTypeFqn = names.Resolve(svc.ImplementationType, svc.SourceFile);
             var svcTypeNodeId = NodeId.ForType(svcTypeFqn);
             var svcNamespace = names.GetNamespace(svc.ImplementationType);
 

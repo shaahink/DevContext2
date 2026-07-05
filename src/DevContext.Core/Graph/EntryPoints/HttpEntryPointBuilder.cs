@@ -34,7 +34,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             if (!isLambdaHandler)
             {
-                var handlerFqn = names.Resolve(ep.HandlerType);
+                var handlerFqn = names.Resolve(ep.HandlerType, ep.SourceFile);
                 var methodName = ep.HandlerMethod;
                 var hasSpecificMethod = !string.IsNullOrEmpty(methodName)
                     && methodName is not "<lambda>" and not "<anonymous>"

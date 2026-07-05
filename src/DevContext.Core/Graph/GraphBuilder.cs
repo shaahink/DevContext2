@@ -50,7 +50,7 @@ public sealed class GraphBuilder
     public (CodeGraph Graph, ImmutableArray<EntryPoint> Entries) Build(DiscoveryModel model, SolutionScope scope)
     {
         var g = new CodeGraphBuilder();
-        var names = new NameResolver(model.Types.Values); // short-name → FQN for every join (design-doc Q2)
+        var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
 
         AddTypeNodes(g, model, scope);                      // worked example
 
@@ -536,8 +536,8 @@ public sealed class GraphBuilder
         {
             if (!scope.Contains(h.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
-            var requestId = NodeId.ForType(names.Resolve(h.RequestType));
-            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
+            var requestId = NodeId.ForType(names.Resolve(h.RequestType, h.SourceFile));
+            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
 
             g.AddNode(new GraphNode(requestId, h.RequestType, NodeKind.Type)
             {
@@ -548,7 +548,7 @@ public sealed class GraphBuilder
                 FilePath = h.SourceFile,
                 Tags = [RoleTags.Handler],
                 SourceBody = model.Types.Values
-                    .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType))
+                    .FirstOrDefault(t => t.Id == names.Resolve(h.HandlerType, h.SourceFile))
                     ?.SourceBody,
             });
             g.AddEdge(new GraphEdge(requestId, handlerId, EdgeKind.Handles)
@@ -603,7 +603,7 @@ public sealed class GraphBuilder
 
         foreach (var (behaviorType, file, line) in behaviors)
         {
-            var behaviorFqn = names.Resolve(behaviorType);
+            var behaviorFqn = names.Resolve(behaviorType, file);
             var behaviorNodeId = NodeId.ForType(behaviorFqn);
             g.AddNode(new GraphNode(behaviorNodeId, behaviorType, NodeKind.Type)
             {
@@ -654,7 +654,7 @@ public sealed class GraphBuilder
         {
             if (!scope.Contains(e.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(e.SourceFile)) continue;
-            var entityId = NodeId.ForType(names.Resolve(e.EntityType));
+            var entityId = NodeId.ForType(names.Resolve(e.EntityType, e.SourceFile));
             var tags = e.IsAggregate
                 ? ImmutableArray.Create(RoleTags.Entity, RoleTags.Aggregate)
                 : ImmutableArray.Create(RoleTags.Entity);
@@ -663,7 +663,7 @@ public sealed class GraphBuilder
                 FilePath = e.SourceFile,
                 Tags = tags,
             });
-            knownEntityFqns.Add(names.Resolve(e.EntityType));
+            knownEntityFqns.Add(names.Resolve(e.EntityType, e.SourceFile));
         }
 
         // Iteration 6 deferred: when a base entity is detected but its subtypes aren't (because they were
@@ -675,7 +675,7 @@ public sealed class GraphBuilder
             if (type.BaseTypes.IsDefaultOrEmpty) continue;
             foreach (var bt in type.BaseTypes)
             {
-                if (knownEntityFqns.Contains(names.Resolve(bt)))
+                if (knownEntityFqns.Contains(names.Resolve(bt, type.FilePath)))
                 {
                     g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
                     {
@@ -723,7 +723,7 @@ public sealed class GraphBuilder
                 if (targetName is null || targetName == type.Name) continue;
                 if (!entityShortNames.Contains(targetName)) continue;
 
-                var targetFqn = names.Resolve(targetName);
+                var targetFqn = names.Resolve(targetName, type.FilePath);
                 var targetId = NodeId.ForType(targetFqn);
 
                 // BelongsTo direction: edge from child → parent.
@@ -809,8 +809,8 @@ public sealed class GraphBuilder
             if (h.Kind != MediatRKind.Notification) continue;
             if (!scope.Contains(h.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(h.SourceFile)) continue;
-            var eventId = NodeId.ForType(names.Resolve(h.RequestType));
-            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType));
+            var eventId = NodeId.ForType(names.Resolve(h.RequestType, h.SourceFile));
+            var handlerId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
 
             g.AddNode(new GraphNode(eventId, h.RequestType, NodeKind.Type)
             {
@@ -833,8 +833,8 @@ public sealed class GraphBuilder
         {
             if (!scope.Contains(mc.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
-            var eventId = NodeId.ForType(names.Resolve(mc.MessageType));
-            var consumerType = names.Resolve(mc.ConsumerType);
+            var eventId = NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
+            var consumerType = names.Resolve(mc.ConsumerType, mc.SourceFile);
             var handlerId = NodeId.ForType(consumerType);
 
             g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Type)
@@ -891,8 +891,8 @@ public sealed class GraphBuilder
                 || di.ImplementationType.StartsWith("(")
                 || di.ImplementationType.Contains("GetRequiredService")) continue;
 
-            var svcFqn = names.Resolve(di.ServiceType);
-            var implFqn = names.Resolve(di.ImplementationType);
+            var svcFqn = names.Resolve(di.ServiceType, di.SourceFile);
+            var implFqn = names.Resolve(di.ImplementationType, di.SourceFile);
 
             var svcNodeId = NodeId.ForType(svcFqn);
             var implNodeId = NodeId.ForType(implFqn);
@@ -922,7 +922,7 @@ public sealed class GraphBuilder
         {
             if (!scope.Contains(di.SourceFile)) continue;
             if (di.Shape != DiRegistrationShape.DirectBinding) continue;
-            var svcFqn = names.Resolve(di.ServiceType);
+            var svcFqn = names.Resolve(di.ServiceType, di.SourceFile);
             diResolvedSvcIds.Add(NodeId.ForType(svcFqn));
         }
 
@@ -960,8 +960,8 @@ public sealed class GraphBuilder
     {
         foreach (var ce in model.CallEdges)
         {
-            var callerFqn = names.Resolve(ce.CallerType);
-            var calleeFqn = names.Resolve(ce.CalleeType);
+            var callerFqn = names.Resolve(ce.CallerType, ce.CallSiteLocation);
+            var calleeFqn = names.Resolve(ce.CalleeType, ce.CallSiteLocation);
 
             // Filter self-calls to known noise targets — syntactic-resolver mis-attributions (nameof,
             // controller result-helpers) that member-origin precision surfaced (Iteration 4 noise polish).
@@ -1092,9 +1092,9 @@ public sealed class GraphBuilder
         var entityIdByName = new Dictionary<string, NodeId>(StringComparer.Ordinal);
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
-            var entityFqn = names.Resolve(e.EntityType);
+            var entityFqn = names.Resolve(e.EntityType, e.SourceFile);
             var entityId = NodeId.ForType(entityFqn);
-            var ctxFqn = names.Resolve(e.DbContextType);
+            var ctxFqn = names.Resolve(e.DbContextType, e.SourceFile);
             if (!string.IsNullOrEmpty(ctxFqn) && ctxFqn != "?")
             {
                 var ctxId = NodeId.ForType(ctxFqn);
@@ -1212,7 +1212,7 @@ public sealed class GraphBuilder
                         : ResolveVariableNewType(body, match.Index, match.Groups[2].Value,
                             EnclosingSpan(spans, match.Index, body.Length).Start);
                     if (string.IsNullOrEmpty(eventName) || IsNoiseType(eventName)) continue;
-                    var eventId = NodeId.ForType(names.Resolve(eventName));
+                    var eventId = NodeId.ForType(names.Resolve(eventName, type.FilePath));
 
                     g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                     {
@@ -1245,8 +1245,7 @@ public sealed class GraphBuilder
                     if (!eventName.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase))
                         continue;
                 }
-                var eventId = NodeId.ForType(names.Resolve(eventName));
-
+                var eventId = NodeId.ForType(names.Resolve(eventName, type.FilePath));
                 g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                 {
                     Tags = [RoleTags.IntegrationEvent],
@@ -1289,7 +1288,10 @@ public sealed class GraphBuilder
             }
 
             if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
-            var requestId = NodeId.ForType(names.Resolve(requestName));
+            var fileFromProvenance = provenance is not null && provenance.Contains(':')
+                ? provenance[..provenance.LastIndexOf(':')]
+                : provenance;
+            var requestId = NodeId.ForType(names.Resolve(requestName, fileFromProvenance));
             g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
             g.AddEdge(new GraphEdge(fromId, requestId, EdgeKind.Sends)
             {
@@ -1378,7 +1380,7 @@ public sealed class GraphBuilder
                 }
 
                 if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
-                var requestFqn = names.Resolve(requestName);
+                var requestFqn = names.Resolve(requestName, type.FilePath);
                 var requestId = NodeId.ForType(requestFqn);
                 if (!g.HasNode(typeId)) continue;
 

@@ -20,7 +20,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"func:{key}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = fn.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(fn.ClassName));
+            var typeId = NodeId.ForType(names.Resolve(fn.ClassName, fn.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {

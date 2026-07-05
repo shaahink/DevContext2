@@ -19,7 +19,7 @@ public sealed class DomainEventHandlerEntryBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"domain:{h.HandlerType}");
             g.AddNode(new GraphNode(id, h.HandlerType, NodeKind.EntryPoint) { FilePath = h.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(h.HandlerType));
+            var typeId = NodeId.ForType(names.Resolve(h.HandlerType, h.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
