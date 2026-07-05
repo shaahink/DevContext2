@@ -1463,3 +1463,47 @@ gaps from Â§9 is now closed except the two the proposal itself calls engine-bloc
 auth column, S2 line numbers) â€” T2 and B8/C1 were W7's own assignments and are done;
 everything else was already closed by W1-W6. `AGENTS.md`'s F section needs updating to
 mark W7 done â€” this was the last stage in the proposal's Â§10 waterfall.
+
+## 2026-07-05 — L3 audit fixes + L4 delivery: Insight engine v2
+
+**Changed (L3 audit fixes — 6 engine + 5 Angular):**
+- **F1** BfsEntryScore cross-project counting: Path.GetFileNameWithoutExtension(fp) ? scope.ProjectForFile(fp). Dead projectByPath dict removed.
+- **F2** Angular devcontext-api.ts: getImpact() and getInterestingPoints() RPC wrappers added.
+- **F3** EntryVm.groupPath + mapping in 	oEntryVm(). Entry deck shows groupPath chip per row.
+- **F4** NodeDetailVm.lineNumber + mapping in 	oNodeDetailVm(). Inspector shows ile:line.
+- **F5** EntryVm.authAttributes + mapping. Entry deck shows lock icon for auth entries.
+- **F6** EntryVm.score + mapping. Home Page uses server-scored Top Flows (score desc) instead of AtlasStore ranking.
+- **F7** InterestingForDesktop prefers GraphNode.Project over file name for project grouping.
+- **F8** Dead hub-scope dedup loop (4 lines) removed.
+- **F9** BlastRadius O(n)?O(1) entry lookup via Dictionary<NodeId, EntryPoint>.
+
+**Changed (L4.1 — Insight envelope v2):**
+- Insight record extended: Confidence (double), ConfidenceBasis (string?), WhyItMatters (string?), Action (InsightAction enum: None/Trace/Usages/Export), ActionTarget (string?). Insight.Create() factory stays backward-compatible (new params have neutral defaults).
+- Proto Insight message: confidence (7), confidence_basis (8), why_it_matters (9), action (10), action_target (11).
+- ProtoMapper.ToStatsResponse: maps all new fields. AnonymousEndpointsSource enriched with auth coverage confidence, why-it-matters, action=Trace.
+- Angular insights-view.ts: shows confidence % with basis tooltip, why-it-matters italic text, and action buttons (Trace it/See usages/Export).
+
+**Changed (L4.2 — Per-archetype composition):**
+- 6 new IInsightSource implementations in Core/Insights/Archetype/:
+  - **WebArchetypeSource**: auth surface card (protected/public/unannotated counts), data map (entities per scope), middleware pipeline (behaviour count)
+  - **LibraryArchetypeSource**: public surface size (interfaces/classes), internal hubs (heavily-referenced internal types), seat implementors (DI multi-impl interfaces)
+  - **MessagingArchetypeSource**: produce-consume matrix (producers + consumers + message types), external contracts (consumed-but-never-produced)
+  - **DesktopArchetypeSource**: module map (GroupPath groupings), ViewModel-View wiring (naming-convention detection), command inventory (ICommand impls)
+  - **CliArchetypeSource**: command tree (top-level groups), parameter inventory (avg params per command)
+  - **GatewayArchetypeSource**: routing surface (route inventory), downstream wiring (call-edge analysis)
+- Each source gates on archetype signals and yields zero insights when not applicable.
+- Registered in DiscoveryPipeline.cs insight sources array.
+
+**Changed (L4.3 — Confidence Ledger):**
+- ConfidenceLedger record: overall confidence, verified/approx edge %, per-seam breakdown (SeamConfidence: seam/total/verified/approx), auth coverage %, entry target %.
+- ConfidenceLedger.Compute(graph, entries): O(n) pass over all edges + entries.
+- Proto ConfidenceLedger message + SeamConfidence in StatsResponse (field 10). Mapped in ProtoMapper.ToStatsResponse.
+- Angular identity-strip.ts: confidence stat now reads from stats.confidenceLedger.overall (not AtlasStore). Clicking opens an expandable Ledger panel showing overall, verified/approx edges, auth coverage, entry targets, and per-seam breakdown.
+
+**Changed (L4.4 — Doc-summary hygiene):**
+- LibrarySurfaceBuilder.IsVendoredNamespace: excludes JetBrains.Annotations, System.Runtime.CompilerServices, System.Diagnostics.CodeAnalysis, Microsoft.CodeAnalysis, *.GeneratedCode.
+- Applied in publicTypes filter before surface grouping.
+
+**Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check (lint + vitest 27/27 + build) green.
+
+**Next:** L5 — MCP server + context packs (proposal-lighthouse.md §L5).
