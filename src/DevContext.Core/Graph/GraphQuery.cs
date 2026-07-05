@@ -258,7 +258,7 @@ public sealed class GraphQuery
         foreach (var n in _graph.Nodes)
         {
             if (n.FilePath is not { } fp) continue;
-            var proj = Path.GetFileNameWithoutExtension(fp) ?? fp;
+            var proj = n.Project ?? Path.GetFileNameWithoutExtension(fp) ?? fp;
             if (!byProject.ContainsKey(proj)) byProject[proj] = [];
             byProject[proj].Add(n);
         }
@@ -326,22 +326,18 @@ public sealed class GraphQuery
         var queue = new Queue<(NodeId, int)>();
         queue.Enqueue((from, 0));
 
-        var entrySet = new HashSet<NodeId>(_entries.Select(e => e.Node));
+        var entryDict = _entries.GroupBy(e => e.Node).ToDictionary(g => g.Key, g => g.First());
 
         while (queue.Count > 0 && results.Count < 500)
         {
             var (current, dist) = queue.Dequeue();
             if (dist > maxDepth || !visited.Add(current)) continue;
 
-            if (entrySet.Contains(current) && current != from)
-            {
-                var entry = _entries.FirstOrDefault(e => e.Node == current);
-                if (entry is not null)
-                    results.Add(new BlastResult(
-                        entry.Title,
-                        entry.Kind.ToString(),
-                        dist));
-            }
+            if (entryDict.TryGetValue(current, out var entry) && current != from)
+                results.Add(new BlastResult(
+                    entry.Title,
+                    entry.Kind.ToString(),
+                    dist));
 
             foreach (var edge in _graph.InEdges(current))
                 if (!visited.Contains(edge.From))
