@@ -1040,13 +1040,6 @@ public sealed class GraphBuilder
             .Select(kv => kv.Key)
             .ToHashSet(StringComparer.Ordinal);
 
-        // Track edges already present to avoid duplicates
-        var existingEdges = new HashSet<(NodeId, NodeId)>();
-        foreach (var node in g.Nodes)
-        {
-            // We can't enumerate builder edges — skip the dedup and let AddEdge's _edgeKeys handle it
-        }
-
         var added = 0;
         foreach (var ce in model.CallEdges)
         {
