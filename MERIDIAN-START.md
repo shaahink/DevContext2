@@ -7,13 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m7.5): table lens v2 — CDK-virtualized entry spreadsheet with archetype columns, column picker, CSV export
-stage: M7 — DONE (M7.0 tokens, M7.1 code binding, M7.2 lenses, M7.3 trail grouping, M7.4 chrome, M7.5 table lens)
-gate: dotnet build 0w0e (not yet run on this session's engine), pnpm check green (lint 0/0, test 27/27, build 0w/0e)
-dirty: engine layer/feature data not yet in proto (needed for M7.2 layer/feature lens rendering); read_source RPC
- needed for M7.1 full source display; prismjs installed but not yet wired for syntax highlighting
-next: M8.1 Context Studio surface or push + engine uplumb for layer/feature data
-trap: The lens switcher has layer/feature slots marked available=false — engine needs proto update to expose M2.4 data
+last: feat(m8.1a): Context Studio route + rail entry + Ctrl+E redirect (2a6e585)
+stage: M8.1 — IN PROGRESS (M8.1a done; 3-pane stub renders at /context)
+gate: pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+dirty: none
+next: M8.1b — Scope picker (service/entry tree + omnibox + "I'm changing this endpoint" preset)
+trap: ExportDrawer not yet retired (Ctrl+E rerouted but drawer code remains in tree); lens-switcher layer/feature slots still available=false
 
 ## Checkpoints
 
@@ -63,8 +62,7 @@ line under the row — never silent renumbering.
 | M7.3 | Trail dedupe/group/cap; deck legibility | DONE | c3e7078 | TrailFlowGroup, groupedBreadcrumb, kind-colored dots |
 | M7.4 | Chrome pass + feedback affordances (spec §UI-Chrome) | DONE | 1d2f26d | titlebar 40px, rail hover labels, statusbar clickable |
 | M7.5 | Table lens v2 (spec §UI-Table) | DONE | e0ca191 | CDK-virtualized, archetype columns, CSV export |
-| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | TODO | | |
-| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | TODO | | |
+| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | IN PROGRESS | 2a6e585 | /context route + rail entry + Ctrl+E redirect + 3-pane stub |
 | M8.2 | Composition model (cards/seeds/presets) | TODO | | |
 | M8.3 | Budget/meter/intent/copy controls | TODO | | |
 | M8.4 | Provenance + staleness + builder round-trip | TODO | | |

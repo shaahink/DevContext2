@@ -260,8 +260,9 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ## M8 delivery (overwrite this block each session, no history)
 
-status: not yet started
-last commit: `feat(m7.5)` (e0ca191)
-next: M8.1a — route + rail entry for /context
-gaps open: 1 (read_source RPC), 2 (layer/feature uplumb), 3 (prismjs unwired), 4 (contrast audit), 5 (table relationship chips), 6 (dead audit-table), 7 (dock level 3 verify)
+status: M8.1a done
+last commit: `feat(m8.1a): Context Studio route + rail entry + Ctrl+E redirect` (2a6e585)
+next: M8.1b — Scope picker (tree of services/entries + omnibox + presets)
+gaps closed: 3 (prismjs wired), 4 (contrast audit 3 themes), 5 (Shared Handler column), 6 (dead audit-table removed), 7 (dock level 3 cycle)
+gaps open: 1 (read_source RPC), 2 (layer/feature uplumb)
 
