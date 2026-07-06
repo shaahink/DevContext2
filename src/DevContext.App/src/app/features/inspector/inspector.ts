@@ -2,7 +2,7 @@ import { Component, computed, DestroyRef, effect, inject, output, signal } from 
 
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { AtlasStore } from '../../state/atlas.store';
-import { TrailStore, type TrailStep } from '../../state/trail.store';
+import { TrailStore, type TrailFlowGroup, type TrailStep } from '../../state/trail.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
 import { Skeleton } from '../../ui/skeleton/skeleton';
@@ -187,29 +187,80 @@ const RENDER_DEBOUNCE_MS = 250;
       }
     </button>
     @if (open('trail')) {
-      @for (step of trail.breadcrumb(); track step.ts; let i = $index) {
-        <div
-          class="list-row"
-          role="button"
-          tabindex="0"
-          [class.selected]="i === trail.cursor()"
-          (click)="jump(i)"
-          (keydown.enter)="jump(i)"
-          (keydown.space)="jump(i); $event.preventDefault()"
-        >
-          <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
-          <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
-          <button
-            type="button"
-            class="shrink-0 text-2xs"
-            [class.text-accent]="trail.isPinned(step)"
-            [class.text-ink-subtle]="!trail.isPinned(step)"
-            (click)="pin(step, $event)"
-            title="Pin to export pack (p)"
+      @for (group of trail.groupedBreadcrumb(); track group.fromIndex; let gi = $index) {
+        @if (group.grouped) {
+          <!-- M7.3: Grouped flow steps — collapsed by default, expand to see individual steps -->
+          <div
+            class="list-row cursor-pointer"
+            role="button"
+            tabindex="0"
+            [class.selected]="isCursorInGroup(group)"
+            (click)="toggleGroup(group.fromIndex)"
+            (keydown.enter)="toggleGroup(group.fromIndex)"
+            (keydown.space)="toggleGroup(group.fromIndex); $event.preventDefault()"
           >
-            ◈
-          </button>
-        </div>
+            <span class="shrink-0 text-2xs text-ink-subtle">
+              {{ isGroupExpanded(group.fromIndex) ? '▾' : '▸' }}
+            </span>
+            <span class="chip active tabular-nums shrink-0">{{ group.steps.length }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs text-ink-muted" [title]="group.steps[0].title">
+              {{ group.steps[0].title }}
+            </span>
+            <span class="shrink-0 text-2xs text-ink-subtle">flow</span>
+          </div>
+          @if (isGroupExpanded(group.fromIndex)) {
+            @for (step of group.steps; track step.ts; let si = $index) {
+              <div
+                class="list-row pl-6"
+                role="button"
+                tabindex="0"
+                [class.selected]="(group.fromIndex + si) === trail.cursor()"
+                (click)="jump(group.fromIndex + si)"
+                (keydown.enter)="jump(group.fromIndex + si)"
+                (keydown.space)="jump(group.fromIndex + si); $event.preventDefault()"
+              >
+                <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
+                <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+                <button
+                  type="button"
+                  class="shrink-0 text-2xs"
+                  [class.text-accent]="trail.isPinned(step)"
+                  [class.text-ink-subtle]="!trail.isPinned(step)"
+                  (click)="pin(step, $event)"
+                  title="Pin to export pack (p)"
+                >
+                  ◈
+                </button>
+              </div>
+            }
+          }
+        } @else {
+          <!-- Solo step (ungrouped) -->
+          @for (step of group.steps; track step.ts) {
+          <div
+            class="list-row"
+            role="button"
+            tabindex="0"
+            [class.selected]="group.fromIndex === trail.cursor()"
+            (click)="jump(group.fromIndex)"
+            (keydown.enter)="jump(group.fromIndex)"
+            (keydown.space)="jump(group.fromIndex); $event.preventDefault()"
+          >
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+            <button
+              type="button"
+              class="shrink-0 text-2xs"
+              [class.text-accent]="trail.isPinned(step)"
+              [class.text-ink-subtle]="!trail.isPinned(step)"
+              (click)="pin(step, $event)"
+              title="Pin to export pack (p)"
+            >
+              ◈
+            </button>
+          </div>
+          }
+        }
       } @empty {
         <p class="px-2 py-3 text-2xs text-ink-subtle">
           Your exploration path collects here — pins seed the export pack.
@@ -253,6 +304,8 @@ export class Inspector {
   protected readonly codeError = signal<string | null>(null);
   protected readonly codePathCopied = signal(false);
   private codeNodeId: string | null = null;
+  /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
+  private readonly expandedGroups = signal<ReadonlySet<number>>(new Set());
 
   private renderTimer: ReturnType<typeof setTimeout> | null = null;
   private renderedFocus: string | null = null;
@@ -317,6 +370,26 @@ export class Inspector {
   protected pin(step: TrailStep, event: Event): void {
     event.stopPropagation();
     this.trail.togglePin(step);
+  }
+
+  /** M7.3: Whether the cursor falls within this group's step range. */
+  protected isCursorInGroup(group: TrailFlowGroup): boolean {
+    const c = this.trail.cursor();
+    return c >= group.fromIndex && c <= group.toIndex;
+  }
+
+  /** M7.3: Expand/collapse a trail flow group. */
+  protected isGroupExpanded(fromIndex: number): boolean {
+    return this.expandedGroups().has(fromIndex);
+  }
+
+  protected toggleGroup(fromIndex: number): void {
+    this.expandedGroups.update((set) => {
+      const next = new Set(set);
+      if (next.has(fromIndex)) next.delete(fromIndex);
+      else next.add(fromIndex);
+      return next;
+    });
   }
 
   protected copy(event: Event): void {
