@@ -23,11 +23,22 @@ public static class ArchetypeDetector
     /// surface exists, where any executable projects are merely auxiliary samples/benchmarks that
     /// reference the library (so AutoMapper's Benchmark/TestApp don't flip it to App).
     /// Gateway ⇔ Ocelot/YARP reverse-proxy packages detected (overrides App/Library). App otherwise.</summary>
+    /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.
+    /// M1.9: gateway signal alone no longer forces Gateway archetype when multiple services exist —
+    /// the Gateway is a role within a microservices app, not the solution archetype.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
-        // W7: gateway packages (Ocelot, Microsoft.ReverseProxy) → Gateway archetype
+        // M1.9: gateway with multiple services → microservices App, not Gateway alone
         if (model.Architecture.Has(ArchitectureSignals.Keys.Gateway))
-            return Archetype.Gateway;
+        {
+            var runnableSvcCount = model.Projects.Count(p =>
+                IsRunnableService(p) && !p.PackageReferences.Any(pr =>
+                    pr.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase)
+                    || pr.Name.Contains("Ocelot", StringComparison.OrdinalIgnoreCase)));
+            if (runnableSvcCount >= 2)
+                return Archetype.App; // gateway is a role within microservices
+            return Archetype.Gateway; // single service behind gateway — Gateway archetype
+        }
 
         // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
         // libraries only when the signal is self-sourced (ProjectName/ProjectReference).
@@ -75,6 +86,25 @@ public static class ArchetypeDetector
             && !ProjectClassifier.IsSamplePath(t.FilePath));
 
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
+    }
+
+    /// <summary>M1.9 — true when the project is a runnable service (Exe or web SDK, not a library).</summary>
+    private static bool IsRunnableService(ProjectInfo p)
+    {
+        var isExe = p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
+        var isWebSdk = p.PackageReferences.Any(pr => pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase));
+        var hasWebServer = p.FilePath is { } cp && IsWebSdkProject(cp);
+        return isExe || isWebSdk || hasWebServer;
+    }
+
+    private static bool IsWebSdkProject(string csprojPath)
+    {
+        try
+        {
+            var text = File.ReadAllText(csprojPath);
+            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
     }
 
     // Framework-library signals that, when self-sourced (ProjectName/ProjectReference), mean

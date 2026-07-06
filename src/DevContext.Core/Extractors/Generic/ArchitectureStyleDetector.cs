@@ -50,7 +50,22 @@ public sealed class ArchitectureStyleDetector
 
         // ── Evidence-driven scoring ──────────────────────────────────────────────────
 
-        // Microservices: Aspire + many projects (constellation)
+        // Microservices: at least 2 runnable web services + (gateway OR bus) evidence.
+        // Detects multi-service constellations even without Aspire orchestration (M1.9 / D5).
+        var runnableWebCount = CountRunnableWebProjects(model);
+        var hasGatewayEvidence = signals.TryGetValue(ArchitectureSignals.Keys.Gateway, out var gwSig) && gwSig.Detected;
+        var hasBusEvidence = signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out _)
+            || signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out _);
+
+        if (runnableWebCount >= 2 && (hasGatewayEvidence || hasBusEvidence))
+        {
+            evidence.Add($"{runnableWebCount} runnable web services with "
+                + (hasGatewayEvidence ? "gateway" : "") + (hasGatewayEvidence && hasBusEvidence ? " + " : "") + (hasBusEvidence ? "message bus" : ""));
+            scores[ArchitectureStyle.Microservices] = (Math.Min(0.6f + runnableWebCount * 0.05f, 0.85f),
+                string.Join("; ", evidence));
+        }
+
+        // Microservices: Aspire + many projects (constellation) — keep existing detection for Aspire repos
         // Only scores when there's an explicit AppHost — not just Aspire infra packages
         var hasAppHost = model.Projects.Any(p =>
             p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
@@ -165,17 +180,15 @@ public sealed class ArchitectureStyleDetector
             return (ArchitectureStyle.Unknown, 0, null);
 
         // Topology-over-structure rule: when Aspire AppHost orchestration is present,
-        // the Microservices topology signal outranks any intra-service style (e.g.
-        // CleanArchitecture within individual services). A monorepo of CleanArchitecture
-        // services behind an AppHost IS Microservices — the structural style is a
-        // secondary trait of each service, not the primary system architecture.
+        // the Microservices topology signal outranks any intra-service style. Same rule
+        // applies without Aspire: ≥2 web services + gateway + bus evidence outranks
+        // single-project CleanArchitecture scores (M1.9 / D5).
         if (scores.TryGetValue(ArchitectureStyle.Microservices, out var msEntry)
             && scores.TryGetValue(ArchitectureStyle.CleanArchitecture, out var caEntry)
-            && hasAppHost)
+            && (hasAppHost || (runnableWebCount >= 2 && hasGatewayEvidence && hasBusEvidence)))
         {
             // Boost Microservices just above the strongest CleanArchitecture score so
-            // it wins the MaxBy. Keep the original evidence so the user sees what was
-            // detected.
+            // it wins the MaxBy.
             scores[ArchitectureStyle.Microservices] = (Math.Max(msEntry.Score, caEntry.Score + 0.01f), msEntry.Evidence);
         }
 
@@ -261,6 +274,38 @@ public sealed class ArchitectureStyleDetector
             || lowered.Contains("shared")
             || lowered.Contains("common")
             || lowered.Contains(".eventbus");
+    }
+
+    /// <summary>M1.9 — counts runnable web service projects (Exe output with web-server packages
+    /// or "api"/"web" project naming convention). Used for microservices detection.</summary>
+    private static int CountRunnableWebProjects(DiscoveryModel model)
+    {
+        var count = 0;
+        foreach (var proj in model.Projects)
+        {
+            if (IsInfrastructureProject(proj.Name)) continue;
+            var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
+            var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
+            var hasWebPkg = proj.PackageReferences.Any(pr =>
+                pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
+                || pr.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase));
+            var isWebByName = proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase);
+            if (isExe || isWebSdk || hasWebPkg || isWebByName)
+                count++;
+        }
+        return count;
+    }
+
+    private static bool IsWebSdkProject(string csprojPath)
+    {
+        try
+        {
+            var text = File.ReadAllText(csprojPath);
+            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
     }
 
     private readonly record struct ProjectRefStats(string Name, int Incoming, int Outgoing)

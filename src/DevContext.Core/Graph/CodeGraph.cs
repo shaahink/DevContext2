@@ -37,6 +37,16 @@ public static class RoleTags
     public const string Consumer = "consumer";
 }
 
+/// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport
+/// seam: bus publish→consume, gRPC client→server, HTTP-via-gateway, or direct Refit/HttpClient.</summary>
+public static class ServiceLinkTags
+{
+    public const string BusPublishConsume = "bus-publish→consume";
+    public const string Grpc = "grpc";
+    public const string HttpViaGateway = "http-via-gateway";
+    public const string RefitDirect = "refit-direct";
+}
+
 /// <summary>The kind of a directed edge. Each maps to a trace "seam". Direction is always caller→callee
 /// so a forward walk from an entry point flows DOWN the wiring.</summary>
 public enum EdgeKind
@@ -61,6 +71,10 @@ public enum EdgeKind
     /// Derived from navigation properties; the arrow direction is BelongsTo (child → parent) for
     /// depth-from-aggregate-root computation.</summary>
     EntityRelation,
+    /// <summary>Cross-service wiring edge: project A → project B via bus/gRPC/HTTP/YARP. The edge
+    /// represents a runtime communication seam between runnable services. Sub-kind is carried as a
+    /// tag on the edge via <see cref="ServiceLinkTags"/>.</summary>
+    ServiceLink,
 }
 
 /// <summary>How confidently an edge was established — surfaced in the report (P3: show your work).</summary>

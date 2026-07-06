@@ -696,6 +696,79 @@ public sealed class DiscoveryPipeline
             catch { /* non-json or malformed — skip */ }
         }
 
+        // M1.8: YARP ReverseProxy config from appsettings*.json
+        foreach (var file in Directory.EnumerateFiles(root, "appsettings*.json", SearchOption.AllDirectories))
+        {
+            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (ProjectClassifier.IsSamplePath(file) || ProjectClassifier.IsTestPath(file))
+                continue;
+
+            try
+            {
+                var json = File.ReadAllText(file);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var reverseProxy = doc.RootElement.TryGetProperty("ReverseProxy", out var rp) ? rp : default;
+                if (reverseProxy.ValueKind != System.Text.Json.JsonValueKind.Object) continue;
+
+                var routesSection = reverseProxy.TryGetProperty("Routes", out var routesEl) ? routesEl : default;
+                var clustersSection = reverseProxy.TryGetProperty("Clusters", out var clustersEl) ? clustersEl : default;
+                if (routesSection.ValueKind != System.Text.Json.JsonValueKind.Object) continue;
+
+                // Build cluster→destinations map
+                var clusterDestinations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                if (clustersSection.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    foreach (var cluster in clustersSection.EnumerateObject())
+                    {
+                        var dests = cluster.Value.TryGetProperty("Destinations", out var d) ? d : default;
+                        if (dests.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            foreach (var dest in dests.EnumerateObject())
+                            {
+                                var addr = dest.Value.TryGetProperty("Address", out var a) ? a.GetString() ?? "" : "";
+                                if (addr.Length > 0 && !clusterDestinations.ContainsKey(cluster.Name))
+                                    clusterDestinations[cluster.Name] = addr;
+                            }
+                        }
+                    }
+                }
+
+                // Parse each route
+                foreach (var route in routesSection.EnumerateObject())
+                {
+                    var r = route.Value;
+                    var clusterId = r.TryGetProperty("ClusterId", out var ci) ? ci.GetString() ?? "" : "";
+                    var match = r.TryGetProperty("Match", out var m) ? m : default;
+                    var path = match.ValueKind == System.Text.Json.JsonValueKind.Object
+                        ? (match.TryGetProperty("Path", out var p) ? p.GetString() ?? "" : "")
+                        : "";
+
+                    // Parse transforms to get downstream path pattern
+                    var transforms = r.TryGetProperty("Transforms", out var tr) ? tr : default;
+                    var pathPattern = path;
+                    if (transforms.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        foreach (var transform in transforms.EnumerateArray())
+                        {
+                            if (transform.TryGetProperty("PathPattern", out var pp) && pp.GetString() is { } pattern)
+                            {
+                                pathPattern = pattern;
+                                break;
+                            }
+                        }
+                    }
+
+                    var downstreamHost = clusterDestinations.TryGetValue(clusterId, out var dh) ? dh : "";
+
+                    model.GatewayRoutes.Add(new GatewayRoute(path, "", pathPattern, downstreamHost));
+                }
+            }
+            catch { /* non-json or malformed — skip */ }
+        }
+
         static string FormatMethods(System.Text.Json.JsonElement el)
         {
             if (el.ValueKind == System.Text.Json.JsonValueKind.Array)

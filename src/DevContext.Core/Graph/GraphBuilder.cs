@@ -21,6 +21,9 @@ public sealed class GraphBuilder
     private readonly ISymbolResolver _resolver;
     private readonly NoiseFilter _noise;
 
+    // M1.6: event→project mappings collected during AddSends, consumed by AddBusServiceLinks
+    private static Dictionary<string, HashSet<string>>? _eventPublishers;
+
     // P3: Entry-point builders — one per entry-point kind. Adding a new kind
     // (Blazor, gRPC, SignalR, etc.) means adding one class that implements
     // IEntryPointBuilder — no changes to GraphBuilder itself.
@@ -51,8 +54,9 @@ public sealed class GraphBuilder
     {
         var g = new CodeGraphBuilder();
         var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
+        _eventPublishers = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
-        AddTypeNodes(g, model, scope);                      // worked example
+        AddTypeNodes(g, model, scope);
 
         // ── P3: Entry-point builders (one per kind) ──────────────────────────
         // Open to extension — add a new builder for Blazor/gRPC/SignalR without
@@ -78,10 +82,15 @@ public sealed class GraphBuilder
         // method that contains it. (See PRODUCT-DIRECTION.md §6 req.1.)
         var methodSpans = BuildAllMethodSpans(model);
         AddRaises(g, model, names, methodSpans);            // C1: Raises edges from body scan (member-origin)
-        AddSends(g, model, names, methodSpans);             // C1: Sends edges from .Send(new X()) (member-origin)
+        AddSends(g, model, names, methodSpans, scope);             // C1: Sends edges from .Send(new X()) (member-origin)
         AddDataEdges(g, model, names, methodSpans);         // C1: ReadsWrites edges from entities (member-origin)
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
         var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
+
+        // ── M1.6-M1.8: Cross-service ServiceLink joins ────────────────────
+        AddBusServiceLinks(g, model, names, scope, _noise);
+        AddGrpcServiceLinks(g, model, names, scope, _noise);
+        AddHttpServiceLinks(g, model, names, scope, _noise);
 
         var graph = g.Build(isSparse, hubCount);
         return (graph, EnrichEntryScores(
@@ -1437,7 +1446,7 @@ public sealed class GraphBuilder
     }
 
     private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
-        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
+        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans, SolutionScope scope)
     {
         // Build event/request type name set once for the conjunction gate (I1.3/I1.4)
         var eventTypeNames = BuildEventTypeNameSet(model);
@@ -1484,27 +1493,27 @@ public sealed class GraphBuilder
                     if (pos <= 0) continue;
                     var (spanStart, _) = EnclosingSpan(spans, pos, body.Length);
                     var before = body[spanStart..pos];
-                    var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-                    if (newMatches.Count > 0)
+
+                    // M1.2 W2: check for Adapt<T>/Map<T>/Create<T> factory patterns FIRST,
+                    // then fall back to the last `new X()` before the dispatch. Covers the
+                    // dogfood pattern: var cmd = request.Adapt<CheckoutBasketCommand>();
+                    requestName = ResolveVariableFromAdapt(body, spanStart, pos, varName);
+                    if (requestName is null)
                     {
-                        var lastMatch = newMatches[^1];
-                        requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
-                        confidence = isKnown ? catalogConfidence : 0.35f;
-                    }
-                    else
-                    {
-                        // M1.2 W2: check for Adapt<T>/Map<T>/Create<T> factory patterns
-                        // before falling back to param/property types. Covers the dogfood
-                        // pattern: var cmd = request.Adapt<CheckoutBasketCommand>();
-                        requestName = ResolveVariableFromAdapt(body, spanStart, pos, varName);
-                        if (requestName is null)
+                        var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
+                        if (newMatches.Count > 0)
                         {
-                            // I1.2 — fall back to param/property types
-                            requestName = ResolveVariableFromModel(type, spans, pos, varName);
-                            isParamFallback = requestName is not null;
+                            var lastMatch = newMatches[^1];
+                            requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
                         }
-                        confidence = isKnown ? catalogConfidence : 0.45f;
                     }
+                    if (requestName is null)
+                    {
+                        // I1.2 — fall back to param/property types
+                        requestName = ResolveVariableFromModel(type, spans, pos, varName);
+                        isParamFallback = requestName is not null;
+                    }
+                    confidence = isKnown ? catalogConfidence : 0.45f;
                 }
 
                 // Unknown receiver — emit only for known verbs (bare-verb fallback),
@@ -1535,6 +1544,18 @@ public sealed class GraphBuilder
                     Resolution = Resolution.Syntactic,
                     Confidence = confidence,
                 });
+
+                // M1.6: track event→publisher mapping for bus ServiceLink join
+                if (_eventPublishers is not null)
+                {
+                    var pubProject = scope.ProjectForFile(type.FilePath);
+                    if (pubProject is not null)
+                    {
+                        if (!_eventPublishers.TryGetValue(requestFqn, out var pubSet))
+                            _eventPublishers[requestFqn] = pubSet = [];
+                        pubSet.Add(pubProject);
+                    }
+                }
             }
         }
     }
@@ -2002,4 +2023,258 @@ public sealed class GraphBuilder
         return sb.ToString();
     }
 
+    // ── M1.6-M1.8: Cross-service ServiceLink joins (W4) ──────────────────────────
+
+    /// <summary>M1.6 — Cross-project MassTransit bus ServiceLinks. Uses event→publisher
+    /// mappings collected during AddSends, matched against MessageConsumerDetection consumers.</summary>
+    private static void AddBusServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
+        NameResolver names, SolutionScope scope, NoiseFilter noise)
+    {
+
+        if (_eventPublishers is null || _eventPublishers.Count == 0) return;
+
+        // Collect consumer projects from MessageConsumerDetection detections
+        var consumesByEvent = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
+        {
+            if (!scope.Contains(mc.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
+
+            var eventFqn = names.Resolve(mc.MessageType, mc.SourceFile);
+            var consumerProject = scope.ProjectForFile(mc.SourceFile) ?? "";
+            if (string.IsNullOrEmpty(consumerProject)) continue;
+
+            if (!consumesByEvent.TryGetValue(eventFqn, out var conSet))
+                consumesByEvent[eventFqn] = conSet = [];
+            conSet.Add(consumerProject);
+        }
+
+        // Cross-project join: match publishers to consumers
+        foreach (var (eventFqn, publisherProjects) in _eventPublishers)
+        {
+            if (!consumesByEvent.TryGetValue(eventFqn, out var consumerProjects))
+            {
+                // Try short-name match as fallback
+                var shortName = eventFqn.Contains('.') ? eventFqn[(eventFqn.LastIndexOf('.') + 1)..] : eventFqn;
+                var matches = consumesByEvent.Where(kv => kv.Key.EndsWith("." + shortName, StringComparison.OrdinalIgnoreCase)
+                    || kv.Key.Equals(shortName, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (matches.Count == 0) continue;
+                consumerProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var (_, cps) in matches)
+                    foreach (var cp in cps)
+                        consumerProjects.Add(cp);
+                if (consumerProjects.Count == 0) continue;
+            }
+
+            foreach (var pubProject in publisherProjects)
+            {
+                foreach (var conProject in consumerProjects)
+                {
+                    if (string.Equals(pubProject, conProject, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var fromId = NodeId.ForType(pubProject);
+                    var toId = NodeId.ForType(conProject);
+                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+
+                    g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
+                    {
+                        Provenance = $"{pubProject}→{conProject}:{eventFqn}",
+                        Resolution = Resolution.Join,
+                        Confidence = 0.8f,
+                    });
+
+                }
+            }
+        }
+    }
+
+    /// <summary>M1.7 — Cross-project gRPC ServiceLinks. Matches <see cref="GrpcClientDetection"/>
+    /// (client type usage in project A) to <see cref="GrpcServiceDetection"/> (service implementation
+    /// in project B) by matching the service name.</summary>
+    private static void AddGrpcServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
+        NameResolver names, SolutionScope scope, NoiseFilter noise)
+    {
+
+        var clients = model.Detections.OfType<GrpcClientDetection>().ToList();
+        var servers = model.Detections.OfType<GrpcServiceDetection>().ToList();
+        if (clients.Count == 0 || servers.Count == 0) return;
+
+        foreach (var client in clients)
+        {
+            if (!scope.Contains(client.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(client.SourceFile)) continue;
+            var clientProject = scope.ProjectForFile(client.SourceFile) ?? "";
+
+            foreach (var server in servers)
+            {
+                if (!scope.Contains(server.SourceFile)) continue;
+                if (!noise.IsProductionEntrySource(server.SourceFile)) continue;
+                var serverProject = scope.ProjectForFile(server.SourceFile) ?? "";
+
+                if (string.Equals(clientProject, serverProject, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // Match by service name (e.g. "DiscountProtoService")
+                if (!string.Equals(client.ServiceName, server.ServiceName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // Create a project-level ServiceLink edge: client project → server project
+                var fromId = NodeId.ForType(clientProject);
+                var toId = NodeId.ForType(serverProject);
+                g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type)
+                {
+                    Tags = [RoleTags.Service],
+                });
+                g.AddNode(new GraphNode(toId, serverProject, NodeKind.Type)
+                {
+                    Tags = [RoleTags.Service],
+                });
+
+                g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
+                {
+                    Provenance = $"{client.SourceFile}:{client.LineNumber}→{server.SourceFile}:{server.LineNumber}",
+                    Resolution = Resolution.Join,
+                    Confidence = 0.85f,
+                });
+
+            }
+        }
+    }
+
+    /// <summary>M1.8 — Cross-project HTTP/YARP/Refit ServiceLinks. Matches Refit interface routes
+    /// through YARP gateway config to downstream service HTTP entry points.</summary>
+    private static void AddHttpServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
+        NameResolver names, SolutionScope scope, NoiseFilter noise)
+    {
+
+        if (model.GatewayRoutes.Count == 0) return;
+
+        // Find the gateway project (has YARP/Ocelot packages)
+        string? gatewayProject = null;
+        foreach (var proj in model.Projects)
+        {
+            if (proj.PackageReferences.Any(pr =>
+                pr.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase)
+                || pr.Name.Contains("Ocelot", StringComparison.OrdinalIgnoreCase)))
+            {
+                gatewayProject = proj.Name;
+                break;
+            }
+        }
+        if (string.IsNullOrEmpty(gatewayProject)) return;
+
+        var refitRoutes = model.Detections.OfType<RefitRouteDetection>().ToList();
+        if (refitRoutes.Count == 0) return;
+
+        // Collect Refit interfaces and their owning projects
+        var refitByProject = new Dictionary<string, List<RefitRouteDetection>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var rr in refitRoutes)
+        {
+            if (!scope.Contains(rr.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(rr.SourceFile)) continue;
+            var proj = scope.ProjectForFile(rr.SourceFile) ?? "";
+            if (proj.Length == 0) continue;
+            if (!refitByProject.TryGetValue(proj, out var list))
+                refitByProject[proj] = list = [];
+            list.Add(rr);
+        }
+
+        // Index HTTP entries by project
+        var httpEntriesByProject = new Dictionary<string, List<(string Route, string HandlerType, string File, int Line)>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var ep in model.Detections.OfType<EndpointDetection>())
+        {
+            if (!scope.Contains(ep.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(ep.SourceFile)) continue;
+            var proj = scope.ProjectForFile(ep.SourceFile) ?? "";
+            if (proj.Length == 0) continue;
+            if (!httpEntriesByProject.TryGetValue(proj, out var list))
+                httpEntriesByProject[proj] = list = [];
+            list.Add((ep.RouteTemplate, ep.HandlerType, ep.SourceFile, 0));
+        }
+
+        // Match Refit routes → YARP gateway routes → downstream service HTTP entries
+        foreach (var (clientProject, routes) in refitByProject)
+        {
+            if (string.IsNullOrEmpty(gatewayProject))
+                continue;
+
+            foreach (var rr in routes)
+            {
+                // Find matching YARP route (path prefix match)
+                foreach (var gw in model.GatewayRoutes)
+                {
+                    // YARP route: "/catalog-service/{**catch-all}"
+                    // Refit route: "/catalog-service/products/{id}"
+                    var gwPath = gw.UpstreamTemplate.TrimEnd('/');
+                    var refitPath = rr.RouteTemplate.TrimEnd('/');
+
+                    if (!refitPath.StartsWith(gwPath, StringComparison.OrdinalIgnoreCase)
+                        && !gwPath.StartsWith(refitPath.Split('/').FirstOrDefault() ?? "", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Try prefix match: strip variables from gwPath and compare prefix
+                        var gwPrefix = gwPath.Contains('{') ? gwPath[..gwPath.IndexOf('{')].TrimEnd('/') : gwPath;
+                        if (gwPrefix.Length > 0 && refitPath.StartsWith(gwPrefix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Match found! Create client→gateway edge
+                        }
+                        else continue;
+                    }
+
+                    // Create ServiceLink: client project → gateway project
+                    var fromId = NodeId.ForType(clientProject);
+                    var gwId = NodeId.ForType(gatewayProject);
+                    g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddNode(new GraphNode(gwId, gatewayProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddEdge(new GraphEdge(fromId, gwId, EdgeKind.ServiceLink)
+                    {
+                        Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
+                        Resolution = Resolution.Join,
+                        Confidence = 0.75f,
+                    });
+
+
+                    // Now try to match YARP destination to downstream HTTP entries
+                    var destAddr = gw.DownstreamHosts.ToLowerInvariant();
+                    foreach (var (backendProject, httpEntries) in httpEntriesByProject)
+                    {
+                        if (string.Equals(backendProject, clientProject, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        if (string.Equals(backendProject, gatewayProject, StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        // Match by port convention or container name
+                        var backendLower = backendProject.ToLowerInvariant();
+                        if (destAddr.Contains(backendLower, StringComparison.Ordinal)
+                            || destAddr.Contains(backendLower.Replace(".api", ""), StringComparison.Ordinal))
+                        {
+                            var beId = NodeId.ForType(backendProject);
+                            g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                            g.AddEdge(new GraphEdge(gwId, beId, EdgeKind.ServiceLink)
+                            {
+                                Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
+                                Resolution = Resolution.Syntactic,
+                                Confidence = 0.65f,
+                            });
+
+                        }
+                    }
+                    break; // one YARP route match per Refit route
+                }
+            }
+        }
+    }
+
+    /// <summary>Resolves a graph node's owning project from its FilePath via the solution scope,
+    /// falling back to the node's stored Project field.</summary>
+    private static string? ResolveNodeProject(GraphNode node, SolutionScope scope)
+    {
+        if (node.FilePath is { } fp)
+        {
+            var proj = scope.ProjectForFile(fp);
+            if (proj is not null) return proj;
+        }
+        return node.Project;
+    }
 }
