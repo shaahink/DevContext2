@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-07-06 — Meridian M4 gate closure: QA harness rewritten, gate satisfied
+
+**Changed:**
+- **M4.7 config key fix:** `ConfigKeyRegex` added `RegexOptions.IgnoreCase` for case-insensitive matching. `ConfigLookup` handler switched from `WrapAsyncT` to `WrapT` (sync file I/O).
+- **MCP startup fixes (critical — MCP was dead on arrival):**
+  - `ServerShim.FindServerExe()`: replaced `GetDirectories("bin")` + `Path.Combine(binDir, "exe")` with `GetFiles("DevContext.Server.exe", AllDirectories)` — the exe lives in `bin/Debug/net10.0/` not `bin/`.
+  - `ForceHttp11Handler`: gRPC-Web uses HTTP/1.1 transport but `GrpcWebHandler` negotiates HTTP/2, rejected by server with `HTTP_1_1_REQUIRED`. Custom `DelegatingHandler` forces `Version11` + `RequestVersionExact`.
+- **QA harness (`eval/mcp-qa/run.js`) rewritten:**
+  - Tool names: `search` → `find`, `impact` `target` → `nodeId`
+  - Impact response: `entries`/`count` → `resultsByService`/`totalAffected`
+  - New q6 (config tool), q7 (tests_for), checkout gate question
+  - Token tracking per call via `estimateTokens()` and tool-provided `tokens` field
+  - Per-question token ceilings enforced
+  - Checkout gate: ≤3 calls, ≤2k tokens (achieved: 2c/314tok)
+- **MCP-VS-GREP.md:** comparison table showing DevContext wins on 6/7 questions vs grep
+- **Config tool regression:** tool callable but returns 0 keys (regex still doesn't match dogfood repo patterns — needs M5 investigation)
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (353+64+12, 3 skipped)
+- `pnpm check` — green (lint 0/0 · test 27/27 · build 0w/0e)
+- `node eval/mcp-qa/run.js` — 8/8 QA PASS, checkout gate 2c/314tok
+- Dogfood analysis: 493 nodes, 316 edges, 34 entries, 6 ServiceLinks
+
+**Next:** M5.1 — Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` §M5. Also: fix config regex to actually match real code patterns, debug async lambda issue in WrapAsyncT.
+
+---
+
 ## 2026-07-06 — Meridian M4 completion: impact + config + tests_for (M4 DONE, all 9/9 tools)
 
 **Changed:**
