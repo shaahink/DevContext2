@@ -4,6 +4,44 @@
 
 ---
 
+## 2026-07-06 — Meridian M3: MCP re-architecture (server-of-record, stdio shim, descriptions, MCP page) (M3 COMPLETE)
+
+**Changed:**
+- **M3.1** — Server-of-record + stdio shim + flush fix:
+  - `AnalysisSessionManager.cs`: repo+HEAD session keying (`_repoToHandle` index), `TryGetByRepo()`, `ListSessions()`
+  - `AnalysisSession.cs`: added `RepoPath`, `CommitSha`, `CreatedAt`, `LastActivity`, `CallCount`, `TokenTotal` metadata fields
+  - `DevContextGrpcService.cs`: restructured `Analyze` — result written directly to `responseStream` after channel drain (flush fix), uses `ct` for `ReadAllAsync`, `ListSessions` handler
+  - `DevContext.Mcp/Program.cs`: rewritten as thin gRPC proxy — removed all DevContext.Core/Cli references, connects to server via `GrpcWebHandler`, spawns server if not running
+  - `DevContext.Mcp/DevContext.Mcp.csproj`: replaced engine dependencies with Grpc.Net.Client/Grpc.Net.Client.Web + DevContext.Contracts (gRPC stubs)
+  - `DevContext.Mcp/McpSessionManager.cs`: **deleted** (session management now server-side)
+  - `DevContext.Mcp/ServerShim.cs`: new — spawns DevContext.Server.exe, health-check retry loop, process cleanup
+- **M3.2** — Tool descriptions + envelope trim:
+  - `DevContext.Mcp/DevContextTools.cs`: all 18 tools have XML `<summary>` docs with parameter descriptions and examples; envelope trimmed to compact `meta` lines (no Scope/Coverage/Confidence); rewritten as gRPC proxy calls
+- **M3.3** — Observability stream + MCP page:
+  - `proto/devcontext/v1/devcontext.proto`: added `ListSessions`, `StartMcp`, `StopMcp`, `ObserveToolCalls` RPCs; `ToolCallEvent`, `SessionInfo` messages
+  - `DevContext.Server/Services/McpObservabilityService.cs`: new — fan-out `Channel<ToolCallEvent>` observer pattern, `Start()`/`Stop()` toggle, `Notify()` broadcast
+  - `DevContextGrpcService.cs`: `StartMcp`/`StopMcp`/`ObserveToolCalls` handlers; `RecordToolCall` via `[CallerMemberName]` on `Require()`
+  - `src/DevContext.App/src/app/features/pages/mcp-page.ts`: new — MCP page with status dot + toggle, config snippet cards (Claude Code/Cursor/VS Code) with copy, session list, live feed with token chips, try-a-tool console
+  - `src/DevContext.App/src/app/app.config.ts`: `/mcp` route added
+  - `src/DevContext.App/src/app/shell/activity-bar.ts`: MCP rail entry (`activity` icon, `g m`)
+  - `src/DevContext.App/src/app/shell/workspace-shell.ts`: `g m` shortcut in VIEW_SHORTCUTS
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 · test 27/27 · build 0w/0e (mcp-page chunk: 11.29 kB)
+
+**Static audit findings (carried forward):**
+1. `TokenTotal` never incremented — session list shows 0 tok always
+2. `RecordToolCall` elapsedMs uses placeholder (1ms) — needs real timing
+3. Re-analyzing same repo+HEAD creates orphaned session (old session not evicted)
+4. Paths remain absolute (D4 envelope trim not done on server-side)
+5. `McpObservabilityService._running` lacks memory barrier (`volatile` needed)
+6. `_observers` dictionary accumulates stale entries (no cleanup)
+7. ServerShim auto-spawn only works in dev layout (hardcoded bin/Debug path)
+
+**Next:** M4.1 — `overview` ≤600 tokens one-call repo brief
+
 ---
 
 ## 2026-07-06 — Meridian M2: insight repair + new sources + typed actions + layer facets (M2 COMPLETE)

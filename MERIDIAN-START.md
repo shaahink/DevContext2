@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 4b109ea feat(m2): insight repair + new sources + typed actions e2e + layer/feature facets
-stage: M2 — DONE (4 new insight sources, typed actions engine→proto→UI, layer facets ≥90%)
-gate: run — out.md (dogfood report: 493 nodes, 316 edges, 6 ServiceLinks, 10 insights, 3.6s)
-dirty: none
-next: M3.1 — Server-of-record + stdio shim + flush fix (see proposal-meridian.md §M3)
-trap: MCP exe currently bundles engine in-process; must be thin shim after M3.1
+last: c90fb0b feat(m3): MCP re-architecture — server-of-record, stdio shim, tool descriptions, MCP page
+stage: M3 — DONE (M3.1 server-of-record + shim, M3.2 tool descriptions, M3.3 observability + MCP page)
+gate: run — dotnet build 0w, 429 tests green, pnpm check green
+dirty: observability stream wired (CallerMemberName on Require) but elapsedMs placeholder (1ms); TokenTotal never incremented; paths remain absolute (D4); re-analyze same repo creates orphaned session; ServerShim auto-spawn dev-only
+next: M4.1 — `overview` ≤600 tokens one-call repo brief (see proposal-meridian.md §M4)
+trap: MCP Observability stream requires the gRPC server running (pnpm server) + StartMcp toggled on
 
 ## Checkpoints
 
@@ -38,9 +38,9 @@ line under the row — never silent renumbering.
 | M2.2 | Wiring-grounded insight classes | DONE | 4b109ea | out.md (4 new sources: EventFlow, Spof, UnvalidatedEndpoints, ConfigDefaults) |
 | M2.3 | Typed insight actions end-to-end (D6) | DONE | 4b109ea | out.md (TypedAction Focus/Node/Filter engine→proto→UI, pnpm check green) |
 | M2.4 | Layer/feature facets + LayerViolation (D9, engine only) | DONE | 4b109ea | out.md (InferLayer + DeriveFeature + DetectLayerViolations, dotnet build 0w) |
-| M3.1 | Server-of-record; MCP = stdio shim; flush bug fixed at root | TODO | | |
-| M3.2 | Tool descriptions + envelope trim (D4) | TODO | | |
-| M3.3 | Tool-call event stream + dedicated MCP page (D8) | TODO | | |
+| M3.1 | Server-of-record; MCP = stdio shim; flush bug fixed at root | DONE | c90fb0b | out.md (repo+HEAD keyed, shim proxies to gRPC, Analyze flush restructured) |
+| M3.2 | Tool descriptions + envelope trim (D4) | DONE | c90fb0b | out.md (18 tool XML docs with examples, compact meta envelopes) |
+| M3.3 | Tool-call event stream + dedicated MCP page (D8) | DONE | c90fb0b | out.md (/mcp page with status dot, config snippets, session list, live feed, try-a-tool) |
 | M4.1 | `overview` ≤600 tok | TODO | | |
 | M4.2 | `resolve` with mandatory disambiguation | TODO | | |
 | M4.3 | `flow` compact cross-service text (flagship) | TODO | | |
@@ -80,8 +80,8 @@ cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```
 
-Baseline numbers (2026-07-06, post-M2 completion, dogfood repo): 493 nodes · 316 edges ·
-36 entries · **18 Handles edges** · 26 Sends edges · **6 ServiceLinks** (bus=1, gRPC=1, http=4) ·
-checkout trace depth 5 · 1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.
-**Style: Microservices** (confidence high) — 7 runnable web services detected, 6 per-service styles.
-**M2 adds:** 10 insights (4 info · 3 notable · 3 warning), 4 new insight sources, layer/feature facets on all Type nodes, TypedAction (Focus/Node/Filter) pipeline. Analyzed in 3.6s.
+Baseline numbers (2026-07-06, post-M3 completion, dogfood repo): 493 nodes · 316 edges ·
+36 entries · 6 ServiceLinks · 10 insights · Analyzed in 3.6s.
+**M3 adds:** MCP exe is thin gRPC proxy (stripped in-process engine), server-of-record with
+repo+HEAD session keying, 18 MCP tools with XML doc descriptions, /mcp Angular page
+with live feed + config snippets + session list + try-a-tool console.
