@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m5): static audit fixes (5 run-multi.js bugs) + 5-repo QA ratchet + agent transcript — M5 COMPLETE
-stage: M6 — TODO (UI features: Home repo card + Atlas one-pager)
-gate: dotnet build 0w0e, 429 tests green, QA 8/8 dogfood, multi-repo 28/35 (5 repos), transcript gate PASS (2c/313tok)
-dirty: M6 not started; DntSite config returns 0 keys (uses Options/Bind pattern, regex-limited)
-next: M6.1 Home repo card (spec §UI-Home) → M6.2 Atlas one-pager (spec §UI-Atlas)
-trap: M6 is Angular UI work — use `pnpm check` (src/DevContext.App). See AGENTS.md for verify loop.
+last: feat(m6): Home repo card + Atlas one-pager — service map hero, tiles, flow steppers, service cards, cross-cutting, export
+stage: M6 — DONE (M6.1 Home repo card + M6.2 Atlas one-pager complete)
+gate: dotnet build 0w0e, 429 tests green, pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+dirty: DntSite config 0 keys (Options/Bind, regex-limited); Lint unused GraphCanvas/ArchitecturePanel warning resolved
+next: M7.0 Design-token pass (12px/14-16px/contrast) → M7.1 Graph↔code binding → M7.2 Lenses
+trap: M7 is Angular UI work — use `pnpm check`. The cytoscape graph canvas still exists for Explore page, not replaced.
 
 ## Checkpoints
 
@@ -51,11 +51,12 @@ line under the row — never silent renumbering.
 | M4.8 | `get_context` v2 (real content, cross-service) | DONE | cc37ea6 | out.md |
 | M4.9 | `tests_for` best-effort | DONE | 45981ee | out.md |
 | M4.G | QA gate: 8/8 passing, checkout ≤3c/2k tok, MCP-VS-GREP | DONE | 8531882 | eval-results/2026-07-06/ |
-| M5.1 | QA set → 5 repos + token ratchets | DONE | | eval/mcp-qa/run-multi.js + eval-results/2026-07-06/m5-ratchet.json (5 repos, 38 calls, 6889 tok) |
-| M5.2 | Real agent transcript (checkout question) committed | DONE | | eval/mcp-qa/record-transcript.js + eval-results/2026-07-06/agent-transcript.md (2 calls, 313 tok, gate PASS) |
-| M5.3 | CI wiring (McpQa category + bench smoke) | DONE | | tests/DevContext.Core.Tests/McpQaGateTests.cs (2 tests: harness gate + bench smoke check) |
-| M6.1 | Home repo card (spec §UI-Home) | TODO | | |
-| M6.2 | Atlas one-pager + export (spec §UI-Atlas) | TODO | | |
+| M5.1 | QA set → 5 repos + token ratchets | DONE | 8e63f38 | eval/mcp-qa/run-multi.js + eval-results/2026-07-06/m5-ratchet.json (5 repos, 38 calls, 6889 tok) |
+| M5.2 | Real agent transcript (checkout question) committed | DONE | 8e63f38 | eval/mcp-qa/record-transcript.js + eval-results/2026-07-06/agent-transcript.md (2 calls, 313 tok, gate PASS) |
+| M5.3 | CI wiring (McpQa category + bench smoke) | DONE | 8e63f38 | tests/DevContext.Core.Tests/McpQaGateTests.cs (2 tests: harness gate + bench smoke check) |
+| M6.1 | Home repo card (spec §UI-Home) | DONE | | src/DevContext.App/src/app/features/pages/home-page.ts + features/shared/ (service-map-hero, home-tiles, onboarding-row) |
+| M6.2 | Atlas one-pager + export (spec §UI-Atlas) | DONE | | src/DevContext.App/src/app/features/pages/atlas-page.ts + features/shared/ (flow-stepper, service-cards, export via clipboard) |
+| M7.0 | Design-token pass (12px/14–16px/contrast) | TODO | | |
 | M6.1 | Home repo card (spec §UI-Home) | TODO | | |
 | M6.2 | Atlas one-pager + export (spec §UI-Atlas) | TODO | | |
 | M7.0 | Design-token pass (12px/14–16px/contrast) | TODO | | |

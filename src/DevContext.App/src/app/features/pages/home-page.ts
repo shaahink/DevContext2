@@ -2,15 +2,16 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
-import { AtlasStore } from '../../state/atlas.store';
 import { KIND_LABELS } from '../../models/view-models';
 import { StartHero } from '../home/start-hero';
 import { IdentityStrip } from '../home/identity-strip';
 import { RunConsole } from '../home/run-console';
 import { KindIcon } from '../../ui/kind-icon/kind-icon';
+import { ServiceMapHero } from '../shared/service-map-hero';
+import { HomeTiles } from '../shared/home-tiles';
+import { OnboardingRow } from '../shared/onboarding-row';
 
 const MAX_TOP_FLOWS = 7;
-const MAX_INSIGHTS = 5;
 
 interface InsightRowVm {
   readonly id: string;
@@ -22,7 +23,7 @@ interface InsightRowVm {
 
 @Component({
   selector: 'app-home-page',
-  imports: [RouterLink, StartHero, IdentityStrip, RunConsole, KindIcon],
+  imports: [RouterLink, StartHero, IdentityStrip, RunConsole, KindIcon, ServiceMapHero, HomeTiles, OnboardingRow],
   template: `
     <div class="mx-auto max-w-4xl px-5 pb-10 pt-6">
       @if (!session.busy() && !session.ready()) {
@@ -33,9 +34,22 @@ interface InsightRowVm {
         <div class="space-y-8">
           <app-identity-strip />
 
+          <!-- M6.1: Service map hero — deterministic layout -->
+          <div>
+            <h2 class="section-h mb-3">How services connect</h2>
+            <app-service-map-hero
+              [topology]="topology()"
+              [serviceStyles]="serviceStyles()"
+            />
+          </div>
+
+          <!-- M6.1: Three tiles -->
+          <app-home-tiles [topology]="topology()" />
+
+          <!-- Top Flows -->
           @if (topFlows().length) {
             <div>
-              <h2 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Top Flows</h2>
+              <h2 class="section-h mb-3">Top flows</h2>
               <div class="space-y-1">
                 @for (e of topFlows(); track e.focus) {
                   <a
@@ -48,6 +62,9 @@ interface InsightRowVm {
                       <span class="chip shrink-0">{{ e.httpMethod }}</span>
                     }
                     <span class="min-w-0 flex-1 truncate font-mono text-xs text-ink">{{ e.route || e.title }}</span>
+                    @if (e.project) {
+                      <span class="chip shrink-0 text-2xs" [style.background]="svcColor(e.project)">{{ shortName(e.project) }}</span>
+                    }
                     <span class="shrink-0 text-2xs text-ink-subtle">{{ KIND_LABELS[e.kind] ?? e.kind }}</span>
                   </a>
                 }
@@ -55,9 +72,10 @@ interface InsightRowVm {
             </div>
           }
 
+          <!-- Insights (needs attention) -->
           @if (needsAttention().length) {
             <div>
-              <h2 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-warn">What needs attention</h2>
+              <h2 class="section-h mb-2 text-warn">Needs attention</h2>
               <div class="space-y-1">
                 @for (i of needsAttention(); track i.id) {
                   <a
@@ -79,28 +97,17 @@ interface InsightRowVm {
             </div>
           }
 
-          @if (goodToKnow().length) {
-            <div>
-              <h2 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Good to know</h2>
-              <div class="space-y-1">
-                @for (i of goodToKnow(); track i.id) {
-                  <div class="flex items-center gap-2 rounded px-2 py-1 text-xs">
-                    <span class="chip shrink-0 text-ink-subtle">{{ i.severity }}</span>
-                    <span class="min-w-0 flex-1 truncate text-ink-muted">{{ i.title }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          }
+          <!-- M6.1: Onboarding row -->
+          <app-onboarding-row />
 
-          @if (session.insightCount() > (needsAttention().length + goodToKnow().length)) {
+          @if (session.insightCount() > needsAttention().length) {
             <a routerLink="/insights" class="block text-2xs text-accent hover:underline">
               See all {{ session.insightCount() }} insights &rarr;
             </a>
           }
 
           <details class="text-xs text-ink-muted">
-            <summary class="cursor-pointer hover:text-ink">Engine details</summary>
+            <summary class="cursor-pointer hover:text-ink">Run report</summary>
             <app-run-console />
           </details>
         </div>
@@ -110,8 +117,19 @@ interface InsightRowVm {
 })
 export class HomePage {
   protected readonly session = inject(SessionStore);
-  protected readonly atlas = inject(AtlasStore);
   protected readonly KIND_LABELS = KIND_LABELS;
+
+  protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
+  protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
+
+  private readonly svcPalette = ['#8b93ff', '#6cb2eb', '#98c379', '#e5c07b', '#d19a66', '#c678dd', '#56b6c2', '#5ac8fa', '#d16d9e', '#99a0ac'];
+  protected svcColor(name: string): string {
+    const idx = this.topology().findIndex((p) => p.name === name);
+    return this.svcPalette[idx % this.svcPalette.length] ?? this.svcPalette[0];
+  }
+  protected shortName(name: string): string {
+    return name.split('.').pop() ?? name;
+  }
 
   protected readonly topFlows = computed(() => {
     const flatEntries = this.session.entryGroups().flatMap((g) => g.entries);
@@ -140,11 +158,7 @@ export class HomePage {
   });
 
   protected readonly needsAttention = computed(() =>
-    this.allInsights().filter((i) => i.severity === 'warning' || i.severity === 'notable').slice(0, MAX_INSIGHTS),
-  );
-
-  protected readonly goodToKnow = computed(() =>
-    this.allInsights().filter((i) => i.severity === 'info').slice(0, MAX_INSIGHTS),
+    this.allInsights().filter((i) => i.severity === 'warning' || i.severity === 'notable').slice(0, 5),
   );
 
   protected actionLabel(action: string): string {

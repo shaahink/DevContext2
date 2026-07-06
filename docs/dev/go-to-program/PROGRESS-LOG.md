@@ -4,7 +4,41 @@
 
 ---
 
-## 2026-07-06 — M5 completion: static audit + multi-repo QA + agent transcript + gate closure
+## 2026-07-06 — M6 completion: Home repo card + Atlas one-pager (M6 DONE)
+
+**M6.1 Home repo card (service-map-hero + tiles + onboarding):**
+- **ServiceMapHero** — deterministic HTML/CSS layout (no physics). Gateway column (left), core services (center), dependency column (right). Color-coded project cards with style badge + stack tags. Bus/broker bottom rail for messaging infra. Dependency arrows via SVG overlay. Click → Explore with project filter.
+- **HomeTiles** — three-tile grid: (a) Entries by kind per service with stacked colored bars; (b) Wiring health — % entries with targets, color-coded bar, link to unwired list; (c) Freshness — analysis time, node/edge/project counts, stale/current chip.
+- **OnboardingRow** — [Trace checkout] [Open atlas] [Point your agent here] action strip. Auto-detects checkout endpoint from entries.
+- **HomePage** rewritten: identity → service hero → tiles → top flows (service-colored chip) → needs attention → onboarding row.
+- Stats stripped: no raw counts without verbs, confidence % moved to collapsible ledger in identity-strip.
+
+**M6.2 Atlas one-pager (6 sections + export):**
+- ① Service diagram (larger hero, edge counts).
+- ② Top 5 flows as **FlowStepper** strips (horizontal chip links).
+- ③ Event wiring board (publisher/event/consumer table, unconsumed highlighted).
+- ④ **ServiceCards** — per-service style+stack grid.
+- ⑤ Cross-cutting (pipeline behaviors + packages card).
+- ⑥ Hub radar (flow-count + degree).
+- **Export one-pager** button builds markdown from live data, copies to clipboard.
+
+**Changed (7 files):**
+- `features/pages/home-page.ts` — rewritten with new shared components
+- `features/pages/atlas-page.ts` — 6-section layout + export button
+- `features/shared/service-map-hero.ts` (new) — deterministic service diagram
+- `features/shared/home-tiles.ts` (new) — three-tile dashboard
+- `features/shared/onboarding-row.ts` (new) — action strip
+- `features/shared/flow-stepper.ts` (new) — horizontal flow chips
+- `features/shared/service-cards.ts` (new) — per-service style cards
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `pnpm check` (src/DevContext.App) — lint 0/0, test 27/27, build 0w/0e
+- Unused imports cleaned (GraphCanvas, ArchitecturePanel removed from AtlasPage)
+
+**Next:** M7.0 Design-token pass → M7.1 Graph↔code binding → M7.2 Lenses. All Angular UI work.
+
+---
 
 **Audit findings (5 bugs in run-multi.js):**
 - **B1** Q6 vacuous pass: `totalKeys >= 0` (always true) → changed to `wellFormed && totalKeys > 0` matching run.js fix.
