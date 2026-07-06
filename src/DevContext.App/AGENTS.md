@@ -75,3 +75,52 @@ src/app/
 In development the server runs separately (`pnpm dev` orchestrates it). For packaged builds the Tauri
 shell (`src-tauri/src/lib.rs`) spawns and kills the server when `DEVCONTEXT_SERVER_DLL` is set
 (bundled self-contained sidecar — see P5 in the plan).
+
+## M6 verification — drive the new UI surfaces
+
+After `pnpm dev:web`, analyze the dogfood repo and verify:
+
+### Home page (`/`)
+- [ ] ServiceMapHero renders deterministically — gateway (YarpApiGateway) on left column, core services in center, bus/broker rail underneath
+- [ ] Three tiles populate: Entries sparkbar (colored per-service bars), Wiring health (%, color-coded), Freshness ("Analyzed in Xs", stale/current chip)
+- [ ] Onboarding row shows [Trace checkout] link (auto-detected from entries), [Open atlas], [Point your agent here]
+- [ ] Top flows have service-colored chips per entry
+- [ ] "Needs attention" section links to insights or explore with correct params
+
+### Atlas page (`/atlas`)
+- [ ] 6 sections render in order: service diagram → top flows (flow steppers) → event wiring board → per-service cards → cross-cutting → hub radar
+- [ ] Flow steppers show horizontal strips with node count, depth, cross-service count
+- [ ] Event wiring board table shows publisher/event/consumer rows
+- [ ] Service cards show style badge + stack tags per service
+- [ ] Cross-cutting shows pipeline behaviors + packages
+- [ ] Hub radar rows click → navigate to Explore with node view
+- [ ] Export one-pager button copies markdown to clipboard (shows "Copied!" for 2s)
+
+### Bug check
+- [ ] No browser console errors
+- [ ] No missing-data indicators on empty states
+- [ ] All router links work (click service card → Explore, click flow stepper → Explore, Hub radar → Explore)
+- [ ] Identity strip still works (stale chip, re-analyze, confidence ledger collapsible)
+
+## M7 planning — design tokens + explore lenses
+
+### Key files to read before M7
+1. `docs/dev/briefs/proposal-meridian.md` §M7
+2. `docs/dev/briefs/meridian-agent-playbook.md` §UI-Explore, §UI-Chrome, §UI-Table lens
+3. `src/styles.css` — current Tailwind v4 + @theme inline + CSS vars
+4. `src/app/core/theme/theme.service.ts` — vibe switching, ThemePalette
+5. `src/app/features/pages/workbench-page.ts` — current explore page with Esc-ladder
+6. `src/app/features/explorer/stage.ts` — graph canvas (Cytoscape, topology/trace/neighbors)
+7. `src/app/features/explorer/inspector.ts` — right-side inspector panel
+8. `src/app/state/trail.store.ts` — breadcrumb/trail system
+
+### M7 checkpoints (proposed order)
+| # | What | Component(s) | Notes |
+|---|------|-------------|-------|
+| 7.0 | Design-token pass: min body 12px, icons 14–16px, per-kind color coding, contrast audit | `styles.css`, `theme.service.ts`, all templates | Sweeps all surfaces; kills the "squint" problem |
+| 7.1 | Graph↔code binding: node select → inspector Code tab with full member; trace step → edge highlight + code line scroll; Esc ladder (selection→focus→altitude) | `workbench-page.ts`, `stage.ts`, `inspector.ts` | Code pane becomes first-class citizen |
+| 7.2 | Lenses: Service/Layer/Feature; per-page default lens; lane sheet for layers | `workbench-page.ts`, `stage.ts`, new `lens-switcher.ts` | System canvas repeated everywhere is banned (A12) |
+| 7.3 | Trail dedupe/group/cap; entry deck legibility | `trail.store.ts`, `entry-deck.ts` | Trail must not grow unbounded |
+| 7.4 | Chrome pass + feedback affordances (VS Code bar test) | `workspace-shell.ts`, `activity-bar.ts`, omnibox | Bar height ≥40px, hit targets ≥28px, every action confirms visibly |
+| 7.5 | Table lens v2 (virtualized, archetype-default columns, relationship chips, row expand) | new `features/table-lens/` | Data-dense, CSV export |
+
