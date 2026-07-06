@@ -1,11 +1,11 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { type EntryGroupVm, type EntryVm, KIND_LABELS } from '../../models/view-models';
 import { copyToClipboard } from '../../core/clipboard';
 import { ToastService } from '../../ui/toast/toast';
 import type { TableColumn } from './table-lens-columns';
-import { WEB_COLUMNS } from './table-lens-columns';
+import { WEB_COLUMNS, refreshSharedTargets } from './table-lens-columns';
 
 type SortDir = 'asc' | 'desc';
 
@@ -128,6 +128,13 @@ export class TableLens {
   protected readonly hiddenColumns = signal<readonly string[]>(this.loadHidden());
 
   private readonly toast = inject(ToastService);
+
+  constructor() {
+    effect(() => {
+      const entries = this.groups().flatMap((g) => g.entries);
+      refreshSharedTargets(entries);
+    });
+  }
 
   protected readonly visibleColumns = computed<readonly TableColumn[]>(() => {
     const hidden = new Set(this.hiddenColumns());

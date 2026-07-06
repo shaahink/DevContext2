@@ -10,6 +10,17 @@ export interface TableColumn {
   readonly value: (entry: EntryVm) => string;
 }
 
+let _sharedTargetCounts = new Map<string, number>();
+
+export function refreshSharedTargets(entries: readonly EntryVm[]): void {
+  _sharedTargetCounts = new Map();
+  for (const e of entries) {
+    if (e.target) {
+      _sharedTargetCounts.set(e.target, (_sharedTargetCounts.get(e.target) ?? 0) + 1);
+    }
+  }
+}
+
 /** Web/microservices archetype (the dogfood repo default). */
 export const WEB_COLUMNS: readonly TableColumn[] = [
   {
@@ -36,6 +47,14 @@ export const WEB_COLUMNS: readonly TableColumn[] = [
     key: 'kind', label: 'Kind', tooltip: 'Entry kind (HTTP, Bus consumer, gRPC…)', width: 100,
     sortable: true,
     value: (e) => e.kind,
+  },
+  {
+    key: 'shared', label: 'Shared', tooltip: 'Entries sharing the same target handler', width: 60,
+    sortable: true,
+    value: (e) => {
+      const count = e.target ? (_sharedTargetCounts.get(e.target) ?? 0) - 1 : 0;
+      return count > 0 ? String(count) : '';
+    },
   },
   {
     key: 'provenance', label: 'Resolution', tooltip: 'How the target was resolved (Semantic / Syntactic)', width: 90,
