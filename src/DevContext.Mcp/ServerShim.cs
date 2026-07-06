@@ -105,14 +105,15 @@ internal static class ServerShim
         {
             if (File.Exists(Path.Combine(dir, "DevContext.slnx")))
             {
-                // Search all build configurations in dev layout
+                // Search all build configurations in dev layout (recursively)
                 var serverProject = Path.Combine(dir, "src", "DevContext.Server");
                 if (Directory.Exists(serverProject))
                 {
-                    foreach (var binDir in Directory.GetDirectories(serverProject, "bin", SearchOption.AllDirectories))
+                    foreach (var exe in Directory.GetFiles(serverProject, "DevContext.Server.exe", SearchOption.AllDirectories))
                     {
-                        var exe = Path.Combine(binDir, "DevContext.Server.exe");
-                        if (File.Exists(exe)) return exe;
+                        if (!exe.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)
+                            && !exe.Contains(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar))
+                            return exe;
                     }
                 }
                 break;

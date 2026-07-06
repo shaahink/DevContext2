@@ -24,9 +24,13 @@ try
     var serverEndpoint = "http://127.0.0.1:5179";
     var serverProcess = ServerShim.EnsureServerRunning(serverEndpoint);
 
+    // gRPC-Web uses HTTP/1.1 transport — force version 1.1
+    var httpInner = new SocketsHttpHandler { EnableMultipleHttp2Connections = false };
+    var httpVersionHandler = new ForceHttp11Handler(httpInner);
     var channel = GrpcChannel.ForAddress(serverEndpoint, new GrpcChannelOptions
     {
-        HttpHandler = new GrpcWebHandler(new HttpClientHandler()),
+        HttpHandler = new GrpcWebHandler(httpVersionHandler),
+        ThrowOperationCanceledOnCancellation = true,
     });
 
     var client = new DevContextService.DevContextServiceClient(channel);
