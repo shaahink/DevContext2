@@ -137,12 +137,13 @@ public sealed class DiscoveryPipeline
                 + "Point at a specific project (e.g. its folder or .csproj) to analyse just its reference closure.");
         }
 
+        // M1.8: gateway routes must be populated BEFORE GraphBuilder.Build so
+        // AddHttpServiceLinks can read model.GatewayRoutes during graph construction.
+        PopulateGatewayRoutes(model, context);
+
         var graphResolver = new SyntacticSymbolResolver();
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
-
-        // W7: scan for ocelot.json files in the project root and extract gateway routes
-        PopulateGatewayRoutes(model, context);
 
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();
@@ -594,6 +595,9 @@ public sealed class DiscoveryPipeline
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = via ?? "ArchitectureStyleDetector";
+
+        // M1.9 / D5 — per-service style rollup
+        model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
     }
 
     /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>

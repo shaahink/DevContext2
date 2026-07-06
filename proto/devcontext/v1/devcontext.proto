@@ -160,6 +160,8 @@ message MapResponse {
   repeated string pipeline_behaviors = 12;
   repeated string stack = 13;
   LibrarySurface surface = 14;
+  // Per-service style assessment — one entry per runnable web project (M1.9 / D5)
+  repeated ServiceStyle service_styles = 15;
 }
 
 message ProjectNode {
@@ -170,6 +172,12 @@ message ProjectNode {
 message PackageGroup {
   string label = 1;
   repeated string packages = 2;
+}
+
+message ServiceStyle {
+  string project_name = 1;
+  string style = 2;
+  repeated string stack = 3;
 }
 
 message LibrarySurface {

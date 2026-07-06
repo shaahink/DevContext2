@@ -21,6 +21,8 @@ public sealed record MapModel
     public string? ScopeNote { get; init; }
     /// <summary>Gateway routes from ocelot.json / YARP config (W7).</summary>
     public ImmutableArray<GatewayRoute> Routes { get; init; } = [];
+    /// <summary>Per-service style assessment (M1.9 / D5). One entry per runnable web project.</summary>
+    public ImmutableArray<PerServiceStyle> ServiceStyles { get; init; } = [];
 }
 
 public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
@@ -47,6 +49,7 @@ public sealed class MapBuilder
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
+            ServiceStyles = model.PerServiceStyles,
         };
     }
 

@@ -82,6 +82,15 @@ internal static class ProtoMapper
             resp.Surface.ExtensionPoints.AddRange(surface.ExtensionPoints);
         }
 
+        // M1.9 / D5 — per-service styles
+        foreach (var ss in map.ServiceStyles)
+            resp.ServiceStyles.Add(new Proto.ServiceStyle
+            {
+                ProjectName = ss.ProjectName,
+                Style = ss.Style,
+                Stack = { ss.Stack },
+            });
+
         return resp;
     }
 

@@ -2083,6 +2083,7 @@ public sealed class GraphBuilder
                         Provenance = $"{pubProject}→{conProject}:{eventFqn}",
                         Resolution = Resolution.Join,
                         Confidence = 0.8f,
+                        Tags = [ServiceLinkTags.BusPublishConsume],
                     });
 
                 }
@@ -2137,6 +2138,7 @@ public sealed class GraphBuilder
                     Provenance = $"{client.SourceFile}:{client.LineNumber}→{server.SourceFile}:{server.LineNumber}",
                     Resolution = Resolution.Join,
                     Confidence = 0.85f,
+                    Tags = [ServiceLinkTags.Grpc],
                 });
 
             }
@@ -2144,7 +2146,9 @@ public sealed class GraphBuilder
     }
 
     /// <summary>M1.8 — Cross-project HTTP/YARP/Refit ServiceLinks. Matches Refit interface routes
-    /// through YARP gateway config to downstream service HTTP entry points.</summary>
+    /// through YARP gateway config to downstream service HTTP entry points. Uses segment-aware
+    /// path-pattern normalization: strips YARP template variables ({**catch-all}, {param}) to
+    /// static-prefix-match against Refit route segments.</summary>
     private static void AddHttpServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
         NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
@@ -2167,6 +2171,25 @@ public sealed class GraphBuilder
 
         var refitRoutes = model.Detections.OfType<RefitRouteDetection>().ToList();
         if (refitRoutes.Count == 0) return;
+
+        // ── Build per-gateway-route static prefix for matching ─────────────────
+        // YARP routes like "/catalog-service/{**catch-all}" have a static prefix
+        // before the first template parameter. Strip template vars to get the stable
+        // prefix for segment-aware matching against Refit routes.
+        var gwPrefixes = new List<(GatewayRoute Route, string StaticPrefix, string RouteName)>();
+        foreach (var gw in model.GatewayRoutes)
+        {
+            var staticPrefix = StripPathTemplateVariables(gw.UpstreamTemplate);
+            if (staticPrefix.Length > 1) // at least "/x"
+            {
+                // Extract route-name label from last segment of static prefix
+                var segments = staticPrefix.TrimEnd('/').Split('/');
+                var label = segments.Length > 0 ? segments.Last() : "";
+                gwPrefixes.Add((gw, staticPrefix, label));
+            }
+        }
+
+        if (gwPrefixes.Count == 0) return;
 
         // Collect Refit interfaces and their owning projects
         var refitByProject = new Dictionary<string, List<RefitRouteDetection>>(StringComparer.OrdinalIgnoreCase);
@@ -2194,76 +2217,101 @@ public sealed class GraphBuilder
             list.Add((ep.RouteTemplate, ep.HandlerType, ep.SourceFile, 0));
         }
 
-        // Match Refit routes → YARP gateway routes → downstream service HTTP entries
+        // ── Match Refit routes → YARP gateway routes → downstream services ──
         foreach (var (clientProject, routes) in refitByProject)
         {
-            if (string.IsNullOrEmpty(gatewayProject))
-                continue;
-
             foreach (var rr in routes)
             {
-                // Find matching YARP route (path prefix match)
-                foreach (var gw in model.GatewayRoutes)
-                {
-                    // YARP route: "/catalog-service/{**catch-all}"
-                    // Refit route: "/catalog-service/products/{id}"
-                    var gwPath = gw.UpstreamTemplate.TrimEnd('/');
-                    var refitPath = rr.RouteTemplate.TrimEnd('/');
+                // Strip query string and trailing slash for prefix matching
+                var rawPath = rr.RouteTemplate;
+                var qIdx = rawPath.IndexOf('?');
+                var refitPath = (qIdx >= 0 ? rawPath[..qIdx] : rawPath).TrimEnd('/');
+                if (refitPath.Length == 0) continue;
 
-                    if (!refitPath.StartsWith(gwPath, StringComparison.OrdinalIgnoreCase)
-                        && !gwPath.StartsWith(refitPath.Split('/').FirstOrDefault() ?? "", StringComparison.OrdinalIgnoreCase))
+                foreach (var (gw, gwStaticPrefix, gwLabel) in gwPrefixes)
+                {
+                    // Segment-aware prefix match: Refit route must start with the entire
+                    // static portion of the YARP path (minus template vars). Handle both
+                    // "/catalog-service/{**catch-all}" and "/api/{version}/products/{**catch-all}".
+                    if (!refitPath.StartsWith(gwStaticPrefix, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // Validate segment boundary: after consuming the static prefix, the
+                    // remainder must be empty (exact match), start with '/' (next segment),
+                    // or be a continuation of the last segment (the prefix ended at a segment
+                    // boundary with trailing '/', so any non-empty remainder is valid).
+                    var afterPrefix = refitPath.AsSpan(gwStaticPrefix.Length);
+                    if (afterPrefix.Length == 0) { /* exact match — valid */ }
+                    else if (afterPrefix[0] == '/') { /* next path segment — valid */ }
+                    else if (gwStaticPrefix.EndsWith('/'))
+                    { /* prefix ends at segment boundary, next char starts the segment — valid */ }
+                    else
                     {
-                        // Try prefix match: strip variables from gwPath and compare prefix
-                        var gwPrefix = gwPath.Contains('{') ? gwPath[..gwPath.IndexOf('{')].TrimEnd('/') : gwPath;
-                        if (gwPrefix.Length > 0 && refitPath.StartsWith(gwPrefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Match found! Create client→gateway edge
-                        }
-                        else continue;
+                        // Prefix didn't end at a segment boundary (e.g. "/api" didn't match
+                        // "/apiv2/endpoint" because "/apiv2" starts with "/api" but "v2" isn't
+                        // a segment separator)
+                        continue;
                     }
 
-                    // Create ServiceLink: client project → gateway project
+                    // ── Edge 1: client project → gateway project ──
                     var fromId = NodeId.ForType(clientProject);
-                    var gwId = NodeId.ForType(gatewayProject);
+                    var gwId = NodeId.ForType(gatewayProject!);
                     g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type) { Tags = [RoleTags.Service] });
-                    g.AddNode(new GraphNode(gwId, gatewayProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddNode(new GraphNode(gwId, gatewayProject!, NodeKind.Type) { Tags = [RoleTags.Service] });
                     g.AddEdge(new GraphEdge(fromId, gwId, EdgeKind.ServiceLink)
                     {
                         Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
                         Resolution = Resolution.Join,
                         Confidence = 0.75f,
+                        Tags = [ServiceLinkTags.HttpViaGateway],
                     });
 
-
-                    // Now try to match YARP destination to downstream HTTP entries
+                    // ── Edge 2: gateway project → downstream backend ──
                     var destAddr = gw.DownstreamHosts.ToLowerInvariant();
-                    foreach (var (backendProject, httpEntries) in httpEntriesByProject)
+                    if (destAddr.Length > 0)
                     {
-                        if (string.Equals(backendProject, clientProject, StringComparison.OrdinalIgnoreCase))
-                            continue;
-                        if (string.Equals(backendProject, gatewayProject, StringComparison.OrdinalIgnoreCase))
-                            continue;
-
-                        // Match by port convention or container name
-                        var backendLower = backendProject.ToLowerInvariant();
-                        if (destAddr.Contains(backendLower, StringComparison.Ordinal)
-                            || destAddr.Contains(backendLower.Replace(".api", ""), StringComparison.Ordinal))
+                        foreach (var (backendProject, httpEntries) in httpEntriesByProject)
                         {
-                            var beId = NodeId.ForType(backendProject);
-                            g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service] });
-                            g.AddEdge(new GraphEdge(gwId, beId, EdgeKind.ServiceLink)
-                            {
-                                Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
-                                Resolution = Resolution.Syntactic,
-                                Confidence = 0.65f,
-                            });
+                            if (string.Equals(backendProject, clientProject, StringComparison.OrdinalIgnoreCase))
+                                continue;
+                            if (string.Equals(backendProject, gatewayProject, StringComparison.OrdinalIgnoreCase))
+                                continue;
 
+                            var backendLower = backendProject.ToLowerInvariant();
+                            if (destAddr.Contains(backendLower, StringComparison.Ordinal)
+                                || destAddr.Contains(backendLower.Replace(".api", ""), StringComparison.Ordinal))
+                            {
+                                var beId = NodeId.ForType(backendProject);
+                                g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                                g.AddEdge(new GraphEdge(gwId, beId, EdgeKind.ServiceLink)
+                                {
+                                    Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
+                                    Resolution = Resolution.Syntactic,
+                                    Confidence = 0.65f,
+                                    Tags = [ServiceLinkTags.HttpViaGateway],
+                                });
+                                break; // one backend match per gateway route
+                            }
                         }
                     }
+
                     break; // one YARP route match per Refit route
                 }
             }
         }
+    }
+
+    /// <summary>Strips template variables ({param}, {**catch-all}, {param:type}) from a
+    /// URL path pattern, returning the static prefix up to (but not including) the first
+    /// template variable. For YARP/Refit route matching (M1.8).</summary>
+    private static string StripPathTemplateVariables(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return "/";
+        // Find the first template variable opening brace and slice before it
+        var braceIdx = path.IndexOf('{');
+        if (braceIdx < 0) return path.TrimEnd('/');
+        if (braceIdx == 0) return "/";
+        return path[..braceIdx].TrimEnd('/');
     }
 
     /// <summary>Resolves a graph node's owning project from its FilePath via the solution scope,

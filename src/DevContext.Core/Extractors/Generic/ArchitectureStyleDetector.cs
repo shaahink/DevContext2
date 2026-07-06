@@ -313,4 +313,104 @@ public sealed class ArchitectureStyleDetector
         public bool HighFanIn => Incoming >= 2;
         public bool LowFanOut => Outgoing <= 2;
     }
+
+    // ── M1.9 Per-service style rollup ─────────────────────────────────────────
+
+    /// <summary>M1.9 / D5 — For each runnable web service project, detect its local architecture
+    /// style and technology stack. Called by the pipeline after solution-level style detection.</summary>
+    public static ImmutableArray<PerServiceStyle> DetectPerServiceStyles(DiscoveryModel model)
+    {
+        var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
+        var projectClassifier = new Graph.ProjectClassifier(model.Projects);
+        var signals = model.Architecture.All;
+
+        foreach (var proj in model.Projects)
+        {
+            if (!IsRunnableService(proj)) continue;
+            if (IsInfrastructureProject(proj.Name)) continue;
+            if (projectClassifier.IsInTestProject(proj.FilePath)) continue;
+
+            var pkgs = proj.PackageReferences;
+            var hasMediatR = pkgs.Any(p => p.Name.Contains("MediatR", StringComparison.OrdinalIgnoreCase));
+            var hasEfCore = pkgs.Any(p => p.Name.Contains("EntityFramework", StringComparison.OrdinalIgnoreCase));
+            var hasMassTransit = pkgs.Any(p => p.Name.Contains("MassTransit", StringComparison.OrdinalIgnoreCase));
+            var hasFluentValidation = pkgs.Any(p => p.Name.Contains("FluentValidation", StringComparison.OrdinalIgnoreCase));
+            var hasGrpc = pkgs.Any(p => p.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase));
+            var hasYarp = pkgs.Any(p => p.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase));
+            var hasRefit = pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase));
+            var hasRazorPages = pkgs.Any(p => p.Name.Contains("Microsoft.AspNetCore.Mvc.RazorPages", StringComparison.OrdinalIgnoreCase));
+            var isWebByName = proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase);
+            var isGrpcByName = proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".GrpcService", StringComparison.OrdinalIgnoreCase);
+
+            var stackTags = ImmutableArray.CreateBuilder<string>();
+            var style = "Unknown";
+
+            // gRPC-dedicated service: has gRPC server packages AND name matches gRPC convention,
+            // with NO competing web/app framework. A web API that uses gRPC client should NOT
+            // be classified as a gRPC service.
+            var hasOtherWebPkg = pkgs.Any(p =>
+                (p.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
+                 && !p.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase))
+                || p.Name.Contains("MediatR", StringComparison.OrdinalIgnoreCase)
+                || p.Name.Contains("Microsoft.AspNetCore.Mvc", StringComparison.OrdinalIgnoreCase));
+            var isGrpcDedicated = hasGrpc && !hasOtherWebPkg && (isGrpcByName
+                || !pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase)));
+            if (isGrpcDedicated)
+            {
+                style = "gRPC Service";
+                stackTags.Add("gRPC");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Gateway first (YARP/Ocelot and not a normal web service)
+            if (hasYarp)
+            {
+                style = "Gateway";
+                stackTags.Add("YARP");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Web application styles
+            if (hasMediatR)
+            {
+                stackTags.Add("MediatR");
+                style = hasEfCore ? "Clean Architecture" : "CQRS";
+            }
+            if (hasEfCore) stackTags.Add("EF Core");
+            if (hasMassTransit) stackTags.Add("MassTransit");
+            if (hasFluentValidation) stackTags.Add("FluentValidation");
+            if (hasRefit) stackTags.Add("Refit");
+
+            // Infer from project naming if no strong signal
+            if (style == "Unknown")
+            {
+                if (isWebByName)
+                {
+                    style = hasRazorPages ? "Razor Pages" : "Web App";
+                    if (hasRazorPages) stackTags.Add("Razor");
+                }
+                else if (proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase))
+                {
+                    style = "Web API";
+                }
+            }
+
+            results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+        }
+
+        return results.ToImmutable();
+    }
+
+    /// <summary>True when a project is a runnable web service (Exe output OR web SDK —
+    /// requires an explicit build-to-executable signal). A class library referencing
+    /// AspNetCore packages (e.g. a shared BuildingBlocks project) is NOT runnable.</summary>
+    private static bool IsRunnableService(ProjectInfo proj)
+    {
+        var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
+        var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
+        return isExe || isWebSdk;
+    }
 }

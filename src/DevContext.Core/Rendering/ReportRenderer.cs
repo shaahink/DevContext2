@@ -146,6 +146,9 @@ public static class ReportRenderer
         sb.AppendLine($"| Projects | {model.Projects.Length} |");
         sb.AppendLine($"| Nodes | {graph.NodeCount} |");
         sb.AppendLine($"| Edges | {graph.EdgeCount} |");
+        var serviceLinkCount = graph.AllEdges.Count(e => e.Kind == EdgeKind.ServiceLink);
+        if (serviceLinkCount > 0)
+            sb.AppendLine($"| ServiceLinks | {serviceLinkCount} |");
         sb.AppendLine($"| Entries | {entries.Length} |");
         sb.AppendLine($"| With target | {withTarget}/{entries.Length} |");
 

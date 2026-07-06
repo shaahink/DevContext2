@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace DevContext.Core.Graph;
 
 /// <summary>How control transferred into a trace step — the human-facing label for an <see cref="EdgeKind"/>.</summary>
-public enum SeamKind { Entry, Call, Send, Handle, Raise, Consume, Data, Resolve, Pipeline }
+public enum SeamKind { Entry, Call, Send, Handle, Raise, Consume, Data, Resolve, Pipeline, CrossService }
 
 /// <summary>One node in an entry-rooted trace tree.</summary>
 public sealed record TraceStep(
@@ -55,6 +55,7 @@ public sealed record TraceOptions
     [
         EdgeKind.Sends, EdgeKind.Handles, EdgeKind.Calls, EdgeKind.Raises,
         EdgeKind.Consumes, EdgeKind.ReadsWrites, EdgeKind.Resolves,
+        EdgeKind.ServiceLink,
     ];
 }
 
@@ -451,6 +452,7 @@ public sealed class TraceBuilder
         EdgeKind.ReadsWrites => SeamKind.Data,
         EdgeKind.Resolves => SeamKind.Resolve,
         EdgeKind.WrappedBy => SeamKind.Pipeline,
+        EdgeKind.ServiceLink => SeamKind.CrossService,
         _ => SeamKind.Call,
     };
 

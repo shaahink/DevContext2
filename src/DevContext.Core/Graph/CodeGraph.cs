@@ -133,6 +133,8 @@ public sealed record GraphEdge(
     public Resolution Resolution { get; init; } = Resolution.Join;
     /// <summary>0..1 confidence.</summary>
     public float Confidence { get; init; } = 1.0f;
+    /// <summary>Free-form labels for sub-classification (e.g. ServiceLinkTags.BusPublishConsume).</summary>
+    public ImmutableArray<string> Tags { get; init; } = [];
     /// <summary>When >1, how many DI implementations exist for this Resolves edge's service type
     /// (I1.6 multi-impl honesty). Zero otherwise.</summary>
     public int MultiImplCount { get; init; }
@@ -173,6 +175,8 @@ public sealed class CodeGraph
     public int NodeCount => _nodes.Count;
     /// <summary>Total edge count.</summary>
     public int EdgeCount => _outEdges.Values.Sum(e => e.Length);
+    /// <summary>All edges in the graph (from every node's outgoing adjacency). Lazy, one-allocation.</summary>
+    public IEnumerable<GraphEdge> AllEdges => _outEdges.Values.SelectMany(e => e);
     /// <summary>L3.4 — True when the graph required hub-scoping because normal call-edge binding produced
     /// too few edges (entries &lt; 5 or edge/node ratio &lt; 0.1). Reported honestly in Stats.</summary>
     public bool IsSparseGraph { get; init; }

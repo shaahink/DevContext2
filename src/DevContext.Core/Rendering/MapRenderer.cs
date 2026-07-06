@@ -30,6 +30,7 @@ public static class MapRenderer
         var basePath = ctx.Snapshot.RootPath;
         Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
         Add(sections, "Routes", sb => AppendGatewayRoutes(sb, ctx.Map));
+        Add(sections, "Cross-service", sb => AppendServiceLinks(sb, ctx));
         Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
@@ -127,6 +128,20 @@ public static class MapRenderer
         };
         sb.AppendLine($"STYLE  {map.Style}  (confidence {confidence})");
         sb.AppendLine($"       evidence: {map.StyleEvidence}");
+
+        // M1.9 / D5 — per-service style rollup
+        if (!map.ServiceStyles.IsDefaultOrEmpty)
+        {
+            sb.AppendLine();
+            sb.AppendLine("       per service:");
+            foreach (var svc in map.ServiceStyles)
+            {
+                var stackStr = svc.Stack.Length > 0
+                    ? $" [{string.Join(", ", svc.Stack)}]"
+                    : "";
+                sb.AppendLine($"         {svc.ProjectName}: {svc.Style}{stackStr}");
+            }
+        }
         sb.AppendLine();
     }
 
@@ -189,6 +204,61 @@ public static class MapRenderer
             sb.AppendLine($"   … and {omitted} more routes");
         sb.AppendLine();
     }
+
+    /// <summary>Renders ServiceLink edges — cross-project seams between runnable services
+    /// (bus, gRPC, HTTP via gateway). M1.6-M1.8.</summary>
+    private static void AppendServiceLinks(StringBuilder sb, MapRenderContext ctx)
+    {
+        var graph = ctx.Snapshot.Graph;
+        if (graph is null) return;
+
+        var serviceLinks = graph.AllEdges
+            .Where(e => e.Kind == EdgeKind.ServiceLink)
+            .ToList();
+        if (serviceLinks.Count == 0) return;
+
+        var byTag = serviceLinks
+            .GroupBy(e => e.Tags.FirstOrDefault() ?? "unknown")
+            .ToList();
+
+        sb.AppendLine("CROSS-SERVICE");
+        foreach (var group in byTag.OrderBy(g => g.Key))
+        {
+            var label = group.Key switch
+            {
+                ServiceLinkTags.BusPublishConsume => "bus",
+                ServiceLinkTags.Grpc => "gRPC",
+                ServiceLinkTags.HttpViaGateway => "http/via gateway",
+                ServiceLinkTags.RefitDirect => "refit/direct",
+                _ => group.Key,
+            };
+            sb.AppendLine($"  {label} ({group.Count()})");
+        }
+
+        // List individual links with provenance
+        foreach (var sl in serviceLinks.OrderBy(e => TagsLabel(e.Tags)).ThenBy(e => e.Provenance))
+        {
+            var tag = sl.Tags.FirstOrDefault() switch
+            {
+                ServiceLinkTags.BusPublishConsume => "bus",
+                ServiceLinkTags.Grpc => "gRPC",
+                ServiceLinkTags.HttpViaGateway => "http",
+                ServiceLinkTags.RefitDirect => "refit",
+                _ => "?",
+            };
+            var fromNode = graph.Node(sl.From);
+            var toNode = graph.Node(sl.To);
+            var fromName = fromNode?.Title ?? sl.From.ToString();
+            var toName = toNode?.Title ?? sl.To.ToString();
+            sb.Append($"    [{tag}] {fromName} → {toName}");
+            if (sl.Provenance is { Length: > 0 } prov)
+                sb.Append($"  ({prov})");
+            sb.AppendLine();
+        }
+        sb.AppendLine();
+    }
+
+    private static string TagsLabel(ImmutableArray<string> tags) => tags.FirstOrDefault() ?? "z-unknown";
 
     private static void AppendEntryPoints(StringBuilder sb, MapModel map, string? basePath)
     {

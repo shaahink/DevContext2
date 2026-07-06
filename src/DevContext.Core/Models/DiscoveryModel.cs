@@ -19,6 +19,9 @@ public sealed class DiscoveryModel
     public float StyleConfidence { get; internal set; }
     /// <summary>Indicates which detector or signal identified the architecture style.</summary>
     public string? StyleDetectedVia { get; internal set; }
+    /// <summary>Per-service (runnable-project) style assessment. M1.9 / D5 — one entry per
+    /// runnable web service, each carrying its local style + stack tags.</summary>
+    public ImmutableArray<PerServiceStyle> PerServiceStyles { get; internal set; } = [];
     /// <summary>The detected codebase archetype ("App" or "Library"), set at graph-assembly time.</summary>
     public string? Archetype { get; internal set; }
     /// <summary>All discovered types, keyed by fully qualified name.</summary>
@@ -55,4 +58,12 @@ public sealed record SolutionInfo(
     string FilePath,
     string Name,
     ImmutableArray<string> ProjectPaths
+);
+
+/// <summary>Per-service (runnable project) style assessment. M1.9 / D5 — each runnable web service
+/// gets one entry with its local architecture style and stack tags.</summary>
+public sealed record PerServiceStyle(
+    string ProjectName,
+    string Style,
+    ImmutableArray<string> Stack
 );

@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file devcontext/v1/devcontext.proto.
  */
 export const file_devcontext_v1_devcontext: GenFile = /*@__PURE__*/
-  fileDesc("Ch5kZXZjb250ZXh0L3YxL2RldmNvbnRleHQucHJvdG8SDWRldmNvbnRleHQudjEirwEKDkFuYWx5emVSZXF1ZXN0EgwKBHBhdGgYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEhEKCW5vX3Jvc2x5bhgFIAEoCBIUCgdjbGVhbnVwGAYgASgJSAOIAQFCCAoGX2ZvY3VzQggKBl9kZXB0aEIJCgdfZGV0YWlsQgoKCF9jbGVhbnVwIqcBCgxBbmFseXplRXZlbnQSMAoIcHJvZ3Jlc3MYASABKAsyHC5kZXZjb250ZXh0LnYxLlByb2dyZXNzRXZlbnRIABIuCgZyZXN1bHQYAiABKAsyHC5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXN1bHRIABIsCgVlcnJvchgDIAEoCzIbLmRldmNvbnRleHQudjEuQW5hbHl6ZUVycm9ySABCBwoFZXZlbnQiQAoNUHJvZ3Jlc3NFdmVudBINCgVzdGFnZRgBIAEoCRIPCgdwZXJjZW50GAIgASgBEg8KB21lc3NhZ2UYAyABKAkiUAoNQW5hbHl6ZVJlc3VsdBIOCgZoYW5kbGUYASABKAkSLwoHc3VtbWFyeRgCIAEoCzIeLmRldmNvbnRleHQudjEuQW5hbHlzaXNTdW1tYXJ5Ii0KDEFuYWx5emVFcnJvchIPCgdtZXNzYWdlGAEgASgJEgwKBGNvZGUYAiABKAkihgIKD0FuYWx5c2lzU3VtbWFyeRINCgVsYWJlbBgBIAEoCRIQCghwcm9qZWN0cxgCIAEoBRINCgVub2RlcxgDIAEoBRINCgVlZGdlcxgEIAEoBRIPCgdlbnRyaWVzGAUgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBiABKAUSEgoKZWxhcHNlZF9tcxgHIAEoAxITCgtleHBsYW5hdGlvbhgIIAEoCRIQCgh3YXJuaW5ncxgJIAMoCRISCgppc19saWJyYXJ5GAogASgIEhEKCWFyY2hldHlwZRgLIAEoCRINCgVzdGFsZRgMIAEoCBIVCg1zdGFsZV9tZXNzYWdlGA0gASgJIiAKDlNlc3Npb25SZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCSIfCg1DbG9zZVJlc3BvbnNlEg4KBmNsb3NlZBgBIAEoCCJGChNFbnRyeVBvaW50c1Jlc3BvbnNlEi8KDGVudHJ5X3BvaW50cxgBIAMoCzIZLmRldmNvbnRleHQudjEuRW50cnlQb2ludCLjAgoKRW50cnlQb2ludBIMCgRraW5kGAEgASgJEg0KBXRpdGxlGAIgASgJEg8KB25vZGVfaWQYAyABKAkSGAoLaHR0cF9tZXRob2QYBCABKAlIAIgBARISCgVyb3V0ZRgFIAEoCUgBiAEBEhcKCnByb3ZlbmFuY2UYBiABKAlIAogBARIUCgdwcm9qZWN0GAcgASgJSAOIAQESEwoGdGFyZ2V0GAggASgJSASIAQESFwoKZ3JvdXBfcGF0aBgJIAEoCUgFiAEBEhcKD2F1dGhfYXR0cmlidXRlcxgKIAMoCRINCgVzY29yZRgLIAEoARINCgVyZWFjaBgMIAEoBRIWCg5jcm9zc19wcm9qZWN0cxgNIAEoBUIOCgxfaHR0cF9tZXRob2RCCAoGX3JvdXRlQg0KC19wcm92ZW5hbmNlQgoKCF9wcm9qZWN0QgkKB190YXJnZXRCDQoLX2dyb3VwX3BhdGgiqgMKC01hcFJlc3BvbnNlEhAKCG1hcmtkb3duGAEgASgJEg0KBXN0eWxlGAIgASgJEhgKEHN0eWxlX2NvbmZpZGVuY2UYAyABKAESGwoOc3R5bGVfZXZpZGVuY2UYBCABKAlIAIgBARIXCgpzY29wZV9ub3RlGAUgASgJSAGIAQESEQoJYXJjaGV0eXBlGAYgASgJEhIKCmlzX2xpYnJhcnkYByABKAgSFQoNcHJvamVjdF9jb3VudBgIIAEoBRIsCgh0b3BvbG9neRgJIAMoCzIaLmRldmNvbnRleHQudjEuUHJvamVjdE5vZGUSLQoIcGFja2FnZXMYCiADKAsyGy5kZXZjb250ZXh0LnYxLlBhY2thZ2VHcm91cBISCgphZ2dyZWdhdGVzGAsgAygJEhoKEnBpcGVsaW5lX2JlaGF2aW9ycxgMIAMoCRINCgVzdGFjaxgNIAMoCRIuCgdzdXJmYWNlGA4gASgLMh0uZGV2Y29udGV4dC52MS5MaWJyYXJ5U3VyZmFjZUIRCg9fc3R5bGVfZXZpZGVuY2VCDQoLX3Njb3BlX25vdGUiLwoLUHJvamVjdE5vZGUSDAoEbmFtZRgBIAEoCRISCgpkZXBlbmRzX29uGAIgAygJIi8KDFBhY2thZ2VHcm91cBINCgVsYWJlbBgBIAEoCRIQCghwYWNrYWdlcxgCIAMoCSJXCg5MaWJyYXJ5U3VyZmFjZRIrCgZncm91cHMYASADKAsyGy5kZXZjb250ZXh0LnYxLlN1cmZhY2VHcm91cBIYChBleHRlbnNpb25fcG9pbnRzGAIgAygJIkwKDFN1cmZhY2VHcm91cBIRCgluYW1lc3BhY2UYASABKAkSKQoFdHlwZXMYAiADKAsyGi5kZXZjb250ZXh0LnYxLlN1cmZhY2VUeXBlIjoKC1N1cmZhY2VUeXBlEgwKBG5hbWUYASABKAkSDAoEa2luZBgCIAEoCRIPCgdtZW1iZXJzGAMgAygJImsKDFRyYWNlUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDQoFZm9jdXMYAiABKAkSEgoFZGVwdGgYAyABKAVIAIgBARITCgZkZXRhaWwYBCABKAlIAYgBAUIICgZfZGVwdGhCCQoHX2RldGFpbCKKAQoNVHJhY2VSZXNwb25zZRINCgVmb3VuZBgBIAEoCBIQCghtYXJrZG93bhgCIAEoCRImCgRyb290GAMgASgLMhguZGV2Y29udGV4dC52MS5UcmFjZU5vZGUSGAoQdG91Y2hlZF9lbnRpdGllcxgEIAMoCRIWCg5lbWl0dGVkX2V2ZW50cxgFIAMoCSKkAgoJVHJhY2VOb2RlEg8KB25vZGVfaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDAoEa2luZBgDIAEoCRIMCgRzZWFtGAQgASgJEg0KBWRlcHRoGAUgASgFEhcKCnByb3ZlbmFuY2UYBiABKAlIAIgBARISCgpyZXNvbHV0aW9uGAcgASgJEhEKCXRydW5jYXRlZBgIIAEoCBIPCgdvbWl0dGVkGAkgASgFEhQKB3NhbGllbnQYCiABKAlIAYgBARIMCgR0YWdzGAsgAygJEhAKCHBpcGVsaW5lGAwgAygJEioKCGNoaWxkcmVuGA0gAygLMhguZGV2Y29udGV4dC52MS5UcmFjZU5vZGVCDQoLX3Byb3ZlbmFuY2VCCgoIX3NhbGllbnQiLgoLTm9kZVJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg8KB25vZGVfaWQYAiABKAki0AEKDE5vZGVSZXNwb25zZRINCgVmb3VuZBgBIAEoCBIPCgdub2RlX2lkGAIgASgJEg0KBXRpdGxlGAMgASgJEgwKBGtpbmQYBCABKAkSDAoEdGFncxgFIAMoCRIWCglmaWxlX3BhdGgYBiABKAlIAIgBARISCgpvdXRfZGVncmVlGAcgASgFEhEKCWluX2RlZ3JlZRgIIAEoBRIYCgtsaW5lX251bWJlchgJIAEoBUgBiAEBQgwKCl9maWxlX3BhdGhCDgoMX2xpbmVfbnVtYmVyIkYKEE5laWdoYm9yc1JlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg8KB25vZGVfaWQYAiABKAkSEQoJZGlyZWN0aW9uGAMgASgJIjcKEU5laWdoYm9yc1Jlc3BvbnNlEiIKBWVkZ2VzGAEgAygLMhMuZGV2Y29udGV4dC52MS5FZGdlIn8KBEVkZ2USDAoEZnJvbRgBIAEoCRIKCgJ0bxgCIAEoCRIMCgRraW5kGAMgASgJEhIKCnJlc29sdXRpb24YBCABKAkSFwoKcHJvdmVuYW5jZRgFIAEoCUgAiAEBEhMKC290aGVyX3RpdGxlGAYgASgJQg0KC19wcm92ZW5hbmNlIj0KDVNlYXJjaFJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg0KBXF1ZXJ5GAIgASgJEg0KBWxpbWl0GAMgASgFIjcKDlNlYXJjaFJlc3BvbnNlEiUKBW5vZGVzGAEgAygLMhYuZGV2Y29udGV4dC52MS5Ob2RlUmVmIkUKB05vZGVSZWYSDwoHbm9kZV9pZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIMCgRraW5kGAMgASgJEgwKBHRhZ3MYBCADKAkiuAMKDVN0YXRzUmVzcG9uc2USKAoGc3RhZ2VzGAEgAygLMhguZGV2Y29udGV4dC52MS5TdGFnZVN0YXQSMAoKZXh0cmFjdG9ycxgCIAMoCzIcLmRldmNvbnRleHQudjEuRXh0cmFjdG9yU3RhdBImCgVzZWFtcxgDIAMoCzIXLmRldmNvbnRleHQudjEuU2VhbVN0YXQSKQoGY29ycHVzGAQgASgLMhkuZGV2Y29udGV4dC52MS5Db3JwdXNTdGF0EicKBWNhY2hlGAUgASgLMhguZGV2Y29udGV4dC52MS5DYWNoZVN0YXQSJwoFZ3JhcGgYBiABKAsyGC5kZXZjb250ZXh0LnYxLkdyYXBoU3RhdBIpCgZmdW5uZWwYByABKAsyGS5kZXZjb250ZXh0LnYxLkZ1bm5lbFN0YXQSFQoNdG90YWxfd2FsbF9tcxgIIAEoAxIoCghpbnNpZ2h0cxgJIAMoCzIWLmRldmNvbnRleHQudjEuSW5zaWdodBI6ChFjb25maWRlbmNlX2xlZGdlchgKIAEoCzIfLmRldmNvbnRleHQudjEuQ29uZmlkZW5jZUxlZGdlciK8AgoQQ29uZmlkZW5jZUxlZGdlchIPCgdvdmVyYWxsGAEgASgBEhkKEXZlcmlmaWVkX2VkZ2VfcGN0GAIgASgBEhcKD2FwcHJveF9lZGdlX3BjdBgDIAEoARITCgt0b3RhbF9lZGdlcxgEIAEoBRIvCghwZXJfc2VhbRgFIAMoCzIdLmRldmNvbnRleHQudjEuU2VhbUNvbmZpZGVuY2USGQoRYXV0aF9jb3ZlcmFnZV9wY3QYBiABKAESGwoTZW5kcG9pbnRzX3dpdGhfYXV0aBgHIAEoBRIXCg90b3RhbF9lbmRwb2ludHMYCCABKAUSGAoQZW50cnlfdGFyZ2V0X3BjdBgJIAEoARIbChNlbnRyaWVzX3dpdGhfdGFyZ2V0GAogASgFEhUKDXRvdGFsX2VudHJpZXMYCyABKAUiTwoOU2VhbUNvbmZpZGVuY2USDAoEc2VhbRgBIAEoCRINCgV0b3RhbBgCIAEoBRIQCgh2ZXJpZmllZBgDIAEoBRIOCgZhcHByb3gYBCABKAUioAIKB0luc2lnaHQSCgoCaWQYASABKAkSEAoIY2F0ZWdvcnkYAiABKAkSEAoIc2V2ZXJpdHkYAyABKAkSDQoFdGl0bGUYBCABKAkSDgoGZGV0YWlsGAUgASgJEhAKCGV2aWRlbmNlGAYgAygJEhIKCmNvbmZpZGVuY2UYByABKAESHQoQY29uZmlkZW5jZV9iYXNpcxgIIAEoCUgAiAEBEhsKDndoeV9pdF9tYXR0ZXJzGAkgASgJSAGIAQESDgoGYWN0aW9uGAogASgJEhoKDWFjdGlvbl90YXJnZXQYCyABKAlIAogBAUITChFfY29uZmlkZW5jZV9iYXNpc0IRCg9fd2h5X2l0X21hdHRlcnNCEAoOX2FjdGlvbl90YXJnZXQiLgoJU3RhZ2VTdGF0Eg0KBXN0YWdlGAEgASgJEhIKCmVsYXBzZWRfbXMYAiABKAMiqQEKDUV4dHJhY3RvclN0YXQSDAoEbmFtZRgBIAEoCRISCgplbGFwc2VkX21zGAIgASgDEhMKC3R5cGVzX2FkZGVkGAMgASgFEhgKEGRldGVjdGlvbnNfYWRkZWQYBCABKAUSDwoHc2tpcHBlZBgFIAEoCBIYCgtza2lwX3JlYXNvbhgGIAEoCUgAiAEBEgwKBHRpZXIYByABKAlCDgoMX3NraXBfcmVhc29uIjcKCFNlYW1TdGF0EgwKBHNlYW0YASABKAkSDQoFY291bnQYAiABKAUSDgoGYXBwcm94GAMgASgFIkkKCkNvcnB1c1N0YXQSEwoLdG90YWxfZmlsZXMYASABKAUSFAoMY3NoYXJwX2ZpbGVzGAIgASgFEhAKCHByb2plY3RzGAMgASgFImkKCUNhY2hlU3RhdBIRCgl0ZXh0X2hpdHMYASABKAUSEwoLdGV4dF9taXNzZXMYAiABKAUSGAoQc3ludGF4X3RyZWVfaGl0cxgDIAEoBRIaChJzeW50YXhfdHJlZV9taXNzZXMYBCABKAUihgEKCUdyYXBoU3RhdBINCgVub2RlcxgBIAEoBRINCgVlZGdlcxgCIAEoBRIPCgdlbnRyaWVzGAMgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBCABKAUSFAoMc3BhcnNlX2dyYXBoGAUgASgIEhcKD2h1Yl9zY29wZV9ub2RlcxgGIAEoBSJ7CgpGdW5uZWxTdGF0EhgKEHR5cGVzX2Rpc2NvdmVyZWQYASABKAUSFgoOdHlwZXNfaW5jbHVkZWQYAiABKAUSEgoKcmF3X3Rva2VucxgDIAEoBRIXCg9yZW5kZXJlZF90b2tlbnMYBCABKAUSDgoGYnVkZ2V0GAUgASgFIroBCg1SZW5kZXJSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRISCgVmb2N1cxgCIAEoCUgAiAEBEhIKBWRlcHRoGAMgASgFSAGIAQESEwoGZGV0YWlsGAQgASgJSAKIAQESDgoGZm9ybWF0GAUgASgJEhAKCHNlY3Rpb25zGAYgAygJEhsKE2luY2x1ZGVfZGlhZ25vc3RpY3MYByABKAhCCAoGX2ZvY3VzQggKBl9kZXB0aEIJCgdfZGV0YWlsInkKDlJlbmRlclJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAkSDgoGZm9ybWF0GAIgASgJEhgKEGVzdGltYXRlZF90b2tlbnMYAyABKAUSLAoIc2VjdGlvbnMYBCADKAsyGi5kZXZjb250ZXh0LnYxLlNlY3Rpb25JbmZvIioKC1NlY3Rpb25JbmZvEgsKA2tleRgBIAEoCRIOCgZ0b2tlbnMYAiABKAUiQwoNSW1wYWN0UmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDwoHbm9kZV9pZBgCIAEoCRIRCgltYXhfZGVwdGgYAyABKAUiPgoOSW1wYWN0UmVzcG9uc2USLAoHcmVzdWx0cxgBIAMoCzIbLmRldmNvbnRleHQudjEuSW1wYWN0UmVzdWx0Ij8KDEltcGFjdFJlc3VsdBITCgtlbnRyeV90aXRsZRgBIAEoCRIMCgRraW5kGAIgASgJEgwKBGhvcHMYAyABKAUiUAoYSW50ZXJlc3RpbmdQb2ludHNSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRIWCglhcmNoZXR5cGUYAiABKAlIAIgBAUIMCgpfYXJjaGV0eXBlIkwKGUludGVyZXN0aW5nUG9pbnRzUmVzcG9uc2USLwoGcG9pbnRzGAEgAygLMh8uZGV2Y29udGV4dC52MS5JbnRlcmVzdGluZ1BvaW50IlsKEEludGVyZXN0aW5nUG9pbnQSDwoHbm9kZV9pZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIMCgRraW5kGAMgASgJEgsKA3doeRgEIAEoCRIMCgR0YWdzGAUgAygJIn0KDkNvbnRleHRSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRINCgVmb2N1cxgCIAEoCRIaCg1idWRnZXRfdG9rZW5zGAMgASgFSACIAQESEwoGaW50ZW50GAQgASgJSAGIAQFCEAoOX2J1ZGdldF90b2tlbnNCCQoHX2ludGVudCKHAQoPQ29udGV4dFJlc3BvbnNlEg0KBWZvdW5kGAEgASgIEg0KBWZvY3VzGAIgASgJEhQKDHRvdGFsX3Rva2VucxgDIAEoBRIvCghzZWN0aW9ucxgEIAMoCzIdLmRldmNvbnRleHQudjEuQ29udGV4dFNlY3Rpb24SDwoHb21pdHRlZBgFIAMoCSI+Cg5Db250ZXh0U2VjdGlvbhILCgNrZXkYASABKAkSDgoGdG9rZW5zGAIgASgFEg8KB2NvbnRlbnQYAyABKAkiDQoLUGluZ1JlcXVlc3QiLgoMUGluZ1Jlc3BvbnNlEg8KB3ZlcnNpb24YASABKAkSDQoFcmVhZHkYAiABKAgywQgKEURldkNvbnRleHRTZXJ2aWNlEkcKB0FuYWx5emUSHS5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXF1ZXN0GhsuZGV2Y29udGV4dC52MS5BbmFseXplRXZlbnQwARJLCgxDbG9zZVNlc3Npb24SHS5kZXZjb250ZXh0LnYxLlNlc3Npb25SZXF1ZXN0GhwuZGV2Y29udGV4dC52MS5DbG9zZVJlc3BvbnNlElQKD0xpc3RFbnRyeVBvaW50cxIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaIi5kZXZjb250ZXh0LnYxLkVudHJ5UG9pbnRzUmVzcG9uc2USQwoGR2V0TWFwEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBoaLmRldmNvbnRleHQudjEuTWFwUmVzcG9uc2USRQoIR2V0VHJhY2USGy5kZXZjb250ZXh0LnYxLlRyYWNlUmVxdWVzdBocLmRldmNvbnRleHQudjEuVHJhY2VSZXNwb25zZRJCCgdHZXROb2RlEhouZGV2Y29udGV4dC52MS5Ob2RlUmVxdWVzdBobLmRldmNvbnRleHQudjEuTm9kZVJlc3BvbnNlElEKDEdldE5laWdoYm9ycxIfLmRldmNvbnRleHQudjEuTmVpZ2hib3JzUmVxdWVzdBogLmRldmNvbnRleHQudjEuTmVpZ2hib3JzUmVzcG9uc2USSgoLU2VhcmNoTm9kZXMSHC5kZXZjb250ZXh0LnYxLlNlYXJjaFJlcXVlc3QaHS5kZXZjb250ZXh0LnYxLlNlYXJjaFJlc3BvbnNlEkcKCEdldFN0YXRzEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBocLmRldmNvbnRleHQudjEuU3RhdHNSZXNwb25zZRJFCgZSZW5kZXISHC5kZXZjb250ZXh0LnYxLlJlbmRlclJlcXVlc3QaHS5kZXZjb250ZXh0LnYxLlJlbmRlclJlc3BvbnNlEj8KBFBpbmcSGi5kZXZjb250ZXh0LnYxLlBpbmdSZXF1ZXN0GhsuZGV2Y29udGV4dC52MS5QaW5nUmVzcG9uc2USSAoJR2V0SW1wYWN0EhwuZGV2Y29udGV4dC52MS5JbXBhY3RSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5JbXBhY3RSZXNwb25zZRJpChRHZXRJbnRlcmVzdGluZ1BvaW50cxInLmRldmNvbnRleHQudjEuSW50ZXJlc3RpbmdQb2ludHNSZXF1ZXN0GiguZGV2Y29udGV4dC52MS5JbnRlcmVzdGluZ1BvaW50c1Jlc3BvbnNlEksKCkdldENvbnRleHQSHS5kZXZjb250ZXh0LnYxLkNvbnRleHRSZXF1ZXN0Gh4uZGV2Y29udGV4dC52MS5Db250ZXh0UmVzcG9uc2VCFKoCEURldkNvbnRleHQuUHJvdG9zYgZwcm90bzM");
+  fileDesc("Ch5kZXZjb250ZXh0L3YxL2RldmNvbnRleHQucHJvdG8SDWRldmNvbnRleHQudjEirwEKDkFuYWx5emVSZXF1ZXN0EgwKBHBhdGgYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEhEKCW5vX3Jvc2x5bhgFIAEoCBIUCgdjbGVhbnVwGAYgASgJSAOIAQFCCAoGX2ZvY3VzQggKBl9kZXB0aEIJCgdfZGV0YWlsQgoKCF9jbGVhbnVwIqcBCgxBbmFseXplRXZlbnQSMAoIcHJvZ3Jlc3MYASABKAsyHC5kZXZjb250ZXh0LnYxLlByb2dyZXNzRXZlbnRIABIuCgZyZXN1bHQYAiABKAsyHC5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXN1bHRIABIsCgVlcnJvchgDIAEoCzIbLmRldmNvbnRleHQudjEuQW5hbHl6ZUVycm9ySABCBwoFZXZlbnQiQAoNUHJvZ3Jlc3NFdmVudBINCgVzdGFnZRgBIAEoCRIPCgdwZXJjZW50GAIgASgBEg8KB21lc3NhZ2UYAyABKAkiUAoNQW5hbHl6ZVJlc3VsdBIOCgZoYW5kbGUYASABKAkSLwoHc3VtbWFyeRgCIAEoCzIeLmRldmNvbnRleHQudjEuQW5hbHlzaXNTdW1tYXJ5Ii0KDEFuYWx5emVFcnJvchIPCgdtZXNzYWdlGAEgASgJEgwKBGNvZGUYAiABKAkihgIKD0FuYWx5c2lzU3VtbWFyeRINCgVsYWJlbBgBIAEoCRIQCghwcm9qZWN0cxgCIAEoBRINCgVub2RlcxgDIAEoBRINCgVlZGdlcxgEIAEoBRIPCgdlbnRyaWVzGAUgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBiABKAUSEgoKZWxhcHNlZF9tcxgHIAEoAxITCgtleHBsYW5hdGlvbhgIIAEoCRIQCgh3YXJuaW5ncxgJIAMoCRISCgppc19saWJyYXJ5GAogASgIEhEKCWFyY2hldHlwZRgLIAEoCRINCgVzdGFsZRgMIAEoCBIVCg1zdGFsZV9tZXNzYWdlGA0gASgJIiAKDlNlc3Npb25SZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCSIfCg1DbG9zZVJlc3BvbnNlEg4KBmNsb3NlZBgBIAEoCCJGChNFbnRyeVBvaW50c1Jlc3BvbnNlEi8KDGVudHJ5X3BvaW50cxgBIAMoCzIZLmRldmNvbnRleHQudjEuRW50cnlQb2ludCLjAgoKRW50cnlQb2ludBIMCgRraW5kGAEgASgJEg0KBXRpdGxlGAIgASgJEg8KB25vZGVfaWQYAyABKAkSGAoLaHR0cF9tZXRob2QYBCABKAlIAIgBARISCgVyb3V0ZRgFIAEoCUgBiAEBEhcKCnByb3ZlbmFuY2UYBiABKAlIAogBARIUCgdwcm9qZWN0GAcgASgJSAOIAQESEwoGdGFyZ2V0GAggASgJSASIAQESFwoKZ3JvdXBfcGF0aBgJIAEoCUgFiAEBEhcKD2F1dGhfYXR0cmlidXRlcxgKIAMoCRINCgVzY29yZRgLIAEoARINCgVyZWFjaBgMIAEoBRIWCg5jcm9zc19wcm9qZWN0cxgNIAEoBUIOCgxfaHR0cF9tZXRob2RCCAoGX3JvdXRlQg0KC19wcm92ZW5hbmNlQgoKCF9wcm9qZWN0QgkKB190YXJnZXRCDQoLX2dyb3VwX3BhdGgi3wMKC01hcFJlc3BvbnNlEhAKCG1hcmtkb3duGAEgASgJEg0KBXN0eWxlGAIgASgJEhgKEHN0eWxlX2NvbmZpZGVuY2UYAyABKAESGwoOc3R5bGVfZXZpZGVuY2UYBCABKAlIAIgBARIXCgpzY29wZV9ub3RlGAUgASgJSAGIAQESEQoJYXJjaGV0eXBlGAYgASgJEhIKCmlzX2xpYnJhcnkYByABKAgSFQoNcHJvamVjdF9jb3VudBgIIAEoBRIsCgh0b3BvbG9neRgJIAMoCzIaLmRldmNvbnRleHQudjEuUHJvamVjdE5vZGUSLQoIcGFja2FnZXMYCiADKAsyGy5kZXZjb250ZXh0LnYxLlBhY2thZ2VHcm91cBISCgphZ2dyZWdhdGVzGAsgAygJEhoKEnBpcGVsaW5lX2JlaGF2aW9ycxgMIAMoCRINCgVzdGFjaxgNIAMoCRIuCgdzdXJmYWNlGA4gASgLMh0uZGV2Y29udGV4dC52MS5MaWJyYXJ5U3VyZmFjZRIzCg5zZXJ2aWNlX3N0eWxlcxgPIAMoCzIbLmRldmNvbnRleHQudjEuU2VydmljZVN0eWxlQhEKD19zdHlsZV9ldmlkZW5jZUINCgtfc2NvcGVfbm90ZSIvCgtQcm9qZWN0Tm9kZRIMCgRuYW1lGAEgASgJEhIKCmRlcGVuZHNfb24YAiADKAkiLwoMUGFja2FnZUdyb3VwEg0KBWxhYmVsGAEgASgJEhAKCHBhY2thZ2VzGAIgAygJIkIKDFNlcnZpY2VTdHlsZRIUCgxwcm9qZWN0X25hbWUYASABKAkSDQoFc3R5bGUYAiABKAkSDQoFc3RhY2sYAyADKAkiVwoOTGlicmFyeVN1cmZhY2USKwoGZ3JvdXBzGAEgAygLMhsuZGV2Y29udGV4dC52MS5TdXJmYWNlR3JvdXASGAoQZXh0ZW5zaW9uX3BvaW50cxgCIAMoCSJMCgxTdXJmYWNlR3JvdXASEQoJbmFtZXNwYWNlGAEgASgJEikKBXR5cGVzGAIgAygLMhouZGV2Y29udGV4dC52MS5TdXJmYWNlVHlwZSI6CgtTdXJmYWNlVHlwZRIMCgRuYW1lGAEgASgJEgwKBGtpbmQYAiABKAkSDwoHbWVtYmVycxgDIAMoCSJrCgxUcmFjZVJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg0KBWZvY3VzGAIgASgJEhIKBWRlcHRoGAMgASgFSACIAQESEwoGZGV0YWlsGAQgASgJSAGIAQFCCAoGX2RlcHRoQgkKB19kZXRhaWwiigEKDVRyYWNlUmVzcG9uc2USDQoFZm91bmQYASABKAgSEAoIbWFya2Rvd24YAiABKAkSJgoEcm9vdBgDIAEoCzIYLmRldmNvbnRleHQudjEuVHJhY2VOb2RlEhgKEHRvdWNoZWRfZW50aXRpZXMYBCADKAkSFgoOZW1pdHRlZF9ldmVudHMYBSADKAkipAIKCVRyYWNlTm9kZRIPCgdub2RlX2lkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBGtpbmQYAyABKAkSDAoEc2VhbRgEIAEoCRINCgVkZXB0aBgFIAEoBRIXCgpwcm92ZW5hbmNlGAYgASgJSACIAQESEgoKcmVzb2x1dGlvbhgHIAEoCRIRCgl0cnVuY2F0ZWQYCCABKAgSDwoHb21pdHRlZBgJIAEoBRIUCgdzYWxpZW50GAogASgJSAGIAQESDAoEdGFncxgLIAMoCRIQCghwaXBlbGluZRgMIAMoCRIqCghjaGlsZHJlbhgNIAMoCzIYLmRldmNvbnRleHQudjEuVHJhY2VOb2RlQg0KC19wcm92ZW5hbmNlQgoKCF9zYWxpZW50Ii4KC05vZGVSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRIPCgdub2RlX2lkGAIgASgJItABCgxOb2RlUmVzcG9uc2USDQoFZm91bmQYASABKAgSDwoHbm9kZV9pZBgCIAEoCRINCgV0aXRsZRgDIAEoCRIMCgRraW5kGAQgASgJEgwKBHRhZ3MYBSADKAkSFgoJZmlsZV9wYXRoGAYgASgJSACIAQESEgoKb3V0X2RlZ3JlZRgHIAEoBRIRCglpbl9kZWdyZWUYCCABKAUSGAoLbGluZV9udW1iZXIYCSABKAVIAYgBAUIMCgpfZmlsZV9wYXRoQg4KDF9saW5lX251bWJlciJGChBOZWlnaGJvcnNSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRIPCgdub2RlX2lkGAIgASgJEhEKCWRpcmVjdGlvbhgDIAEoCSI3ChFOZWlnaGJvcnNSZXNwb25zZRIiCgVlZGdlcxgBIAMoCzITLmRldmNvbnRleHQudjEuRWRnZSJ/CgRFZGdlEgwKBGZyb20YASABKAkSCgoCdG8YAiABKAkSDAoEa2luZBgDIAEoCRISCgpyZXNvbHV0aW9uGAQgASgJEhcKCnByb3ZlbmFuY2UYBSABKAlIAIgBARITCgtvdGhlcl90aXRsZRgGIAEoCUINCgtfcHJvdmVuYW5jZSI9Cg1TZWFyY2hSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRINCgVxdWVyeRgCIAEoCRINCgVsaW1pdBgDIAEoBSI3Cg5TZWFyY2hSZXNwb25zZRIlCgVub2RlcxgBIAMoCzIWLmRldmNvbnRleHQudjEuTm9kZVJlZiJFCgdOb2RlUmVmEg8KB25vZGVfaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDAoEa2luZBgDIAEoCRIMCgR0YWdzGAQgAygJIrgDCg1TdGF0c1Jlc3BvbnNlEigKBnN0YWdlcxgBIAMoCzIYLmRldmNvbnRleHQudjEuU3RhZ2VTdGF0EjAKCmV4dHJhY3RvcnMYAiADKAsyHC5kZXZjb250ZXh0LnYxLkV4dHJhY3RvclN0YXQSJgoFc2VhbXMYAyADKAsyFy5kZXZjb250ZXh0LnYxLlNlYW1TdGF0EikKBmNvcnB1cxgEIAEoCzIZLmRldmNvbnRleHQudjEuQ29ycHVzU3RhdBInCgVjYWNoZRgFIAEoCzIYLmRldmNvbnRleHQudjEuQ2FjaGVTdGF0EicKBWdyYXBoGAYgASgLMhguZGV2Y29udGV4dC52MS5HcmFwaFN0YXQSKQoGZnVubmVsGAcgASgLMhkuZGV2Y29udGV4dC52MS5GdW5uZWxTdGF0EhUKDXRvdGFsX3dhbGxfbXMYCCABKAMSKAoIaW5zaWdodHMYCSADKAsyFi5kZXZjb250ZXh0LnYxLkluc2lnaHQSOgoRY29uZmlkZW5jZV9sZWRnZXIYCiABKAsyHy5kZXZjb250ZXh0LnYxLkNvbmZpZGVuY2VMZWRnZXIivAIKEENvbmZpZGVuY2VMZWRnZXISDwoHb3ZlcmFsbBgBIAEoARIZChF2ZXJpZmllZF9lZGdlX3BjdBgCIAEoARIXCg9hcHByb3hfZWRnZV9wY3QYAyABKAESEwoLdG90YWxfZWRnZXMYBCABKAUSLwoIcGVyX3NlYW0YBSADKAsyHS5kZXZjb250ZXh0LnYxLlNlYW1Db25maWRlbmNlEhkKEWF1dGhfY292ZXJhZ2VfcGN0GAYgASgBEhsKE2VuZHBvaW50c193aXRoX2F1dGgYByABKAUSFwoPdG90YWxfZW5kcG9pbnRzGAggASgFEhgKEGVudHJ5X3RhcmdldF9wY3QYCSABKAESGwoTZW50cmllc193aXRoX3RhcmdldBgKIAEoBRIVCg10b3RhbF9lbnRyaWVzGAsgASgFIk8KDlNlYW1Db25maWRlbmNlEgwKBHNlYW0YASABKAkSDQoFdG90YWwYAiABKAUSEAoIdmVyaWZpZWQYAyABKAUSDgoGYXBwcm94GAQgASgFIqACCgdJbnNpZ2h0EgoKAmlkGAEgASgJEhAKCGNhdGVnb3J5GAIgASgJEhAKCHNldmVyaXR5GAMgASgJEg0KBXRpdGxlGAQgASgJEg4KBmRldGFpbBgFIAEoCRIQCghldmlkZW5jZRgGIAMoCRISCgpjb25maWRlbmNlGAcgASgBEh0KEGNvbmZpZGVuY2VfYmFzaXMYCCABKAlIAIgBARIbCg53aHlfaXRfbWF0dGVycxgJIAEoCUgBiAEBEg4KBmFjdGlvbhgKIAEoCRIaCg1hY3Rpb25fdGFyZ2V0GAsgASgJSAKIAQFCEwoRX2NvbmZpZGVuY2VfYmFzaXNCEQoPX3doeV9pdF9tYXR0ZXJzQhAKDl9hY3Rpb25fdGFyZ2V0Ii4KCVN0YWdlU3RhdBINCgVzdGFnZRgBIAEoCRISCgplbGFwc2VkX21zGAIgASgDIqkBCg1FeHRyYWN0b3JTdGF0EgwKBG5hbWUYASABKAkSEgoKZWxhcHNlZF9tcxgCIAEoAxITCgt0eXBlc19hZGRlZBgDIAEoBRIYChBkZXRlY3Rpb25zX2FkZGVkGAQgASgFEg8KB3NraXBwZWQYBSABKAgSGAoLc2tpcF9yZWFzb24YBiABKAlIAIgBARIMCgR0aWVyGAcgASgJQg4KDF9za2lwX3JlYXNvbiI3CghTZWFtU3RhdBIMCgRzZWFtGAEgASgJEg0KBWNvdW50GAIgASgFEg4KBmFwcHJveBgDIAEoBSJJCgpDb3JwdXNTdGF0EhMKC3RvdGFsX2ZpbGVzGAEgASgFEhQKDGNzaGFycF9maWxlcxgCIAEoBRIQCghwcm9qZWN0cxgDIAEoBSJpCglDYWNoZVN0YXQSEQoJdGV4dF9oaXRzGAEgASgFEhMKC3RleHRfbWlzc2VzGAIgASgFEhgKEHN5bnRheF90cmVlX2hpdHMYAyABKAUSGgoSc3ludGF4X3RyZWVfbWlzc2VzGAQgASgFIoYBCglHcmFwaFN0YXQSDQoFbm9kZXMYASABKAUSDQoFZWRnZXMYAiABKAUSDwoHZW50cmllcxgDIAEoBRIbChNlbnRyaWVzX3dpdGhfdGFyZ2V0GAQgASgFEhQKDHNwYXJzZV9ncmFwaBgFIAEoCBIXCg9odWJfc2NvcGVfbm9kZXMYBiABKAUiewoKRnVubmVsU3RhdBIYChB0eXBlc19kaXNjb3ZlcmVkGAEgASgFEhYKDnR5cGVzX2luY2x1ZGVkGAIgASgFEhIKCnJhd190b2tlbnMYAyABKAUSFwoPcmVuZGVyZWRfdG9rZW5zGAQgASgFEg4KBmJ1ZGdldBgFIAEoBSK6AQoNUmVuZGVyUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEg4KBmZvcm1hdBgFIAEoCRIQCghzZWN0aW9ucxgGIAMoCRIbChNpbmNsdWRlX2RpYWdub3N0aWNzGAcgASgIQggKBl9mb2N1c0IICgZfZGVwdGhCCQoHX2RldGFpbCJ5Cg5SZW5kZXJSZXNwb25zZRIPCgdjb250ZW50GAEgASgJEg4KBmZvcm1hdBgCIAEoCRIYChBlc3RpbWF0ZWRfdG9rZW5zGAMgASgFEiwKCHNlY3Rpb25zGAQgAygLMhouZGV2Y29udGV4dC52MS5TZWN0aW9uSW5mbyIqCgtTZWN0aW9uSW5mbxILCgNrZXkYASABKAkSDgoGdG9rZW5zGAIgASgFIkMKDUltcGFjdFJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg8KB25vZGVfaWQYAiABKAkSEQoJbWF4X2RlcHRoGAMgASgFIj4KDkltcGFjdFJlc3BvbnNlEiwKB3Jlc3VsdHMYASADKAsyGy5kZXZjb250ZXh0LnYxLkltcGFjdFJlc3VsdCI/CgxJbXBhY3RSZXN1bHQSEwoLZW50cnlfdGl0bGUYASABKAkSDAoEa2luZBgCIAEoCRIMCgRob3BzGAMgASgFIlAKGEludGVyZXN0aW5nUG9pbnRzUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSFgoJYXJjaGV0eXBlGAIgASgJSACIAQFCDAoKX2FyY2hldHlwZSJMChlJbnRlcmVzdGluZ1BvaW50c1Jlc3BvbnNlEi8KBnBvaW50cxgBIAMoCzIfLmRldmNvbnRleHQudjEuSW50ZXJlc3RpbmdQb2ludCJbChBJbnRlcmVzdGluZ1BvaW50Eg8KB25vZGVfaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDAoEa2luZBgDIAEoCRILCgN3aHkYBCABKAkSDAoEdGFncxgFIAMoCSJ9Cg5Db250ZXh0UmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDQoFZm9jdXMYAiABKAkSGgoNYnVkZ2V0X3Rva2VucxgDIAEoBUgAiAEBEhMKBmludGVudBgEIAEoCUgBiAEBQhAKDl9idWRnZXRfdG9rZW5zQgkKB19pbnRlbnQihwEKD0NvbnRleHRSZXNwb25zZRINCgVmb3VuZBgBIAEoCBINCgVmb2N1cxgCIAEoCRIUCgx0b3RhbF90b2tlbnMYAyABKAUSLwoIc2VjdGlvbnMYBCADKAsyHS5kZXZjb250ZXh0LnYxLkNvbnRleHRTZWN0aW9uEg8KB29taXR0ZWQYBSADKAkiPgoOQ29udGV4dFNlY3Rpb24SCwoDa2V5GAEgASgJEg4KBnRva2VucxgCIAEoBRIPCgdjb250ZW50GAMgASgJIg0KC1BpbmdSZXF1ZXN0Ii4KDFBpbmdSZXNwb25zZRIPCgd2ZXJzaW9uGAEgASgJEg0KBXJlYWR5GAIgASgIMsEIChFEZXZDb250ZXh0U2VydmljZRJHCgdBbmFseXplEh0uZGV2Y29udGV4dC52MS5BbmFseXplUmVxdWVzdBobLmRldmNvbnRleHQudjEuQW5hbHl6ZUV2ZW50MAESSwoMQ2xvc2VTZXNzaW9uEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBocLmRldmNvbnRleHQudjEuQ2xvc2VSZXNwb25zZRJUCg9MaXN0RW50cnlQb2ludHMSHS5kZXZjb250ZXh0LnYxLlNlc3Npb25SZXF1ZXN0GiIuZGV2Y29udGV4dC52MS5FbnRyeVBvaW50c1Jlc3BvbnNlEkMKBkdldE1hcBIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaGi5kZXZjb250ZXh0LnYxLk1hcFJlc3BvbnNlEkUKCEdldFRyYWNlEhsuZGV2Y29udGV4dC52MS5UcmFjZVJlcXVlc3QaHC5kZXZjb250ZXh0LnYxLlRyYWNlUmVzcG9uc2USQgoHR2V0Tm9kZRIaLmRldmNvbnRleHQudjEuTm9kZVJlcXVlc3QaGy5kZXZjb250ZXh0LnYxLk5vZGVSZXNwb25zZRJRCgxHZXROZWlnaGJvcnMSHy5kZXZjb250ZXh0LnYxLk5laWdoYm9yc1JlcXVlc3QaIC5kZXZjb250ZXh0LnYxLk5laWdoYm9yc1Jlc3BvbnNlEkoKC1NlYXJjaE5vZGVzEhwuZGV2Y29udGV4dC52MS5TZWFyY2hSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5TZWFyY2hSZXNwb25zZRJHCghHZXRTdGF0cxIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaHC5kZXZjb250ZXh0LnYxLlN0YXRzUmVzcG9uc2USRQoGUmVuZGVyEhwuZGV2Y29udGV4dC52MS5SZW5kZXJSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5SZW5kZXJSZXNwb25zZRI/CgRQaW5nEhouZGV2Y29udGV4dC52MS5QaW5nUmVxdWVzdBobLmRldmNvbnRleHQudjEuUGluZ1Jlc3BvbnNlEkgKCUdldEltcGFjdBIcLmRldmNvbnRleHQudjEuSW1wYWN0UmVxdWVzdBodLmRldmNvbnRleHQudjEuSW1wYWN0UmVzcG9uc2USaQoUR2V0SW50ZXJlc3RpbmdQb2ludHMSJy5kZXZjb250ZXh0LnYxLkludGVyZXN0aW5nUG9pbnRzUmVxdWVzdBooLmRldmNvbnRleHQudjEuSW50ZXJlc3RpbmdQb2ludHNSZXNwb25zZRJLCgpHZXRDb250ZXh0Eh0uZGV2Y29udGV4dC52MS5Db250ZXh0UmVxdWVzdBoeLmRldmNvbnRleHQudjEuQ29udGV4dFJlc3BvbnNlQhSqAhFEZXZDb250ZXh0LlByb3Rvc2IGcHJvdG8z");
 
 /**
  * @generated from message devcontext.v1.AnalyzeRequest
@@ -450,6 +450,13 @@ export type MapResponse = Message<"devcontext.v1.MapResponse"> & {
    * @generated from field: devcontext.v1.LibrarySurface surface = 14;
    */
   surface?: LibrarySurface | undefined;
+
+  /**
+   * Per-service style assessment — one entry per runnable web project (M1.9 / D5)
+   *
+   * @generated from field: repeated devcontext.v1.ServiceStyle service_styles = 15;
+   */
+  serviceStyles: ServiceStyle[];
 };
 
 /**
@@ -504,6 +511,33 @@ export const PackageGroupSchema: GenMessage<PackageGroup> = /*@__PURE__*/
   messageDesc(file_devcontext_v1_devcontext, 12);
 
 /**
+ * @generated from message devcontext.v1.ServiceStyle
+ */
+export type ServiceStyle = Message<"devcontext.v1.ServiceStyle"> & {
+  /**
+   * @generated from field: string project_name = 1;
+   */
+  projectName: string;
+
+  /**
+   * @generated from field: string style = 2;
+   */
+  style: string;
+
+  /**
+   * @generated from field: repeated string stack = 3;
+   */
+  stack: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ServiceStyle.
+ * Use `create(ServiceStyleSchema)` to create a new message.
+ */
+export const ServiceStyleSchema: GenMessage<ServiceStyle> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 13);
+
+/**
  * @generated from message devcontext.v1.LibrarySurface
  */
 export type LibrarySurface = Message<"devcontext.v1.LibrarySurface"> & {
@@ -523,7 +557,7 @@ export type LibrarySurface = Message<"devcontext.v1.LibrarySurface"> & {
  * Use `create(LibrarySurfaceSchema)` to create a new message.
  */
 export const LibrarySurfaceSchema: GenMessage<LibrarySurface> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 13);
+  messageDesc(file_devcontext_v1_devcontext, 14);
 
 /**
  * @generated from message devcontext.v1.SurfaceGroup
@@ -545,7 +579,7 @@ export type SurfaceGroup = Message<"devcontext.v1.SurfaceGroup"> & {
  * Use `create(SurfaceGroupSchema)` to create a new message.
  */
 export const SurfaceGroupSchema: GenMessage<SurfaceGroup> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 14);
+  messageDesc(file_devcontext_v1_devcontext, 15);
 
 /**
  * @generated from message devcontext.v1.SurfaceType
@@ -572,7 +606,7 @@ export type SurfaceType = Message<"devcontext.v1.SurfaceType"> & {
  * Use `create(SurfaceTypeSchema)` to create a new message.
  */
 export const SurfaceTypeSchema: GenMessage<SurfaceType> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 15);
+  messageDesc(file_devcontext_v1_devcontext, 16);
 
 /**
  * @generated from message devcontext.v1.TraceRequest
@@ -604,7 +638,7 @@ export type TraceRequest = Message<"devcontext.v1.TraceRequest"> & {
  * Use `create(TraceRequestSchema)` to create a new message.
  */
 export const TraceRequestSchema: GenMessage<TraceRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 16);
+  messageDesc(file_devcontext_v1_devcontext, 17);
 
 /**
  * @generated from message devcontext.v1.TraceResponse
@@ -641,7 +675,7 @@ export type TraceResponse = Message<"devcontext.v1.TraceResponse"> & {
  * Use `create(TraceResponseSchema)` to create a new message.
  */
 export const TraceResponseSchema: GenMessage<TraceResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 17);
+  messageDesc(file_devcontext_v1_devcontext, 18);
 
 /**
  * @generated from message devcontext.v1.TraceNode
@@ -718,7 +752,7 @@ export type TraceNode = Message<"devcontext.v1.TraceNode"> & {
  * Use `create(TraceNodeSchema)` to create a new message.
  */
 export const TraceNodeSchema: GenMessage<TraceNode> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 18);
+  messageDesc(file_devcontext_v1_devcontext, 19);
 
 /**
  * @generated from message devcontext.v1.NodeRequest
@@ -740,7 +774,7 @@ export type NodeRequest = Message<"devcontext.v1.NodeRequest"> & {
  * Use `create(NodeRequestSchema)` to create a new message.
  */
 export const NodeRequestSchema: GenMessage<NodeRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 19);
+  messageDesc(file_devcontext_v1_devcontext, 20);
 
 /**
  * @generated from message devcontext.v1.NodeResponse
@@ -797,7 +831,7 @@ export type NodeResponse = Message<"devcontext.v1.NodeResponse"> & {
  * Use `create(NodeResponseSchema)` to create a new message.
  */
 export const NodeResponseSchema: GenMessage<NodeResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 20);
+  messageDesc(file_devcontext_v1_devcontext, 21);
 
 /**
  * @generated from message devcontext.v1.NeighborsRequest
@@ -826,7 +860,7 @@ export type NeighborsRequest = Message<"devcontext.v1.NeighborsRequest"> & {
  * Use `create(NeighborsRequestSchema)` to create a new message.
  */
 export const NeighborsRequestSchema: GenMessage<NeighborsRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 21);
+  messageDesc(file_devcontext_v1_devcontext, 22);
 
 /**
  * @generated from message devcontext.v1.NeighborsResponse
@@ -843,7 +877,7 @@ export type NeighborsResponse = Message<"devcontext.v1.NeighborsResponse"> & {
  * Use `create(NeighborsResponseSchema)` to create a new message.
  */
 export const NeighborsResponseSchema: GenMessage<NeighborsResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 22);
+  messageDesc(file_devcontext_v1_devcontext, 23);
 
 /**
  * @generated from message devcontext.v1.Edge
@@ -885,7 +919,7 @@ export type Edge = Message<"devcontext.v1.Edge"> & {
  * Use `create(EdgeSchema)` to create a new message.
  */
 export const EdgeSchema: GenMessage<Edge> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 23);
+  messageDesc(file_devcontext_v1_devcontext, 24);
 
 /**
  * @generated from message devcontext.v1.SearchRequest
@@ -912,7 +946,7 @@ export type SearchRequest = Message<"devcontext.v1.SearchRequest"> & {
  * Use `create(SearchRequestSchema)` to create a new message.
  */
 export const SearchRequestSchema: GenMessage<SearchRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 24);
+  messageDesc(file_devcontext_v1_devcontext, 25);
 
 /**
  * @generated from message devcontext.v1.SearchResponse
@@ -929,7 +963,7 @@ export type SearchResponse = Message<"devcontext.v1.SearchResponse"> & {
  * Use `create(SearchResponseSchema)` to create a new message.
  */
 export const SearchResponseSchema: GenMessage<SearchResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 25);
+  messageDesc(file_devcontext_v1_devcontext, 26);
 
 /**
  * @generated from message devcontext.v1.NodeRef
@@ -961,7 +995,7 @@ export type NodeRef = Message<"devcontext.v1.NodeRef"> & {
  * Use `create(NodeRefSchema)` to create a new message.
  */
 export const NodeRefSchema: GenMessage<NodeRef> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 26);
+  messageDesc(file_devcontext_v1_devcontext, 27);
 
 /**
  * @generated from message devcontext.v1.StatsResponse
@@ -1023,7 +1057,7 @@ export type StatsResponse = Message<"devcontext.v1.StatsResponse"> & {
  * Use `create(StatsResponseSchema)` to create a new message.
  */
 export const StatsResponseSchema: GenMessage<StatsResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 27);
+  messageDesc(file_devcontext_v1_devcontext, 28);
 
 /**
  * @generated from message devcontext.v1.ConfidenceLedger
@@ -1090,7 +1124,7 @@ export type ConfidenceLedger = Message<"devcontext.v1.ConfidenceLedger"> & {
  * Use `create(ConfidenceLedgerSchema)` to create a new message.
  */
 export const ConfidenceLedgerSchema: GenMessage<ConfidenceLedger> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 28);
+  messageDesc(file_devcontext_v1_devcontext, 29);
 
 /**
  * @generated from message devcontext.v1.SeamConfidence
@@ -1122,7 +1156,7 @@ export type SeamConfidence = Message<"devcontext.v1.SeamConfidence"> & {
  * Use `create(SeamConfidenceSchema)` to create a new message.
  */
 export const SeamConfidenceSchema: GenMessage<SeamConfidence> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 29);
+  messageDesc(file_devcontext_v1_devcontext, 30);
 
 /**
  * @generated from message devcontext.v1.Insight
@@ -1189,7 +1223,7 @@ export type Insight = Message<"devcontext.v1.Insight"> & {
  * Use `create(InsightSchema)` to create a new message.
  */
 export const InsightSchema: GenMessage<Insight> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 30);
+  messageDesc(file_devcontext_v1_devcontext, 31);
 
 /**
  * @generated from message devcontext.v1.StageStat
@@ -1211,7 +1245,7 @@ export type StageStat = Message<"devcontext.v1.StageStat"> & {
  * Use `create(StageStatSchema)` to create a new message.
  */
 export const StageStatSchema: GenMessage<StageStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 31);
+  messageDesc(file_devcontext_v1_devcontext, 32);
 
 /**
  * @generated from message devcontext.v1.ExtractorStat
@@ -1258,7 +1292,7 @@ export type ExtractorStat = Message<"devcontext.v1.ExtractorStat"> & {
  * Use `create(ExtractorStatSchema)` to create a new message.
  */
 export const ExtractorStatSchema: GenMessage<ExtractorStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 32);
+  messageDesc(file_devcontext_v1_devcontext, 33);
 
 /**
  * @generated from message devcontext.v1.SeamStat
@@ -1285,7 +1319,7 @@ export type SeamStat = Message<"devcontext.v1.SeamStat"> & {
  * Use `create(SeamStatSchema)` to create a new message.
  */
 export const SeamStatSchema: GenMessage<SeamStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 33);
+  messageDesc(file_devcontext_v1_devcontext, 34);
 
 /**
  * @generated from message devcontext.v1.CorpusStat
@@ -1312,7 +1346,7 @@ export type CorpusStat = Message<"devcontext.v1.CorpusStat"> & {
  * Use `create(CorpusStatSchema)` to create a new message.
  */
 export const CorpusStatSchema: GenMessage<CorpusStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 34);
+  messageDesc(file_devcontext_v1_devcontext, 35);
 
 /**
  * @generated from message devcontext.v1.CacheStat
@@ -1344,7 +1378,7 @@ export type CacheStat = Message<"devcontext.v1.CacheStat"> & {
  * Use `create(CacheStatSchema)` to create a new message.
  */
 export const CacheStatSchema: GenMessage<CacheStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 35);
+  messageDesc(file_devcontext_v1_devcontext, 36);
 
 /**
  * @generated from message devcontext.v1.GraphStat
@@ -1386,7 +1420,7 @@ export type GraphStat = Message<"devcontext.v1.GraphStat"> & {
  * Use `create(GraphStatSchema)` to create a new message.
  */
 export const GraphStatSchema: GenMessage<GraphStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 36);
+  messageDesc(file_devcontext_v1_devcontext, 37);
 
 /**
  * @generated from message devcontext.v1.FunnelStat
@@ -1423,7 +1457,7 @@ export type FunnelStat = Message<"devcontext.v1.FunnelStat"> & {
  * Use `create(FunnelStatSchema)` to create a new message.
  */
 export const FunnelStatSchema: GenMessage<FunnelStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 37);
+  messageDesc(file_devcontext_v1_devcontext, 38);
 
 /**
  * @generated from message devcontext.v1.RenderRequest
@@ -1472,7 +1506,7 @@ export type RenderRequest = Message<"devcontext.v1.RenderRequest"> & {
  * Use `create(RenderRequestSchema)` to create a new message.
  */
 export const RenderRequestSchema: GenMessage<RenderRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 38);
+  messageDesc(file_devcontext_v1_devcontext, 39);
 
 /**
  * @generated from message devcontext.v1.RenderResponse
@@ -1504,7 +1538,7 @@ export type RenderResponse = Message<"devcontext.v1.RenderResponse"> & {
  * Use `create(RenderResponseSchema)` to create a new message.
  */
 export const RenderResponseSchema: GenMessage<RenderResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 39);
+  messageDesc(file_devcontext_v1_devcontext, 40);
 
 /**
  * @generated from message devcontext.v1.SectionInfo
@@ -1526,7 +1560,7 @@ export type SectionInfo = Message<"devcontext.v1.SectionInfo"> & {
  * Use `create(SectionInfoSchema)` to create a new message.
  */
 export const SectionInfoSchema: GenMessage<SectionInfo> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 40);
+  messageDesc(file_devcontext_v1_devcontext, 41);
 
 /**
  * @generated from message devcontext.v1.ImpactRequest
@@ -1553,7 +1587,7 @@ export type ImpactRequest = Message<"devcontext.v1.ImpactRequest"> & {
  * Use `create(ImpactRequestSchema)` to create a new message.
  */
 export const ImpactRequestSchema: GenMessage<ImpactRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 41);
+  messageDesc(file_devcontext_v1_devcontext, 42);
 
 /**
  * @generated from message devcontext.v1.ImpactResponse
@@ -1570,7 +1604,7 @@ export type ImpactResponse = Message<"devcontext.v1.ImpactResponse"> & {
  * Use `create(ImpactResponseSchema)` to create a new message.
  */
 export const ImpactResponseSchema: GenMessage<ImpactResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 42);
+  messageDesc(file_devcontext_v1_devcontext, 43);
 
 /**
  * @generated from message devcontext.v1.ImpactResult
@@ -1597,7 +1631,7 @@ export type ImpactResult = Message<"devcontext.v1.ImpactResult"> & {
  * Use `create(ImpactResultSchema)` to create a new message.
  */
 export const ImpactResultSchema: GenMessage<ImpactResult> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 43);
+  messageDesc(file_devcontext_v1_devcontext, 44);
 
 /**
  * @generated from message devcontext.v1.InterestingPointsRequest
@@ -1619,7 +1653,7 @@ export type InterestingPointsRequest = Message<"devcontext.v1.InterestingPointsR
  * Use `create(InterestingPointsRequestSchema)` to create a new message.
  */
 export const InterestingPointsRequestSchema: GenMessage<InterestingPointsRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 44);
+  messageDesc(file_devcontext_v1_devcontext, 45);
 
 /**
  * @generated from message devcontext.v1.InterestingPointsResponse
@@ -1636,7 +1670,7 @@ export type InterestingPointsResponse = Message<"devcontext.v1.InterestingPoints
  * Use `create(InterestingPointsResponseSchema)` to create a new message.
  */
 export const InterestingPointsResponseSchema: GenMessage<InterestingPointsResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 45);
+  messageDesc(file_devcontext_v1_devcontext, 46);
 
 /**
  * @generated from message devcontext.v1.InterestingPoint
@@ -1673,7 +1707,7 @@ export type InterestingPoint = Message<"devcontext.v1.InterestingPoint"> & {
  * Use `create(InterestingPointSchema)` to create a new message.
  */
 export const InterestingPointSchema: GenMessage<InterestingPoint> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 46);
+  messageDesc(file_devcontext_v1_devcontext, 47);
 
 /**
  * @generated from message devcontext.v1.ContextRequest
@@ -1709,7 +1743,7 @@ export type ContextRequest = Message<"devcontext.v1.ContextRequest"> & {
  * Use `create(ContextRequestSchema)` to create a new message.
  */
 export const ContextRequestSchema: GenMessage<ContextRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 47);
+  messageDesc(file_devcontext_v1_devcontext, 48);
 
 /**
  * @generated from message devcontext.v1.ContextResponse
@@ -1748,7 +1782,7 @@ export type ContextResponse = Message<"devcontext.v1.ContextResponse"> & {
  * Use `create(ContextResponseSchema)` to create a new message.
  */
 export const ContextResponseSchema: GenMessage<ContextResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 48);
+  messageDesc(file_devcontext_v1_devcontext, 49);
 
 /**
  * @generated from message devcontext.v1.ContextSection
@@ -1777,7 +1811,7 @@ export type ContextSection = Message<"devcontext.v1.ContextSection"> & {
  * Use `create(ContextSectionSchema)` to create a new message.
  */
 export const ContextSectionSchema: GenMessage<ContextSection> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 49);
+  messageDesc(file_devcontext_v1_devcontext, 50);
 
 /**
  * @generated from message devcontext.v1.PingRequest
@@ -1790,7 +1824,7 @@ export type PingRequest = Message<"devcontext.v1.PingRequest"> & {
  * Use `create(PingRequestSchema)` to create a new message.
  */
 export const PingRequestSchema: GenMessage<PingRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 50);
+  messageDesc(file_devcontext_v1_devcontext, 51);
 
 /**
  * @generated from message devcontext.v1.PingResponse
@@ -1812,7 +1846,7 @@ export type PingResponse = Message<"devcontext.v1.PingResponse"> & {
  * Use `create(PingResponseSchema)` to create a new message.
  */
 export const PingResponseSchema: GenMessage<PingResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 51);
+  messageDesc(file_devcontext_v1_devcontext, 52);
 
 /**
  * DevContextService is the single seam between the UI and the DevContext.Core engine.
