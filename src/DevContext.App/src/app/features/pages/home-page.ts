@@ -57,7 +57,7 @@ interface InsightRowVm {
                     [routerLink]="['/explore']"
                     [queryParams]="{ focus: e.focus }"
                   >
-                    <app-kind-icon [kind]="e.kind" [size]="12" class="text-ink-subtle" />
+                    <app-kind-icon [kind]="e.kind" [size]="14" class="text-ink-subtle" />
                     @if (e.httpMethod) {
                       <span class="chip shrink-0">{{ e.httpMethod }}</span>
                     }

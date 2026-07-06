@@ -50,7 +50,7 @@ type SortDir = 'asc' | 'desc';
           <button type="button" class="chip" [class.active]="!kindFilter()" (click)="kindFilter.set(null)">All</button>
           @for (kind of allKinds(); track kind) {
             <button type="button" class="chip" [class.active]="kindFilter() === kind" (click)="kindFilter.set(kindFilter() === kind ? null : kind)">
-              <app-kind-icon [kind]="kind" [size]="11" />
+              <app-kind-icon [kind]="kind" [size]="14" />
               {{ KIND_LABELS[kind] ?? kind }}
               <span class="tabular-nums text-ink-subtle">{{ kindCounts()[kind] }}</span>
             </button>
@@ -106,7 +106,7 @@ type SortDir = 'asc' | 'desc';
                   </td>
                   <td class="px-3 py-1.5 font-mono text-ink-muted">
                     @if (entry.target) {
-                      <app-icon name="arrow-right" [size]="11" class="inline text-ink-subtle" />
+                      <app-icon name="arrow-right" [size]="14" class="inline text-ink-subtle" />
                       {{ entry.target }}
                     }
                   </td>
@@ -116,7 +116,7 @@ type SortDir = 'asc' | 'desc';
                   <td class="w-20 px-3 py-1.5">
                     <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                       <button type="button" class="rounded p-1 text-ink-muted hover:bg-hover hover:text-ink" (click)="copyRoute(entry, $event)" title="Copy route (Ctrl+C)">
-                        <app-icon name="copy" [size]="12" />
+                        <app-icon name="copy" [size]="14" />
                       </button>
                     </div>
                   </td>

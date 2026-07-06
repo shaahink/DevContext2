@@ -35,7 +35,7 @@ interface KindStat {
       </div>
     }
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
-      <app-icon name="search" [size]="12" class="shrink-0 text-ink-subtle" />
+      <app-icon name="search" [size]="14" class="shrink-0 text-ink-subtle" />
       <input
         #filterBox
         type="text"
@@ -95,7 +95,7 @@ interface KindStat {
           @if (!entry.target) {
             <span class="shrink-0 text-2xs text-warn" title="Unwired: no resolved target">○</span>
           }
-          <app-icon [name]="kindIcon(entry.kind)" [size]="12" class="shrink-0 text-ink-subtle" />
+          <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0 text-ink-subtle" />
         </div>
       } @empty {
         <div class="px-3 py-6 text-center text-xs text-ink-subtle">

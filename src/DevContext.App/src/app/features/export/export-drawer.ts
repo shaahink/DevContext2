@@ -263,7 +263,7 @@ function sectionTitle(key: string): string {
               class="flex w-full items-center gap-2 px-2.5 py-1.5 text-left hover:bg-surface-2"
               (click)="toggleCollapsed(s.key)"
             >
-              <app-icon [name]="isCollapsed(s.key) ? 'chevron-right' : 'chevron-down'" [size]="12" class="text-ink-subtle shrink-0" />
+              <app-icon [name]="isCollapsed(s.key) ? 'chevron-right' : 'chevron-down'" [size]="14" class="text-ink-subtle shrink-0" />
               <span class="flex-1 truncate text-xs font-semibold text-ink">{{ s.title }}</span>
               <app-meter [value]="budgetPct(s.tokens)" variant="accent" class="w-10 shrink-0" />
               <span class="shrink-0 text-2xs tabular-nums text-ink-subtle">{{ s.tokens }}</span>
@@ -277,12 +277,12 @@ function sectionTitle(key: string): string {
         <!-- Bottom bar -->
         <div class="flex items-center gap-2 border-t border-line px-4 py-2">
           <app-button variant="secondary" size="sm" (click)="render()" [disabled]="loading()">
-            <app-icon [name]="loading() || trailRendering() ? 'loader' : 'refresh'" [size]="12" />
+            <app-icon [name]="loading() || trailRendering() ? 'loader' : 'refresh'" [size]="14" />
             Re-render
           </app-button>
           <span class="flex-1"></span>
           <app-button variant="secondary" size="sm" (click)="copy()" [disabled]="!effectiveContent()">
-            <app-icon name="copy" [size]="12" />
+            <app-icon name="copy" [size]="14" />
             Copy
           </app-button>
         </div>

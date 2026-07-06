@@ -71,7 +71,7 @@ import { Ticker } from '../../ui/ticker/ticker';
           (click)="cycleVibe()"
           title="Cycle theme vibe"
         >
-          <app-icon [name]="vibeIcon()" [size]="11" />
+          <app-icon [name]="vibeIcon()" [size]="14" />
         </button>
       </div>
     </footer>

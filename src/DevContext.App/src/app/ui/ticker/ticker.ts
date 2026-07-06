@@ -22,7 +22,7 @@ import { Icon } from '../icon/icon';
         [title]="item.text"
       >
         @if (item.icon) {
-          <app-icon [name]="item.icon" [size]="10" class="shrink-0" />
+          <app-icon [name]="item.icon" [size]="14" class="shrink-0" />
         }
         <span class="truncate">{{ item.text }}</span>
       </button>

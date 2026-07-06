@@ -91,6 +91,25 @@ export const KIND_ICONS: Record<string, string> = {
   PublicApi: 'network',
 };
 
+/** Per-kind CSS color variable references — the single registry for kind coloring
+ * across the whole UI (M7.0). Every surface maps kinds → hue from here, never inline.
+ * Values are `var(--vibe-*)` so they automatically follow the active vibe/theme. */
+export const KIND_COLORS: Record<string, string> = {
+  HttpEndpoint: 'var(--vibe-info)',
+  MessageConsumer: 'var(--vibe-warn)',
+  HostedService: 'var(--vibe-success)',
+  ScheduledJob: 'var(--vibe-accent)',
+  DomainEventHandler: 'var(--vibe-accent-dim)',
+  PublicApi: 'var(--vibe-info)',
+  GrpcService: 'var(--vibe-danger)',
+  SignalRHub: 'var(--vibe-warn)',
+  FunctionEntry: 'var(--vibe-success)',
+  GrainMethod: 'var(--vibe-accent)',
+  GraphQlField: 'var(--vibe-info)',
+  CliCommand: 'var(--vibe-ink-muted)',
+  UiEntry: 'var(--vibe-accent)',
+};
+
 const ENTRY_KIND_LABELS: Record<string, string> = KIND_LABELS;
 
 const ENTRY_KIND_ORDER = [

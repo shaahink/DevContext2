@@ -63,7 +63,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
               class="flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-2xs text-ink-muted transition-colors hover:bg-hover hover:text-ink"
               (click)="repoMenuOpen.set(!repoMenuOpen())"
             >
-              <app-icon name="folder-open" [size]="11" />
+              <app-icon name="folder-open" [size]="14" />
               <span class="max-w-[180px] truncate font-mono">{{ repoLabel() }}</span>
               <svg width="9" height="5" viewBox="0 0 10 6" class="transition-transform" [class.rotate-180]="repoMenuOpen()"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
             </button>
@@ -83,7 +83,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
                         class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-ink-muted transition-colors hover:bg-hover hover:text-ink"
                         (click)="selectRecent(r.path)"
                       >
-                        <app-icon name="folder-open" [size]="11" />
+                        <app-icon name="folder-open" [size]="14" />
                         <span class="truncate font-mono">{{ r.label }}</span>
                       </button>
                     }
@@ -95,7 +95,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
                     class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-accent transition-colors hover:bg-hover"
                     (click)="newAnalysis()"
                   >
-                    <app-icon name="play" [size]="11" />
+                    <app-icon name="play" [size]="14" />
                     New analysis…
                   </button>
                 </div>
@@ -109,7 +109,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
           (click)="openOmnibox()"
           title="Search or jump (Ctrl+K)"
         >
-          <app-icon name="search" [size]="11" class="shrink-0" />
+          <app-icon name="search" [size]="14" class="shrink-0" />
           <span class="min-w-0 flex-1 truncate text-left">search or jump…</span>
           <span class="kbd shrink-0">Ctrl+K</span>
         </button>
@@ -123,7 +123,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
             (click)="newAnalysis()"
             title="New analysis"
           >
-            <app-icon name="play" [size]="10" /> New
+            <app-icon name="play" [size]="14" /> New
           </button>
         }
         <span

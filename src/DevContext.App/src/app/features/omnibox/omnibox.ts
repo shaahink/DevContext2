@@ -93,7 +93,7 @@ interface OmniItem {
                   (click)="execute(item)"
                   (mouseenter)="hover(item)"
                 >
-                  <app-kind-icon [kind]="item.icon" [size]="12" class="shrink-0 text-ink-subtle" />
+                  <app-kind-icon [kind]="item.icon" [size]="14" class="shrink-0 text-ink-subtle" />
                   <span class="min-w-0 flex-1 truncate text-xs text-ink">{{ item.label }}</span>
                   @if (item.sub) {
                     <span class="max-w-[40%] shrink-0 truncate font-mono text-2xs text-ink-subtle">{{ item.sub }}</span>

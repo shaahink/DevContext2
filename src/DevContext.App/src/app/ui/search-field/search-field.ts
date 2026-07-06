@@ -6,7 +6,7 @@ import { Icon } from '../icon/icon';
   imports: [Icon],
   template: `
     <div class="flex items-center gap-2 rounded-sm border border-line bg-base px-2 py-1 focus-within:border-accent">
-      <app-icon name="search" [size]="13" class="text-ink-subtle" />
+      <app-icon name="search" [size]="14" class="text-ink-subtle" />
       <input
         class="w-full bg-transparent text-xs text-ink outline-none placeholder:text-ink-subtle"
         placeholder="Search…"
@@ -15,7 +15,7 @@ import { Icon } from '../icon/icon';
       />
       @if (query()) {
         <button (click)="onClear()" class="flex items-center text-ink-subtle hover:text-ink">
-          <app-icon name="x" [size]="12" />
+          <app-icon name="x" [size]="14" />
         </button>
       }
     </div>

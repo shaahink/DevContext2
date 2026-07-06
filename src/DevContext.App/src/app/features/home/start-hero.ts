@@ -68,7 +68,7 @@ type InputType = 'local' | 'github' | null;
                 class="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-2xs text-ink-muted hover:bg-surface-2 hover:text-danger transition-colors"
                 (click)="session.cancel()"
               >
-                <app-icon name="x" [size]="11" /> Cancel
+                <app-icon name="x" [size]="14" /> Cancel
               </button>
             </div>
             @if (activity.percent() > 0) {
@@ -97,7 +97,7 @@ type InputType = 'local' | 'github' | null;
                     (click)="recentStore.remove(r.path); $event.stopPropagation()"
                     title="Remove from recents"
                   >
-                    <app-icon name="x" [size]="12" />
+                    <app-icon name="x" [size]="14" />
                   </button>
                 </div>
               }
