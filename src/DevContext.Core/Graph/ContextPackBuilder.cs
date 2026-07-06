@@ -35,10 +35,41 @@ public sealed class ContextPackBuilder
             _ => "trace",
         };
 
-        // ── 1. Identity (all modes, largest share for explain) ──
+        // M4.8 — richer identity with service info + conventions
         var map = _query.Map();
         var archetype = map?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
-        var identity = $"# {_snapshot.Explanation}\nArchetype: {archetype} | {_snapshot.Entries.Length} entries | {_snapshot.Graph?.NodeCount ?? 0} nodes\n";
+        var sbId = new StringBuilder();
+        sbId.Append("# ").AppendLine(_snapshot.Explanation);
+        sbId.Append("Archetype: ").Append(archetype);
+        sbId.Append(" | ").Append(_snapshot.Entries.Length).Append(" entries");
+        sbId.Append(" | ").Append(_snapshot.Graph?.NodeCount ?? 0).AppendLine(" nodes");
+
+        if (map?.ServiceStyles is { Length: > 0 })
+        {
+            sbId.Append("Services: ");
+            sbId.AppendJoin(", ", map.ServiceStyles.Select(s => $"{s.ProjectName} ({s.Style})"));
+            sbId.AppendLine();
+        }
+
+        if (map?.PipelineBehaviors is { Length: > 0 })
+        {
+            sbId.Append("Behaviors: ");
+            sbId.AppendJoin(", ", map.PipelineBehaviors);
+            sbId.AppendLine();
+        }
+
+        // M4.8 — cross-service ServiceLinks from graph edges
+        var crossServiceEdges = _query.Graph.AllEdges
+            .Where(e => e.Kind == EdgeKind.ServiceLink).ToArray();
+        if (crossServiceEdges.Length > 0)
+        {
+            sbId.Append("Cross-service: ");
+            sbId.AppendJoin(" | ", crossServiceEdges.Take(6).Select(e =>
+                $"{_query.Graph.Node(e.From)?.Title ?? e.From.Key} → {_query.Graph.Node(e.To)?.Title ?? e.To.Key} ({e.Tags.FirstOrDefault()})"));
+            sbId.AppendLine();
+        }
+
+        var identity = sbId.ToString();
         var idBudget = mode == "explain" ? budgetTokens : budgetTokens;
         AppendSection(sb, sections, omitted, idBudget, "identity", identity);
 

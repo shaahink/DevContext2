@@ -26,13 +26,13 @@ dotnet test  DevContext.slnx --filter "Category!=Eval"
 - Do not write new C# extractors — reform in place.
 
 ## Work items
-- **Meridian M0-M1** ✅ — harness gate + wiring truth pass (M1.1–M1.9 COMPLETE). See `MERIDIAN-START.md`.
-- **Meridian M2** 🔜 — insight relevance + layer/feature facets (M2.1–M2.4). Next session.
+- **Meridian M0-M3** ✅ — harness gate + wiring truth pass + insight repair + MCP re-architecture (COMPLETE). See `MERIDIAN-START.md`.
+- **Meridian M4** 🔜 — MCP feature set: 6/9 tools delivered (overview, resolve, flow, read_source, find, get_context v2). Remaining: impact, config, tests_for.
 - **Lighthouse L0–L7** ✅ — see `docs/dev/HANDOVER-LIGHTHOUSE.md`.
 - **Fable** ✅ — W0-W7 done. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
 - **U3 Facet views** ⬜ — blocked on engine E4.
 
-## Resume protocol (post-M1 → M2)
+## Resume protocol (post-M3+M4 partial → M4 completion)
 ```
 git -C C:/Code/DevContext2-ui checkout feat/meridian-m0
 git -C C:/Code/DevContext2-ui pull
@@ -40,19 +40,19 @@ dotnet build C:/Code/DevContext2-ui/DevContext.slnx
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 # Read MERIDIAN-START.md for handoff + checkpoint state
 # Read docs/dev/briefs/meridian-agent-playbook.md
-# Read docs/dev/briefs/proposal-meridian.md §M2 (insight relevance pass) and §M6 (Home+Atlas)
+# Read docs/dev/briefs/proposal-meridian.md §M4 (remaining: M4.4/4.7/4.9)
 # Run baseline: dotnet run --project src/DevContext.Cli -- report <dogfood-path> -o out.md
 ```
 
-## Next session — M2: insight relevance + layer/feature facets
-**Recommended delivery: 4 bullet items** (M2.1–M2.4, one session, engine-only — no UI). See `proposal-meridian.md` §M2.
+## Next session — M4 completion (remaining: M4.4/4.7/4.9) + optional M5 prep
+**Recommended delivery:** 3 bullet items (M4.4 impact, M4.7 config, M4.9 tests_for) in one session. See `proposal-meridian.md` §M4.
 
 | # | What | Key files |
 |---|------|-----------|
-| M2.1 | Retire/repair discredited insight sources: folder-name "module map" → real service/feature grouping, "downstream wiring" → only actual ServiceLinks, dead-code → exclude DI/framework-resolved types, CLI leaks out of insight text | `src/DevContext.Core/Insights/`, `DiscoveryPipeline.ComputeInsights()` |
-| M2.2 | New wiring-grounded insight classes: event-flow map (published w/ and w/o consumers), cross-service SPOFs, endpoints missing FluentValidation, config keys without defaults, auth surface (exclude Razor) | `src/DevContext.Core/Insights/` (add sources, implement `IInsightSource`) |
-| M2.3 | Typed insight actions end-to-end (D6): engine → proto → UI — evidence chips render as links only with resolvable target. `focus:<entry>` / `node:<id>` / `filter:<kind>` | `proto/devcontext/v1/devcontext.proto`, `ProtoMapper.cs`, `src/DevContext.App/src/app/` |
-| M2.4 | Layer/feature classification (D9, engine only): every Type node gets `Layer`/`Feature` facet (project role + folder conventions + base types + reference direction). Emit `LayerViolation` detections. **No UI rendering** — waits for M6/M7 lenses. | `src/DevContext.Core/Graph/GraphBuilder.cs`, `CodeGraph.cs` (node facets), `ArchitectureStyleDetector.cs` |
+| M4.4 | `impact` transitive + diff-aware: BFS over out-edges for downward impact, `files=[...]` mode for "changed these files" analysis | `DevContextTools.cs`, `GraphQuery.cs`, `DevContextGrpcService.cs` |
+| M4.7 | `config` keys → binding/consumption sites: scan IConfiguration/GetValue/GetSection usages for specific config keys | `DevContextTools.cs`, `GraphQuery.cs` |
+| M4.9 | `tests_for` best-effort: find test methods whose call closure reaches a target node | `DevContextTools.cs`, `GraphQuery.cs` |
 
-**Gate:** on dogfood repo, every insight card click lands on a working view; layer facet coverage ≥90% of Type nodes.
-**Baseline (post-M1):** 493 nodes · 316 edges · 6 ServiceLinks · 36 entries · Style Microservices · 6 per-service styles.
+**M4 tools delivered this session (M4.1/4.2/4.3/4.5/4.6/4.8):** See `DevContextTools.cs` lines 72–171 for `overview`, `resolve`, enhanced `trace`/`flow`, `read_source`/`find`, and `ContextPackBuilder.cs` for `get_context` v2 identity.
+**Gate:** all M4 tools functional against dogfood repo; M0.2 QA suite passes current tools.
+**Baseline (post-M3):** 493 nodes · 316 edges · 6 ServiceLinks · 36 entries · Style Microservices · 6 per-service styles.

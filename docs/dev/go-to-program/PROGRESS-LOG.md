@@ -4,6 +4,40 @@
 
 ---
 
+## 2026-07-06 — Meridian M3 gap fixes + M4 feature delivery (M3 gaps RESOLVED, M4 6/9 DONE)
+
+**Changed:**
+- **M3 gaps (7/7 fixed):**
+  - G1 **TokenTotal:** `WrapT`/`WrapAsyncT` measured wrappers now call `CompleteCall()` which increments `session.TokenTotal` via proto `CalculateSize()` bytes-per-token estimate. `DevContextGrpcService.cs` refactored: old static `Wrap`/`WrapAsync` removed, new instance `WrapT<T>`/`WrapAsyncT<T>` with `[CallerMemberName]` tool name + `Stopwatch` timing.
+  - G2 **elapsedMs:** Same wrappers — `Stopwatch` started before handler, stopped after, elapsed passed to `RecordToolCall`. No more `1ms` placeholder.
+  - G3 **Orphaned sessions:** `CloseSessionAsync` now only removes `_repoToHandle` entry if its value still matches the closing handle (`if (current == handle)`). Old sessions coexist safely; re-analyzing same repo+HEAD doesn't destroy existing handles.
+  - G4 **Absolute paths:** `DevContextTools` now stores `_repoRoots` dictionary (handle→repoRoot) populated on `analyze`. `Rel(handle, path)` helper applied to `filePath`/`provenance` in `node`, `read_source`, `neighbors`, `usages` tool responses. Paths now repo-relative via `D4` mandate.
+  - G5 **volatile `_running`:** `McpObservabilityService._running` now `volatile bool` — writes visible across threads.
+  - G6 **Stale observers:** `Notify()` now collects `TryWrite` failures into a `stale` list and removes them after enumeration — no more unbounded stale entries.
+  - G7 **ServerShim discovery:** `FindServerExe()` now searches 5 sources in priority: `DEVCONTEXT_SERVER` env var → sibling/nearby published layouts → `%LOCALAPPDATA%/DevContext/server/` → dev-layout recursive bin search → null. No more hardcoded `bin/Debug/net10.0`.
+- **M4.1 overview tool:** New MCP tool — calls `GetMap` + `GetStats` + `ListEntryPoints` + `GetInterestingPoints`; assembles compact text: archetype + services + node/edge/entry counts + top 5 flows + project topology + start-here points + behaviors/stack. Token-estimated.
+- **M4.2 resolve tool:** New MCP tool — calls `SearchNodes` + `GetNode` for each hit; returns `ambiguous` flag + candidate list with nodeId, kind, filePath, degree, tags. Hint when >1 match. Never auto-picks.
+- **M4.3 flow compact mode:** `trace` tool gains `format=compact` — indented text with seam glyphs (`▼ → ⇒ ⬆ ↓ ◉ ⇛`), `[approx]` annotations, child indentation. `BuildCompactFlow()` recursive formatter.
+- **M4.5 read_source full-member:** `read_source` gains `mode=member` — `FindMethodScope()` brace-balancing heuristic finds method body from declaration line, returns full scope.
+- **M4.6 find paginated:** New `find` tool supersedes `search` — `cursor`/`limit` pagination, `kind` filter, `hasMore` flag, `total` count. `TrimTitle()` strips `=>` lambda remnants and >200-char titles.
+- **M4.8 get_context v2:** `ContextPackBuilder` identity section now includes service styles, pipeline behaviors, and cross-service ServiceLink edges from `_query.Graph.AllEdges`. Richer overview context.
+- **Engine files:** `DevContextGrpcService.cs` — `Require()` simplified to lookup-only; `CompleteCall<T>()` records bytes + elapsed + TokenTotal; all handlers use `WrapT`/`WrapAsyncT`.
+- **Server files:** `AnalysisSessionManager.cs` — G3 fix in `CloseSessionAsync`; `AnalysisSession.cs` — added `RepoRoot`; `McpObservabilityService.cs` — `volatile` on `_running`, `Notify()` stale cleanup.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (353+64+12, 3 skipped)
+- `pnpm lint` — green (0/0); `pnpm build` — green (0w/0e)
+
+**Remaining M4 (for next session):**
+- M4.4 `impact` transitive + diff-aware mode
+- M4.7 `config` keys → binding/consumption sites
+- M4.9 `tests_for` best-effort
+
+**Next:** M4.4 → M4.7 → M4.9 (see `MERIDIAN-START.md` stage tracker). After M4 completion: M5 agent eval ratchet.
+
+---
+
 ## 2026-07-06 — Meridian M3: MCP re-architecture (server-of-record, stdio shim, descriptions, MCP page) (M3 COMPLETE)
 
 **Changed:**

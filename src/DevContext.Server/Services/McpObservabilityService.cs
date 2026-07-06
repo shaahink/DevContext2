@@ -7,7 +7,7 @@ namespace DevContext.Server.Services;
 public sealed class McpObservabilityService
 {
     private readonly ConcurrentDictionary<string, ChannelWriter<ToolCallEvent>> _observers = new();
-    private bool _running;
+    private volatile bool _running;
 
     public bool IsRunning => _running;
 
@@ -33,10 +33,18 @@ public sealed class McpObservabilityService
     {
         if (!_running) return;
 
-        foreach (var (_, writer) in _observers)
+        var stale = new List<string>();
+        foreach (var (id, writer) in _observers)
         {
-            writer.TryWrite(evt);
+            if (!writer.TryWrite(evt))
+            {
+                stale.Add(id); // G6 — channel full or completed → mark stale
+            }
         }
+
+        // G6 — cleanup stale observers outside the enumeration
+        foreach (var id in stale)
+            _observers.TryRemove(id, out _);
     }
 
     public int ObserverCount => _observers.Count;

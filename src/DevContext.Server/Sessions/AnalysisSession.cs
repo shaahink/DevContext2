@@ -16,6 +16,9 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
     public int CallCount { get; set; }
     public long TokenTotal { get; set; }
 
+    // G4 — repo root for path relativization (D4)
+    public string RepoRoot => RepoPath;
+
     public GraphQuery Query => _query ??= new GraphQuery(Snapshot.Graph!, Snapshot.Entries, Snapshot.Map);
 
     public async Task<string> RenderMapMarkdownAsync(CancellationToken ct)

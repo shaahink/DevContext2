@@ -75,21 +75,46 @@ internal static class ServerShim
 
     private static string? FindServerExe()
     {
-        // Look for the server relative to the MCP exe
+        // G7 — multi-source discovery (priority order)
+
+        // 1. Environment variable override (DEVCONTEXT_SERVER)
+        var envPath = Environment.GetEnvironmentVariable("DEVCONTEXT_SERVER");
+        if (!string.IsNullOrEmpty(envPath) && File.Exists(envPath))
+            return envPath;
+
         var mcpDir = AppContext.BaseDirectory;
 
-        // Walk up to find the solution root (look for DevContext.slnx)
+        // 2. Sibling or nearby published layout (same dir as MCP exe, or parent/child)
+        var siblingPaths = new[]
+        {
+            Path.Combine(mcpDir, "DevContext.Server.exe"),
+            Path.Combine(mcpDir, "server", "DevContext.Server.exe"),
+            Path.Combine(Path.GetDirectoryName(mcpDir) ?? mcpDir, "DevContext.Server", "DevContext.Server.exe"),
+        };
+        foreach (var p in siblingPaths)
+            if (File.Exists(p)) return p;
+
+        // 3. User-local install: %LOCALAPPDATA%/DevContext/server/
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var userInstall = Path.Combine(localAppData, "DevContext", "server", "DevContext.Server.exe");
+        if (File.Exists(userInstall)) return userInstall;
+
+        // 4. Walk up to find the solution root and search build outputs (dev layout)
         var dir = mcpDir;
         while (dir is not null)
         {
             if (File.Exists(Path.Combine(dir, "DevContext.slnx")))
             {
-                var serverExe = Path.Combine(dir, "src", "DevContext.Server", "bin", "Debug", "net10.0", "DevContext.Server.exe");
-                if (File.Exists(serverExe)) return serverExe;
-
-                var serverExeRelease = Path.Combine(dir, "src", "DevContext.Server", "bin", "Release", "net10.0", "DevContext.Server.exe");
-                if (File.Exists(serverExeRelease)) return serverExeRelease;
-
+                // Search all build configurations in dev layout
+                var serverProject = Path.Combine(dir, "src", "DevContext.Server");
+                if (Directory.Exists(serverProject))
+                {
+                    foreach (var binDir in Directory.GetDirectories(serverProject, "bin", SearchOption.AllDirectories))
+                    {
+                        var exe = Path.Combine(binDir, "DevContext.Server.exe");
+                        if (File.Exists(exe)) return exe;
+                    }
+                }
                 break;
             }
             dir = Path.GetDirectoryName(dir);

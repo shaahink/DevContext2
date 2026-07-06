@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 
 using DevContext.Server.Mapping;
 using DevContext.Server.Services;
 using DevContext.Server.Sessions;
 
+using Google.Protobuf;
 using Grpc.Core;
 
 using Proto = DevContext.Protos;
@@ -113,27 +115,24 @@ public sealed class DevContextGrpcService(
     }
 
     public override Task<Proto.EntryPointsResponse> ListEntryPoints(Proto.SessionRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var resp = new Proto.EntryPointsResponse();
             foreach (var entry in session.Query.EntryPoints())
                 resp.EntryPoints.Add(ProtoMapper.ToProto(entry));
             return resp;
         });
 
-    public override async Task<Proto.MapResponse> GetMap(Proto.SessionRequest request, ServerCallContext context)
-        => await WrapAsync(async () =>
+    public override Task<Proto.MapResponse> GetMap(Proto.SessionRequest request, ServerCallContext context)
+        => WrapAsyncT(request.Handle, async session =>
         {
-            var session = Require(request.Handle);
             var markdown = await session.RenderMapMarkdownAsync(context.CancellationToken).ConfigureAwait(false);
             return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown);
         });
 
-    public override async Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)
-        => await WrapAsync(async () =>
+    public override Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)
+        => WrapAsyncT(request.Handle, async session =>
         {
-            var session = Require(request.Handle);
             var depth = request.HasDepth ? request.Depth : 6;
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
 
@@ -147,9 +146,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.NodeResponse> GetNode(Proto.NodeRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var id = ResolveNode(session, request.NodeId);
             var detail = id is { } nid ? session.Query.Node(nid) : null;
             return detail is null
@@ -158,9 +156,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.NeighborsResponse> GetNeighbors(Proto.NeighborsRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var resp = new Proto.NeighborsResponse();
             if (ResolveNode(session, request.NodeId) is { } nid)
             {
@@ -177,9 +174,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.SearchResponse> SearchNodes(Proto.SearchRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var query = request.Query.Trim();
             var limit = request.Limit > 0 ? request.Limit : 20;
             var graph = session.Query.Graph;
@@ -201,9 +197,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.ImpactResponse> GetImpact(Proto.ImpactRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var nodeId = ResolveNode(session, request.NodeId);
             if (nodeId is null)
                 return new Proto.ImpactResponse();
@@ -215,18 +210,16 @@ public sealed class DevContextGrpcService(
 
     public override Task<Proto.InterestingPointsResponse> GetInterestingPoints(
         Proto.InterestingPointsRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var archetype = request.HasArchetype ? request.Archetype : null;
             var points = session.Query.GetInterestingPoints(archetype);
             return ProtoMapper.ToInterestingPointsResponse(points);
         });
 
     public override Task<Proto.ContextResponse> GetContext(Proto.ContextRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var builder = new ContextPackBuilder(session.Query, session.Snapshot);
             var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
             var intent = request.HasIntent ? request.Intent : null;
@@ -235,9 +228,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.StatsResponse> GetStats(Proto.SessionRequest request, ServerCallContext context)
-        => Wrap(() =>
+        => WrapT(request.Handle, session =>
         {
-            var session = Require(request.Handle);
             var snapshot = session.Snapshot;
             var (seams, entriesWithTarget) = session.Query.Stats();
             return ProtoMapper.ToStatsResponse(
@@ -253,10 +245,9 @@ public sealed class DevContextGrpcService(
                 snapshot.Entries);
         });
 
-    public override async Task<Proto.RenderResponse> Render(Proto.RenderRequest request, ServerCallContext context)
-        => await WrapAsync(async () =>
+    public override Task<Proto.RenderResponse> Render(Proto.RenderRequest request, ServerCallContext context)
+        => WrapAsyncT(request.Handle, async session =>
         {
-            var session = Require(request.Handle);
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
 
             var sections = request.Sections.Count > 0
@@ -276,7 +267,8 @@ public sealed class DevContextGrpcService(
         });
 
     public override Task<Proto.ListSessionsResponse> ListSessions(Proto.ListSessionsRequest request, ServerCallContext context)
-        => Wrap(() =>
+    {
+        try
         {
             var list = sessions.ListSessions();
             var resp = new Proto.ListSessionsResponse();
@@ -296,8 +288,11 @@ public sealed class DevContextGrpcService(
                     Entries = s.Snapshot.Entries.Length,
                 });
             }
-            return resp;
-        });
+            return Task.FromResult(resp);
+        }
+        catch (RpcException) { throw; }
+        catch (Exception ex) { throw MapException(ex); }
+    }
 
     public override Task<Proto.StartMcpResponse> StartMcp(Proto.StartMcpRequest request, ServerCallContext context)
         => Task.FromResult(new Proto.StartMcpResponse { Running = true });
@@ -355,20 +350,54 @@ public sealed class DevContextGrpcService(
             Ready = true,
         });
 
-    private AnalysisSession Require(string handle, [System.Runtime.CompilerServices.CallerMemberName] string tool = "")
+    private AnalysisSession Require(string handle)
     {
         var session = sessions.Get(handle)
             ?? throw new RpcException(new Status(StatusCode.NotFound, $"Unknown session handle: {handle}"));
-
-        // M3.3 — emit tool-call event for observability (auto-populated via CallerMemberName)
-        if (tool.Length > 0 && !tool.EndsWith("Async", StringComparison.Ordinal))
-        {
-            session.LastActivity = DateTime.UtcNow;
-            session.CallCount++;
-            RecordToolCall(tool, handle, session.RepoPath, 0, 1);
-        }
-
         return session;
+    }
+
+    // M4 — measured wrappers that time + record every tool call (G1 TokenTotal, G2 elapsedMs)
+    private Task<T> WrapT<T>(string handle, Func<AnalysisSession, T> action, [System.Runtime.CompilerServices.CallerMemberName] string tool = "")
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var session = Require(handle);
+            var result = action(session);
+            sw.Stop();
+            CompleteCall(session, result, tool, sw);
+            return Task.FromResult(result);
+        }
+        catch (RpcException) { throw; }
+        catch (Exception ex) { throw MapException(ex); }
+    }
+
+    private async Task<T> WrapAsyncT<T>(string handle, Func<AnalysisSession, Task<T>> action, [System.Runtime.CompilerServices.CallerMemberName] string tool = "")
+    {
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var session = Require(handle);
+            var result = await action(session).ConfigureAwait(false);
+            sw.Stop();
+            CompleteCall(session, result, tool, sw);
+            return result;
+        }
+        catch (RpcException) { throw; }
+        catch (Exception ex) { throw MapException(ex); }
+    }
+
+    private void CompleteCall<T>(AnalysisSession session, T result, string tool, Stopwatch sw)
+    {
+        var bytes = result switch
+        {
+            IMessage msg => msg.CalculateSize(),
+            string s => System.Text.Encoding.UTF8.GetByteCount(s),
+            _ => 0,
+        };
+        session.TokenTotal += (bytes / 4) + 1;
+        RecordToolCall(tool, session.Handle, session.RepoPath, bytes, sw.ElapsedMilliseconds);
     }
 
     private static NodeId? ResolveNode(AnalysisSession session, string idOrName)
@@ -392,20 +421,6 @@ public sealed class DevContextGrpcService(
 
     private static Proto.AnalyzeEvent Error(string code, string message)
         => new() { Error = new Proto.AnalyzeError { Code = code, Message = message } };
-
-    private static Task<T> Wrap<T>(Func<T> action)
-    {
-        try { return Task.FromResult(action()); }
-        catch (RpcException) { throw; }
-        catch (Exception ex) { throw MapException(ex); }
-    }
-
-    private static async Task<T> WrapAsync<T>(Func<Task<T>> action)
-    {
-        try { return await action().ConfigureAwait(false); }
-        catch (RpcException) { throw; }
-        catch (Exception ex) { throw MapException(ex); }
-    }
 
     private static RpcException MapException(Exception ex) => ex switch
     {

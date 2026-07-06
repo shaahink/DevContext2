@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: c90fb0b feat(m3): MCP re-architecture — server-of-record, stdio shim, tool descriptions, MCP page
-stage: M3 — DONE (M3.1 server-of-record + shim, M3.2 tool descriptions, M3.3 observability + MCP page)
+last: 648e1d7 feat(m4): M3 gap fixes (7 items) + M4 tools (overview, resolve, flow, read_source, find, get_context v2)
+stage: M4 — IN PROGRESS (M4.1 overview, M4.2 resolve, M4.3 flow compact, M4.5 read_source full-member, M4.6 find paginated, M4.8 get_context v2 DONE)
 gate: run — dotnet build 0w, 429 tests green, pnpm check green
-dirty: observability stream wired (CallerMemberName on Require) but elapsedMs placeholder (1ms); TokenTotal never incremented; paths remain absolute (D4); re-analyze same repo creates orphaned session; ServerShim auto-spawn dev-only
-next: M4.1 — `overview` ≤600 tokens one-call repo brief (see proposal-meridian.md §M4)
-trap: MCP Observability stream requires the gRPC server running (pnpm server) + StartMcp toggled on
+dirty: M4.4 impact transitive+diff-aware, M4.7 config keys tool, M4.9 tests_for tool NOT YET DONE
+next: M4.4 impact transitive+diff-aware → M4.7 config → M4.9 tests_for (see proposal-meridian.md §M4)
+trap: overview tool calls 3 RPCs — ensure server running for MCP smoke test. Compact flow is text-based (not JSON tree).
 
 ## Checkpoints
 
@@ -41,14 +41,14 @@ line under the row — never silent renumbering.
 | M3.1 | Server-of-record; MCP = stdio shim; flush bug fixed at root | DONE | c90fb0b | out.md (repo+HEAD keyed, shim proxies to gRPC, Analyze flush restructured) |
 | M3.2 | Tool descriptions + envelope trim (D4) | DONE | c90fb0b | out.md (18 tool XML docs with examples, compact meta envelopes) |
 | M3.3 | Tool-call event stream + dedicated MCP page (D8) | DONE | c90fb0b | out.md (/mcp page with status dot, config snippets, session list, live feed, try-a-tool) |
-| M4.1 | `overview` ≤600 tok | TODO | | |
-| M4.2 | `resolve` with mandatory disambiguation | TODO | | |
-| M4.3 | `flow` compact cross-service text (flagship) | TODO | | |
+| M4.1 | `overview` ≤600 tok | DONE | | out.md |
+| M4.2 | `resolve` with mandatory disambiguation | DONE | | out.md |
+| M4.3 | `flow` compact cross-service text (flagship) | DONE | | out.md |
 | M4.4 | `impact` transitive + diff-aware mode | TODO | | |
-| M4.5 | `read_source` full-member mode | TODO | | |
-| M4.6 | `find` paginated; lambda-title leak fixed at source | TODO | | |
+| M4.5 | `read_source` full-member mode | DONE | | out.md |
+| M4.6 | `find` paginated; lambda-title leak fixed at source | DONE | | out.md |
 | M4.7 | `config` keys → binding/consumption sites | TODO | | |
-| M4.8 | `get_context` v2 (real content, cross-service) | TODO | | |
+| M4.8 | `get_context` v2 (real content, cross-service) | DONE | | out.md |
 | M4.9 | `tests_for` best-effort | TODO | | |
 | M5.1 | QA set → 5 repos + token ratchets | TODO | | |
 | M5.2 | Real agent transcript (checkout question) committed | TODO | | |

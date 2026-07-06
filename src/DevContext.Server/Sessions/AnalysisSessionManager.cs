@@ -70,9 +70,10 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
     {
         if (!_sessions.TryRemove(handle, out var entry)) return false;
 
-        // Clean up repo index
+        // G3 — only remove repo index entry if it still points to this handle
         var repoKey = RepoKey(entry.Session.RepoPath, entry.Session.CommitSha);
-        _repoToHandle.TryRemove(repoKey, out _);
+        if (_repoToHandle.TryGetValue(repoKey, out var current) && current == handle)
+            _repoToHandle.TryRemove(repoKey, out _);
 
         await entry.Session.DisposeAsync().ConfigureAwait(false);
         return true;
