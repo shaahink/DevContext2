@@ -62,8 +62,8 @@ interface InsightRowVm {
                 @for (i of needsAttention(); track i.id) {
                   <a
                     class="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-surface-2 transition-colors"
-                    [routerLink]="i.actionTarget ? ['/explore'] : ['/insights']"
-                    [queryParams]="i.actionTarget ? { focus: i.actionTarget } : {}"
+                    [routerLink]="(i.action && i.action !== 'None') ? ['/explore'] : ['/insights']"
+                    [queryParams]="homeActionParams(i.action ?? '', i.actionTarget)"
                   >
                     <span class="chip shrink-0"
                       [class.text-danger]="i.severity === 'warning'"
@@ -71,7 +71,7 @@ interface InsightRowVm {
                     >{{ i.severity }}</span>
                     <span class="min-w-0 flex-1 truncate text-ink">{{ i.title }}</span>
                     @if (i.action && i.action !== 'None') {
-                      <span class="shrink-0 text-2xs text-accent">{{ i.action }} &rarr;</span>
+                      <span class="shrink-0 text-2xs text-accent">{{ actionLabel(i.action) }} &rarr;</span>
                     }
                   </a>
                 }
@@ -146,4 +146,23 @@ export class HomePage {
   protected readonly goodToKnow = computed(() =>
     this.allInsights().filter((i) => i.severity === 'info').slice(0, MAX_INSIGHTS),
   );
+
+  protected actionLabel(action: string): string {
+    switch (action) {
+      case 'Focus': return 'Trace';
+      case 'Node': return 'Open';
+      case 'Filter': return 'Filter';
+      default: return action;
+    }
+  }
+
+  protected homeActionParams(action: string, target?: string): Record<string, string> {
+    if (!action || action === 'None' || !target) return {};
+    switch (action) {
+      case 'Focus': return { focus: target };
+      case 'Node': return { focus: target, view: 'node' };
+      case 'Filter': return { kind: target };
+      default: return target ? { focus: target } : {};
+    }
+  }
 }

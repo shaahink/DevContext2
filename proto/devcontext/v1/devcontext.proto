@@ -336,8 +336,9 @@ message Insight {
   double confidence = 7;
   optional string confidence_basis = 8;
   optional string why_it_matters = 9;
-  string action = 10;
-  optional string action_target = 11;
+  string action = 10;                  // D6: TypedActionKind string, e.g. "Focus", "Node", "Filter", "None"
+  optional string action_target = 11;  // D6: target string for the primary action
+  repeated string evidence_actions = 12; // D6: parallel to evidence[]. Format: "Focus:key" | "Node:id" | "Filter:kind" | "" (none)
 }
 
 message StageStat {

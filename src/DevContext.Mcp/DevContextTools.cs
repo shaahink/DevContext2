@@ -388,8 +388,8 @@ public sealed class DevContextTools
                 confidence = i.Confidence,
                 confidenceBasis = i.ConfidenceBasis,
                 whyItMatters = i.WhyItMatters,
-                action = i.Action.ToString(),
-                actionTarget = i.ActionTarget,
+                action = i.PrimaryAction?.Kind.ToString() ?? "None",
+                actionTarget = i.PrimaryAction?.Target,
                 jumpOff = i.JumpOff,
             }).ToArray(),
         });

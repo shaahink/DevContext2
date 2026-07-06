@@ -11,7 +11,8 @@ public sealed class AnonymousEndpointsSource : IInsightSource
 
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var httpEntries = entries.Where(e => e.Kind == EntryPointKind.HttpEndpoint).ToList();
+        var httpEntries = entries.Where(e =>
+            e.Kind == EntryPointKind.HttpEndpoint && !IsRazorPage(e, graph)).ToList();
         if (httpEntries.Count == 0) yield break;
 
         // Merge auth info from EndpointDetections, keyed by (route, verb) — a route with mixed-auth
@@ -26,8 +27,8 @@ public sealed class AnonymousEndpointsSource : IInsightSource
         var hasGlobalFallback = model.Detections.OfType<GlobalAuthPolicyDetection>()
             .Any(d => d.HasFallbackPolicy);
 
-        var anon = new List<string>();
-        var unverifiable = new List<string>();
+        var anon = new List<(string Label, EntryPoint Entry)>();
+        var unverifiable = new List<(string Label, EntryPoint Entry)>();
         foreach (var e in httpEntries)
         {
             if (e.Route == null) continue;
@@ -36,22 +37,22 @@ public sealed class AnonymousEndpointsSource : IInsightSource
             if (!det.AuthAttributes.IsDefaultOrEmpty && det.AuthAttributes.Length > 0)
             {
                 if (det.AuthAttributes.Contains("[AllowAnonymous]"))
-                    anon.Add($"{method} {e.Route}");
+                    anon.Add(($"{method} {e.Route}", e));
                 continue;
             }
 
-            // No auth metadata at all: genuinely anonymous unless an app-wide default covers it.
             if (hasGlobalFallback)
-                unverifiable.Add($"{method} {e.Route}");
+                unverifiable.Add(($"{method} {e.Route}", e));
             else
-                anon.Add($"{method} {e.Route}");
+                anon.Add(($"{method} {e.Route}", e));
         }
 
         if (anon.Count == 0 && unverifiable.Count == 0) yield break;
 
         if (anon.Count > 0)
         {
-            var postAnon = anon.Count(a => a.StartsWith("POST") || a.StartsWith("PUT") || a.StartsWith("DELETE"));
+            var top = anon.Take(5).ToList();
+            var postAnon = anon.Count(a => a.Label.StartsWith("POST") || a.Label.StartsWith("PUT") || a.Label.StartsWith("DELETE"));
             var sev = postAnon > 0 ? Severity.Warning : Severity.Notable;
             var suffix = postAnon > 0 ? $", incl. {postAnon} POST/PUT/DELETE" : "";
             if (unverifiable.Count > 0)
@@ -61,21 +62,36 @@ public sealed class AnonymousEndpointsSource : IInsightSource
             var authCoverage = httpEntries.Count > 0
                 ? (double)(httpEntries.Count - anon.Count) / httpEntries.Count
                 : 0;
-            yield return Insight.Create(Id, Category, sev, title, anon.Take(5),
+            var evidence = top.Select(x => x.Label).ToImmutableArray();
+            var evidenceActions = top.Select(x => TypedAction.Focus(x.Entry.Node.ToString()))
+                .Cast<TypedAction?>().ToImmutableArray();
+            yield return Insight.Create(Id, Category, sev, title, evidence,
                 confidence: Math.Round(authCoverage, 2),
                 confidenceBasis: $"{httpEntries.Count - anon.Count}/{httpEntries.Count} endpoints have known auth",
                 whyItMatters: "Unauthenticated write endpoints are a security risk — verify each is intentionally public.",
-                action: InsightAction.Trace,
-                actionTarget: httpEntries.FirstOrDefault(e => anon.Contains($"{e.HttpMethod ?? "GET"} {e.Route}"))?.Node.ToString());
+                action: anon.FirstOrDefault().Entry is { } first ? TypedAction.Focus(first.Node.ToString()) : null,
+                evidenceActions: evidenceActions);
         }
         else
         {
-            // Never claim "anonymous" when a fallback policy exists and no endpoint overrides it (E1).
+            var top = unverifiable.Take(5).ToList();
             var title = $"Auth present via app-wide default policy — {unverifiable.Count} endpoints not individually verifiable";
-            yield return Insight.Create(Id, Category, Severity.Notable, title, unverifiable.Take(5),
+            var evidence = top.Select(x => x.Label).ToImmutableArray();
+            var evidenceActions = top.Select(x => TypedAction.Focus(x.Entry.Node.ToString()))
+                .Cast<TypedAction?>().ToImmutableArray();
+            yield return Insight.Create(Id, Category, Severity.Notable, title, evidence,
                 confidence: 0.7,
                 confidenceBasis: "App-wide fallback policy detected; per-endpoint annotations may be incomplete",
-                whyItMatters: "Global auth policy protects all endpoints by default — individual annotations confirm intent.");
+                whyItMatters: "Global auth policy protects all endpoints by default — individual annotations confirm intent.",
+                evidenceActions: evidenceActions);
         }
+    }
+
+    private static bool IsRazorPage(EntryPoint e, CodeGraph graph)
+    {
+        var node = graph.Node(e.Node);
+        if (node?.FilePath is { } fp)
+            return fp.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }

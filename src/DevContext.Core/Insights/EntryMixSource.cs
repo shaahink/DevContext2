@@ -11,7 +11,13 @@ public sealed class EntryMixSource : IInsightSource
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         if (entries.IsDefaultOrEmpty) yield break;
-        var groups = entries
+
+        var hasNonCliEntries = entries.Any(e => e.Kind != EntryPointKind.CliCommand);
+        var filtered = hasNonCliEntries
+            ? entries.Where(e => e.Kind != EntryPointKind.CliCommand).ToImmutableArray()
+            : entries;
+
+        var groups = filtered
             .GroupBy(e => e.Kind)
             .OrderByDescending(g => g.Count())
             .Take(4)
@@ -30,7 +36,7 @@ public sealed class EntryMixSource : IInsightSource
         EntryPointKind.ScheduledJob => "scheduled",
         EntryPointKind.HostedService => "hosted",
         EntryPointKind.UiEntry => "UI",
-        EntryPointKind.CliCommand => "CLI",
+        EntryPointKind.CliCommand => "Commands",
         _ => k.ToString(),
     };
 }

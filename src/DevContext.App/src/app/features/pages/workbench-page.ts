@@ -166,7 +166,11 @@ export class WorkbenchPage implements OnDestroy {
         const handle = this.session.handle();
         if (!handle || !this.session.ready()) return;
         restoreFocus.destroy();
-        void this.trace.trace(handle, urlFocus);
+        if (urlView === 'node') {
+          this.trace.selectNode(urlFocus);
+        } else {
+          void this.trace.trace(handle, urlFocus);
+        }
       });
     }
 

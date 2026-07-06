@@ -13,35 +13,54 @@ public sealed class WebArchetypeSource : IInsightSource
 
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var httpEntries = entries.Where(e => e.Kind == EntryPointKind.HttpEndpoint).ToList();
+        var httpEntries = entries.Where(e =>
+            e.Kind == EntryPointKind.HttpEndpoint && !IsRazorPage(e, graph)).ToList();
         if (httpEntries.Count == 0) yield break;
 
         // ── Auth surface ──
         var authEntries = httpEntries.Count(e => !e.AuthAttributes.IsDefaultOrEmpty);
         if (authEntries > 0 || httpEntries.Count > 0)
         {
-            var protectedCount = httpEntries.Count(e =>
-                !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("Authorize")));
-            var publicCount = httpEntries.Count(e =>
-                !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("AllowAnonymous")));
-            var unprotected = httpEntries.Count - (protectedCount + publicCount);
+            var protectedEntries = httpEntries.Where(e =>
+                !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("Authorize"))).ToList();
+            var publicEntries = httpEntries.Where(e =>
+                !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("AllowAnonymous"))).ToList();
+            var unannotated = httpEntries.Where(e =>
+                e.AuthAttributes.IsDefaultOrEmpty || e.AuthAttributes.Length == 0).ToList();
 
             var evidence = new List<string>();
-            if (protectedCount > 0) evidence.Add($"{protectedCount} protected");
-            if (publicCount > 0) evidence.Add($"{publicCount} explicitly public");
-            if (unprotected > 0) evidence.Add($"{unprotected} no auth annotation");
+            var actions = new List<TypedAction?>();
+
+            if (protectedEntries.Count > 0)
+            {
+                evidence.Add($"{protectedEntries.Count} protected");
+                actions.Add(null);
+                foreach (var pe in protectedEntries.Take(2))
+                {
+                    evidence.Add($"{pe.HttpMethod ?? "GET"} {pe.Route}");
+                    actions.Add(TypedAction.Focus(pe.Node.ToString()));
+                }
+            }
+            if (publicEntries.Count > 0)
+            {
+                evidence.Add($"{publicEntries.Count} explicitly public");
+                actions.Add(null);
+            }
+            if (unannotated.Count > 0)
+            {
+                evidence.Add($"{unannotated.Count} no auth annotation");
+                actions.Add(null);
+            }
 
             yield return Insight.Create("web.auth-surface", InsightCategory.Risk,
-                unprotected > httpEntries.Count * 0.5 ? Severity.Warning : Severity.Notable,
-                $"Auth surface: {protectedCount} protected, {unprotected} unannotated of {httpEntries.Count} endpoints",
+                unannotated.Count > httpEntries.Count * 0.5 ? Severity.Warning : Severity.Notable,
+                $"Auth surface: {protectedEntries.Count} protected, {unannotated.Count} unannotated of {httpEntries.Count} API endpoints",
                 evidence,
-                confidence: httpEntries.Count > 0 ? (double)Math.Max(protectedCount, publicCount) / httpEntries.Count : 0.5,
-                confidenceBasis: $"{protectedCount + publicCount}/{httpEntries.Count} endpoints have auth annotations",
+                confidence: httpEntries.Count > 0 ? (double)Math.Max(protectedEntries.Count, publicEntries.Count) / httpEntries.Count : 0.5,
+                confidenceBasis: $"{protectedEntries.Count + publicEntries.Count}/{httpEntries.Count} API endpoints have auth annotations",
                 whyItMatters: "Every unauthenticated write endpoint may be a security gap — verify intent.",
-                action: InsightAction.Trace,
-                actionTarget: httpEntries.FirstOrDefault(e =>
-                    !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("Authorize")))
-                    ?.Node.ToString());
+                action: protectedEntries.FirstOrDefault() is { } first ? TypedAction.Focus(first.Node.ToString()) : null,
+                evidenceActions: actions.ToImmutableArray());
         }
 
         // ── Data map ──
@@ -77,5 +96,13 @@ public sealed class WebArchetypeSource : IInsightSource
                 confidenceBasis: "Pipeline/handler detection is structural — reliable",
                 whyItMatters: "Pipeline behaviours apply cross-cutting concerns to every request — they affect all endpoints.");
         }
+    }
+
+    private static bool IsRazorPage(EntryPoint e, CodeGraph graph)
+    {
+        var node = graph.Node(e.Node);
+        if (node?.FilePath is { } fp)
+            return fp.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }

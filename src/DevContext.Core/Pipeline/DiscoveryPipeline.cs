@@ -814,6 +814,11 @@ public sealed class DiscoveryPipeline
             new DesktopArchetypeSource(),
             new CliArchetypeSource(),
             new GatewayArchetypeSource(),
+            // M2.2 — wiring-grounded insights
+            new EventFlowSource(),
+            new SpofSource(),
+            new UnvalidatedEndpointsSource(),
+            new ConfigDefaultsSource(),
         };
 
         var all = new List<Insight>();

@@ -184,12 +184,20 @@ internal static class ProtoMapper
                 Title = i.Title,
                 Detail = "",
                 Confidence = i.Confidence,
-                Action = i.Action.ToString(),
+                Action = i.PrimaryAction?.Kind.ToString() ?? "None",
             };
             if (i.ConfidenceBasis is { } cb) pi.ConfidenceBasis = cb;
             if (i.WhyItMatters is { } wm) pi.WhyItMatters = wm;
-            if (i.ActionTarget is { } at) pi.ActionTarget = at;
+            if (i.PrimaryAction is { } pa && !pa.IsNone) pi.ActionTarget = pa.Target;
             pi.Evidence.AddRange(i.Evidence);
+            if (!i.EvidenceActions.IsDefaultOrEmpty)
+            {
+                foreach (var ea in i.EvidenceActions)
+                {
+                    pi.EvidenceActions.Add(ea is { } a && !a.IsNone
+                        ? $"{a.Kind}:{a.Target}" : "");
+                }
+            }
             resp.Insights.Add(pi);
         }
 

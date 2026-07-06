@@ -59,8 +59,7 @@ public sealed class LibraryArchetypeSource : IInsightSource
                     confidence: 0.5,
                     confidenceBasis: "Reference counting is body-scan approximate — hubs are likely correct, counts approximate",
                     whyItMatters: "These are the library's 'heart' — the types every other type depends on. Start reading here.",
-                    action: InsightAction.Trace,
-                    actionTarget: hubs.FirstOrDefault());
+                    action: TypedAction.Focus(hubs.FirstOrDefault()));
             }
         }
 
@@ -84,8 +83,7 @@ public sealed class LibraryArchetypeSource : IInsightSource
                 confidence: 0.7,
                 confidenceBasis: "DI registration detection is established — counts are reliable for collected registrations",
                 whyItMatters: "Interfaces with multiple implementations are extension points — they define the library's plug-in surface.",
-                action: InsightAction.Usages,
-                actionTarget: multiImpl.FirstOrDefault());
+                action: TypedAction.Node(multiImpl.FirstOrDefault()));
         }
     }
 

@@ -16,6 +16,10 @@ public sealed class CliArchetypeSource : IInsightSource
         var cliEntries = entries.Where(e => e.Kind == EntryPointKind.CliCommand).ToList();
         if (cliEntries.Count == 0) yield break;
 
+        var totalNonCli = entries.Count(e => e.Kind != EntryPointKind.CliCommand);
+        if (totalNonCli > cliEntries.Count * 3)
+            yield break;
+
         // ── Command tree ──
         var byDepth = cliEntries
             .GroupBy(e => e.Node)
@@ -39,8 +43,7 @@ public sealed class CliArchetypeSource : IInsightSource
             confidence: 0.8,
             confidenceBasis: "CLI command detection requires framework base types (Spectre/System.CommandLine) — reliable once gated",
             whyItMatters: "The command tree is a CLI app's user interface — it shows what the tool can do.",
-            action: InsightAction.Trace,
-            actionTarget: cliEntries.FirstOrDefault()?.Node.ToString());
+            action: TypedAction.Focus(cliEntries.FirstOrDefault()?.Node.ToString()));
 
         // ── Parameter/option count per command ──
         var avgParams = cliEntries.Count > 0

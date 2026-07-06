@@ -27,6 +27,7 @@ interface InsightGroup {
     detail: string; evidence: string[];
     confidence: number; confidenceBasis?: string;
     whyItMatters?: string; action: string; actionTarget?: string;
+    evidenceActions: string[];
   }[];
 }
 
@@ -91,20 +92,24 @@ interface InsightGroup {
                       }
                       @if (insight.evidence.length) {
                         <div class="mt-1.5 flex flex-wrap gap-1">
-                          @for (ev of insight.evidence; track ev) {
-                            <a
-                              class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-surface-3 hover:text-accent transition-colors"
-                              [routerLink]="['/explore']"
-                              [queryParams]="{ focus: ev }"
-                            >{{ ev }}</a>
+                          @for (ev of insight.evidence; track ev; let idx = $index) {
+                            @if (eaRoute(insight.evidenceActions[idx] ?? ''); as route) {
+                              <a
+                                class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-surface-3 hover:text-accent transition-colors"
+                                [routerLink]="[route.route]"
+                                [queryParams]="route.params"
+                              >{{ ev }}</a>
+                            } @else {
+                              <span class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted">{{ ev }}</span>
+                            }
                           }
                         </div>
                       }
-                      @if (insight.action !== 'None' && insight.actionTarget) {
+                      @if (paRoute(insight.action, insight.actionTarget); as route) {
                         <a class="mt-1.5 inline-block text-2xs text-accent hover:underline"
-                           [routerLink]="['/explore']"
-                           [queryParams]="{ focus: insight.actionTarget }">
-                          {{ insight.action === 'Trace' ? 'Trace it →' : insight.action === 'Usages' ? 'See usages →' : 'Export →' }}
+                           [routerLink]="[route.route]"
+                           [queryParams]="route.params">
+                          {{ actionLabel(insight.action) }}
                         </a>
                       }
                     </div>
@@ -160,6 +165,7 @@ export class InsightsView {
       detail: string; evidence: string[];
       confidence: number; confidenceBasis?: string;
       whyItMatters?: string; action: string; actionTarget?: string;
+      evidenceActions: string[];
     }[]>();
     for (const i of list) {
       const impact = IMPACT_GROUPS[i.severity] ?? 'Know this';
@@ -176,6 +182,7 @@ export class InsightsView {
         whyItMatters: i.whyItMatters,
         action: i.action,
         actionTarget: i.actionTarget,
+        evidenceActions: i.evidenceActions ?? [],
       });
     }
     return [...map.entries()].map(([impact, insights]) => ({ impact, insights }));
@@ -189,6 +196,39 @@ export class InsightsView {
 
   severityLabelClass(severity: string): string {
     return SEVERITY_LABEL_CLASS[severity] ?? SEVERITY_LABEL_CLASS['info'];
+  }
+
+  actionLabel(action: string): string {
+    switch (action) {
+      case 'Focus': return 'Trace it →';
+      case 'Node': return 'Open node →';
+      case 'Filter': return 'Filter →';
+      default: return action;
+    }
+  }
+
+  eaRoute(encoded: string): { route: string; params: Record<string, string> } | null {
+    if (!encoded || encoded === 'None') return null;
+    const idx = encoded.indexOf(':');
+    if (idx < 0) return null;
+    const kind = encoded.slice(0, idx);
+    const target = encoded.slice(idx + 1);
+    switch (kind) {
+      case 'Focus': return { route: '/explore', params: { focus: target } };
+      case 'Node': return { route: '/explore', params: { focus: target, view: 'node' } };
+      case 'Filter': return { route: '/explore', params: { kind: target } };
+      default: return null;
+    }
+  }
+
+  paRoute(action: string, target?: string): { route: string; params: Record<string, string> } | null {
+    if (!action || action === 'None' || !target) return null;
+    switch (action) {
+      case 'Focus': return { route: '/explore', params: { focus: target } };
+      case 'Node': return { route: '/explore', params: { focus: target, view: 'node' } };
+      case 'Filter': return { route: '/explore', params: { kind: target } };
+      default: return null;
+    }
   }
 
   retryStats(): void {

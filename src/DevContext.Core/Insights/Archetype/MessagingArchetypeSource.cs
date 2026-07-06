@@ -51,8 +51,7 @@ public sealed class MessagingArchetypeSource : IInsightSource
             confidence: 0.6,
             confidenceBasis: "Message detection is body-scan — producer edges may miss DI-resolved bus dispatches",
             whyItMatters: "Understanding message flow is essential in event-driven architectures — it shows how services communicate.",
-            action: InsightAction.Trace,
-            actionTarget: producers.FirstOrDefault()?.Node.ToString() ?? consumers.FirstOrDefault()?.Node.ToString());
+            action: TypedAction.Focus(producers.FirstOrDefault()?.Node.ToString() ?? consumers.FirstOrDefault()?.Node.ToString()));
 
         // ── External contracts (consumed but never produced) ──
         var consumedNotProduced = consumedEvents.Except(producedEvents).ToList();

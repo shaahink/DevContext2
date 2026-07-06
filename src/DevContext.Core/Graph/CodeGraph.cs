@@ -1,3 +1,5 @@
+using DevContext.Core.Models;
+
 namespace DevContext.Core.Graph;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -119,6 +121,10 @@ public sealed record GraphNode(
     public int? LineNumber { get; init; }
     /// <summary>Free-form labels (e.g. "aggregate", "command", "scoped").</summary>
     public ImmutableArray<string> Tags { get; init; } = [];
+    /// <summary>D9 Architecture layer classification (e.g. "Api", "Domain", "Infrastructure").</summary>
+    public string? Layer { get; init; }
+    /// <summary>D9 Feature classification derived from namespace/folder conventions.</summary>
+    public string? Feature { get; init; }
 }
 
 /// <summary>A directed, typed edge with provenance and resolution confidence.</summary>
@@ -182,6 +188,8 @@ public sealed class CodeGraph
     public bool IsSparseGraph { get; init; }
     /// <summary>L3.4 — Number of hub-scoped nodes additional edges were bound for.</summary>
     public int HubScopeNodeCount { get; init; }
+    /// <summary>D9 — Layer violations detected during graph assembly.</summary>
+    public ImmutableArray<LayerViolation> LayerViolations { get; init; } = [];
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -235,6 +243,8 @@ public sealed class CodeGraphBuilder
                 SourceBody = existing.SourceBody ?? node.SourceBody,
                 Project = existing.Project ?? node.Project,
                 LineNumber = existing.LineNumber ?? node.LineNumber,
+                Layer = existing.Layer ?? node.Layer,
+                Feature = existing.Feature ?? node.Feature,
             };
             _nodes[node.Id] = merged;
             return merged;
@@ -272,9 +282,9 @@ public sealed class CodeGraphBuilder
     public GraphNode? GetNode(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
 
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
-    public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0)
+    public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount };
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations };
     }
 }

@@ -55,8 +55,9 @@ public sealed class GraphBuilder
         var g = new CodeGraphBuilder();
         var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
         _eventPublishers = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
-        AddTypeNodes(g, model, scope);
+        AddTypeNodes(g, model, scope, archetype);
 
         // ── P3: Entry-point builders (one per kind) ──────────────────────────
         // Open to extension — add a new builder for Blazor/gRPC/SignalR without
@@ -92,7 +93,9 @@ public sealed class GraphBuilder
         AddGrpcServiceLinks(g, model, names, scope, _noise);
         AddHttpServiceLinks(g, model, names, scope, _noise);
 
-        var graph = g.Build(isSparse, hubCount);
+        var preGraph = g.Build(isSparse, hubCount);
+        var violations = DetectLayerViolations(preGraph, archetype);
+        var graph = g.Build(isSparse, hubCount, violations);
         return (graph, EnrichEntryScores(
             EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope),
             graph, scope));
@@ -521,18 +524,64 @@ public sealed class GraphBuilder
     }
 
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
-    private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
+    private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, ArchitectureArchetype archetype)
     {
         foreach (var type in model.Types.Values)
         {
             if (!_noise.IsProductionCode(type) || !scope.Contains(type.FilePath)) continue;
+            var feature = DeriveFeature(type, model);
             g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
             {
                 FilePath = type.FilePath,
                 SourceBody = type.SourceBody,
                 LineNumber = type.StartLine,
+                Layer = type.Layer != ArchitectureLayer.Unknown ? type.Layer.ToLabel(archetype) : null,
+                Feature = feature,
             });
         }
+    }
+
+    /// <summary>D9 — derives the feature label from namespace, stripping project and known layer prefixes.
+    /// Returns the first meaningful segment after removing project-root namespace segments and layer-ish segments.</summary>
+    private static string? DeriveFeature(TypeDiscovery type, DiscoveryModel model)
+    {
+        var ns = type.Namespace;
+        if (string.IsNullOrWhiteSpace(ns)) return null;
+
+        if (type.FilePath is not { } fp) return CarveFeature(ns);
+
+        var matchedProject = model.Projects.FirstOrDefault(p =>
+            p.FilePath is { } pp && fp.StartsWith(Path.GetDirectoryName(pp) ?? "", StringComparison.OrdinalIgnoreCase));
+        if (matchedProject is not null)
+        {
+            var prefix = matchedProject.Name.Replace("-", "").Replace("_", "");
+            if (ns.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                ns = ns[prefix.Length..].TrimStart('.');
+        }
+        if (ns.StartsWith("Services.", StringComparison.OrdinalIgnoreCase))
+            ns = ns["Services.".Length..];
+
+        return CarveFeature(ns);
+    }
+
+    private static readonly HashSet<string> LayerSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Api", "Controllers", "Endpoints", "Presentation", "UI",
+        "Application", "UseCases", "Services", "Handlers", "Behaviors", "Validators",
+        "Domain", "Entities", "Aggregates", "ValueObjects", "Events",
+        "Infrastructure", "Persistence", "Data", "Repositories", "External",
+        "Contracts", "Dto", "Messages", "Requests", "Responses",
+        "Extensions", "Filters", "Middleware", "Mapping", "Configuration",
+        "Pages", "Components", "Views", "ViewModels", "Platform", "Core", "Internals",
+    };
+
+    private static string? CarveFeature(string ns)
+    {
+        var segments = ns.Split('.');
+        var meaningful = segments
+            .Where(s => !string.IsNullOrWhiteSpace(s) && !LayerSegments.Contains(s))
+            .ToArray();
+        return meaningful.Length > 0 ? meaningful[0] : null;
     }
 
 
@@ -604,11 +653,13 @@ public sealed class GraphBuilder
         g.AddNode(new GraphNode(requestId, requestType, NodeKind.Type)
         {
             Tags = [kind.ToString().ToLowerInvariant()],
+            Layer = "Application",
         });
         g.AddNode(new GraphNode(handlerId, handlerShortName, NodeKind.Type)
         {
             FilePath = sourceFile,
             Tags = [RoleTags.Handler],
+            Layer = "Application",
             SourceBody = model.Types.Values
                 .FirstOrDefault(t => t.Id == names.Resolve(handlerShortName, sourceFile))
                 ?.SourceBody,
@@ -743,6 +794,7 @@ public sealed class GraphBuilder
             {
                 FilePath = file,
                 Tags = [RoleTags.Service, RoleTags.Pipeline],
+                Layer = "Infrastructure",
                 SourceBody = model.Types.Values
                     .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
             });
@@ -796,6 +848,7 @@ public sealed class GraphBuilder
             {
                 FilePath = e.SourceFile,
                 Tags = tags,
+                Layer = "Domain",
             });
             knownEntityFqns.Add(names.Resolve(e.EntityType, e.SourceFile));
         }
@@ -815,6 +868,7 @@ public sealed class GraphBuilder
                     {
                         FilePath = type.FilePath,
                         Tags = [RoleTags.Entity],
+                        Layer = "Domain",
                     });
                     break;
                 }
@@ -949,11 +1003,13 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(eventId, h.RequestType, NodeKind.Type)
             {
                 Tags = [RoleTags.DomainEvent],
+                Layer = "Domain",
             });
             g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Type)
             {
                 FilePath = h.SourceFile,
                 Tags = [RoleTags.Handler],
+                Layer = "Application",
             });
             g.AddEdge(new GraphEdge(eventId, handlerId, EdgeKind.Consumes)
             {
@@ -974,11 +1030,13 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Type)
             {
                 Tags = [RoleTags.IntegrationEvent, mc.BusKind],
+                Layer = "Contracts",
             });
             g.AddNode(new GraphNode(handlerId, mc.ConsumerType, NodeKind.Type)
             {
                 FilePath = mc.SourceFile,
                 Tags = [RoleTags.Consumer],
+                Layer = "Infrastructure",
             });
             g.AddEdge(new GraphEdge(eventId, handlerId, EdgeKind.Consumes)
             {
@@ -1033,10 +1091,14 @@ public sealed class GraphBuilder
 
             // Ensure both nodes exist
             if (!g.HasNode(svcNodeId))
-                g.AddNode(new GraphNode(svcNodeId, di.ServiceType, NodeKind.Type));
+                g.AddNode(new GraphNode(svcNodeId, di.ServiceType, NodeKind.Type)
+                {
+                    Layer = "Infrastructure", // DI extension methods (AddMediatR, AddDbContext, etc.)
+                });
             g.AddNode(new GraphNode(implNodeId, di.ImplementationType, NodeKind.Type)
             {
                 Tags = [RoleTags.Service],
+                Layer = "Infrastructure", // DI-registered implementations
             });
 
             // I1.6 — tag Resolves edges with multi-impl count for render annotation
@@ -1236,6 +1298,7 @@ public sealed class GraphBuilder
                 {
                     FilePath = e.SourceFile,
                     Tags = [RoleTags.DataStore],
+                    Layer = "Infrastructure",
                 });
                 g.AddEdge(new GraphEdge(entityId, ctxId, EdgeKind.ReadsWrites)
                 {
@@ -1351,6 +1414,7 @@ public sealed class GraphBuilder
                     g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                     {
                         Tags = [RoleTags.DomainEvent],
+                        Layer = "Domain",
                     });
                     g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
                     {
@@ -1383,6 +1447,7 @@ public sealed class GraphBuilder
                 g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
                 {
                     Tags = [RoleTags.IntegrationEvent],
+                    Layer = "Contracts",
                 });
                 g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
                 {
@@ -1435,7 +1500,7 @@ public sealed class GraphBuilder
                 ? provenance[..provenance.LastIndexOf(':')]
                 : provenance;
             var requestId = NodeId.ForType(names.Resolve(requestName, fileFromProvenance));
-            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
+            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type) { Layer = "Application" });
             g.AddEdge(new GraphEdge(fromId, requestId, EdgeKind.Sends)
             {
                 Provenance = provenance,
@@ -1537,7 +1602,7 @@ public sealed class GraphBuilder
                 // Approximate provenance: file + line of the Send call
                 var prov = EstimateProvenance(body, match.Index, type.FilePath);
 
-                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type));
+                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type) { Layer = "Application" });
                 g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), requestId, EdgeKind.Sends)
                 {
                     Provenance = prov,
@@ -2075,8 +2140,8 @@ public sealed class GraphBuilder
 
                     var fromId = NodeId.ForType(pubProject);
                     var toId = NodeId.ForType(conProject);
-                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Type) { Tags = [RoleTags.Service] });
-                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Infrastructure" });
+                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Infrastructure" });
 
                     g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
                     {
@@ -2127,10 +2192,12 @@ public sealed class GraphBuilder
                 g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type)
                 {
                     Tags = [RoleTags.Service],
+                    Layer = "Api",
                 });
                 g.AddNode(new GraphNode(toId, serverProject, NodeKind.Type)
                 {
                     Tags = [RoleTags.Service],
+                    Layer = "Api",
                 });
 
                 g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
@@ -2256,8 +2323,8 @@ public sealed class GraphBuilder
                     // ── Edge 1: client project → gateway project ──
                     var fromId = NodeId.ForType(clientProject);
                     var gwId = NodeId.ForType(gatewayProject!);
-                    g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type) { Tags = [RoleTags.Service] });
-                    g.AddNode(new GraphNode(gwId, gatewayProject!, NodeKind.Type) { Tags = [RoleTags.Service] });
+                    g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
+                    g.AddNode(new GraphNode(gwId, gatewayProject!, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
                     g.AddEdge(new GraphEdge(fromId, gwId, EdgeKind.ServiceLink)
                     {
                         Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
@@ -2282,7 +2349,7 @@ public sealed class GraphBuilder
                                 || destAddr.Contains(backendLower.Replace(".api", ""), StringComparison.Ordinal))
                             {
                                 var beId = NodeId.ForType(backendProject);
-                                g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service] });
+                                g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
                                 g.AddEdge(new GraphEdge(gwId, beId, EdgeKind.ServiceLink)
                                 {
                                     Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
@@ -2324,5 +2391,63 @@ public sealed class GraphBuilder
             if (proj is not null) return proj;
         }
         return node.Project;
+    }
+
+    /// <summary>D9 — Detects layer violations by scanning graph edges for disallowed cross-layer
+    /// references using archetype-dependent dependency rules.</summary>
+    private static ImmutableArray<LayerViolation> DetectLayerViolations(CodeGraph graph, ArchitectureArchetype archetype)
+    {
+        var layers = new Dictionary<NodeId, string>();
+        foreach (var n in graph.Nodes)
+        {
+            if (n.Layer is { } layer)
+                layers[n.Id] = layer;
+        }
+
+        var illegal = archetype switch
+        {
+            ArchitectureArchetype.Library => new HashSet<(string, string)>(new[]
+            {
+                ("Internals", "PublicApi"),
+            }),
+            ArchitectureArchetype.Desktop => new HashSet<(string, string)>(new[]
+            {
+                ("Domain", "View"),
+                ("Domain", "Platform"),
+                ("Platform", "View"),
+            }),
+            // Web, Microservices, Gateway, and unknown default to clean-architecture rules
+            _ => new HashSet<(string, string)>(new[]
+            {
+                ("Domain", "Infrastructure"),
+                ("Domain", "Persistence"),
+                ("Domain", "Presentation"),
+                ("Domain", "Api"),
+                ("Application", "Presentation"),
+                ("Application", "Api"),
+            }),
+        };
+
+        var result = ImmutableArray.CreateBuilder<LayerViolation>();
+        var edgesSeen = new HashSet<(NodeId, NodeId, string)>();
+
+        foreach (var n in graph.Nodes)
+        {
+            if (!layers.TryGetValue(n.Id, out var fromLayer)) continue;
+            var outEdges = graph.OutEdges(n.Id);
+            foreach (var e in outEdges)
+            {
+                if (!layers.TryGetValue(e.To, out var toLayer)) continue;
+                if (fromLayer == toLayer) continue;
+                if (!illegal.Contains((fromLayer, toLayer))) continue;
+                var key = (e.From, e.To, fromLayer + "->" + toLayer);
+                if (!edgesSeen.Add(key)) continue;
+                result.Add(new LayerViolation(
+                    e.From.ToString(), e.To.ToString(),
+                    fromLayer, toLayer, e.Kind.ToString(), e.Provenance));
+            }
+        }
+
+        return result.ToImmutable();
     }
 }

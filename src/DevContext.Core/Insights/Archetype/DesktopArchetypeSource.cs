@@ -26,24 +26,44 @@ public sealed class DesktopArchetypeSource : IInsightSource
         if (uiEntries.Count == 0 && !hasDesktopPatterns) yield break;
 
         // ── Module map ──
-        var byGroup = entries
-            .Where(e => e.GroupPath is not null)
-            .GroupBy(e => e.GroupPath!)
+        var featureGroups = entries
+            .Select(e => graph.Node(e.Node))
+            .Where(n => n?.Feature is not null)
+            .GroupBy(n => n!.Feature!)
             .OrderByDescending(g => g.Count())
-            .Take(8)
-            .Select(g => $"{g.Key} ({g.Count()} entries)")
+            .Select(g => $"{g.Key} ({g.Count()} types)")
             .ToList();
 
-        if (byGroup.Count > 0)
+        if (featureGroups.Count > 0)
         {
             yield return Insight.Create("desktop.module-map", InsightCategory.Shape, Severity.Info,
-                $"Module map: {byGroup.Count} feature areas",
-                byGroup,
-                confidence: 0.7,
-                confidenceBasis: "GroupPath is namespace-derived — reliable within project conventions",
+                $"Feature map: {featureGroups.Count} feature areas",
+                featureGroups.Take(8).ToList(),
+                confidence: 0.75,
+                confidenceBasis: "Features derived from namespace/folder conventions (D9)",
                 whyItMatters: "Desktop apps are organised in feature areas — this map shows the high-level structure.",
-                action: InsightAction.Trace,
-                actionTarget: entries.FirstOrDefault(e => e.GroupPath is not null)?.Node.ToString());
+                action: TypedAction.Filter("UiEntry"));
+        }
+        else
+        {
+            var byGroup = entries
+                .Where(e => e.GroupPath is not null)
+                .GroupBy(e => e.GroupPath!)
+                .OrderByDescending(g => g.Count())
+                .Take(8)
+                .Select(g => $"{g.Key} ({g.Count()} entries)")
+                .ToList();
+
+            if (byGroup.Count > 0)
+            {
+                yield return Insight.Create("desktop.module-map", InsightCategory.Shape, Severity.Info,
+                    $"Module map: {byGroup.Count} feature areas",
+                    byGroup,
+                    confidence: 0.6,
+                    confidenceBasis: "GroupPath is namespace-derived — consider D9 feature classification for better grouping",
+                    whyItMatters: "Desktop apps are organised in feature areas — this map shows the high-level structure.",
+                    action: TypedAction.Focus(entries.FirstOrDefault(e => e.GroupPath is not null)?.Node.ToString()));
+            }
         }
 
         // ── ViewModel-View wiring ──
