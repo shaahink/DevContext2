@@ -253,16 +253,6 @@ export class WorkbenchPage implements OnDestroy {
     this.tableOpen.set(true);
   }
 
-  /** Audit table row "Trace" — same as picking the entry in the deck (trace + trail
-   * push), then close the overlay since that's the point of selecting from it. */
-  protected onAuditSelect(entry: EntryVm): void {
-    this.tableOpen.set(false);
-    const handle = this.session.handle();
-    if (!handle) return;
-    this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
-    void this.trace.trace(handle, entry.focus);
-  }
-
   protected onGlobalKey(event: KeyboardEvent): void {
     if (event.key === 'Escape' && !event.ctrlKey && !event.metaKey && !event.altKey) {
       this.onEscape();
@@ -381,11 +371,14 @@ export class WorkbenchPage implements OnDestroy {
 
   private toggleDock(): void {
     const level = this.dockLevel();
-    if (level > 0) {
-      this.lastVisibleDock = level;
+    if (level >= 3) {
+      this.lastVisibleDock = 3;
       this.dockLevel.set(0);
+    } else if (level > 0) {
+      this.lastVisibleDock = level;
+      this.dockLevel.set(level + 1);
     } else {
-      this.dockLevel.set(this.lastVisibleDock);
+      this.dockLevel.set(this.lastVisibleDock || 2);
     }
     this.prefs.setDockLevel(this.dockLevel());
   }

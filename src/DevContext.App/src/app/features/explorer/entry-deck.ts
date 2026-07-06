@@ -12,7 +12,7 @@ interface KindStat {
 /**
  * Entry Deck (F proposal §2) — the left column of the Workbench. A flat keyboard-first
  * listbox, NOT a table: j/k (or arrows) scrub the selection, `/` focuses the filter,
- * Enter re-emits the current row, Shift+E asks the parent for the full audit table.
+ * Enter re-emits the current row, Shift+E asks the parent for the table lens.
  * The parent owns what selection MEANS (debounced trace + trail push) — the deck only
  * moves a cursor.
  */

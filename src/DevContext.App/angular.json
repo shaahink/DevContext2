@@ -31,7 +31,7 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "allowedCommonJsDependencies": ["cytoscape-fcose"]
+            "allowedCommonJsDependencies": ["cytoscape-fcose", "prismjs", "prismjs/components/prism-csharp"]
           },
           "configurations": {
             "production": {

@@ -81,7 +81,7 @@ function sectionTitle(key: string): string {
  *     (trace/explain/review — L5.2), instead of one raw wrapped-ASCII blob (the flaw the L6 UI/UX
  *     audit called out: "the product's crown jewel... looks like an accident").
  *
- * Follows the same overlay pattern as AuditTable (parent-controlled open/dismissed).
+ * Follows the same overlay pattern as TableLens (parent-controlled open/dismissed).
  */
 @Component({
   selector: 'app-export-drawer',

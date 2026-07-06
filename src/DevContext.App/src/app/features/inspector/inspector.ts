@@ -10,6 +10,7 @@ import { ToastService } from '../../ui/toast/toast';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
 import { formatCompact } from '../../core/format';
+import { highlightCSharp } from '../../core/code-highlight';
 
 type SectionId = 'details' | 'code' | 'callstack' | 'insights' | 'llm' | 'trail';
 
@@ -107,7 +108,7 @@ const RENDER_DEBOUNCE_MS = 250;
               </button>
             </div>
             @if (codeContent()) {
-              <pre class="max-h-80 overflow-y-auto whitespace-pre border border-line bg-base p-2 font-mono text-2xs leading-relaxed text-ink"><code>{{ codeContent() }}</code></pre>
+              <pre class="code-block max-h-80 overflow-y-auto whitespace-pre border border-line bg-base p-2 font-mono text-2xs leading-relaxed"><code [innerHTML]="highlightedCode()"></code></pre>
             } @else if (codeLoading()) {
               <div class="space-y-1 py-2">
                 <app-skeleton />
@@ -303,6 +304,7 @@ export class Inspector {
   protected readonly codeLoading = signal(false);
   protected readonly codeError = signal<string | null>(null);
   protected readonly codePathCopied = signal(false);
+  protected readonly highlightedCode = computed(() => highlightCSharp(this.codeContent()));
   private codeNodeId: string | null = null;
   /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
   private readonly expandedGroups = signal<ReadonlySet<number>>(new Set());
