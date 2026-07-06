@@ -11,6 +11,7 @@ import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
+import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
@@ -68,6 +69,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             class="min-w-0 flex-1"
             [(altitude)]="stageAltitude"
             [(flowMode)]="stageFlowMode"
+            [(lensModel)]="stageLens"
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
@@ -124,6 +126,7 @@ export class WorkbenchPage implements OnDestroy {
   /** Lifted from Stage/EntryDeck's `model()`s so they can mirror into `?view&kind&q`. */
   protected readonly stageAltitude = signal<StageAltitude>('flow');
   protected readonly stageFlowMode = signal<FlowMode>('tree');
+  protected readonly stageLens = signal<LensId>('flow');
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly auditOpen = signal(false);
@@ -153,6 +156,8 @@ export class WorkbenchPage implements OnDestroy {
     const params = this.route.snapshot.queryParamMap;
     const urlView = params.get('view');
     if (isStageAltitude(urlView)) this.stageAltitude.set(urlView);
+    const urlLens = params.get('lens');
+    if (isLensId(urlLens)) this.stageLens.set(urlLens);
     const urlKind = params.get('kind');
     if (urlKind) this.deckKind.set(urlKind);
     const urlQuery = params.get('q');
@@ -180,6 +185,7 @@ export class WorkbenchPage implements OnDestroy {
       const queryParams = {
         focus: this.trace.focus() || null,
         view: this.stageAltitude() === 'flow' ? null : this.stageAltitude(),
+        lens: this.stageLens() === 'flow' ? null : this.stageLens(),
         kind: this.deckKind(),
         q: this.deckFilterText() || null,
       };
@@ -309,20 +315,24 @@ export class WorkbenchPage implements OnDestroy {
       switch (event.key) {
         case 't':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('flow');
           this.stageFlowMode.set('tree');
           break;
         case 'g':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('flow');
           this.stageFlowMode.set('graph');
           break;
         case 's':
           event.preventDefault();
+          this.stageLens.set('service');
           this.stageAltitude.set('system');
           break;
         case 'n':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('node');
           break;
       }
@@ -386,6 +396,12 @@ function shortNodeTitle(nodeId: string): string {
 
 function isStageAltitude(value: string | null): value is StageAltitude {
   return value !== null && (VALID_ALTITUDES as readonly string[]).includes(value);
+}
+
+const VALID_LENSES: readonly LensId[] = ['service', 'layer', 'feature', 'flow'];
+
+function isLensId(value: string | null): value is LensId {
+  return value !== null && (VALID_LENSES as readonly string[]).includes(value as LensId);
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {

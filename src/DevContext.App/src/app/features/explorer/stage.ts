@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, model, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, model, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
@@ -8,6 +8,7 @@ import { TraceStore } from '../../state/trace.store';
 import { GraphCanvas } from '../../ui/graph-canvas/graph-canvas';
 import { Meter, type MeterVariant } from '../../ui/meter/meter';
 import { TraceNodeComponent } from '../trace/trace-node';
+import { LensSwitcher, type LensId } from './lens-switcher';
 
 export type StageAltitude = 'system' | 'flow' | 'node';
 export type FlowMode = 'tree' | 'graph';
@@ -34,7 +35,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
  */
 @Component({
   selector: 'app-stage',
-  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass],
+  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass, LensSwitcher],
   host: { class: 'panel relative flex h-full min-h-0 flex-col' },
   template: `
     <div
@@ -54,18 +55,24 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           (click)="zenMode.set(!zenMode()); $event.stopPropagation()"
           title="Zen mode (F)"
         >&#9641;</button>
-        @for (alt of altitudes; track alt.id) {
-        <button
-          type="button"
-          class="chip"
-          [class.active]="altitude() === alt.id"
-          [title]="alt.hint"
-          (click)="altitude.set(alt.id)"
-        >
-          {{ alt.label }}
-        </button>
-      }
-      <span class="mx-1 h-4 w-px bg-line"></span>
+
+        <!-- M7.2: Lens switcher — replaces old altitude buttons -->
+        <app-lens-switcher [(lensModel)]="lensModel" />
+
+        @if (lensModel() === 'service' || lensModel() === 'layer' || lensModel() === 'feature') {
+          @for (alt of altitudes; track alt.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.active]="altitude() === alt.id"
+              [title]="alt.hint"
+              (click)="altitude.set(alt.id)"
+            >
+              {{ alt.label }}
+            </button>
+          }
+        }
+      @if (lensModel() === 'flow') {
       @if (altitude() === 'flow') {
         <button type="button" class="chip" [class.active]="flowMode() === 'tree'" (click)="flowMode.set('tree')">
           Tree
@@ -110,6 +117,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
         <button type="button" class="chip" [class.active]="nodeViewMode() === 'graph'" (click)="nodeViewMode.set('graph')">
           Graph
         </button>
+      }
       }
       <span class="flex-1"></span>
       @if (altitude() === 'flow' && verifiedPct() !== null) {
@@ -240,6 +248,11 @@ export class Stage {
   readonly altitude = model<StageAltitude>('flow');
   /** `model()` so the Workbench's `v t`/`v g` shortcuts (§8.4) can drive it directly. */
   readonly flowMode = model<FlowMode>('tree');
+
+  /** M7.2: Lens model — lifted to WorkbenchPage so each page owns its default.
+   *  Service/flow are live; layer/feature are structural slots (engine data pending). */
+  readonly lensModel = model<LensId>('flow');
+
   protected readonly graphDepth = signal(3);
   protected readonly nodeViewMode = signal<NodeViewMode>('list');
   protected readonly directions = DIRECTIONS;
@@ -315,6 +328,16 @@ export class Stage {
     // Window-level F key for zen mode toggle
     window.addEventListener('keydown', onKey);
     inject(DestroyRef).onDestroy(() => window.removeEventListener('keydown', onKey));
+
+    // M7.2: Lens → altitude derivation. Service/layer/feature → system, flow → flow.
+    effect(() => {
+      const lens = this.lensModel();
+      if (lens === 'flow') {
+        this.altitude.set('flow');
+      } else {
+        this.altitude.set('system');
+      }
+    });
   }
 
   protected meterVariant(pct: number): MeterVariant {
