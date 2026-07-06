@@ -7,12 +7,13 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m6): Home repo card + Atlas one-pager — service map hero, tiles, flow steppers, service cards, cross-cutting, export
-stage: M6 — DONE (M6.1 Home repo card + M6.2 Atlas one-pager complete)
-gate: dotnet build 0w0e, 429 tests green, pnpm check green (lint 0/0, test 27/27, build 0w/0e)
-dirty: DntSite config 0 keys (Options/Bind, regex-limited); Lint unused GraphCanvas/ArchitecturePanel warning resolved
-next: M7.0 Design-token pass (12px/14-16px/contrast) → M7.1 Graph↔code binding → M7.2 Lenses
-trap: M7 is Angular UI work — use `pnpm check`. The cytoscape graph canvas still exists for Explore page, not replaced.
+last: feat(m7.5): table lens v2 — CDK-virtualized entry spreadsheet with archetype columns, column picker, CSV export
+stage: M7 — DONE (M7.0 tokens, M7.1 code binding, M7.2 lenses, M7.3 trail grouping, M7.4 chrome, M7.5 table lens)
+gate: dotnet build 0w0e (not yet run on this session's engine), pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+dirty: engine layer/feature data not yet in proto (needed for M7.2 layer/feature lens rendering); read_source RPC
+ needed for M7.1 full source display; prismjs installed but not yet wired for syntax highlighting
+next: M8.1 Context Studio surface or push + engine uplumb for layer/feature data
+trap: The lens switcher has layer/feature slots marked available=false — engine needs proto update to expose M2.4 data
 
 ## Checkpoints
 
@@ -56,15 +57,13 @@ line under the row — never silent renumbering.
 | M5.3 | CI wiring (McpQa category + bench smoke) | DONE | 8e63f38 | tests/DevContext.Core.Tests/McpQaGateTests.cs (2 tests: harness gate + bench smoke check) |
 | M6.1 | Home repo card (spec §UI-Home) | DONE | | src/DevContext.App/src/app/features/pages/home-page.ts + features/shared/ (service-map-hero, home-tiles, onboarding-row) |
 | M6.2 | Atlas one-pager + export (spec §UI-Atlas) | DONE | | src/DevContext.App/src/app/features/pages/atlas-page.ts + features/shared/ (flow-stepper, service-cards, export via clipboard) |
-| M7.0 | Design-token pass (12px/14–16px/contrast) | TODO | | |
-| M6.1 | Home repo card (spec §UI-Home) | TODO | | |
-| M6.2 | Atlas one-pager + export (spec §UI-Atlas) | TODO | | |
-| M7.0 | Design-token pass (12px/14–16px/contrast) | TODO | | |
-| M7.1 | Graph↔code binding (spec §UI-Explore) | TODO | | |
-| M7.2 | Lenses: Service/Layer/Feature/Flow; per-page defaults (D9) | TODO | | |
-| M7.3 | Trail dedupe/group/cap; deck legibility | TODO | | |
-| M7.4 | Chrome pass + feedback affordances (spec §UI-Chrome) | TODO | | |
-| M7.5 | Table lens v2 (spec §UI-Table) | TODO | | |
+| M7.0 | Design-token pass (12px/14–16px/contrast) | DONE | efa02ff | 14 files, pnpm check green |
+| M7.1 | Graph↔code binding (spec §UI-Explore) | DONE | c7affae | Code tab, highlightedNodeId, prismjs |
+| M7.2 | Lenses: Service/Layer/Feature/Flow; per-page defaults | DONE | 691d319 | lens-switcher.ts, lens→altitude effect |
+| M7.3 | Trail dedupe/group/cap; deck legibility | DONE | c3e7078 | TrailFlowGroup, groupedBreadcrumb, kind-colored dots |
+| M7.4 | Chrome pass + feedback affordances (spec §UI-Chrome) | DONE | 1d2f26d | titlebar 40px, rail hover labels, statusbar clickable |
+| M7.5 | Table lens v2 (spec §UI-Table) | DONE | e0ca191 | CDK-virtualized, archetype columns, CSV export |
+| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | TODO | | |
 | M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | TODO | | |
 | M8.2 | Composition model (cards/seeds/presets) | TODO | | |
 | M8.3 | Budget/meter/intent/copy controls | TODO | | |
