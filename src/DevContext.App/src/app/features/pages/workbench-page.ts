@@ -9,12 +9,12 @@ import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
-import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
 import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
+import { TableLens } from '../table-lens/table-lens';
 
 const TRACE_DEBOUNCE_MS = 150;
 /** Inspector width per dock level (% of the workbench). Level 3 = focus mode. */
@@ -43,7 +43,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, AuditTable, ExportDrawer],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens, ExportDrawer],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -90,12 +90,14 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       </div>
     }
 
-    <app-audit-table
-      [open]="auditOpen()"
-      [groups]="session.entryGroups()"
-      (selectionChange)="onAuditSelect($event)"
-      (dismissed)="auditOpen.set(false)"
-    />
+    @if (tableOpen()) {
+      <div class="fixed inset-0 z-50 flex flex-col bg-base">
+        <app-table-lens
+          [groups]="session.entryGroups()"
+          (dismissed)="tableOpen.set(false)"
+        />
+      </div>
+    }
 
     <app-export-drawer
       [open]="exportOpen()"
@@ -129,7 +131,7 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly stageLens = signal<LensId>('flow');
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
-  protected readonly auditOpen = signal(false);
+  protected readonly tableOpen = signal(false);
   protected readonly exportOpen = signal(false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
@@ -248,13 +250,13 @@ export class WorkbenchPage implements OnDestroy {
   }
 
   protected onOpenAudit(): void {
-    this.auditOpen.set(true);
+    this.tableOpen.set(true);
   }
 
   /** Audit table row "Trace" — same as picking the entry in the deck (trace + trail
    * push), then close the overlay since that's the point of selecting from it. */
   protected onAuditSelect(entry: EntryVm): void {
-    this.auditOpen.set(false);
+    this.tableOpen.set(false);
     const handle = this.session.handle();
     if (!handle) return;
     this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
@@ -351,8 +353,8 @@ export class WorkbenchPage implements OnDestroy {
       this.trace.cancelTrace();
       return;
     }
-    if (this.auditOpen()) {
-      this.auditOpen.set(false);
+    if (this.tableOpen()) {
+      this.tableOpen.set(false);
       return;
     }
     if (this.exportOpen()) {
