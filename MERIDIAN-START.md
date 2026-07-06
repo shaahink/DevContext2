@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: baf9c3d feat(m1.6-m1.9): ServiceLink edges + microservices archetype
-stage: M1 — DONE (M1.6-M1.9), M1.8 partial (HTTP route matching needs refinement)
-gate: run — out.md (2 ServiceLinks: bus Basket→Ordering, grpc Basket→Discount; Style Microservices)
-dirty: out.md in tree (remove before next session); M1.8 HTTP route matching incomplete
+last: 51f8239 feat(m1.8-m1.9): HTTP ServiceLinks + path-pattern normalization + per-service style rollup
+stage: M1 — DONE (M1.8 HTTP route matching complete, M1.9 per-service style rollup complete)
+gate: run — out.md (6 ServiceLinks: 1 bus, 1 gRPC, 4 http; 6 per-service styles; Style Microservices)
+dirty: none
 next: M2.1 — Retire/repair discredited insight sources (see proposal-meridian.md §M2)
-trap: HTTP ServiceLinks: Refit route matching against YARP paths uses naive StartsWith — needs path-pattern normalization; Adapt<T> fix increased Sends edge count — diff baseline numbers
+trap: none
 
 ## Checkpoints
 
@@ -32,8 +32,8 @@ line under the row — never silent renumbering.
 | M1.5 | Razor routes real; bus entries de-noised; footer fix | DONE | dca278c | out.md (GET /ProductDetail, Bus 3→1, 11 projects)
 | M1.6 | ServiceLink: bus publish→consume (W4) | DONE | baf9c3d | out.md (1 bus ServiceLink: Basket.API→Ordering.Application) |
 | M1.7 | ServiceLink: gRPC client→server (W4) | DONE | baf9c3d | out.md (1 gRPC ServiceLink: Basket.API→Discount.Grpc) |
-| M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | TODO | | YARP config parsing + Refit extractor done; route matching needs path-pattern normalization |
-| M1.9 | Microservices archetype + per-service style (D5) | DONE | baf9c3d | out.md (Style: Microservices, MAP archetype, 7 runnable services) |
+| M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | DONE | 51f8239 | out.md (4 HTTP ServiceLinks: Shopping.Web→YarpApiGateway + 3 gateway→backend) |
+| M1.9 | Microservices archetype + per-service style (D5) | DONE | 51f8239 | out.md (Style: Microservices, 6 per-service styles, MAP archetype, 6 runnable services) |
 | M2.1 | Retire/repair discredited insight sources | TODO | | |
 | M2.2 | Wiring-grounded insight classes | TODO | | |
 | M2.3 | Typed insight actions end-to-end (D6) | TODO | | |
@@ -80,7 +80,7 @@ cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```
 
-Baseline numbers (2026-07-06, post-M1, dogfood repo): 489 nodes · 312 edges ·
-36 entries · **18 Handles edges** · 26 Sends edges · 2 ServiceLinks (bus=1, gRPC=1) ·
+Baseline numbers (2026-07-06, post-M1 completion, dogfood repo): 493 nodes · 316 edges ·
+36 entries · **18 Handles edges** · 26 Sends edges · **6 ServiceLinks** (bus=1, gRPC=1, http=4) ·
 checkout trace depth 5 · 1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.
-**Style: Microservices** (confidence high) — 7 runnable web services detected.
+**Style: Microservices** (confidence high) — 6 runnable web services detected, 6 per-service styles.

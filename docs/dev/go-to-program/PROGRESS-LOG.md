@@ -4,7 +4,35 @@
 
 ---
 
-## 2026-07-06 — Meridian M1.6-M1.9: Cross-service ServiceLink edges + microservices archetype
+## 2026-07-06 — Meridian M1.8-M1.9: HTTP ServiceLinks + per-service style rollup (M1 COMPLETE)
+
+**Changed:**
+- **M1.8** — HTTP/YARP ServiceLinks:
+  - **Bug fix:** `PopulateGatewayRoutes` now runs BEFORE `GraphBuilder.Build` — the gateways were populated after graph construction, making `AddHttpServiceLinks` dead code (always returned immediately). Now executes in correct order.
+  - **Path-pattern normalization:** Rewrote route matching with `StripPathTemplateVariables` helper — strips `{**catch-all}`, `{param}`, `{param:type}` from YARP routes to compute static prefix, then segment-aware matches against Refit routes (handles query-string stripping, segment-boundary validation).
+  - **ServiceLinkTags assigned** to all edges: `BusPublishConsume` (bus), `Grpc` (gRPC), `HttpViaGateway` (HTTP). Added `Tags` property to `GraphEdge` record.
+  - **TraceBuilder:** Added `ServiceLink` to `TraceOptions.Follow` default list. Added `CrossService` to `SeamKind` enum + `ToSeam` mapping. Added UI color for CrossService seam.
+  - **Rendering:** New `CROSS-SERVICE` section in `MapRenderer` with per-tag summary + per-edge detail listing. `ServiceLinks` count added to `ReportRenderer.BuildStats` table. Added `AllEdges` property to `CodeGraph`.
+  - **Golden:** Shopping.Web → YarpApiGateway + YarpApiGateway → Catalog/Basket/Ordering.API (4 HTTP ServiceLinks, 6 total with bus+gRPC).
+- **M1.9** — Per-service style rollup (D5):
+  - New `PerServiceStyle` record (project name, style, stack tags) in `DiscoveryModel`.
+  - `ArchitectureStyleDetector.DetectPerServiceStyles()`: classifies each runnable web project by local style — Gateway (YARP), gRPC Service (dedicated gRPC), Clean Architecture (MediatR+EF Core), CQRS (MediatR only), Web API, Web App / Razor Pages.
+  - `IsRunnableService()`: requires Exe output or Web SDK for runnable classification (class libraries with AspNetCore packages no longer false-positive as services).
+  - Per-service styles rendered in `MapRenderer.AppendStyle()` under STYLE section.
+  - `ServiceStyle` proto message + `service_styles` field added to `MapResponse`. `ProtoMapper.ToMapResponse` wired. TypeScript bindings regenerated via `pnpm gen:proto`.
+  - **Golden:** 6 services classified: YarpApiGateway (Gateway), Shopping.Web (Web App), Discount.Grpc (gRPC Service), Basket/Catalog/Ordering.API (Web API + stack tags).
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e on commit
+- `dotnet test --filter Category!=Eval` — 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 · test 27/27 · build 0w/0e
+- Dogfood out.md content-asserted: 6 ServiceLinks (1 bus, 1 gRPC, 4 http) · 6 per-service styles · 493 nodes · 316 edges (was 312, +4 HTTP) · Handles ≥14 present · Style Microservices intact
+- No regressions on library fixtures (dotnet test green, pnpm check green)
+- Proto contract extended (+ServiceStyle message), TypeScript bindings regenerated
+
+**Next:** M2.1 — Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` §M2.
+
+---## 2026-07-06 — Meridian M1.6-M1.9: Cross-service ServiceLink edges + microservices archetype
 
 **Changed:**
 - **M1.6** — MassTransit bus ServiceLink: cross-project publish→consume join matching event FQNs. `_eventPublishers` map collected during `AddSends`, consumed by `AddBusServiceLinks` in `GraphBuilder`. Golden: BasketCheckoutEvent links Basket.API → Ordering.Application. Also fixed Adapt<T> body-scan bug: `ResolveVariableFromAdapt` (Adapt/Map/Create factory patterns) now checked BEFORE `new X()` fallback in `AddSends` — was picking guard-clause `new CheckoutBasketResult(false)` instead of the Adapt-resolved BasketCheckoutEvent.
