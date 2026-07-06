@@ -38,6 +38,7 @@ const VIEW_SHORTCUTS: Record<string, string> = {
   a: '/atlas',
   i: '/insights',
   m: '/mcp',
+  c: '/context',
   s: '/settings',
 };
 
@@ -53,16 +54,16 @@ const SHORTCUT_HELP = [
   { keys: 'Ctrl+1–6', desc: 'Jump to tab' },
   { keys: 'Ctrl+Tab / Ctrl+Shift+Tab', desc: 'Cycle tabs (MRU)' },
   { keys: 'Ctrl+Shift+L', desc: 'Inspector dock toggle (0 ↔ last)' },
-  { keys: 'Ctrl+E', desc: 'Export drawer' },
+  { keys: 'Ctrl+E', desc: 'Context Studio' },
   { keys: 'Ctrl+Z / Ctrl+Y · Alt+←/→', desc: 'Trail undo / redo' },
   { keys: 'Ctrl+R', desc: 'Re-analyze (restores focus)' },
   { keys: 'j / k', desc: 'Scrub the entry deck' },
   { keys: '/', desc: 'Filter the entry deck' },
   { keys: 'Enter', desc: 'Trace the selected entry' },
-  { keys: 'Shift+E', desc: 'Open the entry audit table' },
+  { keys: 'Shift+E', desc: 'Open the entry table lens' },
   { keys: 'v t / v g / v s / v n', desc: 'Stage: tree · graph · system · node' },
   { keys: 'p', desc: 'Pin the current selection to the trail' },
-  { keys: 'g h/e/a/i/m/s', desc: 'Go to Home / Explore / Atlas / Insights / MCP / Settings' },
+  { keys: 'g h/e/a/i/m/c/s', desc: 'Go to Home / Explore / Atlas / Insights / MCP / Context / Settings' },
   { keys: '?', desc: 'Show this help' },
   { keys: 'Escape', desc: 'Esc-ladder: cancel trace → close overlay → unpin peek → deselect node → clear focus → clear filter' },
 ];

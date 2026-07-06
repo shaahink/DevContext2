@@ -63,7 +63,8 @@ export class ActivityBar {
     { id: 'explore', label: 'Explore', icon: 'layers', route: '/explore', shortKey: 'e', requiresSession: true, badge: () => this.session.entryCount() },
     { id: 'atlas', label: 'Atlas', icon: 'boxes', route: '/atlas', shortKey: 'a', requiresSession: true },
     { id: 'insights', label: 'Insights', icon: 'zap', route: '/insights', shortKey: 'i', requiresSession: true, badge: () => this.session.insightCount() },
-    { id: 'mcp', label: 'MCP', icon: 'activity', route: '/mcp', shortKey: 'm', requiresSession: false },
+    { id: 'mcp',      label: 'MCP',      icon: 'activity', route: '/mcp',      shortKey: 'm', requiresSession: false },
+    { id: 'context',  label: 'Context',  icon: 'puzzle',  route: '/context',  shortKey: 'c', requiresSession: true },
     { id: 'settings', label: 'Settings', icon: 'settings', route: '/settings', shortKey: 's', requiresSession: false },
   ];
 

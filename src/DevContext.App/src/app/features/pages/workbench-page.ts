@@ -265,7 +265,7 @@ export class WorkbenchPage implements OnDestroy {
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
       event.preventDefault();
-      this.exportOpen.set(true);
+      void this.router.navigateByUrl('/context');
       return;
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'z') {
