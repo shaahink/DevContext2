@@ -1,5 +1,7 @@
-using DevContext.Cli.Services;
 using DevContext.Mcp;
+using DevContext.Protos;
+using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -16,16 +18,34 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var services = new ServiceCollection();
-
     services.AddLogging(b => b.AddSerilog(dispose: true));
-    services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DevContext.Mcp"));
 
-    services.AddDevContextServices(".");
+    // M3.1 — connect to the DevContext server; spawn it if not running
+    var serverEndpoint = "http://127.0.0.1:5179";
+    var serverProcess = ServerShim.EnsureServerRunning(serverEndpoint);
 
-    services.AddSingleton<McpSessionManager>();
+    var channel = GrpcChannel.ForAddress(serverEndpoint, new GrpcChannelOptions
+    {
+        HttpHandler = new GrpcWebHandler(new HttpClientHandler()),
+    });
+
+    var client = new DevContextService.DevContextServiceClient(channel);
+    services.AddSingleton(client);
+
+    // Verify connectivity
+    try
+    {
+        var ping = await client.PingAsync(new PingRequest());
+        Log.Information("Connected to DevContext server v{Version}", ping.Version);
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal(ex, "Cannot reach DevContext server at {Endpoint}. Is the server running?", serverEndpoint);
+        return 1;
+    }
 
     services.AddSingleton(sp => new DevContextTools(
-        sp.GetRequiredService<McpSessionManager>(),
+        sp.GetRequiredService<DevContextService.DevContextServiceClient>(),
         sp.GetRequiredService<ILoggerFactory>().CreateLogger<DevContextTools>()));
 
     var toolsInstance = services.BuildServiceProvider().GetRequiredService<DevContextTools>();
@@ -35,7 +55,7 @@ try
         options.ServerInfo = new()
         {
             Name = "devcontext",
-            Version = DevContext.Core.DevContextVersion.Display,
+            Version = "1.0.0", // M3.1 — version comes from server via Ping, static here
         };
     })
     .WithTools(toolsInstance)
@@ -45,7 +65,14 @@ try
     var server = provider.GetRequiredService<ModelContextProtocol.Server.McpServer>();
     var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("DevContext.Mcp");
 
-    logger.LogInformation("DevContext MCP server starting (stdio)");
+    logger.LogInformation("DevContext MCP server starting (stdio → gRPC proxy to {Endpoint})", serverEndpoint);
+
+    // M3.1 — if we spawned the server, clean it up on exit
+    AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+    {
+        serverProcess?.Kill(entireProcessTree: true);
+        serverProcess?.Dispose();
+    };
 
     await server.RunAsync();
 

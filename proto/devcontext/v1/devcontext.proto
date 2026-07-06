@@ -54,6 +54,14 @@ service DevContextService {
   // flat markdown blob) — the desktop export drawer's Flow/Trail presets and the MCP
   // get_context tool share this one builder (L5.4 ContextPackBuilder).
   rpc GetContext(ContextRequest) returns (ContextResponse);
+
+  // M3.1 — list all active sessions (MCP page session list).
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+
+  // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
+  rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
+  rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
+  rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
 // ---------------------------------------------------------------------------
@@ -493,4 +501,56 @@ message PingRequest {}
 message PingResponse {
   string version = 1;
   bool ready = 2;
+}
+
+// ---------------------------------------------------------------------------
+// M3.1 — Session listing (MCP page)
+// ---------------------------------------------------------------------------
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated SessionInfo sessions = 1;
+}
+
+message SessionInfo {
+  string handle = 1;
+  string repo = 2;
+  string commit_sha = 3;
+  int64 age_seconds = 4;
+  int32 calls = 5;
+  int64 token_total = 6;
+  string status = 7;
+  int32 nodes = 8;
+  int32 edges = 9;
+  int32 entries = 10;
+}
+
+// ---------------------------------------------------------------------------
+// M3.3 — MCP observability (tool-call event stream + start/stop)
+// ---------------------------------------------------------------------------
+
+message StartMcpRequest {}
+
+message StartMcpResponse {
+  bool running = 1;
+}
+
+message StopMcpRequest {}
+
+message StopMcpResponse {
+  bool stopped = 1;
+}
+
+message ObserveToolCallsRequest {}
+
+message ToolCallEvent {
+  string session_handle = 1;
+  string tool = 2;
+  string args_digest = 3;
+  int64 bytes = 4;
+  int64 est_tokens = 5;
+  int64 elapsed_ms = 6;
+  int64 timestamp_utc_ms = 7;
+  string session_repo = 8;
 }

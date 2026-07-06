@@ -8,6 +8,14 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
     public EngineResult Engine { get; } = engine;
     public AnalysisSnapshot Snapshot => Engine.Snapshot;
 
+    // M3.1 — session metadata for server-of-record
+    public string RepoPath { get; init; } = "";
+    public string CommitSha { get; init; } = "";
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime LastActivity { get; set; } = DateTime.UtcNow;
+    public int CallCount { get; set; }
+    public long TokenTotal { get; set; }
+
     public GraphQuery Query => _query ??= new GraphQuery(Snapshot.Graph!, Snapshot.Entries, Snapshot.Map);
 
     public async Task<string> RenderMapMarkdownAsync(CancellationToken ct)

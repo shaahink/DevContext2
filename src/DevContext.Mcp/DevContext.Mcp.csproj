@@ -12,15 +12,20 @@
 
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="1.4.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.*" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.*" />
+    <PackageReference Include="Google.Protobuf" Version="3.*" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.*" />
     <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DevContext.Core\DevContext.Core.csproj" />
-    <ProjectReference Include="..\DevContext.Cli\DevContext.Cli.csproj" />
+    <!-- gRPC client stubs shared with the server -->
+    <ProjectReference Include="..\DevContext.Contracts\DevContext.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

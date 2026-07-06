@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 
 using DevContext.Server.Mapping;
+using DevContext.Server.Services;
 using DevContext.Server.Sessions;
 
 using Grpc.Core;
@@ -11,6 +12,7 @@ namespace DevContext.Server.Endpoints;
 
 public sealed class DevContextGrpcService(
     IAnalysisSessionManager sessions,
+    McpObservabilityService mcpObs,
     ILogger<DevContextGrpcService> logger)
     : Proto.DevContextService.DevContextServiceBase
 {
@@ -31,40 +33,72 @@ public sealed class DevContextGrpcService(
         var channel = Channel.CreateUnbounded<Proto.AnalyzeEvent>(
             new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
 
-        var work = RunAnalysisAsync(spec, channel.Writer, request.Path, ct);
+        var work = RunAnalysisWithProgressAsync(spec, channel.Writer, request.Path, ct);
 
-        await foreach (var evt in channel.Reader.ReadAllAsync(CancellationToken.None).ConfigureAwait(false))
-            await responseStream.WriteAsync(evt).ConfigureAwait(false);
+        bool sawError = false;
+        try
+        {
+            await foreach (var evt in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            {
+                await responseStream.WriteAsync(evt).ConfigureAwait(false);
+                if (evt.EventCase == Proto.AnalyzeEvent.EventOneofCase.Error)
+                {
+                    sawError = true;
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Client disconnected — let work drain naturally
+        }
 
-        await work.ConfigureAwait(false);
+        if (sawError)
+        {
+            try { await work.ConfigureAwait(false); } catch { /* error already streamed */ }
+            return;
+        }
+
+        try
+        {
+            var session = await work.ConfigureAwait(false);
+            var (_, entriesWithTarget) = session.Query.Stats();
+            var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
+            await responseStream.WriteAsync(new Proto.AnalyzeEvent
+            {
+                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary },
+            }).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Client disconnected — result not needed
+        }
     }
 
-    private async Task RunAnalysisAsync(
+    private async Task<AnalysisSession> RunAnalysisWithProgressAsync(
         AnalyzeSpec spec, ChannelWriter<Proto.AnalyzeEvent> writer, string path, CancellationToken ct)
     {
         var progress = new ChannelProgress(writer);
         try
         {
             var session = await sessions.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
-            var (_, entriesWithTarget) = session.Query.Stats();
-            var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
-            writer.TryWrite(new Proto.AnalyzeEvent
-            {
-                Result = new Proto.AnalyzeResult { Handle = session.Handle, Summary = summary },
-            });
+            return session;
         }
         catch (OperationCanceledException)
         {
             writer.TryWrite(Error("Cancelled", "Analysis cancelled."));
+            throw;
         }
         catch (AnalysisException ex)
         {
             writer.TryWrite(Error(ex.Code, ex.Message));
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Analysis failed for {Path}", path);
             writer.TryWrite(Error("Internal", ex.Message));
+            throw;
         }
         finally
         {
@@ -241,6 +275,79 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToRenderResponse(rendered);
         });
 
+    public override Task<Proto.ListSessionsResponse> ListSessions(Proto.ListSessionsRequest request, ServerCallContext context)
+        => Wrap(() =>
+        {
+            var list = sessions.ListSessions();
+            var resp = new Proto.ListSessionsResponse();
+            foreach (var s in list)
+            {
+                resp.Sessions.Add(new Proto.SessionInfo
+                {
+                    Handle = s.Handle,
+                    Repo = s.RepoPath,
+                    CommitSha = s.CommitSha,
+                    AgeSeconds = (long)(DateTime.UtcNow - s.CreatedAt).TotalSeconds,
+                    Calls = s.CallCount,
+                    TokenTotal = s.TokenTotal,
+                    Status = "ready",
+                    Nodes = s.Snapshot.Graph?.NodeCount ?? 0,
+                    Edges = s.Snapshot.Graph?.EdgeCount ?? 0,
+                    Entries = s.Snapshot.Entries.Length,
+                });
+            }
+            return resp;
+        });
+
+    public override Task<Proto.StartMcpResponse> StartMcp(Proto.StartMcpRequest request, ServerCallContext context)
+        => Task.FromResult(new Proto.StartMcpResponse { Running = true });
+
+    public override Task<Proto.StopMcpResponse> StopMcp(Proto.StopMcpRequest request, ServerCallContext context)
+    {
+        mcpObs.Stop();
+        return Task.FromResult(new Proto.StopMcpResponse { Stopped = true });
+    }
+
+    public override async Task ObserveToolCalls(
+        Proto.ObserveToolCallsRequest request,
+        IServerStreamWriter<Proto.ToolCallEvent> responseStream,
+        ServerCallContext context)
+    {
+        var ct = context.CancellationToken;
+        var channel = Channel.CreateUnbounded<Proto.ToolCallEvent>();
+
+        var observerId = Guid.NewGuid().ToString("N");
+        using var _ = mcpObs.Subscribe(observerId, channel.Writer);
+
+        // Start MCP if not already running
+        mcpObs.Start();
+
+        try
+        {
+            await foreach (var evt in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+                await responseStream.WriteAsync(evt).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Observer disconnected
+        }
+    }
+
+    // M3.3 — emit tool-call events on every session access
+    private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
+    {
+        mcpObs.Notify(new Proto.ToolCallEvent
+        {
+            SessionHandle = handle,
+            Tool = tool,
+            SessionRepo = repo,
+            Bytes = bytes,
+            EstTokens = bytes / 4, // rough estimate: ~4 chars per token
+            ElapsedMs = elapsedMs,
+            TimestampUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+        });
+    }
+
     public override Task<Proto.PingResponse> Ping(Proto.PingRequest request, ServerCallContext context)
         => Task.FromResult(new Proto.PingResponse
         {
@@ -248,9 +355,21 @@ public sealed class DevContextGrpcService(
             Ready = true,
         });
 
-    private AnalysisSession Require(string handle)
-        => sessions.Get(handle)
-           ?? throw new RpcException(new Status(StatusCode.NotFound, $"Unknown session handle: {handle}"));
+    private AnalysisSession Require(string handle, [System.Runtime.CompilerServices.CallerMemberName] string tool = "")
+    {
+        var session = sessions.Get(handle)
+            ?? throw new RpcException(new Status(StatusCode.NotFound, $"Unknown session handle: {handle}"));
+
+        // M3.3 — emit tool-call event for observability (auto-populated via CallerMemberName)
+        if (tool.Length > 0 && !tool.EndsWith("Async", StringComparison.Ordinal))
+        {
+            session.LastActivity = DateTime.UtcNow;
+            session.CallCount++;
+            RecordToolCall(tool, handle, session.RepoPath, 0, 1);
+        }
+
+        return session;
+    }
 
     private static NodeId? ResolveNode(AnalysisSession session, string idOrName)
     {

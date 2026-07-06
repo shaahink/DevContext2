@@ -1,4 +1,5 @@
 using DevContext.Server.Endpoints;
+using DevContext.Server.Services;
 using DevContext.Server.Sessions;
 using DevContext.Core.Services;
 
@@ -13,6 +14,9 @@ builder.Services.AddSingleton(serverOptions);
 
 builder.Services.AddSingleton<IEngineRunner, EngineRunner>();
 builder.Services.AddSingleton<IAnalysisSessionManager, AnalysisSessionManager>();
+
+// M3.3 — MCP observability service
+builder.Services.AddSingleton<McpObservabilityService>();
 
 builder.Services.AddGrpc();
 

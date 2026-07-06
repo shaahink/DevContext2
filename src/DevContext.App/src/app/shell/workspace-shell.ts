@@ -37,6 +37,7 @@ const VIEW_SHORTCUTS: Record<string, string> = {
   e: '/explore',
   a: '/atlas',
   i: '/insights',
+  m: '/mcp',
   s: '/settings',
 };
 
@@ -61,7 +62,7 @@ const SHORTCUT_HELP = [
   { keys: 'Shift+E', desc: 'Open the entry audit table' },
   { keys: 'v t / v g / v s / v n', desc: 'Stage: tree · graph · system · node' },
   { keys: 'p', desc: 'Pin the current selection to the trail' },
-  { keys: 'g h/e/a/i/s', desc: 'Go to Home / Explore / Atlas / Insights / Settings' },
+  { keys: 'g h/e/a/i/m/s', desc: 'Go to Home / Explore / Atlas / Insights / MCP / Settings' },
   { keys: '?', desc: 'Show this help' },
   { keys: 'Escape', desc: 'Esc-ladder: cancel trace → close overlay → unpin peek → deselect node → clear focus → clear filter' },
 ];
