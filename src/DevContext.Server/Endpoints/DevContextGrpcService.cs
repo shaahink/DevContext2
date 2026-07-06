@@ -249,10 +249,10 @@ public sealed class DevContextGrpcService(
     // M4.7 — config key lookup: scan source files for IConfiguration/GetValue/GetSection usage
     private static readonly Regex ConfigKeyRegex = new(
         @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)"")|\.GetSection\(""([^""]+)"")|\.GetConnectionString\(""([^""]+)"")|\.GetRequiredSection\(""([^""]+)"")",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public override Task<Proto.ConfigResponse> ConfigLookup(Proto.ConfigRequest request, ServerCallContext context)
-        => WrapAsyncT(request.Handle, async session =>
+        => WrapT(request.Handle, session =>
         {
             var resp = new Proto.ConfigResponse();
             var keyFilter = request.HasKey ? request.Key : null;
@@ -267,7 +267,7 @@ public sealed class DevContextGrpcService(
             {
                 if (!File.Exists(filePath)) continue;
                 string[] lines;
-                try { lines = await File.ReadAllLinesAsync(filePath).ConfigureAwait(false); }
+                try { lines = File.ReadAllLines(filePath); }
                 catch { continue; }
 
                 var service = nodes.FirstOrDefault()?.Project ?? "";
