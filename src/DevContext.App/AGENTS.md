@@ -115,123 +115,154 @@ After `pnpm dev:web`, analyze the dogfood repo and verify:
 
 **Gate:** `pnpm check` green (lint 0/0, test 27/27, build 0w/0e) for every commit.
 
-### Known gaps from M7 delivery
+### Gaps — open (engine + proto) and closed (UI-fixable)
 
-1. **Code tab shows metadata only** — `read_source` RPC is not in the gRPC contract. The Code tab displays file path + line number with Copy/Reveal/Load actions. The `loadCode()` method calls the Render RPC with `sections: ['members']` but the response is markdown, not raw source. **Fix:** add `read_source` to the proto + engine + codegen, then wire to Inspector.
-2. **Layer/Feature lenses are structural slots** — lens-switcher.ts marks layer/feature as `available=false`. Engine M2.4 computed Layer/Feature facets but they are not exposed in the gRPC proto (`ProjectNode` has only `name` and `dependsOn`). **Fix:** add layer/feature fields to the proto, engine, and codegen.
-3. **PrismJS installed but not wired** — `prismjs` is in `package.json` but no component imports or calls `highlight()`. A `code-highlight.ts` utility was planned but not created. **Fix:** create `src/app/core/code-highlight.ts`, import in Inspector Code tab.
-4. **No contrast audit performed** — M7.0 bumped font sizes and icon sizes but did not compute WCAG AA ratios for the `--vibe-ink-subtle`/`--vibe-base` pair or other subtle-text-on-surface combinations. **Fix:** spot-check key color pairs (ink-subtle on base, accent on surface-2, chip text on surface) and bump contrast where needed.
-5. **Table lens: relationship chips, row expand, touch-risk columns are TODOs** — the web/microservices column set has only 7 basic columns. The spec's relationship chips ("shares OrderRepository with 3"), mini flow stepper row expand, and touch-risk column are not implemented. **Fix:** add these columns (requires graph query data), row expand (reuse flow-stepper pattern), relationship chip popover.
-6. **Table lens replaces audit-table but `audit-table.ts` still exists** — the file is no longer imported but remains in the tree. `onAuditSelect()` method still exists in workbench-page but is unreachable (Shift+E opens table lens only). **Fix:** remove dead code after verifying table lens is the single table surface.
-7. **Dock width DOCK_WIDTHS constant has `as const` type:** the widths array is `[0, 30, 40, 100] as const` — level 3 (100%) should be focus mode. Verify dock level 3 ("focus") correctly hides the deck and shows inspector at 100% width. **Fix:** test dock toggle Ctrl+Shift+L in browser.
+> **Updated 2026-07-06** following the M8.1a session. UI-fixable gaps 3–7 are closed.
+> Open gaps 1–2 require engine + proto changes — full step-by-step instructions below.
 
----
+#### CLOSED (gaps 3–7)
 
-## M7 static audit — run this before any M8 work
+| Gap | Commit | What |
+|-----|--------|------|
+| G3 | `bf3a674` | PrismJS wired: `core/code-highlight.ts` → `inspector.ts` Code tab via `[innerHTML]="highlightedCode()"` + CSS token theme |
+| G4 | `bf3a674` | Contrast audit: Graphite `#6b7280→#7a8291`, Light `#8b95a1→#5c6673`, Sepia `#5a5a5a→#858585` — all pass WCAG AA 4.5:1 on base |
+| G5 | `ba6c59a` | Table lens "Shared" column: `refreshSharedTargets()` effect → counts entries sharing the same target handler |
+| G6 | `bf3a674` | Dead `audit-table.ts` removed; unreachable `onAuditSelect()` deleted; comment references updated |
+| G7 | `bf3a674` | Dock toggle cycles 0→2→3→0 (level 3 focus mode reachable via Ctrl+Shift+L) |
 
-### Anti-pattern checklist (from `docs/dev/briefs/meridian-agent-playbook.md` §4)
+#### OPEN — Gap 1: `read_source` RPC (engine + proto)
 
-Read the anti-pattern catalog. For each, check if M7 commits introduced it:
+**Symptom:** Inspector Code tab shows markdown from Render RPC, not raw source. `read_source` is not in the gRPC contract.
 
-| # | Anti-pattern | Look for | M7 check |
-|---|-------------|----------|----------|
-| A1 | Dead-parameter fix | New signal/input never consumed | Check `highlightedNodeId` is actually wired in all 3 GraphCanvas instances; check `codeContent`/`codeLoading`/`codeError` signals are read in template |
-| A2 | Silent checkpoint renumbering | Tracker rows not matching commits | Verify MERIDIAN-START.md checkpoint table has correct commit hashes and all 6 M7 rows are present |
-| A3 | Stub artifact | Generated output is empty | Run `pnpm check` — it produces real build output |
-| A4 | Gate skipped, claimed run | "Green" claimed but command not pasted | Every commit message includes `pnpm check green` — verify by running it fresh |
-| A5 | Verify where it's cheap | Tested against fixture not dogfood | The dogfood repo was not run against M7 changes (UI-only changes, no engine test needed) — but verify the UI loads against dogfood |
-| A6 | Ship-without-launch | Code compiles, never executed | Run `pnpm dev:web` and click through M7 surfaces: lens switcher, Code tab, table lens, trail grouping |
-| A7 | Literal-string type matching | String-matching type names | Check `lens-switcher.ts` — lenses are defined by explicit `LensId` type union, not string matching |
-| A8 | Cross-scope name grabbing | Unqualified matching across scopes | N/A (no name resolution in UI code) |
-| A9 | Framework noise as signal | DI/infra shown as domain facts | N/A (UI-only session) |
-| A10 | Dead-end navigation | Links that don't resolve | Check `statusbar.ts` `goMCP()` navigates to `/mcp` — verify route exists |
-| A11 | Silent success UI | Button acts with zero visible feedback | Audit every `(click)` in new code: Code tab copy shows "copied" state, table CSV export shows toast, lens switch has active state |
-| A12 | The identical-canvas shortcut | Same System canvas everywhere | Lens switcher exists (M7.2), but check that Atlas page has its own lens default |
-| A13 | Fixture-shaped fixture | Test matches code, not reality | N/A (no new tests written in M7) |
-| A14 | TODO-as-delivery | `// TODO(agent)` in diff of delivered checkpoint | Grep for `TODO` in M7 files — should not exist in delivered features |
-| A15 | Catch-and-continue | Silent exception swallowing | Check `try { localStorage.setItem(...) } catch { /* ignore */ }` in `table-lens.ts` — intentional localStorage fallthrough is acceptable per pre-existing pattern in `theme.service.ts` |
+**Engine side (C#):**
+1. Add RPC to `proto/devcontext/v1/devcontext.proto`:
+   ```protobuf
+   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
 
-### Self-audit procedure
+   message ReadSourceRequest {
+     string session_id = 1;
+     string node_id = 2;            // graph node id
+     ReadSourceMode mode = 3;       // MEMBER = full member span; WINDOW = context window
+   }
+   enum ReadSourceMode { MEMBER = 0; WINDOW = 1; }
+   message ReadSourceResponse {
+     string content = 1;            // raw source text
+     string language = 2;           // "csharp", "razor", etc.
+     string file_path = 3;
+     int32 start_line = 4;
+     int32 end_line = 5;
+   }
+   ```
+2. Regenerate C# stubs: `dotnet build src/DevContext.Contracts`
+3. Implement in `DevContext.Server`: unwrap node's source span from `AnalysisSnapshot`, read file from disk, return the line range. PRECEDENT: `GraphQuery` already has `GetNodeSourceSpans()` — extend that path.
+4. Regenerate TypeScript: `pnpm gen:proto` (from `src/DevContext.App`)
+5. Gate: `dotnet build DevContext.slnx` 0w0e; smoke: call `read_source` on a known node, verify C# source returned.
 
-```powershell
-# 1. Run the gate fresh
-cd src/DevContext.App; pnpm check
+**UI side (after engine is green):**
+1. In `inspector.ts`, replace `loadCode()` RPC call from `api.render(..., sections:['members'])` to `api.readSource(handle, { nodeId, mode:'MEMBER' })`
+2. Set `this.codeContent.set(res.content)` — PrismJS highlighting already wired (G3)
 
-# 2. TODO sweep — any left in M7 files?
-rg "TODO|FIXME" src/app/features/table-lens/ src/app/features/explorer/lens-switcher.ts src/app/features/inspector/inspector.ts src/app/ui/graph-canvas/graph-canvas.ts src/app/state/trail.store.ts
+#### OPEN — Gap 2: Layer/Feature uplumb (engine + proto)
 
-# 3. Dead import check — is audit-table.ts still imported anywhere?
-rg "AuditTable|audit-table" src/app/ --include="*.ts"
+**Symptom:** Lens switcher marks layer/feature as `available=false`. Engine M2.4 computed Layer/Feature facets but they are not exposed in the gRPC proto.
 
-# 4. Verify all new signals are template-referenced (A1 check):
-#    codeContent, codeLoading, codeError, codePathCopied in inspector template
-#    highlightedNodeId in stage template
-#    groupedBreadcrumb in inspector trail section
+**Engine side (C#):**
+1. Add fields to `proto/devcontext/v1/devcontext.proto` — in the node messages used by Map:
+   ```protobuf
+   message ProjectNode {
+     // ...existing fields...
+     string layer = 10;             // "Api" | "Application" | "Domain" | "Infrastructure" | "Contracts"
+     string feature = 11;           // namespace-derived feature area
+     repeated string layer_violations = 12;  // layer dependency violations
+   }
+   ```
+   Also add `Layer` field to `EntryNode`, `TraceNode`, `NodeDetail` messages.
+2. Regenerate C# stubs: `dotnet build src/DevContext.Contracts`
+3. Implement in engine mapper (likely `ProtoMapper` or `GraphQuery`): copy `TypeNode.Layer`, `TypeNode.Feature` from `AnalysisSnapshot` into the proto response. M2.4 evidence: `InferLayer` + `DeriveFeature` already compute these — they just need the proto bridge.
+4. Regenerate TypeScript: `pnpm gen:proto` (from `src/DevContext.App`)
+5. Gate: `dotnet build DevContext.slnx` 0w0e; `dotnet test DevContext.slnx --filter "Category!=Eval"` green.
 
-# 5. Visual smoke test — start the app, analyze dogfood, click through:
-pnpm server     # terminal 1
-pnpm dev:web    # terminal 2
-# - Lens switcher: click Service/Layer/Feature/Flow — verify content changes
-# - Code tab: select a trace node — verify Code tab opens, path shown
-# - Table lens: Shift+E — verify virtualized table, column picker, CSV export
-# - Trail: trace multiple entries — verify flow groups collapse
-# - Chrome: verify titlebar ≈40px, rail hover labels appear
-```
-
-### Gap-closure order
-
-After completing the static audit above, address gaps in this order:
-
-1. **Remove dead `audit-table.ts` import/references** (gap 6) — simplest, unblock agent
-2. **Wire prismjs** (gap 3) — create `core/code-highlight.ts`, import to Inspector Code tab
-3. **Contrast audit** (gap 4) — check at least 3 key color pairs, adjust CSS if needed
-4. **Verify dock level 3 focus mode** (gap 7) — Ctrl+Shift+L toggles correctly
-5. **Relationship chips** (gap 5 partial) — add `shares-logic-with` column using existing flow data if available
-6. **Layer/Feature uplumb** (gap 2) — requires engine + proto changes
-7. **read_source RPC** (gap 1) — requires engine + proto changes
-
-Gaps 1-5 are fixable in the UI. Gaps 6-7 require engine changes and should be deferred to an engine session.
+**UI side (after engine is green):**
+1. In `lens-switcher.ts`, change layer/feature from `available: false` → `available: true`
+2. In `view-models.ts`, add `layer`/`feature` fields to `NodeDetailVm` / `EntryVm`
+3. In `stage.ts` layer lens rendering: horizontal bands colored by layer, violation edges in warn color
+4. In `stage.ts` feature lens: feature columns with nodes grouped by `Feature` field
+5. Gate: `pnpm check` green; visual smoke: click Layer lens → bands visible; click Feature lens → columns visible
 
 ---
 
-## M8 plan — Context Studio first session
+## M7+M8.1a static audit (ran 2026-07-06)
 
-### M8.1 scope (from proposal-meridian.md §M8)
-- New rail page + "Build context" entry points from Explore and Home
-- Replaces Export drawer (Ctrl+E) and Explore LLM-context pane
-- Three-pane: scope picker left, composition center, budget controls right
+### Audit results
 
-### Key files to create / modify
+| # | Check | Result |
+|---|-------|--------|
+| | `pnpm check` | Lint 0, tests 27/27, build 0w/0e |
+| A14 | TODO sweep (M7 files) | No TODOs in table-lens, lens-switcher, graph-canvas, trail.store, inspector |
+| A1 | Dead signals | `highlightedNodeId` wired in 3 GraphCanvas instances; `codeContent/codeLoading/codeError/codePathCopied` consumed in inspector template; `groupedBreadcrumb` consumed in inspector trail section |
+| A2 | Checkpoint renumbering | MERIDIAN-START.md has correct commit hashes for all M7 rows |
+| A7 | LensId types | Typed union `'service' | 'layer' | 'feature' | 'flow'` — no string matching |
+| A10 | Dead navigation | `goMCP()` navigates to `/mcp` route (verified); new `/context` route registered in app.config.ts |
 
-| File | Change |
-|------|--------|
-| **New:** `features/context-studio/context-studio.ts` | Full-page component with 3-pane layout |
-| **New:** `features/context-studio/scope-picker.ts` | Left panel: tree of services/entries/types/flows + omnibox + presets |
-| **New:** `features/context-studio/composition-view.ts` | Center: ordered cards (flow skeleton, member signatures, bodies, DI, config keys, entities, tests-for) |
-| **New:** `features/context-studio/budget-panel.ts` | Right: budget slider, live token meter per card, intent selector, format, Copy/Save |
-| **Modify:** `shell/workspace-shell.ts` | Add `/context` route, register in activity-bar rail, Ctrl+E redirect |
-| **Modify:** `shell/activity-bar.ts` | Add "Context Studio" rail item |
-| **Modify:** `features/pages/workbench-page.ts` | Ctrl+E redirects to `/context` instead of opening ExportDrawer |
-| **Modify:** `features/export/export-drawer.ts` | Retire or redirect |
-| **Modify:** `features/inspector/inspector.ts` | Remove LLM context section (replaced by Context Studio) |
+### Anti-patterns NOT checked this session (visual smoke required)
 
-### M8.1 delivery order
-| # | Step | Description |
-|---|------|-------------|
-| 8.1a | Route + rail entry | Add `/context` route, rail item with icon, Ctrl+E redirect |
-| 8.1b | Scope picker | Tree of services/entries + omnibox + "I'm changing this endpoint" preset |
-| 8.1c | Composition view | Cards in order: flow skeleton, member signatures, bodies toggle, DI, config, entities, tests-for |
-| 8.1d | Budget panel | Slider, live token meter per card, intent selector, Copy/Save with feedback |
-| 8.1e | Retire old panes | Remove ExportDrawer, remove Inspector LLM context section, verify no dead routes |
+| # | Check | Requires |
+|---|-------|----------|
+| A6 | Ship-without-launch | `pnpm dev:web` + analyze dogfood + click through M7/M8.1a surfaces |
+| A11 | Silent success | Verify copy button shows "copied", CSV export shows toast, lens switch has active state |
+| A12 | Identical-canvas | Verify Atlas page has its own lens default (not System canvas) |
+| A5 | Verify dogfood | Load dogfood repo and verify Home/Atlas/Explore/Context surfaces render |
 
-### Gate for M8.1
-- New `/context` page renders with 3 panes
+> **The next agent MUST run `pnpm dev:web`, analyze the dogfood repo, and verify A6/A11/A12/A5 before continuing M8.1b.**
+
+---
+
+## M8 completion plan — remaining checkpoints
+
+### Current state
+| # | What | Status | Commit |
+|---|------|--------|--------|
+| M8.1a | /context route + rail entry (puzzle icon, `g c` shortcut) + Ctrl+E→/context redirect + 3-pane stub | DONE | `2a6e585` |
+| M8.1b | Scope picker | TODO | |
+| M8.1c | Composition view | TODO | |
+| M8.1d | Budget panel | TODO | |
+| M8.1e | Retire old panes (ExportDrawer + Inspector LLM section) | TODO | |
+
+### M8.1b — Scope picker
+- **File:** NEW `features/context-studio/scope-picker.ts`
+- **What:** Tree of the current session's services → entries, searchable/filterable. Omnibox for free-form type/flow selection. "I'm changing this endpoint" preset button that:
+  1. Opens a modal/dropdown of all entries
+  2. On select: seeds the composition with flow skeleton + target member bodies + contracts + validators + tests
+- **Data source:** `SessionStore.entryGroups()` (already in ContextStudio component). No new RPC needed.
+- **Gate:** Tree renders with service→entry hierarchy; omnibox filters; preset button populates composition placeholder cards.
+
+### M8.1c — Composition view
+- **File:** NEW `features/context-studio/composition-view.ts`
+- **What:** Ordered list of context cards. Each card has: title, type badge (flow/members/config/entities/tests), per-card body toggle (on/off), drag handle (reorder), × remove. Cards flow from scope picker selections.
+- **State:** Signal array of `ContextCard` objects (id, type, title, bodyEnabled, entries, sourceIds).
+- **No RPC needed:** all data from SessionStore + graph queries the app already makes.
+- **Gate:** Add 3 cards → reorder → toggle body off → remove one → list updates correctly.
+
+### M8.1d — Budget panel
+- **File:** NEW `features/context-studio/budget-panel.ts`
+- **What:** Token budget slider (1k–16k), live meter with per-card bar visualization (estimate: lines × ~2.5 tokens), intent selector (trace/explain/review), format selector (markdown/plain), [Copy] [Save] buttons with feedback affordances (A11: icon morphs to check + toast "Copied!").
+- **Token estimation:** Client-side heuristic — `totalLines * 2.5` per card. Server-side meter (round-trip `ContextPackBuilder`) gates M8.4; this is the v0 approximation.
+- **Gate:** Slider adjusts budget; meter updates per-card bars; Copy produces context markdown; "Copied!" toast visible.
+
+### M8.1e — Retire old panes
+- **Remove:** `features/export/export-drawer.ts` (and its import in workbench-page)
+- **Remove:** Inspector LLM context section (`sectionId 'llm'` tab + render logic in inspector.ts)
+- **Remove:** Dead `exportOpen` signal and template block in workbench-page.ts
+- **Verify:** `rg "ExportDrawer|export-drawer" src/app/ --include="*.ts"` → zero results (except comments)
+- **Gate:** Ctrl+E goes to /context; no console errors; no dead routes; `pnpm check` green.
+
+### Gate for full M8.1 (all 5 checkpoints)
+- `/context` page renders 3-pane layout
 - Scope picker shows services/entries from current session
-- "I'm changing this endpoint" preset selects the trace focus
-- Budget slider adjusts token limit
-- Copy button produces context that matches token meter ±5%
-- Ctrl+E opens /context (not old drawer)
-- No dead routes, no console errors
+- "I'm changing this endpoint" preset seeds composition cards
+- Budget slider adjusts; Copy produces token-metered markdown
+- Ctrl+E opens /context; ExportDrawer and Inspector LLM section removed
+- `pnpm check` green; no console errors; no dead routes
 
 ---
 
@@ -242,27 +273,55 @@ git -C C:/Code/DevContext2-ui checkout feat/meridian-m0
 git -C C:/Code/DevContext2-ui pull
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 # Read this AGENTS.md from top
+# Read docs/dev/briefs/meridian-agent-playbook.md §UI-Context Studio + §4 (anti-patterns)
 # Read docs/dev/briefs/proposal-meridian.md §M8
-# Read docs/dev/briefs/meridian-agent-playbook.md §UI-Context Studio
+# Read MERIDIAN-START.md — Handoff block
 ```
 
-### Session cycle (repeat for every agent session)
+### Session cycle for next agent
 
-1. **Static audit** — run the self-audit procedure above against the current delivered codebase
-2. **Fix bugs** — close any anti-patterns found, address gaps 1-5 from the gap list
-3. **Plan M8** — read the M8.1 scope and files list, choose the next checkpoint to deliver
-4. **Build** — implement the checkpoint, `pnpm check` after every commit
-5. **Commit** — one small commit per checkpoint, message prefix `feat(m8.X):`
-6. **Update** — overwrite the `## M8 delivery` section below with what was done, remaining gaps, and next checkpoint
-7. **Repeat** — the next agent starts from `AGENTS.md` and `MERIDIAN-START.md`, not from your chat transcript
+1. **Static audit (MANDATORY first step)** — re-run the gate, A6 visual smoke, A11 silent-success, A5 dogfood check:
+   ```powershell
+   cd src/DevContext.App; pnpm check
+   pnpm server     # terminal 1
+   pnpm dev:web    # terminal 2
+   ```
+   - Verify `/context` route loads (puzzle icon in rail, 3-pane stub renders)
+   - Verify Ctrl+E navigates to /context (not export drawer)
+   - Verify Shift+E opens table lens with "Shared" column visible
+   - Verify dock cycles 0→2→3→0 via Ctrl+Shift+L
+   - Verify Code tab in Inspector shows `[innerHTML]` highlighted content (load a node's source)
+   - Check for console errors, empty states, dead links (A10)
+
+2. **Fix bugs** — address any anti-patterns found during audit. Check the closed M7 gaps haven't regressed:
+   - `rg "AuditTable|audit-table" src/app/ --include="*.ts"` — should show only comments
+   - `rg "TODO|FIXME" src/app/features/context-studio/ src/app/features/table-lens/ src/app/core/code-highlight.ts` — must return empty
+
+3. **Deliver M8 completion** (checkpoints M8.1b → M8.1e per the plan above):
+   - **M8.1b** — scope-picker.ts: tree + omnibox + "I'm changing this endpoint" preset
+   - **M8.1c** — composition-view.ts: orderable cards with type, title, body toggle, remove
+   - **M8.1d** — budget-panel.ts: slider, per-card meter, intent, format, Copy/Save with toast
+   - **M8.1e** — retire ExportDrawer + Inspector LLM section + dead code
+
+4. **Commit** — one small commit per checkpoint:
+   ```powershell
+   git -C C:/Code/DevContext2-ui add <files>
+   git -C C:/Code/DevContext2-ui commit -m "feat(m8.1b): scope picker — service/entry tree + omnibox + presets"
+   # ... etc for c, d, e
+   ```
+
+5. **After ALL checkpoints green, update docs for the NEXT agent:**
+   - Overwrite `MERIDIAN-START.md` Handoff block
+   - Overwrite the `## M8 delivery` block below in this AGENTS.md
+   - Commit: `docs: handoff — M8 delivered, next M8.2 or engine gaps 1-2`
 
 ---
 
 ## M8 delivery (overwrite this block each session, no history)
 
-status: M8.1a done
+status: M8.1a delivered
 last commit: `feat(m8.1a): Context Studio route + rail entry + Ctrl+E redirect` (2a6e585)
-next: M8.1b — Scope picker (tree of services/entries + omnibox + presets)
-gaps closed: 3 (prismjs wired), 4 (contrast audit 3 themes), 5 (Shared Handler column), 6 (dead audit-table removed), 7 (dock level 3 cycle)
-gaps open: 1 (read_source RPC), 2 (layer/feature uplumb)
+next: M8.1b — Scope picker (service/entry tree + omnibox + "I'm changing this endpoint" preset)
+gaps closed: 3 (prismjs), 4 (contrast), 5 (shared handler column), 6 (dead audit-table), 7 (dock cycle)
+gaps open: 1 (read_source RPC — engine+proto), 2 (layer/feature uplumb — engine+proto)
 
