@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: dca278c feat(m1.5): 3 fixes (Razor routes, bus noise, footer projects)
-stage: M1 — DONE (M1.1–M1.5)
-gate: run — out.md (Handles 2→18, Sends 19→26, Razor real, Bus clean, 11 projects)
-dirty: out.md in tree (remove before next session)
-next: M1.6 — ServiceLink: bus publish→consume (W4): BasketCheckoutEvent → Basket.API Publish → Ordering.Application IConsumer
-trap: checkout Adapt<T> Sends edge still missing (lambda body parsing gap) — investigate in M2 session or M1.6
+last: baf9c3d feat(m1.6-m1.9): ServiceLink edges + microservices archetype
+stage: M1 — DONE (M1.6-M1.9), M1.8 partial (HTTP route matching needs refinement)
+gate: run — out.md (2 ServiceLinks: bus Basket→Ordering, grpc Basket→Discount; Style Microservices)
+dirty: out.md in tree (remove before next session); M1.8 HTTP route matching incomplete
+next: M2.1 — Retire/repair discredited insight sources (see proposal-meridian.md §M2)
+trap: HTTP ServiceLinks: Refit route matching against YARP paths uses naive StartsWith — needs path-pattern normalization; Adapt<T> fix increased Sends edge count — diff baseline numbers
 
 ## Checkpoints
 
@@ -30,10 +30,10 @@ line under the row — never silent renumbering.
 | M1.3 | Trace traverses Sends→Handles→Raises (W3) | DONE | 2de8605 | DELETE /orders trace depth 5, TOUCHES populated |
 | M1.4 | Project-scoped NameResolver (W5) | DONE | b80e6a7 | out.md (all resolve call sites updated, build+tests green) |
 | M1.5 | Razor routes real; bus entries de-noised; footer fix | DONE | dca278c | out.md (GET /ProductDetail, Bus 3→1, 11 projects)
-| M1.6 | ServiceLink: bus publish→consume (W4) | TODO | | |
-| M1.7 | ServiceLink: gRPC client→server (W4) | TODO | | |
-| M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | TODO | | |
-| M1.9 | Microservices archetype + per-service style (D5) | TODO | | |
+| M1.6 | ServiceLink: bus publish→consume (W4) | DONE | baf9c3d | out.md (1 bus ServiceLink: Basket.API→Ordering.Application) |
+| M1.7 | ServiceLink: gRPC client→server (W4) | DONE | baf9c3d | out.md (1 gRPC ServiceLink: Basket.API→Discount.Grpc) |
+| M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | TODO | | YARP config parsing + Refit extractor done; route matching needs path-pattern normalization |
+| M1.9 | Microservices archetype + per-service style (D5) | DONE | baf9c3d | out.md (Style: Microservices, MAP archetype, 7 runnable services) |
 | M2.1 | Retire/repair discredited insight sources | TODO | | |
 | M2.2 | Wiring-grounded insight classes | TODO | | |
 | M2.3 | Typed insight actions end-to-end (D6) | TODO | | |
@@ -80,6 +80,7 @@ cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```
 
-Baseline numbers (2026-07-05, post-M1, dogfood repo): 470 nodes · 271 edges ·
-36 entries · **18 Handles edges** · 26 Sends edges · 0 ServiceLinks · checkout trace = 2 steps (Adapt gap) ·
-1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.
+Baseline numbers (2026-07-06, post-M1, dogfood repo): 489 nodes · 312 edges ·
+36 entries · **18 Handles edges** · 26 Sends edges · 2 ServiceLinks (bus=1, gRPC=1) ·
+checkout trace depth 5 · 1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.
+**Style: Microservices** (confidence high) — 7 runnable web services detected.

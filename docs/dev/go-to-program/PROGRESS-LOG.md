@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-07-06 — Meridian M1.6-M1.9: Cross-service ServiceLink edges + microservices archetype
+
+**Changed:**
+- **M1.6** — MassTransit bus ServiceLink: cross-project publish→consume join matching event FQNs. `_eventPublishers` map collected during `AddSends`, consumed by `AddBusServiceLinks` in `GraphBuilder`. Golden: BasketCheckoutEvent links Basket.API → Ordering.Application. Also fixed Adapt<T> body-scan bug: `ResolveVariableFromAdapt` (Adapt/Map/Create factory patterns) now checked BEFORE `new X()` fallback in `AddSends` — was picking guard-clause `new CheckoutBasketResult(false)` instead of the Adapt-resolved BasketCheckoutEvent.
+- **M1.7** — gRPC ServiceLink: new `GrpcClientExtractor` (order 59, gRPC+gGateway signals) detects generated client types (XxxClient pattern) including primary constructors. `AddGrpcServiceLinks` cross-projects joins client→server by service name. Golden: DiscountProtoServiceClient in Basket.API → DiscountService in Discount.Grpc.
+- **M1.8** — Infrastructure for HTTP/YARP/Refit ServiceLinks: new `RefitInterfaceExtractor` (order 60, Refit signal) detects `[Get]`/`[Post]` interfaces. YARP `ReverseProxy` config parsing added to `DiscoveryPipeline.PopulateGatewayRoutes` (parses Routes/Clusters/Destinations from appsettings*.json). `AddHttpServiceLinks` route matching framework in place; path-pattern normalization needed for matching Refit routes (`/catalog-service/products/{id}`) against YARP patterns (`/catalog-service/{**catch-all}`).
+- **M1.9** — Microservices archetype: `ArchitectureStyleDetector` now detects microservices without Aspire requirement (≥2 web services + gateway/bus evidence). `ArchetypeDetector` no longer forces Gateway archetype when 2+ runnable services exist — returns App. Web SDK detection via `IsWebSdkProject` reads csproj Sdk attribute.
+- **Infra** — `EdgeKind.ServiceLink` + `ServiceLinkTags` (BusPublishConsume/Grpc/HttpViaGateway/RefitDirect) added to `CodeGraph`. New detection models: `GrpcClientDetection`, `RefitRouteDetection`.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e on all commits
+- `dotnet test --filter Category!=Eval` — 429/0 (12+64+353, 3 skipped)
+- Dogfood report: 489 nodes · 312 edges · 2 ServiceLinks (1 bus, 1 gRPC) · Style: Microservices (confidence high) · MAP archetype
+- Adapt<T> checkout gap fixed: BasketCheckoutEvent now correctly tracked in Sends
+
+**Next:** M2.1 — Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` §M2.
+
+---
+
 ## 2026-07-05 — Lighthouse L3: Kernel answers (all 6 checkpoints)
 
 **Changed:**
