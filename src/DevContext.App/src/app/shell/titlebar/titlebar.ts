@@ -41,7 +41,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
   selector: 'app-titlebar',
   imports: [Icon],
   template: `
-    <header class="flex h-[30px] w-full shrink-0 items-center border-b border-line bg-base px-2 select-none">
+    <header class="flex h-10 w-full shrink-0 items-center border-b border-line bg-base px-2 select-none">
       <div class="flex h-full items-center gap-1.5" data-tauri-drag-region>
         <span
           class="flex cursor-pointer items-center gap-1.5 px-1 font-mono text-xs font-semibold tracking-tight text-ink"

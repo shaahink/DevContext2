@@ -29,7 +29,7 @@ export interface RailItem {
           [class.pointer-events-none]="!enabled(item)"
           [class.hover:text-ink]="enabled(item)"
           [routerLink]="enabled(item) ? item.route : null"
-          [attr.title]="enabled(item) ? item.label + ' (g ' + item.shortKey + ')' : 'Analyze a repo first'"
+          [attr.title]="enabled(item) ? item.label : 'Analyze a repo first'"
         >
           @if (isActive(item.route)) {
             <span class="absolute left-0 top-1 bottom-1 w-[3px] rounded-r bg-accent"></span>
@@ -41,6 +41,10 @@ export interface RailItem {
                 {{ count > 99 ? '99+' : count }}
               </span>
             }
+          </span>
+          <!-- M7.4: Hover label — tooltip-style label appearing on hover -->
+          <span class="absolute left-full ml-1.5 hidden items-center rounded-sm border border-line bg-surface px-2 py-0.5 text-xs text-ink whitespace-nowrap shadow-overlay group-hover:flex z-10">
+            {{ item.label }}
           </span>
         </a>
       }

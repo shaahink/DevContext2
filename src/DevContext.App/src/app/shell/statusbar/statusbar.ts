@@ -49,12 +49,13 @@ import { Ticker } from '../../ui/ticker/ticker';
       </div>
 
       <div class="flex shrink-0 items-center gap-2">
-        <span
-          class="flex items-center gap-1 text-2xs"
+        <button type="button"
+          class="flex cursor-pointer items-center gap-1 text-2xs transition-colors hover:text-ink"
           [class.text-success]="connection.online()"
           [class.text-danger]="connection.checked() && !connection.online()"
           [class.text-ink-subtle]="!connection.checked()"
-          [title]="connection.online() ? 'Server v' + (connection.version() || '') : 'Server offline'"
+          [title]="connection.online() ? 'Server v' + (connection.version() || '') + ' — click for MCP' : 'Server offline'"
+          (click)="goMCP()"
         >
           <span
             class="inline-block h-1.5 w-1.5 rounded-full"
@@ -62,9 +63,13 @@ import { Ticker } from '../../ui/ticker/ticker';
             [class.bg-danger]="connection.checked() && !connection.online()"
             [class.bg-ink-subtle]="!connection.checked()"
           ></span>
-          <span>{{ connection.version() || '' }}</span>
-        </span>
-        <span class="text-2xs text-ink-subtle">{{ theme.vibe() }}</span>
+          <span>{{ connection.version() || 'disconnected' }}</span>
+        </button>
+        <button type="button"
+          class="cursor-pointer text-2xs text-ink-subtle transition-colors hover:text-ink"
+          (click)="cycleVibe()"
+          title="Theme: {{ theme.vibe() }} — click to cycle"
+        >{{ theme.vibe() }}</button>
         <button
           type="button"
           class="flex cursor-pointer items-center rounded-sm p-0.5 text-ink-muted transition-colors hover:bg-hover hover:text-ink"
@@ -103,6 +108,11 @@ export class Statusbar {
 
   protected goHome(): void {
     void this.router.navigateByUrl('/');
+  }
+
+  /** M7.4: Navigate to MCP page to see server status. */
+  protected goMCP(): void {
+    void this.router.navigateByUrl('/mcp');
   }
 
   protected cycleVibe(): void {
