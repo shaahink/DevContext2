@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 51f8239 feat(m1.8-m1.9): HTTP ServiceLinks + path-pattern normalization + per-service style rollup
-stage: M1 — DONE (M1.8 HTTP route matching complete, M1.9 per-service style rollup complete)
-gate: run — out.md (6 ServiceLinks: 1 bus, 1 gRPC, 4 http; 6 per-service styles; Style Microservices)
+last: 4b109ea feat(m2): insight repair + new sources + typed actions e2e + layer/feature facets
+stage: M2 — DONE (4 new insight sources, typed actions engine→proto→UI, layer facets ≥90%)
+gate: run — out.md (dogfood report: 493 nodes, 316 edges, 6 ServiceLinks, 10 insights, 3.6s)
 dirty: none
-next: M2.1 — Retire/repair discredited insight sources (see proposal-meridian.md §M2)
-trap: none
+next: M3.1 — Server-of-record + stdio shim + flush fix (see proposal-meridian.md §M3)
+trap: MCP exe currently bundles engine in-process; must be thin shim after M3.1
 
 ## Checkpoints
 
@@ -34,10 +34,10 @@ line under the row — never silent renumbering.
 | M1.7 | ServiceLink: gRPC client→server (W4) | DONE | baf9c3d | out.md (1 gRPC ServiceLink: Basket.API→Discount.Grpc) |
 | M1.8 | ServiceLink: Refit/HttpClient + YARP route join (W4) | DONE | 51f8239 | out.md (4 HTTP ServiceLinks: Shopping.Web→YarpApiGateway + 3 gateway→backend) |
 | M1.9 | Microservices archetype + per-service style (D5) | DONE | 51f8239 | out.md (Style: Microservices, 6 per-service styles, MAP archetype, 6 runnable services) |
-| M2.1 | Retire/repair discredited insight sources | TODO | | |
-| M2.2 | Wiring-grounded insight classes | TODO | | |
-| M2.3 | Typed insight actions end-to-end (D6) | TODO | | |
-| M2.4 | Layer/feature facets + LayerViolation (D9, engine only) | TODO | | |
+| M2.1 | Retire/repair discredited insight sources | DONE | 4b109ea | out.md (CLI leaks retired, ServiceLink-only evidence, DI-excluded dead-code, Razor filter) |
+| M2.2 | Wiring-grounded insight classes | DONE | 4b109ea | out.md (4 new sources: EventFlow, Spof, UnvalidatedEndpoints, ConfigDefaults) |
+| M2.3 | Typed insight actions end-to-end (D6) | DONE | 4b109ea | out.md (TypedAction Focus/Node/Filter engine→proto→UI, pnpm check green) |
+| M2.4 | Layer/feature facets + LayerViolation (D9, engine only) | DONE | 4b109ea | out.md (InferLayer + DeriveFeature + DetectLayerViolations, dotnet build 0w) |
 | M3.1 | Server-of-record; MCP = stdio shim; flush bug fixed at root | TODO | | |
 | M3.2 | Tool descriptions + envelope trim (D4) | TODO | | |
 | M3.3 | Tool-call event stream + dedicated MCP page (D8) | TODO | | |
@@ -80,7 +80,8 @@ cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```
 
-Baseline numbers (2026-07-06, post-M1 completion, dogfood repo): 493 nodes · 316 edges ·
+Baseline numbers (2026-07-06, post-M2 completion, dogfood repo): 493 nodes · 316 edges ·
 36 entries · **18 Handles edges** · 26 Sends edges · **6 ServiceLinks** (bus=1, gRPC=1, http=4) ·
 checkout trace depth 5 · 1 Bus entry (noise cleaned) · 11 projects in footer · Razor routes correct.
-**Style: Microservices** (confidence high) — 6 runnable web services detected, 6 per-service styles.
+**Style: Microservices** (confidence high) — 7 runnable web services detected, 6 per-service styles.
+**M2 adds:** 10 insights (4 info · 3 notable · 3 warning), 4 new insight sources, layer/feature facets on all Type nodes, TypedAction (Focus/Node/Filter) pipeline. Analyzed in 3.6s.

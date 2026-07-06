@@ -4,6 +4,43 @@
 
 ---
 
+---
+
+## 2026-07-06 — Meridian M2: insight repair + new sources + typed actions + layer facets (M2 COMPLETE)
+
+**Changed:**
+- **M2.1** — Retired/repair discredited insight sources:
+  - `EntryMixSource.cs`: CLI commands filtered out when non-CLI entries exist (`hasNonCliEntries` gate)
+  - `GatewayArchetypeSource.cs`: Rewritten from call-edge analysis to only use `EdgeKind.ServiceLink` edges; confidence raised 0.5→0.75; uses `ServiceLinkTags` for transfer seams
+  - `GraphOrphansSource.cs`: Added `FindConventionDiTypes()` to exclude MediatR handlers, validators, consumers; wiring gate (`handlesCount<5 && sendsCount<10`); confidence lowered to 0.4
+  - `AnonymousEndpointsSource.cs` + `WebArchetypeSource.cs`: Added `IsRazorPage()` check excludes `.cshtml` endpoints from auth surface
+- **M2.2** — 4 new wiring-grounded insight sources:
+  - `EventFlowSource.cs`: Scans Raises/Consumes edges; reports orphan events, cross-service event flows via BusPublishConsume ServiceLinks; emits TypedAction.Node
+  - `SpofSource.cs`: Fan-in/fan-out analysis on ServiceLink edges; identifies services with ≥2 consumers; emits TypedAction.Node links
+  - `UnvalidatedEndpointsSource.cs`: Cross-references HTTP endpoints against `AbstractValidator<T>` subclasses; requires FluentValidation signal; emits TypedAction.Focus
+  - `ConfigDefaultsSource.cs`: Regex scan of `IConfiguration`/`GetValue<>`/`GetSection<>`; cross-references against `appsettings*.json` keys
+- **M2.3 (D6)** — Typed actions engine→proto→UI:
+  - `Insight.cs`: Replaced `InsightAction` enum with `TypedActionKind` (Focus/Node/Filter/None); `TypedAction` sealed record; `PrimaryAction` + `EvidenceActions`
+  - All 10 insight sources migrated: `TypedAction.Focus()`/`.Node()`/`.Filter()`
+  - `ProtoMapper.cs`: Maps PrimaryAction + EvidenceActions → proto `action`/`action_target`/`evidence_actions`
+  - `devcontext.proto`: Added `evidence_actions` field (field 12), documented D6 format
+  - UI: `insights-view.ts` → `eaRoute()`/`paRoute()` routing; home-page.ts + workbench-page.ts updated
+- **M2.4 (D9)** — Layer/feature facets (engine only):
+  - `ArchitectureEnums.cs`: Expanded `ArchitectureLayer` (Contracts, PublicApi, Core, Internals, View, ViewModel, Platform); `ToLabel()` per-archetype mapping; `LayerViolation` record
+  - `SyntaxStructureExtractor.cs`: `InferLayer()` 406 lines — base types→namespace→file path→naming conventions
+  - `GraphBuilder.cs`: `DeriveFeature()` strips project prefix + layer segments; `DetectLayerViolations()` per-archetype illegal-layer pairs; `AddTypeNodes()` sets Layer/Feature
+  - `CodeGraph.cs`: `GraphNode.Layer`/`Feature`; `CodeGraph.LayerViolations` property
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 · test 27/27 · build 0w/0e
+- Dogfood out.md: 493 nodes · 316 edges · 6 ServiceLinks · 10 insights (4 info, 3 notable, 3 warning) · New sources registered: EventFlow/Spof/UnvalidatedEndpoints/ConfigDefaults · Analyzed 3.6s
+
+**Next:** M3.1 — Server-of-record + stdio shim + flush fix
+
+---
+
 ## 2026-07-06 — Meridian M1.8-M1.9: HTTP ServiceLinks + per-service style rollup (M1 COMPLETE)
 
 **Changed:**
