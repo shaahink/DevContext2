@@ -44,8 +44,15 @@ service DevContextService {
   // Liveness/readiness probe.
   rpc Ping(PingRequest) returns (PingResponse);
 
-  // Impact analysis: finds which entry points reach a given node via BFS over in-edges.
+  // Impact analysis: finds which entry points reach a given node (up) or which nodes
+  // are affected by it (down). Supports diff-aware mode via a file list.
   rpc GetImpact(ImpactRequest) returns (ImpactResponse);
+
+  // Configuration key lookup: find config keys and their binding/consumption sites.
+  rpc ConfigLookup(ConfigRequest) returns (ConfigResponse);
+
+  // Best-effort test discovery: find test methods whose call closure reaches a node.
+  rpc FindTestsFor(TestsForRequest) returns (TestsForResponse);
 
   // Archetype-aware interesting starting points ("where to start reading").
   rpc GetInterestingPoints(InterestingPointsRequest) returns (InterestingPointsResponse);
@@ -427,23 +434,33 @@ message SectionInfo {
 }
 
 // ---------------------------------------------------------------------------
-// Impact (blast-radius analysis)
+// Impact (blast-radius analysis, transitive + diff-aware)
 // ---------------------------------------------------------------------------
 
 message ImpactRequest {
   string handle = 1;
   string node_id = 2;
   int32 max_depth = 3;
+  string direction = 4;       // "up" (default, who reaches this) | "down" (what does this affect) | "both"
+  bool transitive = 5;        // default true — follow edges transitively
+  repeated string files = 6;  // diff-aware mode: find impact of changing these files
 }
 
 message ImpactResponse {
   repeated ImpactResult results = 1;
+  string direction = 2;       // echo back the direction used
+  int32 total_affected = 3;   // total nodes in the impact closure
 }
 
 message ImpactResult {
   string entry_title = 1;
   string kind = 2;
   int32 hops = 3;
+  string node_id = 4;
+  optional string file_path = 5;
+  optional int32 line_number = 6;
+  string service = 7;         // project/service the affected node belongs to
+  string node_title = 8;      // display title of the affected node
 }
 
 // ---------------------------------------------------------------------------
@@ -553,4 +570,54 @@ message ToolCallEvent {
   int64 elapsed_ms = 6;
   int64 timestamp_utc_ms = 7;
   string session_repo = 8;
+}
+
+// ---------------------------------------------------------------------------
+// M4.7 — Config key lookup (configuration keys → binding/consumption sites)
+// ---------------------------------------------------------------------------
+
+message ConfigRequest {
+  string handle = 1;
+  optional string key = 2;   // filter to a specific config key; omit for all keys
+}
+
+message ConfigResponse {
+  repeated ConfigBinding bindings = 1;
+  int32 total_keys = 2;      // number of distinct config keys found
+}
+
+message ConfigBinding {
+  string key = 1;            // config key, e.g. "GrpcSettings:DiscountUrl"
+  string file_path = 2;      // file where the key is consumed
+  int32 line_number = 3;     // line in file
+  optional string node_id = 4;  // graph node containing this usage, if resolvable
+  string pattern_type = 5;   // "GetValue" | "GetSection" | "Indexer" | "GetConnectionString" | "GetRequiredSection"
+  string service = 6;        // project/service name
+}
+
+// ---------------------------------------------------------------------------
+// M4.9 — Tests-for (best-effort test method discovery from call closure)
+// ---------------------------------------------------------------------------
+
+message TestsForRequest {
+  string handle = 1;
+  string node_id = 2;        // target node to find tests for
+  int32 max_depth = 3;       // how far up the call chain to search (default 6)
+}
+
+message TestsForResponse {
+  repeated TestRef tests = 1;
+  string node_id = 2;        // echo back
+  string node_title = 3;
+  bool is_best_effort = 4;   // always true — heuristic detection
+}
+
+message TestRef {
+  string node_id = 1;        // the test method's node id
+  string title = 2;          // test method name
+  string file_path = 3;      // file containing the test
+  int32 line_number = 4;     // line of the test method
+  int32 distance = 5;        // BFS distance from target to this test
+  bool is_direct = 6;        // true if distance == 1 (direct caller)
+  string project = 7;        // test project name
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
 using DevContext.Server.Mapping;
@@ -199,13 +200,31 @@ public sealed class DevContextGrpcService(
     public override Task<Proto.ImpactResponse> GetImpact(Proto.ImpactRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {
-            var nodeId = ResolveNode(session, request.NodeId);
-            if (nodeId is null)
-                return new Proto.ImpactResponse();
-
             var maxDepth = request.MaxDepth > 0 ? request.MaxDepth : 4;
-            var results = session.Query.BlastRadius(nodeId.Value, maxDepth);
-            return ProtoMapper.ToImpactResponse(results);
+            var direction = request.Direction?.ToLowerInvariant() switch
+            {
+                "down" => ImpactDirection.Down,
+                "both" => ImpactDirection.Both,
+                _ => ImpactDirection.Up,
+            };
+
+            ImmutableArray<ImpactResult> results;
+
+            if (request.Files.Count > 0)
+            {
+                // M4.4 diff-aware mode: impact from changed files
+                results = session.Query.ImpactFromFiles(request.Files, direction, maxDepth);
+            }
+            else
+            {
+                var nodeId = ResolveNode(session, request.NodeId);
+                if (nodeId is null)
+                    return new Proto.ImpactResponse { Direction = request.Direction ?? "up" };
+
+                results = session.Query.Impact(nodeId.Value, direction, maxDepth);
+            }
+
+            return ProtoMapper.ToImpactResponse(results, request.Direction ?? "up");
         });
 
     public override Task<Proto.InterestingPointsResponse> GetInterestingPoints(
@@ -225,6 +244,120 @@ public sealed class DevContextGrpcService(
             var intent = request.HasIntent ? request.Intent : null;
             var pack = builder.Build(request.Focus, budget, intent);
             return ProtoMapper.ToContextResponse(request.Focus, pack);
+        });
+
+    // M4.7 — config key lookup: scan source files for IConfiguration/GetValue/GetSection usage
+    private static readonly Regex ConfigKeyRegex = new(
+        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)"")|\.GetSection\(""([^""]+)"")|\.GetConnectionString\(""([^""]+)"")|\.GetRequiredSection\(""([^""]+)"")",
+        RegexOptions.Compiled);
+
+    public override Task<Proto.ConfigResponse> ConfigLookup(Proto.ConfigRequest request, ServerCallContext context)
+        => WrapAsyncT(request.Handle, async session =>
+        {
+            var resp = new Proto.ConfigResponse();
+            var keyFilter = request.HasKey ? request.Key : null;
+            var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var filesByPath = session.Query.Graph.Nodes
+                .Where(n => n.FilePath is not null)
+                .GroupBy(n => n.FilePath!)
+                .ToDictionary(g => g.Key, g => g.AsEnumerable(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (filePath, nodes) in filesByPath)
+            {
+                if (!File.Exists(filePath)) continue;
+                string[] lines;
+                try { lines = await File.ReadAllLinesAsync(filePath).ConfigureAwait(false); }
+                catch { continue; }
+
+                var service = nodes.FirstOrDefault()?.Project ?? "";
+                var nodesInFile = nodes.ToDictionary(n => n.Id.Key, StringComparer.OrdinalIgnoreCase);
+
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var matches = ConfigKeyRegex.Matches(lines[i]);
+                    foreach (Match m in matches)
+                    {
+                        string? key = null;
+                        string patternType = "Indexer";
+                        for (var g = 1; g <= 5; g++)
+                        {
+                            if (m.Groups[g].Success)
+                            {
+                                key = m.Groups[g].Value;
+                                patternType = g switch { 1 => "Indexer", 2 => "GetValue", 3 => "GetSection", 4 => "GetConnectionString", 5 => "GetRequiredSection", _ => "Indexer" };
+                                break;
+                            }
+                        }
+                        if (key is null) continue;
+                        if (keyFilter is not null && !string.Equals(key, keyFilter, StringComparison.OrdinalIgnoreCase)) continue;
+
+                        seenKeys.Add(key);
+
+                        string? nodeId = null;
+                        foreach (var (nodeKey, node) in nodesInFile)
+                        {
+                            if (node.LineNumber is { } ln && ln == i + 1)
+                            {
+                                nodeId = node.Id.ToString();
+                                break;
+                            }
+                        }
+
+                        resp.Bindings.Add(new Proto.ConfigBinding
+                        {
+                            Key = key,
+                            FilePath = filePath,
+                            LineNumber = i + 1,
+                            NodeId = nodeId ?? "",
+                            PatternType = patternType,
+                            Service = service,
+                        });
+                    }
+                }
+            }
+
+            resp.TotalKeys = seenKeys.Count;
+            return resp;
+        });
+
+    // M4.9 — tests_for: find test methods whose call closure reaches a target node
+    public override Task<Proto.TestsForResponse> FindTestsFor(Proto.TestsForRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var nodeId = ResolveNode(session, request.NodeId);
+            var resp = new Proto.TestsForResponse
+            {
+                NodeId = request.NodeId,
+                NodeTitle = "",
+                IsBestEffort = true,
+            };
+
+            if (nodeId is null) return resp;
+
+            var targetNode = session.Query.Graph.Node(nodeId.Value);
+            resp.NodeTitle = targetNode?.Title ?? nodeId.Value.Key;
+
+            var maxDepth = request.MaxDepth > 0 ? request.MaxDepth : 6;
+            var callers = session.Query.FindCallers(nodeId.Value, maxDepth);
+
+            foreach (var (cid, title, filePath, lineNumber, project, distance) in callers)
+            {
+                if (!IsLikelyTestMethod(title, filePath, project)) continue;
+
+                resp.Tests.Add(new Proto.TestRef
+                {
+                    NodeId = cid.ToString(),
+                    Title = title,
+                    FilePath = filePath ?? "",
+                    LineNumber = lineNumber ?? 0,
+                    Distance = distance,
+                    IsDirect = distance == 1,
+                    Project = project ?? "",
+                });
+            }
+
+            return resp;
         });
 
     public override Task<Proto.StatsResponse> GetStats(Proto.SessionRequest request, ServerCallContext context)
@@ -429,6 +562,35 @@ public sealed class DevContextGrpcService(
         ArgumentException => new RpcException(new Status(StatusCode.InvalidArgument, ex.Message)),
         _ => new RpcException(new Status(StatusCode.Internal, ex.Message)),
     };
+
+    // M4.9 — heuristic test method detection by name, path, and project
+    private static bool IsLikelyTestMethod(string title, string? filePath, string? project)
+    {
+        if (string.IsNullOrEmpty(title)) return false;
+
+        var lower = title.ToLowerInvariant();
+
+        if (lower.EndsWith("_test") || lower.EndsWith("_should") || lower.EndsWith("_when")
+            || title.StartsWith("Test") || title.StartsWith("Should")
+            || title.Contains("_Tests_") || title.Contains(".Tests."))
+            return true;
+
+        if (filePath is not null)
+        {
+            var fp = filePath.Replace('\\', '/').ToLowerInvariant();
+            if (fp.Contains("/test/") || fp.Contains("/tests/")) return true;
+        }
+
+        if (project is not null)
+        {
+            var p = project.ToLowerInvariant();
+            if (p.EndsWith("tests") || p.EndsWith("test") || p.EndsWith("specs")
+                || p.Contains(".tests.") || p.Contains(".test."))
+                return true;
+        }
+
+        return false;
+    }
 
     private static StatusCode AnalysisCodeToGrpc(string code) => code switch
     {

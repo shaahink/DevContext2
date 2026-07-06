@@ -317,8 +317,132 @@ public sealed class GraphQuery
         return deg + (ip.Why.StartsWith("Auth") ? 10 : 0);
     }
 
+    /// <summary>M4.4 — Unified impact analysis: BFS over in-edges (up), out-edges (down), or both.
+    /// Returns affected nodes with titles, file paths, service info, and hop distances.
+    /// Depth-capped, cycle-safe. Max 500 results.</summary>
+    public ImmutableArray<ImpactResult> Impact(NodeId from, ImpactDirection direction = ImpactDirection.Up, int maxDepth = 4)
+    {
+        var results = ImmutableArray.CreateBuilder<ImpactResult>();
+        var visited = new HashSet<NodeId>();
+        var queue = new Queue<(NodeId, int)>();
+
+        if (direction == ImpactDirection.Up || direction == ImpactDirection.Both)
+            queue.Enqueue((from, 0));
+        if (direction == ImpactDirection.Down)
+            queue.Enqueue((from, 0));
+
+        var entryDict = _entries.GroupBy(e => e.Node).ToDictionary(g => g.Key, g => g.First());
+
+        while (queue.Count > 0 && results.Count < 500)
+        {
+            var (current, dist) = queue.Dequeue();
+            if (dist > maxDepth || !visited.Add(current)) continue;
+
+            if (current != from)
+            {
+                var node = _graph.Node(current);
+                var service = node?.Project ?? "";
+                var filePath = node?.FilePath;
+                var lineNumber = node?.LineNumber;
+
+                var title = node?.Title ?? current.Key;
+                var kind = node?.Kind.ToString() ?? "Unknown";
+
+                if (entryDict.TryGetValue(current, out var entry))
+                {
+                    title = entry.Title;
+                    kind = entry.Kind.ToString();
+                }
+
+                results.Add(new ImpactResult(
+                    title, kind, dist, current, filePath, lineNumber, service));
+            }
+
+            if (direction == ImpactDirection.Up || direction == ImpactDirection.Both)
+            {
+                foreach (var edge in _graph.InEdges(current))
+                    if (!visited.Contains(edge.From))
+                        queue.Enqueue((edge.From, dist + 1));
+            }
+
+            if (direction == ImpactDirection.Down || direction == ImpactDirection.Both)
+            {
+                foreach (var edge in _graph.OutEdges(current))
+                    if (!visited.Contains(edge.To))
+                        queue.Enqueue((edge.To, dist + 1));
+            }
+        }
+
+        return results.ToImmutable();
+    }
+
+    /// <summary>M4.4 diff-aware mode — find all graph nodes whose file path matches one of the
+    /// given paths (normalized), then return their union impact closure.</summary>
+    public ImmutableArray<ImpactResult> ImpactFromFiles(IEnumerable<string> filePaths, ImpactDirection direction = ImpactDirection.Down, int maxDepth = 4)
+    {
+        var normalized = new HashSet<string>(filePaths.Select(NormalizePath), StringComparer.OrdinalIgnoreCase);
+        var affectedNodes = new HashSet<NodeId>();
+
+        foreach (var node in _graph.Nodes)
+        {
+            if (node.FilePath is { } fp && normalized.Contains(NormalizePath(fp)))
+                affectedNodes.Add(node.Id);
+        }
+
+        var allResults = ImmutableArray.CreateBuilder<ImpactResult>();
+        foreach (var nodeId in affectedNodes)
+        {
+            foreach (var r in Impact(nodeId, direction, maxDepth))
+                allResults.Add(r);
+        }
+
+        return allResults.DistinctBy(r => r.NodeId).Take(500).ToImmutableArray();
+    }
+
+    /// <summary>M4.9 helper — BFS over IN-edges from target; returns all caller nodes with
+    /// distances. The caller (gRPC handler) filters for test methods.</summary>
+    public ImmutableArray<(NodeId NodeId, string Title, string? FilePath, int? LineNumber, string? Project, int Distance)>
+        FindCallers(NodeId target, int maxDepth = 6)
+    {
+        var results = ImmutableArray.CreateBuilder<(NodeId, string, string?, int?, string?, int)>();
+        var visited = new HashSet<NodeId>();
+        var queue = new Queue<(NodeId, int)>();
+        queue.Enqueue((target, 0));
+
+        while (queue.Count > 0 && results.Count < 500)
+        {
+            var (current, dist) = queue.Dequeue();
+            if (dist > maxDepth || !visited.Add(current)) continue;
+
+            if (current != target)
+            {
+                var node = _graph.Node(current);
+                results.Add((current, node?.Title ?? current.Key, node?.FilePath, node?.LineNumber, node?.Project, dist));
+            }
+
+            foreach (var edge in _graph.InEdges(current))
+                if (!visited.Contains(edge.From))
+                    queue.Enqueue((edge.From, dist + 1));
+        }
+
+        return results.ToImmutable();
+    }
+
+    /// <summary>M4.7 helper — find all graph nodes whose file path matches one of the given paths.</summary>
+    public ImmutableArray<GraphNode> NodesInFiles(IEnumerable<string> filePaths)
+    {
+        var normalized = new HashSet<string>(filePaths.Select(NormalizePath), StringComparer.OrdinalIgnoreCase);
+        return _graph.Nodes
+            .Where(n => n.FilePath is { } fp && normalized.Contains(NormalizePath(fp)))
+            .ToImmutableArray();
+    }
+
+    private static string NormalizePath(string path) =>
+        path.Replace('\\', '/').TrimEnd('/');
+
     /// <summary>I5 F13 — Blast Radius: BFS over in-edges from a node to find which entry points
-    /// reach it. Returns the entry titles with hop distances. Depth-capped, cycle-safe.</summary>
+    /// reach it. Returns the entry titles with hop distances. Depth-capped, cycle-safe.
+    /// (Kept for backward compatibility; prefer Impact(direction: Up).)</summary>
     public ImmutableArray<BlastResult> BlastRadius(NodeId from, int maxDepth = 4)
     {
         var results = ImmutableArray.CreateBuilder<BlastResult>();
@@ -369,6 +493,19 @@ public sealed class GraphQuery
             .ToImmutableArray();
     }
 }
+
+/// <summary>M4.4 — Impact analysis direction.</summary>
+public enum ImpactDirection { Up, Down, Both }
+
+/// <summary>M4.4 — Impact result: a node affected by or affecting a target node.</summary>
+public sealed record ImpactResult(
+    string Title,
+    string Kind,
+    int Hops,
+    NodeId NodeId,
+    string? FilePath,
+    int? LineNumber,
+    string Service);
 
 /// <summary>Blast radius result: an entry point reachable from a target node.</summary>
 public sealed record BlastResult(string EntryTitle, string Kind, int Hops);

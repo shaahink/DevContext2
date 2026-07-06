@@ -391,7 +391,7 @@ public sealed class DevContextTools
                     ? $"{resp.Root.Kind}: {resp.Root.Title}" : focus;
                 sb.Append("Entry: ").AppendLine(entryInfo);
                 if (resp.Root is not null)
-                    BuildCompactFlow(sb, resp.Root, 0);
+                    BuildCompactFlow(sb, resp.Root, 0, handle);
                 if (resp.TouchedEntities.Count > 0)
                     sb.Append("Touches: ").AppendJoin(", ", resp.TouchedEntities).AppendLine();
                 if (resp.EmittedEvents.Count > 0)
@@ -423,7 +423,7 @@ public sealed class DevContextTools
     }
 
     // M4.3 — compact flow: indented text with seam glyphs and provenance
-    private static void BuildCompactFlow(StringBuilder sb, TraceNode node, int indent)
+    private void BuildCompactFlow(StringBuilder sb, TraceNode node, int indent, string handle)
     {
         var prefix = new string(' ', indent * 2);
         var seamGlyph = node.Seam switch
@@ -444,10 +444,12 @@ public sealed class DevContextTools
             sb.Append(" [approx]");
         if (node.Truncated)
             sb.Append($" ({node.Omitted} omitted)");
+        if (node.HasProvenance && !string.IsNullOrEmpty(node.Provenance))
+            sb.Append("  ").Append(Rel(handle, node.Provenance));
         sb.AppendLine();
 
         foreach (var child in node.Children)
-            BuildCompactFlow(sb, child, indent + 1);
+            BuildCompactFlow(sb, child, indent + 1, handle);
     }
 
     private static object? SerializeTraceNode(TraceNode node) => new
@@ -594,26 +596,98 @@ public sealed class DevContextTools
         return title;
     }
 
-    /// <summary>Blast-radius analysis: which entries reach this node? maxDepth 1-10, default 4. Example: impact("abc123", "OrderService", 4)</summary>
+    /// <summary>Transitive impact analysis: upward (what reaches this) or downward (what does this affect). Grouped by service. Diff-aware files mode for "I changed X". Example: impact("abc123", "OrderService", 4, "down"), impact("abc123", files:["path/to/file.cs"])</summary>
     [McpServerTool]
-    public async Task<string> Impact(string handle, string nodeId, int maxDepth = 4)
+    public async Task<string> Impact(string handle, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null)
     {
-        var resp = await _client.GetImpactAsync(new ImpactRequest
+        var req = new ImpactRequest
+        {
+            Handle = handle,
+            MaxDepth = maxDepth,
+            Direction = direction,
+        };
+
+        if (nodeId is not null)
+            req.NodeId = nodeId;
+        if (files is not null)
+            req.Files.AddRange(files);
+
+        var resp = await _client.GetImpactAsync(req);
+
+        var results = resp.Results
+            .GroupBy(r => string.IsNullOrEmpty(r.Service) ? "(unknown)" : r.Service)
+            .ToDictionary(g => g.Key, g => g.Select(r => new
+            {
+                title = r.EntryTitle,
+                kind = r.Kind,
+                hops = r.Hops,
+                nodeId = r.NodeId,
+                filePath = r.HasFilePath ? Rel(handle, r.FilePath) : null,
+                lineNumber = r.HasLineNumber ? (int?)r.LineNumber : null,
+            }).ToArray());
+
+        return JsonSerializer.Serialize(new
+        {
+            direction = resp.Direction,
+            totalAffected = resp.TotalAffected,
+            resultsByService = results,
+        }, JsonOpts);
+    }
+
+    /// <summary>Find config key usage sites (IConfiguration, GetValue, GetSection). Optional key filter. Example: config("abc123", "GrpcSettings:DiscountUrl")</summary>
+    [McpServerTool]
+    public async Task<string> Config(string handle, string? key = null)
+    {
+        var req = new ConfigRequest { Handle = handle };
+        if (key is not null) req.Key = key;
+
+        var resp = await _client.ConfigLookupAsync(req);
+
+        var bindings = resp.Bindings
+            .GroupBy(b => b.Key)
+            .ToDictionary(g => g.Key, g => g.Select(b => new
+            {
+                filePath = Rel(handle, b.FilePath),
+                lineNumber = b.LineNumber,
+                patternType = b.PatternType,
+                service = string.IsNullOrEmpty(b.Service) ? null : b.Service,
+                nodeId = string.IsNullOrEmpty(b.NodeId) ? null : b.NodeId,
+            }).ToArray());
+
+        return JsonSerializer.Serialize(new
+        {
+            key = key ?? "(all)",
+            totalKeys = resp.TotalKeys,
+            keys = bindings,
+        }, JsonOpts);
+    }
+
+    /// <summary>Best-effort: find test methods whose call closure reaches a node. Example: tests_for("abc123", "OrderService")</summary>
+    [McpServerTool]
+    public async Task<string> TestsFor(string handle, string nodeId, int maxDepth = 6)
+    {
+        var resp = await _client.FindTestsForAsync(new TestsForRequest
         {
             Handle = handle,
             NodeId = nodeId,
             MaxDepth = maxDepth,
         });
+
         return JsonSerializer.Serialize(new
         {
             nodeId,
-            maxDepth,
-            count = resp.Results.Count,
-            results = resp.Results.Select(r => new
+            nodeTitle = resp.NodeTitle,
+            isBestEffort = resp.IsBestEffort,
+            count = resp.Tests.Count,
+            tests = resp.Tests.Select(t => new
             {
-                entryTitle = r.EntryTitle,
-                kind = r.Kind,
-                hops = r.Hops,
+                title = t.Title,
+                nodeId = t.NodeId,
+                filePath = Rel(handle, t.FilePath),
+                lineNumber = t.LineNumber,
+                distance = t.Distance,
+                isDirect = t.IsDirect,
+                project = string.IsNullOrEmpty(t.Project) ? null : t.Project,
             }).ToArray(),
         }, JsonOpts);
     }

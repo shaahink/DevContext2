@@ -70,8 +70,7 @@ public sealed class ContextPackBuilder
         }
 
         var identity = sbId.ToString();
-        var idBudget = mode == "explain" ? budgetTokens : budgetTokens;
-        AppendSection(sb, sections, omitted, idBudget, "identity", identity);
+        AppendSection(sb, sections, omitted, budgetTokens, "identity", identity);
 
         var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
         if (trace is null)
@@ -272,12 +271,22 @@ public sealed class ContextPackBuilder
 
     private string BuildDiRegistrations(Trace? trace)
     {
-        // Collect all node types on the trace path, check for known DI registrations
         var types = new HashSet<NodeId>();
         if (trace is not null)
             foreach (var step in WalkSteps(trace.Root))
+            {
                 if (step.Node.Kind == NodeKind.Type)
                     types.Add(step.Node.Id);
+                else if (step.Node.Kind == NodeKind.Member)
+                {
+                    var lastDot = step.Node.Id.Key.LastIndexOf('.');
+                    if (lastDot > 0)
+                    {
+                        var typeKey = step.Node.Id.Key[..lastDot];
+                        types.Add(new NodeId(NodeKind.Type, typeKey));
+                    }
+                }
+            }
 
         if (types.Count == 0) return "";
 

@@ -267,17 +267,27 @@ internal static class ProtoMapper
         return resp;
     }
 
-    public static Proto.ImpactResponse ToImpactResponse(System.Collections.Immutable.ImmutableArray<BlastResult> results)
+    public static Proto.ImpactResponse ToImpactResponse(System.Collections.Immutable.ImmutableArray<ImpactResult> results, string direction)
     {
-        var resp = new Proto.ImpactResponse();
+        var resp = new Proto.ImpactResponse
+        {
+            Direction = direction,
+            TotalAffected = results.Length,
+        };
         foreach (var r in results)
         {
-            resp.Results.Add(new Proto.ImpactResult
+            var pr = new Proto.ImpactResult
             {
-                EntryTitle = r.EntryTitle,
+                EntryTitle = r.Title,
                 Kind = r.Kind,
                 Hops = r.Hops,
-            });
+                NodeId = r.NodeId.ToString(),
+                NodeTitle = r.Title,
+                Service = r.Service,
+            };
+            if (r.FilePath is { } f) pr.FilePath = f;
+            if (r.LineNumber is { } l) pr.LineNumber = l;
+            resp.Results.Add(pr);
         }
         return resp;
     }
