@@ -365,8 +365,8 @@ const QA_QUESTIONS = [
         wellFormed = typeof resp.key === "string" && typeof resp.totalKeys === "number" && resp.keys !== undefined;
       } catch (_) {}
       return {
-        pass: wellFormed || totalKeys >= 0,
-        detail: `config returned ${totalKeys} keys (tool callable)`,
+        pass: wellFormed && totalKeys > 0,
+        detail: `config returned ${totalKeys} keys`,
       };
     },
     tokenBudget: 5000,

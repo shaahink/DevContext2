@@ -74,7 +74,7 @@ public sealed class ContextPackBuilder
 
         var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
         if (trace is null)
-            return Finalize(sb, sections, omitted);
+            return new ContextPack(sb.ToString(), EstimateTokens(sb.ToString()), [], []) { Found = false };
 
         // ── Explain mode: prioritize concepts over code ──
         if (mode == "explain")
@@ -208,7 +208,7 @@ public sealed class ContextPackBuilder
     {
         var totalTokens = sections.Sum(s => s.Tokens);
         var content = sb.ToString();
-        return new ContextPack(content, totalTokens, [.. sections], [.. omitted]);
+        return new ContextPack(content, totalTokens, [.. sections], [.. omitted]) { Found = sections.Count > 0 };
     }
 
     private static string BuildTraceSkeleton(Trace trace)
@@ -291,7 +291,6 @@ public sealed class ContextPackBuilder
         if (types.Count == 0) return "";
 
         var sb = new StringBuilder();
-        sb.AppendLine("## DI Registrations");
         var found = false;
         foreach (var nodeId in types)
         {
@@ -327,6 +326,9 @@ public sealed record ContextPack(
     string Content,
     int TotalTokens,
     ImmutableArray<SectionAllocation> Sections,
-    ImmutableArray<string> Omitted);
+    ImmutableArray<string> Omitted)
+{
+    public bool Found { get; init; } = true;
+}
 
 public sealed record SectionAllocation(string Section, int Tokens, string Content);

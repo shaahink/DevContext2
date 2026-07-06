@@ -18,7 +18,7 @@ question requires reading and connecting 5+ files across 3 services with grep
 | Avg tokens per question | 243 | 3k–10k |
 | Cross-service aware | Yes (ServiceLinks, bus/gRPC) | No |
 | Disambiguation | Built-in (resolve returns candidates) | Manual |
-| Config key scanning | Tool exists (functional bug to fix) | `rg Configuration` + decode |
+| Config key scanning | Tool returns 4 keys with binding sites | `rg Configuration` + decode |
 | Test method discovery | Heuristic (project name, path) | `rg -l Test`, manual dedupe |
 
 ---
@@ -79,11 +79,11 @@ question requires reading and connecting 5+ files across 3 services with grep
 
 | | DevContext MCP | grep |
 |---|---------------|------|
-| **Approach** | `config(handle)` | `rg \"Configuration\\[|\\bGetValue<|\\bGetSection\\(|GetConnectionString\\(` |
+| **Approach** | `config(handle)` | `rg "Configuration\\[|\\bGetValue<|\\bGetSection\\(|GetConnectionString\\("` |
 | **Calls** | 1 | 1 (regex search), then manual key extraction |
-| **Tokens** | 9 (returns empty, known bug) | 1k–3k (raw grep lines) |
-| **Correctness** | Tool callable; regex coverage needs extension (case-insensitive fix applied, still 0 matches) | grep returns raw lines; human must extract keys |
-| **Winner** | **Tie** — config tool has functional bug (M5 fix); grep is more reliable but manual | |
+| **Tokens** | 214 | 1k–3k (raw grep lines) |
+| **Correctness** | Returns 4 distinct keys (Database, Redis, GrpcSettings:DiscountUrl, MessageBroker:Host/UserName/Password) | grep returns raw lines; human must extract keys |
+| **Winner** | **DevContext** — structured key→binding sites with file:line + pattern type | |
 
 ### Q7 — What tests cover CheckoutBasketCommandHandler?
 
@@ -108,8 +108,26 @@ question requires reading and connecting 5+ files across 3 services with grep
 
 ## Verdict
 
-DevContext MCP beats grep on 6 of 7 questions (config tool has a known functional bug
-fix pending M5). The checkout gate is decisively met: 2 calls, 314 tokens (ceiling 3/2000).
+DevContext MCP beats grep on all 7 questions, including the config key tool
+which now returns 4 distinct keys with binding sites from the dogfood repo.
+The checkout gate is decisively met: 2 calls, 314 tokens (ceiling 3/2000).
 
 M4 gate satisfied: 8/8 QA questions answered correctly, checkout question 2 calls / 314
 tokens, comparison table provided.
+
+## M5 Multi-Repo Results (2026-07-06)
+
+5 repos analyzed. Gate: 2c/313tok agent transcript recorded.
+
+| Repo | Nodes | Edges | Entries | Score | Calls | Tokens | Q2 | Q3 | Q6 keys |
+|------|-------|-------|---------|-------|-------|--------|----|----|----------|
+| dogfood | 493 | 316 | 34 | 7/7 | 8 | 1455 | PASS | PASS (1) | 4 |
+| eShop | 1131 | 187 | 96 | 6/7 | 8 | 1961 | FAIL (no endpoint) | PASS (5) | 12 |
+| TodoApi | 164 | 57 | 12 | 5/7 | 7 | 522 | FAIL (no endpoint) | FAIL (0) | 2 |
+| CleanArchitecture | 647 | 127 | 7 | 6/7 | 8 | 1723 | FAIL (no endpoint) | PASS (1) | 6 |
+| DntSite | 4965 | 2160 | 94 | 4/7 | 7 | 1228 | FAIL (no endpoint) | FAIL (0) | 0 |
+
+- Q2 failures: expected — repos without checkout endpoint.
+- Q3 failures (TodoApi, DntSite): `resolve("Program")` returns 0 candidates — expected for repos without a top-level `Program` type.
+- Q6 DntSite (0 keys): DntSite uses `IOptions<T>`/`Bind()` pattern — not covered by the config-key regex. Known limitation.
+- **Total across 5 repos:** 38 calls, 6889 tokens.

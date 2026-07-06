@@ -1,0 +1,22 @@
+[
+  {
+    "name": "dogfood",
+    "path": "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src"
+  },
+  {
+    "name": "eShop",
+    "path": "C:/Users/shahi/source/repos/eShop/src"
+  },
+  {
+    "name": "TodoApi",
+    "path": "C:/Users/shahi/AppData/Local/DevContext/repos/davidfowl-TodoApi-default"
+  },
+  {
+    "name": "CleanArchitecture",
+    "path": "C:/Users/shahi/AppData/Local/DevContext/repos/ardalis-CleanArchitecture-default"
+  },
+  {
+    "name": "DntSite",
+    "path": "C:/Users/shahi/AppData/Local/DevContext/repos/VahidN-DntSite-default"
+  }
+]

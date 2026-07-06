@@ -248,7 +248,7 @@ public sealed class DevContextGrpcService(
 
     // M4.7 — config key lookup: scan source files for IConfiguration/GetValue/GetSection usage
     private static readonly Regex ConfigKeyRegex = new(
-        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)"")|\.GetSection\(""([^""]+)"")|\.GetConnectionString\(""([^""]+)"")|\.GetRequiredSection\(""([^""]+)"")",
+        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)""\)|\.GetSection\(""([^""]+)""\)|\.GetConnectionString\(""([^""]+)""\)|\.GetRequiredSection\(""([^""]+)""\))",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public override Task<Proto.ConfigResponse> ConfigLookup(Proto.ConfigRequest request, ServerCallContext context)
@@ -260,7 +260,7 @@ public sealed class DevContextGrpcService(
 
             var filesByPath = session.Query.Graph.Nodes
                 .Where(n => n.FilePath is not null)
-                .GroupBy(n => n.FilePath!)
+                .GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable(), StringComparer.OrdinalIgnoreCase);
 
             foreach (var (filePath, nodes) in filesByPath)

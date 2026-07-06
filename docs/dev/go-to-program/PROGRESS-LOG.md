@@ -4,7 +4,70 @@
 
 ---
 
-## 2026-07-06 — Meridian M4 gate closure: QA harness rewritten, gate satisfied
+## 2026-07-06 — M5 completion: static audit + multi-repo QA + agent transcript + gate closure
+
+**Audit findings (5 bugs in run-multi.js):**
+- **B1** Q6 vacuous pass: `totalKeys >= 0` (always true) → changed to `wellFormed && totalKeys > 0` matching run.js fix.
+- **B2** Q6 missing `wellFormed` structural validation → added same check as run.js: `typeof resp.key === "string" && typeof resp.totalKeys === "number" && resp.keys !== undefined`.
+- **B3** Q5 vacuous pass: `count >= 0` (always true) → changed to `count > 0 && isAmbiguous`.
+- **B4** Q2 vacuous pass on error: `catch { return { pass: true } }` for repos without checkout endpoint → changed to `return { pass: null, skipped: true }` (excluded from score).
+- **B5** Q7 vacuous pass: `count >= 0` → `count >= 0 && hasMore` (validates response structure).
+- Scoring logic updated to exclude skipped questions from denominator.
+
+**M5.1 multi-repo QA complete:**
+- Cloned 3 missing repos: TodoApi, CleanArchitecture, DntSite (git clone --depth 1).
+- Ran `run-multi.js` across all 5 repos — sequential, fresh MCP per repo.
+- Results: dogfood 7/7 (1455 tok), eShop 6/7 (1961 tok), TodoApi 5/7 (522 tok), CleanArchitecture 6/7 (1723 tok), DntSite 4/7 (1228 tok).
+- Total across 5 repos: 38 calls, 6889 tokens.
+- Ratchet written to `eval-results/2026-07-06/m5-ratchet.json`.
+- Notable: DntSite config returns 0 keys (uses Options/Bind pattern, not regex-covered accessors).
+
+**M5.2 agent transcript:**
+- Created `eval/mcp-qa/record-transcript.js` — records real MCP tool calls for the checkout question.
+- Transcript: 2 calls (overview + trace), 313 tokens, gate PASS (≤3c/2ktok).
+- Saved to `eval-results/2026-07-06/agent-transcript.md`.
+
+**Changed:**
+- `eval/mcp-qa/run-multi.js` — 5 bug fixes (B1-B5) + scoring logic for skipped questions
+- `eval/mcp-qa/record-transcript.js` (new) — M5.2 agent transcript recorder
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `node eval/mcp-qa/run-multi.js` — all 5 repos analyzed, ratchet written
+- `node eval/mcp-qa/record-transcript.js` — 2 calls, 313 tok, gate PASS
+- Dogfood QA unchanged: 8/8, config 4 keys, checkout 2c/314tok
+
+**Next:** M5 COMPLETE. Next session: M6 — Home repo card + Atlas one-pager (UI features). See `proposal-meridian.md` §M6.
+
+---
+
+## 2026-07-06 — M4 gap closure + M5 starter: config regex repair, get_context fixes, QA tighten, multi-repo infra, McpQa tests
+
+**Changed:**
+- **Config tool regex repaired (CRITICAL — config tool was dead on arrival):**
+  - Root cause: `ConfigKeyRegex` in both `DevContextGrpcService.cs:251` and `ConfigDefaultsSource.cs:41` had unescaped `)` in method-call patterns (e.g., `GetConnectionString\("([^"]+)")`) instead of escaped `\)`. Each `)` was interpreted as a regex group close instead of a literal `)`, causing `RegexParseException: "Too many )'s"` at runtime. The PowerShell test passed because PowerShell's `[regex]::new()` uses different regex parsing (it accepts `\)` as a literal by default). Added `\)` → `""\)"` in C# verbatim strings to produce proper `\)` in the regex.
+  - Secondary fix: `GroupBy(n => n.FilePath!)` → `GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)` to prevent `ArgumentException` when nodes have case-different file paths. A prior run had 493 nodes → 455 files (some case-duplicated) which would have crashed on the `ToDictionary` with `OrdinalIgnoreCase` key comparison.
+  - Both `DevContextGrpcService.cs` and `ConfigDefaultsSource.cs` fixed.
+  - Result: config tool now returns 4 distinct keys (Database, Redis, GrpcSettings:DiscountUrl, MessageBroker:*) — up from 0.
+- **get_context v2 gaps fixed (3 issues):**
+  - (a) Root entry body: `TraceBuilder.cs:380` — added `Salient = ExtractCalleeSalient(node)` to root `TraceStep` creation. Previously only child steps got `Salient` set.
+  - (b) Double DI header: `ContextPackBuilder.cs:294` — removed hardcoded `"## DI Registrations"` from `BuildDiRegistrations` output. `AppendSection` already adds the section header.
+  - (c) `Found` flag: `ContextPack.cs` — added `bool Found` property (default `true`). `ContextPackBuilder.Build()` sets `Found = false` when trace is null. `ProtoMapper.ToContextResponse` now reads `pack.Found`.
+- **QA test Q6 tightened:** `eval/mcp-qa/run.js:368` — changed from `pass: wellFormed || totalKeys >= 0` (vacuous pass) to `pass: wellFormed && totalKeys > 0` (requires actual keys).
+- **MCP-VS-GREP.md updated:** Q6 now shows "DevContext **wins**" (was "Tie") — 4 keys, 214 tokens. Summary updated to 7/7 wins (was 6/7).
+- **M5.1 multi-repo runner:** `eval/mcp-qa/run-multi.js` — sequential multi-repo QA against repos listed in `eval/mcp-qa/repos-m5.json`. Per-repo analyze + 7 questions + token tracking. Kills/restarts MCP between repos. Writes ratchet to `eval-results/<date>/m5-ratchet.json`. 2/5 repos available locally (dogfood, eShop); 3 need clone (TodoApi, CleanArchitecture, DntSite).
+- **M5.3 CI wiring:** `tests/DevContext.Core.Tests/McpQaGateTests.cs` — 2 tests:
+  - `McpQaHarness_Passes_Against_Dogfood`: spawns `node eval/mcp-qa/run.js --quiet`, content-asserts QA Score + Gate PASS. Category `McpQa`. ~130s runtime.
+  - `McpQa_Bench_Smoke_Script_Exists`: verifies `scripts/bench.ps1` and `eval-repos.json` exist. Category `McpQa`.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (353+64+12, 3 skipped)
+- `dotnet test --filter Category=McpQa` — 2 tests discovered (1 smoke test passes, harness test needs running separately due to ~130s runtime)
+- `node eval/mcp-qa/run.js` — 8/8 QA PASS, config 4 keys (214 tok), checkout gate 2c/314tok
+- Dogfood analysis: 493 nodes, 316 edges, 34 entries (no regressions)
+
+**Next:** Clone TodoApi/CleanArchitecture/DntSite → run `node eval/mcp-qa/run-multi.js` for 5-repo ratchet → record M5.2 agent transcript → commit. See `MERIDIAN-START.md` handoff block for detailed next steps.
 
 **Changed:**
 - **M4.7 config key fix:** `ConfigKeyRegex` added `RegexOptions.IgnoreCase` for case-insensitive matching. `ConfigLookup` handler switched from `WrapAsyncT` to `WrapT` (sync file I/O).

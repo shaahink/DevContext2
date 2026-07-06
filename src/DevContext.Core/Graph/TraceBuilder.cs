@@ -377,6 +377,7 @@ public sealed class TraceBuilder
             Truncated = ranked.Count > taken.Count,
             Omitted = ranked.Count - taken.Count,
             MultiImplCount = multiImplCount,
+            Salient = ExtractCalleeSalient(node),
         };
     }
 

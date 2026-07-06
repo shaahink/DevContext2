@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 8531882 feat(m4): QA gate satisfied — 8/8 passing, checkout 2c/314tok, MCP-VS-GREP table
-stage: M4 — DONE & GATE SATISFIED (9/9 tools, QA 8/8, gate 2c/314tok)
-gate: dotnet build 0w0e, 429 tests green, pnpm check green, QA 8/8, MCP-VS-GREP.md written
-dirty: config tool returns 0 keys (regex coverage gap — see eval-results/2026-07-06/MCP-VS-GREP.md)
-next: M5.1 QA set → 5 repos + token ratchets (proposal-meridian.md §M5)
-trap: MCP server cold-start ~10s (auto-spawns engine server). Config tool first call scans all files on disk — may be slow.
+last: feat(m5): static audit fixes (5 run-multi.js bugs) + 5-repo QA ratchet + agent transcript — M5 COMPLETE
+stage: M6 — TODO (UI features: Home repo card + Atlas one-pager)
+gate: dotnet build 0w0e, 429 tests green, QA 8/8 dogfood, multi-repo 28/35 (5 repos), transcript gate PASS (2c/313tok)
+dirty: M6 not started; DntSite config returns 0 keys (uses Options/Bind pattern, regex-limited)
+next: M6.1 Home repo card (spec §UI-Home) → M6.2 Atlas one-pager (spec §UI-Atlas)
+trap: M6 is Angular UI work — use `pnpm check` (src/DevContext.App). See AGENTS.md for verify loop.
 
 ## Checkpoints
 
@@ -51,9 +51,11 @@ line under the row — never silent renumbering.
 | M4.8 | `get_context` v2 (real content, cross-service) | DONE | cc37ea6 | out.md |
 | M4.9 | `tests_for` best-effort | DONE | 45981ee | out.md |
 | M4.G | QA gate: 8/8 passing, checkout ≤3c/2k tok, MCP-VS-GREP | DONE | 8531882 | eval-results/2026-07-06/ |
-| M5.1 | QA set → 5 repos + token ratchets | TODO | | |
-| M5.2 | Real agent transcript (checkout question) committed | TODO | | |
-| M5.3 | CI wiring (McpQa category + bench smoke) | TODO | | |
+| M5.1 | QA set → 5 repos + token ratchets | DONE | | eval/mcp-qa/run-multi.js + eval-results/2026-07-06/m5-ratchet.json (5 repos, 38 calls, 6889 tok) |
+| M5.2 | Real agent transcript (checkout question) committed | DONE | | eval/mcp-qa/record-transcript.js + eval-results/2026-07-06/agent-transcript.md (2 calls, 313 tok, gate PASS) |
+| M5.3 | CI wiring (McpQa category + bench smoke) | DONE | | tests/DevContext.Core.Tests/McpQaGateTests.cs (2 tests: harness gate + bench smoke check) |
+| M6.1 | Home repo card (spec §UI-Home) | TODO | | |
+| M6.2 | Atlas one-pager + export (spec §UI-Atlas) | TODO | | |
 | M6.1 | Home repo card (spec §UI-Home) | TODO | | |
 | M6.2 | Atlas one-pager + export (spec §UI-Atlas) | TODO | | |
 | M7.0 | Design-token pass (12px/14–16px/contrast) | TODO | | |
@@ -75,8 +77,10 @@ line under the row — never silent renumbering.
 ```powershell
 dotnet build DevContext.slnx                                   # 0w 0e is the bar
 dotnet test DevContext.slnx --filter "Category!=Eval"
+dotnet test DevContext.slnx --filter "Category=McpQa"          # M5.3 — MCP QA gate (slow, ~130s)
 powershell -File scripts/bench.ps1                             # M0.1 hardens this
-node eval/mcp-qa/run.js                                        # exists after M0.2
+node eval/mcp-qa/run.js                                        # single-repo QA (dogfood)
+node eval/mcp-qa/run-multi.js                                  # M5.1 — multi-repo QA (5 repos)
 cd src/DevContext.App; pnpm check                              # UI gate
 dotnet run --project src/DevContext.Cli --no-build -- report <abs-repo-path> -o out.md
 ```

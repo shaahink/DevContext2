@@ -1,0 +1,370 @@
+{
+  "date": "2026-07-06T20:19:25.967Z",
+  "baseline": {
+    "branch": "feat/meridian-m0",
+    "buildTime": "2026-07-06T20:19:25.967Z"
+  },
+  "repos": [
+    {
+      "repo": "dogfood",
+      "path": "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src",
+      "handle": "6359ddbab8854014a8ebff0f4f35cbb2",
+      "elapsed": 122.473,
+      "baseline": {
+        "nodes": 493,
+        "edges": 316,
+        "entries": 34
+      },
+      "questions": [
+        {
+          "id": "q1-overview",
+          "passed": true,
+          "detail": "overview 242 tok",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 242
+        },
+        {
+          "id": "q2-checkout-flow",
+          "passed": true,
+          "detail": "trace found: 3 steps",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 71
+        },
+        {
+          "id": "q3-resolve",
+          "passed": true,
+          "detail": "1 candidates",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 60
+        },
+        {
+          "id": "q4-impact",
+          "passed": true,
+          "detail": "impact total=1",
+          "skipped": false,
+          "calls": 2,
+          "tokens": 98
+        },
+        {
+          "id": "q5-resolve-ambiguous",
+          "passed": true,
+          "detail": "10 candidates, ambiguous=true",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 572
+        },
+        {
+          "id": "q6-config",
+          "passed": true,
+          "detail": "config returned 4 keys",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 214
+        },
+        {
+          "id": "q7-find",
+          "passed": true,
+          "detail": "25 results",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 198
+        }
+      ],
+      "totalCalls": 8,
+      "totalTokens": 1455
+    },
+    {
+      "repo": "eShop",
+      "path": "C:/Users/shahi/source/repos/eShop/src",
+      "handle": "2d9811aef7484e7492de7b3fefa626cc",
+      "elapsed": 123.127,
+      "baseline": {
+        "nodes": 1131,
+        "edges": 187,
+        "entries": 96
+      },
+      "questions": [
+        {
+          "id": "q1-overview",
+          "passed": true,
+          "detail": "overview 195 tok",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 195
+        },
+        {
+          "id": "q2-checkout-flow",
+          "passed": false,
+          "detail": "trace not found",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 12
+        },
+        {
+          "id": "q3-resolve",
+          "passed": true,
+          "detail": "5 candidates",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 263
+        },
+        {
+          "id": "q4-impact",
+          "passed": true,
+          "detail": "impact total=0",
+          "skipped": false,
+          "calls": 2,
+          "tokens": 68
+        },
+        {
+          "id": "q5-resolve-ambiguous",
+          "passed": true,
+          "detail": "10 candidates, ambiguous=true",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 646
+        },
+        {
+          "id": "q6-config",
+          "passed": true,
+          "detail": "config returned 12 keys",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 574
+        },
+        {
+          "id": "q7-find",
+          "passed": true,
+          "detail": "25 results",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 203
+        }
+      ],
+      "totalCalls": 8,
+      "totalTokens": 1961
+    },
+    {
+      "repo": "TodoApi",
+      "path": "C:/Users/shahi/AppData/Local/DevContext/repos/davidfowl-TodoApi-default",
+      "handle": "7db2cf8b34ff4872942bb758e66ce3dd",
+      "elapsed": 122.657,
+      "baseline": {
+        "nodes": 164,
+        "edges": 57,
+        "entries": 12
+      },
+      "questions": [
+        {
+          "id": "q1-overview",
+          "passed": true,
+          "detail": "overview 170 tok",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 170
+        },
+        {
+          "id": "q2-checkout-flow",
+          "passed": false,
+          "detail": "trace not found",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 12
+        },
+        {
+          "id": "q3-resolve",
+          "passed": false,
+          "detail": "0 candidates",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 16
+        },
+        {
+          "id": "q4-impact",
+          "passed": true,
+          "detail": "no Program node",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 23
+        },
+        {
+          "id": "q5-resolve-ambiguous",
+          "passed": true,
+          "detail": "2 candidates, ambiguous=true",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 135
+        },
+        {
+          "id": "q6-config",
+          "passed": true,
+          "detail": "config returned 2 keys",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 75
+        },
+        {
+          "id": "q7-find",
+          "passed": true,
+          "detail": "2 results",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 91
+        }
+      ],
+      "totalCalls": 7,
+      "totalTokens": 522
+    },
+    {
+      "repo": "CleanArchitecture",
+      "path": "C:/Users/shahi/AppData/Local/DevContext/repos/ardalis-CleanArchitecture-default",
+      "handle": "b96ef807fd7440c8b774794b348dce93",
+      "elapsed": 122.642,
+      "baseline": {
+        "nodes": 647,
+        "edges": 127,
+        "entries": 7
+      },
+      "questions": [
+        {
+          "id": "q1-overview",
+          "passed": true,
+          "detail": "overview 284 tok",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 284
+        },
+        {
+          "id": "q2-checkout-flow",
+          "passed": false,
+          "detail": "trace not found",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 12
+        },
+        {
+          "id": "q3-resolve",
+          "passed": true,
+          "detail": "1 candidates",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 58
+        },
+        {
+          "id": "q4-impact",
+          "passed": true,
+          "detail": "impact total=0",
+          "skipped": false,
+          "calls": 2,
+          "tokens": 56
+        },
+        {
+          "id": "q5-resolve-ambiguous",
+          "passed": true,
+          "detail": "10 candidates, ambiguous=true",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 781
+        },
+        {
+          "id": "q6-config",
+          "passed": true,
+          "detail": "config returned 6 keys",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 271
+        },
+        {
+          "id": "q7-find",
+          "passed": true,
+          "detail": "25 results",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 261
+        }
+      ],
+      "totalCalls": 8,
+      "totalTokens": 1723
+    },
+    {
+      "repo": "DntSite",
+      "path": "C:/Users/shahi/AppData/Local/DevContext/repos/VahidN-DntSite-default",
+      "handle": "b7fdcf9ebddc49e494bbc50fff5c12a9",
+      "elapsed": 126.901,
+      "baseline": {
+        "nodes": 4965,
+        "edges": 2160,
+        "entries": 94
+      },
+      "questions": [
+        {
+          "id": "q1-overview",
+          "passed": true,
+          "detail": "overview 164 tok",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 164
+        },
+        {
+          "id": "q2-checkout-flow",
+          "passed": false,
+          "detail": "trace not found",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 12
+        },
+        {
+          "id": "q3-resolve",
+          "passed": false,
+          "detail": "0 candidates",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 16
+        },
+        {
+          "id": "q4-impact",
+          "passed": true,
+          "detail": "no Program node",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 23
+        },
+        {
+          "id": "q5-resolve-ambiguous",
+          "passed": true,
+          "detail": "10 candidates, ambiguous=true",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 775
+        },
+        {
+          "id": "q6-config",
+          "passed": false,
+          "detail": "config returned 0 keys",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 10
+        },
+        {
+          "id": "q7-find",
+          "passed": true,
+          "detail": "25 results",
+          "skipped": false,
+          "calls": 1,
+          "tokens": 228
+        }
+      ],
+      "totalCalls": 7,
+      "totalTokens": 1228
+    }
+  ],
+  "summary": {
+    "repos": 5,
+    "totalRepos": 5,
+    "totalCalls": 38,
+    "totalTokens": 6889
+  }
+}

@@ -38,7 +38,7 @@ public sealed class ConfigDefaultsSource : IInsightSource
     }
 
     private static readonly Regex ConfigKeyPattern = new(
-        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)"")|\.GetSection\(""([^""]+)"")|\.GetConnectionString\(""([^""]+)"")|\.GetRequiredSection\(""([^""]+)"")",
+        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)""\)|\.GetSection\(""([^""]+)""\)|\.GetConnectionString\(""([^""]+)""\)|\.GetRequiredSection\(""([^""]+)""\))",
         RegexOptions.Compiled);
 
     private static HashSet<string> FindConsumedConfigKeys(DiscoveryModel model)

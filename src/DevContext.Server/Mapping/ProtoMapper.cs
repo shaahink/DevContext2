@@ -296,7 +296,7 @@ internal static class ProtoMapper
     {
         var resp = new Proto.ContextResponse
         {
-            Found = true,
+            Found = pack.Found,
             Focus = focus,
             TotalTokens = pack.TotalTokens,
         };
