@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m8.1a): Context Studio route + rail entry + Ctrl+E redirect (2a6e585)
-stage: M8.1 — IN PROGRESS (M8.1a done; 3-pane stub renders at /context)
+last: feat(m8.2): Composition model — 9 card types, getContext RPC wired, preset, omnibox, drag-drop, global body toggle, trail seeds, format/intent
+stage: M8.2 — DONE (9 sub-tasks: card types, RPC data, preset, omnibox, drag-drop, body toggles, trail seeds, format, intent ordering)
 gate: pnpm check green (lint 0/0, test 27/27, build 0w/0e)
 dirty: none
-next: M8.1b — Scope picker (service/entry tree + omnibox + "I'm changing this endpoint" preset)
-trap: ExportDrawer not yet retired (Ctrl+E rerouted but drawer code remains in tree); lens-switcher layer/feature slots still available=false
+next: M8.3+M8.4 — Server-side token estimation (ContextPackBuilder round-trip), provenance chips per card, stale banner, server-side meter
+trap: token estimation is still client-side v0 (lines × 2.5) — server round-trip through ContextPackBuilder gated for M8.4; lens-switcher layer/feature still available=false
 
 ## Checkpoints
 
@@ -62,8 +62,8 @@ line under the row — never silent renumbering.
 | M7.3 | Trail dedupe/group/cap; deck legibility | DONE | c3e7078 | TrailFlowGroup, groupedBreadcrumb, kind-colored dots |
 | M7.4 | Chrome pass + feedback affordances (spec §UI-Chrome) | DONE | 1d2f26d | titlebar 40px, rail hover labels, statusbar clickable |
 | M7.5 | Table lens v2 (spec §UI-Table) | DONE | e0ca191 | CDK-virtualized, archetype columns, CSV export |
-| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | IN PROGRESS | 2a6e585 | /context route + rail entry + Ctrl+E redirect + 3-pane stub |
-| M8.2 | Composition model (cards/seeds/presets) | TODO | | |
+| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | DONE | | /context route, scope-picker.ts, composition-view.ts, budget-panel.ts |
+| M8.2 | Composition model (cards/seeds/presets) | DONE | | |
 | M8.3 | Budget/meter/intent/copy controls | TODO | | |
 | M8.4 | Provenance + staleness + builder round-trip | TODO | | |
 | M9.1 | Full bench incl. PowerToys + MassTransit | TODO | | |

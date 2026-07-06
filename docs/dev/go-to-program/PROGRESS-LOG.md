@@ -1899,3 +1899,49 @@ ead_source(handle, node_id)\ MCP tool � file:line anchored read (20-line windo
 **Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check green.
 
 **Next:** Review and merge. PowerToys verification session recommended as first next step. See docs/dev/HANDOVER-LIGHTHOUSE.md for full project state.
+
+---
+
+## 2026-07-06 — M8.1 Context Studio: scope picker, composition view, budget panel, old panes retired (DONE)
+
+**M8.1b Scope picker (`scope-picker.ts`):**
+- Service → entry hierarchy tree built from `SessionStore.entryGroups()` grouped by `entry.project`
+- Text filter with clear button
+- "I'm changing this endpoint" preset button → dropdown of all entries → seeds 5 cards: flow, members, contracts, validators, tests
+- Bottom bar with selection count + "Add to context" button
+- Entry kind icons/colors from M7.0 KIND_COLORS registry
+
+**M8.1c Composition view (`composition-view.ts`):**
+- Ordered `ContextCard[]` signal (id, type, title, entryIds, estimatedLines, bodyEnabled)
+- Each card: grip handle, type badge (colored: Flow/Info, Members/Success, Config/Warn, Entities/Accent, Tests/Danger), title, line count, body toggle (eye/eye-off), × remove
+- Footer shows card count + total lines
+- Empty state with layers icon + "No cards yet" message
+
+**M8.1d Budget panel (`budget-panel.ts`):**
+- Token budget slider (1k–16k, stops grid underneath)
+- Per-card bar meter (`lines × 2.5` v0 heuristic), over-budget cards show warn color
+- Total bar: green ≤ budget, red > budget
+- Intent selector: Trace/Explain/Review chip buttons
+- Format selector: Markdown/Plain chip buttons
+- [Copy] button → icon changes to check + "Copied!" toast (A11 feedback affordance)
+- [Save] button → downloads as .md file + toast
+- `copyRequest`/`saveRequest` outputs (no native DOM event collision)
+
+**M8.1e Retire old panes:**
+- Removed `features/export/export-drawer.ts` (553 lines) — deleted file + directory
+- Removed `ExportDrawer` from workbench-page.ts: import, imports array, template block, dead `exportOpen` signal, Esc-ladder check
+- Removed Inspector LLM section: `'llm'` from SectionId, ~46-line template block, `renderContent`/`tokenEstimate`/`renderLoading`/`renderError` signals, `renderTimer`/`renderedFocus` fields, debounced render effect, `copy`/`fmtK`/`render`/`debouncedRender`/`doRender` methods, `RENDER_DEBOUNCE_MS` constant, `formatCompact`/`DestroyRef` imports
+- `copyToClipboard`/`Skeleton` kept — still used by Code tab
+
+**Parent `context-studio.ts` rewritten:**
+- Imports and wires ScopePicker, CompositionView, BudgetPanel
+- Owns `cards` signal, delegates card CRUD to children
+- `buildContext()` assembles markdown from cards
+- `onCopy()` → clipboard.writeText, `onSave()` → Blob download
+
+**Verified:** `pnpm check` green (lint 0/0, test 27/27, build 0w/0e).
+**ExportDrawer references:** 1 (comment in `core/format.ts:4` — acceptable).
+**New lazy chunk:** `context-studio` — 21 kB.
+
+**Next:** M8.2 Composition model (cards/seeds/presets — make cards carry real context data from RPC).
+**Trap:** Token estimation is client-side v0 heuristic; server-side round-trip through ContextPackBuilder gated for M8.4; lens-switcher layer/feature still available=false.

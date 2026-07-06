@@ -12,7 +12,6 @@ import { TrailBar } from '../../shell/trail-bar';
 import { EntryDeck } from '../explorer/entry-deck';
 import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
-import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
 import { TableLens } from '../table-lens/table-lens';
 
@@ -43,7 +42,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens, ExportDrawer],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -99,11 +98,6 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       </div>
     }
 
-    <app-export-drawer
-      [open]="exportOpen()"
-      (dismissed)="exportOpen.set(false)"
-    />
-
     @if (vPending()) {
       <div class="fixed bottom-12 left-1/2 z-50 -translate-x-1/2 overlay-float px-3 py-1.5 font-mono text-xs text-ink-muted">
         Stage: <kbd class="text-accent">t</kbd>ree · <kbd class="text-accent">g</kbd>raph · <kbd class="text-accent">s</kbd>ystem · <kbd class="text-accent">n</kbd>ode
@@ -132,7 +126,6 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly tableOpen = signal(false);
-  protected readonly exportOpen = signal(false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -345,10 +338,6 @@ export class WorkbenchPage implements OnDestroy {
     }
     if (this.tableOpen()) {
       this.tableOpen.set(false);
-      return;
-    }
-    if (this.exportOpen()) {
-      this.exportOpen.set(false);
       return;
     }
     if (this.nodePeek.nodeId()) {

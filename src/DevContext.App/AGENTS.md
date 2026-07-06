@@ -222,11 +222,14 @@ After `pnpm dev:web`, analyze the dogfood repo and verify:
 ### Current state
 | # | What | Status | Commit |
 |---|------|--------|--------|
-| M8.1a | /context route + rail entry (puzzle icon, `g c` shortcut) + Ctrl+E→/context redirect + 3-pane stub | DONE | `2a6e585` |
-| M8.1b | Scope picker | TODO | |
-| M8.1c | Composition view | TODO | |
-| M8.1d | Budget panel | TODO | |
-| M8.1e | Retire old panes (ExportDrawer + Inspector LLM section) | TODO | |
+| M8.1a | /context route + rail entry + Ctrl+E→/context redirect + 3-pane stub | DONE | `2a6e585` |
+| M8.1b | Scope picker | DONE | |
+| M8.1c | Composition view | DONE | |
+| M8.1d | Budget panel | DONE | |
+| M8.1e | Retire old panes (ExportDrawer + Inspector LLM section) | DONE | |
+| M8.2 | Composition model (cards/seeds/presets) | DONE | |
+| M8.3 | Budget/meter/intent/copy controls | TODO | |
+| M8.4 | Provenance + staleness + builder round-trip | TODO | |
 
 ### M8.1b — Scope picker
 - **File:** NEW `features/context-studio/scope-picker.ts`
@@ -319,9 +322,21 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ## M8 delivery (overwrite this block each session, no history)
 
-status: M8.1a delivered
-last commit: `feat(m8.1a): Context Studio route + rail entry + Ctrl+E redirect` (2a6e585)
-next: M8.1b — Scope picker (service/entry tree + omnibox + "I'm changing this endpoint" preset)
+status: M8.2 delivered (9 sub-tasks: expanded card types, RPC data wiring, preset, omnibox, drag-drop, global body toggle, trail seeds, format selector, intent ordering)
+delivered: context-studio/ (scope-picker.ts, composition-view.ts, budget-panel.ts, context-studio.ts) — all 4 files updated
+last: `pnpm check` green (lint 0/0, test 27/27, build 0w/0e)
+next: M8.3+M8.4 — Server-side token estimation (ContextPackBuilder round-trip), provenance chips per card (file:line from RPC response), stale banner (freshness probe), server-side live token meter
 gaps closed: 3 (prismjs), 4 (contrast), 5 (shared handler column), 6 (dead audit-table), 7 (dock cycle)
 gaps open: 1 (read_source RPC — engine+proto), 2 (layer/feature uplumb — engine+proto)
+trap: token estimation is still client-side v0 (lines × 2.5) — ContextPackBuilder round-trip and server-side meter gated for M8.4; lens-switcher layer/feature still available=false
+M8.2 detail:
+  - 9 card types: flow | signatures | bodies | di_wiring | config | entities | contracts | tests | identity
+  - getContext RPC wired: cards load real content from server, fall back to placeholder on error
+  - Preset "I'm changing this endpoint": flow + bodies + contracts + validators + tests
+  - Omnibox: dropdown search across all entries by title/route/target, kind-colored badges
+  - Drag-drop: grip handle → native HTML5 drag events, reorder via cardReorder output
+  - Global body toggle: "All bodies shown/hidden" button in budget panel, model-based two-way binding
+  - Trail seeds: "From current trail" button seeds flow cards from TrailStore steps
+  - Format selector: markdown/plain produces real different output (strips markdown in plain mode)
+  - Intent ordering: trace/explain/review reorders cards via INTENT_CARD_ORDER mapping + effect()
 
