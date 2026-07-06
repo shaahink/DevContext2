@@ -4,6 +4,40 @@
 
 ---
 
+## 2026-07-06 — Meridian M4 completion: impact + config + tests_for (M4 DONE, all 9/9 tools)
+
+**Changed:**
+- **Audit fixes (3 findings from previous session):**
+  - A1 **Compact flow file:line:** `BuildCompactFlow` now non-static, outputs `Rel(handle, node.Provenance)` provenance per step. Caller passes `handle`.
+  - A4 **idBudget no-op:** Removed dead `mode == "explain" ? budgetTokens : budgetTokens` assignment in `ContextPackBuilder.cs`.
+  - A5 **DI registrations for Member nodes:** `BuildDiRegistrations` now resolves Member nodes' parent types (last dot in key) for DI lookup.
+- **M4.4 impact transitive + diff-aware:**
+  - Proto: `ImpactRequest` extended with `direction` (up/down/both), `transitive`, `files` repeated; `ImpactResponse` extended with `direction`, `total_affected`; `ImpactResult` extended with `node_id`, `file_path`, `line_number`, `service`, `node_title`.
+  - Engine: `GraphQuery.Impact(NodeId, ImpactDirection, int)` — unified BFS over in/out/both edges. `GraphQuery.ImpactFromFiles(…)` — diff-aware mode: find graph nodes matching file paths, compute union impact closure. `ImpactResult` record replaces `BlastResult` for new API (backward compat kept).
+  - gRPC: `GetImpact` updated for direction + files mode routing. `ProtoMapper.ToImpactResponse` updated with new fields.
+  - MCP tool: `impact` accepts optional `nodeId`, `direction` (default "up"), `files` array. Results grouped by service.
+- **M4.7 config keys tool:**
+  - Proto: new `ConfigRequest`, `ConfigResponse`, `ConfigBinding` messages; new `rpc ConfigLookup`.
+  - Engine: Config scanning at query time — reads source files on disk, applies regex (from `ConfigDefaultsSource`) per line, returns matches with file:line, pattern type, service, optional node_id cross-reference.
+  - gRPC: `ConfigLookup` handler with `WrapAsyncT` (async file I/O). Uses compiled `ConfigKeyRegex`. Groups files by path from graph nodes.
+  - MCP tool: `config(handle, key?)` — returns key→binding sites grouped by key.
+- **M4.9 tests_for tool:**
+  - Proto: new `TestsForRequest`, `TestsForResponse`, `TestRef` messages; new `rpc FindTestsFor`.
+  - Engine: `GraphQuery.FindCallers(NodeId, int)` — BFS over IN-edges returns all caller nodes with distances.
+  - gRPC: `FindTestsFor` handler filters callers via `IsLikelyTestMethod()` heuristic (name suffixes `_Test`/`_Should`, file paths containing `/test/`, project names ending in `Tests`/`Test`/`Specs`).
+  - MCP tool: `tests_for(handle, nodeId, maxDepth)` — returns test methods with file:line, distance, project.
+- **Proto regeneration:** `pnpm gen:proto` ran, TS bindings regenerated.
+
+**Verified:**
+- `dotnet build DevContext.slnx` — 0w 0e
+- `dotnet test --filter Category!=Eval` — 429/0 (353+64+12, 3 skipped)
+- `pnpm check` — green (lint 0/0 · test 27/27 · build 0w/0e)
+- Dogfood out.md: 493 nodes · 316 edges · 34 entries · 6 ServiceLinks · 18 Handles · Style Microservices · Analyzed 3.1s (no regressions)
+
+**Next:** M5.1 — Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` §M5.
+
+---
+
 ## 2026-07-06 — Meridian M3 gap fixes + M4 feature delivery (M3 gaps RESOLVED, M4 6/9 DONE)
 
 **Changed:**

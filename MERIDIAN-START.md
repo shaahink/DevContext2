@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: 648e1d7 feat(m4): M3 gap fixes (7 items) + M4 tools (overview, resolve, flow, read_source, find, get_context v2)
-stage: M4 — IN PROGRESS (M4.1 overview, M4.2 resolve, M4.3 flow compact, M4.5 read_source full-member, M4.6 find paginated, M4.8 get_context v2 DONE)
+last: <pending commit> feat(m4): impact transitive+diff-aware + config keys + tests_for tools
+stage: M4 — DONE (M4.1 overview, M4.2 resolve, M4.3 flow, M4.4 impact, M4.5 read_source, M4.6 find, M4.7 config, M4.8 get_context v2, M4.9 tests_for)
 gate: run — dotnet build 0w, 429 tests green, pnpm check green
-dirty: M4.4 impact transitive+diff-aware, M4.7 config keys tool, M4.9 tests_for tool NOT YET DONE
-next: M4.4 impact transitive+diff-aware → M4.7 config → M4.9 tests_for (see proposal-meridian.md §M4)
-trap: overview tool calls 3 RPCs — ensure server running for MCP smoke test. Compact flow is text-based (not JSON tree).
+dirty: MCP QA harness timeout (server cold-start, pre-existing — eval/mcp-qa/run.js)
+next: M5.1 QA set → 5 repos + token ratchets (see proposal-meridian.md §M5)
+trap: compact flow now includes file:line provenance per step. Config tool scans files on disk — first call may be slow on large repos.
 
 ## Checkpoints
 
@@ -44,12 +44,12 @@ line under the row — never silent renumbering.
 | M4.1 | `overview` ≤600 tok | DONE | | out.md |
 | M4.2 | `resolve` with mandatory disambiguation | DONE | | out.md |
 | M4.3 | `flow` compact cross-service text (flagship) | DONE | | out.md |
-| M4.4 | `impact` transitive + diff-aware mode | TODO | | |
+| M4.4 | `impact` transitive + diff-aware mode | DONE | | out.md |
 | M4.5 | `read_source` full-member mode | DONE | | out.md |
 | M4.6 | `find` paginated; lambda-title leak fixed at source | DONE | | out.md |
-| M4.7 | `config` keys → binding/consumption sites | TODO | | |
+| M4.7 | `config` keys → binding/consumption sites | DONE | | out.md |
 | M4.8 | `get_context` v2 (real content, cross-service) | DONE | | out.md |
-| M4.9 | `tests_for` best-effort | TODO | | |
+| M4.9 | `tests_for` best-effort | DONE | | out.md |
 | M5.1 | QA set → 5 repos + token ratchets | TODO | | |
 | M5.2 | Real agent transcript (checkout question) committed | TODO | | |
 | M5.3 | CI wiring (McpQa category + bench smoke) | TODO | | |
