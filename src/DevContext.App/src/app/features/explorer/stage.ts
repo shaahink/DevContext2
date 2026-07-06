@@ -127,12 +127,13 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
       @switch (altitude()) {
         @case ('system') {
           @if (topology().length > 0) {
-            <app-graph-canvas
-              class="block h-full"
-              [data]="{ mode: 'topology', projects: topology() }"
-              [zenMode]="zenMode()"
-              (nodeSelected)="onProjectTap($event)"
-            />
+              <app-graph-canvas
+                class="block h-full"
+                [data]="{ mode: 'topology', projects: topology() }"
+                [highlightedNodeId]="highlightedNodeId()"
+                [zenMode]="zenMode()"
+                (nodeSelected)="onProjectTap($event)"
+              />
           } @else {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
               Analyze a repo to see its project topology.
@@ -155,6 +156,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
+                [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
                 (nodeSelected)="onFlowTap($event)"
                 (nodeActivated)="retrace.emit($event)"
@@ -180,6 +182,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
+                [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
                 (nodeSelected)="onNodeTap($event)"
                 (nodeActivated)="retrace.emit($event)"
@@ -272,6 +275,9 @@ export class Stage {
     { id: 'flow', label: 'Flow', hint: 'Current trace (v t / v g)' },
     { id: 'node', label: 'Node', hint: 'Selected node neighborhood (v n)' },
   ];
+
+  /** M7.1: Highlight the selected node in graph views with an accent ring. */
+  protected readonly highlightedNodeId = computed(() => this.trace.selectedNodeId());
 
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
 

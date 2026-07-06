@@ -33,10 +33,12 @@
     "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-opener": "^2.5.4",
+    "@types/prismjs": "^1.26.6",
     "cytoscape": "^3.34.0",
     "cytoscape-dagre": "^4.0.0",
     "cytoscape-fcose": "^2.2.0",
     "lucide": "^1.22.0",
+    "prismjs": "^1.30.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -11,7 +11,7 @@ import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
 import { formatCompact } from '../../core/format';
 
-type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
+type SectionId = 'details' | 'code' | 'callstack' | 'insights' | 'llm' | 'trail';
 
 const RENDER_DEBOUNCE_MS = 250;
 
@@ -74,6 +74,59 @@ const RENDER_DEBOUNCE_MS = 250;
       } @else {
         <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
           Select an entry, node, or insight to inspect.
+        </p>
+      }
+    }
+
+    <!-- Code (M7.1) — file path + line, reveal/copy actions. Opens source when available. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('code')">
+      <span class="text-2xs">{{ open('code') ? '▾' : '▸' }}</span> Code
+      @if (trace.nodeDetail()?.filePath; as fp) {
+        <span class="ml-1 min-w-0 truncate font-mono text-2xs text-ink-subtle">{{ basename(fp) }}</span>
+      }
+    </button>
+    @if (open('code')) {
+      @if (trace.nodeDetail(); as node) {
+        @if (node.filePath) {
+          <div class="space-y-1.5 border-b border-line px-2 py-2">
+            <p class="break-all font-mono text-xs text-accent" [title]="node.filePath">
+              {{ node.filePath }}
+              @if (node.lineNumber) {<span class="tabular-nums text-ink-subtle">:{{ node.lineNumber }}</span>}
+            </p>
+            <div class="flex flex-wrap gap-1">
+              <button type="button" class="chip" [class.active]="codePathCopied()" (click)="copyFilePath(node.filePath)">
+                {{ codePathCopied() ? 'copied' : 'copy path' }}
+              </button>
+              @if (isTauriEnv) {
+                <button type="button" class="chip" (click)="revealInExplorer(node.filePath)">
+                  reveal in explorer
+                </button>
+              }
+              <button type="button" class="chip" (click)="loadCode(node)">
+                {{ codeLoading() ? 'loading…' : 'load source' }}
+              </button>
+            </div>
+            @if (codeContent()) {
+              <pre class="max-h-80 overflow-y-auto whitespace-pre border border-line bg-base p-2 font-mono text-2xs leading-relaxed text-ink"><code>{{ codeContent() }}</code></pre>
+            } @else if (codeLoading()) {
+              <div class="space-y-1 py-2">
+                <app-skeleton />
+                <app-skeleton width="80%" />
+                <app-skeleton width="60%" />
+                <app-skeleton width="90%" />
+              </div>
+            } @else if (codeError(); as err) {
+              <p class="text-2xs text-ink-muted">{{ err }}</p>
+            }
+          </div>
+        } @else {
+          <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
+            No source file path for this node.
+          </p>
+        }
+      } @else {
+        <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
+          Select a node to view its source location.
         </p>
       }
     }
@@ -194,6 +247,13 @@ export class Inspector {
   protected readonly renderLoading = signal(false);
   protected readonly renderError = signal<string | null>(null);
 
+  /** Code tab (M7.1) — source content loaded via render RPC with full-membership body detail. */
+  protected readonly codeContent = signal('');
+  protected readonly codeLoading = signal(false);
+  protected readonly codeError = signal<string | null>(null);
+  protected readonly codePathCopied = signal(false);
+  private codeNodeId: string | null = null;
+
   private renderTimer: ReturnType<typeof setTimeout> | null = null;
   private renderedFocus: string | null = null;
 
@@ -214,6 +274,25 @@ export class Inspector {
       const handle = this.session.handle();
       if (!handle) return;
       this.debouncedRender(handle, focus);
+    });
+
+    // M7.1: Auto-open Code tab and clear stale content when a node is selected.
+    effect(() => {
+      const node = this.trace.nodeDetail();
+      if (node?.filePath) {
+        this.collapsed.update((set) => {
+          if (!set.has('code')) return set;
+          const next = new Set(set);
+          next.delete('code');
+          return next;
+        });
+        // Clear stale code content when node changes
+        if (node.id !== this.codeNodeId) {
+          this.codeContent.set('');
+          this.codeError.set(null);
+          this.codeNodeId = node.id;
+        }
+      }
     });
   }
 
@@ -253,6 +332,48 @@ export class Inspector {
     void import('@tauri-apps/plugin-opener')
       .then(({ revealItemInDir }) => revealItemInDir(filePath))
       .catch(() => this.toast.show('Could not reveal file — it may not exist on this machine.', 'error'));
+  }
+
+  /** M7.1: Copy file path to clipboard with visual feedback. */
+  protected copyFilePath(filePath: string | undefined): void {
+    if (!filePath) return;
+    void copyToClipboard(filePath).then(() => {
+      this.codePathCopied.set(true);
+      setTimeout(() => this.codePathCopied.set(false), 2000);
+    });
+  }
+
+  /** M7.1: Load source code for the selected node via the render RPC with full detail. */
+  protected loadCode(node: { id: string; title: string; filePath?: string }): void {
+    const handle = this.session.handle();
+    if (!handle) return;
+    this.codeLoading.set(true);
+    this.codeError.set(null);
+    this.codeContent.set('');
+
+    // Use render RPC with focus on this specific node and "raw" format
+    // to get member-body-level detail (file:line provenance will be in the result).
+    this.api
+      .render(handle, {
+        focus: node.id,
+        depth: 0,
+        detail: 'full',
+        format: 'markdown',
+        sections: ['members'],
+      })
+      .then((res) => {
+        this.codeContent.set(res.content);
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : 'Failed to load source';
+        this.codeError.set(msg);
+      })
+      .finally(() => this.codeLoading.set(false));
+  }
+
+  /** M7.1: Extract base filename from a full path. */
+  protected basename(path: string): string {
+    return path.replace(/^.*[/\\]/, '');
   }
 
   protected fmtK(n: number): string {

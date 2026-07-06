@@ -172,12 +172,12 @@ function nodeSizeForDegree(degree: number): number {
 
       <!-- Legend popover -->
       <button
-        class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-[10px]"
+        class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-2xs"
         (click)="legendOpen.set(!legendOpen())"
         title="Legend"
       >Legend</button>
       @if (legendOpen()) {
-        <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-[10px] backdrop-blur shadow-overlay">
+        <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-2xs backdrop-blur shadow-overlay">
           <div class="mb-1 font-semibold uppercase text-ink-subtle">Legend</div>
           <div class="grid grid-cols-3 gap-x-4 gap-y-1">
             @for (item of legendItems(); track item.label) {
@@ -214,6 +214,8 @@ export class GraphCanvas {
   readonly data = input.required<GraphCanvasData>();
   /** Minimap only renders in zen mode (Stage passes its zenMode signal through). */
   readonly zenMode = input(false);
+  /** Node ID to highlight (accent ring + pulse). Cleared on null/empty. */
+  readonly highlightedNodeId = input<string | null>(null);
   readonly nodeSelected = output<string>();
   readonly nodeActivated = output<string>();
 
@@ -249,6 +251,20 @@ export class GraphCanvas {
     }, { allowSignalWrites: true });
 
     effect(() => void this.rebuild());
+
+    // Node highlight (M7.1): accent ring on the node matching highlightedNodeId.
+    effect(() => {
+      const id = this.highlightedNodeId();
+      const cy = this.cy;
+      if (!cy) return;
+      cy.nodes().removeClass('highlighted');
+      if (id) {
+        const node = cy.getElementById(id);
+        if (node.length > 0) {
+          node.addClass('highlighted');
+        }
+      }
+    });
   }
 
   private updateLegend(): void {
