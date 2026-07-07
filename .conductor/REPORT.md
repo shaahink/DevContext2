@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 19:55 UTC · branch `feat/loom-l1` · HEAD `de6d355`_
+_Updated 2026-07-07 20:10 UTC · branch `feat/loom-l1` · HEAD `99f18fc`_
 
 **Status:** Idle
 **Stage:** L1 — Identity spine · attempts used 0
-**Checkpoints:** 8/35 done · **Sessions run:** 5 · **Cost:** $0.1696 · **Tokens:** 162,914 in / 37,524 out / 19,108 think
+**Checkpoints:** 8/35 done · **Sessions run:** 6 · **Cost:** $0.2180 · **Tokens:** 218,017 in / 47,544 out / 28,202 think
 **Confirmed phases:** L0
-**Pending:** auto-fix audit for L1
+**Pending:** full-battery phase gate for L1
 
 ## Stage progress
 
@@ -31,6 +31,7 @@ _Updated 2026-07-07 19:55 UTC · branch `feat/loom-l1` · HEAD `de6d355`_
 | 3 | L0 | Deliver |  | 07-07 17:00 | 0:36 | GatesRed | L0.2 L0.3 | 4 | build:OK · tests:FAIL |  |  |
 | 4 | L0 | Audit | 1 | 07-07 18:24 | 0:31 | Progress |  | 2 |  | $0.0535 | 58,007/12,076 |
 | 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
+| 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
 
 ### Commits by session
 
@@ -54,10 +55,14 @@ _Updated 2026-07-07 19:55 UTC · branch `feat/loom-l1` · HEAD `de6d355`_
   - c9dfe23 docs(l1): update LOOM-START.md — L1 checkpoints DONE, handoff for L2
   - fa4e415 feat(l1): identity spine — SymbolTable, Service nodes, de-static _eventPublishers, guards, impact/scope data fix
   - 56bec1d chore(l0): fresh mcp-qa token counts from L0 s4 gate re-run
+- **s6 (L1 Audit)** — 2 commit(s):
+  - 99f18fc docs(l1-audit): honest phase handover (.conductor/handovers/L1.md)
+  - d487e65 fix(l1-audit): GetNamespace fallback + _byProject comparer + null guard + 16 new tests
 
 ## Phase handovers (audit)
 
 - `.conductor/handovers/L0.md`
+- `.conductor/handovers/L1.md`
 
 ## Last gate run
 
@@ -65,7 +70,7 @@ build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: L1 identity spine delivered in full — L1.1 (SymbolTable + 9 fixture tests incl. RazorPages scenario), L1.2 (Service/Message/Store NodeKinds, ServiceBoundaryInference, Project stamped on every Type node), L1.3 (_eventPublishers de-static'd, ServiceLink edges use NodeKind.Service), L1.4 (loom-guards.ps1 green, 0 banned patterns, 13 advisory tracked for L2), L1.5 (EntryPoint.Project stamped in all 11 builders, fixing "(unknown)" impact and "Default" scope data paths). All gates green: build 0w/0e, Core 364P/3S, Server 12P, Desktop 64P. Branch `feat/loom-l1` pushed. Next session: L2 BodyFacts + seam detectors on branch `feat/loom-l2` off fa4e415.
+> SESSION-RESULT: L1 identity spine audit — **PASS with no HUMAN block.** Found and fixed 4 defects (ratchet-only, no gate weakening): `GetNamespace` returning FQN instead of namespace, `_byProject` missing explicit `StringComparer.Ordinal`, null `types` NRE in SymbolTable constructor, and 16 missing tests across `SymbolTable` (7 new) + `ServiceBoundaryInference` (9 new). Gates: build 0w/0e, Core 380P/3S (+16), Server 12P, Desktop 64P, pnpm 27/27, guards PASS. Two commits pushed to `feat/loom-l1`. Honest handover at `.conductor/handovers/L1.md` — L1 is genuinely solid with 5 noted weak spots (dead `RefSite.FromType`, SymbolKind.Type hardcoding, no member indexing, file I/O in inference, no mul…
 
 ## Tracker handoff
 
