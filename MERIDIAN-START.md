@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m8.3+m8.4): Server-side token estimation + provenance chips — getContext RPC returns real token counts stored on cards, budget slider drives RPC budgetTokens param, per-card provenance file:line chips, per-section token breakdown, server vs heuristic visual distinction
-stage: M8.3+M8.4 — DONE (server token meter, provenance chips, budget-to-RPC wiring, section token breakdown)
-gate: pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+last: M9.3 — HANDOVER-MERIDIAN.md + PROGRESS-LOG + tracker close. Full bench 22/22 green (PowerToys 5141n, MassTransit 24819n). AUDIT.md written. Phase closed.
+stage: M9 — DONE (full bench, AUDIT.md, HANDOVER-MERIDIAN.md, tracker closed)
+gate: dotnet build 0w 0e, dotnet test green, pnpm check green (lint 0/0, test 27/27, build 0w/0e), bench 22/22 repos pass
 dirty: none
-next: M9 — Full bench, AUDIT.md, HANDOVER-MERIDIAN.md close-out (or engine gaps 1-2: read_source RPC + layer/feature uplumb)
-trap: buildContext() is still client-side string assembly (v0) — true ContextPackBuilder round-trip needs a new RPC; stale banner gated on freshness probe RPC; lens-switcher layer/feature still available=false (needs engine+proto)
+next: Engine Gaps 1-2 (read_source RPC → layer/feature uplumb). Plan in src/DevContext.App/AGENTS.md:133-189.
+trap: buildContext() still client-side v0; stale banner needs freshness probe RPC; proto regeneration can be finicky (need correct protoc/plugin versions)
 
 ## Checkpoints
 
@@ -66,9 +66,9 @@ line under the row — never silent renumbering.
 | M8.2 | Composition model (cards/seeds/presets) | DONE | 2781d56 | 9 card types, getContext wired, preset, omnibox, drag-drop, trail seeds, format/intent |
 | M8.3 | Budget/meter/server-token wiring | DONE | 08f4340 | budget-panel.ts (model-based budget, serverTokens), context-studio.ts (budget→RPC, sectionTokens) |
 | M8.4 | Provenance chips + per-section tokens | DONE | 08f4340 | composition-view.ts (provenance chips, server token badge, section breakdown), context-studio.ts (provenance from entries) |
-| M9.1 | Full bench incl. PowerToys + MassTransit | TODO | | |
-| M9.2 | AUDIT.md with fresh-artifact verdicts only | TODO | | |
-| M9.3 | HANDOVER-MERIDIAN.md + memory + tracker close | TODO | | |
+| M9.1 | Full bench incl. PowerToys + MassTransit | DONE | (m9.1) | eval-results/2026-07-07/ (22/22 reports, 0 stubs) |
+| M9.2 | AUDIT.md with fresh-artifact verdicts only | DONE | (m9.2) | eval-results/2026-07-07/AUDIT.md |
+| M9.3 | HANDOVER-MERIDIAN.md + memory + tracker close | DONE | (m9.3) | docs/dev/HANDOVER-MERIDIAN.md |
 
 ## Quick commands
 

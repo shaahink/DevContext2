@@ -1945,3 +1945,102 @@ ead_source(handle, node_id)\ MCP tool � file:line anchored read (20-line windo
 
 **Next:** M8.2 Composition model (cards/seeds/presets — make cards carry real context data from RPC).
 **Trap:** Token estimation is client-side v0 heuristic; server-side round-trip through ContextPackBuilder gated for M8.4; lens-switcher layer/feature still available=false.
+
+---
+
+## 2026-07-06 — M8.2 Composition model: cards, seeds, presets (DONE)
+
+**M8.2a Card types (9):**
+- Flow skeleton, member signatures, member bodies, DI wiring, config keys, entities/contracts,
+  tests-for, repo identity, custom
+- Each card: type badge (colored per kind), title, provenance chips, body toggle, drag handle,
+  × remove
+- Drag-drop reorder (custom implementation — lightweight, no CDK dependency)
+
+**M8.2b Scope seeds:**
+- Entry/flow seeds from scope picker tree
+- Type seeds from omnibox search
+- Service seeds (all entries in a service)
+- Insight seeds (action targets from insight cards)
+- Trail seeds (entries in current trail)
+- "I'm changing this endpoint" preset → 5 cards: flow + members + contracts + validators + tests
+
+**M8.2c getContext RPC wiring:**
+- `loadCardContent()` calls `api.getContext()` with focus on card's seed entries
+- Server-side `ContextPackBuilder` assembles content per card type
+- Card stores `serverTokens` and `sectionTokens` from RPC response
+
+**M8.2d Omnibox integration:**
+- Omnibox supports "Add to context" mode when Context Studio is active
+- Search results include "Add to context" action button
+- Type-ahead with kind icons and service grouping
+
+**Verified:** `pnpm check` green. All 9 card types render. Drag-drop works. getContext RPC returns
+real content for dogfood entries.
+
+---
+
+## 2026-07-06 — M8.3 Budget/meter/server-token wiring + M8.4 Provenance chips (DONE)
+
+**M8.3a Budget → RPC wiring:**
+- `budget-panel.ts` budget slider (1k–16k) drives `budgetTokens` param on getContext RPC
+- `context-studio.ts` passes budget to `loadCardContent()` which passes it to `api.getContext()`
+- Server uses budget to trim content (section-level granularity)
+
+**M8.3b Server vs heuristic token distinction:**
+- Cards show `serverTokens` (from RPC) without `~` prefix (green)
+- Cards without server tokens show ~heuristic (amber)
+- `totalTokens` computed: prefers serverTokens, falls back to `lines × 2.5`
+- Per-section token breakdown from server response
+
+**M8.3c Budget panel enhancements:**
+- Per-card bar meter with actual token values
+- Total bar: green ≤ budget, red > budget
+- Over-budget cards highlighted in warn color
+
+**M8.4a Provenance chips:**
+- Each card renders file:line provenance chips below the type badge
+- Provenance extracted from getContext RPC entries
+- Chips link back to Explore node selection where resolvable
+
+**M8.4b Per-section token display:**
+- Section breakdown visible in card expand
+- Each section shows its own token count from server
+- Total token display in card header
+
+**Verified:** `pnpm check` green (lint 0/0, test 27/27, build 0w/0e). Server token counts
+appear without ~ prefix for cards loaded via getContext. Budget slider changes flow to RPC
+budgetTokens param. Provenance chips render with file:line for dogfood entries.
+
+---
+
+## 2026-07-07 — M9 Close-out: Full bench, AUDIT.md, HANDOVER-MERIDIAN.md (DONE)
+
+**M9.1 — Full bench (22/22 repos):**
+- Ran `scripts/bench.ps1` across all 22 repos in `eval-repos.json`
+- 19/22 passed on first run; 3 clone failures (gRPC, MassTransit, MassTransit-Sample) — network
+  issues, manually re-cloned and re-analyzed
+- All 22 reports content-asserted (Stats + TopFlows present, zero stubs)
+- PowerToys (5,141 nodes, 2,878 edges, 30.0s) — Lighthouse-deferred, now verified
+- MassTransit (24,819 nodes, 2,929 edges, 46.4s) — largest framework analyzed, verified
+- Results in `eval-results/2026-07-07/`
+
+**M9.2 — AUDIT.md:**
+- Wrote `eval-results/2026-07-07/AUDIT.md`
+- Scored all W-findings (E1-E9) — 8/9 FIXED, 1/9 IMPROVED (re-verified post-Meridian)
+- Scored every M-stage gate (M0-M8) with fresh evidence
+- Per-repo bench summary table (22 repos)
+- Known gaps catalog (Gap 1, Gap 2, Trap A, Trap B)
+- All verdicts cite artifact paths, not code existence
+
+**M9.3 — HANDOVER-MERIDIAN.md + tracker close:**
+- Wrote `docs/dev/HANDOVER-MERIDIAN.md` (10 sections, Lighthouse handover style)
+- Updated `MERIDIAN-START.md` — closed tracker rows M9.1-M9.3, updated handoff block
+- Appended this entry to `docs/dev/go-to-program/PROGRESS-LOG.md`
+
+**Verified:** `dotnet build` 0w 0e, `dotnet test --filter Category!=Eval` green,
+`dotnet test --filter Category=McpQa` green (2 tests), `pnpm check` green (lint 0/0, test 27/27,
+build 0w/0e).
+
+**Next:** Engine Gaps 1-2 (read_source RPC + layer/feature uplumb). See
+`src/DevContext.App/AGENTS.md:133-189` for the detailed plan.
