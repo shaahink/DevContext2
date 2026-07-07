@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 21:50 UTC · branch `feat/loom-l2` · HEAD `e57f95a`_
+_Updated 2026-07-07 22:00 UTC · branch `feat/loom-l2` · HEAD `267dec8`_
 
 **Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
@@ -9,24 +9,24 @@ _Updated 2026-07-07 21:50 UTC · branch `feat/loom-l2` · HEAD `e57f95a`_
 
 ## Latest activity (live)
 
-_Session #9 (Deliver) · running 20m · last output 145s ago · $0.0745_
+_Session #9 (Deliver) · running 30m · last output 48s ago · $0.0918_
 
 **Thinking:**
-> Now let me also need to add the `using` for the `ImmutableHashSet` and `SeamContext` etc. Let me try building again.
-> The DevContext.Server process is holding DLLs locked. I need to kill it before building. Let me do that.
-> Build succeeded. 0 warnings, 0 errors. Now let me: 1. Run the tests to make sure I haven't broken anything 2. Then proceed with the cleanup (delete old body-regex methods, fix HttpEntryPointBuilder, MapBuilder, etc.)  But first, let me update the pipeline to pass bodyFacts so the new code actually d…
+> Stale build. Let me rebuild and retest.
+> All 13 PatternZoo tests pass now. Let me now run the full test suite to see how many failures remain.
+> Down from 19 failures to 7. Let me check what the remaining 7 failures are.
 
 **Recent actions:**
-- `22:46:53` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:46:53` · Now let me add the `AddSeamsFromDetectors` method. I'll insert it right before `AddDataEdges`:
-- `22:46:59` · Let me try building to check for compilation issues before proceeding with deletions:
-- `22:47:11` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 40
-- `22:47:18` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:47:18` · Need to add the missing using directive:
-- `22:47:49` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 25
-- `22:48:02` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; Start-Sleep -Seconds 2; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Obj…
-- `22:48:11` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
-- `22:48:11` · Build succeeded. Let me run the tests and then proceed with the remaining L2.3 tasks:
+- `22:55:28` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 5
+- `22:55:36` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" --no-build 2>&1 | Select-Object -Last 30
+- `22:55:41` » read tests\DevContext.Core.Tests\PatternZooTests.cs
+- `22:55:59` » edit tests\DevContext.Core.Tests\PatternZooTests.cs
+- `22:55:59` · The test uses a preprocessor directive. The syntax tree-based extractor respects preprocessor symbols, unlike the old regex scanner. Let me fix the test by defi…
+- `22:56:06` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" --no-build 2>&1 | Select-Object -Last 10
+- `22:56:28` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --no-restore 2>&1 | Select-Object -Last 5
+- `22:56:36` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" 2>&1 | Select-Object -Last 10
+- `22:56:41` · All 13 PatternZoo tests pass. Let me run the full test suite:
+- `22:59:45` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 15
 
 ## Stage progress
 
