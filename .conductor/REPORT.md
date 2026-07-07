@@ -1,18 +1,19 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 19:02 UTC · branch `feat/meridian-m0` · HEAD `1b6fa21`_
+_Updated 2026-07-07 19:48 UTC · branch `feat/loom-l1` · HEAD `5b582f0`_
 
 **Status:** Idle
-**Stage:** L0 — Truth harness · attempts used 0
-**Checkpoints:** 3/35 done · **Sessions run:** 4 · **Cost:** $0.0535 · **Tokens:** 58,007 in / 12,076 out / 7,165 think
+**Stage:** L1 — Identity spine · attempts used 0
+**Checkpoints:** 8/35 done · **Sessions run:** 5 · **Cost:** $0.1696 · **Tokens:** 162,914 in / 37,524 out / 19,108 think
 **Confirmed phases:** L0
+**Pending:** full-battery phase gate for L1
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
 | L0 | Truth harness | 3/3 | confirmed ✓ |
-| L1 | Identity spine | 0/5 | todo |
+| L1 | Identity spine | 5/5 | gating… |
 | L2 | BodyFacts + seam detectors | 0/4 | todo |
 | L3 | Semantic-lite tier | 0/3 | todo |
 | L4 | Flows + projections | 0/4 | todo |
@@ -29,6 +30,7 @@ _Updated 2026-07-07 19:02 UTC · branch `feat/meridian-m0` · HEAD `1b6fa21`_
 | 2 | L0 | Fix |  | 07-07 16:44 | 0:08 | Progress |  | 1 | build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:- |  |  |
 | 3 | L0 | Deliver |  | 07-07 17:00 | 0:36 | GatesRed | L0.2 L0.3 | 4 | build:OK · tests:FAIL |  |  |
 | 4 | L0 | Audit | 1 | 07-07 18:24 | 0:31 | Progress |  | 2 |  | $0.0535 | 58,007/12,076 |
+| 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 
 ### Commits by session
 
@@ -47,6 +49,11 @@ _Updated 2026-07-07 19:02 UTC · branch `feat/meridian-m0` · HEAD `1b6fa21`_
 - **s4 (L0 Audit)** — 2 commit(s):
   - 829dcac docs(l0): honest phase handover (.conductor/handovers/L0.md)
   - 88783c5 fix(l0-audit): honest skips + surface dropped cold-QA rank signal + robustness
+- **s5 (L1 Deliver)** — 4 commit(s):
+  - 5b582f0 docs(l1): append PROGRESS-LOG — L1 delivery session #5
+  - c9dfe23 docs(l1): update LOOM-START.md — L1 checkpoints DONE, handoff for L2
+  - fa4e415 feat(l1): identity spine — SymbolTable, Service nodes, de-static _eventPublishers, guards, impact/scope data fix
+  - 56bec1d chore(l0): fresh mcp-qa token counts from L0 s4 gate re-run
 
 ## Phase handovers (audit)
 
@@ -54,22 +61,20 @@ _Updated 2026-07-07 19:02 UTC · branch `feat/meridian-m0` · HEAD `1b6fa21`_
 
 ## Last gate run
 
-build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:-
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L0 (Truth harness) audit — **PASS with one process-level caveat, no HUMAN block needed.** The phase is genuine, not green-washed: the truth tests really analyze dogfood + CleanArchitecture + TodoApi against source (not DevContext's own output), the red ratchet is correctly wired with owner stages, the 0/12 cold-agent baseline reproduces and its classifier is sound, and the UI drive gate honestly records 1/4 pass + 3 owner-tagged reds. I found and fixed four defects (commit `88783c5`, ratchet-only): a real green-wash where `DntSite_baseline_presence_ok` passed in <1ms with the fixture absent (now `[SkippableFact]`+`Skip.IfNot` → honest SKIP; 3P/5S), a cold-QA rank-quality sign…
+> SESSION-RESULT: L1 identity spine delivered in full — L1.1 (SymbolTable + 9 fixture tests incl. RazorPages scenario), L1.2 (Service/Message/Store NodeKinds, ServiceBoundaryInference, Project stamped on every Type node), L1.3 (_eventPublishers de-static'd, ServiceLink edges use NodeKind.Service), L1.4 (loom-guards.ps1 green, 0 banned patterns, 13 advisory tracked for L2), L1.5 (EntryPoint.Project stamped in all 11 builders, fixing "(unknown)" impact and "Default" scope data paths). All gates green: build 0w/0e, Core 364P/3S, Server 12P, Desktop 64P. Branch `feat/loom-l1` pushed. Next session: L2 BodyFacts + seam detectors on branch `feat/loom-l2` off fa4e415.
 
 ## Tracker handoff
 
 ```
-last: L0 session #3 — QA'd s2 (L0.1 genuine; ratcheted 2 green-washing vectors in truth tests, tightened
-      only). Delivered L0.2 (cold-agent harness, 0/12 baseline) + L0.3 (UI drive gate, 1/4 pass, 3 red w/owners).
-stage: **L0 COMPLETE** (L0.1 ✅ L0.2 ✅ L0.3 ✅). Truth harness live; all red items enumerated with owner stage.
-gate: dotnet build 0w/0e · tests (Core 355P/3S, Server 12P, Desktop 64P) · pnpm 27/27 · MCP QA 8/8 · truth 4P/4S
-QA verdict s2: L0.1 DONE & real; checkout truth ratcheted ≥2→≥5+cross-service, service-libs negative encoded.
-next: **start L1 (identity spine)** — new branch feat/loom-l1 off here. L1.1 SymbolId/SymbolRef/tiers/SymbolTable.
-trap: kill DevContext.Server before build (DLL lock — bit me again, a stray server was on :5179); a healthy
-      server may linger from prior sessions/conductor; do NOT write truth files from DevContext output.
-evidence: eval-results/2026-07-07/{gate-battery-l0-s3.txt, mcp-cold-qa.md, ui/ui-gate.md}. UI D-preset already green (M8).
+last: L1 session #5 — QA'd L0 (L0.1-0.3 genuine, no green-washing). Delivered full L1 identity spine.
+stage: **L1 COMPLETE** (L1.1 ✅ L1.2 ✅ L1.3 ✅ L1.4 ✅ L1.5 ✅). SymbolTable + 9 tests; Service nodes in Graph;
+      _eventPublishers de-static'd; guards green; Project stamped on all Type nodes + 11 EntryPoint builders.
+gate: dotnet build 0w/0e · Core 364P/3S · Server 12P · Desktop 64P · guards PASS · SymbolTable 9/9
+next: **L2 (BodyFacts + seam detectors)** — new branch feat/loom-l2 off here. Start L2.1 facts-v1 cache.
+trap: kill DevContext.Server before build (DLL lock); working tree must be clean before branch.
+evidence: eval-results/2026-07-07/gate-battery-l1-s5.txt; loom-guards.ps1 green.
 ```
