@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 21:40 UTC · branch `feat/loom-l2` · HEAD `24e4290`_
+_Updated 2026-07-07 21:50 UTC · branch `feat/loom-l2` · HEAD `e57f95a`_
 
 **Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
@@ -9,24 +9,24 @@ _Updated 2026-07-07 21:40 UTC · branch `feat/loom-l2` · HEAD `24e4290`_
 
 ## Latest activity (live)
 
-_Session #9 (Deliver) · running 10m · last output 22s ago · $0.0300_
+_Session #9 (Deliver) · running 20m · last output 145s ago · $0.0745_
 
 **Thinking:**
-> Now let me read the rest of GraphBuilder.cs to understand all the methods I need to keep vs delete. Let me also read the key seam detectors to understand how they work, and the pipeline that calls GraphBuilder.
-> Now I need to understand more of the pipeline. Let me read the DiscoveryPipeline.cs (specifically around line 146), the GraphBuilder calls to AddSends/AddRaises/AddDataEdges, and understand the full picture of what I need to do.  Key observations so far: 1. GraphBuilder is 2461 lines at `src/DevCont…
-> Now let me look at the remaining sections: StripStringLiterals, BuildAllMethodSpans, EstimateProvenance, and the variable resolution methods. Let me also look at how the BodyFacts flow through the pipeline (how they get from the extractor to the graph).
+> Now let me also need to add the `using` for the `ImmutableHashSet` and `SeamContext` etc. Let me try building again.
+> The DevContext.Server process is holding DLLs locked. I need to kill it before building. Let me do that.
+> Build succeeded. 0 warnings, 0 errors. Now let me: 1. Run the tests to make sure I haven't broken anything 2. Then proceed with the cleanup (delete old body-regex methods, fix HttpEntryPointBuilder, MapBuilder, etc.)  But first, let me update the pipeline to pass bodyFacts so the new code actually d…
 
 **Recent actions:**
-- `22:39:59` » read src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
-- `22:40:00` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:40:00` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:40:01` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:40:08` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `22:40:09` » grep AllBodyFacts|BodyFactsExtractor|Graph2\.Seams
-- `22:40:10` » read src\DevContext.Core\Graph2\Seams\IntegrationEventCreationDetector.cs
-- `22:40:10` » read src\DevContext.Core\Graph2\Seams\DomainEventRaiseDetector.cs
-- `22:40:11` » read src\DevContext.Core\Graph2\Seams\EntityTouchDetector.cs
-- `22:40:11` » read src\DevContext.Core\Graph2\Seams\DispatchClassifier.cs
+- `22:46:53` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:46:53` · Now let me add the `AddSeamsFromDetectors` method. I'll insert it right before `AddDataEdges`:
+- `22:46:59` · Let me try building to check for compilation issues before proceeding with deletions:
+- `22:47:11` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 40
+- `22:47:18` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:47:18` · Need to add the missing using directive:
+- `22:47:49` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 25
+- `22:48:02` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; Start-Sleep -Seconds 2; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Obj…
+- `22:48:11` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
+- `22:48:11` · Build succeeded. Let me run the tests and then proceed with the remaining L2.3 tasks:
 
 ## Stage progress
 
