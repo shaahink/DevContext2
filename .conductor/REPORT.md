@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 20:17 UTC · branch `feat/loom-l1` · HEAD `fac94f7`_
+_Updated 2026-07-07 20:49 UTC · branch `feat/loom-l2` · HEAD `8c3b7c0`_
 
-**Status:** Idle
-**Stage:** L1 — Identity spine · attempts used 0
-**Checkpoints:** 8/35 done · **Sessions run:** 6 · **Cost:** $0.2180 · **Tokens:** 218,017 in / 47,544 out / 28,202 think
+**Status:** Paused
+**Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.1
+**Checkpoints:** 8/35 done · **Sessions run:** 7 · **Cost:** $0.2645 · **Tokens:** 220,274 in / 70,208 out / 37,973 think
 **Confirmed phases:** L0, L1
 
 ## Stage progress
@@ -13,7 +13,7 @@ _Updated 2026-07-07 20:17 UTC · branch `feat/loom-l1` · HEAD `fac94f7`_
 |---|---|---|---|
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
-| L2 | BodyFacts + seam detectors | 0/4 | todo |
+| L2 | BodyFacts + seam detectors | 0/4 | **← active** |
 | L3 | Semantic-lite tier | 0/3 | todo |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
@@ -31,6 +31,7 @@ _Updated 2026-07-07 20:17 UTC · branch `feat/loom-l1` · HEAD `fac94f7`_
 | 4 | L0 | Audit | 1 | 07-07 18:24 | 0:31 | Progress |  | 2 |  | $0.0535 | 58,007/12,076 |
 | 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
+| 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
 
 ### Commits by session
 
@@ -69,7 +70,15 @@ build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
-> SESSION-RESULT: L1 identity spine audit — **PASS with no HUMAN block.** Found and fixed 4 defects (ratchet-only, no gate weakening): `GetNamespace` returning FQN instead of namespace, `_byProject` missing explicit `StringComparer.Ordinal`, null `types` NRE in SymbolTable constructor, and 16 missing tests across `SymbolTable` (7 new) + `ServiceBoundaryInference` (9 new). Gates: build 0w/0e, Core 380P/3S (+16), Server 12P, Desktop 64P, pnpm 27/27, guards PASS. Two commits pushed to `feat/loom-l1`. Honest handover at `.conductor/handovers/L1.md` — L1 is genuinely solid with 5 noted weak spots (dead `RefSite.FromType`, SymbolKind.Type hardcoding, no member indexing, file I/O in inference, no mul…
+> I'll start with the pre-session ritual. Let me read the key documents.
+> Now the mandatory design doc and the audit that L2 fixes. Let me read them plus check git state.
+> Let me examine the dirty working tree and read the audit that L2 fixes.
+> I have full context now. Let me set up a task list and begin the pre-session gate battery.
+> Restoring the artifact drift to get a clean tree, then killing any server (DLL-lock trap) and running the build gate.
+> Tree clean (only conductor infra untracked). Running the build gate now.
+> Build green (0w/0e). Now tests and pnpm check in parallel.
+> Tests green (Core 380P/3S · Server 12P · Desktop 64P). Now the UI gate and scripted MCP QA.
+> All gates green. Le…
 
 ## Tracker handoff
 
