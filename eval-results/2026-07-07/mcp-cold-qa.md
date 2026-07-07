@@ -16,6 +16,7 @@ scored on (a) does it say what was wrong, and (b) does it give a copyable next s
 False-successes (silent wrong answers): 5  
 Opaque errors (no next step): 5  
 Gate (L5.5 ≥90%): BELOW — baseline, gate arms in L5.5  
+rank-quality (B9 find "Order"): top="DeleteOrderHandler.Handle" aggregate#1=false results=20  
 
 ## Per-probe
 

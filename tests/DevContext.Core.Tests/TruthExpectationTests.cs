@@ -103,11 +103,11 @@ public sealed class TruthExpectationTests
     /// L0 baseline: dogfood presence numbers must not drift.
     /// Checks markdown for MAP + service names, JSON for detections count.
     /// </summary>
-    [Fact]
+    [SkippableFact]
     public async Task Dogfood_baseline_presence_ok()
     {
         var repoPath = DogfoodPath();
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -210,11 +210,11 @@ public sealed class TruthExpectationTests
     // CleanArchitecture
     // ═══════════════════════════════════════════════════════════════════
 
-    [Fact]
+    [SkippableFact]
     public async Task CleanArchitecture_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/CleanArchitecture");
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: CleanArchitecture not cloned"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -233,11 +233,11 @@ public sealed class TruthExpectationTests
     // TodoApi
     // ═══════════════════════════════════════════════════════════════════
 
-    [Fact]
+    [SkippableFact]
     public async Task TodoApi_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/TodoApi");
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: TodoApi not cloned"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /todos/");
         Assert.Contains("TRACE", trace, StringComparison.Ordinal);
@@ -251,11 +251,11 @@ public sealed class TruthExpectationTests
     // DntSite
     // ═══════════════════════════════════════════════════════════════════
 
-    [Fact]
+    [SkippableFact]
     public async Task DntSite_baseline_presence_ok()
     {
         var repoPath = DntSitePath();
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: DntSite not cloned"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -405,13 +405,6 @@ public sealed class TruthExpectationTests
 
     private static string DntSitePath() =>
         @"C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default";
-
-    private static int ExtractInt(string? line)
-    {
-        if (line is null) return 0;
-        var match = System.Text.RegularExpressions.Regex.Match(line, @"\d+");
-        return match.Success ? int.Parse(match.Value) : 0;
-    }
 
     /// <summary>Extracts an integer from a simple dot-notation JSON path (e.g. "typesSummary.found").</summary>
     private static int ExtractJsonInt(string json, string path)

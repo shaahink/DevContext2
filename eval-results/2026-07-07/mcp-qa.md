@@ -10,9 +10,9 @@
 |---|------|-------|--------|----------|--------|
 | q1-overview | YES | 1 | 242 | What is this repo? (one-call repo brief) | overview 242 tok, archetype=true flows=true counts=true services=true |
 | q2-checkout-flow | YES | 1 | 71 | How does checkout work? | trace found: 3 steps, 71 tok |
-| q3-discount-callers | YES | 1 | 644 | Who calls the Discount service? | 10 Discount candidates, no service kind (expected) |
+| q3-discount-callers | YES | 1 | 639 | Who calls the Discount service? | 10 Discount candidates, no service kind (expected) |
 | q4-impact-of-handler | YES | 3 | 410 | What breaks if I change CheckoutBasketCommandHandler? | impact up=0 down=5 total=5 |
-| q5-ambiguous-product | YES | 1 | 674 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
+| q5-ambiguous-product | YES | 1 | 677 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
 | q6-config-lookup | YES | 1 | 214 | What config keys are used? | config returned 4 keys |
 | q7-tests-for | YES | 2 | 151 | What tests cover CheckoutBasketCommandHandler? | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler.Handle |
 | gate-checkout | YES | 2 | 313 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 313 tok, found=true, 3 steps, cross-service=false |

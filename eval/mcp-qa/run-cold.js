@@ -117,7 +117,12 @@ async function rawToolCall(client, tool, args) {
 }
 
 async function analyzeRepo(client, repoPath) {
-  const analyzePromise = client.call("tools/call", { name: "analyze", arguments: { path: repoPath } });
+  // Capture the rejection immediately: on large repos `analyze` can exceed the
+  // per-call timeout while the poll loop below still finds the ready handle.
+  // Without this guard the timed-out promise would surface as an unhandledRejection.
+  const analyzePromise = client
+    .call("tools/call", { name: "analyze", arguments: { path: repoPath } })
+    .then((resp) => resp, (err) => ({ error: err }));
   let handle = null;
   for (let i = 0; i < 240; i++) {
     await sleep(500);
@@ -140,9 +145,9 @@ async function analyzeRepo(client, repoPath) {
 
 // ---- Actionability classifier ----
 //
-// signaledWrong: the agent can TELL the call did not succeed.
+// signaled:      the agent can TELL the call did not succeed.
 // nextStep:      the response hands the agent something copyable to try next.
-// actionable = signaledWrong && nextStep.
+// actionable = signaled && nextStep && !falseSuccess.
 // A zero-shaped "success" (numeric-zero / empty-list / bare found:false with no
 // message) does NOT signal wrong — that is the silent-wrong-answer trap.
 
@@ -186,7 +191,6 @@ function classify(probe, res) {
   // Did the naive call "succeed" in a way that hides the failure?
   const falseSuccess = !explicitProblem && zeroShaped;
 
-  const signaledWrong = explicitProblem && !opaque ? true : (explicitProblem && opaque ? true : false);
   // A signal that is ONLY the opaque string still "signals wrong" but gives no next step.
   const signaled = explicitProblem; // hard error or explicit problem word
   const nextStep = hasNextStep(data, rawText);
@@ -254,6 +258,7 @@ async function main() {
   const rows = [];
   let toolNames = [];
   let toolsListTokens = 0;
+  let b9note = "";
 
   try {
     const bs = await bootstrap(client);
@@ -289,14 +294,14 @@ async function main() {
 
     // Rank-quality note for B9: is the aggregate ranked #1? (audit §4 resolve "Order")
     const b9 = rows.find((r) => r.id === "B9-find-noise-query");
-    let b9note = "";
     if (b9) {
       const results = b9.res.data?.results ?? b9.res.data?.candidates ?? [];
       const top = results[0];
       const topTitle = top?.title ?? top?.name ?? top?.nodeId ?? "(none)";
       const orderAggregateTop = /(^|\.)Order($|\b)/.test(String(topTitle)) &&
         !/Ordering|Command|Query|Handler|Dto|Event/i.test(String(topTitle));
-      b9note = `top="${topTitle}" aggregate#1=${orderAggregateTop}`;
+      b9note = `rank-quality (B9 find "Order"): top="${topTitle}" aggregate#1=${orderAggregateTop} results=${results.length}`;
+      log(`  ${b9note}`);
     }
 
   } finally {
@@ -322,6 +327,7 @@ async function main() {
   console.log(`Actionable failures: ${actionable}/${total} (${(pct * 100).toFixed(0)}%)`);
   console.log(`False-successes (silent wrong answers): ${falseSuccess}`);
   console.log(`Opaque errors (no next step): ${opaque}`);
+  if (b9note) console.log(b9note);
   console.log(`Gate threshold (L5.5): ${(GATE_THRESHOLD * 100).toFixed(0)}%  ->  ${pct >= GATE_THRESHOLD ? "PASS" : "BELOW (expected at L0 baseline)"}`);
 
   // ---- Artifact ----
@@ -348,6 +354,7 @@ async function main() {
   md.push(`False-successes (silent wrong answers): ${falseSuccess}  `);
   md.push(`Opaque errors (no next step): ${opaque}  `);
   md.push(`Gate (L5.5 ≥${(GATE_THRESHOLD * 100).toFixed(0)}%): ${pct >= GATE_THRESHOLD ? "PASS" : "BELOW — baseline, gate arms in L5.5"}  `);
+  if (b9note) md.push(`${b9note}  `);
   md.push("");
   md.push("## Per-probe");
   md.push("");
