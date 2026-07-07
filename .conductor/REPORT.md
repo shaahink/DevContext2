@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 22:10 UTC · branch `feat/loom-l2` · HEAD `52ba77d`_
+_Updated 2026-07-07 22:20 UTC · branch `feat/loom-l2` · HEAD `d3404ea`_
 
 **Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
@@ -9,24 +9,24 @@ _Updated 2026-07-07 22:10 UTC · branch `feat/loom-l2` · HEAD `52ba77d`_
 
 ## Latest activity (live)
 
-_Session #9 (Deliver) · running 40m · last output 21s ago · $0.1012_
+_Session #9 (Deliver) · running 50m · last output 47s ago · $0.1592_
 
 **Thinking:**
-> Good, `Microsoft.CodeAnalysis` and `Microsoft.CodeAnalysis.CSharp` are already imported. Now let me also note that `System.Text.RegularExpressions` is still needed by `AddPipelineBehaviors` (line 794) and `IsSelfCallNoise` helper (which uses `Match` type). I should keep the import for now and remove…
-> Down from 7 to 6 failures. Let me look at the remaining failures.
-> All 6 failures are in GraphBuilderTraceTests. The GraphBuilderSpanTests passed! The auto-extraction works for most cases. The remaining GraphBuilderTraceTests failures are likely due to specific test scenarios that the auto-extraction doesn't handle well, or expected behaviors that differ from the s…
+> Wait, NO errors? Let me check if it actually succeeded.
+> The old body-regex methods are still present in the file but they compile because they reference types like `MethodSpan` which also still exists. I haven't actually deleted the old methods yet — I only inserted the NEW methods. The old `AddSends`, `AddRaises`, etc. are still present in the file (jus…
+> OK now let me run the tests. But first let me also check if HttpEntryPointBuilder and Pipeline were updated correctly.
 
 **Recent actions:**
-- `23:02:59` » read tests\DevContext.Core.Tests\GraphBuilderTraceTests.cs
-- `23:02:59` » read tests\DevContext.Core.Tests\GraphBuilderSpanTests.cs
-- `23:03:16` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:03:16` · Rather than updating every test file individually, let me add a fallback in `AddSeamsFromDetectors` to auto-extract BodyFacts from the model's SourceBody when n…
-- `23:03:30` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:03:37` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:03:55` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 8
-- `23:07:04` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 10
-- `23:10:06` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-String "Failed\s+\w+\.\w+\.\w+\."
-- `23:10:12` » read tests\DevContext.Core.Tests\GraphBuilderTraceTests.cs
+- `23:17:40` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:17:49` » grep AddBusServiceLinks|GetClassLevelBody
+- `23:17:56` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:18:35` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:18:35` · Let me insert the new methods. I'll place them right after `AddHubScopeEdges`:
+- `23:18:43` » grep IsSelfCallNoise|IsRequestNode|StripGenerics\(string|IsInfrastructureEntry|NormalizeRoute|GetClassLevelBody|AddBusServiceLinks
+- `23:19:06` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\src\DevContext.Core --no-restore 2>&1 | Select-String "error CS" | Sel…
+- `23:19:13` » bash dotnet build C:\Code\DevContext2-ui\src\DevContext.Core --no-restore 2>&1 | Select-Object -Last 5
+- `23:19:35` · The core logic is working — old methods are dead code. Let me now build the full solution, run tests, and proceed with L2.4 verification. The cleanup of dead me…
+- `23:19:44` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 5
 
 ## Stage progress
 
