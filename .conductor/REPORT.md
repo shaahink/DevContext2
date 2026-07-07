@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 23:00 UTC · branch `feat/loom-l2` · HEAD `c31106f`_
+_Updated 2026-07-07 23:04 UTC · branch `feat/loom-l2` · HEAD `5b69dd7`_
 
-**Status:** Running
+**Status:** Idle
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0
-**Checkpoints:** 12/35 done · **Sessions run:** 10 · **Cost:** $0.5260 · **Tokens:** 365,632 in / 122,193 out / 82,471 think
+**Checkpoints:** 12/35 done · **Sessions run:** 10 · **Cost:** $0.6467 · **Tokens:** 563,363 in / 135,281 out / 94,547 think
 **Confirmed phases:** L0, L1
-
-## Latest activity (live)
-
-_Session #10 (Audit) · running 10m · last output 88s ago · $0.0596_
-
-**Thinking:**
-> I see the issue. The `ProjectClassifier.IsTestProject` checks: 1. If the project name ends with "Tests", "Test", "Specs", etc. 2. If it has test package references  In my test, the project is named "Test" — which ends with "Test"! So it's classified as a test project, and all its types are excluded …
-> I also need to fix the other new test that I added — `Detector_failure_is_isolated_and_does_not_crash_assembly`. It also uses project name "Test". Let me fix that too, and also it doesn't actually create the detector failure scenario. Let me simplify — I can remove the test since it's hard to create…
-> Now let me run the tests again to verify.
-
-**Recent actions:**
-- `23:57:59` » grep public bool IsProductionCode
-- `23:57:59` » grep class NoiseFilter
-- `23:58:00` » grep public bool IsProductionEntrySource
-- `23:58:00` · The auto-extract test failed. Let me debug it:
-- `23:58:05` » read src\DevContext.Core\Graph\NoiseFilter.cs
-- `23:58:09` » grep public bool IsInTestProject
-- `23:58:14` » read src\DevContext.Core\Graph\NoiseFilter.cs
-- `23:58:24` » edit tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs
-- `23:58:24` · The test failed because the project name "Test" matches the test-project classifier. Let me fix the test:
-- `23:58:34` » edit tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs
+**Pending:** full-battery phase gate for L2
 
 ## Stage progress
 
@@ -55,15 +35,10 @@ _Session #10 (Audit) · running 10m · last output 88s ago · $0.0596_
 | 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
 | 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
 | 9 | L2 | Deliver | 1 | 07-07 21:30 | 1:18 | Advanced | L2.3 L2.4 | 8 | build:OK | $0.2415 | 144,588/43,725 |
-| 10 | L2 | Audit | 1 | 07-07 22:50 | … | running |  | 0 |  |  |  |
+| 10 | L2 | Audit | 1 | 07-07 22:50 | 0:14 | Progress |  | 2 |  | $0.1207 | 197,731/13,088 |
 
 ### Commits by session
 
-- **s1 (L0 Deliver)** — 4 commit(s):
-  - cbdd448 docs: finalize L0.1 commit hash in tracker
-  - bdcc840 docs: PROGRESS-LOG — L0.1 truth harness session summary
-  - c6bfa2d docs: update L0.1 commit hash in tracker
-  - 5084826 feat(l0): truth harness — TruthPendingAttribute, TruthExpectationTests (8 tests: 4 green + 4 red-skipped), bench.ps1 -Truth; evidence: eval-results/2026-07-07/truth-gate-l0.1.txt
 - **s2 (L0 Fix)** — 1 commit(s):
   - 05ea643 fix(l0): gate battery — kill server process lock, fix bench.ps1 unicode arrow (PS 5.1 parse error), refresh truth-gate-l0.1.txt evidence
 - **s3 (L0 Deliver)** — 4 commit(s):
@@ -97,11 +72,15 @@ _Session #10 (Audit) · running 10m · last output 88s ago · $0.0596_
   - 52ba77d chore(conductor): s9 L2 working ▸L2.3 @ 23:00
   - 267dec8 chore(conductor): s9 L2 working ▸L2.3 @ 22:50
   - e57f95a chore(conductor): s9 L2 working ▸L2.3 @ 22:40
+- **s10 (L2 Audit)** — 2 commit(s):
+  - 5b69dd7 fix(l2-audit): triple-brace auto-extract, try-catch detector loops, honest L2 handover
+  - 92a6a4d chore(conductor): s10 L2 working ▸L2 @ 00:00
 
 ## Phase handovers (audit)
 
 - `.conductor/handovers/L0.md`
 - `.conductor/handovers/L1.md`
+- `.conductor/handovers/L2.md`
 
 ## Last gate run
 
@@ -109,7 +88,7 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L2.3 (assembler + regex funeral) and L2.4 (checkout trace depth 6) both landed. All 5 seam detectors are wired into graph assembly over pre-extracted BodyFacts; all 18 body-regex methods physically deleted including supporting helpers (StripStringLiterals, BuildAllMethodSpans, ResolveVariable*, etc.); zero Regex in Core/Graph (guards green). The flagship checkout trace (`POST /basket/checkout`) now traverses depth 6 cross-service: Basket.API → CheckoutBasketCommand → handler → BasketCheckoutEvent → BasketCheckoutEventHandler (Ordering.Application) → CreateOrderCommand. Dogfood numbers shifted from 493/316 baseline to 396/236 — documented as purity gain (detectors don't fabric…
+> SESSION-RESULT: L2 audit passed — 3 defects fixed (triple-brace auto-extract generating invalid C#, missing try-catch around detector loops in both `AddSeamsFromDetectors` and `AddLambdaSeams` that would crash on any detector failure), 2 new tests added, gates all green (build 0w/0e, Core 388P/3S, Server 12P, Desktop 64P, pnpm check pass, loom-guards 0 banned). The phase's core — BodyFacts extraction, 5 seam detectors, checkout trace depth 6 cross-service, and full regex funeral — is solid. Weak spots documented honestly in `.conductor/handovers/L2.md`: lambda scope pollution in multi-lambda methods, duplicated SeamContext building, heuristic name matching with low-confidence fallbacks, and …
 
 ## Tracker handoff
 
