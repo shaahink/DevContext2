@@ -32,6 +32,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{grain.SourceFile}:{grain.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(grain.SourceFile),
             });
         }
         return entries.ToImmutable();

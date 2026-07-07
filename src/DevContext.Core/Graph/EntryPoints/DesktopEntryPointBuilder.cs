@@ -45,6 +45,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{de.SourceFile}:{de.LineNumber}",
                 HandlerNode = handlerNodeId,
+                Project = scope.ProjectForFile(de.SourceFile),
             });
         }
         return entries.ToImmutable();

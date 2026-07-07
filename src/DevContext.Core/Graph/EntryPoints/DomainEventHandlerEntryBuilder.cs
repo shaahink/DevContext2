@@ -31,6 +31,7 @@ public sealed class DomainEventHandlerEntryBuilder : IEntryPointBuilder
             {
                 Provenance = $"{h.SourceFile}:{h.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(h.SourceFile),
             });
         }
         return entries.ToImmutable();

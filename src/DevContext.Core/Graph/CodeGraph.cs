@@ -17,6 +17,7 @@ namespace DevContext.Core.Graph;
 public enum NodeKind
 {
     Type, Member, EntryPoint,
+    Service, Message, Store,
 }
 
 /// <summary>Role labels attached to a Type node's <see cref="GraphNode.Tags"/>. These replace the old
@@ -77,6 +78,8 @@ public enum EdgeKind
     /// represents a runtime communication seam between runnable services. Sub-kind is carried as a
     /// tag on the edge via <see cref="ServiceLinkTags"/>.</summary>
     ServiceLink,
+    Exposes,
+    DependsOn,
 }
 
 /// <summary>How confidently an edge was established — surfaced in the report (P3: show your work).</summary>
@@ -103,6 +106,9 @@ public readonly record struct NodeId(NodeKind Kind, string Key)
     public static NodeId ForType(string fqn) => new(NodeKind.Type, fqn);
     public static NodeId ForMember(string typeFqn, string member) => new(NodeKind.Member, $"{typeFqn}.{member}");
     public static NodeId ForEntry(string key) => new(NodeKind.EntryPoint, key);
+    public static NodeId ForService(string name) => new(NodeKind.Service, name);
+    public static NodeId ForMessage(string fqn) => new(NodeKind.Message, fqn);
+    public static NodeId ForStore(string fqn) => new(NodeKind.Store, fqn);
 }
 
 /// <summary>A node. Serialization-stable: holds primitive data, never live model references.</summary>

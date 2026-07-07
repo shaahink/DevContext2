@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 
 using DevContext.Core.Graph.Seams;
+using DevContext.Core.Graph2;
 using DevContext.Core.Models;
 
 using Microsoft.CodeAnalysis;
@@ -22,7 +23,7 @@ public sealed class GraphBuilder
     private readonly NoiseFilter _noise;
 
     // M1.6: event→project mappings collected during AddSends, consumed by AddBusServiceLinks
-    private static Dictionary<string, HashSet<string>>? _eventPublishers;
+    private Dictionary<string, HashSet<string>>? _eventPublishers;
 
     // P3: Entry-point builders — one per entry-point kind. Adding a new kind
     // (Blazor, gRPC, SignalR, etc.) means adding one class that implements
@@ -58,6 +59,7 @@ public sealed class GraphBuilder
         var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
         AddTypeNodes(g, model, scope, archetype);
+        AddServiceNodes(g, model, scope);
 
         // ── P3: Entry-point builders (one per kind) ──────────────────────────
         // Open to extension — add a new builder for Blazor/gRPC/SignalR without
@@ -530,6 +532,7 @@ public sealed class GraphBuilder
         {
             if (!_noise.IsProductionCode(type) || !scope.Contains(type.FilePath)) continue;
             var feature = DeriveFeature(type, model);
+            var project = scope.ProjectForFile(type.FilePath);
             g.AddNode(new GraphNode(NodeId.ForType(type.Id), type.Name, NodeKind.Type)
             {
                 FilePath = type.FilePath,
@@ -537,6 +540,19 @@ public sealed class GraphBuilder
                 LineNumber = type.StartLine,
                 Layer = type.Layer != ArchitectureLayer.Unknown ? type.Layer.ToLabel(archetype) : null,
                 Feature = feature,
+                Project = project,
+            });
+        }
+    }
+
+    private static void AddServiceNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
+    {
+        var runnable = ServiceBoundaryInference.RunnableProjects(scope);
+        foreach (var proj in runnable)
+        {
+            g.AddNode(new GraphNode(NodeId.ForService(proj.Name), proj.Name, NodeKind.Service)
+            {
+                Project = proj.Name,
             });
         }
     }
@@ -1510,7 +1526,7 @@ public sealed class GraphBuilder
         }
     }
 
-    private static void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+    private void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
         Dictionary<string, ImmutableArray<MethodSpan>> methodSpans, SolutionScope scope)
     {
         // Build event/request type name set once for the conjunction gate (I1.3/I1.4)
@@ -2092,7 +2108,7 @@ public sealed class GraphBuilder
 
     /// <summary>M1.6 — Cross-project MassTransit bus ServiceLinks. Uses event→publisher
     /// mappings collected during AddSends, matched against MessageConsumerDetection consumers.</summary>
-    private static void AddBusServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
+    private void AddBusServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
         NameResolver names, SolutionScope scope, NoiseFilter noise)
     {
 
@@ -2138,10 +2154,10 @@ public sealed class GraphBuilder
                     if (string.Equals(pubProject, conProject, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    var fromId = NodeId.ForType(pubProject);
-                    var toId = NodeId.ForType(conProject);
-                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Infrastructure" });
-                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Infrastructure" });
+                    var fromId = NodeId.ForService(pubProject);
+                    var toId = NodeId.ForService(conProject);
+                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Service));
+                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Service));
 
                     g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
                     {
@@ -2187,18 +2203,10 @@ public sealed class GraphBuilder
                     continue;
 
                 // Create a project-level ServiceLink edge: client project → server project
-                var fromId = NodeId.ForType(clientProject);
-                var toId = NodeId.ForType(serverProject);
-                g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type)
-                {
-                    Tags = [RoleTags.Service],
-                    Layer = "Api",
-                });
-                g.AddNode(new GraphNode(toId, serverProject, NodeKind.Type)
-                {
-                    Tags = [RoleTags.Service],
-                    Layer = "Api",
-                });
+                var fromId = NodeId.ForService(clientProject);
+                var toId = NodeId.ForService(serverProject);
+                g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Service));
+                g.AddNode(new GraphNode(toId, serverProject, NodeKind.Service));
 
                 g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
                 {
@@ -2321,10 +2329,10 @@ public sealed class GraphBuilder
                     }
 
                     // ── Edge 1: client project → gateway project ──
-                    var fromId = NodeId.ForType(clientProject);
-                    var gwId = NodeId.ForType(gatewayProject!);
-                    g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
-                    g.AddNode(new GraphNode(gwId, gatewayProject!, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
+                    var fromId = NodeId.ForService(clientProject);
+                    var gwId = NodeId.ForService(gatewayProject!);
+                    g.AddNode(new GraphNode(fromId, clientProject, NodeKind.Service));
+                    g.AddNode(new GraphNode(gwId, gatewayProject!, NodeKind.Service));
                     g.AddEdge(new GraphEdge(fromId, gwId, EdgeKind.ServiceLink)
                     {
                         Provenance = $"{rr.SourceFile}:{rr.LineNumber}",
@@ -2348,8 +2356,8 @@ public sealed class GraphBuilder
                             if (destAddr.Contains(backendLower, StringComparison.Ordinal)
                                 || destAddr.Contains(backendLower.Replace(".api", ""), StringComparison.Ordinal))
                             {
-                                var beId = NodeId.ForType(backendProject);
-                                g.AddNode(new GraphNode(beId, backendProject, NodeKind.Type) { Tags = [RoleTags.Service], Layer = "Api" });
+                                var beId = NodeId.ForService(backendProject);
+                                g.AddNode(new GraphNode(beId, backendProject, NodeKind.Service));
                                 g.AddEdge(new GraphEdge(gwId, beId, EdgeKind.ServiceLink)
                                 {
                                     Provenance = $"{rr.SourceFile}:{rr.LineNumber}",

@@ -35,6 +35,7 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
                     Provenance = $"{svc.SourceFile}:{svc.LineNumber}",
                     HandlerNode = svcTypeNodeId,
                     GroupPath = svcNamespace is not null ? $"{svc.ServiceName}" : null,
+                    Project = scope.ProjectForFile(svc.SourceFile),
                 });
                 continue;
             }

@@ -38,6 +38,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(bw.SourceFile),
             });
         }
         return entries.ToImmutable();

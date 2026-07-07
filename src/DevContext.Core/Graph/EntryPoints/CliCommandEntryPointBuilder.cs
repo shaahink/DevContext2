@@ -30,6 +30,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{cmd.SourceFile}:{cmd.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(cmd.SourceFile),
             });
         }
         return entries.ToImmutable();

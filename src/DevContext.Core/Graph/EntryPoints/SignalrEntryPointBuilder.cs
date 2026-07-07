@@ -31,6 +31,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{hub.SourceFile}:{hub.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(hub.SourceFile),
             });
         }
         return entries.ToImmutable();

@@ -32,6 +32,7 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
             {
                 Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(mc.SourceFile),
             });
         }
         return entries.ToImmutable();

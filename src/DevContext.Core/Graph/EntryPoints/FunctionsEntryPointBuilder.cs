@@ -32,6 +32,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{fn.SourceFile}:{fn.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(fn.SourceFile),
             });
         }
         return entries.ToImmutable();

@@ -123,6 +123,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                 Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                 HandlerNode = handlerNodeId,
                 AuthAttributes = ep.AuthAttributes,
+                Project = scope.ProjectForFile(ep.SourceFile),
             });
         }
         return entries.ToImmutable();

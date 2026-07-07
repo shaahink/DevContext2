@@ -28,6 +28,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{field.SourceFile}:{field.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(field.SourceFile),
             });
         }
         return entries.ToImmutable();
