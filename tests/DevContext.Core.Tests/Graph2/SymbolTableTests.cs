@@ -133,5 +133,64 @@ public sealed class SymbolTableTests
         Assert.Equal(ResolutionTier.Unresolved, r.Tier);
     }
 
+    [Fact]
+    public void IsKnownFqn_returns_true_for_registered_fqn()
+    {
+        var table = new SymbolTable([T("Basket.API.CheckoutBasketCommand", "CheckoutBasketCommand", "Basket.API", "/src/Basket/Checkout.cs")], ProjectMapper);
+        Assert.True(table.IsKnownFqn("Basket.API.CheckoutBasketCommand"));
+        Assert.False(table.IsKnownFqn("Basket.API.Unknown"));
+    }
+
+    [Fact]
+    public void IsAmbiguous_returns_true_when_multiple_fqns_share_short_name()
+    {
+        var table = new SymbolTable(
+        [
+            T("Basket.API.Models.Product", "Product", "Basket.API.Models", "/src/Basket/Models/Product.cs"),
+            T("Ordering.API.Models.Product", "Product", "Ordering.API.Models", "/src/Ordering/Models/Product.cs"),
+        ], ProjectMapper);
+        Assert.True(table.IsAmbiguous("Product"));
+        Assert.False(table.IsAmbiguous("UniqueType"));
+        Assert.False(table.IsAmbiguous("DoesNotExist"));
+    }
+
+    [Fact]
+    public void GetNamespace_returns_ns_from_registered_fqn()
+    {
+        var table = new SymbolTable([T("Basket.API.CheckoutBasketCommand", "CheckoutBasketCommand", "Basket.API", "/src/Basket/Checkout.cs")], ProjectMapper);
+        Assert.Equal("Basket.API", table.GetNamespace("Basket.API.CheckoutBasketCommand"));
+    }
+
+    [Fact]
+    public void GetNamespace_extracts_namespace_for_unregistered_fqn()
+    {
+        var table = new SymbolTable([], null);
+        var result = table.GetNamespace("DevContext.Core.Graph.GraphBuilder");
+        Assert.Equal("DevContext.Core.Graph", result);
+    }
+
+    [Fact]
+    public void GetNamespace_returns_fqn_when_no_dot_in_unregistered_name()
+    {
+        var table = new SymbolTable([], null);
+        Assert.Equal("GraphBuilder", table.GetNamespace("GraphBuilder"));
+    }
+
+    [Fact]
+    public void Empty_types_does_not_throw()
+    {
+        var table = new SymbolTable([]);
+        Assert.NotNull(table.AmbiguityReport);
+        Assert.Equal(0, table.AmbiguityReport.AmbiguousShortNameCount);
+    }
+
+    [Fact]
+    public void Null_types_does_not_throw()
+    {
+        var table = new SymbolTable(null!);
+        Assert.NotNull(table.AmbiguityReport);
+        Assert.Equal(0, table.AmbiguityReport.AmbiguousShortNameCount);
+    }
+
     private static RefSite Ref(string file, string project = "") => new() { File = file, Line = 1, Project = project };
 }

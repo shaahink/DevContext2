@@ -23,9 +23,11 @@ public sealed class SymbolTable
         _fileToProject = fileToProject;
         _fqns = new HashSet<string>(StringComparer.Ordinal);
         _byShort = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        _byProject = new Dictionary<(string, string), List<string>>();
+        _byProject = new Dictionary<(string, string), List<string>>(new ByProjectComparer());
         _namespaceByFqn = new Dictionary<string, string>(StringComparer.Ordinal);
         _candidateCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        if (types is null) return;
 
         foreach (var t in types)
         {
@@ -118,6 +120,22 @@ public sealed class SymbolTable
     {
         if (_namespaceByFqn.TryGetValue(fqn, out var ns))
             return ns;
-        return fqn;
+        var dot = fqn.LastIndexOf('.');
+        return dot > 0 ? fqn[..dot] : fqn;
+    }
+}
+
+internal sealed class ByProjectComparer : IEqualityComparer<(string ShortName, string Project)>
+{
+    public bool Equals((string ShortName, string Project) x, (string ShortName, string Project) y)
+        => string.Equals(x.ShortName, y.ShortName, StringComparison.Ordinal)
+        && string.Equals(x.Project, y.Project, StringComparison.Ordinal);
+
+    public int GetHashCode((string ShortName, string Project) obj)
+    {
+        var hc = new HashCode();
+        hc.Add(obj.ShortName, StringComparer.Ordinal);
+        hc.Add(obj.Project, StringComparer.Ordinal);
+        return hc.ToHashCode();
     }
 }
