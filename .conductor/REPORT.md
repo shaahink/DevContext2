@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 23:41 UTC · branch `feat/loom-l2` · HEAD `fa5c711`_
+_Updated 2026-07-07 23:42 UTC · branch `feat/loom-l2` · HEAD `ea13a76`_
 
-**Status:** Running
-**Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.1
-**Checkpoints:** 12/35 done · **Sessions run:** 11 · **Cost:** $0.6467 · **Tokens:** 563,363 in / 135,281 out / 94,547 think
+**Status:** Idle
+**Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
+**Checkpoints:** 13/35 done · **Sessions run:** 11 · **Cost:** $0.7646 · **Tokens:** 693,878 in / 156,348 out / 107,858 think
 **Confirmed phases:** L0, L1, L2
-
-## Latest activity (live)
-
-_Session #11 (Deliver) · running 30m · last output 1s ago · $0.1133_
-
-**Thinking:**
-> Now let me commit the changes. I need to commit: 1. New file: `src/DevContext.Core/Graph2/SemanticLitePopulator.cs` 2. Modified: `src/DevContext.Core/Pipeline/DiscoveryPipeline.cs` 3. Modified: `LOOM-START.md` 4. New file: `eval-results/2026-07-07/gate-battery-l3-s11.txt`  Let me verify what needs t…
-> There's an uncommitted mcp-qa.md change. Let me check what it is:
-> This is the same mcp-qa.md change from the conductor session that I reverted earlier. It seems to have come back (maybe from the test run). It's a harmless update to token counts and result descriptions from a fresh MCP QA run. I need to decide whether to commit it or revert it.  The plan says "Leav…
-
-**Recent actions:**
-- `00:36:34` » bash $date = Get-Date -Format "yyyy-MM-dd" Write-Output "evidencing to: eval-results/$date"  $outDir = "eval-results/$date" if (-not (Test-Path $outDir)) { New-…
-- `00:39:49` » bash $date = Get-Date -Format "yyyy-MM-dd" $outDir = "eval-results/$date" if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Ou…
-- `00:40:25` » bash pnpm check 2>&1 | Select-String -Pattern "(pass|lint|FAIL|error)" | Out-String -Width 500
-- `00:40:33` » read LOOM-START.md
-- `00:40:33` · Now let me update the tracker and commit.
-- `00:40:44` » edit LOOM-START.md
-- `00:40:49` » edit LOOM-START.md
-- `00:40:54` » edit LOOM-START.md
-- `00:41:00` » bash git status --short
-- `00:41:05` » bash git --no-pager diff eval-results/2026-07-07/mcp-qa.md
 
 ## Stage progress
 
@@ -35,7 +14,7 @@ _Session #11 (Deliver) · running 30m · last output 1s ago · $0.1133_
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
-| L3 | Semantic-lite tier | 0/3 | **← active** |
+| L3 | Semantic-lite tier | 1/3 | **← active** |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
@@ -56,12 +35,10 @@ _Session #11 (Deliver) · running 30m · last output 1s ago · $0.1133_
 | 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
 | 9 | L2 | Deliver | 1 | 07-07 21:30 | 1:18 | Advanced | L2.3 L2.4 | 8 | build:OK | $0.2415 | 144,588/43,725 |
 | 10 | L2 | Audit | 1 | 07-07 22:50 | 0:14 | Progress |  | 2 |  | $0.1207 | 197,731/13,088 |
-| 11 | L3 | Deliver | 1 | 07-07 23:11 | … | running |  | 0 |  |  |  |
+| 11 | L3 | Deliver | 1 | 07-07 23:11 | 0:30 | Advanced | L3.1 | 4 | build:OK | $0.1179 | 130,515/21,067 |
 
 ### Commits by session
 
-- **s2 (L0 Fix)** — 1 commit(s):
-  - 05ea643 fix(l0): gate battery — kill server process lock, fix bench.ps1 unicode arrow (PS 5.1 parse error), refresh truth-gate-l0.1.txt evidence
 - **s3 (L0 Deliver)** — 4 commit(s):
   - 54fde62 docs(l0): tracker — L0 complete (L0.2/L0.3 done), s3 handoff + gate evidence
   - 9506977 feat(l0.3): UI drive gate + baseline
@@ -96,6 +73,11 @@ _Session #11 (Deliver) · running 30m · last output 1s ago · $0.1133_
 - **s10 (L2 Audit)** — 2 commit(s):
   - 5b69dd7 fix(l2-audit): triple-brace auto-extract, try-catch detector loops, honest L2 handover
   - 92a6a4d chore(conductor): s10 L2 working ▸L2 @ 00:00
+- **s11 (L3 Deliver)** — 4 commit(s):
+  - ea13a76 feat(l3.1): SemanticLitePopulator — Tier B compilation from assets.json + degrade path
+  - 99a4ee9 chore(conductor): s11 L3 working ▸L3.1 @ 00:41
+  - fa5c711 chore(conductor): s11 L3 working ▸L3.1 @ 00:31
+  - 52dadc7 chore(conductor): s11 L3 working ▸L3.1 @ 00:21
 
 ## Phase handovers (audit)
 
@@ -105,21 +87,22 @@ _Session #11 (Deliver) · running 30m · last output 1s ago · $0.1133_
 
 ## Last gate run
 
-build:OK · tests:OK · mcp-qa:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L2 audit passed — 3 defects fixed (triple-brace auto-extract generating invalid C#, missing try-catch around detector loops in both `AddSeamsFromDetectors` and `AddLambdaSeams` that would crash on any detector failure), 2 new tests added, gates all green (build 0w/0e, Core 388P/3S, Server 12P, Desktop 64P, pnpm check pass, loom-guards 0 banned). The phase's core — BodyFacts extraction, 5 seam detectors, checkout trace depth 6 cross-service, and full regex funeral — is solid. Weak spots documented honestly in `.conductor/handovers/L2.md`: lambda scope pollution in multi-lambda methods, duplicated SeamContext building, heuristic name matching with low-confidence fallbacks, and …
+> SESSION-RESULT: L3.1 landed — `SemanticLitePopulator.cs` (Graph2/) builds `CSharpCompilation` per project from source trees + TPA framework refs + NuGet dlls resolved via `obj/project.assets.json`; degrades to Tier A when assets missing. Wired into `DiscoveryPipeline.AnalyzeAsync` (debug/full profiles). Upgrades `LocalDeclOp.InferredFrom` and `InvocationOp.ReceiverType` via `SemanticModel` (Law R2: additive only). All gates green (build 0w/0e, 388P/3S+12+64, pnpm check, guards PASS). Dogfood preserved at 422n/275e — zero regression. L2 QA found honesty gap (dogfood 422/275 vs handover 396/236 due to post-close fix commit 5b69dd7; checkout trace MCP-proven depth 6). Commit `ea13a76` pushed to…
 
 ## Tracker handoff
 
 ```
-last: L2 session #8 — L2.3 (assembler + regex funeral) + L2.4 (checkout trace ≥5) BOTH DONE.
-stage: **L2 CLOSED** (L2.1 ✅ L2.2 ✅ · L2.3 ✅ L2.4 ✅). BodyFacts wired into graph assembly;
-      seam detectors run over pre-extracted facts; AddLambdaSeams handles minimal-API lambdas;
-      ALL body-regex methods deleted; zero Regex in Core/Graph; guards green.
-gate: dotnet build 0w/0e · Core 386P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
-next: **L3.1** — SemanticLitePopulator (assets.json → compilations, degrade path).
-trap: dogfood 396/236 (drift vs 493/316 baseline = purity gain, not regression; documented).
-evidence: eval-results/2026-07-07/gate-battery-l2-s8.txt; dogfood-l2-checkout-trace.md (depth 6).
+last: L3 session #11 — L3.1 (SemanticLitePopulator) DONE.
+stage: **L3 IN PROGRESS** (L3.1 ✅). Populator reads assets.json → NuGet dlls →
+       CSharpCompilation per project; framework refs (TPA) + NuGet; degrade path
+       for missing assets. Upgrades LocalDeclOp.InferredFrom + InvocationOp.ReceiverType
+       via SemanticModel (Law R2: only upgrade). Wire-in at DiscoveryPipeline (debug/full).
+gate: dotnet build 0w/0e · Core 388P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
+trap: L2 QA: dogfood 422n/275e (post 5b69dd7 try-catch fix, honest increase); checkout trace MCP-proven depth 6.
+next: **L3.2** — Targeted semantic upgrades: handler interface closure, ambiguous-ref arbitration.
+evidence: eval-results/2026-07-07/gate-battery-l3-s11.txt
 ```
