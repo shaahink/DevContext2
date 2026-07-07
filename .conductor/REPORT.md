@@ -1,19 +1,18 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 20:10 UTC · branch `feat/loom-l1` · HEAD `99f18fc`_
+_Updated 2026-07-07 20:17 UTC · branch `feat/loom-l1` · HEAD `fac94f7`_
 
 **Status:** Idle
 **Stage:** L1 — Identity spine · attempts used 0
 **Checkpoints:** 8/35 done · **Sessions run:** 6 · **Cost:** $0.2180 · **Tokens:** 218,017 in / 47,544 out / 28,202 think
-**Confirmed phases:** L0
-**Pending:** full-battery phase gate for L1
+**Confirmed phases:** L0, L1
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
 | L0 | Truth harness | 3/3 | confirmed ✓ |
-| L1 | Identity spine | 5/5 | gating… |
+| L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 0/4 | todo |
 | L3 | Semantic-lite tier | 0/3 | todo |
 | L4 | Flows + projections | 0/4 | todo |
