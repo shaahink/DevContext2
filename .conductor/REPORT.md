@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 19:48 UTC · branch `feat/loom-l1` · HEAD `5b582f0`_
+_Updated 2026-07-07 19:55 UTC · branch `feat/loom-l1` · HEAD `de6d355`_
 
 **Status:** Idle
 **Stage:** L1 — Identity spine · attempts used 0
 **Checkpoints:** 8/35 done · **Sessions run:** 5 · **Cost:** $0.1696 · **Tokens:** 162,914 in / 37,524 out / 19,108 think
 **Confirmed phases:** L0
-**Pending:** full-battery phase gate for L1
+**Pending:** auto-fix audit for L1
 
 ## Stage progress
 
@@ -61,7 +61,7 @@ _Updated 2026-07-07 19:48 UTC · branch `feat/loom-l1` · HEAD `5b582f0`_
 
 ## Last gate run
 
-build:OK
+build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
