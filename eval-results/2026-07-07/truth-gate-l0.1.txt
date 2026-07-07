@@ -1,0 +1,36 @@
+﻿Build started 07/07/2026 17:07:00.
+Test run for C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.59]   Discovering: DevContext.Core.Tests
+[xUnit.net 00:00:00.68]   Discovered:  DevContext.Core.Tests
+[xUnit.net 00:00:00.70]   Starting:    DevContext.Core.Tests
+[xUnit.net 00:00:00.72]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [SKIP]
+[xUnit.net 00:00:00.73]       Truth ratchet: pending fix by L1
+[xUnit.net 00:00:00.73]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [SKIP]
+[xUnit.net 00:00:00.73]       Truth ratchet: pending fix by L2
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [1 ms]
+[xUnit.net 00:00:02.67]     DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [SKIP]
+[xUnit.net 00:00:02.67]       Truth ratchet: pending fix by L7
+  Passed DevContext.Core.Tests.TruthExpectationTests.TodoApi_baseline_presence_ok [1 s]
+  Passed DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [< 1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [1 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [1 s]
+[xUnit.net 00:00:05.33]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+[xUnit.net 00:00:05.33]       Truth ratchet: pending fix by L1
+[xUnit.net 00:00:05.34]   Finished:    DevContext.Core.Tests
+  Passed DevContext.Core.Tests.TruthExpectationTests.Dogfood_baseline_presence_ok [1 s]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Test Run Successful.
+Total tests: 8
+     Passed: 4
+    Skipped: 4
+ Total time: 6.0943 Seconds
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:06.85

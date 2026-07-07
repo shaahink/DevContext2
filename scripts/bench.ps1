@@ -3,7 +3,8 @@ param(
     [string]$ResultsDir = "eval-results",
     [string]$CliProject = "src\DevContext.Cli",
     [switch]$SkipClone,
-    [switch]$DiffOnly
+    [switch]$DiffOnly,
+    [switch]$Truth
 )
 
 $ErrorActionPreference = "Stop"
@@ -223,6 +224,40 @@ if ($runs.Count -ge 2) {
     else {
         Write-Host "(No diff report generated -- all identical.)" -ForegroundColor Gray
     }
+}
+
+# ---- Truth gate (L0+) ----
+if ($Truth) {
+    Write-Host "`n===== Running truth gate (dotnet test --filter Category=Truth) =====" -ForegroundColor Cyan
+
+    $testProject = Join-Path $rootDir "tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj"
+    $truthLog = Join-Path $runDir "truth-gate.txt"
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $testOutput = & dotnet test $testProject --filter "Category=Truth" --no-build --verbosity normal 2>&1
+    $testExit = $LASTEXITCODE
+    $sw.Stop()
+
+    # Save raw output
+    $testOutput | Out-File $truthLog -Encoding utf8
+
+    # Summarise
+    $passed = ($testOutput | Select-String -Pattern 'Passed:' | ForEach-Object { $_.Line }).Trim()
+    $failed = ($testOutput | Select-String -Pattern 'Failed:' | ForEach-Object { $_.Line }).Trim()
+    $skipped = ($testOutput | Select-String -Pattern 'Skipped:' | ForEach-Object { $_.Line }).Trim()
+
+    Write-Host "  $passed" -ForegroundColor Green
+    if ($failed) { Write-Host "  $failed" -ForegroundColor Red }
+    if ($skipped) { Write-Host "  $skipped (truth ratchets pending)" -ForegroundColor Yellow }
+
+    Write-Host "  Truth gate $($sw.Elapsed.TotalSeconds.ToString('F1'))s → $truthLog" -ForegroundColor $(if ($testExit -eq 0) { 'Green' } else { 'Red' })
+
+    if ($testExit -ne 0) {
+        Write-Error "Truth gate FAILED — one or more truth checks are red. Fix or record before proceeding."
+        exit 1
+    }
+
+    Write-Host "`n===== Truth gate complete =====" -ForegroundColor Green
 }
 
 Write-Host "`n===== Bench complete =====" -ForegroundColor Cyan

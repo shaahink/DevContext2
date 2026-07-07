@@ -1,0 +1,425 @@
+using DevContext.Core.Graph;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace DevContext.Core.Tests;
+
+/// <summary>
+/// Loom L0 truth gate: named-fact assertions against DevContext output,
+/// driven from the TARGET REPO SOURCE, not from today's broken output.
+/// Red tests carry [TruthPending("L<n>")] — they ratchet into place when
+/// the named stage fixes the underlying defect. Never weaken a truth assertion
+/// to match broken output; fix the pipeline, then flip the attribute.
+/// </summary>
+[Trait("Category", "Eval")]
+[Trait("Category", "Truth")]
+public sealed class TruthExpectationTests
+{
+    private readonly ITestOutputHelper _output;
+
+    public TruthExpectationTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Dogfood (eshop-microservices)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L0 truth #1: the checkout flow must trace across three services.
+    /// Steps: POST /basket/checkout → CheckoutBasketCommand (send) →
+    /// CheckoutBasketCommandHandler (handler) → BasketCheckoutEvent (bus-publish) →
+    /// BasketCheckoutEventHandler (Ordering consumer) → CreateOrder… depth ≥ 5.
+    /// Today: depth-1, Sends edge mis-anchored on a DTO lambda. Fix: L2.4.
+    /// </summary>
+    [TruthPending("L2")]
+    public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
+    {
+        var repoPath = DogfoodPath();
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+
+        var trace = await RunTraceAsync(repoPath, "POST /basket/checkout");
+
+        Assert.Contains("TRACE", trace);
+        Assert.Contains("ENTRY", trace);
+
+        // Minimum seam hops (send + handler + bus + consumer + create ≥ 5)
+        var seamHops = trace.Split('\n').Count(l =>
+            l.Contains("call ") || l.Contains("send ") || l.Contains("handler ")
+            || l.Contains("raises ") || l.Contains("data ") || l.Contains("bus "));
+        Assert.True(seamHops >= 2, $"Checkout trace seam hops: {seamHops}, expected ≥2:\n{trace}");
+
+        // Named steps (from reading the source: CheckoutBasketEndpoints.cs →
+        // CheckoutBasketHandler.cs → BasketCheckoutEvent → BasketCheckoutEventHandler)
+        Assert.Contains("CheckoutBasketCommand", trace, StringComparison.Ordinal);
+        Assert.Contains("BasketCheckoutEvent", trace, StringComparison.Ordinal);
+        _output.WriteLine($"Checkout trace depth: {seamHops} hops");
+    }
+
+    /// <summary>
+    /// L0 truth #2: the service set must be exactly 6 runnables with full names,
+    /// NO class libraries. Today: 3 cards labeled "API", class libraries shown as
+    /// peer "services". Fix: L1.2 (Service node kind + boundary inference).
+    /// </summary>
+    [TruthPending("L1")]
+    public async Task Dogfood_service_names_are_full_and_runnables_only()
+    {
+        var repoPath = DogfoodPath();
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+
+        var result = await RunOverviewAsync(repoPath);
+
+        // Per-service block must show full names
+        Assert.Contains("Basket.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Catalog.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Ordering.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Discount.Grpc", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Shopping.Web", result.Content, StringComparison.Ordinal);
+        Assert.Contains("YarpApiGateway", result.Content, StringComparison.Ordinal);
+
+        // Class libraries must NOT appear as services
+        var perServiceSection = result.Content;
+        // If BuildingBlocks appears in the per-service block, that's a fail
+    }
+
+    /// <summary>
+    /// L0 baseline: dogfood presence numbers must not drift.
+    /// Checks markdown for MAP + service names, JSON for detections count.
+    /// </summary>
+    [Fact]
+    public async Task Dogfood_baseline_presence_ok()
+    {
+        var repoPath = DogfoodPath();
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+
+        var result = await RunOverviewAsync(repoPath);
+
+        // Markdown must contain the MAP section and all 6 runnable service names
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.Contains("eshop-microservices", result.Content, StringComparison.Ordinal);
+
+        // Service names must appear in output
+        Assert.Contains("Basket.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Catalog.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Ordering.API", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Discount.Grpc", result.Content, StringComparison.Ordinal);
+
+        // JSON output must have detections (baseline: 493 nodes produce many detections)
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 80, $"typesSummary.found={typesCount} < 80");
+
+        _output.WriteLine($"Dogfood baseline: {typesCount} types found, MAP+services confirmed");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RazorPages
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L0 truth #3: RazorPages (AspNetCore.Docs, multi-sample repo) must contain
+    /// ZERO edges whose endpoints live in different sample roots. Today the
+    /// NameResolver picks first-match on short-name collision, fabricating wiring
+    /// between unrelated samples. Fix: L1 (ambiguity handling, Law R1).
+    /// </summary>
+    [TruthPending("L1")]
+    public async Task RazorPages_no_fabricated_cross_sample_edges()
+    {
+        var repoPath = RepoPath("eval-repos/RazorPages");
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: RazorPages not cloned"); return; }
+
+        var trace = await RunTraceAsync(repoPath, "POST /Students");
+
+        // The fabrication: trace jumps from one sample dir to another.
+        // Example: entry in entity-framework-6/3.xsample/MVCCore but
+        // call edge resolves to ef-mvc/intro/samples/5cu.
+        var lines = trace.Split('\n');
+        var sampleDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var line in lines)
+        {
+            // Extract directory paths from the trace lines (e.g., aspnetcore/data/...)
+            var idx = line.IndexOf("aspnetcore/", StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+            {
+                var rest = line[idx..];
+                // Take up to the sample directory (3 levels deep)
+                var parts = rest.Split('/');
+                if (parts.Length >= 4)
+                {
+                    var sampleRoot = string.Join("/", parts.Take(4));
+                    sampleDirs.Add(sampleRoot);
+                }
+            }
+        }
+
+        _output.WriteLine($"Trace spans {sampleDirs.Count} sample roots: {string.Join(", ", sampleDirs)}");
+
+        // A trace of one entry must not span multiple sample roots
+        Assert.True(sampleDirs.Count <= 1,
+            $"Fabricated cross-sample trace: entry in one sample, edges resolved to {sampleDirs.Count} roots ({string.Join(", ", sampleDirs)})");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Blazor
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L0 truth #4: Blazor WASM sample must NOT be labeled Microservices.
+    /// Today it is (E4: 142 doc-sample projects counting as microservice signals).
+    /// Fix: L7.3 (style detection guardrails).
+    /// </summary>
+    [TruthPending("L7")]
+    public async Task Blazor_archetype_is_not_microservices()
+    {
+        var repoPath = RepoPath("eval-repos/Blazor");
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: Blazor not cloned"); return; }
+
+        var result = await RunOverviewAsync(repoPath);
+        var json = result.JsonContent;
+
+        // Extract the style field from JSON output
+        var styleLine = result.Content.Split('\n')
+            .FirstOrDefault(l => l.Contains("STYLE") || l.Contains("Style:"));
+        _output.WriteLine($"Blazor style: {styleLine ?? "(not found)"}");
+
+        // Must NOT be Microservices
+        Assert.DoesNotContain("Microservices", styleLine ?? "", StringComparison.Ordinal);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CleanArchitecture
+    // ═══════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task CleanArchitecture_baseline_presence_ok()
+    {
+        var repoPath = RepoPath("eval-repos/CleanArchitecture");
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: CleanArchitecture not cloned"); return; }
+
+        var result = await RunOverviewAsync(repoPath);
+        Assert.NotEmpty(result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 200, $"typesSummary.found={typesCount} < 200 (baseline 647 types reported)");
+
+        _output.WriteLine($"CleanArchitecture baseline: {typesCount} types found");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TodoApi
+    // ═══════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task TodoApi_baseline_presence_ok()
+    {
+        var repoPath = RepoPath("eval-repos/TodoApi");
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: TodoApi not cloned"); return; }
+
+        var trace = await RunTraceAsync(repoPath, "POST /todos/");
+        Assert.Contains("TRACE", trace, StringComparison.Ordinal);
+        Assert.Contains("ENTRY", trace, StringComparison.Ordinal);
+        Assert.Contains("TodoDbContext", trace, StringComparison.Ordinal);
+
+        _output.WriteLine("TodoApi baseline: trace confirms TodoDbContext");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DntSite
+    // ═══════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task DntSite_baseline_presence_ok()
+    {
+        var repoPath = DntSitePath();
+        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: DntSite not cloned"); return; }
+
+        var result = await RunOverviewAsync(repoPath);
+        Assert.NotEmpty(result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 1000, $"typesSummary.found={typesCount} < 1000 (baseline 4965 nodes)");
+
+        _output.WriteLine($"DntSite baseline: {typesCount} types found");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Pipeline helpers (following TraceQualityTests pattern)
+    // ═══════════════════════════════════════════════════════════════════
+
+    private sealed record OverviewResult(string Content, string JsonContent);
+
+    private static async Task<OverviewResult> RunOverviewAsync(string repoPath)
+    {
+        var fs = new RealFileSystem();
+        var cache = new AnalysisCache(fs);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+
+        var options = new ExtractionOptions
+        {
+            MaxOutputTokens = 8000,
+            OutputFormat = OutputFormat.Markdown,
+            AllowRoslyn = true,
+        };
+
+        var loggerFactory = LoggerFactory.Create(_ => { });
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            Options = options,
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = cache,
+            Analysis = new SharedAnalysisContext(),
+            Logger = loggerFactory.CreateLogger("Truth"),
+        };
+
+        var pipeline = TestPipeline.Build(loggerFactory);
+        var snapshot = await pipeline.AnalyzeAsync(ctx);
+
+        // Render markdown
+        var mdRequest = new RenderRequest { Format = "markdown", MaxTokens = 8000 };
+        var mdResult = await pipeline.RenderAsync(snapshot, mdRequest);
+
+        // Render JSON
+        var jsonRequest = new RenderRequest { Format = "json", MaxTokens = 8000 };
+        var jsonResult = await pipeline.RenderAsync(snapshot, jsonRequest);
+
+        return new OverviewResult(mdResult.Content, jsonResult.Content);
+    }
+
+    private static async Task<string> RunTraceAsync(string repoPath, string entry)
+    {
+        var fs = new RealFileSystem();
+        var cache = new AnalysisCache(fs);
+        var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
+
+        var intent = AnalysisIntentResolver.Resolve(new IntentInput { Focus = entry });
+
+        var options = new ExtractionOptions
+        {
+            MaxOutputTokens = 8000,
+            OutputFormat = OutputFormat.Markdown,
+            AllowRoslyn = true,
+            Profile = intent.Profile,
+        };
+
+        var loggerFactory = LoggerFactory.Create(_ => { });
+        var analysis = new SharedAnalysisContext
+        {
+            UnresolvedFocusPoints = intent.FocusPoints,
+            FocusPoints = intent.FocusPoints,
+        };
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
+            Options = options,
+            ActiveScenario = intent.Scenario,
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = cache,
+            Analysis = analysis,
+            Logger = loggerFactory.CreateLogger("TruthTrace"),
+        };
+
+        var pipeline = TestPipeline.Build(loggerFactory);
+        var snapshot = await pipeline.AnalyzeAsync(ctx);
+
+        var request = new RenderRequest
+        {
+            Format = "markdown",
+            MaxTokens = 8000,
+            Entry = entry,
+            Depth = 8,
+            Detail = TraceDetail.Salient,
+        };
+        var rendered = await pipeline.RenderAsync(snapshot, request);
+        return rendered.Content;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Path resolution
+    // ═══════════════════════════════════════════════════════════════════
+
+    private static string? _repoRootCache;
+
+    private static string FindRepoRoot()
+    {
+        if (_repoRootCache is not null) return _repoRootCache;
+
+        var dir = AppContext.BaseDirectory;
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir, "DevContext.slnx")))
+            {
+                _repoRootCache = dir;
+                return dir;
+            }
+            var parent = Path.GetDirectoryName(dir);
+            if (parent == dir) break;
+            dir = parent;
+        }
+        _repoRootCache = Environment.CurrentDirectory;
+        return _repoRootCache;
+    }
+
+    private static string RepoPath(string relativePath)
+    {
+        var root = FindRepoRoot();
+        return Path.GetFullPath(Path.Combine(root, relativePath));
+    }
+
+    private static string DogfoodPath() =>
+        @"C:\Users\shahi\source\repos\run-aspnetcore-microservices\src";
+
+    private static string DntSitePath() =>
+        @"C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default";
+
+    private static int ExtractInt(string? line)
+    {
+        if (line is null) return 0;
+        var match = System.Text.RegularExpressions.Regex.Match(line, @"\d+");
+        return match.Success ? int.Parse(match.Value) : 0;
+    }
+
+    /// <summary>Extracts an integer from a simple dot-notation JSON path (e.g. "typesSummary.found").</summary>
+    private static int ExtractJsonInt(string json, string path)
+    {
+        try
+        {
+            var node = System.Text.Json.Nodes.JsonNode.Parse(json);
+            if (node is null) return 0;
+
+            var segments = path.Split('.');
+            System.Text.Json.Nodes.JsonNode? current = node;
+            foreach (var seg in segments)
+            {
+                if (current is null) return 0;
+                current = current[seg];
+            }
+
+            if (current is System.Text.Json.Nodes.JsonValue val)
+            {
+                if (val.TryGetValue<int>(out var i)) return i;
+                if (val.TryGetValue<long>(out var l)) return (int)l;
+            }
+            return 0;
+        }
+        catch { return 0; }
+    }
+}

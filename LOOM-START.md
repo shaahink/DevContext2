@@ -7,14 +7,13 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: Loom planning session — Meridian audited (truth-shallow gates found), engine/MCP/UI
-      driven hands-on, graph design + mega plan authored.
-stage: L0 NOT STARTED. Meridian M9-ext-b work committed this session.
-gate: dotnet build 0w/0e · tests green (Core 355/3skip, Server 12, Desktop 64) · pnpm check green
-dirty: none expected after planning commit
-next: L0.1 truth expectations (write them from TARGET REPO SOURCE, not DevContext output!)
-trap: checkout flow is depth-1 (E1) and RazorPages fabricates edges (E2) — L0 encodes these
-      as red-but-tracked truth tests; do NOT "fix" the truth files to match broken output.
+last: L0.1 truth expectations landed — TruthPendingAttribute, TruthExpectationTests (8 tests: 4 green
+      baseline + 4 red-but-skipped ratchets for checkout/L1/RazorPages/L7/Blazor), bench.ps1 -Truth mode.
+stage: L0 in progress. L0.1 DONE. L0.2–L0.3 next.
+gate: dotnet build 0w/0e · tests green (Core 355/3skip, Server 12, Desktop 64) · pnpm check green · truth gate 4/4 pass
+dirty: none
+next: L0.2 cold-agent MCP QA harness (eval/mcp-qa/run-cold.js) OR L0.3 UI drive gate (ui-audit-drive.mjs promotion).
+trap: do NOT write truth files from DevContext output — write from TARGET REPO SOURCE.
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -35,7 +34,7 @@ line under the row — never silent renumbering.
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| L0.1 | Truth expectations (6 repos, named flows/services/negatives) | TODO | | |
+| L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | 7318441 | eval-results/2026-07-07/truth-gate-l0.1.txt |
 | L0.2 | Cold-agent MCP QA harness + baseline | TODO | | |
 | L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | TODO | | |
 | L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | TODO | | |
