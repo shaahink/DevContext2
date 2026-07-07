@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 21:30 UTC · branch `feat/loom-l2` · HEAD `17bfc2f`_
+_Updated 2026-07-07 21:40 UTC · branch `feat/loom-l2` · HEAD `24e4290`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
-**Checkpoints:** 10/35 done · **Sessions run:** 8 · **Cost:** $0.2845 · **Tokens:** 221,044 in / 78,468 out / 39,967 think
+**Checkpoints:** 10/35 done · **Sessions run:** 9 · **Cost:** $0.2845 · **Tokens:** 221,044 in / 78,468 out / 39,967 think
 **Confirmed phases:** L0, L1
+
+## Latest activity (live)
+
+_Session #9 (Deliver) · running 10m · last output 22s ago · $0.0300_
+
+**Thinking:**
+> Now let me read the rest of GraphBuilder.cs to understand all the methods I need to keep vs delete. Let me also read the key seam detectors to understand how they work, and the pipeline that calls GraphBuilder.
+> Now I need to understand more of the pipeline. Let me read the DiscoveryPipeline.cs (specifically around line 146), the GraphBuilder calls to AddSends/AddRaises/AddDataEdges, and understand the full picture of what I need to do.  Key observations so far: 1. GraphBuilder is 2461 lines at `src/DevCont…
+> Now let me look at the remaining sections: StripStringLiterals, BuildAllMethodSpans, EstimateProvenance, and the variable resolution methods. Let me also look at how the BodyFacts flow through the pipeline (how they get from the extractor to the graph).
+
+**Recent actions:**
+- `22:39:59` » read src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
+- `22:40:00` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:40:00` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:40:01` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:40:08` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `22:40:09` » grep AllBodyFacts|BodyFactsExtractor|Graph2\.Seams
+- `22:40:10` » read src\DevContext.Core\Graph2\Seams\IntegrationEventCreationDetector.cs
+- `22:40:10` » read src\DevContext.Core\Graph2\Seams\DomainEventRaiseDetector.cs
+- `22:40:11` » read src\DevContext.Core\Graph2\Seams\EntityTouchDetector.cs
+- `22:40:11` » read src\DevContext.Core\Graph2\Seams\DispatchClassifier.cs
 
 ## Stage progress
 
@@ -33,6 +54,7 @@ _Updated 2026-07-07 21:30 UTC · branch `feat/loom-l2` · HEAD `17bfc2f`_
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
 | 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
 | 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
+| 9 | L2 | Deliver | 1 | 07-07 21:30 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
