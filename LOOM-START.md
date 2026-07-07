@@ -7,15 +7,13 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L0 session #3 — QA'd s2 (L0.1 genuine; ratcheted 2 green-washing vectors in truth tests, tightened
-      only). Delivered L0.2 (cold-agent harness, 0/12 baseline) + L0.3 (UI drive gate, 1/4 pass, 3 red w/owners).
-stage: **L0 COMPLETE** (L0.1 ✅ L0.2 ✅ L0.3 ✅). Truth harness live; all red items enumerated with owner stage.
-gate: dotnet build 0w/0e · tests (Core 355P/3S, Server 12P, Desktop 64P) · pnpm 27/27 · MCP QA 8/8 · truth 4P/4S
-QA verdict s2: L0.1 DONE & real; checkout truth ratcheted ≥2→≥5+cross-service, service-libs negative encoded.
-next: **start L1 (identity spine)** — new branch feat/loom-l1 off here. L1.1 SymbolId/SymbolRef/tiers/SymbolTable.
-trap: kill DevContext.Server before build (DLL lock — bit me again, a stray server was on :5179); a healthy
-      server may linger from prior sessions/conductor; do NOT write truth files from DevContext output.
-evidence: eval-results/2026-07-07/{gate-battery-l0-s3.txt, mcp-cold-qa.md, ui/ui-gate.md}. UI D-preset already green (M8).
+last: L1 session #5 — QA'd L0 (L0.1-0.3 genuine, no green-washing). Delivered full L1 identity spine.
+stage: **L1 COMPLETE** (L1.1 ✅ L1.2 ✅ L1.3 ✅ L1.4 ✅ L1.5 ✅). SymbolTable + 9 tests; Service nodes in Graph;
+      _eventPublishers de-static'd; guards green; Project stamped on all Type nodes + 11 EntryPoint builders.
+gate: dotnet build 0w/0e · Core 364P/3S · Server 12P · Desktop 64P · guards PASS · SymbolTable 9/9
+next: **L2 (BodyFacts + seam detectors)** — new branch feat/loom-l2 off here. Start L2.1 facts-v1 cache.
+trap: kill DevContext.Server before build (DLL lock); working tree must be clean before branch.
+evidence: eval-results/2026-07-07/gate-battery-l1-s5.txt; loom-guards.ps1 green.
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -39,11 +37,11 @@ line under the row — never silent renumbering.
 | L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | bdcc840 | eval-results/2026-07-07/truth-gate-l0.1.txt |
 | L0.2 | Cold-agent MCP QA harness + baseline | DONE | 930fbf8 | eval-results/2026-07-07/mcp-cold-qa.md |
 | L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | DONE | 9506977 | eval-results/2026-07-07/ui/ui-gate.md |
-| L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | TODO | | |
-| L1.2 | Service/Message/Store node kinds + boundary inference + proto | TODO | | |
-| L1.3 | ServiceLinks on Service nodes; `_eventPublishers` static deleted | TODO | | |
-| L1.4 | loom-guards.ps1 ban-list green | TODO | | |
-| L1.5 | impact/scope grouping via Service identity (no "(unknown)"/"Default") | TODO | | |
+| L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
+| L1.2 | Service/Message/Store node kinds + boundary inference + Project stamp | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
+| L1.3 | ServiceLinks on Service nodes; `_eventPublishers` static deleted | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
+| L1.4 | loom-guards.ps1 ban-list green | DONE | fa4e415 | scripts/loom-guards.ps1 (green, 0 banned) |
+| L1.5 | impact/scope grouping via Service identity (no "(unknown)"/"Default") | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
 | L2.1 | BodyFacts in the existing parse, cached (facts-v1) | TODO | | |
 | L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | TODO | | |
 | L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | TODO | | |
