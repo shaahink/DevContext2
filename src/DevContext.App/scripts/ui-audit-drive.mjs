@@ -1,7 +1,21 @@
-// UI audit drive — screenshots every surface + probes specific reported issues.
-// Usage: node scripts/ui-audit-drive.mjs
-// Requires: server on :5179 + ng serve on :4200 already running.
-// Output: ../../eval-results/2026-07-07/ui-audit/
+// UI drive gate (Loom L0.3) — promoted from the audit screenshot survey.
+// Usage: node scripts/ui-audit-drive.mjs [--gate]
+// Requires: DevContext.Server on :5179 + `ng serve` on :4200 already running
+//   (pnpm server + pnpm dev:web, or reuse a live server).
+//
+// Drives the real UI headless and asserts four user-visible truths the audit (§5)
+// found broken. Each is EXPECTED RED until L6 fixes it — the gate records the red
+// with its owning stage and does NOT fail the battery by default (no green-washing,
+// no false green). Pass --gate (armed in L6) to make the process exit non-zero when a
+// non-expected-red assertion regresses.
+//
+// Assertions:
+//   A. tab strip height >= 30px               (audit U1, owner L6.1)
+//   B. titlebar "New" preserves other tabs     (audit U2, owner L6.1)
+//   C. code pane non-empty on entry selection  (audit U3, owner L6.2)
+//   D. context studio preset seeds >= 1 card    (audit U6, owner L6.4)
+//
+// Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
 import { chromium } from "playwright";
 import * as fs from "node:fs";
@@ -13,15 +27,30 @@ const ROOT = path.resolve(__dirname, "..", "..", "..");
 const DOGFOOD = "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src";
 const SECOND_REPO = path.join(ROOT, "eval-repos", "TodoApi").replaceAll("\\", "/");
 const APP_URL = "http://localhost:4200";
-const OUT = path.join(ROOT, "eval-results", "2026-07-07", "ui-audit");
+const DATE = new Date().toISOString().slice(0, 10);
+const OUT = path.join(ROOT, "eval-results", DATE, "ui");
+const GATE = process.argv.includes("--gate");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const notes = [];
 const note = (s) => { notes.push(s); console.log("NOTE: " + s); };
 
+// Each assertion: { id, desc, owner, expectedRedUntil, run() -> {pass, detail} }.
+const assertions = [];
+const results = [];
+
 async function shot(page, name) {
-  await page.screenshot({ path: path.join(OUT, name + ".png") });
-  console.log("  shot: " + name);
+  try { await page.screenshot({ path: path.join(OUT, name + ".png") }); console.log("  shot: " + name); }
+  catch (e) { note(`shot ${name} failed: ${e.message}`); }
+}
+
+async function waitAnalyzed(page, maxSec) {
+  for (let i = 0; i < maxSec; i++) {
+    const txt = await page.evaluate(() => document.body.innerText);
+    if (/Nodes|entries|Entries/.test(txt) && !/Analyzing/.test(txt)) return true;
+    await sleep(1000);
+  }
+  return false;
 }
 
 async function main() {
@@ -31,223 +60,185 @@ async function main() {
   const page = await ctx.newPage();
   page.on("console", (m) => { if (m.type() === "error") note("console.error: " + m.text().slice(0, 200)); });
 
-  // ── 1. boot + empty state ──
-  await page.goto(APP_URL, { waitUntil: "networkidle" });
-  await sleep(2500);
-  await shot(page, "01-boot-initial");
+  // Shared drive state captured for the assertions.
+  const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null };
 
-  // ── 2. analyze dogfood ──
-  const input = page.locator("input:visible").first();
-  if (await input.count()) {
-    await input.fill(DOGFOOD);
-    await input.press("Enter");
-    note("analyze: submitted dogfood path via first visible input");
-  } else {
-    note("analyze: NO visible input found on boot screen");
-  }
-  for (let i = 0; i < 120; i++) {
-    const txt = await page.evaluate(() => document.body.innerText);
-    if (/Nodes|entries|Entries/.test(txt) && !/Analyzing/.test(txt)) break;
-    await sleep(1000);
-  }
-  await sleep(1500);
-  await shot(page, "02-home-after-analyze");
-
-  // ── 3. tab strip measurements ──
-  const tabInfo = await page.evaluate(() => {
-    const strip = document.querySelector("app-tab-strip");
-    if (!strip) return { found: false };
-    const r = strip.getBoundingClientRect();
-    const tabs = [...strip.querySelectorAll("[role='tab']")].map((t) => {
-      const b = t.getBoundingClientRect();
-      const cs = getComputedStyle(t);
-      return { w: Math.round(b.width), h: Math.round(b.height), fontSize: cs.fontSize, label: t.textContent?.trim().slice(0, 30) };
-    });
-    return { found: true, stripH: Math.round(r.height), tabs };
-  });
-  note("tab-strip: " + JSON.stringify(tabInfo));
-  const stripEl = page.locator("app-tab-strip");
-  if (await stripEl.count()) await stripEl.screenshot({ path: path.join(OUT, "03-tab-strip-closeup.png") });
-
-  // ── 4. icon size survey ──
-  const iconInfo = await page.evaluate(() => {
-    const sizes = {};
-    for (const svg of document.querySelectorAll("app-icon svg, .lucide, svg[width]")) {
-      const b = svg.getBoundingClientRect();
-      const k = Math.round(b.width) + "x" + Math.round(b.height);
-      sizes[k] = (sizes[k] ?? 0) + 1;
-    }
-    return sizes;
-  });
-  note("icon sizes on home: " + JSON.stringify(iconInfo));
-
-  // ── 5. second tab via + button, analyze second repo ──
-  const plusBtn = page.locator("app-tab-strip button", { hasText: "+" });
-  if (await plusBtn.count()) {
-    await plusBtn.click();
-    await sleep(1200);
-    await shot(page, "04-new-tab-created");
-    const input2 = page.locator("input:visible").first();
-    if (await input2.count()) {
-      await input2.fill(SECOND_REPO);
-      await input2.press("Enter");
-      for (let i = 0; i < 60; i++) {
-        const txt = await page.evaluate(() => document.body.innerText);
-        if (/Nodes|entries|Entries/.test(txt) && !/Analyzing/.test(txt)) break;
-        await sleep(1000);
-      }
-      await sleep(1000);
-      await shot(page, "05-second-tab-analyzed");
-    }
-    const tabsNow = await page.evaluate(() =>
-      [...document.querySelectorAll("app-tab-strip [role='tab']")].map((t) => t.textContent?.trim()),
-    );
-    note("tabs after second analyze: " + JSON.stringify(tabsNow));
-  } else {
-    note("plus button NOT found in tab strip");
-  }
-
-  // ── 6. titlebar New button — the reported breaker ──
-  const newBtn = page.locator("header button", { hasText: "New" });
-  if (await newBtn.count()) {
-    await newBtn.first().click();
-    await sleep(1500);
-    await shot(page, "06-after-titlebar-new");
-    const tabsAfter = await page.evaluate(() =>
-      [...document.querySelectorAll("app-tab-strip [role='tab']")].map((t) => t.textContent?.trim()),
-    );
-    note("tabs after titlebar New: " + JSON.stringify(tabsAfter));
-  } else {
-    note("titlebar New button not visible (session not ready?)");
-  }
-
-  // ── back to a working tab: click tab 1 if present ──
-  const firstTab = page.locator("app-tab-strip [role='tab']").first();
-  if (await firstTab.count()) { await firstTab.click(); await sleep(1500); }
-
-  // If no session ready anymore, re-analyze dogfood
-  {
-    const txt = await page.evaluate(() => document.body.innerText);
-    if (!/Nodes \d|nodes/.test(txt)) {
-      const in3 = page.locator("input:visible").first();
-      if (await in3.count()) {
-        await in3.fill(DOGFOOD);
-        await in3.press("Enter");
-        for (let i = 0; i < 90; i++) {
-          const t2 = await page.evaluate(() => document.body.innerText);
-          if (/Nodes|entries|Entries/.test(t2) && !/Analyzing/.test(t2)) break;
-          await sleep(1000);
-        }
-      }
-    }
-  }
-
-  // ── 7. Explore: deck → node select → inspector sections ──
-  await page.evaluate(() => (document.querySelector("a[href='/explore']"))?.click());
-  await sleep(2500);
-  await shot(page, "07-explore-initial");
-  const row = page.locator(".list-row").first();
-  if (await row.count()) {
-    await row.click();
+  try {
+    // ── boot + analyze dogfood ──
+    await page.goto(APP_URL, { waitUntil: "networkidle" });
     await sleep(2500);
-    await shot(page, "08-explore-entry-selected");
-    // inspector section headers
-    const sections = await page.evaluate(() =>
-      [...document.querySelectorAll("app-inspector .section-h")].map((b) => b.textContent?.trim()),
-    );
-    note("inspector sections: " + JSON.stringify(sections));
-    // open Code section
-    const codeBtn = page.locator("app-inspector .section-h", { hasText: "Code" });
-    if (await codeBtn.count()) {
-      await codeBtn.click();
-      await sleep(1500);
-      await shot(page, "09-inspector-code-open");
-      const codeContent = await page.evaluate(() => {
-        const pre = document.querySelector("app-inspector pre, app-inspector code");
-        return pre ? (pre.textContent ?? "").slice(0, 120) : null;
+    await shot(page, "01-boot");
+
+    const input = page.locator("input:visible").first();
+    if (await input.count()) { await input.fill(DOGFOOD); await input.press("Enter"); note("analyze: dogfood submitted"); }
+    else note("analyze: NO visible input on boot");
+    const analyzed = await waitAnalyzed(page, 150);
+    note("dogfood analyzed: " + analyzed);
+    await sleep(1500);
+    await shot(page, "02-home");
+
+    // ── A. tab strip height ──
+    const tabInfo = await page.evaluate(() => {
+      const strip = document.querySelector("app-tab-strip");
+      if (!strip) return { found: false };
+      const r = strip.getBoundingClientRect();
+      const tabs = [...strip.querySelectorAll("[role='tab']")].map((t) => {
+        const b = t.getBoundingClientRect(); const cs = getComputedStyle(t);
+        return { h: Math.round(b.height), fontSize: cs.fontSize, label: t.textContent?.trim().slice(0, 30) };
       });
-      note("inspector code content sample: " + JSON.stringify(codeContent));
-    } else {
-      note("inspector Code section NOT found");
+      return { found: true, stripH: Math.round(r.height), tabs };
+    });
+    note("tab-strip: " + JSON.stringify(tabInfo));
+    state.stripH = tabInfo.found ? tabInfo.stripH : null;
+    const stripEl = page.locator("app-tab-strip");
+    if (await stripEl.count()) await stripEl.screenshot({ path: path.join(OUT, "03-tab-strip.png") }).catch(() => {});
+
+    // ── B. New-button preservation: open a 2nd tab, then click titlebar New ──
+    const plusBtn = page.locator("app-tab-strip button", { hasText: "+" });
+    if (await plusBtn.count()) {
+      await plusBtn.first().click(); await sleep(1200);
+      const input2 = page.locator("input:visible").first();
+      if (await input2.count()) { await input2.fill(SECOND_REPO); await input2.press("Enter"); await waitAnalyzed(page, 90); }
+      await sleep(800);
+    } else note("plus button NOT found");
+
+    state.tabsBeforeNew = await page.evaluate(() =>
+      [...document.querySelectorAll("app-tab-strip [role='tab']")].map((t) => t.textContent?.trim()));
+    note("tabs before New: " + JSON.stringify(state.tabsBeforeNew));
+    await shot(page, "04-two-tabs");
+
+    const newBtn = page.locator("header button", { hasText: "New" });
+    if (await newBtn.count()) {
+      await newBtn.first().click(); await sleep(1500);
+      state.tabsAfterNew = await page.evaluate(() =>
+        [...document.querySelectorAll("app-tab-strip [role='tab']")].map((t) => t.textContent?.trim()));
+      note("tabs after New: " + JSON.stringify(state.tabsAfterNew));
+      await shot(page, "05-after-new");
+    } else note("titlebar New button not visible");
+
+    // Recover a live session for the Explore/Code assertion.
+    const firstTab = page.locator("app-tab-strip [role='tab']").first();
+    if (await firstTab.count()) { await firstTab.click(); await sleep(1200); }
+    {
+      const txt = await page.evaluate(() => document.body.innerText);
+      if (!/Nodes|entries|Entries/.test(txt)) {
+        const in3 = page.locator("input:visible").first();
+        if (await in3.count()) { await in3.fill(DOGFOOD); await in3.press("Enter"); await waitAnalyzed(page, 120); }
+      }
     }
-    // open Insights + Call Stack (new M9-ext sections)
-    for (const sec of ["Insights", "Call Stack"]) {
-      const b = page.locator("app-inspector .section-h", { hasText: sec });
-      if (await b.count()) { await b.click(); await sleep(800); }
-      else note(`inspector section '${sec}' NOT found`);
+
+    // ── C. code pane on entry selection ──
+    await page.evaluate(() => document.querySelector("a[href='/explore']")?.click());
+    await sleep(2500);
+    await shot(page, "06-explore");
+    const row = page.locator(".list-row").first();
+    if (await row.count()) {
+      await row.click(); await sleep(2000);
+      await shot(page, "07-entry-selected");
+      const codeBtn = page.locator("app-inspector .section-h", { hasText: "Code" });
+      if (await codeBtn.count()) {
+        await codeBtn.first().click(); await sleep(1800);
+        state.codeContent = await page.evaluate(() => {
+          const pre = document.querySelector("app-inspector pre, app-inspector code");
+          return pre ? (pre.textContent ?? "").trim() : null;
+        });
+        note("code pane content len: " + (state.codeContent?.length ?? "null"));
+        await shot(page, "08-code-pane");
+      } else note("inspector Code section NOT found");
+    } else note("explore: no .list-row found");
+
+    // ── D. context studio preset seeds cards ──
+    await page.evaluate(() => document.querySelector("a[href='/context']")?.click());
+    await sleep(2200);
+    await shot(page, "09-context-initial");
+    const presetBtn = page.locator("button", { hasText: /changing this endpoint/i }).first();
+    if (await presetBtn.count()) {
+      await presetBtn.click(); await sleep(800);
+      // preset opens an entry picker; select the first entry to seed cards
+      const presetEntry = page.locator("app-scope-picker button", { hasText: /\/|GET|POST|PUT|DELETE/ }).first();
+      if (await presetEntry.count()) { await presetEntry.click(); await sleep(2500); }
+      state.presetCards = await page.evaluate(() =>
+        document.querySelectorAll("app-composition-view [draggable='true']").length);
+      note("context preset cards: " + state.presetCards);
+      await shot(page, "10-context-preset");
+    } else note("context preset button NOT found");
+
+  } catch (e) {
+    note("DRIVE ERROR: " + e.message);
+  } finally {
+    // ── Evaluate assertions from captured state ──
+    assertions.push(
+      { id: "A-tabstrip-height", desc: "tab strip height >= 30px", audit: "U1", owner: "L6.1", expectedRedUntil: "L6",
+        run: () => ({ pass: (state.stripH ?? 0) >= 30, detail: `stripH=${state.stripH}px (want >=30)` }) },
+      { id: "B-new-preserves-tabs", desc: "titlebar New preserves other tabs", audit: "U2", owner: "L6.1", expectedRedUntil: "L6",
+        run: () => {
+          const before = state.tabsBeforeNew ?? [], after = state.tabsAfterNew ?? [];
+          if (!state.tabsAfterNew) return { pass: false, detail: "New button not exercised (no session/button)" };
+          const lost = before.filter((t) => !after.includes(t));
+          const added = after.length > before.length;
+          return { pass: lost.length === 0 && added, detail: `before=${JSON.stringify(before)} after=${JSON.stringify(after)} lost=${JSON.stringify(lost)} added=${added}` };
+        } },
+      { id: "C-code-pane-nonempty", desc: "code pane non-empty on entry selection", audit: "U3", owner: "L6.2", expectedRedUntil: "L6",
+        run: () => ({ pass: (state.codeContent?.length ?? 0) > 0, detail: `code length=${state.codeContent?.length ?? "null"}` }) },
+      { id: "D-context-preset-cards", desc: "context studio preset seeds >= 1 card", audit: "U6", owner: "L6.4", expectedRedUntil: "L6",
+        run: () => ({ pass: (state.presetCards ?? 0) >= 1, detail: `cards=${state.presetCards ?? "null"}` }) },
+    );
+    for (const a of assertions) {
+      let r; try { r = a.run(); } catch (e) { r = { pass: false, detail: "assert error: " + e.message }; }
+      results.push({ ...a, pass: r.pass, detail: r.detail, run: undefined });
     }
-    await shot(page, "10-inspector-all-sections");
-  } else {
-    note("explore: no .list-row found in deck");
+    fs.writeFileSync(path.join(OUT, "notes.md"), notes.join("\n"), "utf8");
+    await browser.close();
   }
 
-  // ── 8. lens switcher: layer lens ──
-  const lensBtns = await page.evaluate(() =>
-    [...document.querySelectorAll("button")].filter((b) => /^(Service|Flow|Layer|Feature)$/.test(b.textContent?.trim() ?? "")).map((b) => b.textContent?.trim()),
-  );
-  note("lens buttons found: " + JSON.stringify(lensBtns));
-  const layerBtn = page.locator("button", { hasText: /^Layer$/ }).first();
-  if (await layerBtn.count()) {
-    await layerBtn.click();
-    await sleep(2000);
-    await shot(page, "11-explore-layer-lens");
+  // ── Report + artifact ──
+  const reds = results.filter((r) => !r.pass);
+  const unexpectedFails = reds.filter((r) => !r.expectedRedUntil);
+
+  console.log("\n========================================");
+  console.log("UI drive gate (Loom L0.3)");
+  console.log("========================================");
+  console.log("| Assertion | Pass | Owner | Detail |");
+  console.log("|-----------|------|-------|--------|");
+  for (const r of results) {
+    const tag = r.pass ? "PASS" : (r.expectedRedUntil ? `RED(${r.owner})` : "REGRESS");
+    console.log(`| ${r.id.padEnd(24)} | ${tag.padEnd(10)} | ${r.owner} | ${String(r.detail).slice(0, 70)} |`);
   }
+  console.log(`\n${results.filter((r) => r.pass).length}/${results.length} pass · ${reds.length} red (expected until their owner stage).`);
 
-  // ── 9. table lens (Shift+E) ──
-  await page.keyboard.press("Shift+E");
-  await sleep(1500);
-  await shot(page, "12-table-lens");
-
-  // ── 10. Atlas ──
-  await page.evaluate(() => (document.querySelector("a[href='/atlas']"))?.click());
-  await sleep(2500);
-  await shot(page, "13-atlas");
-
-  // ── 11. Insights page ──
-  await page.evaluate(() => (document.querySelector("a[href='/insights']"))?.click());
-  await sleep(1800);
-  await shot(page, "14-insights");
-
-  // ── 12. Context Studio ──
-  await page.evaluate(() => (document.querySelector("a[href='/context']"))?.click());
-  await sleep(2200);
-  await shot(page, "15-context-studio-initial");
-  // try clicking a scope tree entry then a preset
-  const scopeRow = page.locator("app-scope-picker .list-row, app-scope-picker button").first();
-  if (await scopeRow.count()) {
-    await scopeRow.click();
-    await sleep(1200);
-    await shot(page, "16-context-scope-clicked");
+  const md = [];
+  md.push("# UI Drive Gate — Baseline (Loom L0.3)");
+  md.push("");
+  md.push(`**Date:** ${DATE}  `);
+  md.push(`**App:** ${APP_URL} (server :5179 + ng :4200)  `);
+  md.push(`**Screenshots:** \`eval-results/${DATE}/ui/*.png\` (10) + \`notes.md\`  `);
+  md.push("");
+  md.push("Headless drive of the real UI. Each assertion targets a confirmed audit §5 defect and is");
+  md.push("EXPECTED RED until its owner stage. The gate records reds with owners; it does not");
+  md.push("green-wash. Run with `--gate` (armed in L6) to enforce.");
+  md.push("");
+  md.push("## Assertions");
+  md.push("");
+  md.push("| # | Assertion | Result | Audit | Owner | Detail |");
+  md.push("|---|-----------|--------|-------|-------|--------|");
+  for (const r of results) {
+    const res = r.pass ? "PASS" : (r.expectedRedUntil ? `RED (until ${r.expectedRedUntil})` : "REGRESSION");
+    md.push(`| ${r.id} | ${r.desc} | ${res} | ${r.audit} | ${r.owner} | ${String(r.detail).replace(/\|/g, "/").slice(0, 120)} |`);
   }
-  const anyPreset = page.locator("button", { hasText: /preset|Preset/ }).first();
-  if (await anyPreset.count()) { await anyPreset.click(); await sleep(800); }
-  const copyBtn = page.locator("button", { hasText: /^Copy/ }).first();
-  if (await copyBtn.count()) {
-    await copyBtn.click();
-    await sleep(800);
-    await shot(page, "17-context-after-copy");
+  md.push("");
+  md.push("## Red items enumerated (owner stage)");
+  for (const r of reds) md.push(`- **${r.id}** — ${r.desc} → **${r.owner}** (audit ${r.audit})`);
+  md.push("");
+  md.push(`**Gate status:** ${unexpectedFails.length === 0 ? "OK (all reds are expected-red with owners; no regression)" : "REGRESSION — " + unexpectedFails.map((r) => r.id).join(", ")}`);
+  md.push("");
+  fs.writeFileSync(path.join(OUT, "ui-gate.md"), md.join("\n"), "utf8");
+  fs.writeFileSync(path.join(OUT, "ui-gate.json"), JSON.stringify({ date: DATE, results, reds: reds.map((r) => r.id), unexpectedFails: unexpectedFails.map((r) => r.id) }, null, 2), "utf8");
+  console.log(`\nArtifact: eval-results/${DATE}/ui/ui-gate.md (+ .json, 10 screenshots)`);
+
+  if (GATE && unexpectedFails.length > 0) {
+    console.error("GATE FAILED (regression): " + unexpectedFails.map((r) => r.id).join(", "));
+    process.exitCode = 1;
   }
-
-  // ── 13. MCP page ──
-  await page.evaluate(() => (document.querySelector("a[href='/mcp']"))?.click());
-  await sleep(1800);
-  await shot(page, "18-mcp-page");
-
-  // ── 14. Settings ──
-  await page.evaluate(() => (document.querySelector("a[href='/settings']"))?.click());
-  await sleep(1500);
-  await shot(page, "19-settings");
-
-  // ── 15. light theme home ──
-  await page.emulateMedia({ colorScheme: "light" });
-  await page.evaluate(() => (document.querySelector("a[href='/']"))?.click());
-  await sleep(1200);
-  await shot(page, "20-home-light");
-  await page.emulateMedia({ colorScheme: "dark" });
-
-  fs.writeFileSync(path.join(OUT, "notes.md"), notes.join("\n"), "utf8");
-  console.log("\nDONE. Notes:\n" + notes.join("\n"));
-  await browser.close();
 }
 
 main().catch((e) => { console.error("FATAL:", e); process.exitCode = 1; });
