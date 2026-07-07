@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 
+using DevContext.Core.Graph2;
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DevContext.Core.Models;
@@ -37,12 +39,29 @@ public sealed class SharedAnalysisContext
     /// <summary>Shared cache of pre-parsed syntax nodes per file. Populated once, read by all Stage 2 extractors.</summary>
     public ConcurrentDictionary<string, Lazy<Task<FileSyntaxNodes>>> SyntaxNodeCache { get; } = new();
 
-    /// <summary>Gets or lazily populates the parsed syntax nodes for a given file path.</summary>
+    /// <summary>Get or lazily populates the parsed syntax nodes for a given file path.</summary>
     public async Task<FileSyntaxNodes> GetOrParseSyntaxNodesAsync(string filePath, Func<Task<FileSyntaxNodes>> factory)
     {
         var lazy = SyntaxNodeCache.GetOrAdd(filePath, _ => new Lazy<Task<FileSyntaxNodes>>(factory));
         return await lazy.Value;
     }
+
+    /// <summary>Content-keyed cache of structured body facts per file (Loom L2, <c>facts-v1</c>). Built
+    /// once from the shared parse by <c>BodyFactsExtractor</c>; read by seam detectors. Never re-parses —
+    /// the factory walks the syntax tree already memoised in <see cref="IAnalysisCache"/>.</summary>
+    public ConcurrentDictionary<string, Lazy<Task<ImmutableArray<BodyFacts>>>> BodyFactsCache { get; } = new();
+
+    /// <summary>Gets or lazily builds the body facts for a given file path (facts-v1 cache).</summary>
+    public async Task<ImmutableArray<BodyFacts>> GetOrBuildBodyFactsAsync(
+        string filePath, Func<Task<ImmutableArray<BodyFacts>>> factory)
+    {
+        var lazy = BodyFactsCache.GetOrAdd(filePath, _ => new Lazy<Task<ImmutableArray<BodyFacts>>>(factory));
+        return await lazy.Value;
+    }
+
+    /// <summary>All body facts gathered across files after the BodyFacts pass (facts-v1). Empty until
+    /// <c>BodyFactsExtractor</c> runs; consumed by the seam detectors (L2) and the assembler (L2.3).</summary>
+    public IReadOnlyList<BodyFacts> AllBodyFacts { get; set; } = [];
 }
 
 /// <summary>Represents the dependency graph of projects within the solution.</summary>
