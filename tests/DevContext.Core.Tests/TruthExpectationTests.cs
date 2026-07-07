@@ -44,16 +44,26 @@ public sealed class TruthExpectationTests
         Assert.Contains("TRACE", trace);
         Assert.Contains("ENTRY", trace);
 
-        // Minimum seam hops (send + handler + bus + consumer + create ≥ 5)
+        // Minimum seam hops (send + handler + bus + consumer + create ≥ 5).
+        // The named source chain has 5 hops past the entry:
+        //   send CheckoutBasketCommand → handler CheckoutBasketCommandHandler →
+        //   bus BasketCheckoutEvent → consumer BasketCheckoutEventHandler →
+        //   send CreateOrderCommand. depth_ge_5 in the test name is the real bar.
         var seamHops = trace.Split('\n').Count(l =>
             l.Contains("call ") || l.Contains("send ") || l.Contains("handler ")
             || l.Contains("raises ") || l.Contains("data ") || l.Contains("bus "));
-        Assert.True(seamHops >= 2, $"Checkout trace seam hops: {seamHops}, expected ≥2:\n{trace}");
+        Assert.True(seamHops >= 5, $"Checkout trace seam hops: {seamHops}, expected ≥5:\n{trace}");
 
-        // Named steps (from reading the source: CheckoutBasketEndpoints.cs →
-        // CheckoutBasketHandler.cs → BasketCheckoutEvent → BasketCheckoutEventHandler)
+        // Named steps (from reading the source, verbatim:
+        //   CheckoutBasketEndpoints.cs → CheckoutBasketHandler.cs →
+        //   BuildingBlocks.Messaging/Events/BasketCheckoutEvent →
+        //   Ordering.Application/Orders/EventHandlers/Integration/BasketCheckoutEventHandler.cs
+        //   → sender.Send(CreateOrderCommand)). The last two are the CROSS-SERVICE
+        //   hop into Ordering — the whole point of the flagship flow.
         Assert.Contains("CheckoutBasketCommand", trace, StringComparison.Ordinal);
         Assert.Contains("BasketCheckoutEvent", trace, StringComparison.Ordinal);
+        Assert.Contains("BasketCheckoutEventHandler", trace, StringComparison.Ordinal);
+        Assert.Contains("CreateOrderCommand", trace, StringComparison.Ordinal);
         _output.WriteLine($"Checkout trace depth: {seamHops} hops");
     }
 
@@ -78,9 +88,15 @@ public sealed class TruthExpectationTests
         Assert.Contains("Shopping.Web", result.Content, StringComparison.Ordinal);
         Assert.Contains("YarpApiGateway", result.Content, StringComparison.Ordinal);
 
-        // Class libraries must NOT appear as services
-        var perServiceSection = result.Content;
-        // If BuildingBlocks appears in the per-service block, that's a fail
+        // Class libraries must NOT appear as runnable services. In the STYLE
+        // "per service:" block each runnable renders as "Name: <style>"; library
+        // projects only appear in the dependency list (with "→"), never as a
+        // per-service style line. Assert no library is presented as a service.
+        Assert.DoesNotContain("BuildingBlocks: ", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildingBlocks.Messaging: ", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ordering.Application: ", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ordering.Domain: ", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Ordering.Infrastructure: ", result.Content, StringComparison.Ordinal);
     }
 
     /// <summary>
