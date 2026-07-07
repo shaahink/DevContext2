@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 22:00 UTC · branch `feat/loom-l2` · HEAD `267dec8`_
+_Updated 2026-07-07 22:10 UTC · branch `feat/loom-l2` · HEAD `52ba77d`_
 
 **Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
@@ -9,24 +9,24 @@ _Updated 2026-07-07 22:00 UTC · branch `feat/loom-l2` · HEAD `267dec8`_
 
 ## Latest activity (live)
 
-_Session #9 (Deliver) · running 30m · last output 48s ago · $0.0918_
+_Session #9 (Deliver) · running 40m · last output 21s ago · $0.1012_
 
 **Thinking:**
-> Stale build. Let me rebuild and retest.
-> All 13 PatternZoo tests pass now. Let me now run the full test suite to see how many failures remain.
-> Down from 19 failures to 7. Let me check what the remaining 7 failures are.
+> Good, `Microsoft.CodeAnalysis` and `Microsoft.CodeAnalysis.CSharp` are already imported. Now let me also note that `System.Text.RegularExpressions` is still needed by `AddPipelineBehaviors` (line 794) and `IsSelfCallNoise` helper (which uses `Match` type). I should keep the import for now and remove…
+> Down from 7 to 6 failures. Let me look at the remaining failures.
+> All 6 failures are in GraphBuilderTraceTests. The GraphBuilderSpanTests passed! The auto-extraction works for most cases. The remaining GraphBuilderTraceTests failures are likely due to specific test scenarios that the auto-extraction doesn't handle well, or expected behaviors that differ from the s…
 
 **Recent actions:**
-- `22:55:28` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 5
-- `22:55:36` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" --no-build 2>&1 | Select-Object -Last 30
-- `22:55:41` » read tests\DevContext.Core.Tests\PatternZooTests.cs
-- `22:55:59` » edit tests\DevContext.Core.Tests\PatternZooTests.cs
-- `22:55:59` · The test uses a preprocessor directive. The syntax tree-based extractor respects preprocessor symbols, unlike the old regex scanner. Let me fix the test by defi…
-- `22:56:06` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" --no-build 2>&1 | Select-Object -Last 10
-- `22:56:28` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --no-restore 2>&1 | Select-Object -Last 5
-- `22:56:36` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests --filter "FullyQualifiedName~PatternZoo" 2>&1 | Select-Object -Last 10
-- `22:56:41` · All 13 PatternZoo tests pass. Let me run the full test suite:
-- `22:59:45` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 15
+- `23:02:59` » read tests\DevContext.Core.Tests\GraphBuilderTraceTests.cs
+- `23:02:59` » read tests\DevContext.Core.Tests\GraphBuilderSpanTests.cs
+- `23:03:16` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:03:16` · Rather than updating every test file individually, let me add a fallback in `AddSeamsFromDetectors` to auto-extract BodyFacts from the model's SourceBody when n…
+- `23:03:30` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:03:37` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:03:55` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 8
+- `23:07:04` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 10
+- `23:10:06` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-String "Failed\s+\w+\.\w+\.\w+\."
+- `23:10:12` » read tests\DevContext.Core.Tests\GraphBuilderTraceTests.cs
 
 ## Stage progress
 
