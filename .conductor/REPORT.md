@@ -1,12 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 23:04 UTC · branch `feat/loom-l2` · HEAD `5b69dd7`_
+_Updated 2026-07-07 23:11 UTC · branch `feat/loom-l2` · HEAD `9a30d17`_
 
 **Status:** Idle
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0
 **Checkpoints:** 12/35 done · **Sessions run:** 10 · **Cost:** $0.6467 · **Tokens:** 563,363 in / 135,281 out / 94,547 think
-**Confirmed phases:** L0, L1
-**Pending:** full-battery phase gate for L2
+**Confirmed phases:** L0, L1, L2
 
 ## Stage progress
 
@@ -14,7 +13,7 @@ _Updated 2026-07-07 23:04 UTC · branch `feat/loom-l2` · HEAD `5b69dd7`_
 |---|---|---|---|
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
-| L2 | BodyFacts + seam detectors | 4/4 | gating… |
+| L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 0/3 | todo |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
@@ -84,7 +83,7 @@ _Updated 2026-07-07 23:04 UTC · branch `feat/loom-l2` · HEAD `5b69dd7`_
 
 ## Last gate run
 
-build:OK
+build:OK · tests:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
