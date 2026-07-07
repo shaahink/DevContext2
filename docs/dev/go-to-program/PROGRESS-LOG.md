@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-07-07 L1 session #5 (Loom L1 identity spine delivery)
+
+**Changed:**
+- Created `Graph2/` namespace: `SymbolId`, `SymbolRef`, `RefSite`, `ResolutionTier`, `SymbolTable`, `AmbiguityReport`
+- Added `Service`/`Message`/`Store` to `NodeKind` enum; `Exposes`/`DependsOn` to `EdgeKind`
+- Created `ServiceBoundaryInference` (runnable detection)
+- `GraphBuilder`: `AddServiceNodes` creates Service nodes for runnable projects; `AddTypeNodes` stamps `Project` on every Type node
+- `_eventPublishers` changed from `static` to instance field (concurrency fix)
+- `AddBusServiceLinks`/`AddGrpcServiceLinks`/`AddHttpServiceLinks` use `NodeKind.Service` + `NodeId.ForService` instead of fake Type nodes
+- `AddSends` made non-static (accesses `_eventPublishers`)
+- All 11 `EntryPointBuilder`s stamp `Project = scope.ProjectForFile(...)` on every entry point
+- Created `scripts/loom-guards.ps1` — bans `new Regex` in Graph/, `SymbolId(` outside Graph2/, `fqns[0]` in Graph2/
+- Added 9 `SymbolTableTests` (incl. RazorPages same-short-name-different-project fixture)
+- Updated `LOOM-START.md` handoff block + L1 checkpoint rows
+
+**Verified:**
+- `dotnet build` 0w/0e
+- `dotnet test --filter "Category!=Eval"`: Core 364P/3S, Server 12P, Desktop 64P
+- `loom-guards.ps1`: PASSED (0 banned, 13 advisory remaining for L2)
+- `pnpm check`: green (session start)
+
+**Next:** L2 (BodyFacts + seam detectors) — branch `feat/loom-l2` off `feat/loom-l1`
+
 ## 2026-07-07 — M9-ext: All gaps closed + Inspector sections + UX fixes (Meridian CLOSED)
 
 **Closed (Gaps 1-7 from M7+M8.1a audit):**
