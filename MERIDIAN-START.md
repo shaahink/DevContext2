@@ -64,8 +64,8 @@ line under the row — never silent renumbering.
 | M7.5 | Table lens v2 (spec §UI-Table) | DONE | e0ca191 | CDK-virtualized, archetype columns, CSV export |
 | M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | DONE | 2781d56 | context-studio/ (scope-picker.ts, composition-view.ts, budget-panel.ts, context-studio.ts) |
 | M8.2 | Composition model (cards/seeds/presets) | DONE | 2781d56 | 9 card types, getContext wired, preset, omnibox, drag-drop, trail seeds, format/intent |
-| M8.3 | Budget/meter/server-token wiring | DONE | | budget-panel.ts (model-based budget, serverTokens), context-studio.ts (budget→RPC, sectionTokens) |
-| M8.4 | Provenance chips + per-section tokens | DONE | | composition-view.ts (provenance chips, server token badge, section breakdown), context-studio.ts (provenance from entries) |
+| M8.3 | Budget/meter/server-token wiring | DONE | 08f4340 | budget-panel.ts (model-based budget, serverTokens), context-studio.ts (budget→RPC, sectionTokens) |
+| M8.4 | Provenance chips + per-section tokens | DONE | 08f4340 | composition-view.ts (provenance chips, server token badge, section breakdown), context-studio.ts (provenance from entries) |
 | M9.1 | Full bench incl. PowerToys + MassTransit | TODO | | |
 | M9.2 | AUDIT.md with fresh-artifact verdicts only | TODO | | |
 | M9.3 | HANDOVER-MERIDIAN.md + memory + tracker close | TODO | | |
