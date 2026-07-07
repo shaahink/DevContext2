@@ -7,13 +7,15 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L1 session #5 — QA'd L0 (L0.1-0.3 genuine, no green-washing). Delivered full L1 identity spine.
-stage: **L1 COMPLETE** (L1.1 ✅ L1.2 ✅ L1.3 ✅ L1.4 ✅ L1.5 ✅). SymbolTable + 9 tests; Service nodes in Graph;
-      _eventPublishers de-static'd; guards green; Project stamped on all Type nodes + 11 EntryPoint builders.
-gate: dotnet build 0w/0e · Core 364P/3S · Server 12P · Desktop 64P · guards PASS · SymbolTable 9/9
-next: **L2 (BodyFacts + seam detectors)** — new branch feat/loom-l2 off here. Start L2.1 facts-v1 cache.
-trap: kill DevContext.Server before build (DLL lock); working tree must be clean before branch.
-evidence: eval-results/2026-07-07/gate-battery-l1-s5.txt; loom-guards.ps1 green.
+last: L2 session #7 — QA'd L1 (all L1.1-1.5 genuine, no green-washing; de-static confirmed instance field).
+stage: **L2 IN PROGRESS** (L2.1 ✅ L2.2 ✅ · L2.3 ⬜ L2.4 ⬜). BodyFacts (facts-v1) built in the parse,
+      output-neutral; 5 seam detectors + 18 tests; checkout spine detected end-to-end (E1 pattern by construction).
+gate: dotnet build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · mcp-qa 8/8 · dogfood 494/316/6/34 2.3s.
+next: **L2.3** — new CodeGraphAssembler consumes SeamMatches; delete GraphBuilder body-regex paths;
+      tighten guards to ban all Regex under Core/Graph. Then **L2.4** checkout trace ≥5 cross-service (flip [TruthPending]).
+trap: kill DevContext.Server before build (DLL lock); `report` ignores --focus (use `analyze --focus`);
+      GraphBuilder is 2461 lines (both paths live until L2.3) — migrate the organ then DELETE the old path.
+evidence: eval-results/2026-07-07/gate-battery-l2-s7.txt; loom-guards.ps1 green; Graph2 tests 18/18.
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -42,8 +44,8 @@ line under the row — never silent renumbering.
 | L1.3 | ServiceLinks on Service nodes; `_eventPublishers` static deleted | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
 | L1.4 | loom-guards.ps1 ban-list green | DONE | fa4e415 | scripts/loom-guards.ps1 (green, 0 banned) |
 | L1.5 | impact/scope grouping via Service identity (no "(unknown)"/"Default") | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
-| L2.1 | BodyFacts in the existing parse, cached (facts-v1) | TODO | | |
-| L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | TODO | | |
+| L2.1 | BodyFacts in the existing parse, cached (facts-v1) | DONE | 006daff | eval-results/2026-07-07/gate-battery-l2-s7.txt |
+| L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | DONE | 5dafd6e | eval-results/2026-07-07/gate-battery-l2-s7.txt |
 | L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | TODO | | |
 | L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | TODO | | |
 | L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | TODO | | |
