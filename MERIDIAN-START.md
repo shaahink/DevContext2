@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(m8.2): Composition model — 9 card types, getContext RPC wired, preset, omnibox, drag-drop, global body toggle, trail seeds, format/intent
-stage: M8.2 — DONE (9 sub-tasks: card types, RPC data, preset, omnibox, drag-drop, body toggles, trail seeds, format, intent ordering)
+last: feat(m8.3+m8.4): Server-side token estimation + provenance chips — getContext RPC returns real token counts stored on cards, budget slider drives RPC budgetTokens param, per-card provenance file:line chips, per-section token breakdown, server vs heuristic visual distinction
+stage: M8.3+M8.4 — DONE (server token meter, provenance chips, budget-to-RPC wiring, section token breakdown)
 gate: pnpm check green (lint 0/0, test 27/27, build 0w/0e)
 dirty: none
-next: M8.3+M8.4 — Server-side token estimation (ContextPackBuilder round-trip), provenance chips per card, stale banner, server-side meter
-trap: token estimation is still client-side v0 (lines × 2.5) — server round-trip through ContextPackBuilder gated for M8.4; lens-switcher layer/feature still available=false
+next: M9 — Full bench, AUDIT.md, HANDOVER-MERIDIAN.md close-out (or engine gaps 1-2: read_source RPC + layer/feature uplumb)
+trap: buildContext() is still client-side string assembly (v0) — true ContextPackBuilder round-trip needs a new RPC; stale banner gated on freshness probe RPC; lens-switcher layer/feature still available=false (needs engine+proto)
 
 ## Checkpoints
 
@@ -62,10 +62,10 @@ line under the row — never silent renumbering.
 | M7.3 | Trail dedupe/group/cap; deck legibility | DONE | c3e7078 | TrailFlowGroup, groupedBreadcrumb, kind-colored dots |
 | M7.4 | Chrome pass + feedback affordances (spec §UI-Chrome) | DONE | 1d2f26d | titlebar 40px, rail hover labels, statusbar clickable |
 | M7.5 | Table lens v2 (spec §UI-Table) | DONE | e0ca191 | CDK-virtualized, archetype columns, CSV export |
-| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | DONE | | /context route, scope-picker.ts, composition-view.ts, budget-panel.ts |
-| M8.2 | Composition model (cards/seeds/presets) | DONE | | |
-| M8.3 | Budget/meter/intent/copy controls | TODO | | |
-| M8.4 | Provenance + staleness + builder round-trip | TODO | | |
+| M8.1 | Context Studio surface + old panes retired (spec §UI-Context) | DONE | 2781d56 | context-studio/ (scope-picker.ts, composition-view.ts, budget-panel.ts, context-studio.ts) |
+| M8.2 | Composition model (cards/seeds/presets) | DONE | 2781d56 | 9 card types, getContext wired, preset, omnibox, drag-drop, trail seeds, format/intent |
+| M8.3 | Budget/meter/server-token wiring | DONE | | budget-panel.ts (model-based budget, serverTokens), context-studio.ts (budget→RPC, sectionTokens) |
+| M8.4 | Provenance chips + per-section tokens | DONE | | composition-view.ts (provenance chips, server token badge, section breakdown), context-studio.ts (provenance from entries) |
 | M9.1 | Full bench incl. PowerToys + MassTransit | TODO | | |
 | M9.2 | AUDIT.md with fresh-artifact verdicts only | TODO | | |
 | M9.3 | HANDOVER-MERIDIAN.md + memory + tracker close | TODO | | |

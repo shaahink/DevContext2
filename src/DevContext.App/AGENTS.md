@@ -322,14 +322,28 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ## M8 delivery (overwrite this block each session, no history)
 
-status: M8.2 delivered (9 sub-tasks: expanded card types, RPC data wiring, preset, omnibox, drag-drop, global body toggle, trail seeds, format selector, intent ordering)
-delivered: context-studio/ (scope-picker.ts, composition-view.ts, budget-panel.ts, context-studio.ts) — all 4 files updated
+status: M8.3+M8.4 delivered — server-side token estimation wired + provenance chips per card
+delivered: context-studio/ (composition-view.ts, budget-panel.ts, context-studio.ts) — token meter, provenance, budget→RPC wiring
 last: `pnpm check` green (lint 0/0, test 27/27, build 0w/0e)
-next: M8.3+M8.4 — Server-side token estimation (ContextPackBuilder round-trip), provenance chips per card (file:line from RPC response), stale banner (freshness probe), server-side live token meter
+next: M9 close-out (full bench + AUDIT.md + HANDOVER-MERIDIAN.md) OR engine gaps 1-2 (read_source RPC + layer/feature uplumb)
 gaps closed: 3 (prismjs), 4 (contrast), 5 (shared handler column), 6 (dead audit-table), 7 (dock cycle)
 gaps open: 1 (read_source RPC — engine+proto), 2 (layer/feature uplumb — engine+proto)
-trap: token estimation is still client-side v0 (lines × 2.5) — ContextPackBuilder round-trip and server-side meter gated for M8.4; lens-switcher layer/feature still available=false
-M8.2 detail:
+trap: buildContext() is still client-side v0 (no ContextPackBuilder round-trip RPC); stale banner gated on freshness probe RPC; lens-switcher layer/feature still available=false
+
+M8.3 detail:
+  - Server-side token meter: card.serverTokens stored from ContextResponse.totalTokens after getContext RPC
+  - Budget→RPC wiring: budget slider value (BudgetPanel.budget model) flows to getContext budgetTokens param
+  - Per-section token breakdown: card.sectionTokens = [{key, tokens}, ...] from ContextResponse sections
+  - Exact vs heuristic distinction: server tokens shown without ~ prefix, heuristic estimatedLines with ~ prefix
+  - BudgetPanel.budget: signal→model for two-way binding with parent via [(budget)]
+
+M8.4 detail:
+  - Provenance chips: file:line per-card (extracted from EntryVm.provenance of seeded entries)
+  - Composition footer shows total tokens not lines (uses serverTokens when available)
+  - Per-card token badge: green text for server-confirmed (formatTokens), muted ~ for heuristic estimate
+  - Toast feedback on copy/save already wired from M8.2
+
+M8.1–M8.2 detail (delivered prior session):
   - 9 card types: flow | signatures | bodies | di_wiring | config | entities | contracts | tests | identity
   - getContext RPC wired: cards load real content from server, fall back to placeholder on error
   - Preset "I'm changing this endpoint": flow + bodies + contracts + validators + tests
@@ -339,4 +353,4 @@ M8.2 detail:
   - Trail seeds: "From current trail" button seeds flow cards from TrailStore steps
   - Format selector: markdown/plain produces real different output (strips markdown in plain mode)
   - Intent ordering: trace/explain/review reorders cards via INTENT_CARD_ORDER mapping + effect()
-
+  - ExportDrawer retired (file deleted), Inspector LLM section removed, Ctrl+E→/context redirect

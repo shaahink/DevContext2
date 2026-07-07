@@ -42,7 +42,7 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
           <div class="flex items-center justify-between text-2xs mb-0.5">
             <span class="truncate text-ink-subtle">{{ card.title }}</span>
             <span class="shrink-0 tabular-nums" [class.text-warn]="cardTokens(card) > budgetPerCard()" [class.text-ink-subtle]="cardTokens(card) <= budgetPerCard()">
-              ~{{ cardTokens(card) }}
+              {{ card.serverTokens !== null ? '' : '~' }}{{ cardTokens(card) }}
             </span>
           </div>
           <div class="h-1 rounded-full bg-hover">
@@ -61,7 +61,7 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         <div class="flex items-center justify-between mb-1">
           <span class="text-xs font-medium text-ink">Total</span>
           <span class="text-xs tabular-nums" [class.text-warn]="totalTokens() > budget()" [class.text-success]="totalTokens() <= budget()">
-            ~{{ totalTokens() }} / {{ budget() }} tok
+            {{ allServer() ? '' : '~' }}{{ totalTokens() }} / {{ budget() }} tok
           </span>
         </div>
         <div class="h-2 rounded-full bg-hover">
@@ -153,12 +153,11 @@ export class BudgetPanel {
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();
-  readonly budgetChange = output<number>();
   readonly intentChange = output<ContextIntent>();
   readonly formatChange = output<OutputFormat>();
   readonly globalBodiesChange = output<void>();
 
-  readonly budget = signal(4000);
+  readonly budget = model(4000);
   readonly selectedIntent = model<ContextIntent>('trace');
   readonly selectedFormat = model<OutputFormat>('markdown');
   readonly showAllBodies = model(true);
@@ -171,12 +170,16 @@ export class BudgetPanel {
   readonly totalTokens = (): number =>
     this.cards().reduce((n, c) => n + this.cardTokens(c), 0);
 
+  readonly allServer = (): boolean =>
+    this.cards().length > 0 && this.cards().every((c) => c.serverTokens !== null);
+
   readonly budgetPerCard = (): number => {
     const n = this.cards().length || 1;
     return Math.floor(this.budget() / n);
   };
 
   cardTokens(card: ContextCard): number {
+    if (card.serverTokens !== null) return card.serverTokens;
     return Math.round(card.estimatedLines * 2.5);
   }
 
@@ -214,7 +217,6 @@ export class BudgetPanel {
   onBudgetInput(event: Event): void {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     this.budget.set(value);
-    this.budgetChange.emit(value);
   }
 
   toggleAllBodies(): void {
