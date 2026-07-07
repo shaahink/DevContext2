@@ -2092,3 +2092,50 @@ build 0w/0e).
 **Updated:** `MERIDIAN-START.md` handoff + checkpoint table; `src/DevContext.App/AGENTS.md` M9 delivery block + gap tracking; `PROGRESS-LOG.md`.
 
 **Next:** Push, then plan next phase. All Meridian gaps closed or assessed as acceptable.
+
+---
+
+## 2026-07-07 — Loom L0.1: Truth harness landed
+
+**Session #2, target stage L0.** Conducted by autonomous agent under Conductor orchestrator, attempt 1/4.
+
+**Pre-session:**
+- Read `LOOM-START.md`, `loom-graph-design.md`, `proposal-loom.md` §L0, `SESSION-AUDIT.md`
+- Gate battery: `dotnet build` 0w/0e, `dotnet test --filter "Category!=Eval"` all green (Core 355/3skip, Server 12, Desktop 64), `pnpm check` green — all clean before starting
+
+**QA of previous session:**
+- All 22 audit artifacts from `eval-results/2026-07-07/` confirmed present
+- E1 (checkout trace depth-1) re-verified via fresh CLI run — still broken, unchanged since audit
+- MCP QA scripts (`run.js`, `run-multi.js`) exist; `run-cold.js` not yet created (L0.2)
+- `ui-audit-drive.mjs` exists at `src/DevContext.App/scripts/ui-audit-drive.mjs` (L0.3 baseline)
+- No uncommitted G8-G11 code — all committed in `5e3d6a1` (verified)
+
+**Delivered — L0.1 Truth expectations:**
+
+| File | Purpose |
+|------|---------|
+| `tests/DevContext.Core.Tests/TruthPendingAttribute.cs` | XUnit `[TruthPending("L<n>")]` attribute: skips test with ratchet message |
+| `tests/DevContext.Core.Tests/TruthExpectationTests.cs` | 8 tests: 4 green baseline + 4 red-but-skipped ratchets |
+| `scripts/bench.ps1` | Added `-Truth` flag: runs `dotnet test --filter "Category=Truth"` |
+
+**Test matrix:**
+| Test | Status | Unblocks at |
+|------|--------|-------------|
+| `Dogfood_baseline_presence_ok` | ✅ PASS | — |
+| `TodoApi_baseline_presence_ok` | ✅ PASS | — |
+| `CleanArchitecture_baseline_presence_ok` | ✅ PASS | — |
+| `DntSite_baseline_presence_ok` | ✅ PASS (skip if not cloned) | — |
+| `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` | ⏸️ SKIP | L2.4 |
+| `Dogfood_service_names_are_full_and_runnables_only` | ⏸️ SKIP | L1.2 |
+| `RazorPages_no_fabricated_cross_sample_edges` | ⏸️ SKIP | L1 |
+| `Blazor_archetype_is_not_microservices` | ⏸️ SKIP | L7.3 |
+
+**Evidence:** `eval-results/2026-07-07/truth-gate-l0.1.txt` (4 pass, 4 skip, 0 fail)
+
+**Commits:** `5084826` (feat(l0): truth harness) + `c6bfa2d` (tracker hash fix)
+
+**Post-session gate:** `dotnet build` 0w/0e · `dotnet test --filter "Category!=Eval"` Core 355/3skip · Server 12 · Desktop 64 · `pnpm check` green · truth gate 4/4 pass · branch pushed
+
+**Updated:** `LOOM-START.md` handoff + L0.1 row; `PROGRESS-LOG.md`.
+
+**Next:** L0.2 (cold-agent MCP QA harness `eval/mcp-qa/run-cold.js`) or L0.3 (UI drive gate from ui-audit-drive.mjs)
