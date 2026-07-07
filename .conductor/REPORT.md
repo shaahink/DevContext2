@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 21:25 UTC · branch `feat/loom-l2` · HEAD `c095d67`_
+_Updated 2026-07-07 21:30 UTC · branch `feat/loom-l2` · HEAD `17bfc2f`_
 
-**Status:** Running
-**Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.1
-**Checkpoints:** 8/35 done · **Sessions run:** 8 · **Cost:** $0.2645 · **Tokens:** 220,274 in / 70,208 out / 37,973 think
+**Status:** Idle
+**Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
+**Checkpoints:** 10/35 done · **Sessions run:** 8 · **Cost:** $0.2845 · **Tokens:** 221,044 in / 78,468 out / 39,967 think
 **Confirmed phases:** L0, L1
-
-## Latest activity (live)
-
-_Session #8 (Resume) · running 10m · last output 0s ago · $0.0103_
-
-**Thinking:**
-> I need to set up the `ExtractionOptions` with `BuildFullGraph` enabled for the cache to work properly in the test, then add a pipeline integration test to SeamDet.  Writing test code... Adding the test method...
-> The new tests are passing, so now I'm running through the full validation suite: checking for regressions across the entire test battery, verifying the UI gates haven't been affected, and running the scripted QA checks.  I can run the dotnet tests, pnpm check, and mcp-qa in parallel since they're in…
-> All the test suites are passing—the core tests picked up 18 new ones, the QA gate is solid, and the bundle checks out. Now I need to generate the gate battery artifact and sync the LOOM-START tracker.  I'm documenting the evidence: the pre-session baseline, the L1 verdict, the fresh test results fro…
-
-**Recent actions:**
-- `22:21:14` · Let me add a pipeline integration test proving `BodyFactsExtractor` populates the facts-v1 cache from the parse (and is output-neutral).
-- `22:21:14` » edit tests\DevContext.Core.Tests\Graph2\BodyFactExtractorTests.cs
-- `22:21:25` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj 2>&1 | Select-Object -Last 6
-- `22:21:36` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --no-build --filter "FullyQualifiedName~Graph2.BodyFactExtractorTests|FullyQualifiedNa…
-- `22:21:54` · 18/18 new tests pass. Now the full post-session gate battery — full test suite, UI gate, and scripted MCP QA in parallel.
-- `22:22:45` » bash pnpm check 2>&1 | Select-Object -Last 8
-- `22:24:51` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 6
-- `22:24:51` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 8
-- `22:25:30` » bash Select-String -Path C:/code/DevContext2-ui/.gitignore -Pattern "conductor" 2>&1; echo "---tracked conductor files---"; git -C C:/code/DevContext2-ui ls-fil…
-- `22:25:30` · Full battery green: **Core 398P/3S** (+18 new), Server 12P, Desktop 64P · mcp-qa 8/8 · pnpm check built. Let me check the root gitignore re: `.conductor` before…
 
 ## Stage progress
 
@@ -34,7 +13,7 @@ _Session #8 (Resume) · running 10m · last output 0s ago · $0.0103_
 |---|---|---|---|
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
-| L2 | BodyFacts + seam detectors | 0/4 | **← active** |
+| L2 | BodyFacts + seam detectors | 2/4 | **← active** |
 | L3 | Semantic-lite tier | 0/3 | todo |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
@@ -53,7 +32,7 @@ _Session #8 (Resume) · running 10m · last output 0s ago · $0.0103_
 | 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
 | 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
-| 8 | L2 | Resume | 1r1 | 07-07 21:15 | … | running |  | 0 |  |  |  |
+| 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
 
 ### Commits by session
 
@@ -80,32 +59,36 @@ _Session #8 (Resume) · running 10m · last output 0s ago · $0.0103_
 - **s6 (L1 Audit)** — 2 commit(s):
   - 99f18fc docs(l1-audit): honest phase handover (.conductor/handovers/L1.md)
   - d487e65 fix(l1-audit): GetNamespace fallback + _byProject comparer + null guard + 16 new tests
+- **s8 (L2 Resume)** — 5 commit(s):
+  - 17bfc2f docs(l2): LOOM-START — L2.1/L2.2 DONE, handoff for L2.3/L2.4
+  - 5dafd6e feat(l2.2): five seam detectors over BodyFacts + dogfood-verbatim fixtures
+  - 006daff feat(l2.1): BodyFacts structured body pass + facts-v1 cache in the existing parse
+  - 8b4470b chore(conductor): track .conductor/.gitignore
+  - fba4881 chore(conductor): s8 L2 working ▸L2.1 @ 22:25
 
 ## Phase handovers (audit)
 
 - `.conductor/handovers/L0.md`
 - `.conductor/handovers/L1.md`
 
+## Last gate run
+
+build:OK
+
 ## Last session result
 
-> I'll start with the pre-session ritual. Let me read the key documents.
-> Now the mandatory design doc and the audit that L2 fixes. Let me read them plus check git state.
-> Let me examine the dirty working tree and read the audit that L2 fixes.
-> I have full context now. Let me set up a task list and begin the pre-session gate battery.
-> Restoring the artifact drift to get a clean tree, then killing any server (DLL-lock trap) and running the build gate.
-> Tree clean (only conductor infra untracked). Running the build gate now.
-> Build green (0w/0e). Now tests and pnpm check in parallel.
-> Tests green (Core 380P/3S · Server 12P · Desktop 64P). Now the UI gate and scripted MCP QA.
-> All gates green. Le…
+> SESSION-RESULT: Resumed the interrupted L2 session on `feat/loom-l2` and landed **L2.1 and L2.2 with proof**, pushed to `origin/feat/loom-l2` (commits `006daff` L2.1, `5dafd6e` L2.2, `17bfc2f` tracker). First I QA'd the previous session against fresh artifacts — L1.1–L1.5 are all genuine (confirmed `_eventPublishers` is now an instance field not static, ServiceLinks render real service names, no "(unknown)"/"Default"), no green-washing. L2.1 adds `BodyFacts`/`BodyOp` + a single syntax-walk `BodyFactExtractor` (line numbers from the tree, no string literals, no char offsets; `Adapt<T>`/`new`/awaited/same-type-return inference) plus a `BodyFactsExtractor` pipeline stage that reuses the memoise…
 
 ## Tracker handoff
 
 ```
-last: L1 session #5 — QA'd L0 (L0.1-0.3 genuine, no green-washing). Delivered full L1 identity spine.
-stage: **L1 COMPLETE** (L1.1 ✅ L1.2 ✅ L1.3 ✅ L1.4 ✅ L1.5 ✅). SymbolTable + 9 tests; Service nodes in Graph;
-      _eventPublishers de-static'd; guards green; Project stamped on all Type nodes + 11 EntryPoint builders.
-gate: dotnet build 0w/0e · Core 364P/3S · Server 12P · Desktop 64P · guards PASS · SymbolTable 9/9
-next: **L2 (BodyFacts + seam detectors)** — new branch feat/loom-l2 off here. Start L2.1 facts-v1 cache.
-trap: kill DevContext.Server before build (DLL lock); working tree must be clean before branch.
-evidence: eval-results/2026-07-07/gate-battery-l1-s5.txt; loom-guards.ps1 green.
+last: L2 session #7 — QA'd L1 (all L1.1-1.5 genuine, no green-washing; de-static confirmed instance field).
+stage: **L2 IN PROGRESS** (L2.1 ✅ L2.2 ✅ · L2.3 ⬜ L2.4 ⬜). BodyFacts (facts-v1) built in the parse,
+      output-neutral; 5 seam detectors + 18 tests; checkout spine detected end-to-end (E1 pattern by construction).
+gate: dotnet build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · mcp-qa 8/8 · dogfood 494/316/6/34 2.3s.
+next: **L2.3** — new CodeGraphAssembler consumes SeamMatches; delete GraphBuilder body-regex paths;
+      tighten guards to ban all Regex under Core/Graph. Then **L2.4** checkout trace ≥5 cross-service (flip [TruthPending]).
+trap: kill DevContext.Server before build (DLL lock); `report` ignores --focus (use `analyze --focus`);
+      GraphBuilder is 2461 lines (both paths live until L2.3) — migrate the organ then DELETE the old path.
+evidence: eval-results/2026-07-07/gate-battery-l2-s7.txt; loom-guards.ps1 green; Graph2 tests 18/18.
 ```
