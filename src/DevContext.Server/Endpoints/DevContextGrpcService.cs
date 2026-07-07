@@ -120,7 +120,10 @@ public sealed class DevContextGrpcService(
         {
             var resp = new Proto.EntryPointsResponse();
             foreach (var entry in session.Query.EntryPoints())
-                resp.EntryPoints.Add(ProtoMapper.ToProto(entry));
+            {
+                var graphNode = session.Query.Graph.Node(entry.Node);
+                resp.EntryPoints.Add(ProtoMapper.ToProto(entry, graphNode?.Layer, graphNode?.Feature));
+            }
             return resp;
         });
 
@@ -151,9 +154,10 @@ public sealed class DevContextGrpcService(
         {
             var id = ResolveNode(session, request.NodeId);
             var detail = id is { } nid ? session.Query.Node(nid) : null;
-            return detail is null
-                ? new Proto.NodeResponse { Found = false }
-                : ProtoMapper.ToNodeResponse(detail);
+            if (detail is null)
+                return new Proto.NodeResponse { Found = false };
+            var graphNode = session.Query.Graph.Node(detail.Id);
+            return ProtoMapper.ToNodeResponse(detail, graphNode?.Layer, graphNode?.Feature);
         });
 
     public override Task<Proto.NeighborsResponse> GetNeighbors(Proto.NeighborsRequest request, ServerCallContext context)

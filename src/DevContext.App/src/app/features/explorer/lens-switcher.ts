@@ -12,8 +12,8 @@ interface LensDef {
 
 const LENSES: readonly LensDef[] = [
   { id: 'service', label: 'Service', hint: 'Project topology — runtime grouping (current system view)' },
-  { id: 'layer', label: 'Layer', hint: 'Horizontal bands by layer (API/App/Domain/Infra) — engine data pending', unavailable: true },
-  { id: 'feature', label: 'Feature', hint: 'Columns by feature area — engine data pending', unavailable: true },
+  { id: 'layer', label: 'Layer', hint: 'Nodes colored by architectural layer (API/App/Domain/Infra)' },
+  { id: 'feature', label: 'Feature', hint: 'Nodes colored by feature area (namespace-derived)' },
   { id: 'flow', label: 'Flow', hint: 'Trace tree or graph — current flow view' },
 ];
 

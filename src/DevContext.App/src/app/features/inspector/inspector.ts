@@ -45,8 +45,14 @@ type SectionId = 'details' | 'code' | 'callstack' | 'insights' | 'trail';
             </p>
           }
           <p class="text-2xs tabular-nums text-ink-muted">in {{ node.inDegree }} · out {{ node.outDegree }}</p>
-          @if (node.tags.length > 0) {
+          @if (node.tags.length > 0 || node.layer || node.feature) {
             <div class="flex flex-wrap gap-1 pt-1">
+              @if (node.layer) {
+                <span class="chip !bg-vibe-accent/15 !text-vibe-accent" title="Architecture layer">{{ node.layer }}</span>
+              }
+              @if (node.feature) {
+                <span class="chip !bg-vibe-info/15 !text-vibe-info" title="Feature area">{{ node.feature }}</span>
+              }
               @for (tag of node.tags; track tag) {
                 <span class="chip">{{ tag }}</span>
               }

@@ -23,6 +23,10 @@ export interface EntryVm {
   readonly authAttributes?: readonly string[];
   /** The string passed to GetTrace to trace this entry. */
   readonly focus: string;
+  /** D9 — Architectural layer (Api, Application, Domain, Infrastructure, etc.) */
+  readonly layer?: string;
+  /** D9 — Feature area derived from namespace/folder conventions. */
+  readonly feature?: string;
 }
 
 export interface EntryGroupVm {
@@ -44,6 +48,8 @@ export interface TraceNodeVm {
   readonly salient?: string;
   readonly tags: readonly string[];
   readonly children: readonly TraceNodeVm[];
+  readonly layer?: string;
+  readonly feature?: string;
 }
 
 export interface NodeDetailVm {
@@ -55,6 +61,8 @@ export interface NodeDetailVm {
   readonly outDegree: number;
   readonly inDegree: number;
   readonly lineNumber?: number;
+  readonly layer?: string;
+  readonly feature?: string;
 }
 
 export interface EdgeVm {
@@ -136,6 +144,8 @@ export function toEntryVm(e: EntryPoint): EntryVm {
     score: e.score,
     authAttributes: e.authAttributes,
     focus,
+    layer: e.layer,
+    feature: e.feature,
   };
 }
 
@@ -190,6 +200,8 @@ export function toTraceVm(node: TraceNode): TraceNodeVm {
     salient: node.salient,
     tags: node.tags,
     children: node.children.map(toTraceVm),
+    layer: node.layer,
+    feature: node.feature,
   };
 }
 
@@ -203,6 +215,8 @@ export function toNodeDetailVm(n: NodeResponse): NodeDetailVm {
     outDegree: n.outDegree,
     inDegree: n.inDegree,
     lineNumber: n.lineNumber,
+    layer: n.layer,
+    feature: n.feature,
   };
 }
 

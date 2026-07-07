@@ -27,7 +27,7 @@ internal static class ProtoMapper
         return summary;
     }
 
-    public static Proto.EntryPoint ToProto(EntryPoint e)
+    public static Proto.EntryPoint ToProto(EntryPoint e, string? layer = null, string? feature = null)
     {
         var p = new Proto.EntryPoint
         {
@@ -45,6 +45,8 @@ internal static class ProtoMapper
         p.Score = e.Score;
         p.Reach = e.Reach;
         p.CrossProjects = e.CrossProjects;
+        if (layer is { } l) p.Layer = l;
+        if (feature is { } f) p.Feature = f;
         return p;
     }
 
@@ -107,7 +109,7 @@ internal static class ProtoMapper
         return resp;
     }
 
-    public static Proto.NodeResponse ToNodeResponse(NodeDetail d)
+    public static Proto.NodeResponse ToNodeResponse(NodeDetail d, string? layer = null, string? feature = null)
     {
         var resp = new Proto.NodeResponse
         {
@@ -118,9 +120,11 @@ internal static class ProtoMapper
             OutDegree = d.OutDegree,
             InDegree = d.InDegree,
         };
-        if (d.FilePath is { } f) resp.FilePath = f;
+        if (d.FilePath is { } fp) resp.FilePath = fp;
         if (d.LineNumber is { } ln) resp.LineNumber = ln;
         resp.Tags.AddRange(d.Tags);
+        if (layer is { } ly) resp.Layer = ly;
+        if (feature is { } ft) resp.Feature = ft;
         return resp;
     }
 
@@ -357,6 +361,8 @@ internal static class ProtoMapper
         if (!step.Salient.IsDefaultOrEmpty) node.Salient = string.Join('\n', step.Salient);
         node.Tags.AddRange(step.Node.Tags);
         if (!step.Pipeline.IsDefaultOrEmpty) node.Pipeline.AddRange(step.Pipeline);
+        if (step.Node.Layer is { } l) node.Layer = l;
+        if (step.Node.Feature is { } f) node.Feature = f;
         foreach (var child in step.Children)
             node.Children.Add(ToProto(child));
         return node;
