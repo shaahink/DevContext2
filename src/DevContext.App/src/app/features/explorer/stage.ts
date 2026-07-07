@@ -140,6 +140,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
                 [data]="{ mode: 'topology', projects: topology() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
+                [lensId]="lensModel()"
                 (nodeSelected)="onProjectTap($event)"
               />
           } @else {
@@ -166,6 +167,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
                 [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
+                [lensId]="'flow'"
                 (nodeSelected)="onFlowTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />
@@ -192,6 +194,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
                 [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
                 [highlightedNodeId]="highlightedNodeId()"
                 [zenMode]="zenMode()"
+                [lensId]="'flow'"
                 (nodeSelected)="onNodeTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />

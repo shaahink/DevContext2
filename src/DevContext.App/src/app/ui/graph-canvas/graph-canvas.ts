@@ -5,6 +5,7 @@ import fcose from 'cytoscape-fcose';
 
 import type { ProjectNode } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
+import type { LensId } from '../../features/explorer/lens-switcher';
 import { ThemeService } from '../../core/theme/theme.service';
 
 cytoscape.use(dagre);
@@ -22,6 +23,27 @@ const LABEL_ZOOM_FIT_MULTIPLIER = 1.6;
 /** Minimap only earns its screen space in zen mode, and only once a graph is
  * big enough that the viewport can't already see everything at a glance. */
 const MINIMAP_NODE_THRESHOLD = 40;
+
+const LAYER_COLORS: Record<string, string> = {
+  'Api': '#4493f8',
+  'Application': '#a371f7',
+  'Domain': '#3fb950',
+  'Infrastructure': '#d29922',
+  'Persistence': '#d29922',
+  'Contracts': '#39c5cf',
+  'Presentation': '#4493f8',
+  'Shared': '#8b949e',
+  'Core': '#a371f7',
+  'Testing': '#f85149',
+};
+
+const FEATURE_PALETTE = ['#4493f8', '#3fb950', '#d29922', '#f85149', '#a371f7', '#39c5cf', '#f778ba', '#ffa657', '#79c0ff', '#7ee787', '#d2a8ff', '#ff7b72'];
+
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  return Math.abs(hash);
+}
 
 /**
  * What the Stage renders on one canvas across its three altitudes (proposal §2, §8.1
@@ -91,7 +113,7 @@ function buildTopologyElements(projects: readonly ProjectNode[]): cytoscape.Elem
   const els: cytoscape.ElementDefinition[] = [];
   const names = new Set(projects.map((p) => p.name));
   for (const p of projects) {
-    els.push({ data: { id: p.name, nodeId: p.name, label: truncateLabel(p.name), fullLabel: p.name, seam: '', truncated: false, depth: 0 } });
+    els.push({ data: { id: p.name, nodeId: p.name, label: truncateLabel(p.name), fullLabel: p.name, seam: '', truncated: false, depth: 0, layer: p.layer ?? '', feature: p.feature ?? '' } });
   }
   for (const p of projects) {
     for (const dep of p.dependsOn) {
@@ -216,6 +238,8 @@ export class GraphCanvas {
   readonly zenMode = input(false);
   /** Node ID to highlight (accent ring + pulse). Cleared on null/empty. */
   readonly highlightedNodeId = input<string | null>(null);
+  /** M7.2/M9: Lens ID for layer/feature-based coloring on topology nodes. */
+  readonly lensId = input<LensId>('service');
   readonly nodeSelected = output<string>();
   readonly nodeActivated = output<string>();
 
@@ -252,6 +276,14 @@ export class GraphCanvas {
 
     effect(() => void this.rebuild());
 
+    effect(() => {
+      void this.lensId();
+      this.updateLegend();
+      if (this.cy && this.data() && this.data()?.mode === 'topology') {
+        this.cy.style().update();
+      }
+    });
+
     // Node highlight (M7.1): accent ring on the node matching highlightedNodeId.
     effect(() => {
       const id = this.highlightedNodeId();
@@ -268,11 +300,22 @@ export class GraphCanvas {
   }
 
   private updateLegend(): void {
-    const items: { label: string; color: string }[] = [];
-    for (const [key, color] of Object.entries(this.seamColors)) {
-      if (SEAM_LABELS[key]) items.push({ label: SEAM_LABELS[key], color });
+    const lid = this.lensId();
+    if (lid === 'layer') {
+      const items: { label: string; color: string }[] = [];
+      for (const [key, color] of Object.entries(LAYER_COLORS)) {
+        items.push({ label: key, color });
+      }
+      this.legendItems.set(items);
+    } else if (lid === 'feature') {
+      this.legendItems.set([]);
+    } else {
+      const items: { label: string; color: string }[] = [];
+      for (const [key, color] of Object.entries(this.seamColors)) {
+        if (SEAM_LABELS[key]) items.push({ label: SEAM_LABELS[key], color });
+      }
+      this.legendItems.set(items);
     }
-    this.legendItems.set(items);
   }
 
   private rebuild(): void {
@@ -298,6 +341,20 @@ export class GraphCanvas {
     this.nodeCount.set(nodeCount);
     this.fitZoom = 1;
     const densityActive = nodeCount > LABEL_DENSITY_NODE_THRESHOLD;
+    const lensColor = this.lensId();
+
+    const nodeBorderColor = (ele: cytoscape.NodeSingular): string => {
+      if (lensColor === 'layer') {
+        const l = ele.data('layer') as string;
+        return LAYER_COLORS[l] ?? p.inkMuted;
+      }
+      if (lensColor === 'feature') {
+        const f = ele.data('feature') as string;
+        if (f) return FEATURE_PALETTE[hashString(f) % FEATURE_PALETTE.length];
+        return p.inkMuted;
+      }
+      return colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted;
+    };
 
     this.cy = cytoscape({
       container: host,
@@ -309,8 +366,7 @@ export class GraphCanvas {
           style: {
             'background-color': p.surface2,
             'border-width': 1.5,
-            'border-color': (ele: cytoscape.NodeSingular) =>
-              colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted,
+            'border-color': nodeBorderColor,
             label: (ele: cytoscape.NodeSingular) =>
               densityActive && !ele.hasClass('entry') && (this.cy?.zoom() ?? 1) < this.fitZoom * LABEL_ZOOM_FIT_MULTIPLIER
                 ? ''
@@ -466,10 +522,22 @@ export class GraphCanvas {
     this.cy?.fit(undefined, 50);
   }
 
+  private minimapScheduled = false;
+
   /** Draws node positions + the current viewport rectangle into the minimap canvas, in the
    * graph's own model coordinates scaled to fit. No extra cytoscape instance — just the
-   * positions the main layout already computed. */
+   * positions the main layout already computed. Throttled with requestAnimationFrame so
+   * rapid pan/zoom events don't redraw at 60fps. */
   private drawMinimap(): void {
+    if (this.minimapScheduled) return;
+    this.minimapScheduled = true;
+    requestAnimationFrame(() => {
+      this.minimapScheduled = false;
+      this.drawMinimapFrame();
+    });
+  }
+
+  private drawMinimapFrame(): void {
     const cy = this.cy;
     const canvas = this.minimapCanvas()?.nativeElement;
     if (!cy || !canvas) return;

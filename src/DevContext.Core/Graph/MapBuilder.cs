@@ -25,7 +25,11 @@ public sealed record MapModel
     public ImmutableArray<PerServiceStyle> ServiceStyles { get; init; } = [];
 }
 
-public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
+public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn)
+{
+    public string? Layer { get; init; }
+    public string? Feature { get; init; }
+}
 
 public sealed record PackageGroup(string Label, ImmutableArray<string> Packages);
 
@@ -34,7 +38,7 @@ public sealed class MapBuilder
     public static MapModel Build(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         var archetype = ArchetypeDetector.Detect(model, entries);
-        var topology = BuildTopology(model);
+        var topology = BuildTopology(model, graph);
         return new MapModel
         {
             Style = model.DetectedStyle.ToString(),
@@ -67,12 +71,38 @@ public sealed class MapBuilder
         return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
     }
 
-    private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model)
+    private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model, CodeGraph graph)
     {
         var classifier = new ProjectClassifier(model.Projects);
         var scoped = model.Solution is { ProjectPaths.Length: > 0 } sln
             ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : null;
+
+        var layerCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+        var featureCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in graph.Nodes)
+        {
+            if (node.Project is not { } proj) continue;
+            if (node.Layer is { } l)
+            {
+                if (!layerCounts.TryGetValue(proj, out var lc))
+                    layerCounts[proj] = lc = new();
+                lc[l] = lc.GetValueOrDefault(l) + 1;
+            }
+            if (node.Feature is { } f)
+            {
+                if (!featureCounts.TryGetValue(proj, out var fc))
+                    featureCounts[proj] = fc = new();
+                fc[f] = fc.GetValueOrDefault(f) + 1;
+            }
+        }
+
+        string? Dominant(Dictionary<string, int> counts) =>
+            counts is { Count: > 0 } ? counts.OrderByDescending(kv => kv.Value).First().Key : null;
+
+        var perProjectLayer = layerCounts.ToDictionary(kv => kv.Key, kv => Dominant(kv.Value), StringComparer.OrdinalIgnoreCase);
+        var perProjectFeature = featureCounts.ToDictionary(kv => kv.Key, kv => Dominant(kv.Value), StringComparer.OrdinalIgnoreCase);
 
         // ProjectReferences come through as raw ".../X.csproj" relative paths; reduce to project
         // names so the topology reads "A ── B" (and so the name-based scope filter actually matches —
@@ -88,7 +118,11 @@ public sealed class MapBuilder
                     [.. p.ProjectReferences
                         .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
                         .Where(r => r.Length > 0 && (scoped is null || scoped.Contains(r)))
-                        .OrderBy(r => r)]))
+                        .OrderBy(r => r)])
+                {
+                    Layer = perProjectLayer.GetValueOrDefault(p.Name),
+                    Feature = perProjectFeature.GetValueOrDefault(p.Name),
+                })
         ];
     }
 

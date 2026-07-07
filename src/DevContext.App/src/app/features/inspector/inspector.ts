@@ -10,16 +10,21 @@ import { Skeleton } from '../../ui/skeleton/skeleton';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
 import { highlightCSharp } from '../../core/code-highlight';
+import type { TraceNodeVm } from '../../models/view-models';
+import type { Insight } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 
-type SectionId = 'details' | 'code' | 'callstack' | 'insights' | 'trail';
+type SectionId = 'details' | 'code' | 'insights' | 'callstack' | 'trail';
+
+const SEVERITY_CLASS: Record<string, string> = {
+  warning: '!bg-danger/10 !text-danger',
+  notable: '!bg-warn/10 !text-warn',
+  info: '!bg-accent/10 !text-accent',
+};
 
 /**
  * Inspector (F proposal §2) — the right panel. Content is driven ENTIRELY by the
  * current selection; sections collapse independently. Details fill instantly from
  * local data (selection echo, §5.2) while RPC-backed sections follow.
- *
- * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
- * TODO(W5): Insights section filters stats().insights by the current selection.
  */
 @Component({
   selector: 'app-inspector',
@@ -129,6 +134,66 @@ type SectionId = 'details' | 'code' | 'callstack' | 'insights' | 'trail';
         <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
           Select a node to view its source location.
         </p>
+      }
+    }
+
+    <!-- Insights (M9-ext) — grouped by severity, actionable targets. Default collapsed. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('insights')">
+      <span class="text-2xs">{{ open('insights') ? '▾' : '▸' }}</span> Insights
+      @if (filteredInsights().length > 0) {
+        <span class="ml-1 chip tabular-nums">{{ filteredInsights().length }}</span>
+      }
+    </button>
+    @if (open('insights')) {
+      @if (session.ready() && filteredInsights().length > 0) {
+        @for (group of insightGroups(); track group.severity) {
+          <div class="border-b border-line px-2 py-1">
+            <div class="text-2xs font-semibold text-ink-subtle mb-1">{{ group.severity }}</div>
+            @for (insight of group.insights; track insight.id) {
+              <div class="flex items-start gap-1 py-0.5">
+                <span class="chip shrink-0 text-2xs leading-none" [class]="severityClass(insight.severity)">{{ insight.severity }}</span>
+                <span class="min-w-0 text-2xs text-ink leading-snug" [title]="insight.detail">{{ insight.title }}</span>
+              </div>
+            }
+          </div>
+        }
+      } @else if (trace.nodeDetail()) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">No insights reference this node.</p>
+      } @else {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">Select a node to see related insights.</p>
+      }
+    }
+
+    <!-- Call Stack (M9-ext) — compact tree showing ancestors + children around selected node at depth 2. Default collapsed. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('callstack')">
+      <span class="text-2xs">{{ open('callstack') ? '▾' : '▸' }}</span> Call Stack
+      @if (callStackPath().length > 0) {
+        <span class="ml-1 chip tabular-nums">{{ callStackPath().length }}</span>
+      }
+    </button>
+    @if (open('callstack')) {
+      @if (callStackPath().length > 0) {
+        @for (step of callStackPath(); track step.id) {
+          <div
+            class="list-row"
+            role="button"
+            tabindex="0"
+            [class.selected]="step.id === trace.selectedNodeId()"
+            (click)="jumpToStackNode(step.id)"
+            (keydown.enter)="jumpToStackNode(step.id)"
+            (keydown.space)="jumpToStackNode(step.id); $event.preventDefault()"
+          >
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ step.depth === 0 ? '⌂' : step.depth > selectionDepth() ? '↳' : '·' }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+            @if (step.provenance) {
+              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1">{{ step.provenance }}</span>
+            }
+          </div>
+        }
+      } @else if (trace.nodeDetail()) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">No call stack available — trace may not have been computed at this depth.</p>
+      } @else {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">Select a node in the trace to see its call stack.</p>
       }
     }
 
@@ -244,7 +309,7 @@ export class Inspector {
   /** Emitted when the user jumps the trail — parent re-traces the restored step. */
   readonly restore = output<TrailStep>();
 
-  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set());
+  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set(['insights', 'callstack']));
 
   /** Code tab (M7.1) — source content loaded via render RPC with full-membership body detail. */
   protected readonly codeContent = signal('');
@@ -255,6 +320,64 @@ export class Inspector {
   private codeNodeId: string | null = null;
   /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
   private readonly expandedGroups = signal<ReadonlySet<number>>(new Set());
+
+  // ── Insights section (M9-ext W5) ──────────────────────────────────
+
+  /** All repo insights filtered to the current node, or all if no node selected. */
+  protected readonly filteredInsights = computed(() => {
+    const insights = this.session.insights();
+    const node = this.trace.nodeDetail();
+    if (!node || insights.length === 0) return insights as Insight[];
+    const title = node.title.toLowerCase();
+    return (insights as Insight[]).filter((i) =>
+      i.evidence.some((e: string) => e.toLowerCase().includes(title)),
+    );
+  });
+
+  protected readonly insightGroups = computed(() => {
+    const groups: { severity: string; insights: Insight[] }[] = [];
+    const map = new Map<string, Insight[]>();
+    for (const i of this.filteredInsights()) {
+      const key = i.severity;
+      const existing = map.get(key);
+      if (existing) existing.push(i);
+      else map.set(key, [i]);
+    }
+    if (map.has('warning')) groups.push({ severity: 'Warning', insights: map.get('warning')! });
+    if (map.has('notable')) groups.push({ severity: 'Notable', insights: map.get('notable')! });
+    if (map.has('info')) groups.push({ severity: 'Info', insights: map.get('info')! });
+    return groups;
+  });
+
+  protected severityClass(severity: string): string {
+    return SEVERITY_CLASS[severity] ?? '';
+  }
+
+  // ── Call Stack section (M9-ext W4) ────────────────────────────────
+
+  protected readonly selectionDepth = computed(() => {
+    const selId = this.trace.selectedNodeId();
+    const tree = this.trace.tree();
+    if (!tree || !selId) return -1;
+    const found = findNode(tree, selId);
+    return found ? found.depth : -1;
+  });
+
+  protected readonly callStackPath = computed(() => {
+    const tree = this.trace.tree();
+    const selId = this.trace.selectedNodeId();
+    if (!tree || !selId) return [] as TraceNodeVm[];
+    const path = walkAncestors(tree, selId);
+    const leaf = path[path.length - 1];
+    if (leaf) {
+      return [...path, ...leaf.children.slice(0, 6)];
+    }
+    return path;
+  });
+
+  protected jumpToStackNode(nodeId: string): void {
+    this.trace.selectNode(nodeId);
+  }
 
   constructor() {
     // M7.1: Auto-open Code tab and clear stale content when a node is selected.
@@ -375,4 +498,24 @@ export class Inspector {
         return '·';
     }
   }
+}
+
+/** DFS lookup in a trace tree for a node by id. */
+function findNode(root: TraceNodeVm, nodeId: string): TraceNodeVm | null {
+  if (root.id === nodeId) return root;
+  for (const child of root.children) {
+    const found = findNode(child, nodeId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Collect ancestors of `nodeId` in the trace tree (from root down to the node itself). */
+function walkAncestors(root: TraceNodeVm, nodeId: string): TraceNodeVm[] {
+  if (root.id === nodeId) return [root];
+  for (const child of root.children) {
+    const path = walkAncestors(child, nodeId);
+    if (path.length > 0) return [root, ...path];
+  }
+  return [];
 }

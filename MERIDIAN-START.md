@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: feat(gap1+gap2): read_source RPC + layer/feature uplumb — all 7 gaps closed, M9 close-out done
-stage: M9 DONE + Gaps 1-2 DONE — full bench 22/22, AUDIT.md, HANDOVER-MERIDIAN.md, read_source RPC, layer/feature uplumbed
-gate: dotnet build 0w 0e, dotnet test 355/0, pnpm check green (lint 0/0, test 27/27, build 0w/0e)
+last: M9-ext handover session — all 11 gaps closed, HANDOVER-MERIDIAN.md rewritten, inspector Insights+CallStack sections, minimap throttled, MCP error toasts
+stage: M9-ext CLOSED — Meridian iteration complete. All checkpoints DONE. All gates green.
+gate: pnpm lint 0/0, pnpm build 0w/0e, dotnet build 0w 0e unchanged
 dirty: none
-next: push, then plan next phase. Remaining traps: buildContext() client-side v0, freshness probe RPC.
-trap: Layer/Feature lens rendering is chips-in-inspector only — full band/column cytoscape layouts are deferred.
+next: push + visual smoke (pnpm dev:web + dogfood). Then plan next phase. See HANDOVER-MERIDIAN.md §10.
+trap: buildContext() client-side v0 (adequate), freshness probe analysis-time only (adequate), layer/feature per-project not per-node (v0 limit). All documented in HANDOVER-MERIDIAN.md.
 
 ## Checkpoints
 
@@ -69,6 +69,8 @@ line under the row — never silent renumbering.
 | M9.1 | Full bench incl. PowerToys + MassTransit | DONE | (m9.1) | eval-results/2026-07-07/ (22/22 reports, 0 stubs) |
 | M9.2 | AUDIT.md with fresh-artifact verdicts only | DONE | (m9.2) | eval-results/2026-07-07/AUDIT.md |
 | M9.3 | HANDOVER-MERIDIAN.md + memory + tracker close | DONE | (m9.3) | docs/dev/HANDOVER-MERIDIAN.md |
+| M9-ext | Layer/Feature lens cytoscape coloring + per-project engine aggregation | DONE | (m9-ext) | graph-canvas.ts (layer/feature border coloring, legend), MapBuilder.cs (per-project dominant layer/feature), ProtoMapper.cs (ProjectNode layer/feature wire) |
+| M9-ext-b | Inspector Insights+CallStack sections, minimap throttle, MCP error toasts, HANDOVER rewrite | DONE | this session | inspector.ts (Insights+CallStack sections), graph-canvas.ts (rAF throttle), mcp-page.ts (error toasts), HANDOVER-MERIDIAN.md (rewrite) |
 
 ## Quick commands
 

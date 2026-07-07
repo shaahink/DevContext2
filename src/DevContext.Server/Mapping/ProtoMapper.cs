@@ -68,7 +68,12 @@ internal static class ProtoMapper
         if (map.StyleEvidence is { } ev) resp.StyleEvidence = ev;
 
         foreach (var pn in map.Topology)
-            resp.Topology.Add(new Proto.ProjectNode { Name = pn.Name, DependsOn = { pn.DependsOn } });
+        {
+            var protoPn = new Proto.ProjectNode { Name = pn.Name, DependsOn = { pn.DependsOn } };
+            if (pn.Layer is { } l) protoPn.Layer = l;
+            if (pn.Feature is { } f) protoPn.Feature = f;
+            resp.Topology.Add(protoPn);
+        }
 
         foreach (var pg in map.Packages)
             resp.Packages.Add(new Proto.PackageGroup { Label = pg.Label, Packages = { pg.Packages } });

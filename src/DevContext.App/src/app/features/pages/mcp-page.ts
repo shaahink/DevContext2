@@ -1,6 +1,7 @@
 import { Component, inject, signal, type WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
+import { ToastService } from '../../ui/toast/toast';
 
 interface ToolCallEntry {
   time: string;
@@ -236,6 +237,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
 })
 export class McpPage {
   private readonly client: DevContextClient = inject(DEVCONTEXT_CLIENT);
+  private readonly toast = inject(ToastService);
 
   protected readonly mcpRunning = signal(false);
   protected readonly observerCount = signal(0);
@@ -262,12 +264,12 @@ export class McpPage {
       this.client.stopMcp({}).then(() => {
         this.mcpRunning.set(false);
         this.stopStream();
-      }).catch(() => { this.mcpRunning.set(false); });
+      }).catch((err) => { this.mcpRunning.set(false); this.toast.show('Failed to stop MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
     } else {
       this.client.startMcp({}).then((resp) => {
         this.mcpRunning.set(resp.running);
         if (resp.running) this.startStream();
-      }).catch(() => { /* server unreachable */ });
+      }).catch((err) => { this.toast.show('Failed to start MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
     }
   }
 
@@ -291,7 +293,7 @@ export class McpPage {
           entries: s.entries,
         })),
       );
-    }).catch(() => { /* server unreachable, sessions list stays empty */ });
+    }).catch((err) => { this.toast.show('Failed to list sessions: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
   }
 
   protected clearEvents() {

@@ -117,8 +117,7 @@ After `pnpm dev:web`, analyze the dogfood repo and verify:
 
 ### Gaps — open (engine + proto) and closed (UI-fixable)
 
-> **Updated 2026-07-06** following the M8.1a session. UI-fixable gaps 3–7 are closed.
-> Open gaps 1–2 require engine + proto changes — full step-by-step instructions below.
+> **Updated 2026-07-07** following the M9-ext session. All closure gaps delivered. Traps assessed as acceptable v0.
 
 #### CLOSED (gaps 1–2 — engine + proto)
 
@@ -324,13 +323,13 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ## M9 delivery (overwrite this block each session, no history)
 
-status: M9 closed (full bench 22/22 + AUDIT.md + HANDOVER-MERIDIAN.md). Gaps 1-2 closed (read_source RPC + layer/feature uplumb).
-delivered: read_source RPC (proto → server → TS → inspector), layer/feature uplumb (proto → ProtoMapper → TS → lens-switcher unblocked → inspector chips)
-last: pnpm check green (lint 0/0, test 27/27, build 0w/0e), dotnet build 0w 0e, dotnet test 355/0
+status: M9 closed + M9-ext lens rendering delivered. All 7 gaps closed. Layer/Feature lenses now color project nodes.
+delivered: read_source RPC (proto → server → TS → inspector), layer/feature uplumb (proto → ProtoMapper → TS → lens-switcher unblocked → inspector chips), layer/feature lens cytoscape coloring (engine per-project aggregation + graph-canvas LensId input + lens-specific legend)
+last: pnpm check green (lint 0/0, test 27/27, build 0w/0e), dotnet build 0w 0e, dotnet test all green
 next: push + plan next phase
-gaps closed: ALL (1 read_source RPC, 2 layer/feature, 3 prismjs, 4 contrast, 5 shared handler, 6 dead audit-table, 7 dock cycle)
-trap: buildContext() still client-side v0 (no ContextPackBuilder round-trip RPC); stale banner needs freshness probe RPC
-known: Layer/Feature lens rendering is minimal (chips in inspector); full band/column cytoscape layouts are deferred.
+gaps closed: ALL (1 read_source RPC, 2 layer/feature uplumb, 3 prismjs, 4 contrast, 5 shared handler, 6 dead audit-table, 7 dock cycle)
+trap: buildContext() still client-side v0 (adequate — content is server-generated via getContext RPC); freshness probe works via getStats() stale field (adequate)
+known: Layer/Feature lenses render per-project coloring (dominant layer/feature per project) — full node-level band/column cytoscape requires new per-node graph RPC
 
 M8.3 detail:
   - Server-side token meter: card.serverTokens stored from ContextResponse.totalTokens after getContext RPC

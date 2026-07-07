@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-07-07 — M9-ext: All gaps closed + Inspector sections + UX fixes (Meridian CLOSED)
+
+**Closed (Gaps 1-7 from M7+M8.1a audit):**
+- G1 `read_source` RPC: proto → C# → server → TS → Inspector (`16d3166`)
+- G2 Layer/feature uplumb: proto → ProtoMapper → TS → lens-switcher unblocked (`3be265f`)
+- G3 PrismJS wired for Code tab (`bf3a674`)
+- G4 Contrast audit passes WCAG AA (`bf3a674`)
+- G5 Table "Shared Handler" column (`ba6c59a`)
+- G6 Dead `audit-table.ts` removed (`bf3a674`)
+- G7 Dock toggle cycles 0→2→3→0 (`bf3a674`)
+
+**This session — Inspector sections + UX fixes (Gaps 8-11):**
+- **G8 Inspector Insights section:** `session.insights()` filtered by node (evidence match), grouped by severity. Closes W5 TODO. File: `inspector.ts`.
+- **G9 Inspector Call Stack section:** Trace tree ancestors + children at depth 2. Keyboard-navigable. Closes W4 TODO. File: `inspector.ts`.
+- **G10 drawMinimap() throttled:** `requestAnimationFrame` guard — no more 60fps pan redraws. File: `graph-canvas.ts`.
+- **G11 MCP page A15 fixed:** All 3 bare `catch {}` now toast errors via ToastService. File: `mcp-page.ts`.
+- **HANDOVER-MERIDIAN.md rewritten:** Comprehensive close-out doc — gap catalog, honest traps, next steps.
+
+**Verified:** `pnpm lint` green (0/0) · `pnpm build` green (0w/0e) · `dotnet build` unchanged (0w/0e)
+
+**Next:** Push + visual smoke → plan next phase.
+
+---
+
 ## 2026-07-06 — M6 completion: Home repo card + Atlas one-pager (M6 DONE)
 
 **M6.1 Home repo card (service-map-hero + tiles + onboarding):**
@@ -2044,3 +2068,27 @@ build 0w/0e).
 
 **Next:** Engine Gaps 1-2 (read_source RPC + layer/feature uplumb). See
 `src/DevContext.App/AGENTS.md:133-189` for the detailed plan.
+
+---
+
+## 2026-07-07 — M9-ext: Layer/Feature lens cytoscape rendering (DONE)
+
+**Audit:** Code-level audit of all remaining documented gaps from HANDOVER-MERIDIAN.md:
+- buildContext() client-side v0 — acceptable v0; content IS server-generated via getContext RPC
+- Freshness probe RPC — stale data already flows through getStats().stale field; UI shows stale chips
+- Layer/Feature cytoscape — lens buttons existed but rendered identical system topology (no difference from Service lens)
+
+**Engine (C#):**
+- `MapBuilder.cs`: ProjectNode record gains `Layer?` and `Feature?` init-only properties
+- `MapBuilder.BuildTopology`: accepts `CodeGraph` param, computes per-project dominant layer/feature by counting Type nodes' Layer/Feature in each project's graph nodes
+- `ProtoMapper.ToMapResponse`: copies `pn.Layer` / `pn.Feature` to proto ProjectNode
+
+**UI (TypeScript):**
+- `graph-canvas.ts`: `lensId` input added; `LAYER_COLORS` map (Api→info, Application→accent, Domain→success, Infrastructure→warn, etc.) with `FEATURE_PALETTE` hash-cycled palette; `buildTopologyElements` passes layer/feature in node data; `nodeBorderColor` function uses lens-based coloring; `updateLegend` shows layer/feature-specific legends; lensId effect triggers `cy.style().update()` for reactive recoloring
+- `stage.ts`: passes `[lensId]="lensModel()"` to topology graph canvas; sets `[lensId]="'flow'"` on trace/neighbors canvii
+
+**Verified:** `dotnet build` 0w 0e; `dotnet test --filter Category!=Eval` all green; `pnpm check` green (lint 0/0, test 27/27, build 0w/0e).
+
+**Updated:** `MERIDIAN-START.md` handoff + checkpoint table; `src/DevContext.App/AGENTS.md` M9 delivery block + gap tracking; `PROGRESS-LOG.md`.
+
+**Next:** Push, then plan next phase. All Meridian gaps closed or assessed as acceptable.
