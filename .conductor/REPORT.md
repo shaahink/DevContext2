@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 23:11 UTC · branch `feat/loom-l2` · HEAD `9a30d17`_
+_Updated 2026-07-07 23:21 UTC · branch `feat/loom-l2` · HEAD `b229015`_
 
-**Status:** Idle
-**Stage:** L2 — BodyFacts + seam detectors · attempts used 0
-**Checkpoints:** 12/35 done · **Sessions run:** 10 · **Cost:** $0.6467 · **Tokens:** 563,363 in / 135,281 out / 94,547 think
+**Status:** Running
+**Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.1
+**Checkpoints:** 12/35 done · **Sessions run:** 11 · **Cost:** $0.6467 · **Tokens:** 563,363 in / 135,281 out / 94,547 think
 **Confirmed phases:** L0, L1, L2
+
+## Latest activity (live)
+
+_Session #11 (Deliver) · running 10m · last output 96s ago · $0.0353_
+
+**Thinking:**
+> Interesting! When using `analyze --focus "POST /basket/checkout"`, the graph numbers are 396/236 (exactly matching the L2 evidence claim). But without focus, using `report`, the full-scan numbers are 422/275.  This makes sense - `analyze --focus` does a focused analysis (subset of the graph), while …
+> Good, the tree is clean now. Let me now explore the existing codebase structure for L3 work. I need to understand:  1. How BodyFacts works 2. How the graph builder/assembler consumes them 3. Where the populator pipeline is 4. How projects are discovered (to know how to find assets.json) 5. What exis…
+> Let me explore the codebase to understand the architecture for L3. I need to find: 1. The Graph2 namespace and existing populator/pipeline structure 2. BodyFacts/SeamDetector code 3. Project discovery and how to get project.assets.json references 4. Existing extractors and the pipeline orchestration
+
+**Recent actions:**
+- `00:18:03` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --focus "POST /basket/checkout"…
+- `00:18:16` » bash git --no-pager diff db40049 5b69dd7 -- src/DevContext.Core/Graph/GraphBuilder.cs | Out-String -Width 500
+- `00:18:16` » bash dotnet run --project src/DevContext.Cli --no-build -- query --help 2>&1 | Out-String -Width 500
+- `00:18:26` » bash dotnet run --project src/DevContext.Cli --no-build -- query trace --path "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --focus "POST /bask…
+- `00:18:37` » bash dotnet run --project src/DevContext.Cli --no-build -- query trace --path "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --focus "POST /bask…
+- `00:18:47` » bash dotnet run --project src/DevContext.Cli --no-build -- query entrypoints --path "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --format json…
+- `00:19:00` » bash dotnet run --project src/DevContext.Cli --no-build -- analyze "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --focus "POST /basket/checkout…
+- `00:19:24` · QA findings: Dogfood 422/275 (vs 396/236 claimed — the post-L2 fix commit changed numbers), checkout trace verified via MCP not CLI, 0 Regex in Core/Graph. Let …
+- `00:19:24` » bash git checkout -- eval-results/2026-07-07/mcp-qa.md
+- `00:19:30` » todowrite 4 todos
 
 ## Stage progress
 
@@ -14,7 +35,7 @@ _Updated 2026-07-07 23:11 UTC · branch `feat/loom-l2` · HEAD `9a30d17`_
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
-| L3 | Semantic-lite tier | 0/3 | todo |
+| L3 | Semantic-lite tier | 0/3 | **← active** |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
@@ -35,6 +56,7 @@ _Updated 2026-07-07 23:11 UTC · branch `feat/loom-l2` · HEAD `9a30d17`_
 | 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
 | 9 | L2 | Deliver | 1 | 07-07 21:30 | 1:18 | Advanced | L2.3 L2.4 | 8 | build:OK | $0.2415 | 144,588/43,725 |
 | 10 | L2 | Audit | 1 | 07-07 22:50 | 0:14 | Progress |  | 2 |  | $0.1207 | 197,731/13,088 |
+| 11 | L3 | Deliver | 1 | 07-07 23:11 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
