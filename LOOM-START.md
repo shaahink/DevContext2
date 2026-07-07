@@ -34,7 +34,7 @@ line under the row — never silent renumbering.
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | 7318441 | eval-results/2026-07-07/truth-gate-l0.1.txt |
+| L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | 5084826 | eval-results/2026-07-07/truth-gate-l0.1.txt |
 | L0.2 | Cold-agent MCP QA harness + baseline | TODO | | |
 | L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | TODO | | |
 | L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | TODO | | |
