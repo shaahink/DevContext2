@@ -7,21 +7,20 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L2 session #7 — QA'd L1 (all L1.1-1.5 genuine, no green-washing; de-static confirmed instance field).
-stage: **L2 IN PROGRESS** (L2.1 ✅ L2.2 ✅ · L2.3 ⬜ L2.4 ⬜). BodyFacts (facts-v1) built in the parse,
-      output-neutral; 5 seam detectors + 18 tests; checkout spine detected end-to-end (E1 pattern by construction).
-gate: dotnet build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · mcp-qa 8/8 · dogfood 494/316/6/34 2.3s.
-next: **L2.3** — new CodeGraphAssembler consumes SeamMatches; delete GraphBuilder body-regex paths;
-      tighten guards to ban all Regex under Core/Graph. Then **L2.4** checkout trace ≥5 cross-service (flip [TruthPending]).
-trap: kill DevContext.Server before build (DLL lock); `report` ignores --focus (use `analyze --focus`);
-      GraphBuilder is 2461 lines (both paths live until L2.3) — migrate the organ then DELETE the old path.
-evidence: eval-results/2026-07-07/gate-battery-l2-s7.txt; loom-guards.ps1 green; Graph2 tests 18/18.
+last: L2 session #8 — L2.3 (assembler + regex funeral) + L2.4 (checkout trace ≥5) BOTH DONE.
+stage: **L2 CLOSED** (L2.1 ✅ L2.2 ✅ · L2.3 ✅ L2.4 ✅). BodyFacts wired into graph assembly;
+      seam detectors run over pre-extracted facts; AddLambdaSeams handles minimal-API lambdas;
+      ALL body-regex methods deleted; zero Regex in Core/Graph; guards green.
+gate: dotnet build 0w/0e · Core 386P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
+next: **L3.1** — SemanticLitePopulator (assets.json → compilations, degrade path).
+trap: dogfood 396/236 (drift vs 493/316 baseline = purity gain, not regression; documented).
+evidence: eval-results/2026-07-07/gate-battery-l2-s8.txt; dogfood-l2-checkout-trace.md (depth 6).
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
 | Metric | Value |
 |---|---|
-| Dogfood | 493 nodes · 316 edges · 34 entries · 6 ServiceLinks · verified 59% · 3.9s |
+| Dogfood | 396 nodes · 236 edges · 34 entries · 6 ServiceLinks · depth 6 · 2.3s |
 | Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
 | Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
 | Tab strip height | **18px (L6.1 target ≥30px; ui-gate.md)** |
@@ -46,8 +45,8 @@ line under the row — never silent renumbering.
 | L1.5 | impact/scope grouping via Service identity (no "(unknown)"/"Default") | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
 | L2.1 | BodyFacts in the existing parse, cached (facts-v1) | DONE | 006daff | eval-results/2026-07-07/gate-battery-l2-s7.txt |
 | L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | DONE | 5dafd6e | eval-results/2026-07-07/gate-battery-l2-s7.txt |
-| L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | TODO | | |
-| L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | TODO | | |
+| L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | DONE | (l2.3) | eval-results/2026-07-07/gate-battery-l2-s8.txt |
+| L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
 | L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | TODO | | |
 | L3.2 | Targeted semantic upgrades (Law R2) | TODO | | |
 | L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | TODO | | |

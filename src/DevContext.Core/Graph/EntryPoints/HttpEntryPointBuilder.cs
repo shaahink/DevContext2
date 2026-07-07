@@ -54,9 +54,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                         Provenance = $"{ep.SourceFile}:{ep.LineNumber}",
                         Resolution = Resolution.Join,
                     });
-                    if (!string.IsNullOrEmpty(ep.HandlerBody))
-                        GraphBuilder.AddDispatchEdgesFromBody(g, memberNodeId, ep.HandlerBody,
-                            $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}", names);
+                    // L2.3: dispatch edges are now produced by seam detectors over BodyFacts — no regex needed here.
                     linked = true;
                 }
                 else
@@ -95,8 +93,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                         Provenance = $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}",
                         Resolution = Resolution.Join,
                     });
-                    GraphBuilder.AddDispatchEdgesFromBody(g, lambdaId, ep.HandlerBody,
-                        $"{ep.SourceFile}:{(ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber)}", names);
+                    // L2.3: dispatch edges are now produced by seam detectors over BodyFacts.
                     linked = true;
                 }
                 else if (ownerType is not null)

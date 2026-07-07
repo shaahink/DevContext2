@@ -1,15 +1,16 @@
-# Loom guards -- ban-list pattern checker for the L1 identity spine.
+# Loom guards -- ban-list pattern checker for the Loom identity spine + regex funeral.
 # Run from the repo root. Exits 0 when clean, non-zero when banned patterns found.
 # Guards tighten progressively: new patterns added each stage, exceptions removed
 # as the old paths die. CI hook: `powershell -File scripts/loom-guards.ps1`.
 #
-# L1 rules (enforced now):
-#   1. No `new Regex` in src/DevContext.Core/Graph/ (enforced -- 0 matches)
+# L1 rules (enforced where applicable):
+#   1. No Regex usage in src/DevContext.Core/Graph/ (all body-scan regexes died in L2.3)
 #   2. No `SymbolId(` construction outside Graph2/ or test code (enforced)
-#   3. No `fqns[0]` in Graph2/ (enforced -- SymbolTable uses Candidates, not picks)
-# L2 will additionally enforce:
-#   4. No `NodeId.ForType(` in Graph/ (the old path dies in L2)
-#   5. No `fqns[0]` anywhere (NameResolver dies in L2)
+#   3. No `fqns[0]` in Graph2/ (enforced -- SymbolTable uses Candidates, never picks)
+# L2.3 rules:
+#   4. No `using System.Text.RegularExpressions` in Core/Graph (all regexes banished)
+# L3+ will additionally enforce:
+#   5. No `NodeId.ForType(` in Graph/ (the old path dies)
 
 param(
     [switch]$Quiet
@@ -31,15 +32,15 @@ function Check-Pattern {
     }
 }
 
-Write-Host "== loom-guards -- L1 identity spine ban check ==" -ForegroundColor Gray
+Write-Host "== loom-guards -- L2.3 ban check ==" -ForegroundColor Gray
 
 $graphDir = Join-Path $repoRoot 'src/DevContext.Core/Graph'
 $graph2Dir = Join-Path $repoRoot 'src/DevContext.Core/Graph2'
 $coreDir = Join-Path $repoRoot 'src/DevContext.Core'
 $testsDir = Join-Path $repoRoot 'tests'
 
-# Rule 1: No `new Regex` in Core/Graph/ (design section 9 -- body scan regexes die)
-Check-Pattern -Pattern 'new Regex' -Label 'new Regex in Core/Graph' -Path $graphDir
+# Rule 1: No `using System.Text.RegularExpressions` in Core/Graph/ (L2.3 — the regex funeral)
+Check-Pattern -Pattern 'System.Text.RegularExpressions' -Label 'Regex import in Core/Graph' -Path $graphDir
 
 # Rule 2: No `SymbolId(` construction outside Graph2/ or test code
 $allSrcFiles = Get-ChildItem -LiteralPath $coreDir -Recurse -Filter *.cs -ErrorAction SilentlyContinue |
@@ -56,11 +57,11 @@ foreach ($f in $allSrcFiles) {
 # Rule 3: No `fqns[0]` in Graph2/ (SymbolTable uses Candidates, never picks)
 Check-Pattern -Pattern 'fqns[0]' -Label 'fqns[0] in Graph2/' -Path $graph2Dir
 
-# Advisory: count remaining banned patterns in Graph/ (fixed by L2)
+# Advisory: count remaining banned patterns in Graph/ (fixed by later stages)
 $nodeIdCount = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'NodeId.ForType(' -SimpleMatch -CaseSensitive 2>$null).Count
 $fqns0Count = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'fqns[0]' -SimpleMatch 2>$null).Count
 if (-not $Quiet -and ($nodeIdCount -gt 0 -or $fqns0Count -gt 0)) {
-    Write-Host "  Advisory: $nodeIdCount NodeId.ForType( (fixed by L2) + $fqns0Count fqns[0] (fixed by L2)" -ForegroundColor Yellow
+    Write-Host "  Advisory: $nodeIdCount NodeId.ForType( (fixed by L3) + $fqns0Count fqns[0] (fixed by L3)" -ForegroundColor Yellow
 }
 
 if ($failures -gt 0) {

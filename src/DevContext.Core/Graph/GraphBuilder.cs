@@ -1,7 +1,6 @@
-using System.Text.RegularExpressions;
-
 using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
+using DevContext.Core.Graph2.Seams;
 using DevContext.Core.Models;
 
 using Microsoft.CodeAnalysis;
@@ -22,7 +21,7 @@ public sealed class GraphBuilder
     private readonly ISymbolResolver _resolver;
     private readonly NoiseFilter _noise;
 
-    // M1.6: event→project mappings collected during AddSends, consumed by AddBusServiceLinks
+    // M1.6: event→project mappings collected from seam detectors, consumed by AddBusServiceLinks
     private Dictionary<string, HashSet<string>>? _eventPublishers;
 
     // P3: Entry-point builders — one per entry-point kind. Adding a new kind
@@ -51,7 +50,8 @@ public sealed class GraphBuilder
     }
 
     /// <summary>Builds the code graph and the entry-point inventory for one solution scope (design-doc R1).</summary>
-    public (CodeGraph Graph, ImmutableArray<EntryPoint> Entries) Build(DiscoveryModel model, SolutionScope scope)
+    public (CodeGraph Graph, ImmutableArray<EntryPoint> Entries) Build(DiscoveryModel model, SolutionScope scope,
+        IReadOnlyList<BodyFacts>? bodyFacts = null)
     {
         var g = new CodeGraphBuilder();
         var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
@@ -78,15 +78,11 @@ public sealed class GraphBuilder
         AddDiResolves(g, model, names, scope);              // B1: DI Resolves edges (interface → impl)
 
         // ── P2 Trace-facing seams ─────────────────────────────────────────
-        // Member-origin correctness (Iteration 1 / Phase 1): edges that originate in a method body must
-        // originate from that method's Member node, not the whole Type — otherwise a trace anchored on
-        // one method inherits every sibling method's edges. Precompute, once, a per-type offset→method
-        // locator from each type's SourceBody so the body-scan seams below attribute each match to the
-        // method that contains it. (See PRODUCT-DIRECTION.md §6 req.1.)
-        var methodSpans = BuildAllMethodSpans(model);
-        AddRaises(g, model, names, methodSpans);            // C1: Raises edges from body scan (member-origin)
-        AddSends(g, model, names, methodSpans, scope);             // C1: Sends edges from .Send(new X()) (member-origin)
-        AddDataEdges(g, model, names, methodSpans);         // C1: ReadsWrites edges from entities (member-origin)
+        // L2: structured seam detectors over BodyFacts (design §2.1) replace the old regex body-scan
+        // sites. Edges anchor on the correct Member node by construction (BodyFacts.Member), so a
+        // method-anchored trace shows only its own edges. Zero regex, zero re-parsing.
+        AddSeamsFromDetectors(g, model, names, scope, bodyFacts);
+        AddLambdaSeams(g, model, names, scope);             // L2.4: dispatch edges for lambda entry-handlers
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
         var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
 
@@ -791,13 +787,32 @@ public sealed class GraphBuilder
             if (di.ImplementationType is { Length: > 0 } body
                 && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
             {
-                foreach (Match m in Regex.Matches(body,
-                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
-                    RegexOptions.Compiled))
+                // Scan for AddOpenBehavior(typeof(X)) patterns — manual string scan (L2.3: no Regex here)
+                var pos = 0;
+                while ((pos = body.IndexOf("AddOpenBehavior", pos, StringComparison.Ordinal)) >= 0)
                 {
-                    var name = m.Groups[1].Value;
-                    if (name is { Length: > 0 } && name != "?")
-                        behaviors.Add((name, di.SourceFile, di.LineNumber));
+                    pos += "AddOpenBehavior".Length;
+                    var rest = body[pos..];
+                    var bp = 0;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp < rest.Length && rest[bp] == '(') bp++;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp + "typeof".Length <= rest.Length
+                        && rest.AsSpan(bp, "typeof".Length).SequenceEqual("typeof"))
+                    {
+                        bp += "typeof".Length;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        if (bp < rest.Length && rest[bp] == '(') bp++;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        var start = bp;
+                        while (bp < rest.Length && (char.IsLetterOrDigit(rest[bp]) || rest[bp] == '_')) bp++;
+                        if (bp > start)
+                        {
+                            var name = rest[start..bp];
+                            if (name.Length > 0 && name != "?")
+                                behaviors.Add((name, di.SourceFile, di.LineNumber));
+                        }
+                    }
                 }
             }
         }
@@ -1291,455 +1306,332 @@ public sealed class GraphBuilder
         return (true, hubs.Count);
     }
 
-    /// <summary>C1: Link EF entities to their data store and to the code that touches them. Entity→
-    /// DataStore comes from the detection; the touch edges come from scanning bodies that name an entity
-    /// — attributed to the enclosing <b>method</b> (member-origin), so a method-anchored trace shows only
-    /// its own data access. The minimal-API lambda/handler-method Member pass keeps a direct MinimalApi→EF
-    /// trace (TodoApi) surfacing its touched entity (G4).</summary>
-    private static void AddDataEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
-        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
+    // ── L2.3: Seam detectors over BodyFacts (replaces the old regex body-scan methods) ────────────
+
+    /// <summary>L2.3 — Runs structured seam detectors (<see cref="ISeamDetector"/>) over the pre-extracted
+    /// <see cref="BodyFacts"/>, replacing the old regex body-scan methods (<c>AddSends</c>, <c>AddRaises</c>,
+    /// <c>AddDataEdges</c>). Detectors are pure (facts in, seams out); here we resolve targets via the
+    /// <see cref="SymbolTable"/> and materialise graph nodes/edges. Ambiguous targets are skipped per
+    /// Law R1 (no silent winners); unresolved (external) types use the short name as-is. Edge provenance
+    /// comes from the body-fact line number, anchored on the correct Member node by construction — never a
+    /// char-offset estimate. Event→project mappings are tracked for the downstream cross-service bus
+    /// ServiceLink join (replaces the old regex-based <c>_eventPublishers</c> collection).</summary>
+    private void AddSeamsFromDetectors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        SolutionScope scope, IReadOnlyList<BodyFacts>? allBodyFacts)
     {
-        // Map every entity alias (short + FQN) → its node id, so a body that names the entity either way
-        // links to the SAME node (FQN-keyed entities used to never match a short-name body reference).
-        var entityIdByName = new Dictionary<string, NodeId>(StringComparer.Ordinal);
+        // Auto-extract BodyFacts from model TypeDiscovery SourceBodies when the pipeline hasn't
+        // pre-extracted them (backward compatibility for tests that build directly from model).
+        if (allBodyFacts is null)
+        {
+            var facts = new List<BodyFacts>();
+            foreach (var type in model.Types.Values)
+            {
+                if (type.SourceBody is not { Length: > 0 } sb) continue;
+                try
+                {
+                    var hasTypeDecl = sb.Contains("class ", StringComparison.Ordinal)
+                        || sb.Contains("struct ", StringComparison.Ordinal)
+                        || sb.Contains("record ", StringComparison.Ordinal);
+                    var fullSource = sb;
+                    if (!hasTypeDecl)
+                    {
+                        var nsDecl = !string.IsNullOrEmpty(type.Namespace) && !sb.Contains("namespace ", StringComparison.Ordinal)
+                            ? $"namespace {type.Namespace} {{ "
+                            : (sb.Contains("namespace ", StringComparison.Ordinal) ? "" : $"namespace {type.Name} {{ ");
+                        fullSource = $"{nsDecl}public class {type.Name} {{ {sb} }}}}";
+                    }
+                    else if (!string.IsNullOrEmpty(type.Namespace) && !sb.Contains("namespace ", StringComparison.Ordinal))
+                    {
+                        fullSource = $"namespace {type.Namespace} {{ {sb} }}";
+                    }
+                    var parseOpts = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
+                    var tree = CSharpSyntaxTree.ParseText(fullSource, parseOpts, path: type.FilePath);
+                    var project = scope.ProjectForFile(type.FilePath) ?? "";
+                    facts.AddRange(BodyFactExtractor.Extract(tree, type.FilePath, project));
+                }
+                catch { /* parse failure → skip */ }
+            }
+            allBodyFacts = facts;
+        }
+        if (allBodyFacts.Count == 0) return;
+
+        // Build SeamContext from model detections + type base/interface data
+        var knownEntities = new HashSet<string>(StringComparer.Ordinal);
+        var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
+        var domainTypes = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var e in model.Detections.OfType<EfEntityDetection>())
+        {
+            knownEntities.Add(e.EntityType);
+            knownEntities.Add(names.Resolve(e.EntityType, e.SourceFile));
+        }
+        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
+            integrationTypes.Add(mc.MessageType);
+        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
+        {
+            if (h.Kind == MediatRKind.Notification)
+                domainTypes.Add(h.RequestType);
+        }
+        foreach (var t in model.Types.Values)
+        {
+            foreach (var bt in t.BaseTypes)
+            {
+                var stripped = StripGenerics(bt);
+                if (stripped.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase)
+                    || stripped is "INotification" or "IDomainEvent" or "IEvent")
+                {
+                    integrationTypes.Add(t.Name);
+                    break;
+                }
+                if (stripped.Contains("DomainEvent", StringComparison.Ordinal))
+                    domainTypes.Add(t.Name);
+            }
+        }
+        foreach (var t in model.Types.Values)
+        {
+            if (t.Name.Contains("DomainEvent", StringComparison.Ordinal))
+                domainTypes.Add(t.Name);
+        }
+
+        var symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile);
+
+        // Entity and event names that are also FQNs
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
             var entityFqn = names.Resolve(e.EntityType, e.SourceFile);
-            var entityId = NodeId.ForType(entityFqn);
-            var ctxFqn = names.Resolve(e.DbContextType, e.SourceFile);
-            if (!string.IsNullOrEmpty(ctxFqn) && ctxFqn != "?")
+            if (!string.IsNullOrEmpty(entityFqn) && entityFqn != "?" && entityFqn != e.EntityType)
+                knownEntities.Add(entityFqn);
+        }
+        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
+        {
+            var msgFqn = names.Resolve(mc.MessageType, mc.SourceFile);
+            if (!string.IsNullOrEmpty(msgFqn) && msgFqn != "?" && msgFqn != mc.MessageType)
+                integrationTypes.Add(msgFqn);
+        }
+        foreach (var node in g.Nodes)
+        {
+            if (node.Kind == NodeKind.Type && node.Tags.Contains(RoleTags.Entity))
+                knownEntities.Add(node.Title);
+        }
+
+        var ctx = new SeamContext
+        {
+            Symbols = symbols,
+            KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
+            IntegrationEventTypes = integrationTypes.ToImmutableHashSet(StringComparer.Ordinal),
+            DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
+        };
+
+        var detectors = new ISeamDetector[]
+        {
+            new MediatRDispatchDetector(),
+            new BusPublishDetector(),
+            new IntegrationEventCreationDetector(),
+            new DomainEventRaiseDetector(),
+            new EntityTouchDetector(),
+        };
+
+        foreach (var body in allBodyFacts)
+        {
+            foreach (var detector in detectors)
             {
-                var ctxId = NodeId.ForType(ctxFqn);
-                g.AddNode(new GraphNode(ctxId, ctxFqn, NodeKind.Type)
+                foreach (var match in detector.Detect(body, ctx))
                 {
-                    FilePath = e.SourceFile,
-                    Tags = [RoleTags.DataStore],
-                    Layer = "Infrastructure",
-                });
-                g.AddEdge(new GraphEdge(entityId, ctxId, EdgeKind.ReadsWrites)
-                {
-                    Provenance = $"{e.SourceFile}:{e.LineNumber}",
-                    Resolution = Resolution.Join,
-                });
-            }
-            entityIdByName[RemoveGenerics(e.EntityType)] = entityId;
-            entityIdByName[RemoveGenerics(entityFqn)] = entityId;
-        }
-        if (entityIdByName.Count == 0) return;
+                    var originId = ToMemberNodeId(match.Origin);
+                    EnsureMemberId(g, originId, body.MemberName, body.File, body.Project);
 
-        // Type bodies (handlers/services) that reference an entity — attributed to the enclosing METHOD so
-        // a member-anchored trace gets only its own data access. A type whose body can't be split into
-        // methods (parse miss / no methods) falls back to a single Type-level edge (the old behaviour).
-        foreach (var type in model.Types.Values)
-        {
-            if (type.SourceBody is not { Length: > 0 } body) continue;
-            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
-            if (spans.IsDefaultOrEmpty)
-            {
-                LinkBodyToEntity(g, NodeId.ForType(type.Id), body, entityIdByName);
-                continue;
-            }
-            foreach (var span in spans)
-            {
-                var memberId = EnsureMember(g, type, span.Method);
-                LinkBodyToEntity(g, memberId, body[span.Start..span.End], entityIdByName);
-            }
-        }
+                    var resolved = symbols.Resolve(match.Target);
+                    if (resolved.Tier == ResolutionTier.Ambiguous)
+                        continue; // Law R1: no silent winners
 
-        // Minimal-API lambda / captured handler-method Member nodes that reference an entity — this is
-        // what makes a direct MinimalApi→EF trace (TodoApi) surface its touched entity.
-        foreach (var member in g.Nodes.Where(n => n.Kind == NodeKind.Member && n.SourceBody is { Length: > 0 }).ToList())
-            LinkBodyToEntity(g, member.Id, member.SourceBody, entityIdByName);
-    }
+                    NodeId targetId;
+                    string targetDisplayName = match.Target.Text;
 
-    /// <summary>Adds one ReadsWrites edge from <paramref name="fromId"/> to the first entity its body
-    /// names (syntactic, approximate). Shared by the type-body and member-body passes. Matching is
-    /// whole-word (E4): a plain substring check let short entity names like "Order" or "CardType" match
-    /// inside unrelated identifiers that merely start with them ("OrderId", "IOrderQueries",
-    /// "CardTypeId") — e.g. eShop's CreateOrderAsync never touches the CardType entity, but its request
-    /// DTO carries a CardTypeId property, which a substring match wrongly read as "touches CardType".</summary>
-    private static void LinkBodyToEntity(CodeGraphBuilder g, NodeId fromId, string? body,
-        Dictionary<string, NodeId> entityIdByName)
-    {
-        if (body is not { Length: > 0 } || !g.HasNode(fromId)) return;
-        foreach (var (entityName, entityId) in entityIdByName)
-        {
-            if (entityName.Length < 3 || !ContainsWholeWord(body, entityName)) continue;
-            if (fromId == entityId || !g.HasNode(entityId)) continue;
-            g.AddEdge(new GraphEdge(fromId, entityId, EdgeKind.ReadsWrites)
-            {
-                Resolution = Resolution.Syntactic,
-                Confidence = 0.5f,
-            });
-            break;
-        }
-    }
+                    if (resolved.Resolved is { } symId)
+                        targetId = NodeId.ForType(symId.Canonical);
+                    else
+                        targetId = NodeId.ForType(match.Target.Text);
 
-    /// <summary>True if <paramref name="word"/> occurs in <paramref name="body"/> as a whole identifier —
-    /// not merely as a prefix/substring of a longer identifier. Plain <c>string.Contains</c> is unsafe for
-    /// entity-name matching: "Order" is a substring of "OrderId"/"IOrderQueries" and "CardType" is a
-    /// substring of "CardTypeId" (E4).</summary>
-    private static bool ContainsWholeWord(string body, string word)
-    {
-        var idx = 0;
-        while ((idx = body.IndexOf(word, idx, StringComparison.Ordinal)) >= 0)
-        {
-            var before = idx == 0 || !IsIdentifierChar(body[idx - 1]);
-            var afterPos = idx + word.Length;
-            var after = afterPos >= body.Length || !IsIdentifierChar(body[afterPos]);
-            if (before && after) return true;
-            idx++;
-        }
-        return false;
-    }
-
-    private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c == '_';
-
-    /// <summary>C1: Scan handler/ctor SourceBody for domain/integration event creation → Raises edges.
-    /// Per R4: matches method-name set {AddDomainEvent, RaiseDomainEvent, AddEvent} with new TEvent()
-    /// arg; also new TIntegrationEvent(...) constructor calls. The Raises edge originates from the
-    /// enclosing <b>method's</b> Member node (member-origin), falling back to the Type node only when the
-    /// match is outside any method — so the type-level <c>data Order</c> no longer dumps every method's
-    /// domain events. Resolution.Syntactic.</summary>
-    private static void AddRaises(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
-        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans)
-    {
-        var eventMethods = new[] { "AddDomainEvent", "RaiseDomainEvent", "AddEvent" };
-        foreach (var type in model.Types.Values)
-        {
-            if (type.SourceBody is not { Length: > 0 } body) continue;
-            var typeId = NodeId.ForType(type.Id);
-            if (!g.HasNode(typeId)) continue;
-            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
-
-            foreach (var method in eventMethods)
-            {
-                // Match both inline `AddDomainEvent(new X(...))` and the variable form
-                // `AddDomainEvent(evt)` where `evt = new X(...)` earlier (eShop's Order ctor raises
-                // OrderStartedDomainEvent this way — group 1 = inline new type, group 2 = variable name).
-                foreach (Match match in Regex.Matches(body,
-                    $@"{Regex.Escape(method)}\s*\(\s*(?:new\s+(\w+)\s*\(|(\w+))", RegexOptions.Compiled))
-                {
-                    var eventName = match.Groups[1].Success
-                        ? match.Groups[1].Value
-                        : ResolveVariableNewType(body, match.Index, match.Groups[2].Value,
-                            EnclosingSpan(spans, match.Index, body.Length).Start);
-                    if (string.IsNullOrEmpty(eventName) || IsNoiseType(eventName)) continue;
-                    var eventId = NodeId.ForType(names.Resolve(eventName, type.FilePath));
-
-                    g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
+                    if (!g.HasNode(targetId))
                     {
-                        Tags = [RoleTags.DomainEvent],
-                        Layer = "Domain",
-                    });
-                    g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
-                    {
-                        Provenance = EstimateProvenance(body, match.Index, type.FilePath),
-                        Resolution = Resolution.Syntactic,
-                        Confidence = 0.5f,
-                    });
-                }
-            }
-
-            // I1.4 — build event type-set from model (BaseTypes / ImplementedInterfaces)
-            // so the body-scan matches the real event types, not just *IntegrationEvent* by name.
-            // E5: a dedicated events-only set — BuildEventTypeNameSet (shared with AddSends' broader
-            // request-or-event conjunction gate) also treats IRequest/ICommand/IQuery bases as "events",
-            // so a MediatR command's own `new CreateOrderCommand(...)` construction was misread as a
-            // raised event, duplicating the real Sends seam under a fabricated Raises edge.
-            var eventTypeNames = BuildDomainEventTypeNameSet(model);
-
-            // new TEvent(...) where TEvent ∈ model-derived event type set (I1.4)
-            foreach (Match match in Regex.Matches(body, @"new\s+(\w+)\s*\(", RegexOptions.Compiled))
-            {
-                var eventName = match.Groups[1].Value;
-                if (!eventTypeNames.Contains(eventName))
-                {
-                    // Fallback: legacy *IntegrationEvent* name regex for repos without event base types
-                    if (!eventName.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase))
-                        continue;
-                }
-                var eventId = NodeId.ForType(names.Resolve(eventName, type.FilePath));
-                g.AddNode(new GraphNode(eventId, eventName, NodeKind.Type)
-                {
-                    Tags = [RoleTags.IntegrationEvent],
-                    Layer = "Contracts",
-                });
-                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), eventId, EdgeKind.Raises)
-                {
-                    Provenance = EstimateProvenance(body, match.Index, type.FilePath),
-                    Resolution = Resolution.Syntactic,
-                    Confidence = 0.5f,
-                });
-            }
-        }
-    }
-
-    /// <summary>Best-effort Sends edges FROM a specific Member node (a minimal-API lambda or a captured
-    /// handler-method body) by scanning that body for MediatR Send/Publish dispatch — the same pattern
-    /// as <see cref="AddSends"/> but anchored on the one endpoint's body, so the trace and the Map's
-    /// entry→target reflect exactly what THIS route dispatches (not the whole registration type). A
-    /// method that only queries adds no Sends edge, so it correctly resolves to no command.</summary>
-    internal static void AddDispatchEdgesFromBody(CodeGraphBuilder g, NodeId fromId, string body, string? provenance, NameResolver names)
-    {
-        foreach (Match match in Regex.Matches(body,
-            @"\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
-            RegexOptions.Compiled))
-        {
-            string? requestName;
-            if (match.Groups[2].Success)
-            {
-                // Inline: .Send(new X(...)) — unwrap generic wrapper like IdentifiedCommand<Inner>
-                requestName = UnwrapGenericArg(body, match.Groups[2].Index, match.Groups[2].Value);
-            }
-            else
-            {
-                var pos = match.Index;
-                if (pos <= 0) continue;
-                var varName = match.Groups[4].Value;
-                var newMatches = Regex.Matches(body[..pos], @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-                if (newMatches.Count > 0)
-                {
-                    var lastMatch = newMatches[^1];
-                    requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
-                }
-                else
-                {
-                    // M1.2 W2: try Adapt<T>/Map<T> factory pattern in the handler body
-                    requestName = ResolveVariableFromAdapt(body, 0, pos, varName);
-                    if (requestName is null) continue;
-                }
-            }
-
-            if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
-            var fileFromProvenance = provenance is not null && provenance.Contains(':')
-                ? provenance[..provenance.LastIndexOf(':')]
-                : provenance;
-            var requestId = NodeId.ForType(names.Resolve(requestName, fileFromProvenance));
-            g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type) { Layer = "Application" });
-            g.AddEdge(new GraphEdge(fromId, requestId, EdgeKind.Sends)
-            {
-                Provenance = provenance,
-                Resolution = Resolution.Syntactic,
-                Confidence = 0.55f,
-            });
-        }
-    }
-
-    private void AddSends(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
-        Dictionary<string, ImmutableArray<MethodSpan>> methodSpans, SolutionScope scope)
-    {
-        // Build event/request type name set once for the conjunction gate (I1.3/I1.4)
-        var eventTypeNames = BuildEventTypeNameSet(model);
-
-        foreach (var type in model.Types.Values)
-        {
-            if (type.SourceBody is not { Length: > 0 } body) continue;
-            var typeId = NodeId.ForType(type.Id);
-            var spans = methodSpans.TryGetValue(type.Id, out var s) ? s : [];
-
-            // Strip string literals so in-literal seam-like patterns don't produce fabricated edges
-            var scanBody = StripStringLiterals(body);
-
-            // Find all Send/Publish calls with the receiver captured for dispatch-gating (I1.3).
-            // Pattern: receiver.Send(expr) where expr is either `new Type(...)` or a local name.
-            // Groups: 1=receiver, 2=verb, 3=inline-new-type, 4=variable-name.
-            foreach (Match match in Regex.Matches(scanBody,
-                @"(\w+)\.(Send|SendAsync|Publish|PublishAsync)\s*\(\s*(?:new\s+(\w+)(?:\s*<[^>]+>)?\s*\(|(\w+))",
-                RegexOptions.Compiled))
-            {
-                var receiverName = match.Groups[1].Value;
-                var verb = match.Groups[2].Value;
-                string? requestName;
-                var isParamFallback = false;
-
-                // I1.3 — gate on known dispatch receiver to prevent false positives
-                var receiverType = ResolveReceiverType(type, spans, match.Index, receiverName);
-                var catalogConfidence = 0f;
-                var isKnown = receiverType is not null
-                    && DispatchSeamCatalog.IsKnownReceiver(receiverType, verb, out catalogConfidence);
-                float confidence;
-
-                if (match.Groups[3].Success)
-                {
-                    // Inline: .Send(new X(...))
-                    requestName = UnwrapGenericArg(body, match.Groups[3].Index, match.Groups[3].Value);
-                    confidence = isKnown ? catalogConfidence : 0.35f;
-                }
-                else
-                {
-                    // Variable: .Send(cmd)
-                    var varName = match.Groups[4].Value;
-                    var pos = match.Index;
-                    if (pos <= 0) continue;
-                    var (spanStart, _) = EnclosingSpan(spans, pos, body.Length);
-                    var before = body[spanStart..pos];
-
-                    // M1.2 W2: check for Adapt<T>/Map<T>/Create<T> factory patterns FIRST,
-                    // then fall back to the last `new X()` before the dispatch. Covers the
-                    // dogfood pattern: var cmd = request.Adapt<CheckoutBasketCommand>();
-                    requestName = ResolveVariableFromAdapt(body, spanStart, pos, varName);
-                    if (requestName is null)
-                    {
-                        var newMatches = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-                        if (newMatches.Count > 0)
+                        var tags = match.Kind switch
                         {
-                            var lastMatch = newMatches[^1];
-                            requestName = UnwrapGenericArg(body, lastMatch.Groups[1].Index, lastMatch.Groups[1].Value);
+                            EdgeKind.ReadsWrites => ImmutableArray.Create(RoleTags.Entity),
+                            EdgeKind.Raises => match.DetectorId switch
+                            {
+                                "IntegrationEventCreation" or "BusPublish" => ImmutableArray.Create(RoleTags.IntegrationEvent),
+                                "DomainEventRaise" => ImmutableArray.Create(RoleTags.DomainEvent),
+                                _ => ImmutableArray.Create(RoleTags.DomainEvent),
+                            },
+                            EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
+                            _ => ImmutableArray<string>.Empty,
+                        };
+                        g.AddNode(new GraphNode(targetId, targetDisplayName, NodeKind.Type)
+                        {
+                            Tags = tags,
+                            Layer = match.Kind switch
+                            {
+                                EdgeKind.ReadsWrites => "Domain",
+                                EdgeKind.Raises => "Domain",
+                                EdgeKind.Sends => "Application",
+                                _ => null,
+                            },
+                        });
+                    }
+
+                    g.AddEdge(new GraphEdge(originId, targetId, match.Kind)
+                    {
+                        Provenance = match.Provenance,
+                        Resolution = Resolution.Syntactic,
+                        Confidence = match.Confidence,
+                    });
+
+                    // Track event→publisher for cross-service bus ServiceLink join
+                    if (match.Kind == EdgeKind.Raises
+                        && (match.DetectorId is "BusPublish" or "IntegrationEventCreation"))
+                    {
+                        var pubProject = scope.ProjectForFile(body.File) ?? body.Project;
+                        if (!string.IsNullOrEmpty(pubProject) && _eventPublishers is not null)
+                        {
+                            var trackingKey = resolved.Resolved?.Canonical ?? match.Target.Text;
+                            if (!_eventPublishers.TryGetValue(trackingKey, out var pubSet))
+                                _eventPublishers[trackingKey] = pubSet = [];
+                            pubSet.Add(pubProject);
                         }
                     }
-                    if (requestName is null)
-                    {
-                        // I1.2 — fall back to param/property types
-                        requestName = ResolveVariableFromModel(type, spans, pos, varName);
-                        isParamFallback = requestName is not null;
-                    }
-                    confidence = isKnown ? catalogConfidence : 0.45f;
-                }
-
-                // Unknown receiver — emit only for known verbs (bare-verb fallback),
-                // AND only when the target type carries request/event markers — the conjunction
-                // gate kills false positives like SmtpClient.Send(new MailMessage()) (I1.3).
-                if (!isKnown)
-                {
-                    if (!DispatchSeamCatalog.IsKnownVerb(verb))
-                        continue;
-                    // Conjunction: also require the target type looks like a request/event
-                    if (!string.IsNullOrEmpty(requestName)
-                        && !IsLikelyRequestType(requestName, eventTypeNames))
-                        continue;
-                }
-
-                if (string.IsNullOrEmpty(requestName) || IsNoiseType(requestName)) continue;
-                var requestFqn = names.Resolve(requestName, type.FilePath);
-                var requestId = NodeId.ForType(requestFqn);
-                if (!g.HasNode(typeId)) continue;
-
-                // Approximate provenance: file + line of the Send call
-                var prov = EstimateProvenance(body, match.Index, type.FilePath);
-
-                g.AddNode(new GraphNode(requestId, requestName, NodeKind.Type) { Layer = "Application" });
-                g.AddEdge(new GraphEdge(BodyMatchOrigin(g, type, spans, match.Index, typeId), requestId, EdgeKind.Sends)
-                {
-                    Provenance = prov,
-                    Resolution = Resolution.Syntactic,
-                    Confidence = confidence,
-                });
-
-                // M1.6: track event→publisher mapping for bus ServiceLink join
-                if (_eventPublishers is not null)
-                {
-                    var pubProject = scope.ProjectForFile(type.FilePath);
-                    if (pubProject is not null)
-                    {
-                        if (!_eventPublishers.TryGetValue(requestFqn, out var pubSet))
-                            _eventPublishers[requestFqn] = pubSet = [];
-                        pubSet.Add(pubProject);
-                    }
                 }
             }
         }
     }
 
-    /// <summary>True for names the body-scan Sends/Raises regexes pick up but that are never a real
-    /// request/event — chiefly framework exceptions (<c>new ArgumentNullException(...)</c> caught by the
-    /// variable-arg .Send() heuristic). Keeps the trace's indirection seams honest.</summary>
-    internal static bool IsNoiseType(string name)
-        => name.EndsWith("Exception", StringComparison.Ordinal)
-            || name is "Task" or "ValueTask" or "List" or "Dictionary" or "Array"
-                or "String" or "Object" or "Guid" or "CancellationToken";
-
-    /// <summary>Strips C# string literal contents (regular, verbatim, raw, interpolated) from the
-    /// body, replacing them with spaces to preserve character offsets. This prevents the body-scan
-    /// Sends/Raises regexes from matching seam-like patterns inside string literals (a known regex trap).</summary>
-    internal static string StripStringLiterals(string body)
+    /// <summary>Converts a BodyFacts <see cref="SymbolId"/> (format <c>TypeFqn::MethodName(N)</c>) to the
+    /// <see cref="NodeId"/> format used by the graph (<c>TypeFqn.MethodName</c>).</summary>
+    private static NodeId ToMemberNodeId(SymbolId memberId)
     {
-        if (string.IsNullOrEmpty(body)) return body;
-        var chars = body.ToCharArray();
-        var i = 0;
-        while (i < chars.Length)
-        {
-            // Raw string literal: """...""" (C# 11+)
-            if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
-            {
-                i += 3;
-                if (i < chars.Length && chars[i] == '\n') i++;
-                else if (i + 1 < chars.Length && chars[i] == '\r' && chars[i + 1] == '\n') i += 2;
-                while (i < chars.Length)
-                {
-                    if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
-                    {
-                        i += 3;
-                        break;
-                    }
-                    chars[i] = ' ';
-                    i++;
-                }
-                continue;
-            }
-
-            // Verbatim string: @"..." (handle before regular " to avoid false match on @)
-            if (i + 1 < chars.Length && chars[i] == '@' && chars[i + 1] == '"')
-            {
-                i += 2;
-                while (i < chars.Length)
-                {
-                    if (chars[i] == '"')
-                    {
-                        if (i + 1 < chars.Length && chars[i + 1] == '"') { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
-                        i++; break;
-                    }
-                    chars[i] = ' ';
-                    i++;
-                }
-                continue;
-            }
-
-            // Interpolated $@"..." or $"..." or $"""...""" — skip $ prefix, handle next char
-            if (chars[i] == '$')
-            {
-                i++;
-                if (i < chars.Length && chars[i] == '@') continue; // $@" handled as verbatim next
-                if (i + 2 < chars.Length && chars[i] == '"' && chars[i + 1] == '"' && chars[i + 2] == '"')
-                    continue; // $""" handled as raw next
-                if (i < chars.Length && chars[i] == '"') { } // $" handled as regular next (fall through to below)
-                else continue; // not a string, continue
-            }
-
-            // Regular string: "..."
-            if (chars[i] == '"')
-            {
-                i++;
-                while (i < chars.Length)
-                {
-                    if (chars[i] == '\\' && i + 1 < chars.Length) { chars[i] = ' '; chars[i + 1] = ' '; i += 2; continue; }
-                    if (chars[i] == '"') { i++; break; }
-                    chars[i] = ' ';
-                    i++;
-                }
-                continue;
-            }
-
-            i++;
-        }
-        return new string(chars);
+        var canonical = memberId.Canonical;
+        var sep = canonical.IndexOf("::", StringComparison.Ordinal);
+        if (sep < 0) return NodeId.ForMember(canonical, canonical);
+        var typeFqn = canonical[..sep];
+        var after = canonical[(sep + 2)..];
+        var paren = after.IndexOf('(');
+        var methodName = paren > 0 ? after[..paren] : after;
+        return NodeId.ForMember(typeFqn, methodName);
     }
 
-    /// <summary>Best-effort guard: returns true when the type name carries request/command/event
-    /// markers (suffix or known base types) — used as a conjunction gate for the bare-verb fallback
-    /// in Sends detection (I1.3 false-positive prevention).</summary>
-    private static bool IsLikelyRequestType(string typeName, HashSet<string> eventTypeNames)
+    /// <summary>L2.4 — Runs seam detectors on lambda entry-handler member nodes that carry a SourceBody
+    /// (populated by <see cref="HttpEntryPointBuilder"/>). Lambdas live inside the enclosing method's
+    /// BodyFacts, so the main pass attributes edges to the enclosing method. This post-pass extracts
+    /// per-lambda facts and attributes edges to the lambda member node so entry→lambda→dispatch traces
+    /// work correctly for the checkout flow.</summary>
+    private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
     {
-        if (eventTypeNames.Contains(typeName)) return true;
-        var knownRequestSuffixes = new[]
+        var symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile);
+        var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
+        var domainTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var t in model.Types.Values)
         {
-            "Command", "Query", "Event", "Notification", "Request", "Response",
+            foreach (var bt in t.BaseTypes)
+            {
+                var stripped = StripGenerics(bt);
+                if (stripped.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase)
+                    || stripped is "INotification" or "IDomainEvent" or "IEvent")
+                { integrationTypes.Add(t.Name); break; }
+                if (stripped.Contains("DomainEvent", StringComparison.Ordinal))
+                    domainTypes.Add(t.Name);
+            }
+        }
+        var ctx = new SeamContext
+        {
+            Symbols = symbols,
+            IntegrationEventTypes = integrationTypes.ToImmutableHashSet(StringComparer.Ordinal),
+            DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
         };
-        foreach (var suffix in knownRequestSuffixes)
-            if (typeName.EndsWith(suffix, StringComparison.Ordinal))
-                return true;
-        return false;
+
+        var detectors = new ISeamDetector[]
+        {
+            new MediatRDispatchDetector(),
+            new BusPublishDetector(),
+            new IntegrationEventCreationDetector(),
+            new DomainEventRaiseDetector(),
+            new EntityTouchDetector(),
+        };
+
+        foreach (var node in g.Nodes.Where(n => n.Kind == NodeKind.Member
+            && n.SourceBody is { Length: > 0 }
+            && (n.Id.Key.Contains("<lambda>", StringComparison.Ordinal)
+                || n.Id.Key.Contains("<anonymous>", StringComparison.Ordinal))).ToList())
+        {
+            try
+            {
+                // Wrap the lambda body in a synthetic method + class so the extractor finds it
+                var body = node.SourceBody!;
+                var filePath = node.FilePath ?? "";
+                var project = node.Project ?? scope.ProjectForFile(filePath) ?? "";
+                var wrapped = $"namespace _ {{ public class _ {{ public void _() {{ ({body})(); }} }} }}";
+                var tree = CSharpSyntaxTree.ParseText(wrapped, path: filePath);
+                var facts = BodyFactExtractor.Extract(tree, filePath, project);
+
+                foreach (var bodyFacts in facts)
+                {
+                    foreach (var detector in detectors)
+                    {
+                        foreach (var match in detector.Detect(bodyFacts, ctx))
+                        {
+                            var resolved = symbols.Resolve(match.Target);
+                            if (resolved.Tier == ResolutionTier.Ambiguous) continue;
+
+                            NodeId targetId;
+                            if (resolved.Resolved is { } symId)
+                                targetId = NodeId.ForType(symId.Canonical);
+                            else
+                                targetId = NodeId.ForType(match.Target.Text);
+
+                            EnsureMemberId(g, node.Id, node.Title, node.FilePath, node.Project);
+
+                            if (!g.HasNode(targetId))
+                            {
+                                g.AddNode(new GraphNode(targetId, match.Target.Text, NodeKind.Type)
+                                {
+                                    Tags = match.Kind switch
+                                    {
+                                        EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
+                                        EdgeKind.Raises => ImmutableArray.Create(RoleTags.DomainEvent),
+                                        _ => ImmutableArray<string>.Empty,
+                                    },
+                                    Layer = match.Kind switch
+                                    {
+                                        EdgeKind.Sends => "Application",
+                                        EdgeKind.Raises => "Domain",
+                                        _ => null,
+                                    },
+                                });
+                            }
+
+                            g.AddEdge(new GraphEdge(node.Id, targetId, match.Kind)
+                            {
+                                Provenance = match.Provenance,
+                                Resolution = Resolution.Syntactic,
+                                Confidence = match.Confidence,
+                            });
+                        }
+                    }
+                }
+            }
+            catch { /* parse failure → skip */ }
+        }
     }
+
+    /// <summary>Ensures a Member node exists in the graph for the given id (first-write wins).</summary>
+    private static void EnsureMemberId(CodeGraphBuilder g, NodeId id, string? memberName, string? file, string? project)
+    {
+        if (g.HasNode(id)) return;
+        g.AddNode(new GraphNode(id, memberName ?? id.Key, NodeKind.Member)
+        {
+            FilePath = file,
+            Project = project,
+        });
+    }
+
 
     /// <summary>True for a self-call target that is syntactic-resolver noise, not real wiring: the
     /// <c>nameof</c> pseudo-call, and the common ASP.NET <c>ControllerBase</c> result helpers (inherited,
@@ -1752,152 +1644,22 @@ public sealed class GraphBuilder
             or "Problem" or "Conflict" or "UnprocessableEntity";
 
     /// <summary>True for a node that represents a MediatR request (a Type tagged command/query/
-    /// notification) — the targets a pipeline behavior wraps. Replaces the old NodeKind.Request check.</summary>
+    /// notification) � the targets a pipeline behavior wraps. Replaces the old NodeKind.Request check.</summary>
     private static bool IsRequestNode(GraphNode n)
         => n.Kind == NodeKind.Type
             && (n.Tags.Contains(RoleTags.Command)
                 || n.Tags.Contains(RoleTags.Query)
                 || n.Tags.Contains(RoleTags.Notification));
 
-    /// <summary>A method/ctor text span within a type's SourceBody (offsets relative to SourceBody, which
-    /// is the type declaration's full text — so they share the Regex match index's origin). Ctor name is
-    /// the type short name, matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s
-    /// caller-method key.</summary>
-    private readonly record struct MethodSpan(int Start, int End, string Method);
-
-    /// <summary>Precomputes, once per build, each type's offset→method locator from its SourceBody so the
-    /// body-scan seams (Raises/Sends/ReadsWrites) can attribute every match to the enclosing method
-    /// (member-origin) rather than the whole type.</summary>
-    private static Dictionary<string, ImmutableArray<MethodSpan>> BuildAllMethodSpans(DiscoveryModel model)
-    {
-        var map = new Dictionary<string, ImmutableArray<MethodSpan>>(StringComparer.Ordinal);
-        foreach (var type in model.Types.Values)
-            if (type.SourceBody is { Length: > 0 } body)
-                map[type.Id] = BuildMethodSpans(body);
-        return map;
-    }
-
-    /// <summary>Parses a type's SourceBody fragment and returns the text span of each direct method/ctor.
-    /// Mirrors CallGraphExtractor's per-member iteration (direct members of the type, ctors keyed by the
-    /// type short name). A parse failure yields an empty list → callers fall back to Type-level origin.</summary>
-    private static ImmutableArray<MethodSpan> BuildMethodSpans(string sourceBody)
-    {
-        try
-        {
-            var root = CSharpSyntaxTree.ParseText(sourceBody).GetRoot();
-            var typeDecl = root.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
-            if (typeDecl is null) return [];
-
-            var typeShort = typeDecl.Identifier.ValueText;
-            var spans = ImmutableArray.CreateBuilder<MethodSpan>();
-            foreach (var member in typeDecl.Members)
-            {
-                switch (member)
-                {
-                    case MethodDeclarationSyntax m:
-                        spans.Add(new MethodSpan(m.Span.Start, m.Span.End, m.Identifier.ValueText));
-                        break;
-                    case ConstructorDeclarationSyntax c:
-                        spans.Add(new MethodSpan(c.Span.Start, c.Span.End, typeShort));
-                        break;
-                }
-            }
-            return spans.ToImmutable();
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    /// <summary>Resolves a SourceBody character offset to the enclosing method name, or null when the
-    /// offset is outside every method (e.g. a field initializer) — callers then attribute to the Type.</summary>
-    private static string? EnclosingMethod(ImmutableArray<MethodSpan> spans, int offset)
-    {
-        foreach (var span in spans)
-            if (offset >= span.Start && offset < span.End)
-                return span.Method;
-        return null;
-    }
-
-    /// <summary>Resolves a SourceBody character offset to the start/end of the enclosing method span,
-    /// or (0, <paramref name="wholeBodyEnd"/>) when outside every method — the variable search is then
-    /// the whole body before the match, as it was before span-bounding (field/ctor-less init).</summary>
-    private static (int Start, int End) EnclosingSpan(
-        ImmutableArray<MethodSpan> spans, int offset, int wholeBodyEnd)
-    {
-        foreach (var s in spans)
-            if (offset >= s.Start && offset < s.End)
-                return (s.Start, s.End);
-        return (0, wholeBodyEnd);
-    }
-
-    /// <summary>Ensures a Member node exists for <paramref name="type"/>.<paramref name="method"/>, carrying
-    /// the owning Type's file, and returns its id. First-write-wins merge keeps any body/edges already
-    /// attached by the call graph or HTTP-entry passes.</summary>
-    private static NodeId EnsureMember(CodeGraphBuilder g, TypeDiscovery type, string method)
-    {
-        var id = NodeId.ForMember(type.Id, method);
-        g.AddNode(new GraphNode(id, $"{type.Name}.{method}", NodeKind.Member) { FilePath = type.FilePath });
-        return id;
-    }
-
-    /// <summary>Origin node for a body-scan match: the enclosing method's Member node (member-origin), or
-    /// the Type node when the match isn't inside any method.</summary>
-    private static NodeId BodyMatchOrigin(CodeGraphBuilder g, TypeDiscovery type,
-        ImmutableArray<MethodSpan> spans, int offset, NodeId typeFallback)
-    {
-        var method = EnclosingMethod(spans, offset);
-        return method is null ? typeFallback : EnsureMember(g, type, method);
-    }
-
-    /// <summary>Estimates a "file:line" provenance from a character offset in the source body.</summary>
-    private static string? EstimateProvenance(string sourceBody, int charOffset, string? filePath)
-    {
-        if (string.IsNullOrEmpty(filePath)) return null;
-        var line = 1;
-        for (var i = 0; i < Math.Min(charOffset, sourceBody.Length); i++)
-        {
-            if (sourceBody[i] == '\n') line++;
-        }
-        return $"{filePath}:{line}";
-    }
-
-    private static string RemoveGenerics(string typeName)
-    {
-        var idx = typeName.IndexOf('<');
-        return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
-    }
-
+    /// <summary>Strips generic type arguments: <c>List&lt;int&gt;</c>?"List". Used in handler-joins, DI resolution, and type-name heuristics.</summary>
     private static string StripGenerics(string typeName)
     {
         var idx = typeName.IndexOf('<');
         return idx > 0 ? typeName[..idx].TrimEnd() : typeName.TrimEnd();
     }
 
-    /// <summary>When a <c>new</c> expression wraps the real request in a generic type
-    /// (e.g. <c>new IdentifiedCommand&lt;CreateOrderCommand,bool&gt;(...)</c>), extract the
-    /// first generic argument as the actual request type. Returns the original typeName
-    /// if no generic wrapper is detected.</summary>
-    internal static string UnwrapGenericArg(string body, int typeNamePos, string typeName)
-    {
-        var after = typeNamePos + typeName.Length;
-        if (after >= body.Length || body[after] != '<') return typeName;
-
-        // Extract the first generic argument: everything between < and the first , or >
-        var start = after + 1;
-        var comma = body.IndexOf(',', start);
-        var close = body.IndexOf('>', start);
-        if (close < 0) return typeName;
-        var end = comma > 0 && comma < close ? comma : close;
-        if (end <= start) return typeName;
-
-        var inner = body[start..end].Trim();
-        return inner.Length > 0 ? inner : typeName;
-    }
-
-    /// <summary>True for an EndpointDetection that is a framework/infrastructure pseudo-entry — OpenAPI/Scalar
-    /// root routes registered in ServiceDefaults or extension files — not genuine application surface. The
+    /// <summary>True for an EndpointDetection that is a framework/infrastructure pseudo-entry � OpenAPI/Scalar
+    /// root routes registered in ServiceDefaults or extension files � not genuine application surface. The
     /// guard matches on both source and route, not just <c>"/"</c>, so a real root route isn't falsely dropped.</summary>
     internal static bool IsInfrastructureEntry(EndpointDetection ep)
     {
@@ -1914,195 +1676,6 @@ public sealed class GraphBuilder
     /// <summary>Normalizes a route template for dedup comparison.</summary>
     internal static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
 
-    /// <summary>Resolves the event type for a variable-form raise (<c>AddDomainEvent(evt)</c>): prefers the
-    /// variable's own <c>evt = new X(...)</c> assignment before the call, else the last <c>new X(...)</c>
-    /// before it — span-bounded to the enclosing method (I1.1).</summary>
-    private static string? ResolveVariableNewType(string body, int callPos, string varName, int spanStart)
-    {
-        if (callPos <= 0 || string.IsNullOrEmpty(varName)) return null;
-        var before = body[spanStart..callPos];
-        var assign = Regex.Matches(before, $@"\b{Regex.Escape(varName)}\s*=\s*new\s+(\w+)");
-        if (assign.Count > 0) return assign[^1].Groups[1].Value;
-        var news = Regex.Matches(before, @"new\s+(\w+)(?:\s*<[^>]+>)?\s*[\(;]");
-        return news.Count > 0 ? news[^1].Groups[1].Value : null;
-    }
-
-    /// <summary>M1.2 W2 — resolves a local variable whose declared type is a generic argument of an
-    /// Adapt&lt;T&gt; / Map&lt;T&gt; / Create&lt;T&gt; call, e.g. <c>var cmd = request.Adapt&lt;CheckoutBasketCommand&gt;()</c>.
-    /// Returns the generic type argument, or null when no matching factory pattern is found in the
-    /// method body before the Send position.</summary>
-    private static string? ResolveVariableFromAdapt(string body, int spanStart, int sendPos, string varName)
-    {
-        if (string.IsNullOrEmpty(varName)) return null;
-        var before = body.AsSpan(spanStart, sendPos - spanStart);
-
-        // Factory patterns: varName = expression.GenericMethod<TargetType>()
-        // The Adapt<T>/Map<T>/Create<T> pattern names the target type in the generic argument.
-        var adaptMatch = Regex.Match(before.ToString(),
-            $@"\b{Regex.Escape(varName)}\s*=\s*[^;]*?\.\s*(?:Adapt|Map|Create)\s*<\s*(\w+)",
-            RegexOptions.Compiled | RegexOptions.RightToLeft);
-        if (adaptMatch.Success)
-            return adaptMatch.Groups[1].Value;
-
-        // Generic return type on the same assignment line:
-        // varName = ...Method<TargetType>(...); before the Send call
-        var genericAssign = Regex.Match(before.ToString(),
-            $@"\b{Regex.Escape(varName)}\s*=\s*[^;]*<\s*(\w+)\s*>",
-            RegexOptions.Compiled | RegexOptions.RightToLeft);
-        if (genericAssign.Success)
-            return genericAssign.Groups[1].Value;
-
-        return null;
-    }
-
-    /// <summary>Resolves a variable name to its declared type using model data when the body-scan finds
-    /// no in-span <c>new</c>: (1) method parameter, (2) property, (3) field from SourceBody outside method
-    /// spans. Returns null when none match — callers then emit no edge (honesty > guess).</summary>
-    private static string? ResolveVariableFromModel(TypeDiscovery type,
-        ImmutableArray<MethodSpan> spans, int pos, string varName)
-    {
-        // (1) Method parameter — use EnclosingMethod to find which method, then match param name→type
-        var methodName = EnclosingMethod(spans, pos);
-        if (methodName is not null && !type.Methods.IsDefaultOrEmpty)
-        {
-            foreach (var m in type.Methods)
-            {
-                if (!string.Equals(m.Name, methodName, StringComparison.Ordinal)) continue;
-                if (m.ParameterNames.IsDefaultOrEmpty) break;
-                for (var i = 0; i < Math.Min(m.ParameterNames.Length, m.ParameterTypes.Length); i++)
-                {
-                    if (string.Equals(m.ParameterNames[i], varName, StringComparison.Ordinal))
-                        return StripGenerics(m.ParameterTypes[i]);
-                }
-                break;
-            }
-        }
-
-        // (2) Property — directly declared on the type
-        if (!type.Properties.IsDefaultOrEmpty)
-        {
-            foreach (var p in type.Properties)
-            {
-                if (string.Equals(p.Name, varName, StringComparison.Ordinal))
-                    return StripGenerics(p.PropertyType);
-            }
-        }
-
-        // (3) Field — regex on class-level text outside method bodies (best-effort, no Roslyn)
-        if (type.SourceBody is { Length: > 0 } body)
-        {
-            var classLevel = GetClassLevelBody(body, spans);
-            // Match patterns like: private readonly IMediator _m; (type before the field name)
-            var fieldMatch = Regex.Match(classLevel,
-                $@"\b(\w+(?:<[^>]+>)?(?:\?)?)\s+_{Regex.Escape(varName)}\b",
-                RegexOptions.Compiled);
-            if (fieldMatch.Success)
-                return StripGenerics(fieldMatch.Groups[1].Value);
-
-            // Also try without underscore prefix: IMediator mediator;
-            var bareMatch = Regex.Match(classLevel,
-                $@"\b(\w+(?:<[^>]+>)?(?:\?)?)\s+{Regex.Escape(varName)}\b",
-                RegexOptions.Compiled);
-            if (bareMatch.Success)
-                return StripGenerics(bareMatch.Groups[1].Value);
-        }
-
-        return null;
-    }
-
-    /// <summary>Resolves a receiver variable name to its short type name — for gating dispatch seams
-    /// on known interfaces (I1.3). Uses the same sources as <see cref="ResolveVariableFromModel"/>:
-    /// properties, method params, and field declarations.</summary>
-    private static string? ResolveReceiverType(TypeDiscovery type,
-        ImmutableArray<MethodSpan> spans, int pos, string receiverName)
-    {
-        return ResolveVariableFromModel(type, spans, pos, receiverName);
-    }
-
-    /// <summary>Builds a set of type short names that are events/commands/notifications by checking
-    /// each type's BaseTypes and ImplementedInterfaces against known event markers (I1.4).</summary>
-    private static HashSet<string> BuildEventTypeNameSet(DiscoveryModel model)
-        => BuildBaseTypeNameSet(model,
-        [
-            "IntegrationEvent", "DomainEvent", "Event", "Message",
-            "INotification", "IDomainEvent", "IEvent", "IMessage",
-            "IRequest", "ICommand", "IQuery",
-        ]);
-
-    /// <summary>E5: events only — unlike <see cref="BuildEventTypeNameSet"/> (shared with the Sends
-    /// conjunction gate, where a command/request target is a legitimate match), this set excludes
-    /// IRequest/ICommand/IQuery so a MediatR command's own constructor is never mistaken for a raised
-    /// event. Used exclusively by <see cref="AddRaises"/>.</summary>
-    private static HashSet<string> BuildDomainEventTypeNameSet(DiscoveryModel model)
-        => BuildBaseTypeNameSet(model,
-        [
-            "IntegrationEvent", "DomainEvent", "Event", "Message",
-            "INotification", "IDomainEvent", "IEvent", "IMessage",
-        ]);
-
-    /// <summary>Collects the short names of every model type whose BaseTypes/ImplementedInterfaces end
-    /// with one of <paramref name="knownSuffixes"/> (generics stripped first).</summary>
-    private static HashSet<string> BuildBaseTypeNameSet(DiscoveryModel model, string[] knownSuffixes)
-    {
-        var names = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var type in model.Types.Values)
-        {
-            var isMatch = false;
-            foreach (var bt in type.BaseTypes)
-            {
-                var stripped = StripGenerics(bt);
-                foreach (var suffix in knownSuffixes)
-                {
-                    if (stripped.EndsWith(suffix, StringComparison.Ordinal))
-                    {
-                        isMatch = true;
-                        break;
-                    }
-                }
-                if (isMatch) break;
-            }
-            if (!isMatch)
-            {
-                foreach (var iface in type.ImplementedInterfaces)
-                {
-                    var stripped = StripGenerics(iface);
-                    foreach (var suffix in knownSuffixes)
-                    {
-                        if (stripped.EndsWith(suffix, StringComparison.Ordinal))
-                        {
-                            isMatch = true;
-                            break;
-                        }
-                    }
-                    if (isMatch) break;
-                }
-            }
-            if (isMatch)
-                names.Add(type.Name);
-        }
-        return names;
-    }
-
-    /// <summary>Returns the portion of a type's SourceBody that is outside all method spans —
-    /// field/property declarations live here and nowhere else. When spans is empty, the whole body
-    /// is returned (the type was unparseable).</summary>
-    private static string GetClassLevelBody(string body, ImmutableArray<MethodSpan> spans)
-    {
-        if (spans.IsDefaultOrEmpty) return body;
-        var sb = new System.Text.StringBuilder();
-        var pos = 0;
-        // spans are in declaration order from BuildMethodSpans — iterate directly
-        for (var i = 0; i < spans.Length; i++)
-        {
-            var s = spans[i];
-            if (s.Start > pos)
-                sb.Append(body.AsSpan(pos, s.Start - pos));
-            pos = s.End;
-        }
-        if (pos < body.Length)
-            sb.Append(body.AsSpan(pos));
-        return sb.ToString();
-    }
 
     // ── M1.6-M1.8: Cross-service ServiceLink joins (W4) ──────────────────────────
 

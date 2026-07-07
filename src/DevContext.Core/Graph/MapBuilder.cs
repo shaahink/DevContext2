@@ -195,12 +195,31 @@ public sealed class MapBuilder
             if (di.ImplementationType is { Length: > 0 } body
                 && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
             {
-                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(body,
-                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
-                    System.Text.RegularExpressions.RegexOptions.Compiled))
+                var pos = 0;
+                while ((pos = body.IndexOf("AddOpenBehavior", pos, StringComparison.Ordinal)) >= 0)
                 {
-                    if (m.Groups[1].Value is { Length: > 0 } name && name != "?")
-                        behaviors.Add(name);
+                    pos += "AddOpenBehavior".Length;
+                    var rest = body[pos..];
+                    var bp = 0;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp < rest.Length && rest[bp] == '(') bp++;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp + "typeof".Length <= rest.Length
+                        && rest.AsSpan(bp, "typeof".Length).SequenceEqual("typeof"))
+                    {
+                        bp += "typeof".Length;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        if (bp < rest.Length && rest[bp] == '(') bp++;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        var start = bp;
+                        while (bp < rest.Length && (char.IsLetterOrDigit(rest[bp]) || rest[bp] == '_')) bp++;
+                        if (bp > start)
+                        {
+                            var name = rest[start..bp];
+                            if (name.Length > 0 && name != "?")
+                                behaviors.Add(name);
+                        }
+                    }
                 }
             }
         }
