@@ -1,17 +1,17 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 18:56 UTC · branch `feat/meridian-m0` · HEAD `829dcac`_
+_Updated 2026-07-07 19:02 UTC · branch `feat/meridian-m0` · HEAD `1b6fa21`_
 
 **Status:** Idle
 **Stage:** L0 — Truth harness · attempts used 0
 **Checkpoints:** 3/35 done · **Sessions run:** 4 · **Cost:** $0.0535 · **Tokens:** 58,007 in / 12,076 out / 7,165 think
-**Pending:** full-battery phase gate for L0
+**Confirmed phases:** L0
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
-| L0 | Truth harness | 3/3 | gating… |
+| L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 0/5 | todo |
 | L2 | BodyFacts + seam detectors | 0/4 | todo |
 | L3 | Semantic-lite tier | 0/3 | todo |
