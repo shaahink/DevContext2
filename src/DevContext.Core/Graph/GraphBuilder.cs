@@ -1338,7 +1338,8 @@ public sealed class GraphBuilder
                         var nsDecl = !string.IsNullOrEmpty(type.Namespace) && !sb.Contains("namespace ", StringComparison.Ordinal)
                             ? $"namespace {type.Namespace} {{ "
                             : (sb.Contains("namespace ", StringComparison.Ordinal) ? "" : $"namespace {type.Name} {{ ");
-                        fullSource = $"{nsDecl}public class {type.Name} {{ {sb} }}}}";
+                        var closings = nsDecl.Length > 0 ? " }}" : " }";
+                        fullSource = $"{nsDecl}public class {type.Name} {{ {sb}{closings}";
                     }
                     else if (!string.IsNullOrEmpty(type.Namespace) && !sb.Contains("namespace ", StringComparison.Ordinal))
                     {
@@ -1435,71 +1436,75 @@ public sealed class GraphBuilder
         {
             foreach (var detector in detectors)
             {
-                foreach (var match in detector.Detect(body, ctx))
+                try
                 {
-                    var originId = ToMemberNodeId(match.Origin);
-                    EnsureMemberId(g, originId, body.MemberName, body.File, body.Project);
-
-                    var resolved = symbols.Resolve(match.Target);
-                    if (resolved.Tier == ResolutionTier.Ambiguous)
-                        continue; // Law R1: no silent winners
-
-                    NodeId targetId;
-                    string targetDisplayName = match.Target.Text;
-
-                    if (resolved.Resolved is { } symId)
-                        targetId = NodeId.ForType(symId.Canonical);
-                    else
-                        targetId = NodeId.ForType(match.Target.Text);
-
-                    if (!g.HasNode(targetId))
+                    foreach (var match in detector.Detect(body, ctx))
                     {
-                        var tags = match.Kind switch
+                        var originId = ToMemberNodeId(match.Origin);
+                        EnsureMemberId(g, originId, body.MemberName, body.File, body.Project);
+
+                        var resolved = symbols.Resolve(match.Target);
+                        if (resolved.Tier == ResolutionTier.Ambiguous)
+                            continue; // Law R1: no silent winners
+
+                        NodeId targetId;
+                        string targetDisplayName = match.Target.Text;
+
+                        if (resolved.Resolved is { } symId)
+                            targetId = NodeId.ForType(symId.Canonical);
+                        else
+                            targetId = NodeId.ForType(match.Target.Text);
+
+                        if (!g.HasNode(targetId))
                         {
-                            EdgeKind.ReadsWrites => ImmutableArray.Create(RoleTags.Entity),
-                            EdgeKind.Raises => match.DetectorId switch
+                            var tags = match.Kind switch
                             {
-                                "IntegrationEventCreation" or "BusPublish" => ImmutableArray.Create(RoleTags.IntegrationEvent),
-                                "DomainEventRaise" => ImmutableArray.Create(RoleTags.DomainEvent),
-                                _ => ImmutableArray.Create(RoleTags.DomainEvent),
-                            },
-                            EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
-                            _ => ImmutableArray<string>.Empty,
-                        };
-                        g.AddNode(new GraphNode(targetId, targetDisplayName, NodeKind.Type)
+                                EdgeKind.ReadsWrites => ImmutableArray.Create(RoleTags.Entity),
+                                EdgeKind.Raises => match.DetectorId switch
+                                {
+                                    "IntegrationEventCreation" or "BusPublish" => ImmutableArray.Create(RoleTags.IntegrationEvent),
+                                    "DomainEventRaise" => ImmutableArray.Create(RoleTags.DomainEvent),
+                                    _ => ImmutableArray.Create(RoleTags.DomainEvent),
+                                },
+                                EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
+                                _ => ImmutableArray<string>.Empty,
+                            };
+                            g.AddNode(new GraphNode(targetId, targetDisplayName, NodeKind.Type)
+                            {
+                                Tags = tags,
+                                Layer = match.Kind switch
+                                {
+                                    EdgeKind.ReadsWrites => "Domain",
+                                    EdgeKind.Raises => "Domain",
+                                    EdgeKind.Sends => "Application",
+                                    _ => null,
+                                },
+                            });
+                        }
+
+                        g.AddEdge(new GraphEdge(originId, targetId, match.Kind)
                         {
-                            Tags = tags,
-                            Layer = match.Kind switch
-                            {
-                                EdgeKind.ReadsWrites => "Domain",
-                                EdgeKind.Raises => "Domain",
-                                EdgeKind.Sends => "Application",
-                                _ => null,
-                            },
+                            Provenance = match.Provenance,
+                            Resolution = Resolution.Syntactic,
+                            Confidence = match.Confidence,
                         });
-                    }
 
-                    g.AddEdge(new GraphEdge(originId, targetId, match.Kind)
-                    {
-                        Provenance = match.Provenance,
-                        Resolution = Resolution.Syntactic,
-                        Confidence = match.Confidence,
-                    });
-
-                    // Track event→publisher for cross-service bus ServiceLink join
-                    if (match.Kind == EdgeKind.Raises
-                        && (match.DetectorId is "BusPublish" or "IntegrationEventCreation"))
-                    {
-                        var pubProject = scope.ProjectForFile(body.File) ?? body.Project;
-                        if (!string.IsNullOrEmpty(pubProject) && _eventPublishers is not null)
+                        // Track event→publisher for cross-service bus ServiceLink join
+                        if (match.Kind == EdgeKind.Raises
+                            && (match.DetectorId is "BusPublish" or "IntegrationEventCreation"))
                         {
-                            var trackingKey = resolved.Resolved?.Canonical ?? match.Target.Text;
-                            if (!_eventPublishers.TryGetValue(trackingKey, out var pubSet))
-                                _eventPublishers[trackingKey] = pubSet = [];
-                            pubSet.Add(pubProject);
+                            var pubProject = scope.ProjectForFile(body.File) ?? body.Project;
+                            if (!string.IsNullOrEmpty(pubProject) && _eventPublishers is not null)
+                            {
+                                var trackingKey = resolved.Resolved?.Canonical ?? match.Target.Text;
+                                if (!_eventPublishers.TryGetValue(trackingKey, out var pubSet))
+                                    _eventPublishers[trackingKey] = pubSet = [];
+                                pubSet.Add(pubProject);
+                            }
                         }
                     }
                 }
+                catch { /* detector failure → skip its matches, continue with others */ }
             }
         }
     }
@@ -1575,45 +1580,49 @@ public sealed class GraphBuilder
                 {
                     foreach (var detector in detectors)
                     {
-                        foreach (var match in detector.Detect(bodyFacts, ctx))
+                        try
                         {
-                            var resolved = symbols.Resolve(match.Target);
-                            if (resolved.Tier == ResolutionTier.Ambiguous) continue;
-
-                            NodeId targetId;
-                            if (resolved.Resolved is { } symId)
-                                targetId = NodeId.ForType(symId.Canonical);
-                            else
-                                targetId = NodeId.ForType(match.Target.Text);
-
-                            EnsureMemberId(g, node.Id, node.Title, node.FilePath, node.Project);
-
-                            if (!g.HasNode(targetId))
+                            foreach (var match in detector.Detect(bodyFacts, ctx))
                             {
-                                g.AddNode(new GraphNode(targetId, match.Target.Text, NodeKind.Type)
+                                var resolved = symbols.Resolve(match.Target);
+                                if (resolved.Tier == ResolutionTier.Ambiguous) continue;
+
+                                NodeId targetId;
+                                if (resolved.Resolved is { } symId)
+                                    targetId = NodeId.ForType(symId.Canonical);
+                                else
+                                    targetId = NodeId.ForType(match.Target.Text);
+
+                                EnsureMemberId(g, node.Id, node.Title, node.FilePath, node.Project);
+
+                                if (!g.HasNode(targetId))
                                 {
-                                    Tags = match.Kind switch
+                                    g.AddNode(new GraphNode(targetId, match.Target.Text, NodeKind.Type)
                                     {
-                                        EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
-                                        EdgeKind.Raises => ImmutableArray.Create(RoleTags.DomainEvent),
-                                        _ => ImmutableArray<string>.Empty,
-                                    },
-                                    Layer = match.Kind switch
-                                    {
-                                        EdgeKind.Sends => "Application",
-                                        EdgeKind.Raises => "Domain",
-                                        _ => null,
-                                    },
+                                        Tags = match.Kind switch
+                                        {
+                                            EdgeKind.Sends => ImmutableArray.Create(RoleTags.Command),
+                                            EdgeKind.Raises => ImmutableArray.Create(RoleTags.DomainEvent),
+                                            _ => ImmutableArray<string>.Empty,
+                                        },
+                                        Layer = match.Kind switch
+                                        {
+                                            EdgeKind.Sends => "Application",
+                                            EdgeKind.Raises => "Domain",
+                                            _ => null,
+                                        },
+                                    });
+                                }
+
+                                g.AddEdge(new GraphEdge(node.Id, targetId, match.Kind)
+                                {
+                                    Provenance = match.Provenance,
+                                    Resolution = Resolution.Syntactic,
+                                    Confidence = match.Confidence,
                                 });
                             }
-
-                            g.AddEdge(new GraphEdge(node.Id, targetId, match.Kind)
-                            {
-                                Provenance = match.Provenance,
-                                Resolution = Resolution.Syntactic,
-                                Confidence = match.Confidence,
-                            });
                         }
+                        catch { /* detector failure → skip its matches for this lambda */ }
                     }
                 }
             }

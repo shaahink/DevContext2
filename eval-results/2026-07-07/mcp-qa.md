@@ -1,21 +1,21 @@
 # MCP QA Results (M4 post-gate)
 
 **Repo:** `C:/Users/shahi/source/repos/run-aspnetcore-microservices/src`  
-**Baseline:** 494 nodes, 316 edges, 34 entries  
+**Baseline:** 422 nodes, 275 edges, 34 entries  
 **Date:** 2026-07-07
 
 ## Results
 
 | # | Pass | Calls | Tokens | Question | Detail |
 |---|------|-------|--------|----------|--------|
-| q1-overview | YES | 1 | 242 | What is this repo? (one-call repo brief) | overview 242 tok, archetype=true flows=true counts=true services=true |
-| q2-checkout-flow | YES | 1 | 71 | How does checkout work? | trace found: 3 steps, 71 tok |
-| q3-discount-callers | YES | 2 | 681 | Who calls the Discount service? | 10 Discount matches, usages=true |
-| q4-impact-of-handler | YES | 3 | 262 | What breaks if I change CheckoutBasketCommandHandler? | impact up=2 down=0 total=2 |
-| q5-ambiguous-product | YES | 1 | 698 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
-| q6-config-lookup | YES | 1 | 251 | What config keys are used? | config returned 4 keys |
-| q7-tests-for | YES | 2 | 147 | What tests cover CheckoutBasketCommandHandler? | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler |
-| gate-checkout | YES | 2 | 313 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 313 tok, found=true, 3 steps, cross-service=false |
+| q1-overview | YES | 1 | 241 | What is this repo? (one-call repo brief) | overview 241 tok, archetype=true flows=true counts=true services=true |
+| q2-checkout-flow | YES | 1 | 621 | How does checkout work? | trace found: 24 steps, cross-service, 621 tok |
+| q3-discount-callers | YES | 1 | 627 | Who calls the Discount service? | 10 Discount candidates, no service kind (expected) |
+| q4-impact-of-handler | YES | 3 | 363 | What breaks if I change CheckoutBasketCommandHandler? | impact up=4 down=0 total=4 |
+| q5-ambiguous-product | YES | 1 | 669 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
+| q6-config-lookup | YES | 1 | 257 | What config keys are used? | config returned 4 keys |
+| q7-tests-for | YES | 2 | 140 | What tests cover CheckoutBasketCommandHandler? | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler |
+| gate-checkout | YES | 2 | 862 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 862 tok, found=true, 24 steps, cross-service=true |
 
 **Score:** 8/8  
 **Checkout gate (<=3c/2ktok):** PASS  

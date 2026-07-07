@@ -204,4 +204,64 @@ public sealed class SeamDetectorTests
         var seams = Detect(new MediatRDispatchDetector(), code);
         Assert.Empty(seams);
     }
+
+    [Fact]
+    public void Detector_failure_is_isolated_and_does_not_crash_assembly()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new("Scratch", @"C:\repo\Scratch\Scratch.csproj", "C#", ["net10.0"], [], [])],
+        };
+        var filePath = @"C:\repo\Scratch\Handler.cs";
+        model.Types.TryAdd("Scratch.Handler", new TypeDiscovery
+        {
+            Id = "Scratch.Handler",
+            Name = "Handler",
+            Namespace = "Scratch",
+            FilePath = filePath,
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            SourceBody = "public class Handler { public void Run(IMediator m) { m.Send(new Ping()); } }",
+        });
+        var scope = SolutionScope.FromModel(model);
+
+        var wrappedSource = "namespace Scratch { public class Handler { public void Run(IMediator m) { m.Send(new Ping()); } } }";
+        var tree = CSharpSyntaxTree.ParseText(wrappedSource, new CSharpParseOptions().WithPreprocessorSymbols("DEBUG"), filePath);
+        var facts = BodyFactExtractor.Extract(tree, filePath, "Scratch");
+
+        var builder = new GraphBuilder(new SyntacticSymbolResolver(), new NoiseFilter(new ProjectClassifier(model.Projects)));
+        var (result, _) = builder.Build(model, scope, facts);
+        Assert.True(result.NodeCount > 0);
+    }
+
+    [Fact]
+    public void Auto_extract_fallback_handles_stripped_type_body()
+    {
+        // When BodyFacts are not pre-extracted (null), the auto-extract path wraps
+        // a SourceBody that has no class/struct/record declaration. The triple-brace
+        // fix (L2 audit) ensures the synthetic source is valid C#.
+        var model = new DiscoveryModel
+        {
+            Projects = [new("Scratch", @"C:\repo\Scratch\Scratch.csproj", "C#", ["net10.0"], [], [])],
+        };
+        var filePath = @"C:\repo\Scratch\Handler.cs";
+        model.Types.TryAdd("Scratch.Handler", new TypeDiscovery
+        {
+            Id = "Scratch.Handler",
+            Name = "Handler",
+            Namespace = "Scratch",
+            FilePath = filePath,
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            // Body has no class/struct/record keyword — simulates the stripped-body path.
+            SourceBody = "public void Run() { var c = new CreateOrderCommand(1); }",
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var builder = new GraphBuilder(new SyntacticSymbolResolver(), new NoiseFilter(new ProjectClassifier(model.Projects)));
+        var (result, _) = builder.Build(model, scope, bodyFacts: null);
+        Assert.True(result.NodeCount > 0);
+    }
 }
