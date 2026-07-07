@@ -1,0 +1,93 @@
+# Loom L2 — Session #7 gate battery + evidence (2026-07-07)
+
+Stage L2 (BodyFacts + seam detectors). Branch `feat/loom-l2` off `feat/loom-l1`.
+All results below are FRESH runs this session.
+
+## Pre-session gate battery (never build on red)
+
+| Gate | Result |
+|---|---|
+| `dotnet build DevContext.slnx` | 0 warnings / 0 errors |
+| `dotnet test --filter Category!=Eval` | Core 380P/3S · Server 12P · Desktop 64P |
+| `pnpm check` | lint + vitest + build all pass |
+| `node eval/mcp-qa/run.js --quiet` | 8/8, checkout gate PASS |
+| `scripts/loom-guards.ps1` | PASS (0 banned; advisory 13 NodeId.ForType — L2.3) |
+
+Green before any work. (Note: Core baseline was 380P after L1-audit session #6 added tests,
+not the 364 in the stale handoff line.)
+
+## QA of previous session (L1) — audited against fresh artifacts, not claims
+
+| L1 claim | Fresh check | Verdict |
+|---|---|---|
+| L1.1 SymbolTable + fixtures | Graph2/SymbolTable.cs + SymbolTableTests + ServiceBoundaryInferenceTests present; resolve tiers pass | GENUINE |
+| L1.2 Service/Message/Store kinds + Project stamp | `NodeKind.Service/Message/Store` in CodeGraph.cs; ServiceBoundaryInference present | GENUINE |
+| L1.3 `_eventPublishers` de-static'd; ServiceLinks on Service nodes | GraphBuilder.cs:26 is now an INSTANCE field (`private Dictionary…`, no `static`); dogfood ServiceLinks render real names (`Basket.API → Discount.Grpc`, `YarpApiGateway → Basket.API`, `[bus] Basket.API → Ordering.Application (BasketCheckoutEvent)`) | GENUINE |
+| L1.4 guards green | `loom-guards.ps1` exits 0 | GENUINE |
+| L1.5 no "(unknown)"/"Default" | dogfood report shows no "Default" scope bucket; mcp `impact` up=2/down=0 (no "(unknown)") | GENUINE |
+
+**QA verdict: L1 delivery is genuine — no green-washing found.** Baseline reproduced:
+dogfood 494n · 316e · 6 ServiceLinks · 34 entries · 59% verified · ~2.4s (494 = 493 baseline
++1, within ±5%, attributable to L1 Service nodes — documented at L1).
+
+Confirmed L2 target still red (the point of the stage): CLI
+`analyze --focus "POST /basket/checkout"` traces **depth 1** (ENTRY → `<lambda>` → RESULT;
+no send/handler/bus/consumer). Artifact: temp/checkout-l2-pre.md. This is E1.
+
+## L2.1 — BodyFacts in the existing parse, cached (facts-v1)
+
+New: `Graph2/BodyFacts.cs` (BodyFacts/BodyOp/InvocationOp/CreationOp/LocalDeclOp/IdentifierUseOp,
+`BodyFactsVersion="facts-v1"`), `Graph2/BodyFactExtractor.cs` (one syntax walk; line numbers from
+`GetLineSpan`; string literals excluded; `Adapt<T>`/`Map<T>`/`Create<T>`/`new X`/awaited + same-type
+method-return inference for `LocalDecl.InferredFrom`), `Extractors/Specific/BodyFactsExtractor.cs`
+(Stage3, gated by BuildFullGraph, reuses the memoised syntax tree — NO second parse — and fills
+`SharedAnalysisContext.AllBodyFacts` / `GetOrBuildBodyFactsAsync` facts-v1 cache).
+
+- 9 unit tests GREEN (`Graph2.BodyFactExtractorTests`): member-id `Type::Method(paramCount)`,
+  receiver-type from lambda param, `Adapt<T>`/`new`/same-type-return inference, generic args + line
+  numbers, string-literals-excluded, facts-v1, cache-builds-once, pipeline-populates + output-neutral.
+- **Output-neutral confirmed:** dogfood report after wiring = 494n · 316e · 6 SL · 34 entries ·
+  59% · 2.3s — identical to baseline; perf within design §8 budget (≤4s). Artifact: temp/dogfood-l2-post.md.
+
+## L2.2 — Seam detectors ×5 with dogfood-verbatim fixtures
+
+New: `Graph2/Seams/ISeamDetector.cs` (ISeamDetector, SeamMatch, SeamContext, helpers),
+`DispatchClassifier.cs` (reuses existing `Graph/Seams/DispatchSeamCatalog` as data — MediatR vs bus),
+and detectors: `MediatRDispatchDetector`, `BusPublishDetector`, `IntegrationEventCreationDetector`,
+`DomainEventRaiseDetector`, `EntityTouchDetector`. Pure (facts in, seams out); never write the graph.
+
+9 fixture tests GREEN (`Graph2.SeamDetectorTests`) using verbatim run-aspnetcore-microservices
+snippets. Headline `Checkout_spine_seams_detected_end_to_end` asserts the E1 flow is detected by
+construction:
+
+| From (verbatim source) | Seam detected |
+|---|---|
+| CheckoutBasketEndpoints.AddRoutes: `var command = request.Adapt<CheckoutBasketCommand>()` + `sender.Send(command)` | **Sends → CheckoutBasketCommand** (MediatRDispatch) |
+| CheckoutBasketCommandHandler.Handle: `publishEndpoint.Publish(eventMessage)` (eventMessage=`dto.Adapt<BasketCheckoutEvent>()`) | **Raises → BasketCheckoutEvent** (BusPublish) + IntegrationEventCreation |
+| BasketCheckoutEventHandler.Consume: `var command = MapToCreateOrderCommand(...)` + `sender.Send(command)` | **Sends → CreateOrderCommand** (MediatRDispatch, resolved via same-type method return) |
+
+Guards: MediatR does NOT claim `publishEndpoint.Publish` (bus receiver); no seam fabricated when the
+dispatched value's type is not a Tier-A fact (Law R1: no silent winners).
+
+## Post-session gate battery
+
+| Gate | Result |
+|---|---|
+| `dotnet build DevContext.slnx` | 0w / 0e |
+| `dotnet test --filter Category!=Eval` | **Core 398P/3S** (+18 new) · Server 12P · Desktop 64P |
+| `pnpm check` | pass (bundle built) |
+| `node eval/mcp-qa/run.js --quiet` | 8/8, checkout gate PASS (still cross-service=false — L2.4) |
+| `scripts/loom-guards.ps1` | PASS |
+| dogfood numbers | 494 · 316 · 6 · 34 · 59% · 2.3s (unchanged) |
+
+## Scope landed / deferred
+
+- **DONE:** L2.1 (BodyFacts + facts-v1 cache, additive/output-neutral), L2.2 (5 detectors +
+  dogfood-verbatim fixtures + checkout-spine end-to-end proof).
+- **TODO (next session, L2.3 → L2.4):** wire `CodeGraphAssembler` to consume SeamMatches, delete the
+  GraphBuilder body-regex paths (`AddSends/AddRaises/AddDataEdges`, `StripStringLiterals`,
+  `EstimateProvenance`, `ResolveVariable*`, `BuildAllMethodSpans`), tighten guards to ban all `Regex`
+  under `Core/Graph`, then validate the checkout trace ≥5 cross-service (flip `[TruthPending]`).
+  The spine detection is proven above, so the remaining work is assembler wiring + the regex funeral.
+  Rationale for the split: GraphBuilder is 2461 lines with both paths; landing the tested foundation
+  additively (zero output drift) beats a half-migrated builder left red (standing risk table row 1).
