@@ -7,13 +7,15 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L0 fix session — killed leftover DevContext.Server (lock on DLLs), fixed bench.ps1 → char in truth gate
-      line (PS 5.1 parse error), re-ran full gate battery.
-stage: L0 in progress. L0.1 DONE. L0.2–L0.3 next.
-gate: dotnet build 0w/0e · tests green (Core 355P/3S, Server 12P, Desktop 64P) · pnpm check green · truth gate 4P/4S
-dirty: bench.ps1 (→ fix), mcp-qa.md (token drift)
-next: L0.2 cold-agent MCP QA harness (eval/mcp-qa/run-cold.js) OR L0.3 UI drive gate (ui-audit-drive.mjs promotion).
-trap: kill DevContext.Server before build (process leak); do NOT write truth files from DevContext output.
+last: L0 session #3 — QA'd s2 (L0.1 genuine; ratcheted 2 green-washing vectors in truth tests, tightened
+      only). Delivered L0.2 (cold-agent harness, 0/12 baseline) + L0.3 (UI drive gate, 1/4 pass, 3 red w/owners).
+stage: **L0 COMPLETE** (L0.1 ✅ L0.2 ✅ L0.3 ✅). Truth harness live; all red items enumerated with owner stage.
+gate: dotnet build 0w/0e · tests (Core 355P/3S, Server 12P, Desktop 64P) · pnpm 27/27 · MCP QA 8/8 · truth 4P/4S
+QA verdict s2: L0.1 DONE & real; checkout truth ratcheted ≥2→≥5+cross-service, service-libs negative encoded.
+next: **start L1 (identity spine)** — new branch feat/loom-l1 off here. L1.1 SymbolId/SymbolRef/tiers/SymbolTable.
+trap: kill DevContext.Server before build (DLL lock — bit me again, a stray server was on :5179); a healthy
+      server may linger from prior sessions/conductor; do NOT write truth files from DevContext output.
+evidence: eval-results/2026-07-07/{gate-battery-l0-s3.txt, mcp-cold-qa.md, ui/ui-gate.md}. UI D-preset already green (M8).
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -21,8 +23,8 @@ trap: kill DevContext.Server before build (process leak); do NOT write truth fil
 |---|---|
 | Dogfood | 493 nodes · 316 edges · 34 entries · 6 ServiceLinks · verified 59% · 3.9s |
 | Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
-| Cold-agent MCP naive-call success | **0/15 (L5 target: actionable guidance ≥90%)** |
-| Tab strip height | **17px (L6 target ≥30px)** |
+| Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
+| Tab strip height | **18px (L6.1 target ≥30px; ui-gate.md)** |
 | DntSite | 4,965 n · 2,160 e · 17.9s |
 | MassTransit | 24,819 n · 2,929 e · 46.4s |
 
@@ -35,8 +37,8 @@ line under the row — never silent renumbering.
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | bdcc840 | eval-results/2026-07-07/truth-gate-l0.1.txt |
-| L0.2 | Cold-agent MCP QA harness + baseline | TODO | | |
-| L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | TODO | | |
+| L0.2 | Cold-agent MCP QA harness + baseline | DONE | 930fbf8 | eval-results/2026-07-07/mcp-cold-qa.md |
+| L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | DONE | 9506977 | eval-results/2026-07-07/ui/ui-gate.md |
 | L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | TODO | | |
 | L1.2 | Service/Message/Store node kinds + boundary inference + proto | TODO | | |
 | L1.3 | ServiceLinks on Service nodes; `_eventPublishers` static deleted | TODO | | |
