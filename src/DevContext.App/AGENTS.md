@@ -120,10 +120,12 @@ After `pnpm dev:web`, analyze the dogfood repo and verify:
 > **Updated 2026-07-06** following the M8.1a session. UI-fixable gaps 3–7 are closed.
 > Open gaps 1–2 require engine + proto changes — full step-by-step instructions below.
 
-#### CLOSED (gaps 3–7)
+#### CLOSED (gaps 1–2 — engine + proto)
 
 | Gap | Commit | What |
 |-----|--------|------|
+| G1 | `16d3166` | `read_source` RPC: proto → C# stubs → server handler → TS → Inspector uses `api.readSource()` |
+| G2 | `3be265f` | Layer/feature uplumb: proto fields → ProtoMapper → TS → lens-switcher unblocked → inspector chips |
 | G3 | `bf3a674` | PrismJS wired: `core/code-highlight.ts` → `inspector.ts` Code tab via `[innerHTML]="highlightedCode()"` + CSS token theme |
 | G4 | `bf3a674` | Contrast audit: Graphite `#6b7280→#7a8291`, Light `#8b95a1→#5c6673`, Sepia `#5a5a5a→#858585` — all pass WCAG AA 4.5:1 on base |
 | G5 | `ba6c59a` | Table lens "Shared" column: `refreshSharedTargets()` effect → counts entries sharing the same target handler |
@@ -320,15 +322,15 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ---
 
-## M8 delivery (overwrite this block each session, no history)
+## M9 delivery (overwrite this block each session, no history)
 
-status: M8.3+M8.4 delivered — server-side token estimation wired + provenance chips per card
-delivered: context-studio/ (composition-view.ts, budget-panel.ts, context-studio.ts) — token meter, provenance, budget→RPC wiring
-last: `pnpm check` green (lint 0/0, test 27/27, build 0w/0e)
-next: M9 close-out (full bench + AUDIT.md + HANDOVER-MERIDIAN.md) OR engine gaps 1-2 (read_source RPC + layer/feature uplumb)
-gaps closed: 3 (prismjs), 4 (contrast), 5 (shared handler column), 6 (dead audit-table), 7 (dock cycle)
-gaps open: 1 (read_source RPC — engine+proto), 2 (layer/feature uplumb — engine+proto)
-trap: buildContext() is still client-side v0 (no ContextPackBuilder round-trip RPC); stale banner gated on freshness probe RPC; lens-switcher layer/feature still available=false
+status: M9 closed (full bench 22/22 + AUDIT.md + HANDOVER-MERIDIAN.md). Gaps 1-2 closed (read_source RPC + layer/feature uplumb).
+delivered: read_source RPC (proto → server → TS → inspector), layer/feature uplumb (proto → ProtoMapper → TS → lens-switcher unblocked → inspector chips)
+last: pnpm check green (lint 0/0, test 27/27, build 0w/0e), dotnet build 0w 0e, dotnet test 355/0
+next: push + plan next phase
+gaps closed: ALL (1 read_source RPC, 2 layer/feature, 3 prismjs, 4 contrast, 5 shared handler, 6 dead audit-table, 7 dock cycle)
+trap: buildContext() still client-side v0 (no ContextPackBuilder round-trip RPC); stale banner needs freshness probe RPC
+known: Layer/Feature lens rendering is minimal (chips in inspector); full band/column cytoscape layouts are deferred.
 
 M8.3 detail:
   - Server-side token meter: card.serverTokens stored from ContextResponse.totalTokens after getContext RPC

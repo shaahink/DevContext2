@@ -7,12 +7,12 @@ Branch: `feat/meridian-m0` off `feat/lighthouse-l2`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: M9.3 — HANDOVER-MERIDIAN.md + PROGRESS-LOG + tracker close. Full bench 22/22 green (PowerToys 5141n, MassTransit 24819n). AUDIT.md written. Phase closed.
-stage: M9 — DONE (full bench, AUDIT.md, HANDOVER-MERIDIAN.md, tracker closed)
-gate: dotnet build 0w 0e, dotnet test green, pnpm check green (lint 0/0, test 27/27, build 0w/0e), bench 22/22 repos pass
+last: feat(gap1+gap2): read_source RPC + layer/feature uplumb — all 7 gaps closed, M9 close-out done
+stage: M9 DONE + Gaps 1-2 DONE — full bench 22/22, AUDIT.md, HANDOVER-MERIDIAN.md, read_source RPC, layer/feature uplumbed
+gate: dotnet build 0w 0e, dotnet test 355/0, pnpm check green (lint 0/0, test 27/27, build 0w/0e)
 dirty: none
-next: Engine Gaps 1-2 (read_source RPC → layer/feature uplumb). Plan in src/DevContext.App/AGENTS.md:133-189.
-trap: buildContext() still client-side v0; stale banner needs freshness probe RPC; proto regeneration can be finicky (need correct protoc/plugin versions)
+next: push, then plan next phase. Remaining traps: buildContext() client-side v0, freshness probe RPC.
+trap: Layer/Feature lens rendering is chips-in-inspector only — full band/column cytoscape layouts are deferred.
 
 ## Checkpoints
 
