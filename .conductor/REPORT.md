@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 22:20 UTC · branch `feat/loom-l2` · HEAD `d3404ea`_
+_Updated 2026-07-07 22:30 UTC · branch `feat/loom-l2` · HEAD `589c6cf`_
 
 **Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.3
@@ -9,24 +9,24 @@ _Updated 2026-07-07 22:20 UTC · branch `feat/loom-l2` · HEAD `d3404ea`_
 
 ## Latest activity (live)
 
-_Session #9 (Deliver) · running 50m · last output 47s ago · $0.1592_
+_Session #9 (Deliver) · running 60m · last output 72s ago · $0.1807_
 
 **Thinking:**
-> Wait, NO errors? Let me check if it actually succeeded.
-> The old body-regex methods are still present in the file but they compile because they reference types like `MethodSpan` which also still exists. I haven't actually deleted the old methods yet — I only inserted the NEW methods. The old `AddSends`, `AddRaises`, etc. are still present in the file (jus…
-> OK now let me run the tests. But first let me also check if HttpEntryPointBuilder and Pipeline were updated correctly.
+> Now let me build and run the dogfood analysis to see if the checkout trace works.
+> **396 nodes, 236 edges, depth 6!** The checkout trace now has depth 6! This is the key L2.4 deliverable.  Let me look at the actual trace output to verify it reflects the cross-service flow.
+> Excellent! The trace now shows the full cross-service checkout flow:  1. **ENTRY** POST /basket/checkout 2. `call <lambda>` (the minimal API handler) 3. `send CheckoutBasketCommand` (MediatR dispatch) 4. `handler CheckoutBasketCommandHandler` (handles the command) 5. `raises BasketCheckoutEvent` (In…
 
 **Recent actions:**
-- `23:17:40` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:17:49` » grep AddBusServiceLinks|GetClassLevelBody
-- `23:17:56` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:18:35` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `23:18:35` · Let me insert the new methods. I'll place them right after `AddHubScopeEdges`:
-- `23:18:43` » grep IsSelfCallNoise|IsRequestNode|StripGenerics\(string|IsInfrastructureEntry|NormalizeRoute|GetClassLevelBody|AddBusServiceLinks
-- `23:19:06` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\src\DevContext.Core --no-restore 2>&1 | Select-String "error CS" | Sel…
-- `23:19:13` » bash dotnet build C:\Code\DevContext2-ui\src\DevContext.Core --no-restore 2>&1 | Select-Object -Last 5
-- `23:19:35` · The core logic is working — old methods are dead code. Let me now build the full solution, run tests, and proceed with L2.4 verification. The cleanup of dead me…
-- `23:19:44` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 5
+- `23:28:21` » bash dotnet build C:\Code\DevContext2-ui\src\DevContext.Core --no-restore 2>&1 | Select-String "error|Build succeeded" | Select-Object -First 5
+- `23:28:28` » edit {"filePath":"C:\\Code\\DevContext2-ui\\src\\DevContext.Core\\Graph\\GraphBuilder.cs","newString":"    /// traversal works correctly for the checkout f…
+- `23:28:32` » grep AddLambdaSeams
+- `23:28:37` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:28:45` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `23:28:59` » bash taskkill /F /IM "DevContext.Server.exe" 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select-Object -Last 5
+- `23:29:08` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- analyze "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o C:\C…
+- `23:29:14` · The checkout trace now shows **depth 6**! Let me verify the trace content:
+- `23:29:14` » bash Select-String -Path C:\Code\DevContext2-ui\temp\dogfood-l2-checkout.md -Pattern "TRACE|ENTRY|Sends|Raises|call|handler|command|event|order" | Select-Object…
+- `23:29:25` · **L2.4 checkout trace is depth 6, cross-service!** The trace shows: 1. `POST /basket/checkout` → `send CheckoutBasketCommand` → `CheckoutBasketCommandHandler` →…
 
 ## Stage progress
 
