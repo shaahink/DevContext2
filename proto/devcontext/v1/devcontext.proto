@@ -62,6 +62,10 @@ service DevContextService {
   // get_context tool share this one builder (L5.4 ContextPackBuilder).
   rpc GetContext(ContextRequest) returns (ContextResponse);
 
+  // Read raw source code for a graph node — full member span or a context window around
+  // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
+  rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
+
   // M3.1 — list all active sessions (MCP page session list).
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
 
@@ -620,4 +624,30 @@ message TestRef {
   int32 distance = 5;        // BFS distance from target to this test
   bool is_direct = 6;        // true if distance == 1 (direct caller)
   string project = 7;        // test project name
+}
+
+// ---------------------------------------------------------------------------
+// ReadSource — raw source code for a graph node (Inspector Code tab)
+// ---------------------------------------------------------------------------
+
+enum ReadSourceMode {
+  READ_SOURCE_MODE_UNSPECIFIED = 0;
+  READ_SOURCE_MODE_MEMBER = 1;    // full declaration body of the node's member
+  READ_SOURCE_MODE_WINDOW = 2;    // context window around the node's line
+}
+
+message ReadSourceRequest {
+  string session_id = 1;          // session handle
+  string node_id = 2;             // graph node id to read source for
+  ReadSourceMode mode = 3;        // MEMBER (full span) or WINDOW (context window)
+  int32 window_lines = 4;         // lines above/below for WINDOW mode (default 50)
+}
+
+message ReadSourceResponse {
+  string content = 1;             // raw source text
+  string language = 2;            // "csharp", "razor", "cshtml", etc.
+  string file_path = 3;           // absolute path to the source file
+  int32 start_line = 4;           // first line of the returned range
+  int32 end_line = 5;             // last line of the returned range
+  string node_title = 6;          // node display title for headers
 }

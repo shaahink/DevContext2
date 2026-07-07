@@ -330,7 +330,7 @@ export class Inspector {
     });
   }
 
-  /** M7.1: Load source code for the selected node via the render RPC with full detail. */
+  /** Gap 1: Load raw source code for the selected node via the readSource RPC. */
   protected loadCode(node: { id: string; title: string; filePath?: string }): void {
     const handle = this.session.handle();
     if (!handle) return;
@@ -338,16 +338,8 @@ export class Inspector {
     this.codeError.set(null);
     this.codeContent.set('');
 
-    // Use render RPC with focus on this specific node and "raw" format
-    // to get member-body-level detail (file:line provenance will be in the result).
     this.api
-      .render(handle, {
-        focus: node.id,
-        depth: 0,
-        detail: 'full',
-        format: 'markdown',
-        sections: ['members'],
-      })
+      .readSource(handle, node.id)
       .then((res) => {
         this.codeContent.set(res.content);
       })

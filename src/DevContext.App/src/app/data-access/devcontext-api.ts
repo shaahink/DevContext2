@@ -12,11 +12,13 @@ import type {
   NeighborsResponse,
   NodeResponse,
   ProgressEvent,
+  ReadSourceResponse,
   RenderResponse,
   SearchResponse,
   StatsResponse,
   TraceResponse,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
 export interface AnalyzeSpec {
   readonly path: string;
@@ -124,6 +126,15 @@ export class DevContextApi {
 
   getContext(handle: string, focus: string, options?: { budgetTokens?: number; intent?: 'trace' | 'explain' | 'review' }): Promise<ContextResponse> {
     return this.client.getContext({ handle, focus, budgetTokens: options?.budgetTokens, intent: options?.intent });
+  }
+
+  readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {
+    return this.client.readSource({
+      sessionId: handle,
+      nodeId,
+      mode: options?.mode ?? ReadSourceMode.MEMBER,
+      windowLines: options?.windowLines ?? 0,
+    });
   }
 
   async ping(): Promise<{ ready: boolean; version: string }> {

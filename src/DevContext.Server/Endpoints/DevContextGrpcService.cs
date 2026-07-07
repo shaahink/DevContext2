@@ -246,6 +246,82 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToContextResponse(request.Focus, pack);
         });
 
+    // Gap 1 — read_source RPC: Returns raw source code for the Inspector Code tab.
+    // MEMBER mode uses the node's SourceBody line count to determine the span;
+    // WINDOW mode returns context lines around the node's declaration line.
+    public override Task<Proto.ReadSourceResponse> ReadSource(Proto.ReadSourceRequest request, ServerCallContext context)
+        => WrapT(request.SessionId, session =>
+        {
+            var nodeId = ResolveNode(session, request.NodeId);
+            if (nodeId is null)
+                return new Proto.ReadSourceResponse
+                {
+                    Content = "Node not found: " + request.NodeId,
+                    Language = "text"
+                };
+
+            var node = session.Query.Graph.Node(nodeId.Value);
+            if (node is null || node.FilePath is null || node.LineNumber is null)
+                return new Proto.ReadSourceResponse
+                {
+                    Content = "Source not available for node: " + node?.Title ?? request.NodeId,
+                    Language = "text"
+                };
+
+            if (!File.Exists(node.FilePath))
+                return new Proto.ReadSourceResponse
+                {
+                    Content = "Source file not found: " + node.FilePath,
+                    Language = "text",
+                    FilePath = node.FilePath
+                };
+
+            var lines = File.ReadAllLines(node.FilePath);
+            var anchorLine = node.LineNumber.Value;
+            int startLine;
+            int endLine;
+
+            if (request.Mode == Proto.ReadSourceMode.Window)
+            {
+                var window = request.WindowLines > 0 ? request.WindowLines : 50;
+                startLine = Math.Max(1, anchorLine - window);
+                endLine = Math.Min(lines.Length, anchorLine + window);
+                // Clamp start to ensure we show at most 2*window lines total
+                startLine = Math.Max(1, endLine - 2 * window + 1);
+            }
+            else // MEMBER — full declaration body
+            {
+                startLine = anchorLine;
+                var bodyLineCount = node.SourceBody?.Count(c => c == '\n') ?? 0;
+                endLine = bodyLineCount > 0
+                    ? Math.Min(lines.Length, anchorLine + bodyLineCount)
+                    : Math.Min(lines.Length, anchorLine + 20); // fallback: 20-line window
+            }
+
+            var selectedLines = lines[(startLine - 1)..endLine];
+            var content = string.Join("\n", selectedLines);
+
+            var language = Path.GetExtension(node.FilePath)?.ToLowerInvariant() switch
+            {
+                ".cs" => "csharp",
+                ".razor" => "razor",
+                ".cshtml" => "csharp",
+                ".xaml" => "xml",
+                ".axaml" => "xml",
+                _ => "text"
+            };
+
+            return new Proto.ReadSourceResponse
+            {
+                Content = content,
+                Language = language,
+                FilePath = node.FilePath,
+                StartLine = startLine,
+                EndLine = endLine,
+                NodeTitle = node.Title
+            };
+        });
+
     // M4.7 — config key lookup: scan source files for IConfiguration/GetValue/GetSection usage
     private static readonly Regex ConfigKeyRegex = new(
         @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)""\)|\.GetSection\(""([^""]+)""\)|\.GetConnectionString\(""([^""]+)""\)|\.GetRequiredSection\(""([^""]+)""\))",
