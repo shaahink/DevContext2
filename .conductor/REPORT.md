@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-07 20:49 UTC · branch `feat/loom-l2` · HEAD `8c3b7c0`_
+_Updated 2026-07-07 21:25 UTC · branch `feat/loom-l2` · HEAD `c095d67`_
 
-**Status:** Paused
+**Status:** Running
 **Stage:** L2 — BodyFacts + seam detectors · attempts used 0 · working ▸ L2.1
-**Checkpoints:** 8/35 done · **Sessions run:** 7 · **Cost:** $0.2645 · **Tokens:** 220,274 in / 70,208 out / 37,973 think
+**Checkpoints:** 8/35 done · **Sessions run:** 8 · **Cost:** $0.2645 · **Tokens:** 220,274 in / 70,208 out / 37,973 think
 **Confirmed phases:** L0, L1
+
+## Latest activity (live)
+
+_Session #8 (Resume) · running 10m · last output 0s ago · $0.0103_
+
+**Thinking:**
+> I need to set up the `ExtractionOptions` with `BuildFullGraph` enabled for the cache to work properly in the test, then add a pipeline integration test to SeamDet.  Writing test code... Adding the test method...
+> The new tests are passing, so now I'm running through the full validation suite: checking for regressions across the entire test battery, verifying the UI gates haven't been affected, and running the scripted QA checks.  I can run the dotnet tests, pnpm check, and mcp-qa in parallel since they're in…
+> All the test suites are passing—the core tests picked up 18 new ones, the QA gate is solid, and the bundle checks out. Now I need to generate the gate battery artifact and sync the LOOM-START tracker.  I'm documenting the evidence: the pre-session baseline, the L1 verdict, the fresh test results fro…
+
+**Recent actions:**
+- `22:21:14` · Let me add a pipeline integration test proving `BodyFactsExtractor` populates the facts-v1 cache from the parse (and is output-neutral).
+- `22:21:14` » edit tests\DevContext.Core.Tests\Graph2\BodyFactExtractorTests.cs
+- `22:21:25` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj 2>&1 | Select-Object -Last 6
+- `22:21:36` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --no-build --filter "FullyQualifiedName~Graph2.BodyFactExtractorTests|FullyQualifiedNa…
+- `22:21:54` · 18/18 new tests pass. Now the full post-session gate battery — full test suite, UI gate, and scripted MCP QA in parallel.
+- `22:22:45` » bash pnpm check 2>&1 | Select-Object -Last 8
+- `22:24:51` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 6
+- `22:24:51` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 8
+- `22:25:30` » bash Select-String -Path C:/code/DevContext2-ui/.gitignore -Pattern "conductor" 2>&1; echo "---tracked conductor files---"; git -C C:/code/DevContext2-ui ls-fil…
+- `22:25:30` · Full battery green: **Core 398P/3S** (+18 new), Server 12P, Desktop 64P · mcp-qa 8/8 · pnpm check built. Let me check the root gitignore re: `.conductor` before…
 
 ## Stage progress
 
@@ -32,6 +53,7 @@ _Updated 2026-07-07 20:49 UTC · branch `feat/loom-l2` · HEAD `8c3b7c0`_
 | 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
 | 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
+| 8 | L2 | Resume | 1r1 | 07-07 21:15 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
@@ -63,10 +85,6 @@ _Updated 2026-07-07 20:49 UTC · branch `feat/loom-l2` · HEAD `8c3b7c0`_
 
 - `.conductor/handovers/L0.md`
 - `.conductor/handovers/L1.md`
-
-## Last gate run
-
-build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
