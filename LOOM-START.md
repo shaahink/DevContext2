@@ -7,13 +7,13 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L0.1 truth expectations landed — TruthPendingAttribute, TruthExpectationTests (8 tests: 4 green
-      baseline + 4 red-but-skipped ratchets for checkout/L1/RazorPages/L7/Blazor), bench.ps1 -Truth mode.
+last: L0 fix session — killed leftover DevContext.Server (lock on DLLs), fixed bench.ps1 → char in truth gate
+      line (PS 5.1 parse error), re-ran full gate battery.
 stage: L0 in progress. L0.1 DONE. L0.2–L0.3 next.
-gate: dotnet build 0w/0e · tests green (Core 355/3skip, Server 12, Desktop 64) · pnpm check green · truth gate 4/4 pass
-dirty: none
+gate: dotnet build 0w/0e · tests green (Core 355P/3S, Server 12P, Desktop 64P) · pnpm check green · truth gate 4P/4S
+dirty: bench.ps1 (→ fix), mcp-qa.md (token drift)
 next: L0.2 cold-agent MCP QA harness (eval/mcp-qa/run-cold.js) OR L0.3 UI drive gate (ui-audit-drive.mjs promotion).
-trap: do NOT write truth files from DevContext output — write from TARGET REPO SOURCE.
+trap: kill DevContext.Server before build (process leak); do NOT write truth files from DevContext output.
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 

@@ -250,7 +250,7 @@ if ($Truth) {
     if ($failed) { Write-Host "  $failed" -ForegroundColor Red }
     if ($skipped) { Write-Host "  $skipped (truth ratchets pending)" -ForegroundColor Yellow }
 
-    Write-Host "  Truth gate $($sw.Elapsed.TotalSeconds.ToString('F1'))s → $truthLog" -ForegroundColor $(if ($testExit -eq 0) { 'Green' } else { 'Red' })
+    Write-Host "  Truth gate $($sw.Elapsed.TotalSeconds.ToString('F1'))s -> $truthLog" -ForegroundColor $(if ($testExit -eq 0) { 'Green' } else { 'Red' })
 
     if ($testExit -ne 0) {
         Write-Error "Truth gate FAILED — one or more truth checks are red. Fix or record before proceeding."
