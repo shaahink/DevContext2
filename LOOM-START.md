@@ -7,20 +7,21 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L2 session #8 — L2.3 (assembler + regex funeral) + L2.4 (checkout trace ≥5) BOTH DONE.
-stage: **L2 CLOSED** (L2.1 ✅ L2.2 ✅ · L2.3 ✅ L2.4 ✅). BodyFacts wired into graph assembly;
-      seam detectors run over pre-extracted facts; AddLambdaSeams handles minimal-API lambdas;
-      ALL body-regex methods deleted; zero Regex in Core/Graph; guards green.
-gate: dotnet build 0w/0e · Core 386P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
-next: **L3.1** — SemanticLitePopulator (assets.json → compilations, degrade path).
-trap: dogfood 396/236 (drift vs 493/316 baseline = purity gain, not regression; documented).
-evidence: eval-results/2026-07-07/gate-battery-l2-s8.txt; dogfood-l2-checkout-trace.md (depth 6).
+last: L3 session #11 — L3.1 (SemanticLitePopulator) DONE.
+stage: **L3 IN PROGRESS** (L3.1 ✅). Populator reads assets.json → NuGet dlls →
+       CSharpCompilation per project; framework refs (TPA) + NuGet; degrade path
+       for missing assets. Upgrades LocalDeclOp.InferredFrom + InvocationOp.ReceiverType
+       via SemanticModel (Law R2: only upgrade). Wire-in at DiscoveryPipeline (debug/full).
+gate: dotnet build 0w/0e · Core 388P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
+trap: L2 QA: dogfood 422n/275e (post 5b69dd7 try-catch fix, honest increase); checkout trace MCP-proven depth 6.
+next: **L3.2** — Targeted semantic upgrades: handler interface closure, ambiguous-ref arbitration.
+evidence: eval-results/2026-07-07/gate-battery-l3-s11.txt
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
 | Metric | Value |
 |---|---|
-| Dogfood | 396 nodes · 236 edges · 34 entries · 6 ServiceLinks · depth 6 · 2.3s |
+| Dogfood | 422 nodes · 275 edges · 34 entries · 6 ServiceLinks · depth 6 · 1.8s |
 | Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
 | Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
 | Tab strip height | **18px (L6.1 target ≥30px; ui-gate.md)** |
@@ -47,7 +48,7 @@ line under the row — never silent renumbering.
 | L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | DONE | 5dafd6e | eval-results/2026-07-07/gate-battery-l2-s7.txt |
 | L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | DONE | (l2.3) | eval-results/2026-07-07/gate-battery-l2-s8.txt |
 | L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
-| L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | TODO | | |
+| L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-07/gate-battery-l3-s11.txt |
 | L3.2 | Targeted semantic upgrades (Law R2) | TODO | | |
 | L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | TODO | | |
 | L4.1 | Flow store; spine-only TOUCHES/EMITS | TODO | | |

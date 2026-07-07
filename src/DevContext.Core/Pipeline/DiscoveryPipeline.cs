@@ -5,6 +5,7 @@ using System.Text;
 using DevContext.Core.Analysis;
 using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
 using DevContext.Core.Insights;
 using DevContext.Core.Observers;
 using DevContext.Core.Rendering;
@@ -108,6 +109,32 @@ public sealed class DiscoveryPipeline
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
+        // L3.1 — SemanticLitePopulator: Tier B (assets.json → compilations → semantic upgrades).
+        // Runs after BodyFacts extraction but before GraphAssembly; degrades per-project when
+        // assets.json is missing. Upgraded BodyFacts feed into seam detectors for higher-quality
+        // resolution (receiver types, var/Adapt<T> decls).
+        SemanticLiteResult? semanticLiteResult = null;
+        if (context.Options.BuildFullGraph || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full)
+        {
+            try
+            {
+                semanticLiteResult = SemanticLitePopulator.Populate(
+                    model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
+                if (semanticLiteResult.ProjectsWithAssets > 0)
+                {
+                    model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
+                        $"Tier B built: {semanticLiteResult.ProjectsWithAssets} project(s) with assets, "
+                        + $"{semanticLiteResult.ProjectsDegraded} degraded, "
+                        + $"{semanticLiteResult.VarDeclsResolved} var decl types + {semanticLiteResult.ReceiversResolved} receivers upgraded to Semantic tier");
+                }
+            }
+            catch (Exception ex)
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, "SemanticLitePopulator",
+                    $"Tier B unavailable; using Tier A ({ex.GetType().Name}).");
+            }
+        }
+
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
@@ -143,8 +170,9 @@ public sealed class DiscoveryPipeline
 
         var graphResolver = new SyntacticSymbolResolver();
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
+        var graphBodyFacts = semanticLiteResult?.UpgradedBodyFacts ?? context.Analysis.AllBodyFacts;
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope,
-            context.Analysis.AllBodyFacts);
+            graphBodyFacts);
 
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();
@@ -466,7 +494,7 @@ public sealed class DiscoveryPipeline
     {
         if (!request.IncludeDiagnostics) return string.Empty;
         var lines = snapshot.Model.Diagnostics
-            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder")
+            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder" or "SemanticLitePopulator")
             .Select(d => $"  {d.Source}: {d.Message}")
             .ToList();
         if (lines.Count == 0) return string.Empty;

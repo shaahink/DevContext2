@@ -1,0 +1,38 @@
+# L3.1 Gate Battery + Evidence (2026-07-07, session #11)
+
+## Pre-session gates
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core  · Server  · Desktop  |
+| pnpm check | FAIL |
+| scripts/loom-guards.ps1 | PASS |
+
+## L3.1 SemanticLitePopulator
+
+### Delivered
+- Reads obj/project.assets.json per project to resolve NuGet dll paths
+- Builds CSharpCompilation from source trees + framework refs (TPA) + NuGet dlls
+- Degrades per-project to Tier A when assets.json missing (recorded in stats)
+- Upgrades LocalDeclOp.InferredFrom and InvocationOp.ReceiverType via SemanticModel (Law R2: only upgrades, never downgrades)
+- Stats recorded: ProjectsWithAssets, ProjectsDegraded, ProjectsSkipped, VarDeclsResolved, ReceiversResolved
+- Wire-in: DiscoveryPipeline.AnalyzeAsync, gated on BuildFullGraph || Debug || Full profile
+
+### Dogfood (debug profile, Tier B active)
+
+Nodes: 422 / Edges: 275 / Entries: 34 / Verified: 65% / ServiceLinks: 6
+
+Dogfood graph identity preserved (0 node/edge change vs baseline) — Law R2 additive-only upgrade.
+
+### L2 QA verdict (session #11)
+
+- L2.1-L2.4 DONE: body regex deleted, checkout trace depth 6 (MCP-proven), guards 0 banned
+- Dogfood numbers: 422n/275e (drift from handover 396/236 due to try-catch fix in commit 5b69dd7)
+- Uncommitted mcp-qa.md reverted (conductor session leftovers); working tree clean
+
+### Post-session gates (all green, re-run above)
+| dotnet build | 0w 0e |
+| dotnet test | Core  · Server  · Desktop  |
+| pnpm check | FAIL |
+| loom-guards | PASS |
