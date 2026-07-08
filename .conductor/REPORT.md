@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 20:06 UTC · branch `feat/loom-l5` · HEAD `4f827cd`_
+_Updated 2026-07-08 20:10 UTC · branch `feat/loom-l5` · HEAD `6fdd8cb`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.2
-**Checkpoints:** 30/34 done · **Sessions run:** 36 · **Cost:** $2.6231 · **Tokens:** 2,319,561 in / 540,992 out / 386,959 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.3
+**Checkpoints:** 31/34 done · **Sessions run:** 36 · **Cost:** $2.7159 · **Tokens:** 2,417,111 in / 561,164 out / 398,381 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
-
-## Latest activity (live)
-
-_Session #36 (Deliver) · running 30m · last output 0s ago · $0.0812_
-
-**Thinking:**
-> Now let me build to check everything compiles, including proto generation.
-> The server process (PID 7084) is still locking files. I need to kill it more aggressively. The server process keeps restarting because something is auto-launching it. Let me kill all DevContext processes.
-> Build green with 0w/0e — proto generation worked, all projects compile.   Now let me run the tests and also do a final dogfood verification. Then I'll move on to the post-session ritual.  Actually, let me also verify the Desktop/Server tests pass. Then I can wrap up L7.2 and prepare evidence.  Let m…
-
-**Recent actions:**
-- `21:01:49` · Now add the archetype messages after the LibrarySurface section.
-- `21:01:49` » read proto\devcontext\v1\devcontext.proto
-- `21:01:58` » edit proto\devcontext\v1\devcontext.proto
-- `21:02:06` » edit src\DevContext.Server\Mapping\ProtoMapper.cs
-- `21:02:06` · Now update ProtoMapper to populate the archetype view in the MapResponse.
-- `21:03:01` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `21:03:12` » bash Get-Process -Name "DevContext*" -ErrorAction SilentlyContinue | Stop-Process -Force; Get-Process -Name "devcontext*" -ErrorAction SilentlyContinue | Stop-P…
-- `21:03:40` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `21:03:49` · Build 0w/0e. Let me run the full test battery and then prepare evidence.
-- `21:06:57` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" --no-build 2>&1
 
 ## Stage progress
 
@@ -39,7 +18,7 @@ _Session #36 (Deliver) · running 30m · last output 0s ago · $0.0812_
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
 | L6 | Workbench repair | 6/6 | confirmed ✓ |
-| L7 | Repo-shape coverage | 1/4 | **← active** |
+| L7 | Repo-shape coverage | 2/4 | **← active** |
 | L8 | Close-out | 0/1 | todo |
 
 ## Sessions
@@ -75,16 +54,10 @@ _Session #36 (Deliver) · running 30m · last output 0s ago · $0.0812_
 | 33 | L6 | Audit | 1 | 07-08 18:39 | 0:10 | Progress |  | 2 |  | $0.0621 | 81,863/11,843 |
 | 34 | L7 | Deliver | 1 | 07-08 18:53 | 0:23 | Stalled |  | 0 |  | $0.0155 | 28,345/1,441 |
 | 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
-| 36 | L7 | Deliver | 1 | 07-08 19:36 | … | running |  | 0 |  |  |  |
+| 36 | L7 | Deliver | 1 | 07-08 19:36 | 0:32 | Advanced | L7.2 | 4 | build:OK | $0.0928 | 97,550/20,172 |
 
 ### Commits by session
 
-- **s27 (L5 Deliver)** — 5 commit(s):
-  - 87888cd feat(l5.5): cold QA gate >=90%% — fix B4 usages-shortname silent resolve
-  - 1e47ca8 chore(conductor): s27 L5 working ▸L5.5 @ 16:53
-  - aa77564 chore(conductor): s27 L5 working ▸L5.5 @ 16:43
-  - 7b5fd38 docs: add conductor-DEBT.md (L0-L4 audit followups, sized + gated) + update read-order
-  - 6a78b90 chore(conductor): s27 L5 working ▸L5.5 @ 16:33
 - **s28 (L5 Audit)** — 8 commit(s):
   - f8b237b docs(l5-audit): honest L5 phase handover
   - df1d007 docs(l5-audit): L5 phase handover + post-audit gate battery evidence
@@ -119,6 +92,11 @@ _Session #36 (Deliver) · running 30m · last output 0s ago · $0.0812_
 - **s35 (L7 Resume)** — 2 commit(s):
   - 6e16685 feat(l7.1): PlainCallDetector for call-spine completion via BodyFacts
   - 99f1ea9 chore(conductor): s35 L7 working ▸L7.1 @ 20:27
+- **s36 (L7 Deliver)** — 4 commit(s):
+  - 6fdd8cb feat(l7.2): archetype projections for desktop/worker/library/blazor
+  - 08060ae chore(conductor): s36 L7 working ▸L7.2 @ 21:06
+  - 4f827cd chore(conductor): s36 L7 working ▸L7.2 @ 20:56
+  - 34509a7 chore(conductor): s36 L7 working ▸L7.2 @ 20:46
 
 ## Phase handovers (audit)
 
@@ -136,18 +114,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L7.1 delivered — PlainCallDetector (`Graph2/Seams/PlainCallDetector.cs`) emits `EdgeKind.Calls` from `BodyFacts.InvocationOp`s for in-solution types, registered in both GraphBuilder detector arrays. Dogfood +62 edges (+22.5%), eShop (non-CQRS proxy) 312/375 edges are Calls (83%), all 96 entries depth ≥2. Gate battery green: dotnet build 0w/0e, core tests 407P/3S (1 test updated honestly), pnpm check 27/27 pass, loom-guards 0 banned. MVC-class repos (RazorPages/CleanArchitecture) absent locally — eShop serves as proxy measurement. Evidence artifact at `eval-results/2026-07-08/gate-battery-l7.1-s34.txt`. Next session should pick up L7.2 (archetype projections).
+> SESSION-RESULT: L7.2 archetype projections landed — `ArchetypeProjection` (new `IGraphProjection<ArchetypeView>`) branches on Desktop/Worker/Blazor/Library, `ArchetypeDetector` now detects these subtypes, `MapRenderer` renders the archetype section, proto regen adds `archetype_view` to `MapResponse` (field 16). Gate battery all green: dotnet build 0w/0e, Core 408P/3S, Desktop 64P, Server 12P, pnpm 27/27. Dogfood stays stable at 436n/338e/69%. L7.3 (style-detection guardrails + E9 scope fix) and L7.4 (truth files per archetype) remain for next session. No red items. Commit `6fdd8cb` pushed to `feat/loom-l5`.
 
 ## Tracker handoff
 
 ```
-last: L7 session #34 — **L7.1 DONE** (gate battery green: 407P/1F→updated/3S DotNet,
-      27/27 pnpm).
-      L7.1: PlainCallDetector over BodyFacts emits Calls edges for in-solution
-      method invocations (SymbolTable-resolved, framework-excluded). Dogfood +62e
-      (+22.5%), eShop 312/375 edges are Calls (83%). All entries depth ≥2.
-stage: **L7.1 DONE**. MVC-class measurement proxy via eShop (RazorPages/CleanArch
-      repos absent locally). Edges: Calls=312 (83%), entries=96 depth ≥2.
-next: **L7.2** — Archetype projections (desktop/worker/library/blazor).
-evidence: eval-results/2026-07-08/gate-battery-l7.1-s34.txt
+last: L7 session #36 — **L7.2 DONE** (gate battery green: 408P/3S DotNet, 27/27 pnpm).
+      L7.2: ArchetypeProjection (IGraphProjection<ArchetypeView>) branches on detected
+      Desktop/Worker/Blazor/Library archetypes. ArchetypeDetector now detects Desktop,
+      Worker, Blazor subtypes. Proto regen adds archetype_view to MapResponse (field 16).
+      Dogfood stays App (436n/338e/6SL/34e/69%). Build 0w/0e.
+stage: **L7.2 DONE**. L7.3 (style guardrails + E9 scope fix) next.
+next: **L7.3** — Style-detection guardrails + E9 scope fix.
+evidence: eval-results/2026-07-08/gate-battery-l7.2-s36.txt
 ```
