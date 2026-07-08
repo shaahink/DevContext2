@@ -1,6 +1,6 @@
-Ôªø# Progress Log ‚Äî go-to program
+# Progress Log ó go-to program
 
-> Append-only session log. Date ¬∑ Changed ¬∑ Verified ¬∑ Next.
+> Append-only session log. Date ∑ Changed ∑ Verified ∑ Next.
 
 ---
 
@@ -15,7 +15,7 @@
 - `AddBusServiceLinks`/`AddGrpcServiceLinks`/`AddHttpServiceLinks` use `NodeKind.Service` + `NodeId.ForService` instead of fake Type nodes
 - `AddSends` made non-static (accesses `_eventPublishers`)
 - All 11 `EntryPointBuilder`s stamp `Project = scope.ProjectForFile(...)` on every entry point
-- Created `scripts/loom-guards.ps1` ‚Äî bans `new Regex` in Graph/, `SymbolId(` outside Graph2/, `fqns[0]` in Graph2/
+- Created `scripts/loom-guards.ps1` ó bans `new Regex` in Graph/, `SymbolId(` outside Graph2/, `fqns[0]` in Graph2/
 - Added 9 `SymbolTableTests` (incl. RazorPages same-short-name-different-project fixture)
 - Updated `LOOM-START.md` handoff block + L1 checkpoint rows
 
@@ -25,158 +25,158 @@
 - `loom-guards.ps1`: PASSED (0 banned, 13 advisory remaining for L2)
 - `pnpm check`: green (session start)
 
-**Next:** L2 (BodyFacts + seam detectors) ‚Äî branch `feat/loom-l2` off `feat/loom-l1`
+**Next:** L2 (BodyFacts + seam detectors) ó branch `feat/loom-l2` off `feat/loom-l1`
 
-## 2026-07-07 ‚Äî M9-ext: All gaps closed + Inspector sections + UX fixes (Meridian CLOSED)
+## 2026-07-07 ó M9-ext: All gaps closed + Inspector sections + UX fixes (Meridian CLOSED)
 
 **Closed (Gaps 1-7 from M7+M8.1a audit):**
-- G1 `read_source` RPC: proto ‚Üí C# ‚Üí server ‚Üí TS ‚Üí Inspector (`16d3166`)
-- G2 Layer/feature uplumb: proto ‚Üí ProtoMapper ‚Üí TS ‚Üí lens-switcher unblocked (`3be265f`)
+- G1 `read_source` RPC: proto ? C# ? server ? TS ? Inspector (`16d3166`)
+- G2 Layer/feature uplumb: proto ? ProtoMapper ? TS ? lens-switcher unblocked (`3be265f`)
 - G3 PrismJS wired for Code tab (`bf3a674`)
 - G4 Contrast audit passes WCAG AA (`bf3a674`)
 - G5 Table "Shared Handler" column (`ba6c59a`)
 - G6 Dead `audit-table.ts` removed (`bf3a674`)
-- G7 Dock toggle cycles 0‚Üí2‚Üí3‚Üí0 (`bf3a674`)
+- G7 Dock toggle cycles 0?2?3?0 (`bf3a674`)
 
-**This session ‚Äî Inspector sections + UX fixes (Gaps 8-11):**
+**This session ó Inspector sections + UX fixes (Gaps 8-11):**
 - **G8 Inspector Insights section:** `session.insights()` filtered by node (evidence match), grouped by severity. Closes W5 TODO. File: `inspector.ts`.
 - **G9 Inspector Call Stack section:** Trace tree ancestors + children at depth 2. Keyboard-navigable. Closes W4 TODO. File: `inspector.ts`.
-- **G10 drawMinimap() throttled:** `requestAnimationFrame` guard ‚Äî no more 60fps pan redraws. File: `graph-canvas.ts`.
+- **G10 drawMinimap() throttled:** `requestAnimationFrame` guard ó no more 60fps pan redraws. File: `graph-canvas.ts`.
 - **G11 MCP page A15 fixed:** All 3 bare `catch {}` now toast errors via ToastService. File: `mcp-page.ts`.
-- **HANDOVER-MERIDIAN.md rewritten:** Comprehensive close-out doc ‚Äî gap catalog, honest traps, next steps.
+- **HANDOVER-MERIDIAN.md rewritten:** Comprehensive close-out doc ó gap catalog, honest traps, next steps.
 
-**Verified:** `pnpm lint` green (0/0) ¬∑ `pnpm build` green (0w/0e) ¬∑ `dotnet build` unchanged (0w/0e)
+**Verified:** `pnpm lint` green (0/0) ∑ `pnpm build` green (0w/0e) ∑ `dotnet build` unchanged (0w/0e)
 
-**Next:** Push + visual smoke ‚Üí plan next phase.
+**Next:** Push + visual smoke ? plan next phase.
 
 ---
 
-## 2026-07-06 ‚Äî M6 completion: Home repo card + Atlas one-pager (M6 DONE)
+## 2026-07-06 ó M6 completion: Home repo card + Atlas one-pager (M6 DONE)
 
 **M6.1 Home repo card (service-map-hero + tiles + onboarding):**
-- **ServiceMapHero** ‚Äî deterministic HTML/CSS layout (no physics). Gateway column (left), core services (center), dependency column (right). Color-coded project cards with style badge + stack tags. Bus/broker bottom rail for messaging infra. Dependency arrows via SVG overlay. Click ‚Üí Explore with project filter.
-- **HomeTiles** ‚Äî three-tile grid: (a) Entries by kind per service with stacked colored bars; (b) Wiring health ‚Äî % entries with targets, color-coded bar, link to unwired list; (c) Freshness ‚Äî analysis time, node/edge/project counts, stale/current chip.
-- **OnboardingRow** ‚Äî [Trace checkout] [Open atlas] [Point your agent here] action strip. Auto-detects checkout endpoint from entries.
-- **HomePage** rewritten: identity ‚Üí service hero ‚Üí tiles ‚Üí top flows (service-colored chip) ‚Üí needs attention ‚Üí onboarding row.
+- **ServiceMapHero** ó deterministic HTML/CSS layout (no physics). Gateway column (left), core services (center), dependency column (right). Color-coded project cards with style badge + stack tags. Bus/broker bottom rail for messaging infra. Dependency arrows via SVG overlay. Click ? Explore with project filter.
+- **HomeTiles** ó three-tile grid: (a) Entries by kind per service with stacked colored bars; (b) Wiring health ó % entries with targets, color-coded bar, link to unwired list; (c) Freshness ó analysis time, node/edge/project counts, stale/current chip.
+- **OnboardingRow** ó [Trace checkout] [Open atlas] [Point your agent here] action strip. Auto-detects checkout endpoint from entries.
+- **HomePage** rewritten: identity ? service hero ? tiles ? top flows (service-colored chip) ? needs attention ? onboarding row.
 - Stats stripped: no raw counts without verbs, confidence % moved to collapsible ledger in identity-strip.
 
 **M6.2 Atlas one-pager (6 sections + export):**
-- ‚ë† Service diagram (larger hero, edge counts).
-- ‚ë° Top 5 flows as **FlowStepper** strips (horizontal chip links).
-- ‚ë¢ Event wiring board (publisher/event/consumer table, unconsumed highlighted).
-- ‚ë£ **ServiceCards** ‚Äî per-service style+stack grid.
-- ‚ë§ Cross-cutting (pipeline behaviors + packages card).
-- ‚ë• Hub radar (flow-count + degree).
+- ? Service diagram (larger hero, edge counts).
+- ? Top 5 flows as **FlowStepper** strips (horizontal chip links).
+- ? Event wiring board (publisher/event/consumer table, unconsumed highlighted).
+- ? **ServiceCards** ó per-service style+stack grid.
+- ? Cross-cutting (pipeline behaviors + packages card).
+- ? Hub radar (flow-count + degree).
 - **Export one-pager** button builds markdown from live data, copies to clipboard.
 
 **Changed (7 files):**
-- `features/pages/home-page.ts` ‚Äî rewritten with new shared components
-- `features/pages/atlas-page.ts` ‚Äî 6-section layout + export button
-- `features/shared/service-map-hero.ts` (new) ‚Äî deterministic service diagram
-- `features/shared/home-tiles.ts` (new) ‚Äî three-tile dashboard
-- `features/shared/onboarding-row.ts` (new) ‚Äî action strip
-- `features/shared/flow-stepper.ts` (new) ‚Äî horizontal flow chips
-- `features/shared/service-cards.ts` (new) ‚Äî per-service style cards
+- `features/pages/home-page.ts` ó rewritten with new shared components
+- `features/pages/atlas-page.ts` ó 6-section layout + export button
+- `features/shared/service-map-hero.ts` (new) ó deterministic service diagram
+- `features/shared/home-tiles.ts` (new) ó three-tile dashboard
+- `features/shared/onboarding-row.ts` (new) ó action strip
+- `features/shared/flow-stepper.ts` (new) ó horizontal flow chips
+- `features/shared/service-cards.ts` (new) ó per-service style cards
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `pnpm check` (src/DevContext.App) ‚Äî lint 0/0, test 27/27, build 0w/0e
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `pnpm check` (src/DevContext.App) ó lint 0/0, test 27/27, build 0w/0e
 - Unused imports cleaned (GraphCanvas, ArchitecturePanel removed from AtlasPage)
 
-**Next:** M7.0 Design-token pass ‚Üí M7.1 Graph‚Üîcode binding ‚Üí M7.2 Lenses. All Angular UI work.
+**Next:** M7.0 Design-token pass ? M7.1 Graph?code binding ? M7.2 Lenses. All Angular UI work.
 
 ---
 
 **Audit findings (5 bugs in run-multi.js):**
-- **B1** Q6 vacuous pass: `totalKeys >= 0` (always true) ‚Üí changed to `wellFormed && totalKeys > 0` matching run.js fix.
-- **B2** Q6 missing `wellFormed` structural validation ‚Üí added same check as run.js: `typeof resp.key === "string" && typeof resp.totalKeys === "number" && resp.keys !== undefined`.
-- **B3** Q5 vacuous pass: `count >= 0` (always true) ‚Üí changed to `count > 0 && isAmbiguous`.
-- **B4** Q2 vacuous pass on error: `catch { return { pass: true } }` for repos without checkout endpoint ‚Üí changed to `return { pass: null, skipped: true }` (excluded from score).
-- **B5** Q7 vacuous pass: `count >= 0` ‚Üí `count >= 0 && hasMore` (validates response structure).
+- **B1** Q6 vacuous pass: `totalKeys >= 0` (always true) ? changed to `wellFormed && totalKeys > 0` matching run.js fix.
+- **B2** Q6 missing `wellFormed` structural validation ? added same check as run.js: `typeof resp.key === "string" && typeof resp.totalKeys === "number" && resp.keys !== undefined`.
+- **B3** Q5 vacuous pass: `count >= 0` (always true) ? changed to `count > 0 && isAmbiguous`.
+- **B4** Q2 vacuous pass on error: `catch { return { pass: true } }` for repos without checkout endpoint ? changed to `return { pass: null, skipped: true }` (excluded from score).
+- **B5** Q7 vacuous pass: `count >= 0` ? `count >= 0 && hasMore` (validates response structure).
 - Scoring logic updated to exclude skipped questions from denominator.
 
 **M5.1 multi-repo QA complete:**
 - Cloned 3 missing repos: TodoApi, CleanArchitecture, DntSite (git clone --depth 1).
-- Ran `run-multi.js` across all 5 repos ‚Äî sequential, fresh MCP per repo.
+- Ran `run-multi.js` across all 5 repos ó sequential, fresh MCP per repo.
 - Results: dogfood 7/7 (1455 tok), eShop 6/7 (1961 tok), TodoApi 5/7 (522 tok), CleanArchitecture 6/7 (1723 tok), DntSite 4/7 (1228 tok).
 - Total across 5 repos: 38 calls, 6889 tokens.
 - Ratchet written to `eval-results/2026-07-06/m5-ratchet.json`.
 - Notable: DntSite config returns 0 keys (uses Options/Bind pattern, not regex-covered accessors).
 
 **M5.2 agent transcript:**
-- Created `eval/mcp-qa/record-transcript.js` ‚Äî records real MCP tool calls for the checkout question.
-- Transcript: 2 calls (overview + trace), 313 tokens, gate PASS (‚â§3c/2ktok).
+- Created `eval/mcp-qa/record-transcript.js` ó records real MCP tool calls for the checkout question.
+- Transcript: 2 calls (overview + trace), 313 tokens, gate PASS (=3c/2ktok).
 - Saved to `eval-results/2026-07-06/agent-transcript.md`.
 
 **Changed:**
-- `eval/mcp-qa/run-multi.js` ‚Äî 5 bug fixes (B1-B5) + scoring logic for skipped questions
-- `eval/mcp-qa/record-transcript.js` (new) ‚Äî M5.2 agent transcript recorder
+- `eval/mcp-qa/run-multi.js` ó 5 bug fixes (B1-B5) + scoring logic for skipped questions
+- `eval/mcp-qa/record-transcript.js` (new) ó M5.2 agent transcript recorder
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `node eval/mcp-qa/run-multi.js` ‚Äî all 5 repos analyzed, ratchet written
-- `node eval/mcp-qa/record-transcript.js` ‚Äî 2 calls, 313 tok, gate PASS
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `node eval/mcp-qa/run-multi.js` ó all 5 repos analyzed, ratchet written
+- `node eval/mcp-qa/record-transcript.js` ó 2 calls, 313 tok, gate PASS
 - Dogfood QA unchanged: 8/8, config 4 keys, checkout 2c/314tok
 
-**Next:** M5 COMPLETE. Next session: M6 ‚Äî Home repo card + Atlas one-pager (UI features). See `proposal-meridian.md` ¬ßM6.
+**Next:** M5 COMPLETE. Next session: M6 ó Home repo card + Atlas one-pager (UI features). See `proposal-meridian.md` ßM6.
 
 ---
 
-## 2026-07-06 ‚Äî M4 gap closure + M5 starter: config regex repair, get_context fixes, QA tighten, multi-repo infra, McpQa tests
+## 2026-07-06 ó M4 gap closure + M5 starter: config regex repair, get_context fixes, QA tighten, multi-repo infra, McpQa tests
 
 **Changed:**
-- **Config tool regex repaired (CRITICAL ‚Äî config tool was dead on arrival):**
-  - Root cause: `ConfigKeyRegex` in both `DevContextGrpcService.cs:251` and `ConfigDefaultsSource.cs:41` had unescaped `)` in method-call patterns (e.g., `GetConnectionString\("([^"]+)")`) instead of escaped `\)`. Each `)` was interpreted as a regex group close instead of a literal `)`, causing `RegexParseException: "Too many )'s"` at runtime. The PowerShell test passed because PowerShell's `[regex]::new()` uses different regex parsing (it accepts `\)` as a literal by default). Added `\)` ‚Üí `""\)"` in C# verbatim strings to produce proper `\)` in the regex.
-  - Secondary fix: `GroupBy(n => n.FilePath!)` ‚Üí `GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)` to prevent `ArgumentException` when nodes have case-different file paths. A prior run had 493 nodes ‚Üí 455 files (some case-duplicated) which would have crashed on the `ToDictionary` with `OrdinalIgnoreCase` key comparison.
+- **Config tool regex repaired (CRITICAL ó config tool was dead on arrival):**
+  - Root cause: `ConfigKeyRegex` in both `DevContextGrpcService.cs:251` and `ConfigDefaultsSource.cs:41` had unescaped `)` in method-call patterns (e.g., `GetConnectionString\("([^"]+)")`) instead of escaped `\)`. Each `)` was interpreted as a regex group close instead of a literal `)`, causing `RegexParseException: "Too many )'s"` at runtime. The PowerShell test passed because PowerShell's `[regex]::new()` uses different regex parsing (it accepts `\)` as a literal by default). Added `\)` ? `""\)"` in C# verbatim strings to produce proper `\)` in the regex.
+  - Secondary fix: `GroupBy(n => n.FilePath!)` ? `GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)` to prevent `ArgumentException` when nodes have case-different file paths. A prior run had 493 nodes ? 455 files (some case-duplicated) which would have crashed on the `ToDictionary` with `OrdinalIgnoreCase` key comparison.
   - Both `DevContextGrpcService.cs` and `ConfigDefaultsSource.cs` fixed.
-  - Result: config tool now returns 4 distinct keys (Database, Redis, GrpcSettings:DiscountUrl, MessageBroker:*) ‚Äî up from 0.
+  - Result: config tool now returns 4 distinct keys (Database, Redis, GrpcSettings:DiscountUrl, MessageBroker:*) ó up from 0.
 - **get_context v2 gaps fixed (3 issues):**
-  - (a) Root entry body: `TraceBuilder.cs:380` ‚Äî added `Salient = ExtractCalleeSalient(node)` to root `TraceStep` creation. Previously only child steps got `Salient` set.
-  - (b) Double DI header: `ContextPackBuilder.cs:294` ‚Äî removed hardcoded `"## DI Registrations"` from `BuildDiRegistrations` output. `AppendSection` already adds the section header.
-  - (c) `Found` flag: `ContextPack.cs` ‚Äî added `bool Found` property (default `true`). `ContextPackBuilder.Build()` sets `Found = false` when trace is null. `ProtoMapper.ToContextResponse` now reads `pack.Found`.
-- **QA test Q6 tightened:** `eval/mcp-qa/run.js:368` ‚Äî changed from `pass: wellFormed || totalKeys >= 0` (vacuous pass) to `pass: wellFormed && totalKeys > 0` (requires actual keys).
-- **MCP-VS-GREP.md updated:** Q6 now shows "DevContext **wins**" (was "Tie") ‚Äî 4 keys, 214 tokens. Summary updated to 7/7 wins (was 6/7).
-- **M5.1 multi-repo runner:** `eval/mcp-qa/run-multi.js` ‚Äî sequential multi-repo QA against repos listed in `eval/mcp-qa/repos-m5.json`. Per-repo analyze + 7 questions + token tracking. Kills/restarts MCP between repos. Writes ratchet to `eval-results/<date>/m5-ratchet.json`. 2/5 repos available locally (dogfood, eShop); 3 need clone (TodoApi, CleanArchitecture, DntSite).
-- **M5.3 CI wiring:** `tests/DevContext.Core.Tests/McpQaGateTests.cs` ‚Äî 2 tests:
+  - (a) Root entry body: `TraceBuilder.cs:380` ó added `Salient = ExtractCalleeSalient(node)` to root `TraceStep` creation. Previously only child steps got `Salient` set.
+  - (b) Double DI header: `ContextPackBuilder.cs:294` ó removed hardcoded `"## DI Registrations"` from `BuildDiRegistrations` output. `AppendSection` already adds the section header.
+  - (c) `Found` flag: `ContextPack.cs` ó added `bool Found` property (default `true`). `ContextPackBuilder.Build()` sets `Found = false` when trace is null. `ProtoMapper.ToContextResponse` now reads `pack.Found`.
+- **QA test Q6 tightened:** `eval/mcp-qa/run.js:368` ó changed from `pass: wellFormed || totalKeys >= 0` (vacuous pass) to `pass: wellFormed && totalKeys > 0` (requires actual keys).
+- **MCP-VS-GREP.md updated:** Q6 now shows "DevContext **wins**" (was "Tie") ó 4 keys, 214 tokens. Summary updated to 7/7 wins (was 6/7).
+- **M5.1 multi-repo runner:** `eval/mcp-qa/run-multi.js` ó sequential multi-repo QA against repos listed in `eval/mcp-qa/repos-m5.json`. Per-repo analyze + 7 questions + token tracking. Kills/restarts MCP between repos. Writes ratchet to `eval-results/<date>/m5-ratchet.json`. 2/5 repos available locally (dogfood, eShop); 3 need clone (TodoApi, CleanArchitecture, DntSite).
+- **M5.3 CI wiring:** `tests/DevContext.Core.Tests/McpQaGateTests.cs` ó 2 tests:
   - `McpQaHarness_Passes_Against_Dogfood`: spawns `node eval/mcp-qa/run.js --quiet`, content-asserts QA Score + Gate PASS. Category `McpQa`. ~130s runtime.
   - `McpQa_Bench_Smoke_Script_Exists`: verifies `scripts/bench.ps1` and `eval-repos.json` exist. Category `McpQa`.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (353+64+12, 3 skipped)
-- `dotnet test --filter Category=McpQa` ‚Äî 2 tests discovered (1 smoke test passes, harness test needs running separately due to ~130s runtime)
-- `node eval/mcp-qa/run.js` ‚Äî 8/8 QA PASS, config 4 keys (214 tok), checkout gate 2c/314tok
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (353+64+12, 3 skipped)
+- `dotnet test --filter Category=McpQa` ó 2 tests discovered (1 smoke test passes, harness test needs running separately due to ~130s runtime)
+- `node eval/mcp-qa/run.js` ó 8/8 QA PASS, config 4 keys (214 tok), checkout gate 2c/314tok
 - Dogfood analysis: 493 nodes, 316 edges, 34 entries (no regressions)
 
-**Next:** Clone TodoApi/CleanArchitecture/DntSite ‚Üí run `node eval/mcp-qa/run-multi.js` for 5-repo ratchet ‚Üí record M5.2 agent transcript ‚Üí commit. See `MERIDIAN-START.md` handoff block for detailed next steps.
+**Next:** Clone TodoApi/CleanArchitecture/DntSite ? run `node eval/mcp-qa/run-multi.js` for 5-repo ratchet ? record M5.2 agent transcript ? commit. See `MERIDIAN-START.md` handoff block for detailed next steps.
 
 **Changed:**
 - **M4.7 config key fix:** `ConfigKeyRegex` added `RegexOptions.IgnoreCase` for case-insensitive matching. `ConfigLookup` handler switched from `WrapAsyncT` to `WrapT` (sync file I/O).
-- **MCP startup fixes (critical ‚Äî MCP was dead on arrival):**
-  - `ServerShim.FindServerExe()`: replaced `GetDirectories("bin")` + `Path.Combine(binDir, "exe")` with `GetFiles("DevContext.Server.exe", AllDirectories)` ‚Äî the exe lives in `bin/Debug/net10.0/` not `bin/`.
+- **MCP startup fixes (critical ó MCP was dead on arrival):**
+  - `ServerShim.FindServerExe()`: replaced `GetDirectories("bin")` + `Path.Combine(binDir, "exe")` with `GetFiles("DevContext.Server.exe", AllDirectories)` ó the exe lives in `bin/Debug/net10.0/` not `bin/`.
   - `ForceHttp11Handler`: gRPC-Web uses HTTP/1.1 transport but `GrpcWebHandler` negotiates HTTP/2, rejected by server with `HTTP_1_1_REQUIRED`. Custom `DelegatingHandler` forces `Version11` + `RequestVersionExact`.
 - **QA harness (`eval/mcp-qa/run.js`) rewritten:**
-  - Tool names: `search` ‚Üí `find`, `impact` `target` ‚Üí `nodeId`
-  - Impact response: `entries`/`count` ‚Üí `resultsByService`/`totalAffected`
+  - Tool names: `search` ? `find`, `impact` `target` ? `nodeId`
+  - Impact response: `entries`/`count` ? `resultsByService`/`totalAffected`
   - New q6 (config tool), q7 (tests_for), checkout gate question
   - Token tracking per call via `estimateTokens()` and tool-provided `tokens` field
   - Per-question token ceilings enforced
-  - Checkout gate: ‚â§3 calls, ‚â§2k tokens (achieved: 2c/314tok)
+  - Checkout gate: =3 calls, =2k tokens (achieved: 2c/314tok)
 - **MCP-VS-GREP.md:** comparison table showing DevContext wins on 6/7 questions vs grep
-- **Config tool regression:** tool callable but returns 0 keys (regex still doesn't match dogfood repo patterns ‚Äî needs M5 investigation)
+- **Config tool regression:** tool callable but returns 0 keys (regex still doesn't match dogfood repo patterns ó needs M5 investigation)
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (353+64+12, 3 skipped)
-- `pnpm check` ‚Äî green (lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e)
-- `node eval/mcp-qa/run.js` ‚Äî 8/8 QA PASS, checkout gate 2c/314tok
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (353+64+12, 3 skipped)
+- `pnpm check` ó green (lint 0/0 ∑ test 27/27 ∑ build 0w/0e)
+- `node eval/mcp-qa/run.js` ó 8/8 QA PASS, checkout gate 2c/314tok
 - Dogfood analysis: 493 nodes, 316 edges, 34 entries, 6 ServiceLinks
 
-**Next:** M5.1 ‚Äî Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` ¬ßM5. Also: fix config regex to actually match real code patterns, debug async lambda issue in WrapAsyncT.
+**Next:** M5.1 ó Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` ßM5. Also: fix config regex to actually match real code patterns, debug async lambda issue in WrapAsyncT.
 
 ---
 
-## 2026-07-06 ‚Äî Meridian M4 completion: impact + config + tests_for (M4 DONE, all 9/9 tools)
+## 2026-07-06 ó Meridian M4 completion: impact + config + tests_for (M4 DONE, all 9/9 tools)
 
 **Changed:**
 - **Audit fixes (3 findings from previous session):**
@@ -185,250 +185,250 @@
   - A5 **DI registrations for Member nodes:** `BuildDiRegistrations` now resolves Member nodes' parent types (last dot in key) for DI lookup.
 - **M4.4 impact transitive + diff-aware:**
   - Proto: `ImpactRequest` extended with `direction` (up/down/both), `transitive`, `files` repeated; `ImpactResponse` extended with `direction`, `total_affected`; `ImpactResult` extended with `node_id`, `file_path`, `line_number`, `service`, `node_title`.
-  - Engine: `GraphQuery.Impact(NodeId, ImpactDirection, int)` ‚Äî unified BFS over in/out/both edges. `GraphQuery.ImpactFromFiles(‚Ä¶)` ‚Äî diff-aware mode: find graph nodes matching file paths, compute union impact closure. `ImpactResult` record replaces `BlastResult` for new API (backward compat kept).
+  - Engine: `GraphQuery.Impact(NodeId, ImpactDirection, int)` ó unified BFS over in/out/both edges. `GraphQuery.ImpactFromFiles(Ö)` ó diff-aware mode: find graph nodes matching file paths, compute union impact closure. `ImpactResult` record replaces `BlastResult` for new API (backward compat kept).
   - gRPC: `GetImpact` updated for direction + files mode routing. `ProtoMapper.ToImpactResponse` updated with new fields.
   - MCP tool: `impact` accepts optional `nodeId`, `direction` (default "up"), `files` array. Results grouped by service.
 - **M4.7 config keys tool:**
   - Proto: new `ConfigRequest`, `ConfigResponse`, `ConfigBinding` messages; new `rpc ConfigLookup`.
-  - Engine: Config scanning at query time ‚Äî reads source files on disk, applies regex (from `ConfigDefaultsSource`) per line, returns matches with file:line, pattern type, service, optional node_id cross-reference.
+  - Engine: Config scanning at query time ó reads source files on disk, applies regex (from `ConfigDefaultsSource`) per line, returns matches with file:line, pattern type, service, optional node_id cross-reference.
   - gRPC: `ConfigLookup` handler with `WrapAsyncT` (async file I/O). Uses compiled `ConfigKeyRegex`. Groups files by path from graph nodes.
-  - MCP tool: `config(handle, key?)` ‚Äî returns key‚Üíbinding sites grouped by key.
+  - MCP tool: `config(handle, key?)` ó returns key?binding sites grouped by key.
 - **M4.9 tests_for tool:**
   - Proto: new `TestsForRequest`, `TestsForResponse`, `TestRef` messages; new `rpc FindTestsFor`.
-  - Engine: `GraphQuery.FindCallers(NodeId, int)` ‚Äî BFS over IN-edges returns all caller nodes with distances.
+  - Engine: `GraphQuery.FindCallers(NodeId, int)` ó BFS over IN-edges returns all caller nodes with distances.
   - gRPC: `FindTestsFor` handler filters callers via `IsLikelyTestMethod()` heuristic (name suffixes `_Test`/`_Should`, file paths containing `/test/`, project names ending in `Tests`/`Test`/`Specs`).
-  - MCP tool: `tests_for(handle, nodeId, maxDepth)` ‚Äî returns test methods with file:line, distance, project.
+  - MCP tool: `tests_for(handle, nodeId, maxDepth)` ó returns test methods with file:line, distance, project.
 - **Proto regeneration:** `pnpm gen:proto` ran, TS bindings regenerated.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (353+64+12, 3 skipped)
-- `pnpm check` ‚Äî green (lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e)
-- Dogfood out.md: 493 nodes ¬∑ 316 edges ¬∑ 34 entries ¬∑ 6 ServiceLinks ¬∑ 18 Handles ¬∑ Style Microservices ¬∑ Analyzed 3.1s (no regressions)
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (353+64+12, 3 skipped)
+- `pnpm check` ó green (lint 0/0 ∑ test 27/27 ∑ build 0w/0e)
+- Dogfood out.md: 493 nodes ∑ 316 edges ∑ 34 entries ∑ 6 ServiceLinks ∑ 18 Handles ∑ Style Microservices ∑ Analyzed 3.1s (no regressions)
 
-**Next:** M5.1 ‚Äî Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` ¬ßM5.
+**Next:** M5.1 ó Extend QA set to 5 repos (eShop, CleanArchitecture, TodoApi, DntSite, dogfood) + per-question token ratchets. See `proposal-meridian.md` ßM5.
 
 ---
 
-## 2026-07-06 ‚Äî Meridian M3 gap fixes + M4 feature delivery (M3 gaps RESOLVED, M4 6/9 DONE)
+## 2026-07-06 ó Meridian M3 gap fixes + M4 feature delivery (M3 gaps RESOLVED, M4 6/9 DONE)
 
 **Changed:**
 - **M3 gaps (7/7 fixed):**
   - G1 **TokenTotal:** `WrapT`/`WrapAsyncT` measured wrappers now call `CompleteCall()` which increments `session.TokenTotal` via proto `CalculateSize()` bytes-per-token estimate. `DevContextGrpcService.cs` refactored: old static `Wrap`/`WrapAsync` removed, new instance `WrapT<T>`/`WrapAsyncT<T>` with `[CallerMemberName]` tool name + `Stopwatch` timing.
-  - G2 **elapsedMs:** Same wrappers ‚Äî `Stopwatch` started before handler, stopped after, elapsed passed to `RecordToolCall`. No more `1ms` placeholder.
+  - G2 **elapsedMs:** Same wrappers ó `Stopwatch` started before handler, stopped after, elapsed passed to `RecordToolCall`. No more `1ms` placeholder.
   - G3 **Orphaned sessions:** `CloseSessionAsync` now only removes `_repoToHandle` entry if its value still matches the closing handle (`if (current == handle)`). Old sessions coexist safely; re-analyzing same repo+HEAD doesn't destroy existing handles.
-  - G4 **Absolute paths:** `DevContextTools` now stores `_repoRoots` dictionary (handle‚ÜírepoRoot) populated on `analyze`. `Rel(handle, path)` helper applied to `filePath`/`provenance` in `node`, `read_source`, `neighbors`, `usages` tool responses. Paths now repo-relative via `D4` mandate.
-  - G5 **volatile `_running`:** `McpObservabilityService._running` now `volatile bool` ‚Äî writes visible across threads.
-  - G6 **Stale observers:** `Notify()` now collects `TryWrite` failures into a `stale` list and removes them after enumeration ‚Äî no more unbounded stale entries.
-  - G7 **ServerShim discovery:** `FindServerExe()` now searches 5 sources in priority: `DEVCONTEXT_SERVER` env var ‚Üí sibling/nearby published layouts ‚Üí `%LOCALAPPDATA%/DevContext/server/` ‚Üí dev-layout recursive bin search ‚Üí null. No more hardcoded `bin/Debug/net10.0`.
-- **M4.1 overview tool:** New MCP tool ‚Äî calls `GetMap` + `GetStats` + `ListEntryPoints` + `GetInterestingPoints`; assembles compact text: archetype + services + node/edge/entry counts + top 5 flows + project topology + start-here points + behaviors/stack. Token-estimated.
-- **M4.2 resolve tool:** New MCP tool ‚Äî calls `SearchNodes` + `GetNode` for each hit; returns `ambiguous` flag + candidate list with nodeId, kind, filePath, degree, tags. Hint when >1 match. Never auto-picks.
-- **M4.3 flow compact mode:** `trace` tool gains `format=compact` ‚Äî indented text with seam glyphs (`‚ñº ‚Üí ‚áí ‚¨Ü ‚Üì ‚óâ ‚áõ`), `[approx]` annotations, child indentation. `BuildCompactFlow()` recursive formatter.
-- **M4.5 read_source full-member:** `read_source` gains `mode=member` ‚Äî `FindMethodScope()` brace-balancing heuristic finds method body from declaration line, returns full scope.
-- **M4.6 find paginated:** New `find` tool supersedes `search` ‚Äî `cursor`/`limit` pagination, `kind` filter, `hasMore` flag, `total` count. `TrimTitle()` strips `=>` lambda remnants and >200-char titles.
+  - G4 **Absolute paths:** `DevContextTools` now stores `_repoRoots` dictionary (handle?repoRoot) populated on `analyze`. `Rel(handle, path)` helper applied to `filePath`/`provenance` in `node`, `read_source`, `neighbors`, `usages` tool responses. Paths now repo-relative via `D4` mandate.
+  - G5 **volatile `_running`:** `McpObservabilityService._running` now `volatile bool` ó writes visible across threads.
+  - G6 **Stale observers:** `Notify()` now collects `TryWrite` failures into a `stale` list and removes them after enumeration ó no more unbounded stale entries.
+  - G7 **ServerShim discovery:** `FindServerExe()` now searches 5 sources in priority: `DEVCONTEXT_SERVER` env var ? sibling/nearby published layouts ? `%LOCALAPPDATA%/DevContext/server/` ? dev-layout recursive bin search ? null. No more hardcoded `bin/Debug/net10.0`.
+- **M4.1 overview tool:** New MCP tool ó calls `GetMap` + `GetStats` + `ListEntryPoints` + `GetInterestingPoints`; assembles compact text: archetype + services + node/edge/entry counts + top 5 flows + project topology + start-here points + behaviors/stack. Token-estimated.
+- **M4.2 resolve tool:** New MCP tool ó calls `SearchNodes` + `GetNode` for each hit; returns `ambiguous` flag + candidate list with nodeId, kind, filePath, degree, tags. Hint when >1 match. Never auto-picks.
+- **M4.3 flow compact mode:** `trace` tool gains `format=compact` ó indented text with seam glyphs (`? ? ? ? ? ? ?`), `[approx]` annotations, child indentation. `BuildCompactFlow()` recursive formatter.
+- **M4.5 read_source full-member:** `read_source` gains `mode=member` ó `FindMethodScope()` brace-balancing heuristic finds method body from declaration line, returns full scope.
+- **M4.6 find paginated:** New `find` tool supersedes `search` ó `cursor`/`limit` pagination, `kind` filter, `hasMore` flag, `total` count. `TrimTitle()` strips `=>` lambda remnants and >200-char titles.
 - **M4.8 get_context v2:** `ContextPackBuilder` identity section now includes service styles, pipeline behaviors, and cross-service ServiceLink edges from `_query.Graph.AllEdges`. Richer overview context.
-- **Engine files:** `DevContextGrpcService.cs` ‚Äî `Require()` simplified to lookup-only; `CompleteCall<T>()` records bytes + elapsed + TokenTotal; all handlers use `WrapT`/`WrapAsyncT`.
-- **Server files:** `AnalysisSessionManager.cs` ‚Äî G3 fix in `CloseSessionAsync`; `AnalysisSession.cs` ‚Äî added `RepoRoot`; `McpObservabilityService.cs` ‚Äî `volatile` on `_running`, `Notify()` stale cleanup.
+- **Engine files:** `DevContextGrpcService.cs` ó `Require()` simplified to lookup-only; `CompleteCall<T>()` records bytes + elapsed + TokenTotal; all handlers use `WrapT`/`WrapAsyncT`.
+- **Server files:** `AnalysisSessionManager.cs` ó G3 fix in `CloseSessionAsync`; `AnalysisSession.cs` ó added `RepoRoot`; `McpObservabilityService.cs` ó `volatile` on `_running`, `Notify()` stale cleanup.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (353+64+12, 3 skipped)
-- `pnpm lint` ‚Äî green (0/0); `pnpm build` ‚Äî green (0w/0e)
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (353+64+12, 3 skipped)
+- `pnpm lint` ó green (0/0); `pnpm build` ó green (0w/0e)
 
 **Remaining M4 (for next session):**
 - M4.4 `impact` transitive + diff-aware mode
-- M4.7 `config` keys ‚Üí binding/consumption sites
+- M4.7 `config` keys ? binding/consumption sites
 - M4.9 `tests_for` best-effort
 
-**Next:** M4.4 ‚Üí M4.7 ‚Üí M4.9 (see `MERIDIAN-START.md` stage tracker). After M4 completion: M5 agent eval ratchet.
+**Next:** M4.4 ? M4.7 ? M4.9 (see `MERIDIAN-START.md` stage tracker). After M4 completion: M5 agent eval ratchet.
 
 ---
 
-## 2026-07-06 ‚Äî Meridian M3: MCP re-architecture (server-of-record, stdio shim, descriptions, MCP page) (M3 COMPLETE)
+## 2026-07-06 ó Meridian M3: MCP re-architecture (server-of-record, stdio shim, descriptions, MCP page) (M3 COMPLETE)
 
 **Changed:**
-- **M3.1** ‚Äî Server-of-record + stdio shim + flush fix:
+- **M3.1** ó Server-of-record + stdio shim + flush fix:
   - `AnalysisSessionManager.cs`: repo+HEAD session keying (`_repoToHandle` index), `TryGetByRepo()`, `ListSessions()`
   - `AnalysisSession.cs`: added `RepoPath`, `CommitSha`, `CreatedAt`, `LastActivity`, `CallCount`, `TokenTotal` metadata fields
-  - `DevContextGrpcService.cs`: restructured `Analyze` ‚Äî result written directly to `responseStream` after channel drain (flush fix), uses `ct` for `ReadAllAsync`, `ListSessions` handler
-  - `DevContext.Mcp/Program.cs`: rewritten as thin gRPC proxy ‚Äî removed all DevContext.Core/Cli references, connects to server via `GrpcWebHandler`, spawns server if not running
+  - `DevContextGrpcService.cs`: restructured `Analyze` ó result written directly to `responseStream` after channel drain (flush fix), uses `ct` for `ReadAllAsync`, `ListSessions` handler
+  - `DevContext.Mcp/Program.cs`: rewritten as thin gRPC proxy ó removed all DevContext.Core/Cli references, connects to server via `GrpcWebHandler`, spawns server if not running
   - `DevContext.Mcp/DevContext.Mcp.csproj`: replaced engine dependencies with Grpc.Net.Client/Grpc.Net.Client.Web + DevContext.Contracts (gRPC stubs)
   - `DevContext.Mcp/McpSessionManager.cs`: **deleted** (session management now server-side)
-  - `DevContext.Mcp/ServerShim.cs`: new ‚Äî spawns DevContext.Server.exe, health-check retry loop, process cleanup
-- **M3.2** ‚Äî Tool descriptions + envelope trim:
+  - `DevContext.Mcp/ServerShim.cs`: new ó spawns DevContext.Server.exe, health-check retry loop, process cleanup
+- **M3.2** ó Tool descriptions + envelope trim:
   - `DevContext.Mcp/DevContextTools.cs`: all 18 tools have XML `<summary>` docs with parameter descriptions and examples; envelope trimmed to compact `meta` lines (no Scope/Coverage/Confidence); rewritten as gRPC proxy calls
-- **M3.3** ‚Äî Observability stream + MCP page:
+- **M3.3** ó Observability stream + MCP page:
   - `proto/devcontext/v1/devcontext.proto`: added `ListSessions`, `StartMcp`, `StopMcp`, `ObserveToolCalls` RPCs; `ToolCallEvent`, `SessionInfo` messages
-  - `DevContext.Server/Services/McpObservabilityService.cs`: new ‚Äî fan-out `Channel<ToolCallEvent>` observer pattern, `Start()`/`Stop()` toggle, `Notify()` broadcast
+  - `DevContext.Server/Services/McpObservabilityService.cs`: new ó fan-out `Channel<ToolCallEvent>` observer pattern, `Start()`/`Stop()` toggle, `Notify()` broadcast
   - `DevContextGrpcService.cs`: `StartMcp`/`StopMcp`/`ObserveToolCalls` handlers; `RecordToolCall` via `[CallerMemberName]` on `Require()`
-  - `src/DevContext.App/src/app/features/pages/mcp-page.ts`: new ‚Äî MCP page with status dot + toggle, config snippet cards (Claude Code/Cursor/VS Code) with copy, session list, live feed with token chips, try-a-tool console
+  - `src/DevContext.App/src/app/features/pages/mcp-page.ts`: new ó MCP page with status dot + toggle, config snippet cards (Claude Code/Cursor/VS Code) with copy, session list, live feed with token chips, try-a-tool console
   - `src/DevContext.App/src/app/app.config.ts`: `/mcp` route added
   - `src/DevContext.App/src/app/shell/activity-bar.ts`: MCP rail entry (`activity` icon, `g m`)
   - `src/DevContext.App/src/app/shell/workspace-shell.ts`: `g m` shortcut in VIEW_SHORTCUTS
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (12+64+353, 3 skipped)
-- `pnpm check` green: lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e (mcp-page chunk: 11.29 kB)
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 ∑ test 27/27 ∑ build 0w/0e (mcp-page chunk: 11.29 kB)
 
 **Static audit findings (carried forward):**
-1. `TokenTotal` never incremented ‚Äî session list shows 0 tok always
-2. `RecordToolCall` elapsedMs uses placeholder (1ms) ‚Äî needs real timing
+1. `TokenTotal` never incremented ó session list shows 0 tok always
+2. `RecordToolCall` elapsedMs uses placeholder (1ms) ó needs real timing
 3. Re-analyzing same repo+HEAD creates orphaned session (old session not evicted)
 4. Paths remain absolute (D4 envelope trim not done on server-side)
 5. `McpObservabilityService._running` lacks memory barrier (`volatile` needed)
 6. `_observers` dictionary accumulates stale entries (no cleanup)
 7. ServerShim auto-spawn only works in dev layout (hardcoded bin/Debug path)
 
-**Next:** M4.1 ‚Äî `overview` ‚â§600 tokens one-call repo brief
+**Next:** M4.1 ó `overview` =600 tokens one-call repo brief
 
 ---
 
-## 2026-07-06 ‚Äî Meridian M2: insight repair + new sources + typed actions + layer facets (M2 COMPLETE)
+## 2026-07-06 ó Meridian M2: insight repair + new sources + typed actions + layer facets (M2 COMPLETE)
 
 **Changed:**
-- **M2.1** ‚Äî Retired/repair discredited insight sources:
+- **M2.1** ó Retired/repair discredited insight sources:
   - `EntryMixSource.cs`: CLI commands filtered out when non-CLI entries exist (`hasNonCliEntries` gate)
-  - `GatewayArchetypeSource.cs`: Rewritten from call-edge analysis to only use `EdgeKind.ServiceLink` edges; confidence raised 0.5‚Üí0.75; uses `ServiceLinkTags` for transfer seams
+  - `GatewayArchetypeSource.cs`: Rewritten from call-edge analysis to only use `EdgeKind.ServiceLink` edges; confidence raised 0.5?0.75; uses `ServiceLinkTags` for transfer seams
   - `GraphOrphansSource.cs`: Added `FindConventionDiTypes()` to exclude MediatR handlers, validators, consumers; wiring gate (`handlesCount<5 && sendsCount<10`); confidence lowered to 0.4
   - `AnonymousEndpointsSource.cs` + `WebArchetypeSource.cs`: Added `IsRazorPage()` check excludes `.cshtml` endpoints from auth surface
-- **M2.2** ‚Äî 4 new wiring-grounded insight sources:
+- **M2.2** ó 4 new wiring-grounded insight sources:
   - `EventFlowSource.cs`: Scans Raises/Consumes edges; reports orphan events, cross-service event flows via BusPublishConsume ServiceLinks; emits TypedAction.Node
-  - `SpofSource.cs`: Fan-in/fan-out analysis on ServiceLink edges; identifies services with ‚â•2 consumers; emits TypedAction.Node links
+  - `SpofSource.cs`: Fan-in/fan-out analysis on ServiceLink edges; identifies services with =2 consumers; emits TypedAction.Node links
   - `UnvalidatedEndpointsSource.cs`: Cross-references HTTP endpoints against `AbstractValidator<T>` subclasses; requires FluentValidation signal; emits TypedAction.Focus
   - `ConfigDefaultsSource.cs`: Regex scan of `IConfiguration`/`GetValue<>`/`GetSection<>`; cross-references against `appsettings*.json` keys
-- **M2.3 (D6)** ‚Äî Typed actions engine‚Üíproto‚ÜíUI:
+- **M2.3 (D6)** ó Typed actions engine?proto?UI:
   - `Insight.cs`: Replaced `InsightAction` enum with `TypedActionKind` (Focus/Node/Filter/None); `TypedAction` sealed record; `PrimaryAction` + `EvidenceActions`
   - All 10 insight sources migrated: `TypedAction.Focus()`/`.Node()`/`.Filter()`
-  - `ProtoMapper.cs`: Maps PrimaryAction + EvidenceActions ‚Üí proto `action`/`action_target`/`evidence_actions`
+  - `ProtoMapper.cs`: Maps PrimaryAction + EvidenceActions ? proto `action`/`action_target`/`evidence_actions`
   - `devcontext.proto`: Added `evidence_actions` field (field 12), documented D6 format
-  - UI: `insights-view.ts` ‚Üí `eaRoute()`/`paRoute()` routing; home-page.ts + workbench-page.ts updated
-- **M2.4 (D9)** ‚Äî Layer/feature facets (engine only):
+  - UI: `insights-view.ts` ? `eaRoute()`/`paRoute()` routing; home-page.ts + workbench-page.ts updated
+- **M2.4 (D9)** ó Layer/feature facets (engine only):
   - `ArchitectureEnums.cs`: Expanded `ArchitectureLayer` (Contracts, PublicApi, Core, Internals, View, ViewModel, Platform); `ToLabel()` per-archetype mapping; `LayerViolation` record
-  - `SyntaxStructureExtractor.cs`: `InferLayer()` 406 lines ‚Äî base types‚Üínamespace‚Üífile path‚Üínaming conventions
+  - `SyntaxStructureExtractor.cs`: `InferLayer()` 406 lines ó base types?namespace?file path?naming conventions
   - `GraphBuilder.cs`: `DeriveFeature()` strips project prefix + layer segments; `DetectLayerViolations()` per-archetype illegal-layer pairs; `AddTypeNodes()` sets Layer/Feature
   - `CodeGraph.cs`: `GraphNode.Layer`/`Feature`; `CodeGraph.LayerViolations` property
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (12+64+353, 3 skipped)
-- `pnpm check` green: lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e
-- Dogfood out.md: 493 nodes ¬∑ 316 edges ¬∑ 6 ServiceLinks ¬∑ 10 insights (4 info, 3 notable, 3 warning) ¬∑ New sources registered: EventFlow/Spof/UnvalidatedEndpoints/ConfigDefaults ¬∑ Analyzed 3.6s
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test --filter Category!=Eval` ó 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 ∑ test 27/27 ∑ build 0w/0e
+- Dogfood out.md: 493 nodes ∑ 316 edges ∑ 6 ServiceLinks ∑ 10 insights (4 info, 3 notable, 3 warning) ∑ New sources registered: EventFlow/Spof/UnvalidatedEndpoints/ConfigDefaults ∑ Analyzed 3.6s
 
-**Next:** M3.1 ‚Äî Server-of-record + stdio shim + flush fix
+**Next:** M3.1 ó Server-of-record + stdio shim + flush fix
 
 ---
 
-## 2026-07-06 ‚Äî Meridian M1.8-M1.9: HTTP ServiceLinks + per-service style rollup (M1 COMPLETE)
+## 2026-07-06 ó Meridian M1.8-M1.9: HTTP ServiceLinks + per-service style rollup (M1 COMPLETE)
 
 **Changed:**
-- **M1.8** ‚Äî HTTP/YARP ServiceLinks:
-  - **Bug fix:** `PopulateGatewayRoutes` now runs BEFORE `GraphBuilder.Build` ‚Äî the gateways were populated after graph construction, making `AddHttpServiceLinks` dead code (always returned immediately). Now executes in correct order.
-  - **Path-pattern normalization:** Rewrote route matching with `StripPathTemplateVariables` helper ‚Äî strips `{**catch-all}`, `{param}`, `{param:type}` from YARP routes to compute static prefix, then segment-aware matches against Refit routes (handles query-string stripping, segment-boundary validation).
+- **M1.8** ó HTTP/YARP ServiceLinks:
+  - **Bug fix:** `PopulateGatewayRoutes` now runs BEFORE `GraphBuilder.Build` ó the gateways were populated after graph construction, making `AddHttpServiceLinks` dead code (always returned immediately). Now executes in correct order.
+  - **Path-pattern normalization:** Rewrote route matching with `StripPathTemplateVariables` helper ó strips `{**catch-all}`, `{param}`, `{param:type}` from YARP routes to compute static prefix, then segment-aware matches against Refit routes (handles query-string stripping, segment-boundary validation).
   - **ServiceLinkTags assigned** to all edges: `BusPublishConsume` (bus), `Grpc` (gRPC), `HttpViaGateway` (HTTP). Added `Tags` property to `GraphEdge` record.
   - **TraceBuilder:** Added `ServiceLink` to `TraceOptions.Follow` default list. Added `CrossService` to `SeamKind` enum + `ToSeam` mapping. Added UI color for CrossService seam.
   - **Rendering:** New `CROSS-SERVICE` section in `MapRenderer` with per-tag summary + per-edge detail listing. `ServiceLinks` count added to `ReportRenderer.BuildStats` table. Added `AllEdges` property to `CodeGraph`.
-  - **Golden:** Shopping.Web ‚Üí YarpApiGateway + YarpApiGateway ‚Üí Catalog/Basket/Ordering.API (4 HTTP ServiceLinks, 6 total with bus+gRPC).
-- **M1.9** ‚Äî Per-service style rollup (D5):
+  - **Golden:** Shopping.Web ? YarpApiGateway + YarpApiGateway ? Catalog/Basket/Ordering.API (4 HTTP ServiceLinks, 6 total with bus+gRPC).
+- **M1.9** ó Per-service style rollup (D5):
   - New `PerServiceStyle` record (project name, style, stack tags) in `DiscoveryModel`.
-  - `ArchitectureStyleDetector.DetectPerServiceStyles()`: classifies each runnable web project by local style ‚Äî Gateway (YARP), gRPC Service (dedicated gRPC), Clean Architecture (MediatR+EF Core), CQRS (MediatR only), Web API, Web App / Razor Pages.
+  - `ArchitectureStyleDetector.DetectPerServiceStyles()`: classifies each runnable web project by local style ó Gateway (YARP), gRPC Service (dedicated gRPC), Clean Architecture (MediatR+EF Core), CQRS (MediatR only), Web API, Web App / Razor Pages.
   - `IsRunnableService()`: requires Exe output or Web SDK for runnable classification (class libraries with AspNetCore packages no longer false-positive as services).
   - Per-service styles rendered in `MapRenderer.AppendStyle()` under STYLE section.
   - `ServiceStyle` proto message + `service_styles` field added to `MapResponse`. `ProtoMapper.ToMapResponse` wired. TypeScript bindings regenerated via `pnpm gen:proto`.
   - **Golden:** 6 services classified: YarpApiGateway (Gateway), Shopping.Web (Web App), Discount.Grpc (gRPC Service), Basket/Catalog/Ordering.API (Web API + stack tags).
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e on commit
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (12+64+353, 3 skipped)
-- `pnpm check` green: lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e
-- Dogfood out.md content-asserted: 6 ServiceLinks (1 bus, 1 gRPC, 4 http) ¬∑ 6 per-service styles ¬∑ 493 nodes ¬∑ 316 edges (was 312, +4 HTTP) ¬∑ Handles ‚â•14 present ¬∑ Style Microservices intact
+- `dotnet build DevContext.slnx` ó 0w 0e on commit
+- `dotnet test --filter Category!=Eval` ó 429/0 (12+64+353, 3 skipped)
+- `pnpm check` green: lint 0/0 ∑ test 27/27 ∑ build 0w/0e
+- Dogfood out.md content-asserted: 6 ServiceLinks (1 bus, 1 gRPC, 4 http) ∑ 6 per-service styles ∑ 493 nodes ∑ 316 edges (was 312, +4 HTTP) ∑ Handles =14 present ∑ Style Microservices intact
 - No regressions on library fixtures (dotnet test green, pnpm check green)
 - Proto contract extended (+ServiceStyle message), TypeScript bindings regenerated
 
-**Next:** M2.1 ‚Äî Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` ¬ßM2.
+**Next:** M2.1 ó Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` ßM2.
 
----## 2026-07-06 ‚Äî Meridian M1.6-M1.9: Cross-service ServiceLink edges + microservices archetype
+---## 2026-07-06 ó Meridian M1.6-M1.9: Cross-service ServiceLink edges + microservices archetype
 
 **Changed:**
-- **M1.6** ‚Äî MassTransit bus ServiceLink: cross-project publish‚Üíconsume join matching event FQNs. `_eventPublishers` map collected during `AddSends`, consumed by `AddBusServiceLinks` in `GraphBuilder`. Golden: BasketCheckoutEvent links Basket.API ‚Üí Ordering.Application. Also fixed Adapt<T> body-scan bug: `ResolveVariableFromAdapt` (Adapt/Map/Create factory patterns) now checked BEFORE `new X()` fallback in `AddSends` ‚Äî was picking guard-clause `new CheckoutBasketResult(false)` instead of the Adapt-resolved BasketCheckoutEvent.
-- **M1.7** ‚Äî gRPC ServiceLink: new `GrpcClientExtractor` (order 59, gRPC+gGateway signals) detects generated client types (XxxClient pattern) including primary constructors. `AddGrpcServiceLinks` cross-projects joins client‚Üíserver by service name. Golden: DiscountProtoServiceClient in Basket.API ‚Üí DiscountService in Discount.Grpc.
-- **M1.8** ‚Äî Infrastructure for HTTP/YARP/Refit ServiceLinks: new `RefitInterfaceExtractor` (order 60, Refit signal) detects `[Get]`/`[Post]` interfaces. YARP `ReverseProxy` config parsing added to `DiscoveryPipeline.PopulateGatewayRoutes` (parses Routes/Clusters/Destinations from appsettings*.json). `AddHttpServiceLinks` route matching framework in place; path-pattern normalization needed for matching Refit routes (`/catalog-service/products/{id}`) against YARP patterns (`/catalog-service/{**catch-all}`).
-- **M1.9** ‚Äî Microservices archetype: `ArchitectureStyleDetector` now detects microservices without Aspire requirement (‚â•2 web services + gateway/bus evidence). `ArchetypeDetector` no longer forces Gateway archetype when 2+ runnable services exist ‚Äî returns App. Web SDK detection via `IsWebSdkProject` reads csproj Sdk attribute.
-- **Infra** ‚Äî `EdgeKind.ServiceLink` + `ServiceLinkTags` (BusPublishConsume/Grpc/HttpViaGateway/RefitDirect) added to `CodeGraph`. New detection models: `GrpcClientDetection`, `RefitRouteDetection`.
+- **M1.6** ó MassTransit bus ServiceLink: cross-project publish?consume join matching event FQNs. `_eventPublishers` map collected during `AddSends`, consumed by `AddBusServiceLinks` in `GraphBuilder`. Golden: BasketCheckoutEvent links Basket.API ? Ordering.Application. Also fixed Adapt<T> body-scan bug: `ResolveVariableFromAdapt` (Adapt/Map/Create factory patterns) now checked BEFORE `new X()` fallback in `AddSends` ó was picking guard-clause `new CheckoutBasketResult(false)` instead of the Adapt-resolved BasketCheckoutEvent.
+- **M1.7** ó gRPC ServiceLink: new `GrpcClientExtractor` (order 59, gRPC+gGateway signals) detects generated client types (XxxClient pattern) including primary constructors. `AddGrpcServiceLinks` cross-projects joins client?server by service name. Golden: DiscountProtoServiceClient in Basket.API ? DiscountService in Discount.Grpc.
+- **M1.8** ó Infrastructure for HTTP/YARP/Refit ServiceLinks: new `RefitInterfaceExtractor` (order 60, Refit signal) detects `[Get]`/`[Post]` interfaces. YARP `ReverseProxy` config parsing added to `DiscoveryPipeline.PopulateGatewayRoutes` (parses Routes/Clusters/Destinations from appsettings*.json). `AddHttpServiceLinks` route matching framework in place; path-pattern normalization needed for matching Refit routes (`/catalog-service/products/{id}`) against YARP patterns (`/catalog-service/{**catch-all}`).
+- **M1.9** ó Microservices archetype: `ArchitectureStyleDetector` now detects microservices without Aspire requirement (=2 web services + gateway/bus evidence). `ArchetypeDetector` no longer forces Gateway archetype when 2+ runnable services exist ó returns App. Web SDK detection via `IsWebSdkProject` reads csproj Sdk attribute.
+- **Infra** ó `EdgeKind.ServiceLink` + `ServiceLinkTags` (BusPublishConsume/Grpc/HttpViaGateway/RefitDirect) added to `CodeGraph`. New detection models: `GrpcClientDetection`, `RefitRouteDetection`.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e on all commits
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (12+64+353, 3 skipped)
-- Dogfood report: 489 nodes ¬∑ 312 edges ¬∑ 2 ServiceLinks (1 bus, 1 gRPC) ¬∑ Style: Microservices (confidence high) ¬∑ MAP archetype
+- `dotnet build DevContext.slnx` ó 0w 0e on all commits
+- `dotnet test --filter Category!=Eval` ó 429/0 (12+64+353, 3 skipped)
+- Dogfood report: 489 nodes ∑ 312 edges ∑ 2 ServiceLinks (1 bus, 1 gRPC) ∑ Style: Microservices (confidence high) ∑ MAP archetype
 - Adapt<T> checkout gap fixed: BasketCheckoutEvent now correctly tracked in Sends
 
-**Next:** M2.1 ‚Äî Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` ¬ßM2.
+**Next:** M2.1 ó Retire/repair discredited insight sources. See `docs/dev/briefs/proposal-meridian.md` ßM2.
 
 ---
 
-## 2026-07-05 ‚Äî Lighthouse L3: Kernel answers (all 6 checkpoints)
+## 2026-07-05 ó Lighthouse L3: Kernel answers (all 6 checkpoints)
 
 **Changed:**
 - **L3.6** `GroupPath` on `EntryPoint` + proto `EntryPoint.group_path` + namespace-derived grouping via `NameResolver.GetNamespace()`. `GrpcEntryPointBuilder` expanded from service-level to per-method entries (one entry per gRPC method with service name as GroupPath). `HttpRouteGroupPath()` fallback for HTTP lambdas.
 - **L3.5** `int? LineNumber` on `GraphNode`, `NodeDetail`, `proto NodeResponse.line_number`. Populated from `TypeDiscovery.StartLine` (set during `SourceBodyExtractor`). `AuthAttributes` on `EntryPoint` + `proto EntryPoint.auth_attributes`, piped from `EndpointDetection.AuthAttributes` (already detected by `EndpointExtractor`/`ControllerActionExtractor`). `CodeGraphBuilder.AddNode` merge now respects `LineNumber`.
-- **L3.1** `rpc GetImpact(ImpactRequest) returns (ImpactResponse)` ‚Äî wraps the already-implemented `GraphQuery.BlastRadius()` (BFS over in-edges to find reachable entry points). gRPC handler + `ProtoMapper.ToImpactResponse()`.
+- **L3.1** `rpc GetImpact(ImpactRequest) returns (ImpactResponse)` ó wraps the already-implemented `GraphQuery.BlastRadius()` (BFS over in-edges to find reachable entry points). gRPC handler + `ProtoMapper.ToImpactResponse()`.
 - **L3.2** Graph-aware entry scoring: `BfsEntryScore` performs BFS (depth 6) from each entry node, counting reach, seam richness (Sends/Raises/Consumes), entity touches (ReadsWrites to entity/aggregate tags), and cross-project depth. `EnrichEntryScores` normalizes into a composite 0..1 `Score` stored on `EntryPoint`. `Proto EntryPoint` gained `score`, `reach`, `cross_projects` fields. `ReportRenderer.RankEntries` now sorts by score first, falling back to has-target + kind + title.
-- **L3.4** Hub-scoping for sparse graphs: `AddHubScopeEdges` detects sparseness (entries < 5 or edge/node ratio < 0.1), identifies top-K central types by degree centrality from the model's `CallEdges`, and binds their inter-type call edges (even when one endpoint lacks FilePath ‚Äî the normal gate). Budget-capped at 500 edges. `CodeGraph.IsSparseGraph` + `HubScopeNodeCount` populated and reported via `GraphStat.sparse_graph`/`hub_scope_nodes` in Stats.
-- **L3.3** `GraphQuery.GetInterestingPoints(archetype?)` ‚Äî 5 per-archetype strategies: **web** (auth boundary entries + data hubs + pipeline middleware), **library** (top-degree public API hubs + implementor seats with ‚â•2 Resolves edges), **messaging** (message producers via Sends/Raises + consumer entries), **desktop** (top-3 centrality per-project as module hubs), **CLI** (command entry points). Centrality fallback for unknown/empty archetype (top-20 by degree). New `rpc GetInterestingPoints` in proto + gRPC handler + `ProtoMapper`.
+- **L3.4** Hub-scoping for sparse graphs: `AddHubScopeEdges` detects sparseness (entries < 5 or edge/node ratio < 0.1), identifies top-K central types by degree centrality from the model's `CallEdges`, and binds their inter-type call edges (even when one endpoint lacks FilePath ó the normal gate). Budget-capped at 500 edges. `CodeGraph.IsSparseGraph` + `HubScopeNodeCount` populated and reported via `GraphStat.sparse_graph`/`hub_scope_nodes` in Stats.
+- **L3.3** `GraphQuery.GetInterestingPoints(archetype?)` ó 5 per-archetype strategies: **web** (auth boundary entries + data hubs + pipeline middleware), **library** (top-degree public API hubs + implementor seats with =2 Resolves edges), **messaging** (message producers via Sends/Raises + consumer entries), **desktop** (top-3 centrality per-project as module hubs), **CLI** (command entry points). Centrality fallback for unknown/empty archetype (top-20 by degree). New `rpc GetInterestingPoints` in proto + gRPC handler + `ProtoMapper`.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e on all 6 commits
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (12+64+353, 3 skipped), same baseline throughout
-- `pnpm check` (lint+test+build) ‚Äî green on all 6 commits (lint 0/0, test 27/27, build 0w/0e)
+- `dotnet build DevContext.slnx` ó 0w 0e on all 6 commits
+- `dotnet test --filter Category!=Eval` ó 429/0 (12+64+353, 3 skipped), same baseline throughout
+- `pnpm check` (lint+test+build) ó green on all 6 commits (lint 0/0, test 27/27, build 0w/0e)
 
-**Next:** L4 ‚Äî Insight engine v2 + archetype lenses. See `docs/dev/briefs/proposal-lighthouse.md` ¬ßL4.
+**Next:** L4 ó Insight engine v2 + archetype lenses. See `docs/dev/briefs/proposal-lighthouse.md` ßL4.
 
 ---
 
-## 2026-07-04 ‚Äî Lighthouse L2: CLI `report` + bench loop + query parity
+## 2026-07-04 ó Lighthouse L2: CLI `report` + bench loop + query parity
 
 **Changed:**
-- **L2.1** `devcontext report <path|url>` ‚Äî new `ReportCommand` + `ReportSettings` in CLI, new `ReportRenderer` in Core.Rendering. Composes identity sentence, stat digest, top flows (v1: has-target + kind priority), top-3 compact traces, insights (v1), full architecture map, and run report into one deterministic markdown doc. `--format json` delegates to `KernelJsonRenderer`. `ReportRenderer` orchestrates existing Map/Trace/insight renderers ‚Äî no second rendering path.
-- **L2.2** `scripts/bench.ps1` ‚Äî runs `devcontext report` across `eval-repos.json`, saves to `eval-results/<date>/`, emits structural diff (node/edge/entry/insight counts, section changes) vs previous run. Strips wall-time for determinism. Supports `--SkipClone` and `--DiffOnly`.
-- **L2.3** Benchmark set v2 ‚Äî `eval-repos.json` extended from 16 to 22 repos: added PowerToys (desktop megarepo), Serilog (library), Spectre.Console (CLI framework), MassTransit-Sample (messaging app), DevContext self (dogfood), and place for TradingEngine.
-- **L2.4** Query surface parity ‚Äî `QueryCommand` now supports all 8 ops: `node` (‚Üí `GraphQuery.Node`), `neighbors` (‚Üí `GraphQuery.Neighbors` with `--direction`), `usages` (‚Üí `GraphQuery.FindUsages`), `search` (‚Üí new `GraphQuery.Search` ‚Äî title/id match, ranked by degree, capped at 20). `GraphQuery` gained `Search(term)` + `SearchResult` record. Fixed pre-existing DI bug where `ILogger<DiscoveryPipeline>` wasn't registered in `Program.cs`, preventing `query` from resolving.
+- **L2.1** `devcontext report <path|url>` ó new `ReportCommand` + `ReportSettings` in CLI, new `ReportRenderer` in Core.Rendering. Composes identity sentence, stat digest, top flows (v1: has-target + kind priority), top-3 compact traces, insights (v1), full architecture map, and run report into one deterministic markdown doc. `--format json` delegates to `KernelJsonRenderer`. `ReportRenderer` orchestrates existing Map/Trace/insight renderers ó no second rendering path.
+- **L2.2** `scripts/bench.ps1` ó runs `devcontext report` across `eval-repos.json`, saves to `eval-results/<date>/`, emits structural diff (node/edge/entry/insight counts, section changes) vs previous run. Strips wall-time for determinism. Supports `--SkipClone` and `--DiffOnly`.
+- **L2.3** Benchmark set v2 ó `eval-repos.json` extended from 16 to 22 repos: added PowerToys (desktop megarepo), Serilog (library), Spectre.Console (CLI framework), MassTransit-Sample (messaging app), DevContext self (dogfood), and place for TradingEngine.
+- **L2.4** Query surface parity ó `QueryCommand` now supports all 8 ops: `node` (? `GraphQuery.Node`), `neighbors` (? `GraphQuery.Neighbors` with `--direction`), `usages` (? `GraphQuery.FindUsages`), `search` (? new `GraphQuery.Search` ó title/id match, ranked by degree, capped at 20). `GraphQuery` gained `Search(term)` + `SearchResult` record. Fixed pre-existing DI bug where `ILogger<DiscoveryPipeline>` wasn't registered in `Program.cs`, preventing `query` from resolving.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e on all 4 commits
-- `dotnet test --filter Category!=Eval` ‚Äî 429/0 (64+12+353, 3 skipped), same baseline
-- `pnpm check` (lint+test+build) ‚Äî green on all 4 commits (lint 0/0, test 27/27, build 0w/0e)
-- `cargo check` ‚Äî green
-- Live smoke: `devcontext report` against `MinimalApiProject` ‚Äî identity, stats, top flows, 2 traces, insights, map, run report all render correctly
-- Live smoke: `query node --focus GetOrdersQuery` ‚Äî JSON node detail
-- Live smoke: `query search --focus Order` ‚Äî 13 ranked hits
-- Live smoke: `query usages --focus Order` ‚Äî correct edge list
+- `dotnet build DevContext.slnx` ó 0w 0e on all 4 commits
+- `dotnet test --filter Category!=Eval` ó 429/0 (64+12+353, 3 skipped), same baseline
+- `pnpm check` (lint+test+build) ó green on all 4 commits (lint 0/0, test 27/27, build 0w/0e)
+- `cargo check` ó green
+- Live smoke: `devcontext report` against `MinimalApiProject` ó identity, stats, top flows, 2 traces, insights, map, run report all render correctly
+- Live smoke: `query node --focus GetOrdersQuery` ó JSON node detail
+- Live smoke: `query search --focus Order` ó 13 ranked hits
+- Live smoke: `query usages --focus Order` ó correct edge list
 
-**Next:** L3 ‚Äî Kernel answers (Impact RPC, Top Flows ranking, InterestingPoints, graph completeness). See `docs/dev/briefs/proposal-lighthouse.md` ¬ßL3.
+**Next:** L3 ó Kernel answers (Impact RPC, Top Flows ranking, InterestingPoints, graph completeness). See `docs/dev/briefs/proposal-lighthouse.md` ßL3.
 
 ---
 
-## 2026-07-04 ‚Äî Lighthouse L1: Open fast, reopen instantly, stay responsive
+## 2026-07-04 ó Lighthouse L1: Open fast, reopen instantly, stay responsive
 
 **Changed:**
-- **L1.1** Persistent clone registry: `CloneRegistry` at `%LocalAppData%/DevContext/repos/registry.json` ‚Äî JSON keyed by owner+repo+ref, thread-safe via `ReaderWriterLockSlim`, file-locked writes (`FileShare.None`). `GitCloneService` now receives registry via constructor and queries it before cloning. Clone order flipped: git CLI shallow (`--depth 1 --single-branch`) first, LibGit2Sharp fallback. Registry registered as singleton in DI (`Program.cs`). CLI/Desktop callers updated.
-- **L1.2** Snapshot-first open: `EngineRunner.AnalyzeAsync` reordered ‚Äî for GitHub URLs, checks registry‚Üísnapshot cache BEFORE any network I/O (clone bypassed entirely on cache hit). Background `git fetch --dry-run` staleness probe compares `origin/HEAD` vs local HEAD. `EngineResult` now has `Stale`/`StaleMessage`. Proto `AnalysisSummary` extended with `stale`/`stale_message` fields. UI `identity-strip.ts` renders amber "Repo moved ahead ‚Äî Re-analyze?" chip with click action calling `SessionStore.reAnalyze()`.
-- **L1.3** Progress v2: Clone ‚Äî `TryCloneGitCli` adds `--progress`, parses stderr for phase transitions (Enumerating/Counting/Compressing/Receiving/Resolving) via `ParseCloneProgress` with weighted 0-100 mapping. Analysis ‚Äî `StreamingProgressObserver` throttled to ‚â§250ms between reports, uses `OnExtractorCompleted` to interpolate within-stage progress (typesAdded). UI ‚Äî `run-console.ts` boot mode now renders a phase checklist (checkmark/spinner/gray icons with live message + percent) instead of only a linear log. Raw log hidden behind `<details>`.
-- **L1.4** Responsiveness: `AnalysisSessionManager` all three sync-over-async sites (`GetAwaiter().GetResult()`) replaced with proper `await` ‚Äî `CloseSession`‚Üí`CloseSessionAsync` (Task<bool>), `EvictIfNeeded`‚Üí`EvictIfNeededAsync`. Tauri `spawn_child` now sets sidecar to `BELOW_NORMAL_PRIORITY_CLASS` via `SetPriorityClass` (Windows only, `windows` crate Win32_System_Threading). `ActivityService.setProgress` coalesced with 80ms debounce (intermediate sets skip change detection but store latest values).
+- **L1.1** Persistent clone registry: `CloneRegistry` at `%LocalAppData%/DevContext/repos/registry.json` ó JSON keyed by owner+repo+ref, thread-safe via `ReaderWriterLockSlim`, file-locked writes (`FileShare.None`). `GitCloneService` now receives registry via constructor and queries it before cloning. Clone order flipped: git CLI shallow (`--depth 1 --single-branch`) first, LibGit2Sharp fallback. Registry registered as singleton in DI (`Program.cs`). CLI/Desktop callers updated.
+- **L1.2** Snapshot-first open: `EngineRunner.AnalyzeAsync` reordered ó for GitHub URLs, checks registry?snapshot cache BEFORE any network I/O (clone bypassed entirely on cache hit). Background `git fetch --dry-run` staleness probe compares `origin/HEAD` vs local HEAD. `EngineResult` now has `Stale`/`StaleMessage`. Proto `AnalysisSummary` extended with `stale`/`stale_message` fields. UI `identity-strip.ts` renders amber "Repo moved ahead ó Re-analyze?" chip with click action calling `SessionStore.reAnalyze()`.
+- **L1.3** Progress v2: Clone ó `TryCloneGitCli` adds `--progress`, parses stderr for phase transitions (Enumerating/Counting/Compressing/Receiving/Resolving) via `ParseCloneProgress` with weighted 0-100 mapping. Analysis ó `StreamingProgressObserver` throttled to =250ms between reports, uses `OnExtractorCompleted` to interpolate within-stage progress (typesAdded). UI ó `run-console.ts` boot mode now renders a phase checklist (checkmark/spinner/gray icons with live message + percent) instead of only a linear log. Raw log hidden behind `<details>`.
+- **L1.4** Responsiveness: `AnalysisSessionManager` all three sync-over-async sites (`GetAwaiter().GetResult()`) replaced with proper `await` ó `CloseSession`?`CloseSessionAsync` (Task<bool>), `EvictIfNeeded`?`EvictIfNeededAsync`. Tauri `spawn_child` now sets sidecar to `BELOW_NORMAL_PRIORITY_CLASS` via `SetPriorityClass` (Windows only, `windows` crate Win32_System_Threading). `ActivityService.setProgress` coalesced with 80ms debounce (intermediate sets skip change detection but store latest values).
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî green on all 4 commits
-- `pnpm check` (lint+test+build) ‚Äî green on all 4 commits
-- `cargo check` (`src-tauri/`) ‚Äî green on L1.4
+- `dotnet build DevContext.slnx` ó green on all 4 commits
+- `pnpm check` (lint+test+build) ó green on all 4 commits
+- `cargo check` (`src-tauri/`) ó green on L1.4
 
-**Next:** L2 ‚Äî CLI `report` + bench loop (engine-only). See `docs/dev/briefs/proposal-lighthouse.md` ¬ßL2.
+**Next:** L2 ó CLI `report` + bench loop (engine-only). See `docs/dev/briefs/proposal-lighthouse.md` ßL2.
 
-## 2026-07-02 ‚Äî R2 execution (session 1)
+## 2026-07-02 ó R2 execution (session 1)
 
 **Changed:**
 - Merged addendum docs (I8 caching, I9 release, I10 tabs, ADDENDUM-A harder repos) from `C:\Code\DevContext2-addendum`
-- Updated README.md tracker: added I8/I9/I10/A rows, updated CORE spine to I1‚ÜíI2‚ÜíI3‚ÜíI4‚ÜíI8‚ÜíI10‚ÜíI9
+- Updated README.md tracker: added I8/I9/I10/A rows, updated CORE spine to I1?I2?I3?I4?I8?I10?I9
 - Updated UNIFIED-TRACKER.md: added I8/I9/I10 sections, new delivery diagram
-- **R2.1** Insights on wire: KernelJsonRenderer ‚Üí proto ‚Üí gRPC server ‚Üí TypeScript store ‚Üí desktop view ‚Üí CLI. Full stack: `Insight[]` now reaches every face.
+- **R2.1** Insights on wire: KernelJsonRenderer ? proto ? gRPC server ? TypeScript store ? desktop view ? CLI. Full stack: `Insight[]` now reaches every face.
 - **R2.2** NodeLink component: every name is a link. wired into entries/trace/node-card + document markdown linkify.
 - **R2.3** Entries table: sortable columns, filter chips (has-target/approx), hover row actions (Trace/NodeCard/Copy), filtered/total counter.
 - **R2.4** Trace fixes: F6 dead Tailwind class removed, focus breadcrumb with back, honest empty hint.
@@ -440,47 +440,47 @@
 - **R2.10** Export packs: Onboarding/Trace/Review presets that auto-select section toggles.
 
 **Verified:**
-- `dotnet build DevContext.slnx` ‚Äî 0w 0e
-- `dotnet test DevContext.slnx --filter Category!=Eval` ‚Äî 385/0 green
-- `pnpm lint` ‚Äî green (pre-existing build errors in node-card/palette/node.store unrelated to R2)
+- `dotnet build DevContext.slnx` ó 0w 0e
+- `dotnet test DevContext.slnx --filter Category!=Eval` ó 385/0 green
+- `pnpm lint` ó green (pre-existing build errors in node-card/palette/node.store unrelated to R2)
 
-## 2026-07-02 ‚Äî Pre-existing TS errors + handover (session 1 cleanup)
+## 2026-07-02 ó Pre-existing TS errors + handover (session 1 cleanup)
 
 **Changed:**
 - Fixed 5 pre-existing TypeScript build errors from round-1 session that prevented `pnpm build`:
   - `node-card.ts`: removed `n.line` (not in NodeResponse proto); replaced `neigh.incoming`/`neigh.outgoing` with edge-filtering via computed signals
-  - `palette.ts`: `r.results` ‚Üí `r.nodes` (SearchResponse field name)
+  - `palette.ts`: `r.results` ? `r.nodes` (SearchResponse field name)
   - `app-shell.ts`: removed unnecessary `?.` on `label` (required proto field)
-  - `node.store.ts`: `'both'` ‚Üí `'out'` + `'in'` with merged edges via `create(NeighborsResponseSchema)`
+  - `node.store.ts`: `'both'` ? `'out'` + `'in'` with merged edges via `create(NeighborsResponseSchema)`
 - Fixed 4 self-inflicted errors from R2 code:
-  - `settings-view.ts`: `theme.vibes`‚Üí`theme.vibes()`, `theme.activeVibe`‚Üí`theme.vibe()`, removed unused imports
+  - `settings-view.ts`: `theme.vibes`?`theme.vibes()`, `theme.activeVibe`?`theme.vibe()`, removed unused imports
   - `graph-view.ts`: removed unused Icon/Badge imports
-  - `document-view.ts`: `onDocClick(MouseEvent)` ‚Üí `onDocClick(Event)` for keyboard event compatibility
+  - `document-view.ts`: `onDocClick(MouseEvent)` ? `onDocClick(Event)` for keyboard event compatibility
   - `title-bar.ts`: fixed template string literal parsing error with single quote
 - Rewrote HANDOVER.md: round-2 delivery summary, review checklist, known caveats, next-items table, resume protocol
 
 **Verified:**
-- `pnpm check` fully green: lint ¬∑ 4/4 tests ¬∑ build success (app bundle generated, 0 errors, 0 warnings)
+- `pnpm check` fully green: lint ∑ 4/4 tests ∑ build success (app bundle generated, 0 errors, 0 warnings)
 - All 12 lazy chunks built: entries-view, source-view, trace-view, document-view, settings-view, browse-view, overview-view, stats-view, graph-view, insights-view, cache-view
 
-**Next:** Desktop smoke test (verify faces render real data) ‚Üí E1 remaining insight sources
+**Next:** Desktop smoke test (verify faces render real data) ? E1 remaining insight sources
 
-## 2026-07-02 ‚Äî Round-3 execution: desktop smoke test + engine bug + I10 multi-tab
+## 2026-07-02 ó Round-3 execution: desktop smoke test + engine bug + I10 multi-tab
 
 **Changed:**
 - Ran the desktop smoke test HANDOVER.md asked for (Playwright, since the in-repo `run-devcontext`
-  skill is stale ‚Äî it documents the old WPF desktop, not this branch's Angular+Tauri app). First pass
+  skill is stale ó it documents the old WPF desktop, not this branch's Angular+Tauri app). First pass
   against `eval-repos/eShop` (via `page.goto` client-side nav) showed every R2 face reporting
-  "0 projects / 0 entries" ‚Äî traced to a real engine bug, not a UI wiring bug (see below).
+  "0 projects / 0 entries" ó traced to a real engine bug, not a UI wiring bug (see below).
 - **Engine bug fix (commit `84a4068`):** `FileTreeExtractor.IsExcluded` matched exclude patterns via
   `path.Contains(pattern)` against the FULL absolute path, so analyzing any repo living under a folder
-  literally named `eval-repos` or `analysis-repos` ‚Äî the exact path this branch's own docs tell the
-  next agent to smoke-test with ‚Äî silently returned 0 projects/files/entries, no error anywhere.
-  Reproduced via CLI: `analyze eval-repos/TodoApi` ‚Üí 0 projects; same repo copied elsewhere ‚Üí 40
+  literally named `eval-repos` or `analysis-repos` ó the exact path this branch's own docs tell the
+  next agent to smoke-test with ó silently returned 0 projects/files/entries, no error anywhere.
+  Reproduced via CLI: `analyze eval-repos/TodoApi` ? 0 projects; same repo copied elsewhere ? 40
   files/164 nodes/12 entries. Fixed to match exact path SEGMENTS relative to the walk root (never the
   root's own ancestors), so nested `eval-repos/` subfolders are still pruned (verified against the
   DevContext2 monorepo root) without nuking analysis of a repo that happens to live under one.
-  Regression test added. **385/0 ‚Üí 386/0.**
+  Regression test added. **385/0 ? 386/0.**
 - **Three desktop interaction bugs found by actually driving the app (commit `8887d4d`)**, once the
   engine fix let real data reach the UI:
   - `NodeLink` never stopped click propagation, so clicking a target link in the Entries table both
@@ -488,142 +488,142 @@
   - `Sheet` (backs Node Card) never moved focus into the overlay on open, so Escape silently did
     nothing and the backdrop blocked all other clicks until closed by hand.
   - Document/Export presets matched invented section keys (`'identity'`, `'entries'`, `'stack'`,
-    `'insights'`, `'coverage'`) that don't exist ‚Äî `MapRenderer.cs`'s real keys are Overview/Topology/
+    `'insights'`, `'coverage'`) that don't exist ó `MapRenderer.cs`'s real keys are Overview/Topology/
     Routes/Entry points/Cross-cutting/Packages/Footer. Onboarding only ever matched "Topology" by
     luck; Review and Trace Pack matched nothing. Also fixed presets silently no-op'ing when clicked
     before the first Render (the obvious first click, since Presets sit above Sections in the UI).
   - The HANDOVER.md "known caveat" about NodeLink/GetNode display-name resolution did **not**
-    reproduce ‚Äî GetNode resolves display names fine.
-- **I10 multi-tab workspace ‚Äî I10.1+I10.2+I10.4 (commits `af7ccef`, `97044f8`):**
+    reproduce ó GetNode resolves display names fine.
+- **I10 multi-tab workspace ó I10.1+I10.2+I10.4 (commits `af7ccef`, `97044f8`):**
   - `WorkspaceStore`: up to 6 independent `TabState` entries (session slice + trace slice + route +
     its own `OperationController`). `SessionStore`/`TraceStore` rewritten as facades over
-    `activeTab()` with a byte-for-byte identical public API ‚Äî all 15 consumer components needed zero
+    `activeTab()` with a byte-for-byte identical public API ó all 15 consumer components needed zero
     changes. `analyze()`/`trace()` capture their owning tabId once at call time and thread it through
     every async callback (never re-reading `activeId()` later), and each tab owns its own
-    `OperationController` ‚Äî starting analyze on tab B cannot cancel tab A's in-flight request, which
+    `OperationController` ó starting analyze on tab B cannot cancel tab A's in-flight request, which
     it previously would have (one shared global controller). Regression test: start analyze on A,
-    switch to B mid-flight, complete ‚Üí A ready with A's handle, B untouched.
+    switch to B mid-flight, complete ? A ready with A's handle, B untouched.
   - `TabStrip`: 32px strip under the header, VS Code-ish (active underline, status dot, close on
     hover, middle-click close, Ctrl+T/W/1-6, "+" disabled at cap). Each tab remembers its last route
     and restores it on switch.
   - I10.4: tabs persist `{path, label, route}` + active index to localStorage; restore as IDLE tabs
-    on boot (never re-analyze all of them ‚Äî only the persisted active tab lazily re-analyzes, and
+    on boot (never re-analyze all of them ó only the persisted active tab lazily re-analyzes, and
     that's structural: the trigger effect only ever reads `activeTab()`). `closeTab()` now calls the
     existing `CloseSession` RPC, freeing the server-side snapshot instead of leaking it.
   - **Deferred, not silently skipped:** I10.3 server-side `MaxLiveSessions`/LRU/rehydrate (needs I8's
-    snapshot cache, which doesn't exist yet ‚Äî the tab cap alone is the spec's own "reduced v1"
+    snapshot cache, which doesn't exist yet ó the tab cap alone is the spec's own "reduced v1"
     allowance); drag-reorder (spec marks optional for v1); `ActivityService` is still one global
-    instance for the footer/toast display only (cosmetic last-writer-wins across concurrent tabs) ‚Äî
+    instance for the footer/toast display only (cosmetic last-writer-wins across concurrent tabs) ó
     the underlying per-tab DATA is fully isolated regardless, which is what the race test and the
     live concurrent-analyze scenario below verify.
 
 **Verified (live, Playwright, not just green checks):**
-- Single-tab regression: re-ran the full R2 checklist against `eval-repos/TodoApi` post-engine-fix ‚Äî
-  Insights cards (real severities/evidence), Entries table (12/12, sortable, NodeLink‚ÜíNodeCard without
-  navigating away), Graph (seeded, 20-22 nodes), Settings‚ÜíAbout (real engine version), Trace, and all
+- Single-tab regression: re-ran the full R2 checklist against `eval-repos/TodoApi` post-engine-fix ó
+  Insights cards (real severities/evidence), Entries table (12/12, sortable, NodeLink?NodeCard without
+  navigating away), Graph (seeded, 20-22 nodes), Settings?About (real engine version), Trace, and all
   three Document presets selecting the correct real sections. Zero console errors, zero network
   failures throughout every run.
 - Multi-tab isolation: two repos analyzed in two tabs show fully independent data on switch; route
-  restoration works (navigate tab 1 to Entries, bounce through tab 2, back to tab 1 ‚Üí still Entries).
-- **The actual point of I10** ‚Äî concurrent analyze: started analyzing Serilog in tab 1, opened tab 2
+  restoration works (navigate tab 1 to Entries, bounce through tab 2, back to tab 1 ? still Entries).
+- **The actual point of I10** ó concurrent analyze: started analyzing Serilog in tab 1, opened tab 2
   and analyzed TodoApi to completion *while tab 1 kept running in the background*, switched back to
-  tab 1 and it had completed normally (3 projects, real data) ‚Äî not cancelled.
+  tab 1 and it had completed normally (3 projects, real data) ó not cancelled.
 - Persistence: analyzed two repos, navigated the active one to Entries, simulated a restart (fresh
-  page load, same localStorage) ‚Äî both tabs came back with correct resolved labels, URL landed
+  page load, same localStorage) ó both tabs came back with correct resolved labels, URL landed
   straight back on Entries, the active tab's data was live within ~1s, the other tab stayed idle
   (dimmed) until clicked, then lazily re-analyzed on its own.
 
-**Gate:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 386/0 ¬∑ `pnpm check` green
-(lint + 7/7 tests, up from 4 ‚Äî 3 new WorkspaceStore tests + build).
+**Gate:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 386/0 ∑ `pnpm check` green
+(lint + 7/7 tests, up from 4 ó 3 new WorkspaceStore tests + build).
 
-**Next:** E1 remaining 6 insight sources (highest engine leverage, unchanged from prior handover) ‚Üí
-I10.3 needs I8 first (server LRU/rehydrate) ‚Üí I9 release readiness ‚Üí E4 remaining facets.
+**Next:** E1 remaining 6 insight sources (highest engine leverage, unchanged from prior handover) ?
+I10.3 needs I8 first (server LRU/rehydrate) ? I9 release readiness ? E4 remaining facets.
 
-## 2026-07-02 ‚Äî Unified Iteration 1: merge + Tiers 1-2 delivery
+## 2026-07-02 ó Unified Iteration 1: merge + Tiers 1-2 delivery
 
 **Branch:** `feat/unified-iteration-1` (off `develop` after merging both `go-to/implement-iterations` and `feat/narrative-canvas`).
 
 **Merges:**
-- Merged `go-to/implement-iterations` (34 commits: I1-I10 engine + desktop) into develop ‚Äî fast-forward
-- Merged `feat/narrative-canvas` (9 commits: P0-P6 single scroll canvas) on top ‚Äî resolved 11 conflicts:
+- Merged `go-to/implement-iterations` (34 commits: I1-I10 engine + desktop) into develop ó fast-forward
+- Merged `feat/narrative-canvas` (9 commits: P0-P6 single scroll canvas) on top ó resolved 11 conflicts:
   6 modify/delete (old views deleted by canvas) + 5 content conflicts (stores/config/views).
   Kept narrative-canvas UI, retained go-to WorkspaceStore/NodeLink/infrastructure.
 - All merges verified: build 0w, tests 356/0 (12 server + 280 core + 64 desktop, 3 skipped).
 
-**Tier 1 ‚Äî Perf + Library Surface (delivered):**
+**Tier 1 ó Perf + Library Surface (delivered):**
 - `--fast` mode: CLI flag skips `InMemoryEventBusExtractor`, `AntiPatternDetector`, `IndirectWiringDetector`.
-  Wired through `ExtractionOptions.Fast` ‚Üí `AnalyzeCommand` ‚Üí `DiscoverPipeline` exclude list.
+  Wired through `ExtractionOptions.Fast` ? `AnalyzeCommand` ? `DiscoverPipeline` exclude list.
 - WS-G-a: `LibrarySurfaceBuilder` now detects `AbstractValidator<T>`/`AbstractAuthorizationHandler` as
   consumer "derive" seats. xUnit `[Fact]`/`[Theory]`/`[InlineData]`/`[Trait]` now appear as annotate entries
   even without generators.
 
-**Tier 2 ‚Äî E1 + E3 (delivered):**
-- E1 ‚Äî 6 insight sources: `wiring.hubs`, `graph.orphans`, `wiring.external-events`,
+**Tier 2 ó E1 + E3 (delivered):**
+- E1 ó 6 insight sources: `wiring.hubs`, `graph.orphans`, `wiring.external-events`,
   `data.busiest-aggregate`, `topology.chokepoint`, `wiring.multi-impl`. Each implements `IInsightSource`,
   registered in `DiscoveryPipeline.ComputeInsights`. Total: 10 insight sources (4 existing + 6 new).
-- E3 ‚Äî Full W9 deletion: deleted `Pruning/` (TokenBudgetEnforcer + PatternRelevancePruner),
+- E3 ó Full W9 deletion: deleted `Pruning/` (TokenBudgetEnforcer + PatternRelevancePruner),
   `RenderPlanBuilder.cs` (replaced with stub), `TokenBudget.cs`, `OutputSelfCheckTests.cs`.
   Cleaned `DiscoveryModel.Budget`, `TypeDiscovery` FinalScore/FocusScore/GraphProximity/PathProximity,
   global usings, `MarkdownRenderer` budget display, `PipelineTests` pruner test.
   Build 0w, tests 356/0.
 
-**Verified:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 356/0 (12+280+64, 3 skipped).
-pnpm check NOT run (TypeScript unchanged from narrative-canvas merge ‚Äî the only TS file touched was
+**Verified:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 356/0 (12+280+64, 3 skipped).
+pnpm check NOT run (TypeScript unchanged from narrative-canvas merge ó the only TS file touched was
 trace-node.ts which took go-to's NodeLink version, identical to what was already on narrative-canvas
 before the merge).
 
-**Next ‚Äî remaining items (all tiers documented below):**
-- E2: Pattern-zoo corpus (`tests/fixtures/PatternZoo/`) ‚Äî modern C# through seam scanners
+**Next ó remaining items (all tiers documented below):**
+- E2: Pattern-zoo corpus (`tests/fixtures/PatternZoo/`) ó modern C# through seam scanners
 - E4: Remaining facets F1-F12 (auth surface, message matrix, middleware, data map, etc.)
-### I9 ‚Äî Release readiness (engine side)  **DONE** (CLI exit codes + --quiet)
+### I9 ó Release readiness (engine side)  **DONE** (CLI exit codes + --quiet)
 CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
 - Locus: `src/DevContext.Cli/Settings/AnalyzeSettings.cs`, `src/DevContext.Cli/Commands/AnalyzeCommand.cs`
 - Gate: `--strict` returns exit code 2 on invariant fail; `--quiet` prints nothing on success.
 
 ---
 
-## 2026-07-02 ‚Äî U1 Live Console (P2) ‚Äî feat/ui-iteration
+## 2026-07-02 ó U1 Live Console (P2) ó feat/ui-iteration
 
 **Changed:**
 - `state/workspace.store.ts`: added `LogLine` type and `consoleLog` field to `TabSessionSlice`
 - `state/session.store.ts`: progress callback now appends `ProgressEvent`s to `consoleLog` signal; exposed via `SessionStore.consoleLog` computed
 - **New** `features/narrative/section-console.ts`: boot-log during analysis (scrolling with auto-scroll-to-bottom, phosphor terminal style), RunReport on completion (stages waterfall, funnel bar, extractor timings, cold-cache labeling)
 - `features/narrative/narrative-canvas.ts`: wired `<app-section-console />` for both boot and report modes; added 'console' to scroll-spy sections
-- `features/narrative/section-stats.ts`: funnel card now has stacked horizontal bars for types discovered‚Üíincluded and raw‚Üíbudget tokens; cold cache shows "cold run ‚Äî no cache reuse"
+- `features/narrative/section-stats.ts`: funnel card now has stacked horizontal bars for types discovered?included and raw?budget tokens; cold cache shows "cold run ó no cache reuse"
 - `styles.css`: added `.console-surface`, `.console-log`, `.log-line`, `.log-cursor` (blink animation), `.report-line`, `.console-section-title`; terminal-vibe phosphor selectors; `prefers-reduced-motion` safe
 
 **Verified:**
-- `pnpm lint` ‚Äî green
-- `pnpm test` ‚Äî 7/7 green
-- `tsc --noEmit` ‚Äî clean
-- `pnpm build` ‚Äî timed out (resource contention with concurrent Angular build); TypeScript compilation used as proxy
+- `pnpm lint` ó green
+- `pnpm test` ó 7/7 green
+- `tsc --noEmit` ó clean
+- `pnpm build` ó timed out (resource contention with concurrent Angular build); TypeScript compilation used as proxy
 
-**Next:** U2 Synced Lens (P3) ‚Äî Human+LLM split pane with auto-render on selection
+**Next:** U2 Synced Lens (P3) ó Human+LLM split pane with auto-render on selection
 
 ---
 
-## 2026-07-02 ‚Äî U2 Synced Lens (P3) ‚Äî feat/ui-iteration
+## 2026-07-02 ó U2 Synced Lens (P3) ó feat/ui-iteration
 
 **Changed:**
 - **New** `features/narrative/section-lens.ts`: persistent 50/50 Human (left) + LLM (right) split pane
   - Human pane: trace tree (from TraceStore) + node detail (kind, file, tags, degrees) when explicitly selected
   - LLM pane: auto-rendered markdown via `api.render(handle, { focus, format: 'markdown' })`
-  - Auto-render: debounced 250ms `effect` on `TraceStore.focus` ‚Äî no manual Render needed
+  - Auto-render: debounced 250ms `effect` on `TraceStore.focus` ó no manual Render needed
   - Copy: button in LLM pane + `Ctrl+C` keyboard shortcut (`@HostListener`)
   - Empty/loading/error states for both panes
 - `features/narrative/narrative-canvas.ts`: wired `<app-section-lens />` after trace section; 'lens' added to scroll-spy
-- `styles.css`: `.lens-split` 50/50 flex, `.lens-pane`, `.lens-card`, `.lens-content` (max-h 70vh, mono, scroll), `.lens-placeholder`, terminal-vibe adjustments, responsive stacking ‚â§768px
+- `styles.css`: `.lens-split` 50/50 flex, `.lens-pane`, `.lens-card`, `.lens-content` (max-h 70vh, mono, scroll), `.lens-placeholder`, terminal-vibe adjustments, responsive stacking =768px
 
 **Verified:**
-- `pnpm lint` ‚Äî green
-- `pnpm test` ‚Äî 7/7 green
-- `tsc --noEmit` ‚Äî clean
+- `pnpm lint` ó green
+- `pnpm test` ó 7/7 green
+- `tsc --noEmit` ó clean
 
 **Next:** U3 Facet views (blocked on engine E4) or U4 Release polish
 
 ---
 
-## 2026-07-02 ‚Äî U4 Release Polish ‚Äî feat/ui-iteration
+## 2026-07-02 ó U4 Release Polish ó feat/ui-iteration
 
 **Changed:**
 - `features/narrative/section-settings.ts`: About section now shows real engine version (from `ConnectionStore.ping`), server status dot, stack info, GitHub link, issues link, "Check updates" link to GitHub Releases, privacy note
@@ -633,63 +633,63 @@ CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
 
 **Error telemetry audit (34 catch sites):**
 - All user-facing catch sites now either surface errors with toasts or error signals, or have clear comments explaining why silent handling is appropriate
-- Non-critical catches (localStorage, Tauri API in browser, cleanup ops) remain silent ‚Äî acceptable
-- `operation-controller.ts`, `graph-view.ts`, `github.store.ts`, `theme.service.ts`, `recent.store.ts`, `workspace.store.ts` ‚Äî all verified OK
+- Non-critical catches (localStorage, Tauri API in browser, cleanup ops) remain silent ó acceptable
+- `operation-controller.ts`, `graph-view.ts`, `github.store.ts`, `theme.service.ts`, `recent.store.ts`, `workspace.store.ts` ó all verified OK
 
 **Verified:**
-- `pnpm lint` ‚Äî green
-- `pnpm test` ‚Äî 7/7 green
-- `tsc --noEmit` ‚Äî clean
+- `pnpm lint` ó green
+- `pnpm test` ó 7/7 green
+- `tsc --noEmit` ó clean
 
-**All U1-U4 items complete.** Remaining front-end work from UI-UX-GUIDELINES.md: navigation rail, entries table enhancements, keyboard shortcuts ‚Äî none are U-list items. U3 (facet views) blocked on engine E4.
+**All U1-U4 items complete.** Remaining front-end work from UI-UX-GUIDELINES.md: navigation rail, entries table enhancements, keyboard shortcuts ó none are U-list items. U3 (facet views) blocked on engine E4.
 
 ---
 
-## 2026-07-02 ‚Äî U5 Workspace Navigation + Polish (audit items) ‚Äî feat/ui-iteration
+## 2026-07-02 ó U5 Workspace Navigation + Polish (audit items) ó feat/ui-iteration
 
 **Changed:**
 - **New** `shell/navigation-rail.ts`: left sidebar with icon+label items (Overview, Entries, Trace, Graph, Insights, Export, Settings). Session-required items hidden until `session.ready()`. Active route highlighted with accent border.
 - **New** `shell/workspace-shell.ts`: header + rail + router-outlet + footer layout. Imports palette. Keyboard shortcuts: `g+key` (o/e/t/g/i/x/s) for view navigation, `?` for shortcut help overlay, `Escape` to close. `g` sets 1.5s pending flag.
-- **New** `features/pages/`: 6 page wrappers (`overview-page`, `entries-page`, `trace-page`, `graph-page`, `insights-page`, `export-page`) that reuse existing section components. Export page handles dismiss‚Üínavigate back.
+- **New** `features/pages/`: 6 page wrappers (`overview-page`, `entries-page`, `trace-page`, `graph-page`, `insights-page`, `export-page`) that reuse existing section components. Export page handles dismiss?navigate back.
 - `app.config.ts`: route table changed from single wildcard `**` to 8 lazy-loaded child routes under `WorkspaceShell`
-- `section-entries.ts`: sortable columns (click header to toggle Method/Route/Target/Kind asc/desc), keyboard navigation (‚Üë‚Üì to move, Enter to trace, `n` for NodeCard, `Ctrl+C` to copy route), selected row highlight, subtitle shows filtered/total count
+- `section-entries.ts`: sortable columns (click header to toggle Method/Route/Target/Kind asc/desc), keyboard navigation (?? to move, Enter to trace, `n` for NodeCard, `Ctrl+C` to copy route), selected row highlight, subtitle shows filtered/total count
 - `palette.ts`: removed stale routes (Browse, Document, Stats), added Export view nav, capped entry results at top 10
 - `app.ts`: unchanged (router-outlet already present)
 
 **Verified:**
-- `pnpm lint` ‚Äî green
-- `pnpm test` ‚Äî 7/7 green
-- `tsc --noEmit` ‚Äî clean
+- `pnpm lint` ó green
+- `pnpm test` ó 7/7 green
+- `tsc --noEmit` ó clean
 
 **All U1-U5 items complete.** U3 (facet views) blocked on engine E4. App is fully routed with navigation rail, keyboard shortcuts, and sortable entries table.
 
-## 2026-07-02 ‚Äî E2 Pattern-Zoo + I1.3/I1.5 fixes
+## 2026-07-02 ó E2 Pattern-Zoo + I1.3/I1.5 fixes
 
 **Changed:**
-- E2 ‚Äî Created `tests/fixtures/PatternZoo/PatternZoo/` with 9 C# fixture files covering:
+- E2 ó Created `tests/fixtures/PatternZoo/PatternZoo/` with 9 C# fixture files covering:
   primary constructor, expression body, record with body, local function, required init,
   collection expression, conditional block (`#if`), raw string literal trap, and parameter-type
   Send resolution. Each file contains a known seam (`IMediator.Send(new X())`).
-- `PatternZooTests.cs` ‚Äî 13 parameterized/inline Facts asserting Sends edges across all syntax
+- `PatternZooTests.cs` ó 13 parameterized/inline Facts asserting Sends edges across all syntax
   shapes plus negative guards: non-mediator Send (SmtpClient) produces no edge, raw string
   literal `"""...Send(new FakeCommand())..."""` produces no fabricated edge, parameter-type
   fallback resolves correctly, multiple seams in one class all detected, Publish/SendAsync
   variants work.
-- **I1.5 fix ‚Äî String literal stripping:** Added `GraphBuilder.StripStringLiterals()` ‚Äî a
+- **I1.5 fix ó String literal stripping:** Added `GraphBuilder.StripStringLiterals()` ó a
   character-level pre-pass that replaces C# string literal contents (regular `"..."`,
   verbatim `@"..."`, raw `"""..."""`, interpolated `$"..."`) with spaces preserving offsets.
   Applied in `AddSends` so in-literal seam-like patterns never produce fabricated edges.
-- **I1.3 fix ‚Äî Conjunction gate:** When `AddSends` hits a bare-verb fallback (unknown receiver
-  but known verb like `Send`), now also checks `IsLikelyRequestType()` ‚Äî the target type name
+- **I1.3 fix ó Conjunction gate:** When `AddSends` hits a bare-verb fallback (unknown receiver
+  but known verb like `Send`), now also checks `IsLikelyRequestType()` ó the target type name
   must end with Command/Query/Event/Notification/Request/Response or be in the model's event
   type set. Kills the `SmtpClient.Send(new MailMessage())` false positive.
 
-**Verified:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 369/0 (up from 356,
+**Verified:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 369/0 (up from 356,
 +13 PatternZoo tests, no regressions).
 
-**Next:** A-F15 (Build intelligence ‚Äî CPM + Directory.Build.props) ‚Üí A-F14 (EF depth).
+**Next:** A-F15 (Build intelligence ó CPM + Directory.Build.props) ? A-F14 (EF depth).
 
-## 2026-07-02 ‚Äî A-F15: Build intelligence (CPM + Directory.Build.props)
+## 2026-07-02 ó A-F15: Build intelligence (CPM + Directory.Build.props)
 
 **Changed:**
 - **CPM (`Directory.Packages.props`):** `CsprojReader.ResolveCpmVersions()` walks the ancestor
@@ -708,105 +708,105 @@ CLI polish: exit codes, `--quiet`, stdout/stderr separation, completions.
   from Directory.Build.props, TargetFramework from ancestor, IsPackable fallback, empty
   returns when no CPM/ancestor files exist.
 
-**Verified:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 381/0 (+12 CPM tests, no regressions).
+**Verified:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 381/0 (+12 CPM tests, no regressions).
 
-**Next:** A-F14 (EF depth tracking) ‚Üí E5 (Benchmark expansion) ‚Üí I8 (Caching).
+**Next:** A-F14 (EF depth tracking) ? E5 (Benchmark expansion) ? I8 (Caching).
 
-## 2026-07-02 ‚Äî A-F14: EF depth tracking (entity navigation + depth annotation)
+## 2026-07-02 ó A-F14: EF depth tracking (entity navigation + depth annotation)
 
 **Changed:**
-- `EdgeKind.EntityRelation` ‚Äî new edge kind for entity-to-entity navigation relationships.
-- `GraphBuilder.AddEntityNavigationEdges()` ‚Äî scans entity types' declared properties for
+- `EdgeKind.EntityRelation` ó new edge kind for entity-to-entity navigation relationships.
+- `GraphBuilder.AddEntityNavigationEdges()` ó scans entity types' declared properties for
   navigation properties referencing other known entities. Creates `EntityRelation` edges in
-  the BelongsTo direction (child entity ‚Üí parent aggregate/entity). Handles both direct
+  the BelongsTo direction (child entity ? parent aggregate/entity). Handles both direct
   references (`OrderItem.Order`) and collection properties (`Order.Items: ICollection<OrderItem>`).
-- `GraphBuilder.ExtractInnerEntityNameWithDir()` ‚Äî extracts the inner entity name from property
+- `GraphBuilder.ExtractInnerEntityNameWithDir()` ó extracts the inner entity name from property
   type strings, distinguishing collection types (ICollection<>, List<>, arrays) from direct
   references. Filters out primitive/framework types.
-- `TraceBuilder.AnnotateEntityDepths()` ‚Äî post-collection step that computes depth from each
+- `TraceBuilder.AnnotateEntityDepths()` ó post-collection step that computes depth from each
   touched entity to its nearest aggregate root by BFS-traversing EntityRelation edges.
   Aggregate roots get "(root)" annotation; connected entities get "(depth N from AggregateName)".
   Unconnected entities unchanged.
-- `GraphBuilderTests` ‚Äî 2 new tests: direct reference navigation and collection navigation.
+- `GraphBuilderTests` ó 2 new tests: direct reference navigation and collection navigation.
 
-**Verified:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 383/0 (+2 entity nav tests, no regressions).
+**Verified:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 383/0 (+2 entity nav tests, no regressions).
 
-**Next:** E5 (Benchmark expansion) ‚Üí I8 (Caching).
+**Next:** E5 (Benchmark expansion) ? I8 (Caching).
 
-## 2026-07-02 ‚Äî I8 snapshot cache + I10.3 server rehydrate + I9 CLI polish
+## 2026-07-02 ó I8 snapshot cache + I10.3 server rehydrate + I9 CLI polish
 
 **Changed:**
-- **I8 ‚Äî Snapshot cache:** `SnapshotCacheService` in `Core/Analysis/` ‚Äî computes cache keys from
+- **I8 ó Snapshot cache:** `SnapshotCacheService` in `Core/Analysis/` ó computes cache keys from
   repo path (SHA256) + git HEAD (or manifest hash), saves/loads `AnalysisSnapshot` as JSON.gz,
   LRU eviction (10 versions/repo, 2GB cap), CLI `cache list/clear/path` stubs.
-- **I8 ‚Äî CLI integration:** `AnalyzeCommand` checks snapshot cache before running analysis;
-  cache hit ‚Üí render from cached snapshot with `"from cache ¬∑ sha7 ¬∑ Nms"` stamp; cache miss
-  ‚Üí save write-behind. New flags: `--no-cache` (force fresh), `--cache-only` (fail if cold).
-- **I10.3 ‚Äî Server rehydrate:** `EngineRunner` checks I8 cache before full analysis; cache hit
-  ‚Üí instant `EngineResult` with fresh pipeline from `EngineHostCache`. Write-behind saves after
+- **I8 ó CLI integration:** `AnalyzeCommand` checks snapshot cache before running analysis;
+  cache hit ? render from cached snapshot with `"from cache ∑ sha7 ∑ Nms"` stamp; cache miss
+  ? save write-behind. New flags: `--no-cache` (force fresh), `--cache-only` (fail if cold).
+- **I10.3 ó Server rehydrate:** `EngineRunner` checks I8 cache before full analysis; cache hit
+  ? instant `EngineResult` with fresh pipeline from `EngineHostCache`. Write-behind saves after
   analysis.
-- **I9 ‚Äî CLI polish:** Exit codes (0=ok, 1=usage, 2=strict-fail, 3=cache-only-miss, 4=network/
+- **I9 ó CLI polish:** Exit codes (0=ok, 1=usage, 2=strict-fail, 3=cache-only-miss, 4=network/
   clone). `--quiet` flag suppresses all output on success.
 
-**Verified:** `dotnet build` 0w ¬∑ `dotnet test --filter Category!=Eval` 383/0 (no regressions).
+**Verified:** `dotnet build` 0w ∑ `dotnet test --filter Category!=Eval` 383/0 (no regressions).
 
-**Next:** E5 (Benchmark expansion ‚Äî remaining item).
+**Next:** E5 (Benchmark expansion ó remaining item).
 
 ---
 
-## 2026-07-02 ‚Äî V4 Audit fixes + P0 header/cleanup + P1 entries/deep-link + P2 prefs/lens
+## 2026-07-02 ó V4 Audit fixes + P0 header/cleanup + P1 entries/deep-link + P2 prefs/lens
 
 **Changed:**
-- **V4 Audit fixes (F0-F7):** Build breaks (wrong imports in `navigation-rail.ts`, `afterRender‚ÜíafterEveryRender`, dead `graph-view.ts`); wired Synced Lens onto Trace page; fixed blank graph on first trace + ngModel-on-signal bug; trace dropdown focus gating; entries arrow-key double-jump; insights semantic colors + detail rendering; settings GitHub links + Roslyn toggle.
-- **P0.1 ‚Äî Header repo affordance:** Replaced dead `<ng-content select="[analyze]"/>` with repo-label dropdown showing current repo, recents list, and "New analysis‚Ä¶" action. "New" button now resets workspace state (`closeTab + navigateByUrl('/')`) instead of `window.location.reload()`.
-- **P0.2 ‚Äî Landing recents √ó:** Ported remove-recent button from deleted `SectionSettings` to `SectionLanding` recents list (hover-visible, stopPropagation).
-- **P0.3 ‚Äî Dead code deleted:** `narrative-canvas.ts`, `section-settings.ts`, `scroll-spy/scroll-spy.ts` ‚Äî all only imported each other, nothing referenced them.
-- **P1 ‚Äî Entries table spec:** Count badges on filter chips (`HTTP 23`); "approx" and "has target" quick-filter toggle chips; sort persisted in URL (`?sort=route&dir=asc`); visible row-action buttons on hover (Trace ¬∑ Node card ¬∑ Copy route); sticky header + 500px max-height scroll; filter/sort state synced to URL via `replaceUrl`.
-- **P1 ‚Äî Trace deep-linking:** `/trace?focus=X` ‚Äî `trace-page.ts` reads `focus` from query params and triggers trace on nav; `effect` writes focus back to URL on change.
-- **P2.7 ‚Äî `prefs.store`:** New state store (`state/prefs.store.ts`) ‚Äî persists analysis defaults (depth/detail/roslyn/cleanup) to localStorage under schema-versioned key. `SettingsView` reads/writes prefs. `SectionLanding` and `AppHeader.selectRecent()` apply prefs defaults on analyze.
-- **P2.9 ‚Äî Lens node detail wired:** `trace-node.ts` now emits `nodeSelected` output on click; wired in `section-trace.ts` and `section-lens.ts` to call `traceStore.selectNode()`. `section-graph.ts` calls `selectNode()` alongside `trace()` on graph node click. Lens Human pane now shows node detail card when a node is selected.
+- **V4 Audit fixes (F0-F7):** Build breaks (wrong imports in `navigation-rail.ts`, `afterRender?afterEveryRender`, dead `graph-view.ts`); wired Synced Lens onto Trace page; fixed blank graph on first trace + ngModel-on-signal bug; trace dropdown focus gating; entries arrow-key double-jump; insights semantic colors + detail rendering; settings GitHub links + Roslyn toggle.
+- **P0.1 ó Header repo affordance:** Replaced dead `<ng-content select="[analyze]"/>` with repo-label dropdown showing current repo, recents list, and "New analysisÖ" action. "New" button now resets workspace state (`closeTab + navigateByUrl('/')`) instead of `window.location.reload()`.
+- **P0.2 ó Landing recents ◊:** Ported remove-recent button from deleted `SectionSettings` to `SectionLanding` recents list (hover-visible, stopPropagation).
+- **P0.3 ó Dead code deleted:** `narrative-canvas.ts`, `section-settings.ts`, `scroll-spy/scroll-spy.ts` ó all only imported each other, nothing referenced them.
+- **P1 ó Entries table spec:** Count badges on filter chips (`HTTP 23`); "approx" and "has target" quick-filter toggle chips; sort persisted in URL (`?sort=route&dir=asc`); visible row-action buttons on hover (Trace ∑ Node card ∑ Copy route); sticky header + 500px max-height scroll; filter/sort state synced to URL via `replaceUrl`.
+- **P1 ó Trace deep-linking:** `/trace?focus=X` ó `trace-page.ts` reads `focus` from query params and triggers trace on nav; `effect` writes focus back to URL on change.
+- **P2.7 ó `prefs.store`:** New state store (`state/prefs.store.ts`) ó persists analysis defaults (depth/detail/roslyn/cleanup) to localStorage under schema-versioned key. `SettingsView` reads/writes prefs. `SectionLanding` and `AppHeader.selectRecent()` apply prefs defaults on analyze.
+- **P2.9 ó Lens node detail wired:** `trace-node.ts` now emits `nodeSelected` output on click; wired in `section-trace.ts` and `section-lens.ts` to call `traceStore.selectNode()`. `section-graph.ts` calls `selectNode()` alongside `trace()` on graph node click. Lens Human pane now shows node detail card when a node is selected.
 - **Bonus:** Removed unused `RouterLinkActive` import from `navigation-rail.ts` and unused `Icon` import from `workspace-shell.ts`.
 
 **Verified:**
-- `pnpm check` green: lint 0/0 ¬∑ test 7/7 ¬∑ build 0w 0e
-- 14 files changed, +340/‚àí446 lines
+- `pnpm check` green: lint 0/0 ∑ test 7/7 ∑ build 0w 0e
+- 14 files changed, +340/-446 lines
 
-**Next from AUDIT-V4-VERIFICATION ¬ß6:**
-- P3: U3 facets / E4 (needs engine facet layer first ‚Äî deferred multi-iteration)
+**Next from AUDIT-V4-VERIFICATION ß6:**
+- P3: U3 facets / E4 (needs engine facet layer first ó deferred multi-iteration)
 - Verification debt: Eval gate (`dotnet test --filter Category=Eval`), manual smoke test
 - Follow-ups: file:line column (needs engine proto change), CDK v22 virtual scroll API, Tauri storage commands
 
 ---
 
-## 2026-07-02 ‚Äî Audit + Bug Fix Pass + Window Buttons + Gap Tracker
+## 2026-07-02 ó Audit + Bug Fix Pass + Window Buttons + Gap Tracker
 
 **Changed:**
 - **Window buttons fixed:** Silent-catch pattern replaced with Tauri detection (`window.__TAURI__`). Buttons now hidden in browser mode (where Tauri APIs don't exist). Tauri API module cached after first lazy load. `isTauri()` guard in template.
-- **Footer wired:** Added `ConnectionStore` + `ActivityService` ‚Äî footer now shows connection dot + server version + progress % during analysis + error state.
+- **Footer wired:** Added `ConnectionStore` + `ActivityService` ó footer now shows connection dot + server version + progress % during analysis + error state.
 - **NodeCard error state:** Added error display with Retry + Copy details buttons. Added empty-state for zero callers/callees. Skeleton spinner (not text "Loading..."). 
 - **SectionArchitecture empty states:** Added "Analyze a repo first" when no session + "No architecture data available" when analysis produced no data. `hasContent()` gate on all subsections.
-- **SectionIdentity empty states:** Added guard ‚Äî shows prompt text instead of `0 nodes / 0 edges` before analysis.
-- **SectionStats error state:** `statsError` signal now read ‚Äî shows inline error with Retry button during loading.
+- **SectionIdentity empty states:** Added guard ó shows prompt text instead of `0 nodes / 0 edges` before analysis.
+- **SectionStats error state:** `statsError` signal now read ó shows inline error with Retry button during loading.
 - **SectionExport toggle fix:** User's section enable/disable state now preserved across re-renders (was: overwritten to all `true`). Added inline error state with Retry.
-- **Two documents created:** `docs/dev/GAP-TRACKER.md` ‚Äî 23 remaining gaps with doc refs, expected fixes, and priority ordering. `docs/dev/FEATURE-FLOW-EXPLAINER.md` ‚Äî app identity, technology wiring, current flows, 5 proposed UX improvements (tabs, persistent lens, one-click re-analyze, graph seeding, quick popover), request for review.
+- **Two documents created:** `docs/dev/GAP-TRACKER.md` ó 23 remaining gaps with doc refs, expected fixes, and priority ordering. `docs/dev/FEATURE-FLOW-EXPLAINER.md` ó app identity, technology wiring, current flows, 5 proposed UX improvements (tabs, persistent lens, one-click re-analyze, graph seeding, quick popover), request for review.
 
 **Verified:**
-- `pnpm check` green: lint 0/0 ¬∑ test 7/7 ¬∑ build 0w 0e
+- `pnpm check` green: lint 0/0 ∑ test 7/7 ∑ build 0w 0e
 
 **Next:**
-- Wire tab strip (I10 ‚Äî built but orphaned) ‚Äî highest-impact unshipped feature
+- Wire tab strip (I10 ó built but orphaned) ó highest-impact unshipped feature
 - Persistent Lens panel (eliminates page-hop on entry exploration)
 - Nav rail polish (icons, count badges, disabled tooltips)
 
 ---
 
-## 2026-07-03 ‚Äî Fable branch: commit backlog + lint fixes + W3 completion (LatestGate/dup-guard/prefs)
+## 2026-07-03 ó Fable branch: commit backlog + lint fixes + W3 completion (LatestGate/dup-guard/prefs)
 
 **Context:** `feat/fable-redesign-skeleton` (branched from `develop` at `cab2800`) carried two
 uncommitted, already-verified changesets in its working tree left over from `develop` (the "V4 audit
-+ P0-P2" and "Audit + Bug Fix Pass" entries above) ‚Äî never committed before the branch was cut.
++ P0-P2" and "Audit + Bug Fix Pass" entries above) ó never committed before the branch was cut.
 Committed those first so the tree matches what was actually tested, then continued the Fable
-waterfall (`docs/dev/briefs/ui-ux-redesign-proposal-fable.md` ¬ß10) per the skeleton HANDOFF's
+waterfall (`docs/dev/briefs/ui-ux-redesign-proposal-fable.md` ß10) per the skeleton HANDOFF's
 "next steps" ordering.
 
 **Changed:**
@@ -814,160 +814,160 @@ waterfall (`docs/dev/briefs/ui-ux-redesign-proposal-fable.md` ¬ß10) per the skel
   commit (`entry-deck.ts`/`stage.ts`/`inspector.ts` needed `keydown.enter`/`space` + `tabindex` paired
   with `(click)` for `@angular-eslint/template` a11y rules; `atlas.store.ts`/`stage.ts` used the banned
   `Array<T>`/`ReadonlyArray<T>` generic form). `pnpm check` had never been run on the skeleton commit
-  before this session ‚Äî HANDOFF said as much ("STATIC ‚Äî never compiled or run").
-- **W3 ‚Äî LatestGate threading (proposal ¬ß5.1):** `DevContextApi.getTrace/getNode/getNeighbors` take an
+  before this session ó HANDOFF said as much ("STATIC ó never compiled or run").
+- **W3 ó LatestGate threading (proposal ß5.1):** `DevContextApi.getTrace/getNode/getNeighbors` take an
   optional `AbortSignal` now (mirrors the existing `analyze()` pattern), threaded to the ConnectRPC
   `CallOptions`. `TraceStore` now routes `trace()`'s `run()` and `selectNode()` through a `LatestGate`
-  keyed `${tabId}:trace`/`${tabId}:node` ‚Äî a stale response from a superseded j/k scrub can no longer
+  keyed `${tabId}:trace`/`${tabId}:node` ó a stale response from a superseded j/k scrub can no longer
   paint over a newer one. A constructor `effect()` (same pattern as `TrailStore`'s GC effect) aborts a
   tab's in-flight gate entries the moment the tab closes.
-- **W3 ‚Äî SessionStore duplicate-path guard (GAP-T4):** `analyze()` now checks all tabs (not just the
+- **W3 ó SessionStore duplicate-path guard (GAP-T4):** `analyze()` now checks all tabs (not just the
   active one) for a matching `path` with a handle or in-flight analysis; if found, switches to that tab
   instead of creating a duplicate. Re-analyzing the path already open in the *active* tab is unaffected
   (deliberate re-analyze, not blocked).
-- **W3 ‚Äî PrefsStore `dockLevel`/`theme`:** added to the `Prefs` interface (schema stays version 1 ‚Äî the
+- **W3 ó PrefsStore `dockLevel`/`theme`:** added to the `Prefs` interface (schema stays version 1 ó the
   existing `{...DEFAULTS, ...parsed}` merge already backfills missing keys from old blobs).
   `WorkbenchPage`'s Inspector dock toggle (`Ctrl+Shift+L`) now reads/writes `PrefsStore` instead of its
-  own `devcontext-dock` localStorage key. `theme` is stored but **not yet applied to the DOM** ‚Äî that's
+  own `devcontext-dock` localStorage key. `theme` is stored but **not yet applied to the DOM** ó that's
   W0-finish's `ThemeService`, still open.
-- **Tests:** `trail.store.spec.ts` (new, 7 tests ‚Äî push/undo/redo, forward-branch truncation on push-
+- **Tests:** `trail.store.spec.ts` (new, 7 tests ó push/undo/redo, forward-branch truncation on push-
   after-undo, duplicate-push collapse, `jumpTo`, pin toggle, tab-close self-GC, per-tab isolation).
-  `workspace.store.spec.ts` (+2 tests ‚Äî the dup-path guard switches tabs and does *not* re-call
+  `workspace.store.spec.ts` (+2 tests ó the dup-path guard switches tabs and does *not* re-call
   `analyze()`; re-analyzing the active tab's own path is unaffected).
 
 **Verified:**
-- `pnpm check` green (real exit code): lint 0/0 ¬∑ test 25/25 ¬∑ build 0w/0e.
+- `pnpm check` green (real exit code): lint 0/0 ∑ test 25/25 ∑ build 0w/0e.
 - Manual smoke via `pnpm dev:web` + Playwright (`chromium-cli` isn't installed in this environment;
-  used `playwright-core` with `channel: 'chrome'` against the system Chrome instead ‚Äî no browser
+  used `playwright-core` with `channel: 'chrome'` against the system Chrome instead ó no browser
   download needed): analyzed `tests/fixtures/MinimalApiProject`, SPA-navigated to `/explore` (a real
-  `page.goto` would reset in-memory session state, same as it would for a user typing the URL fresh ‚Äî
+  `page.goto` would reset in-memory session state, same as it would for a user typing the URL fresh ó
   `WorkspaceStore` deliberately doesn't persist session/trace/handle), focused the deck and scrubbed
-  with `j` ‚Äî trace tree + Inspector Details/LLM/Trail all populated correctly, trail breadcrumb showed
-  `POST /orders`. Toggled the dock (`Ctrl+Shift+L`) twice ‚Äî Inspector hid and restored with content
+  with `j` ó trace tree + Inspector Details/LLM/Trail all populated correctly, trail breadcrumb showed
+  `POST /orders`. Toggled the dock (`Ctrl+Shift+L`) twice ó Inspector hid and restored with content
   intact. Confirmed `localStorage['devcontext-prefs']` carries `dockLevel`/`theme` and the old
   `devcontext-dock` key is never written. Zero console errors throughout.
 
 **Next (HANDOFF's waterfall order, unchanged):**
 - W3 remainder: analyze-stream cancel + tab-close abort sweep beyond what `OperationController`
-  already does (it already cancels + closes the session on tab close ‚Äî audit whether more is needed);
-  omnibox/palette search (`searchNodes`) onto `runLatest` (currently ungated ‚Äî GAP-B1).
+  already does (it already cancels + closes the session on tab close ó audit whether more is needed);
+  omnibox/palette search (`searchNodes`) onto `runLatest` (currently ungated ó GAP-B1).
 - W0 finish: bundle Inter/JetBrains Mono locally, `ThemeService` (to actually apply `PrefsStore.theme`),
   `/styleguide` dev route.
 - W1: shell skeleton rename/restyle (titlebar/activity-bar/statusbar), wire tab-strip, WebView shortcut
-  interception ‚Äî see `AGENTS.md` "F ‚Äî Fable Workbench Redesign" for the up-to-date per-stage status.
+  interception ó see `AGENTS.md` "F ó Fable Workbench Redesign" for the up-to-date per-stage status.
 
 ---
 
-## 2026-07-03 ‚Äî Fable branch: W0 finish (fonts/primitives/styleguide) + W1 (shell skeleton)
+## 2026-07-03 ó Fable branch: W0 finish (fonts/primitives/styleguide) + W1 (shell skeleton)
 
 **Context:** continuing `feat/fable-redesign-skeleton` immediately after the W3-completion session
 above, in the same session. Corrected course on one thing that session got wrong: it added a
 `PrefsStore.theme: 'graphite'|'paper'|'system'` field as an inert placeholder for "W0 finish's
-ThemeService" ‚Äî but `ThemeService` (`core/theme/theme.service.ts`) turned out to already exist
+ThemeService" ó but `ThemeService` (`core/theme/theme.service.ts`) turned out to already exist
 pre-branch, with its own `data-vibe`/`data-theme` model (vibe = modern/terminal/hacker, theme =
 dark/light/high-contrast per vibe) that doesn't match the vocabulary that field assumed. Removed the
 field rather than keep two conflicting theme-persistence paths.
 
-**Changed ‚Äî W0 (commit `d465717`):**
+**Changed ó W0 (commit `d465717`):**
 - Inter Variable + JetBrains Mono, Latin-subset woff2 (~110KB combined), fetched once from Google
-  Fonts' own CDN and vendored into `public/assets/fonts` ‚Äî not an npm dependency. Removed the remote
+  Fonts' own CDN and vendored into `public/assets/fonts` ó not an npm dependency. Removed the remote
   `<link>` from `index.html`; reordered every vibe's font fallback chain to try the bundled font
   first instead of assuming the OS has Cascadia Code/JetBrains Mono installed.
-- Six new `ui/` primitives: `Skeleton`, `Meter`, `SeamChip`, `KindIcon`, `EmptyState`, `Ticker` ‚Äî all
+- Six new `ui/` primitives: `Skeleton`, `Meter`, `SeamChip`, `KindIcon`, `EmptyState`, `Ticker` ó all
   presentational, zero store imports (grepped to confirm). Building `SeamChip` surfaced a real,
   previously-unverified bug the skeleton HANDOFF had flagged as a risk: `trace-node.ts` had its own
   local seam-color map with lowercase/plural keys (`'raises'`, `'consumes'`, `'handler'`) that never
-  matched the wire's actual values ‚Äî confirmed against `DevContext.Core/Graph/TraceBuilder.cs`'s
+  matched the wire's actual values ó confirmed against `DevContext.Core/Graph/TraceBuilder.cs`'s
   `SeamKind` enum, the wire is `SeamKind.ToString()`, PascalCase singular (`Entry`, `Call`, `Send`,
-  `Handle`, `Raise`, `Consume`, `Data`, `Resolve`, `Pipeline`). Every seam chip in every trace view ‚Äî
-  old `/trace` page and the new `/explore` Flow altitude alike ‚Äî has been falling back to the default
+  `Handle`, `Raise`, `Consume`, `Data`, `Resolve`, `Pipeline`). Every seam chip in every trace view ó
+  old `/trace` page and the new `/explore` Flow altitude alike ó has been falling back to the default
   gray this whole time. `trace-node.ts` now uses `SeamChip`, which does a correct case-insensitive
   lookup against `models/seam-colors.ts` (which also gained the missing `Entry` color).
-- `pages/styleguide-page.ts`, dev-only route (`isDevMode()`-gated ‚Äî confirmed tree-shaken from the
+- `pages/styleguide-page.ts`, dev-only route (`isDevMode()`-gated ó confirmed tree-shaken from the
   production bundle via `grep`, not just hidden). Token sheet, seam palette, type ramp, the
   `@layer components` vocabulary, every `ui/*` primitive in at least one state.
-- Gate cleanup: `grep 'shadow-sm|rounded-md' src/app/ui` was NOT clean ‚Äî 8 pre-existing components
-  used `rounded-md`, outside the proposal's two-bucket radius scale (¬ß4.4: 3px controls, 6px floating
-  overlays). Fixed: controls ‚Üí `rounded-sm`; the floating `Toast` ‚Üí `rounded-lg` + the exact
+- Gate cleanup: `grep 'shadow-sm|rounded-md' src/app/ui` was NOT clean ó 8 pre-existing components
+  used `rounded-md`, outside the proposal's two-bucket radius scale (ß4.4: 3px controls, 6px floating
+  overlays). Fixed: controls ? `rounded-sm`; the floating `Toast` ? `rounded-lg` + the exact
   `--shadow-overlay` token instead of a generic `shadow-lg`; `GraphCanvas` (a structural panel, not a
-  control) ‚Üí no radius at all.
+  control) ? no radius at all.
 - Verified: `pnpm check` green (lint 0/0, test 25/25, build 0w/0e); grep clean; Playwright smoke of
-  `/styleguide` ‚Äî zero console errors, `document.fonts` reports both fonts loaded, zero requests to
+  `/styleguide` ó zero console errors, `document.fonts` reports both fonts loaded, zero requests to
   `fonts.googleapis.com`/`gstatic.com`.
 
-**Changed ‚Äî W1 (commit `485e431`):**
+**Changed ó W1 (commit `485e431`):**
 - `shell/titlebar/titlebar.ts` (new, replaces `shell/header/app-header.ts`): 30px, solid `bg-base`,
-  no blur/shadow. Drag-region hygiene (¬ß7.2). Omnibox trigger dispatches the same Ctrl+K keydown
+  no blur/shadow. Drag-region hygiene (ß7.2). Omnibox trigger dispatches the same Ctrl+K keydown
   `Palette` already listens for globally (no new coupling). Repo-label dropdown (recents + New
-  analysis) preserved ‚Äî palette doesn't cover that yet.
-- `shell/tab-strip.ts` wired into `workspace-shell` (**GAP-T1** ‚Äî fully built already, including its
+  analysis) preserved ó palette doesn't cover that yet.
+- `shell/tab-strip.ts` wired into `workspace-shell` (**GAP-T1** ó fully built already, including its
   own Ctrl+T/W/1-6 handling, just never imported). `shortLabel()` fixed to use the last path segment
   (**GAP-T3**). MRU stack added to `WorkspaceStore` + Ctrl+Tab/Ctrl+Shift+Tab cycling (**GAP-T5**), 2
   new unit tests.
 - `shell/activity-bar.ts` (new, replaces `shell/navigation-rail.ts`): registry-safe icons (**GAP-S7**
-  ‚Äî `'home'`/`'list'`/`'lightbulb'` were never in the icon registry, so those three rail items
+  ó `'home'`/`'list'`/`'lightbulb'` were never in the icon registry, so those three rail items
   rendered with literally no icon this whole time; now `map`/`layers`/`zap`). Disabled items stay in
   the DOM with a tooltip instead of being filtered out (**GAP-S5**). Count badges on Entries/Insights
   (**GAP-S6**). 3px left-accent active indicator. Deliberately keeps all 7 existing items rather than
-  collapsing to the proposal's eventual 5-icon layout ‚Äî see AGENTS.md note.
+  collapsing to the proposal's eventual 5-icon layout ó see AGENTS.md note.
 - `shell/statusbar/statusbar.ts` (new, replaces `shell/footer/app-footer.ts`): 22px, moved out of
-  `fixed bottom-0` into normal document flow ‚Äî `workspace-shell`'s `calc(100vh - 2.75rem - 1.75rem)`
+  `fixed bottom-0` into normal document flow ó `workspace-shell`'s `calc(100vh - 2.75rem - 1.75rem)`
   height hack is gone, the shell is a plain flex column now. New `Ticker` primitive mounted (inert
   until W5).
-- `shell/offline-banner.ts` (new), `core/webview-shortcuts.service.ts` (new, ¬ß7.3 ‚Äî Ctrl+P/Ctrl+R/F5/
+- `shell/offline-banner.ts` (new), `core/webview-shortcuts.service.ts` (new, ß7.3 ó Ctrl+P/Ctrl+R/F5/
   Ctrl+F/zoom interception), `/atlas` stub route.
 - Verified live end-to-end via Playwright against a real analyzed repo (two gotchas hit and worked
   around, noted in case they recur): (1) Playwright's `keyboard.press('Control+T')` sends `key: 'T'`
-  (uppercase), not `'t'` ‚Äî the app's handlers correctly check lowercase to match real keyboards, so
+  (uppercase), not `'t'` ó the app's handlers correctly check lowercase to match real keyboards, so
   the combo string needs lowercase too, e.g. `'Control+t'`. (2) `concurrently -k` (used by
   `pnpm dev:web`) kills `ng serve` the instant the .NET server process dies, so testing the offline
-  banner needs the two processes started independently (`pnpm server` ‚Äî or a direct
-  `dotnet .../DevContext.Server.dll` invocation ‚Äî and `ng serve`, separately) rather than through the
+  banner needs the two processes started independently (`pnpm server` ó or a direct
+  `dotnet .../DevContext.Server.dll` invocation ó and `ng serve`, separately) rather than through the
   combined script. Confirmed: 30px titlebar; Ctrl+T/W/Tab/1 all change tab state correctly; help
   overlay lists the new shortcuts; Ctrl+R doesn't reload (page-lifetime JS marker survives) AND
-  visibly triggers a real re-analyze ("Discovering files‚Ä¶ 10%" in the statusbar) ‚Äî not just "nothing
+  visibly triggers a real re-analyze ("Discovering filesÖ 10%" in the statusbar) ó not just "nothing
   broke"; F5 doesn't reload; killing the server surfaces the offline banner + red connection dots
   within one 5s poll cycle, reviving it clears both. Zero console errors except one pre-existing,
   unrelated bug incidentally surfaced by rapid concurrent-tab analysis: `NG0955` duplicate track keys
-  ‚Äî `section-console.ts` tracks `@for` by `line.timestamp` (`Date.now()`), and two progress events in
+  ó `section-console.ts` tracks `@for` by `line.timestamp` (`Date.now()`), and two progress events in
   the same millisecond collide. Not fixed here (out of scope), noted in AGENTS.md.
-- `pnpm check` green throughout: lint 0/0 ¬∑ test 27/27 ¬∑ build 0w/0e.
+- `pnpm check` green throughout: lint 0/0 ∑ test 27/27 ∑ build 0w/0e.
 
 **Next:** W2 completion (progressive `trace-tree.ts` to replace `trace-node.ts`'s reuse in Stage;
 `audit-table.ts`; `graph-canvas` topology/neighbors builders) or W3's remainder (analyze-stream cancel
-sweep, omnibox onto `runLatest`) ‚Äî see `AGENTS.md`'s "F ‚Äî Fable Workbench Redesign" for current status.
+sweep, omnibox onto `runLatest`) ó see `AGENTS.md`'s "F ó Fable Workbench Redesign" for current status.
 
-**Changed ‚Äî W3 remainder + W4 partial (commits `bf23e31`..`7de783d`, this session):**
+**Changed ó W3 remainder + W4 partial (commits `bf23e31`..`7de783d`, this session):**
 Resumed cold per AGENTS.md's own resume protocol; W0/W1 were already done, W3 was "mostly done."
 Closed out W3, then pushed six W4 checkpoints, each its own commit, `pnpm check` green before every
 one, and each verified live against a headless Chrome (playwright, `channel: 'chrome'`) analyzing
-`tests/fixtures/MinimalApiProject` through the real server ‚Äî not just lint/build. That verification
+`tests/fixtures/MinimalApiProject` through the real server ó not just lint/build. That verification
 step caught four real bugs no amount of type-checking would have: see below.
 
-1. **W3 remainder** (`bf23e31`): palette search debounced (150ms) through `LatestGate` ‚Äî closes
+1. **W3 remainder** (`bf23e31`): palette search debounced (150ms) through `LatestGate` ó closes
    GAP-B1. Audited the analyze-stream/tab-close cancel sweep (`OperationController` +
-   `WorkspaceStore.closeTab` + `TraceStore`/`AtlasStore`'s tab-close effects) ‚Äî already complete, no
+   `WorkspaceStore.closeTab` + `TraceStore`/`AtlasStore`'s tab-close effects) ó already complete, no
    code change needed.
 2. **Omnibox** (`0af42ca`): new `features/omnibox/omnibox.ts` replaces `features/palette/palette.ts`
    (deleted). Ctrl+K/Ctrl+P, Tab-cycle verbs (Trace/Node/Usages/Copy) applied to the selected
    entry/node row, sections Action/Recents/Entries/Nodes, static sections computed once (GAP-C2).
    `TraceStore.selectNode()` gained an optional `NeighborDirection` param (was hardcoded `'out'`).
-   **Bugs found live, not by lint:** the input never received DOM focus on open ‚Äî typing only
+   **Bugs found live, not by lint:** the input never received DOM focus on open ó typing only
    "worked" by whatever residual focus was left over from a prior interaction, a real keyboard-first
    regression; Escape didn't close the overlay (the panel's blanket `(keydown)="$event.stopPropagation()"`
    swallowed it before it reached the overlay's own handler); static action items weren't filtered by
    query at all (the code path was simply missing). All three fixed same commit.
 3. **Stage altitudes** (`8d1c181`): `GraphCanvas` now takes a discriminated `data` input
    (`mode: trace|topology|neighbors`) instead of a lone `trace` input. System altitude renders real
-   topology the instant analysis completes (zero traces run ‚Äî the "graph is never blank" promise);
+   topology the instant analysis completes (zero traces run ó the "graph is never blank" promise);
    clicking a project filters the Entry Deck to it (`EntryVm` gained `project` from
    `EntryPoint.project`). Node altitude gained a List/Graph toggle plus an out/in/usages direction
    toggle. **Engine-constraint discovery, confirmed by hand against the live server, not from
-   docs:** `GetTrace`'s `focus` only resolves registered entry-point keys ‚Äî passing a raw internal
-   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`. So "double-click any graph node ‚Üí
+   docs:** `GetTrace`'s `focus` only resolves registered entry-point keys ó passing a raw internal
+   node id (e.g. `Member:Foo.<lambda>`) comes back `found: false`. So "double-click any graph node ?
    re-trace from it" is NOT a fresh `GetTrace` call (the proposal assumed no RPC needed this would
    suffice, but doesn't say how); `TraceStore.reroot()` instead finds the node inside the
-   already-loaded tree and re-roots the display at it client-side ‚Äî zero new RPCs, depth capped at
+   already-loaded tree and re-roots the display at it client-side ó zero new RPCs, depth capped at
    whatever was already fetched. Trail gained a `reroot` step kind whose restore path calls
    `reroot()` instead of re-tracing (its id isn't a valid focus string, so the normal restore path
    would also 404).
@@ -975,52 +975,52 @@ step caught four real bugs no amount of type-checking would have: see below.
    `?focus&view&kind&q` (read once on load for deep-link compat, written back with `replaceUrl`,
    same convention as `TracePage`'s existing `?focus`). `EntryDeck.filterText`/`activeKind` and
    `Stage.altitude` became `model()` so the Workbench can lift them. Esc-ladder: cancel in-flight
-   trace ‚Üí deselect node ‚Üí clear focus ‚Üí clear filter (the "close overlay" rung was added in
-   checkpoint 6 once there was an overlay). Added `p` (pin current trail step) and Alt+‚Üê/‚Üí (trail
+   trace ? deselect node ? clear focus ? clear filter (the "close overlay" rung was added in
+   checkpoint 6 once there was an overlay). Added `p` (pin current trail step) and Alt+?/? (trail
    undo/redo aliases). `TraceStore` gained `cancelTrace()`/`deselectNode()` for the ladder's first
    two rungs.
 5. **Inspector Render-RPC LLM section** (`4a56501`): migrated off `trace.markdown()` onto the Render
    RPC (250ms debounce, real `estimatedTokens`), superseding `section-lens.ts`'s pattern for this
    surface. First load shows `Skeleton` blocks; a refresh dims existing content instead (per the
-   content-preserving loading policy ‚Äî skeletons are first-load only). **Found live:** the LLM
-   header nested a `<button>` (Copy) inside another `<button>` (the section-h collapse toggle) ‚Äî
+   content-preserving loading policy ó skeletons are first-load only). **Found live:** the LLM
+   header nested a `<button>` (Copy) inside another `<button>` (the section-h collapse toggle) ó
    invalid HTML that Angular's DOM renderer never sanitizes (it builds the DOM via direct node
    creation, so the browser's HTML-parse-time nesting correction never triggers). This was
    pre-existing (inherited from the original `trace.markdown()` version, not introduced this
    session) but squarely in the code being touched, so fixed: the toggle is now an inner button
    inside a plain div, Copy is a sibling not a descendant. Deliberately NOT done: Insights-for-
-   selection and "Reached by N flows" via `AtlasStore` ‚Äî the data already exists (built ahead of
+   selection and "Reached by N flows" via `AtlasStore` ó the data already exists (built ahead of
    schedule in W3) but wiring it now would jump the waterfall past a real W4 gate for no urgent
    reason; left for W5 as the proposal itself places them.
 6. **Audit table overlay** (`7de783d`): new `features/explorer/audit-table.ts`, the sortable/
    filterable entry table ported from `section-entries.ts`, as a Shift+E overlay instead of a
-   standalone page. Self-contained filter/sort state (no URL sync ‚Äî unlike `section-entries`'s old
+   standalone page. Self-contained filter/sort state (no URL sync ó unlike `section-entries`'s old
    `?sort&dir&kind&q`, syncing would fight the Workbench's own `?kind&q`). Row "Trace" behaves like a
    deck selection and closes the overlay.
 
 **Process note for whoever resumes:** three of the four Playwright smoke runs in this session hit a
 `<vite-error-overlay>` intercepting clicks on the VERY FIRST browser launch immediately after a
 `pnpm check` (which runs its own one-shot `ng build` concurrently with the already-running `ng serve`
-dev server ‚Äî they likely contend over `.angular/cache`). Every single time, a bare retry of the exact
+dev server ó they likely contend over `.angular/cache`). Every single time, a bare retry of the exact
 same script one more time passed clean with zero console errors. Treat this specific symptom (overlay
 appears only on the first post-check run, never on the second) as this known flakiness, not a product
-bug ‚Äî but don't dismiss a `vite-error-overlay` that persists across a retry; read its text.
+bug ó but don't dismiss a `vite-error-overlay` that persists across a retry; read its text.
 
-**Remaining for a clean W4 gate** (see `AGENTS.md` ‚Äî updated same session): export drawer (Ctrl+E,
+**Remaining for a clean W4 gate** (see `AGENTS.md` ó updated same session): export drawer (Ctrl+E,
 presets, From Trail), Home page assembly (identity strip, top-flow list, insight headlines), Atlas
-page assembly (map/topology/packages ‚Äî `eventWiring`/`hubs` already computed in `AtlasStore` since
+page assembly (map/topology/packages ó `eventWiring`/`hubs` already computed in `AtlasStore` since
 W3, just needs binding), route cutover (`/explore` canonical, old routes redirect, delete
 `section-entries/-trace/-graph/-lens/-export` + their pages + `SectionCard`), then the full manual
-gate sweep in proposal ¬ß10's W4 table.
+gate sweep in proposal ß10's W4 table.
 
 ---
 
-## 2026-07-03 ‚Äî W4 ‚Äî Export Drawer (Ctrl+E) with From Trail + Presets
+## 2026-07-03 ó W4 ó Export Drawer (Ctrl+E) with From Trail + Presets
 
 **Branch:** `feat/w4-export-drawer` (off `feat/fable-redesign-skeleton`)
 
 **Changed:**
-- **New** `features/export/export-drawer.ts` (377 lines) ‚Äî right-side 480px drawer overlay on Ctrl+E,
+- **New** `features/export/export-drawer.ts` (377 lines) ó right-side 480px drawer overlay on Ctrl+E,
   following the same parent-controlled overlay pattern as `audit-table.ts` (open/dismissed signals).
   Ports and extends `section-export.ts`'s render logic:
   - 4 preset chips: **Full** (all map sections), **Onboarding** (Overview/Topology/Routes/Entry points),
@@ -1029,7 +1029,7 @@ gate sweep in proposal ¬ß10's W4 table.
     summed per-step with progress indicator).
   - Section toggles with per-section token counts (ported from `section-export.ts`: user toggles
     preserved across re-renders; new sections default to enabled).
-  - Content-preserving loading per proposal ¬ß5.2: existing content dimmed at 60% on refresh, skeleton
+  - Content-preserving loading per proposal ß5.2: existing content dimmed at 60% on refresh, skeleton
     blocks on first load only (5 skeleton rows).
   - Empty/error/populated states for every preset: "No pinned steps yet" with `p` key tip (From Trail),
     "No entry selected" (Flow Review), "Choose a preset to render" (Full/Onboarding before first render),
@@ -1042,216 +1042,216 @@ gate sweep in proposal ¬ß10's W4 table.
   - Added Esc-ladder rung for export drawer (between audit-table close and deselect-node).
   - Template: `<app-export-drawer [open]="exportOpen()" (dismissed)="exportOpen.set(false)" />` after
     `<app-audit-table>`.
-- Smoke-test script `scripts/smoke-export-drawer.mts` ‚Äî auto-starts ng serve, analyzes
+- Smoke-test script `scripts/smoke-export-drawer.mts` ó auto-starts ng serve, analyzes
   `MinimalApiProject`, navigates to `/explore` via popstate (client-side, avoids full-reload
   session-loss), verifies: drawer visible, 4 presets, Full render, Copy button, Escape dismiss,
   backdrop dismiss, no console errors.
 
-**Verified (corrected this session ‚Äî see below):**
-- `pnpm lint` ‚Äî 0/0 (green)
-- `pnpm test` ‚Äî 27/27 (green, no regressions)
-- `pnpm build` ‚Äî success (new chunk: `workbench-page` grew to 59KB from ~56KB; all lazy chunks
+**Verified (corrected this session ó see below):**
+- `pnpm lint` ó 0/0 (green)
+- `pnpm test` ó 27/27 (green, no regressions)
+- `pnpm build` ó success (new chunk: `workbench-page` grew to 59KB from ~56KB; all lazy chunks
   produced)
-- Playwright smoke (headless Chrome, real server, `MinimalApiProject`): 15/15 checks passed ‚Äî
+- Playwright smoke (headless Chrome, real server, `MinimalApiProject`): 15/15 checks passed ó
   analysis actually completed, deck rendered with 2 entries, entry pinned, drawer opened via
   Ctrl+E, all 4 presets rendered (Full/Onboarding/Flow Review/From Trail, including From Trail's
   pinned-step render), Copy button present, Escape and backdrop dismiss both worked, reopened
   cleanly, zero app console errors.
 
 **Correction (2026-07-03, resuming session):** the original "11/12, one false negative" receipt
-below was wrong ‚Äî the smoke script's fixture path resolved to a nonexistent directory
+below was wrong ó the smoke script's fixture path resolved to a nonexistent directory
 (`tests/fixtures/MinimalApiProject` from `cwd=src/DevContext.App`, missing the `../../` up to
-repo root ‚Äî c.f. `scripts/grpcweb-smoke.mts`'s correct `resolve('../../tests/fixtures/...')`), so
+repo root ó c.f. `scripts/grpcweb-smoke.mts`'s correct `resolve('../../tests/fixtures/...')`), so
 every analyze attempt in that session had actually failed silently ("Analysis failed" toast) and
-the deck never had a chance to render ‚Äî not a locator/dockLevel false negative. "Full preset
+the deck never had a chance to render ó not a locator/dockLevel false negative. "Full preset
 content rendered" was itself a false positive: it asserted `.flex-1 > *` is visible, which is
 equally true of the empty-state placeholder div. Fixed the path, tightened that assertion to
 require the real `<pre>` render, and fixed an orphaned `ng serve` process leak on Windows
-(`shell:true` + `.kill('SIGTERM')` only kills the `cmd.exe` wrapper, not the real process ‚Äî
+(`shell:true` + `.kill('SIGTERM')` only kills the `cmd.exe` wrapper, not the real process ó
 switched to `taskkill /PID <pid> /T /F`, confirmed port 4200 is released after every run). Also
-dropped an unneeded `playwright-core` devDependency the prior (opencode/deepseek) session added ‚Äî
+dropped an unneeded `playwright-core` devDependency the prior (opencode/deepseek) session added ó
 the full `playwright` package was already present; the script now matches
 `scripts/audit-screenshots.mts`'s `import { chromium } from 'playwright'` convention. Full detail
 in `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`.
 
 **Known issues (not fixed, out of scope):**
-- The old `section-export.ts` and `/export` route still exist ‚Äî to be deleted in W4 checkpoint 4
+- The old `section-export.ts` and `/export` route still exist ó to be deleted in W4 checkpoint 4
   (route cutover). The export drawer is additive; the old modal-based export still works.
 - Client-side navigation to `/explore` after analysis requires the popstate trick (`page.goto` does
   a full reload which drops in-memory WorkspaceStore session state). The existing Playwright scripts
   on this branch use SPA-link clicks or the known popstate workaround. This is a test-infra concern,
-  not a product bug ‚Äî real users navigate via the activity bar which uses `RouterLink`.
+  not a product bug ó real users navigate via the activity bar which uses `RouterLink`.
 - The `layout: 480px` right-side drawer may need responsive adjustments for narrow viewports (proposal
-  assumes >= 960px; Tauri min is 960√ó640).
+  assumes >= 960px; Tauri min is 960◊640).
 
-**Next ‚Äî remaining W4 items (unchanged from prior handoff):**
+**Next ó remaining W4 items (unchanged from prior handoff):**
 1. Home page assembly (identity strip, Top Flows from `AtlasStore.topFlows()`, insight headlines,
-   run report ‚Äî card-free restyle).
+   run report ó card-free restyle).
 2. Atlas page assembly (map markdown, topology graph, packages/pipeline + `eventWiring()`/`hubs()`
    surfaces).
-3. Route cutover + deletion (`/entries` `/trace` `/graph` `/overview` ‚Üí redirect; delete
+3. Route cutover + deletion (`/entries` `/trace` `/graph` `/overview` ? redirect; delete
    `section-entries/-trace/-graph/-lens/-export` + their pages + `SectionCard`).
-4. Full manual gate sweep per proposal ¬ß10's W4 table (flows A-E).
+4. Full manual gate sweep per proposal ß10's W4 table (flows A-E).
 
 **W4 status: 7/9 checkpoints done.** See `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md` for the
 detailed handoff including file-by-file risk notes, verification receipt, and the resume protocol.
 
 ---
 
-## 2026-07-03 ‚Äî W4 ‚Äî Home + Atlas assembly, route cutover, gate sweep (checkpoints 8-11, W4 DONE)
+## 2026-07-03 ó W4 ó Home + Atlas assembly, route cutover, gate sweep (checkpoints 8-11, W4 DONE)
 
-**Branch:** `feat/w4-export-drawer` ¬∑ resumed from the 7/9 handoff above, in the same session.
+**Branch:** `feat/w4-export-drawer` ∑ resumed from the 7/9 handoff above, in the same session.
 
 **Correction made first:** the export-drawer checkpoint's "11/12, one false negative" receipt was
-itself wrong ‚Äî `smoke-export-drawer.mts`'s fixture path resolved to a nonexistent directory, so
+itself wrong ó `smoke-export-drawer.mts`'s fixture path resolved to a nonexistent directory, so
 every analyze attempt had silently failed and the deck never rendered. Fixed the path, a
 false-positive content assertion, and an orphaned-`ng serve`-process leak on Windows (`taskkill
 /T` instead of `.kill('SIGTERM')`); dropped an unneeded `playwright-core` devDependency. Re-ran
 for real: 15/15. Full detail + corrected receipt in `docs/dev/briefs/W4-EXPORT-DRAWER-HANDOFF.md`.
 Committed as `6eb762e`.
 
-**Checkpoint 8 ‚Äî Home page assembled** (`08a5e0c`). New `pages/home-page.ts` wired at `/`: Start
-hero (no session) ‚Üí boot console (analyzing) ‚Üí digest (identity strip, Top Flows, insight
-headlines, run report), card-free. Ported rather than rewritten from the old narrative sections ‚Äî
-each verified via grep to have zero other referrers ‚Äî into `features/home/{start-hero,
+**Checkpoint 8 ó Home page assembled** (`08a5e0c`). New `pages/home-page.ts` wired at `/`: Start
+hero (no session) ? boot console (analyzing) ? digest (identity strip, Top Flows, insight
+headlines, run report), card-free. Ported rather than rewritten from the old narrative sections ó
+each verified via grep to have zero other referrers ó into `features/home/{start-hero,
 identity-strip, run-console}.ts`. Top Flows is a flat entry-list fallback (`AtlasStore`'s ranking
 is W5, gated behind the W4 exit). The old `section-identity/-console/-landing.ts` were **not**
-deleted at this checkpoint ‚Äî `overview-page.ts` (still live at `/overview` until cutover) still
+deleted at this checkpoint ó `overview-page.ts` (still live at `/overview` until cutover) still
 imported them; deleting early would have broken that route. Deferred to checkpoint 10.
 
-**Checkpoint 9 ‚Äî Atlas page assembled** (`8181ddb`). Replaced the `atlas-page.ts` stub: map
-prose-zone (`session.mapMarkdown()` as raw text ‚Äî no markdown-to-HTML dependency exists anywhere
+**Checkpoint 9 ó Atlas page assembled** (`8181ddb`). Replaced the `atlas-page.ts` stub: map
+prose-zone (`session.mapMarkdown()` as raw text ó no markdown-to-HTML dependency exists anywhere
 in this app; follows the Export Drawer's existing convention), topology graph (same `graph-canvas`
 `topology` binding as `Stage`'s System altitude), new `features/atlas/architecture-panel.ts`
 (ported card-free from `section-architecture.ts`). Also surfaced a basic Event Wiring Board and
 Hub Radar off `AtlasStore.eventWiring()`/`hubs()` now (per AGENTS.md's already-recorded pull-forward
-decision, since the computeds already existed from W3) ‚Äî both render an explanatory empty state
+decision, since the computeds already existed from W3) ó both render an explanatory empty state
 since the indexer that populates them is still W5. `section-stats.ts` was **not** ported anywhere:
 it duplicated `section-console.ts`'s report-mode stages/extractors block (both rendered
-simultaneously on the old `overview-page.ts` ‚Äî a pre-existing redundancy, not something this
+simultaneously on the old `overview-page.ts` ó a pre-existing redundancy, not something this
 checkpoint carried forward). `insights-view.ts`'s "link into workbench" ask from the proposal
 turned out to be a no-op: the `Insight` protobuf type (`devcontext_pb.ts`) has no nodeId/focus
-field to link with ‚Äî left untouched rather than inventing one the engine doesn't provide.
+field to link with ó left untouched rather than inventing one the engine doesn't provide.
 
-**Checkpoint 10 ‚Äî route cutover + deletion** (`8519ca8`). `app.config.ts`: `/overview` ‚Üí `/`;
-`/entries` `/trace` `/graph` ‚Üí `/explore` via a `RedirectFunction` preserving `?focus`; `/export` ‚Üí
+**Checkpoint 10 ó route cutover + deletion** (`8519ca8`). `app.config.ts`: `/overview` ? `/`;
+`/entries` `/trace` `/graph` ? `/explore` via a `RedirectFunction` preserving `?focus`; `/export` ?
 `/explore`. `activity-bar.ts` collapsed from the old 7-item rail to the proposal's 5 icons
 (Home/Explore/Atlas/Insights/Settings). Deleted: `overview-page.ts`, `entries-page.ts`,
 `trace-page.ts`, `graph-page.ts`, `export-page.ts`, all of `narrative/section-*.ts`, and
-`ui/section-card/section-card.ts` ‚Äî every deletion grep-verified beforehand for zero referrers
+`ui/section-card/section-card.ts` ó every deletion grep-verified beforehand for zero referrers
 outside the deleted set. `pnpm check` exit 0 is the actual proof nothing broke (a stray import
 would fail the build, not just look wrong).
 
-**Checkpoint 11 ‚Äî full gate sweep** (this entry). New `scripts/smoke-w4-gate.mts` (committed,
+**Checkpoint 11 ó full gate sweep** (this entry). New `scripts/smoke-w4-gate.mts` (committed,
 extends the `smoke-export-drawer.mts` pattern): flows A-E end-to-end, Atlas topology with zero
 traces run yet, Shift+E audit table, omnibox Ctrl+K + Tab verb-cycle, deep link with a real ready
 session landing traced in `/explore`. **Two bugs found and fixed in the test script itself, not
-the product** ‚Äî both worth remembering for whoever writes the next Playwright script here:
+the product** ó both worth remembering for whoever writes the next Playwright script here:
 - A `j`/`k`/`Shift+E` keydown handler lives on `entry-deck.ts`'s own host (`tabindex="0"`), not
-  window-global ‚Äî a prior click anywhere else (a link, another component) silently no-ops it until
+  window-global ó a prior click anywhere else (a link, another component) silently no-ops it until
   the deck is explicitly re-focused. Same documented gotcha as the memory note about sibling-focus
   stealing; confirmed again the hard way with a raw-keydown-listener diagnostic before finding it.
 - `<app-audit-table>`'s host has no `display` override, so the custom-element tag wraps its
-  `position:fixed` overlay div with an empty layout box ‚Äî Playwright's `.isVisible()` on the host
+  `position:fixed` overlay div with an empty layout box ó Playwright's `.isVisible()` on the host
   tag is a false negative. Checked `omnibox.ts` (same shape, same non-issue in the real browser)
   before considering "fixing" `audit-table.ts` to add `host: { class: 'contents' }` like
-  `export-drawer.ts` has ‚Äî decided against it: 2 of 3 sibling overlay components already omit it
+  `export-drawer.ts` has ó decided against it: 2 of 3 sibling overlay components already omit it
   and the app behaves identically either way in a real browser: this was a test-selector problem,
   not a product inconsistency. Fixed the script to check the inner `.fixed` div instead.
 - Also a **real selector bug** (not app bug): `a[href*="/explore"]` in the Top-Flow-click check
   matched the activity bar's own "Explore" rail link before Home's actual Top Flow row link ever
-  got a chance ‚Äî narrowed to `a[href*="focus="]`.
+  got a chance ó narrowed to `a[href*="focus="]`.
 
 17/17 scripted checks pass. Also ran a one-off manual kill-server-mid-session check (not scripted
-‚Äî see AGENTS.md's rationale for why): killed the shared long-running `dotnet` server (`taskkill
+ó see AGENTS.md's rationale for why): killed the shared long-running `dotnet` server (`taskkill
 /F`) while a session was ready, confirmed the offline banner appeared within one 5s poll cycle and
 the app shell didn't crash, then restarted the exact same server process (`DevContext.Server.exe
---urls http://127.0.0.1:5179`) and confirmed the banner cleared on reconnect ‚Äî dev environment left
+--urls http://127.0.0.1:5179`) and confirmed the banner cleared on reconnect ó dev environment left
 exactly as it was found.
 
 **W4 status: DONE, 9/9 checkpoints, gate passed.** `pnpm check` exit 0 throughout. Next: W5
-(derived insight layer) ‚Äî see AGENTS.md's F section for the item list.
+(derived insight layer) ó see AGENTS.md's F section for the item list.
 
 ---
 
-## 2026-07-03 ‚Äî Branch merge + W5 correction (session wrap-up, no new checkpoint)
+## 2026-07-03 ó Branch merge + W5 correction (session wrap-up, no new checkpoint)
 
-Merged `feat/w4-export-drawer` into `feat/fable-redesign-skeleton` (`--no-ff`, commit `94533da`) ‚Äî
+Merged `feat/w4-export-drawer` into `feat/fable-redesign-skeleton` (`--no-ff`, commit `94533da`) ó
 clean merge, no conflicts, `pnpm check` still green on the merged branch. Neither branch is pushed
-to `origin` (no upstream tracking ref on either) ‚Äî this is all local. `feat/w4-export-drawer` still
+to `origin` (no upstream tracking ref on either) ó this is all local. `feat/w4-export-drawer` still
 exists, fully merged, not deleted.
 
 **Correction to the note above** (the previous entry claimed "the atlas indexer trigger
 (`AtlasStore.start()` on analysis-ready) is the natural first item" for W5, implying the trigger
-doesn't exist ‚Äî that's wrong, caught before it could cost a future session real time). Verified
-live with temporary `console.log` instrumentation in `workbench-page.ts` (added, tested, reverted ‚Äî
+doesn't exist ó that's wrong, caught before it could cost a future session real time). Verified
+live with temporary `console.log` instrumentation in `workbench-page.ts` (added, tested, reverted ó
 zero diff against the committed version afterward): `atlas.start(tabId, handle, entries)` already
-exists and already works correctly ‚Äî watched it go `indexing 0/2 ‚Üí 1/2 ‚Üí done 2/2` against
+exists and already works correctly ó watched it go `indexing 0/2 ? 1/2 ? done 2/2` against
 `MinimalApiProject`, `topFlows()` populating to 2. The real, verified gap is *where* it triggers:
 only inside `WorkbenchPage`'s constructor, i.e. the first time a user visits `/explore`. Since Home
 (`/`) is the actual cold-start landing page now (post-W4 cutover) and the proposal's Core Flow A
 expects Top Flows ranked on the Home digest *before* ever visiting Explore, a user who never leaves
-Home never triggers indexing at all ‚Äî Home's Top Flows row stays on its flat-entry-list fallback
+Home never triggers indexing at all ó Home's Top Flows row stays on its flat-entry-list fallback
 forever in that path. Also confirmed live: `shell/statusbar/statusbar.ts` has zero references to
-`atlas` (grepped) ‚Äî the proposal's "‚ñ∏ atlas 42/94" progress segment genuinely doesn't exist, that
+`atlas` (grepped) ó the proposal's "? atlas 42/94" progress segment genuinely doesn't exist, that
 part was accurate. And `atlas-page.ts`'s Event Wiring Board / Hub Radar are correctly wired to the
-live `AtlasStore` signals already (checkpoint 9) ‚Äî their empty result against `MinimalApiProject`
+live `AtlasStore` signals already (checkpoint 9) ó their empty result against `MinimalApiProject`
 (a trivial 2-endpoint fixture with no messaging) is the *correct* output, not a bug; don't spend W5
-time "fixing" that fixture result. Full corrected W5 item list is in AGENTS.md's F section ‚Äî start
+time "fixing" that fixture result. Full corrected W5 item list is in AGENTS.md's F section ó start
 there, not here, since this note will go stale the moment W5 work begins.
 
 ---
 
-## 2026-07-03 ‚Äî W5 checkpoint 1: atlas trigger relocated + statusbar segment wired
+## 2026-07-03 ó W5 checkpoint 1: atlas trigger relocated + statusbar segment wired
 
 **Checkpoint 1** of W5 (derived insight layer). Two changes, both live-verified, one commit:
 
 1. **Moved the Atlas indexing trigger** from `WorkbenchPage`'s constructor effect (fired only on
    first `/explore` visit) into `SessionStore.analyze()`'s success path, right after
-   `entryGroups` is computed ‚Äî `this.atlas.start(tabId, outcome.handle, entryGroups.flatMap((g) =>
+   `entryGroups` is computed ó `this.atlas.start(tabId, outcome.handle, entryGroups.flatMap((g) =>
    g.entries))`. Fires on analysis-ready regardless of which page the user is on next. Deleted the
    now-redundant `atlasStartedFor`-guarded effect and the unused `workspace` field/import from
-   `workbench-page.ts` (its pause/resume-on-user-trace effect stays ‚Äî that's a UI-interaction
+   `workbench-page.ts` (its pause/resume-on-user-trace effect stays ó that's a UI-interaction
    concern, correctly still page-local).
-2. **Wired the statusbar `atlas N/M` progress segment** (`shell/statusbar/statusbar.ts`) ‚Äî the
-   proposal's "‚ñ∏ atlas 42/94" that never existed (confirmed by grep in the prior session's note).
+2. **Wired the statusbar `atlas N/M` progress segment** (`shell/statusbar/statusbar.ts`) ó the
+   proposal's "? atlas 42/94" that never existed (confirmed by grep in the prior session's note).
    Shown next to the wired-% chip only while `atlas.running()`.
 
 **Live-verified** with a throwaway Playwright script (`scripts/smoke-w5-item1.mts`, written,
-run, then deleted ‚Äî not a permanent addition) plus temporary `console.log` instrumentation in
-`SessionStore.analyze()` and `AtlasStore`'s worker/`start()` (added, run, reverted ‚Äî `git status`
+run, then deleted ó not a permanent addition) plus temporary `console.log` instrumentation in
+`SessionStore.analyze()` and `AtlasStore`'s worker/`start()` (added, run, reverted ó `git status`
 clean afterward, zero diff). Against `MinimalApiProject`: analyzed via Home's hero, **never
-navigated to `/explore`**, and observed the full sequence in the console ‚Äî `atlas.start` fired
-from `SessionStore.analyze`, `indexed 1/2` ‚Üí `indexed 2/2` ‚Üí `status= done`. Confirms Home's Top
+navigated to `/explore`**, and observed the full sequence in the console ó `atlas.start` fired
+from `SessionStore.analyze`, `indexed 1/2` ? `indexed 2/2` ? `status= done`. Confirms Home's Top
 Flows will have ranked data available without a detour through Explore, which was the actual W5
 item-1 gap (the trigger itself already existed pre-W5, see the prior entry's correction). The
-statusbar segment itself wasn't caught by a live poll in the same run ‚Äî `MinimalApiProject` has
+statusbar segment itself wasn't caught by a live poll in the same run ó `MinimalApiProject` has
 only 2 entries and indexes in well under a second, so the "running" window is too narrow for a
 150ms poll to reliably land inside it. Not treated as a failure: the template compiles and binds
 against `AtlasStore`'s real `running()`/`progressLabel()` signals (confirmed by the green
-`pnpm check` build ‚Äî a bad binding fails the build, not just looks wrong), and the same segment
+`pnpm check` build ó a bad binding fails the build, not just looks wrong), and the same segment
 already free-rides on `AtlasStore`'s existing state machine used by the instrumented run above.
 Worth a manual look on a bigger fixture (eShop-scale, dozens of entries) whenever one is next
-being used for other verification, just to eyeball the segment rendering ‚Äî not worth building a
+being used for other verification, just to eyeball the segment rendering ó not worth building a
 slower fixture solely for this.
 
 `pnpm check` green throughout (before instrumentation, and again after reverting it).
 
-**W5 item 1 status: DONE.** Next: item 2 ‚Äî make Home's Top Flows prefer `atlasStore.topFlows()`
+**W5 item 1 status: DONE.** Next: item 2 ó make Home's Top Flows prefer `atlasStore.topFlows()`
 once populated, falling back to the current flat entry-list only while indexing hasn't produced
 results yet (`home-page.ts`'s `topFlows` computed is still hardcoded to the flat-list fallback,
-confirmed by reading it in this session ‚Äî `AtlasStore` injection not yet added there).
+confirmed by reading it in this session ó `AtlasStore` injection not yet added there).
 
 ---
 
-## 2026-07-03 ‚Äî W5 checkpoint 2: Home Top Flows prefer atlas ranking
+## 2026-07-03 ó W5 checkpoint 2: Home Top Flows prefer atlas ranking
 
 **Checkpoint 2** of W5. `home-page.ts`'s `topFlows` computed now prefers
-`atlas.topFlows()` (importance-ranked by `AtlasStore`, breadth √ó boundary crossings,
-proposal ¬ß3.2) once the background indexer has produced results, mapping each `FlowStat`
+`atlas.topFlows()` (importance-ranked by `AtlasStore`, breadth ◊ boundary crossings,
+proposal ß3.2) once the background indexer has produced results, mapping each `FlowStat`
 back to its full `EntryVm` by `focus` (`FlowStat` itself doesn't carry `httpMethod`/`route`,
-needed for the row's chip/label). Falls back to the flat `session.entryGroups()` list ‚Äî
-unchanged ‚Äî whenever the ranked map comes up empty (indexing not done yet, or genuinely no
+needed for the row's chip/label). Falls back to the flat `session.entryGroups()` list ó
+unchanged ó whenever the ranked map comes up empty (indexing not done yet, or genuinely no
 found flows), so the loading/empty state is unaffected.
 
 Live-verified with a throwaway Playwright script (written, run, deleted): analyzed
@@ -1259,39 +1259,39 @@ Live-verified with a throwaway Playwright script (written, run, deleted): analyz
 rows rendered with correct `focus=` hrefs, clicked the first one and landed traced in
 `/explore`, zero console/page errors throughout. `MinimalApiProject`'s 2 flat entries don't
 exercise the *ranking* itself in a visibly different order from the old flat-list fallback
-(too small a fixture to have a meaningfully different score) ‚Äî worth eyeballing on a
+(too small a fixture to have a meaningfully different score) ó worth eyeballing on a
 bigger fixture (eShop-scale) whenever one is next in use for other verification, same note
 as checkpoint 1's statusbar segment.
 
 `pnpm check` green.
 
 **W5 status: checkpoints 1-2/8 done.** Next: item 3, Event Wiring Board polish
-(interactivity/click-through ‚Äî the data plumbing is already done from W4 checkpoint 9).
+(interactivity/click-through ó the data plumbing is already done from W4 checkpoint 9).
 
 ---
 
-## 2026-07-03 ‚Äî W5 checkpoints 3-8: derived insight layer complete, W5 DONE
+## 2026-07-03 ó W5 checkpoints 3-8: derived insight layer complete, W5 DONE
 
 All remaining W5 items landed in one session, verified together with a single
-consolidated Playwright script (written, run, then deleted ‚Äî not a permanent addition),
+consolidated Playwright script (written, run, then deleted ó not a permanent addition),
 four commits:
 
-**Checkpoints 3+7 (`4211893`) ‚Äî Atlas page click-through polish.** Event Wiring Board
+**Checkpoints 3+7 (`4211893`) ó Atlas page click-through polish.** Event Wiring Board
 rows link publisher/consumer into a traced `/explore` (routerLink + `?focus=`, same
 pattern as Home's Top Flow links), badged `[approx]` since the join is a heuristic
 name-match. Hub Radar rows now show real in/out-degree via `AtlasStore.hubsWithDegree`
 (a new best-effort `getNode` enrichment effect, capped at the existing top-10 hubs) and
 click through via `TraceStore.selectNode` + `?view=node` (hub node ids are raw internal
-ids, not `GetTrace`-resolvable entry focuses ‚Äî can't use a routerLink here).
+ids, not `GetTrace`-resolvable entry focuses ó can't use a routerLink here).
 
-**Checkpoint 4 (`bf5342f`) ‚Äî Impact lens.** Inspector's Details section shows "Reached
+**Checkpoint 4 (`bf5342f`) ó Impact lens.** Inspector's Details section shows "Reached
 by N flows" (`AtlasStore.reachedBy(nodeId)`) with an "atlas indexing" caveat while
-incomplete. Omnibox gets a 5th verb (Impact) ‚Äî selects the node, navigates to
+incomplete. Omnibox gets a 5th verb (Impact) ó selects the node, navigates to
 `/explore?view=node`, and shows an instant toast with the count.
 
-**Checkpoints 5+6 (`a707fcb`) ‚Äî Confidence Ledger + Unwired Entries**, combined into one
+**Checkpoints 5+6 (`a707fcb`) ó Confidence Ledger + Unwired Entries**, combined into one
 commit (both touch `identity-strip.ts`'s stat-cell grid). Stage's flow-altitude header
-shows a verified% meter computed by walking the currently loaded trace tree ‚Äî decoupled
+shows a verified% meter computed by walking the currently loaded trace tree ó decoupled
 from the Atlas indexer, works instantly for any trace, not just indexed entries. An
 "approx only" toggle filters the tree via a new `filterApproxTree` (view-models.ts) that
 keeps ancestors of matching nodes so results stay reachable from the root. Home's
@@ -1299,44 +1299,44 @@ identity strip gains "confidence" (repo-wide, from `AtlasStore.overallVerifiedPc
 "unwired" (`entries - entriesWithTarget`) stat cells; Home's Insights list gets a
 client-synthesized "N of M entries have no resolved target" card competing for a slot by
 severity alongside the server's real insights. The deck's unwired marker and the audit
-table's "has target" filter already existed pre-W5 ‚Äî only the Home-facing pieces (the
+table's "has target" filter already existed pre-W5 ó only the Home-facing pieces (the
 proposal's "Insight card" + "Home count") were missing.
 
-**Checkpoint 8 (`009dda0`) ‚Äî statusbar ticker wiring**, and a real bug found and fixed
+**Checkpoint 8 (`009dda0`) ó statusbar ticker wiring**, and a real bug found and fixed
 along the way, worth remembering for any future effect that touches a shared mutable
 service from an `effect()`: `TickerService.dismissAll(prefix)` called immediately
-followed by `post(item)` from the SAME effect execution ‚Äî two separate reads-then-writes
-of the same `_items` signal within one synchronous run ‚Äî froze the tab's JS thread
+followed by `post(item)` from the SAME effect execution ó two separate reads-then-writes
+of the same `_items` signal within one synchronous run ó froze the tab's JS thread
 completely. Not a slow test, not a slow analyze: `page.evaluate(() => document.title)`
 itself never resolved, and nothing appeared in the console (no exception thrown, so
-nothing to catch). Found via bisection (disable all 3 new effects ‚Üí fine; re-enable one
-at a time ‚Üí the analysis-facts effect alone reproduced it; strip it down call-by-call ‚Üí
-`dismissAll` alone fine, `post` alone fine, both together in one execution ‚Üí frozen every
-time). Root-caused and fixed by adding `TickerService.replaceGroup(prefix, items)` ‚Äî ONE
-atomic `_items` write per call ‚Äî and switching all three ticker effects to use it instead
+nothing to catch). Found via bisection (disable all 3 new effects ? fine; re-enable one
+at a time ? the analysis-facts effect alone reproduced it; strip it down call-by-call ?
+`dismissAll` alone fine, `post` alone fine, both together in one execution ? frozen every
+time). Root-caused and fixed by adding `TickerService.replaceGroup(prefix, items)` ó ONE
+atomic `_items` write per call ó and switching all three ticker effects to use it instead
 of the two-call pattern. Matches the pattern `AtlasStore`'s degree-enrichment effect
 (checkpoint 3+7) already used correctly: that effect also reads and writes `degreeCache`,
-but the write happens inside a `getNode().then()` callback ‚Äî deferred to a later
-microtask, outside the effect's own synchronous execution ‚Äî which is exactly why it
+but the write happens inside a `getNode().then()` callback ó deferred to a later
+microtask, outside the effect's own synchronous execution ó which is exactly why it
 doesn't loop. Any future effect that both reads and writes the same signal should either
 batch into one write (like `replaceGroup`) or defer the write asynchronously, never do
 two separate synchronous writes to the same signal from the same effect execution.
 
 `pnpm check` green on every commit. Live-verified end to end against `MinimalApiProject`
-via a single consolidated script covering all six checkpoints (analyze ‚Üí Home stat cells
-‚Üí ticker text ‚Üí Explore trace ‚Üí confidence meter ‚Üí approx-only toggle ‚Üí node select ‚Üí
-Inspector reached-by line ‚Üí omnibox Impact verb + toast ‚Üí Atlas page render) ‚Äî 9/9 checks
+via a single consolidated script covering all six checkpoints (analyze ? Home stat cells
+? ticker text ? Explore trace ? confidence meter ? approx-only toggle ? node select ?
+Inspector reached-by line ? omnibox Impact verb + toast ? Atlas page render) ó 9/9 checks
 green, zero console/page errors, script written and deleted per this project's established
 "live-verify with a throwaway script, don't leave it committed" discipline.
 
 **W5 status: DONE, all 8 checkpoints complete.** Next: W6-W7 per the proposal's waterfall
-(¬ß10) ‚Äî not scoped yet, AGENTS.md's F section needs its next-stage read before starting.
+(ß10) ó not scoped yet, AGENTS.md's F section needs its next-stage read before starting.
 
-## 2026-07-03 ‚Äî W6 scoped + Step 0: window drag/buttons bug fixed
+## 2026-07-03 ó W6 scoped + Step 0: window drag/buttons bug fixed
 
-W6 ("Tauri Hardening", proposal ¬ß10) scoped from a fresh read: sidecar engine lifecycle
-(¬ß7.1), no-flash + window-state (¬ß7.2), single-instance, fs plugin ‚Üí Settings¬∑Storage
-live (S3), opener plugin, CSP + capability scoping (¬ß7.4), DPI pass at 125%/150%.
+W6 ("Tauri Hardening", proposal ß10) scoped from a fresh read: sidecar engine lifecycle
+(ß7.1), no-flash + window-state (ß7.2), single-instance, fs plugin ? Settings∑Storage
+live (S3), opener plugin, CSP + capability scoping (ß7.4), DPI pass at 125%/150%.
 
 Before starting the waterfall, the user reported the live Tauri window was not movable
 and had no minimize/maximize/close buttons. Root-caused by reading the actual v2
@@ -1344,15 +1344,15 @@ permission schema rather than guessing, two independent bugs:
 
 1. `titlebar.ts`'s `isTauri()` checked `window.__TAURI__ !== undefined`. That global only
    exists when `tauri.conf.json` sets `app.withGlobalTauri: true` (confirmed via
-   `node_modules/@tauri-apps/api/core.js`'s own doc comment) ‚Äî not set in this project,
+   `node_modules/@tauri-apps/api/core.js`'s own doc comment) ó not set in this project,
    which correctly uses ESM plugin imports elsewhere. So `isTauri()` was always `false` in
    the real app and the entire `@if (isTauri())` block holding the window buttons never
-   rendered. Fixed to check `window.__TAURI_INTERNALS__` instead ‚Äî the internals global
+   rendered. Fixed to check `window.__TAURI_INTERNALS__` instead ó the internals global
    Tauri v2 always injects regardless of `withGlobalTauri`.
 2. `capabilities/default.json` only granted `core:window:default`. Reading
    `src-tauri/gen/schemas/desktop-schema.json` directly, that default set explicitly
    excludes `allow-start-dragging`, `allow-minimize`, `allow-maximize`,
-   `allow-unmaximize`, `allow-close` ‚Äî separate opt-in permissions. `data-tauri-drag-region`
+   `allow-unmaximize`, `allow-close` ó separate opt-in permissions. `data-tauri-drag-region`
    itself works by invoking the `start_dragging` command on mousedown, so without the
    permission the window was inert to drag independent of bug #1. Added all five
    permissions to `capabilities/default.json`.
@@ -1364,13 +1364,13 @@ not separately rebuilt/re-tested per explicit instruction to move on): Tauri's d
 listener triggers only when the mousedown's exact `event.target` is the tagged element
 itself, not a descendant. The left brand strip's `data-tauri-drag-region` div has a single
 child span that fills its entire area, so `event.target` there always resolves to the
-span, never the div ‚Äî zero draggable pixels despite the attribute. The middle
+span, never the div ó zero draggable pixels despite the attribute. The middle
 repo-menu/search section had no `data-tauri-drag-region` at all. The right strip worked
 because its flex children (`gap-2`) leave real background gaps where `event.target`
 actually resolves to the tagged div. Fix applied on the same reasoning, matching the
 already-working right-strip pattern: added `data-tauri-drag-region` to the middle
 section's wrapper div (its two children are real `<button>`s, which still win hit-testing
-on their own pixels, so clicks on them are unaffected ‚Äî only the `justify-center` gaps
+on their own pixels, so clicks on them are unaffected ó only the `justify-center` gaps
 around them become draggable). Not independently re-verified live per the user's request
 to apply the best-guess fix and move on to the W6 checkpoints rather than spend another
 build/test cycle on this nuance.
@@ -1378,16 +1378,16 @@ build/test cycle on this nuance.
 `pnpm check` green. Commit is standalone (not folded into W6 checkpoint 2) so it's
 bisectable from the checkpoint commits that follow.
 
-## 2026-07-03 ‚Äî W6 checkpoint 1: sidecar engine lifecycle (packaging deferred)
+## 2026-07-03 ó W6 checkpoint 1: sidecar engine lifecycle (packaging deferred)
 
 `lib.rs` rewritten: dynamic port picking (`TcpListener::bind("127.0.0.1:0")`, drop, reuse
 the number), the main window now built programmatically in `setup()` via
 `WebviewWindowBuilder` instead of `tauri.conf.json`'s declarative `windows` array (needed
 so an `.initialization_script()` can inject `globalThis.__DEVCONTEXT_SERVER__` before
-Angular boots ‚Äî `core/config.ts` already anticipated this global, unused until now), a
+Angular boots ó `core/config.ts` already anticipated this global, unused until now), a
 `ServerProcess` supervisor (`Arc<Mutex<Option<Child>>>` + `AtomicBool` shutdown flag)
-polling `try_wait()` every 500ms ‚Äî never a blocking `wait()` while holding the lock, so
-`RunEvent::Exit` can always grab it to kill the child ‚Äî with 1s/5s/15s crash-restart
+polling `try_wait()` every 500ms ó never a blocking `wait()` while holding the lock, so
+`RunEvent::Exit` can always grab it to kill the child ó with 1s/5s/15s crash-restart
 backoff capped at 5 attempts, reusing the same port across restarts (avoids re-injecting
 config into an already-loaded page). Folded in the no-flash half of checkpoint 2 while
 already rebuilding the window (`visible(false)` + dark `background_color`, `app.ts` calls
@@ -1407,7 +1407,7 @@ in 1s (attempt 2)"` in the log followed by a fresh server on the same port.
 
 **A test-methodology gotcha worth remembering, not a product bug:** running the raw
 `app.exe` directly (bypassing `pnpm dev`'s `concurrently`-managed `ng serve`) with no
-frontend dev server up produces a `chrome-error://chromewebdata/` page ‚Äî Angular never
+frontend dev server up produces a `chrome-error://chromewebdata/` page ó Angular never
 bootstraps, so `afterNextRender`'s `show()` call never fires, and the window sits
 permanently invisible (`MainWindowHandle: 0` via `Get-Process`, confirmed with a small
 `Add-Type`-based `IsWindowVisible` P/Invoke check). This looked exactly like a broken
@@ -1415,18 +1415,18 @@ no-flash implementation until re-tested with a dedicated `ng serve` actually run
 which showed a real `MainWindowHandle`, `IsWindowVisible: True`, and a normal graceful
 `taskkill` close. Confirmed via a throwaway `playwright` + `chromium.connectOverCDP`
 script against `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<port>`
-(written, run, deleted ‚Äî same throwaway-script discipline as W4/W5's Playwright checks).
+(written, run, deleted ó same throwaway-script discipline as W4/W5's Playwright checks).
 Lesson: any future raw-binary Tauri test needs its own frontend dev server running, not
 borrowed from whatever happens to still be up on :4200.
 
 **Packaging (self-contained `externalBin` sidecar) explored and de-risked, not fully
-wired ‚Äî deferred, per the plan's own stated fallback for oversized sub-scopes.** Findings
+wired ó deferred, per the plan's own stated fallback for oversized sub-scopes.** Findings
 worth keeping so the next attempt doesn't redo this research: `dotnet publish
 DevContext.Server -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true`
 alone still leaves `git2-*.dll` (LibGit2Sharp's native binding) as a loose companion file
-next to the exe ‚Äî single-file publish does NOT embed native (non-.NET) libraries by
+next to the exe ó single-file publish does NOT embed native (non-.NET) libraries by
 default. Adding `-p:IncludeNativeLibrariesForSelfExtract=true` embeds it too, producing a
-genuinely standalone ~127MB `DevContext.Server.exe` with zero companion files ‚Äî verified
+genuinely standalone ~127MB `DevContext.Server.exe` with zero companion files ó verified
 by copying just that one exe into an empty directory and confirming `/health` returns 200
 with no `dotnet` runtime installed reliance. `DevContext.Server` has no `appsettings.json`
 or `wwwroot`, so there's nothing else to ship alongside it. What's left before this is
@@ -1435,125 +1435,125 @@ real: Tauri's `externalBin` mechanism expects the source file pre-named
 produces post-bundle (whether the target-triple suffix is stripped) isn't confirmed from
 docs alone; the safe, documented way to spawn a registered sidecar is
 `tauri_plugin_shell::ShellExt::shell().sidecar(name)` (a new Cargo + capability
-dependency), which returns an async `(Receiver<CommandEvent>, CommandChild)` pair ‚Äî
+dependency), which returns an async `(Receiver<CommandEvent>, CommandChild)` pair ó
 structurally different from the `std::process::Child` polling model this checkpoint's
 dev-mode supervisor already uses and verified, so it needs its own supervisor logic
 (`tauri::async_runtime::spawn` + matching `CommandEvent::Terminated`), not a trivial
 reuse. None of this touches the dev-mode path already shipped in this commit.
 
 `pnpm check` and `cargo check` both green. No regressions in the everyday `pnpm dev` flow
-(re-verified after the rewrite ‚Äî window opened, Analyze succeeded against the ordinary
+(re-verified after the rewrite ó window opened, Analyze succeeded against the ordinary
 fixed port 5179, no panics).
 
-## 2026-07-03 ‚Äî W6 checkpoint 2: window-state plugin (no-flash already done in checkpoint 1)
+## 2026-07-03 ó W6 checkpoint 2: window-state plugin (no-flash already done in checkpoint 1)
 
 No-flash startup was folded into checkpoint 1 (the window-builder rewrite), so this
 checkpoint is just `tauri-plugin-window-state`: registered in the builder chain,
 `window.restore_state(StateFlags::all())` called right after `builder.build()` (while
 still hidden pre-`show()`, so there's no visible jump), `window-state:default` added to
 capabilities. Saving is automatic per the plugin's own design (hooks window move/resize/
-close events once registered) ‚Äî no explicit save call needed.
+close events once registered) ó no explicit save call needed.
 
 Live-verified precisely, not just "it didn't crash": moved/resized the real OS window via
 a `user32.dll` `MoveWindow` P/Invoke (PowerShell `Add-Type`) to an arbitrary rectangle
-(222, 111, 1111√ó777), closed it gracefully, relaunched the same binary, and read the new
-window's rect via `GetWindowRect` ‚Äî restored bounds matched the pre-close rectangle
+(222, 111, 1111◊777), closed it gracefully, relaunched the same binary, and read the new
+window's rect via `GetWindowRect` ó restored bounds matched the pre-close rectangle
 exactly (same four numbers). Reused the `IsWindowVisible`/`GetWindowRect` P/Invoke
-pattern from checkpoint 1's verification for this ‚Äî worth keeping as the standard way to
+pattern from checkpoint 1's verification for this ó worth keeping as the standard way to
 assert real OS window geometry/visibility from outside the app when Playwright/CDP can't
 reach into native window chrome.
 
 `pnpm check` and `cargo check` both green, no TypeScript changes this checkpoint.
 
-## 2026-07-03 ‚Äî W6 checkpoint 3: single-instance plugin
+## 2026-07-03 ó W6 checkpoint 3: single-instance plugin
 
 `tauri-plugin-single-instance` registered as the first plugin in the builder chain (a
 hard Tauri requirement). Its callback focuses/unminimizes/shows the existing "main"
-window, and forwards `args.get(1)` (a path argument ‚Äî Explorer's "Open with‚Ä¶", or a
+window, and forwards `args.get(1)` (a path argument ó Explorer's "Open withÖ", or a
 second CLI launch) to the frontend as a `single-instance-path` event rather than
 silently dropping it. New `core/single-instance.service.ts` (mirrors
 `WebviewShortcutsService`'s `start()`-guard pattern) listens for that event and opens
-the path as a **new tab** via `WorkspaceStore.createTab` + `SessionStore.analyze` ‚Äî
+the path as a **new tab** via `WorkspaceStore.createTab` + `SessionStore.analyze` ó
 deliberately not reusing `Titlebar.selectRecent`'s replace-current-tab behavior, since
 the whole point of a path argument arriving while the app is already open is "don't
 destroy what I was already looking at."
 
 Live-verified end to end, not just "doesn't crash twice": launched the raw debug binary,
 then launched it again with a `tests/fixtures/MinimalApiProject` path argument. The
-second process exited immediately (no second window ‚Äî confirmed via `tasklist` staying
+second process exited immediately (no second window ó confirmed via `tasklist` staying
 at one `app.exe`); the first instance's own server log shows a fresh, unprompted
-`Analyze` ‚Üí `GetMap`/`ListEntryPoints`/`GetTrace`√ó2/`GetStats` sequence appearing on its
-own right after the second launch ‚Äî proof the event reached the frontend and drove the
+`Analyze` ? `GetMap`/`ListEntryPoints`/`GetTrace`◊2/`GetStats` sequence appearing on its
+own right after the second launch ó proof the event reached the frontend and drove the
 real analyze flow, not just that the process count stayed at one.
 
 `pnpm check` and `cargo check` both green.
 
-## 2026-07-03 ‚Äî W6 checkpoint 4: fs plugin, Settings¬∑Storage tab live (S3)
+## 2026-07-03 ó W6 checkpoint 4: fs plugin, Settings∑Storage tab live (S3)
 
 Settings' Storage tab (`settings-view.ts`) was a static stub with a hardcoded, and wrong,
-path ‚Äî it displayed `%LOCALAPPDATA%/DevContext/clones`, but `DevContext.Core.Models.RepoUrl
+path ó it displayed `%LOCALAPPDATA%/DevContext/clones`, but `DevContext.Core.Models.RepoUrl
 .ClonePath` (grepped, not guessed) actually uses `%LOCALAPPDATA%/DevContext/repos`. Fixed
 while wiring real data. `tauri-plugin-fs` added, scoped via `capabilities/default.json`'s
-`fs:scope` to exactly `$LOCALDATA/DevContext` + `$LOCALDATA/DevContext/**` ‚Äî `$LOCALDATA`
-(‚Üí `BaseDirectory.LocalData` in JS) is the raw `%LOCALAPPDATA%` root; `AppLocalData` would
+`fs:scope` to exactly `$LOCALDATA/DevContext` + `$LOCALDATA/DevContext/**` ó `$LOCALDATA`
+(? `BaseDirectory.LocalData` in JS) is the raw `%LOCALAPPDATA%` root; `AppLocalData` would
 have been wrong here since it nests under Tauri's own bundle identifier, not the literal
 `DevContext` folder name `SnapshotCacheRoot`/`RepoUrl` hardcode in the C# engine.
 
 New `core/storage.service.ts` lists top-level entries under `cache`/`repos` and recursively
-sums real file sizes (no shortcut exists ‚Äî confirmed from the plugin's own `.d.ts`, not
+sums real file sizes (no shortcut exists ó confirmed from the plugin's own `.d.ts`, not
 assumed: `readDir` is NOT recursive by default despite an initial web-search summary
-claiming otherwise ‚Äî always walks one level, and `stat()` on a directory doesn't report
+claiming otherwise ó always walks one level, and `stat()` on a directory doesn't report
 recursive content size, so summing means a manual walk, one `stat()` IPC call per file).
 `settings-view.ts`'s Storage tab now shows real per-repo sizes and a "Clear" action per
-root, reusing `formatBytes` (small local helper ‚Äî no `core/format.ts` module exists yet to
+root, reusing `formatBytes` (small local helper ó no `core/format.ts` module exists yet to
 extend, per W7's still-pending C1 dedupe item).
 
 Live-verified against REAL pre-existing data from prior sessions (not a clean fixture) via
 a throwaway Playwright+CDP script (written, run, deleted): 6 stale cache repo-key dirs and
 4 real git clones, including a 1.1GB packed `dotnet-runtime` clone and a 5837-file unpacked
-`VahidN-DntSite` clone ‚Äî a genuine test of the recursive-walk performance concern raised
+`VahidN-DntSite` clone ó a genuine test of the recursive-walk performance concern raised
 while designing this. It settled in well under a second either way (packed repos are a
 handful of big files; local Tauri IPC is fast enough that even ~5800 individual `stat()`
-calls don't add up to a noticeable delay) ‚Äî worth knowing before assuming this needs a
+calls don't add up to a noticeable delay) ó worth knowing before assuming this needs a
 native Rust walker for performance; it doesn't, at least not at this scale. Clearing cache
 verified two ways: the UI's own re-render on next tab visit ("0 B across 0 repos"), and
 independently confirmed at the OS level (`ls` on the real `%LOCALAPPDATA%\DevContext\cache`
-path ‚Äî directory gone entirely). Deliberately did NOT test the Repos "Clear" button against
-these real clones (would force expensive re-cloning for future benchmark/eval sessions) ‚Äî
+path ó directory gone entirely). Deliberately did NOT test the Repos "Clear" button against
+these real clones (would force expensive re-cloning for future benchmark/eval sessions) ó
 the code path is identical to Cache's, already proven.
 
 **Playwright/CDP gotcha worth remembering:** a `waitForFunction` checking `!includes(
-'Scanning‚Ä¶')` placed immediately after a `.click()` can resolve instantly and wrongly if
+'ScanningÖ')` placed immediately after a `.click()` can resolve instantly and wrongly if
 the click's async handler chain hasn't started yet (the "Scanning" text hasn't appeared in
-the DOM to *not* match against) ‚Äî always wait for the loading state to actually *appear*
+the DOM to *not* match against) ó always wait for the loading state to actually *appear*
 first (or add a short explicit wait) before waiting for it to *disappear*, or the check
 races ahead of the real work and captures stale content.
 
 `pnpm check` and `cargo check` both green.
 
-## 2026-07-03 ‚Äî W6 checkpoint 5: opener plugin (Reveal/Open in Explorer)
+## 2026-07-03 ó W6 checkpoint 5: opener plugin (Reveal/Open in Explorer)
 
 `tauri-plugin-opener` added. Inspector's file-path row (`inspector.ts`) gets a "reveal"
-link calling `revealItemInDir(node.filePath)` ‚Äî `node.filePath` turned out to already be
+link calling `revealItemInDir(node.filePath)` ó `node.filePath` turned out to already be
 an absolute path (Roslyn's `SyntaxTree`-derived `SourceFile`, confirmed live, not
-guessed), so no repo-root joining was needed. Settings¬∑Storage's two "Open in Explorer"
+guessed), so no repo-root joining was needed. Settings∑Storage's two "Open in Explorer"
 buttons (added alongside checkpoint 4's Clear buttons) call a new
 `StorageService.openInExplorer('cache' | 'repos')`, resolving the absolute root via
 `@tauri-apps/api/path`'s `localDataDir()` + `join()`.
 
 **A real, worth-remembering scope gotcha, not a guess:** `opener:allow-reveal-item-in-dir`
 worked immediately with no scope configuration, for a path nowhere near any configured
-scope (the fixture repo, outside `$LOCALDATA` entirely) ‚Äî but `opener:allow-open-path`
+scope (the fixture repo, outside `$LOCALDATA` entirely) ó but `opener:allow-open-path`
 rejected every call with `"Not allowed to open path ..."` until given an explicit
 `{"identifier": "opener:allow-open-path", "allow": [...]}` scope, exactly like `fs:scope`.
 The two commands are NOT symmetric: `reveal-item-in-dir` appears unrestricted once the
 bare permission is granted; `open-path` is scope-gated like the `fs` plugin. Found live,
-not from documentation (which didn't clearly state this asymmetry) ‚Äî the error message
+not from documentation (which didn't clearly state this asymmetry) ó the error message
 itself was the giveaway. Scoped it to `$LOCALDATA/DevContext/**`, matching `fs:scope`,
 since that's the only thing this checkpoint's `openInExplorer` ever opens.
 
 Live-verified both actions for real, not just "the call didn't throw": traced a real
-entry, selected a node, clicked "reveal" ‚Äî confirmed via PowerShell's `Shell.Application`
+entry, selected a node, clicked "reveal" ó confirmed via PowerShell's `Shell.Application`
 COM automation (`$shell.Windows() | % LocationURL`) that a genuine Explorer window opened
 at `.../MinimalApiProject/src/Api` (the exact folder containing the selected node's
 `Program.cs`). Same technique confirmed "Open in Explorer" (cache) opened a window at
@@ -1562,144 +1562,144 @@ afterward, left the user's own pre-existing Explorer window untouched.
 
 `pnpm check` and `cargo check` both green.
 
-## 2026-07-04 ‚Äî W6 checkpoint 6: CSP + capability scoping, clipboard-manager
+## 2026-07-04 ó W6 checkpoint 6: CSP + capability scoping, clipboard-manager
 
 `tauri.conf.json`'s `security.csp` was `null` (unrestricted); set to `default-src 'self';
 script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src
-'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*` ‚Äî the
+'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*` ó the
 `http://127.0.0.1:*` port wildcard is required since checkpoint 1's sidecar picks a fresh
 port every launch, so a fixed port could never be listed. `'unsafe-inline'` on style-src
 is needed for Angular's `ViewEncapsulation`-emulated `<style>` tags (real inline elements,
-not attribute styles ‚Äî CSP doesn't distinguish nonced vs. unnonced `<style>` tags without
+not attribute styles ó CSP doesn't distinguish nonced vs. unnonced `<style>` tags without
 extra plumbing not worth adding here).
 
 **Genuinely uncertain going in, resolved by testing rather than assumption:** whether a
 configured CSP is even enforced when the frontend loads from an external `devUrl`
 (`http://localhost:4200` via `ng serve`, this project's dev setup) rather than Tauri's own
-bundled `frontendDist` ‚Äî conflicting signals from documentation. Settled it by testing:
+bundled `frontendDist` ó conflicting signals from documentation. Settled it by testing:
 built + ran the raw debug binary with the new CSP in place, connected via WebView2 remote
 debugging, and checked `getComputedStyle` on real elements rather than trusting "the page
 didn't visibly break." `body` background was the exact `#16181d` dark base color,
 `header` height was the exact `30px` titlebar class, zero console CSP-violation messages,
-and a full `Analyze ‚Üí GetMap ‚Üí ListEntryPoints ‚Üí GetTrace ‚Üí GetStats ‚Üí Render` gRPC
+and a full `Analyze ? GetMap ? ListEntryPoints ? GetTrace ? GetStats ? Render` gRPC
 sequence succeeded end to end. Whatever the enforcement semantics turn out to be exactly,
-this specific CSP value doesn't break this specific dev setup ‚Äî good enough to ship, and a
+this specific CSP value doesn't break this specific dev setup ó good enough to ship, and a
 useful data point for whoever eventually does the deferred production `tauri build` (W6
 checkpoint 1's other deferred half): if CSP causes a break there, this dev-mode pass at
 least rules out the CSP value itself as generically wrong.
 
 Capability audit: every custom permission added since W6 started (window buttons, fs,
-opener, now clipboard) was checked against its actual call site ‚Äî none were dead. Left
+opener, now clipboard) was checked against its actual call site ó none were dead. Left
 `core:default` as the broad baseline (not narrowed to individual `core:*` sub-permissions)
-‚Äî a bigger, separate refactor with unclear benefit here, not attempted.
+ó a bigger, separate refactor with unclear benefit here, not attempted.
 
 `tauri-plugin-clipboard-manager` added. New `core/clipboard.ts`'s `copyToClipboard()`
-(the same reuse-worthy-immediately pattern as `tauri-env.ts` ‚Äî 6 call sites across 5
+(the same reuse-worthy-immediately pattern as `tauri-env.ts` ó 6 call sites across 5
 files, not a hypothetical) replaces every `navigator.clipboard` use in `inspector.ts`,
-`export-drawer.ts`, `audit-table.ts`, `omnibox.ts`, and `node-card.ts` (√ó2) ‚Äî all had
+`export-drawer.ts`, `audit-table.ts`, `omnibox.ts`, and `node-card.ts` (◊2) ó all had
 existing comments/TODOs calling out `navigator.clipboard`'s WebView2 flakiness without
 focus, now resolved for real. `clipboard-manager:allow-write-text` only (this app never
 reads the clipboard).
 
 Live-verified with the strongest possible signal, not just "the call didn't throw": set
 the real OS clipboard to a sentinel string via PowerShell's `Set-Clipboard`, clicked
-Inspector's copy button through a live trace, then read it back with `Get-Clipboard` ‚Äî
+Inspector's copy button through a live trace, then read it back with `Get-Clipboard` ó
 content changed to the exact rendered LLM trace text, proving the plugin path actually
 executes end to end, not just that the promise resolved without an exception.
 
 `pnpm check` and `cargo check` both green.
 
-## 2026-07-04 ‚Äî W6 checkpoint 7: legibility bump (redirected from "DPI pass")
+## 2026-07-04 ó W6 checkpoint 7: legibility bump (redirected from "DPI pass")
 
-The proposal's original W6 checkpoint 7 was "DPI pass at 125%/150%" ‚Äî testing the app at
+The proposal's original W6 checkpoint 7 was "DPI pass at 125%/150%" ó testing the app at
 higher Windows display-scaling factors. Asked the user how to handle it (own machine,
 Claude via PowerShell/registry, or skip); the user redirected the ask entirely: don't
 touch any system display settings (a global, hard-to-reverse desktop change, correctly
 out of bounds for an unattended agent action), and instead just make the app's own text
-less small by default, using judgment ‚Äî the proposal's deliberate "13px IDE density" base
-(¬ß4.3) reads as genuinely too small in real use, not a DPI-scaling artifact.
+less small by default, using judgment ó the proposal's deliberate "13px IDE density" base
+(ß4.3) reads as genuinely too small in real use, not a DPI-scaling artifact.
 
 Bumped the whole type scale proportionally rather than cherry-picking one size, so the
 existing size hierarchy (2xs < xs < body < prose) stays intact, just shifted up ~1px
-across the board: `text-2xs` 10px‚Üí11px, `text-xs` 12px‚Üí13px, body base 13px‚Üí14px (¬ß4.3's
-own original value), `.prose-zone` (LLM pane/Home digest reading zone) 13.5px‚Üí15px ‚Äî kept
+across the board: `text-2xs` 10px?11px, `text-xs` 12px?13px, body base 13px?14px (ß4.3's
+own original value), `.prose-zone` (LLM pane/Home digest reading zone) 13.5px?15px ó kept
 deliberately larger than the new 14px base so its "bigger type for reading" purpose still
 holds. Found and bumped every OTHER hardcoded `font-size: 0.625rem`/`0.75rem` literal in
 `styles.css` too (`.chip`, `.kbd`, `.section-h`, `.list-row`, the boot-console/run-report
-classes, etc.) ‚Äî these don't use the `text-2xs`/`text-xs` utilities but are visually the
+classes, etc.) ó these don't use the `text-2xs`/`text-xs` utilities but are visually the
 same sizes, so leaving them alone would've produced a visibly inconsistent app (some text
-bumped, adjacent text not). Did NOT touch the confirmed-dead `.lens-*` classes (grepped ‚Äî
+bumped, adjacent text not). Did NOT touch the confirmed-dead `.lens-*` classes (grepped ó
 zero references anywhere in `src/app`, leftover from the deleted `section-lens.ts`).
 
-**Verified with an actual screenshot, not just a build check** ‚Äî the only way to honestly
+**Verified with an actual screenshot, not just a build check** ó the only way to honestly
 confirm a legibility/layout claim. First attempt captured the wrong window entirely (this
 Claude Code terminal, which happened to be the foreground window at those screen
-coordinates ‚Äî `CopyFromScreen` captures whatever's visually on top, not a specific
+coordinates ó `CopyFromScreen` captures whatever's visually on top, not a specific
 window, regardless of which HWND's rect you fed it). Fixed by calling `SetForegroundWindow`
 first. The corrected screenshot shows clearly larger, comfortably-padded text throughout
 (titlebar, deck rows, trace-tree chips, Inspector panels) with nothing clipped or
-overflowing in the tightest spots (20px-tall chips, the 30px titlebar) ‚Äî real confirmation
+overflowing in the tightest spots (20px-tall chips, the 30px titlebar) ó real confirmation
 this was a legibility win, not a layout regression. Worth remembering as a pattern for any
 future "does this look right" question that a computed-style check can't answer.
 
-`pnpm check` green (pure CSS change, no Rust touched ‚Äî `cargo check` not re-run this
+`pnpm check` green (pure CSS change, no Rust touched ó `cargo check` not re-run this
 checkpoint).
 
 **W6 status:** checkpoints 1-7 all done. Two things intentionally NOT done, both already
 called out in earlier entries rather than silently dropped: the self-contained
-`externalBin` sidecar packaging (checkpoint 1 ‚Äî lifecycle hardening is done and verified,
+`externalBin` sidecar packaging (checkpoint 1 ó lifecycle hardening is done and verified,
 only the installer-bundling half is deferred), and the literal "test at 125%/150% Windows
 scaling" ask (superseded by this session's legibility-bump redirect, per the user).
-`AGENTS.md`'s F section needs updating to reflect W6 done, W7 next per the proposal's ¬ß10.
+`AGENTS.md`'s F section needs updating to reflect W6 done, W7 next per the proposal's ß10.
 
-## 2026-07-04 ‚Äî W7 checkpoint 1: node-peek hover card wired to every NodeLink
+## 2026-07-04 ó W7 checkpoint 1: node-peek hover card wired to every NodeLink
 
 New `NodePeekStore` + `features/peek/node-peek.ts`: 200ms hover shows a lightweight
-real-fields-only card (title, kind, location, degree ‚Äî no neighbor lists, no actions),
+real-fields-only card (title, kind, location, degree ó no neighbor lists, no actions),
 Ctrl pins it open past `mouseleave`, Escape/click-outside/close-button dismiss. Uses a
 `LatestGate` (key `'peek'`) so sweeping the mouse across many links can't let a stale
 `getNode()` land after a newer hover already took over. A short (150ms) hide-grace timer
 lets the pointer travel from the trigger `NodeLink` down into the peek card itself
-without it vanishing mid-transit ‚Äî the timer snapshots which node it means to close, so
+without it vanishing mid-transit ó the timer snapshots which node it means to close, so
 a stale timer from an abandoned hover can never kill a different, newer peek.
 
 **A real, unrelated bug found while wiring this:** `NodeCard` (the click-through full
 detail sheet) was never mounted anywhere in the app. `grep`ping for `NodeCard` turned up
-only its own file, `NodeStore`'s doc comment, and `Skeleton`'s doc comment ‚Äî every
+only its own file, `NodeStore`'s doc comment, and `Skeleton`'s doc comment ó every
 `NodeLink` click called `NodeStore.show()`, set signals, fetched data, and then rendered
 nothing, because no template anywhere had `<app-node-card>`. Root cause: `NodeCard`'s
 only referrers used to be the old `section-entries`/trace/graph pages, deleted during
-W4's route cutover ‚Äî the cutover's own "zero surviving referrers" grep check verified the
+W4's route cutover ó the cutover's own "zero surviving referrers" grep check verified the
 *deleted* files had no referrers, but never checked whether deleting them silently
 orphaned a *surviving* component they used to mount. Fixed by mounting both
 `<app-node-card>` and `<app-node-peek>` globally in `workspace-shell.ts`, same pattern as
 `<app-omnibox>`.
 
 Folded "unpin peek" into `workbench-page.ts`'s existing Esc-ladder as its own rung
-(¬ß8.4 order: cancel trace ‚Üí close overlay ‚Üí unpin peek ‚Üí deselect node ‚Üí clear focus ‚Üí
+(ß8.4 order: cancel trace ? close overlay ? unpin peek ? deselect node ? clear focus ?
 clear filter) instead of leaving it as `node-peek.ts`'s own independent
-`window:keydown.escape` listener. First attempt kept both ‚Äî live testing caught the bug
+`window:keydown.escape` listener. First attempt kept both ó live testing caught the bug
 immediately: NodePeek's listener (mounted at app root, registered first) always fired
 before the ladder's, clearing `nodeId()` before the ladder ever saw a peek open, so every
 Escape silently fell through to *also* deselect the node in the same keystroke. Fixed by
 making `node-peek.ts`'s standalone handler a no-op while on `/explore` (where the ladder
-now owns the rung exclusively) ‚Äî it still fires normally on Home/Atlas/Insights/Settings,
+now owns the rung exclusively) ó it still fires normally on Home/Atlas/Insights/Settings,
 which have no ladder of their own.
 
 Verified live end-to-end (analyzed `MinimalApiProject`, headless Chrome): hover-delay
 timing (no premature flash, appears after 200ms), grace-period survival crossing the
-gap, Ctrl+hover pinning + surviving `mouseleave`, Escape dismissing a pinned peek, and ‚Äî
-the regression check ‚Äî clicking a `NodeLink` now actually opens the `NodeCard` sheet with
+gap, Ctrl+hover pinning + surviving `mouseleave`, Escape dismissing a pinned peek, and ó
+the regression check ó clicking a `NodeLink` now actually opens the `NodeCard` sheet with
 real content. `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 2: NodeCard skeleton loading (GAP-B8)
+## 2026-07-04 ó W7 checkpoint 2: NodeCard skeleton loading (GAP-B8)
 
 Replaced `node-card.ts`'s spinner-loading state with `app-skeleton` placeholders shaped
-like the real sections (kind, location, degree, callers) ‚Äî content-preserving loading
-per proposal ¬ß5.2, the exact principle `ui/skeleton/skeleton.ts` was built for back in W0
+like the real sections (kind, location, degree, callers) ó content-preserving loading
+per proposal ß5.2, the exact principle `ui/skeleton/skeleton.ts` was built for back in W0
 but never actually applied to the one component its own doc comment names. Also added a
 `found: false` branch ("Node not found") instead of rendering whatever zero-value fields
-a not-found `NodeResponse` carries ‚Äî trust principle (¬ß1.4), never show fabricated data.
+a not-found `NodeResponse` carries ó trust principle (ß1.4), never show fabricated data.
 
 Verified live: local `getNode`/`getNeighbors` calls normally resolve in a handful of ms,
 too fast to see the loading state, so throttled that one round-trip via a CDP
@@ -1707,7 +1707,7 @@ too fast to see the loading state, so throttled that one round-trip via a CDP
 mid-load (7 `app-skeleton` placeholders, zero leftover spinner) and clears once real
 content lands. `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 3: dedupe compact-count/bytes/timeAgo helpers (GAP-C1)
+## 2026-07-04 ó W7 checkpoint 3: dedupe compact-count/bytes/timeAgo helpers (GAP-C1)
 
 The "1.2K" compact-count formatter was byte-for-byte duplicated (as `fmtK`/`fmt`/
 `formatStars`) in `inspector.ts`, `export-drawer.ts`, `run-console.ts`, and
@@ -1715,25 +1715,25 @@ The "1.2K" compact-count formatter was byte-for-byte duplicated (as `fmtK`/`fmt`
 covers `repo-card`'s lower-case star convention), `formatBytes` (was only in
 `settings-view.ts`), and `timeAgo` (was only in `repo-card.ts`, but the same class of
 shared display logic). Each component keeps a thin `protected` wrapper delegating to the
-shared function ‚Äî templates can only call class members, so this is dedupe of the logic
+shared function ó templates can only call class members, so this is dedupe of the logic
 itself, not a template rewrite. Pure refactor, verified the extracted functions produce
 identical output to the original inline expressions for the same inputs; `pnpm check`
 green (27/27 tests, build 0w/0e).
 
-## 2026-07-04 ‚Äî W7 checkpoint 4: `?` help overlay = full ¬ß8.4 map (GAP-T2)
+## 2026-07-04 ó W7 checkpoint 4: `?` help overlay = full ß8.4 map (GAP-T2)
 
 The help overlay was stale from before the W4 route cutover: `VIEW_SHORTCUTS` still
 routed `g` + o/e/t/g/i/x/s to dead pages (`/overview`, `/entries`, `/trace`, `/graph`,
-`/export`), and was missing `h` (Home) and `a` (Atlas) entirely ‚Äî even though
+`/export`), and was missing `h` (Home) and `a` (Atlas) entirely ó even though
 `activity-bar.ts`'s own `railItems` already declare those exact `shortKey`s in their
 tooltips ("g h" was promised, silently did nothing). Rewrote both the routing map and the
 displayed table against the real, current keymap.
 
 Along the way, implemented the one row that didn't functionally exist yet: "v t/v g/v
-s/v n" stage-altitude switching ‚Äî Stage only had mouse-click chips before this.
+s/v n" stage-altitude switching ó Stage only had mouse-click chips before this.
 Promoted `stage.ts`'s `flowMode` from a private signal to a `model()` (same pattern
-already used for `altitude`) so `workbench-page.ts`'s new v-prefix handler ‚Äî mirroring
-`workspace-shell`'s existing g-prefix chord pattern, 1.5s window, hint bubble ‚Äî can drive
+already used for `altitude`) so `workbench-page.ts`'s new v-prefix handler ó mirroring
+`workspace-shell`'s existing g-prefix chord pattern, 1.5s window, hint bubble ó can drive
 both altitude and flow-mode together. The spec's 4 stage shortcuts map onto this app's
 real 3-altitude + tree/graph-submode model exactly: `v t`/`v g` both select the `'flow'`
 altitude with the matching sub-mode, `v s`/`v n` select `'system'`/`'node'`.
@@ -1742,39 +1742,39 @@ Verified live: help overlay content matches, `g h`/`g a` actually navigate (prev
 silent no-ops), all four v-shortcuts switch the right altitude/mode combination.
 `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 5: Paper light theme + system-follow (¬ß4.2)
+## 2026-07-04 ó W7 checkpoint 5: Paper light theme + system-follow (ß4.2)
 
 The Paper palette itself already existed pre-W7 (`[data-vibe="modern"][data-theme=
-"light"]`, exact values from ¬ß4.2, literally commented "Paper (F proposal ¬ß4.2)") but had
-zero UI path to reach it ‚Äî Settings only exposed a vibe picker, no dark/light/system
+"light"]`, exact values from ß4.2, literally commented "Paper (F proposal ß4.2)") but had
+zero UI path to reach it ó Settings only exposed a vibe picker, no dark/light/system
 toggle, and `ThemeService` had no concept of "system" at all.
 
 `ThemeService`: `theme()` can now hold the raw preference `'system'`; new
 `resolvedTheme` computed resolves it against a live `prefers-color-scheme` media-query
-listener (updates without reload) ‚Äî falls back to the vibe's own default for dark-only
+listener (updates without reload) ó falls back to the vibe's own default for dark-only
 vibes like Terminal, which only declares one theme by design, not an oversight. The
 `data-theme` DOM-attribute effect and `setVibe()`'s reset-if-unsupported guard both
 switched from the raw preference to the resolved value / a system-aware check (`'system'`
-is always valid regardless of which vibe is active). Settings ‚Üí Appearance gets a
+is always valid regardless of which vibe is active). Settings ? Appearance gets a
 Dark/Light/System segmented toggle; Light only renders for vibes that actually declare a
-light theme (Modern, Hacker) ‚Äî Terminal correctly shows just Dark.
+light theme (Modern, Hacker) ó Terminal correctly shows just Dark.
 
 Verified live: Dark/Light apply the exact expected `--vibe-base` values (`#16181d` /
 `#f6f7f9`), System tracks `page.emulateMedia({colorScheme})` changes with no reload, and
 switching to the dark-only Terminal vibe under System stays sane (hides the Light
 button, resolves to dark, no crash). `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 6: reduced-motion audit ‚Äî exempt spinners (¬ß4.4)
+## 2026-07-04 ó W7 checkpoint 6: reduced-motion audit ó exempt spinners (ß4.4)
 
 Audited every animation/transition path (no `@angular/animations`, no
 `requestAnimationFrame`, everything is Tailwind `transition-*`/`animate-*` utilities)
 against the global `prefers-reduced-motion` rule in `styles.css`. Found one real gap: the
 blanket rule froze `.animate-spin` (`ui/spinner/spinner.ts`, plus the loader icons in
-`export-drawer.ts`/`run-console.ts`) to a single static frame mid-rotation ‚Äî the same
+`export-drawer.ts`/`run-console.ts`) to a single static frame mid-rotation ó the same
 category of anti-pattern the app had already avoided for `.hairline`/`.skeleton` (both
 already have their own explicit `animation: none` override further down the same file),
 just never extended to spinners. A frozen spinner reads as "the app is stuck", not as
-"motion was reduced" ‚Äî indeterminate-progress motion is functional feedback, not
+"motion was reduced" ó indeterminate-progress motion is functional feedback, not
 decoration, and is conventionally exempted from this preference industry-wide (macOS/
 iOS/VS Code/GitHub all keep spinners moving under it).
 
@@ -1784,12 +1784,12 @@ synthetic elements against the real stylesheet (decoupled from app-timing flakin
 spin keeps a real 1s/infinite animation under reduced-motion, pulse/transitions collapse
 to ~0, and the same rules play normally with reduced-motion off. `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 7: snapshot diff (¬ß3.9, stretch)
+## 2026-07-04 ó W7 checkpoint 7: snapshot diff (ß3.9, stretch)
 
 Ctrl+R (re-analyze same path) now captures a before/after comparison and posts it as a
-ticker item: entry counts by kind (¬ß3.9's own example, "+3 endpoints, ‚àí1 consumer") plus
-the Flow Atlas's repo-wide confidence (`AtlasStore.overallVerifiedPct`, ¬ß3.5 ‚Äî "wired
-87‚Üí91%"). Zero new engine calls, pure client-side diff of data this app already fetches
+ticker item: entry counts by kind (ß3.9's own example, "+3 endpoints, -1 consumer") plus
+the Flow Atlas's repo-wide confidence (`AtlasStore.overallVerifiedPct`, ß3.5 ó "wired
+87?91%"). Zero new engine calls, pure client-side diff of data this app already fetches
 on every analyze. New `state/snapshot-diff.store.ts`; wired into
 `WebviewShortcutsService.reanalyze()` (the one real "re-analyze same path" entry point).
 
@@ -1797,7 +1797,7 @@ The "after" confidence reading deliberately waits for `AtlasStore.status() === '
 (an `effect()` keyed off a pending-path signal) rather than reading it the instant
 `analyze()` resolves: atlas indexing restarts fresh on every analyze and runs in the
 background, so an early read would compare a fully-settled "before" percentage against a
-half-indexed "after" one ‚Äî a misleading comparison dressed up as a regression, not a real
+half-indexed "after" one ó a misleading comparison dressed up as a regression, not a real
 one. Trust principle: the summary builder returns `null` (nothing posted) when literally
 nothing changed, rather than a fabricated "no changes" line.
 
@@ -1806,13 +1806,13 @@ Verified live end-to-end against a scratch copy of the fixture repo in the OS te
 adding one real `MapDelete` endpoint and re-analyzing produces "+1 endpoint" in the
 ticker within the atlas-done window. `pnpm check` green.
 
-## 2026-07-04 ‚Äî W7 checkpoint 8: acceptance sweep + gate
+## 2026-07-04 ó W7 checkpoint 8: acceptance sweep + gate
 
-Ran the proposal ¬ß10 final-gate checklist against everything W7 touched (not
+Ran the proposal ß10 final-gate checklist against everything W7 touched (not
 re-litigating W4/W5/W6's own already-passed gates from scratch, since W7 didn't touch
 most of that surface): `pnpm check` real-exit-code green (lint 0/0, 27/27 tests, build
 0w/0e); Home digest renders after analyze; Atlas still shows topology with zero traces
-run (the actual W4 "never-blank graph" requirement ‚Äî first draft of this sweep mistakenly
+run (the actual W4 "never-blank graph" requirement ó first draft of this sweep mistakenly
 checked Explore's Stage default altitude instead, which defaults to `'flow'` not
 `'system'` and is unrelated to that gate line); Atlas/Insights/Settings all navigate
 clean; the full Esc-ladder chain exercised end-to-end including the two rungs this stage
@@ -1820,15 +1820,15 @@ touched directly (unpin-peek closes only the peek and leaves the node selection 
 one step at a time, not two); help overlay open/close still clean; zero console/page
 errors across the whole sweep.
 
-**W7 status:** all 8 items done, including the ¬ß3.9 stretch goal. Every one of the 23
-gaps from ¬ß9 is now closed except the two the proposal itself calls engine-blocked (S1
-auth column, S2 line numbers) ‚Äî T2 and B8/C1 were W7's own assignments and are done;
+**W7 status:** all 8 items done, including the ß3.9 stretch goal. Every one of the 23
+gaps from ß9 is now closed except the two the proposal itself calls engine-blocked (S1
+auth column, S2 line numbers) ó T2 and B8/C1 were W7's own assignments and are done;
 everything else was already closed by W1-W6. `AGENTS.md`'s F section needs updating to
-mark W7 done ‚Äî this was the last stage in the proposal's ¬ß10 waterfall.
+mark W7 done ó this was the last stage in the proposal's ß10 waterfall.
 
-## 2026-07-05 ÔøΩ L3 audit fixes + L4 delivery: Insight engine v2
+## 2026-07-05 ? L3 audit fixes + L4 delivery: Insight engine v2
 
-**Changed (L3 audit fixes ÔøΩ 6 engine + 5 Angular):**
+**Changed (L3 audit fixes ? 6 engine + 5 Angular):**
 - **F1** BfsEntryScore cross-project counting: Path.GetFileNameWithoutExtension(fp) ? scope.ProjectForFile(fp). Dead projectByPath dict removed.
 - **F2** Angular devcontext-api.ts: getImpact() and getInterestingPoints() RPC wrappers added.
 - **F3** EntryVm.groupPath + mapping in 	oEntryVm(). Entry deck shows groupPath chip per row.
@@ -1839,13 +1839,13 @@ mark W7 done ‚Äî this was the last stage in the proposal's ¬ß10 waterfall.
 - **F8** Dead hub-scope dedup loop (4 lines) removed.
 - **F9** BlastRadius O(n)?O(1) entry lookup via Dictionary<NodeId, EntryPoint>.
 
-**Changed (L4.1 ÔøΩ Insight envelope v2):**
+**Changed (L4.1 ? Insight envelope v2):**
 - Insight record extended: Confidence (double), ConfidenceBasis (string?), WhyItMatters (string?), Action (InsightAction enum: None/Trace/Usages/Export), ActionTarget (string?). Insight.Create() factory stays backward-compatible (new params have neutral defaults).
 - Proto Insight message: confidence (7), confidence_basis (8), why_it_matters (9), action (10), action_target (11).
 - ProtoMapper.ToStatsResponse: maps all new fields. AnonymousEndpointsSource enriched with auth coverage confidence, why-it-matters, action=Trace.
 - Angular insights-view.ts: shows confidence % with basis tooltip, why-it-matters italic text, and action buttons (Trace it/See usages/Export).
 
-**Changed (L4.2 ÔøΩ Per-archetype composition):**
+**Changed (L4.2 ? Per-archetype composition):**
 - 6 new IInsightSource implementations in Core/Insights/Archetype/:
   - **WebArchetypeSource**: auth surface card (protected/public/unannotated counts), data map (entities per scope), middleware pipeline (behaviour count)
   - **LibraryArchetypeSource**: public surface size (interfaces/classes), internal hubs (heavily-referenced internal types), seat implementors (DI multi-impl interfaces)
@@ -1856,35 +1856,35 @@ mark W7 done ‚Äî this was the last stage in the proposal's ¬ß10 waterfall.
 - Each source gates on archetype signals and yields zero insights when not applicable.
 - Registered in DiscoveryPipeline.cs insight sources array.
 
-**Changed (L4.3 ÔøΩ Confidence Ledger):**
+**Changed (L4.3 ? Confidence Ledger):**
 - ConfidenceLedger record: overall confidence, verified/approx edge %, per-seam breakdown (SeamConfidence: seam/total/verified/approx), auth coverage %, entry target %.
 - ConfidenceLedger.Compute(graph, entries): O(n) pass over all edges + entries.
 - Proto ConfidenceLedger message + SeamConfidence in StatsResponse (field 10). Mapped in ProtoMapper.ToStatsResponse.
 - Angular identity-strip.ts: confidence stat now reads from stats.confidenceLedger.overall (not AtlasStore). Clicking opens an expandable Ledger panel showing overall, verified/approx edges, auth coverage, entry targets, and per-seam breakdown.
 
-**Changed (L4.4 ÔøΩ Doc-summary hygiene):**
+**Changed (L4.4 ? Doc-summary hygiene):**
 - LibrarySurfaceBuilder.IsVendoredNamespace: excludes JetBrains.Annotations, System.Runtime.CompilerServices, System.Diagnostics.CodeAnalysis, Microsoft.CodeAnalysis, *.GeneratedCode.
 - Applied in publicTypes filter before surface grouping.
 
 **Verified:** dotnet build 0w 0e, dotnet test 429/0 (3 skipped), pnpm check (lint + vitest 27/27 + build) green.
 
-**Next:** L5 ÔøΩ MCP server + context packs (proposal-lighthouse.md ÔøΩL5).
+**Next:** L5 ? MCP server + context packs (proposal-lighthouse.md ?L5).
 
 ---
 
-## 2026-07-05 ÔøΩ Lighthouse L5+L6: MCP server + UI/UX round + audit fixes
+## 2026-07-05 ? Lighthouse L5+L6: MCP server + UI/UX round + audit fixes
 
 **Changed (L5.1):**
 - New \src/DevContext.Mcp/\ project: stdio MCP server using \ModelContextProtocol\ 1.4.0 SDK
 - \McpSessionManager\: non-blocking analyze, status polling, LRU (3 snapshots), Serilog file-only logging
-- \DevContextTools\: 13 MCP tools ÔøΩ analyze, status, entrypoints, map, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
+- \DevContextTools\: 13 MCP tools ? analyze, status, entrypoints, map, top_flows, interesting_points, trace, node, neighbors, usages, search, impact, insights
 - Every response envelope carries scope + coverage + confidence from ConfidenceLedger
 
 **Changed (L5.4+L5.5):**
-- \ContextPackBuilder\ in \DevContext.Core/Graph/\ (kernel): trace skeleton, callee signatures, salient bodies, DI wiring ÔøΩ ranked by distance, budgeted with per-section token attribution + omitted list
+- \ContextPackBuilder\ in \DevContext.Core/Graph/\ (kernel): trace skeleton, callee signatures, salient bodies, DI wiring ? ranked by distance, budgeted with per-section token attribution + omitted list
 - \get_context(handle, focus, budget_tokens, intent)\ MCP tool
 - \
-ead_source(handle, node_id)\ MCP tool ÔøΩ file:line anchored read (20-line window)
+ead_source(handle, node_id)\ MCP tool ? file:line anchored read (20-line window)
 
 **Changed (L6.1-L6.6):**
 - \identity-strip.ts\: identity sentence, human stat labels with hover tooltips, confidence clickable ? Ledger
@@ -1894,7 +1894,7 @@ ead_source(handle, node_id)\ MCP tool ÔøΩ file:line anchored read (20-line windo
 - \statusbar.ts\: removed node/edge/entry plumbing; ticker retains insight headlines
 
 **Changed (L6.7+L6.8):**
-- \stage.ts\: Zen mode ÔøΩ F key full-screen overlay, Escape exits, double-click header toggle
+- \stage.ts\: Zen mode ? F key full-screen overlay, Escape exits, double-click header toggle
 - \graph-canvas.ts\: hover focus dimming (non-neighbors 15% opacity), legend ? popover
 
 **Audit fixes:**
@@ -1949,60 +1949,60 @@ ead_source(handle, node_id)\ MCP tool ÔøΩ file:line anchored read (20-line windo
 
 ---
 
-## 2026-07-06 ‚Äî M8.1 Context Studio: scope picker, composition view, budget panel, old panes retired (DONE)
+## 2026-07-06 ó M8.1 Context Studio: scope picker, composition view, budget panel, old panes retired (DONE)
 
 **M8.1b Scope picker (`scope-picker.ts`):**
-- Service ‚Üí entry hierarchy tree built from `SessionStore.entryGroups()` grouped by `entry.project`
+- Service ? entry hierarchy tree built from `SessionStore.entryGroups()` grouped by `entry.project`
 - Text filter with clear button
-- "I'm changing this endpoint" preset button ‚Üí dropdown of all entries ‚Üí seeds 5 cards: flow, members, contracts, validators, tests
+- "I'm changing this endpoint" preset button ? dropdown of all entries ? seeds 5 cards: flow, members, contracts, validators, tests
 - Bottom bar with selection count + "Add to context" button
 - Entry kind icons/colors from M7.0 KIND_COLORS registry
 
 **M8.1c Composition view (`composition-view.ts`):**
 - Ordered `ContextCard[]` signal (id, type, title, entryIds, estimatedLines, bodyEnabled)
-- Each card: grip handle, type badge (colored: Flow/Info, Members/Success, Config/Warn, Entities/Accent, Tests/Danger), title, line count, body toggle (eye/eye-off), √ó remove
+- Each card: grip handle, type badge (colored: Flow/Info, Members/Success, Config/Warn, Entities/Accent, Tests/Danger), title, line count, body toggle (eye/eye-off), ◊ remove
 - Footer shows card count + total lines
 - Empty state with layers icon + "No cards yet" message
 
 **M8.1d Budget panel (`budget-panel.ts`):**
-- Token budget slider (1k‚Äì16k, stops grid underneath)
-- Per-card bar meter (`lines √ó 2.5` v0 heuristic), over-budget cards show warn color
-- Total bar: green ‚â§ budget, red > budget
+- Token budget slider (1kñ16k, stops grid underneath)
+- Per-card bar meter (`lines ◊ 2.5` v0 heuristic), over-budget cards show warn color
+- Total bar: green = budget, red > budget
 - Intent selector: Trace/Explain/Review chip buttons
 - Format selector: Markdown/Plain chip buttons
-- [Copy] button ‚Üí icon changes to check + "Copied!" toast (A11 feedback affordance)
-- [Save] button ‚Üí downloads as .md file + toast
+- [Copy] button ? icon changes to check + "Copied!" toast (A11 feedback affordance)
+- [Save] button ? downloads as .md file + toast
 - `copyRequest`/`saveRequest` outputs (no native DOM event collision)
 
 **M8.1e Retire old panes:**
-- Removed `features/export/export-drawer.ts` (553 lines) ‚Äî deleted file + directory
+- Removed `features/export/export-drawer.ts` (553 lines) ó deleted file + directory
 - Removed `ExportDrawer` from workbench-page.ts: import, imports array, template block, dead `exportOpen` signal, Esc-ladder check
 - Removed Inspector LLM section: `'llm'` from SectionId, ~46-line template block, `renderContent`/`tokenEstimate`/`renderLoading`/`renderError` signals, `renderTimer`/`renderedFocus` fields, debounced render effect, `copy`/`fmtK`/`render`/`debouncedRender`/`doRender` methods, `RENDER_DEBOUNCE_MS` constant, `formatCompact`/`DestroyRef` imports
-- `copyToClipboard`/`Skeleton` kept ‚Äî still used by Code tab
+- `copyToClipboard`/`Skeleton` kept ó still used by Code tab
 
 **Parent `context-studio.ts` rewritten:**
 - Imports and wires ScopePicker, CompositionView, BudgetPanel
 - Owns `cards` signal, delegates card CRUD to children
 - `buildContext()` assembles markdown from cards
-- `onCopy()` ‚Üí clipboard.writeText, `onSave()` ‚Üí Blob download
+- `onCopy()` ? clipboard.writeText, `onSave()` ? Blob download
 
 **Verified:** `pnpm check` green (lint 0/0, test 27/27, build 0w/0e).
-**ExportDrawer references:** 1 (comment in `core/format.ts:4` ‚Äî acceptable).
-**New lazy chunk:** `context-studio` ‚Äî 21 kB.
+**ExportDrawer references:** 1 (comment in `core/format.ts:4` ó acceptable).
+**New lazy chunk:** `context-studio` ó 21 kB.
 
-**Next:** M8.2 Composition model (cards/seeds/presets ‚Äî make cards carry real context data from RPC).
+**Next:** M8.2 Composition model (cards/seeds/presets ó make cards carry real context data from RPC).
 **Trap:** Token estimation is client-side v0 heuristic; server-side round-trip through ContextPackBuilder gated for M8.4; lens-switcher layer/feature still available=false.
 
 ---
 
-## 2026-07-06 ‚Äî M8.2 Composition model: cards, seeds, presets (DONE)
+## 2026-07-06 ó M8.2 Composition model: cards, seeds, presets (DONE)
 
 **M8.2a Card types (9):**
 - Flow skeleton, member signatures, member bodies, DI wiring, config keys, entities/contracts,
   tests-for, repo identity, custom
 - Each card: type badge (colored per kind), title, provenance chips, body toggle, drag handle,
-  √ó remove
-- Drag-drop reorder (custom implementation ‚Äî lightweight, no CDK dependency)
+  ◊ remove
+- Drag-drop reorder (custom implementation ó lightweight, no CDK dependency)
 
 **M8.2b Scope seeds:**
 - Entry/flow seeds from scope picker tree
@@ -2010,7 +2010,7 @@ ead_source(handle, node_id)\ MCP tool ÔøΩ file:line anchored read (20-line windo
 - Service seeds (all entries in a service)
 - Insight seeds (action targets from insight cards)
 - Trail seeds (entries in current trail)
-- "I'm changing this endpoint" preset ‚Üí 5 cards: flow + members + contracts + validators + tests
+- "I'm changing this endpoint" preset ? 5 cards: flow + members + contracts + validators + tests
 
 **M8.2c getContext RPC wiring:**
 - `loadCardContent()` calls `api.getContext()` with focus on card's seed entries
@@ -2027,22 +2027,22 @@ real content for dogfood entries.
 
 ---
 
-## 2026-07-06 ‚Äî M8.3 Budget/meter/server-token wiring + M8.4 Provenance chips (DONE)
+## 2026-07-06 ó M8.3 Budget/meter/server-token wiring + M8.4 Provenance chips (DONE)
 
-**M8.3a Budget ‚Üí RPC wiring:**
-- `budget-panel.ts` budget slider (1k‚Äì16k) drives `budgetTokens` param on getContext RPC
+**M8.3a Budget ? RPC wiring:**
+- `budget-panel.ts` budget slider (1kñ16k) drives `budgetTokens` param on getContext RPC
 - `context-studio.ts` passes budget to `loadCardContent()` which passes it to `api.getContext()`
 - Server uses budget to trim content (section-level granularity)
 
 **M8.3b Server vs heuristic token distinction:**
 - Cards show `serverTokens` (from RPC) without `~` prefix (green)
 - Cards without server tokens show ~heuristic (amber)
-- `totalTokens` computed: prefers serverTokens, falls back to `lines √ó 2.5`
+- `totalTokens` computed: prefers serverTokens, falls back to `lines ◊ 2.5`
 - Per-section token breakdown from server response
 
 **M8.3c Budget panel enhancements:**
 - Per-card bar meter with actual token values
-- Total bar: green ‚â§ budget, red > budget
+- Total bar: green = budget, red > budget
 - Over-budget cards highlighted in warn color
 
 **M8.4a Provenance chips:**
@@ -2061,28 +2061,28 @@ budgetTokens param. Provenance chips render with file:line for dogfood entries.
 
 ---
 
-## 2026-07-07 ‚Äî M9 Close-out: Full bench, AUDIT.md, HANDOVER-MERIDIAN.md (DONE)
+## 2026-07-07 ó M9 Close-out: Full bench, AUDIT.md, HANDOVER-MERIDIAN.md (DONE)
 
-**M9.1 ‚Äî Full bench (22/22 repos):**
+**M9.1 ó Full bench (22/22 repos):**
 - Ran `scripts/bench.ps1` across all 22 repos in `eval-repos.json`
-- 19/22 passed on first run; 3 clone failures (gRPC, MassTransit, MassTransit-Sample) ‚Äî network
+- 19/22 passed on first run; 3 clone failures (gRPC, MassTransit, MassTransit-Sample) ó network
   issues, manually re-cloned and re-analyzed
 - All 22 reports content-asserted (Stats + TopFlows present, zero stubs)
-- PowerToys (5,141 nodes, 2,878 edges, 30.0s) ‚Äî Lighthouse-deferred, now verified
-- MassTransit (24,819 nodes, 2,929 edges, 46.4s) ‚Äî largest framework analyzed, verified
+- PowerToys (5,141 nodes, 2,878 edges, 30.0s) ó Lighthouse-deferred, now verified
+- MassTransit (24,819 nodes, 2,929 edges, 46.4s) ó largest framework analyzed, verified
 - Results in `eval-results/2026-07-07/`
 
-**M9.2 ‚Äî AUDIT.md:**
+**M9.2 ó AUDIT.md:**
 - Wrote `eval-results/2026-07-07/AUDIT.md`
-- Scored all W-findings (E1-E9) ‚Äî 8/9 FIXED, 1/9 IMPROVED (re-verified post-Meridian)
+- Scored all W-findings (E1-E9) ó 8/9 FIXED, 1/9 IMPROVED (re-verified post-Meridian)
 - Scored every M-stage gate (M0-M8) with fresh evidence
 - Per-repo bench summary table (22 repos)
 - Known gaps catalog (Gap 1, Gap 2, Trap A, Trap B)
 - All verdicts cite artifact paths, not code existence
 
-**M9.3 ‚Äî HANDOVER-MERIDIAN.md + tracker close:**
+**M9.3 ó HANDOVER-MERIDIAN.md + tracker close:**
 - Wrote `docs/dev/HANDOVER-MERIDIAN.md` (10 sections, Lighthouse handover style)
-- Updated `MERIDIAN-START.md` ‚Äî closed tracker rows M9.1-M9.3, updated handoff block
+- Updated `MERIDIAN-START.md` ó closed tracker rows M9.1-M9.3, updated handoff block
 - Appended this entry to `docs/dev/go-to-program/PROGRESS-LOG.md`
 
 **Verified:** `dotnet build` 0w 0e, `dotnet test --filter Category!=Eval` green,
@@ -2094,12 +2094,12 @@ build 0w/0e).
 
 ---
 
-## 2026-07-07 ‚Äî M9-ext: Layer/Feature lens cytoscape rendering (DONE)
+## 2026-07-07 ó M9-ext: Layer/Feature lens cytoscape rendering (DONE)
 
 **Audit:** Code-level audit of all remaining documented gaps from HANDOVER-MERIDIAN.md:
-- buildContext() client-side v0 ‚Äî acceptable v0; content IS server-generated via getContext RPC
-- Freshness probe RPC ‚Äî stale data already flows through getStats().stale field; UI shows stale chips
-- Layer/Feature cytoscape ‚Äî lens buttons existed but rendered identical system topology (no difference from Service lens)
+- buildContext() client-side v0 ó acceptable v0; content IS server-generated via getContext RPC
+- Freshness probe RPC ó stale data already flows through getStats().stale field; UI shows stale chips
+- Layer/Feature cytoscape ó lens buttons existed but rendered identical system topology (no difference from Service lens)
 
 **Engine (C#):**
 - `MapBuilder.cs`: ProjectNode record gains `Layer?` and `Feature?` init-only properties
@@ -2107,7 +2107,7 @@ build 0w/0e).
 - `ProtoMapper.ToMapResponse`: copies `pn.Layer` / `pn.Feature` to proto ProjectNode
 
 **UI (TypeScript):**
-- `graph-canvas.ts`: `lensId` input added; `LAYER_COLORS` map (Api‚Üíinfo, Application‚Üíaccent, Domain‚Üísuccess, Infrastructure‚Üíwarn, etc.) with `FEATURE_PALETTE` hash-cycled palette; `buildTopologyElements` passes layer/feature in node data; `nodeBorderColor` function uses lens-based coloring; `updateLegend` shows layer/feature-specific legends; lensId effect triggers `cy.style().update()` for reactive recoloring
+- `graph-canvas.ts`: `lensId` input added; `LAYER_COLORS` map (Api?info, Application?accent, Domain?success, Infrastructure?warn, etc.) with `FEATURE_PALETTE` hash-cycled palette; `buildTopologyElements` passes layer/feature in node data; `nodeBorderColor` function uses lens-based coloring; `updateLegend` shows layer/feature-specific legends; lensId effect triggers `cy.style().update()` for reactive recoloring
 - `stage.ts`: passes `[lensId]="lensModel()"` to topology graph canvas; sets `[lensId]="'flow'"` on trace/neighbors canvii
 
 **Verified:** `dotnet build` 0w 0e; `dotnet test --filter Category!=Eval` all green; `pnpm check` green (lint 0/0, test 27/27, build 0w/0e).
@@ -2118,22 +2118,22 @@ build 0w/0e).
 
 ---
 
-## 2026-07-07 ‚Äî Loom L0.1: Truth harness landed
+## 2026-07-07 ó Loom L0.1: Truth harness landed
 
 **Session #2, target stage L0.** Conducted by autonomous agent under Conductor orchestrator, attempt 1/4.
 
 **Pre-session:**
-- Read `LOOM-START.md`, `loom-graph-design.md`, `proposal-loom.md` ¬ßL0, `SESSION-AUDIT.md`
-- Gate battery: `dotnet build` 0w/0e, `dotnet test --filter "Category!=Eval"` all green (Core 355/3skip, Server 12, Desktop 64), `pnpm check` green ‚Äî all clean before starting
+- Read `LOOM-START.md`, `loom-graph-design.md`, `proposal-loom.md` ßL0, `SESSION-AUDIT.md`
+- Gate battery: `dotnet build` 0w/0e, `dotnet test --filter "Category!=Eval"` all green (Core 355/3skip, Server 12, Desktop 64), `pnpm check` green ó all clean before starting
 
 **QA of previous session:**
 - All 22 audit artifacts from `eval-results/2026-07-07/` confirmed present
-- E1 (checkout trace depth-1) re-verified via fresh CLI run ‚Äî still broken, unchanged since audit
+- E1 (checkout trace depth-1) re-verified via fresh CLI run ó still broken, unchanged since audit
 - MCP QA scripts (`run.js`, `run-multi.js`) exist; `run-cold.js` not yet created (L0.2)
 - `ui-audit-drive.mjs` exists at `src/DevContext.App/scripts/ui-audit-drive.mjs` (L0.3 baseline)
-- No uncommitted G8-G11 code ‚Äî all committed in `5e3d6a1` (verified)
+- No uncommitted G8-G11 code ó all committed in `5e3d6a1` (verified)
 
-**Delivered ‚Äî L0.1 Truth expectations:**
+**Delivered ó L0.1 Truth expectations:**
 
 | File | Purpose |
 |------|---------|
@@ -2144,20 +2144,20 @@ build 0w/0e).
 **Test matrix:**
 | Test | Status | Unblocks at |
 |------|--------|-------------|
-| `Dogfood_baseline_presence_ok` | ‚úÖ PASS | ‚Äî |
-| `TodoApi_baseline_presence_ok` | ‚úÖ PASS | ‚Äî |
-| `CleanArchitecture_baseline_presence_ok` | ‚úÖ PASS | ‚Äî |
-| `DntSite_baseline_presence_ok` | ‚úÖ PASS (skip if not cloned) | ‚Äî |
-| `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` | ‚è∏Ô∏è SKIP | L2.4 |
-| `Dogfood_service_names_are_full_and_runnables_only` | ‚è∏Ô∏è SKIP | L1.2 |
-| `RazorPages_no_fabricated_cross_sample_edges` | ‚è∏Ô∏è SKIP | L1 |
-| `Blazor_archetype_is_not_microservices` | ‚è∏Ô∏è SKIP | L7.3 |
+| `Dogfood_baseline_presence_ok` | ? PASS | ó |
+| `TodoApi_baseline_presence_ok` | ? PASS | ó |
+| `CleanArchitecture_baseline_presence_ok` | ? PASS | ó |
+| `DntSite_baseline_presence_ok` | ? PASS (skip if not cloned) | ó |
+| `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` | ?? SKIP | L2.4 |
+| `Dogfood_service_names_are_full_and_runnables_only` | ?? SKIP | L1.2 |
+| `RazorPages_no_fabricated_cross_sample_edges` | ?? SKIP | L1 |
+| `Blazor_archetype_is_not_microservices` | ?? SKIP | L7.3 |
 
 **Evidence:** `eval-results/2026-07-07/truth-gate-l0.1.txt` (4 pass, 4 skip, 0 fail)
 
 **Commits:** `5084826` (feat(l0): truth harness) + `c6bfa2d` (tracker hash fix)
 
-**Post-session gate:** `dotnet build` 0w/0e ¬∑ `dotnet test --filter "Category!=Eval"` Core 355/3skip ¬∑ Server 12 ¬∑ Desktop 64 ¬∑ `pnpm check` green ¬∑ truth gate 4/4 pass ¬∑ branch pushed
+**Post-session gate:** `dotnet build` 0w/0e ∑ `dotnet test --filter "Category!=Eval"` Core 355/3skip ∑ Server 12 ∑ Desktop 64 ∑ `pnpm check` green ∑ truth gate 4/4 pass ∑ branch pushed
 
 **Updated:** `LOOM-START.md` handoff + L0.1 row; `PROGRESS-LOG.md`.
 
@@ -2187,7 +2187,7 @@ build 0w/0e).
 
 **Commits:** `1b1a49d` (fix) + `094aa1d` (handover)
 
-**Next:** L4.1 ‚Äî Flow store on CodeGraph.
+**Next:** L4.1 ó Flow store on CodeGraph.
 
 **Updated:** `.conductor/handovers/L3.md`, `PROGRESS-LOG.md`.
 
@@ -2208,24 +2208,24 @@ build 0w/0e).
 **Verified:**
 - Full gate battery green: build 0w/0e, Core 393P/3S, Desktop 64P, Server 12P,
   pnpm check PASS (27 tests), mcp-qa 8/8, loom-guards PASS.
-- Node/edge counts unchanged: 422n/276e/6SL/34ent, 82% verified (¬±1% from L3.3).
+- Node/edge counts unchanged: 422n/276e/6SL/34ent, 82% verified (±1% from L3.3).
 - 34 flows computed and stored on CodeGraph (one per entry).
 - MCP QA continues to pass (8/8, checkout 24 steps cross-service).
 
 **Commits:** `8e75dd9` feat(l4.1)
 
-**Next:** L4.2 ‚Äî Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets RPC.
+**Next:** L4.2 ó Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets RPC.
 
 **Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
 
 ---
 
-## 2026-07-08 ‚Äî L4.2: Projections + GetGraphFacets RPC (session #19)
+## 2026-07-08 ó L4.2: Projections + GetGraphFacets RPC (session #19)
 
 **Changed:**
 - Created `Graph/GraphProjections.cs`: `IGraphProjection<TOut>`, `ProjectionOptions`, and 4 implementations:
   `ServiceMapProjection`, `FlowListProjection`, `EntryTableProjection`, `LayerBandProjection`.
-  Each ‚â§~60 lines, zero regex, zero static state.
+  Each =~60 lines, zero regex, zero static state.
 - Added `GraphQuery.Flows` property exposing precomputed `CodeGraph.Flows`.
 - Added `GetGraphFacets` RPC + 9 new proto messages to `devcontext.proto`.
 - Added `ProtoMapper.ToGraphFacetsResponse()` translating all 4 facets to proto.
@@ -2235,19 +2235,19 @@ build 0w/0e).
 - Full gate battery green: build 0w/0e, Core 393P/3S, Desktop 64P, Server 12P,
   pnpm check PASS (27 tests), loom-guards PASS.
 - Node/edge counts unchanged: 422n/276e/6SL/34ent, 82% verified (same as L4.1).
-- All 4 projections compile + wire through proto ‚Üí server ‚Üí ProtoMapper.
+- All 4 projections compile + wire through proto ? server ? ProtoMapper.
 
 **Commits:** `(l4.2)` feat(l4.2)
 
-**Next:** L4.3 ‚Äî Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
+**Next:** L4.3 ó Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
 
 **Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
 
-## 2026-07-08 ‚Äî L4.3: Home/Atlas/MCP consume projections (session #20, attempt 1/4)
+## 2026-07-08 ó L4.3: Home/Atlas/MCP consume projections (session #20, attempt 1/4)
 
-**QA of prior session (L4.2):** PASS. Re-ran dogfood fresh ‚Üí 422n/276e/6SL/34ent/82%, reproduces
+**QA of prior session (L4.2):** PASS. Re-ran dogfood fresh ? 422n/276e/6SL/34ent/82%, reproduces
 the L4.2 claim exactly. Projections + GetGraphFacets RPC present and wired. Gap found (not a blocker):
-no projection unit tests existed ‚Äî added `GraphProjectionTests.cs` this session.
+no projection unit tests existed ó added `GraphProjectionTests.cs` this session.
 
 **Changed:**
 - MCP `overview` (`DevContextTools.cs`) now sources services + top flows + service links from
@@ -2260,7 +2260,7 @@ no projection unit tests existed ‚Äî added `GraphProjectionTests.cs` this sessio
 - `SessionStore.analyze` fetches `getGraphFacets` post-ready; `graphFacets` added to session slice.
 - Real defect fixed (audit Claim 3 / E3): `IsRunnableService` mis-classified BuildingBlocks (a lib
   referencing FluentValidation.AspNetCore) as runnable via a loose "AspNetCore" substring package
-  check ‚Äî tightened to `Microsoft.AspNetCore.App*` / Web-SDK / Exe (design ¬ß2.4). Runnable Service
+  check ó tightened to `Microsoft.AspNetCore.App*` / Web-SDK / Exe (design ß2.4). Runnable Service
   nodes tagged `RoleTags.Runnable`; `ServiceMapProjection` surfaces runnable-tagged only.
 - Proto `FlowCard` enriched additively: `node_id`, `route`, `http_method`, `target`, `group_path`.
   TS regenerated (`pnpm gen:proto`). ProtoMapper maps the new fields.
@@ -2269,13 +2269,35 @@ no projection unit tests existed ‚Äî added `GraphProjectionTests.cs` this sessio
 **Verified:**
 - Full gate battery green: build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, pnpm check
   (lint 0, 27 tests, build), loom-guards PASS, MCP QA 8/8 (checkout gate 2c/813tok).
-- Dogfood 421n/276e/6SL/34ent/82% ‚Äî nodes 422‚Üí421 (BuildingBlocks no longer a false-positive
+- Dogfood 421n/276e/6SL/34ent/82% ó nodes 422?421 (BuildingBlocks no longer a false-positive
   Service node; documented drift, everything else unchanged).
 - Fresh MCP drive proves the hero source shows exactly the 6 runnables with full names, no libraries:
   `eval-results/2026-07-08/l4.3-consumers.md`.
 
 **Commits:** `(l4.3-s20)` feat(l4.3)
 
-**Next:** L4.4 ‚Äî Server ContextPack round-trip (closes Meridian Trap A); Copy/Save = the server pack.
+**Next:** L4.4 ó Server ContextPack round-trip (closes Meridian Trap A); Copy/Save = the server pack.
 
 **Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
+
+---
+
+## 2026-07-08 ó Loom L4.4: Server ContextPack round-trip (session #21)
+
+**QA of previous session (s20, L4.3):** PASS.
+
+**Delivered ó L4.4 Server ContextPack round-trip (Trap A closed):**
+- Proto: GetContextPack RPC + ContextPackRequest/Response, ContextCardSpec/Item, SectionAllocation
+- Engine: ContextPackBuilder.BuildMulti() traces each unique entry once, picks per-card sections by type, assembles full markdown. BuildSections() extracted. New types: ContextCardSpec, ContextCardPack, MultiContextPack.
+- Server: GetContextPack handler + ProtoMapper.ToContextPackResponse()
+- UI: loadAllCards() ó single getContextPack call replaces N getContext calls. buildContext() uses server-assembled markdown for Copy/Save = exactly the server pack. Fallback preserved.
+
+**Trap A closed:** 1 RPC instead of N, per-card type filtering, server-assembled markdown with budget trimming.
+
+**Gate:** build 0w/0e ∑ Core 398P/3S ∑ Server 12P ∑ Desktop 64P ∑ guards PASS ∑ pnpm 27P ∑ MCP QA 8/8.
+
+**Stage L4: ALL DONE** (L4.1-L4.4). Commits: 9fe1d17.
+
+**Evidence:** eval-results/2026-07-08/gate-battery-l4.4-s21.txt, dogfood-l4.4.md.
+
+**Next:** L5.1 ó Default-session MCP ergonomics. Updated: LOOM-START.md, PROGRESS-LOG.md.
