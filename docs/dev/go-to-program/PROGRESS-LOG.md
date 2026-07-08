@@ -2190,3 +2190,30 @@ build 0w/0e).
 **Next:** L4.1 — Flow store on CodeGraph.
 
 **Updated:** `.conductor/handovers/L3.md`, `PROGRESS-LOG.md`.
+
+---
+
+## 2026-07-08 L4 session #18 (Loom L4.1 Flow store delivery, attempt 1/4)
+
+**Changed:**
+- Created `Graph/FlowModel.cs`: `Flow`, `FlowStep`, `ServiceHop` records.
+  `Flow`: Id, Entry, Steps, Touches (NodeId[], spine-only), Emits (NodeId[]), Hops (ServiceHop[]).
+  `FlowStep`: Node, Via (EdgeKind?, null for entry), Tier (Resolution), Provenance.
+  `ServiceHop`: FromService, ToService, Transport, Evidence.
+- Modified `CodeGraph.cs`: added `Flows` property to `CodeGraph`, `_flows` + `SetFlows()` to `CodeGraphBuilder`.
+- Modified `GraphBuilder.cs`: added `ComputeFlows()` spine walk with handler-member bridging.
+  Priority: Sends(0) > Handles(1) > ServiceLink(2) > Raises(3) > Consumes(4) > ReadsWrites(5) > Resolves(6) > Calls(7).
+  Stops at framework/system types. Touches = ReadsWrites from spine members only (E5 fix).
+
+**Verified:**
+- Full gate battery green: build 0w/0e, Core 393P/3S, Desktop 64P, Server 12P,
+  pnpm check PASS (27 tests), mcp-qa 8/8, loom-guards PASS.
+- Node/edge counts unchanged: 422n/276e/6SL/34ent, 82% verified (±1% from L3.3).
+- 34 flows computed and stored on CodeGraph (one per entry).
+- MCP QA continues to pass (8/8, checkout 24 steps cross-service).
+
+**Commits:** `8e75dd9` feat(l4.1)
+
+**Next:** L4.2 — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets RPC.
+
+**Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
