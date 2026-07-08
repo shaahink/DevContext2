@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:23 UTC · branch `feat/loom-l2` · HEAD `370108d`_
+_Updated 2026-07-08 06:26 UTC · branch `feat/loom-l2` · HEAD `e0a12e6`_
 
-**Status:** Running
-**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
-**Checkpoints:** 17/35 done · **Sessions run:** 20 · **Cost:** $1.4766 · **Tokens:** 1,226,929 in / 312,141 out / 211,962 think
+**Status:** Idle
+**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.4
+**Checkpoints:** 18/35 done · **Sessions run:** 20 · **Cost:** $1.5724 · **Tokens:** 1,231,510 in / 345,030 out / 220,451 think
 **Confirmed phases:** L0, L1, L2, L3
-
-## Latest activity (live)
-
-_Session #20 (Deliver) · running 100m · last output 7s ago · $0.0844_
-
-**Thinking:**
-> I should verify that the existing ServiceBoundaryInferenceTests don't have any golden tests that would break if I change the package-ref behavior.
-> I'm noticing a conflict in the test suite. Several tests assume that having a `Microsoft.AspNetCore.App` package reference makes a project runnable, but the design specification defines runnable differently. I need to reconcile what the tests are asserting against what the actual design intent is.  …
-> The node count dropped by one after removing that false-positive BuildingBlocks Service entry, which accounts for the 422→421 change, while everything else stayed consistent. Now I need to regenerate the MCP evidence to verify there are exactly 6 runnables.
-
-**Recent actions:**
-- `07:17:11` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-String "Passed!|Failed!|error" | Select-Object -First 10
-- `07:17:23` · The MCP evidence server (PID 31772) still holds the DLLs — the test build for Server failed to copy. Core (398P/3S) and Desktop (64P) passed, but Server tests d…
-- `07:17:38` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 2; do…
-- `07:17:50` · Server 12P. Core 398P/3S (up from 393 — my 5 new tests: 4 projection + 1 boundary regression... actually 4 projection + 1 boundary = 5, but 393→398 = +5). Now p…
-- `07:18:52` » bash pnpm check 2>&1 | Select-String "Tests|passed|failed|All files pass|error" | Select-Object -First 8
-- `07:21:59` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 2; no…
-- `07:22:33` · All gates green. Now let me write the gate battery evidence artifact and verify no stale processes lock the tree.
-- `07:22:33` » write eval-results\2026-07-08\gate-battery-l4.3-s20.txt
-- `07:22:54` · Now update LOOM-START.md: handoff block + L4.3 row + baseline nodes note.
-- `07:22:54` » edit LOOM-START.md
 
 ## Stage progress
 
@@ -36,7 +15,7 @@ _Session #20 (Deliver) · running 100m · last output 7s ago · $0.0844_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 2/4 | **← active** |
+| L4 | Flows + projections | 3/4 | **← active** |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -65,13 +44,10 @@ _Session #20 (Deliver) · running 100m · last output 7s ago · $0.0844_
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
-| 20 | L4 | Deliver | 1 | 07-08 04:42 | … | running |  | 0 |  |  |  |
+| 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 
 ### Commits by session
 
-- **s10 (L2 Audit)** — 2 commit(s):
-  - 5b69dd7 fix(l2-audit): triple-brace auto-extract, try-catch detector loops, honest L2 handover
-  - 92a6a4d chore(conductor): s10 L2 working ▸L2 @ 00:00
 - **s11 (L3 Deliver)** — 4 commit(s):
   - ea13a76 feat(l3.1): SemanticLitePopulator — Tier B compilation from assets.json + degrade path
   - 99a4ee9 chore(conductor): s11 L3 working ▸L3.1 @ 00:41
@@ -117,6 +93,19 @@ _Session #20 (Deliver) · running 100m · last output 7s ago · $0.0844_
   - 73cca81 feat(l4.2): Projections + GetGraphFacets RPC
   - 1091cf6 chore(conductor): s19 L4 working ▸L4.2 @ 05:40
   - 379f958 chore(conductor): s19 L4 working ▸L4.2 @ 05:30
+- **s20 (L4 Deliver)** — 12 commit(s):
+  - e0a12e6 docs(l4.3): tracker handoff + progress log — L4.3 done, QA of L4.2 PASS
+  - bc0acca feat(l4.3): Home/Atlas/MCP consume graph projections; drop ad-hoc walks
+  - b192acd chore(conductor): s20 L4 working ▸L4.3 @ 07:23
+  - 370108d chore(conductor): s20 L4 working ▸L4.3 @ 07:13
+  - 786f85d chore(conductor): s20 L4 working ▸L4.3 @ 07:03
+  - 087b5d7 chore(conductor): s20 L4 working ▸L4.3 @ 06:53
+  - 400a244 chore(conductor): s20 L4 working ▸L4.3 @ 06:43
+  - 5b41601 chore(conductor): s20 L4 working ▸L4.3 @ 06:33
+  - 0c74ed2 chore(conductor): s20 L4 working ▸L4.3 @ 06:23
+  - e6a11ae chore(conductor): s20 L4 working ▸L4.3 @ 06:13
+  - c71b22d chore(conductor): s20 L4 working ▸L4.3 @ 06:03
+  - 304bc2b chore(conductor): s20 L4 working ▸L4.3 @ 05:53
 
 ## Phase handovers (audit)
 
@@ -131,19 +120,19 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT:** L4.2 landed (commit `d5602c3`): 4 projection classes (`ServiceMapProjection`, `FlowListProjection`, `EntryTableProjection`, `LayerBandProjection`) implementing `IGraphProjection<TOut>`, new `GetGraphFacets` RPC with 9 proto messages wired through `ProtoMapper` → gRPC handler, and `GraphQuery.Flows` property. Gate battery all green (build 0w/0e, Core 393P/3S, Server 12P, Desktop 64P, pnpm 27P, guards PASS). Dogfood numbers unchanged (422n/276e/34ent/6SL/82%). No regressions. Next session (L4.3) should switch Home/Atlas/MCP consumers to read the new projections and delete their ad-hoc walks (`MapBuilder` topology aggregation, `AtlasStore` background trace indexing, MCP `overv…
+> SESSION-RESULT: L4.3 landed and pushed (commits `bc0acca` feat + `e0a12e6` docs on `feat/loom-l2`). The gate battery entered green and exits green — build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, loom-guards PASS, pnpm check (lint 0, 27 tests, build), MCP QA 8/8 (checkout 2c/813tok). QA of the previous session (L4.2) verdict: **PASS** — dogfood reproduced exactly (422/276/6/34/82%), projections + `GetGraphFacets` RPC present and wired; the only gap (no projection unit tests) was closed this session. L4.3 delivered: MCP `overview`/`top_flows` and the Home hero + Atlas diagram now read the L4.2 projections via `GetGraphFacets` instead of ad-hoc walks (deleted client-side `ServiceStyles`/t…
 
 ## Tracker handoff
 
 ```
-last: L4 session #19 — **L4.2 DONE**. Projections (ServiceMap, FlowList, EntryTable,
-      LayerBand) + GetGraphFacets RPC. Four IGraphProjection<TOut> implementations. Proto
-      adds 9 messages for all 4 facets. Server handler + ProtoMapper wired. No regressions:
-      422n/276e/34ent/6SL/82% (unchanged from L4.1). Adds only — consumers not yet switched.
-stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅). GraphProjections.cs (4 projections, ~230 lines)
-       + proto (9 messages, 1 RPC) + ProtoMapper + server handler.
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P.
-next: **L4.3** — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
-evidence: eval-results/2026-07-08/gate-battery-l4.2-s19.txt
-          eval-results/2026-07-08/dogfood-l4.2.md
+last: L4 session #20 — **L4.3 DONE**. MCP overview/top_flows + Home hero + Atlas diagram now read
+      the L4.2 projections (GetGraphFacets) — ad-hoc walks deleted. Fixed real defect: BuildingBlocks
+      (a lib w/ FluentValidation.AspNetCore) was mis-classed runnable → hero now shows exactly the 6
+      runnables, full names, no libs. QA of s19 (L4.2): PASS (422/276/6/34/82% reproduced).
+stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅, L4.3 ✅). Runnable-tag + projection filter;
+       FlowCard proto enriched (route/method/target); service-map-hero reads facets.
+gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
+next: **L4.4** — Server ContextPack round-trip (Trap A closed); Copy/Save = exactly the server pack.
+evidence: eval-results/2026-07-08/gate-battery-l4.3-s20.txt
+          eval-results/2026-07-08/l4.3-consumers.md · eval-results/2026-07-08/dogfood-l4.3.md
 ```
