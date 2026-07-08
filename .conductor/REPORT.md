@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 17:14 UTC · branch `feat/loom-l5` · HEAD `80021d4`_
+_Updated 2026-07-08 17:20 UTC · branch `feat/loom-l5` · HEAD `753e84d`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.1
-**Checkpoints:** 23/34 done · **Sessions run:** 29 · **Cost:** $2.2087 · **Tokens:** 1,804,314 in / 478,033 out / 327,568 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.2
+**Checkpoints:** 24/34 done · **Sessions run:** 29 · **Cost:** $2.2636 · **Tokens:** 1,871,421 in / 487,036 out / 337,029 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
-
-## Latest activity (live)
-
-_Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
-
-**Thinking:**
-> Let me check the test results more carefully:  1. `dotnet build`: ✅ 0w/0e 2. `dotnet test`:     - Core: 408 passed, 3 skipped, 0 failed ✅    - Server: 12 passed, 0 failed ✅    - Desktop: Failed to build (locked by another process, likely the Tauri dev server from pnpm check). But the test output sho…
-> No DevContext-related processes are running. The lock must have been transient. Let me run the Desktop tests specifically.
-> All tests pass: - Core: 408 passed, 3 skipped, 0 failed - Server: 12 passed, 0 failed - Desktop: 64 passed, 0 failed  Total: 484 passed, 3 skipped, 0 failed ✅  Gate battery summary: - `dotnet build`: ✅ 0w/0e - `dotnet test`: ✅ 484P/3S/0F - `pnpm check`: ✅ (lint + test + build) - `loom-guards.ps1`: ✅…
-
-**Recent actions:**
-- `18:07:04` · `pnpm check` green ✅. Let me verify the titlebar and omnibox edits:
-- `18:07:10` » todowrite 2 todos
-- `18:07:10` · All edits verified. Now let me run the gate battery to produce evidence:
-- `18:07:19` » bash powershell -File scripts/loom-guards.ps1 2>&1
-- `18:07:45` » bash dotnet build DevContext.slnx --nologo 2>&1 | Select-Object -Last 5
-- `18:10:34` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-Object -Last 15
-- `18:10:50` · Desktop build locked by prior process. Let me clear and re-run Desktop tests:
-- `18:10:51` » bash Get-Process | Where-Object { $_.ProcessName -eq 'DevContext' -or $_.Path -like '*DevContext.Desktop*' } | Select-Object Id, ProcessName, Path; Get-Process …
-- `18:11:37` » bash dotnet test tests/DevContext.Desktop.Tests --nologo --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
-- `18:11:48` · All tests green: 484 passed, 3 skipped, 0 failed. Let me produce the evidence artifacts and build the MCP binary for QA:
 
 ## Stage progress
 
@@ -38,7 +17,7 @@ _Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 0/6 | **← active** |
+| L6 | Workbench repair | 1/6 | **← active** |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -74,16 +53,10 @@ _Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
-| 29 | L6 | Deliver | 1 | 07-08 16:54 | … | running |  | 0 |  |  |  |
+| 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 
 ### Commits by session
 
-- **s21 (L4 Deliver)** — 5 commit(s):
-  - 986b55d docs: PROGRESS-LOG — L4.4 session #21 close-out
-  - 9fe1d17 feat(l4.4): server ContextPack round-trip (closes Meridian Trap A)
-  - 2f84d84 chore(conductor): s21 L4 working ▸L4.4 @ 07:57
-  - 044b141 chore(conductor): s21 L4 working ▸L4.4 @ 07:47
-  - b9d3e0b chore(conductor): s21 L4 working ▸L4.4 @ 07:37
 - **s22 (L4 Audit)** — 2 commit(s):
   - e22a43a fix(l4-audit): correctness + robustness fixes from L4 phase static audit
   - 9d1b43f chore(conductor): s22 L4 working ▸L4 @ 08:13
@@ -129,6 +102,10 @@ _Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
   - e87c3cb chore(conductor): s28 L5 working ▸L5 @ 17:31
   - 327f351 chore(conductor): s28 L5 working ▸L5 @ 17:21
   - 40a1440 chore(conductor): s28 L5 working ▸L5 @ 17:11
+- **s29 (L6 Deliver)** — 3 commit(s):
+  - 753e84d feat(l6.1): tab strip 32px + New=createTab + clone-close confirm
+  - f424efd chore(conductor): s29 L6 working ▸L6.1 @ 18:14
+  - 80021d4 chore(conductor): s29 L6 working ▸L6.1 @ 18:04
 
 ## Phase handovers (audit)
 
@@ -141,22 +118,20 @@ _Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
 
 ## Last gate run
 
-build:OK · tests:OK · mcp-qa:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5 (MCP v2 cold-agent ergonomics) audit VERDICT — solid and shippable; no gate weakening, no blocking issues, one notable coverage gap flagged. I statically reviewed the whole `2b06020..HEAD` diff (envelopes, `UnknownToolHandler`, `graph.Find` ranking, idempotent analyze, usages resolution, cold-QA harness) and landed five root-cause fixes, all with gates staying green: **F1** removed a double `CallCount` increment on cached/idempotent analyze (plus a no-duplicate-session regression test); **F3** reverted a dead `resolvedFrom` exception in the cold-QA `classify()` that quietly loosened the false-success detector (ratchet — strictness restored, still 92%); **F4** deepened `usa…
+> SESSION-RESULT: L6.1 landed — tab strip height raised to 32px (h-8) with 13px labels (text-xs), Titlebar+Omnibox New/Recent buttons now correctly call `createTab()` instead of destroying the active tab, and closing an analyzing/cloning tab shows a "Cancel analysis of X?" one-line confirm bar (middle-click, hover-X, and Ctrl+W all gate through it). All gates green: dotnet build 0w/0e, dotnet test 484P/0F, pnpm check 0w/0e, loom-guards clean, cold QA 92%. Nothing red. Next session should deliver L6.2 (Code pane: entry selection automatically triggers `loadCode()` to show source with loading/error states visible, instead of waiting for manual "load source" click) and L6.3 (Inspector insights ad…
 
 ## Tracker handoff
 
 ```
-last: L5 session #28 — **L5.5 DONE** (cold QA gate ≥90%). Fixed B4 usages-shortname:
-       usages with short name that resolves to 0 edges now returns error+hint+
-       candidates instead of silent count:0. Cold QA: 11/12 (92%) actionable, 23
-       tools, tools/list 1337 tok, 0 false-successes, 0 opaque errors. B4 flipped
-       actionable. B9 rank-quality aggregate#1=true (find output is success, not failure).
-stage: **L5.5 DONE**. L5 complete — all 5 checkpoints landed.
-next: **L6.1** — tabs 32px+, New=createTab, clone-close confirm (workbench repair).
-evidence: eval-results/2026-07-08/gate-battery-l5.5-s28.txt
-           eval-results/2026-07-08/mcp-cold-qa.md
+last: L6 session #29 — **L6.1 DONE** (gate battery green: 484P/0F, cold QA 92%).
+       Tab strip 32px (h-8), 13px labels (text-xs), Titlebar+Omnibox New=createTab
+       (no more cancel+closeTab), clone-close confirm bar ("Cancel analysis of X?").
+stage: **L6.1 DONE**. L6 checkpoints remaining: 6.2–6.6.
+next: **L6.2** — Code pane: entry selection shows source; loading/error states visible.
+evidence: eval-results/2026-07-08/gate-battery-l6.1-s29.txt
+          eval-results/2026-07-08/mcp-cold-qa.md
 ```
