@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 16:11 UTC · branch `feat/loom-l5` · HEAD `86e2ea1`_
+_Updated 2026-07-08 16:21 UTC · branch `feat/loom-l5` · HEAD `40a1440`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
@@ -9,24 +9,24 @@ _Updated 2026-07-08 16:11 UTC · branch `feat/loom-l5` · HEAD `86e2ea1`_
 
 ## Latest activity (live)
 
-_Session #28 (Audit) · running 10m · last output 7s ago · $0.0115_
+_Session #28 (Audit) · running 20m · last output 62s ago · $0.0152_
 
 **Thinking:**
-> I notice the MCP project isn't included in the test solution, so UnknownToolHandler and DevContextTools lack unit test coverage. The available tests are in Core.Tests, Server.Tests, and Desktop.Tests. Now I'm going to build the solution to establish a baseline and then examine the SessionManagementT…
-> I'm looking at a test change in SessionManagementTests.cs where one line was modified. The test `Warm_reuse_same_root_uses_cached_host` now checks that calling analyze idempotently returns the same handle by asserting they're equal, whereas it apparently checked something different before.
-> The test now validates that analyzing the same repository root produces an identical handle, which aligns with the idempotent behavior introduced in L5.1. Previously the test expected different handles because each analysis created a new one, but now with idempotent analysis it correctly returns the…
+> The issue is that `Require(handle)` calls `sessions.Get(handle)`, which increments CallCount on every RPC call, making the count brittle for testing since it depends on how many RPCs the test actually issues. For the F1 double-count bug, the clean invariant to verify is that after the fix, a cached …
+> The manager doesn't have dedicated unit tests since the test suite relies on `WebApplicationFactory<Program>` for integration testing, but the idempotent behavior is already covered by the existing `Warm_reuse_same_root_uses_cached_host` test that verifies the handle is reused. For the double-count …
+> The cold QA gate is passing at 92% with 11 out of 12 probes succeeding. B9 isn't actionable because it's a rank-quality probe that found results successfully, not a failure case. B4 is confirmed as actionable, and the aggregate check validates the overall performance threshold.  I've verified that I…
 
 **Recent actions:**
-- `17:07:53` · Let me look at the test projects and existing MCP/server tests.
-- `17:08:05` » bash cd C:/code/DevContext2-ui; Get-ChildItem -Recurse -Filter *.csproj | Select-Object -ExpandProperty FullName; echo "=== slnx ==="; Get-Content DevContext.sl…
-- `17:08:17` · Let me start a baseline build while I read the session tests and CLI query command.
-- `17:08:44` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 15
-- `17:08:55` · Build is green (0w/0e). Let me read the changed test and the session tests, plus the CLI query command that still uses old `Search`.
-- `17:08:55` » read tests\DevContext.Server.Tests\SessionManagementTests.cs
-- `17:09:18` » bash cd C:/code/DevContext2-ui; git diff 2b060200a11916d02d0b69df310ce9759097c39d..HEAD -- tests/DevContext.Server.Tests/SessionManagementTests.cs
-- `17:10:41` · Let me check the node Title semantics (short name vs FQN) and whether any server test asserts search behavior.
-- `17:10:43` » bash cd C:/code/DevContext2-ui; echo "=== GraphNode.Title def ==="; Select-String -Path src/DevContext.Core/Graph/*.cs -Pattern "Title" | Select-Object -First 8…
 - `17:10:55` » read tests\DevContext.Server.Tests\AnalyzeFlowTests.cs
+- `17:11:38` » grep NodeExists|CallCount|\.Calls
+- `17:11:59` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
+- `17:12:12` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
+- `17:12:31` » bash cd C:/code/DevContext2-ui; Get-ChildItem tests/DevContext.Server.Tests -Filter *.cs -Recurse | Select-Object -ExpandProperty Name; echo "=== IEngineRunner …
+- `17:13:21` · Now let me establish my own baseline by running the gate battery. First, the .NET tests:
+- `17:16:44` » bash cd C:/code/DevContext2-ui; dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Fa…
+- `17:16:55` · All .NET tests pass (408 core + 12 server + 64 desktop). Now the cold-agent QA gate and scripted QA:
+- `17:19:45` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run-cold.js --gate 2>&1 | Select-Object -Last 45
+- `17:20:03` · Cold gate is green (92%, B9 is a rank-quality success not a failure). Now the scripted QA regression:
 
 ## Stage progress
 
