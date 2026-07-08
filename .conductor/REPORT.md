@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:13 UTC · branch `feat/loom-l2` · HEAD `786f85d`_
+_Updated 2026-07-08 06:23 UTC · branch `feat/loom-l2` · HEAD `370108d`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,7 +9,7 @@ _Updated 2026-07-08 06:13 UTC · branch `feat/loom-l2` · HEAD `786f85d`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 90m · last output 184s ago · $0.0772_
+_Session #20 (Deliver) · running 100m · last output 7s ago · $0.0844_
 
 **Thinking:**
 > I should verify that the existing ServiceBoundaryInferenceTests don't have any golden tests that would break if I change the package-ref behavior.
@@ -17,16 +17,16 @@ _Session #20 (Deliver) · running 90m · last output 184s ago · $0.0772_
 > The node count dropped by one after removing that false-positive BuildingBlocks Service entry, which accounts for the 422→421 change, while everything else stayed consistent. Now I need to regenerate the MCP evidence to verify there are exactly 6 runnables.
 
 **Recent actions:**
-- `07:07:47` » bash Get-ChildItem -Recurse -Filter "ServiceBoundaryInferenceTests.cs" | Select-Object -ExpandProperty FullName
-- `07:07:56` » read tests\DevContext.Core.Tests\Graph2\ServiceBoundaryInferenceTests.cs
-- `07:08:19` · The L1 tests intentionally treat `Microsoft.AspNetCore.App` (the framework meta-reference) as a runnable signal. The bug is only the loose substring match catch…
-- `07:08:19` » edit src\DevContext.Core\Graph2\ServiceBoundaryInference.cs
-- `07:08:33` » edit tests\DevContext.Core.Tests\Graph2\ServiceBoundaryInferenceTests.cs
-- `07:08:33` · Now let me add a regression test for the false-positive case and rebuild.
-- `07:09:26` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
-- `07:09:38` · Now this changes runnable classification which affects dogfood numbers (BuildingBlocks no longer a Service node). This could change ServiceLinks/nodes count. Le…
-- `07:09:44` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o eval-results/2026-07-08/dogf…
-- `07:09:58` · Nodes 422→421 (removed the false-positive BuildingBlocks Service node) — explained drift, within tolerance. Edges/SL/entries/verified unchanged. Now regenerate …
+- `07:17:11` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-String "Passed!|Failed!|error" | Select-Object -First 10
+- `07:17:23` · The MCP evidence server (PID 31772) still holds the DLLs — the test build for Server failed to copy. Core (398P/3S) and Desktop (64P) passed, but Server tests d…
+- `07:17:38` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 2; do…
+- `07:17:50` · Server 12P. Core 398P/3S (up from 393 — my 5 new tests: 4 projection + 1 boundary regression... actually 4 projection + 1 boundary = 5, but 393→398 = +5). Now p…
+- `07:18:52` » bash pnpm check 2>&1 | Select-String "Tests|passed|failed|All files pass|error" | Select-Object -First 8
+- `07:21:59` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 2; no…
+- `07:22:33` · All gates green. Now let me write the gate battery evidence artifact and verify no stale processes lock the tree.
+- `07:22:33` » write eval-results\2026-07-08\gate-battery-l4.3-s20.txt
+- `07:22:54` · Now update LOOM-START.md: handoff block + L4.3 row + baseline nodes note.
+- `07:22:54` » edit LOOM-START.md
 
 ## Stage progress
 
