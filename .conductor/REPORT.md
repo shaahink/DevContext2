@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 16:54 UTC · branch `feat/loom-l5` · HEAD `53e9456`_
+_Updated 2026-07-08 17:04 UTC · branch `feat/loom-l5` · HEAD `71e93c8`_
 
-**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
-**Checkpoints:** 23/34 done · **Sessions run:** 28 · **Cost:** $2.2087 · **Tokens:** 1,804,314 in / 478,033 out / 327,568 think
+**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.1
+**Checkpoints:** 23/34 done · **Sessions run:** 29 · **Cost:** $2.2087 · **Tokens:** 1,804,314 in / 478,033 out / 327,568 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
+
+## Latest activity (live)
+
+_Session #29 (Deliver) · running 10m · last output 0s ago · $0.0301_
+
+**Thinking:**
+> Let me check the text-2xs definition in styles.css and also understand what font sizes are available.
+> So `text-2xs` = 12px, `text-xs` = 13px. The proposal says "13px labels" so I should bump the tabs from `text-2xs` (12px) to `text-xs` (13px). That's perfect.  Now let me implement the L6.1 changes:  1. **Tab strip height**: Change root div to `flex h-8 items-stretch` (32px height enforced) 2. **Labe…
+> Let me start implementing. I'll do the tab-strip changes first (height + label + confirm), then titlebar, then omnibox.
+
+**Recent actions:**
+- `18:03:30` » read src\DevContext.App\src\app\shell\titlebar\titlebar.ts
+- `18:03:31` » read src\DevContext.App\src\app\features\omnibox\omnibox.ts
+- `18:03:31` » read src\DevContext.App\src\app\state\workspace.store.ts
+- `18:03:31` · Gate battery: `dotnet build` 0w/0e ✅, `dotnet test` 408P/3S/0F ✅, `pnpm check` ✅, `loom-guards.ps1` ✅. MCP QA requires running server (timeout). Proceeding to L…
+- `18:03:49` » grep text-2xs
+- `18:03:50` » read src\DevContext.App\src\app\features\omnibox\omnibox.ts
+- `18:03:56` » read src\DevContext.App\src\styles.css
+- `18:04:15` » todowrite 6 todos
+- `18:04:15` · Now I have all the information. Let me create a todo list and implement L6.1.
+- `18:04:21` » todowrite 5 todos
 
 ## Stage progress
 
@@ -17,7 +38,7 @@ _Updated 2026-07-08 16:54 UTC · branch `feat/loom-l5` · HEAD `53e9456`_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 0/6 | todo |
+| L6 | Workbench repair | 0/6 | **← active** |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -53,6 +74,7 @@ _Updated 2026-07-08 16:54 UTC · branch `feat/loom-l5` · HEAD `53e9456`_
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
+| 29 | L6 | Deliver | 1 | 07-08 16:54 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
