@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 16:21 UTC · branch `feat/loom-l5` · HEAD `40a1440`_
+_Updated 2026-07-08 16:31 UTC · branch `feat/loom-l5` · HEAD `327f351`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
@@ -9,24 +9,24 @@ _Updated 2026-07-08 16:21 UTC · branch `feat/loom-l5` · HEAD `40a1440`_
 
 ## Latest activity (live)
 
-_Session #28 (Audit) · running 20m · last output 62s ago · $0.0152_
+_Session #28 (Audit) · running 30m · last output 132s ago · $0.0259_
 
 **Thinking:**
-> The issue is that `Require(handle)` calls `sessions.Get(handle)`, which increments CallCount on every RPC call, making the count brittle for testing since it depends on how many RPCs the test actually issues. For the F1 double-count bug, the clean invariant to verify is that after the fix, a cached …
-> The manager doesn't have dedicated unit tests since the test suite relies on `WebApplicationFactory<Program>` for integration testing, but the idempotent behavior is already covered by the existing `Warm_reuse_same_root_uses_cached_host` test that verifies the handle is reused. For the double-count …
-> The cold QA gate is passing at 92% with 11 out of 12 probes succeeding. B9 isn't actionable because it's a rank-quality probe that found results successfully, not a failure case. B4 is confirmed as actionable, and the aggregate check validates the overall performance threshold.  I've verified that I…
+> There's a leftover DevContext.Server process from the QA runs that's holding onto the DLLs and preventing a rebuild. The MCP executable was terminated but the server it spawned didn't get cleaned up properly, so I need to kill any lingering DevContext.Server and devcontext-mcp processes before tryin…
+> There's a lingering server process issue where the MCP's cleanup handler only runs if it spawned the process, but the QA harness kills it directly with a hard signal that bypasses the cleanup, causing the server to leak — this is a pre-existing problem.  I'll document it as a test infrastructure ris…
+> The server tests all passed with my new idempotency check working correctly. Now I'm running the cold QA gate to verify my MCP and gate changes don't break anything—this should take about two minutes. I'll need to clean up any lingering server processes before running the rebuild.
 
 **Recent actions:**
-- `17:10:55` » read tests\DevContext.Server.Tests\AnalyzeFlowTests.cs
-- `17:11:38` » grep NodeExists|CallCount|\.Calls
-- `17:11:59` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
-- `17:12:12` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
-- `17:12:31` » bash cd C:/code/DevContext2-ui; Get-ChildItem tests/DevContext.Server.Tests -Filter *.cs -Recurse | Select-Object -ExpandProperty Name; echo "=== IEngineRunner …
-- `17:13:21` · Now let me establish my own baseline by running the gate battery. First, the .NET tests:
-- `17:16:44` » bash cd C:/code/DevContext2-ui; dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Fa…
-- `17:16:55` · All .NET tests pass (408 core + 12 server + 64 desktop). Now the cold-agent QA gate and scripted QA:
-- `17:19:45` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run-cold.js --gate 2>&1 | Select-Object -Last 45
-- `17:20:03` · Cold gate is green (92%, B9 is a rank-quality success not a failure). Now the scripted QA regression:
+- `17:26:44` · **F4** — deepen `Usages` short-name resolution to detect multi-exact ambiguity instead of silently picking:
+- `17:26:44` » edit src\DevContext.Mcp\DevContextTools.cs
+- `17:27:20` · Let me build to verify the C# changes compile:
+- `17:27:48` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 8
+- `17:28:02` · A leftover server process from the QA runs is locking DLLs. Let me kill lingering processes and rebuild:
+- `17:28:04` » bash Get-Process | Where-Object { $_.ProcessName -match 'DevContext|devcontext-mcp' } | Select-Object Id, ProcessName; echo "--- killing ---"; Get-Process | Whe…
+- `17:28:18` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 6
+- `17:28:36` · Build green. Let me run the Server tests to validate the new idempotency assertion:
+- `17:28:42` » bash cd C:/code/DevContext2-ui; dotnet test tests/DevContext.Server.Tests/DevContext.Server.Tests.csproj --no-build 2>&1 | Select-String -Pattern "Passed!|Faile…
+- `17:28:52` · Server tests pass (including the new idempotency assertion). Now re-run the cold-agent gate with my MCP + gate-strictness changes:
 
 ## Stage progress
 
