@@ -2242,3 +2242,40 @@ build 0w/0e).
 **Next:** L4.3 — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
 
 **Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
+
+## 2026-07-08 — L4.3: Home/Atlas/MCP consume projections (session #20, attempt 1/4)
+
+**QA of prior session (L4.2):** PASS. Re-ran dogfood fresh → 422n/276e/6SL/34ent/82%, reproduces
+the L4.2 claim exactly. Projections + GetGraphFacets RPC present and wired. Gap found (not a blocker):
+no projection unit tests existed — added `GraphProjectionTests.cs` this session.
+
+**Changed:**
+- MCP `overview` (`DevContextTools.cs`) now sources services + top flows + service links from
+  `GetGraphFacets` (`ServiceMapProjection` + `FlowListProjection`); deleted client-side ServiceStyles
+  enumeration, entry OrderByDescending(Score).Take(5), and topology walk.
+- MCP `top_flows` reads `FlowListProjection.Flows` (server-ranked); deleted client-side sort/take.
+- Home hero + Atlas diagram (`service-map-hero.ts`) read `graphFacets.serviceMap.services`; render
+  `DisplayName` verbatim (removed `name.split('.').pop()`); gateway/core layout by projection `Kind`;
+  bus rail from projection transports. Topology fallback kept for pre-facets sessions.
+- `SessionStore.analyze` fetches `getGraphFacets` post-ready; `graphFacets` added to session slice.
+- Real defect fixed (audit Claim 3 / E3): `IsRunnableService` mis-classified BuildingBlocks (a lib
+  referencing FluentValidation.AspNetCore) as runnable via a loose "AspNetCore" substring package
+  check — tightened to `Microsoft.AspNetCore.App*` / Web-SDK / Exe (design §2.4). Runnable Service
+  nodes tagged `RoleTags.Runnable`; `ServiceMapProjection` surfaces runnable-tagged only.
+- Proto `FlowCard` enriched additively: `node_id`, `route`, `http_method`, `target`, `group_path`.
+  TS regenerated (`pnpm gen:proto`). ProtoMapper maps the new fields.
+- Added `GraphProjectionTests.cs` (4) + BuildingBlocks runnable regression test.
+
+**Verified:**
+- Full gate battery green: build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, pnpm check
+  (lint 0, 27 tests, build), loom-guards PASS, MCP QA 8/8 (checkout gate 2c/813tok).
+- Dogfood 421n/276e/6SL/34ent/82% — nodes 422→421 (BuildingBlocks no longer a false-positive
+  Service node; documented drift, everything else unchanged).
+- Fresh MCP drive proves the hero source shows exactly the 6 runnables with full names, no libraries:
+  `eval-results/2026-07-08/l4.3-consumers.md`.
+
+**Commits:** `(l4.3-s20)` feat(l4.3)
+
+**Next:** L4.4 — Server ContextPack round-trip (closes Meridian Trap A); Copy/Save = the server pack.
+
+**Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
