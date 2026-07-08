@@ -1,12 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 18:49 UTC · branch `feat/loom-l5` · HEAD `e9fc775`_
+_Updated 2026-07-08 18:53 UTC · branch `feat/loom-l5` · HEAD `8336afa`_
 
 **Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L6 — Workbench repair · attempts used 0
 **Checkpoints:** 29/34 done · **Sessions run:** 33 · **Cost:** $2.5279 · **Tokens:** 2,219,785 in / 528,163 out / 364,704 think
-**Confirmed phases:** L0, L1, L2, L3, L4, L5
-**Pending:** full-battery phase gate for L6
+**Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
 
 ## Stage progress
 
@@ -18,7 +17,7 @@ _Updated 2026-07-08 18:49 UTC · branch `feat/loom-l5` · HEAD `e9fc775`_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 6/6 | gating… |
+| L6 | Workbench repair | 6/6 | confirmed ✓ |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -114,7 +113,7 @@ _Updated 2026-07-08 18:49 UTC · branch `feat/loom-l5` · HEAD `e9fc775`_
 
 ## Last gate run
 
-build:OK
+build:OK · tests:OK · pnpm-check:OK · loom-guards:OK
 
 ## Last session result
 
