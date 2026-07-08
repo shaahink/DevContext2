@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 19:17 UTC · branch `feat/loom-l5` · HEAD `7d1f6b2`_
+_Updated 2026-07-08 19:27 UTC · branch `feat/loom-l5` · HEAD `a23e511`_
 
-**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L7 — Repo-shape coverage · attempts used 1 · working ▸ L7.1
-**Checkpoints:** 29/34 done · **Sessions run:** 34 · **Cost:** $2.5434 · **Tokens:** 2,248,130 in / 529,604 out / 366,266 think
+**Checkpoints:** 29/34 done · **Sessions run:** 35 · **Cost:** $2.5434 · **Tokens:** 2,248,130 in / 529,604 out / 366,266 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
+
+## Latest activity (live)
+
+_Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
+
+**Thinking:**
+> Let me read the test to understand what's happening.
+> I see the issue. This test creates a lambda endpoint `(CatalogContext context) => await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync()`.  The endpoint detection has `HandlerBody` that contains `context.CatalogTypes.OrderBy(...).ToListAsync()`. This body gets parsed by BodyFactExtractor and …
+> Let me read the EnrichEntryTargets method to understand the logic. The test failure means the PlainCallDetector now adds a `Calls` edge to `CatalogContext` (an in-solution type), which changes the entry target from "inline (1 call)" to "CatalogContext".  Let me look at the ResolveEntryTarget logic.
+
+**Recent actions:**
+- `20:23:24` » todowrite 3 todos
+- `20:23:43` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `20:23:49` » edit src\DevContext.Core\Graph2\Seams\PlainCallDetector.cs
+- `20:24:23` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `20:24:29` · Build green (0w/0e). Now run tests.
+- `20:26:29` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll --filter "Category!=Eval&Category!=Truth" --no-b…
+- `20:26:35` » grep Entry_target_for_lambda_with_only_noise_calls
+- `20:26:39` » read tests\DevContext.Core.Tests\GraphBuilderTests.cs
+- `20:26:53` » grep inline.*call|entry\.Target|EntryTarget|entry target
+- `20:26:58` » read src\DevContext.Core\Graph\GraphBuilder.cs
 
 ## Stage progress
 
@@ -25,7 +46,6 @@ _Updated 2026-07-08 19:17 UTC · branch `feat/loom-l5` · HEAD `7d1f6b2`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
 | 7 | L2 | Deliver | 1 | 07-07 20:17 | 0:32 | Interrupted |  | 0 |  | $0.0465 | 2,257/22,664 |
 | 8 | L2 | Resume | 1r1 | 07-07 21:15 | 0:14 | Advanced | L2.1 L2.2 | 5 | build:OK | $0.0200 | 770/8,260 |
@@ -55,6 +75,7 @@ _Updated 2026-07-08 19:17 UTC · branch `feat/loom-l5` · HEAD `7d1f6b2`_
 | 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
 | 33 | L6 | Audit | 1 | 07-08 18:39 | 0:10 | Progress |  | 2 |  | $0.0621 | 81,863/11,843 |
 | 34 | L7 | Deliver | 1 | 07-08 18:53 | 0:23 | Stalled |  | 0 |  | $0.0155 | 28,345/1,441 |
+| 35 | L7 | Resume | 2r1 | 07-08 19:17 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
