@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 02:45 UTC · branch `feat/loom-l2` · HEAD `0a85550`_
+_Updated 2026-07-08 02:55 UTC · branch `feat/loom-l2` · HEAD `18a6362`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 02:45 UTC · branch `feat/loom-l2` · HEAD `0a85550`_
 
 ## Latest activity (live)
 
-_Session #16 (Deliver) · running 20m · last output 1s ago · $0.0208_
+_Session #16 (Deliver) · running 30m · last output 5s ago · $0.0405_
 
 **Thinking:**
-> The semantic upgrade isn't producing any variable declaration upgrades this time around—I'm getting zero across the board, which contradicts the previous session's count of 26. This is running through the trace scenario with deep-dive focus mode, so something's different about how the upgrades are b…
-> I see the issue—the probe is using a different scenario with focus/trace intent, but the report command uses `BuildFullGraph = true` with a specific scenario. I need to align the probe to match the report command's exact configuration, so let me check ReportCommand.cs to see what scenario and option…
-> I need to adjust my probe configuration to match what the `report` command uses—setting the profile to Focused mode, enabling full graph building, using the overview scenario, and pulling entry paths from the root result's candidates. Let me rewrite the probe with these parameters.
+> The global usings didn't resolve the issue — the bind is still showing `type=?`, which means the problem runs deeper than missing imports. Even with Mapster referenced and the usings added, the merged compilation is fundamentally broken for this file. I need to figure out why `request.Adapt<Checkout…
+> Even after narrowing the compilation scope, `request.Adapt<CheckoutBasketCommand>()` still won't bind and returns `type=?`, though the error count dropped significantly. The issue isn't about compilation boundaries—it's something deeper with how the Adapt method resolves for this specific request ty…
+> So the real issue is that Mapster.dll isn't referenced in the project at all—that's why `Adapt<T>` can't be found. The `BasketCheckoutDto` error confirms the extension method isn't available, while `request` itself resolves fine as a `CheckoutBasketRequest`. There are also missing references for Car…
 
 **Recent actions:**
-- `03:43:38` » write tests\DevContext.Core.Tests\ZzScratchProbe.cs
-- `03:43:49` » read src\DevContext.Core\Graph2\BodyFacts.cs
-- `03:43:58` · Now let me build and run the probe.
-- `03:44:05` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj -clp:ErrorsOnly 2>&1 | Select-Object -Last 8
-- `03:44:21` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --no-build --filter "FullyQualifiedName~ZzScratchProbe" -l "console;verbosity=detailed…
-- `03:45:03` · Key finding: **0 var-decl/receiver/creation/generic upgrades** this run, and `analysis.AllBodyFacts` appears empty for the checkout file. The focus scenario dif…
-- `03:45:04` » bash git -C C:/code/DevContext2-ui grep -n "BuildFullGraph" -- "*.cs" | Select-Object -First 30
-- `03:45:17` » read src\DevContext.Cli\Commands\ReportCommand.cs
-- `03:45:37` · Let me align the probe with the `report` command's exact configuration (Focused profile, overview scenario, BuildFullGraph).
-- `03:45:37` » edit tests\DevContext.Core.Tests\ZzScratchProbe.cs
+- `03:52:09` » edit tests\DevContext.Core.Tests\ZzScratchProbe.cs
+- `03:52:28` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet test tests/DevContext.Core.Tests…
+- `03:53:31` · Adding global usings alone didn't fix it — the merged compilation is fundamentally broken (likely duplicate `Program` entry points / cross-project type collisio…
+- `03:53:31` » edit tests\DevContext.Core.Tests\ZzScratchProbe.cs
+- `03:53:51` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet test tests/DevContext.Core.Tests…
+- `03:54:24` · Per-project still fails to bind `Adapt<T>` (errors 543→84 but still `type=?`). Let me dump the actual compilation errors and check if Mapster is referenced and …
+- `03:54:24` » edit tests\DevContext.Core.Tests\ZzScratchProbe.cs
+- `03:54:43` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet test tests/DevContext.Core.Tests…
+- `03:55:33` · Definitive root cause: **`Mapster referenced: False`**, `Carter not found` (CS0246 x42), `WebApplication`/`Microsoft.AspNetCore` not found (CS0103/CS0234). The …
+- `03:55:33` » bash echo "=== dotnet shared frameworks ==="; Get-ChildItem "C:\Program Files\dotnet\shared" -Directory | Select-Object Name; echo "=== AspNetCore.App versions …
 
 ## Stage progress
 
