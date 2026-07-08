@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 14:42 UTC · branch `feat/loom-l5` · HEAD `54e5a4c`_
+_Updated 2026-07-08 14:44 UTC · branch `feat/loom-l5` · HEAD `85a74e3`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.3
-**Checkpoints:** 21/35 done · **Sessions run:** 25 · **Cost:** $1.9421 · **Tokens:** 1,532,617 in / 432,227 out / 280,225 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.4
+**Checkpoints:** 22/35 done · **Sessions run:** 25 · **Cost:** $2.0295 · **Tokens:** 1,637,753 in / 444,766 out / 296,201 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #25 (Deliver) · running 40m · last output 0s ago · $0.0811_
-
-**Thinking:**
-> All tests pass now: - Core: 408 passed, 3 skipped, 0 failed ✅ - Server: 12 passed, 0 skipped, 0 failed ✅ - Desktop: 64 passed, 0 skipped, 0 failed ✅  Now let me also run pnpm check to make sure the UI is still green. But that takes a while. Let me also check the loom-guards.  Actually, I already ver…
-> Let me write the evidence artifact file, update the LOOM-START.md, then commit and push. First, let me create the gate battery evidence for L5.3.
-> Now let me update the LOOM-START.md. I need to: 1. Update the handoff block 2. Mark L5.3 as DONE 3. Set next stage to L5.4  Let me also check what my changes are by looking at git status and diff before updating the tracker.
-
-**Recent actions:**
-- `15:38:29` » bash dotnet test DevContext.slnx --filter "Category!=Eval" 2>&1
-- `15:38:43` · MCP QA harness 8/8 scripted, but the integration gate test failed due to server lock from cold QA. Let me kill the server and rerun tests:
-- `15:41:47` » bash Get-Process | Where-Object { $_.ProcessName -like "*DevContext*" -or $_.ProcessName -like "*devcontext*" } | Stop-Process -Force -ErrorAction SilentlyConti…
-- `15:42:18` » todowrite 2 todos
-- `15:42:18` · All gates green. Let me now execute the POST-SESSION RITUAL. First, let me produce the evidence artifacts and then read the cold QA evidence:
-- `15:42:28` » write eval-results\2026-07-08\gate-battery-l5.3-s25.txt
-- `15:42:28` · Let me capture the gate battery evidence and update the tracker.
-- `15:42:33` » bash git -C C:\Code\DevContext2-ui status
-- `15:42:33` · Let me check git status and diff before committing:
-- `15:42:34` » bash git -C C:\Code\DevContext2-ui diff --stat
 
 ## Stage progress
 
@@ -37,7 +16,7 @@ _Session #25 (Deliver) · running 40m · last output 0s ago · $0.0811_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 2/5 | **← active** |
+| L5 | MCP v2 cold-agent ergonomics | 3/5 | **← active** |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -70,16 +49,10 @@ _Session #25 (Deliver) · running 40m · last output 0s ago · $0.0811_
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
-| 25 | L5 | Deliver | 1 | 07-08 14:02 | … | running |  | 0 |  |  |  |
+| 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 
 ### Commits by session
 
-- **s17 (L3 Audit)** — 5 commit(s):
-  - 412aeae docs(l3-audit): append PROGRESS-LOG.md session entry
-  - 094aa1d docs(l3-audit): honest phase handover to .conductor/handovers/L3.md
-  - b7d9135 chore(conductor): s17 L3 working ▸L3 @ 04:48
-  - 1b1a49d fix(l3-audit): correctness + robustness fixes from phase audit
-  - 7fa820b chore(conductor): s17 L3 working ▸L3 @ 04:38
 - **s18 (L4 Deliver)** — 4 commit(s):
   - 37316b7 docs(l4.1): append PROGRESS-LOG.md session entry
   - 8e75dd9 feat(l4.1): Flow store on CodeGraph; spine-only Touches/Emits; ServiceHops + provenance
@@ -128,6 +101,12 @@ _Session #25 (Deliver) · running 40m · last output 0s ago · $0.0811_
   - ea68669 chore(conductor): s24 L5 working ▸L5.2 @ 09:30
   - e30744e chore(conductor): s24 L5 working ▸L5.2 @ 09:20
   - 74321be chore(conductor): s24 L5 working ▸L5.2 @ 09:10
+- **s25 (L5 Deliver)** — 5 commit(s):
+  - 85a74e3 feat(l5.3): unified ranked resolution — graph.Find for resolve/find/usages
+  - b6cce7e chore(conductor): s25 L5 working ▸L5.3 @ 15:42
+  - 54e5a4c chore(conductor): s25 L5 working ▸L5.3 @ 15:32
+  - 4d97d5e chore(conductor): s25 L5 working ▸L5.3 @ 15:22
+  - 0c1c090 chore(conductor): s25 L5 working ▸L5.3 @ 15:12
 
 ## Phase handovers (audit)
 
@@ -137,23 +116,25 @@ _Session #25 (Deliver) · running 40m · last output 0s ago · $0.0811_
 - `.conductor/handovers/L3.md`
 - `.conductor/handovers/L4.md`
 
+## Last gate run
+
+build:OK
+
 ## Last session result
 
-> SESSION-RESULT: L5.2 (Error envelopes) landed with proof for the Loom L5 stage. Every MCP tool failure now returns a compact `{error, hint, example}` envelope (≤80 tok, measured 30–55 tok); required params validate to a schema hint; unknown symbols return "did-you-mean" candidates instead of the zero-shaped-success trap (`impact TotallyMadeUpType → totalAffected:0` is now an explicit "not found ≠ zero impact"); config key-misses list real available keys; trace/get_context fuzzy-suggest on focus miss; and unknown tool names route through a new `UnknownToolHandler` returning the nearest tool + full tool list. All `string? handle` params were made optional so a cold agent hits our envelope rath…
+> SESSION-RESULT: L5.3 landed — unified ranked resolution (`graph.Find`) with exact>prefix>word-boundary ranking, Types-over-Members tiebreak, degree final; server `SearchNodes` now uses `Find` (was unranked scan); MCP `usages` resolves short names via ranked search. Cold QA: B9 `find("Order")` → Order aggregate #1 (was `ApplicationDbContext.SaveChangesAsync`), 0 false-successes (was 1). All gates green: build 0w/0e, tests 408/12/64, scripted MCP QA 8/8, guards PASS, pnpm check PASS. Two probes (B4, B9) remain "unactionable" due to correct responses not needing error signals — the remaining cold-QA gap is structural (no error = no actionable signal). Next session (L5.4): real `flow` tool with …
 
 ## Tracker handoff
 
 ```
-last: L5 session #24 — **L5.2 DONE** (error envelopes). Every tool failure returns
-       `{error,hint,example}` ≤80 tok; required params validated→schema; unknown symbols
-       return candidates (not zero-shaped success); unknown tool → nearest-tool + list;
-       config-miss lists real keys; trace/get_context fuzzy-suggest. Handles now optional.
-       QA of L5.1: **PASS** (idempotency + most-recent resolution correct, no rework).
-stage: **L5.2 DONE**. Cold-agent actionability **0/12 → 10/12 (83%)**, 0 opaque errors.
-gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
-next: **L5.3** — Unified ranked resolution (graph.Find: resolve/find/usages/impact;
-       `resolve "Order"`→aggregate #1). Flips run-cold B4+B9 (the 2 remaining reds).
-evidence: eval-results/2026-07-08/gate-battery-l5.2-s24.txt
-           eval-results/2026-07-08/mcp-cold-qa-l5.2-s24.md
-`git push` failed s24 due to DNS outage — network restored 2026-07-08, pending push of a78c135.
+last: L5 session #25 — **L5.3 DONE** (unified ranked resolution). graph.Find: exact >
+       prefix > word-boundary ranking; Types > Members tiebreak; degree final. Server
+       SearchNodes uses graph.Find (was unranked sequential scan). MCP usages resolves
+       short names via ranked search before GetNeighbors. Cold QA: aggregate#1 for
+       find("Order") (was "ApplicationDbContext.SaveChangesAsync"). False-successes: 0
+       (was 1 — B4 usages). Scripted QA: 8/8. Build 0w/0e. Tests 408/12/64 all pass.
+stage: **L5.3 DONE**. B9 rank fixed (Order #1), 0 false-successes, gate battery green.
+next: **L5.4** — Real flow tool (compact ≤150 tok) + fuzzy focus suggestions.
+evidence: eval-results/2026-07-08/gate-battery-l5.3-s25.txt
+           eval-results/2026-07-08/mcp-cold-qa.md
 ```
