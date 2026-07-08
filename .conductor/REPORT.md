@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:25 UTC · branch `feat/loom-l2` · HEAD `3b58846`_
+_Updated 2026-07-08 03:27 UTC · branch `feat/loom-l2` · HEAD `8f0579b`_
 
-**Status:** Running
-**Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
-**Checkpoints:** 14/35 done · **Sessions run:** 16 · **Cost:** $1.1268 · **Tokens:** 916,996 in / 235,835 out / 168,164 think
+**Status:** Idle
+**Stage:** L3 — Semantic-lite tier · attempts used 0
+**Checkpoints:** 15/35 done · **Sessions run:** 16 · **Cost:** $1.2225 · **Tokens:** 921,382 in / 269,449 out / 182,842 think
 **Confirmed phases:** L0, L1, L2
-
-## Latest activity (live)
-
-_Session #16 (Deliver) · running 60m · last output 4s ago · $0.0900_
-
-**Thinking:**
-> The `.conductor/REPORT.md` file is clean now—it was likely reverted during the stash operations or git normalized the line endings. The `eval-results/2026-07-08/mcp-qa.md` file was legitimately modified by the mcp-qa gate refreshing token counts, so I should check that diff to confirm it's just the …
-> The test results show minimal token count variations with all tests still passing, so this refresh is valid. I'm reviewing the core changes to the SemanticLitePopulator, particularly the InvocationOp combined case and its helper methods, to ensure correctness.  The build compiled cleanly with all 39…
-> Since PowerShell doesn't support heredoc syntax, I'll write the commit message to a temporary file and pass that to git commit instead.
-
-**Recent actions:**
-- `04:23:51` · All evidence artifacts written. Now update `LOOM-START.md` — the handoff block and the L3.3 checkpoint row.
-- `04:23:51` » edit LOOM-START.md
-- `04:24:03` » edit LOOM-START.md
-- `04:24:13` · Let me review the final diff before committing.
-- `04:24:13` » bash git -C C:/code/DevContext2-ui status --short; echo "---diffstat---"; git -C C:/code/DevContext2-ui diff --stat
-- `04:24:28` · `.conductor/REPORT.md` is clean again. The `mcp-qa.md` change is the fresh gate-run token refresh. Let me verify that diff and skim the core diff for correctnes…
-- `04:24:29` » bash git -C C:/code/DevContext2-ui diff eval-results/2026-07-08/mcp-qa.md | Select-Object -First 40
-- `04:24:55` · The `mcp-qa.md` diff is a legit gate-run refresh (still 8/8). Now stage and commit the checkpoint (code + evidence + tracker together, per AGENTS.md "docs move …
-- `04:24:56` » bash git -C C:/code/DevContext2-ui add src/DevContext.Core/Graph/GraphBuilder.cs src/DevContext.Core/Graph2/SemanticLitePopulator.cs src/DevContext.Core/Pipelin…
-- `04:25:10` » bash cd C:/code/DevContext2-ui; git commit -F - <<'EOF' feat(l3.3): verified-edge ratchet 68%->81% — assembly-independent semantic bind of dispatch targets  Bin…
+**Pending:** auto-fix audit for L3
 
 ## Stage progress
 
@@ -35,7 +15,7 @@ _Session #16 (Deliver) · running 60m · last output 4s ago · $0.0900_
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
-| L3 | Semantic-lite tier | 2/3 | **← active** |
+| L3 | Semantic-lite tier | 3/3 | gating… |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
@@ -61,15 +41,10 @@ _Session #16 (Deliver) · running 60m · last output 4s ago · $0.0900_
 | 13 | L3 | Deliver | 1 | 07-08 00:53 | 0:06 | KilledByUser |  | 0 |  | $0.0173 | 35,875/975 |
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
-| 16 | L3 | Deliver | 2 | 07-08 02:25 | … | running |  | 0 |  |  |  |
+| 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 
 ### Commits by session
 
-- **s5 (L1 Deliver)** — 4 commit(s):
-  - 5b582f0 docs(l1): append PROGRESS-LOG — L1 delivery session #5
-  - c9dfe23 docs(l1): update LOOM-START.md — L1 checkpoints DONE, handoff for L2
-  - fa4e415 feat(l1): identity spine — SymbolTable, Service nodes, de-static _eventPublishers, guards, impact/scope data fix
-  - 56bec1d chore(l0): fresh mcp-qa token counts from L0 s4 gate re-run
 - **s6 (L1 Audit)** — 2 commit(s):
   - 99f18fc docs(l1-audit): honest phase handover (.conductor/handovers/L1.md)
   - d487e65 fix(l1-audit): GetNamespace fallback + _byProject comparer + null guard + 16 new tests
@@ -112,6 +87,14 @@ _Session #16 (Deliver) · running 60m · last output 4s ago · $0.0900_
   - f4d5604 chore(conductor): s15 L3 working ▸L3.3 @ 02:49
   - ce4b85e chore(conductor): s15 L3 working ▸L3.3 @ 02:39
   - 8275bc8 chore(conductor): s15 L3 working ▸L3.3 @ 02:29
+- **s16 (L3 Deliver)** — 7 commit(s):
+  - 8f0579b feat(l3.3): verified-edge ratchet 68%->81% — assembly-independent semantic bind of dispatch targets
+  - a292fdd chore(conductor): s16 L3 working ▸L3.3 @ 04:25
+  - 3b58846 chore(conductor): s16 L3 working ▸L3.3 @ 04:15
+  - 1475f2c chore(conductor): s16 L3 working ▸L3.3 @ 04:05
+  - 86798bb chore(conductor): s16 L3 working ▸L3.3 @ 03:55
+  - 18a6362 chore(conductor): s16 L3 working ▸L3.3 @ 03:45
+  - 0a85550 chore(conductor): s16 L3 working ▸L3.3 @ 03:35
 
 ## Phase handovers (audit)
 
@@ -125,19 +108,18 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L3.3 delivered 65% → 68% verified-edge ratchet (+7 ReadsWrites Semantic via body-facts provenance index, +1 CallEdge via merged-compilation re-resolution) with all gates green (0w/0e, 393P/3S core + 12P server + 64P desktop, pnpm/mcp-qa/guards all PASS). 80% target not met — Sends blocked because dispatch lambdas are extracted by AddLambdaSeams at graph-build time and never processed by SemanticLitePopulator; Calls blocked because CallGraphExtractor uses per-file compilation lacking NuGet refs. Next session should extract lambda BodyFacts during BodyFactsExtractor and reorder the pipeline to pass the merged compilation to CallGraphExtractor.
+> SESSION-RESULT: Landed **L3.3 (verified-edge ratchet)** — the checkpoint that entered the session BLOCKED at 68% is now **DONE at 81% verified** on the dogfood repo (target ≥80% met), committed `8f0579b` and pushed to `origin/feat/loom-l2`, completing stage **L3**. Root cause (found empirically, not assumed): Tier-B semantic binding was trying to bind the whole `request.Adapt<XCommand>()` mapping invocation, which returns an error type because Mapster/Carter DLLs are physically absent from this machine's NuGet cache — so Sends stayed 32/33 approx; the fix binds the dispatch target's **type** directly (the explicit generic type argument `Adapt<CheckoutBasketCommand>`, or the inline `new XQuer…
 
 ## Tracker handoff
 
 ```
-last: L3 session #14 — L3.3 (verified-edge ratchet) partial: 65% → 68% (+7 ReadsWrites Semantic, +1 CallEdge).
-stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅, L3.3 PARTIAL). L3.3 built body-facts semantic-loc index +
-      edge upgrade infra in AddSeamsFromDetectors + AddCallEdges. ReadsWrites: 26→19 approx (−7). Sends
-      blocked: dispatch lambdas bypass SemanticLitePopulator (extracted at graph-build by AddLambdaSeams).
-      Calls blocked: CallGraphExtractor uses per-file compilation, lacks NuGet refs. 80% target not met.
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
-trap: 8 Category=Eval FAIL remain PRE-EXISTING (empty eval-repo clones).
-next: **L3.3 cont'd** — extract lambda BodyFacts during BodyFactsExtractor so populator sees dispatch;
-       reorder pipeline (merged compilation before Stage3Specific) for CallGraphExtractor NuGet resolution.
-evidence: eval-results/2026-07-08/gate-battery-l3.3-s14.txt
+last: L3 session #16 — **L3.3 DONE**. Verified-edge ratchet 68% → **81%** (target ≥80% MET).
+stage: **L3 COMPLETE** (L3.1 ✅, L3.2 ✅, L3.3 ✅). Fix: assembly-independent semantic bind of
+      dispatch targets — bind the generic type ARG (`Adapt<T>`) / inline `new X()` creation, not the
+      whole (package-missing, unresolvable) invocation. Sends 32 approx → 0. Zero new edges (pure tier).
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · mcp-qa 8/8.
+trap: Category=Eval FAILs PRE-EXISTING (TodoApi POST /todos lacks TodoDbContext — L7 call-spine gap;
+      proven via stash A/B on clean HEAD). DntSite sub-measurement skipped — repo absent on this machine.
+next: **L4.1** — Flow store on CodeGraph; spine-only Touches/Emits (audit E5); ServiceHops + provenance.
+evidence: eval-results/2026-07-08/gate-battery-l3.3-s16.txt
 ```
