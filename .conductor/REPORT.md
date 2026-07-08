@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:57 UTC · branch `feat/loom-l2` · HEAD `044b141`_
+_Updated 2026-07-08 07:03 UTC · branch `feat/loom-l2` · HEAD `986b55d`_
 
-**Status:** Running
-**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.4
-**Checkpoints:** 18/35 done · **Sessions run:** 21 · **Cost:** $1.5724 · **Tokens:** 1,231,510 in / 345,030 out / 220,451 think
+**Status:** Idle
+**Stage:** L4 — Flows + projections · attempts used 0
+**Checkpoints:** 19/35 done · **Sessions run:** 21 · **Cost:** $1.6827 · **Tokens:** 1,346,216 in / 368,616 out / 230,370 think
 **Confirmed phases:** L0, L1, L2, L3
-
-## Latest activity (live)
-
-_Session #21 (Deliver) · running 30m · last output 42s ago · $0.0910_
-
-**Thinking:**
-> Let me now stop any leftover processes, then run the full gate battery (build, test, guards, MCP QA). I already know pnpm check is green.  Actually, I need to start the server first for MCP QA. But let me first kill any stale processes and run the build + tests first.
-> Tests all green: Core 398P/3S, Server 12P, Desktop 64P. Guards PASS. Build had a transient VBCSCompiler lock again. Let me retry the build to get it clean.  Actually, looking at the dotnet test output, it shows the Core project was rebuilt successfully as part of the test run. The build failure was …
-> Build 0w/0e. Now let me run the MCP QA. I need to start the server first. Let me also prepare the evidence artifacts.
-
-**Recent actions:**
-- `07:51:28` » read src\DevContext.App\src\app\features\context-studio\context-studio.ts
-- `07:51:36` » edit src\DevContext.App\src\app\features\context-studio\context-studio.ts
-- `07:52:10` » bash pnpm check
-- `07:52:19` » todowrite 2 todos
-- `07:52:19` · `pnpm check` green. Let me run the full gate battery to verify everything.
-- `07:52:29` » bash powershell -ExecutionPolicy Bypass -File scripts/loom-guards.ps1 2>&1
-- `07:52:53` » bash Stop-Process -Name "devcontext-mcp","DevContext.Server","VBCSCompiler" -Force -ErrorAction SilentlyContinue; Start-Sleep 1; dotnet build C:\Code\DevContext…
-- `07:55:57` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1
-- `07:56:12` » bash Stop-Process -Name "VBCSCompiler" -Force -ErrorAction SilentlyContinue; Start-Sleep 2; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `07:56:18` · Build 0w/0e. Now run MCP QA and produce evidence artifacts.
+**Pending:** auto-fix audit for L4
 
 ## Stage progress
 
@@ -36,7 +16,7 @@ _Session #21 (Deliver) · running 30m · last output 42s ago · $0.0910_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 3/4 | **← active** |
+| L4 | Flows + projections | 4/4 | gating… |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -66,15 +46,10 @@ _Session #21 (Deliver) · running 30m · last output 42s ago · $0.0910_
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
-| 21 | L4 | Deliver | 1 | 07-08 06:26 | … | running |  | 0 |  |  |  |
+| 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 
 ### Commits by session
 
-- **s11 (L3 Deliver)** — 4 commit(s):
-  - ea13a76 feat(l3.1): SemanticLitePopulator — Tier B compilation from assets.json + degrade path
-  - 99a4ee9 chore(conductor): s11 L3 working ▸L3.1 @ 00:41
-  - fa5c711 chore(conductor): s11 L3 working ▸L3.1 @ 00:31
-  - 52dadc7 chore(conductor): s11 L3 working ▸L3.1 @ 00:21
 - **s12 (L3 Deliver)** — 8 commit(s):
   - a0d658e chore(conductor): s12 L3 working ▸L3.2 @ 01:52
   - c9c5a00 feat(l3.2): targeted semantic upgrades (Law R2) + fix 2 L3.1 Tier-B bugs
@@ -128,6 +103,12 @@ _Session #21 (Deliver) · running 30m · last output 42s ago · $0.0910_
   - e6a11ae chore(conductor): s20 L4 working ▸L4.3 @ 06:13
   - c71b22d chore(conductor): s20 L4 working ▸L4.3 @ 06:03
   - 304bc2b chore(conductor): s20 L4 working ▸L4.3 @ 05:53
+- **s21 (L4 Deliver)** — 5 commit(s):
+  - 986b55d docs: PROGRESS-LOG — L4.4 session #21 close-out
+  - 9fe1d17 feat(l4.4): server ContextPack round-trip (closes Meridian Trap A)
+  - 2f84d84 chore(conductor): s21 L4 working ▸L4.4 @ 07:57
+  - 044b141 chore(conductor): s21 L4 working ▸L4.4 @ 07:47
+  - b9d3e0b chore(conductor): s21 L4 working ▸L4.4 @ 07:37
 
 ## Phase handovers (audit)
 
@@ -142,19 +123,18 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L4.3 landed and pushed (commits `bc0acca` feat + `e0a12e6` docs on `feat/loom-l2`). The gate battery entered green and exits green — build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, loom-guards PASS, pnpm check (lint 0, 27 tests, build), MCP QA 8/8 (checkout 2c/813tok). QA of the previous session (L4.2) verdict: **PASS** — dogfood reproduced exactly (422/276/6/34/82%), projections + `GetGraphFacets` RPC present and wired; the only gap (no projection unit tests) was closed this session. L4.3 delivered: MCP `overview`/`top_flows` and the Home hero + Atlas diagram now read the L4.2 projections via `GetGraphFacets` instead of ad-hoc walks (deleted client-side `ServiceStyles`/t…
+> SESSION-RESULT: L4.4 landed — server `GetContextPack` RPC with `ContextPackBuilder.BuildMulti()` closes Meridian Trap A (single call replaces N, per-card type filtering, Copy/Save = server-assembled markdown). All gates green: build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, pnpm 27P, MCP QA 8/8, guards PASS. Stage L4 (Flows + projections) is ALL DONE. Next session should start L5.1 (default-session MCP ergonomics per `proposal-loom.md` §L5).
 
 ## Tracker handoff
 
 ```
-last: L4 session #20 — **L4.3 DONE**. MCP overview/top_flows + Home hero + Atlas diagram now read
-      the L4.2 projections (GetGraphFacets) — ad-hoc walks deleted. Fixed real defect: BuildingBlocks
-      (a lib w/ FluentValidation.AspNetCore) was mis-classed runnable → hero now shows exactly the 6
-      runnables, full names, no libs. QA of s19 (L4.2): PASS (422/276/6/34/82% reproduced).
-stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅, L4.3 ✅). Runnable-tag + projection filter;
-       FlowCard proto enriched (route/method/target); service-map-hero reads facets.
+last: L4 session #21 — **L4 ALL DONE** (L4.1 ✅, L4.2 ✅, L4.3 ✅, L4.4 ✅). ContextPack round-trip:
+       server-assembled markdown via GetContextPack RPC replaces N GetContext calls; Copy/Save =
+       exactly the server pack; ContextPackBuilder.BuildMulti() traces each unique entry once,
+       picks per-card sections by type. Trap A closed. Single-call loadAllCards() in ContextStudio.
+stage: **L4 ALL DONE**. Next: L5 MCP v2 (cold-agent ergonomics).
 gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
-next: **L4.4** — Server ContextPack round-trip (Trap A closed); Copy/Save = exactly the server pack.
-evidence: eval-results/2026-07-08/gate-battery-l4.3-s20.txt
-          eval-results/2026-07-08/l4.3-consumers.md · eval-results/2026-07-08/dogfood-l4.3.md
+next: **L5.1** — Default-session ergonomics (single-session default, analyze idempotent by repo+HEAD).
+evidence: eval-results/2026-07-08/gate-battery-l4.4-s21.txt
+           eval-results/2026-07-08/dogfood-l4.4.md
 ```
