@@ -1,0 +1,42 @@
+﻿== L7.2 Archetype Projections — Evidence Artifact ==
+Date: 2026-07-08
+Session: #36 (L7 stage)
+Checkpoint: L7.2 — Archetype projections (desktop/worker/library/blazor)
+
+== Gate Battery ==
+dotnet build: 0w 0e ✅
+dotnet test (non-Eval): Core 408P/0F/3S · Desktop 64P/0F · Server 12P/0F ✅
+pnpm check: lint+test(27P)+build ✅
+
+== What changed ==
+1. Extended ArchitectureArchetype enum with Worker and Blazor variants (ArchitectureEnums.cs)
+2. Extended ArchitectureLayerMapping for Worker and Blazor layer labels
+3. Extended Archetype enum in ArchetypeDetector.cs (Desktop, Worker, Blazor)
+4. ArchetypeDetector.DetectAppSubtype() detects Desktop/Worker/Blazor app subtypes:
+   - Desktop: WindowsDesktop SDK signal, no web endpoints, no Blazor
+   - Worker: HostedService/Scheduled entries, no HTTP/gRPC endpoints
+   - Blazor: Blazor signal present, no traditional web endpoint frameworks
+5. Created ArchetypeProjection (IGraphProjection<ArchetypeView>) in ArchetypeProjection.cs:
+   - Desktop: UiEntry-kind flows + entry nodes tagged wpf/winforms/desktop/ui
+   - Worker: HostedService + ScheduledJob + FunctionEntry flows
+   - Blazor: HttpEndpoint flows
+   - Library: PublicApi flows + entry nodes
+6. Added ArchetypeView to MapModel; MapBuilder computes it for Desktop/Worker/Blazor/Library
+7. MapRenderer: AppendArchetypeView() renders archetype section (between Overview and Topology)
+   - MAP header now shows DESKTOP APP / WORKER / BLAZOR APP / LIBRARY for detected archetypes
+8. Proto: added ArchetypeView/ArchetypeEntryGroup/ArchetypeEntryRow messages to MapResponse
+9. ProtoMapper populates archetype_view on MapResponse when IsRelevant
+
+== Dogfood (Microservices, Archetype.App) ==
+436 nodes · 338 edges · 6 ServiceLinks · 34 entries · 69% verified · 6.6s
+Numbers stable (matching L7.1). No archetype section rendered (expected for App).
+Archetype detected correctly: Microservices → App (no false Desktop/Worker/Blazor).
+
+== Viability notes ==
+- Desktop/Worker/Blazor detection tested conceptually via entry-shape logic; physical
+  test repos (WPF/Worker Service/Blazor WASM) not available on this machine.
+- eShop (Blazor proxy): has Blazor signal AND Controllers/MinimalApis signals,
+  so correctly stays Archetype.App rather than Blazor (composite app).
+- Library detection unchanged — existing LibrarySurface + Archetype.Library path verified.
+- Proto regen successful; backward-compatible (additive field #16 on MapResponse).
+- No new node kinds — all archetype views derive from existing Flow/EntryPoint data.

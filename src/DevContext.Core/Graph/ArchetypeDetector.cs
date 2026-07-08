@@ -5,10 +5,11 @@ using DevContext.Core.Graph.EntrySurfaces;
 /// <summary>
 /// What kind of codebase this is — independent of architecture <c>Style</c>. An <see cref="App"/> has
 /// application entry points (HTTP/bus/hosted/scheduled); a <see cref="Library"/> is a packable component
-/// with a public API and no entry points (e.g. AutoMapper). The archetype decides which renderer runs:
-/// the entry-point Map vs the capability-grouped public surface (assessment G3).
+/// with a public API and no entry points (e.g. AutoMapper); <see cref="Worker"/> is a background-service
+/// app with no web endpoints; <see cref="Blazor"/> is a Blazor WASM/Server app with component pages.
+/// The archetype decides which renderer runs. (L7.2 — Worker + Blazor added.)
 /// </summary>
-public enum Archetype { App, Library, Gateway }
+public enum Archetype { App, Library, Gateway, Desktop, Worker, Blazor }
 
 /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.</summary>
 public static class ArchetypeDetector
@@ -25,7 +26,8 @@ public static class ArchetypeDetector
     /// Gateway ⇔ Ocelot/YARP reverse-proxy packages detected (overrides App/Library). App otherwise.</summary>
     /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.
     /// M1.9: gateway signal alone no longer forces Gateway archetype when multiple services exist —
-    /// the Gateway is a role within a microservices app, not the solution archetype.</summary>
+    /// the Gateway is a role within a microservices app, not the solution archetype.
+    /// L7.2: Worker and Blazor detected as App subtypes based on entry-point shape.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
         // M1.9: gateway with multiple services → microservices App, not Gateway alone
@@ -42,7 +44,6 @@ public static class ArchetypeDetector
 
         // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
         // libraries only when the signal is self-sourced (ProjectName/ProjectReference).
-        // Consumer apps that reference these via NuGet packages stay App.
         if (IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
 
@@ -51,7 +52,7 @@ public static class ArchetypeDetector
         if (!entries.IsDefaultOrEmpty && entries.Any(e =>
             AppEntryKinds.Contains(e.Kind)
             && !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov))))
-            return Archetype.App;
+            return DetectAppSubtype(model, entries);
 
         var classifier = new ProjectClassifier(model.Projects);
         var nonTest = model.Projects
@@ -68,9 +69,6 @@ public static class ArchetypeDetector
             return Archetype.App; // pure executable(s)
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        // W5: an exe is auxiliary only when its own project path is a sample/test/benchmark path,
-        // or (for console Exes) it references a library project — not when a desktop WinExe
-        // happens to reference internal library projects (e.g. Files.App → Files.Core).
         var allExeAreAuxiliary = exe.All(e =>
             ProjectClassifier.IsSamplePath(e.FilePath)
             || ProjectClassifier.IsTestPath(e.FilePath)
@@ -86,6 +84,42 @@ public static class ArchetypeDetector
             && !ProjectClassifier.IsSamplePath(t.FilePath));
 
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
+    }
+
+    /// <summary>L7.2 — when the solution is App, refine to Worker, Blazor, or Desktop based on entry-point shape.</summary>
+    private static Archetype DetectAppSubtype(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
+    {
+        var hasBlazor = model.Architecture.Has(ArchitectureSignals.Keys.Blazor);
+        var hasControllers = model.Architecture.Has(ArchitectureSignals.Keys.Controllers);
+        var hasMinimalApis = model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis);
+        var hasDesktop = model.Architecture.Has(ArchitectureSignals.Keys.DesktopUi);
+        var hasWebEndpoints = hasControllers || hasMinimalApis
+            || model.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints)
+            || model.Architecture.Has(ArchitectureSignals.Keys.RazorPages);
+
+        // Desktop: WindowsDesktop SDK or DesktopUi signal, no web endpoint frameworks
+        if (hasDesktop && !hasWebEndpoints && !hasBlazor)
+            return Archetype.Desktop;
+
+        // Blazor: Blazor signal present, no traditional web endpoint frameworks
+        if (hasBlazor && !hasWebEndpoints)
+            return Archetype.Blazor;
+
+        // Worker: dominated by hosted-service/scheduled entries with NO HTTP/gRPC endpoints
+        var appEntries = entries.Where(e =>
+            AppEntryKinds.Contains(e.Kind)
+            && !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov)))
+            .ToList();
+        var webEntryCount = appEntries.Count(e =>
+            e.Kind is EntryPointKind.HttpEndpoint or EntryPointKind.GrpcService
+                 or EntryPointKind.SignalRHub or EntryPointKind.GraphQlField);
+        var workerEntryCount = appEntries.Count(e =>
+            e.Kind is EntryPointKind.HostedService or EntryPointKind.ScheduledJob);
+
+        if (webEntryCount == 0 && workerEntryCount > 0)
+            return Archetype.Worker;
+
+        return Archetype.App;
     }
 
     /// <summary>M1.9 — true when the project is a runnable service (Exe or web SDK, not a library).</summary>

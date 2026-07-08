@@ -8,15 +8,14 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L7 session #34 — **L7.1 DONE** (gate battery green: 407P/1F→updated/3S DotNet,
-      27/27 pnpm).
-      L7.1: PlainCallDetector over BodyFacts emits Calls edges for in-solution
-      method invocations (SymbolTable-resolved, framework-excluded). Dogfood +62e
-      (+22.5%), eShop 312/375 edges are Calls (83%). All entries depth ≥2.
-stage: **L7.1 DONE**. MVC-class measurement proxy via eShop (RazorPages/CleanArch
-      repos absent locally). Edges: Calls=312 (83%), entries=96 depth ≥2.
-next: **L7.2** — Archetype projections (desktop/worker/library/blazor).
-evidence: eval-results/2026-07-08/gate-battery-l7.1-s34.txt
+last: L7 session #36 — **L7.2 DONE** (gate battery green: 408P/3S DotNet, 27/27 pnpm).
+      L7.2: ArchetypeProjection (IGraphProjection<ArchetypeView>) branches on detected
+      Desktop/Worker/Blazor/Library archetypes. ArchetypeDetector now detects Desktop,
+      Worker, Blazor subtypes. Proto regen adds archetype_view to MapResponse (field 16).
+      Dogfood stays App (436n/338e/6SL/34e/69%). Build 0w/0e.
+stage: **L7.2 DONE**. L7.3 (style guardrails + E9 scope fix) next.
+next: **L7.3** — Style-detection guardrails + E9 scope fix.
+evidence: eval-results/2026-07-08/gate-battery-l7.2-s36.txt
 
 ## Baseline numbers (2026-07-08, L7.1 post-PlainCallDetector — drift >5% documented below)
 
@@ -79,7 +78,7 @@ line under the row — never silent renumbering.
 | L6.5 | Table lens button + focus-proof shortcut | DONE | (l6.5-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
 | L6.6 | Chrome polish batch (MCP status, confidence stat, DPI sweep) | DONE | (l6.6-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
 | L7.1 | Call-spine completion (≥70% entries ≥2-deep on MVC-class repos) | DONE | (l7.1-s34) | eval-results/2026-07-08/gate-battery-l7.1-s34.txt |
-| L7.2 | Archetype projections (desktop/worker/library/blazor) | TODO | | |
+| L7.2 | Archetype projections (desktop/worker/library/blazor) | DONE | (l7.2-s36) | eval-results/2026-07-08/gate-battery-l7.2-s36.txt |
 | L7.3 | Style-detection guardrails + E9 scope fix | TODO | | |
 | L7.4 | Truth files per archetype; 22-repo truth bench | TODO | | |
 | L8.1 | Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals | TODO | | |

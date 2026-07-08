@@ -13,6 +13,8 @@ public sealed record ProjectionOptions
     public static readonly ProjectionOptions Default = new();
     public int MaxFlows { get; init; } = 10;
     public bool IncludeLibraries { get; init; }
+    /// <summary>L7.2 — the detected archetype, used by <see cref="ArchetypeProjection"/> to shape output.</summary>
+    public Archetype? Archetype { get; init; }
 }
 
 // ────────────────────────────────────────────────────────

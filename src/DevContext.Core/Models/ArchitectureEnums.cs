@@ -63,11 +63,31 @@ public static class ArchitectureLayerMapping
                     ArchitectureLayer.Persistence => "Platform",
                     _ => "ViewModel",
                 },
+            ArchitectureArchetype.Worker =>
+                layer switch
+                {
+                    ArchitectureLayer.Api or ArchitectureLayer.Presentation => "Worker",
+                    ArchitectureLayer.Application => "Processing",
+                    ArchitectureLayer.Domain => "Domain",
+                    ArchitectureLayer.Infrastructure => "Platform",
+                    ArchitectureLayer.Persistence => "Persistence",
+                    _ => "Worker",
+                },
+            ArchitectureArchetype.Blazor =>
+                layer switch
+                {
+                    ArchitectureLayer.Api or ArchitectureLayer.Presentation => "Components",
+                    ArchitectureLayer.Application => "Services",
+                    ArchitectureLayer.Domain => "Domain",
+                    ArchitectureLayer.Infrastructure => "Platform",
+                    ArchitectureLayer.Persistence => "Persistence",
+                    _ => "Components",
+                },
             _ => layer.ToString(),
         };
 }
 
-public enum ArchitectureArchetype { Web, Microservices, Library, Desktop, Gateway }
+public enum ArchitectureArchetype { Web, Microservices, Library, Desktop, Gateway, Worker, Blazor }
 
 /// <summary>D9 — parses a string (from discovery model or renderer) to the ArchitectureArchetype enum.</summary>
 public static class ArchitectureArchetypeParser
@@ -80,6 +100,8 @@ public static class ArchitectureArchetypeParser
             "Library" => ArchitectureArchetype.Library,
             "Desktop" => ArchitectureArchetype.Desktop,
             "Gateway" => ArchitectureArchetype.Gateway,
+            "Worker" => ArchitectureArchetype.Worker,
+            "Blazor" => ArchitectureArchetype.Blazor,
             _ => ArchitectureArchetype.Web, // default to web-centric mapping
         };
 }

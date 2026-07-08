@@ -15,6 +15,8 @@ public sealed record MapModel
     public Archetype Archetype { get; init; } = Archetype.App;
     /// <summary>The capability-grouped public API, when <see cref="Archetype"/> is Library.</summary>
     public LibrarySurface? Surface { get; init; }
+    /// <summary>L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor).</summary>
+    public ArchetypeView? ArchetypeView { get; init; }
     /// <summary>When the analysed set is a partial closure of the owning solution (e.g. pointing at one
     /// microservice of many), a human-readable scope descriptor — keyed so the Map never claims a
     /// whole-system style from a single-service slice (Iteration 4 / Critical 3).</summary>
@@ -39,6 +41,11 @@ public sealed class MapBuilder
     {
         var archetype = ArchetypeDetector.Detect(model, entries);
         var topology = BuildTopology(model, graph);
+        var archetypeView = archetype is Archetype.Desktop or Archetype.Worker
+            or Archetype.Blazor or Archetype.Library
+            ? new ArchetypeProjection().Project(graph,
+                new ProjectionOptions { Archetype = archetype })
+            : null;
         return new MapModel
         {
             Style = model.DetectedStyle.ToString(),
@@ -51,6 +58,7 @@ public sealed class MapBuilder
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
+            ArchetypeView = archetypeView,
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
             ServiceStyles = model.PerServiceStyles,

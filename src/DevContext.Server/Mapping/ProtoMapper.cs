@@ -98,6 +98,38 @@ internal static class ProtoMapper
                 Stack = { ss.Stack },
             });
 
+        // L7.2 — archetype-specific entry-point view
+        if (map.ArchetypeView is { IsRelevant: true } view)
+        {
+            var pv = new Proto.ArchetypeView
+            {
+                Archetype = view.Archetype.ToString(),
+                SectionLabel = view.SectionLabel,
+            };
+            foreach (var g in view.Groups)
+            {
+                var pg = new Proto.ArchetypeEntryGroup { Project = g.Project };
+                if (g.Layer is { } l) pg.Layer = l;
+                foreach (var e in g.Entries)
+                {
+                    var pe = new Proto.ArchetypeEntryRow
+                    {
+                        Kind = e.Kind,
+                        Title = e.Title,
+                        Depth = e.Depth,
+                        Hops = e.Hops,
+                        Score = e.Score,
+                    };
+                    if (e.Route is { } r) pe.Route = r;
+                    if (e.Target is { } t) pe.Target = t;
+                    if (e.GroupPath is { } gp) pe.GroupPath = gp;
+                    pg.Entries.Add(pe);
+                }
+                pv.Groups.Add(pg);
+            }
+            resp.ArchetypeView = pv;
+        }
+
         return resp;
     }
 

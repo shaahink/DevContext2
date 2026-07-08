@@ -28,6 +28,8 @@ public static class MapRenderer
             AppendStyle(sb, ctx.Map);
         });
         var basePath = ctx.Snapshot.RootPath;
+        // L7.2 — archetype-specific section renders before Topology for Desktop/Worker/Blazor/Library
+        Add(sections, "Archetype", sb => AppendArchetypeView(sb, ctx.Map));
         Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
         Add(sections, "Routes", sb => AppendGatewayRoutes(sb, ctx.Map));
         Add(sections, "Cross-service", sb => AppendServiceLinks(sb, ctx));
@@ -56,6 +58,10 @@ public static class MapRenderer
         var label = ctx.Map.Archetype switch
         {
             Archetype.Gateway => "GATEWAY",
+            Archetype.Desktop => "DESKTOP APP",
+            Archetype.Worker  => "WORKER",
+            Archetype.Blazor  => "BLAZOR APP",
+            Archetype.Library => "LIBRARY",
             _ => "MAP",
         };
         sb.AppendLine($"{label}  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
@@ -144,6 +150,38 @@ public static class MapRenderer
         }
         sb.AppendLine();
     }
+
+    /// <summary>L7.2 — renders the archetype-specific entry-point view for Desktop, Worker, Blazor, and Library.</summary>
+    private static void AppendArchetypeView(StringBuilder sb, MapModel map)
+    {
+        var view = map.ArchetypeView;
+        if (view is not { IsRelevant: true }) return;
+
+        sb.AppendLine(view.SectionLabel);
+
+        if (!view.Groups.IsDefaultOrEmpty)
+        {
+            foreach (var group in view.Groups.Take(MaxArchetypeGroups))
+            {
+                var layerTag = group.Layer is { } l ? $" [{l}]" : "";
+                sb.AppendLine($"   {group.Project}{layerTag} ({group.Entries.Length})");
+                foreach (var entry in group.Entries)
+                {
+                    var target = entry.Target is { Length: > 0 } t ? $"  \u2192 {t}" : "";
+                    sb.AppendLine($"      {entry.Title}{target}");
+                }
+            }
+        }
+        else
+        {
+            sb.AppendLine($"   (no {view.Archetype.ToString().ToLowerInvariant()}-specific entries detected)");
+        }
+
+        sb.AppendLine();
+    }
+
+    /// <summary>Max archetype entry groups shown.</summary>
+    private const int MaxArchetypeGroups = 20;
 
     private static void AppendTopology(StringBuilder sb, MapModel map)
     {

@@ -193,6 +193,8 @@ message MapResponse {
   LibrarySurface surface = 14;
   // Per-service style assessment — one entry per runnable web project (M1.9 / D5)
   repeated ServiceStyle service_styles = 15;
+  // L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor)
+  optional ArchetypeView archetype_view = 16;
 }
 
 message ProjectNode {
@@ -227,6 +229,30 @@ message SurfaceType {
   string name = 1;
   string kind = 2;
   repeated string members = 3;
+}
+
+// L7.2 — archetype-shaped entry-point view for Desktop, Worker, Blazor, and Library.
+message ArchetypeView {
+  string archetype = 1;
+  string section_label = 2;
+  repeated ArchetypeEntryGroup groups = 3;
+}
+
+message ArchetypeEntryGroup {
+  string project = 1;
+  optional string layer = 2;
+  repeated ArchetypeEntryRow entries = 3;
+}
+
+message ArchetypeEntryRow {
+  string kind = 1;
+  string title = 2;
+  optional string route = 3;
+  optional string target = 4;
+  optional string group_path = 5;
+  int32 depth = 6;
+  int32 hops = 7;
+  double score = 8;
 }
 
 // ---------------------------------------------------------------------------
