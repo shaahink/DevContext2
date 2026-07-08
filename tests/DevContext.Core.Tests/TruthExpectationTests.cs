@@ -186,24 +186,26 @@ public sealed class TruthExpectationTests
     /// <summary>
     /// L0 truth #4: Blazor WASM sample must NOT be labeled Microservices.
     /// Today it is (E4: 142 doc-sample projects counting as microservice signals).
-    /// Fix: L7.3 (style detection guardrails).
+    /// Fix: L7.3 (style detection guardrails) + L7.4 (multi-.sln directory detection).
     /// </summary>
-    [TruthPending("L7")]
+    [SkippableFact]
     public async Task Blazor_archetype_is_not_microservices()
     {
         var repoPath = RepoPath("eval-repos/Blazor");
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: Blazor not cloned"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         var json = result.JsonContent;
 
-        // Extract the style field from JSON output
+        // Extract the style field from the report content
         var styleLine = result.Content.Split('\n')
             .FirstOrDefault(l => l.Contains("STYLE") || l.Contains("Style:"));
         _output.WriteLine($"Blazor style: {styleLine ?? "(not found)"}");
 
         // Must NOT be Microservices
         Assert.DoesNotContain("Microservices", styleLine ?? "", StringComparison.Ordinal);
+        // Must be SampleCollection or another honest non-Microservices label
+        Assert.Contains(result.Content, "SampleCollection", StringComparison.Ordinal);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -268,6 +270,92 @@ public sealed class TruthExpectationTests
         Assert.True(typesCount >= 1000, $"typesSummary.found={typesCount} < 1000 (baseline 4965 nodes)");
 
         _output.WriteLine($"DntSite baseline: {typesCount} types found");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Library archetype (L7.4)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L7.4 truth: a library repo (FluentValidation) must produce a meaningful
+    /// public surface and NOT be detected as an App. Library archetype repos
+    /// should show their public API, not pretend to have application entries.
+    /// </summary>
+    [SkippableFact]
+    public async Task Library_archetype_has_public_surface()
+    {
+        var repoPath = RepoPath("eval-repos/FluentValidation");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+        Assert.NotEmpty(result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 50, $"typesSummary.found={typesCount} < 50 (baseline ~275 types)");
+
+        // A library report must talk about its public API surface, not application entries
+        Assert.Contains("PUBLIC SURFACE", result.Content, StringComparison.OrdinalIgnoreCase);
+
+        _output.WriteLine($"Library (FluentValidation): {typesCount} types, public surface confirmed");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Desktop archetype (L7.4)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L7.4 truth: a desktop/WPF repo (PowerToys) must produce entries and
+    /// a non-trivial graph. Desktop repos should not report empty or stub output.
+    /// </summary>
+    [SkippableFact]
+    public async Task Desktop_archetype_produces_entries()
+    {
+        var repoPath = RepoPath("eval-repos/PowerToys");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+        Assert.NotEmpty(result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 500, $"typesSummary.found={typesCount} < 500 (PowerToys is a large repo)");
+
+        _output.WriteLine($"Desktop (PowerToys): {typesCount} types found");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Worker archetype (L7.4)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// L7.4 truth: a worker/function repo (Azure Functions .NET worker) must
+    /// produce a non-trivial graph and NOT be conflated with a web App.
+    /// Worker archetypes should not report web endpoints as their primary identity.
+    /// </summary>
+    [SkippableFact]
+    public async Task Worker_archetype_produces_graph()
+    {
+        var repoPath = RepoPath("eval-repos/AzureFunctions");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+        Assert.NotEmpty(result.Content);
+        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+
+        var json = result.JsonContent;
+        Assert.NotEmpty(json);
+
+        var typesCount = ExtractJsonInt(json, "typesSummary.found");
+        Assert.True(typesCount >= 30, $"typesSummary.found={typesCount} < 30 (baseline ~50 types)");
+
+        _output.WriteLine($"Worker (AzureFunctions): {typesCount} types found");
     }
 
     // ═══════════════════════════════════════════════════════════════════

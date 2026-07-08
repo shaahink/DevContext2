@@ -368,4 +368,42 @@ public sealed class ArchitectureStyleDetectorTests
         var (style, _, _) = ArchitectureStyleDetector.Detect(model);
         Assert.NotEqual(ArchitectureStyle.SampleCollection, style);
     }
+
+    [Fact]
+    public void SampleCollection_when_many_projects_but_sln_covers_few()
+    {
+        // L7.4: multi-.sln sample directory (e.g. dotnet/blazor-samples). The resolver
+        // walked down to find a single small .sln (1-2 projects) but the pipeline
+        // collected 100+ projects from the top-level directory. This mismatch is a
+        // strong signal of a multi-sample collection.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Gateway, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
+        var projects = ImmutableArray.CreateBuilder<ProjectInfo>();
+        for (int i = 0; i < 30; i++)
+            projects.Add(new ProjectInfo($"App{i}", $@"C:\repo\10.0\App{i}\App{i}.csproj", "C#", [], [], []));
+        model.Projects = projects.ToImmutable();
+        model.Solution = new SolutionInfo("BlazorSample.sln", "BlazorSample",
+            ["BlazorSample.csproj"]); // .sln covers only 1 project, but 30 analyzed
+
+        var (style, _, via) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.SampleCollection, style);
+        Assert.Contains("multi-sample", via);
+    }
+
+    [Fact]
+    public void Normal_repo_with_sln_matching_projects_not_flagged()
+    {
+        // Regression: a normal repo where the .sln covers all projects must NOT be flagged.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Projects = [Project("MyApp"), Project("MyApp.Core"), Project("MyApp.Infra")];
+        model.Solution = new SolutionInfo("MyApp.sln", "MyApp",
+            ["MyApp.csproj", "MyApp.Core.csproj", "MyApp.Infra.csproj"]);
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.SampleCollection, style);
+    }
 }

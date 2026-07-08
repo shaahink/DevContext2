@@ -1,0 +1,22 @@
+﻿DntSite|SKIP|not found|0|0|0s
+TodoApi|OK|MinimalApi|123|81|5.4s
+CleanArchitecture|OK|VerticalSlices|331|203|10.3s
+eShop|OK|Microservices|1154|1001|23.3s
+FluentValidation|OK|Unknown|1163|1057|10.1s
+Polly|OK|MinimalApi|2101|2045|27.1s
+CommunityToolkit.Mvvm|OK|Unknown|744|534|15.1s
+MediatR|OK|SampleCollection|489|417|8s
+gRPC|OK|SampleCollection|1704|1495|24.4s
+MassTransit|OK|Microservices|13914|13151|75.4s
+Ocelot|OK|SampleCollection|2048|1873|41.8s
+AzureFunctions|OK|Unknown|1239|1017|24.3s
+RazorPages|OK|SampleCollection|1179|593|106.5s
+CLI|OK|Unknown|892|1172|13.4s
+Blazor|OK|SampleCollection|50|29|15.5s
+Desktop|OK|Unknown|300|103|7.2s
+PowerToys|OK|Unknown|7647|5817|56.6s
+Serilog|OK|Unknown|414|308|11.5s
+Spectre.Console|OK|Unknown|1074|835|19.4s
+MassTransit-Sample|OK|Unknown|15|10|3.9s
+eshop-microservices|OK|Microservices|436|338|6.5s
+DevContext|OK|CleanArchitecture|1278|1231|51.4s

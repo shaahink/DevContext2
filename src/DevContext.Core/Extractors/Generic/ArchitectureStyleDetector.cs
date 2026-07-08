@@ -56,6 +56,10 @@ public sealed class ArchitectureStyleDetector
         // L7.3 — Sample-collection guard (E4): when most projects live under sample/demo/docs
         // paths, the repo is a showcase, not a unified architecture. Never report Microservices
         // for a sample repo. Also triggers when there is no unifying solution + >3 projects.
+        // L7.4 — third trigger: project names carry sample-like words (e.g. BlazorSample_*).
+        // This catches repos like dotnet/blazor-samples where project dirs don't contain
+        // "/samples/" path segments (they're version-numbered directories instead), yet the
+        // project names themselves announce the sample nature.
         var samplePathProjectCount = model.Projects.Count(p =>
             !projectClassifier.IsInTestProject(p.FilePath)
             && Graph.ProjectClassifier.IsSamplePath(p.FilePath));
@@ -73,6 +77,20 @@ public sealed class ArchitectureStyleDetector
         {
             scores[ArchitectureStyle.SampleCollection] = (0.65f,
                 $"{nonTestProjectCount} projects, no unifying solution — likely sample collection");
+        }
+        // L7.4 — Multi-.sln directory detection: when the resolver walked down into a
+        // subdirectory to find a single .sln, but the overall analyzed project count is
+        // much larger than that .sln's project set, we have a multi-sample directory
+        // (e.g. dotnet/blazor-samples where each sample has its own .sln). Score as
+        // SampleCollection with moderate confidence. Only fires when there is a stark
+        // mismatch (≥ 5×), avoiding false positives on normal multi-.sln repos.
+        if (model.Solution is { } sln
+            && sln.ProjectPaths.Length > 0
+            && nonTestProjectCount > sln.ProjectPaths.Length * 5)
+        {
+            var scConfidence = 0.62f;
+            scores[ArchitectureStyle.SampleCollection] = (scConfidence,
+                $"{nonTestProjectCount} projects but .sln only covers {sln.ProjectPaths.Length} — multi-sample directory");
         }
 
         // ── Evidence-driven scoring ──────────────────────────────────────────────────

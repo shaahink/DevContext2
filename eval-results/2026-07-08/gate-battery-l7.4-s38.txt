@@ -1,0 +1,24 @@
+GATE BATTERY - L7.4 session #38
+=================================
+Run: 2026-07-08
+
+dotnet build DevContext.slnx ............. 0w 0e (PASS)
+dotnet test --filter "Category!=Eval" .... Core 414P/3S, Server 12P, Desktop 64P (PASS)
+pnpm check ................................ lint + test(27/27) + build (PASS)
+
+ArchitectureStyleDetector tests ........... 21/21 (PASS)
+  incl. 2 new L7.4 tests:
+    - SampleCollection_when_many_projects_but_sln_covers_few
+    - Normal_repo_with_sln_matching_projects_not_flagged
+
+22-repo bench .............................. 21/22 OK, 1 SKIP (DntSite)
+  Blazor: now SampleCollection (L7.4 fix, was Microservices)
+  Dogfood: 436n/338e/34e/6SL/69% (unchanged)
+
+Truth tests (Category=Eval,Truth):
+  - Blazor_archetype_is_not_microservices: [TruthPending("L7")] -> [SkippableFact] (FLIPPED)
+  - Library_archetype_has_public_surface: NEW
+  - Desktop_archetype_produces_entries: NEW
+  - Worker_archetype_produces_graph: NEW
+
+No regressions. Gate battery green.
