@@ -7,15 +7,18 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L3 session #16 — **L3.3 DONE**. Verified-edge ratchet 68% → **81%** (target ≥80% MET).
-stage: **L3 COMPLETE** (L3.1 ✅, L3.2 ✅, L3.3 ✅). Fix: assembly-independent semantic bind of
-      dispatch targets — bind the generic type ARG (`Adapt<T>`) / inline `new X()` creation, not the
-      whole (package-missing, unresolvable) invocation. Sends 32 approx → 0. Zero new edges (pure tier).
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · mcp-qa 8/8.
-trap: Category=Eval FAILs PRE-EXISTING (TodoApi POST /todos lacks TodoDbContext — L7 call-spine gap;
-      proven via stash A/B on clean HEAD). DntSite sub-measurement skipped — repo absent on this machine.
-next: **L4.1** — Flow store on CodeGraph; spine-only Touches/Emits (audit E5); ServiceHops + provenance.
-evidence: eval-results/2026-07-08/gate-battery-l3.3-s16.txt
+last: L4 session #18 — **L4.1 DONE**. Flow store on CodeGraph (34 flows, one per entry).
+      Spine-only Touches/Emits (E5 fix: no EntityRelation reachability). ServiceHops with
+      transport + provenance. Additive only — node/edge counts unchanged (422n/276e).
+stage: **L4 IN PROGRESS** (L4.1 ✅). Fix: Flow/FlowStep/ServiceHop records + CodeGraph
+      storage + GraphBuilder.ComputeFlows() (spine walk with handler-member bridging).
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P ·
+      mcp-qa 8/8. Verified edges 82% (±1% variance from L3.3).
+next: **L4.2** — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets
+      RPC. L4.1's 34 flows are the data; projections render them identically across CLI,
+      MCP, and UI.
+evidence: eval-results/2026-07-08/gate-battery-l4.1-s18.txt
+          eval-results/2026-07-08/dogfood-l4.1-final.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -54,7 +57,7 @@ line under the row — never silent renumbering.
 > scope change: 65% → 68% (s14, +7 ReadsWrites +1 CallEdge) → **81% (s16)**: assembly-independent
 > semantic bind of dispatch targets (generic type-arg / inline `new X()`), Sends 32 approx → 0.
 > DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
-| L4.1 | Flow store; spine-only TOUCHES/EMITS | TODO | | |
+| L4.1 | Flow store; spine-only TOUCHES/EMITS (E5 fix); ServiceHops + provenance | DONE | (l4.1) | eval-results/2026-07-08/gate-battery-l4.1-s18.txt |
 | L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | TODO | | |
 | L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |
 | L4.4 | Server ContextPack round-trip (Trap A closed) | TODO | | |

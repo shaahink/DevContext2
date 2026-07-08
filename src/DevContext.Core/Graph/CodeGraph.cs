@@ -196,6 +196,9 @@ public sealed class CodeGraph
     public int HubScopeNodeCount { get; init; }
     /// <summary>D9 — Layer violations detected during graph assembly.</summary>
     public ImmutableArray<LayerViolation> LayerViolations { get; init; } = [];
+    /// <summary>L4 — Precomputed flows (spine-only), one per entry. Computed at assembly time, consumed
+    /// by projections, MCP tools, and UI surfaces (design §1.4, §3).</summary>
+    public ImmutableArray<Flow> Flows { get; init; } = [];
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -224,6 +227,7 @@ public sealed class CodeGraphBuilder
     private readonly Dictionary<NodeId, GraphNode> _nodes = [];
     private readonly Dictionary<NodeId, List<GraphEdge>> _out = [];
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
+    private readonly List<Flow> _flows = [];
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
@@ -306,10 +310,13 @@ public sealed class CodeGraphBuilder
     /// (e.g. restrict Calls edges to declared in-scope types, which carry a FilePath).</summary>
     public GraphNode? GetNode(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
 
+    /// <summary>L4 — Sets the computed flows on the builder. Replaces any previously set flows.</summary>
+    public void SetFlows(IEnumerable<Flow> flows) { _flows.Clear(); _flows.AddRange(flows); }
+
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
     public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations };
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows] };
     }
 }
