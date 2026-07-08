@@ -56,7 +56,7 @@ line under the row — never silent renumbering.
 > semantic bind of dispatch targets (generic type-arg / inline `new X()`), Sends 32 approx → 0.
 > DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
 | L4.1 | Flow store; spine-only TOUCHES/EMITS (E5 fix); ServiceHops + provenance | DONE | (l4.1) | eval-results/2026-07-08/gate-battery-l4.1-s18.txt |
-| L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | DONE | (l4.2) | eval-results/2026-07-08/gate-battery-l4.2-s19.txt |
+| L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | DONE | 73cca81 | eval-results/2026-07-08/gate-battery-l4.2-s19.txt |
 | L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |
 | L4.4 | Server ContextPack round-trip (Trap A closed) | TODO | | |
 | L5.1 | Default-session ergonomics | TODO | | |
