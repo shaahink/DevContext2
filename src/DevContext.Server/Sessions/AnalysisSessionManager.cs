@@ -21,12 +21,22 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
     {
         await EvictIfNeededAsync().ConfigureAwait(false);
 
-        var engine = await _runner.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
-        var handle = Guid.NewGuid().ToString("N");
-
-        // M3.1 — resolve repo path + HEAD for session keying
         var repoPath = ResolveRepoPath(spec.Path);
         var commitSha = ResolveCommitSha(repoPath);
+
+        var existing = TryGetByRepo(repoPath, commitSha);
+        if (existing is not null)
+        {
+            progress?.Report(new AnalysisProgress("cached", 100, "Reusing existing analysis for this repo"));
+            existing.LastActivity = DateTime.UtcNow;
+            existing.CallCount++;
+            if (_sessions.TryGetValue(existing.Handle, out var existingEntry))
+                existingEntry.LastAccess = DateTime.UtcNow;
+            return existing;
+        }
+
+        var engine = await _runner.AnalyzeAsync(spec, progress, ct).ConfigureAwait(false);
+        var handle = Guid.NewGuid().ToString("N");
 
         var session = new AnalysisSession(handle, engine)
         {
@@ -35,7 +45,6 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         };
         _sessions[handle] = new SessionEntry { Session = session, LastAccess = DateTime.UtcNow };
 
-        // M3.1 — index by repo+HEAD for server-of-record lookup
         var repoKey = RepoKey(repoPath, commitSha);
         _repoToHandle[repoKey] = handle;
 

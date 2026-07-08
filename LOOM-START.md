@@ -7,15 +7,15 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L4 session #21 — **L4 ALL DONE** (L4.1 ✅, L4.2 ✅, L4.3 ✅, L4.4 ✅). ContextPack round-trip:
-       server-assembled markdown via GetContextPack RPC replaces N GetContext calls; Copy/Save =
-       exactly the server pack; ContextPackBuilder.BuildMulti() traces each unique entry once,
-       picks per-card sections by type. Trap A closed. Single-call loadAllCards() in ContextStudio.
-stage: **L4 ALL DONE**. Next: L5 MCP v2 (cold-agent ergonomics).
-gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
-next: **L5.1** — Default-session ergonomics (single-session default, analyze idempotent by repo+HEAD).
-evidence: eval-results/2026-07-08/gate-battery-l4.4-s21.txt
-           eval-results/2026-07-08/dogfood-l4.4.md
+last: L5 session #23 — **L5.1 DONE** (default-session ergonomics + idempotent analyze). All 20+
+       MCP tools accept optional `handle` (defaults to most-recent session). Analyze returns
+       existing handle for same repo+HEAD (server-side TryGetByRepo check before engine run).
+       Cache hit streams "cached" progress event. ResolveHandle helper picks ≤1 session auto.
+stage: **L5.1 DONE**. Next: L5.2 Error envelopes (error+hint+example ≤80 tok).
+gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
+next: **L5.2** — Error envelopes (error+hint+example ≤80 tok per tool failure).
+evidence: eval-results/2026-07-08/gate-battery-l5.1-s23.txt
+           eval-results/2026-07-08/mcp-qa.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -62,7 +62,7 @@ line under the row — never silent renumbering.
 > "AspNetCore" package check; tightened to Microsoft.AspNetCore.App*/Web-SDK/Exe (design §2.4).
 > Edges/SL/entries/verified% unchanged. Hero now shows exactly 6 runnables (audit Claim 3 fix).
 | L4.4 | Server ContextPack round-trip (Trap A closed) | DONE | (l4.4-s21) | eval-results/2026-07-08/gate-battery-l4.4-s21.txt |
-| L5.1 | Default-session ergonomics | TODO | | |
+| L5.1 | Default-session ergonomics | DONE | (l5.1-s23) | eval-results/2026-07-08/gate-battery-l5.1-s23.txt |
 | L5.2 | Error envelopes (error+hint+example ≤80 tok) | TODO | | |
 | L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | TODO | | |
 | L5.4 | Real `flow` tool + fuzzy focus | TODO | | |

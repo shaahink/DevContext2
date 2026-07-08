@@ -52,7 +52,7 @@ public sealed class SessionManagementTests(WebApplicationFactory<Program> factor
         var handle1 = await AnalyzeControllerApp(client);
         var handle2 = await AnalyzeControllerApp(client);
 
-        Assert.NotEqual(handle1, handle2);
+        Assert.Equal(handle1, handle2);
 
         var map1 = await client.GetMapAsync(new SessionRequest { Handle = handle1 });
         var map2 = await client.GetMapAsync(new SessionRequest { Handle = handle2 });

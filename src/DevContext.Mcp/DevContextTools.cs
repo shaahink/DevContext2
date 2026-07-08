@@ -29,7 +29,19 @@ public sealed class DevContextTools
         _logger = logger;
     }
 
-    /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Example: analyze("C:/repos/MyApp")</summary>
+    private string ResolveHandle(string? handle)
+    {
+        if (!string.IsNullOrEmpty(handle)) return handle;
+
+        var list = _client.ListSessions(new ListSessionsRequest());
+        if (list.Sessions.Count == 0)
+            throw new RpcException(new Status(StatusCode.FailedPrecondition,
+                "No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")"));
+
+        return list.Sessions[0].Handle;
+    }
+
+    /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD returns existing handle. Example: analyze("C:/repos/MyApp")</summary>
     [McpServerTool]
     public async Task<string> Analyze(string path)
     {
@@ -48,7 +60,6 @@ public sealed class DevContextTools
         if (handle is null)
             throw new RpcException(new Status(StatusCode.Internal, "Analysis did not return a handle."));
 
-        // G4 — store repo root for path relativization
         try
         {
             var resolved = Path.GetFullPath(path);
@@ -65,14 +76,15 @@ public sealed class DevContextTools
         {
             handle,
             status = "ready",
-            hint = "Analysis complete. Use other tools with this handle.",
+            hint = "Analysis complete. Other tools will use this session by default. Omit 'handle' to use the most recent session.",
         }, JsonOpts);
     }
 
     /// <summary>One-call repo brief: identity, services, ServiceLinks, top flows, where to start. ~600 tokens max. Example: overview("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Overview(string handle)
+    public async Task<string> Overview(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         // L4.3: services + top flows come from the graph projections (one truth), not ad-hoc walks.
         var facets = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 5 });
         var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
@@ -145,8 +157,9 @@ public sealed class DevContextTools
 
     /// <summary>Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks — returns all matches. Example: resolve("abc123", "Product")</summary>
     [McpServerTool]
-    public async Task<string> Resolve(string handle, string query, int limit = 10)
+    public async Task<string> Resolve(string? handle, string query, int limit = 10)
     {
+        handle = ResolveHandle(handle);
         var nodes = await _client.SearchNodesAsync(new SearchRequest
         {
             Handle = handle,
@@ -189,8 +202,9 @@ public sealed class DevContextTools
 
     /// <summary>Check if a session handle is still valid. Example: status("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Status(string handle)
+    public async Task<string> Status(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         try
         {
             await _client.GetStatsAsync(new SessionRequest { Handle = handle });
@@ -204,8 +218,9 @@ public sealed class DevContextTools
 
     /// <summary>Release a session's resources (engine + any clone). Idempotent. Example: close_session("abc123")</summary>
     [McpServerTool]
-    public async Task<string> CloseSession(string handle)
+    public async Task<string> CloseSession(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.CloseSessionAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new { closed = resp.Closed, handle }, JsonOpts);
     }
@@ -233,8 +248,9 @@ public sealed class DevContextTools
 
     /// <summary>Full analysis stats: node/edge counts, seam breakdown, insights, warnings. Example: stats("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Stats(string handle)
+    public async Task<string> Stats(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -271,8 +287,9 @@ public sealed class DevContextTools
 
     /// <summary>List entry points (HTTP routes, bus consumers, gRPC services). Filter by kind. Example: entrypoints("abc123", "HttpEndpoint")</summary>
     [McpServerTool]
-    public async Task<string> Entrypoints(string handle, string? kind = null)
+    public async Task<string> Entrypoints(string? handle = null, string? kind = null)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
         var entries = resp.EntryPoints.AsEnumerable();
         if (kind is not null)
@@ -302,8 +319,9 @@ public sealed class DevContextTools
 
     /// <summary>Architecture map: style, archetype, topology, project dependencies. Example: map("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Map(string handle)
+    public async Task<string> Map(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -318,8 +336,9 @@ public sealed class DevContextTools
 
     /// <summary>Top 20 entry points ranked by importance score. Example: top_flows("abc123")</summary>
     [McpServerTool]
-    public async Task<string> TopFlows(string handle)
+    public async Task<string> TopFlows(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         // L4.3: ranking + shaping done once by FlowListProjection (server-side), not client-side here.
         var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 20 });
         var flows = resp.FlowList?.Flows ?? new();
@@ -344,8 +363,9 @@ public sealed class DevContextTools
 
     /// <summary>Archetype-aware starting points for exploring the codebase. Example: interesting_points("abc123")</summary>
     [McpServerTool]
-    public async Task<string> InterestingPoints(string handle)
+    public async Task<string> InterestingPoints(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
         var pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
         {
@@ -369,8 +389,9 @@ public sealed class DevContextTools
 
     /// <summary>Trace execution flow. format: default|compact. compact gives indented text with file:line. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
-    public async Task<string> Trace(string handle, string focus, int depth = 6, string format = "default")
+    public async Task<string> Trace(string? handle, string focus, int depth = 6, string format = "default")
     {
+        handle = ResolveHandle(handle);
         try
         {
             var resp = await _client.GetTraceAsync(new TraceRequest
@@ -469,8 +490,9 @@ public sealed class DevContextTools
 
     /// <summary>Detail card for a graph node: title, kind, file path, degrees. Example: node("abc123", "OrderService")</summary>
     [McpServerTool]
-    public async Task<string> Node(string handle, string nodeId)
+    public async Task<string> Node(string? handle, string nodeId)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
         if (!resp.Found)
             return JsonSerializer.Serialize(new { found = false, query = nodeId }, JsonOpts);
@@ -491,8 +513,9 @@ public sealed class DevContextTools
 
     /// <summary>Outgoing/incoming edges of a node. direction: out|in|usages. Example: neighbors("abc123", "OrderService", "out")</summary>
     [McpServerTool]
-    public async Task<string> Neighbors(string handle, string nodeId, string direction = "out")
+    public async Task<string> Neighbors(string? handle, string nodeId, string direction = "out")
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetNeighborsAsync(new NeighborsRequest
         {
             Handle = handle,
@@ -518,8 +541,9 @@ public sealed class DevContextTools
 
     /// <summary>Find all usages (in-edges) of a node across the codebase. Example: usages("abc123", "IOrderRepository")</summary>
     [McpServerTool]
-    public async Task<string> Usages(string handle, string nodeId)
+    public async Task<string> Usages(string? handle, string nodeId)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetNeighborsAsync(new NeighborsRequest
         {
             Handle = handle,
@@ -542,8 +566,9 @@ public sealed class DevContextTools
 
     /// <summary>Free-text search across graph nodes, paginated. limit default 20, cursor for offset. Example: find("abc123", "Order", kind:"Type", limit:10, cursor:0)</summary>
     [McpServerTool]
-    public async Task<string> Find(string handle, string query, string? kind = null, int limit = 20, int cursor = 0)
+    public async Task<string> Find(string? handle, string query, string? kind = null, int limit = 20, int cursor = 0)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.SearchNodesAsync(new SearchRequest
         {
             Handle = handle,
@@ -597,8 +622,9 @@ public sealed class DevContextTools
 
     /// <summary>Transitive impact analysis: upward (what reaches this) or downward (what does this affect). Grouped by service. Diff-aware files mode for "I changed X". Example: impact("abc123", "OrderService", 4, "down"), impact("abc123", files:["path/to/file.cs"])</summary>
     [McpServerTool]
-    public async Task<string> Impact(string handle, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null)
+    public async Task<string> Impact(string? handle = null, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null)
     {
+        handle = ResolveHandle(handle);
         var req = new ImpactRequest
         {
             Handle = handle,
@@ -635,8 +661,9 @@ public sealed class DevContextTools
 
     /// <summary>Find config key usage sites (IConfiguration, GetValue, GetSection). Optional key filter. Example: config("abc123", "GrpcSettings:DiscountUrl")</summary>
     [McpServerTool]
-    public async Task<string> Config(string handle, string? key = null)
+    public async Task<string> Config(string? handle = null, string? key = null)
     {
+        handle = ResolveHandle(handle);
         var req = new ConfigRequest { Handle = handle };
         if (key is not null) req.Key = key;
 
@@ -663,8 +690,9 @@ public sealed class DevContextTools
 
     /// <summary>Best-effort: find test methods whose call closure reaches a node. Example: tests_for("abc123", "OrderService")</summary>
     [McpServerTool]
-    public async Task<string> TestsFor(string handle, string nodeId, int maxDepth = 6)
+    public async Task<string> TestsFor(string? handle, string nodeId, int maxDepth = 6)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.FindTestsForAsync(new TestsForRequest
         {
             Handle = handle,
@@ -693,8 +721,9 @@ public sealed class DevContextTools
 
     /// <summary>List all insights (warnings, notable items, info) for the analyzed repo. Example: insights("abc123")</summary>
     [McpServerTool]
-    public async Task<string> Insights(string handle)
+    public async Task<string> Insights(string? handle = null)
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -716,8 +745,9 @@ public sealed class DevContextTools
 
     /// <summary>Budget-priced context pack for a focus. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
     [McpServerTool]
-    public async Task<string> GetContext(string handle, string focus, int budgetTokens = 8000, string intent = "trace")
+    public async Task<string> GetContext(string? handle, string focus, int budgetTokens = 8000, string intent = "trace")
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetContextAsync(new ContextRequest
         {
             Handle = handle,
@@ -741,8 +771,9 @@ public sealed class DevContextTools
 
     /// <summary>Read source code for a node. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", "OrderService", 30, "member")</summary>
     [McpServerTool]
-    public async Task<string> ReadSource(string handle, string nodeId, int windowLines = 20, string mode = "window")
+    public async Task<string> ReadSource(string? handle, string nodeId, int windowLines = 20, string mode = "window")
     {
+        handle = ResolveHandle(handle);
         var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
         if (!resp.Found || !resp.HasFilePath)
             return JsonSerializer.Serialize(new { found = false, query = nodeId }, JsonOpts);
