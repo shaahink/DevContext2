@@ -56,8 +56,8 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           title="Zen mode (F)"
         >&#9641;</button>
 
-        <!-- M7.2: Lens switcher — replaces old altitude buttons -->
-        <app-lens-switcher [(lensModel)]="lensModel" />
+        <!-- M7.2: Lens switcher — replaces old altitude buttons. L6.5: + Table button. -->
+        <app-lens-switcher [(lensModel)]="lensModel" (tableRequested)="tableRequested.emit()" />
 
         @if (lensModel() === 'service' || lensModel() === 'layer' || lensModel() === 'feature') {
           @for (alt of altitudes; track alt.id) {
@@ -246,6 +246,8 @@ export class Stage {
   readonly retrace = output<string>();
   /** System altitude project click — parent filters the Entry Deck to it. */
   readonly projectSelected = output<string>();
+  /** L6.5: Visible Table lens button clicked. */
+  readonly tableRequested = output<void>();
 
   /** `model()` so the Workbench can lift it into `?view` URL state (proposal §8.3). */
   readonly altitude = model<StageAltitude>('flow');

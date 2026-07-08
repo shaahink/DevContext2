@@ -72,6 +72,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
+            (tableRequested)="tableOpen.set(true)"
           />
         }
         @if (dockLevel() > 0) {
@@ -261,6 +262,11 @@ export class WorkbenchPage implements OnDestroy {
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
       event.preventDefault();
       void this.router.navigateByUrl('/context');
+      return;
+    }
+    if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'e') {
+      event.preventDefault();
+      this.tableOpen.set(true);
       return;
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'z') {

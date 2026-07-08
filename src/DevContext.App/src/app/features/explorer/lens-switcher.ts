@@ -1,4 +1,4 @@
-import { Component, model } from '@angular/core';
+import { Component, model, output } from '@angular/core';
 
 export type LensId = 'service' | 'layer' | 'feature' | 'flow';
 
@@ -23,6 +23,8 @@ const LENSES: readonly LensDef[] = [
  * Layer/Feature are structural slots for the D9 facets (engine data not yet in proto).
  * The `lens` model() is lifted to the page so it can be mirrored into URL state and
  * each page can set its own default (Explore→Flow, Atlas→Service).
+ *
+ * L6.5: Added a visible "Table" toolbar button and global Shift+E shortcut.
  */
 @Component({
   selector: 'app-lens-switcher',
@@ -40,12 +42,23 @@ const LENSES: readonly LensDef[] = [
       </button>
     }
     <span class="mx-1 h-4 w-px bg-line"></span>
+    <button
+      type="button"
+      class="chip shrink-0 inline-flex items-center gap-1"
+      title="Open entry table (Shift+E)"
+      (click)="tableRequested.emit()"
+    >
+      <span class="text-2xs opacity-60">&#9776;</span> Table
+    </button>
   `,
   host: { class: 'contents' },
 })
 export class LensSwitcher {
   readonly lenses = LENSES;
   readonly lensModel = model<LensId>('flow');
+
+  /** L6.5: Emitted when the user clicks the visible Table button. */
+  readonly tableRequested = output<void>();
 
   protected select(lens: LensDef): void {
     if (lens.unavailable) return;
