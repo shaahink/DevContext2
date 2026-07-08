@@ -112,4 +112,132 @@ public sealed class GraphProjectionTests
         var entry = new EntryPoint(EntryPointKind.HttpEndpoint, title, node) { Score = score };
         return new Flow(title, entry, []);
     }
+
+    // ── Edge cases (L4 audit) ────────────────────────────────────────────
+
+    [Fact]
+    public void ServiceMap_empty_graph_returns_empty()
+    {
+        var graph = new CodeGraphBuilder().Build();
+        var result = new ServiceMapProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Empty(result.Services);
+        Assert.Empty(result.Transports);
+    }
+
+    [Fact]
+    public void ServiceMap_no_servicelink_edges_empty_transports()
+    {
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForService("Api"), "Api", NodeKind.Service) { Project = "Api", Tags = [RoleTags.Runnable] });
+        var graph = g.Build();
+        var result = new ServiceMapProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Single(result.Services);
+        Assert.Empty(result.Transports);
+    }
+
+    [Fact]
+    public void ServiceMap_service_kind_gateway_from_tags()
+    {
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForService("Gateway"), "Gateway", NodeKind.Service)
+        {
+            Project = "Gateway",
+            Tags = [RoleTags.Runnable, "gateway"],
+            Layer = "Api",
+        });
+        var graph = g.Build();
+        var result = new ServiceMapProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Single(result.Services);
+        Assert.Equal("Gateway", result.Services[0].Kind);
+    }
+
+    [Fact]
+    public void FlowList_empty_graph_returns_empty()
+    {
+        var graph = new CodeGraphBuilder().Build();
+        var result = new FlowListProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Empty(result.Flows);
+        Assert.Equal(0, result.TotalFlows);
+    }
+
+    [Fact]
+    public void FlowList_max_flows_zero_clamps_empty()
+    {
+        var g = new CodeGraphBuilder();
+        var entry = NodeId.ForEntry("GET /x");
+        g.AddNode(new GraphNode(entry, "GET /x", NodeKind.EntryPoint));
+        g.SetFlows([MakeFlow("GET /x", entry, score: 1.0)]);
+        var graph = g.Build();
+
+        var result = new FlowListProjection().Project(graph, new ProjectionOptions { MaxFlows = 0 });
+        Assert.Equal(1, result.TotalFlows);
+        Assert.Empty(result.Flows);
+    }
+
+    [Fact]
+    public void EntryTable_flows_and_stray_entries_deduplicated()
+    {
+        var g = new CodeGraphBuilder();
+        var e1 = NodeId.ForEntry("GET /orders");
+        g.AddNode(new GraphNode(e1, "GET /orders", NodeKind.EntryPoint));
+        g.SetFlows([MakeFlow("GET /orders", e1, score: 1.0)]);
+
+        // Same entry appears as both a flow entry AND a stray node — only one row.
+        var graph = g.Build();
+        var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Single(result.Rows);
+    }
+
+    [Fact]
+    public void EntryTable_stray_entry_uses_public_api_kind()
+    {
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForEntry("worker"), "worker", NodeKind.EntryPoint) { Project = "Worker" });
+        var graph = g.Build();
+
+        var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
+        var row = Assert.Single(result.Rows);
+        Assert.Equal("PublicApi", row.Kind);
+        Assert.Equal("Worker", row.Project);
+    }
+
+    [Fact]
+    public void EntryTable_empty_graph_returns_empty()
+    {
+        var graph = new CodeGraphBuilder().Build();
+        var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Empty(result.Rows);
+    }
+
+    [Fact]
+    public void LayerBand_empty_graph_returns_empty()
+    {
+        var graph = new CodeGraphBuilder().Build();
+        var result = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Empty(result.NodeBands);
+        Assert.Empty(result.Layers);
+        Assert.Empty(result.Features);
+    }
+
+    [Fact]
+    public void LayerBand_collects_unique_layer_and_feature_sets()
+    {
+        var g = new CodeGraphBuilder();
+        g.AddNode(new GraphNode(NodeId.ForType("MyApp.Orders.Order"), "Order", NodeKind.Type)
+            { Layer = "Domain", Feature = "Orders" });
+        g.AddNode(new GraphNode(NodeId.ForType("MyApp.Orders.OrderController"), "OrderController", NodeKind.Type)
+            { Layer = "Api", Feature = "Orders" });
+        g.AddNode(new GraphNode(NodeId.ForType("MyApp.Customers.Customer"), "Customer", NodeKind.Type)
+            { Layer = "Domain", Feature = "Customers" });
+        var graph = g.Build();
+
+        var result = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
+        Assert.Equal(3, result.NodeBands.Length);
+        Assert.Equal(2, result.Layers.Length);
+        Assert.Contains("Api", result.Layers);
+        Assert.Contains("Domain", result.Layers);
+        Assert.Equal(2, result.Features.Length);
+        Assert.Contains("Orders", result.Features);
+        Assert.Contains("Customers", result.Features);
+    }
 }

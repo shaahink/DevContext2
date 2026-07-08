@@ -218,7 +218,7 @@ public sealed class EntryTableProjection : IGraphProjection<EntryTableResult>
         var rows = graph.Flows.Select(f => f.Entry)
             .Concat(graph.Nodes
                 .Where(n => n.Kind == NodeKind.EntryPoint)
-                .Select(n => new EntryPoint(EntryPointKind.HttpEndpoint, n.Title, n.Id) { Project = n.Project }))
+                .Select(n => new EntryPoint(EntryPointKind.PublicApi, n.Title, n.Id) { Project = n.Project }))
             .DistinctBy(e => e.Node)
             .Select(e =>
             {

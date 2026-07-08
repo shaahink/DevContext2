@@ -25,190 +25,22 @@ public sealed class ContextPackBuilder
 
     public ContextPack Build(string focus, int budgetTokens = 8000, string? intent = null)
     {
+        var (sections, omitted) = BuildSections(focus, budgetTokens, intent);
+        if (sections.Length == 0)
+        {
+            var empty = new ContextPack("", 0, [], [.. omitted]) { Found = false };
+            return empty;
+        }
+
         var sb = new StringBuilder();
-        var sections = new List<SectionAllocation>();
-        var omitted = new List<string>();
-        var mode = intent?.ToLowerInvariant() switch
+        foreach (var sa in sections)
         {
-            "explain" => "explain",
-            "review" => "review",
-            _ => "trace",
-        };
-
-        // M4.8 — richer identity with service info + conventions
-        var map = _query.Map();
-        var archetype = map?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
-        var sbId = new StringBuilder();
-        sbId.Append("# ").AppendLine(_snapshot.Explanation);
-        sbId.Append("Archetype: ").Append(archetype);
-        sbId.Append(" | ").Append(_snapshot.Entries.Length).Append(" entries");
-        sbId.Append(" | ").Append(_snapshot.Graph?.NodeCount ?? 0).AppendLine(" nodes");
-
-        if (map?.ServiceStyles is { Length: > 0 })
-        {
-            sbId.Append("Services: ");
-            sbId.AppendJoin(", ", map.ServiceStyles.Select(s => $"{s.ProjectName} ({s.Style})"));
-            sbId.AppendLine();
+            sb.AppendLine($"## {sa.Section}");
+            sb.AppendLine(sa.Content);
         }
 
-        if (map?.PipelineBehaviors is { Length: > 0 })
-        {
-            sbId.Append("Behaviors: ");
-            sbId.AppendJoin(", ", map.PipelineBehaviors);
-            sbId.AppendLine();
-        }
-
-        // M4.8 — cross-service ServiceLinks from graph edges
-        var crossServiceEdges = _query.Graph.AllEdges
-            .Where(e => e.Kind == EdgeKind.ServiceLink).ToArray();
-        if (crossServiceEdges.Length > 0)
-        {
-            sbId.Append("Cross-service: ");
-            sbId.AppendJoin(" | ", crossServiceEdges.Take(6).Select(e =>
-                $"{_query.Graph.Node(e.From)?.Title ?? e.From.Key} → {_query.Graph.Node(e.To)?.Title ?? e.To.Key} ({e.Tags.FirstOrDefault()})"));
-            sbId.AppendLine();
-        }
-
-        var identity = sbId.ToString();
-        AppendSection(sb, sections, omitted, budgetTokens, "identity", identity);
-
-        var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
-        if (trace is null)
-            return new ContextPack(sb.ToString(), EstimateTokens(sb.ToString()), [], []) { Found = false };
-
-        // ── Explain mode: prioritize concepts over code ──
-        if (mode == "explain")
-        {
-            // DI wiring first (architecture understanding)
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
-
-            // Entities
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
-            }
-
-            // Signatures (conceptual, not full bodies)
-            var sigs = BuildCalleeSignatures(trace);
-            AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs);
-
-            // Bodies trimmed — conceptual docs only, skip if tight
-            var bodies = BuildSalientBodies(trace);
-            AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies);
-
-            // Trace skeleton last (least important for explain)
-            var traceText = BuildTraceSkeleton(trace);
-            AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText);
-        }
-        // ── Review mode: prioritize code depth ──
-        else if (mode == "review")
-        {
-            // Trace skeleton
-            var traceText = BuildTraceSkeleton(trace);
-            if (!AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText))
-                return Finalize(sb, sections, omitted);
-
-            // Signatures
-            var sigs = BuildCalleeSignatures(trace);
-            if (!AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs))
-                return Finalize(sb, sections, omitted);
-
-            // Full bodies (primary value for review)
-            var bodies = BuildSalientBodies(trace);
-            AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies);
-
-            // DI wiring (helpful for review)
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
-
-            // Entities (secondary)
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
-            }
-        }
-        // ── Trace mode (default): balanced ──
-        else
-        {
-            // Trace skeleton
-            var traceText = BuildTraceSkeleton(trace);
-            if (!AppendSection(sb, sections, omitted, budgetTokens, "trace", traceText))
-                return Finalize(sb, sections, omitted);
-
-            // Signatures
-            var sigs = BuildCalleeSignatures(trace);
-            if (!AppendSection(sb, sections, omitted, budgetTokens, "signatures", sigs))
-                return Finalize(sb, sections, omitted);
-
-            // Bodies
-            var bodies = BuildSalientBodies(trace);
-            if (!AppendSection(sb, sections, omitted, budgetTokens, "bodies", bodies))
-                return Finalize(sb, sections, omitted);
-
-            // DI wiring
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                AppendSection(sb, sections, omitted, budgetTokens, "di_wiring", regs);
-
-            // Entities
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                AppendSection(sb, sections, omitted, budgetTokens, "entities", entities);
-            }
-        }
-
-        return Finalize(sb, sections, omitted);
-    }
-
-    private static bool AppendSection(StringBuilder sb, List<SectionAllocation> sections, List<string> omitted,
-        int budget, string sectionName, string text)
-    {
-        var tokens = EstimateTokens(text);
-        var currentTotal = sections.Sum(s => s.Tokens);
-        if (currentTotal + tokens > budget)
-        {
-            if (currentTotal < budget * 0.6)
-            {
-                // Trim: include what fits
-                var available = budget - currentTotal - 200; // reserve for headers
-                if (available > 100)
-                {
-                    var trimmed = TruncateToBudget(text, available);
-                    var trimTokens = EstimateTokens(trimmed);
-                    sb.AppendLine($"## {sectionName} (trimmed)");
-                    sb.AppendLine(trimmed);
-                    sections.Add(new SectionAllocation(sectionName, trimTokens, trimmed));
-                    omitted.Add($"{sectionName}: trimmed from {tokens} to {trimTokens} tokens");
-                }
-                else
-                {
-                    omitted.Add($"{sectionName}: omitted ({tokens} tokens, budget exhausted)");
-                }
-            }
-            else
-            {
-                omitted.Add($"{sectionName}: omitted ({tokens} tokens, budget low)");
-            }
-            return false;
-        }
-
-        sb.AppendLine($"## {sectionName}");
-        sb.AppendLine(text);
-        sections.Add(new SectionAllocation(sectionName, tokens, text));
-        return true;
-    }
-
-    private static ContextPack Finalize(StringBuilder sb, List<SectionAllocation> sections, List<string> omitted)
-    {
         var totalTokens = sections.Sum(s => s.Tokens);
-        var content = sb.ToString();
-        return new ContextPack(content, totalTokens, [.. sections], [.. omitted]) { Found = sections.Count > 0 };
+        return new ContextPack(sb.ToString(), totalTokens, sections, [.. omitted]) { Found = true };
     }
 
     private static string BuildTraceSkeleton(Trace trace)
@@ -337,7 +169,9 @@ public sealed class ContextPackBuilder
     };
 
     /// <summary>L4.4 — Build multi-card pack: trace each unique entry once, pick per-card
-    /// sections by type, assemble the full markdown pack. Closes Meridian Trap A.</summary>
+    /// sections by type, assemble the full markdown pack. Closes Meridian Trap A.
+    /// Each card aggregates sections from ALL its referenced entries (not just the first
+    /// one traced), so a card with entries [A, B] gets trace content from both.</summary>
     public MultiContextPack BuildMulti(
         IReadOnlyList<ContextCardSpec> cards,
         int totalBudget = 8000,
@@ -360,22 +194,17 @@ public sealed class ContextPackBuilder
             ? totalBudget / uniqueFocuses.Count
             : totalBudget;
 
-        // Trace each unique entry once, build ALL sections
+        // Trace each unique entry once, build ALL sections.
+        // Sections are stored per-focus so each card can aggregate from its own entries.
         var entrySections = new Dictionary<string, ImmutableArray<SectionAllocation>>();
         foreach (var focus in uniqueFocuses)
         {
-            var allSections = BuildSections(focus, perEntryBudget, intent);
+            var (allSections, _) = BuildSections(focus, perEntryBudget, intent);
             if (allSections.Length > 0)
                 entrySections[focus] = allSections;
         }
 
-        var sectionMap = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in entrySections)
-            foreach (var sa in kv.Value)
-                if (!sectionMap.ContainsKey(sa.Section))
-                    sectionMap[sa.Section] = sa;
-
-        // Build per-card items
+        // Build per-card items — each card aggregates sections from ALL its entries
         var cardItems = ImmutableArray.CreateBuilder<ContextCardPack>();
         var allTokens = 0;
 
@@ -384,17 +213,34 @@ public sealed class ContextPackBuilder
             var wanted = CardTypeSections.GetValueOrDefault(card.Type, []);
             if (wanted.Count == 0) continue; // tests/config not traced
 
-            var picked = ImmutableArray.CreateBuilder<SectionAllocation>();
-            foreach (var sectionKey in wanted)
+            var pickedBySection = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
+            foreach (var eid in card.EntryIds)
             {
-                if (sectionMap.TryGetValue(sectionKey, out var sa))
-                    picked.Add(sa);
+                var focus = ResolveFocus(eid);
+                if (focus is null || !entrySections.TryGetValue(focus, out var es)) continue;
+                foreach (var sa in es)
+                {
+                    if (!wanted.Contains(sa.Section)) continue;
+                    if (pickedBySection.TryGetValue(sa.Section, out var existing))
+                    {
+                        // Same section from another entry — concatenate content
+                        pickedBySection[sa.Section] = new SectionAllocation(
+                            sa.Section,
+                            existing.Tokens + sa.Tokens,
+                            existing.Content + "\n" + sa.Content);
+                    }
+                    else
+                    {
+                        pickedBySection[sa.Section] = sa;
+                    }
+                }
             }
 
+            var picked = pickedBySection.Values.OrderBy(x => x.Section).ToImmutableArray();
             var cardTokens = picked.Sum(s => s.Tokens);
             allTokens += cardTokens;
 
-            cardItems.Add(new ContextCardPack(card.Type, card.Title, picked.ToImmutable(), cardTokens));
+            cardItems.Add(new ContextCardPack(card.Type, card.Title, picked, cardTokens));
         }
 
         // Assemble full markdown pack
@@ -433,12 +279,12 @@ public sealed class ContextPackBuilder
             cardItems.ToImmutable(),
             sb.ToString(),
             allTokens,
-            allTokens,
+            totalBudget,    // AllocatedTokens = the budget ceiling, not actual usage
             [.. omitted]);
     }
 
-    /// <summary>Returns all sections for a single focus (no delimiting headers — raw content per section).</summary>
-    internal ImmutableArray<SectionAllocation> BuildSections(string focus, int budgetTokens, string? intent)
+    /// <summary>Returns all sections for a single focus + omitted reasons (no delimiting headers — raw content per section).</summary>
+    internal (ImmutableArray<SectionAllocation> Sections, ImmutableArray<string> Omitted) BuildSections(string focus, int budgetTokens, string? intent)
     {
         var sections = new List<SectionAllocation>();
         var omitted = new List<string>();
@@ -455,7 +301,7 @@ public sealed class ContextPackBuilder
 
         var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
         if (trace is null)
-            return [];
+            return ([.. sections], [.. omitted]);
 
         if (mode == "explain")
         {
@@ -482,11 +328,11 @@ public sealed class ContextPackBuilder
         {
             var traceText = BuildTraceSkeleton(trace);
             if (!tokensAddSection(sections, omitted, budgetTokens, "trace", traceText, ref budgetTokens))
-                return [.. sections];
+                return ([.. sections], [.. omitted]);
 
             var sigs = BuildCalleeSignatures(trace);
             if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", sigs, ref budgetTokens))
-                return [.. sections];
+                return ([.. sections], [.. omitted]);
 
             var bodies = BuildSalientBodies(trace);
             tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens);
@@ -505,15 +351,15 @@ public sealed class ContextPackBuilder
         {
             var traceText = BuildTraceSkeleton(trace);
             if (!tokensAddSection(sections, omitted, budgetTokens, "trace", traceText, ref budgetTokens))
-                return [.. sections];
+                return ([.. sections], [.. omitted]);
 
             var sigs = BuildCalleeSignatures(trace);
             if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", sigs, ref budgetTokens))
-                return [.. sections];
+                return ([.. sections], [.. omitted]);
 
             var bodies = BuildSalientBodies(trace);
             if (!tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens))
-                return [.. sections];
+                return ([.. sections], [.. omitted]);
 
             var regs = BuildDiRegistrations(trace);
             if (regs.Length > 0)
@@ -526,7 +372,7 @@ public sealed class ContextPackBuilder
             }
         }
 
-        return [.. sections];
+        return ([.. sections], [.. omitted]);
     }
 
     private static bool tokensAddSection(
