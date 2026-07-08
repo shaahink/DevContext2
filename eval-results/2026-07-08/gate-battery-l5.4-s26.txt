@@ -1,0 +1,31 @@
+=== Loom L5.4 Gate Battery — Session #26 ===
+Date: 2026-07-08
+
+=== Build ===
+dotnet build DevContext.slnx: SUCCEEDED (0w/0e)
+
+=== Tests ===
+dotnet test --filter "Category!=Eval": ALL PASS
+  Core: 408 passed, 3 skipped, 0 failed
+  Server: 12 passed, 0 skipped, 0 failed
+  Desktop: 64 passed, 0 skipped, 0 failed
+
+=== UI ===
+pnpm lint: PASS
+pnpm test: 5 files / 27 tests PASS
+pnpm build: SUCCEEDED
+
+=== MCP QA (scripted) ===
+8/8 passing, checkout gate PASS (2c/813tok, 24 steps, cross-service)
+
+=== MCP QA (cold) ===
+Server ready: 23 tools, tools/list ~1337 tok (L5 target ≤1.5k)
+Actionable: 10/12 (83%), false-successes: 0, opaque errors: 0
+rank-quality B9 find "Order": top="Order" aggregate#1=true results=20
+
+=== Guards ===
+scripts/loom-guards.ps1: PASS (0 banned patterns)
+
+=== New: flow tool ===
+flow("POST /basket/checkout") — returns compact trace with steps/touches/emits/approxTokens.
+Deep-links to trace for full detail. 23 tools now registered (was 22).

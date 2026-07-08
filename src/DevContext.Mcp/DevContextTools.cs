@@ -452,6 +452,82 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
+    /// <summary>Compact flow summary for an entry (≤150 tok typical). Deep-link to trace for full detail. Example: flow("abc123", "POST /basket/checkout")</summary>
+    [McpServerTool]
+    public async Task<string> Flow(string? handle = null, string? focus = null, int depth = 8)
+    {
+        if (string.IsNullOrWhiteSpace(focus))
+            return Envelope("Missing required parameter 'focus'.",
+                "Pass the entry route or symbol to summarize.",
+                "flow(handle, focus:\"POST /basket/checkout\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "flow", "analyze(path) then flow(focus:\"POST /basket/checkout\")"); }
+        try
+        {
+            var resp = await _client.GetTraceAsync(new TraceRequest
+            {
+                Handle = handle,
+                Focus = focus,
+                Depth = depth,
+            });
+
+            if (!resp.Found)
+            {
+                var suggestions = await SuggestAsync(handle, focus);
+                return Envelope($"No entry or node matched '{focus}'.",
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Try top_flows() to list entries.",
+                    "flow(handle, focus:\"POST /basket/checkout\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            var sb = new StringBuilder();
+            var entryInfo = resp.Root is not null
+                ? $"{resp.Root.Kind}: {resp.Root.Title}" : focus;
+            sb.Append("Entry: ").AppendLine(entryInfo);
+            if (resp.Root is not null)
+                BuildCompactFlow(sb, resp.Root, 0, handle);
+
+            if (resp.TouchedEntities.Count > 0)
+                sb.Append("Touches: ").AppendJoin(", ", resp.TouchedEntities).AppendLine();
+            if (resp.EmittedEvents.Count > 0)
+                sb.Append("Emits: ").AppendJoin(", ", resp.EmittedEvents).AppendLine();
+
+            var compact = sb.ToString();
+            var approxTokens = (compact.Length + 3) / 4;
+            var stepCount = CountTraceSteps(resp.Root);
+
+            // L5.4 — flow renders compact; if it's large, deep-link to trace for full detail.
+            string? hint = null;
+            if (approxTokens > 150)
+                hint = $"Full detail ({stepCount} steps): trace(handle, focus:\"{focus}\", depth:{depth}, format:\"compact\")";
+
+            return JsonSerializer.Serialize(new
+            {
+                found = true,
+                focus,
+                steps = stepCount,
+                touches = resp.TouchedEntities.Count,
+                emits = resp.EmittedEvents.Count,
+                approxTokens,
+                text = compact,
+                hint,
+            }, JsonOpts);
+        }
+        catch (RpcException ex)
+        {
+            return FromRpc(ex, "flow", "flow(handle, focus:\"POST /basket/checkout\")");
+        }
+    }
+
+    private static int CountTraceSteps(TraceNode? node)
+    {
+        if (node is null) return 0;
+        var count = 0;
+        foreach (var child in node.Children)
+            count += 1 + CountTraceSteps(child);
+        return count;
+    }
+
     /// <summary>Archetype-aware starting points for exploring the codebase. Example: interesting_points("abc123")</summary>
     [McpServerTool]
     public async Task<string> InterestingPoints(string? handle = null)

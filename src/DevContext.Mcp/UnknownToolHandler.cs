@@ -5,18 +5,18 @@ using ModelContextProtocol.Server;
 namespace DevContext.Mcp;
 
 // L5.2 — a call to a tool that does not exist must teach, not stonewall.
-// The SDK routes any name absent from the tool collection here (calls like `flow`
+// The SDK routes any name absent from the tool collection here (calls like `routes`
 // used to surface as an opaque "Unknown tool" error with no next step). We return
 // an actionable envelope naming the closest real tools + the full list.
 internal static class UnknownToolHandler
 {
-    // The 24 tool names the server exposes (McpServerTool methods on DevContextTools).
+    // The 23 tool names the server exposes (McpServerTool methods on DevContextTools).
     private static readonly string[] ToolNames =
     [
         "analyze", "overview", "resolve", "status", "close_session", "list_sessions",
-        "stats", "entrypoints", "map", "top_flows", "interesting_points", "trace",
-        "node", "neighbors", "usages", "find", "impact", "config", "tests_for",
-        "insights", "get_context", "read_source",
+        "stats", "entrypoints", "map", "top_flows", "flow", "interesting_points",
+        "trace", "node", "neighbors", "usages", "find", "impact", "config",
+        "tests_for", "insights", "get_context", "read_source",
     ];
 
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };

@@ -222,7 +222,7 @@ function buildProbes() {
 
     // ---- phase B: has handle, but naive arguments ----
     { id: "B1-nonexistent-tool", phase: "B", intent: "call a tool that does not exist",
-      tool: "flow", args: (h) => ({ handle: h, focus: "checkout" }) },
+      tool: "dependencies", args: (h) => ({ handle: h, nodeId: "Order" }) },
     { id: "B2-trace-nl-focus", phase: "B", intent: "natural-language focus",
       tool: "trace", args: (h) => ({ handle: h, focus: "how does checkout work" }) },
     { id: "B3-impact-madeup", phase: "B", intent: "impact of a symbol that does not exist",

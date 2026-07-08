@@ -2,8 +2,8 @@
 
 **Repo:** `C:/Users/shahi/source/repos/run-aspnetcore-microservices/src`  
 **Date:** 2026-07-08  
-**Tools:** 22 (`analyze, close_session, config, entrypoints, find, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages`)  
-**tools/list envelope:** ~1272 tok (L5 target ≤1.5k)  
+**Tools:** 23 (`analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages`)  
+**tools/list envelope:** ~1337 tok (L5 target ≤1.5k)  
 
 A naive agent with zero prior knowledge drives the tools: it calls before
 analyzing, guesses natural-language focuses, invents symbol names, renames and
@@ -25,7 +25,7 @@ rank-quality (B9 find "Order"): top="Order" aggregate#1=true results=20
 | A1-overview-no-handle | A | overview before analyze | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
 | A2-trace-no-handle | A | trace before analyze | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
 | A3-resolve-no-handle | A | resolve before analyze | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
-| B1-nonexistent-tool | B | call a tool that does not exist | actionable | true | true | {"error":"Unknown tool 'flow'.","hint":"Did you mean 'top_flows'? See availableTools.","ex |
+| B1-nonexistent-tool | B | call a tool that does not exist | actionable | true | true | {"error":"Unknown tool 'dependencies'.","hint":"Use one of availableTools.","example":"ove |
 | B2-trace-nl-focus | B | natural-language focus | actionable | true | true | {"error":"No entry or node matched 'how does checkout work'.","hint":"Did you mean one of  |
 | B3-impact-madeup | B | impact of a symbol that does not exist | actionable | true | true | {"error":"Symbol 'TotallyMadeUpType' not found — not the same as zero impact.","hint":"Use |
 | B4-usages-shortname | B | usages by short name (not a nodeId) | unactionable | false | false | {"nodeId":"Type:Basket.API.Data.IBasketRepository","count":0,"resolvedFrom":"IBasketReposi |
