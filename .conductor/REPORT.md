@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 18:37 UTC · branch `feat/loom-l5` · HEAD `a81ef76`_
+_Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.4
-**Checkpoints:** 26/34 done · **Sessions run:** 32 · **Cost:** $2.3659 · **Tokens:** 2,006,262 in / 502,567 out / 351,717 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L6 — Workbench repair · attempts used 0
+**Checkpoints:** 29/34 done · **Sessions run:** 32 · **Cost:** $2.4658 · **Tokens:** 2,137,922 in / 516,320 out / 358,512 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
-
-## Latest activity (live)
-
-_Session #32 (Deliver) · running 30m · last output 1s ago · $0.0934_
-
-**Thinking:**
-> Now update LOOM-START.md. I need to: 1. Overwrite the handoff block 2. Update checkpoint rows L6.4, L6.5, L6.6 from TODO to DONE
-> Now update the checkpoint rows for L6.4, L6.5, L6.6.
-> Now commit and push.
-
-**Recent actions:**
-- `19:29:46` » bash dotnet build DevContext.slnx 2>&1
-- `19:32:07` » bash dotnet test DevContext.slnx --filter "Category!=Eval" 2>&1
-- `19:32:42` » bash Get-Process -Name "DevContext.Server","dotnet" -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*DevContext*" -or $_.CommandLine -l…
-- `19:33:00` » bash taskkill /F /IM "DevContext.Server.exe" 2>&1; taskkill /F /PID 26688 2>&1; Start-Sleep -Seconds 3; dotnet build DevContext.slnx 2>&1
-- `19:36:11` » bash dotnet test DevContext.slnx --filter "Category!=Eval" 2>&1
-- `19:36:20` » bash git -C C:/Code/DevContext2-ui restore eval-results/2026-07-08/mcp-qa.md
-- `19:36:42` » write eval-results\2026-07-08\gate-battery-l6-session-33.txt
-- `19:36:53` » edit LOOM-START.md
-- `19:37:02` » edit LOOM-START.md
-- `19:37:07` » bash git -C C:/Code/DevContext2-ui status
+**Pending:** auto-fix audit for L6
 
 ## Stage progress
 
@@ -38,7 +18,7 @@ _Session #32 (Deliver) · running 30m · last output 1s ago · $0.0934_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 3/6 | **← active** |
+| L6 | Workbench repair | 6/6 | gating… |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -75,21 +55,10 @@ _Session #32 (Deliver) · running 30m · last output 1s ago · $0.0934_
 | 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
 | 31 | L6 | Deliver | 1 | 07-08 17:47 | 0:18 | Advanced | L6.3 | 2 | build:OK | $0.0474 | 58,256/8,744 |
-| 32 | L6 | Deliver | 1 | 07-08 18:07 | … | running |  | 0 |  |  |  |
+| 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
 
 ### Commits by session
 
-- **s24 (L5 Deliver)** — 10 commit(s):
-  - 323f1a7 chore(l5.2): record push-blocked handoff note (network/DNS unavailable)
-  - a78c135 feat(l5.2): error envelopes for cold-agent MCP ergonomics
-  - 681a411 chore(conductor): s24 L5 working ▸L5.2 @ 10:20
-  - d921b04 chore(conductor): s24 L5 working ▸L5.2 @ 10:10
-  - c966a73 chore(conductor): s24 L5 working ▸L5.2 @ 10:00
-  - 82d3349 chore(conductor): s24 L5 working ▸L5.2 @ 09:50
-  - 5f0acc8 chore(conductor): s24 L5 working ▸L5.2 @ 09:40
-  - ea68669 chore(conductor): s24 L5 working ▸L5.2 @ 09:30
-  - e30744e chore(conductor): s24 L5 working ▸L5.2 @ 09:20
-  - 74321be chore(conductor): s24 L5 working ▸L5.2 @ 09:10
 - **s25 (L5 Deliver)** — 5 commit(s):
   - 85a74e3 feat(l5.3): unified ranked resolution — graph.Find for resolve/find/usages
   - b6cce7e chore(conductor): s25 L5 working ▸L5.3 @ 15:42
@@ -128,6 +97,13 @@ _Session #32 (Deliver) · running 30m · last output 1s ago · $0.0934_
 - **s31 (L6 Deliver)** — 2 commit(s):
   - de809de feat(l6.3): inspector insights — adjacency filter + honest chip
   - b58c707 chore(conductor): s31 L6 working ▸L6.3 @ 18:57
+- **s32 (L6 Deliver)** — 6 commit(s):
+  - 5e55097 docs(l6): tracker handoff — L6.4/L6.5/L6.6 DONE, gate battery evidence
+  - d2205f9 feat(l6.6): MCP session auto-refresh, confidence->verified rename, DPI icon scaling
+  - 48125da feat(l6.5): visible Table lens button + global Shift+E shortcut
+  - 933493e chore(conductor): s32 L6 working ▸L6.4 @ 19:37
+  - a81ef76 chore(conductor): s32 L6 working ▸L6.4 @ 19:27
+  - 63c21ff chore(conductor): s32 L6 working ▸L6.4 @ 19:17
 
 ## Phase handovers (audit)
 
@@ -144,17 +120,21 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L6.3 delivered — `filteredInsights()` in `inspector.ts:332-358` replaced substring-on-title filter with graph-adjacency filter (1-hop neighbor set from `trace.neighbors()`, parsing `evidenceActions Node:<id>` patterns). Honest chip shows `0 / N` when a node has zero adjacent insights but N repo-wide. Gate battery green (484P/0F, build 0w/0e, loom-guards green). Previous session L6.2 QA confirmed genuine — all 4 code claims verified against fresh artifacts. Next session: L6.4 Context Studio v2 (service tree + preset scaffolds real cards).
+> Let me explore the current state of the relevant features.
+> Now I have a clear understanding. Let me implement the three checkpoints. Starting with L6.5 — adding a visible Table lens button and making Shift+E a global shortcut.
+> Now I'll implement all three checkpoints. Let me start with L6.5 — visible Table button + global Shift+E.
+> Now wire the table button event through Stage to WorkbenchPage:
+> Now wire the stage's `tableRequested` output in workbench-page and add global Shift+E:
 
 ## Tracker handoff
 
 ```
-last: L6 session #32 — **L6.3 DONE** (gate battery green: 484P/0F).
-       Insights section now filters by graph adjacency (1-hop neighbors from
-       trace.neighbors()), parses evidenceActions Node:<id> patterns, honest
-       chip shows "0 / N" when no adjacent insights with repo-wide count.
-       Empty state: "None reference this node (N repo-wide)."
-stage: **L6.3 DONE**. L6 checkpoints remaining: 6.4–6.6.
-next: **L6.4** — Context Studio v2: service tree, preset scaffolds real cards.
-evidence: eval-results/2026-07-08/gate-battery-l6.3-s32.txt
+last: L6 session #33 — **L6.4/L6.5/L6.6 DONE** (gate battery green: 484P/0F).
+      L6.4: Context Studio v2 already delivered by M8 work (service tree, preset,
+      provenance, server pack copy). L6.5: visible Table toolbar button + global
+      Shift+E shortcut. L6.6: MCP session auto-refresh, confidence→verified
+      rename, DPI icon scaling.
+stage: **L6 DONE**. All L6 checkpoints (6.1–6.6) green.
+next: **L7.1** — Call-spine completion (≥70% entries ≥2-deep on MVC-class repos).
+evidence: eval-results/2026-07-08/gate-battery-l6-session-33.txt
 ```
