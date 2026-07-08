@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 07:59 UTC · branch `feat/loom-l5` · HEAD `ac7a7dd`_
+_Updated 2026-07-08 08:00 UTC · branch `feat/loom-l5` · HEAD `402a6c1`_
 
-**Status:** Running
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.1
-**Checkpoints:** 19/35 done · **Sessions run:** 23 · **Cost:** $1.7746 · **Tokens:** 1,447,071 in / 387,669 out / 241,508 think
+**Status:** Idle
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.2
+**Checkpoints:** 20/35 done · **Sessions run:** 23 · **Cost:** $1.8454 · **Tokens:** 1,528,867 in / 402,097 out / 252,033 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #23 (Deliver) · running 30m · last output 2s ago · $0.0689_
-
-**Thinking:**
-> Now update the L5.1 checkpoint row.
-> Now let me commit the changes. I need to commit: 1. `src/DevContext.Mcp/DevContextTools.cs` - optional handle for all tools 2. `src/DevContext.Server/Sessions/AnalysisSessionManager.cs` - idempotent analyze 3. `tests/DevContext.Server.Tests/SessionManagementTests.cs` - updated test 4. `eval-results/…
-> Commit successful. Now let me push the branch.
-
-**Recent actions:**
-- `08:58:35` · Now let me produce fresh evidence and update the tracker. Let me run the gate battery for L5 evidence.
-- `08:58:35` » bash $date = Get-Date -Format "yyyy-MM-dd"; New-Item -ItemType Directory -Force -Path "C:/Code/DevContext2-ui/eval-results/$date"; $out = "C:/Code/DevContext2-u…
-- `08:58:53` » write eval-results\2026-07-08\gate-battery-l5.1-s23.txt
-- `08:58:58` » read LOOM-START.md
-- `08:58:58` · Now update the tracker.
-- `08:59:11` » edit LOOM-START.md
-- `08:59:17` » edit LOOM-START.md
-- `08:59:26` » bash git -C C:/Code/DevContext2-ui add src/DevContext.Mcp/DevContextTools.cs src/DevContext.Server/Sessions/AnalysisSessionManager.cs tests/DevContext.Server.Te…
-- `08:59:31` · Now push.
-- `08:59:33` » bash git -C C:/Code/DevContext2-ui push -u origin feat/loom-l5 2>&1
 
 ## Stage progress
 
@@ -37,7 +16,7 @@ _Session #23 (Deliver) · running 30m · last output 2s ago · $0.0689_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 0/5 | **← active** |
+| L5 | MCP v2 cold-agent ergonomics | 1/5 | **← active** |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -68,17 +47,10 @@ _Session #23 (Deliver) · running 30m · last output 2s ago · $0.0689_
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
-| 23 | L5 | Deliver | 1 | 07-08 07:29 | … | running |  | 0 |  |  |  |
+| 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 
 ### Commits by session
 
-- **s15 (L3 Resume)** — 6 commit(s):
-  - c2edd79 feat(l3.3): verified-edge ratchet 65%->68% — body-facts semantic index + edge upgrade infra
-  - f7de22b chore(conductor): s15 L3 working ▸L3.3 @ 03:09
-  - 77259a2 chore(conductor): s15 L3 working ▸L3.3 @ 02:59
-  - f4d5604 chore(conductor): s15 L3 working ▸L3.3 @ 02:49
-  - ce4b85e chore(conductor): s15 L3 working ▸L3.3 @ 02:39
-  - 8275bc8 chore(conductor): s15 L3 working ▸L3.3 @ 02:29
 - **s16 (L3 Deliver)** — 7 commit(s):
   - 8f0579b feat(l3.3): verified-edge ratchet 68%->81% — assembly-independent semantic bind of dispatch targets
   - a292fdd chore(conductor): s16 L3 working ▸L3.3 @ 04:25
@@ -125,6 +97,11 @@ _Session #23 (Deliver) · running 30m · last output 2s ago · $0.0689_
 - **s22 (L4 Audit)** — 2 commit(s):
   - e22a43a fix(l4-audit): correctness + robustness fixes from L4 phase static audit
   - 9d1b43f chore(conductor): s22 L4 working ▸L4 @ 08:13
+- **s23 (L5 Deliver)** — 4 commit(s):
+  - 402a6c1 chore(conductor): s23 L5 working ▸L5.1 @ 08:59
+  - ac7a7dd feat(l5.1): default-session ergonomics + idempotent analyze
+  - c601417 chore(conductor): s23 L5 working ▸L5.1 @ 08:49
+  - c7eacd5 chore(conductor): s23 L5 working ▸L5.1 @ 08:39
 
 ## Phase handovers (audit)
 
@@ -136,22 +113,22 @@ _Session #23 (Deliver) · running 30m · last output 2s ago · $0.0689_
 
 ## Last gate run
 
-build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: Static audit of L4 (Flows + projections) found and fixed 3 correctness bugs (EntryTableProjection hardcoding HttpEndpoint kind for all stray entries, BuildMulti section deduplication only using first entry's content, BuildSections discarding identity section when trace null) plus 3 code-quality improvements (200-line duplication eliminated via Build()→BuildSections() delegation, AllocatedTokens semantics fixed, 10 new edge-case tests). Full gate battery remains green: build 0w/0e, Core 408P/3S, Server 12P, Desktop 64P, pnpm 27P, guards PASS. Handover written to `.conductor/handovers/L4.md`. Pushed as `e22a43a`.
+> SESSION-RESULT: L5.1 landed on `feat/loom-l5` (commit `ac7a7dd`). All 20+ MCP tools now accept optional `handle` defaulting to the most-recent session, and `analyze` is idempotent by repo+HEAD (server-side TryGetByRepo check before engine run, streaming a "cached" progress event on hits). Gate battery all-green: build 0w/0e, tests 484P/3S, guards PASS, MCP QA 8/8. Next session should deliver L5.2 error envelopes (error+hint+example ≤80 tok per tool failure) — the audit shows 15/15 cold-agent calls fail with opaque errors, so every tool needs a consistent `{error, hint, example}` envelope on failures.
 
 ## Tracker handoff
 
 ```
-last: L4 session #21 — **L4 ALL DONE** (L4.1 ✅, L4.2 ✅, L4.3 ✅, L4.4 ✅). ContextPack round-trip:
-       server-assembled markdown via GetContextPack RPC replaces N GetContext calls; Copy/Save =
-       exactly the server pack; ContextPackBuilder.BuildMulti() traces each unique entry once,
-       picks per-card sections by type. Trap A closed. Single-call loadAllCards() in ContextStudio.
-stage: **L4 ALL DONE**. Next: L5 MCP v2 (cold-agent ergonomics).
-gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
-next: **L5.1** — Default-session ergonomics (single-session default, analyze idempotent by repo+HEAD).
-evidence: eval-results/2026-07-08/gate-battery-l4.4-s21.txt
-           eval-results/2026-07-08/dogfood-l4.4.md
+last: L5 session #23 — **L5.1 DONE** (default-session ergonomics + idempotent analyze). All 20+
+       MCP tools accept optional `handle` (defaults to most-recent session). Analyze returns
+       existing handle for same repo+HEAD (server-side TryGetByRepo check before engine run).
+       Cache hit streams "cached" progress event. ResolveHandle helper picks ≤1 session auto.
+stage: **L5.1 DONE**. Next: L5.2 Error envelopes (error+hint+example ≤80 tok).
+gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
+next: **L5.2** — Error envelopes (error+hint+example ≤80 tok per tool failure).
+evidence: eval-results/2026-07-08/gate-battery-l5.1-s23.txt
+           eval-results/2026-07-08/mcp-qa.md
 ```
