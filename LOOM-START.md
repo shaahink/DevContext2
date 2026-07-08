@@ -1,6 +1,7 @@
 # Loom — Phase Tracker (resume here)
 
-**Read order for a fresh session:** this file → `docs/dev/briefs/loom-graph-design.md`
+**Read order for a fresh session:** this file → `conductor-DEBT.md` (audit followups —
+unresolved bugs + deferred work from L0-L4 audits, sized + gated) → `docs/dev/briefs/loom-graph-design.md`
 (the design authority — MANDATORY) → your stage in `docs/dev/briefs/proposal-loom.md`
 → `eval-results/2026-07-07/SESSION-AUDIT.md` (the findings your stage fixes).
 Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
