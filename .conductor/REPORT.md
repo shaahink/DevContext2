@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:22 UTC · branch `feat/loom-l2` · HEAD `00ee4c3`_
+_Updated 2026-07-08 00:32 UTC · branch `feat/loom-l2` · HEAD `8535ae0`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 00:22 UTC · branch `feat/loom-l2` · HEAD `00ee4c3`_
 
 ## Latest activity (live)
 
-_Session #12 (Deliver) · running 40m · last output 2s ago · $0.0626_
+_Session #12 (Deliver) · running 50m · last output 8s ago · $0.0801_
 
 **Thinking:**
-> I'm running into a namespace collision where both the old `Graph.SymbolRef` and new `Graph2.SymbolRef` exist, and in GraphBuilder.cs the unqualified name resolves to the old one. I need to fully qualify references to use `Graph2.SymbolRef` instead, particularly where `sem` comes from `LocalDeclOp.In…
-> The lambda overlay didn't increase the verified Send count—still showing 33/32 with just 1 verified—so the checkout lambda Send remains unaccounted for. Let me trace back to the actual CheckoutBasketEndpoints source to see if the command is defined inline rather than as a local variable, since the e…
-> Looking at how the checkout endpoint adapts the request into a CheckoutBasketCommand, I need to ensure the overlay system recognizes this local declaration with the correct inferred type. The main semantic pass should be generating a LocalDeclOp for the `command` variable that maps to CheckoutBasket…
+> I need to also update the `semanticLocal` variable since it uses a multiline format with `new SymbolRef` followed by a line break before the opening brace, so my earlier replacement didn't catch it. Let me locate and fix that one as well.
+> The build shows 4 errors but the tests passed because they ran against a previously-built binary with the `--no-build` flag. I need to do a clean rebuild to see if those errors persist.
+> The issue is that the test file's namespace is causing `Graph2.SymbolRef` to resolve incorrectly—it's looking for the type in the test namespace rather than the actual `DevContext.Core.Graph2` namespace. I need to use the fully qualified name or a global alias to reference the correct type.
 
 **Recent actions:**
-- `01:20:00` · Build has 2 errors (it ran on stale binary). Let me see them:
-- `01:20:03` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Core -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 10
-- `01:20:14` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `01:20:15` · Namespace collision — `SymbolRef` resolves to the old `Graph.SymbolRef`. Let me qualify with `Graph2.SymbolRef`:
-- `01:20:23` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `01:20:49` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
-- `01:21:00` · The lambda overlay didn't move the checkout Send. Let me look at the actual endpoint source to understand its dispatch shape:
-- `01:21:00` » bash Get-Content "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src\Services\Basket\Basket.API\Basket\CheckoutBasket\CheckoutBasketEndpoints.cs" 2>&1
-- `01:22:15` · The checkout `Adapt<T>` needs Mapster's global `using` — which lives in `obj/*.GlobalUsings.g.cs`, not in my compilation. Let me verify that hypothesis and incl…
-- `01:22:15` » bash $b="C:\Users\shahi\source\repos\run-aspnetcore-microservices\src\Services\Basket\Basket.API"; Get-ChildItem "$b\obj" -Recurse -Filter "*GlobalUsings.g.cs" …
+- `01:30:49` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 8
+- `01:30:58` · `SymbolRef` is ambiguous in the test file (both namespaces imported). Let me qualify my new usages:
+- `01:30:58` » bash $f="C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs"; (Get-Content $f -Raw) -replace 'new SymbolRef \{ Text', 'new Graph2.Sy…
+- `01:31:11` » bash Select-String -Path "C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs" -Pattern "new SymbolRef|new Graph2.SymbolRef" 2>&1
+- `01:31:19` » edit tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs
+- `01:31:32` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet test C:/Code/DevContext2-ui/tests/DevC…
+- `01:31:45` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 6
+- `01:31:56` · The test's own namespace shadows `Graph2`. Let me use the fully-qualified name:
+- `01:31:58` » bash $f="C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs"; (Get-Content $f -Raw) -replace 'new Graph2\.SymbolRef', 'new DevContex…
+- `01:32:09` » bash dotnet test C:/Code/DevContext2-ui/tests/DevContext.Core.Tests --no-build --filter "FullyQualifiedName~Graph2" 2>&1 | Select-String -Pattern "Passed!|Faile…
 
 ## Stage progress
 
