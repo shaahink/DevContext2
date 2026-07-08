@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 07:13 UTC · branch `feat/loom-l2` · HEAD `d8158c7`_
+_Updated 2026-07-08 07:23 UTC · branch `feat/loom-l2` · HEAD `e22a43a`_
 
-**Status:** Running
+**Status:** Idle
 **Stage:** L4 — Flows + projections · attempts used 0
-**Checkpoints:** 19/35 done · **Sessions run:** 22 · **Cost:** $1.6827 · **Tokens:** 1,346,216 in / 368,616 out / 230,370 think
+**Checkpoints:** 19/35 done · **Sessions run:** 22 · **Cost:** $1.7746 · **Tokens:** 1,447,071 in / 387,669 out / 241,508 think
 **Confirmed phases:** L0, L1, L2, L3
-
-## Latest activity (live)
-
-_Session #22 (Audit) · running 10m · last output 92s ago · $0.0721_
-
-**Thinking:**
-> Build is clean. Now let me add edge case tests (F6) for the projections.
-> Let me add edge case tests for the projections. I need to cover: 1. ServiceMapProjection: empty graph, no service nodes, no transports 2. FlowListProjection: empty flows, max flows = 0 3. LayerBandProjection: empty graph 4. EntryTableProjection: empty graph, entry with wrong kind  I'll also add a te…
-> Now let me run the full test suite to confirm everything passes.
-
-**Recent actions:**
-- `08:10:09` » edit src\DevContext.Core\Graph\ContextPackBuilder.cs
-- `08:10:15` · Let me verify the ContextPackBuilder compiles:
-- `08:10:24` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Core/DevContext.Core.csproj 2>&1 | Select-String -Pattern "error|warning"
-- `08:10:52` » bash dotnet build C:/Code/DevContext2-ui/DevContext.slnx 2>&1 | Select-String -Pattern "error"
-- `08:10:59` » todowrite 4 todos
-- `08:11:07` » read tests\DevContext.Core.Tests\GraphProjectionTests.cs
-- `08:11:08` · Now add edge case tests for projections:
-- `08:11:26` » edit tests\DevContext.Core.Tests\GraphProjectionTests.cs
-- `08:11:36` » todowrite 3 todos
-- `08:11:36` · Now run the full gate battery:
+**Pending:** full-battery phase gate for L4
 
 ## Stage progress
 
@@ -67,19 +47,10 @@ _Session #22 (Audit) · running 10m · last output 92s ago · $0.0721_
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
-| 22 | L4 | Audit | 1 | 07-08 07:03 | … | running |  | 0 |  |  |  |
+| 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
 
 ### Commits by session
 
-- **s12 (L3 Deliver)** — 8 commit(s):
-  - a0d658e chore(conductor): s12 L3 working ▸L3.2 @ 01:52
-  - c9c5a00 feat(l3.2): targeted semantic upgrades (Law R2) + fix 2 L3.1 Tier-B bugs
-  - 9ae6828 chore(conductor): s12 L3 working ▸L3.2 @ 01:42
-  - 5ece087 chore(conductor): s12 L3 working ▸L3.2 @ 01:32
-  - 8535ae0 chore(conductor): s12 L3 working ▸L3.2 @ 01:22
-  - 00ee4c3 chore(conductor): s12 L3 working ▸L3.2 @ 01:12
-  - b8f7ff9 chore(conductor): s12 L3 working ▸L3.2 @ 01:02
-  - b812f6e chore(conductor): s12 L3 working ▸L3.2 @ 00:52
 - **s15 (L3 Resume)** — 6 commit(s):
   - c2edd79 feat(l3.3): verified-edge ratchet 65%->68% — body-facts semantic index + edge upgrade infra
   - f7de22b chore(conductor): s15 L3 working ▸L3.3 @ 03:09
@@ -130,6 +101,9 @@ _Session #22 (Audit) · running 10m · last output 92s ago · $0.0721_
   - 2f84d84 chore(conductor): s21 L4 working ▸L4.4 @ 07:57
   - 044b141 chore(conductor): s21 L4 working ▸L4.4 @ 07:47
   - b9d3e0b chore(conductor): s21 L4 working ▸L4.4 @ 07:37
+- **s22 (L4 Audit)** — 2 commit(s):
+  - e22a43a fix(l4-audit): correctness + robustness fixes from L4 phase static audit
+  - 9d1b43f chore(conductor): s22 L4 working ▸L4 @ 08:13
 
 ## Phase handovers (audit)
 
@@ -137,6 +111,7 @@ _Session #22 (Audit) · running 10m · last output 92s ago · $0.0721_
 - `.conductor/handovers/L1.md`
 - `.conductor/handovers/L2.md`
 - `.conductor/handovers/L3.md`
+- `.conductor/handovers/L4.md`
 
 ## Last gate run
 
@@ -144,7 +119,7 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L4.4 landed — server `GetContextPack` RPC with `ContextPackBuilder.BuildMulti()` closes Meridian Trap A (single call replaces N, per-card type filtering, Copy/Save = server-assembled markdown). All gates green: build 0w/0e, Core 398P/3S, Server 12P, Desktop 64P, pnpm 27P, MCP QA 8/8, guards PASS. Stage L4 (Flows + projections) is ALL DONE. Next session should start L5.1 (default-session MCP ergonomics per `proposal-loom.md` §L5).
+> SESSION-RESULT: Static audit of L4 (Flows + projections) found and fixed 3 correctness bugs (EntryTableProjection hardcoding HttpEndpoint kind for all stray entries, BuildMulti section deduplication only using first entry's content, BuildSections discarding identity section when trace null) plus 3 code-quality improvements (200-line duplication eliminated via Build()→BuildSections() delegation, AllocatedTokens semantics fixed, 10 new edge-case tests). Full gate battery remains green: build 0w/0e, Core 408P/3S, Server 12P, Desktop 64P, pnpm 27P, guards PASS. Handover written to `.conductor/handovers/L4.md`. Pushed as `e22a43a`.
 
 ## Tracker handoff
 
