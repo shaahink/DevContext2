@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 19:46 UTC · branch `feat/loom-l5` · HEAD `2884543`_
+_Updated 2026-07-08 19:56 UTC · branch `feat/loom-l5` · HEAD `34509a7`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 19:46 UTC · branch `feat/loom-l5` · HEAD `2884543`_
 
 ## Latest activity (live)
 
-_Session #36 (Deliver) · running 10m · last output 7s ago · $0.0146_
+_Session #36 (Deliver) · running 20m · last output 8s ago · $0.0626_
 
 **Thinking:**
-> The dotnet test timed out at 180 seconds, but the Desktop (64 passed) and Server (12 passed) tests completed. The Core tests were still running and got cut off. Let me check if there are further test outputs - was it stuck, or was it running but too slow? The output shows: "A total of 1 test files m…
-> The Core tests are running but taking a very long time. The output shows the first few tests completed (skipped items) but no final summary yet. It may still be running. Let me wait a bit and then check. Actually the command seems to have returned (I see the output but no final "Passed!" summary). I…
-> Core tests: 408 passed, 0 failed, 3 skipped, 411 total. Green.  So the gate battery is: - dotnet build: ✅ 0w/0e - dotnet test (non-Eval): Core 408✅/0❌/3⏭️, Desktop 64✅/0❌, Server 12✅/0❌ - pnpm check: ✅ lint + test (27 passed) + build  All green.   Now let me proceed to step 2: QA the previous sessio…
+> Now add the `AppendArchetypeView` method. Let me add it after the `AppendStyle` method and before `AppendTopology`.
+> Now let me also handle how the `Archetype.App` variants (Desktop, Worker, Blazor) show the map header correctly. Currently the header shows `MAP` for App and Library, `GATEWAY` for Gateway. I should update the header to show the archetype label for specialized App subtypes.
+> Now let me build again to check for compilation errors.
 
 **Recent actions:**
-- `20:39:11` » bash pnpm check
-- `20:41:14` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1
-- `20:41:25` » read eval-results\2026-07-08\gate-battery-l7.1-s34.txt
-- `20:41:25` · Core tests timing out. Let me re-run them with longer timeout, and also load the previous session evidence.
-- `20:43:33` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj --filter "Category!=Eval" --no-build 2>&1
-- `20:43:41` » bash git -C C:\Code\DevContext2-ui log --oneline -10
-- `20:46:32` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last…
-- `20:46:50` » grep class PlainCallDetector
-- `20:46:50` · Gate battery all green. Core: 408/0/3. Now QA previous session (L7.1). Let me verify the claims.
-- `20:46:50` » grep PlainCallDetector
+- `20:55:46` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1
+- `20:55:59` » edit src\DevContext.Core\Graph\MapBuilder.cs
+- `20:55:59` · Build green. Now wire the projection into MapBuilder, MapRenderer, and RPC.
+- `20:56:08` » edit src\DevContext.Core\Graph\MapBuilder.cs
+- `20:56:21` » edit src\DevContext.Core\Rendering\MapRenderer.cs
+- `20:56:21` · Now update MapRenderer to render the archetype view section.
+- `20:56:32` » edit src\DevContext.Core\Rendering\MapRenderer.cs
+- `20:56:32` · Now add the `AppendArchetypeView` method to MapRenderer.
+- `20:56:41` · Update the map header to show archetype-specific labels.
+- `20:56:41` » edit src\DevContext.Core\Rendering\MapRenderer.cs
 
 ## Stage progress
 
