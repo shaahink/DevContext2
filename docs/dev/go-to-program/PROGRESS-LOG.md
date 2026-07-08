@@ -2162,3 +2162,31 @@ build 0w/0e).
 **Updated:** `LOOM-START.md` handoff + L0.1 row; `PROGRESS-LOG.md`.
 
 **Next:** L0.2 (cold-agent MCP QA harness `eval/mcp-qa/run-cold.js`) or L0.3 (UI drive gate from ui-audit-drive.mjs)
+
+---
+
+## 2026-07-08 L3 post-delivery audit (session #17)
+
+**Changed:**
+- `SemanticLitePopulator.HasBindDemand`: fixed to cover all bindable op types
+  (`CreationOp`, all `InvocationOp`). Previously skipped bodies with only
+  `CreationOp`s or invocations with null `ReceiverText` but bindable generic args.
+- `ResolveNuGetMetadataRefs`: NuGet assembly refs now deduplicated against
+  framework TPA assemblies to prevent `CSharpCompilation` failures from
+  duplicate assembly identities.
+- Removed dead code: unused `fileToProject` dict, orphaned `Stopwatch`, redundant
+  downgrade guard in `UpgradeEdge`.
+- `DiscoveryPipeline`: added Info diagnostic when call-edge upgrade fails (was
+  silent `catch { }`).
+- Wrote honest phase handover to `.conductor/handovers/L3.md`.
+
+**Verified:**
+- Full gate battery re-ran green: build 0w/0e, Core 393P/3S, Desktop 64P,
+  Server 12P, pnpm check PASS (27 tests), mcp-qa 8/8, loom-guards PASS.
+- No regression: verified-edge ratchet remains 81% (dogfood). No edge count drift.
+
+**Commits:** `1b1a49d` (fix) + `094aa1d` (handover)
+
+**Next:** L4.1 — Flow store on CodeGraph.
+
+**Updated:** `.conductor/handovers/L3.md`, `PROGRESS-LOG.md`.
