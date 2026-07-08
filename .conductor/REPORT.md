@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:05 UTC · branch `feat/loom-l2` · HEAD `86798bb`_
+_Updated 2026-07-08 03:15 UTC · branch `feat/loom-l2` · HEAD `1475f2c`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 03:05 UTC · branch `feat/loom-l2` · HEAD `86798bb`_
 
 ## Latest activity (live)
 
-_Session #16 (Deliver) · running 40m · last output 1s ago · $0.0608_
+_Session #16 (Deliver) · running 50m · last output 86s ago · $0.0730_
 
 **Thinking:**
-> Looking at the performance metrics, the improvement from 68% to 74% involved reducing Sends from about 32 down to 18, which accounts for moving 14 operations. I'm noticing a discrepancy though — the probe showed mostly Command sends converting to Semantic operations, but the actual count of 18 Sends…
-> I'm consolidating the InvocationOp cases into a single handler that upgrades the receiver, generic arguments, and argument types together, then deciding whether to add a new counter for tracking resolved argument types or fold it into existing metrics. Continuing the InvocationOp case to handle argu…
-> I need to revert that deletion and add ArgTypesResolved instead of removing CallEdgesUpgraded.
+> I've hit the 81% verified edges target, with all Send edges now fully verified and zero approximations there. The Raises category still has one approximation, and my total approximation count across all categories is now 52.  Now I need to validate this is a genuine improvement—the semantic binding …
+> Running through the post-session validation checks: rebuilding to confirm the probe removal doesn't cause issues, running the test suite excluding evaluation tests, executing the guard checks, and then the mcp-qa suite. After that I'll do a pnpm check and run the truth benchmarks to verify the evalu…
+> All tests are passing across the board, and the guards check out. Now I need to run the mcp-qa tool and verify the pnpm checks, though the server might need a fresh build first. I should also run the evaluation category tests to make sure the checkout truth test hasn't regressed.  Since the pre-exis…
 
 **Recent actions:**
-- `04:04:19` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:04:19` · Now update the `Populate` method to thread the new counter, and refactor the upgrade loop:
-- `04:04:31` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:04:42` · Now update the `UpgradeBodyFacts` signature and the InvocationOp handling:
-- `04:04:42` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:04:57` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:05:23` · Now replace the two InvocationOp cases with one combined case, and update the return statement:
-- `04:05:23` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:05:31` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `04:05:31` · Now update the return statement of `UpgradeBodyFacts` and add the `TryBindArgType` helper:
+- `04:09:42` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o "C:\Users\shahi\AppData\Loca…
+- `04:10:09` · **81% verified edges — target ≥80% MET.** Sends: 32 approx → **0**. Edges/nodes unchanged (276/422) — pure tier upgrades, no fabrication. The type-argument/crea…
+- `04:10:09` » bash Remove-Item "C:/code/DevContext2-ui/tests/DevContext.Core.Tests/ZzScratchProbe.cs" -Force; echo "removed"; Test-Path "C:/code/DevContext2-ui/tests/DevConte…
+- `04:10:20` » todowrite 1 todos
+- `04:10:32` · Post-session ritual. Rebuild and run the full gate battery in parallel where safe.
+- `04:10:39` » bash dotnet build DevContext.slnx -clp:ErrorsOnly 2>&1 | Select-Object -Last 4
+- `04:10:51` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 5
+- `04:13:47` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Failed:" | Select-Object -Las…
+- `04:14:00` · Tests green (393P/3S · 12P · 64P — matches baseline). Guards PASS. Now mcp-qa, pnpm check, and the checkout truth test.
+- `04:14:13` » bash dotnet test DevContext.slnx --filter "FullyQualifiedName~TruthExpectationTests" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|Passed:|Failed:|c…
 
 ## Stage progress
 
