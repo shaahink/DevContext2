@@ -68,7 +68,7 @@ line under the row — never silent renumbering.
 | L5.4 | Real `flow` tool + fuzzy focus | DONE | (l5.4-s26) | eval-results/2026-07-08/gate-battery-l5.4-s26.txt
 | L5.5 | Cold-agent QA becomes the gate | DONE | (l5.5-s28) | eval-results/2026-07-08/gate-battery-l5.5-s28.txt |
 | L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | DONE | (l6.1-s29) | eval-results/2026-07-08/gate-battery-l6.1-s29.txt |
-| L6.2 | Code pane: entry selection shows source; states visible | TODO | | |
+| L6.2 | Code pane: entry selection shows source; states visible | DONE | da1823d | eval-results/2026-07-08/gate-battery-l6.2-s30.txt |
 | L6.3 | Inspector insights: adjacency filter + honest chip | TODO | | |
 | L6.4 | Context Studio v2: service tree, preset scaffolds real cards | TODO | | |
 | L6.5 | Table lens button + focus-proof shortcut | TODO | | |
