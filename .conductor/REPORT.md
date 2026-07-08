@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:03 UTC · branch `feat/loom-l2` · HEAD `087b5d7`_
+_Updated 2026-07-08 06:13 UTC · branch `feat/loom-l2` · HEAD `786f85d`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 06:03 UTC · branch `feat/loom-l2` · HEAD `087b5d7`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 80m · last output 87s ago · $0.0669_
+_Session #20 (Deliver) · running 90m · last output 184s ago · $0.0772_
 
 **Thinking:**
-> I'm seeing a mismatch where `AddServiceNodes` only creates Service nodes for runnable projects, but the join methods are creating additional Service nodes for any project that publishes or consumes services—including libraries like `Ordering.Application` and `BuildingBlocks`—which pollutes the Servi…
-> I'm seeing a mismatch in how Service nodes get created across the codebase. `AddServiceNodes` only generates them for runnable projects through the boundary inference logic, but the bus/gRPC/HTTP link methods are creating Service nodes directly for whatever project the seam resolves to—which can inc…
-> The projection needs to filter for runnable service nodes, but I need to be careful about how ServiceLink joins create separate Service nodes for library projects like Ordering.Application. Since these have different NodeIds than the runnable ones (ForService("Ordering.Application") vs ForService("O…
+> I should verify that the existing ServiceBoundaryInferenceTests don't have any golden tests that would break if I change the package-ref behavior.
+> I'm noticing a conflict in the test suite. Several tests assume that having a `Microsoft.AspNetCore.App` package reference makes a project runnable, but the design specification defines runnable differently. I need to reconcile what the tests are asserting against what the actual design intent is.  …
+> The node count dropped by one after removing that false-positive BuildingBlocks Service entry, which accounts for the 422→421 change, while everything else stayed consistent. Now I need to regenerate the MCP evidence to verify there are exactly 6 runnables.
 
 **Recent actions:**
-- `06:59:34` » edit src\DevContext.Core\Graph\CodeGraph.cs
-- `06:59:45` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `07:00:08` · Now filter the projection's service cards to runnable-tagged nodes. Let me update ServiceMapProjection.
-- `07:00:08` » edit src\DevContext.Core\Graph\GraphProjections.cs
-- `07:00:35` · Now update my projection test to assert runnable filtering. Let me add a test where a non-runnable Service node is excluded.
-- `07:00:35` » edit tests\DevContext.Core.Tests\GraphProjectionTests.cs
-- `07:00:47` · But wait — the transports still show `Ordering.Application` as a target. That's acceptable (transports show the real seam endpoints; the design says ServiceLink…
-- `07:01:07` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
-- `07:01:21` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --filter "FullyQualifiedName~GraphProjectionTests" --nologo 2>&1 | Select-Object -Last…
-- `07:01:35` · Now regenerate the MCP evidence to confirm the 6 runnables only.
+- `07:07:47` » bash Get-ChildItem -Recurse -Filter "ServiceBoundaryInferenceTests.cs" | Select-Object -ExpandProperty FullName
+- `07:07:56` » read tests\DevContext.Core.Tests\Graph2\ServiceBoundaryInferenceTests.cs
+- `07:08:19` · The L1 tests intentionally treat `Microsoft.AspNetCore.App` (the framework meta-reference) as a runnable signal. The bug is only the loose substring match catch…
+- `07:08:19` » edit src\DevContext.Core\Graph2\ServiceBoundaryInference.cs
+- `07:08:33` » edit tests\DevContext.Core.Tests\Graph2\ServiceBoundaryInferenceTests.cs
+- `07:08:33` · Now let me add a regression test for the false-positive case and rebuild.
+- `07:09:26` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
+- `07:09:38` · Now this changes runnable classification which affects dogfood numbers (BuildingBlocks no longer a Service node). This could change ServiceLinks/nodes count. Le…
+- `07:09:44` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o eval-results/2026-07-08/dogf…
+- `07:09:58` · Nodes 422→421 (removed the false-positive BuildingBlocks Service node) — explained drift, within tolerance. Edges/SL/entries/verified unchanged. Now regenerate …
 
 ## Stage progress
 
