@@ -290,6 +290,7 @@ public sealed class TruthExpectationTests
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
         Assert.DoesNotContain("No projects discovered.", result.Content, StringComparison.Ordinal);
+        Assert.Contains("LIBRARY", result.Content, StringComparison.Ordinal);
 
         var json = result.JsonContent;
         Assert.NotEmpty(json);
@@ -320,6 +321,7 @@ public sealed class TruthExpectationTests
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
         Assert.DoesNotContain("No projects discovered.", result.Content, StringComparison.Ordinal);
+        Assert.Contains("DESKTOP APP", result.Content, StringComparison.Ordinal);
 
         var json = result.JsonContent;
         Assert.NotEmpty(json);
@@ -377,7 +379,7 @@ public sealed class TruthExpectationTests
             AllowRoslyn = true,
         };
 
-        var loggerFactory = LoggerFactory.Create(_ => { });
+        using var loggerFactory = LoggerFactory.Create(_ => { });
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
@@ -421,7 +423,7 @@ public sealed class TruthExpectationTests
             Profile = intent.Profile,
         };
 
-        var loggerFactory = LoggerFactory.Create(_ => { });
+        using var loggerFactory = LoggerFactory.Create(_ => { });
         var analysis = new SharedAnalysisContext
         {
             UnresolvedFocusPoints = intent.FocusPoints,
@@ -478,7 +480,7 @@ public sealed class TruthExpectationTests
             if (parent == dir) break;
             dir = parent;
         }
-        _repoRootCache = Environment.CurrentDirectory;
+        _repoRootCache = Environment.CurrentDirectory ?? ".";
         return _repoRootCache;
     }
 
@@ -517,6 +519,6 @@ public sealed class TruthExpectationTests
             }
             return 0;
         }
-        catch { return 0; }
+        catch (Exception) { return -1; }
     }
 }

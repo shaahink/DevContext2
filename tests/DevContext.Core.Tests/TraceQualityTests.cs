@@ -198,7 +198,7 @@ public sealed class TraceQualityTests
         var cache = new AnalysisCache(fs);
         var rootResult = await ProjectRootResolver.ResolveAsync(repoPath, fs, CancellationToken.None);
         var options = new ExtractionOptions { MaxOutputTokens = 8000, OutputFormat = OutputFormat.Markdown, AllowRoslyn = true };
-        var loggerFactory = LoggerFactory.Create(_ => { });
+        using var loggerFactory = LoggerFactory.Create(_ => { });
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
@@ -249,7 +249,7 @@ public sealed class TraceQualityTests
             Profile = intent.Profile,
         };
 
-        var loggerFactory = LoggerFactory.Create(_ => { });
+        using var loggerFactory = LoggerFactory.Create(_ => { });
         var analysis = new SharedAnalysisContext
         {
             UnresolvedFocusPoints = intent.FocusPoints,
