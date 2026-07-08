@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:30 UTC · branch `feat/loom-l2` · HEAD `ce17fd7`_
+_Updated 2026-07-08 04:40 UTC · branch `feat/loom-l2` · HEAD `379f958`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 04:30 UTC · branch `feat/loom-l2` · HEAD `ce17fd7`_
 
 ## Latest activity (live)
 
-_Session #19 (Deliver) · running 10m · last output 102s ago · $0.0176_
+_Session #19 (Deliver) · running 20m · last output 10s ago · $0.0681_
 
 **Thinking:**
-> Gates are green: - Build: 0w/0e ✅ - Tests: Core 393P/3S · Server 12P · Desktop 64P ✅ - pnpm check: lint + test + build all pass ✅  Now I need to run the MCP QA script too. Let me do that.  Now let me also: 1. Run the MCP QA (`node eval/mcp-qa/run.js --quiet`) 2. Start reading the L4.1 evidence to au…
-> Let me now audit L4.1's claims:  1. **Gate battery claims**: build 0w/0e ✅ (verified fresh), Core 393P/3S ✅, Server 12P ✅, Desktop 64P ✅, pnpm check ✅ 2. **Dogfood numbers**: 422n/276e/34ent/6SL/82% verified ✅ (matches the L4.1 evidence file) 3. **Flows stored on CodeGraph**: 34 flows, one per entry…
-> Good. FlowModel.cs exists and L4.1 is committed (8e75dd9). No existing *Projection.cs files. Let me explore the existing code to understand the RPC, proto, and map building infrastructure.  Key things to understand for L4.2: 1. How the existing `MapBuilder` and `TraceBuilder` work (they do ad-hoc wa…
+> Let me run the dogfood report to get fresh numbers. I'll direct the output to a file and also check the date directory exists.
+> Good. Now let me check the report file to verify the dogfood numbers.
+> Dogfood numbers: - 422n ✅ (matches L4.1 baseline) - 276e ✅ - 34 entries ✅ - 6 ServiceLinks ✅ - 82% verified edges ✅ (within ±1%) - 3.4s analyzed  Now let me create the gate battery evidence artifact, then update LOOM-START.md and commit.
 
 **Recent actions:**
-- `05:23:07` » bash Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, MainWindowTitle
-- `05:23:24` » bash taskkill /f /im dotnet.exe 2>&1; Start-Sleep -Seconds 3; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1 | Select-Object -Last 5
-- `05:25:18` » bash Set-Location C:\Code\DevContext2-ui\src\DevContext.App; pnpm check 2>&1
-- `05:26:32` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
-- `05:26:38` » read eval-results\2026-07-08\gate-battery-l4.1-s18.txt
-- `05:26:39` » read eval-results\2026-07-08\dogfood-l4.1-final.md
-- `05:28:38` » bash Set-Location C:\Code\DevContext2-ui; node eval/mcp-qa/run.js --quiet 2>&1
-- `05:28:50` » bash Set-Location C:\Code\DevContext2-ui; git log --oneline -10
-- `05:28:50` » glob src
-- `05:28:51` » glob src\DevContext.Core
+- `05:36:15` » todowrite 4 todos
+- `05:36:15` · Build green. Now run the full gate battery.
+- `05:36:22` » bash powershell -File C:\Code\DevContext2-ui\scripts\loom-guards.ps1 2>&1
+- `05:39:26` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
+- `05:39:30` · Tests and guards green. Now pnpm check.
+- `05:40:01` » bash Set-Location C:\Code\DevContext2-ui\src\DevContext.App; pnpm check 2>&1 | Select-Object -Last 15
+- `05:40:08` » todowrite 3 todos
+- `05:40:08` · All gates green. Now produce the fresh dogfood evidence artifact.
+- `05:40:19` » bash $dateDir = "eval-results/2026-07-08"; if (!(Test-Path -LiteralPath "C:\Code\DevContext2-ui\$dateDir")) { New-Item -ItemType Directory -Path "C:\Code\DevCon…
+- `05:40:23` » read eval-results\2026-07-08\dogfood-l4.2.md
 
 ## Stage progress
 
