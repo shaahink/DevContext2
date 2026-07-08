@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:47 UTC · branch `feat/loom-l2` · HEAD `b9d3e0b`_
+_Updated 2026-07-08 06:57 UTC · branch `feat/loom-l2` · HEAD `044b141`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.4
@@ -9,24 +9,24 @@ _Updated 2026-07-08 06:47 UTC · branch `feat/loom-l2` · HEAD `b9d3e0b`_
 
 ## Latest activity (live)
 
-_Session #21 (Deliver) · running 20m · last output 79s ago · $0.0714_
+_Session #21 (Deliver) · running 30m · last output 42s ago · $0.0910_
 
 **Thinking:**
-> Now add the ProtoMapper.
-> Now let me build to verify everything compiles.
-> Build succeeded with 0w/0e. Now I need to: 1. Run tests to verify nothing broke 2. Regenerate TypeScript protos 3. Update the UI
+> Let me now stop any leftover processes, then run the full gate battery (build, test, guards, MCP QA). I already know pnpm check is green.  Actually, I need to start the server first for MCP QA. But let me first kill any stale processes and run the build + tests first.
+> Tests all green: Core 398P/3S, Server 12P, Desktop 64P. Guards PASS. Build had a transient VBCSCompiler lock again. Let me retry the build to get it clean.  Actually, looking at the dotnet test output, it shows the Core project was rebuilt successfully as part of the test run. The build failure was …
+> Build 0w/0e. Now let me run the MCP QA. I need to start the server first. Let me also prepare the evidence artifacts.
 
 **Recent actions:**
-- `07:44:18` » edit src\DevContext.Core\Graph\ContextPackBuilder.cs
-- `07:44:44` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `07:44:51` · Core built successfully. Server locked by running process. Let me kill it and rebuild.
-- `07:44:55` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; Start-Sleep 1; dotnet build C:\Code\DevContext2-ui\src\DevContext.Server\DevCo…
-- `07:45:06` » edit src\DevContext.Server\Endpoints\DevContextGrpcService.cs
-- `07:45:06` · Now add the server handler and ProtoMapper. Let me do both in parallel.
-- `07:45:17` » edit src\DevContext.Server\Mapping\ProtoMapper.cs
-- `07:45:28` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `07:45:35` · Build 0w/0e. Now run tests and regenerate TS protos.
-- `07:45:41` » bash pnpm gen:proto
+- `07:51:28` » read src\DevContext.App\src\app\features\context-studio\context-studio.ts
+- `07:51:36` » edit src\DevContext.App\src\app\features\context-studio\context-studio.ts
+- `07:52:10` » bash pnpm check
+- `07:52:19` » todowrite 2 todos
+- `07:52:19` · `pnpm check` green. Let me run the full gate battery to verify everything.
+- `07:52:29` » bash powershell -ExecutionPolicy Bypass -File scripts/loom-guards.ps1 2>&1
+- `07:52:53` » bash Stop-Process -Name "devcontext-mcp","DevContext.Server","VBCSCompiler" -Force -ErrorAction SilentlyContinue; Start-Sleep 1; dotnet build C:\Code\DevContext…
+- `07:55:57` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1
+- `07:56:12` » bash Stop-Process -Name "VBCSCompiler" -Force -ErrorAction SilentlyContinue; Start-Sleep 2; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `07:56:18` · Build 0w/0e. Now run MCP QA and produce evidence artifacts.
 
 ## Stage progress
 
