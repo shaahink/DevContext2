@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 16:41 UTC · branch `feat/loom-l5` · HEAD `e87c3cb`_
+_Updated 2026-07-08 16:47 UTC · branch `feat/loom-l5` · HEAD `f8b237b`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
-**Checkpoints:** 23/34 done · **Sessions run:** 28 · **Cost:** $2.1670 · **Tokens:** 1,801,827 in / 465,125 out / 318,937 think
+**Checkpoints:** 23/34 done · **Sessions run:** 28 · **Cost:** $2.2087 · **Tokens:** 1,804,314 in / 478,033 out / 327,568 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #28 (Audit) · running 40m · last output 154s ago · $0.0277_
-
-**Thinking:**
-> The server tests all passed with my new idempotency check working correctly. Now I'm running the cold QA gate to verify my MCP and gate changes don't break anything—this should take about two minutes. I'll need to clean up any lingering server processes before running the rebuild.
-> The cold gate is holding steady at 92% pass rate with no false positives or opaque errors, so I can move forward with the scripted QA regression. I need to check if there's a lingering server from the previous run, but run.js should handle that gracefully by reusing any existing server on port 5179 …
-> Scripted QA is still passing all tests including the usage queries, so my F4 change didn't break anything there. I need to run the full .NET test suite with a clean build to verify nothing else broke, then check the UI with pnpm. Let me first kill any lingering server processes and run the complete …
-
-**Recent actions:**
-- `17:28:18` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 6
-- `17:28:36` · Build green. Let me run the Server tests to validate the new idempotency assertion:
-- `17:28:42` » bash cd C:/code/DevContext2-ui; dotnet test tests/DevContext.Server.Tests/DevContext.Server.Tests.csproj --no-build 2>&1 | Select-String -Pattern "Passed!|Faile…
-- `17:28:52` · Server tests pass (including the new idempotency assertion). Now re-run the cold-agent gate with my MCP + gate-strictness changes:
-- `17:31:49` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run-cold.js --gate 2>&1 | Select-Object -Last 30
-- `17:32:05` · Cold gate holds at 92% with my changes. Now the scripted QA regression:
-- `17:34:54` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 16
-- `17:35:22` · Scripted QA 8/8. Let me clean up lingering QA processes and run the full .NET test suite + UI gate:
-- `17:38:21` » bash Get-Process | Where-Object { $_.ProcessName -match 'DevContext|devcontext-mcp' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds …
-- `17:38:31` · All .NET tests pass (408 + 12 + 64). Now the UI gate:
+**Pending:** full-battery phase gate for L5
 
 ## Stage progress
 
@@ -73,23 +53,10 @@ _Session #28 (Audit) · running 40m · last output 154s ago · $0.0277_
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
-| 28 | L5 | Audit | 1 | 07-08 16:01 | … | running |  | 0 |  |  |  |
+| 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
 
 ### Commits by session
 
-- **s20 (L4 Deliver)** — 12 commit(s):
-  - e0a12e6 docs(l4.3): tracker handoff + progress log — L4.3 done, QA of L4.2 PASS
-  - bc0acca feat(l4.3): Home/Atlas/MCP consume graph projections; drop ad-hoc walks
-  - b192acd chore(conductor): s20 L4 working ▸L4.3 @ 07:23
-  - 370108d chore(conductor): s20 L4 working ▸L4.3 @ 07:13
-  - 786f85d chore(conductor): s20 L4 working ▸L4.3 @ 07:03
-  - 087b5d7 chore(conductor): s20 L4 working ▸L4.3 @ 06:53
-  - 400a244 chore(conductor): s20 L4 working ▸L4.3 @ 06:43
-  - 5b41601 chore(conductor): s20 L4 working ▸L4.3 @ 06:33
-  - 0c74ed2 chore(conductor): s20 L4 working ▸L4.3 @ 06:23
-  - e6a11ae chore(conductor): s20 L4 working ▸L4.3 @ 06:13
-  - c71b22d chore(conductor): s20 L4 working ▸L4.3 @ 06:03
-  - 304bc2b chore(conductor): s20 L4 working ▸L4.3 @ 05:53
 - **s21 (L4 Deliver)** — 5 commit(s):
   - 986b55d docs: PROGRESS-LOG — L4.4 session #21 close-out
   - 9fe1d17 feat(l4.4): server ContextPack round-trip (closes Meridian Trap A)
@@ -132,6 +99,15 @@ _Session #28 (Audit) · running 40m · last output 154s ago · $0.0277_
   - aa77564 chore(conductor): s27 L5 working ▸L5.5 @ 16:43
   - 7b5fd38 docs: add conductor-DEBT.md (L0-L4 audit followups, sized + gated) + update read-order
   - 6a78b90 chore(conductor): s27 L5 working ▸L5.5 @ 16:33
+- **s28 (L5 Audit)** — 8 commit(s):
+  - f8b237b docs(l5-audit): honest L5 phase handover
+  - df1d007 docs(l5-audit): L5 phase handover + post-audit gate battery evidence
+  - ce4d1d4 test(l5-audit): restore cold-QA false-success strictness
+  - f3c6696 fix(l5-audit): harden usages resolution, idempotent analyze, async node lookup
+  - a237a20 chore(conductor): s28 L5 working ▸L5 @ 17:41
+  - e87c3cb chore(conductor): s28 L5 working ▸L5 @ 17:31
+  - 327f351 chore(conductor): s28 L5 working ▸L5 @ 17:21
+  - 40a1440 chore(conductor): s28 L5 working ▸L5 @ 17:11
 
 ## Phase handovers (audit)
 
@@ -140,6 +116,7 @@ _Session #28 (Audit) · running 40m · last output 154s ago · $0.0277_
 - `.conductor/handovers/L2.md`
 - `.conductor/handovers/L3.md`
 - `.conductor/handovers/L4.md`
+- `.conductor/handovers/L5.md`
 
 ## Last gate run
 
@@ -147,7 +124,7 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5.5 delivered — B4 usages-shortname fixed in DevContextTools.cs:Usages (lines 810-819): when a short name resolves to a node with 0 usages, the tool now returns `{error, hint, example, candidates}` instead of silent `count:0`. Cold QA gate passes at 11/12 (92%) ≥ 90% threshold. All gates green: build 0w/0e, tests 408+12+64 pass, pnpm check green, guards 0 banned, scripted QA 8/8. B9 remains expected "unactionable" (find success probe, aggregate#1=true). L5 stage complete; next session should start L6.1 (tabs 32px+, New=createTab).
+> SESSION-RESULT: L5 (MCP v2 cold-agent ergonomics) audit VERDICT — solid and shippable; no gate weakening, no blocking issues, one notable coverage gap flagged. I statically reviewed the whole `2b06020..HEAD` diff (envelopes, `UnknownToolHandler`, `graph.Find` ranking, idempotent analyze, usages resolution, cold-QA harness) and landed five root-cause fixes, all with gates staying green: **F1** removed a double `CallCount` increment on cached/idempotent analyze (plus a no-duplicate-session regression test); **F3** reverted a dead `resolvedFrom` exception in the cold-QA `classify()` that quietly loosened the false-success detector (ratchet — strictness restored, still 92%); **F4** deepened `usa…
 
 ## Tracker handoff
 
