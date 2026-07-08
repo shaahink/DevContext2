@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:32 UTC · branch `feat/loom-l2` · HEAD `8535ae0`_
+_Updated 2026-07-08 00:42 UTC · branch `feat/loom-l2` · HEAD `5ece087`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 00:32 UTC · branch `feat/loom-l2` · HEAD `8535ae0`_
 
 ## Latest activity (live)
 
-_Session #12 (Deliver) · running 50m · last output 8s ago · $0.0801_
+_Session #12 (Deliver) · running 60m · last output 5s ago · $0.0903_
 
 **Thinking:**
-> I need to also update the `semanticLocal` variable since it uses a multiline format with `new SymbolRef` followed by a line break before the opening brace, so my earlier replacement didn't catch it. Let me locate and fix that one as well.
-> The build shows 4 errors but the tests passed because they ran against a previously-built binary with the `--no-build` flag. I need to do a clean rebuild to see if those errors persist.
-> The issue is that the test file's namespace is causing `Graph2.SymbolRef` to resolve incorrectly—it's looking for the type in the test namespace rather than the actual `DevContext.Core.Graph2` namespace. I need to use the fully qualified name or a global alias to reference the correct type.
+> The eval repos do exist, so the issue isn't missing repositories. The zero endpoint detection for VerticalSlice suggests the analysis itself is failing on that repo. Either my recent changes broke the analysis for these repos, or they were already failing before.  I need to determine if I introduced…
+> I've got some artifact files from running the test suite earlier—the eval results directories have been modified, but those aren't part of my actual code changes. Let me clean up the working tree and focus on rebuilding the baseline, then running those 8 failing Eval tests to see what needs fixing.
+> Looking at the eval results from the recent mcp-qa runs, I'm seeing test failures tied to specific repository paths like the eShop Ordering API and TodoApi projects. I need to dig into what's actually causing these failures to understand the pattern.  The key insight is that the gate battery explici…
 
 **Recent actions:**
-- `01:30:49` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 8
-- `01:30:58` · `SymbolRef` is ambiguous in the test file (both namespaces imported). Let me qualify my new usages:
-- `01:30:58` » bash $f="C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs"; (Get-Content $f -Raw) -replace 'new SymbolRef \{ Text', 'new Graph2.Sy…
-- `01:31:11` » bash Select-String -Path "C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs" -Pattern "new SymbolRef|new Graph2.SymbolRef" 2>&1
-- `01:31:19` » edit tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs
-- `01:31:32` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet test C:/Code/DevContext2-ui/tests/DevC…
-- `01:31:45` » bash dotnet build C:/Code/DevContext2-ui/tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 6
-- `01:31:56` · The test's own namespace shadows `Graph2`. Let me use the fully-qualified name:
-- `01:31:58` » bash $f="C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\Graph2\SeamDetectorTests.cs"; (Get-Content $f -Raw) -replace 'new Graph2\.SymbolRef', 'new DevContex…
-- `01:32:09` » bash dotnet test C:/Code/DevContext2-ui/tests/DevContext.Core.Tests --no-build --filter "FullyQualifiedName~Graph2" 2>&1 | Select-String -Pattern "Passed!|Faile…
+- `01:37:07` · Stashed. Let me rebuild the baseline and run the same failing Eval tests:
+- `01:37:52` » bash cd C:/Code/DevContext2-ui; dotnet build tests/DevContext.Core.Tests -clp:ErrorsOnly 2>&1 | Select-Object -Last 3; dotnet test tests/DevContext.Core.Tests -…
+- `01:38:02` · Confirmed: **the same 8 Eval failures exist on the baseline** (before my changes) — they're pre-existing environmental failures, NOT my regression. This is an i…
+- `01:38:03` » bash cd C:/Code/DevContext2-ui; git stash pop 2>&1 | Select-String -Pattern "Dropped|error|conflict"; echo "=== restored ==="; git status --short | Select-Objec…
+- `01:38:26` · Confirmed pre-existing: the 8 Eval failures (eShop/TodoApi/verticalslice detection) exist on baseline — **not my regression**. Note: the Loom gate battery is ex…
+- `01:38:47` » bash cd C:/Code/DevContext2-ui; dotnet build DevContext.slnx -clp:Summary 2>&1 | Select-String -Pattern "Warning|Error" | Select-Object -Last 3
+- `01:38:56` · Another stray server process locking files. Let me kill and rebuild:
+- `01:39:02` » bash Get-Process -Name "DevContext.Server","DevContext.Cli","DevContext.Desktop" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContin…
+- `01:39:12` · Clean. Now the full non-Eval suite + guards + pnpm check + mcp-qa as the post-session gate battery. Running these in parallel:
+- `01:42:12` » bash cd C:/Code/DevContext2-ui; dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|Failed:" | Selec…
 
 ## Stage progress
 
