@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 20:30 UTC · branch `feat/loom-l5` · HEAD `25bd8fb`_
+_Updated 2026-07-08 20:36 UTC · branch `feat/loom-l7` · HEAD `66fe007`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.3
-**Checkpoints:** 31/34 done · **Sessions run:** 37 · **Cost:** $2.7159 · **Tokens:** 2,417,111 in / 561,164 out / 398,381 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.4
+**Checkpoints:** 32/34 done · **Sessions run:** 37 · **Cost:** $2.7794 · **Tokens:** 2,488,411 in / 574,696 out / 406,140 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
-
-## Latest activity (live)
-
-_Session #37 (Deliver) · running 20m · last output 125s ago · $0.0538_
-
-**Thinking:**
-> Wait, did the build actually pick up the test changes? Let me check if the test csproj references the Core project, which it must. But I edited the test file and the core project, so the core project needs to be rebuilt too. The core was already built earlier (when I just built the Core project). Bu…
-> Good, build succeeds. Now let me run the tests.
-> All 17 tests pass. Now let me run the full test suite (excluding Eval) to make sure nothing else broke.
-
-**Recent actions:**
-- `21:26:47` » bash Get-Process -Name "DevContext.Server" -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 2; dotnet build C:\Code\DevContext2-ui\DevC…
-- `21:27:01` » bash Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 3; dotnet build C:\Code\DevContext2-ui\src\DevContext.…
-- `21:27:12` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj --filter "FullyQualifiedName~ArchitectureStyleDetector" --no-bu…
-- `21:27:30` » edit tests\DevContext.Core.Tests\ArchitectureStyleDetectorTests.cs
-- `21:27:30` · The eShop test needs a Solution set — it's a genuine app with a solution file. Let me fix it:
-- `21:27:41` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj --filter "FullyQualifiedName~ArchitectureStyleDetector" --no-bu…
-- `21:27:53` » bash dotnet build C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj 2>&1 | Select-Object -Last 5
-- `21:28:17` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1 | Select-Object -Last 5
-- `21:28:30` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj --filter "FullyQualifiedName~ArchitectureStyleDetector" --no-bu…
-- `21:28:35` · 17/17 ArchitectureStyleDetector tests pass. Now run full gate battery:
 
 ## Stage progress
 
@@ -39,7 +18,7 @@ _Session #37 (Deliver) · running 20m · last output 125s ago · $0.0538_
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
 | L6 | Workbench repair | 6/6 | confirmed ✓ |
-| L7 | Repo-shape coverage | 2/4 | **← active** |
+| L7 | Repo-shape coverage | 3/4 | **← active** |
 | L8 | Close-out | 0/1 | todo |
 
 ## Sessions
@@ -75,19 +54,10 @@ _Session #37 (Deliver) · running 20m · last output 125s ago · $0.0538_
 | 34 | L7 | Deliver | 1 | 07-08 18:53 | 0:23 | Stalled |  | 0 |  | $0.0155 | 28,345/1,441 |
 | 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
 | 36 | L7 | Deliver | 1 | 07-08 19:36 | 0:32 | Advanced | L7.2 | 4 | build:OK | $0.0928 | 97,550/20,172 |
-| 37 | L7 | Deliver | 1 | 07-08 20:10 | … | running |  | 0 |  |  |  |
+| 37 | L7 | Deliver | 1 | 07-08 20:10 | 0:24 | Advanced | L7.3 | 3 | build:OK | $0.0635 | 71,300/13,532 |
 
 ### Commits by session
 
-- **s28 (L5 Audit)** — 8 commit(s):
-  - f8b237b docs(l5-audit): honest L5 phase handover
-  - df1d007 docs(l5-audit): L5 phase handover + post-audit gate battery evidence
-  - ce4d1d4 test(l5-audit): restore cold-QA false-success strictness
-  - f3c6696 fix(l5-audit): harden usages resolution, idempotent analyze, async node lookup
-  - a237a20 chore(conductor): s28 L5 working ▸L5 @ 17:41
-  - e87c3cb chore(conductor): s28 L5 working ▸L5 @ 17:31
-  - 327f351 chore(conductor): s28 L5 working ▸L5 @ 17:21
-  - 40a1440 chore(conductor): s28 L5 working ▸L5 @ 17:11
 - **s29 (L6 Deliver)** — 3 commit(s):
   - 753e84d feat(l6.1): tab strip 32px + New=createTab + clone-close confirm
   - f424efd chore(conductor): s29 L6 working ▸L6.1 @ 18:14
@@ -118,6 +88,10 @@ _Session #37 (Deliver) · running 20m · last output 125s ago · $0.0538_
   - 08060ae chore(conductor): s36 L7 working ▸L7.2 @ 21:06
   - 4f827cd chore(conductor): s36 L7 working ▸L7.2 @ 20:56
   - 34509a7 chore(conductor): s36 L7 working ▸L7.2 @ 20:46
+- **s37 (L7 Deliver)** — 3 commit(s):
+  - 66fe007 feat(l7.3): style-detection guardrails — SampleCollection, never Microservices for sample repos (E4/E9)
+  - 40c91e3 chore(conductor): s37 L7 working ▸L7.3 @ 21:30
+  - 25bd8fb chore(conductor): s37 L7 working ▸L7.3 @ 21:20
 
 ## Phase handovers (audit)
 
@@ -135,17 +109,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L7.2 archetype projections landed — `ArchetypeProjection` (new `IGraphProjection<ArchetypeView>`) branches on Desktop/Worker/Blazor/Library, `ArchetypeDetector` now detects these subtypes, `MapRenderer` renders the archetype section, proto regen adds `archetype_view` to `MapResponse` (field 16). Gate battery all green: dotnet build 0w/0e, Core 408P/3S, Desktop 64P, Server 12P, pnpm 27/27. Dogfood stays stable at 436n/338e/69%. L7.3 (style-detection guardrails + E9 scope fix) and L7.4 (truth files per archetype) remain for next session. No red items. Commit `6fdd8cb` pushed to `feat/loom-l5`.
+> SESSION-RESULT: **L7.3 landed — style-detection guardrails.** `ArchitectureStyle.SampleCollection` added to the enum with detection logic that triggers when >50% of non-test projects are under sample/demo paths OR when there's no unifying .sln with >3 projects (the E4 Blazor WASM samples scenario). SampleCollection unconditionally suppresses Microservices, CleanArchitecture, VerticalSlices, and ModularMonolith verdicts. The partial-closure guard was hardened with scope-behavior documentation (E9 fix). Gate battery green: 412P/3S Core (4 new tests), 64P Desktop, 12P Server, 27/27 pnpm; dogfood unchanged at Microservices 436n/338e/6SL/34e/69%. Next session should deliver **L7.4** — extend trut…
 
 ## Tracker handoff
 
 ```
-last: L7 session #36 — **L7.2 DONE** (gate battery green: 408P/3S DotNet, 27/27 pnpm).
-      L7.2: ArchetypeProjection (IGraphProjection<ArchetypeView>) branches on detected
-      Desktop/Worker/Blazor/Library archetypes. ArchetypeDetector now detects Desktop,
-      Worker, Blazor subtypes. Proto regen adds archetype_view to MapResponse (field 16).
-      Dogfood stays App (436n/338e/6SL/34e/69%). Build 0w/0e.
-stage: **L7.2 DONE**. L7.3 (style guardrails + E9 scope fix) next.
-next: **L7.3** — Style-detection guardrails + E9 scope fix.
-evidence: eval-results/2026-07-08/gate-battery-l7.2-s36.txt
+last: L7 session #37 — **L7.3 DONE** (gate battery green: 412P/3S Core, 64P Desktop,
+      12P Server, 27/27 pnpm). SampleCollection enum + detection: >50% sample-path
+      projects OR no .sln + >3 projects → SampleCollection, never Microservices (E4).
+      Hardened partial-closure guard with scope docs (E9). Dogfood stays Microservices
+      (436n/338e/6SL/34e/69%). Build 0w/0e.
+stage: **L7.3 DONE**. L7.4 (truth files per archetype, 22-repo bench) next.
+next: **L7.4** — Truth files extended to one repo per archetype; full 22-repo bench.
+evidence: eval-results/2026-07-08/gate-battery-l7.3-s37.txt
 ```
