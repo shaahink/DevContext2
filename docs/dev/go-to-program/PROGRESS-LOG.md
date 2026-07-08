@@ -2217,3 +2217,28 @@ build 0w/0e).
 **Next:** L4.2 — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets RPC.
 
 **Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.
+
+---
+
+## 2026-07-08 — L4.2: Projections + GetGraphFacets RPC (session #19)
+
+**Changed:**
+- Created `Graph/GraphProjections.cs`: `IGraphProjection<TOut>`, `ProjectionOptions`, and 4 implementations:
+  `ServiceMapProjection`, `FlowListProjection`, `EntryTableProjection`, `LayerBandProjection`.
+  Each ≤~60 lines, zero regex, zero static state.
+- Added `GraphQuery.Flows` property exposing precomputed `CodeGraph.Flows`.
+- Added `GetGraphFacets` RPC + 9 new proto messages to `devcontext.proto`.
+- Added `ProtoMapper.ToGraphFacetsResponse()` translating all 4 facets to proto.
+- Added `DevContextGrpcService.GetGraphFacets` handler.
+
+**Verified:**
+- Full gate battery green: build 0w/0e, Core 393P/3S, Desktop 64P, Server 12P,
+  pnpm check PASS (27 tests), loom-guards PASS.
+- Node/edge counts unchanged: 422n/276e/6SL/34ent, 82% verified (same as L4.1).
+- All 4 projections compile + wire through proto → server → ProtoMapper.
+
+**Commits:** `(l4.2)` feat(l4.2)
+
+**Next:** L4.3 — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
+
+**Updated:** `LOOM-START.md`, `PROGRESS-LOG.md`.

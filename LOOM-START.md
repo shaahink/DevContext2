@@ -7,18 +7,16 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L4 session #18 — **L4.1 DONE**. Flow store on CodeGraph (34 flows, one per entry).
-      Spine-only Touches/Emits (E5 fix: no EntityRelation reachability). ServiceHops with
-      transport + provenance. Additive only — node/edge counts unchanged (422n/276e).
-stage: **L4 IN PROGRESS** (L4.1 ✅). Fix: Flow/FlowStep/ServiceHop records + CodeGraph
-      storage + GraphBuilder.ComputeFlows() (spine walk with handler-member bridging).
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P ·
-      mcp-qa 8/8. Verified edges 82% (±1% variance from L3.3).
-next: **L4.2** — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets
-      RPC. L4.1's 34 flows are the data; projections render them identically across CLI,
-      MCP, and UI.
-evidence: eval-results/2026-07-08/gate-battery-l4.1-s18.txt
-          eval-results/2026-07-08/dogfood-l4.1-final.md
+last: L4 session #19 — **L4.2 DONE**. Projections (ServiceMap, FlowList, EntryTable,
+      LayerBand) + GetGraphFacets RPC. Four IGraphProjection<TOut> implementations. Proto
+      adds 9 messages for all 4 facets. Server handler + ProtoMapper wired. No regressions:
+      422n/276e/34ent/6SL/82% (unchanged from L4.1). Adds only — consumers not yet switched.
+stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅). GraphProjections.cs (4 projections, ~230 lines)
+       + proto (9 messages, 1 RPC) + ProtoMapper + server handler.
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P.
+next: **L4.3** — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
+evidence: eval-results/2026-07-08/gate-battery-l4.2-s19.txt
+          eval-results/2026-07-08/dogfood-l4.2.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -58,7 +56,7 @@ line under the row — never silent renumbering.
 > semantic bind of dispatch targets (generic type-arg / inline `new X()`), Sends 32 approx → 0.
 > DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
 | L4.1 | Flow store; spine-only TOUCHES/EMITS (E5 fix); ServiceHops + provenance | DONE | (l4.1) | eval-results/2026-07-08/gate-battery-l4.1-s18.txt |
-| L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | TODO | | |
+| L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | DONE | (l4.2) | eval-results/2026-07-08/gate-battery-l4.2-s19.txt |
 | L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |
 | L4.4 | Server ContextPack round-trip (Trap A closed) | TODO | | |
 | L5.1 | Default-session ergonomics | TODO | | |

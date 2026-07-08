@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
+using DevContext.Core.Graph;
 using DevContext.Server.Mapping;
 using DevContext.Server.Services;
 using DevContext.Server.Sessions;
@@ -248,6 +249,20 @@ public sealed class DevContextGrpcService(
             var intent = request.HasIntent ? request.Intent : null;
             var pack = builder.Build(request.Focus, budget, intent);
             return ProtoMapper.ToContextResponse(request.Focus, pack);
+        });
+
+    public override Task<Proto.GraphFacetsResponse> GetGraphFacets(Proto.GraphFacetsRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var graph = session.Query.Graph;
+            var maxFlows = request.MaxFlows > 0 ? request.MaxFlows : 10;
+
+            var serviceMap = new ServiceMapProjection().Project(graph, ProjectionOptions.Default);
+            var flowList = new FlowListProjection().Project(graph, new ProjectionOptions { MaxFlows = maxFlows });
+            var entryTable = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
+            var layerBand = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
+
+            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand);
         });
 
     // Gap 1 — read_source RPC: Returns raw source code for the Inspector Code tab.

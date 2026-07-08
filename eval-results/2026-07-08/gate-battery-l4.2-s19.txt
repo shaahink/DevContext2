@@ -1,0 +1,64 @@
+# L4.2 Gate Battery + Evidence (2026-07-08, session #19)
+
+Stage L4 — Flows + projections. Checkpoint **L4.2 — Projections: ServiceMap, FlowList, EntryTable, LayerBand + GetGraphFacets RPC**.
+Branch feat/loom-l2. Dogfood: run-aspnetcore-microservices/src. Conductor session #19 (attempt 1/4).
+
+## Artifact-to-prove-done
+Fresh dogfood: 422n/276e/34ent/6SL/82% verified (unchanged from L4.1).
+Four projection classes (IGraphProjection<TOut>) compute ServiceMap/FlowList/EntryTable/LayerBand from CodeGraph.
+New `GetGraphFacets` RPC (proto + server + ProtoMapper) returns all four facets in one call.
+GraphQuery.Flows exposes the precomputed Flow store.
+
+## L4.2 delivered
+
+### Files changed
+1. **NEW `src/DevContext.Core/Graph/GraphProjections.cs`** — 4 projections + result types (~230 lines):
+   - `IGraphProjection<TOut>` interface
+   - `ProjectionOptions` with MaxFlows + IncludeLibraries
+   - `ServiceMapProjection` → Service nodes (runnables only) + transport links with tags
+   - `FlowListProjection` → ranked flow cards from `CodeGraph.Flows`
+   - `EntryTableProjection` → entry rows with layer/feature from graph nodes
+   - `LayerBandProjection` → per-node layer/feature bands + deduped lists
+   - Each < 60 lines, zero regex, zero static state
+
+2. **MODIFIED `src/DevContext.Core/Graph/GraphQuery.cs`** — added `Flows` property (line 53)
+
+3. **MODIFIED `proto/devcontext/v1/devcontext.proto`** — new RPC + 9 messages:
+   - `GetGraphFacets(RPC)` → `GraphFacetsResponse`
+   - `ServiceMapFacet` / `ServiceCard` / `TransportLink`
+   - `FlowListFacet` / `FlowCard`
+   - `EntryTableFacet` / `EntryTableRow`
+   - `LayerBandFacet` / `NodeBand`
+
+4. **MODIFIED `src/DevContext.Server/Mapping/ProtoMapper.cs`** — `ToGraphFacetsResponse()`
+
+5. **MODIFIED `src/DevContext.Server/Endpoints/DevContextGrpcService.cs`** — `GetGraphFacets` handler
+
+## Results
+
+| Metric | L4.1 s18 | L4.2 s19 | Δ |
+|--------|----------|----------|---|
+| Nodes | 422 | 422 | 0 |
+| Edges | 276 | 276 | 0 |
+| Entries | 34 | 34 | 0 |
+| ServiceLinks | 6 | 6 | 0 |
+| Verified edges | 82% | 82% | 0 |
+| Analyzed in | 3.8s | 3.4s | within budget |
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 393P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (5 test files, 27 tests, bundle built) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+
+## Known-red / recorded (unchanged)
+- Category=Eval failures PRE-EXISTING (L7 call-spine gap)
+- MCP QA not re-run (L5 work; unchanged)
+- Consumers still use ad-hoc walks (L4.3 work)
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/dogfood-l4.2.md — fresh cold dogfood report (422n/276e/82%)
+- eval-results/2026-07-08/gate-battery-l4.2-s19.txt — this file

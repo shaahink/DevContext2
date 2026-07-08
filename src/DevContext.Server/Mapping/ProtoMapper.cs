@@ -349,6 +349,94 @@ internal static class ProtoMapper
         return resp;
     }
 
+    public static Proto.GraphFacetsResponse ToGraphFacetsResponse(
+        ServiceMapResult serviceMap,
+        FlowListResult flowList,
+        EntryTableResult entryTable,
+        LayerBandResult layerBand)
+    {
+        var resp = new Proto.GraphFacetsResponse();
+
+        // ServiceMap facet
+        resp.ServiceMap = new Proto.ServiceMapFacet();
+        foreach (var svc in serviceMap.Services)
+        {
+            var card = new Proto.ServiceCard
+            {
+                Name = svc.Name,
+                DisplayName = svc.DisplayName,
+                Kind = svc.Kind,
+            };
+            if (svc.Layer is { } l) card.Layer = l;
+            if (svc.Feature is { } f) card.Feature = f;
+            card.Stack.AddRange(svc.Stack);
+            resp.ServiceMap.Services.Add(card);
+        }
+        foreach (var t in serviceMap.Transports)
+        {
+            var link = new Proto.TransportLink
+            {
+                FromService = t.FromService,
+                ToService = t.ToService,
+                Transport = t.Transport,
+            };
+            if (t.Evidence is { } ev) link.Evidence = ev;
+            resp.ServiceMap.Transports.Add(link);
+        }
+
+        // FlowList facet
+        resp.FlowList = new Proto.FlowListFacet { TotalFlows = flowList.TotalFlows };
+        foreach (var f in flowList.Flows)
+        {
+            resp.FlowList.Flows.Add(new Proto.FlowCard
+            {
+                Id = f.Id,
+                Title = f.Title,
+                Kind = f.Kind,
+                Depth = f.Depth,
+                Hops = f.Hops,
+                Touches = f.Touches,
+                Emits = f.Emits,
+                Score = f.Score,
+            });
+        }
+
+        // EntryTable facet
+        resp.EntryTable = new Proto.EntryTableFacet();
+        foreach (var r in entryTable.Rows)
+        {
+            var row = new Proto.EntryTableRow
+            {
+                Kind = r.Kind,
+                Title = r.Title,
+                Score = r.Score,
+                Reach = r.Reach,
+                CrossProjects = r.CrossProjects,
+            };
+            if (r.Route is { } rt) row.Route = rt;
+            if (r.Target is { } tgt) row.Target = tgt;
+            if (r.Project is { } p) row.Project = p;
+            if (r.GroupPath is { } gp) row.GroupPath = gp;
+            if (r.Layer is { } ly) row.Layer = ly;
+            if (r.Feature is { } ft) row.Feature = ft;
+            resp.EntryTable.Rows.Add(row);
+        }
+
+        // LayerBand facet
+        resp.LayerBand = new Proto.LayerBandFacet();
+        resp.LayerBand.Layers.AddRange(layerBand.Layers);
+        resp.LayerBand.Features.AddRange(layerBand.Features);
+        foreach (var nb in layerBand.NodeBands)
+        {
+            var band = new Proto.NodeBand { NodeId = nb.NodeId };
+            if (nb.Layer is { } l2) band.Layer = l2;
+            if (nb.Feature is { } f2) band.Feature = f2;
+            resp.LayerBand.NodeBands.Add(band);
+        }
+
+        return resp;
+    }
+
     private static Proto.TraceNode ToProto(TraceStep step)
     {
         var node = new Proto.TraceNode

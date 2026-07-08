@@ -49,6 +49,9 @@ public sealed class GraphQuery
     /// <summary>The underlying graph (for callers that still need direct access during the transition).</summary>
     public CodeGraph Graph => _graph;
 
+    /// <summary>L4 — Precomputed flows (spine-only), one per entry. Computed at assembly time.</summary>
+    public ImmutableArray<Flow> Flows => _graph.Flows;
+
     /// <summary>entrypoints(filter?) — the roots a trace can start from, optionally by kind.</summary>
     public ImmutableArray<EntryPoint> EntryPoints(EntryPointKind? kind = null)
         => kind is null ? _entries : [.. _entries.Where(e => e.Kind == kind)];

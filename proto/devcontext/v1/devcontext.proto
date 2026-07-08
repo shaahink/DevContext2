@@ -66,6 +66,11 @@ service DevContextService {
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
 
+  // L4.2 — Graph facets: service map, flow list, entry table, and per-node layer/feature
+  // bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
+  // surfaces without individual Node RPCs.
+  rpc GetGraphFacets(GraphFacetsRequest) returns (GraphFacetsResponse);
+
   // M3.1 — list all active sessions (MCP page session list).
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
 
@@ -658,4 +663,87 @@ message ReadSourceResponse {
   int32 start_line = 4;           // first line of the returned range
   int32 end_line = 5;             // last line of the returned range
   string node_title = 6;          // node display title for headers
+}
+
+// ---------------------------------------------------------------------------
+// L4.2 — Graph facets (service map, flow list, entry table, layer bands)
+// ---------------------------------------------------------------------------
+
+message GraphFacetsRequest {
+  string handle = 1;
+  int32 max_flows = 2;         // max flows to return (default 10)
+}
+
+message GraphFacetsResponse {
+  ServiceMapFacet service_map = 1;
+  FlowListFacet flow_list = 2;
+  EntryTableFacet entry_table = 3;
+  LayerBandFacet layer_band = 4;
+}
+
+message ServiceMapFacet {
+  repeated ServiceCard services = 1;
+  repeated TransportLink transports = 2;
+}
+
+message ServiceCard {
+  string name = 1;
+  string display_name = 2;
+  string kind = 3;
+  optional string layer = 4;
+  optional string feature = 5;
+  repeated string stack = 6;
+}
+
+message TransportLink {
+  string from_service = 1;
+  string to_service = 2;
+  string transport = 3;
+  optional string evidence = 4;
+}
+
+message FlowListFacet {
+  repeated FlowCard flows = 1;
+  int32 total_flows = 2;
+}
+
+message FlowCard {
+  string id = 1;
+  string title = 2;
+  string kind = 3;
+  int32 depth = 4;
+  int32 hops = 5;
+  int32 touches = 6;
+  int32 emits = 7;
+  double score = 8;
+}
+
+message EntryTableFacet {
+  repeated EntryTableRow rows = 1;
+}
+
+message EntryTableRow {
+  string kind = 1;
+  string title = 2;
+  optional string route = 3;
+  optional string target = 4;
+  optional string project = 5;
+  optional string group_path = 6;
+  optional string layer = 7;
+  optional string feature = 8;
+  double score = 9;
+  int32 reach = 10;
+  int32 cross_projects = 11;
+}
+
+message LayerBandFacet {
+  repeated NodeBand node_bands = 1;
+  repeated string layers = 2;
+  repeated string features = 3;
+}
+
+message NodeBand {
+  string node_id = 1;
+  optional string layer = 2;
+  optional string feature = 3;
 }
