@@ -495,6 +495,87 @@ public sealed class GraphQuery
             .Take(cap)
             .ToImmutableArray();
     }
+
+    /// <summary>find(query, limit) — L5.3 ranked resolution shared by resolve/find/usages/impact.
+    /// Rank: exact Title == query > Title starts-with (prefix) > Title word-boundary > Title contains.
+    /// Tiebreaker: Types over Members over other kinds; then by total degree (out+in edges).</summary>
+    public ImmutableArray<SearchResult> Find(string query, int limit = 20)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return ImmutableArray<SearchResult>.Empty;
+
+        var term = query.Trim();
+        var results = new List<(SearchResult Result, int Rank)>();
+
+        foreach (var n in _graph.Nodes)
+        {
+            var title = n.Title;
+            var titleMatch = title.Contains(term, StringComparison.OrdinalIgnoreCase);
+            var keyMatch = n.Id.Key.Contains(term, StringComparison.OrdinalIgnoreCase);
+
+            if (!titleMatch && !keyMatch)
+                continue;
+
+            var rank = MatchRank(title, term);
+
+            var outD = _graph.OutEdges(n.Id).Length;
+            var inD = _graph.InEdges(n.Id).Length;
+            results.Add((new SearchResult(n.Id, title, n.Kind, outD + inD), rank));
+        }
+
+        return results
+            .OrderBy(r => r.Rank)
+            .ThenByDescending(r => KindPriority(r.Result.Kind))
+            .ThenByDescending(r => r.Result.Degree)
+            .Take(limit)
+            .Select(r => r.Result)
+            .ToImmutableArray();
+    }
+
+    private static int MatchRank(string title, string term)
+    {
+        if (string.Equals(title, term, StringComparison.OrdinalIgnoreCase))
+            return 0; // exact match
+        if (title.StartsWith(term, StringComparison.OrdinalIgnoreCase))
+            return 1; // prefix match
+        if (IsWordBoundary(title, term))
+            return 2; // word-boundary match (e.g. ".Order" or "OrderService")
+        return 3; // general substring match
+    }
+
+    private static bool IsWordBoundary(string title, string term)
+    {
+        var len = title.Length;
+        var tlen = term.Length;
+        if (tlen == 0 || tlen > len) return false;
+
+        for (var i = 0; i <= len - tlen; i++)
+        {
+            if (!MemoryExtensions.Equals(
+                    title.AsSpan(i, tlen),
+                    term.AsSpan(),
+                    StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var before = i == 0 || !char.IsLetterOrDigit(title[i - 1]);
+            var after = i + tlen == len || !char.IsLetterOrDigit(title[i + tlen]);
+            if (before && after)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>L5.3 — Type nodes rank higher than Member nodes. Higher number = higher priority.</summary>
+    private static int KindPriority(NodeKind kind) => kind switch
+    {
+        NodeKind.Type => 3,
+        NodeKind.Service => 3,
+        NodeKind.EntryPoint => 2,
+        NodeKind.Member => 2,
+        NodeKind.Message => 1,
+        NodeKind.Store => 1,
+        _ => 0,
+    };
 }
 
 /// <summary>M4.4 — Impact analysis direction.</summary>

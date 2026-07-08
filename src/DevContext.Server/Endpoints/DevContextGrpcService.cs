@@ -184,19 +184,14 @@ public sealed class DevContextGrpcService(
         {
             var query = request.Query.Trim();
             var limit = request.Limit > 0 ? request.Limit : 20;
+            var ranked = session.Query.Find(query, limit);
             var graph = session.Query.Graph;
 
             var results = new List<(string Id, string Title, string Kind, ImmutableArray<string> Tags)>();
-
-            foreach (var node in graph.Nodes)
+            foreach (var r in ranked)
             {
-                if (results.Count >= limit) break;
-                if (string.IsNullOrEmpty(query)
-                    || node.Title.Contains(query, StringComparison.OrdinalIgnoreCase)
-                    || node.Id.ToString().Contains(query, StringComparison.OrdinalIgnoreCase))
-                {
-                    results.Add((node.Id.ToString(), node.Title, node.Kind.ToString(), node.Tags));
-                }
+                var node = graph.Node(r.Id);
+                results.Add((r.Id.ToString(), r.Title, r.Kind.ToString(), node?.Tags ?? ImmutableArray<string>.Empty));
             }
 
             return ProtoMapper.ToSearchResponse(results);

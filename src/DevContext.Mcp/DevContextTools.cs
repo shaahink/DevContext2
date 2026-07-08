@@ -674,7 +674,7 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "neighbors", "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")"); }
     }
 
-    /// <summary>Find all usages (in-edges) of a node across the codebase. Example: usages("abc123", "IOrderRepository")</summary>
+    /// <summary>Find all usages (in-edges) of a node across the codebase. Accepts nodeId or short name. Example: usages("abc123", "IOrderRepository")</summary>
     [McpServerTool]
     public async Task<string> Usages(string? handle = null, string? nodeId = null)
     {
@@ -686,18 +686,40 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "usages", "analyze(path) then usages(nodeId:\"IOrderRepository\")"); }
         try
         {
+            var resolved = nodeId;
+
+            // L5.3 — if nodeId is a short name (no colon), resolve it via ranked search first.
+            if (!nodeId.Contains(':', StringComparison.Ordinal))
+            {
+                var search = await _client.SearchNodesAsync(new SearchRequest
+                {
+                    Handle = handle,
+                    Query = nodeId,
+                    Limit = 1,
+                });
+                if (search.Nodes.Count == 0)
+                {
+                    var suggestions = await SuggestAsync(handle, nodeId);
+                    return Envelope($"Symbol '{nodeId}' not found.",
+                        suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to get the exact nodeId.",
+                        "usages(handle, nodeId:\"IBasketRepository\")",
+                        suggestions.Length > 0 ? suggestions : null);
+                }
+                resolved = search.Nodes[0].NodeId;
+            }
+
             var resp = await _client.GetNeighborsAsync(new NeighborsRequest
             {
                 Handle = handle,
-                NodeId = nodeId,
+                NodeId = resolved,
                 Direction = "usages",
             });
 
             // L5.2 — zero usages: distinguish "unknown symbol" from "genuinely unused".
-            if (resp.Edges.Count == 0 && !NodeExists(handle, nodeId))
+            if (resp.Edges.Count == 0 && !NodeExists(handle, resolved))
             {
-                var suggestions = await SuggestAsync(handle, nodeId);
-                return Envelope($"Symbol '{nodeId}' not found.",
+                var suggestions = await SuggestAsync(handle, resolved);
+                return Envelope($"Symbol '{resolved}' not found.",
                     suggestions.Length > 0 ? "Did you mean one of these? (usages needs an exact nodeId)" : "Use resolve(query) to get the exact nodeId.",
                     "usages(handle, nodeId:\"IBasketRepository\")",
                     suggestions.Length > 0 ? suggestions : null);
@@ -705,8 +727,9 @@ public sealed class DevContextTools
 
             return JsonSerializer.Serialize(new
             {
-                nodeId,
+                nodeId = resolved,
                 count = resp.Edges.Count,
+                resolvedFrom = resolved != nodeId ? nodeId : null,
                 usages = resp.Edges.Select(e => new
                 {
                     caller = e.From,

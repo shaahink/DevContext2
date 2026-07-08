@@ -7,19 +7,16 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L5 session #24 — **L5.2 DONE** (error envelopes). Every tool failure returns
-       `{error,hint,example}` ≤80 tok; required params validated→schema; unknown symbols
-       return candidates (not zero-shaped success); unknown tool → nearest-tool + list;
-       config-miss lists real keys; trace/get_context fuzzy-suggest. Handles now optional.
-       QA of L5.1: **PASS** (idempotency + most-recent resolution correct, no rework).
-stage: **L5.2 DONE**. Cold-agent actionability **0/12 → 10/12 (83%)**, 0 opaque errors.
-gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
-next: **L5.3** — Unified ranked resolution (graph.Find: resolve/find/usages/impact;
-       `resolve "Order"`→aggregate #1). Flips run-cold B4+B9 (the 2 remaining reds).
-evidence: eval-results/2026-07-08/gate-battery-l5.2-s24.txt
-           eval-results/2026-07-08/mcp-cold-qa-l5.2-s24.md
-HUMAN: `git push` failed this session — DNS could not resolve github.com (no network).
-       Commit a78c135 is landed locally, tree clean. Please `git push` (or rerun next session).
+last: L5 session #25 — **L5.3 DONE** (unified ranked resolution). graph.Find: exact >
+       prefix > word-boundary ranking; Types > Members tiebreak; degree final. Server
+       SearchNodes uses graph.Find (was unranked sequential scan). MCP usages resolves
+       short names via ranked search before GetNeighbors. Cold QA: aggregate#1 for
+       find("Order") (was "ApplicationDbContext.SaveChangesAsync"). False-successes: 0
+       (was 1 — B4 usages). Scripted QA: 8/8. Build 0w/0e. Tests 408/12/64 all pass.
+stage: **L5.3 DONE**. B9 rank fixed (Order #1), 0 false-successes, gate battery green.
+next: **L5.4** — Real flow tool (compact ≤150 tok) + fuzzy focus suggestions.
+evidence: eval-results/2026-07-08/gate-battery-l5.3-s25.txt
+           eval-results/2026-07-08/mcp-cold-qa.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -68,7 +65,7 @@ line under the row — never silent renumbering.
 | L4.4 | Server ContextPack round-trip (Trap A closed) | DONE | (l4.4-s21) | eval-results/2026-07-08/gate-battery-l4.4-s21.txt |
 | L5.1 | Default-session ergonomics | DONE | (l5.1-s23) | eval-results/2026-07-08/gate-battery-l5.1-s23.txt |
 | L5.2 | Error envelopes (error+hint+example ≤80 tok) | DONE | (l5.2-s24) | eval-results/2026-07-08/gate-battery-l5.2-s24.txt |
-| L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | TODO | | |
+| L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | DONE | (l5.3-s25) | eval-results/2026-07-08/gate-battery-l5.3-s25.txt |
 | L5.4 | Real `flow` tool + fuzzy focus | TODO | | |
 | L5.5 | Cold-agent QA becomes the gate | TODO | | |
 | L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | TODO | | |

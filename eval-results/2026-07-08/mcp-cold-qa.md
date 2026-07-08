@@ -13,10 +13,10 @@ scored on (a) does it say what was wrong, and (b) does it give a copyable next s
 ## Actionability
 
 **Actionable failures: 10/12 (83%)**  
-False-successes (silent wrong answers): 1  
+False-successes (silent wrong answers): 0  
 Opaque errors (no next step): 0  
 Gate (L5.5 ≥90%): BELOW — baseline, gate arms in L5.5  
-rank-quality (B9 find "Order"): top="GetOrdersByCustomerResponse" aggregate#1=false results=20  
+rank-quality (B9 find "Order"): top="Order" aggregate#1=true results=20  
 
 ## Per-probe
 
@@ -28,7 +28,7 @@ rank-quality (B9 find "Order"): top="GetOrdersByCustomerResponse" aggregate#1=fa
 | B1-nonexistent-tool | B | call a tool that does not exist | actionable | true | true | {"error":"Unknown tool 'flow'.","hint":"Did you mean 'top_flows'? See availableTools.","ex |
 | B2-trace-nl-focus | B | natural-language focus | actionable | true | true | {"error":"No entry or node matched 'how does checkout work'.","hint":"Did you mean one of  |
 | B3-impact-madeup | B | impact of a symbol that does not exist | actionable | true | true | {"error":"Symbol 'TotallyMadeUpType' not found — not the same as zero impact.","hint":"Use |
-| B4-usages-shortname | B | usages by short name (not a nodeId) | false-success (silent wrong answer) | false | false | {"nodeId":"IBasketRepository","count":0,"usages":[]} |
+| B4-usages-shortname | B | usages by short name (not a nodeId) | unactionable | false | false | {"nodeId":"Type:Basket.API.Data.IBasketRepository","count":0,"resolvedFrom":"IBasketReposi |
 | B5-config-exact-key | B | config filtered by a plausible key | actionable | true | true | {"error":"No config key exactly 'ConnectionStrings' (4 keys exist).","hint":"Keys are exac |
 | B6-getcontext-nl-focus | B | get_context with NL focus | actionable | true | true | {"error":"No context could be built for 'basket checkout'.","hint":"Did you mean one of th |
 | B7-resolve-missing-required | B | omit the required query param | actionable | true | true | {"error":"Missing required parameter 'query'.","hint":"Pass the symbol/route/file to resol |
