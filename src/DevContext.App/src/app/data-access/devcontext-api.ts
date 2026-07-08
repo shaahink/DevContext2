@@ -4,6 +4,7 @@ import { DEVCONTEXT_CLIENT } from '../core/grpc/client';
 import type {
   AnalysisSummary,
   CloseResponse,
+  ContextPackResponse,
   ContextResponse,
   EntryPointsResponse,
   GraphFacetsResponse,
@@ -131,6 +132,15 @@ export class DevContextApi {
 
   getContext(handle: string, focus: string, options?: { budgetTokens?: number; intent?: 'trace' | 'explain' | 'review' }): Promise<ContextResponse> {
     return this.client.getContext({ handle, focus, budgetTokens: options?.budgetTokens, intent: options?.intent });
+  }
+
+  getContextPack(handle: string, cards: { type: string; title: string; entryIds: string[] }[], options?: { budgetTokens?: number; intent?: string }): Promise<ContextPackResponse> {
+    return this.client.getContextPack({
+      handle,
+      cards: cards.map((c) => ({ type: c.type, title: c.title, entryIds: c.entryIds })),
+      budgetTokens: options?.budgetTokens ?? 8000,
+      intent: options?.intent ?? 'trace',
+    });
   }
 
   readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {

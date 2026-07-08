@@ -315,6 +315,30 @@ internal static class ProtoMapper
         return resp;
     }
 
+    public static Proto.ContextPackResponse ToContextPackResponse(MultiContextPack pack)
+    {
+        var resp = new Proto.ContextPackResponse
+        {
+            AssembledMarkdown = pack.AssembledMarkdown,
+            TotalTokens = pack.TotalTokens,
+            AllocatedTokens = pack.AllocatedTokens,
+        };
+        foreach (var card in pack.Cards)
+        {
+            var item = new Proto.ContextCardItem
+            {
+                Type = card.Type,
+                Title = card.Title,
+                Tokens = card.TotalTokens,
+            };
+            foreach (var sa in card.Sections)
+                item.Sections.Add(new Proto.SectionAllocation { Key = sa.Section, Tokens = sa.Tokens });
+            resp.Cards.Add(item);
+        }
+        resp.Omitted.AddRange(pack.Omitted);
+        return resp;
+    }
+
     public static Proto.InterestingPointsResponse ToInterestingPointsResponse(
         System.Collections.Immutable.ImmutableArray<InterestingPoint> points)
     {

@@ -251,6 +251,23 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToContextResponse(request.Focus, pack);
         });
 
+    // L4.4 — Multi-card context pack: server assembles the complete pack once from card specs,
+    // with per-card budget-driven section assembly. Closes Meridian Trap A (N GetContext calls
+    // replaced by one GetContextPack call; Copy/Save = exactly the server's assembled markdown).
+    public override Task<Proto.ContextPackResponse> GetContextPack(Proto.ContextPackRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var builder = new ContextPackBuilder(session.Query, session.Snapshot);
+            var budget = request.BudgetTokens > 0 ? request.BudgetTokens : 8000;
+            var intent = request.Intent is { Length: > 0 } s ? s : null;
+
+            var specs = request.Cards.Select(c =>
+                new ContextCardSpec(c.Type, c.Title, [.. c.EntryIds])).ToList();
+
+            var pack = builder.BuildMulti(specs, budget, intent);
+            return ProtoMapper.ToContextPackResponse(pack);
+        });
+
     public override Task<Proto.GraphFacetsResponse> GetGraphFacets(Proto.GraphFacetsRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {

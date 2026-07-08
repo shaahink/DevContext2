@@ -7,16 +7,15 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L4 session #20 — **L4.3 DONE**. MCP overview/top_flows + Home hero + Atlas diagram now read
-      the L4.2 projections (GetGraphFacets) — ad-hoc walks deleted. Fixed real defect: BuildingBlocks
-      (a lib w/ FluentValidation.AspNetCore) was mis-classed runnable → hero now shows exactly the 6
-      runnables, full names, no libs. QA of s19 (L4.2): PASS (422/276/6/34/82% reproduced).
-stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅, L4.3 ✅). Runnable-tag + projection filter;
-       FlowCard proto enriched (route/method/target); service-map-hero reads facets.
+last: L4 session #21 — **L4 ALL DONE** (L4.1 ✅, L4.2 ✅, L4.3 ✅, L4.4 ✅). ContextPack round-trip:
+       server-assembled markdown via GetContextPack RPC replaces N GetContext calls; Copy/Save =
+       exactly the server pack; ContextPackBuilder.BuildMulti() traces each unique entry once,
+       picks per-card sections by type. Trap A closed. Single-call loadAllCards() in ContextStudio.
+stage: **L4 ALL DONE**. Next: L5 MCP v2 (cold-agent ergonomics).
 gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
-next: **L4.4** — Server ContextPack round-trip (Trap A closed); Copy/Save = exactly the server pack.
-evidence: eval-results/2026-07-08/gate-battery-l4.3-s20.txt
-          eval-results/2026-07-08/l4.3-consumers.md · eval-results/2026-07-08/dogfood-l4.3.md
+next: **L5.1** — Default-session ergonomics (single-session default, analyze idempotent by repo+HEAD).
+evidence: eval-results/2026-07-08/gate-battery-l4.4-s21.txt
+           eval-results/2026-07-08/dogfood-l4.4.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -62,7 +61,7 @@ line under the row — never silent renumbering.
 > FluentValidation.AspNetCore) was mis-classified runnable by IsRunnableService's substring
 > "AspNetCore" package check; tightened to Microsoft.AspNetCore.App*/Web-SDK/Exe (design §2.4).
 > Edges/SL/entries/verified% unchanged. Hero now shows exactly 6 runnables (audit Claim 3 fix).
-| L4.4 | Server ContextPack round-trip (Trap A closed) | TODO | | |
+| L4.4 | Server ContextPack round-trip (Trap A closed) | DONE | (l4.4-s21) | eval-results/2026-07-08/gate-battery-l4.4-s21.txt |
 | L5.1 | Default-session ergonomics | TODO | | |
 | L5.2 | Error envelopes (error+hint+example ≤80 tok) | TODO | | |
 | L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | TODO | | |

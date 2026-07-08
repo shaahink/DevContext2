@@ -1,0 +1,73 @@
+# L4.4 Gate Battery + Evidence (2026-07-08, session #21)
+
+Stage L4 — Flows + projections. Checkpoint **L4.4 — Server ContextPack round-trip (Trap A closed)**.
+Branch feat/meridian-m0. Dogfood: run-aspnetcore-microservices/src. Conductor session #21 (attempt 1/4, target L4).
+
+## Artifact-to-prove-done
+Server-assembled context pack via new GetContextPack RPC. Copy/Save = exactly the server's assembled
+markdown pack (one RPC call instead of N). ContextPackBuilder.BuildMulti() traces each unique entry once,
+picks per-card sections by type, assembles the full markdown. Closes Meridian Trap A.
+
+## QA of previous session (L4.3)
+VERDICT: PASS — all L4.3 claims confirmed (see L4.4 task notes):
+- MCP overview/top_flows use GetGraphFacets projections (not ad-hoc walks)
+- Home hero renders 6 runnables with full DisplayNames, no libraries
+- IsRunnableService tightened (StartsWith, not Contains)
+- Dogfood 421n/276e/6SL/34ent/82% — reproduced exactly
+
+## L4.4 delivered
+
+### Proto (additive)
+- New messages: ContextPackRequest, ContextCardSpec, ContextPackResponse,
+  ContextCardItem, SectionAllocation
+- New RPC: GetContextPack — accepts repeated card specs, returns per-card items
+  + assembled markdown pack
+
+### C# engine
+- ContextPackBuilder.BuildMulti(): traces each unique entry once, picks per-card
+  sections by type (CardTypeSections mapping), assembles full markdown pack
+- ContextPackBuilder.BuildSections(): extracted section-building logic for reuse
+- New types: ContextCardSpec, ContextCardPack, MultiContextPack
+- ProtoMapper.ToContextPackResponse(): maps MultiContextPack → proto response
+
+### Server
+- DevContextGrpcService.GetContextPack(): creates builder, calls BuildMulti(),
+  returns assembled pack via ProtoMapper
+
+### UI (Angular)
+- DevContextApi.getContextPack(): typed wrapper over the new gRPC client method
+- ContextStudio.loadAllCards(): ONE GetContextPack call replaces N GetContext calls
+- ContextStudio.serverPackMarkdown: stored assembled markdown from server
+- ContextStudio.buildContext(): Copy/Save uses serverPackMarkdown when available;
+  client-side assembly kept as fallback for pre-L4.4 sessions
+
+### Trap A closed
+- Before: 9 cards = 9 GetContext RPCs (traffic amplification), all cards get same
+  content (no type filtering), client-side assembly (no budget enforcement)
+- After: 1 GetContextPack RPC, per-card sections filtered by type, server-assembled
+  markdown with budget trimming
+
+## Results (dogfood)
+Same as L4.3 baseline (engine unchanged, only transport layer added):
+| Metric | Value |
+|--------|-------|
+| Nodes | 421 |
+| Edges | 276 |
+| ServiceLinks | 6 |
+| Entries | 34 |
+| Verified edges | 82% |
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 398P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (lint 0/0, 27 tests, bundle built) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+| node eval/mcp-qa/run.js | 8/8 · checkout gate PASS (2c/813tok) |
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/dogfood-l4.4.md — fresh dogfood report (421n/276e/6SL/82%)
+- eval-results/2026-07-08/mcp-qa.md — 8/8 QA
+- eval-results/2026-07-08/gate-battery-l4.4-s21.txt — this file

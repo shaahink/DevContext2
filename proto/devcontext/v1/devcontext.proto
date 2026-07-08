@@ -62,6 +62,11 @@ service DevContextService {
   // get_context tool share this one builder (L5.4 ContextPackBuilder).
   rpc GetContext(ContextRequest) returns (ContextResponse);
 
+  // L4.4 — Multi-card context pack: server assembles the complete pack once from card specs
+  // (type + entry IDs), with per-card budget-driven section assembly. Replaces N individual
+  // GetContext calls. Copy/Save = exactly the server's assembled markdown pack. Closes Trap A.
+  rpc GetContextPack(ContextPackRequest) returns (ContextPackResponse);
+
   // Read raw source code for a graph node — full member span or a context window around
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
@@ -524,6 +529,43 @@ message ContextSection {
   string key = 1;       // "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
   int32 tokens = 2;
   string content = 3;
+}
+
+// ---------------------------------------------------------------------------
+// L4.4 — Multi-card context pack (server assembles the complete pack)
+// ---------------------------------------------------------------------------
+
+message ContextPackRequest {
+  string handle = 1;
+  repeated ContextCardSpec cards = 2;
+  int32 budget_tokens = 3;          // total budget across all cards (default 8000)
+  string intent = 4;                // "trace" (default) | "explain" | "review"
+}
+
+message ContextCardSpec {
+  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+  string title = 2;
+  repeated string entry_ids = 3;    // nodeIds of selected entries
+}
+
+message ContextPackResponse {
+  repeated ContextCardItem cards = 1;
+  string assembled_markdown = 2;    // full pack ready for Copy/Save
+  int32 total_tokens = 3;
+  int32 allocated_tokens = 4;
+  repeated string omitted = 5;
+}
+
+message ContextCardItem {
+  string type = 1;
+  string title = 2;
+  int32 tokens = 3;
+  repeated SectionAllocation sections = 4;
+}
+
+message SectionAllocation {
+  string key = 1;
+  int32 tokens = 2;
 }
 
 // ---------------------------------------------------------------------------
