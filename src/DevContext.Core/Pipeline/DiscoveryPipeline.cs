@@ -7,9 +7,12 @@ using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
 using DevContext.Core.Graph2;
 using DevContext.Core.Insights;
+using DevContext.Core.Models;
 using DevContext.Core.Observers;
 using DevContext.Core.Rendering;
 using DevContext.Core.Validation;
+
+using Microsoft.CodeAnalysis;
 
 namespace DevContext.Core.Pipeline;
 
@@ -120,14 +123,65 @@ public sealed class DiscoveryPipeline
             {
                 semanticLiteResult = SemanticLitePopulator.Populate(
                     model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
+
+                // L3.3 — Upgrade CallEdges using the merged compilation (with NuGet refs) so cross-project
+                // calls that the per-file CallGraphExtractor couldn't resolve get verified Semantic edges.
+                if (semanticLiteResult.CompilationBuilt && semanticLiteResult.Compilation is { } tierBCompilation)
+                {
+                    try
+                    {
+                        var fileToProject = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+                        var projectDirs = new List<(string Dir, string Name)>();
+                        foreach (var proj in model.Projects)
+                        {
+                            var projDir = Path.GetDirectoryName(proj.FilePath);
+                            if (projDir is not null) projectDirs.Add((projDir, proj.Name));
+                        }
+                        projectDirs.Sort((a, b) => b.Dir.Length - a.Dir.Length);
+                        foreach (var path in context.Cache.KnownFilePaths)
+                        {
+                            if (fileToProject.ContainsKey(path)) continue;
+                            foreach (var (dir, name) in projectDirs)
+                                if (path.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+                                { fileToProject[path] = name; break; }
+                        }
+
+                        var allTrees = new List<SyntaxTree>();
+                        foreach (var path in fileToProject.Keys)
+                        {
+                            try { allTrees.Add(context.Cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult()); }
+                            catch { }
+                        }
+
+                        var existing = model.CallEdges.ToList();
+                        var upgraded = SemanticLitePopulator.UpgradeCallEdges(
+                            existing, tierBCompilation, allTrees, fileToProject);
+                        var upgradedCount = upgraded.Count(e => e.Resolution == Resolution.Semantic)
+                                           - existing.Count(e => e.Resolution == Resolution.Semantic);
+                        if (upgradedCount > 0)
+                        {
+                            model.CallEdges.Clear();
+                            foreach (var e in upgraded) model.CallEdges.Add(e);
+                            context.Analysis.CallGraph = new CallGraph(
+                                upgraded.GroupBy(e => $"{e.CallerType}.{e.CallerMethod}")
+                                    .ToDictionary(g => g.Key,
+                                        g => g.ToImmutableArray()));
+                            semanticLiteResult = semanticLiteResult with { CallEdgesUpgraded = upgradedCount };
+                        }
+                    }
+                    catch { }
+                }
+
                 if (semanticLiteResult.ProjectsWithAssets > 0 || semanticLiteResult.ProjectsDegraded > 0)
                 {
                     model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
                         $"tier routing — A (syntax): {semanticLiteResult.ProjectsDegraded} project(s), "
                         + $"B (semantic-lite): {semanticLiteResult.ProjectsWithAssets} project(s); "
                         + $"compilation={semanticLiteResult.CompilationBuilt} trees={semanticLiteResult.TreeCount} "
-                        + $"refs={semanticLiteResult.ReferenceCount}; upgraded {semanticLiteResult.VarDeclsResolved} var-decl + "
-                        + $"{semanticLiteResult.ReceiversResolved} receiver type(s) to Semantic tier"
+                        + $"refs={semanticLiteResult.ReferenceCount}; upgraded "
+                        + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
+                        + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
+                        + $"+ {semanticLiteResult.CallEdgesUpgraded} call-edge(s) to Semantic tier"
                         + (semanticLiteResult.DegradeReason.Length > 0 ? $" [{semanticLiteResult.DegradeReason}]" : ""));
                 }
             }

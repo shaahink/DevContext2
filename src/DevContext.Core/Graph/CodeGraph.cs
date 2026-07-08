@@ -274,6 +274,26 @@ public sealed class CodeGraphBuilder
         return true;
     }
 
+    /// <summary>L3.3 — Upgrades the <see cref="GraphEdge.Resolution"/> of an existing edge in-place when
+    /// a semantic populator (Tier B) has verified the target. No-op if the edge doesn't exist or the
+    /// new resolution is not an upgrade (Syntactic can go to Semantic; Semantic cannot go to Syntactic).</summary>
+    public bool UpgradeEdge(NodeId from, NodeId to, EdgeKind kind, Resolution newResolution)
+    {
+        if (newResolution == Resolution.Syntactic) return false;
+        if (!_out.TryGetValue(from, out var list)) return false;
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i].To == to && list[i].Kind == kind)
+            {
+                if (list[i].Resolution == newResolution) return false;
+                if (list[i].Resolution == Resolution.Semantic && newResolution == Resolution.Syntactic) return false;
+                list[i] = list[i] with { Resolution = newResolution };
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>True if a node with the given id has been added.</summary>
     public bool HasNode(NodeId id) => _nodes.ContainsKey(id);
 

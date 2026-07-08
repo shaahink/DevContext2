@@ -7,16 +7,16 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L3 session #12 — L3.2 (targeted semantic upgrades) DONE + fixed 2 real L3.1 bugs.
-stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅). L3.1 QA: Tier-B compilation ALWAYS threw
-       (dup syntax tree from nested project dirs) AND all tier stats were always-0 (pass-by-value
-       record bug) → 0 upgrades despite claims. Both fixed. L3.2: 26 var-decl + 7 receiver semantic
-       upgrades; Law R2 in SymbolTable (no downgrade/re-ambiguate + arbitration); ResolveArgTarget
-       prefers Semantic; seam edges now carry Semantic tier → verified. Tier routing now visible.
+last: L3 session #14 — L3.3 (verified-edge ratchet) partial: 65% → 68% (+7 ReadsWrites Semantic, +1 CallEdge).
+stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅, L3.3 PARTIAL). L3.3 built body-facts semantic-loc index +
+      edge upgrade infra in AddSeamsFromDetectors + AddCallEdges. ReadsWrites: 26→19 approx (−7). Sends
+      blocked: dispatch lambdas bypass SemanticLitePopulator (extracted at graph-build by AddLambdaSeams).
+      Calls blocked: CallGraphExtractor uses per-file compilation, lacks NuGet refs. 80% target not met.
 gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
-trap: 8 Category=Eval FAIL are PRE-EXISTING (empty eval-repo clones, e.g. VerticalSlice 0 cs) — proven via stash A/B, NOT L3.2.
-next: **L3.3** — verified-edge ratchet 65%→≥80% + truth bench; needs merged-compilation precision (Mapster Adapt binds unreliably) + Calls/ReadsWrites verify.
-evidence: eval-results/2026-07-08/gate-battery-l3.2-s12.txt
+trap: 8 Category=Eval FAIL remain PRE-EXISTING (empty eval-repo clones).
+next: **L3.3 cont'd** — extract lambda BodyFacts during BodyFactsExtractor so populator sees dispatch;
+       reorder pipeline (merged compilation before Stage3Specific) for CallGraphExtractor NuGet resolution.
+evidence: eval-results/2026-07-08/gate-battery-l3.3-s14.txt
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -51,7 +51,9 @@ line under the row — never silent renumbering.
 | L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
 | L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-08/gate-battery-l3-s11.txt |
 | L3.2 | Targeted semantic upgrades (Law R2) | DONE | (l3.2) | eval-results/2026-07-08/gate-battery-l3.2-s12.txt |
-| L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | TODO | | |
+| L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | BLOCKED | | eval-results/2026-07-08/gate-battery-l3.3-s14.txt |
+> scope change: 65% → 68% via +7 ReadsWrites +1 CallEdge Semantic upgrade.
+> BLOCKED: Sends (lambdas bypass populator) + Calls (per-file compilation lacks NuGet refs).
 | L4.1 | Flow store; spine-only TOUCHES/EMITS | TODO | | |
 | L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | TODO | | |
 | L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |

@@ -83,7 +83,7 @@ public sealed class GraphBuilder
         // method-anchored trace shows only its own edges. Zero regex, zero re-parsing.
         AddSeamsFromDetectors(g, model, names, scope, bodyFacts);
         AddLambdaSeams(g, model, names, scope, bodyFacts);             // L2.4: dispatch edges for lambda entry-handlers
-        AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
+        AddCallEdges(g, model, names, bodyFacts);                      // C1: Calls edges from CallEdges (member→member)
         var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
 
         // ── M1.6-M1.8: Cross-service ServiceLink joins ────────────────────
@@ -1183,8 +1183,39 @@ public sealed class GraphBuilder
     /// — the spine — instead of inheriting every sibling method's edges. Member nodes carry their owning
     /// Type's FilePath (salient lines fall back to the Type body in <see cref="TraceBuilder"/>).
     /// Resolution flows through from the edge (semantic → [verified], syntactic → [approx]).</summary>
-    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names)
+    private static void AddCallEdges(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+        IReadOnlyList<BodyFacts>? bodyFacts = null)
     {
+        // L3.3 — build semantic index from upgraded BodyFacts for Call edge verification.
+        var semanticLocs = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        if (bodyFacts is { Count: > 0 })
+        {
+            foreach (var body in bodyFacts)
+            {
+                foreach (var op in body.Ops)
+                {
+                    var prov = $"{body.File}:{op.Line}";
+                    switch (op)
+                    {
+                        case CreationOp c when c.Type is { Tier: ResolutionTier.Semantic } s:
+                            AddToIndex(semanticLocs, prov, s.Text);
+                            break;
+                        case LocalDeclOp l when l.InferredFrom is { Tier: ResolutionTier.Semantic } s:
+                            AddToIndex(semanticLocs, prov, s.Text);
+                            break;
+                        case InvocationOp i when i.ReceiverType is { Tier: ResolutionTier.Semantic } s:
+                            AddToIndex(semanticLocs, prov, s.Text);
+                            break;
+                        case InvocationOp i:
+                            foreach (var ga in i.GenericArgs)
+                                if (ga is { Tier: ResolutionTier.Semantic } s)
+                                    AddToIndex(semanticLocs, prov, s.Text);
+                            break;
+                    }
+                }
+            }
+        }
+
         foreach (var ce in model.CallEdges)
         {
             var callerFqn = names.Resolve(ce.CallerType, ce.CallSiteLocation);
@@ -1206,6 +1237,16 @@ public sealed class GraphBuilder
             var calleeId = NodeId.ForMember(calleeFqn, ce.CalleeMethod);
             if (callerId == calleeId) continue;                              // skip direct self-recursion
 
+            // L3.3 — check if this call site was semantically verified via Tier B body facts.
+            var resolution = ce.Resolution;
+            if (resolution == Resolution.Syntactic
+                && ce.CallSiteLocation is { } loc
+                && semanticLocs.TryGetValue(loc, out var semTargets)
+                && IsAnyShortMatch(ce.CalleeType, semTargets))
+            {
+                resolution = Resolution.Semantic;
+            }
+
             // Member nodes for both endpoints, carrying the owning Type's file (body filled — when at all —
             // by the body-scan seams / HTTP entry; salient otherwise falls back to the parent Type body).
             g.AddNode(new GraphNode(callerId, $"{callerType.Title}.{ce.CallerMethod}", NodeKind.Member)
@@ -1220,8 +1261,8 @@ public sealed class GraphBuilder
             g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls)
             {
                 Provenance = ce.CallSiteLocation,
-                Resolution = ce.Resolution,
-                Confidence = ce.Resolution == Resolution.Semantic ? 0.95f : 0.6f,
+                Resolution = resolution,
+                Confidence = resolution == Resolution.Semantic ? 0.95f : 0.6f,
             });
         }
     }
@@ -1432,6 +1473,34 @@ public sealed class GraphBuilder
             new EntityTouchDetector(),
         };
 
+        // L3.3 — build a quick index of (provenance → semantic-short-names) from upgraded BodyFacts.
+        // Both provenance-level (file:line) and body-level keys are stored.
+        var semanticLocs = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (var body in allBodyFacts)
+        {
+            foreach (var op in body.Ops)
+            {
+                var prov = $"{body.File}:{op.Line}";
+                switch (op)
+                {
+                    case CreationOp c when c.Type is { Tier: ResolutionTier.Semantic } s:
+                        AddToIndex(semanticLocs, prov, s.Text);
+                        break;
+                    case LocalDeclOp l when l.InferredFrom is { Tier: ResolutionTier.Semantic } s:
+                        AddToIndex(semanticLocs, prov, s.Text);
+                        break;
+                    case InvocationOp i when i.ReceiverType is { Tier: ResolutionTier.Semantic } s:
+                        AddToIndex(semanticLocs, prov, s.Text);
+                        break;
+                    case InvocationOp i:
+                        foreach (var ga in i.GenericArgs)
+                            if (ga is { Tier: ResolutionTier.Semantic } s)
+                                AddToIndex(semanticLocs, prov, s.Text);
+                        break;
+                }
+            }
+        }
+
         foreach (var body in allBodyFacts)
         {
             foreach (var detector in detectors)
@@ -1482,12 +1551,16 @@ public sealed class GraphBuilder
                             });
                         }
 
+                        var isSemantic = resolved.Tier == ResolutionTier.Semantic
+                            || match.Target.Tier == ResolutionTier.Semantic
+                            || (match.Provenance is { } p && semanticLocs.TryGetValue(p, out var semTargets)
+                                && semTargets.Contains(match.Target.Text))
+                            || IsTargetSemanticInBody(body, match.Target.Text);
+
                         g.AddEdge(new GraphEdge(originId, targetId, match.Kind)
                         {
                             Provenance = match.Provenance,
-                            Resolution = resolved.Tier == ResolutionTier.Semantic
-                                ? Resolution.Semantic
-                                : Resolution.Syntactic,
+                            Resolution = isSemantic ? Resolution.Semantic : Resolution.Syntactic,
                             Confidence = match.Confidence,
                         });
 
@@ -1509,6 +1582,44 @@ public sealed class GraphBuilder
                 catch { /* detector failure → skip its matches, continue with others */ }
             }
         }
+    }
+
+    private static void AddToIndex(Dictionary<string, HashSet<string>> map, string prov, string text)
+    {
+        if (!map.TryGetValue(prov, out var set)) map[prov] = set = [];
+        set.Add(text);
+    }
+
+    private static bool IsTargetSemanticInBody(BodyFacts body, string targetShort)
+    {
+        foreach (var op in body.Ops)
+        {
+            if (op is LocalDeclOp l && l.InferredFrom is { Tier: ResolutionTier.Semantic } s
+                && string.Equals(s.Text, targetShort, StringComparison.Ordinal))
+                return true;
+            if (op is CreationOp c && c.Type is { Tier: ResolutionTier.Semantic } cs
+                && string.Equals(cs.Text, targetShort, StringComparison.Ordinal))
+                return true;
+            if (op is InvocationOp i && i.ReceiverType is { Tier: ResolutionTier.Semantic } rs
+                && string.Equals(rs.Text, targetShort, StringComparison.Ordinal))
+                return true;
+            if (op is InvocationOp ig)
+                foreach (var ga in ig.GenericArgs)
+                    if (ga is { Tier: ResolutionTier.Semantic } gs
+                        && string.Equals(gs.Text, targetShort, StringComparison.Ordinal))
+                        return true;
+        }
+        return false;
+    }
+
+    private static bool IsAnyShortMatch(string fqn, HashSet<string> shortNames)
+    {
+        // The short name matches if it equals the last segment of the FQN or the full FQN.
+        foreach (var sn in shortNames)
+            if (string.Equals(fqn, sn, StringComparison.Ordinal)
+                || fqn.EndsWith("." + sn, StringComparison.Ordinal))
+                return true;
+        return false;
     }
 
     /// <summary>Converts a BodyFacts <see cref="SymbolId"/> (format <c>TypeFqn::MethodName(N)</c>) to the

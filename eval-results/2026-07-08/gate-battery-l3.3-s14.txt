@@ -1,0 +1,93 @@
+# L3.3 Gate Battery + Evidence (2026-07-08, session #14)
+
+Stage L3 — Semantic-lite tier. Checkpoint L3.3 — Verified-edge ratchet ≥80% + truth bench.
+Branch feat/loom-l2. Dogfood: run-aspnetcore-microservices/src.
+
+## QA of previous session (L3.2) — verified against fresh artifacts
+
+VERDICT: L3.2 claims REPRODUCE. All gates green. Dogfood 422n/276e/34ent, verified 65%.
+
+Re-verified:
+- Tier routing: 0 A, 11 B projects; 26 var-decl + 7 receiver Semantic upgrades ✅
+- Law R2 in SymbolTable (no downgrade) → 5 unit tests pass ✅
+- Degrade path (MinimalApiProject, 0 assets) → no crash, 16 nodes/8 edges ✅
+- mcp-qa 8/8 ✅
+- loom-guards PASS ✅
+
+## L3.3 Delivered — verified-edge ratchet & body-facts semantic upgrading
+
+### Approach
+
+Three-part upgrade strategy:
+
+1. **Expanded UpgradeBodyFacts** (SemanticLitePopulator.cs) — added `CreationOp.Type` and
+   `InvocationOp.GenericArgs` semantic binding via the merged compilation. Two new helpers:
+   `TryBindCreationType` and `TryBindGenericArg`.
+
+2. **Semantic-location index in AddSeamsFromDetectors** (GraphBuilder.cs) — built a provenance→
+   (file:line) and body-level index of all Semantic-tier SymbolRefs from upgraded BodyFacts.
+   Used during edge creation to upgrade Syntactic seam edges to Semantic when the target
+   short name matches a verified SymbolRef.
+
+3. **Semantic check in AddCallEdges** (GraphBuilder.cs) — same body-facts index, matching
+   CallEdge callee FQNs against Semantic SymbolRef short names via suffix match.
+
+4. **CallEdge upgrade via merged compilation** (SemanticLitePopulator.UpgradeCallEdges) —
+   re-resolves Syntactic CallEdges against the full compilation with NuGet refs.
+
+### Results (fresh dogfood run)
+
+| Metric | Before (L3.2) | After (L3.3) | Delta |
+|--------|---------------|--------------|-------|
+| Nodes | 422 | 422 | 0 |
+| Edges | 276 | 276 | 0 |
+| Entries | 34 | 34 | 0 |
+| Verified edges | 65% | **68%** | +3pp |
+| Calls approx | 30 | 30 | 0 |
+| Sends approx | 32 | 32 | 0 |
+| ReadsWrites approx | 26 | **19** | -7 (!) |
+| Analysis time | ~2.0s | ~3.9s | +1.9s (within 2× budget) |
+
+### What moved: 7 ReadsWrites edges Syntactic → Semantic
+
+The provenance-index approach matched IdentifierUseOp → EntityTouchDetector edges where
+the LocalDeclOp at the same file:line had a Semantic-tier InferredFrom. These are entity-
+touch patterns in bodies that also declare locals with verifiable types.
+
+### What did NOT move (and why)
+
+- **Sends (32/33 approx):** MediatR dispatch edges are anchored on lambda bodies. The
+  SemanticLitePopulator processes method bodies from BodyFactsExtractor, but dispatch
+  lambdas are inlined and their facts are extracted by AddLambdaSeams at graph-build
+  time — they never see the Tier B compilation. To fix: extract lambda BodyFacts during
+  the BodyFactsExtractor pass so the populator can upgrade them.
+
+- **Calls (30/121 approx):** CallEdges from CallGraphExtractor use a per-file compilation
+  (TPA refs only). The merged compilation with NuGet refs should resolve more, but
+  re-resolving post-hoc only upgraded 1 edge (method bodies that lost bind). The real fix
+  is to reorder the pipeline: build the merged compilation before Stage3Specific extractors
+  and pass it to CallGraphExtractor for its semantic resolution pass.
+
+- **CreationOp/GenericArg upgrades:** 0 on dogfood (demand-set bodies lack these patterns
+
+### Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 393P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (5 test files, 27 tests, bundle built) |
+| node eval/mcp-qa/run.js --quiet | 8/8 PASS |
+| loom-guards | PASS (0 banned) |
+
+### Known-red / recorded
+
+- 8 Category=Eval failures: PRE-EXISTING (empty eval-repo clones) — proven via stash A/B.
+  Not related to L3.3.
+- L3.3 target (≥80%) NOT MET (68%). Infrastructure built, needs lambda-body path fix.
+
+### Evidence artifacts this session
+
+- eval-results/2026-07-08/dogfood-l3.3-final.md — fresh dogfood report (68% verified)
+- eval-results/2026-07-08/dogfood-l3.2-qa.md — L3.2 re-verification
+- eval-results/2026-07-08/minimalapi-l3.2-qa.md — degrade path re-verified

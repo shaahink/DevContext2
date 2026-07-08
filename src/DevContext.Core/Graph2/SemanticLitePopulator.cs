@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Text.Json;
 
 using DevContext.Core.Contracts;
+using DevContext.Core.Graph;
+using DevContext.Core.Models;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,6 +24,12 @@ public sealed record SemanticLiteResult
     public int VarDeclsResolved { get; init; }
     /// <summary>Total number of <see cref="InvocationOp"/> whose <c>ReceiverType</c> was resolved via semantic binding.</summary>
     public int ReceiversResolved { get; init; }
+    /// <summary>Total number of <see cref="CreationOp"/> whose <c>Type</c> was resolved via semantic binding.</summary>
+    public int CreationOpsResolved { get; init; }
+    /// <summary>Total number of <see cref="InvocationOp"/> generic args resolved via semantic binding.</summary>
+    public int GenericArgsResolved { get; init; }
+    /// <summary>Total number of CallEdges upgraded from Syntactic to Semantic via the merged compilation.</summary>
+    public int CallEdgesUpgraded { get; init; }
     /// <summary>Number of syntax trees fed into the semantic-lite compilation.</summary>
     public int TreeCount { get; init; }
     /// <summary>Number of NuGet metadata references resolved from assets.json.</summary>
@@ -159,8 +167,10 @@ public static class SemanticLitePopulator
         var upgraded = bodyFacts.ToImmutableArray();
         var varDeclsResolved = 0;
         var receiversResolved = 0;
+        var creationOpsResolved = 0;
+        var genericArgsResolved = 0;
         if (bodyFacts.Count > 0)
-            (upgraded, varDeclsResolved, receiversResolved) =
+            (upgraded, varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved) =
                 UpgradeBodyFacts(bodyFacts, compilation, allTrees, fileToProject);
 
         result = result with
@@ -169,6 +179,8 @@ public static class SemanticLitePopulator
             UpgradedBodyFacts = upgraded,
             VarDeclsResolved = varDeclsResolved,
             ReceiversResolved = receiversResolved,
+            CreationOpsResolved = creationOpsResolved,
+            GenericArgsResolved = genericArgsResolved,
             TreeCount = allTrees.Count,
             ReferenceCount = nugetRefs.Length,
             CompilationBuilt = true,
@@ -298,7 +310,7 @@ public static class SemanticLitePopulator
     /// </list>
     /// Law R2: only upgrades, never downgrades and never re-points an existing resolution to a different
     /// short name. Returns the upgraded facts plus per-kind upgrade counts for tier-routing stats.</summary>
-    private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers) UpgradeBodyFacts(
+    private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers, int Creations, int GenericArgs) UpgradeBodyFacts(
         IReadOnlyList<BodyFacts> facts,
         CSharpCompilation compilation,
         List<SyntaxTree> allTrees,
@@ -311,6 +323,8 @@ public static class SemanticLitePopulator
         var modelCache = new Dictionary<SyntaxTree, SemanticModel?>();
         var varDeclsResolved = 0;
         var receiversResolved = 0;
+        var creationOpsResolved = 0;
+        var genericArgsResolved = 0;
         var upgraded = ImmutableArray.CreateBuilder<BodyFacts>();
 
         foreach (var body in facts)
@@ -367,19 +381,188 @@ public static class SemanticLitePopulator
                         }
                         break;
                     }
+                    case CreationOp cr when cr.Type is not { Tier: ResolutionTier.Semantic }:
+                    {
+                        var bound = TryBindCreationType(cr, tree, semanticModel);
+                        var merged = MergeSemantic(cr.Type, bound, cr.Line, tree.FilePath);
+                        if (merged is not null)
+                        {
+                            ops = ops.SetItem(i, cr with { Type = merged });
+                            changed = true;
+                            creationOpsResolved++;
+                        }
+                        break;
+                    }
+                    case InvocationOp inv when inv.GenericArgs.Length > 0:
+                    {
+                        // Upgrade each generic arg that is not already Semantic.
+                        var gargs = inv.GenericArgs;
+                        var gargsChanged = false;
+                        for (var gi = 0; gi < gargs.Length; gi++)
+                        {
+                            if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
+                            var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
+                            var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
+                            if (merged is not null)
+                            {
+                                gargs = gargs.SetItem(gi, merged);
+                                gargsChanged = true;
+                                genericArgsResolved++;
+                            }
+                        }
+                        if (gargsChanged)
+                        {
+                            ops = ops.SetItem(i, inv with { GenericArgs = gargs });
+                            changed = true;
+                        }
+                        break;
+                    }
                 }
             }
 
             upgraded.Add(changed ? body with { Ops = ops } : body);
         }
 
-        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved);
+        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved);
     }
 
-    /// <summary>Demand set (design §6 "bind lazily, only for members that own seam matches or ambiguous
-    /// refs"): a body is worth binding only if it declares locals or invokes something with a receiver —
-    /// the shapes that own dispatch/creation seams. Pure getters/branches with none are skipped so the
-    /// semantic model is never materialised for them.</summary>
+    /// <summary>Binds the type of an object-creation expression at the given line and returns its
+    /// <c>(short, fqn)</c> type when the semantic model resolves it to a real named type; null otherwise.</summary>
+    private static (string Short, string Fqn)? TryBindCreationType(
+        CreationOp creation, SyntaxTree tree, SemanticModel model)
+    {
+        try
+        {
+            var root = tree.GetRoot();
+            var span = tree.GetText().Lines[Math.Max(0, creation.Line - 1)].Span;
+            var node = root.FindNode(span);
+
+            var expr = node?.AncestorsAndSelf()
+                           .FirstOrDefault(n => n is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax)
+                           as ExpressionSyntax;
+            if (expr is null) return null;
+            return NamedType(model.GetTypeInfo(expr).Type);
+        }
+        catch { }
+        return null;
+    }
+
+    /// <summary>Binds the type of a generic argument at index <c>argIndex</c> of an invocation and
+    /// returns its <c>(short, fqn)</c> type when the semantic model resolves it; null otherwise.</summary>
+    private static (string Short, string Fqn)? TryBindGenericArg(
+        InvocationOp inv, int argIndex, SyntaxTree tree, SemanticModel model)
+    {
+        try
+        {
+            var root = tree.GetRoot();
+            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
+            var node = root.FindNode(span);
+
+            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            if (invocation is null) return null;
+
+            var name = invocation.Expression switch
+            {
+                GenericNameSyntax gen => gen,
+                MemberAccessExpressionSyntax ma => ma.Name as GenericNameSyntax,
+                _ => null,
+            };
+            if (name is null || argIndex >= name.TypeArgumentList.Arguments.Count) return null;
+
+            var arg = name.TypeArgumentList.Arguments[argIndex];
+            return NamedType(model.GetTypeInfo(arg).Type);
+        }
+        catch { }
+        return null;
+    }
+
+    /// <summary>L3.3 — Re-resolves the <see cref="CallGraph"/> edges against the full merged compilation
+    /// (with NuGet refs). CallEdges with <see cref="Resolution.Syntactic"/> are re-tested: if the
+    /// receiver type resolves to any non-error INamedTypeSymbol, the edge is upgraded to Semantic.
+    /// This catches internal cross-project calls that the local per-file CallGraphExtractor compilation
+    /// missed because it lacked NuGet references.</summary>
+    public static IReadOnlyList<CallEdge> UpgradeCallEdges(
+        IReadOnlyList<CallEdge> edges,
+        CSharpCompilation compilation,
+        List<SyntaxTree> allTrees,
+        Dictionary<string, string?> fileToProject)
+    {
+        var treeIndex = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tree in allTrees)
+            treeIndex[tree.FilePath] = tree;
+
+        var modelCache = new Dictionary<SyntaxTree, SemanticModel?>();
+        var upgraded = new List<CallEdge>(edges.Count);
+        var upgradedCount = 0;
+
+        foreach (var edge in edges)
+        {
+            if (edge.Resolution != Resolution.Syntactic
+                || edge.CallSiteLocation is null
+                || edge.CalleeType is null)
+            {
+                upgraded.Add(edge);
+                continue;
+            }
+
+            var (file, line) = ParseCallSite(edge.CallSiteLocation);
+            if (file is null || !treeIndex.TryGetValue(file, out var tree))
+            {
+                upgraded.Add(edge);
+                continue;
+            }
+
+            if (!modelCache.TryGetValue(tree, out var semanticModel))
+            {
+                try { semanticModel = compilation.GetSemanticModel(tree); }
+                catch { semanticModel = null; }
+                modelCache[tree] = semanticModel;
+            }
+
+            if (semanticModel is null)
+            {
+                upgraded.Add(edge);
+                continue;
+            }
+
+            try
+            {
+                var root = tree.GetRoot();
+                var span = tree.GetText().Lines[Math.Max(0, line - 1)].Span;
+                var node = root.FindNode(span);
+                var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+
+                if (invocation is not null)
+                {
+                    var info = semanticModel.GetSymbolInfo(invocation);
+                    if (info.Symbol is IMethodSymbol
+                        || info.CandidateSymbols.FirstOrDefault() is IMethodSymbol)
+                    {
+                        // The call binds against the full compilation — upgrade to Semantic.
+                        upgraded.Add(edge with { Resolution = Resolution.Semantic });
+                        upgradedCount++;
+                        continue;
+                    }
+                }
+            }
+            catch { }
+
+            upgraded.Add(edge);
+        }
+
+        return upgraded;
+    }
+
+    /// <summary>Parses a call-site location string in <c>file:line</c> format.</summary>
+    private static (string? File, int Line) ParseCallSite(string? location)
+    {
+        if (location is null) return (null, 0);
+        var colon = location.LastIndexOf(':');
+        if (colon < 0) return (null, 0);
+        var file = location[..colon];
+        if (int.TryParse(location[(colon + 1)..], out var line)) return (file, line);
+        return (null, 0);
+    }
     private static bool HasBindDemand(BodyFacts body)
     {
         foreach (var op in body.Ops)
