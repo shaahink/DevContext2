@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:15 UTC · branch `feat/loom-l2` · HEAD `1475f2c`_
+_Updated 2026-07-08 03:25 UTC · branch `feat/loom-l2` · HEAD `3b58846`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 03:15 UTC · branch `feat/loom-l2` · HEAD `1475f2c`_
 
 ## Latest activity (live)
 
-_Session #16 (Deliver) · running 50m · last output 86s ago · $0.0730_
+_Session #16 (Deliver) · running 60m · last output 4s ago · $0.0900_
 
 **Thinking:**
-> I've hit the 81% verified edges target, with all Send edges now fully verified and zero approximations there. The Raises category still has one approximation, and my total approximation count across all categories is now 52.  Now I need to validate this is a genuine improvement—the semantic binding …
-> Running through the post-session validation checks: rebuilding to confirm the probe removal doesn't cause issues, running the test suite excluding evaluation tests, executing the guard checks, and then the mcp-qa suite. After that I'll do a pnpm check and run the truth benchmarks to verify the evalu…
-> All tests are passing across the board, and the guards check out. Now I need to run the mcp-qa tool and verify the pnpm checks, though the server might need a fresh build first. I should also run the evaluation category tests to make sure the checkout truth test hasn't regressed.  Since the pre-exis…
+> The `.conductor/REPORT.md` file is clean now—it was likely reverted during the stash operations or git normalized the line endings. The `eval-results/2026-07-08/mcp-qa.md` file was legitimately modified by the mcp-qa gate refreshing token counts, so I should check that diff to confirm it's just the …
+> The test results show minimal token count variations with all tests still passing, so this refresh is valid. I'm reviewing the core changes to the SemanticLitePopulator, particularly the InvocationOp combined case and its helper methods, to ensure correctness.  The build compiled cleanly with all 39…
+> Since PowerShell doesn't support heredoc syntax, I'll write the commit message to a temporary file and pass that to git commit instead.
 
 **Recent actions:**
-- `04:09:42` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o "C:\Users\shahi\AppData\Loca…
-- `04:10:09` · **81% verified edges — target ≥80% MET.** Sends: 32 approx → **0**. Edges/nodes unchanged (276/422) — pure tier upgrades, no fabrication. The type-argument/crea…
-- `04:10:09` » bash Remove-Item "C:/code/DevContext2-ui/tests/DevContext.Core.Tests/ZzScratchProbe.cs" -Force; echo "removed"; Test-Path "C:/code/DevContext2-ui/tests/DevConte…
-- `04:10:20` » todowrite 1 todos
-- `04:10:32` · Post-session ritual. Rebuild and run the full gate battery in parallel where safe.
-- `04:10:39` » bash dotnet build DevContext.slnx -clp:ErrorsOnly 2>&1 | Select-Object -Last 4
-- `04:10:51` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 5
-- `04:13:47` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Failed:" | Select-Object -Las…
-- `04:14:00` · Tests green (393P/3S · 12P · 64P — matches baseline). Guards PASS. Now mcp-qa, pnpm check, and the checkout truth test.
-- `04:14:13` » bash dotnet test DevContext.slnx --filter "FullyQualifiedName~TruthExpectationTests" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|Passed:|Failed:|c…
+- `04:23:51` · All evidence artifacts written. Now update `LOOM-START.md` — the handoff block and the L3.3 checkpoint row.
+- `04:23:51` » edit LOOM-START.md
+- `04:24:03` » edit LOOM-START.md
+- `04:24:13` · Let me review the final diff before committing.
+- `04:24:13` » bash git -C C:/code/DevContext2-ui status --short; echo "---diffstat---"; git -C C:/code/DevContext2-ui diff --stat
+- `04:24:28` · `.conductor/REPORT.md` is clean again. The `mcp-qa.md` change is the fresh gate-run token refresh. Let me verify that diff and skim the core diff for correctnes…
+- `04:24:29` » bash git -C C:/code/DevContext2-ui diff eval-results/2026-07-08/mcp-qa.md | Select-Object -First 40
+- `04:24:55` · The `mcp-qa.md` diff is a legit gate-run refresh (still 8/8). Now stage and commit the checkpoint (code + evidence + tracker together, per AGENTS.md "docs move …
+- `04:24:56` » bash git -C C:/code/DevContext2-ui add src/DevContext.Core/Graph/GraphBuilder.cs src/DevContext.Core/Graph2/SemanticLitePopulator.cs src/DevContext.Core/Pipelin…
+- `04:25:10` » bash cd C:/code/DevContext2-ui; git commit -F - <<'EOF' feat(l3.3): verified-edge ratchet 68%->81% — assembly-independent semantic bind of dispatch targets  Bin…
 
 ## Stage progress
 
