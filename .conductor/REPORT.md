@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 17:04 UTC · branch `feat/loom-l5` · HEAD `71e93c8`_
+_Updated 2026-07-08 17:14 UTC · branch `feat/loom-l5` · HEAD `80021d4`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.1
@@ -9,24 +9,24 @@ _Updated 2026-07-08 17:04 UTC · branch `feat/loom-l5` · HEAD `71e93c8`_
 
 ## Latest activity (live)
 
-_Session #29 (Deliver) · running 10m · last output 0s ago · $0.0301_
+_Session #29 (Deliver) · running 20m · last output 153s ago · $0.0441_
 
 **Thinking:**
-> Let me check the text-2xs definition in styles.css and also understand what font sizes are available.
-> So `text-2xs` = 12px, `text-xs` = 13px. The proposal says "13px labels" so I should bump the tabs from `text-2xs` (12px) to `text-xs` (13px). That's perfect.  Now let me implement the L6.1 changes:  1. **Tab strip height**: Change root div to `flex h-8 items-stretch` (32px height enforced) 2. **Labe…
-> Let me start implementing. I'll do the tab-strip changes first (height + label + confirm), then titlebar, then omnibox.
+> Let me check the test results more carefully:  1. `dotnet build`: ✅ 0w/0e 2. `dotnet test`:     - Core: 408 passed, 3 skipped, 0 failed ✅    - Server: 12 passed, 0 failed ✅    - Desktop: Failed to build (locked by another process, likely the Tauri dev server from pnpm check). But the test output sho…
+> No DevContext-related processes are running. The lock must have been transient. Let me run the Desktop tests specifically.
+> All tests pass: - Core: 408 passed, 3 skipped, 0 failed - Server: 12 passed, 0 failed - Desktop: 64 passed, 0 failed  Total: 484 passed, 3 skipped, 0 failed ✅  Gate battery summary: - `dotnet build`: ✅ 0w/0e - `dotnet test`: ✅ 484P/3S/0F - `pnpm check`: ✅ (lint + test + build) - `loom-guards.ps1`: ✅…
 
 **Recent actions:**
-- `18:03:30` » read src\DevContext.App\src\app\shell\titlebar\titlebar.ts
-- `18:03:31` » read src\DevContext.App\src\app\features\omnibox\omnibox.ts
-- `18:03:31` » read src\DevContext.App\src\app\state\workspace.store.ts
-- `18:03:31` · Gate battery: `dotnet build` 0w/0e ✅, `dotnet test` 408P/3S/0F ✅, `pnpm check` ✅, `loom-guards.ps1` ✅. MCP QA requires running server (timeout). Proceeding to L…
-- `18:03:49` » grep text-2xs
-- `18:03:50` » read src\DevContext.App\src\app\features\omnibox\omnibox.ts
-- `18:03:56` » read src\DevContext.App\src\styles.css
-- `18:04:15` » todowrite 6 todos
-- `18:04:15` · Now I have all the information. Let me create a todo list and implement L6.1.
-- `18:04:21` » todowrite 5 todos
+- `18:07:04` · `pnpm check` green ✅. Let me verify the titlebar and omnibox edits:
+- `18:07:10` » todowrite 2 todos
+- `18:07:10` · All edits verified. Now let me run the gate battery to produce evidence:
+- `18:07:19` » bash powershell -File scripts/loom-guards.ps1 2>&1
+- `18:07:45` » bash dotnet build DevContext.slnx --nologo 2>&1 | Select-Object -Last 5
+- `18:10:34` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-Object -Last 15
+- `18:10:50` · Desktop build locked by prior process. Let me clear and re-run Desktop tests:
+- `18:10:51` » bash Get-Process | Where-Object { $_.ProcessName -eq 'DevContext' -or $_.Path -like '*DevContext.Desktop*' } | Select-Object Id, ProcessName, Path; Get-Process …
+- `18:11:37` » bash dotnet test tests/DevContext.Desktop.Tests --nologo --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
+- `18:11:48` · All tests green: 484 passed, 3 skipped, 0 failed. Let me produce the evidence artifacts and build the MCP binary for QA:
 
 ## Stage progress
 
