@@ -324,6 +324,10 @@ export class Omnibox {
   /** Jump straight to a specific past repo (what the titlebar's recents dropdown does —
    * the old Palette couldn't, GAP-B3). */
   private openRecent(path: string): void {
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
     const label = path.split(/[\\/]/).pop() || path;
     this.workspace.createTab(path, label);
     const defs = this.prefs.analyzeDefaults();

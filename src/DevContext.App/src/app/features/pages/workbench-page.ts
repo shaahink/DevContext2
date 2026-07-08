@@ -260,11 +260,13 @@ export class WorkbenchPage implements OnDestroy {
       return;
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
+      if (isTypingTarget(event.target)) return;
       event.preventDefault();
       void this.router.navigateByUrl('/context');
       return;
     }
     if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'e') {
+      if (isTypingTarget(event.target)) return;
       event.preventDefault();
       this.tableOpen.set(true);
       return;

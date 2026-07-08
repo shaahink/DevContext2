@@ -8,6 +8,7 @@ import { RecentStore } from '../../state/recent.store';
 import { PrefsStore } from '../../state/prefs.store';
 import type { AnalyzeSpec } from '../../data-access/devcontext-api';
 import { Icon } from '../../ui/icon/icon';
+import { ToastService } from '../../ui/toast/toast';
 import { isTauri } from '../../core/tauri-env';
 
 let tauriWindowApi: {
@@ -162,10 +163,11 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
 export class Titlebar {
   protected readonly connection = inject(ConnectionStore);
   protected readonly session = inject(SessionStore);
-  private readonly workspace = inject(WorkspaceStore);
+  protected readonly workspace = inject(WorkspaceStore);
   private readonly recentStore = inject(RecentStore);
   private readonly prefs = inject(PrefsStore);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly recents = this.recentStore.recents;
   protected readonly repoMenuOpen = signal(false);
@@ -181,12 +183,20 @@ export class Titlebar {
 
   protected newAnalysis(): void {
     this.repoMenuOpen.set(false);
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
     this.workspace.createTab('', 'New tab');
     void this.router.navigateByUrl('/');
   }
 
   protected selectRecent(path: string): void {
     this.repoMenuOpen.set(false);
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
     const label = path.split(/[\\/]/).pop() || path;
     this.workspace.createTab(path, label);
     const defs = this.prefs.analyzeDefaults();

@@ -75,9 +75,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
             <span class="text-sm font-medium">
               {{ mcpRunning() ? 'MCP Endpoint Active' : 'MCP Endpoint Stopped' }}
             </span>
-            @if (observerCount() > 0) {
-              <span class="text-xs text-ink-subtle">{{ observerCount() }} observer(s)</span>
-            }
+  
           </div>
           <button
             class="rounded px-3 py-1.5 text-xs font-medium border transition-colors"
@@ -240,7 +238,6 @@ export class McpPage implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService);
 
   protected readonly mcpRunning = signal(false);
-  protected readonly observerCount = signal(0);
   protected readonly copied = signal<string | null>(null);
   protected readonly events: WritableSignal<ToolCallEntry[]> = signal([]);
   protected readonly totalTokens = signal(0);
@@ -259,8 +256,7 @@ export class McpPage implements OnInit, OnDestroy {
   /** L6.6: Status text reflects live state instead of static toggle label. */
   protected readonly statusText = computed(() => {
     if (this.mcpRunning()) {
-      const obs = this.observerCount();
-      return obs > 0 ? `Agents connected. ${obs} observer(s). Tools served over stdio ↔ gRPC.` : 'Accepting connections. Tools served over stdio ↔ gRPC.';
+      return 'Accepting connections. Tools served over stdio ↔ gRPC.';
     }
     const live = this.sessions().length;
     return live > 0 ? `Server running with ${live} session(s). Toggle to accept new MCP connections.` : 'Endpoint stopped. Toggle to allow new sessions.';
@@ -270,7 +266,6 @@ export class McpPage implements OnInit, OnDestroy {
     this.refreshSessions();
     this.sessionTimer = setInterval(() => {
       this.refreshSessions();
-      if (this.mcpRunning()) this.refreshObservers();
     }, 30_000);
   }
 
@@ -314,13 +309,6 @@ export class McpPage implements OnInit, OnDestroy {
         })),
       );
     }).catch(() => { /* Polling failure is silent — sessions may be stale */ });
-  }
-
-  /** L6.6: Refresh observer count from server (only meaningful when MCP is running). */
-  private refreshObservers() {
-    this.client.listSessions({}).then((resp) => {
-      this.observerCount.set(resp.sessions?.length ?? 0);
-    }).catch(() => { /* Polling failure is silent */ });
   }
 
   protected clearEvents() {

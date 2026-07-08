@@ -20,7 +20,7 @@ import { type TabState, WorkspaceStore } from '../state/workspace.store';
   template: `
     <div class="relative flex h-8 items-stretch border-b border-line bg-surface">
       @if (confirmCloseId()) {
-        <div class="absolute inset-0 z-10 flex items-center gap-2 px-3 text-xs bg-surface">
+        <div class="absolute inset-0 z-10 flex items-center gap-2 px-3 text-xs bg-surface" tabindex="-1" (keydown.escape)="cancelConfirmClose()">
           <span class="text-ink">Cancel analysis of <span class="font-mono text-ink">{{ confirmCloseLabel() }}</span>?</span>
           <button type="button" class="rounded px-1.5 py-0.5 text-xs text-danger hover:bg-danger/10" (click)="confirmCloseTab()">Cancel analysis</button>
           <button type="button" class="rounded px-1.5 py-0.5 text-xs text-ink-muted hover:bg-hover hover:text-ink" (click)="cancelConfirmClose()">Keep</button>
