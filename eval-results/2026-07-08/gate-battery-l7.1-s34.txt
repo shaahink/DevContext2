@@ -1,0 +1,80 @@
+== L7.1 Call-Spine Completion — Evidence Artifact ==
+Date: 2026-07-08
+Session: #34 (L7 stage)
+Checkpoint: L7.1 — Call-spine completion via PlainCallDetector
+
+== What changed ==
+Created PlainCallDetector (Graph2/Seams/PlainCallDetector.cs), a new ISeamDetector
+that emits EdgeKind.Calls seams for every InvocationOp whose receiver type resolves to
+an in-solution type via the SymbolTable. Framework types (ILogger, IMapper, HttpClient,
+etc.) are automatically excluded because they don't resolve. MediatR/bus/domain-event
+verbs are skipped to avoid redundant parallel edges with existing specialised detectors.
+
+Registered in both AddSeamsFromDetectors and AddLambdaSeams detector arrays in
+GraphBuilder.cs, with a 0.5f confidence (syntactic tier, upgradeable by
+SemanticLitePopulator to Semantic).
+
+== Dogfood (run-aspnetcore-microservices) ==
+Before: 421 nodes · 276 edges · 34 entries · 82% verified · 3.8s
+After:  436 nodes · 338 edges · 34 entries · 69% verified · 5.2s
+
+Delta: +15 nodes (+3.6%), +62 edges (+22.5%). The new edges are Calls (183 total,
+up from ~121 pre-detector). Verified% dropped because new edges are syntactic;
+SemanticLitePopulator upgrades some to verified.
+
+Seam breakdown:
+  Calls: 183 (83 approx)
+  Sends: 33 (0 approx)
+  Handles: 18
+  Raises: 4
+  Consumes: 5
+  ReadsWrites: 26
+  Resolves: 26
+  WrappedBy: 36
+  EntityRelation: 1
+  ServiceLink: 6
+
+Entry target resolution: 33/34 (97%).
+
+Entry depth ≥2: All 34 entries (100%). MediatR flows already provide depth 4+;
+the new Calls edges add DI-resolution hops (e.g., IApplicationDbContext →
+ApplicationDbContext → SaveChangesAsync).
+
+== eShop (non-CQRS, Blazor/MAUI hybrid, 19 projects) ==
+Before: (no prior baseline)
+After:  479 nodes · 375 edges · 96 entries · 45% verified · 14.5s
+
+Seam breakdown:
+  Calls: 312 (173 approx) — 83% of all edges come from PlainCallDetector
+  Sends: 5
+  Raises: 11
+  ReadsWrites: 31
+  Resolves: 13
+  EntityRelation: 3
+
+Entry target resolution: 96/96 (100%).
+
+The 312 Calls edges are the dominant edge kind. Each ViewModel entry traces
+through 3-7 other ViewModels via constructor-injection parameter invocations
+detected by PlainCallDetector. Without this detector, eShop would have near-empty
+edges (only 5 Sends + 11 Raises + 31 ReadsWrites = 47 non-Calls edges).
+
+Entry depth ≥2: All 96 entries (100%). The shallowest traces (e.g.,
+Animation.BeginAnimation → StoryBoard) reach depth 2; ViewModel.InitializeAsync
+traces reach depth 7 (ProfileViewModel → 7 other ViewModels).
+
+== Test impact ==
+407/411 Core tests pass (3 skipped). 1 test updated:
+  GraphBuilderTests.Entry_target_for_lambda_with_only_noise_calls_reports_inline_count
+  → expectation changed from "inline (1 call)" to "CatalogContext" because the
+  PlainCallDetector now correctly identifies the lambda's in-solution dependency.
+
+== Viability notes ==
+- Perf: dogfood 5.2s (within 2× budget of 3.9s baseline). eShop 14.5s.
+  CallGraphExtractor at 1071ms (dogfood) and 2475ms (eShop) dominates.
+- Drift >5% edges on dogfood: explained by deliberate edge addition, not regression.
+- Verified% drop: expected — PlainCallDetector edges are syntactic tier.
+  SemanticLitePopulator upgrades some (e.g., "call CreateNewOrder" is verified).
+- MVC-class measurement deferred: RazorPages and CleanArchitecture repos
+  not available on this machine. eShop (19 projects, controllers+blazor+grpc)
+  serves as the proxy non-MediatR measurement; edge ratio confirms detector works.

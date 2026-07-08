@@ -1647,6 +1647,7 @@ public sealed class GraphBuilder
             new IntegrationEventCreationDetector(),
             new DomainEventRaiseDetector(),
             new EntityTouchDetector(),
+            new PlainCallDetector(),
         };
 
         // L3.3 — build a quick index of (provenance → semantic-short-names) from upgraded BodyFacts.
@@ -1880,6 +1881,7 @@ public sealed class GraphBuilder
             new IntegrationEventCreationDetector(),
             new DomainEventRaiseDetector(),
             new EntityTouchDetector(),
+            new PlainCallDetector(),
         };
 
         foreach (var node in g.Nodes.Where(n => n.Kind == NodeKind.Member

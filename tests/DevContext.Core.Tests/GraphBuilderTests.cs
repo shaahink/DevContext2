@@ -480,7 +480,11 @@ public sealed class GraphBuilderTests
             .Build(model, scope);
 
         var entry = Assert.Single(entries);
-        Assert.Equal("inline (1 call)", entry.Target);
+        // E6 — updated L7.1: PlainCallDetector now identifies the lambda's dependency on
+        // CatalogContext (an in-solution data-store type), so the entry target reflects the real
+        // service type instead of the generic "inline (N calls)" fallback. This is more honest:
+        // the reader sees exactly which DbContext the endpoint touches.
+        Assert.Equal("CatalogContext", entry.Target);
     }
 
     [Fact]

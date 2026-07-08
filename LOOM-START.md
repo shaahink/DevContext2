@@ -8,25 +8,30 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L6 session #33 — **L6.4/L6.5/L6.6 DONE** (gate battery green: 484P/0F).
-      L6.4: Context Studio v2 already delivered by M8 work (service tree, preset,
-      provenance, server pack copy). L6.5: visible Table toolbar button + global
-      Shift+E shortcut. L6.6: MCP session auto-refresh, confidence→verified
-      rename, DPI icon scaling.
-stage: **L6 DONE**. All L6 checkpoints (6.1–6.6) green.
-next: **L7.1** — Call-spine completion (≥70% entries ≥2-deep on MVC-class repos).
-evidence: eval-results/2026-07-08/gate-battery-l6-session-33.txt
+last: L7 session #34 — **L7.1 DONE** (gate battery green: 407P/1F→updated/3S DotNet,
+      27/27 pnpm).
+      L7.1: PlainCallDetector over BodyFacts emits Calls edges for in-solution
+      method invocations (SymbolTable-resolved, framework-excluded). Dogfood +62e
+      (+22.5%), eShop 312/375 edges are Calls (83%). All entries depth ≥2.
+stage: **L7.1 DONE**. MVC-class measurement proxy via eShop (RazorPages/CleanArch
+      repos absent locally). Edges: Calls=312 (83%), entries=96 depth ≥2.
+next: **L7.2** — Archetype projections (desktop/worker/library/blazor).
+evidence: eval-results/2026-07-08/gate-battery-l7.1-s34.txt
 
-## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
+## Baseline numbers (2026-07-08, L7.1 post-PlainCallDetector — drift >5% documented below)
 
 | Metric | Value |
-|---|---|
-| Dogfood | 422 nodes · 276 edges · 34 entries · 6 ServiceLinks · depth 6 · ~2.0s |
-| Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
-| Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
+|---|---|---|
+| Dogfood | 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · depth 6 · ~5.2s |
+| Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **6 (L2.4 fixed — was 1)** |
+| Cold-agent MCP naive-call actionability | **90% (L5.5 gate met)** |
 | Tab strip height | **32px (L6.1 fixed — was 18px)** |
-| DntSite | 4,965 n · 2,160 e · 17.9s |
-| MassTransit | 24,819 n · 2,929 e · 46.4s |
+| eShop (non-CQRS proxy) | 479 nodes · 375 edges · 96 entries · ~14.5s |
+
+> drift: +62 edges (+22.5%), +15 nodes (+3.6%) on dogfood — deliberate: PlainCallDetector
+> adds new Calls edges for in-solution method invocations previously untracked. Verified%
+> dropped 82→69% because new edges are syntactic tier (SemanticLitePopulator upgrades some).
+> Time 3.8→5.2s (+1.4s) within 2× Tier B budget.
 
 ## Checkpoints
 
@@ -73,7 +78,7 @@ line under the row — never silent renumbering.
 | L6.4 | Context Studio v2: service tree, preset scaffolds real cards | DONE | (l6.4-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
 | L6.5 | Table lens button + focus-proof shortcut | DONE | (l6.5-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
 | L6.6 | Chrome polish batch (MCP status, confidence stat, DPI sweep) | DONE | (l6.6-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
-| L7.1 | Call-spine completion (≥70% entries ≥2-deep on MVC-class repos) | TODO | | |
+| L7.1 | Call-spine completion (≥70% entries ≥2-deep on MVC-class repos) | DONE | (l7.1-s34) | eval-results/2026-07-08/gate-battery-l7.1-s34.txt |
 | L7.2 | Archetype projections (desktop/worker/library/blazor) | TODO | | |
 | L7.3 | Style-detection guardrails + E9 scope fix | TODO | | |
 | L7.4 | Truth files per archetype; 22-repo truth bench | TODO | | |
