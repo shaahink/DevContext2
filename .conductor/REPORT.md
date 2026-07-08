@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 17:40 UTC · branch `feat/loom-l5` · HEAD `0b92757`_
+_Updated 2026-07-08 17:46 UTC · branch `feat/loom-l5` · HEAD `7154310`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.2
-**Checkpoints:** 24/34 done · **Sessions run:** 30 · **Cost:** $2.2636 · **Tokens:** 1,871,421 in / 487,036 out / 337,029 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.3
+**Checkpoints:** 25/34 done · **Sessions run:** 30 · **Cost:** $2.3185 · **Tokens:** 1,948,006 in / 493,823 out / 345,116 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
-
-## Latest activity (live)
-
-_Session #30 (Deliver) · running 20m · last output 86s ago · $0.0447_
-
-**Thinking:**
-> Now let me verify the change is correct. Let me also check: 1. Loading/error states in the Code pane - they're in inspector.ts lines 117-126 (codeLoading skeleton, codeError message) 2. PrismJS - code-highlight.ts is used via `highlightedCode` computed in inspector.ts line 319  Let me now verify the…
-> `pnpm check` passed - lint, test, build all green. Let me verify the full output from pnpm check.
-> Everything passes: - Lint: 0 errors - Test: 5 files, 27 passed - Build: success  Now let me verify the gate battery fully. Let me: 1. Run dotnet build (0W 0E) 2. Run dotnet test (non-Eval)  3. The cold QA  But I also need to check that `pnpm check` output was complete - the build succeeded in the ea…
-
-**Recent actions:**
-- `18:36:55` » todowrite 5 todos
-- `18:36:55` · Now I have full understanding. Let me implement L6.2 — the fix is in `workbench-page.ts`: after `trace()` completes, call `selectNode(entry.nodeId)` so the Insp…
-- `18:37:03` » edit src\DevContext.App\src\app\features\pages\workbench-page.ts
-- `18:37:10` » read src\DevContext.App\src\app\features\inspector\inspector.ts
-- `18:37:10` » read src\DevContext.App\src\app\core\code-highlight.ts
-- `18:37:11` · The edit is a minimal change: 3 lines added to `onEntry()`. Let me now verify the supporting pieces (loading states, PrismJS) and run the gate battery.
-- `18:37:57` » bash pnpm check 2>&1 | Select-Object -Last 20
-- `18:38:25` » bash pnpm lint 2>&1 | Select-Object -Last 5; Write-Host "---"; pnpm test 2>&1 | Select-Object -Last 10; Write-Host "---"; Write-Host "ALL PASSED"
-- `18:38:34` · Now let me run the full dotnet gate battery in parallel.
-- `18:39:16` » bash dotnet build DevContext.slnx 2>&1 | Select-Object -Last 8
 
 ## Stage progress
 
@@ -38,7 +17,7 @@ _Session #30 (Deliver) · running 20m · last output 86s ago · $0.0447_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 1/6 | **← active** |
+| L6 | Workbench repair | 2/6 | **← active** |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -75,13 +54,10 @@ _Session #30 (Deliver) · running 20m · last output 86s ago · $0.0447_
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
 | 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
-| 30 | L6 | Deliver | 1 | 07-08 17:20 | … | running |  | 0 |  |  |  |
+| 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
 
 ### Commits by session
 
-- **s22 (L4 Audit)** — 2 commit(s):
-  - e22a43a fix(l4-audit): correctness + robustness fixes from L4 phase static audit
-  - 9d1b43f chore(conductor): s22 L4 working ▸L4 @ 08:13
 - **s23 (L5 Deliver)** — 4 commit(s):
   - 402a6c1 chore(conductor): s23 L5 working ▸L5.1 @ 08:59
   - ac7a7dd feat(l5.1): default-session ergonomics + idempotent analyze
@@ -128,6 +104,11 @@ _Session #30 (Deliver) · running 20m · last output 86s ago · $0.0447_
   - 753e84d feat(l6.1): tab strip 32px + New=createTab + clone-close confirm
   - f424efd chore(conductor): s29 L6 working ▸L6.1 @ 18:14
   - 80021d4 chore(conductor): s29 L6 working ▸L6.1 @ 18:04
+- **s30 (L6 Deliver)** — 4 commit(s):
+  - 7154310 docs(l6.2): tracker — L6.2 DONE
+  - da1823d feat(l6.2): entry selection shows source — selectNode after trace unlocks Code pane
+  - 41aec2b chore(conductor): s30 L6 working ▸L6.2 @ 18:40
+  - 0b92757 chore(conductor): s30 L6 working ▸L6.2 @ 18:30
 
 ## Phase handovers (audit)
 
@@ -144,16 +125,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L6.1 landed — tab strip height raised to 32px (h-8) with 13px labels (text-xs), Titlebar+Omnibox New/Recent buttons now correctly call `createTab()` instead of destroying the active tab, and closing an analyzing/cloning tab shows a "Cancel analysis of X?" one-line confirm bar (middle-click, hover-X, and Ctrl+W all gate through it). All gates green: dotnet build 0w/0e, dotnet test 484P/0F, pnpm check 0w/0e, loom-guards clean, cold QA 92%. Nothing red. Next session should deliver L6.2 (Code pane: entry selection automatically triggers `loadCode()` to show source with loading/error states visible, instead of waiting for manual "load source" click) and L6.3 (Inspector insights ad…
+> SESSION-RESULT:** L6.2 landed — `onEntry()` in `workbench-page.ts:202` now chains `trace.selectNode(entry.nodeId)` after `trace.trace()` completes (when `found=true`), populating `nodeDetail` so the Inspector Code pane immediately shows file path + "load source" button instead of the dead-end "Select a node to view its source location" empty state. Loading/error states (skeleton + error text in `inspector.ts:117-126`) and PrismJS (`code-highlight.ts`) were already functional — verified via code review. Gate battery all green: dotnet build 0W/0E, dotnet test 484P/0F, pnpm check (lint 0, tests 27/27, build 0W), cold QA 11/12 (92%), loom-guards PASSED. Commits `da1823d` + `7154310` pushed to `f…
 
 ## Tracker handoff
 
 ```
-last: L6 session #29 — **L6.1 DONE** (gate battery green: 484P/0F, cold QA 92%).
-       Tab strip 32px (h-8), 13px labels (text-xs), Titlebar+Omnibox New=createTab
-       (no more cancel+closeTab), clone-close confirm bar ("Cancel analysis of X?").
-stage: **L6.1 DONE**. L6 checkpoints remaining: 6.2–6.6.
-next: **L6.2** — Code pane: entry selection shows source; loading/error states visible.
-evidence: eval-results/2026-07-08/gate-battery-l6.1-s29.txt
+last: L6 session #30 — **L6.2 DONE** (gate battery green: 484P/0F, cold QA 92%).
+       onEntry() now calls selectNode() after trace — Code pane shows file path +
+       "load source" immediately on entry selection (no more "Select a node…" dead end).
+       Loading/error states (skeleton + error text) already functional. PrismJS wired.
+stage: **L6.2 DONE**. L6 checkpoints remaining: 6.3–6.6.
+next: **L6.3** — Inspector insights: adjacency filter + honest chip.
+evidence: eval-results/2026-07-08/gate-battery-l6.2-s30.txt
           eval-results/2026-07-08/mcp-cold-qa.md
 ```
