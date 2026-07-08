@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:48 UTC · branch `feat/loom-l2` · HEAD `1b1a49d`_
+_Updated 2026-07-08 03:49 UTC · branch `feat/loom-l2` · HEAD `412aeae`_
 
-**Status:** Running
+**Status:** Idle
 **Stage:** L3 — Semantic-lite tier · attempts used 0
-**Checkpoints:** 15/35 done · **Sessions run:** 17 · **Cost:** $1.2225 · **Tokens:** 921,382 in / 269,449 out / 182,842 think
+**Checkpoints:** 15/35 done · **Sessions run:** 17 · **Cost:** $1.3208 · **Tokens:** 1,034,720 in / 283,767 out / 193,301 think
 **Confirmed phases:** L0, L1, L2
-
-## Latest activity (live)
-
-_Session #17 (Audit) · running 20m · last output 4s ago · $0.0874_
-
-**Thinking:**
-> Now let me commit with a simpler message.
-> Commit done. Now push the branch and write the handover.
-> Now write the handover document. Let me create the `.conductor/handovers/` directory and write L3.md.
-
-**Recent actions:**
-- `04:46:54` » bash git -C C:/Code/DevContext2-ui diff --stat
-- `04:47:00` » bash git -C C:/Code/DevContext2-ui diff
-- `04:47:10` » todowrite 2 todos
-- `04:47:15` » bash git -C C:/Code/DevContext2-ui status -s
-- `04:47:26` » bash git -C C:/Code/DevContext2-ui add src/DevContext.Core/Graph/CodeGraph.cs src/DevContext.Core/Graph2/SemanticLitePopulator.cs src/DevContext.Core/Pipeline/D…
-- `04:47:35` » bash git -C C:/Code/DevContext2-ui add src/DevContext.Core/Graph/CodeGraph.cs src/DevContext.Core/Graph2/SemanticLitePopulator.cs src/DevContext.Core/Pipeline/D…
-- `04:47:42` » bash git -C C:/Code/DevContext2-ui commit -m "fix(l3-audit): correctness + robustness fixes from phase audit" -m "HasBindDemand: cover all bindable op types (Cr…
-- `04:47:48` » bash git -C C:/Code/DevContext2-ui push
-- `04:47:54` · Now create the handover document.
-- `04:47:54` » bash New-Item -ItemType Directory -Force -Path C:/Code/DevContext2-ui/.conductor/handovers | Out-Null; Write-Output "Created"
+**Pending:** full-battery phase gate for L3
 
 ## Stage progress
 
@@ -62,13 +42,10 @@ _Session #17 (Audit) · running 20m · last output 4s ago · $0.0874_
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
-| 17 | L3 | Audit | 1 | 07-08 03:28 | … | running |  | 0 |  |  |  |
+| 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 
 ### Commits by session
 
-- **s6 (L1 Audit)** — 2 commit(s):
-  - 99f18fc docs(l1-audit): honest phase handover (.conductor/handovers/L1.md)
-  - d487e65 fix(l1-audit): GetNamespace fallback + _byProject comparer + null guard + 16 new tests
 - **s8 (L2 Resume)** — 5 commit(s):
   - 17bfc2f docs(l2): LOOM-START — L2.1/L2.2 DONE, handoff for L2.3/L2.4
   - 5dafd6e feat(l2.2): five seam detectors over BodyFacts + dogfood-verbatim fixtures
@@ -116,12 +93,19 @@ _Session #17 (Audit) · running 20m · last output 4s ago · $0.0874_
   - 86798bb chore(conductor): s16 L3 working ▸L3.3 @ 03:55
   - 18a6362 chore(conductor): s16 L3 working ▸L3.3 @ 03:45
   - 0a85550 chore(conductor): s16 L3 working ▸L3.3 @ 03:35
+- **s17 (L3 Audit)** — 5 commit(s):
+  - 412aeae docs(l3-audit): append PROGRESS-LOG.md session entry
+  - 094aa1d docs(l3-audit): honest phase handover to .conductor/handovers/L3.md
+  - b7d9135 chore(conductor): s17 L3 working ▸L3 @ 04:48
+  - 1b1a49d fix(l3-audit): correctness + robustness fixes from phase audit
+  - 7fa820b chore(conductor): s17 L3 working ▸L3 @ 04:38
 
 ## Phase handovers (audit)
 
 - `.conductor/handovers/L0.md`
 - `.conductor/handovers/L1.md`
 - `.conductor/handovers/L2.md`
+- `.conductor/handovers/L3.md`
 
 ## Last gate run
 
@@ -129,7 +113,7 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: Landed **L3.3 (verified-edge ratchet)** — the checkpoint that entered the session BLOCKED at 68% is now **DONE at 81% verified** on the dogfood repo (target ≥80% met), committed `8f0579b` and pushed to `origin/feat/loom-l2`, completing stage **L3**. Root cause (found empirically, not assumed): Tier-B semantic binding was trying to bind the whole `request.Adapt<XCommand>()` mapping invocation, which returns an error type because Mapster/Carter DLLs are physically absent from this machine's NuGet cache — so Sends stayed 32/33 approx; the fix binds the dispatch target's **type** directly (the explicit generic type argument `Adapt<CheckoutBasketCommand>`, or the inline `new XQuer…
+> SESSION-RESULT:** Completed a rigorous static audit of L3 (Semantic-lite tier). Found and fixed 2 correctness/robustness bugs: `HasBindDemand` was silently skipping bodies with `CreationOp`-only or InvocationOp-without-receiver ops (missing semantic binding opportunities), and `ResolveNuGetMetadataRefs` could fail `CSharpCompilation.Create` because NuGet assembly refs weren't deduplicated against framework TPA assemblies. Also removed 3 dead code artifacts (unused `fileToProject` dict, orphaned `Stopwatch`, redundant `UpgradeEdge` downgrade guard) and added a diagnostic for the previously-silent call-edge upgrade failure path. Full gate battery re-ran green: build 0w/0e, Core 393P/3S, Deskto…
 
 ## Tracker handoff
 
