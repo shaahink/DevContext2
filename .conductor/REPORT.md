@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 15:14 UTC · branch `feat/loom-l5` · HEAD `2f6113d`_
+_Updated 2026-07-08 15:23 UTC · branch `feat/loom-l5` · HEAD `f9cd094`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.4
-**Checkpoints:** 22/35 done · **Sessions run:** 26 · **Cost:** $2.0295 · **Tokens:** 1,637,753 in / 444,766 out / 296,201 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.5
+**Checkpoints:** 22/34 done · **Sessions run:** 26 · **Cost:** $2.0921 · **Tokens:** 1,704,788 in / 456,228 out / 305,566 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #26 (Deliver) · running 30m · last output 101s ago · $0.0423_
-
-**Thinking:**
-> Build green with 0w/0e. Now let me run the tests to make sure nothing's broken:
-> All tests pass. Now let me run the cold QA again to verify the `flow` tool is now present and the B1 probe becomes actionable:
-> Excellent! Results: - **23 tools** (was 22) — `flow` now registered - **tools/list ~1337 tok** (was ~1272) — still under 1.5k target - **Actionable failures: 10/12 (83%)** — up from 9/12 (75%)! The A1 probe (overview before analyze) went from unactionable back to actionable. That's because the previ…
-
-**Recent actions:**
-- `16:05:09` · Now I need to update the `UnknownToolHandler` to include `flow` in the available tools list (it was previously an unknown tool that returned available alternati…
-- `16:05:10` » read src\DevContext.Mcp\UnknownToolHandler.cs
-- `16:05:26` » edit src\DevContext.Mcp\UnknownToolHandler.cs
-- `16:06:17` » bash dotnet build DevContext.slnx --no-restore 2>&1 | Select-Object -Last 8
-- `16:06:38` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seco…
-- `16:06:43` · Build green with 0w/0e. Let me run tests:
-- `16:09:50` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 8
-- `16:09:57` · Tests all green. Now let me re-run the cold QA to verify the new `flow` tool:
-- `16:12:46` » bash node eval/mcp-qa/run-cold.js 2>&1
-- `16:13:02` · Cold QA now shows **10/12 (83%)** actionable — A1 back to actionable with fresh server, and 23 tools listed including `flow`. Now let me run scripted QA and do …
 
 ## Stage progress
 
@@ -37,7 +16,7 @@ _Session #26 (Deliver) · running 30m · last output 101s ago · $0.0423_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 3/5 | **← active** |
+| L5 | MCP v2 cold-agent ergonomics | 3/4 | **← active** |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -71,15 +50,10 @@ _Session #26 (Deliver) · running 30m · last output 101s ago · $0.0423_
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
-| 26 | L5 | Deliver | 1 | 07-08 14:44 | … | running |  | 0 |  |  |  |
+| 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 
 ### Commits by session
 
-- **s18 (L4 Deliver)** — 4 commit(s):
-  - 37316b7 docs(l4.1): append PROGRESS-LOG.md session entry
-  - 8e75dd9 feat(l4.1): Flow store on CodeGraph; spine-only Touches/Emits; ServiceHops + provenance
-  - 99e5b78 chore(conductor): s18 L4 working ▸L4.1 @ 05:13
-  - a589b08 chore(conductor): s18 L4 working ▸L4.1 @ 05:03
 - **s19 (L4 Deliver)** — 4 commit(s):
   - d5602c3 chore(l4.2): record commit hash in tracker
   - 73cca81 feat(l4.2): Projections + GetGraphFacets RPC
@@ -129,6 +103,11 @@ _Session #26 (Deliver) · running 30m · last output 101s ago · $0.0423_
   - 54e5a4c chore(conductor): s25 L5 working ▸L5.3 @ 15:32
   - 4d97d5e chore(conductor): s25 L5 working ▸L5.3 @ 15:22
   - 0c1c090 chore(conductor): s25 L5 working ▸L5.3 @ 15:12
+- **s26 (L5 Deliver)** — 4 commit(s):
+  - f9cd094 feat(l5.4): real flow tool + 23-tool MCP registry
+  - 251f676 chore(conductor): s26 L5 working ▸L5.4 @ 16:14
+  - 2f6113d chore(conductor): s26 L5 working ▸L5.4 @ 16:04
+  - 2736660 chore(conductor): s26 L5 working ▸L5.4 @ 15:54
 
 ## Phase handovers (audit)
 
@@ -144,19 +123,18 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5.3 landed — unified ranked resolution (`graph.Find`) with exact>prefix>word-boundary ranking, Types-over-Members tiebreak, degree final; server `SearchNodes` now uses `Find` (was unranked scan); MCP `usages` resolves short names via ranked search. Cold QA: B9 `find("Order")` → Order aggregate #1 (was `ApplicationDbContext.SaveChangesAsync`), 0 false-successes (was 1). All gates green: build 0w/0e, tests 408/12/64, scripted MCP QA 8/8, guards PASS, pnpm check PASS. Two probes (B4, B9) remain "unactionable" due to correct responses not needing error signals — the remaining cold-QA gap is structural (no error = no actionable signal). Next session (L5.4): real `flow` tool with …
+> SESSION-RESULT: L5.4 landed — real `flow(focus)` MCP tool with compact trace rendering (steps/touches/emits/approxTokens, deep-links to `trace` for full detail), 23 tools registered (was 22), tools/list envelope 1337 tok (under 1.5k). `get_context`/`config` fuzzy focus already working via L5.2/5.3 suggestions — verified actionable by cold QA. Cold QA baseline 10/12 (83%) actionable, 0 false-successes, 0 opaque errors. B1 probe updated to test `dependencies` now that `flow` exists. Gate battery: build 0w/0e, tests 408/12/64, scripted QA 8/8, pnpm check green. Remaining red: B4 usages-shortname unactionable (L5.5 fix) and B9 numerator/denominator issue (L0.5 debt). Next session (L5.5): drive c…
 
 ## Tracker handoff
 
 ```
-last: L5 session #25 — **L5.3 DONE** (unified ranked resolution). graph.Find: exact >
-       prefix > word-boundary ranking; Types > Members tiebreak; degree final. Server
-       SearchNodes uses graph.Find (was unranked sequential scan). MCP usages resolves
-       short names via ranked search before GetNeighbors. Cold QA: aggregate#1 for
-       find("Order") (was "ApplicationDbContext.SaveChangesAsync"). False-successes: 0
-       (was 1 — B4 usages). Scripted QA: 8/8. Build 0w/0e. Tests 408/12/64 all pass.
-stage: **L5.3 DONE**. B9 rank fixed (Order #1), 0 false-successes, gate battery green.
-next: **L5.4** — Real flow tool (compact ≤150 tok) + fuzzy focus suggestions.
-evidence: eval-results/2026-07-08/gate-battery-l5.3-s25.txt
+last: L5 session #26 — **L5.4 DONE** (real flow tool). Flow tool added: compact
+       trace with steps/touches/emits/approxTokens; deep-links to trace for full
+       detail. B4+unactionable cold probe moved to L5.5 fix list. get_context+
+       config fuzzy focus already actioned by L5.2/5.3 suggestions. Cold QA: 10/12
+       (83%) actionable, 23 tools, tools/list 1337 tok, 0 false-successes.
+stage: **L5.4 DONE**. flow tool shipped, cold QA baseline stable, B1 probe updated.
+next: **L5.5** — drive cold QA to ≥90% actionability; fix B4 usages-shortname gate.
+evidence: eval-results/2026-07-08/gate-battery-l5.4-s26.txt
            eval-results/2026-07-08/mcp-cold-qa.md
 ```
