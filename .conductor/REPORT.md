@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 14:44 UTC · branch `feat/loom-l5` · HEAD `85a74e3`_
+_Updated 2026-07-08 14:54 UTC · branch `feat/loom-l5` · HEAD `f262de9`_
 
-**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.4
-**Checkpoints:** 22/35 done · **Sessions run:** 25 · **Cost:** $2.0295 · **Tokens:** 1,637,753 in / 444,766 out / 296,201 think
+**Checkpoints:** 22/35 done · **Sessions run:** 26 · **Cost:** $2.0295 · **Tokens:** 1,637,753 in / 444,766 out / 296,201 think
 **Confirmed phases:** L0, L1, L2, L3, L4
+
+## Latest activity (live)
+
+_Session #26 (Deliver) · running 10m · last output 2s ago · $0.0139_
+
+**Thinking:**
+> Tests pass: 408 passed, 3 skipped (the golden tests), 12 server, 64 desktop. Let me also run the scripted QA and check pnpm.
+> Both timeouts — the scripted QA may need the server running or it needs to analyze a repo which takes time. Let me check what run.js actually does and try with a longer timeout or check if it requires a server.  Also, pnpm check timed out — that's the full lint + test + build cycle in the Angular ap…
+> Lint passes. Let me try pnpm test and pnpm build separately to verify the pnpm check components.
+
+**Recent actions:**
+- `15:48:32` · Build green (0w/0e). Now tests:
+- `15:51:31` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-Object -Last 8
+- `15:51:37` · Tests green (408+12+64, 3 skipped). Now pnpm check and scripted QA:
+- `15:52:37` » bash node eval/mcp-qa/run.js --quiet 2>&1
+- `15:53:37` » bash pnpm check 2>&1 | Select-Object -Last 15
+- `15:53:45` » read eval\mcp-qa\run.js
+- `15:53:45` · Let me check what the QA scripts need and run pnpm check with a longer timeout:
+- `15:53:51` » bash pnpm run lint 2>&1 | Select-Object -Last 5
+- `15:54:31` » bash pnpm run test 2>&1 | Select-Object -Last 10
+- `15:54:37` » bash pnpm run build 2>&1 | Select-Object -Last 5
 
 ## Stage progress
 
@@ -50,6 +71,7 @@ _Updated 2026-07-08 14:44 UTC · branch `feat/loom-l5` · HEAD `85a74e3`_
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
+| 26 | L5 | Deliver | 1 | 07-08 14:44 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
