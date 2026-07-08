@@ -30,7 +30,11 @@ public sealed class MediatRDispatchDetector : ISeamDetector
         {
             if (op is not InvocationOp inv || !Verbs.Contains(inv.MethodName)) continue;
 
-            var recv = inv.ReceiverType?.Text;
+            // Receiver-type dispatch gating (L3.2): when a semantic bind resolved the receiver's type,
+            // gate on that type's short name; fall back to the syntactic declared type, then to the
+            // variable-name hint. The short name is taken from the last dotted segment so a fully-
+            // qualified bound type (e.g. MediatR.ISender) still matches the catalog.
+            var recv = ShortName(inv.ReceiverType?.Text);
 
             // A bus receiver with the same verb belongs to BusPublishDetector — do not double-emit.
             if (recv is not null && DispatchClassifier.IsBusReceiver(recv, inv.MethodName)) continue;
@@ -47,5 +51,13 @@ public sealed class MediatRDispatchDetector : ISeamDetector
                 body.Member, EdgeKind.Sends, SeamDetectorHelpers.Resolve(target, ctx),
                 0.7f, $"{body.File}:{inv.Line}", Id);
         }
+    }
+
+    /// <summary>Short (unqualified) type name from a possibly fully-qualified type text.</summary>
+    private static string? ShortName(string? typeText)
+    {
+        if (string.IsNullOrEmpty(typeText)) return null;
+        var dot = typeText.LastIndexOf('.');
+        return dot >= 0 && dot < typeText.Length - 1 ? typeText[(dot + 1)..] : typeText;
     }
 }

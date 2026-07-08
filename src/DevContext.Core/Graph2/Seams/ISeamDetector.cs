@@ -43,17 +43,25 @@ internal static class SeamDetectorHelpers
 {
     /// <summary>Resolves the <see cref="SymbolRef"/> for an invocation argument by correlating its text
     /// with a local declaration in the same body (the E1 pattern: <c>var command = request.Adapt&lt;T&gt;()</c>
-    /// then <c>sender.Send(command)</c>). Falls back to the arg's own known type. No text scanning.</summary>
+    /// then <c>sender.Send(command)</c>). A semantically-upgraded local type (Tier B, Law R2) wins over the
+    /// arg's syntactic type; otherwise the arg's own known type is used, then the local's syntactic type.
+    /// No text scanning.</summary>
     public static SymbolRef? ResolveArgTarget(ArgFact arg, BodyFacts body)
     {
-        if (arg.Type is not null) return arg.Type;
-
+        SymbolRef? localRef = null;
         foreach (var op in body.Ops)
         {
             if (op is LocalDeclOp local && string.Equals(local.Name, arg.Text, StringComparison.Ordinal))
-                return local.InferredFrom ?? local.DeclaredType;
+            {
+                localRef = local.InferredFrom ?? local.DeclaredType;
+                break;
+            }
         }
-        return null;
+
+        // A real semantic bind is authoritative — carry its tier so the assembler emits a verified edge.
+        if (localRef is { Tier: ResolutionTier.Semantic }) return localRef;
+        if (arg.Type is not null) return arg.Type;
+        return localRef;
     }
 
     /// <summary>Applies the SymbolTable resolver to a raw target ref when one is available.</summary>

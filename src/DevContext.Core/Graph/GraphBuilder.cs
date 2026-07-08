@@ -82,7 +82,7 @@ public sealed class GraphBuilder
         // sites. Edges anchor on the correct Member node by construction (BodyFacts.Member), so a
         // method-anchored trace shows only its own edges. Zero regex, zero re-parsing.
         AddSeamsFromDetectors(g, model, names, scope, bodyFacts);
-        AddLambdaSeams(g, model, names, scope);             // L2.4: dispatch edges for lambda entry-handlers
+        AddLambdaSeams(g, model, names, scope, bodyFacts);             // L2.4: dispatch edges for lambda entry-handlers
         AddCallEdges(g, model, names);                      // C1: Calls edges from CallEdges (member→member)
         var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
 
@@ -1485,7 +1485,9 @@ public sealed class GraphBuilder
                         g.AddEdge(new GraphEdge(originId, targetId, match.Kind)
                         {
                             Provenance = match.Provenance,
-                            Resolution = Resolution.Syntactic,
+                            Resolution = resolved.Tier == ResolutionTier.Semantic
+                                ? Resolution.Semantic
+                                : Resolution.Syntactic,
                             Confidence = match.Confidence,
                         });
 
@@ -1528,7 +1530,8 @@ public sealed class GraphBuilder
     /// BodyFacts, so the main pass attributes edges to the enclosing method. This post-pass extracts
     /// per-lambda facts and attributes edges to the lambda member node so entry→lambda→dispatch traces
     /// work correctly for the checkout flow.</summary>
-    private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope)
+    private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope,
+        IReadOnlyList<BodyFacts>? upgradedFacts)
     {
         var symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile);
         var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
@@ -1552,6 +1555,23 @@ public sealed class GraphBuilder
             DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
         };
 
+        // L3.2 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in the
+        // Tier-B compilation), so its LocalDeclOps carry only syntactic types. Re-attach the semantic tier
+        // that the whole-file pass already established, matched by (file, local name, short type) — no line
+        // dependency, so the synthetic tree's shifted lines don't matter. Law R2: upgrade only.
+        var semanticLocals = new Dictionary<(string File, string Name, string Type), Graph2.SymbolRef>();
+        if (upgradedFacts is not null)
+        {
+            foreach (var body in upgradedFacts)
+            {
+                foreach (var op in body.Ops)
+                {
+                    if (op is LocalDeclOp { InferredFrom: { Tier: ResolutionTier.Semantic } sem } local)
+                        semanticLocals[(body.File, local.Name, sem.Text)] = sem;
+                }
+            }
+        }
+
         var detectors = new ISeamDetector[]
         {
             new MediatRDispatchDetector(),
@@ -1574,7 +1594,8 @@ public sealed class GraphBuilder
                 var project = node.Project ?? scope.ProjectForFile(filePath) ?? "";
                 var wrapped = $"namespace _ {{ public class _ {{ public void _() {{ ({body})(); }} }} }}";
                 var tree = CSharpSyntaxTree.ParseText(wrapped, path: filePath);
-                var facts = BodyFactExtractor.Extract(tree, filePath, project);
+                var facts = OverlaySemanticLocals(
+                    BodyFactExtractor.Extract(tree, filePath, project), filePath, semanticLocals);
 
                 foreach (var bodyFacts in facts)
                 {
@@ -1617,7 +1638,9 @@ public sealed class GraphBuilder
                                 g.AddEdge(new GraphEdge(node.Id, targetId, match.Kind)
                                 {
                                     Provenance = match.Provenance,
-                                    Resolution = Resolution.Syntactic,
+                                    Resolution = resolved.Tier == ResolutionTier.Semantic
+                                        ? Resolution.Semantic
+                                        : Resolution.Syntactic,
                                     Confidence = match.Confidence,
                                 });
                             }
@@ -1628,6 +1651,34 @@ public sealed class GraphBuilder
             }
             catch { /* parse failure → skip */ }
         }
+    }
+
+    /// <summary>Re-attaches semantic local-declaration types (Tier B) onto facts re-parsed from a lambda
+    /// body, matched by (file, local name, short type). Upgrade-only (Law R2): a syntactic local whose
+    /// name+type matches a whole-file semantic bind is lifted to Semantic; everything else is untouched.</summary>
+    private static ImmutableArray<BodyFacts> OverlaySemanticLocals(
+        ImmutableArray<BodyFacts> facts, string filePath,
+        Dictionary<(string File, string Name, string Type), Graph2.SymbolRef> semanticLocals)
+    {
+        if (semanticLocals.Count == 0) return facts;
+
+        var result = ImmutableArray.CreateBuilder<BodyFacts>(facts.Length);
+        foreach (var body in facts)
+        {
+            var ops = body.Ops;
+            var changed = false;
+            for (var i = 0; i < ops.Length; i++)
+            {
+                if (ops[i] is LocalDeclOp { InferredFrom: { Tier: not ResolutionTier.Semantic } inf } local
+                    && semanticLocals.TryGetValue((filePath, local.Name, inf.Text), out var sem))
+                {
+                    ops = ops.SetItem(i, local with { InferredFrom = sem });
+                    changed = true;
+                }
+            }
+            result.Add(changed ? body with { Ops = ops } : body);
+        }
+        return result.ToImmutable();
     }
 
     /// <summary>Ensures a Member node exists in the graph for the given id (first-write wins).</summary>

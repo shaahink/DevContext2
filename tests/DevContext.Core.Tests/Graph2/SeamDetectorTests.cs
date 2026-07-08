@@ -99,6 +99,54 @@ public sealed class SeamDetectorTests
     }
 
     [Fact]
+    public void MediatRDispatch_carries_semantic_tier_from_upgraded_local_to_seam_target()
+    {
+        // L3.2: a Tier-B semantic bind upgrades the dispatched command's local declaration; the seam
+        // target must inherit that Semantic tier so the assembler emits a verified (not approx) edge.
+        var site = new RefSite { File = "/src/Test.cs", Line = 1, Project = "Basket.API" };
+        var semanticLocal = new DevContext.Core.Graph2.SymbolRef
+        {
+            Text = "CheckoutBasketCommand",
+            Site = site,
+            Resolved = new SymbolId(SymbolKind.Type, "Basket.API.CheckoutBasketCommand"),
+            Tier = ResolutionTier.Semantic,
+        };
+        var body = new BodyFacts(
+            new SymbolId(SymbolKind.Member, "Basket.API.Handler::Handle(1)"),
+            "Handle",
+            [
+                new LocalDeclOp(1, "command", null, semanticLocal),
+                new InvocationOp(2, "sender", new DevContext.Core.Graph2.SymbolRef { Text = "ISender", Site = site },
+                    "Send", [], [new ArgFact("command")]),
+            ]) { File = "/src/Test.cs", Project = "Basket.API" };
+
+        var send = Assert.Single(new MediatRDispatchDetector().Detect(body, SeamContext.Empty));
+        Assert.Equal(EdgeKind.Sends, send.Kind);
+        Assert.Equal(ResolutionTier.Semantic, send.Target.Tier);
+        Assert.Equal("Basket.API.CheckoutBasketCommand", send.Target.Resolved?.Canonical);
+    }
+
+    [Fact]
+    public void MediatRDispatch_matches_fully_qualified_receiver_type()
+    {
+        // Receiver-type dispatch gating: a semantically-bound receiver (MediatR.ISender) must still match
+        // the MediatR catalog via its short name, not be missed because it is fully qualified.
+        var site = new RefSite { File = "/src/Test.cs", Line = 1, Project = "P" };
+        var body = new BodyFacts(
+            new SymbolId(SymbolKind.Member, "P.H::Handle(1)"),
+            "Handle",
+            [
+                new InvocationOp(1, "sender",
+                    new DevContext.Core.Graph2.SymbolRef { Text = "MediatR.ISender", Site = site, Tier = ResolutionTier.Semantic },
+                    "Send", [], [new ArgFact("cmd", new DevContext.Core.Graph2.SymbolRef { Text = "CreateOrderCommand", Site = site })]),
+            ]) { File = "/src/Test.cs", Project = "P" };
+
+        var send = Assert.Single(new MediatRDispatchDetector().Detect(body, SeamContext.Empty));
+        Assert.Equal(EdgeKind.Sends, send.Kind);
+        Assert.Equal("CreateOrderCommand", send.Target.Text);
+    }
+
+    [Fact]
     public void BusPublish_detects_publish_of_integration_event()
     {
         var seams = Detect(new BusPublishDetector(), CheckoutHandler);

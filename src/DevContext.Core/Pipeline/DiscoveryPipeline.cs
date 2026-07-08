@@ -120,12 +120,15 @@ public sealed class DiscoveryPipeline
             {
                 semanticLiteResult = SemanticLitePopulator.Populate(
                     model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
-                if (semanticLiteResult.ProjectsWithAssets > 0)
+                if (semanticLiteResult.ProjectsWithAssets > 0 || semanticLiteResult.ProjectsDegraded > 0)
                 {
                     model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
-                        $"Tier B built: {semanticLiteResult.ProjectsWithAssets} project(s) with assets, "
-                        + $"{semanticLiteResult.ProjectsDegraded} degraded, "
-                        + $"{semanticLiteResult.VarDeclsResolved} var decl types + {semanticLiteResult.ReceiversResolved} receivers upgraded to Semantic tier");
+                        $"tier routing — A (syntax): {semanticLiteResult.ProjectsDegraded} project(s), "
+                        + $"B (semantic-lite): {semanticLiteResult.ProjectsWithAssets} project(s); "
+                        + $"compilation={semanticLiteResult.CompilationBuilt} trees={semanticLiteResult.TreeCount} "
+                        + $"refs={semanticLiteResult.ReferenceCount}; upgraded {semanticLiteResult.VarDeclsResolved} var-decl + "
+                        + $"{semanticLiteResult.ReceiversResolved} receiver type(s) to Semantic tier"
+                        + (semanticLiteResult.DegradeReason.Length > 0 ? $" [{semanticLiteResult.DegradeReason}]" : ""));
                 }
             }
             catch (Exception ex)

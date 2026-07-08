@@ -66,6 +66,19 @@ public sealed class SymbolTable
         if (string.IsNullOrEmpty(r.Text))
             return r with { Tier = ResolutionTier.Unresolved };
 
+        // Law R2 — tier is monotone: a ref that already carries a real semantic bind is never downgraded
+        // or re-ambiguated. Map it onto the in-scope node id when the short name is uniquely known (so the
+        // graph node identity matches the syntactic path — no drift), otherwise keep the bound id. Either
+        // way the Semantic tier survives, which the assembler turns into a verified edge.
+        if (r.Tier == ResolutionTier.Semantic && r.Resolved is { } bound)
+        {
+            if (_fqns.Contains(bound.Canonical))
+                return r;
+            if (_byShort.TryGetValue(r.Text, out var inScope) && inScope.Count == 1)
+                return r with { Resolved = new SymbolId(SymbolKind.Type, inScope[0]) };
+            return r;
+        }
+
         if (_fqns.Contains(r.Text))
             return r with { Resolved = new SymbolId(SymbolKind.Type, r.Text), Tier = ResolutionTier.Declared };
 

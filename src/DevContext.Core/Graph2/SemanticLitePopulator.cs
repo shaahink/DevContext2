@@ -22,6 +22,14 @@ public sealed record SemanticLiteResult
     public int VarDeclsResolved { get; init; }
     /// <summary>Total number of <see cref="InvocationOp"/> whose <c>ReceiverType</c> was resolved via semantic binding.</summary>
     public int ReceiversResolved { get; init; }
+    /// <summary>Number of syntax trees fed into the semantic-lite compilation.</summary>
+    public int TreeCount { get; init; }
+    /// <summary>Number of NuGet metadata references resolved from assets.json.</summary>
+    public int ReferenceCount { get; init; }
+    /// <summary>True when a <see cref="CSharpCompilation"/> was successfully constructed.</summary>
+    public bool CompilationBuilt { get; init; }
+    /// <summary>Diagnostic note when Tier B degraded (exception type/message); empty on success.</summary>
+    public string DegradeReason { get; init; } = "";
     /// <summary>The upgraded body facts with semantic resolution applied (null if no compilation was built).</summary>
     public ImmutableArray<BodyFacts> UpgradedBodyFacts { get; init; }
     /// <summary>The built compilation (null if degraded entirely).</summary>
@@ -72,37 +80,58 @@ public static class SemanticLitePopulator
 
         var sw = Stopwatch.StartNew();
 
-        var nugetRefs = ResolveNuGetMetadataRefs(projects, rootPath, result);
+        var (nugetRefs, assetsProjects, degradedProjects) = ResolveNuGetMetadataRefs(projects, rootPath);
+        result = result with { ProjectsWithAssets = assetsProjects, ProjectsDegraded = degradedProjects };
         var allTrees = new List<SyntaxTree>();
         var fileToProject = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
+        // Map each source file to its most-specific owning project. Projects nest (a solution `src/` root
+        // whose children live in `src/Services/Basket/…`), so a naive per-project prefix scan would add the
+        // same tree twice — CSharpCompilation.Create rejects duplicate trees. Assign each file to the
+        // project with the LONGEST matching directory prefix, then add every tree exactly once.
+        var projectDirs = new List<(string Dir, string Name)>();
         foreach (var proj in projects)
         {
-            if (ct.IsCancellationRequested) break;
             var projDir = Path.GetDirectoryName(proj.FilePath);
-            if (projDir is null) continue;
+            if (projDir is not null) projectDirs.Add((projDir, proj.Name));
+        }
+        projectDirs.Sort((a, b) => b.Dir.Length - a.Dir.Length);
 
-            var projectTreesAdded = 0;
-            foreach (var path in cache.KnownFilePaths)
+        var perProject = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var path in cache.KnownFilePaths)
+        {
+            if (ct.IsCancellationRequested) break;
+            if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
+            if (fileToProject.ContainsKey(path)) continue;
+
+            string? owner = null;
+            foreach (var (dir, name) in projectDirs)
             {
-                if (!path.StartsWith(projDir, StringComparison.OrdinalIgnoreCase)) continue;
-                if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
-                try
-                {
-                    var tree = cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult();
-                    allTrees.Add(tree);
-                    fileToProject[path] = proj.Name;
-                    projectTreesAdded++;
-                }
-                catch { }
+                if (path.StartsWith(dir, StringComparison.OrdinalIgnoreCase)) { owner = name; break; }
             }
+            if (owner is null) continue;
 
-            if (projectTreesAdded == 0)
-                result = result with { ProjectsSkipped = result.ProjectsSkipped + 1 };
+            try
+            {
+                var tree = cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult();
+                allTrees.Add(tree);
+                fileToProject[path] = owner;
+                perProject[owner] = perProject.TryGetValue(owner, out var c) ? c + 1 : 1;
+            }
+            catch { }
         }
 
+        foreach (var (_, name) in projectDirs)
+            if (!perProject.ContainsKey(name))
+                result = result with { ProjectsSkipped = result.ProjectsSkipped + 1 };
+
         if (allTrees.Count == 0 || nugetRefs.Length == 0 && FrameworkRefs.Value.Length == 0)
-            return result with { UpgradedBodyFacts = bodyFacts.ToImmutableArray() };
+            return result with
+            {
+                UpgradedBodyFacts = bodyFacts.ToImmutableArray(),
+                TreeCount = allTrees.Count,
+                ReferenceCount = nugetRefs.Length,
+            };
 
         CSharpCompilation? compilation = null;
         try
@@ -116,19 +145,33 @@ public static class SemanticLitePopulator
                 allRefs.ToImmutable(),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return result with { UpgradedBodyFacts = bodyFacts.ToImmutableArray() };
+            return result with
+            {
+                UpgradedBodyFacts = bodyFacts.ToImmutableArray(),
+                TreeCount = allTrees.Count,
+                ReferenceCount = nugetRefs.Length,
+                DegradeReason = $"{ex.GetType().Name}: {ex.Message}",
+            };
         }
 
         var upgraded = bodyFacts.ToImmutableArray();
+        var varDeclsResolved = 0;
+        var receiversResolved = 0;
         if (bodyFacts.Count > 0)
-            upgraded = UpgradeBodyFacts(bodyFacts, compilation, allTrees, fileToProject, result);
+            (upgraded, varDeclsResolved, receiversResolved) =
+                UpgradeBodyFacts(bodyFacts, compilation, allTrees, fileToProject);
 
         result = result with
         {
             Compilation = compilation,
             UpgradedBodyFacts = upgraded,
+            VarDeclsResolved = varDeclsResolved,
+            ReceiversResolved = receiversResolved,
+            TreeCount = allTrees.Count,
+            ReferenceCount = nugetRefs.Length,
+            CompilationBuilt = true,
         };
 
         sw.Stop();
@@ -137,12 +180,14 @@ public static class SemanticLitePopulator
 
     /// <summary>Reads <c>obj/project.assets.json</c> for each project and resolves NuGet DLL paths
     /// from the package folders and library file listings. Returns metadata references for the
-    /// compilation. Uses the `packageFolders` and `libraries` sections of the lock file.
-    /// Where assets.json is missing, that project degrades to Tier A.</summary>
-    private static ImmutableArray<MetadataReference> ResolveNuGetMetadataRefs(
-        IReadOnlyList<ProjectInfo> projects, string rootPath, SemanticLiteResult result)
+    /// compilation plus per-project tier routing counts (assets-present vs degraded-to-Tier-A).
+    /// De-duplicates by assembly name (one target framework per assembly) so the compilation never
+    /// sees two references with the same identity — which would poison semantic binding.</summary>
+    private static (ImmutableArray<MetadataReference> Refs, int AssetsProjects, int DegradedProjects)
+        ResolveNuGetMetadataRefs(IReadOnlyList<ProjectInfo> projects, string rootPath)
     {
-        var dllPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // assembly simple name → (tfm score, absolute dll path). Highest score wins.
+        var best = new Dictionary<string, (int Score, string Path)>(StringComparer.OrdinalIgnoreCase);
         var assetsProjects = 0;
         var degradedProjects = 0;
 
@@ -190,11 +235,16 @@ public static class SemanticLitePopulator
                             if (!fp.Contains("lib/", StringComparison.OrdinalIgnoreCase))
                                 continue;
 
+                            var asmName = Path.GetFileNameWithoutExtension(fp);
+                            var score = TfmScore(fp);
+                            if (best.TryGetValue(asmName, out var cur) && cur.Score >= score)
+                                continue;
+
                             foreach (var folder in packageFolders)
                             {
                                 var full = Path.Combine(folder, relPath, fp.Replace('/', Path.DirectorySeparatorChar));
                                 if (!File.Exists(full)) continue;
-                                dllPaths.Add(full);
+                                best[asmName] = (score, full);
                                 break;
                             }
                         }
@@ -209,50 +259,76 @@ public static class SemanticLitePopulator
             }
         }
 
-        result = result with
-        {
-            ProjectsWithAssets = assetsProjects,
-            ProjectsDegraded = degradedProjects,
-        };
-
         var refs = ImmutableArray.CreateBuilder<MetadataReference>();
-        foreach (var dllPath in dllPaths)
+        foreach (var (_, path) in best.Values)
         {
-            try { refs.Add(MetadataReference.CreateFromFile(dllPath)); }
+            try { refs.Add(MetadataReference.CreateFromFile(path)); }
             catch { }
         }
-        return refs.ToImmutable();
+        return (refs.ToImmutable(), assetsProjects, degradedProjects);
     }
 
-    /// <summary>For each <see cref="BodyFacts"/>, uses <see cref="SemanticModel"/> to upgrade
-    /// <see cref="LocalDeclOp.InferredFrom"/> and <see cref="InvocationOp.ReceiverType"/>.
-    /// Law R2: only upgrades (Syntactic → Semantic), never downgrades.</summary>
-    private static ImmutableArray<BodyFacts> UpgradeBodyFacts(
+    /// <summary>Ranks a <c>lib/&lt;tfm&gt;/x.dll</c> path so the newest compatible target framework wins
+    /// when a package ships several. Higher is better; unknown TFMs score lowest.</summary>
+    private static int TfmScore(string libRelativePath)
+    {
+        var p = libRelativePath.ToLowerInvariant();
+        if (p.Contains("/net9.")) return 90;
+        if (p.Contains("/net8.")) return 80;
+        if (p.Contains("/net7.")) return 70;
+        if (p.Contains("/net6.")) return 60;
+        if (p.Contains("/net5.")) return 50;
+        if (p.Contains("/netcoreapp")) return 40;
+        if (p.Contains("/netstandard2.1")) return 31;
+        if (p.Contains("/netstandard2.0")) return 30;
+        if (p.Contains("/netstandard")) return 20;
+        if (p.Contains("/net4")) return 10;
+        return 1;
+    }
+
+    /// <summary>For each <see cref="BodyFacts"/> in the demand set (bodies with a dispatch/creation/local
+    /// worth binding), uses <see cref="SemanticModel"/> to upgrade <see cref="LocalDeclOp.InferredFrom"/>
+    /// and <see cref="InvocationOp.ReceiverType"/> to <see cref="ResolutionTier.Semantic"/>. Two modes:
+    /// <list type="bullet">
+    /// <item><b>Fill</b> — the syntactic field was null; a real bind supplies it (short name for detector
+    /// matching, bound FQN in <c>Resolved</c>).</item>
+    /// <item><b>Confirm</b> — a syntactic field exists at a lower tier and the bind's short name agrees;
+    /// the tier is upgraded to Semantic (identity unchanged, so the graph node never drifts — only the
+    /// resolution tier improves, which the assembler turns into a <c>verified</c> edge).</item>
+    /// </list>
+    /// Law R2: only upgrades, never downgrades and never re-points an existing resolution to a different
+    /// short name. Returns the upgraded facts plus per-kind upgrade counts for tier-routing stats.</summary>
+    private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers) UpgradeBodyFacts(
         IReadOnlyList<BodyFacts> facts,
         CSharpCompilation compilation,
         List<SyntaxTree> allTrees,
-        Dictionary<string, string?> fileToProject,
-        SemanticLiteResult result)
+        Dictionary<string, string?> fileToProject)
     {
         var treeIndex = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
         foreach (var tree in allTrees)
             treeIndex[tree.FilePath] = tree;
 
+        var modelCache = new Dictionary<SyntaxTree, SemanticModel?>();
         var varDeclsResolved = 0;
         var receiversResolved = 0;
         var upgraded = ImmutableArray.CreateBuilder<BodyFacts>();
 
         foreach (var body in facts)
         {
-            if (string.IsNullOrEmpty(body.File) || !treeIndex.TryGetValue(body.File, out var tree))
+            if (string.IsNullOrEmpty(body.File)
+                || !treeIndex.TryGetValue(body.File, out var tree)
+                || !HasBindDemand(body))
             {
                 upgraded.Add(body);
                 continue;
             }
 
-            SemanticModel? semanticModel = null;
-            try { semanticModel = compilation.GetSemanticModel(tree); }
-            catch { }
+            if (!modelCache.TryGetValue(tree, out var semanticModel))
+            {
+                try { semanticModel = compilation.GetSemanticModel(tree); }
+                catch { semanticModel = null; }
+                modelCache[tree] = semanticModel;
+            }
 
             if (semanticModel is null)
             {
@@ -265,36 +341,31 @@ public static class SemanticLitePopulator
 
             for (var i = 0; i < ops.Length; i++)
             {
-                var op = ops[i];
-
-                if (op is LocalDeclOp local && local.InferredFrom is null)
+                switch (ops[i])
                 {
-                    var upgradedRef = TryResolveLocalDeclType(local, tree, semanticModel);
-                    if (upgradedRef is not null)
+                    case LocalDeclOp local when local.InferredFrom is not { Tier: ResolutionTier.Semantic }:
                     {
-                        ops = ops.SetItem(i, local with { InferredFrom = upgradedRef });
-                        changed = true;
-                        Interlocked.Increment(ref varDeclsResolved);
+                        var bound = TryBindLocalDeclType(local, tree, semanticModel);
+                        var merged = MergeSemantic(local.InferredFrom, bound, local.Line, tree.FilePath);
+                        if (merged is not null)
+                        {
+                            ops = ops.SetItem(i, local with { InferredFrom = merged });
+                            changed = true;
+                            varDeclsResolved++;
+                        }
+                        break;
                     }
-                }
-                else if (op is InvocationOp inv && inv.ReceiverType is null)
-                {
-                    var upgradedRef = TryResolveReceiverType(inv, tree, semanticModel);
-                    if (upgradedRef is not null)
+                    case InvocationOp inv when inv.ReceiverType is not { Tier: ResolutionTier.Semantic }:
                     {
-                        ops = ops.SetItem(i, inv with { ReceiverType = upgradedRef });
-                        changed = true;
-                        Interlocked.Increment(ref receiversResolved);
-                    }
-                }
-                else if (op is InvocationOp inv2 && inv2.ReceiverType is { Tier: < ResolutionTier.Semantic } r)
-                {
-                    var upgradedRef = TryResolveReceiverType(inv2, tree, semanticModel);
-                    if (upgradedRef is not null && upgradedRef.Resolved is not null)
-                    {
-                        ops = ops.SetItem(i, inv2 with { ReceiverType = r with { Resolved = upgradedRef.Resolved, Tier = ResolutionTier.Semantic } });
-                        changed = true;
-                        Interlocked.Increment(ref receiversResolved);
+                        var bound = TryBindReceiverType(inv, tree, semanticModel);
+                        var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
+                        if (merged is not null)
+                        {
+                            ops = ops.SetItem(i, inv with { ReceiverType = merged });
+                            changed = true;
+                            receiversResolved++;
+                        }
+                        break;
                     }
                 }
             }
@@ -302,25 +373,62 @@ public static class SemanticLitePopulator
             upgraded.Add(changed ? body with { Ops = ops } : body);
         }
 
-        return upgraded.ToImmutable();
+        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved);
     }
 
-    /// <summary>Uses the <see cref="SemanticModel"/> to find the local declaration on the given line
-    /// and resolve the type of its initializer. Returns a <see cref="SymbolRef"/> at
-    /// <see cref="ResolutionTier.Semantic"/> when the type can be determined.</summary>
-    private static SymbolRef? TryResolveLocalDeclType(
+    /// <summary>Demand set (design §6 "bind lazily, only for members that own seam matches or ambiguous
+    /// refs"): a body is worth binding only if it declares locals or invokes something with a receiver —
+    /// the shapes that own dispatch/creation seams. Pure getters/branches with none are skipped so the
+    /// semantic model is never materialised for them.</summary>
+    private static bool HasBindDemand(BodyFacts body)
+    {
+        foreach (var op in body.Ops)
+        {
+            if (op is LocalDeclOp) return true;
+            if (op is InvocationOp { ReceiverText: not null }) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Applies Law R2 to a single ref: given the existing (syntactic) ref and a semantic bind
+    /// <c>(short, fqn)</c>, returns the upgraded ref — or null if nothing should change.
+    /// <list type="bullet">
+    /// <item>existing null → <b>fill</b>: new Semantic ref (short Text for detector matching, bound FQN in Resolved).</item>
+    /// <item>existing short name equals bound short name → <b>confirm</b>: same Text, tier→Semantic, Resolved set.</item>
+    /// <item>short names disagree → no change (never re-point a resolution this tier; left for a later pass).</item>
+    /// </list></summary>
+    private static SymbolRef? MergeSemantic(SymbolRef? existing, (string Short, string Fqn)? bound, int line, string file)
+    {
+        if (bound is not { } b) return null;
+        var resolved = new SymbolId(SymbolKind.Type, b.Fqn);
+
+        if (existing is null)
+            return new SymbolRef
+            {
+                Text = b.Short,
+                Site = new RefSite { File = file, Line = line, Project = "" },
+                Resolved = resolved,
+                Tier = ResolutionTier.Semantic,
+            };
+
+        if (string.Equals(existing.Text, b.Short, StringComparison.Ordinal))
+            return existing with { Resolved = resolved, Tier = ResolutionTier.Semantic };
+
+        return null;
+    }
+
+    /// <summary>Binds the initializer of a local declaration and returns its <c>(short, fqn)</c> type when
+    /// the semantic model resolves it to a real (non-error) named type; null otherwise.</summary>
+    private static (string Short, string Fqn)? TryBindLocalDeclType(
         LocalDeclOp local, SyntaxTree tree, SemanticModel model)
     {
         try
         {
             var root = tree.GetRoot();
-            var lineSpan = tree.GetText().Lines[Math.Max(0, local.Line - 1)];
-            var span = lineSpan.Span;
+            var span = tree.GetText().Lines[Math.Max(0, local.Line - 1)].Span;
             var node = root.FindNode(span);
 
-            var decl = node?.AncestorsAndSelf()
-                .OfType<LocalDeclarationStatementSyntax>()
-                .FirstOrDefault();
+            var decl = node?.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
             if (decl is null) return null;
 
             foreach (var variable in decl.Declaration.Variables)
@@ -328,78 +436,50 @@ public static class SemanticLitePopulator
                 if (!string.Equals(variable.Identifier.ValueText, local.Name, StringComparison.Ordinal))
                     continue;
                 if (variable.Initializer?.Value is null) continue;
-
-                var typeInfo = model.GetTypeInfo(variable.Initializer.Value);
-                if (typeInfo.Type is null || typeInfo.Type is IErrorTypeSymbol) continue;
-
-                var canon = typeInfo.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
-                    .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
-                return new SymbolRef
-                {
-                    Text = canon,
-                    Site = new RefSite
-                    {
-                        File = tree.FilePath,
-                        Line = local.Line,
-                        Project = "",
-                    },
-                    Resolved = new SymbolId(SymbolKind.Type, canon),
-                    Tier = ResolutionTier.Semantic,
-                };
+                return NamedType(model.GetTypeInfo(variable.Initializer.Value).Type);
             }
         }
         catch { }
         return null;
     }
 
-    /// <summary>Uses the <see cref="SemanticModel"/> to find the invocation on the given line
-    /// and resolve the receiver's type. Returns a <see cref="SymbolRef"/> at
-    /// <see cref="ResolutionTier.Semantic"/> when the type can be determined.</summary>
-    private static SymbolRef? TryResolveReceiverType(
+    /// <summary>Binds the receiver expression of an invocation and returns its <c>(short, fqn)</c> type
+    /// when the semantic model resolves it to a real (non-error) named type; null otherwise.</summary>
+    private static (string Short, string Fqn)? TryBindReceiverType(
         InvocationOp inv, SyntaxTree tree, SemanticModel model)
     {
         try
         {
             var root = tree.GetRoot();
-            var lineSpan = tree.GetText().Lines[Math.Max(0, inv.Line - 1)];
-            var span = lineSpan.Span;
+            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
             var node = root.FindNode(span);
 
-            var invocation = node?.AncestorsAndSelf()
-                .OfType<InvocationExpressionSyntax>()
-                .FirstOrDefault();
+            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
             if (invocation is null) return null;
 
             var receiver = GetReceiverSyntax(invocation);
             if (receiver is null) return null;
-
-            var typeInfo = model.GetTypeInfo(receiver);
-            if (typeInfo.Type is null || typeInfo.Type is IErrorTypeSymbol) return null;
-
-            var canon = typeInfo.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
-                .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
-            return new SymbolRef
-            {
-                Text = canon,
-                Site = new RefSite
-                {
-                    File = tree.FilePath,
-                    Line = inv.Line,
-                    Project = "",
-                },
-                Resolved = new SymbolId(SymbolKind.Type, canon),
-                Tier = ResolutionTier.Semantic,
-            };
+            return NamedType(model.GetTypeInfo(receiver).Type);
         }
         catch { }
         return null;
     }
 
-    private static ExpressionSyntax? GetReceiverSyntax(InvocationExpressionSyntax invocation)
+    /// <summary>Projects a resolved <see cref="ITypeSymbol"/> to <c>(shortName, fullyQualified)</c>,
+    /// or null for null/error/unnamed types. Interface receivers (e.g. <c>ISender</c>) keep their
+    /// declared short name so detector short-name catalogs still match.</summary>
+    private static (string Short, string Fqn)? NamedType(ITypeSymbol? type)
     {
-        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-            return memberAccess.Expression;
-        if (invocation.Expression is MemberBindingExpressionSyntax) { }
-        return invocation.Expression;
+        if (type is null || type is IErrorTypeSymbol || type is not INamedTypeSymbol named) return null;
+        var fqn = named.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat
+            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
+        var shortName = named.Name;
+        if (string.IsNullOrEmpty(shortName) || string.IsNullOrEmpty(fqn)) return null;
+        return (shortName, fqn);
     }
+
+    private static ExpressionSyntax? GetReceiverSyntax(InvocationExpressionSyntax invocation)
+        => invocation.Expression is MemberAccessExpressionSyntax memberAccess
+            ? memberAccess.Expression
+            : invocation.Expression;
 }

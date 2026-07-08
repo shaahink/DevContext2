@@ -7,21 +7,22 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L3 session #11 — L3.1 (SemanticLitePopulator) DONE.
-stage: **L3 IN PROGRESS** (L3.1 ✅). Populator reads assets.json → NuGet dlls →
-       CSharpCompilation per project; framework refs (TPA) + NuGet; degrade path
-       for missing assets. Upgrades LocalDeclOp.InferredFrom + InvocationOp.ReceiverType
-       via SemanticModel (Law R2: only upgrade). Wire-in at DiscoveryPipeline (debug/full).
-gate: dotnet build 0w/0e · Core 388P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
-trap: L2 QA: dogfood 422n/275e (post 5b69dd7 try-catch fix, honest increase); checkout trace MCP-proven depth 6.
-next: **L3.2** — Targeted semantic upgrades: handler interface closure, ambiguous-ref arbitration.
-evidence: eval-results/2026-07-07/gate-battery-l3-s11.txt
+last: L3 session #12 — L3.2 (targeted semantic upgrades) DONE + fixed 2 real L3.1 bugs.
+stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅). L3.1 QA: Tier-B compilation ALWAYS threw
+       (dup syntax tree from nested project dirs) AND all tier stats were always-0 (pass-by-value
+       record bug) → 0 upgrades despite claims. Both fixed. L3.2: 26 var-decl + 7 receiver semantic
+       upgrades; Law R2 in SymbolTable (no downgrade/re-ambiguate + arbitration); ResolveArgTarget
+       prefers Semantic; seam edges now carry Semantic tier → verified. Tier routing now visible.
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
+trap: 8 Category=Eval FAIL are PRE-EXISTING (empty eval-repo clones, e.g. VerticalSlice 0 cs) — proven via stash A/B, NOT L3.2.
+next: **L3.3** — verified-edge ratchet 65%→≥80% + truth bench; needs merged-compilation precision (Mapster Adapt binds unreliably) + Calls/ReadsWrites verify.
+evidence: eval-results/2026-07-08/gate-battery-l3.2-s12.txt
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
 | Metric | Value |
 |---|---|
-| Dogfood | 422 nodes · 275 edges · 34 entries · 6 ServiceLinks · depth 6 · 1.8s |
+| Dogfood | 422 nodes · 276 edges · 34 entries · 6 ServiceLinks · depth 6 · ~2.0s |
 | Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
 | Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
 | Tab strip height | **18px (L6.1 target ≥30px; ui-gate.md)** |
@@ -48,8 +49,8 @@ line under the row — never silent renumbering.
 | L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | DONE | 5dafd6e | eval-results/2026-07-07/gate-battery-l2-s7.txt |
 | L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | DONE | (l2.3) | eval-results/2026-07-07/gate-battery-l2-s8.txt |
 | L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
-| L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-07/gate-battery-l3-s11.txt |
-| L3.2 | Targeted semantic upgrades (Law R2) | TODO | | |
+| L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-08/gate-battery-l3-s11.txt |
+| L3.2 | Targeted semantic upgrades (Law R2) | DONE | (l3.2) | eval-results/2026-07-08/gate-battery-l3.2-s12.txt |
 | L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | TODO | | |
 | L4.1 | Flow store; spine-only TOUCHES/EMITS | TODO | | |
 | L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | TODO | | |

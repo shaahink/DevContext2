@@ -133,6 +133,65 @@ public sealed class SymbolTableTests
         Assert.Equal(ResolutionTier.Unresolved, r.Tier);
     }
 
+    // ── L3.2: Law R2 — a real semantic bind is never downgraded or re-ambiguated ──
+
+    [Fact]
+    public void R2_preserves_semantic_bind_to_known_fqn()
+    {
+        var table = new SymbolTable([T("Basket.API.CheckoutBasketCommand", "CheckoutBasketCommand", "Basket.API", "/src/Basket/Checkout.cs")], ProjectMapper);
+        var bound = new SymbolRef
+        {
+            Text = "CheckoutBasketCommand",
+            Site = Ref(""),
+            Resolved = new SymbolId(SymbolKind.Type, "Basket.API.CheckoutBasketCommand"),
+            Tier = ResolutionTier.Semantic,
+        };
+        var r = table.Resolve(bound);
+        Assert.Equal(ResolutionTier.Semantic, r.Tier);
+        Assert.Equal("Basket.API.CheckoutBasketCommand", r.Resolved?.Canonical);
+    }
+
+    [Fact]
+    public void R2_maps_semantic_bind_onto_in_scope_node_without_downgrading()
+    {
+        // The bound FQN (Roslyn display) differs from the graph's node id, but the short name is unique —
+        // map onto the in-scope id so identity matches the syntactic path, keeping the Semantic tier.
+        var table = new SymbolTable([T("Basket.API.CheckoutBasketCommand", "CheckoutBasketCommand", "Basket.API", "/src/Basket/Checkout.cs")], ProjectMapper);
+        var bound = new SymbolRef
+        {
+            Text = "CheckoutBasketCommand",
+            Site = Ref(""),
+            Resolved = new SymbolId(SymbolKind.Type, "global::Basket.API.CheckoutBasketCommand"),
+            Tier = ResolutionTier.Semantic,
+        };
+        var r = table.Resolve(bound);
+        Assert.Equal(ResolutionTier.Semantic, r.Tier);
+        Assert.Equal("Basket.API.CheckoutBasketCommand", r.Resolved?.Canonical);
+    }
+
+    [Fact]
+    public void R2_semantic_bind_arbitrates_a_would_be_ambiguous_short_name()
+    {
+        // "Product" collides across two projects: a bare syntactic ref is Ambiguous (Law R1). But a real
+        // semantic bind resolved it — that ref keeps its Semantic resolution instead of being re-ambiguated.
+        var table = new SymbolTable(
+        [
+            T("Basket.API.Models.Product", "Product", "Basket.API.Models", "/src/Basket/Models/Product.cs"),
+            T("Ordering.API.Models.Product", "Product", "Ordering.API.Models", "/src/Ordering/Models/Product.cs"),
+        ], ProjectMapper);
+        var bound = new SymbolRef
+        {
+            Text = "Product",
+            Site = Ref("/src/Shared/Utils.cs"),
+            Resolved = new SymbolId(SymbolKind.Type, "Ordering.API.Models.Product"),
+            Tier = ResolutionTier.Semantic,
+        };
+        var r = table.Resolve(bound);
+        Assert.Equal(ResolutionTier.Semantic, r.Tier);
+        Assert.Equal("Ordering.API.Models.Product", r.Resolved?.Canonical);
+        Assert.Empty(r.Candidates);
+    }
+
     [Fact]
     public void IsKnownFqn_returns_true_for_registered_fqn()
     {
