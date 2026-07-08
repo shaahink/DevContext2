@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 16:31 UTC · branch `feat/loom-l5` · HEAD `327f351`_
+_Updated 2026-07-08 16:41 UTC · branch `feat/loom-l5` · HEAD `e87c3cb`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
@@ -9,24 +9,24 @@ _Updated 2026-07-08 16:31 UTC · branch `feat/loom-l5` · HEAD `327f351`_
 
 ## Latest activity (live)
 
-_Session #28 (Audit) · running 30m · last output 132s ago · $0.0259_
+_Session #28 (Audit) · running 40m · last output 154s ago · $0.0277_
 
 **Thinking:**
-> There's a leftover DevContext.Server process from the QA runs that's holding onto the DLLs and preventing a rebuild. The MCP executable was terminated but the server it spawned didn't get cleaned up properly, so I need to kill any lingering DevContext.Server and devcontext-mcp processes before tryin…
-> There's a lingering server process issue where the MCP's cleanup handler only runs if it spawned the process, but the QA harness kills it directly with a hard signal that bypasses the cleanup, causing the server to leak — this is a pre-existing problem.  I'll document it as a test infrastructure ris…
 > The server tests all passed with my new idempotency check working correctly. Now I'm running the cold QA gate to verify my MCP and gate changes don't break anything—this should take about two minutes. I'll need to clean up any lingering server processes before running the rebuild.
+> The cold gate is holding steady at 92% pass rate with no false positives or opaque errors, so I can move forward with the scripted QA regression. I need to check if there's a lingering server from the previous run, but run.js should handle that gracefully by reusing any existing server on port 5179 …
+> Scripted QA is still passing all tests including the usage queries, so my F4 change didn't break anything there. I need to run the full .NET test suite with a clean build to verify nothing else broke, then check the UI with pnpm. Let me first kill any lingering server processes and run the complete …
 
 **Recent actions:**
-- `17:26:44` · **F4** — deepen `Usages` short-name resolution to detect multi-exact ambiguity instead of silently picking:
-- `17:26:44` » edit src\DevContext.Mcp\DevContextTools.cs
-- `17:27:20` · Let me build to verify the C# changes compile:
-- `17:27:48` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 8
-- `17:28:02` · A leftover server process from the QA runs is locking DLLs. Let me kill lingering processes and rebuild:
-- `17:28:04` » bash Get-Process | Where-Object { $_.ProcessName -match 'DevContext|devcontext-mcp' } | Select-Object Id, ProcessName; echo "--- killing ---"; Get-Process | Whe…
 - `17:28:18` » bash cd C:/code/DevContext2-ui; dotnet build DevContext.slnx 2>&1 | Select-Object -Last 6
 - `17:28:36` · Build green. Let me run the Server tests to validate the new idempotency assertion:
 - `17:28:42` » bash cd C:/code/DevContext2-ui; dotnet test tests/DevContext.Server.Tests/DevContext.Server.Tests.csproj --no-build 2>&1 | Select-String -Pattern "Passed!|Faile…
 - `17:28:52` · Server tests pass (including the new idempotency assertion). Now re-run the cold-agent gate with my MCP + gate-strictness changes:
+- `17:31:49` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run-cold.js --gate 2>&1 | Select-Object -Last 30
+- `17:32:05` · Cold gate holds at 92% with my changes. Now the scripted QA regression:
+- `17:34:54` » bash cd C:/code/DevContext2-ui; node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 16
+- `17:35:22` · Scripted QA 8/8. Let me clean up lingering QA processes and run the full .NET test suite + UI gate:
+- `17:38:21` » bash Get-Process | Where-Object { $_.ProcessName -match 'DevContext|devcontext-mcp' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds …
+- `17:38:31` · All .NET tests pass (408 + 12 + 64). Now the UI gate:
 
 ## Stage progress
 
