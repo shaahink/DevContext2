@@ -1,12 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:27 UTC · branch `feat/loom-l2` · HEAD `8f0579b`_
+_Updated 2026-07-08 03:38 UTC · branch `feat/loom-l2` · HEAD `272a11f`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 0
-**Checkpoints:** 15/35 done · **Sessions run:** 16 · **Cost:** $1.2225 · **Tokens:** 921,382 in / 269,449 out / 182,842 think
+**Checkpoints:** 15/35 done · **Sessions run:** 17 · **Cost:** $1.2225 · **Tokens:** 921,382 in / 269,449 out / 182,842 think
 **Confirmed phases:** L0, L1, L2
-**Pending:** auto-fix audit for L3
+
+## Latest activity (live)
+
+_Session #17 (Audit) · running 10m · last output 0s ago · $0.0755_
+
+**Thinking:**
+> So `best` is a `Dictionary<string, (int Score, string Path)>`. When I iterate `best.Values`, each element is `(int Score, string Path)`. My destructuring `(name, path)` is wrong because the first element is score, not name. The name is the dictionary key. I need to iterate `best` (key-value pairs) t…
+> Now let me rebuild.
+> Build succeeds with 0 warnings and 0 errors. Now run the tests.
+
+**Recent actions:**
+- `04:35:06` · Build errors. The `MetadataReference` doesn't have `FilePath`. Let me fix the deduplication approach — I'll store framework assembly names separately.
+- `04:35:12` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `04:35:12` · Now fix the `FrameworkRefs.Value` references and the deduplication code:
+- `04:35:17` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `04:35:25` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `04:35:25` · Fix the deduplication code and the tuple destructuring:
+- `04:35:34` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `04:35:55` » bash dotnet build C:/Code/DevContext2-ui/DevContext.slnx 2>&1
+- `04:36:01` · Build green with 0w/0e. Now run the test battery.
+- `04:38:01` » bash dotnet test C:/Code/DevContext2-ui/DevContext.slnx --filter "Category!=Eval" --no-build 2>&1
 
 ## Stage progress
 
@@ -42,6 +62,7 @@ _Updated 2026-07-08 03:27 UTC · branch `feat/loom-l2` · HEAD `8f0579b`_
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
+| 17 | L3 | Audit | 1 | 07-08 03:28 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
