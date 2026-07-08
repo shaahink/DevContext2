@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 05:53 UTC · branch `feat/loom-l2` · HEAD `400a244`_
+_Updated 2026-07-08 06:03 UTC · branch `feat/loom-l2` · HEAD `087b5d7`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 05:53 UTC · branch `feat/loom-l2` · HEAD `400a244`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 70m · last output 18s ago · $0.0567_
+_Session #20 (Deliver) · running 80m · last output 87s ago · $0.0669_
 
 **Thinking:**
-> The run.js harness uses the same pattern and awaits the analyze promise, so the issue might be that I need to await the analyze promise concurrently in my script. The MCP server spawns itself but connects to DevContext.Server over gRPC, so I should check if that server is actually running.
-> The MCP is spawning the server, but my analyze call is polling without awaiting it, which might be causing the server to get killed mid-run. The run.js pattern works because it handles this differently. Let me retry with a clean approach since run.js already proved the overview and top_flows functio…
-> The file came back empty because the script crashed before it could write anything. I'm realizing my simpler approach isn't waiting for the analyze call properly—I'm firing it off without awaiting it, which means the session gets flushed before analysis completes. Looking at how run.js handles this,…
+> I'm seeing a mismatch where `AddServiceNodes` only creates Service nodes for runnable projects, but the join methods are creating additional Service nodes for any project that publishes or consumes services—including libraries like `Ordering.Application` and `BuildingBlocks`—which pollutes the Servi…
+> I'm seeing a mismatch in how Service nodes get created across the codebase. `AddServiceNodes` only generates them for runnable projects through the boundary inference logic, but the bus/gRPC/HTTP link methods are creating Service nodes directly for whatever project the seam resolves to—which can inc…
+> The projection needs to filter for runnable service nodes, but I need to be careful about how ServiceLink joins create separate Service nodes for library projects like Ordering.Application. Since these have different NodeIds than the runnable ones (ForService("Ordering.Application") vs ForService("O…
 
 **Recent actions:**
-- `06:49:04` » bash Get-Process -Name "devcontext-mcp","DevContext.Server" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 2; no…
-- `06:49:22` · The MCP transport has a known flush trap. Let me debug by printing list_sessions responses.
-- `06:49:22` » bash Get-Content eval-results/2026-07-08/l4.3-consumers.md
-- `06:49:38` · run.js worked but my script didn't. Let me check whether the MCP needs a running server (run.js succeeded, so maybe timing). Let me check how MCP connects.
-- `06:49:38` » read src\DevContext.Mcp\Program.cs
-- `06:49:56` · run.js already proves the consumers work (overview 209 tok, services=true). Let me retry the raw dump once more cleanly.
-- `06:52:05` » bash Get-Process -Name "devcontext-mcp","DevContext.Server" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 3; no…
-- `06:52:14` » bash Get-Content eval-results/2026-07-08/l4.3-consumers.md
-- `06:52:36` · The evidence script races the server spawn. Let me make it wait for server readiness first, mirroring run.js more closely.
-- `06:52:36` » edit eval\mcp-qa\l43-evidence.js
+- `06:59:34` » edit src\DevContext.Core\Graph\CodeGraph.cs
+- `06:59:45` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `07:00:08` · Now filter the projection's service cards to runnable-tagged nodes. Let me update ServiceMapProjection.
+- `07:00:08` » edit src\DevContext.Core\Graph\GraphProjections.cs
+- `07:00:35` · Now update my projection test to assert runnable filtering. Let me add a test where a non-runnable Service node is excluded.
+- `07:00:35` » edit tests\DevContext.Core.Tests\GraphProjectionTests.cs
+- `07:00:47` · But wait — the transports still show `Ordering.Application` as a target. That's acceptable (transports show the real seam endpoints; the design says ServiceLink…
+- `07:01:07` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
+- `07:01:21` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --filter "FullyQualifiedName~GraphProjectionTests" --nologo 2>&1 | Select-Object -Last…
+- `07:01:35` · Now regenerate the MCP evidence to confirm the 6 runnables only.
 
 ## Stage progress
 
