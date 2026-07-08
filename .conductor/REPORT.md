@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 15:43 UTC · branch `feat/loom-l5` · HEAD `7b5fd38`_
+_Updated 2026-07-08 15:53 UTC · branch `feat/loom-l5` · HEAD `aa77564`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.5
@@ -9,24 +9,24 @@ _Updated 2026-07-08 15:43 UTC · branch `feat/loom-l5` · HEAD `7b5fd38`_
 
 ## Latest activity (live)
 
-_Session #27 (Deliver) · running 20m · last output 0s ago · $0.0473_
+_Session #27 (Deliver) · running 30m · last output 116s ago · $0.0625_
 
 **Thinking:**
-> Still at 10/12 (83%). B4 is still unactionable. The previous run with `--gate --quiet` had a transient issue.  So my fix didn't work as expected. B4 is still unactionable. This means the `usages` tool's response to "IBasketRepository" is still: 1. Not signaling an error (no explicit error word) 2. N…
-> OK, I see the problem. When `nodeId = "IBasketRepository"`, the search returns a node whose title IS "IBasketRepository" (so my exact-match check passes). Then usages returns 0 edges (the node genuinely has 0 in-edges in the graph). The response is a "success" with count:0.  The classification shows…
-> Let me read the Envelope method.
+> Let me run the remaining gate checks and produce the evidence artifact.
+> Let me analyze the results:  1. **Build**: Still had locked processes. The `Get-Process | Stop-Process` didn't catch everything because there are DevContext.Server and .NET Host processes that started during the cold QA run. But earlier, when I killed processes and built, it was green. I'll note the…
+> Good, all processes killed. Let me re-run the test that failed.
 
 **Recent actions:**
-- `16:36:43` · Now I'll implement the B4 fix — add exact-match validation after short-name resolution in `usages`.
-- `16:36:49` · Now build and re-run cold QA to verify.
-- `16:36:53` » bash dotnet build C:\Code\DevContext2-ui\src\DevContext.Mcp\DevContext.Mcp.csproj 2>&1
-- `16:39:03` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run-cold.js --quiet --gate 2>&1
-- `16:39:35` · Score dropped to 9/12 — A1 also flipped unactionable (likely a transient issue). Let me run without flags to see full details.
-- `16:42:31` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; Start-Sleep -Seconds 2; node C:\Code\DevContext2-ui\eval\m…
-- `16:42:58` » read src\DevContext.Mcp\DevContextTools.cs
-- `16:42:58` · B4 still unactionable — the node IS found but shows 0 usages as a "success". I need to signal uncertainty when short-name resolution produces 0 results.
-- `16:43:12` » grep private static string Envelope|static string Envelope
-- `16:43:17` » read src\DevContext.Mcp\DevContextTools.cs
+- `16:43:58` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet build C:\Code\DevContext2-ui\src\DevContext.Mcp\Dev…
+- `16:46:55` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run-cold.js --gate 2>&1
+- `16:47:04` » todowrite 3 todos
+- `16:47:04` · B4 is now **actionable** and the gate passes at **11/12 (92%) >= 90%**. Now run the full gate battery for the evidence artifact.
+- `16:47:14` » bash powershell -File C:\Code\DevContext2-ui\scripts\loom-guards.ps1 2>&1
+- `16:48:05` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1; …
+- `16:50:10` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run.js --quiet 2>&1
+- `16:50:55` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filte…
+- `16:51:14` · Tests show 1 failure — `McpQaGateTests` looking for "PASS" in run.js output. Let me kill processes and investigate.
+- `16:51:17` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext|DevContext|\.NET Host' } | Stop-Process -Force 2>$null; Start-Sleep -Seconds 3; Get-Process …
 
 ## Stage progress
 
