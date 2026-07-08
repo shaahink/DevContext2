@@ -7,15 +7,15 @@ unresolved bugs + deferred work from L0-L4 audits, sized + gated) → `docs/dev/
 Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
-## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L5 session #26 — **L5.4 DONE** (real flow tool). Flow tool added: compact
-       trace with steps/touches/emits/approxTokens; deep-links to trace for full
-       detail. B4+unactionable cold probe moved to L5.5 fix list. get_context+
-       config fuzzy focus already actioned by L5.2/5.3 suggestions. Cold QA: 10/12
-       (83%) actionable, 23 tools, tools/list 1337 tok, 0 false-successes.
-stage: **L5.4 DONE**. flow tool shipped, cold QA baseline stable, B1 probe updated.
-next: **L5.5** — drive cold QA to ≥90% actionability; fix B4 usages-shortname gate.
-evidence: eval-results/2026-07-08/gate-battery-l5.4-s26.txt
+##  Handoff  (overwrite this block, ≤10 lines, no history)
+last: L5 session #28 — **L5.5 DONE** (cold QA gate ≥90%). Fixed B4 usages-shortname:
+       usages with short name that resolves to 0 edges now returns error+hint+
+       candidates instead of silent count:0. Cold QA: 11/12 (92%) actionable, 23
+       tools, tools/list 1337 tok, 0 false-successes, 0 opaque errors. B4 flipped
+       actionable. B9 rank-quality aggregate#1=true (find output is success, not failure).
+stage: **L5.5 DONE**. L5 complete — all 5 checkpoints landed.
+next: **L6.1** — tabs 32px+, New=createTab, clone-close confirm (workbench repair).
+evidence: eval-results/2026-07-08/gate-battery-l5.5-s28.txt
            eval-results/2026-07-08/mcp-cold-qa.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
@@ -67,7 +67,7 @@ line under the row — never silent renumbering.
 | L5.2 | Error envelopes (error+hint+example ≤80 tok) | DONE | (l5.2-s24) | eval-results/2026-07-08/gate-battery-l5.2-s24.txt |
 | L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | DONE | (l5.3-s25) | eval-results/2026-07-08/gate-battery-l5.3-s25.txt |
 | L5.4 | Real `flow` tool + fuzzy focus | DONE | (l5.4-s26) | eval-results/2026-07-08/gate-battery-l5.4-s26.txt
-| L5.5 | Cold-agent QA becomes the gate | TODO | | |
+| L5.5 | Cold-agent QA becomes the gate | DONE | (l5.5-s28) | eval-results/2026-07-08/gate-battery-l5.5-s28.txt |
 | L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | TODO | | |
 | L6.2 | Code pane: entry selection shows source; states visible | TODO | | |
 | L6.3 | Inspector insights: adjacency filter + honest chip | TODO | | |

@@ -782,6 +782,18 @@ public sealed class DevContextTools
                         suggestions.Length > 0 ? suggestions : null);
                 }
                 resolved = search.Nodes[0].NodeId;
+
+                // L5.5 — short names must resolve to an unambiguous node before querying usages.
+                // Substring-only matches may resolve to the wrong node, producing a silent count:0.
+                var topTitle = TrimTitle(search.Nodes[0].Title);
+                if (!string.Equals(topTitle, nodeId, StringComparison.OrdinalIgnoreCase))
+                {
+                    var candidates = await SuggestAsync(handle, nodeId, 5);
+                    return Envelope($"Short name '{nodeId}' is ambiguous — the top match '{topTitle}' is not an exact match.",
+                        "Use the full nodeId from resolve(query).",
+                        $"usages(handle, nodeId:\"{search.Nodes[0].NodeId}\")",
+                        candidates.Length > 0 ? candidates : new[] { new { nodeId = search.Nodes[0].NodeId, title = topTitle, kind = search.Nodes[0].Kind } });
+                }
             }
 
             var resp = await _client.GetNeighborsAsync(new NeighborsRequest
@@ -798,6 +810,18 @@ public sealed class DevContextTools
                 return Envelope($"Symbol '{resolved}' not found.",
                     suggestions.Length > 0 ? "Did you mean one of these? (usages needs an exact nodeId)" : "Use resolve(query) to get the exact nodeId.",
                     "usages(handle, nodeId:\"IBasketRepository\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            // L5.5 — when a short name resolves to 0 usages, the agent cannot distinguish
+            // "genuinely unused" from "wrong node resolved". Signal the ambiguity.
+            var wasResolved = resolved != nodeId;
+            if (resp.Edges.Count == 0 && wasResolved)
+            {
+                var suggestions = await SuggestAsync(handle, nodeId, 5);
+                return Envelope($"Short name '{nodeId}' resolved to {resolved} but has 0 usages — verify this is the intended node.",
+                    "Use resolve(query) to see all matching nodes, then pass the exact nodeId.",
+                    $"usages(handle, nodeId:\"{resolved}\")",
                     suggestions.Length > 0 ? suggestions : null);
             }
 
