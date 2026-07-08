@@ -1,12 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 07:23 UTC · branch `feat/loom-l2` · HEAD `e22a43a`_
+_Updated 2026-07-08 07:29 UTC · branch `feat/loom-l2` · HEAD `c8ea2cd`_
 
 **Status:** Idle
 **Stage:** L4 — Flows + projections · attempts used 0
 **Checkpoints:** 19/35 done · **Sessions run:** 22 · **Cost:** $1.7746 · **Tokens:** 1,447,071 in / 387,669 out / 241,508 think
-**Confirmed phases:** L0, L1, L2, L3
-**Pending:** full-battery phase gate for L4
+**Confirmed phases:** L0, L1, L2, L3, L4
 
 ## Stage progress
 
@@ -16,7 +15,7 @@ _Updated 2026-07-08 07:23 UTC · branch `feat/loom-l2` · HEAD `e22a43a`_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 4/4 | gating… |
+| L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -115,7 +114,7 @@ _Updated 2026-07-08 07:23 UTC · branch `feat/loom-l2` · HEAD `e22a43a`_
 
 ## Last gate run
 
-build:OK
+build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
 
 ## Last session result
 
