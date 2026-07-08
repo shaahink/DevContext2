@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 08:00 UTC · branch `feat/loom-l5` · HEAD `402a6c1`_
+_Updated 2026-07-08 08:10 UTC · branch `feat/loom-l5` · HEAD `0f4032d`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.2
-**Checkpoints:** 20/35 done · **Sessions run:** 23 · **Cost:** $1.8454 · **Tokens:** 1,528,867 in / 402,097 out / 252,033 think
+**Checkpoints:** 20/35 done · **Sessions run:** 24 · **Cost:** $1.8454 · **Tokens:** 1,528,867 in / 402,097 out / 252,033 think
 **Confirmed phases:** L0, L1, L2, L3, L4
+
+## Latest activity (live)
+
+_Session #24 (Deliver) · running 10m · last output 73s ago · $0.0028_
+
+**Thinking:**
+> I'm reviewing the L5.1 specification to verify that all 20+ MCP tools support the optional `handle` parameter with a default to the most recent session, and I'm starting to check through the tool list to confirm this claim.  Now I need to verify a few specifics: whether Analyze actually returns an e…
+> L5.1 is looking good—the session ordering by most recent access and idempotency through the repo and HEAD reference checks out. I should verify the evidence artifact exists and matches what I expect, though I've already re-run the gates so that should be confirmed.  The gates are all passing (8/8, 4…
+> I need to establish a baseline by running the cold QA harness after the L5.1 changes, then understand what L5.2 needs to address—specifically ensuring every tool failure returns a structured response with error, hint, and example fields, parameter-binding failures include the expected schema, and un…
+
+**Recent actions:**
+- `09:08:22` » bash Get-ChildItem eval-results/2026-07-08/ | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize
+- `09:08:22` » bash git show ac7a7dd --stat 2>&1 | Select-Object -First 40
+- `09:08:31` » read src\DevContext.Mcp\DevContextTools.cs
+- `09:08:31` · Let me QA the L5.1 implementation. I'll read the changed code and verify the claims hold.
+- `09:08:43` » read src\DevContext.Server\Sessions\AnalysisSessionManager.cs
+- `09:08:43` · L5.1 QA — all 20+ tools call `ResolveHandle`. Let me verify the idempotency + "most recent" claims in the session manager.
+- `09:08:58` · L5.1 QA verdict: **PASS**. `ListSessions` orders by LastAccess desc (most recent first), `ResolveHandle` picks `[0]`, idempotency via repo+HEAD key with proper …
+- `09:08:58` » read eval\mcp-qa\run-cold.js
+- `09:09:14` · Let me run the cold-QA baseline (post-L5.1) and examine the MCP server wiring in parallel.
+- `09:09:15` » bash Get-ChildItem src/DevContext.Mcp/*.cs | Select-Object Name; echo "---"; Get-Content src/DevContext.Mcp/Program.cs
 
 ## Stage progress
 
@@ -48,6 +69,7 @@ _Updated 2026-07-08 08:00 UTC · branch `feat/loom-l5` · HEAD `402a6c1`_
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
+| 24 | L5 | Deliver | 1 | 07-08 08:00 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
