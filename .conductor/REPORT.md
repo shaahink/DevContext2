@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 01:19 UTC · branch `feat/loom-l2` · HEAD `05b1665`_
+_Updated 2026-07-08 01:29 UTC · branch `feat/loom-l2` · HEAD `bd0cb13`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
-**Checkpoints:** 14/35 done · **Sessions run:** 14 · **Cost:** $0.9059 · **Tokens:** 768,271 in / 195,421 out / 129,443 think
+**Checkpoints:** 14/35 done · **Sessions run:** 15 · **Cost:** $0.9059 · **Tokens:** 768,271 in / 195,421 out / 129,443 think
 **Confirmed phases:** L0, L1, L2
+
+## Latest activity (live)
+
+_Session #15 (Resume) · running 10m · last output 1s ago · $0.0312_
+
+**Thinking:**
+> Good, the QA runs look good. Let me check: 1. Dogfood numbers: 422 nodes, 276 edges, 34 entries, 33/34 with target, 6 ServiceLinks, Verified edges 65% - matches the handoff claim (was "64.7% → 65.2%") 2. MinimalApiProject: 16 nodes, 8 edges - the degrade path works (no assets.json)  Now let me check…
+> The grep for the dogfood-qa report didn't match the diagnostics data. This is because the `--include-diagnostics` flag may output diagnostic info on the console (stderr/stdout), not in the markdown report. Let me check by running the CLI and capturing the console output directly.  Actually, looking …
+> Hmm, the diagnostics don't seem to be going to stdout. Let me check how `--include-diagnostics` works in the CLI. Let me look at the CLI code.
+
+**Recent actions:**
+- `02:28:46` · Gate battery: build 0w/0e, tests 393P/3S+12+64, pnpm PASS, guards PASS, mcp-qa 8/8. All green. Now QA-ing the previous session (L3.2). Let me verify its claims …
+- `02:28:51` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- report "C:\Code\DevContext2-ui\tests\fixtures\MinimalApiProject" --include-dia…
+- `02:28:51` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --includ…
+- `02:28:55` » read eval-results\2026-07-08\dogfood-l3.2-qa.md
+- `02:28:56` » read eval-results\2026-07-08\minimalapi-l3.2-qa.md
+- `02:29:04` » grep tier|SemanticLite|upgraded|compilation|Diagnostics
+- `02:29:04` » grep tier|SemanticLite|degrad|Diagnostics
+- `02:29:11` · Let me capture the CLI diagnostic output directly to verify tier routing.
+- `02:29:16` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --includ…
+- `02:29:21` » grep include-diagnostics|IncludeDiagnostics|Diagnostics
 
 ## Stage progress
 
@@ -39,6 +60,7 @@ _Updated 2026-07-08 01:19 UTC · branch `feat/loom-l2` · HEAD `05b1665`_
 | 12 | L3 | Deliver | 1 | 07-07 23:42 | 1:10 | Advanced | L3.2 | 8 | build:OK | $0.1077 | 4,843/37,215 |
 | 13 | L3 | Deliver | 1 | 07-08 00:53 | 0:06 | KilledByUser |  | 0 |  | $0.0173 | 35,875/975 |
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
+| 15 | L3 | Resume | 2r1 | 07-08 01:19 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
