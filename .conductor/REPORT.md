@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:42 UTC · branch `feat/loom-l2` · HEAD `d5602c3`_
+_Updated 2026-07-08 04:53 UTC · branch `feat/loom-l2` · HEAD `d17a57e`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
-**Checkpoints:** 17/35 done · **Sessions run:** 19 · **Cost:** $1.4766 · **Tokens:** 1,226,929 in / 312,141 out / 211,962 think
+**Checkpoints:** 17/35 done · **Sessions run:** 20 · **Cost:** $1.4766 · **Tokens:** 1,226,929 in / 312,141 out / 211,962 think
 **Confirmed phases:** L0, L1, L2, L3
+
+## Latest activity (live)
+
+_Session #20 (Deliver) · running 10m · last output 3s ago · $0.0017_
+
+**Thinking:**
+> I notice the branch is on `feat/loom-l2` even though the checkpoints are at L4, but since the work has been continuing on this branch, I'll stay put rather than switching. Now I'm running the gate battery to start the build.
+> Running the test suite now—core tests are passing across all configurations, server tests look good, and desktop tests are solid. Guards passed as expected, so moving on to check the package manager and quality assurance tools.
+> The gate battery is fully charged, so I'm documenting that and then reviewing the previous session's work to make sure everything checks out. I should set up a task list for what comes next.
+
+**Recent actions:**
+- `05:46:23` · Branch is `feat/loom-l2` (work continued here). Let me run the gate battery.
+- `05:46:37` » bash dotnet build DevContext.slnx 2>&1 | Select-Object -Last 15
+- `05:46:45` · Build 0w/0e. Now tests and guards in parallel.
+- `05:46:47` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 20
+- `05:49:48` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-Object -Last 25
+- `05:49:57` · Core 393P/3S, Server 12P, Desktop 64P, guards PASS. Now pnpm check and mcp-qa.
+- `05:50:39` » bash pnpm check 2>&1 | Select-Object -Last 30
+- `05:52:48` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 20
+- `05:52:57` » todowrite 3 todos
+- `05:52:57` · Gate battery all green. Let me record it and start QA of the previous session (L4.2).
 
 ## Stage progress
 
@@ -44,6 +65,7 @@ _Updated 2026-07-08 04:42 UTC · branch `feat/loom-l2` · HEAD `d5602c3`_
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
+| 20 | L4 | Deliver | 1 | 07-08 04:42 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
