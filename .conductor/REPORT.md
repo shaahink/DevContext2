@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 09:20 UTC · branch `feat/loom-l5` · HEAD `d921b04`_
+_Updated 2026-07-08 09:27 UTC · branch `feat/loom-l5` · HEAD `323f1a7`_
 
-**Status:** Running
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.2
-**Checkpoints:** 20/35 done · **Sessions run:** 24 · **Cost:** $1.8454 · **Tokens:** 1,528,867 in / 402,097 out / 252,033 think
+**Status:** Idle
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.3
+**Checkpoints:** 21/35 done · **Sessions run:** 24 · **Cost:** $1.9421 · **Tokens:** 1,532,617 in / 432,227 out / 280,225 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #24 (Deliver) · running 80m · last output 123s ago · $0.0822_
-
-**Thinking:**
-> I'm seeing that the trace function is receiving the focus and query parameters correctly in phases A2 and A3, but when ResolveHandle fails due to a missing session, my error handling wraps it into a FromRpc envelope that surfaces as a generic "An error occurred invoking 'trace'" message instead of t…
-> I see the issue—several MCP methods are missing default values for their optional `string? handle` parameters, which prevents the SDK from binding them correctly when the agent doesn't provide a handle. I need to add `= null` to the first parameter across Resolve, Trace, Node, Neighbors, Usages, Fin…
-> I'm checking whether `IBasketRepository` exists as a node in the graph — since it's an interface type, if it does exist, the guard passes and returns a count of zero. But the audit notes that this tool silently returns zero usages for `IBasketRepository` because it requires an exact node ID, whereas…
-
-**Recent actions:**
-- `10:14:14` · The envelopes are well-formed. Let me measure token counts precisely for the error+hint+example (excluding candidates which can be larger but are optional data)…
-- `10:14:14` » bash $b1='{"error":"Unknown tool ''flow''.","hint":"Did you mean ''top_flows''? See availableTools.","example":"top_flows(handle)"}'; $b3='{"error":"Symbol ''To…
-- `10:14:25` · All error+hint+example envelopes are well under the ≤80 token budget (max ~55 tok). Now let me run the regression harness (run.js — must stay 8/8) and the full …
-- `10:17:18` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 1; no…
-- `10:17:28` · Regression stays 8/8. Now the full gate battery: build (all), tests, guards.
-- `10:17:54` » bash dotnet build DevContext.slnx --nologo 2>&1 | Select-Object -Last 6
-- `10:18:04` · Aleftover server process from the QA run is locking files. Let me kill it and rebuild.
-- `10:18:12` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
-- `10:18:24` · Build 0w/0e. Now tests + guards.
-- `10:18:26` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 6
 
 ## Stage progress
 
@@ -37,7 +16,7 @@ _Session #24 (Deliver) · running 80m · last output 123s ago · $0.0822_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 1/5 | **← active** |
+| L5 | MCP v2 cold-agent ergonomics | 2/5 | **← active** |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -69,18 +48,10 @@ _Session #24 (Deliver) · running 80m · last output 123s ago · $0.0822_
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
-| 24 | L5 | Deliver | 1 | 07-08 08:00 | … | running |  | 0 |  |  |  |
+| 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 
 ### Commits by session
 
-- **s16 (L3 Deliver)** — 7 commit(s):
-  - 8f0579b feat(l3.3): verified-edge ratchet 68%->81% — assembly-independent semantic bind of dispatch targets
-  - a292fdd chore(conductor): s16 L3 working ▸L3.3 @ 04:25
-  - 3b58846 chore(conductor): s16 L3 working ▸L3.3 @ 04:15
-  - 1475f2c chore(conductor): s16 L3 working ▸L3.3 @ 04:05
-  - 86798bb chore(conductor): s16 L3 working ▸L3.3 @ 03:55
-  - 18a6362 chore(conductor): s16 L3 working ▸L3.3 @ 03:45
-  - 0a85550 chore(conductor): s16 L3 working ▸L3.3 @ 03:35
 - **s17 (L3 Audit)** — 5 commit(s):
   - 412aeae docs(l3-audit): append PROGRESS-LOG.md session entry
   - 094aa1d docs(l3-audit): honest phase handover to .conductor/handovers/L3.md
@@ -124,6 +95,17 @@ _Session #24 (Deliver) · running 80m · last output 123s ago · $0.0822_
   - ac7a7dd feat(l5.1): default-session ergonomics + idempotent analyze
   - c601417 chore(conductor): s23 L5 working ▸L5.1 @ 08:49
   - c7eacd5 chore(conductor): s23 L5 working ▸L5.1 @ 08:39
+- **s24 (L5 Deliver)** — 10 commit(s):
+  - 323f1a7 chore(l5.2): record push-blocked handoff note (network/DNS unavailable)
+  - a78c135 feat(l5.2): error envelopes for cold-agent MCP ergonomics
+  - 681a411 chore(conductor): s24 L5 working ▸L5.2 @ 10:20
+  - d921b04 chore(conductor): s24 L5 working ▸L5.2 @ 10:10
+  - c966a73 chore(conductor): s24 L5 working ▸L5.2 @ 10:00
+  - 82d3349 chore(conductor): s24 L5 working ▸L5.2 @ 09:50
+  - 5f0acc8 chore(conductor): s24 L5 working ▸L5.2 @ 09:40
+  - ea68669 chore(conductor): s24 L5 working ▸L5.2 @ 09:30
+  - e30744e chore(conductor): s24 L5 working ▸L5.2 @ 09:20
+  - 74321be chore(conductor): s24 L5 working ▸L5.2 @ 09:10
 
 ## Phase handovers (audit)
 
@@ -135,22 +117,72 @@ _Session #24 (Deliver) · running 80m · last output 123s ago · $0.0822_
 
 ## Last gate run
 
-build:OK
+build:FAIL
+
+<details><summary>build — exit 1</summary>
+
+```
+C:\code\DevContext2-ui\src\DevContext.Mcp\DevContext.Mcp.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Mcp\DevContext.Mcp.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Mcp\DevContext.Mcp.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Mcp\DevContext.Mcp.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Contracts\DevContext.Contracts.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Cli\DevContext.Cli.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Cli\DevContext.Cli.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Cli\DevContext.Cli.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Core\DevContext.Core.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Core\DevContext.Core.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Core\DevContext.Core.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\benchmarks\DevContext.Benchmarks\DevContext.Benchmarks.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\benchmarks\DevContext.Benchmarks\DevContext.Benchmarks.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\benchmarks\DevContext.Benchmarks\DevContext.Benchmarks.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\src\DevContext.Desktop\DevContext.Desktop.csproj : error NU1900: Warning As Error: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Desktop.Tests\DevContext.Desktop.Tests.csproj : error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Desktop.Tests\DevContext.Desktop.Tests.csproj : error NU1301:   No such host is known. (api.nuget.org:443) [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Desktop.Tests\DevContext.Desktop.Tests.csproj : error NU1301:   No such host is known. [C:\code\DevContext2-ui\DevContext.slnx]
+C:\code\DevContext2-ui\tests\DevContext.Desktop.Tests\DevContext.Desktop.Tests.csproj : error NU1900: Warning As Error: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [C:\code\DevContext2-ui\DevContext.slnx]
+    0 Warning(s)
+    22 Error(s)
+
+Time Elapsed 00:01:26.15
+```
+</details>
 
 ## Last session result
 
-> SESSION-RESULT: L5.1 landed on `feat/loom-l5` (commit `ac7a7dd`). All 20+ MCP tools now accept optional `handle` defaulting to the most-recent session, and `analyze` is idempotent by repo+HEAD (server-side TryGetByRepo check before engine run, streaming a "cached" progress event on hits). Gate battery all-green: build 0w/0e, tests 484P/3S, guards PASS, MCP QA 8/8. Next session should deliver L5.2 error envelopes (error+hint+example ≤80 tok per tool failure) — the audit shows 15/15 cold-agent calls fail with opaque errors, so every tool needs a consistent `{error, hint, example}` envelope on failures.
+> SESSION-RESULT: L5.2 (Error envelopes) landed with proof for the Loom L5 stage. Every MCP tool failure now returns a compact `{error, hint, example}` envelope (≤80 tok, measured 30–55 tok); required params validate to a schema hint; unknown symbols return "did-you-mean" candidates instead of the zero-shaped-success trap (`impact TotallyMadeUpType → totalAffected:0` is now an explicit "not found ≠ zero impact"); config key-misses list real available keys; trace/get_context fuzzy-suggest on focus miss; and unknown tool names route through a new `UnknownToolHandler` returning the nearest tool + full tool list. All `string? handle` params were made optional so a cold agent hits our envelope rath…
 
 ## Tracker handoff
 
 ```
-last: L5 session #23 — **L5.1 DONE** (default-session ergonomics + idempotent analyze). All 20+
-       MCP tools accept optional `handle` (defaults to most-recent session). Analyze returns
-       existing handle for same repo+HEAD (server-side TryGetByRepo check before engine run).
-       Cache hit streams "cached" progress event. ResolveHandle helper picks ≤1 session auto.
-stage: **L5.1 DONE**. Next: L5.2 Error envelopes (error+hint+example ≤80 tok).
+last: L5 session #24 — **L5.2 DONE** (error envelopes). Every tool failure returns
+       `{error,hint,example}` ≤80 tok; required params validated→schema; unknown symbols
+       return candidates (not zero-shaped success); unknown tool → nearest-tool + list;
+       config-miss lists real keys; trace/get_context fuzzy-suggest. Handles now optional.
+       QA of L5.1: **PASS** (idempotency + most-recent resolution correct, no rework).
+stage: **L5.2 DONE**. Cold-agent actionability **0/12 → 10/12 (83%)**, 0 opaque errors.
 gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
-next: **L5.2** — Error envelopes (error+hint+example ≤80 tok per tool failure).
-evidence: eval-results/2026-07-08/gate-battery-l5.1-s23.txt
-           eval-results/2026-07-08/mcp-qa.md
+next: **L5.3** — Unified ranked resolution (graph.Find: resolve/find/usages/impact;
+       `resolve "Order"`→aggregate #1). Flips run-cold B4+B9 (the 2 remaining reds).
+evidence: eval-results/2026-07-08/gate-battery-l5.2-s24.txt
+           eval-results/2026-07-08/mcp-cold-qa-l5.2-s24.md
+HUMAN: `git push` failed this session — DNS could not resolve github.com (no network).
+       Commit a78c135 is landed locally, tree clean. Please `git push` (or rerun next session).
 ```
