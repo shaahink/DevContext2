@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:13 UTC · branch `feat/loom-l2` · HEAD `a589b08`_
+_Updated 2026-07-08 04:20 UTC · branch `feat/loom-l2` · HEAD `37316b7`_
 
-**Status:** Running
-**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.1
-**Checkpoints:** 15/35 done · **Sessions run:** 18 · **Cost:** $1.3208 · **Tokens:** 1,034,720 in / 283,767 out / 193,301 think
+**Status:** Idle
+**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.2
+**Checkpoints:** 16/35 done · **Sessions run:** 18 · **Cost:** $1.3959 · **Tokens:** 1,122,534 in / 296,828 out / 205,951 think
 **Confirmed phases:** L0, L1, L2, L3
-
-## Latest activity (live)
-
-_Session #18 (Deliver) · running 20m · last output 142s ago · $0.0551_
-
-**Thinking:**
-> The build error is due to the DevContext.Server process (PID 47064) holding file locks — not compilation errors. The Core project compiled successfully (`DevContext.Core -> ...`). The Server project couldn't copy because a running server has the output locked.  Let me kill the server process and ret…
-> Good, the server process is killed. Let me retry the build. But first, I should just build the Core project to verify compilation, as the server lock was the only issue.
-> Build succeeded: 0w 0e. Now let me run the tests and produce an evidence artifact by running the CLI against the dogfood repo to verify flows are computed.
-
-**Recent actions:**
-- `05:09:12` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `05:09:19` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `05:09:20` · Let me verify the file compiles. First, check imports:
-- `05:09:25` · Let me build to check for compilation errors:
-- `05:10:08` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `05:10:16` · Build failed due to a running DevContext.Server process holding file locks — not compilation errors. Core compiled fine. Let me kill the lock and retry:
-- `05:10:16` » bash Get-Process -Id 47064 -ErrorAction SilentlyContinue | Stop-Process -Force; if ($?) { echo "killed" } else { echo "not found" }
-- `05:10:40` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1
-- `05:10:49` · Build 0w/0e. Now let me run the tests and produce a fresh dogfood run as evidence:
-- `05:11:09` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o C:\Co…
 
 ## Stage progress
 
@@ -36,7 +15,7 @@ _Session #18 (Deliver) · running 20m · last output 142s ago · $0.0551_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 0/4 | **← active** |
+| L4 | Flows + projections | 1/4 | **← active** |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -63,16 +42,10 @@ _Session #18 (Deliver) · running 20m · last output 142s ago · $0.0551_
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
-| 18 | L4 | Deliver | 1 | 07-08 03:53 | … | running |  | 0 |  |  |  |
+| 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 
 ### Commits by session
 
-- **s8 (L2 Resume)** — 5 commit(s):
-  - 17bfc2f docs(l2): LOOM-START — L2.1/L2.2 DONE, handoff for L2.3/L2.4
-  - 5dafd6e feat(l2.2): five seam detectors over BodyFacts + dogfood-verbatim fixtures
-  - 006daff feat(l2.1): BodyFacts structured body pass + facts-v1 cache in the existing parse
-  - 8b4470b chore(conductor): track .conductor/.gitignore
-  - fba4881 chore(conductor): s8 L2 working ▸L2.1 @ 22:25
 - **s9 (L2 Deliver)** — 8 commit(s):
   - db40049 feat(l2): L2.3 assembler consumes SeamMatches + L2.4 checkout trace depth 6
   - 2157d36 chore(conductor): s9 L2 working ▸L2.3 @ 23:40
@@ -120,6 +93,11 @@ _Session #18 (Deliver) · running 20m · last output 142s ago · $0.0551_
   - b7d9135 chore(conductor): s17 L3 working ▸L3 @ 04:48
   - 1b1a49d fix(l3-audit): correctness + robustness fixes from phase audit
   - 7fa820b chore(conductor): s17 L3 working ▸L3 @ 04:38
+- **s18 (L4 Deliver)** — 4 commit(s):
+  - 37316b7 docs(l4.1): append PROGRESS-LOG.md session entry
+  - 8e75dd9 feat(l4.1): Flow store on CodeGraph; spine-only Touches/Emits; ServiceHops + provenance
+  - 99e5b78 chore(conductor): s18 L4 working ▸L4.1 @ 05:13
+  - a589b08 chore(conductor): s18 L4 working ▸L4.1 @ 05:03
 
 ## Phase handovers (audit)
 
@@ -130,22 +108,25 @@ _Session #18 (Deliver) · running 20m · last output 142s ago · $0.0551_
 
 ## Last gate run
 
-build:OK · tests:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT:** Completed a rigorous static audit of L3 (Semantic-lite tier). Found and fixed 2 correctness/robustness bugs: `HasBindDemand` was silently skipping bodies with `CreationOp`-only or InvocationOp-without-receiver ops (missing semantic binding opportunities), and `ResolveNuGetMetadataRefs` could fail `CSharpCompilation.Create` because NuGet assembly refs weren't deduplicated against framework TPA assemblies. Also removed 3 dead code artifacts (unused `fileToProject` dict, orphaned `Stopwatch`, redundant `UpgradeEdge` downgrade guard) and added a diagnostic for the previously-silent call-edge upgrade failure path. Full gate battery re-ran green: build 0w/0e, Core 393P/3S, Deskto…
+> SESSION-RESULT: L4.1 landed — Flow/FlowStep/ServiceHop records created (`src/DevContext.Core/Graph/FlowModel.cs`), Flows stored on `CodeGraph` with builder pass-through, and `GraphBuilder.ComputeFlows()` spine walk with handler-member bridging computing 34 flows (one per entry) at assembly time. Touches are spine-only (ReadsWrites from spine members — audit E5 fix), Emits from spine Raises, ServiceHops from ServiceLink crossings with transport tag. Node/edge counts unchanged at 422n/276e/6SL/34ent, 82% verified. All gates green: build 0w/0e, Core 393P/3S, Server 12P, Desktop 64P, pnpm 27P, mcp-qa 8/8. Next session should implement L4.2: projections (ServiceMap/FlowList/EntryTable/LayerBand) …
 
 ## Tracker handoff
 
 ```
-last: L3 session #16 — **L3.3 DONE**. Verified-edge ratchet 68% → **81%** (target ≥80% MET).
-stage: **L3 COMPLETE** (L3.1 ✅, L3.2 ✅, L3.3 ✅). Fix: assembly-independent semantic bind of
-      dispatch targets — bind the generic type ARG (`Adapt<T>`) / inline `new X()` creation, not the
-      whole (package-missing, unresolvable) invocation. Sends 32 approx → 0. Zero new edges (pure tier).
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · mcp-qa 8/8.
-trap: Category=Eval FAILs PRE-EXISTING (TodoApi POST /todos lacks TodoDbContext — L7 call-spine gap;
-      proven via stash A/B on clean HEAD). DntSite sub-measurement skipped — repo absent on this machine.
-next: **L4.1** — Flow store on CodeGraph; spine-only Touches/Emits (audit E5); ServiceHops + provenance.
-evidence: eval-results/2026-07-08/gate-battery-l3.3-s16.txt
+last: L4 session #18 — **L4.1 DONE**. Flow store on CodeGraph (34 flows, one per entry).
+      Spine-only Touches/Emits (E5 fix: no EntityRelation reachability). ServiceHops with
+      transport + provenance. Additive only — node/edge counts unchanged (422n/276e).
+stage: **L4 IN PROGRESS** (L4.1 ✅). Fix: Flow/FlowStep/ServiceHop records + CodeGraph
+      storage + GraphBuilder.ComputeFlows() (spine walk with handler-member bridging).
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P ·
+      mcp-qa 8/8. Verified edges 82% (±1% variance from L3.3).
+next: **L4.2** — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets
+      RPC. L4.1's 34 flows are the data; projections render them identically across CLI,
+      MCP, and UI.
+evidence: eval-results/2026-07-08/gate-battery-l4.1-s18.txt
+          eval-results/2026-07-08/dogfood-l4.1-final.md
 ```
