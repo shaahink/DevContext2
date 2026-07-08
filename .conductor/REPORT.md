@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 22:20 UTC · branch `feat/loom-l7` · HEAD `5c31938`_
+_Updated 2026-07-08 22:23 UTC · branch `feat/loom-l7` · HEAD `2036c5a`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L8 — Close-out · attempts used 0
-**Checkpoints:** 34/34 done · **Sessions run:** 41 · **Cost:** $3.0458 · **Tokens:** 2,848,732 in / 614,952 out / 441,249 think
+**Checkpoints:** 34/34 done · **Sessions run:** 41 · **Cost:** $3.1175 · **Tokens:** 2,955,684 in / 625,158 out / 445,730 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7
-
-## Latest activity (live)
-
-_Session #41 (Audit) · running 20m · last output 15s ago · $0.0594_
-
-**Thinking:**
-> All tests pass: - Core: 414P/3S - Server: 12P - Desktop: 64P  Now run truth tests and loom-guards and pnpm check:
-> The Worker test failed because the AzureFunctions repo is detected as Library, not Worker. The assertion `Assert.Contains("WORKER", ...)` failed. Looking at the error message: `String: "LIBRARY  DotNetWorker.Extensions     (183..."` — the repo is being detected as `LIBRARY` not `WORKER`. This is bec…
-> Now let me re-run the truth tests to verify they pass. Also, I see that "AzureFunctions" is in the Worker test. The repo is the Azure Functions .NET worker extension, which is a library project, not a worker app. The archetype detection correctly classifies it as Library. The truth test should verif…
-
-**Recent actions:**
-- `23:13:28` · Server process from previous test run is holding file locks. Let me kill it and retry:
-- `23:13:46` » bash taskkill /F /IM "DevContext.Server.exe" 2>&1; Start-Sleep -Seconds 2; dotnet build DevContext.slnx 2>&1
-- `23:13:53` · Build 0w/0e. Now running the full gate battery:
-- `23:17:12` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --verbosity normal 2>&1
-- `23:17:21` · All unit tests pass. Now run truth tests, loom-guards, and pnpm check:
-- `23:17:22` » bash powershell -File scripts/loom-guards.ps1 2>&1
-- `23:19:06` » bash pnpm check 2>&1
-- `23:19:25` » bash dotnet test DevContext.slnx --filter "Category=Truth" 2>&1
-- `23:19:37` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
-- `23:19:37` · Worker test fails because AzureFunctions repo is correctly classified as `Library` (it's a NuGet package). Fixing the overly strict assertion I added:
+**Pending:** full-battery phase gate for L8
 
 ## Stage progress
 
@@ -75,13 +55,10 @@ _Session #41 (Audit) · running 20m · last output 15s ago · $0.0594_
 | 38 | L7 | Deliver | 1 | 07-08 20:36 | 0:41 | Advanced | L7.4 | 5 | build:OK | $0.1082 | 114,801/19,578 |
 | 39 | L7 | Audit | 1 | 07-08 21:18 | 0:05 | Progress |  | 0 |  | $0.0361 | 65,012/1,156 |
 | 40 | L8 | Deliver | 1 | 07-08 21:31 | 0:27 | Advanced | L8.1 | 3 | build:OK | $0.1221 | 180,508/19,522 |
-| 41 | L8 | Audit | 1 | 07-08 21:59 | … | running |  | 0 |  |  |  |
+| 41 | L8 | Audit | 1 | 07-08 21:59 | 0:23 | Progress |  | 3 |  | $0.0717 | 106,952/10,206 |
 
 ### Commits by session
 
-- **s31 (L6 Deliver)** — 2 commit(s):
-  - de809de feat(l6.3): inspector insights — adjacency filter + honest chip
-  - b58c707 chore(conductor): s31 L6 working ▸L6.3 @ 18:57
 - **s32 (L6 Deliver)** — 6 commit(s):
   - 5e55097 docs(l6): tracker handoff — L6.4/L6.5/L6.6 DONE, gate battery evidence
   - d2205f9 feat(l6.6): MCP session auto-refresh, confidence->verified rename, DPI icon scaling
@@ -114,6 +91,10 @@ _Session #41 (Audit) · running 20m · last output 15s ago · $0.0594_
   - 8396a38 feat(l8): close-out — HANDOVER-LOOM.md, AGENTS.md rituals, truth test fixes (7P/4S)
   - 464ab5f chore(conductor): s40 L8 working ▸L8.1 @ 22:51
   - b6dedaa chore(conductor): s40 L8 working ▸L8.1 @ 22:41
+- **s41 (L8 Audit)** — 3 commit(s):
+  - 2036c5a fix(l8-audit): harden truth tests — LoggerFactory disposal, null safety, sentinel for JSON parse errors, archetype header assertions
+  - 9e25ce0 chore(conductor): s41 L8 working ▸L8 @ 23:20
+  - 5c31938 chore(conductor): s41 L8 working ▸L8 @ 23:10
 
 ## Phase handovers (audit)
 
@@ -124,6 +105,7 @@ _Session #41 (Audit) · running 20m · last output 15s ago · $0.0594_
 - `.conductor/handovers/L4.md`
 - `.conductor/handovers/L5.md`
 - `.conductor/handovers/L6.md`
+- `.conductor/handovers/L8.md`
 
 ## Last gate run
 
@@ -131,7 +113,7 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: Loom L8.1 close-out landed — commit `8396a38`. Gate battery all green (build 0w/0e, 414P/3S Core + 64P Desktop + 12P Server, pnpm 27/27). QA of L7.4 found 4 truth test assertion bugs (argument swap in Blazor test, "MAP" section-header checks wrong for Library/Desktop/Worker archetypes) — fixed, truth tests now 7P/4S green. HANDOVER-LOOM.md created following Meridian skeleton with artifact links. AGENTS.md root + App updated with Loom pre/post-session rituals and resume protocol. LOOM-START.md tracker updated, L8.1 marked DONE, handoff block overwritten. Known red: 5 TraceQualityTests fail on eShop (non-CQRS call-spine gap, pre-existing L7.1) + 1 EvalExpectationTests verticals…
+> SESSION-RESULT: L8 close-out audit complete — gate battery green (build 0w/0e, Core 414P/3S, Server 12P, Desktop 64P, truth 7P/4S, pnpm 27/27, loom-guards 0 banned). Found and fixed: 6 undisposed LoggerFactory instances, 1 Environment.CurrentDirectory null risk, 1 bare catch swallowing JSON errors (now returns -1 sentinel), 1 "No projects discovered." period inconsistency in RendererTests, and added missing LIBRARY + DESKTOP APP archetype header truth assertions. One attempted WORKER header assertion reverted when the AzureFunctions repo proved to correctly classify as Library (NuGet package). No engine code changed. Audit handover written to `.conductor/handovers/L8.md` with honest coverage…
 
 ## Tracker handoff
 
