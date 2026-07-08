@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 01:39 UTC · branch `feat/loom-l2` · HEAD `8275bc8`_
+_Updated 2026-07-08 01:49 UTC · branch `feat/loom-l2` · HEAD `ce4b85e`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 01:39 UTC · branch `feat/loom-l2` · HEAD `8275bc8`_
 
 ## Latest activity (live)
 
-_Session #15 (Resume) · running 20m · last output 15s ago · $0.0664_
+_Session #15 (Resume) · running 30m · last output 1s ago · $0.1197_
 
 **Thinking:**
-> Now I need to expand the `UpgradeBodyFacts` method to handle `CreationOp` and `InvocationOp.GenericArgs`, and add the `TryBindCreationType` helper. Then I need to add the `UpgradeCallEdges` method.  Let me also update the `Populate` return type and the diagnostic message.
-> Now update the UpgradeBodyFacts signature to return the new counts, and add the new upgrade cases.
-> Now I need to add the `UpgradeCallEdges` method. This should go after the `TryBindGenericArg` method but before `HasBindDemand`. Actually, let me add it just before `HasBindDemand` and the merge methods — right after the last `TryBind*` method.  I also need to update HasBindDemand to include Creatio…
+> So the TypeDiscovery.Id is `$"{namespaceName}.{name}"` where `namespaceName` is `namespaceDecl?.Name.ToString()`.  The semantic model's `ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(Omitted))` should produce the same format.   But wait — there might be a subtle d…
+> Let me look at lines 82-90 where the detectors are invoked.
+> I see that `AddSeamsFromDetectors` is called at line 84 with `bodyFacts`. Let me check what `AddSeamsFromDetectors` does with the bodyFacts parameter.
 
 **Recent actions:**
-- `02:38:03` » read src\DevContext.Core\Models\SharedAnalysisContext.cs
-- `02:38:04` » read src\DevContext.Core\Graph2\BodyFacts.cs
-- `02:38:15` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `02:38:15` · Now implementing the changes. First, expand `SemanticLitePopulator` with more op type upgrades and CallEdge post-processing.
-- `02:38:25` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `02:38:25` · Now let me implement. First, the `SemanticLiteResult` record changes and the expanded `UpgradeBodyFacts`.
-- `02:38:34` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `02:38:34` · Now update `Populate` to return the new counts, and expand `UpgradeBodyFacts`:
-- `02:39:00` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `02:39:00` · Now update the `UpgradeBodyFacts` method signature and body to handle `CreationOp` and `InvocationOp.GenericArgs`:
+- `02:47:28` » read src\DevContext.Core\Graph2\SymbolTable.cs
+- `02:48:08` » grep record TypeDiscovery|class TypeDiscovery
+- `02:48:10` » grep record TypeDiscovery|class TypeDiscovery|FullyQualifiedFormat|SymbolDisplayFormat
+- `02:48:15` » read src\DevContext.Core\Models\TypeDiscovery.cs
+- `02:48:28` » grep new TypeDiscovery|TypeDiscovery\s*\{
+- `02:48:37` » read src\DevContext.Core\Extractors\Generic\SyntaxStructureExtractor.cs
+- `02:48:43` » read src\DevContext.Core\Extractors\Generic\SyntaxStructureExtractor.cs
+- `02:49:08` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:49:14` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:49:22` » read src\DevContext.Core\Graph\GraphBuilder.cs
 
 ## Stage progress
 
