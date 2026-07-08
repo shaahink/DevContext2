@@ -767,3 +767,24 @@ body {
 .code-block .token.entity {
   cursor: help;
 }
+
+/* L6.6: DPI-aware icon sizing — scale up on high-DPI displays so icons and text stay proportional.
+   At 125%+ DPI, browsers scale text via font-size but SVG icons remain fixed px; we compensate. */
+@media (-webkit-device-pixel-ratio: 1.25) {
+  app-icon svg {
+    scale: 1.125;
+    transform-origin: center;
+  }
+}
+@media (-webkit-device-pixel-ratio: 1.5) {
+  app-icon svg {
+    scale: 1.2;
+    transform-origin: center;
+  }
+}
+@media (-webkit-device-pixel-ratio: 2) {
+  app-icon svg {
+    scale: 1.25;
+    transform-origin: center;
+  }
+}

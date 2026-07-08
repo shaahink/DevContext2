@@ -1,4 +1,4 @@
-import { Component, inject, signal, type WritableSignal } from '@angular/core';
+import { Component, inject, signal, type WritableSignal, type OnDestroy, type OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
 import { ToastService } from '../../ui/toast/toast';
@@ -93,7 +93,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
           </button>
         </div>
         <div class="mt-2 text-xs text-ink-subtle">
-          {{ mcpRunning() ? 'Agents can connect. Tools are served over stdio ↔ gRPC.' : 'Connections refused. Toggle to allow new sessions.' }}
+          {{ statusText() }}
         </div>
       </div>
 
@@ -235,7 +235,7 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
     </div>
   `,
 })
-export class McpPage {
+export class McpPage implements OnInit, OnDestroy {
   private readonly client: DevContextClient = inject(DEVCONTEXT_CLIENT);
   private readonly toast = inject(ToastService);
 
@@ -254,9 +254,29 @@ export class McpPage {
   protected tryArg = '';
 
   private streamAbort: AbortController | null = null;
+  private sessionTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor() {
+  /** L6.6: Status text reflects live state instead of static toggle label. */
+  protected readonly statusText = computed(() => {
+    if (this.mcpRunning()) {
+      const obs = this.observerCount();
+      return obs > 0 ? `Agents connected. ${obs} observer(s). Tools served over stdio ↔ gRPC.` : 'Accepting connections. Tools served over stdio ↔ gRPC.';
+    }
+    const live = this.sessions().length;
+    return live > 0 ? `Server running with ${live} session(s). Toggle to accept new MCP connections.` : 'Endpoint stopped. Toggle to allow new sessions.';
+  });
+
+  ngOnInit(): void {
     this.refreshSessions();
+    this.sessionTimer = setInterval(() => {
+      this.refreshSessions();
+      if (this.mcpRunning()) this.refreshObservers();
+    }, 30_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.sessionTimer) clearInterval(this.sessionTimer);
+    this.stopStream();
   }
 
   protected toggleMcp() {
@@ -293,7 +313,14 @@ export class McpPage {
           entries: s.entries,
         })),
       );
-    }).catch((err) => { this.toast.show('Failed to list sessions: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
+    }).catch(() => { /* Polling failure is silent — sessions may be stale */ });
+  }
+
+  /** L6.6: Refresh observer count from server (only meaningful when MCP is running). */
+  private refreshObservers() {
+    this.client.listSessions({}).then((resp) => {
+      this.observerCount.set(resp.sessions?.length ?? 0);
+    }).catch(() => { /* Polling failure is silent */ });
   }
 
   protected clearEvents() {

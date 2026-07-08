@@ -28,7 +28,7 @@ import { formatCompact } from '../../core/format';
       <!-- Stat strip — human labels -->
       <div class="flex flex-wrap items-center gap-3 text-2xs text-ink-subtle">
         @for (label of statLabels(); track label[0]) {
-          @if (label[0] === 'confidence') {
+          @if (label[0] === 'verified') {
             <button type="button" class="tabular-nums cursor-pointer hover:text-accent transition-colors" [title]="label[2]" (click)="showLedger.update(v => !v)">
               <span class="text-ink font-semibold">{{ label[1] }}</span> {{ label[0] }}
             </button>
@@ -134,7 +134,7 @@ export class IdentityStrip {
       labels.push(['wired', `${wired}/${total}`, `${wired} of ${total} entries have resolved targets`]);
     }
     if (l) {
-      labels.push(['confidence', `${Math.round(l.overall * 100)}%`, `${Math.round(l.verifiedEdgePct * 100)}% edges verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
+      labels.push(['verified', `${Math.round(l.overall * 100)}%`, `${Math.round(l.verifiedEdgePct * 100)}% edges verified, ${Math.round(l.approxEdgePct * 100)}% approximate`]);
     }
     return labels;
   });
