@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 02:20 UTC · branch `feat/loom-l2` · HEAD `c2edd79`_
+_Updated 2026-07-08 02:35 UTC · branch `feat/loom-l2` · HEAD `b218ba0`_
 
-**Status:** NeedsHuman — checkpoint(s) newly BLOCKED: L3.3 — see tracker handoff
+**Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
-**Checkpoints:** 14/35 done · **Sessions run:** 15 · **Cost:** $1.1268 · **Tokens:** 916,996 in / 235,835 out / 168,164 think
+**Checkpoints:** 14/35 done · **Sessions run:** 16 · **Cost:** $1.1268 · **Tokens:** 916,996 in / 235,835 out / 168,164 think
 **Confirmed phases:** L0, L1, L2
+
+## Latest activity (live)
+
+_Session #16 (Deliver) · running 10m · last output 24s ago · $0.0029_
+
+**Thinking:**
+> The core, server, and desktop test suites are all passing, and the guards check out too. Now I'm running the mcp-qa tests to see how those perform.
+> All the build checks are passing—zero errors on the build itself, the test suites are running strong across Core, Server, and Desktop, and the guards validation came through despite that advisory about NodeId.ForType which isn't actually blocking anything. The checkout flow trace is particularly int…
+> The check script ran through lint, tests, and build successfully with no errors. All test suites passed — Core had 393 passing tests with 3 skipped, Server had 12 passing, and the build completed without issues.  Now I'm moving on to QA the previous session's work. Session #14 or #15 delivered the L…
+
+**Recent actions:**
+- `03:27:27` » bash dotnet build DevContext.slnx -clp:ErrorsOnly 2>&1 | Select-Object -Last 20
+- `03:27:35` · Build green (0w/0e). Now tests, guards, and mcp-qa in parallel where possible.
+- `03:27:39` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 20
+- `03:30:39` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Failed:|Skipped:" | Select-Ob…
+- `03:30:47` · Tests green (Core 393P/3S, Server 12P, Desktop 64P). Guards PASS. Now the MCP QA gate.
+- `03:33:35` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 25
+- `03:33:45` · All gate battery items green so far. Now the UI gate (`pnpm check`).
+- `03:34:29` » bash pnpm check 2>&1 | Select-Object -Last 30
+- `03:34:45` » read eval-results\2026-07-08\dogfood-l3.3-final.md
+- `03:34:45` · All gate battery items GREEN: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · mcp-qa 8/8 · pnpm check PASS. Now QA of the previous session…
 
 ## Stage progress
 
@@ -40,6 +61,7 @@ _Updated 2026-07-08 02:20 UTC · branch `feat/loom-l2` · HEAD `c2edd79`_
 | 13 | L3 | Deliver | 1 | 07-08 00:53 | 0:06 | KilledByUser |  | 0 |  | $0.0173 | 35,875/975 |
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
+| 16 | L3 | Deliver | 2 | 07-08 02:25 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
