@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 05:23 UTC · branch `feat/loom-l2` · HEAD `e6a11ae`_
+_Updated 2026-07-08 05:33 UTC · branch `feat/loom-l2` · HEAD `0c74ed2`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 05:23 UTC · branch `feat/loom-l2` · HEAD `e6a11ae`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 40m · last output 150s ago · $0.0268_
+_Session #20 (Deliver) · running 50m · last output 154s ago · $0.0365_
 
 **Thinking:**
-> Since each entry gets its own flow computed, the FlowListProjection can handle the ranking by sorting on score and limiting to MaxFlows—I'll set that to 20 to match the previous top_flows behavior. Now I need to update the MCP tools for overview and top_flows.
-> I'm checking the FlowCard proto definition to see if it has the accessor methods I need, but looking at the actual message structure, it only contains basic fields like id, title, kind, depth, and hops — there's no route, httpMethod, target, or nodeId fields present.  I added those fields to the C# …
-> I'm checking the FlowListProjection cap with MaxFlows set to 20 for top_flows, and confirming that the projection correctly pulls from graph.Flows and takes the top 20 entries. Time to build and test.
+> I need to regenerate the TypeScript protobuf files since they're out of date.
+> I need to add back the `stats: null` property that I accidentally removed.
+> Let me double-check what the default slice currently looks like.
 
 **Recent actions:**
-- `06:17:02` · I added fields to the C# projection but the proto `FlowCard` lacks them. I need to update the proto and regen. Let me update the proto FlowCard.
-- `06:17:02` » edit proto\devcontext\v1\devcontext.proto
-- `06:17:45` · Now update ProtoMapper to map the new fields.
-- `06:17:45` » edit src\DevContext.Server\Mapping\ProtoMapper.cs
-- `06:18:00` · Now `top_flows`. Rewrite it to use the facets projection.
-- `06:18:00` » edit src\DevContext.Mcp\DevContextTools.cs
-- `06:19:55` · Now build the affected projects.
-- `06:20:18` » bash dotnet build DevContext.slnx 2>&1 | Select-Object -Last 20
-- `06:20:28` · ADevContext.Server process (PID 38768) is running and locking the DLLs. Let me stop it and rebuild.
-- `06:20:31` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Select-Object Id,ProcessName; Stop-Process -Id 3876…
+- `06:27:32` » edit src\DevContext.App\src\app\state\workspace.store.ts
+- `06:27:42` » edit src\DevContext.App\src\app\state\workspace.store.ts
+- `06:27:51` · That edit accidentally dropped `stats: null`. Let me fix.
+- `06:27:52` » edit src\DevContext.App\src\app\state\workspace.store.ts
+- `06:29:53` » read src\DevContext.App\src\app\state\workspace.store.ts
+- `06:30:01` · My earlier edit dropped `statsError: null`. Let me restore it.
+- `06:30:01` » edit src\DevContext.App\src\app\state\workspace.store.ts
+- `06:30:13` » edit src\DevContext.App\src\app\state\session.store.ts
+- `06:30:13` · Now wire the fetch in SessionStore analyze() and expose the signal.
+- `06:30:26` » edit src\DevContext.App\src\app\state\session.store.ts
 
 ## Stage progress
 
