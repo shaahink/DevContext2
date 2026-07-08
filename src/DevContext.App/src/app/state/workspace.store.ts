@@ -1,6 +1,6 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
-import type { AnalysisSummary, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { AnalysisSummary, GraphFacetsResponse, MapResponse, StatsResponse } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { OperationController } from '../core/activity/operation-controller';
 import { DevContextApi, type NeighborDirection } from '../data-access/devcontext-api';
 import { type AnalysisStatus, type EdgeVm, type EntryGroupVm, type NodeDetailVm, type TraceNodeVm } from '../models/view-models';
@@ -28,6 +28,7 @@ export interface TabSessionSlice {
   readonly summary: AnalysisSummary | null;
   readonly mapResponse: MapResponse | null;
   readonly mapMarkdown: string;
+  readonly graphFacets: GraphFacetsResponse | null;
   readonly entryGroups: readonly EntryGroupVm[];
   readonly stats: StatsResponse | null;
   readonly statsError: string | null;
@@ -75,6 +76,7 @@ export const DEFAULT_SESSION_SLICE: TabSessionSlice = {
   summary: null,
   mapResponse: null,
   mapMarkdown: '',
+  graphFacets: null,
   entryGroups: [],
   stats: null,
   statsError: null,

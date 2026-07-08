@@ -6,6 +6,7 @@ import type {
   CloseResponse,
   ContextResponse,
   EntryPointsResponse,
+  GraphFacetsResponse,
   ImpactResponse,
   InterestingPointsResponse,
   MapResponse,
@@ -74,6 +75,10 @@ export class DevContextApi {
 
   getMap(handle: string): Promise<MapResponse> {
     return this.client.getMap({ handle });
+  }
+
+  getGraphFacets(handle: string, maxFlows = 10): Promise<GraphFacetsResponse> {
+    return this.client.getGraphFacets({ handle, maxFlows });
   }
 
   listEntryPoints(handle: string): Promise<EntryPointsResponse> {

@@ -52,6 +52,10 @@ public sealed class ServiceMapProjection : IGraphProjection<ServiceMapResult>
 
         var serviceNodes = graph.Nodes
             .Where(n => n.Kind == NodeKind.Service)
+            // Design §1.3: a Service card is a RUNNABLE deployable. Service nodes synthesized for a
+            // class library that only participates in a cross-service seam (e.g. a bus consumer
+            // project) are excluded unless the caller explicitly asks for libraries.
+            .Where(n => options.IncludeLibraries || n.Tags.Contains(RoleTags.Runnable))
             .ToList();
 
         // Collect stack evidence per service
@@ -137,6 +141,11 @@ public sealed record FlowCard
     public string Id { get; init; } = "";
     public string Title { get; init; } = "";
     public string Kind { get; init; } = "";
+    public string? NodeId { get; init; }
+    public string? Route { get; init; }
+    public string? HttpMethod { get; init; }
+    public string? Target { get; init; }
+    public string? GroupPath { get; init; }
     public int Depth { get; init; }
     public int Hops { get; init; }
     public int Touches { get; init; }
@@ -158,6 +167,11 @@ public sealed class FlowListProjection : IGraphProjection<FlowListResult>
                 Id = f.Id,
                 Title = f.Entry.Title,
                 Kind = f.Entry.Kind.ToString(),
+                NodeId = f.Entry.Node.ToString(),
+                Route = f.Entry.Route,
+                HttpMethod = f.Entry.HttpMethod,
+                Target = f.Entry.Target,
+                GroupPath = f.Entry.GroupPath,
                 Depth = f.Steps.Length,
                 Hops = f.Hops.Length,
                 Touches = f.Touches.Length,

@@ -716,6 +716,11 @@ message FlowCard {
   int32 touches = 6;
   int32 emits = 7;
   double score = 8;
+  optional string node_id = 9;      // L4.3 — entry node id for deep-linking
+  optional string route = 10;       // L4.3 — HTTP route when the entry is an endpoint
+  optional string http_method = 11; // L4.3 — HTTP verb
+  optional string target = 12;      // L4.3 — dispatch target (command/handler)
+  optional string group_path = 13;  // L4.3 — grouping path
 }
 
 message EntryTableFacet {

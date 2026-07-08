@@ -73,17 +73,23 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Overview(string handle)
     {
+        // L4.3: services + top flows come from the graph projections (one truth), not ad-hoc walks.
+        var facets = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 5 });
         var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
         var stats = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
-        var entries = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
 
         var sb = new StringBuilder();
 
         sb.Append(map.Archetype);
-        if (map.ServiceStyles.Count > 0)
+        var services = facets.ServiceMap?.Services ?? new();
+        if (services.Count > 0)
         {
-            var services = map.ServiceStyles.Select(s => $"{s.ProjectName} ({s.Style})");
-            sb.Append(": ").AppendJoin(", ", services);
+            // DisplayName carries the FULL runnable name (Basket.API) — no client-side truncation,
+            // and libraries are already excluded (Service nodes only).
+            var svcLabels = services.Select(s => s.Kind is { Length: > 0 } && s.Kind != "Service"
+                ? $"{s.DisplayName} ({s.Kind})"
+                : s.DisplayName);
+            sb.Append(": ").AppendJoin(", ", svcLabels);
             sb.AppendLine();
         }
         sb.Append("  ").Append(stats.Graph?.Nodes ?? 0).Append(" nodes · ");
@@ -91,32 +97,26 @@ public sealed class DevContextTools
         sb.Append(stats.Graph?.Entries ?? 0).Append(" entries · ");
         sb.Append(map.ProjectCount).AppendLine(" projects");
 
-        var top = entries.EntryPoints
-            .OrderByDescending(e => e.Score)
-            .ThenBy(e => e.HasTarget ? 0 : 1)
-            .Take(5).ToArray();
-        if (top.Length > 0)
+        var top = facets.FlowList?.Flows ?? new();
+        if (top.Count > 0)
         {
             sb.AppendLine("Top flows:");
-            foreach (var e in top)
+            foreach (var f in top)
             {
-                var label = e.HasRoute ? $"{e.HttpMethod} {e.Route}" : e.Title;
-                sb.Append("  ").Append(e.Kind).Append(": ").Append(label);
-                if (e.HasTarget) sb.Append(" → ").Append(e.Target);
+                var label = f.HasRoute && f.HasHttpMethod ? $"{f.HttpMethod} {f.Route}" : f.Title;
+                sb.Append("  ").Append(f.Kind).Append(": ").Append(label);
+                if (f.HasTarget) sb.Append(" → ").Append(f.Target);
                 sb.AppendLine();
             }
         }
 
-        if (map.Topology.Count > 0)
+        var transports = facets.ServiceMap?.Transports ?? new();
+        if (transports.Count > 0)
         {
-            sb.AppendLine("Projects:");
-            foreach (var t in map.Topology.Take(8))
-            {
-                sb.Append("  ").Append(t.Name);
-                if (t.DependsOn.Count > 0)
-                    sb.Append(" → ").AppendJoin(", ", t.DependsOn.Take(3));
-                sb.AppendLine();
-            }
+            sb.AppendLine("Service links:");
+            foreach (var t in transports.Take(8))
+                sb.Append("  ").Append(t.FromService).Append(" → ").Append(t.ToService)
+                  .Append(" (").Append(t.Transport).Append(')').AppendLine();
         }
 
         var pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
@@ -320,25 +320,24 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> TopFlows(string handle)
     {
-        var resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
-        var entries = resp.EntryPoints
-            .OrderByDescending(e => e.Score)
-            .ThenBy(e => e.HasTarget ? 0 : 1)
-            .Take(20)
-            .ToArray();
+        // L4.3: ranking + shaping done once by FlowListProjection (server-side), not client-side here.
+        var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 20 });
+        var flows = resp.FlowList?.Flows ?? new();
         return JsonSerializer.Serialize(new
         {
-            count = entries.Length,
-            topFlows = entries.Select(e => new
+            count = flows.Count,
+            topFlows = flows.Select(f => new
             {
-                kind = e.Kind,
-                title = e.Title,
-                nodeId = e.NodeId,
-                route = e.HasRoute ? e.Route : null,
-                httpMethod = e.HasHttpMethod ? e.HttpMethod : null,
-                target = e.HasTarget ? e.Target : null,
-                groupPath = e.HasGroupPath ? e.GroupPath : null,
-                score = e.Score,
+                kind = f.Kind,
+                title = f.Title,
+                nodeId = f.HasNodeId ? f.NodeId : null,
+                route = f.HasRoute ? f.Route : null,
+                httpMethod = f.HasHttpMethod ? f.HttpMethod : null,
+                target = f.HasTarget ? f.Target : null,
+                groupPath = f.HasGroupPath ? f.GroupPath : null,
+                score = f.Score,
+                depth = f.Depth,
+                hops = f.Hops,
             }).ToArray(),
         }, JsonOpts);
     }

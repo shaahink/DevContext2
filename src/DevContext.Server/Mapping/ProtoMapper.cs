@@ -388,7 +388,7 @@ internal static class ProtoMapper
         resp.FlowList = new Proto.FlowListFacet { TotalFlows = flowList.TotalFlows };
         foreach (var f in flowList.Flows)
         {
-            resp.FlowList.Flows.Add(new Proto.FlowCard
+            var card = new Proto.FlowCard
             {
                 Id = f.Id,
                 Title = f.Title,
@@ -398,7 +398,13 @@ internal static class ProtoMapper
                 Touches = f.Touches,
                 Emits = f.Emits,
                 Score = f.Score,
-            });
+            };
+            if (f.NodeId is { } nid) card.NodeId = nid;
+            if (f.Route is { } rt) card.Route = rt;
+            if (f.HttpMethod is { } hm) card.HttpMethod = hm;
+            if (f.Target is { } tg) card.Target = tg;
+            if (f.GroupPath is { } gp) card.GroupPath = gp;
+            resp.FlowList.Flows.Add(card);
         }
 
         // EntryTable facet

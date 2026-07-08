@@ -34,6 +34,7 @@ export class SessionStore {
   readonly summary = computed(() => this.activeSession().summary);
   readonly mapResponse = computed(() => this.activeSession().mapResponse);
   readonly mapMarkdown = computed(() => this.activeSession().mapMarkdown);
+  readonly graphFacets = computed(() => this.activeSession().graphFacets);
   readonly entryGroups = computed(() => this.activeSession().entryGroups);
   readonly stats = computed(() => this.activeSession().stats);
   readonly statsError = computed(() => this.activeSession().statsError);
@@ -123,6 +124,13 @@ export class SessionStore {
         status: 'ready',
       }));
       this.activity.clear();
+
+      // L4.3 — service map + flow list come from the graph projections (one truth), fetched
+      // once here; Home hero and Atlas read graphFacets instead of re-deriving client-side.
+      this.api
+        .getGraphFacets(outcome.handle)
+        .then((facets) => this.workspace.updateSession(tabId, (s) => ({ ...s, graphFacets: facets })))
+        .catch(() => { /* facets are additive; hero degrades to topology if unavailable */ });
 
       // Kick off background flow indexing (§3.1) on analysis-ready, regardless of which
       // page the user is on — Home's Top Flows needs this without a detour through /explore.

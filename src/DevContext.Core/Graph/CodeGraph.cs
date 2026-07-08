@@ -38,6 +38,10 @@ public static class RoleTags
     public const string Pipeline = "pipeline";
     public const string DataStore = "datastore";
     public const string Consumer = "consumer";
+    /// <summary>Marks a Service node as a runnable deployable (has an entry assembly / web SDK), as
+    /// opposed to a Service node synthesized for a class library that only participates in a
+    /// cross-service seam. Design §1.3: "A class library is NOT a Service."</summary>
+    public const string Runnable = "runnable";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport

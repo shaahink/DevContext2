@@ -724,6 +724,7 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(NodeId.ForService(proj.Name), proj.Name, NodeKind.Service)
             {
                 Project = proj.Name,
+                Tags = [RoleTags.Runnable],
             });
         }
     }

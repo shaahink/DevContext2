@@ -62,6 +62,17 @@ public sealed class ServiceBoundaryInferenceTests
     }
 
     [Fact]
+    public void Library_with_aspnetcore_flavored_package_is_not_runnable()
+    {
+        // L4.3 regression: a class library that references FluentValidation.AspNetCore must NOT be
+        // classified as a runnable service (audit Claim 3 / E3 — dogfood BuildingBlocks).
+        var p = new ProjectInfo("BuildingBlocks", @"C:\repo\BuildingBlocks\BuildingBlocks.csproj", "C#", ["net8.0"], [],
+            [new PackageReferenceInfo("FluentValidation.AspNetCore", "11.3.0"),
+             new PackageReferenceInfo("MediatR", "12.2.0")]);
+        Assert.False(ServiceBoundaryInference.IsRunnableService(p));
+    }
+
+    [Fact]
     public void Test_project_is_not_runnable_by_default()
     {
         var p = new ProjectInfo("MyApp.Tests", @"C:\repo\MyApp.Tests\MyApp.Tests.csproj", "C#", ["net10.0"], [], []);

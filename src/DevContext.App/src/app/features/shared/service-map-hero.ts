@@ -1,12 +1,13 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import type { ProjectNode, ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { ProjectNode, ServiceCard, ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { SessionStore } from '../../state/session.store';
 
 /** Computed layout node — enriches raw ProjectNode + ServiceStyle with layout position. */
 interface HeroNode {
   name: string;
+  label: string;
   style: string;
   stack: readonly string[];
   /** 0 = gateway, 1 = core service, 2 = other dependency */
@@ -31,7 +32,7 @@ interface HeroNode {
             [routerLink]="['/explore']"
             [queryParams]="{ view: 'system', project: node.name }"
           >
-            <span class="hero-card-name">{{ shortName(node.name) }}</span>
+            <span class="hero-card-name">{{ node.label }}</span>
             @if (node.style) {
               <span class="chip shrink text-2xs">{{ node.style }}</span>
             }
@@ -130,6 +131,11 @@ export class ServiceMapHero {
   readonly serviceStyles = input.required<readonly ServiceStyle[]>();
 
   protected readonly nodes = computed<readonly HeroNode[]>(() => {
+    // L4.3 — prefer the ServiceMap projection (runnables only, full DisplayName, no libraries).
+    // The topology fallback stays for pre-facets sessions / repos with no Service nodes.
+    const cards = this.session.graphFacets()?.serviceMap?.services ?? [];
+    if (cards.length > 0) return this.layoutFromCards(cards);
+
     const projects = this.topology();
     const styles = this.serviceStyles();
     if (projects.length === 0) return [];
@@ -166,6 +172,30 @@ export class ServiceMapHero {
     return result;
   });
 
+  /** Lays out the projection's ServiceCards: gateways left, everything else center.
+   * DisplayName is rendered verbatim — no client-side name truncation (L4.3). */
+  private layoutFromCards(cards: readonly ServiceCard[]): HeroNode[] {
+    const gateways = cards.filter((c) => c.kind === 'Gateway');
+    const rest = cards.filter((c) => c.kind !== 'Gateway');
+    const result: HeroNode[] = [];
+    for (const g of gateways) result.push(this.cardToHeroNode(g, 0, result.length));
+    let coreRow = 0;
+    for (const c of rest) result.push(this.cardToHeroNode(c, 1, coreRow++));
+    return result;
+  }
+
+  private cardToHeroNode(c: ServiceCard, col: 0 | 1 | 2, row: number): HeroNode {
+    return {
+      name: c.name,
+      label: c.displayName || c.name,
+      style: c.kind === 'Service' ? '' : c.kind,
+      stack: c.stack,
+      column: col,
+      row,
+      depsFrom: [],
+    };
+  }
+
   /** Pairs that have a real dependency AND both are in the hero nodes. */
   protected readonly layoutEdges = computed<readonly { from: string; to: string; d: string }[]>(() => {
     // Edge arrows are computed using a simple heuristic: draw from right edge of source to left edge of target
@@ -174,6 +204,13 @@ export class ServiceMapHero {
   });
 
   protected readonly hasBus = computed(() => {
+    // Prefer the projection's transports — a real "bus" ServiceLink edge is authoritative.
+    const transports = this.session.graphFacets()?.serviceMap?.transports ?? [];
+    const busTransports = new Set(
+      transports.filter((t) => /bus|rabbitmq|kafka|masstransit|queue/i.test(t.transport)).map((t) => t.transport),
+    );
+    if (busTransports.size > 0) return [...busTransports].join(' / ');
+
     const seen = new Set<string>();
     for (const s of this.serviceStyles()) {
       for (const t of s.stack) {
@@ -187,7 +224,7 @@ export class ServiceMapHero {
 
   private toHeroNode(p: ProjectNode, styles: readonly ServiceStyle[], col: 0 | 1 | 2, row: number): HeroNode {
     const s = this.findStyle(p.name, styles);
-    return { name: p.name, style: s.style, stack: s.stack,
+    return { name: p.name, label: p.name, style: s.style, stack: s.stack,
       column: col, row, depsFrom: p.dependsOn };
   }
 
@@ -212,9 +249,5 @@ export class ServiceMapHero {
     if (deps.length >= 3) return true;
     if (/api$/i.test(n) || /web$/i.test(n)) return true;
     return false;
-  }
-
-  protected shortName(name: string): string {
-    return name.split('.').pop() ?? name;
   }
 }

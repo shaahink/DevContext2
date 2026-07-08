@@ -7,16 +7,16 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L4 session #19 — **L4.2 DONE**. Projections (ServiceMap, FlowList, EntryTable,
-      LayerBand) + GetGraphFacets RPC. Four IGraphProjection<TOut> implementations. Proto
-      adds 9 messages for all 4 facets. Server handler + ProtoMapper wired. No regressions:
-      422n/276e/34ent/6SL/82% (unchanged from L4.1). Adds only — consumers not yet switched.
-stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅). GraphProjections.cs (4 projections, ~230 lines)
-       + proto (9 messages, 1 RPC) + ProtoMapper + server handler.
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P.
-next: **L4.3** — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
-evidence: eval-results/2026-07-08/gate-battery-l4.2-s19.txt
-          eval-results/2026-07-08/dogfood-l4.2.md
+last: L4 session #20 — **L4.3 DONE**. MCP overview/top_flows + Home hero + Atlas diagram now read
+      the L4.2 projections (GetGraphFacets) — ad-hoc walks deleted. Fixed real defect: BuildingBlocks
+      (a lib w/ FluentValidation.AspNetCore) was mis-classed runnable → hero now shows exactly the 6
+      runnables, full names, no libs. QA of s19 (L4.2): PASS (422/276/6/34/82% reproduced).
+stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅, L4.3 ✅). Runnable-tag + projection filter;
+       FlowCard proto enriched (route/method/target); service-map-hero reads facets.
+gate: build 0w/0e · Core 398P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · MCP QA 8/8.
+next: **L4.4** — Server ContextPack round-trip (Trap A closed); Copy/Save = exactly the server pack.
+evidence: eval-results/2026-07-08/gate-battery-l4.3-s20.txt
+          eval-results/2026-07-08/l4.3-consumers.md · eval-results/2026-07-08/dogfood-l4.3.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -57,7 +57,11 @@ line under the row — never silent renumbering.
 > DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
 | L4.1 | Flow store; spine-only TOUCHES/EMITS (E5 fix); ServiceHops + provenance | DONE | (l4.1) | eval-results/2026-07-08/gate-battery-l4.1-s18.txt |
 | L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | DONE | 73cca81 | eval-results/2026-07-08/gate-battery-l4.2-s19.txt |
-| L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |
+| L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | DONE | (l4.3-s20) | eval-results/2026-07-08/gate-battery-l4.3-s20.txt |
+> scope change: dogfood 422→421 nodes — BuildingBlocks (a class lib referencing
+> FluentValidation.AspNetCore) was mis-classified runnable by IsRunnableService's substring
+> "AspNetCore" package check; tightened to Microsoft.AspNetCore.App*/Web-SDK/Exe (design §2.4).
+> Edges/SL/entries/verified% unchanged. Hero now shows exactly 6 runnables (audit Claim 3 fix).
 | L4.4 | Server ContextPack round-trip (Trap A closed) | TODO | | |
 | L5.1 | Default-session ergonomics | TODO | | |
 | L5.2 | Error envelopes (error+hint+example ≤80 tok) | TODO | | |
