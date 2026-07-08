@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 01:49 UTC · branch `feat/loom-l2` · HEAD `ce4b85e`_
+_Updated 2026-07-08 01:59 UTC · branch `feat/loom-l2` · HEAD `f4d5604`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 01:49 UTC · branch `feat/loom-l2` · HEAD `ce4b85e`_
 
 ## Latest activity (live)
 
-_Session #15 (Resume) · running 30m · last output 1s ago · $0.1197_
+_Session #15 (Resume) · running 40m · last output 9s ago · $0.1584_
 
 **Thinking:**
-> So the TypeDiscovery.Id is `$"{namespaceName}.{name}"` where `namespaceName` is `namespaceDecl?.Name.ToString()`.  The semantic model's `ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(Omitted))` should produce the same format.   But wait — there might be a subtle d…
-> Let me look at lines 82-90 where the detectors are invoked.
-> I see that `AddSeamsFromDetectors` is called at line 84 with `bodyFacts`. Let me check what `AddSeamsFromDetectors` does with the bodyFacts parameter.
+> I need to pass the body facts (with upgraded SymbolRefs) to `AddCallEdges` and use the same semanticLocs approach. But `AddCallEdges` is at line 86 in `Build()`: ```csharp AddCallEdges(g, model, names); ```  It doesn't receive bodyFacts. I need to pass them.  Let me change the signature and add sema…
+> Now update the `AddCallEdges` signature and add the semanticLocs upgrade logic.
+> Now let me build and test again.
 
 **Recent actions:**
-- `02:47:28` » read src\DevContext.Core\Graph2\SymbolTable.cs
-- `02:48:08` » grep record TypeDiscovery|class TypeDiscovery
-- `02:48:10` » grep record TypeDiscovery|class TypeDiscovery|FullyQualifiedFormat|SymbolDisplayFormat
-- `02:48:15` » read src\DevContext.Core\Models\TypeDiscovery.cs
-- `02:48:28` » grep new TypeDiscovery|TypeDiscovery\s*\{
-- `02:48:37` » read src\DevContext.Core\Extractors\Generic\SyntaxStructureExtractor.cs
-- `02:48:43` » read src\DevContext.Core\Extractors\Generic\SyntaxStructureExtractor.cs
-- `02:49:08` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `02:49:14` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `02:49:22` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:57:21` · Significant improvement: 65% → 68%. The ReadsWrites edges dropped from 26 → 19 Approx. Let me check the diagnostics:
+- `02:57:27` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- analyze "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --inclu…
+- `02:57:39` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- analyze "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --inclu…
+- `02:57:45` » bash Get-Content C:\Code\DevContext2-ui\eval-results\2026-07-08\analyze-diag-l3.3-v2.txt | Select-String "SemanticLitePopulator.*tier routing" | ForEach-Object …
+- `02:57:59` » bash dotnet run --project C:\Code\DevContext2-ui\src\DevContext.Cli --no-build -- analyze "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" --inclu…
+- `02:58:07` » read src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:58:07` · The diagnostic line is very long. The key result is clear: **7 ReadsWrite edges upgraded → 68% verified**. Let me focus on getting to ≥80%. I need to expand the…
+- `02:58:22` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:58:54` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `02:59:11` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select…
 
 ## Stage progress
 
