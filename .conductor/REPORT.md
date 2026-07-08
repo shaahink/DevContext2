@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 05:33 UTC · branch `feat/loom-l2` · HEAD `0c74ed2`_
+_Updated 2026-07-08 05:43 UTC · branch `feat/loom-l2` · HEAD `5b41601`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 05:33 UTC · branch `feat/loom-l2` · HEAD `0c74ed2`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 50m · last output 154s ago · $0.0365_
+_Session #20 (Deliver) · running 60m · last output 123s ago · $0.0492_
 
 **Thinking:**
-> I need to regenerate the TypeScript protobuf files since they're out of date.
-> I need to add back the `stats: null` property that I accidentally removed.
-> Let me double-check what the default slice currently looks like.
+> The home page uses `shortName` from entry groups to label service chips next to each flow, but the key L4.3 gate requirement is that the hero should display full names without library cards, along with per-node band visualization in the layer lens and matching trace/flow behavior with the CLI MCP.  …
+> I'm noticing a mismatch between what the home page top flows are using versus what FlowCard provides. The home page relies on `e.focus` as a query parameter for navigation, but FlowCard doesn't expose that field even though it carries other metadata like route, httpMethod, and target. I need to figu…
+> The issue is that the mock API doesn't include `getGraphFacets`, so calling it returns undefined and throws when trying to chain `.then()` on it—the catch block catches this and sets status to 'error'. I should add `getGraphFacets` to the mock configurations to make them more robust, though there ar…
 
 **Recent actions:**
-- `06:27:32` » edit src\DevContext.App\src\app\state\workspace.store.ts
-- `06:27:42` » edit src\DevContext.App\src\app\state\workspace.store.ts
-- `06:27:51` · That edit accidentally dropped `stats: null`. Let me fix.
-- `06:27:52` » edit src\DevContext.App\src\app\state\workspace.store.ts
-- `06:29:53` » read src\DevContext.App\src\app\state\workspace.store.ts
-- `06:30:01` · My earlier edit dropped `statsError: null`. Let me restore it.
-- `06:30:01` » edit src\DevContext.App\src\app\state\workspace.store.ts
-- `06:30:13` » edit src\DevContext.App\src\app\state\session.store.ts
-- `06:30:13` · Now wire the fetch in SessionStore analyze() and expose the signal.
-- `06:30:26` » edit src\DevContext.App\src\app\state\session.store.ts
+- `06:38:17` » bash $content = Get-Content -Raw src/DevContext.App/src/app/state/workspace.store.spec.ts; $content = $content -replace "getStats: vi\.fn\(\)\.mockResolvedValue…
+- `06:38:28` · Let me use edit instead — the getStats line appears 3 times identically.
+- `06:38:28` » edit src\DevContext.App\src\app\state\workspace.store.spec.ts
+- `06:38:39` » edit src\DevContext.App\src\app\state\workspace.store.spec.ts
+- `06:38:50` » edit src\DevContext.App\src\app\state\workspace.store.spec.ts
+- `06:39:34` » bash pnpm check 2>&1 | Select-Object -Last 25
+- `06:40:20` » bash pnpm check 2>&1 | Select-String "Tests|failed|passed|lint|error" | Select-Object -First 10
+- `06:40:33` · pnpm check green (lint 0, 27 tests, build 0w/0e). Now let me delete the ad-hoc walk in MCP `map` — actually `map` isn't in scope (topology only). The checkpoint…
+- `06:40:49` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; …
+- `06:40:58` · Now run the MCP QA harness (it drives the real MCP server, which uses the refactored overview/top_flows). This proves the consumers work end-to-end.
 
 ## Stage progress
 
