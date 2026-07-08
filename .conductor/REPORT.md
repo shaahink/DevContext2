@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 17:57 UTC · branch `feat/loom-l5` · HEAD `b24a663`_
+_Updated 2026-07-08 18:07 UTC · branch `feat/loom-l5` · HEAD `de809de`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.3
-**Checkpoints:** 25/34 done · **Sessions run:** 31 · **Cost:** $2.3185 · **Tokens:** 1,948,006 in / 493,823 out / 345,116 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.4
+**Checkpoints:** 26/34 done · **Sessions run:** 31 · **Cost:** $2.3659 · **Tokens:** 2,006,262 in / 502,567 out / 351,717 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
-
-## Latest activity (live)
-
-_Session #31 (Deliver) · running 10m · last output 2s ago · $0.0212_
-
-**Thinking:**
-> The S30 evidence claims: 1. `dotnet build`: 0w 0e — ✅ verified fresh 2. `dotnet test`: 484P/0F — ✅ verified fresh (408+12+64=484) 3. `pnpm check`: green — ✅ verified fresh 4. Cold QA: 92% actionable — need to verify, but the QA script timed out on fresh run. The mcp-cold-qa.md seems to be from L0.2 …
-> Let me read the key sections of the relevant files to audit L6.2 claims: 1. `workbench-page.ts` around line 202 for onEntry() 2. `inspector.ts` around lines 100-130 and 310-480 for code pane and loading/error states
-> I can see the key finding that L6.3 needs to fix:  At `inspector.ts:327-335`, the `filteredInsights` computed does substring matching on the evidence text against the node's title. This is what audit U4 flags: "filter is substring-on-evidence — empty match = show all". Let me look more carefully:  `…
-
-**Recent actions:**
-- `18:56:23` » grep selectNode|onEntry
-- `18:56:23` · Now let me audit the L6.2 code claims — the `onEntry` auto-select and code pane states:
-- `18:56:23` » grep codeLoading|codeError|codeHighlight|PrismJS
-- `18:56:29` » read src\DevContext.App\src\app\features\pages\workbench-page.ts
-- `18:56:30` » read src\DevContext.App\src\app\features\inspector\inspector.ts
-- `18:56:31` » read src\DevContext.App\src\app\features\inspector\inspector.ts
-- `18:56:55` » grep interface Insight|type Insight
-- `18:56:56` » grep insightGroups|insight-chip|insight-count|insights\(\)|Insights
-- `18:56:57` » grep neighbor|adjacent|1-hop|neighbors
-- `18:56:57` · L6.2 code audit confirms all claims — `onEntry()` at `workbench-page.ts:210`, code pane with file path at `inspector.ts:97-113`, loading/error states at `inspec…
 
 ## Stage progress
 
@@ -38,7 +17,7 @@ _Session #31 (Deliver) · running 10m · last output 2s ago · $0.0212_
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 2/6 | **← active** |
+| L6 | Workbench repair | 3/6 | **← active** |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
 
@@ -75,15 +54,10 @@ _Session #31 (Deliver) · running 10m · last output 2s ago · $0.0212_
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
 | 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
-| 31 | L6 | Deliver | 1 | 07-08 17:47 | … | running |  | 0 |  |  |  |
+| 31 | L6 | Deliver | 1 | 07-08 17:47 | 0:18 | Advanced | L6.3 | 2 | build:OK | $0.0474 | 58,256/8,744 |
 
 ### Commits by session
 
-- **s23 (L5 Deliver)** — 4 commit(s):
-  - 402a6c1 chore(conductor): s23 L5 working ▸L5.1 @ 08:59
-  - ac7a7dd feat(l5.1): default-session ergonomics + idempotent analyze
-  - c601417 chore(conductor): s23 L5 working ▸L5.1 @ 08:49
-  - c7eacd5 chore(conductor): s23 L5 working ▸L5.1 @ 08:39
 - **s24 (L5 Deliver)** — 10 commit(s):
   - 323f1a7 chore(l5.2): record push-blocked handoff note (network/DNS unavailable)
   - a78c135 feat(l5.2): error envelopes for cold-agent MCP ergonomics
@@ -130,6 +104,9 @@ _Session #31 (Deliver) · running 10m · last output 2s ago · $0.0212_
   - da1823d feat(l6.2): entry selection shows source — selectNode after trace unlocks Code pane
   - 41aec2b chore(conductor): s30 L6 working ▸L6.2 @ 18:40
   - 0b92757 chore(conductor): s30 L6 working ▸L6.2 @ 18:30
+- **s31 (L6 Deliver)** — 2 commit(s):
+  - de809de feat(l6.3): inspector insights — adjacency filter + honest chip
+  - b58c707 chore(conductor): s31 L6 working ▸L6.3 @ 18:57
 
 ## Phase handovers (audit)
 
@@ -146,17 +123,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT:** L6.2 landed — `onEntry()` in `workbench-page.ts:202` now chains `trace.selectNode(entry.nodeId)` after `trace.trace()` completes (when `found=true`), populating `nodeDetail` so the Inspector Code pane immediately shows file path + "load source" button instead of the dead-end "Select a node to view its source location" empty state. Loading/error states (skeleton + error text in `inspector.ts:117-126`) and PrismJS (`code-highlight.ts`) were already functional — verified via code review. Gate battery all green: dotnet build 0W/0E, dotnet test 484P/0F, pnpm check (lint 0, tests 27/27, build 0W), cold QA 11/12 (92%), loom-guards PASSED. Commits `da1823d` + `7154310` pushed to `f…
+> SESSION-RESULT: L6.3 delivered — `filteredInsights()` in `inspector.ts:332-358` replaced substring-on-title filter with graph-adjacency filter (1-hop neighbor set from `trace.neighbors()`, parsing `evidenceActions Node:<id>` patterns). Honest chip shows `0 / N` when a node has zero adjacent insights but N repo-wide. Gate battery green (484P/0F, build 0w/0e, loom-guards green). Previous session L6.2 QA confirmed genuine — all 4 code claims verified against fresh artifacts. Next session: L6.4 Context Studio v2 (service tree + preset scaffolds real cards).
 
 ## Tracker handoff
 
 ```
-last: L6 session #30 — **L6.2 DONE** (gate battery green: 484P/0F, cold QA 92%).
-       onEntry() now calls selectNode() after trace — Code pane shows file path +
-       "load source" immediately on entry selection (no more "Select a node…" dead end).
-       Loading/error states (skeleton + error text) already functional. PrismJS wired.
-stage: **L6.2 DONE**. L6 checkpoints remaining: 6.3–6.6.
-next: **L6.3** — Inspector insights: adjacency filter + honest chip.
-evidence: eval-results/2026-07-08/gate-battery-l6.2-s30.txt
-          eval-results/2026-07-08/mcp-cold-qa.md
+last: L6 session #32 — **L6.3 DONE** (gate battery green: 484P/0F).
+       Insights section now filters by graph adjacency (1-hop neighbors from
+       trace.neighbors()), parses evidenceActions Node:<id> patterns, honest
+       chip shows "0 / N" when no adjacent insights with repo-wide count.
+       Empty state: "None reference this node (N repo-wide)."
+stage: **L6.3 DONE**. L6 checkpoints remaining: 6.4–6.6.
+next: **L6.4** — Context Studio v2: service tree, preset scaffolds real cards.
+evidence: eval-results/2026-07-08/gate-battery-l6.3-s32.txt
 ```
