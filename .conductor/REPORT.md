@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:59 UTC · branch `feat/loom-l2` · HEAD `f4e8f1f`_
+_Updated 2026-07-08 00:59 UTC · branch `feat/loom-l2` · HEAD `244d5b8`_
 
-**Status:** Paused
+**Status:** Aborted
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.3
 **Checkpoints:** 14/35 done · **Sessions run:** 13 · **Cost:** $0.8897 · **Tokens:** 734,596 in / 194,538 out / 128,919 think
 **Confirmed phases:** L0, L1, L2
