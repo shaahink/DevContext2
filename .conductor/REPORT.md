@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 15:53 UTC · branch `feat/loom-l5` · HEAD `aa77564`_
+_Updated 2026-07-08 16:01 UTC · branch `feat/loom-l5` · HEAD `87888cd`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.5
-**Checkpoints:** 22/34 done · **Sessions run:** 27 · **Cost:** $2.0921 · **Tokens:** 1,704,788 in / 456,228 out / 305,566 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0
+**Checkpoints:** 23/34 done · **Sessions run:** 27 · **Cost:** $2.1670 · **Tokens:** 1,801,827 in / 465,125 out / 318,937 think
 **Confirmed phases:** L0, L1, L2, L3, L4
-
-## Latest activity (live)
-
-_Session #27 (Deliver) · running 30m · last output 116s ago · $0.0625_
-
-**Thinking:**
-> Let me run the remaining gate checks and produce the evidence artifact.
-> Let me analyze the results:  1. **Build**: Still had locked processes. The `Get-Process | Stop-Process` didn't catch everything because there are DevContext.Server and .NET Host processes that started during the cold QA run. But earlier, when I killed processes and built, it was green. I'll note the…
-> Good, all processes killed. Let me re-run the test that failed.
-
-**Recent actions:**
-- `16:43:58` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet build C:\Code\DevContext2-ui\src\DevContext.Mcp\Dev…
-- `16:46:55` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run-cold.js --gate 2>&1
-- `16:47:04` » todowrite 3 todos
-- `16:47:04` · B4 is now **actionable** and the gate passes at **11/12 (92%) >= 90%**. Now run the full gate battery for the evidence artifact.
-- `16:47:14` » bash powershell -File C:\Code\DevContext2-ui\scripts\loom-guards.ps1 2>&1
-- `16:48:05` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1; …
-- `16:50:10` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run.js --quiet 2>&1
-- `16:50:55` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext' } | Stop-Process -Force 2>$null; dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filte…
-- `16:51:14` · Tests show 1 failure — `McpQaGateTests` looking for "PASS" in run.js output. Let me kill processes and investigate.
-- `16:51:17` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext|DevContext|\.NET Host' } | Stop-Process -Force 2>$null; Start-Sleep -Seconds 3; Get-Process …
+**Pending:** auto-fix audit for L5
 
 ## Stage progress
 
@@ -37,7 +17,7 @@ _Session #27 (Deliver) · running 30m · last output 116s ago · $0.0625_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 3/4 | **← active** |
+| L5 | MCP v2 cold-agent ergonomics | 4/4 | gating… |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -72,15 +52,10 @@ _Session #27 (Deliver) · running 30m · last output 116s ago · $0.0625_
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
-| 27 | L5 | Deliver | 2 | 07-08 15:23 | … | running |  | 0 |  |  |  |
+| 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 
 ### Commits by session
 
-- **s19 (L4 Deliver)** — 4 commit(s):
-  - d5602c3 chore(l4.2): record commit hash in tracker
-  - 73cca81 feat(l4.2): Projections + GetGraphFacets RPC
-  - 1091cf6 chore(conductor): s19 L4 working ▸L4.2 @ 05:40
-  - 379f958 chore(conductor): s19 L4 working ▸L4.2 @ 05:30
 - **s20 (L4 Deliver)** — 12 commit(s):
   - e0a12e6 docs(l4.3): tracker handoff + progress log — L4.3 done, QA of L4.2 PASS
   - bc0acca feat(l4.3): Home/Atlas/MCP consume graph projections; drop ad-hoc walks
@@ -130,6 +105,12 @@ _Session #27 (Deliver) · running 30m · last output 116s ago · $0.0625_
   - 251f676 chore(conductor): s26 L5 working ▸L5.4 @ 16:14
   - 2f6113d chore(conductor): s26 L5 working ▸L5.4 @ 16:04
   - 2736660 chore(conductor): s26 L5 working ▸L5.4 @ 15:54
+- **s27 (L5 Deliver)** — 5 commit(s):
+  - 87888cd feat(l5.5): cold QA gate >=90%% — fix B4 usages-shortname silent resolve
+  - 1e47ca8 chore(conductor): s27 L5 working ▸L5.5 @ 16:53
+  - aa77564 chore(conductor): s27 L5 working ▸L5.5 @ 16:43
+  - 7b5fd38 docs: add conductor-DEBT.md (L0-L4 audit followups, sized + gated) + update read-order
+  - 6a78b90 chore(conductor): s27 L5 working ▸L5.5 @ 16:33
 
 ## Phase handovers (audit)
 
@@ -145,18 +126,18 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5.4 landed — real `flow(focus)` MCP tool with compact trace rendering (steps/touches/emits/approxTokens, deep-links to `trace` for full detail), 23 tools registered (was 22), tools/list envelope 1337 tok (under 1.5k). `get_context`/`config` fuzzy focus already working via L5.2/5.3 suggestions — verified actionable by cold QA. Cold QA baseline 10/12 (83%) actionable, 0 false-successes, 0 opaque errors. B1 probe updated to test `dependencies` now that `flow` exists. Gate battery: build 0w/0e, tests 408/12/64, scripted QA 8/8, pnpm check green. Remaining red: B4 usages-shortname unactionable (L5.5 fix) and B9 numerator/denominator issue (L0.5 debt). Next session (L5.5): drive c…
+> SESSION-RESULT: L5.5 delivered — B4 usages-shortname fixed in DevContextTools.cs:Usages (lines 810-819): when a short name resolves to a node with 0 usages, the tool now returns `{error, hint, example, candidates}` instead of silent `count:0`. Cold QA gate passes at 11/12 (92%) ≥ 90% threshold. All gates green: build 0w/0e, tests 408+12+64 pass, pnpm check green, guards 0 banned, scripted QA 8/8. B9 remains expected "unactionable" (find success probe, aggregate#1=true). L5 stage complete; next session should start L6.1 (tabs 32px+, New=createTab).
 
 ## Tracker handoff
 
 ```
-last: L5 session #26 — **L5.4 DONE** (real flow tool). Flow tool added: compact
-       trace with steps/touches/emits/approxTokens; deep-links to trace for full
-       detail. B4+unactionable cold probe moved to L5.5 fix list. get_context+
-       config fuzzy focus already actioned by L5.2/5.3 suggestions. Cold QA: 10/12
-       (83%) actionable, 23 tools, tools/list 1337 tok, 0 false-successes.
-stage: **L5.4 DONE**. flow tool shipped, cold QA baseline stable, B1 probe updated.
-next: **L5.5** — drive cold QA to ≥90% actionability; fix B4 usages-shortname gate.
-evidence: eval-results/2026-07-08/gate-battery-l5.4-s26.txt
+last: L5 session #28 — **L5.5 DONE** (cold QA gate ≥90%). Fixed B4 usages-shortname:
+       usages with short name that resolves to 0 edges now returns error+hint+
+       candidates instead of silent count:0. Cold QA: 11/12 (92%) actionable, 23
+       tools, tools/list 1337 tok, 0 false-successes, 0 opaque errors. B4 flipped
+       actionable. B9 rank-quality aggregate#1=true (find output is success, not failure).
+stage: **L5.5 DONE**. L5 complete — all 5 checkpoints landed.
+next: **L6.1** — tabs 32px+, New=createTab, clone-close confirm (workbench repair).
+evidence: eval-results/2026-07-08/gate-battery-l5.5-s28.txt
            eval-results/2026-07-08/mcp-cold-qa.md
 ```
