@@ -174,8 +174,7 @@ function classify(probe, res) {
   const zeroShaped =
     (typeof data?.totalAffected === "number" && data.totalAffected === 0) ||
     (typeof data?.count === "number" && data.count === 0 &&
-      !(Array.isArray(data?.tests) && probe.softZeroOk) &&
-      !(typeof data?.resolvedFrom === "string" && data.resolvedFrom.length > 0)) ||
+      !(Array.isArray(data?.tests) && probe.softZeroOk)) ||
     (typeof data?.totalKeys === "number" && data.totalKeys === 0) ||
     (data?.found === false) ||
     (Array.isArray(data?.candidates) && data.candidates.length === 0) ||
