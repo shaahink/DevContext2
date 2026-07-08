@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 09:00 UTC · branch `feat/loom-l5` · HEAD `82d3349`_
+_Updated 2026-07-08 09:10 UTC · branch `feat/loom-l5` · HEAD `c966a73`_
 
 **Status:** Running
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 09:00 UTC · branch `feat/loom-l5` · HEAD `82d3349`_
 
 ## Latest activity (live)
 
-_Session #24 (Deliver) · running 60m · last output 5s ago · $0.0589_
+_Session #24 (Deliver) · running 70m · last output 5s ago · $0.0775_
 
 **Thinking:**
-> When a focus miss happens, the response only includes an identity section, so my check for zero sections won't catch it. I need to refine the guard to detect when the only section returned is identity, which signals the focus didn't resolve to an actual trace. Let me check if focus actually resolved…
-> I'm seeing a list of tools that also call ResolveHandle without error handling—Status, CloseSession, Stats, Entrypoints, Map, TopFlows, InterestingPoints, Node, Neighbors, TestsFor, Insights, ReadSource. While these aren't part of the cold-QA probes, consistency suggests wrapping them too, though I'…
-> I need to check the current state of the ReadSource method since I added an RpcException variable but the method continues with its own try block for file operations, so I should verify how the exception handling is structured.
+> I've improved the test results from 0/12 to 8/12, but I'm still seeing opaque errors on a couple of cases. For A2 and A3, which call without a handle or analyze step yet, my guards are invoking `ResolveHandle(handle)` but something's not working as expected there.  The issue is that A2 and A3 are sh…
+> I'm seeing that the trace function is receiving the focus and query parameters correctly in phases A2 and A3, but when ResolveHandle fails due to a missing session, my error handling wraps it into a FromRpc envelope that surfaces as a generic "An error occurred invoking 'trace'" message instead of t…
+> I see the issue—several MCP methods are missing default values for their optional `string? handle` parameters, which prevents the SDK from binding them correctly when the agent doesn't provide a handle. I need to add `= null` to the first parameter across Resolve, Trace, Node, Neighbors, Usages, Fin…
 
 **Recent actions:**
-- `09:59:13` · Now let me guard the remaining tools for consistency (the plan says "every tool failure returns {error, hint, example}"). Node, Neighbors, ReadSource, TestsFor …
-- `09:59:13` » edit src\DevContext.Mcp\DevContextTools.cs
-- `09:59:31` » edit src\DevContext.Mcp\DevContextTools.cs
-- `09:59:48` » edit src\DevContext.Mcp\DevContextTools.cs
-- `09:59:48` · Now ReadSource and TestsFor:
-- `10:00:01` · Let me view the current ReadSource to fix its structure — I added an unused `rpc` var.
-- `10:00:01` » read src\DevContext.Mcp\DevContextTools.cs
-- `10:00:13` · Let me view the ReadSource body to fix the `rpc` var and close the try properly.
-- `10:00:13` » read src\DevContext.Mcp\DevContextTools.cs
-- `10:00:23` » read src\DevContext.Mcp\DevContextTools.cs
+- `10:07:50` » bash Get-Process -Name "DevContext.Server","devcontext-mcp" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep 1; no…
+- `10:08:16` · Big improvement: 0/12 → 8/12. But A2/A3 (trace/resolve before analyze) still opaque, and B4 (usages short-name) still false-success. Let me check the actual res…
+- `10:08:17` » bash Get-Content eval-results/2026-07-08/mcp-cold-qa.md | Select-String -Pattern "A2-trace-no|A3-resolve-no|B4-usages|B9-find"
+- `10:09:32` · A2/A3 stay opaque because `trace`/`resolve` have `handle` as a required (no-default) first parameter — when the cold agent omits `handle`, the SDK's argument bi…
+- `10:09:32` » bash Select-String -Path src/DevContext.Mcp/DevContextTools.cs -Pattern "public async Task<string> (Resolve|Trace|Node|Neighbors|Usages|Find|Impact|GetContext|R…
+- `10:09:47` · `string? handle` needs `= null` default so the SDK treats it as optional. Let me add defaults to all.
+- `10:09:47` » bash cd src/DevContext.Mcp; (Get-Content DevContextTools.cs -Raw) -replace 'public async Task<string> Resolve\(string\? handle,', 'public async Task<string> Res…
+- `10:09:57` » bash Select-String -Path src/DevContext.Mcp/DevContextTools.cs -Pattern "public async Task<string> (Resolve|Trace|Node|Neighbors|Usages|Find|TestsFor|GetContext…
+- `10:10:12` » read src\DevContext.Mcp\DevContextTools.cs
+- `10:10:12` · Now B4 (usages of `IBasketRepository` short-name → count:0). The problem is `NodeExists` returns true for it (it resolves to a node), so it's treated as "genuin…
 
 ## Stage progress
 
