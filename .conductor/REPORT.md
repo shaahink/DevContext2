@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:37 UTC · branch `feat/loom-l2` · HEAD `e4aef98`_
+_Updated 2026-07-08 06:47 UTC · branch `feat/loom-l2` · HEAD `b9d3e0b`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.4
@@ -9,24 +9,24 @@ _Updated 2026-07-08 06:37 UTC · branch `feat/loom-l2` · HEAD `e4aef98`_
 
 ## Latest activity (live)
 
-_Session #21 (Deliver) · running 10m · last output 53s ago · $0.0262_
+_Session #21 (Deliver) · running 20m · last output 79s ago · $0.0714_
 
 **Thinking:**
-> Let me read the key evidence files from session #20 to audit its claims.
-> The `l4.3-consumers.md` couldn't be read as binary. Let me try reading it differently. Let me also now check the MCP overview output directly to verify the service map projection claim.  But first, let me re-verify the key claims from session #20:  1. Dogfood: 421n/276e/6SL/34ent/82% — the dogfood r…
-> The evidence looks strong. Let me verify the key claims:  1. **MCP overview** — Shows 6 services with full names: `Discount.Grpc (gRPC), Catalog.API, YarpApiGateway (Gateway), Ordering.API, Shopping.Web, Basket.API`. No "API"×3 issue. No library cards. ✅ 2. **MCP top_flows** — Shows ranked flows wit…
+> Now add the ProtoMapper.
+> Now let me build to verify everything compiles.
+> Build succeeded with 0w/0e. Now I need to: 1. Run tests to verify nothing broke 2. Regenerate TypeScript protos 3. Update the UI
 
 **Recent actions:**
-- `07:35:31` · Build now 0w/0e. Let me verify the loom-guards and check git status.
-- `07:35:32` » bash git -C C:\Code\DevContext2-ui status --short
-- `07:35:32` » bash powershell -ExecutionPolicy Bypass -File scripts/loom-guards.ps1 2>&1
-- `07:35:41` » read eval-results\2026-07-08
-- `07:35:41` · Pre-session ritual complete — gate battery all green. Now QAing session #20 (L4.3). Let me read its evidence files and verify claims.
-- `07:35:45` » read eval-results\2026-07-08\gate-battery-l4.3-s20.txt
-- `07:35:45` » read {"filePath":"C:\\Code\\DevContext2-ui\\eval-results\\2026-07-08\\l4.3-consumers.md"}
-- `07:35:46` » read eval-results\2026-07-08\dogfood-l4.3.md
-- `07:35:54` » bash Get-Content -Raw "C:\Code\DevContext2-ui\eval-results\2026-07-08\l4.3-consumers.md" | Select-Object -First 100
-- `07:36:07` · QA on L4.3 evidence: the consumer output confirms exactly 6 runnables with full names, no libs, and the numbers match. Let me verify the code changes are actual…
+- `07:44:18` » edit src\DevContext.Core\Graph\ContextPackBuilder.cs
+- `07:44:44` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `07:44:51` · Core built successfully. Server locked by running process. Let me kill it and rebuild.
+- `07:44:55` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; Start-Sleep 1; dotnet build C:\Code\DevContext2-ui\src\DevContext.Server\DevCo…
+- `07:45:06` » edit src\DevContext.Server\Endpoints\DevContextGrpcService.cs
+- `07:45:06` · Now add the server handler and ProtoMapper. Let me do both in parallel.
+- `07:45:17` » edit src\DevContext.Server\Mapping\ProtoMapper.cs
+- `07:45:28` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `07:45:35` · Build 0w/0e. Now run tests and regenerate TS protos.
+- `07:45:41` » bash pnpm gen:proto
 
 ## Stage progress
 
