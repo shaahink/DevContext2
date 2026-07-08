@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 05:13 UTC · branch `feat/loom-l2` · HEAD `c71b22d`_
+_Updated 2026-07-08 05:23 UTC · branch `feat/loom-l2` · HEAD `e6a11ae`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 05:13 UTC · branch `feat/loom-l2` · HEAD `c71b22d`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 30m · last output 6s ago · $0.0150_
+_Session #20 (Deliver) · running 40m · last output 150s ago · $0.0268_
 
 **Thinking:**
-> I can reference the eShop repo in eval-repos for testing, but dogfood is the real baseline. I've got enough context now to move forward pragmatically with L4.3 as scoped: migrate the MCP overview and top_flows endpoints, the Home hero section, the Atlas diagram, and the stepper component to use proj…
-> I'll start by writing a projection regression test modeled after the existing test patterns, then verify that ServiceMapProjection correctly identifies all the services in the bundled eShop repository before moving on to wiring up the consumers.
-> I'm writing a regression test for ServiceMapProjection that validates it generates runnable services with complete names and excludes library cards, using the bundled eShop repository as a reliable test fixture. Then I'm mapping out the L4.3 implementation scope around the home hero section, Atlas d…
+> Since each entry gets its own flow computed, the FlowListProjection can handle the ranking by sorting on score and limiting to MaxFlows—I'll set that to 20 to match the previous top_flows behavior. Now I need to update the MCP tools for overview and top_flows.
+> I'm checking the FlowCard proto definition to see if it has the accessor methods I need, but looking at the actual message structure, it only contains basic fields like id, title, kind, depth, and hops — there's no route, httpMethod, target, or nodeId fields present.  I added those fields to the C# …
+> I'm checking the FlowListProjection cap with MaxFlows set to 20 for top_flows, and confirming that the projection correctly pulls from graph.Flows and takes the top 20 entries. Time to build and test.
 
 **Recent actions:**
-- `06:11:28` » grep Flows =|\.Flows\b|WithFlows|ImmutableArray<Flow>|BuildFlows|ComputeFlows
-- `06:11:44` · There's a bundled `eShop` repo. Let me first write a projection regression test to verify ServiceMapProjection produces correct services, then wire consumers. L…
-- `06:11:44` » read src\DevContext.Core\Graph\CodeGraph.cs
-- `06:11:54` » read tests\DevContext.Core.Tests\GlobalUsings.cs
-- `06:11:56` » bash Get-ChildItem eval-repos/eShop -Recurse -Filter "*.csproj" | Select-Object -ExpandProperty FullName
-- `06:11:56` · Let me write a projection regression test to verify ServiceMapProjection output, modeled on TraceQualityTests. First, let me confirm the test project's global u…
-- `06:12:27` · I have enough context. Let me now implement L4.3. First, a projection regression test against the bundled eShop repo (portable proof that ServiceMapProjection r…
-- `06:12:27` » read src\DevContext.Server\Mapping\ProtoMapper.cs
-- `06:12:54` · The full L4.2 machinery is present. Now let me implement L4.3. Let me write the projection regression test first.
-- `06:12:54` » write tests\DevContext.Core.Tests\GraphProjectionTests.cs
+- `06:17:02` · I added fields to the C# projection but the proto `FlowCard` lacks them. I need to update the proto and regen. Let me update the proto FlowCard.
+- `06:17:02` » edit proto\devcontext\v1\devcontext.proto
+- `06:17:45` · Now update ProtoMapper to map the new fields.
+- `06:17:45` » edit src\DevContext.Server\Mapping\ProtoMapper.cs
+- `06:18:00` · Now `top_flows`. Rewrite it to use the facets projection.
+- `06:18:00` » edit src\DevContext.Mcp\DevContextTools.cs
+- `06:19:55` · Now build the affected projects.
+- `06:20:18` » bash dotnet build DevContext.slnx 2>&1 | Select-Object -Last 20
+- `06:20:28` · ADevContext.Server process (PID 38768) is running and locking the DLLs. Let me stop it and rebuild.
+- `06:20:31` » bash Get-Process -Name "DevContext.Server","devcontext-mcp","DevContext.Cli" -ErrorAction SilentlyContinue | Select-Object Id,ProcessName; Stop-Process -Id 3876…
 
 ## Stage progress
 
