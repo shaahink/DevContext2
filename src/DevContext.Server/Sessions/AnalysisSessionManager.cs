@@ -24,14 +24,13 @@ public sealed class AnalysisSessionManager : IAnalysisSessionManager, IAsyncDisp
         var repoPath = ResolveRepoPath(spec.Path);
         var commitSha = ResolveCommitSha(repoPath);
 
+        // L5.1 — idempotent by repo+HEAD. TryGetByRepo already routes through Get(),
+        // which stamps LastAccess/LastActivity and increments CallCount exactly once;
+        // don't repeat those mutations here or the reuse double-counts the call.
         var existing = TryGetByRepo(repoPath, commitSha);
         if (existing is not null)
         {
             progress?.Report(new AnalysisProgress("cached", 100, "Reusing existing analysis for this repo"));
-            existing.LastActivity = DateTime.UtcNow;
-            existing.CallCount++;
-            if (_sessions.TryGetValue(existing.Handle, out var existingEntry))
-                existingEntry.LastAccess = DateTime.UtcNow;
             return existing;
         }
 

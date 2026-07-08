@@ -723,7 +723,7 @@ public sealed class DevContextTools
                 NodeId = nodeId,
                 Direction = direction,
             });
-            if (resp.Edges.Count == 0 && !NodeExists(handle, nodeId))
+            if (resp.Edges.Count == 0 && !await NodeExistsAsync(handle, nodeId))
             {
                 var suggestions = await SuggestAsync(handle, nodeId);
                 return Envelope($"Node '{nodeId}' not found.",
@@ -771,7 +771,7 @@ public sealed class DevContextTools
                 {
                     Handle = handle,
                     Query = nodeId,
-                    Limit = 1,
+                    Limit = 10,
                 });
                 if (search.Nodes.Count == 0)
                 {
@@ -781,19 +781,40 @@ public sealed class DevContextTools
                         "usages(handle, nodeId:\"IBasketRepository\")",
                         suggestions.Length > 0 ? suggestions : null);
                 }
-                resolved = search.Nodes[0].NodeId;
 
                 // L5.5 — short names must resolve to an unambiguous node before querying usages.
-                // Substring-only matches may resolve to the wrong node, producing a silent count:0.
-                var topTitle = TrimTitle(search.Nodes[0].Title);
-                if (!string.Equals(topTitle, nodeId, StringComparison.OrdinalIgnoreCase))
+                // graph.Find ranks exact-title matches first; take only those. A substring-only
+                // top match, OR several equally-exact matches across projects, must NOT be silently
+                // picked — that yields a wrong-node count the agent cannot detect (design L5.3:
+                // "never silently picks").
+                var exact = search.Nodes
+                    .Where(n => string.Equals(TrimTitle(n.Title), nodeId, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (exact.Count == 0)
                 {
+                    var top = search.Nodes[0];
+                    var topTitle = TrimTitle(top.Title);
                     var candidates = await SuggestAsync(handle, nodeId, 5);
                     return Envelope($"Short name '{nodeId}' is ambiguous — the top match '{topTitle}' is not an exact match.",
                         "Use the full nodeId from resolve(query).",
-                        $"usages(handle, nodeId:\"{search.Nodes[0].NodeId}\")",
-                        candidates.Length > 0 ? candidates : new[] { new { nodeId = search.Nodes[0].NodeId, title = topTitle, kind = search.Nodes[0].Kind } });
+                        $"usages(handle, nodeId:\"{top.NodeId}\")",
+                        candidates.Length > 0 ? candidates : new[] { new { nodeId = top.NodeId, title = topTitle, kind = top.Kind } });
                 }
+
+                if (exact.Count > 1)
+                {
+                    // Same short name in multiple projects (identity-ambiguity) — never pick one for them.
+                    var candidates = exact.Take(5)
+                        .Select(n => (object)new { nodeId = n.NodeId, title = TrimTitle(n.Title), kind = n.Kind })
+                        .ToArray();
+                    return Envelope($"Short name '{nodeId}' matches {exact.Count} nodes — ambiguous.",
+                        "Pass the exact nodeId of the one you mean (from resolve(query)).",
+                        $"usages(handle, nodeId:\"{exact[0].NodeId}\")",
+                        candidates);
+                }
+
+                resolved = exact[0].NodeId;
             }
 
             var resp = await _client.GetNeighborsAsync(new NeighborsRequest
@@ -804,7 +825,7 @@ public sealed class DevContextTools
             });
 
             // L5.2 — zero usages: distinguish "unknown symbol" from "genuinely unused".
-            if (resp.Edges.Count == 0 && !NodeExists(handle, resolved))
+            if (resp.Edges.Count == 0 && !await NodeExistsAsync(handle, resolved))
             {
                 var suggestions = await SuggestAsync(handle, resolved);
                 return Envelope($"Symbol '{resolved}' not found.",
@@ -948,7 +969,7 @@ public sealed class DevContextTools
         // L5.2 — unknown symbol must not masquerade as "no impact" (totalAffected:0).
         // Verify the symbol exists; if it doesn't, return candidates instead of a false zero.
         if (resp.TotalAffected == 0 && nodeId is not null && (files is null || files.Length == 0)
-            && !NodeExists(handle, nodeId))
+            && !await NodeExistsAsync(handle, nodeId))
         {
             var suggestions = await SuggestAsync(handle, nodeId);
             return Envelope($"Symbol '{nodeId}' not found — not the same as zero impact.",
@@ -978,11 +999,11 @@ public sealed class DevContextTools
     }
 
     // Does an exact node id / resolvable name exist? Used to separate "unknown" from "zero impact".
-    private bool NodeExists(string handle, string nodeId)
+    private async Task<bool> NodeExistsAsync(string handle, string nodeId)
     {
         try
         {
-            var n = _client.GetNode(new NodeRequest { Handle = handle, NodeId = nodeId });
+            var n = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
             return n.Found;
         }
         catch { return false; }
