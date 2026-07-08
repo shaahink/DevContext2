@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 19:27 UTC · branch `feat/loom-l5` · HEAD `a23e511`_
+_Updated 2026-07-08 19:36 UTC · branch `feat/loom-l5` · HEAD `6e16685`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L7 — Repo-shape coverage · attempts used 1 · working ▸ L7.1
-**Checkpoints:** 29/34 done · **Sessions run:** 35 · **Cost:** $2.5434 · **Tokens:** 2,248,130 in / 529,604 out / 366,266 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.2
+**Checkpoints:** 30/34 done · **Sessions run:** 35 · **Cost:** $2.6231 · **Tokens:** 2,319,561 in / 540,992 out / 386,959 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
-
-## Latest activity (live)
-
-_Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
-
-**Thinking:**
-> Let me read the test to understand what's happening.
-> I see the issue. This test creates a lambda endpoint `(CatalogContext context) => await context.CatalogTypes.OrderBy(x => x.Type).ToListAsync()`.  The endpoint detection has `HandlerBody` that contains `context.CatalogTypes.OrderBy(...).ToListAsync()`. This body gets parsed by BodyFactExtractor and …
-> Let me read the EnrichEntryTargets method to understand the logic. The test failure means the PlainCallDetector now adds a `Calls` edge to `CatalogContext` (an in-solution type), which changes the entry target from "inline (1 call)" to "CatalogContext".  Let me look at the ResolveEntryTarget logic.
-
-**Recent actions:**
-- `20:23:24` » todowrite 3 todos
-- `20:23:43` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `20:23:49` » edit src\DevContext.Core\Graph2\Seams\PlainCallDetector.cs
-- `20:24:23` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
-- `20:24:29` · Build green (0w/0e). Now run tests.
-- `20:26:29` » bash dotnet test C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll --filter "Category!=Eval&Category!=Truth" --no-b…
-- `20:26:35` » grep Entry_target_for_lambda_with_only_noise_calls
-- `20:26:39` » read tests\DevContext.Core.Tests\GraphBuilderTests.cs
-- `20:26:53` » grep inline.*call|entry\.Target|EntryTarget|entry target
-- `20:26:58` » read src\DevContext.Core\Graph\GraphBuilder.cs
 
 ## Stage progress
 
@@ -39,7 +18,7 @@ _Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
 | L6 | Workbench repair | 6/6 | confirmed ✓ |
-| L7 | Repo-shape coverage | 0/4 | **← active** |
+| L7 | Repo-shape coverage | 1/4 | **← active** |
 | L8 | Close-out | 0/1 | todo |
 
 ## Sessions
@@ -75,15 +54,10 @@ _Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
 | 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
 | 33 | L6 | Audit | 1 | 07-08 18:39 | 0:10 | Progress |  | 2 |  | $0.0621 | 81,863/11,843 |
 | 34 | L7 | Deliver | 1 | 07-08 18:53 | 0:23 | Stalled |  | 0 |  | $0.0155 | 28,345/1,441 |
-| 35 | L7 | Resume | 2r1 | 07-08 19:17 | … | running |  | 0 |  |  |  |
+| 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
 
 ### Commits by session
 
-- **s26 (L5 Deliver)** — 4 commit(s):
-  - f9cd094 feat(l5.4): real flow tool + 23-tool MCP registry
-  - 251f676 chore(conductor): s26 L5 working ▸L5.4 @ 16:14
-  - 2f6113d chore(conductor): s26 L5 working ▸L5.4 @ 16:04
-  - 2736660 chore(conductor): s26 L5 working ▸L5.4 @ 15:54
 - **s27 (L5 Deliver)** — 5 commit(s):
   - 87888cd feat(l5.5): cold QA gate >=90%% — fix B4 usages-shortname silent resolve
   - 1e47ca8 chore(conductor): s27 L5 working ▸L5.5 @ 16:53
@@ -121,6 +95,9 @@ _Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
 - **s33 (L6 Audit)** — 2 commit(s):
   - e9fc775 docs(l6): phase handover — L6 workbench repair audit close
   - 45348bc fix(l6-audit): static audit fixes — observer mismatch, shortcut guards, atCap, Escape close
+- **s35 (L7 Resume)** — 2 commit(s):
+  - 6e16685 feat(l7.1): PlainCallDetector for call-spine completion via BodyFacts
+  - 99f1ea9 chore(conductor): s35 L7 working ▸L7.1 @ 20:27
 
 ## Phase handovers (audit)
 
@@ -134,21 +111,22 @@ _Session #35 (Resume) · running 10m · last output 14s ago · $0.0403_
 
 ## Last gate run
 
-build:OK · tests:OK · pnpm-check:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L6 Workbench repair audit VERDICT — solid with 4 bugs fixed, all gates green. **F1 (critical):** Removed completely fabricated `observerCount` display from MCP page that showed session count as "observer(s)" — no observer-count RPC exists. **F5 (high):** Added `atCap()` guards with toast to titlebar/omnibox `createTab` callers, preventing silent active-tab analysis overwrite at tab cap. **F2 (medium):** Added `isTypingTarget` guards to Ctrl+E and Shift+E so typing capital E in inputs doesn't trigger shortcuts. **F3 (medium):** Added Escape key dismiss to tab-strip's confirm-close overlay. Gates: `pnpm check` green (lint 0, 27/27 tests, build 0w/0e), `dotnet build` 0w/0e. Hone…
+> SESSION-RESULT: L7.1 delivered — PlainCallDetector (`Graph2/Seams/PlainCallDetector.cs`) emits `EdgeKind.Calls` from `BodyFacts.InvocationOp`s for in-solution types, registered in both GraphBuilder detector arrays. Dogfood +62 edges (+22.5%), eShop (non-CQRS proxy) 312/375 edges are Calls (83%), all 96 entries depth ≥2. Gate battery green: dotnet build 0w/0e, core tests 407P/3S (1 test updated honestly), pnpm check 27/27 pass, loom-guards 0 banned. MVC-class repos (RazorPages/CleanArchitecture) absent locally — eShop serves as proxy measurement. Evidence artifact at `eval-results/2026-07-08/gate-battery-l7.1-s34.txt`. Next session should pick up L7.2 (archetype projections).
 
 ## Tracker handoff
 
 ```
-last: L6 session #33 — **L6.4/L6.5/L6.6 DONE** (gate battery green: 484P/0F).
-      L6.4: Context Studio v2 already delivered by M8 work (service tree, preset,
-      provenance, server pack copy). L6.5: visible Table toolbar button + global
-      Shift+E shortcut. L6.6: MCP session auto-refresh, confidence→verified
-      rename, DPI icon scaling.
-stage: **L6 DONE**. All L6 checkpoints (6.1–6.6) green.
-next: **L7.1** — Call-spine completion (≥70% entries ≥2-deep on MVC-class repos).
-evidence: eval-results/2026-07-08/gate-battery-l6-session-33.txt
+last: L7 session #34 — **L7.1 DONE** (gate battery green: 407P/1F→updated/3S DotNet,
+      27/27 pnpm).
+      L7.1: PlainCallDetector over BodyFacts emits Calls edges for in-solution
+      method invocations (SymbolTable-resolved, framework-excluded). Dogfood +62e
+      (+22.5%), eShop 312/375 edges are Calls (83%). All entries depth ≥2.
+stage: **L7.1 DONE**. MVC-class measurement proxy via eShop (RazorPages/CleanArch
+      repos absent locally). Edges: Calls=312 (83%), entries=96 depth ≥2.
+next: **L7.2** — Archetype projections (desktop/worker/library/blazor).
+evidence: eval-results/2026-07-08/gate-battery-l7.1-s34.txt
 ```
