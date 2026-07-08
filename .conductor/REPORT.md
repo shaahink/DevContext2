@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:53 UTC · branch `feat/loom-l2` · HEAD `d17a57e`_
+_Updated 2026-07-08 05:03 UTC · branch `feat/loom-l2` · HEAD `304bc2b`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 04:53 UTC · branch `feat/loom-l2` · HEAD `d17a57e`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 10m · last output 3s ago · $0.0017_
+_Session #20 (Deliver) · running 20m · last output 106s ago · $0.0050_
 
 **Thinking:**
-> I notice the branch is on `feat/loom-l2` even though the checkpoints are at L4, but since the work has been continuing on this branch, I'll stay put rather than switching. Now I'm running the gate battery to start the build.
-> Running the test suite now—core tests are passing across all configurations, server tests look good, and desktop tests are solid. Guards passed as expected, so moving on to check the package manager and quality assurance tools.
-> The gate battery is fully charged, so I'm documenting that and then reviewing the previous session's work to make sure everything checks out. I should set up a task list for what comes next.
+> The projections are connected to the RPC, though L4.2 lacks unit test coverage for them—a QA concern but not necessarily a blocker. I need to verify the dogfood metrics by re-running the analysis with the CLI report command to confirm those numbers.
+> The QA checks confirm L4.2 is solid—the projections and RPC are working correctly with exact number matches, and while unit tests are missing, that doesn't block the checkpoint. Moving forward to L4.3 now.  For L4.3, I need to wire up the consumers: Home, Atlas, and MCP need to pull from the project…
+> I'm looking at a large surface area for L4.3 that involves consolidating how the home hero, Atlas diagram, MCP overview and top flows, and stepper strips all handle read projections—the goal is to eliminate their ad-hoc walk implementations. The gate for this level is tied to the UI drive gate in th…
 
 **Recent actions:**
-- `05:46:23` · Branch is `feat/loom-l2` (work continued here). Let me run the gate battery.
-- `05:46:37` » bash dotnet build DevContext.slnx 2>&1 | Select-Object -Last 15
-- `05:46:45` · Build 0w/0e. Now tests and guards in parallel.
-- `05:46:47` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 20
-- `05:49:48` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --nologo 2>&1 | Select-Object -Last 25
-- `05:49:57` · Core 393P/3S, Server 12P, Desktop 64P, guards PASS. Now pnpm check and mcp-qa.
-- `05:50:39` » bash pnpm check 2>&1 | Select-Object -Last 30
-- `05:52:48` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 20
-- `05:52:57` » todowrite 3 todos
-- `05:52:57` · Gate battery all green. Let me record it and start QA of the previous session (L4.2).
+- `05:55:53` » read eval-results\2026-07-08\dogfood-l4.2.md
+- `05:55:53` · L4.2 projections exist, are wired to RPC. Note: no unit tests for the projections themselves (QA observation). Let me verify the dogfood numbers claim with a fr…
+- `05:56:02` · Let me re-run dogfood fresh to confirm the 422/276/34/6/82% baseline still holds.
+- `05:56:12` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o eval-results/2026-07-08/qa-l…
+- `05:56:22` » bash Select-String -Path eval-results/2026-07-08/qa-l4.2-recheck.md -Pattern "Nodes|Edges|ServiceLinks|Entries|Verified edges|Analyzed in|Style" | Select-Object…
+- `05:56:46` · QA verdict: **L4.2 PASS** — dogfood reproduces exactly (422n/276e/6SL/34ent/82%), projections + `GetGraphFacets` RPC exist and are wired. Only gap noted: no ded…
+- `05:59:09` » task Map L4.3 consumers and ad-hoc walks
+- `05:59:33` » read src\DevContext.Mcp\DevContextTools.cs
+- `05:59:34` · This is a large checkpoint. Let me read the key implementation files to plan the change precisely.
+- `05:59:34` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
 
 ## Stage progress
 
