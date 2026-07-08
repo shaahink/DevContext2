@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 07:29 UTC · branch `feat/loom-l2` · HEAD `c8ea2cd`_
+_Updated 2026-07-08 07:39 UTC · branch `feat/loom-l2` · HEAD `2b06020`_
 
-**Status:** Idle
-**Stage:** L4 — Flows + projections · attempts used 0
-**Checkpoints:** 19/35 done · **Sessions run:** 22 · **Cost:** $1.7746 · **Tokens:** 1,447,071 in / 387,669 out / 241,508 think
+**Status:** Running
+**Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.1
+**Checkpoints:** 19/35 done · **Sessions run:** 23 · **Cost:** $1.7746 · **Tokens:** 1,447,071 in / 387,669 out / 241,508 think
 **Confirmed phases:** L0, L1, L2, L3, L4
+
+## Latest activity (live)
+
+_Session #23 (Deliver) · running 10m · last output 88s ago · $0.0187_
+
+**Thinking:**
+> Good. Now let me do fresh QA of the L4 claims. I need to: 1. Run a fresh dogfood analysis and compare numbers 2. Run a CLI trace for checkout to verify depth 3. Run MCP QA to verify tool behavior 4. Verify the ContextPack RPC works  Let me also look at the dogfood-l4.4.md trace for the checkout flow…
+> Good: - Fresh dogfood numbers match: 421 nodes, 276 edges, 6 ServiceLinks, 34 entries, 82% verified, 4.7s — all matching the evidence ✅  Now let me check the checkout trace. The dogfood-l4.4.md didn't have a direct trace for POST /basket/checkout, but it does show the bus link. Let me run a CLI trac…
+> The CLI doesn't have a `trace` command. Let me check what commands are available.
+
+**Recent actions:**
+- `08:34:21` » bash git -C C:/Code/DevContext2-ui checkout -- eval-results/2026-07-08/mcp-qa.md
+- `08:37:18` » bash dotnet test C:/Code/DevContext2-ui/DevContext.slnx --filter "Category!=Eval" --no-build 2>&1
+- `08:37:23` » bash git -C C:/Code/DevContext2-ui status --short
+- `08:37:28` » bash git -C C:/Code/DevContext2-ui restore eval-results/2026-07-08/mcp-qa.md; git -C C:/Code/DevContext2-ui status --short
+- `08:37:35` » read eval-results\2026-07-08\gate-battery-l4.4-s21.txt
+- `08:37:35` » read eval-results\2026-07-08\dogfood-l4.4.md
+- `08:37:44` » bash Select-String -LiteralPath "C:\Code\DevContext2-ui\eval-results\2026-07-08\dogfood-l4.4.md" -Pattern "checkout|Checkout|POST /basket" -Context 0,0
+- `08:37:52` » bash dotnet run --project C:/Code/DevContext2-ui/src/DevContext.Cli --no-build -- report "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src" -o "C:/U…
+- `08:38:01` » bash dotnet run --project C:/Code/DevContext2-ui/src/DevContext.Cli --no-build -- trace "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src" --focus "…
+- `08:38:08` » bash dotnet run --project C:/Code/DevContext2-ui/src/DevContext.Cli --no-build -- --help 2>&1
 
 ## Stage progress
 
@@ -16,7 +37,7 @@ _Updated 2026-07-08 07:29 UTC · branch `feat/loom-l2` · HEAD `c8ea2cd`_
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
+| L5 | MCP v2 cold-agent ergonomics | 0/5 | **← active** |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
 | L8 | Close-out | 0/1 | todo |
@@ -47,6 +68,7 @@ _Updated 2026-07-08 07:29 UTC · branch `feat/loom-l2` · HEAD `c8ea2cd`_
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
+| 23 | L5 | Deliver | 1 | 07-08 07:29 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
