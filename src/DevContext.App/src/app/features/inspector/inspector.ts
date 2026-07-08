@@ -137,11 +137,13 @@ const SEVERITY_CLASS: Record<string, string> = {
       }
     }
 
-    <!-- Insights (M9-ext) — grouped by severity, actionable targets. Default collapsed. -->
+    <!-- Insights (L6.3) — adjacency-filtered, honest chip. Default collapsed. -->
     <button type="button" class="section-h border-b border-line" (click)="toggle('insights')">
       <span class="text-2xs">{{ open('insights') ? '▾' : '▸' }}</span> Insights
       @if (filteredInsights().length > 0) {
         <span class="ml-1 chip tabular-nums">{{ filteredInsights().length }}</span>
+      } @else if (trace.nodeDetail() && totalInsightCount() > 0) {
+        <span class="ml-1 chip tabular-nums text-ink-subtle">0 / {{ totalInsightCount() }}</span>
       }
     </button>
     @if (open('insights')) {
@@ -157,6 +159,8 @@ const SEVERITY_CLASS: Record<string, string> = {
             }
           </div>
         }
+      } @else if (trace.nodeDetail() && totalInsightCount() > 0) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">None reference this node ({{ totalInsightCount() }} repo-wide).</p>
       } @else if (trace.nodeDetail()) {
         <p class="px-2 py-3 text-2xs text-ink-subtle">No insights reference this node.</p>
       } @else {
@@ -321,18 +325,41 @@ export class Inspector {
   /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
   private readonly expandedGroups = signal<ReadonlySet<number>>(new Set());
 
-  // ── Insights section (M9-ext W5) ──────────────────────────────────
+  // ── Insights section (L6.3 — graph-adjacency filter + honest chip) ─
 
-  /** All repo insights filtered to the current node, or all if no node selected. */
+  /** All repo insights filtered to the selected node's 1-hop neighborhood
+   *  (evidence nodeIds ∩ adjacent node IDs), or all if no node selected. */
   protected readonly filteredInsights = computed(() => {
-    const insights = this.session.insights();
+    const insights = this.session.insights() as Insight[];
     const node = this.trace.nodeDetail();
-    if (!node || insights.length === 0) return insights as Insight[];
-    const title = node.title.toLowerCase();
-    return (insights as Insight[]).filter((i) =>
-      i.evidence.some((e: string) => e.toLowerCase().includes(title)),
-    );
+    if (!node || insights.length === 0) return insights;
+
+    const neighbors = this.trace.neighbors();
+    const adjIds = new Set<string>([node.id]);
+    const adjTitles = new Set<string>([node.title.toLowerCase()]);
+    for (const e of neighbors) {
+      adjIds.add(e.from);
+      adjIds.add(e.to);
+      adjTitles.add(e.otherTitle.toLowerCase());
+    }
+
+    return insights.filter((i) => {
+      if (i.evidenceActions?.some((a: string) => {
+        if (!a.startsWith('Node:')) return false;
+        return adjIds.has(a.slice(5));
+      })) return true;
+
+      if (i.actionTarget && adjIds.has(i.actionTarget)) return true;
+
+      return i.evidence.some((e: string) => {
+        const el = e.toLowerCase();
+        return Array.from(adjTitles).some((t) => el.includes(t));
+      });
+    });
   });
+
+  /** Total repo-wide insight count for the honest-empty-state label. */
+  protected readonly totalInsightCount = computed(() => this.session.insights().length);
 
   protected readonly insightGroups = computed(() => {
     const groups: { severity: string; insights: Insight[] }[] = [];
