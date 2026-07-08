@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 03:53 UTC · branch `feat/loom-l2` · HEAD `9fe9650`_
+_Updated 2026-07-08 04:03 UTC · branch `feat/loom-l2` · HEAD `5bcbea1`_
 
-**Status:** Idle
-**Stage:** L3 — Semantic-lite tier · attempts used 0
-**Checkpoints:** 15/35 done · **Sessions run:** 17 · **Cost:** $1.3208 · **Tokens:** 1,034,720 in / 283,767 out / 193,301 think
+**Status:** Running
+**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.1
+**Checkpoints:** 15/35 done · **Sessions run:** 18 · **Cost:** $1.3208 · **Tokens:** 1,034,720 in / 283,767 out / 193,301 think
 **Confirmed phases:** L0, L1, L2, L3
+
+## Latest activity (live)
+
+_Session #18 (Deliver) · running 10m · last output 36s ago · $0.0235_
+
+**Thinking:**
+> Wait — the handoff says that the verified edges went from 68% → 81% in the s16 artifact. But `dogfood-l3.3-final.md` shows "Verified edges | 68%". Let me check the actual s16 artifact (`dogfood-l3.3-s16.md`) that the handoff references.  The handoff references `eval-results/2026-07-08/dogfood-l3.3-s…
+> The s16 artifact shows 81% verified. Now let me verify the claim in the handoff that says "Checkout trace depth (CLI, --focus "POST /basket/checkout")" is still listed as 1 (broken) in the baseline. Let me check this - the handoff in LOOM-START.md says: - Checkout trace depth (CLI, `--focus "POST /b…
+> Let me explore the codebase to understand: 1. The current CodeGraph model 2. The TraceBuilder / flow-related code 3. Where Flows would need to be stored 4. Existing ServiceLink / ServiceHop patterns
+
+**Recent actions:**
+- `05:02:16` » bash Test-Path -LiteralPath "C:\Code\DevContext2-ui\eval-results\2026-07-08\gate-battery-l3.3-s16.txt"
+- `05:02:16` · Now QA-ing L3.3 session #16. Let me verify claims with fresh evidence:
+- `05:02:17` » bash powershell -File C:\Code\DevContext2-ui\scripts\bench.ps1 2>&1
+- `05:02:25` » read eval-results\2026-07-08\gate-battery-l3.3-s16.txt
+- `05:02:26` » read eval-results\2026-07-08\dogfood-l3.3-final.md
+- `05:02:26` · Bench has a parse error, but gates are what matter. Let me verify the handoff claims:
+- `05:02:35` · Let me verify the key s16 artifact that the handoff claims shows 81%:
+- `05:02:35` » read eval-results\2026-07-08\dogfood-l3.3-s16.md
+- `05:02:50` » todowrite 2 todos
+- `05:02:50` · Session #16 QA: **CLAIMS CONFIRMED** — s16 artifact shows 81% verified (422n/276e, unchanged), all gates green. Evidence files present, no green-washing. Verdic…
 
 ## Stage progress
 
@@ -15,7 +36,7 @@ _Updated 2026-07-08 03:53 UTC · branch `feat/loom-l2` · HEAD `9fe9650`_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 0/4 | todo |
+| L4 | Flows + projections | 0/4 | **← active** |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -42,6 +63,7 @@ _Updated 2026-07-08 03:53 UTC · branch `feat/loom-l2` · HEAD `9fe9650`_
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
+| 18 | L4 | Deliver | 1 | 07-08 03:53 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
