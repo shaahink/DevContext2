@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 14:12 UTC · branch `feat/loom-l5` · HEAD `69c655a`_
+_Updated 2026-07-08 14:22 UTC · branch `feat/loom-l5` · HEAD `0c1c090`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 0 · working ▸ L5.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 14:12 UTC · branch `feat/loom-l5` · HEAD `69c655a`_
 
 ## Latest activity (live)
 
-_Session #25 (Deliver) · running 10m · last output 5s ago · $0.0253_
+_Session #25 (Deliver) · running 20m · last output 0s ago · $0.0533_
 
 **Thinking:**
-> Good, now let me retry the dotnet build and tests.
-> Build succeeded with 0 warnings and 0 errors! Now let me run the dotnet tests.
-> All tests passed: - Core: 408 passed, 3 skipped, 0 failed - Server: 12 passed, 0 skipped, 0 failed - Desktop: 64 passed, 0 skipped, 0 failed  Now the gate battery summary: - `dotnet build`: BUILD SUCCEEDED (0w/0e) ✅ - `dotnet test --filter "Category!=Eval"`: ALL PASS (408+12+64) ✅ - `pnpm check`: PA…
+> Now I'll update the `usages` method to resolve short names via `SearchNodes` before calling `GetNeighbors`. If the nodeId is a full NodeId (has a colon like "Type:Foo.Bar"), use it directly. Otherwise, resolve first via search.  Let me also check `impact` to see if it needs the same treatment. But t…
+> Now let me build and test to verify the changes compile and the gate battery passes.  But first let me also think about one more thing: the `Find` method on GraphQuery needs to handle tags properly when returning SearchResults. The `SearchResult` type was already extended in L5.3, but let me check -…
+> Now let me build and test.
 
 **Recent actions:**
-- `15:08:10` » bash pnpm check 2>&1
-- `15:08:27` » bash node eval/mcp-qa/run.js --quiet 2>&1
-- `15:08:41` · MCP QA (8/8) and pnpm check both PASS. Build failed due to residual server processes locking files. Let me kill them aggressively and retry.
-- `15:08:43` » bash Get-Process | Where-Object { $_.ProcessName -like "*DevContext*" -or $_.ProcessName -like "*devcontext*" } | Stop-Process -Force -ErrorAction SilentlyConti…
-- `15:08:56` » bash dotnet build DevContext.slnx 2>&1
-- `15:09:02` · Build 0w/0e. Now run tests.
-- `15:12:19` » bash dotnet test DevContext.slnx --filter "Category!=Eval" 2>&1
-- `15:12:31` · All gates green. Now Step 2: QA the previous session's claims. Let me run cold MCP QA and verify the evidence files.
-- `15:12:31` » glob
-- `15:12:31` » bash git -C C:\Code\DevContext2-ui log --oneline -10
+- `15:21:37` » grep NodeExists
+- `15:21:37` · Now I'll fix the MCP `usages` tool to resolve short names via ranked search before calling GetNeighbors. Let me first check `NodeExists`:
+- `15:21:42` » read src\DevContext.Mcp\DevContextTools.cs
+- `15:21:51` » read src\DevContext.Mcp\DevContextTools.cs
+- `15:21:51` · Now fix the MCP `usages` tool to resolve short names via ranked search:
+- `15:22:09` » edit src\DevContext.Mcp\DevContextTools.cs
+- `15:22:22` » edit src\DevContext.Server\Endpoints\DevContextGrpcService.cs
+- `15:22:22` · I need to also pass node tags in the search response. Let me fix that:
+- `15:22:26` · Now let me build and verify:
+- `15:22:36` » bash dotnet build DevContext.slnx 2>&1
 
 ## Stage progress
 
