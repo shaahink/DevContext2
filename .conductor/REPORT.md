@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:59 UTC · branch `feat/loom-l2` · HEAD `244d5b8`_
+_Updated 2026-07-08 00:59 UTC · branch `feat/loom-l2` · HEAD `2962575`_
 
 **Status:** Aborted
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.3
@@ -90,10 +90,6 @@ _Updated 2026-07-08 00:59 UTC · branch `feat/loom-l2` · HEAD `244d5b8`_
 - `.conductor/handovers/L0.md`
 - `.conductor/handovers/L1.md`
 - `.conductor/handovers/L2.md`
-
-## Last gate run
-
-build:OK
 
 ## Last session result
 
