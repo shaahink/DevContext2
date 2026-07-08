@@ -1,0 +1,26 @@
+GATE BATTERY — L7.3 session #37
+=================================
+Run: 2026-07-08
+
+dotnet build DevContext.slnx ............. 0w 0e (PASS)
+dotnet test --filter "Category!=Eval" .... Core 412P/3S, Server 12P, Desktop 64P (PASS)
+pnpm check ................................ lint + vitest(27/27) + build (PASS)
+
+ArchitectureStyleDetector tests ........... 17/17 (PASS)
+  incl. 4 new L7.3 tests:
+    ? SampleCollection_when_majority_of_projects_are_in_sample_paths
+    ? SampleCollection_when_no_unifying_solution_and_many_projects
+    ? SampleCollection_outranks_Microservices
+    ? Non_sample_paths_do_not_trigger_SampleCollection
+
+Dogfood (eshop-microservices) ............. Style: Microservices (unchanged)
+  ? 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · 69% verified
+
+L7.3 changes:
+  - ArchitectureEnums.cs: added SampleCollection to ArchitectureStyle enum
+  - ArchitectureStyleDetector.cs: sample-collection detection (sample-path majority
+    OR no-unifying-solution + >3 projects), SampleCollection outranks Microservices,
+    hardened partial-closure guard with scope documentation (E4 + E9 fixes)
+  - ArchitectureStyleDetectorTests.cs: 4 new tests
+
+No regressions. Gate battery green.

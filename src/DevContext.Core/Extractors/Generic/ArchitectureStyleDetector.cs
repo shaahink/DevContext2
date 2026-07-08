@@ -5,6 +5,11 @@ namespace DevContext.Core.Extractors.Generic;
 /// rather than brittle project-name substrings. Called by the pipeline between Stage 2 and 3.
 /// PLAN-10 B2: replaces the old name-substring heuristic that misclassified eShop and VerticalSlice
 /// as MinimalApi.
+///
+/// L7.3 — Scope behavior: when given a subfolder within a multi-service repo, the pipeline resolves
+/// the closest ancestor .sln. The partial-closure guard (< 75% of sln projects) drops system-level
+/// verdicts (Microservices, ModularMonolith) so the style stays local. Multi-sample/docs repos with
+/// no unifying solution are detected as <see cref="ArchitectureStyle.SampleCollection"/> (E4 fix).
 /// </summary>
 public sealed class ArchitectureStyleDetector
 {
@@ -47,6 +52,28 @@ public sealed class ArchitectureStyleDetector
         // misreading a controller app as NLayer at repo-root (assessment: DntSite audit).
         var projectClassifier = new Graph.ProjectClassifier(model.Projects);
         var projectCount = model.Projects.Count(p => !projectClassifier.IsInTestProject(p.FilePath));
+
+        // L7.3 — Sample-collection guard (E4): when most projects live under sample/demo/docs
+        // paths, the repo is a showcase, not a unified architecture. Never report Microservices
+        // for a sample repo. Also triggers when there is no unifying solution + >3 projects.
+        var samplePathProjectCount = model.Projects.Count(p =>
+            !projectClassifier.IsInTestProject(p.FilePath)
+            && Graph.ProjectClassifier.IsSamplePath(p.FilePath));
+        var nonTestProjectCount = model.Projects.Count(p =>
+            !projectClassifier.IsInTestProject(p.FilePath));
+        var noUnifyingSolution = model.Solution is null;
+        if (samplePathProjectCount > 0 && nonTestProjectCount > 0
+            && (decimal)samplePathProjectCount / nonTestProjectCount > 0.5m)
+        {
+            var ratio = (float)samplePathProjectCount / nonTestProjectCount;
+            scores[ArchitectureStyle.SampleCollection] = (0.6f + ratio * 0.2f,
+                $"{samplePathProjectCount}/{nonTestProjectCount} projects are samples/demos/docs — no unified architecture");
+        }
+        else if (noUnifyingSolution && nonTestProjectCount > 3)
+        {
+            scores[ArchitectureStyle.SampleCollection] = (0.65f,
+                $"{nonTestProjectCount} projects, no unifying solution — likely sample collection");
+        }
 
         // ── Evidence-driven scoring ──────────────────────────────────────────────────
 
@@ -164,11 +191,18 @@ public sealed class ArchitectureStyleDetector
             }
         }
 
-        // Partial-closure guard (Iteration 4 / Critical 3): a single-service closure of a larger solution
-        // may state its LOCAL style (CleanArchitecture/ControllerBased/MinimalApi) but cannot pronounce the
-        // SYSTEM architecture. When we clearly analysed a subset (≤ 75% of the .sln's projects), drop the
-        // system-level verdicts. Whole-solution runs (incl. eShop's Aspire AppHost constellation) analyse
-        // ~all projects, so they keep Microservices.
+        // L7.3 — Partial-closure guard (Iteration 4 / Critical 3 / E9 partial-scope fix):
+        // a single-service closure of a larger solution may state its LOCAL style (CleanArchitecture/
+        // ControllerBased/MinimalApi) but cannot pronounce the SYSTEM architecture. When we clearly
+        // analysed a subset (< 75% of the .sln's projects), drop the system-level verdicts. Whole-
+        // solution runs (incl. eShop's Aspire AppHost constellation) analyse ~all projects, so they
+        // keep Microservices.
+        //
+        // Root-vs-subfolder behavior: when the user passes a subfolder path (not a .sln file), the
+        // pipeline resolves the closest ancestor .sln or walks up to repo root. If the subfolder
+        // contains a single service's project tree within a multi-service repo, this guard ensures
+        // the style remains local. If no .sln is found at all, the no-unifying-solution branch above
+        // (SampleCollection) fires.
         var slnProjectCount = model.Solution?.ProjectPaths.Length ?? 0;
         if (slnProjectCount > 0 && model.Projects.Length < slnProjectCount * 3 / 4)
         {
@@ -190,6 +224,25 @@ public sealed class ArchitectureStyleDetector
             // Boost Microservices just above the strongest CleanArchitecture score so
             // it wins the MaxBy.
             scores[ArchitectureStyle.Microservices] = (Math.Max(msEntry.Score, caEntry.Score + 0.01f), msEntry.Evidence);
+        }
+
+        // L7.3 — SampleCollection guardrail (E4): a sample/docs repo is NEVER Microservices.
+        // When the detector has evidence this is a sample collection, it outranks any system-level
+        // style verdict. The confidence floor is 0.60 so it beats a bare MinimalApi/NLayer default.
+        if (scores.TryGetValue(ArchitectureStyle.SampleCollection, out var scEntry))
+        {
+            scores.Remove(ArchitectureStyle.Microservices);
+            scores.Remove(ArchitectureStyle.CleanArchitecture);
+            scores.Remove(ArchitectureStyle.VerticalSlices);
+            scores.Remove(ArchitectureStyle.ModularMonolith);
+            // Let local styles (ControllerBased, MinimalApi, NLayer) stay in case the sample
+            // collection contains a coherent subset, but boost SampleCollection above them.
+            foreach (var other in scores.Keys.Except([ArchitectureStyle.SampleCollection]).ToList())
+            {
+                var cur = scores[other];
+                if (cur.Score >= scEntry.Score)
+                    scores[ArchitectureStyle.SampleCollection] = (cur.Score + 0.02f, scEntry.Evidence);
+            }
         }
 
         var best = scores.MaxBy(kv => kv.Value.Score);

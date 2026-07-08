@@ -126,5 +126,8 @@ public enum ArchitectureStyle
     ModularMonolith,
     MinimalApi,
     Microservices,
-    ControllerBased
+    ControllerBased,
+    /// <summary>L7.3 — a collection of unrelated samples, demos, or documentation projects with
+    /// no unifying solution. Never report Microservices/CleanArchitecture for a sample repo.</summary>
+    SampleCollection,
 }
