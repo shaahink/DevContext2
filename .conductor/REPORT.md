@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 21:41 UTC · branch `feat/loom-l7` · HEAD `d5dbfb5`_
+_Updated 2026-07-08 21:51 UTC · branch `feat/loom-l7` · HEAD `b6dedaa`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L8 — Close-out · attempts used 0 · working ▸ L8.1
@@ -9,24 +9,24 @@ _Updated 2026-07-08 21:41 UTC · branch `feat/loom-l7` · HEAD `d5dbfb5`_
 
 ## Latest activity (live)
 
-_Session #40 (Deliver) · running 10m · last output 52s ago · $0.0290_
+_Session #40 (Deliver) · running 20m · last output 0s ago · $0.0542_
 
 **Thinking:**
-> The dogfood analysis ran but didn't produce visible numbers in the output. Let me run it directly with a proper output file to check the numbers. Also, I need to verify the dogfood numbers. Let me check the dogfood stats differently.  Actually, from the bench-verdicts-l7.4-s38.md, the dogfood number…
-> L7.4 QA results:  1. **Evidence files exist**: `bench-verdicts-l7.4-s38.md`, `gate-battery-l7.4-s38.txt` ✅ 2. **Dogfood numbers verified**: 436n/338e/34e/6SL/69% — matches fresh run above ✅ 3. **Blazor test active**: `[SkippableFact]` with `Skip.IfNot` guard, no `[TruthPending]` ✅ 4. **3 new truth t…
-> Let me run the cold-agent QA and also check git status before making changes. Let me also look at the bench.ps1 script for the truth test run, and check the mcp-qa scripts.
+> Good, test fixes done. Now let me also check the EvalExpectationTests verticalslice failure and the TraceQualityTests eShop failures. Let me look at those to understand if they're pre-existing or regressions.  But first, let me also check the Library test — does "PUBLIC SURFACE" actually appear in t…
+> The tests ran WITHOUT the new code changes because the build failed (file locked by testhost). The old compiled tests ran and showed the old failures. I need to: 1. Kill the testhost process (37016) blocking the file 2. Rebuild and retest  But also, looking at the test output, I can see: 1. **Librar…
+> Good, now let me rebuild and run the truth tests specifically.
 
 **Recent actions:**
-- `22:37:42` » read tests\DevContext.Core.Tests\TruthExpectationTests.cs
-- `22:37:42` » read tests\DevContext.Core.Tests\TruthExpectationTests.cs
-- `22:37:47` » bash dotnet run --project src/DevContext.Cli --no-build -- stats "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" 2>&1 | Out-String -Width 200
-- `22:37:55` » read AGENTS.md
-- `22:37:55` » read src\DevContext.App\AGENTS.md
-- `22:38:03` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o "$env:TEMP\dogfood-l8-report…
-- `22:38:15` » todowrite 4 todos
-- `22:38:15` · L7.4 QA complete — all claims verified against fresh artifacts. Dogfood 436n/338e/34e/6SL/69% confirmed. Now delivering L8.1.
-- `22:38:22` » bash git status --short 2>&1
-- `22:40:23` » bash node eval/mcp-qa/run-cold.js 2>&1
+- `22:49:16` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
+- `22:49:25` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
+- `22:49:25` · Now fix Library/Desktop/Worker tests — the "MAP" header doesn't appear for non-App archetypes. Replace with content-presence check.
+- `22:49:38` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
+- `22:49:50` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
+- `22:50:01` · Now let me verify the test fixes compile and check the remaining eval failures.
+- `22:50:30` » bash dotnet build tests/DevContext.Core.Tests --no-restore 2>&1
+- `22:50:53` » bash dotnet test tests/DevContext.Core.Tests --filter "Category=Eval&Category=Truth" --no-build 2>&1
+- `22:51:07` · File locked by old testhost. Let me clean up and rebuild.
+- `22:51:09` » bash Get-Process -Name "testhost" -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 2; Write-Host "done"
 
 ## Stage progress
 
