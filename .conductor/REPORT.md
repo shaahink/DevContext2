@@ -1,32 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 21:16 UTC · branch `feat/loom-l7` · HEAD `c78c0e6`_
+_Updated 2026-07-08 21:18 UTC · branch `feat/loom-l7` · HEAD `347b6e0`_
 
-**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
-**Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.4
-**Checkpoints:** 32/34 done · **Sessions run:** 38 · **Cost:** $2.7794 · **Tokens:** 2,488,411 in / 574,696 out / 406,140 think
+**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Stage:** L7 — Repo-shape coverage · attempts used 0
+**Checkpoints:** 33/34 done · **Sessions run:** 38 · **Cost:** $2.8876 · **Tokens:** 2,603,212 in / 594,274 out / 420,717 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6
-
-## Latest activity (live)
-
-_Session #38 (Deliver) · running 40m · last output 3s ago · $0.1000_
-
-**Thinking:**
-> The DevContext.Server process (PID 13028) is still running — likely it auto-launched during the CLI bench. Let me kill it and try again.
-> Good, build succeeded. Now let me run the gate battery one more time to ensure everything is green before I proceed to the final steps. Let me also write the per-repo verdicts report.  But first, let me produce the evidence artifacts: 1. Bench summary (already produced by bench-simple.ps1) 2. Per-re…
-> Now let me write the gate battery evidence and update LOOM-START.md. First, let me run the full gate battery:
-
-**Recent actions:**
-- `22:13:59` » read eval-results\2026-07-08\bench-summary.txt
-- `22:13:59` · Bench complete — 21 of 22 repos OK (DntSite absent). Let me read the summary and create the per-repo verdicts report:
-- `22:14:06` » glob
-- `22:14:12` » bash dotnet build DevContext.slnx 2>&1 | Select-String -Pattern "Error|Build succeeded"
-- `22:15:12` » bash Start-Sleep -Seconds 5; dotnet build DevContext.slnx 2>&1 | Select-String -Pattern "Error|Build succeeded"
-- `22:15:45` » bash Get-Process | Where-Object { $_.ProcessName -match 'DevContext|devcontext' } | Stop-Process -Force; Start-Sleep -Seconds 3; dotnet build DevContext.slnx 2>…
-- `22:16:16` » write eval-results\2026-07-08\bench-verdicts-l7.4-s38.md
-- `22:16:16` · Build green. Now let me produce the L7.4 evidence artifacts — per-repo verdicts and the gate battery:
-- `22:16:25` » write eval-results\2026-07-08\gate-battery-l7.4-s38.txt
-- `22:16:25` · Now let me write the gate battery evidence file and update LOOM-START.md:
+**Pending:** auto-fix audit for L7
 
 ## Stage progress
 
@@ -39,7 +19,7 @@ _Session #38 (Deliver) · running 40m · last output 3s ago · $0.1000_
 | L4 | Flows + projections | 4/4 | confirmed ✓ |
 | L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
 | L6 | Workbench repair | 6/6 | confirmed ✓ |
-| L7 | Repo-shape coverage | 3/4 | **← active** |
+| L7 | Repo-shape coverage | 4/4 | gating… |
 | L8 | Close-out | 0/1 | todo |
 
 ## Sessions
@@ -75,14 +55,10 @@ _Session #38 (Deliver) · running 40m · last output 3s ago · $0.1000_
 | 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
 | 36 | L7 | Deliver | 1 | 07-08 19:36 | 0:32 | Advanced | L7.2 | 4 | build:OK | $0.0928 | 97,550/20,172 |
 | 37 | L7 | Deliver | 1 | 07-08 20:10 | 0:24 | Advanced | L7.3 | 3 | build:OK | $0.0635 | 71,300/13,532 |
-| 38 | L7 | Deliver | 1 | 07-08 20:36 | … | running |  | 0 |  |  |  |
+| 38 | L7 | Deliver | 1 | 07-08 20:36 | 0:41 | Advanced | L7.4 | 5 | build:OK | $0.1082 | 114,801/19,578 |
 
 ### Commits by session
 
-- **s29 (L6 Deliver)** — 3 commit(s):
-  - 753e84d feat(l6.1): tab strip 32px + New=createTab + clone-close confirm
-  - f424efd chore(conductor): s29 L6 working ▸L6.1 @ 18:14
-  - 80021d4 chore(conductor): s29 L6 working ▸L6.1 @ 18:04
 - **s30 (L6 Deliver)** — 4 commit(s):
   - 7154310 docs(l6.2): tracker — L6.2 DONE
   - da1823d feat(l6.2): entry selection shows source — selectNode after trace unlocks Code pane
@@ -113,6 +89,12 @@ _Session #38 (Deliver) · running 40m · last output 3s ago · $0.1000_
   - 66fe007 feat(l7.3): style-detection guardrails — SampleCollection, never Microservices for sample repos (E4/E9)
   - 40c91e3 chore(conductor): s37 L7 working ▸L7.3 @ 21:30
   - 25bd8fb chore(conductor): s37 L7 working ▸L7.3 @ 21:20
+- **s38 (L7 Deliver)** — 5 commit(s):
+  - 347b6e0 feat(l7.4): truth files per archetype, 22-repo bench, multi-.sln directory detection
+  - 89cfb7e chore(conductor): s38 L7 working ▸L7.4 @ 22:16
+  - c78c0e6 chore(conductor): s38 L7 working ▸L7.4 @ 22:06
+  - 6f50cd8 chore(conductor): s38 L7 working ▸L7.4 @ 21:56
+  - c091e9b chore(conductor): s38 L7 working ▸L7.4 @ 21:46
 
 ## Phase handovers (audit)
 
@@ -130,17 +112,19 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: **L7.3 landed — style-detection guardrails.** `ArchitectureStyle.SampleCollection` added to the enum with detection logic that triggers when >50% of non-test projects are under sample/demo paths OR when there's no unifying .sln with >3 projects (the E4 Blazor WASM samples scenario). SampleCollection unconditionally suppresses Microservices, CleanArchitecture, VerticalSlices, and ModularMonolith verdicts. The partial-closure guard was hardened with scope-behavior documentation (E9 fix). Gate battery green: 412P/3S Core (4 new tests), 64P Desktop, 12P Server, 27/27 pnpm; dogfood unchanged at Microservices 436n/338e/6SL/34e/69%. Next session should deliver **L7.4** — extend trut…
+> SESSION-RESULT: L7.4 landed with proof. **Delivered:** (1) multi-.sln directory detection in ArchitectureStyleDetector — Blazor, MediatR, gRPC, Ocelot, RazorPages now all report SampleCollection; (2) Blazor `[TruthPending("L7")]` truth test flipped to active `[SkippableFact]`; (3) 3 new archetype truth tests (Library/FluentValidation, Desktop/PowerToys, Worker/AzureFunctions); (4) 22-repo bench run with per-repo verdicts (21/22 OK, DntSite absent). **Gate battery green:** 414P/3S Core, 64P Desktop, 12P Server, 27/27 pnpm, 0w/0e build. **Red:** nothing — all gates green, working tree clean, branch pushed. **Next session should run L8.1 close-out:** clean-clone gate battery, write HANDOVER-LOO…
 
 ## Tracker handoff
 
 ```
-last: L7 session #37 — **L7.3 DONE** (gate battery green: 412P/3S Core, 64P Desktop,
-      12P Server, 27/27 pnpm). SampleCollection enum + detection: >50% sample-path
-      projects OR no .sln + >3 projects → SampleCollection, never Microservices (E4).
-      Hardened partial-closure guard with scope docs (E9). Dogfood stays Microservices
-      (436n/338e/6SL/34e/69%). Build 0w/0e.
-stage: **L7.3 DONE**. L7.4 (truth files per archetype, 22-repo bench) next.
-next: **L7.4** — Truth files extended to one repo per archetype; full 22-repo bench.
-evidence: eval-results/2026-07-08/gate-battery-l7.3-s37.txt
+last: L7 session #38 — **L7.4 DONE** (gate battery green: 414P/3S Core, 64P Desktop,
+       12P Server, 27/27 pnpm). Multi-.sln directory detection: Blazor + MediatR + gRPC
+       + Ocelot + RazorPages now SampleCollection (not Microservices). 21/22 bench OK,
+       per-repo verdicts in bench-verdicts-l7.4-s38.md. Blazor truth test flipped to
+       active. 3 new archetype truth tests (Library/Desktop/Worker). Dogfood stable
+       436n/338e/34e/6SL/69%.
+stage: **L7.4 DONE**. L8.1 (close-out: clean-clone battery, HANDOVER-LOOM.md) next.
+next: **L8.1** — Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals.
+evidence: eval-results/2026-07-08/bench-verdicts-l7.4-s38.md, bench-summary.txt,
+          gate-battery-l7.4-s38.txt
 ```
