@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:12 UTC · branch `feat/loom-l2` · HEAD `b8f7ff9`_
+_Updated 2026-07-08 00:22 UTC · branch `feat/loom-l2` · HEAD `00ee4c3`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 00:12 UTC · branch `feat/loom-l2` · HEAD `b8f7ff9`_
 
 ## Latest activity (live)
 
-_Session #12 (Deliver) · running 30m · last output 2s ago · $0.0445_
+_Session #12 (Deliver) · running 40m · last output 2s ago · $0.0626_
 
 **Thinking:**
-> I'm checking whether the project's FilePath is properly set and if the known file paths cache actually contains the C# files from that directory. I need to add instrumentation to track the tree count and reference count in the results.
-> The compilation flag is False, which means `CSharpCompilation.Create` is failing—likely due to a duplicate reference issue where the same assembly identity is being added multiple times, causing an exception during the build process.  I need to capture the actual exception type and message to unders…
-> I'm seeing an `ArgumentException` about duplicate syntax trees in the collection—this is happening because the same .cs file can match multiple project directories, either through nested project structures or shared files, and the path prefix matching is catching the same file for different projects…
+> I'm running into a namespace collision where both the old `Graph.SymbolRef` and new `Graph2.SymbolRef` exist, and in GraphBuilder.cs the unqualified name resolves to the old one. I need to fully qualify references to use `Graph2.SymbolRef` instead, particularly where `sem` comes from `LocalDeclOp.In…
+> The lambda overlay didn't increase the verified Send count—still showing 33/32 with just 1 verified—so the checkout lambda Send remains unaccounted for. Let me trace back to the actual CheckoutBasketEndpoints source to see if the command is defined inline rather than as a local variable, since the e…
+> Looking at how the checkout endpoint adapts the request into a CheckoutBasketCommand, I need to ensure the overlay system recognizes this local declaration with the correct inferred type. The main semantic pass should be generating a LocalDeclOp for the `command` variable that maps to CheckoutBasket…
 
 **Recent actions:**
-- `01:10:08` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
-- `01:10:27` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
-- `01:10:46` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:10:46` · `compilation=False trees=149 refs=59` — the compilation is **throwing** during `Create`. Let me capture the exception message.
-- `01:10:55` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:11:06` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
-- `01:11:23` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 3; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
-- `01:11:55` · Found it: `ArgumentException: Syntax tree already present` — nested project dirs cause the same .cs file to be added multiple times. Let me dedup tree-gathering…
-- `01:11:55` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:12:14` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 3; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
+- `01:20:00` · Build has 2 errors (it ran on stale binary). Let me see them:
+- `01:20:03` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Core -clp:ErrorsOnly 2>&1 | Select-String -Pattern "error" | Select-Object -First 10
+- `01:20:14` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `01:20:15` · Namespace collision — `SymbolRef` resolves to the old `Graph.SymbolRef`. Let me qualify with `Graph2.SymbolRef`:
+- `01:20:23` » edit src\DevContext.Core\Graph\GraphBuilder.cs
+- `01:20:49` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
+- `01:21:00` · The lambda overlay didn't move the checkout Send. Let me look at the actual endpoint source to understand its dispatch shape:
+- `01:21:00` » bash Get-Content "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src\Services\Basket\Basket.API\Basket\CheckoutBasket\CheckoutBasketEndpoints.cs" 2>&1
+- `01:22:15` · The checkout `Adapt<T>` needs Mapster's global `using` — which lives in `obj/*.GlobalUsings.g.cs`, not in my compilation. Let me verify that hypothesis and incl…
+- `01:22:15` » bash $b="C:\Users\shahi\source\repos\run-aspnetcore-microservices\src\Services\Basket\Basket.API"; Get-ChildItem "$b\obj" -Recurse -Filter "*GlobalUsings.g.cs" …
 
 ## Stage progress
 
