@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:40 UTC · branch `feat/loom-l2` · HEAD `379f958`_
+_Updated 2026-07-08 04:42 UTC · branch `feat/loom-l2` · HEAD `d5602c3`_
 
-**Status:** Running
-**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.2
-**Checkpoints:** 16/35 done · **Sessions run:** 19 · **Cost:** $1.3959 · **Tokens:** 1,122,534 in / 296,828 out / 205,951 think
+**Status:** Idle
+**Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
+**Checkpoints:** 17/35 done · **Sessions run:** 19 · **Cost:** $1.4766 · **Tokens:** 1,226,929 in / 312,141 out / 211,962 think
 **Confirmed phases:** L0, L1, L2, L3
-
-## Latest activity (live)
-
-_Session #19 (Deliver) · running 20m · last output 10s ago · $0.0681_
-
-**Thinking:**
-> Let me run the dogfood report to get fresh numbers. I'll direct the output to a file and also check the date directory exists.
-> Good. Now let me check the report file to verify the dogfood numbers.
-> Dogfood numbers: - 422n ✅ (matches L4.1 baseline) - 276e ✅ - 34 entries ✅ - 6 ServiceLinks ✅ - 82% verified edges ✅ (within ±1%) - 3.4s analyzed  Now let me create the gate battery evidence artifact, then update LOOM-START.md and commit.
-
-**Recent actions:**
-- `05:36:15` » todowrite 4 todos
-- `05:36:15` · Build green. Now run the full gate battery.
-- `05:36:22` » bash powershell -File C:\Code\DevContext2-ui\scripts\loom-guards.ps1 2>&1
-- `05:39:26` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
-- `05:39:30` · Tests and guards green. Now pnpm check.
-- `05:40:01` » bash Set-Location C:\Code\DevContext2-ui\src\DevContext.App; pnpm check 2>&1 | Select-Object -Last 15
-- `05:40:08` » todowrite 3 todos
-- `05:40:08` · All gates green. Now produce the fresh dogfood evidence artifact.
-- `05:40:19` » bash $dateDir = "eval-results/2026-07-08"; if (!(Test-Path -LiteralPath "C:\Code\DevContext2-ui\$dateDir")) { New-Item -ItemType Directory -Path "C:\Code\DevCon…
-- `05:40:23` » read eval-results\2026-07-08\dogfood-l4.2.md
 
 ## Stage progress
 
@@ -36,7 +15,7 @@ _Session #19 (Deliver) · running 20m · last output 10s ago · $0.0681_
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
 | L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 1/4 | **← active** |
+| L4 | Flows + projections | 2/4 | **← active** |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
 | L7 | Repo-shape coverage | 0/4 | todo |
@@ -64,19 +43,10 @@ _Session #19 (Deliver) · running 20m · last output 10s ago · $0.0681_
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
-| 19 | L4 | Deliver | 1 | 07-08 04:20 | … | running |  | 0 |  |  |  |
+| 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 
 ### Commits by session
 
-- **s9 (L2 Deliver)** — 8 commit(s):
-  - db40049 feat(l2): L2.3 assembler consumes SeamMatches + L2.4 checkout trace depth 6
-  - 2157d36 chore(conductor): s9 L2 working ▸L2.3 @ 23:40
-  - 8d68891 chore(conductor): s9 L2 working ▸L2.3 @ 23:30
-  - 589c6cf chore(conductor): s9 L2 working ▸L2.3 @ 23:20
-  - d3404ea chore(conductor): s9 L2 working ▸L2.3 @ 23:10
-  - 52ba77d chore(conductor): s9 L2 working ▸L2.3 @ 23:00
-  - 267dec8 chore(conductor): s9 L2 working ▸L2.3 @ 22:50
-  - e57f95a chore(conductor): s9 L2 working ▸L2.3 @ 22:40
 - **s10 (L2 Audit)** — 2 commit(s):
   - 5b69dd7 fix(l2-audit): triple-brace auto-extract, try-catch detector loops, honest L2 handover
   - 92a6a4d chore(conductor): s10 L2 working ▸L2 @ 00:00
@@ -120,6 +90,11 @@ _Session #19 (Deliver) · running 20m · last output 10s ago · $0.0681_
   - 8e75dd9 feat(l4.1): Flow store on CodeGraph; spine-only Touches/Emits; ServiceHops + provenance
   - 99e5b78 chore(conductor): s18 L4 working ▸L4.1 @ 05:13
   - a589b08 chore(conductor): s18 L4 working ▸L4.1 @ 05:03
+- **s19 (L4 Deliver)** — 4 commit(s):
+  - d5602c3 chore(l4.2): record commit hash in tracker
+  - 73cca81 feat(l4.2): Projections + GetGraphFacets RPC
+  - 1091cf6 chore(conductor): s19 L4 working ▸L4.2 @ 05:40
+  - 379f958 chore(conductor): s19 L4 working ▸L4.2 @ 05:30
 
 ## Phase handovers (audit)
 
@@ -134,21 +109,19 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L4.1 landed — Flow/FlowStep/ServiceHop records created (`src/DevContext.Core/Graph/FlowModel.cs`), Flows stored on `CodeGraph` with builder pass-through, and `GraphBuilder.ComputeFlows()` spine walk with handler-member bridging computing 34 flows (one per entry) at assembly time. Touches are spine-only (ReadsWrites from spine members — audit E5 fix), Emits from spine Raises, ServiceHops from ServiceLink crossings with transport tag. Node/edge counts unchanged at 422n/276e/6SL/34ent, 82% verified. All gates green: build 0w/0e, Core 393P/3S, Server 12P, Desktop 64P, pnpm 27P, mcp-qa 8/8. Next session should implement L4.2: projections (ServiceMap/FlowList/EntryTable/LayerBand) …
+> SESSION-RESULT:** L4.2 landed (commit `d5602c3`): 4 projection classes (`ServiceMapProjection`, `FlowListProjection`, `EntryTableProjection`, `LayerBandProjection`) implementing `IGraphProjection<TOut>`, new `GetGraphFacets` RPC with 9 proto messages wired through `ProtoMapper` → gRPC handler, and `GraphQuery.Flows` property. Gate battery all green (build 0w/0e, Core 393P/3S, Server 12P, Desktop 64P, pnpm 27P, guards PASS). Dogfood numbers unchanged (422n/276e/34ent/6SL/82%). No regressions. Next session (L4.3) should switch Home/Atlas/MCP consumers to read the new projections and delete their ad-hoc walks (`MapBuilder` topology aggregation, `AtlasStore` background trace indexing, MCP `overv…
 
 ## Tracker handoff
 
 ```
-last: L4 session #18 — **L4.1 DONE**. Flow store on CodeGraph (34 flows, one per entry).
-      Spine-only Touches/Emits (E5 fix: no EntityRelation reachability). ServiceHops with
-      transport + provenance. Additive only — node/edge counts unchanged (422n/276e).
-stage: **L4 IN PROGRESS** (L4.1 ✅). Fix: Flow/FlowStep/ServiceHop records + CodeGraph
-      storage + GraphBuilder.ComputeFlows() (spine walk with handler-member bridging).
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P ·
-      mcp-qa 8/8. Verified edges 82% (±1% variance from L3.3).
-next: **L4.2** — Projections (ServiceMap, FlowList, EntryTable, LayerBand) + GetGraphFacets
-      RPC. L4.1's 34 flows are the data; projections render them identically across CLI,
-      MCP, and UI.
-evidence: eval-results/2026-07-08/gate-battery-l4.1-s18.txt
-          eval-results/2026-07-08/dogfood-l4.1-final.md
+last: L4 session #19 — **L4.2 DONE**. Projections (ServiceMap, FlowList, EntryTable,
+      LayerBand) + GetGraphFacets RPC. Four IGraphProjection<TOut> implementations. Proto
+      adds 9 messages for all 4 facets. Server handler + ProtoMapper wired. No regressions:
+      422n/276e/34ent/6SL/82% (unchanged from L4.1). Adds only — consumers not yet switched.
+stage: **L4 IN PROGRESS** (L4.1 ✅, L4.2 ✅). GraphProjections.cs (4 projections, ~230 lines)
+       + proto (9 messages, 1 RPC) + ProtoMapper + server handler.
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P.
+next: **L4.3** — Switch Home/Atlas/MCP consumers to read projections; delete ad-hoc walks.
+evidence: eval-results/2026-07-08/gate-battery-l4.2-s19.txt
+          eval-results/2026-07-08/dogfood-l4.2.md
 ```
