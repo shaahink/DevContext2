@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 20:46 UTC · branch `feat/loom-l7` · HEAD `16bb43a`_
+_Updated 2026-07-08 20:56 UTC · branch `feat/loom-l7` · HEAD `c091e9b`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L7 — Repo-shape coverage · attempts used 0 · working ▸ L7.4
@@ -9,24 +9,24 @@ _Updated 2026-07-08 20:46 UTC · branch `feat/loom-l7` · HEAD `16bb43a`_
 
 ## Latest activity (live)
 
-_Session #38 (Deliver) · running 10m · last output 1s ago · $0.0276_
+_Session #38 (Deliver) · running 20m · last output 4s ago · $0.0618_
 
 **Thinking:**
-> No truth files found in `eval/expectations/`. The proposal-loom §L0.1 mentions `eval/expectations/<repo>.truth.json` but they don't exist. Let me check what truth-related tests exist and the bench script.
-> No truth expectation JSON files exist in eval/expectations/. Let me read the existing truth tests and eval-repos.json to understand the current state.
-> Now I understand the current state:  1. **Truth tests** exist in `TruthExpectationTests.cs` but are `[TruthPending]` for several (Dogfood_checkout, Dogfood_service_names, RazorPages, Blazor). Some are `[SkippableFact]` for baseline presence (Dogfood_baseline, CleanArchitecture_baseline, TodoApi_base…
+> Build succeeded 0w/0e. Now run the tests:
+> Tests pass: Core 415P/3S (was 412P/3S, so +3 for the new tests I added), Desktop 64P, Server 12P. All green.  Now let me verify the Blazor detection. But first, let me also check that the new tests passed:
+> Still Microservices. The project-name detection isn't firing. Let me think about why.  The issue is that the `ArchitectureStyleDetector.Detect()` method receives a `DiscoveryModel` that's been populated by the pipeline. The `model.Solution` is set to the .sln that was found by the resolver. But `mod…
 
 **Recent actions:**
-- `21:45:40` » glob
-- `21:45:41` · L7.3 QA complete: all claims verified — code exists, tests pass (4 new SampleCollection tests), dogfood reports Microservices, 436n/338e/6SL/34e/69% exact match…
-- `21:45:41` » glob
-- `21:45:47` » read scripts\bench.ps1
-- `21:45:48` » grep TruthExpectation
-- `21:45:48` » grep truth
-- `21:45:57` » read tests\DevContext.Core.Tests\TruthExpectationTests.cs
-- `21:45:57` » read eval-repos.json
-- `21:46:27` » grep TruthPending
-- `21:46:28` » bash Get-ChildItem "C:\Code\DevContext2-ui\eval-repos" -Directory | Select-Object Name
+- `21:50:27` » grep Project\(
+- `21:50:32` » read tests\DevContext.Core.Tests\ArchitectureStyleDetectorTests.cs
+- `21:50:50` » edit tests\DevContext.Core.Tests\ArchitectureStyleDetectorTests.cs
+- `21:51:53` » bash dotnet build DevContext.slnx 2>&1 | Select-String -Pattern "Error|Warning|Build succeeded"
+- `21:52:03` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; Stop-Process -Name "devcontext" -Force -ErrorAction SilentlyContinue; Write-Ho…
+- `21:52:17` » bash dotnet build DevContext.slnx 2>&1 | Select-String -Pattern "Error|Warning|Build succeeded"
+- `21:55:31` » bash dotnet test DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-String -Pattern "Passed|Failed|Skipped|Total"
+- `21:55:38` · Build 0w/0e, tests 415P/3S Core (+3 new), 64P Desktop, 12P Server — all green. Now verify Blazor detection with the fix:
+- `21:55:51` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Code\DevContext2-ui\eval-repos\Blazor" --no-cache -f markdown 2>&1 | Select-String -Patter…
+- `21:56:21` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Code\DevContext2-ui\eval-repos\Blazor" --no-cache -f markdown 2>&1 | Select-String -Patter…
 
 ## Stage progress
 
