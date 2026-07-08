@@ -8,12 +8,13 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L6 session #29 — **L6.1 DONE** (gate battery green: 484P/0F, cold QA 92%).
-       Tab strip 32px (h-8), 13px labels (text-xs), Titlebar+Omnibox New=createTab
-       (no more cancel+closeTab), clone-close confirm bar ("Cancel analysis of X?").
-stage: **L6.1 DONE**. L6 checkpoints remaining: 6.2–6.6.
-next: **L6.2** — Code pane: entry selection shows source; loading/error states visible.
-evidence: eval-results/2026-07-08/gate-battery-l6.1-s29.txt
+last: L6 session #30 — **L6.2 DONE** (gate battery green: 484P/0F, cold QA 92%).
+       onEntry() now calls selectNode() after trace — Code pane shows file path +
+       "load source" immediately on entry selection (no more "Select a node…" dead end).
+       Loading/error states (skeleton + error text) already functional. PrismJS wired.
+stage: **L6.2 DONE**. L6 checkpoints remaining: 6.3–6.6.
+next: **L6.3** — Inspector insights: adjacency filter + honest chip.
+evidence: eval-results/2026-07-08/gate-battery-l6.2-s30.txt
           eval-results/2026-07-08/mcp-cold-qa.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)

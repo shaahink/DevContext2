@@ -201,12 +201,14 @@ export class WorkbenchPage implements OnDestroy {
   /** Deck scrub — debounced so j/k sweeps commit once, then trace + trail push. */
   protected onEntry(entry: EntryVm): void {
     if (this.pendingTrace !== null) clearTimeout(this.pendingTrace);
-    this.pendingTrace = setTimeout(() => {
+    this.pendingTrace = window.setTimeout(() => {
       this.pendingTrace = null;
       const handle = this.session.handle();
       if (!handle) return;
       this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
-      void this.trace.trace(handle, entry.focus);
+      void this.trace.trace(handle, entry.focus).then(() => {
+        if (this.trace.found()) void this.trace.selectNode(entry.nodeId);
+      });
     }, TRACE_DEBOUNCE_MS);
   }
 
