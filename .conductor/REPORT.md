@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:52 UTC · branch `feat/loom-l2` · HEAD `c9c5a00`_
+_Updated 2026-07-08 00:53 UTC · branch `feat/loom-l2` · HEAD `a0d658e`_
 
-**Status:** Running
-**Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
-**Checkpoints:** 13/35 done · **Sessions run:** 12 · **Cost:** $0.7646 · **Tokens:** 693,878 in / 156,348 out / 107,858 think
+**Status:** Idle
+**Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.3
+**Checkpoints:** 14/35 done · **Sessions run:** 12 · **Cost:** $0.8723 · **Tokens:** 698,721 in / 193,563 out / 128,477 think
 **Confirmed phases:** L0, L1, L2
-
-## Latest activity (live)
-
-_Session #12 (Deliver) · running 70m · last output 1s ago · $0.1067_
-
-**Thinking:**
-> I need to add a scope change note under L3.2, but actually there's no scope change since I delivered it as defined—the QA details will stay in the evidence artifact and handoff notes instead. Let me also verify the L3.1 baseline edge count and confirm the evidence path is correctly dated to 2026-07-…
-> Pushing the branch after verifying the working tree is clean.
-> The push went through cleanly. Now I'm updating the task list to mark L3.2 as complete, noting that L3.3 is out of scope for this checkpoint, and confirming the post-session work is done. Then I'll write up the session results summary.
-
-**Recent actions:**
-- `01:50:38` » edit LOOM-START.md
-- `01:50:55` · Now let me review the final diff for correctness before committing, and confirm a clean tree:
-- `01:50:56` » bash cd C:/Code/DevContext2-ui; git status --short; echo "=== SymbolTable R2 diff ==="; git diff src/DevContext.Core/Graph2/SymbolTable.cs | Select-Object -Firs…
-- `01:51:10` · The diff is clean and correct. Let me stage and commit as the L3.2 checkpoint (including the L3.1 QA bug fixes that are prerequisites), following the plan's `fe…
-- `01:51:10` » bash cd C:/Code/DevContext2-ui; git add src/ tests/ LOOM-START.md eval-results/2026-07-08/gate-battery-l3.2-s12.txt; git status --short
-- `01:51:30` » bash cd C:/Code/DevContext2-ui; git commit -m "feat(l3.2): targeted semantic upgrades (Law R2) + fix 2 L3.1 Tier-B bugs  L3.1 QA (audited vs fresh artifacts, fi…
-- `01:51:41` · Committed `c9c5a00`. Now push the branch:
-- `01:51:44` » bash cd C:/Code/DevContext2-ui; git status --short; echo "=== push ==="; git push origin feat/loom-l2 2>&1 | Select-String -Pattern "feat/loom-l2|->|rejected|er…
-- `01:52:09` » todowrite 1 todos
-- `01:52:09` · Pushed (`9ae6828..c9c5a00`), working tree clean. Let me finalize the todo list:
 
 ## Stage progress
 
@@ -35,7 +14,7 @@ _Session #12 (Deliver) · running 70m · last output 1s ago · $0.1067_
 | L0 | Truth harness | 3/3 | confirmed ✓ |
 | L1 | Identity spine | 5/5 | confirmed ✓ |
 | L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
-| L3 | Semantic-lite tier | 1/3 | **← active** |
+| L3 | Semantic-lite tier | 2/3 | **← active** |
 | L4 | Flows + projections | 0/4 | todo |
 | L5 | MCP v2 cold-agent ergonomics | 0/5 | todo |
 | L6 | Workbench repair | 0/6 | todo |
@@ -57,15 +36,10 @@ _Session #12 (Deliver) · running 70m · last output 1s ago · $0.1067_
 | 9 | L2 | Deliver | 1 | 07-07 21:30 | 1:18 | Advanced | L2.3 L2.4 | 8 | build:OK | $0.2415 | 144,588/43,725 |
 | 10 | L2 | Audit | 1 | 07-07 22:50 | 0:14 | Progress |  | 2 |  | $0.1207 | 197,731/13,088 |
 | 11 | L3 | Deliver | 1 | 07-07 23:11 | 0:30 | Advanced | L3.1 | 4 | build:OK | $0.1179 | 130,515/21,067 |
-| 12 | L3 | Deliver | 1 | 07-07 23:42 | … | running |  | 0 |  |  |  |
+| 12 | L3 | Deliver | 1 | 07-07 23:42 | 1:10 | Advanced | L3.2 | 8 | build:OK | $0.1077 | 4,843/37,215 |
 
 ### Commits by session
 
-- **s3 (L0 Deliver)** — 4 commit(s):
-  - 54fde62 docs(l0): tracker — L0 complete (L0.2/L0.3 done), s3 handoff + gate evidence
-  - 9506977 feat(l0.3): UI drive gate + baseline
-  - 930fbf8 feat(l0.2): cold-agent MCP QA harness + baseline
-  - cc21381 fix(l0.1): ratchet checkout+service truth assertions (QA of s2)
 - **s4 (L0 Audit)** — 2 commit(s):
   - 829dcac docs(l0): honest phase handover (.conductor/handovers/L0.md)
   - 88783c5 fix(l0-audit): honest skips + surface dropped cold-QA rank signal + robustness
@@ -100,6 +74,15 @@ _Session #12 (Deliver) · running 70m · last output 1s ago · $0.1067_
   - 99a4ee9 chore(conductor): s11 L3 working ▸L3.1 @ 00:41
   - fa5c711 chore(conductor): s11 L3 working ▸L3.1 @ 00:31
   - 52dadc7 chore(conductor): s11 L3 working ▸L3.1 @ 00:21
+- **s12 (L3 Deliver)** — 8 commit(s):
+  - a0d658e chore(conductor): s12 L3 working ▸L3.2 @ 01:52
+  - c9c5a00 feat(l3.2): targeted semantic upgrades (Law R2) + fix 2 L3.1 Tier-B bugs
+  - 9ae6828 chore(conductor): s12 L3 working ▸L3.2 @ 01:42
+  - 5ece087 chore(conductor): s12 L3 working ▸L3.2 @ 01:32
+  - 8535ae0 chore(conductor): s12 L3 working ▸L3.2 @ 01:22
+  - 00ee4c3 chore(conductor): s12 L3 working ▸L3.2 @ 01:12
+  - b8f7ff9 chore(conductor): s12 L3 working ▸L3.2 @ 01:02
+  - b812f6e chore(conductor): s12 L3 working ▸L3.2 @ 00:52
 
 ## Phase handovers (audit)
 
@@ -113,18 +96,19 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L3.1 landed — `SemanticLitePopulator.cs` (Graph2/) builds `CSharpCompilation` per project from source trees + TPA framework refs + NuGet dlls resolved via `obj/project.assets.json`; degrades to Tier A when assets missing. Wired into `DiscoveryPipeline.AnalyzeAsync` (debug/full profiles). Upgrades `LocalDeclOp.InferredFrom` and `InvocationOp.ReceiverType` via `SemanticModel` (Law R2: additive only). All gates green (build 0w/0e, 388P/3S+12+64, pnpm check, guards PASS). Dogfood preserved at 422n/275e — zero regression. L2 QA found honesty gap (dogfood 422/275 vs handover 396/236 due to post-close fix commit 5b69dd7; checkout trace MCP-proven depth 6). Commit `ea13a76` pushed to…
+> SESSION-RESULT: Landed **L3.2 (targeted semantic upgrades, Law R2)** on `feat/loom-l2`, commit `c9c5a00`, pushed; evidence `eval-results/2026-07-08/gate-battery-l3.2-s12.txt`. QA of L3.1 uncovered two real bugs that made the previous "DONE" hollow: the Tier-B `CSharpCompilation` **always threw** (`Syntax tree already present` — nested project dirs added the same tree twice) and **all tier-routing stats were always zero** (pass-by-value `record`/local-int discards), so L3.1 produced 0 semantic upgrades and its "tier routing visible" gate was structurally unmet despite the claim — both fixed here (the L3.1 evidence path in the tracker was also wrong, corrected). L3.2 then delivered genuine bin…
 
 ## Tracker handoff
 
 ```
-last: L3 session #11 — L3.1 (SemanticLitePopulator) DONE.
-stage: **L3 IN PROGRESS** (L3.1 ✅). Populator reads assets.json → NuGet dlls →
-       CSharpCompilation per project; framework refs (TPA) + NuGet; degrade path
-       for missing assets. Upgrades LocalDeclOp.InferredFrom + InvocationOp.ReceiverType
-       via SemanticModel (Law R2: only upgrade). Wire-in at DiscoveryPipeline (debug/full).
-gate: dotnet build 0w/0e · Core 388P/3S · Server 12P · Desktop 64P · guards PASS · pnpm check pass.
-trap: L2 QA: dogfood 422n/275e (post 5b69dd7 try-catch fix, honest increase); checkout trace MCP-proven depth 6.
-next: **L3.2** — Targeted semantic upgrades: handler interface closure, ambiguous-ref arbitration.
-evidence: eval-results/2026-07-07/gate-battery-l3-s11.txt
+last: L3 session #12 — L3.2 (targeted semantic upgrades) DONE + fixed 2 real L3.1 bugs.
+stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅). L3.1 QA: Tier-B compilation ALWAYS threw
+       (dup syntax tree from nested project dirs) AND all tier stats were always-0 (pass-by-value
+       record bug) → 0 upgrades despite claims. Both fixed. L3.2: 26 var-decl + 7 receiver semantic
+       upgrades; Law R2 in SymbolTable (no downgrade/re-ambiguate + arbitration); ResolveArgTarget
+       prefers Semantic; seam edges now carry Semantic tier → verified. Tier routing now visible.
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
+trap: 8 Category=Eval FAIL are PRE-EXISTING (empty eval-repo clones, e.g. VerticalSlice 0 cs) — proven via stash A/B, NOT L3.2.
+next: **L3.3** — verified-edge ratchet 65%→≥80% + truth bench; needs merged-compilation precision (Mapster Adapt binds unreliably) + Calls/ReadsWrites verify.
+evidence: eval-results/2026-07-08/gate-battery-l3.2-s12.txt
 ```
