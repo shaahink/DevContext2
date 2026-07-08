@@ -1,32 +1,11 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 02:09 UTC · branch `feat/loom-l2` · HEAD `77259a2`_
+_Updated 2026-07-08 02:20 UTC · branch `feat/loom-l2` · HEAD `c2edd79`_
 
-**Status:** Running
+**Status:** NeedsHuman — checkpoint(s) newly BLOCKED: L3.3 — see tracker handoff
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
-**Checkpoints:** 14/35 done · **Sessions run:** 15 · **Cost:** $0.9059 · **Tokens:** 768,271 in / 195,421 out / 129,443 think
+**Checkpoints:** 14/35 done · **Sessions run:** 15 · **Cost:** $1.1268 · **Tokens:** 916,996 in / 235,835 out / 168,164 think
 **Confirmed phases:** L0, L1, L2
-
-## Latest activity (live)
-
-_Session #15 (Resume) · running 50m · last output 1s ago · $0.1973_
-
-**Thinking:**
-> There's a reference to `bodyFile` somewhere else. Let me check line 1483.
-> Line 1483 still references `bodyFile` which I removed. It should use `body.File`. Let me fix it.
-> Also, I need to revert the `HasBindDemand` change I made earlier. Let me check.
-
-**Recent actions:**
-- `03:07:30` · Let me simplify: in the edge creation, directly check the body's ops for Semantic SymbolRefs:
-- `03:07:39` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:07:48` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:07:58` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:08:06` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:08:16` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:08:35` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select…
-- `03:08:46` » read src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:08:54` » edit src\DevContext.Core\Graph\GraphBuilder.cs
-- `03:09:22` » bash Stop-Process -Name "DevContext.Server" -Force -ErrorAction SilentlyContinue; dotnet build C:\Code\DevContext2-ui\DevContext.slnx --no-restore 2>&1 | Select…
 
 ## Stage progress
 
@@ -60,13 +39,10 @@ _Session #15 (Resume) · running 50m · last output 1s ago · $0.1973_
 | 12 | L3 | Deliver | 1 | 07-07 23:42 | 1:10 | Advanced | L3.2 | 8 | build:OK | $0.1077 | 4,843/37,215 |
 | 13 | L3 | Deliver | 1 | 07-08 00:53 | 0:06 | KilledByUser |  | 0 |  | $0.0173 | 35,875/975 |
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
-| 15 | L3 | Resume | 2r1 | 07-08 01:19 | … | running |  | 0 |  |  |  |
+| 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 
 ### Commits by session
 
-- **s4 (L0 Audit)** — 2 commit(s):
-  - 829dcac docs(l0): honest phase handover (.conductor/handovers/L0.md)
-  - 88783c5 fix(l0-audit): honest skips + surface dropped cold-QA rank signal + robustness
 - **s5 (L1 Deliver)** — 4 commit(s):
   - 5b582f0 docs(l1): append PROGRESS-LOG — L1 delivery session #5
   - c9dfe23 docs(l1): update LOOM-START.md — L1 checkpoints DONE, handoff for L2
@@ -107,6 +83,13 @@ _Session #15 (Resume) · running 50m · last output 1s ago · $0.1973_
   - 00ee4c3 chore(conductor): s12 L3 working ▸L3.2 @ 01:12
   - b8f7ff9 chore(conductor): s12 L3 working ▸L3.2 @ 01:02
   - b812f6e chore(conductor): s12 L3 working ▸L3.2 @ 00:52
+- **s15 (L3 Resume)** — 6 commit(s):
+  - c2edd79 feat(l3.3): verified-edge ratchet 65%->68% — body-facts semantic index + edge upgrade infra
+  - f7de22b chore(conductor): s15 L3 working ▸L3.3 @ 03:09
+  - 77259a2 chore(conductor): s15 L3 working ▸L3.3 @ 02:59
+  - f4d5604 chore(conductor): s15 L3 working ▸L3.3 @ 02:49
+  - ce4b85e chore(conductor): s15 L3 working ▸L3.3 @ 02:39
+  - 8275bc8 chore(conductor): s15 L3 working ▸L3.3 @ 02:29
 
 ## Phase handovers (audit)
 
@@ -114,22 +97,25 @@ _Session #15 (Resume) · running 50m · last output 1s ago · $0.1973_
 - `.conductor/handovers/L1.md`
 - `.conductor/handovers/L2.md`
 
+## Last gate run
+
+build:OK
+
 ## Last session result
 
-> Let me run the gate battery and read the existing L3.2 evidence artifact in parallel.
-> There's a running `devcontext-mcp` process (52820) and `VBCSCompiler` (48764) locking the output files. Let me kill them and re-run the gate battery.
+> SESSION-RESULT: L3.3 delivered 65% → 68% verified-edge ratchet (+7 ReadsWrites Semantic via body-facts provenance index, +1 CallEdge via merged-compilation re-resolution) with all gates green (0w/0e, 393P/3S core + 12P server + 64P desktop, pnpm/mcp-qa/guards all PASS). 80% target not met — Sends blocked because dispatch lambdas are extracted by AddLambdaSeams at graph-build time and never processed by SemanticLitePopulator; Calls blocked because CallGraphExtractor uses per-file compilation lacking NuGet refs. Next session should extract lambda BodyFacts during BodyFactsExtractor and reorder the pipeline to pass the merged compilation to CallGraphExtractor.
 
 ## Tracker handoff
 
 ```
-last: L3 session #12 — L3.2 (targeted semantic upgrades) DONE + fixed 2 real L3.1 bugs.
-stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅). L3.1 QA: Tier-B compilation ALWAYS threw
-       (dup syntax tree from nested project dirs) AND all tier stats were always-0 (pass-by-value
-       record bug) → 0 upgrades despite claims. Both fixed. L3.2: 26 var-decl + 7 receiver semantic
-       upgrades; Law R2 in SymbolTable (no downgrade/re-ambiguate + arbitration); ResolveArgTarget
-       prefers Semantic; seam edges now carry Semantic tier → verified. Tier routing now visible.
+last: L3 session #14 — L3.3 (verified-edge ratchet) partial: 65% → 68% (+7 ReadsWrites Semantic, +1 CallEdge).
+stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅, L3.3 PARTIAL). L3.3 built body-facts semantic-loc index +
+      edge upgrade infra in AddSeamsFromDetectors + AddCallEdges. ReadsWrites: 26→19 approx (−7). Sends
+      blocked: dispatch lambdas bypass SemanticLitePopulator (extracted at graph-build by AddLambdaSeams).
+      Calls blocked: CallGraphExtractor uses per-file compilation, lacks NuGet refs. 80% target not met.
 gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
-trap: 8 Category=Eval FAIL are PRE-EXISTING (empty eval-repo clones, e.g. VerticalSlice 0 cs) — proven via stash A/B, NOT L3.2.
-next: **L3.3** — verified-edge ratchet 65%→≥80% + truth bench; needs merged-compilation precision (Mapster Adapt binds unreliably) + Calls/ReadsWrites verify.
-evidence: eval-results/2026-07-08/gate-battery-l3.2-s12.txt
+trap: 8 Category=Eval FAIL remain PRE-EXISTING (empty eval-repo clones).
+next: **L3.3 cont'd** — extract lambda BodyFacts during BodyFactsExtractor so populator sees dispatch;
+       reorder pipeline (merged compilation before Stage3Specific) for CallGraphExtractor NuGet resolution.
+evidence: eval-results/2026-07-08/gate-battery-l3.3-s14.txt
 ```
