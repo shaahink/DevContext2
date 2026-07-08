@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 15:23 UTC · branch `feat/loom-l5` · HEAD `f9cd094`_
+_Updated 2026-07-08 15:33 UTC · branch `feat/loom-l5` · HEAD `2900714`_
 
-**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.5
-**Checkpoints:** 22/34 done · **Sessions run:** 26 · **Cost:** $2.0921 · **Tokens:** 1,704,788 in / 456,228 out / 305,566 think
+**Checkpoints:** 22/34 done · **Sessions run:** 27 · **Cost:** $2.0921 · **Tokens:** 1,704,788 in / 456,228 out / 305,566 think
 **Confirmed phases:** L0, L1, L2, L3, L4
+
+## Latest activity (live)
+
+_Session #27 (Deliver) · running 10m · last output 150s ago · $0.0218_
+
+**Thinking:**
+> Now let me re-run the build without locked files, and also run tests and pnpm check in parallel.
+> Build succeeded with 0 warnings 0 errors. Pnpm check passed (lint, test, build all green). Now let me run the tests and the cold QA properly.  Now I need to: 1. Run `dotnet test --filter "Category!=Eval"`  2. Run the cold QA (the existing one timed out — the analyze step can take long since it analy…
+> OK, so:  1. **dotnet build**: ✅ 0w/0e 2. **dotnet test**: ✅ 408 passed, 3 skipped (skips are pre-existing golden tests), 0 failed 3. **pnpm check**: ✅ lint + test + build all green 4. **scripted MCP QA**: ✅ 8/8 passing, checkout gate PASS  The cold QA script timed out at the `analyze` step — the MCP…
+
+**Recent actions:**
+- `16:25:51` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run-cold.js 2>&1
+- `16:26:00` · Build failed due to running server/MCP processes locking DLLs. Let me kill them, also run pnpm check and tests.
+- `16:26:00` » bash Get-Process | Where-Object { $_.ProcessName -match 'devcontext|DevContext' } | Stop-Process -Force 2>$null; Write-Output "done"
+- `16:26:14` » bash dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1
+- `16:27:09` » bash pnpm check 2>&1
+- `16:27:20` · Build green (0w/0e), pnpm check green. Now run tests and QA the previous session's claims.
+- `16:27:20` » read eval-results\2026-07-08\gate-battery-l5.4-s26.txt
+- `16:30:19` » bash node C:\Code\DevContext2-ui\eval\mcp-qa\run.js --quiet 2>&1
+- `16:30:28` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1
+- `16:30:48` · Tests all pass. Now run cold QA with longer timeout, and explore the MCP tools code to understand B4/B9 issues.
 
 ## Stage progress
 
@@ -51,6 +72,7 @@ _Updated 2026-07-08 15:23 UTC · branch `feat/loom-l5` · HEAD `f9cd094`_
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
+| 27 | L5 | Deliver | 2 | 07-08 15:23 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
