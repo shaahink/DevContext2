@@ -181,17 +181,14 @@ export class Titlebar {
 
   protected newAnalysis(): void {
     this.repoMenuOpen.set(false);
-    this.session.cancel();
-    const tabId = this.workspace.activeId();
-    if (tabId) this.workspace.closeTab(tabId);
+    this.workspace.createTab('', 'New tab');
     void this.router.navigateByUrl('/');
   }
 
   protected selectRecent(path: string): void {
     this.repoMenuOpen.set(false);
-    this.session.cancel();
-    const tabId = this.workspace.activeId();
-    if (tabId) this.workspace.closeTab(tabId);
+    const label = path.split(/[\\/]/).pop() || path;
+    this.workspace.createTab(path, label);
     const defs = this.prefs.analyzeDefaults();
     const spec: AnalyzeSpec = { path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
     void this.session.analyze(spec);

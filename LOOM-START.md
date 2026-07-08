@@ -8,15 +8,13 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L5 session #28 — **L5.5 DONE** (cold QA gate ≥90%). Fixed B4 usages-shortname:
-       usages with short name that resolves to 0 edges now returns error+hint+
-       candidates instead of silent count:0. Cold QA: 11/12 (92%) actionable, 23
-       tools, tools/list 1337 tok, 0 false-successes, 0 opaque errors. B4 flipped
-       actionable. B9 rank-quality aggregate#1=true (find output is success, not failure).
-stage: **L5.5 DONE**. L5 complete — all 5 checkpoints landed.
-next: **L6.1** — tabs 32px+, New=createTab, clone-close confirm (workbench repair).
-evidence: eval-results/2026-07-08/gate-battery-l5.5-s28.txt
-           eval-results/2026-07-08/mcp-cold-qa.md
+last: L6 session #29 — **L6.1 DONE** (gate battery green: 484P/0F, cold QA 92%).
+       Tab strip 32px (h-8), 13px labels (text-xs), Titlebar+Omnibox New=createTab
+       (no more cancel+closeTab), clone-close confirm bar ("Cancel analysis of X?").
+stage: **L6.1 DONE**. L6 checkpoints remaining: 6.2–6.6.
+next: **L6.2** — Code pane: entry selection shows source; loading/error states visible.
+evidence: eval-results/2026-07-08/gate-battery-l6.1-s29.txt
+          eval-results/2026-07-08/mcp-cold-qa.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -25,7 +23,7 @@ evidence: eval-results/2026-07-08/gate-battery-l5.5-s28.txt
 | Dogfood | 422 nodes · 276 edges · 34 entries · 6 ServiceLinks · depth 6 · ~2.0s |
 | Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **1 (broken — L2.4 target ≥5)** |
 | Cold-agent MCP naive-call actionability | **0/12 (run-cold.js; L5.5 target ≥90%)** |
-| Tab strip height | **18px (L6.1 target ≥30px; ui-gate.md)** |
+| Tab strip height | **32px (L6.1 fixed — was 18px)** |
 | DntSite | 4,965 n · 2,160 e · 17.9s |
 | MassTransit | 24,819 n · 2,929 e · 46.4s |
 
@@ -68,7 +66,7 @@ line under the row — never silent renumbering.
 | L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | DONE | (l5.3-s25) | eval-results/2026-07-08/gate-battery-l5.3-s25.txt |
 | L5.4 | Real `flow` tool + fuzzy focus | DONE | (l5.4-s26) | eval-results/2026-07-08/gate-battery-l5.4-s26.txt
 | L5.5 | Cold-agent QA becomes the gate | DONE | (l5.5-s28) | eval-results/2026-07-08/gate-battery-l5.5-s28.txt |
-| L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | TODO | | |
+| L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | DONE | (l6.1-s29) | eval-results/2026-07-08/gate-battery-l6.1-s29.txt |
 | L6.2 | Code pane: entry selection shows source; states visible | TODO | | |
 | L6.3 | Inspector insights: adjacency filter + honest chip | TODO | | |
 | L6.4 | Context Studio v2: service tree, preset scaffolds real cards | TODO | | |

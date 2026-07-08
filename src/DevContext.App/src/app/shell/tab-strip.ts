@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, HostListener, inject } from '@angular/core';
+import { Component, DestroyRef, effect, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -18,11 +18,18 @@ import { type TabState, WorkspaceStore } from '../state/workspace.store';
   selector: 'app-tab-strip',
   imports: [],
   template: `
-    <div class="flex h-full items-stretch border-b border-line bg-surface">
+    <div class="relative flex h-8 items-stretch border-b border-line bg-surface">
+      @if (confirmCloseId()) {
+        <div class="absolute inset-0 z-10 flex items-center gap-2 px-3 text-xs bg-surface">
+          <span class="text-ink">Cancel analysis of <span class="font-mono text-ink">{{ confirmCloseLabel() }}</span>?</span>
+          <button type="button" class="rounded px-1.5 py-0.5 text-xs text-danger hover:bg-danger/10" (click)="confirmCloseTab()">Cancel analysis</button>
+          <button type="button" class="rounded px-1.5 py-0.5 text-xs text-ink-muted hover:bg-hover hover:text-ink" (click)="cancelConfirmClose()">Keep</button>
+        </div>
+      }
       <div class="flex flex-1 items-stretch overflow-x-auto">
         @for (tab of workspace.tabs(); track tab.id) {
           <div
-            class="group flex min-w-0 max-w-48 cursor-pointer items-center gap-1.5 border-r border-line px-2.5 text-2xs transition-colors"
+            class="group flex min-w-0 max-w-48 cursor-pointer items-center gap-1.5 border-r border-line px-2.5 text-xs transition-colors"
             [class.bg-surface-2]="tab.id === workspace.activeId()"
             [class.text-ink]="tab.id === workspace.activeId()"
             [class.text-ink-subtle]="tab.id !== workspace.activeId()"
@@ -137,8 +144,35 @@ export class TabStrip {
     if (event.button === 1) this.closeTab(id, event); // middle-click closes
   }
 
+  protected readonly confirmCloseId = signal<string | null>(null);
+
+  protected confirmCloseLabel(): string {
+    const id = this.confirmCloseId();
+    if (!id) return '';
+    return this.workspace.tabById(id)?.label || '';
+  }
+
+  protected confirmCloseTab(): void {
+    const id = this.confirmCloseId();
+    this.confirmCloseId.set(null);
+    if (id) this.executeCloseTab(id);
+  }
+
+  protected cancelConfirmClose(): void {
+    this.confirmCloseId.set(null);
+  }
+
   protected closeTab(id: string, event?: Event): void {
     event?.stopPropagation();
+    const tab = this.workspace.tabById(id);
+    if (tab && (tab.session.status === 'analyzing' || tab.session.status === 'cloning')) {
+      this.confirmCloseId.set(id);
+      return;
+    }
+    this.executeCloseTab(id);
+  }
+
+  private executeCloseTab(id: string): void {
     const wasActive = this.workspace.activeId() === id;
     this.workspace.closeTab(id);
     if (wasActive) {

@@ -1,0 +1,35 @@
+﻿== L6.1 Gate Battery — Session #29 ==
+Date: 2026-07-08
+Stage: L6.1 — Tabs: 32px+, New=createTab, clone-close confirm
+
+== dotnet build ==
+0 Warning(s), 0 Error(s)
+
+== dotnet test (Category!=Eval) ==
+Core:     408 passed, 3 skipped, 0 failed
+Server:    12 passed, 0 failed
+Desktop:   64 passed, 0 failed
+Total:    484 passed, 3 skipped, 0 failed
+
+== pnpm check (lint + vitest + build) ==
+Lint: 0 errors, 0 warnings
+Test: 27/27 passed
+Build: 0w 0e
+
+== loom-guards.ps1 ==
+PASSED: no banned patterns (13 advisory, tracked)
+
+== Cold-agent MCP QA ==
+Actionable: 11/12 (92%)
+False-successes: 0
+Opaque errors: 0
+Rank-quality (B9): aggregate#1=true
+Gate threshold: 90% → PASS
+
+== L6.1 deliverables ==
+1. Tab strip: h-8 (32px), text-xs (13px) labels — was 18px/12px
+2. Titlebar New = createTab() — no longer cancel+closeTab (newAnalysis, selectRecent)
+3. Titlebar openRecent opened in new tab (preserving running sessions)
+4. Omnibox openRecent uses createTab() pattern
+5. Clone-close confirm: closing analyzing/cloning tab shows "Cancel analysis of X?" confirm bar
+6. Middle-click close, hover close, Ctrl+W all honor the confirm gate
