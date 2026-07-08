@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 04:20 UTC · branch `feat/loom-l2` · HEAD `37316b7`_
+_Updated 2026-07-08 04:30 UTC · branch `feat/loom-l2` · HEAD `ce17fd7`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.2
-**Checkpoints:** 16/35 done · **Sessions run:** 18 · **Cost:** $1.3959 · **Tokens:** 1,122,534 in / 296,828 out / 205,951 think
+**Checkpoints:** 16/35 done · **Sessions run:** 19 · **Cost:** $1.3959 · **Tokens:** 1,122,534 in / 296,828 out / 205,951 think
 **Confirmed phases:** L0, L1, L2, L3
+
+## Latest activity (live)
+
+_Session #19 (Deliver) · running 10m · last output 102s ago · $0.0176_
+
+**Thinking:**
+> Gates are green: - Build: 0w/0e ✅ - Tests: Core 393P/3S · Server 12P · Desktop 64P ✅ - pnpm check: lint + test + build all pass ✅  Now I need to run the MCP QA script too. Let me do that.  Now let me also: 1. Run the MCP QA (`node eval/mcp-qa/run.js --quiet`) 2. Start reading the L4.1 evidence to au…
+> Let me now audit L4.1's claims:  1. **Gate battery claims**: build 0w/0e ✅ (verified fresh), Core 393P/3S ✅, Server 12P ✅, Desktop 64P ✅, pnpm check ✅ 2. **Dogfood numbers**: 422n/276e/34ent/6SL/82% verified ✅ (matches the L4.1 evidence file) 3. **Flows stored on CodeGraph**: 34 flows, one per entry…
+> Good. FlowModel.cs exists and L4.1 is committed (8e75dd9). No existing *Projection.cs files. Let me explore the existing code to understand the RPC, proto, and map building infrastructure.  Key things to understand for L4.2: 1. How the existing `MapBuilder` and `TraceBuilder` work (they do ad-hoc wa…
+
+**Recent actions:**
+- `05:23:07` » bash Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, MainWindowTitle
+- `05:23:24` » bash taskkill /f /im dotnet.exe 2>&1; Start-Sleep -Seconds 3; dotnet build C:\Code\DevContext2-ui\DevContext.slnx 2>&1 | Select-Object -Last 5
+- `05:25:18` » bash Set-Location C:\Code\DevContext2-ui\src\DevContext.App; pnpm check 2>&1
+- `05:26:32` » bash dotnet test C:\Code\DevContext2-ui\DevContext.slnx --filter "Category!=Eval" 2>&1 | Select-Object -Last 10
+- `05:26:38` » read eval-results\2026-07-08\gate-battery-l4.1-s18.txt
+- `05:26:39` » read eval-results\2026-07-08\dogfood-l4.1-final.md
+- `05:28:38` » bash Set-Location C:\Code\DevContext2-ui; node eval/mcp-qa/run.js --quiet 2>&1
+- `05:28:50` » bash Set-Location C:\Code\DevContext2-ui; git log --oneline -10
+- `05:28:50` » glob src
+- `05:28:51` » glob src\DevContext.Core
 
 ## Stage progress
 
@@ -43,6 +64,7 @@ _Updated 2026-07-08 04:20 UTC · branch `feat/loom-l2` · HEAD `37316b7`_
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
+| 19 | L4 | Deliver | 1 | 07-08 04:20 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
