@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
+_Updated 2026-07-08 18:49 UTC · branch `feat/loom-l5` · HEAD `e9fc775`_
 
 **Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L6 — Workbench repair · attempts used 0
-**Checkpoints:** 29/34 done · **Sessions run:** 32 · **Cost:** $2.4658 · **Tokens:** 2,137,922 in / 516,320 out / 358,512 think
+**Checkpoints:** 29/34 done · **Sessions run:** 33 · **Cost:** $2.5279 · **Tokens:** 2,219,785 in / 528,163 out / 364,704 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
-**Pending:** auto-fix audit for L6
+**Pending:** full-battery phase gate for L6
 
 ## Stage progress
 
@@ -26,7 +26,6 @@ _Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 3 | L0 | Deliver |  | 07-07 17:00 | 0:36 | GatesRed | L0.2 L0.3 | 4 | build:OK · tests:FAIL |  |  |
 | 4 | L0 | Audit | 1 | 07-07 18:24 | 0:31 | Progress |  | 2 |  | $0.0535 | 58,007/12,076 |
 | 5 | L1 | Deliver | 1 | 07-07 19:02 | 0:45 | Advanced | L1.1 L1.2 L1.3 L1.4 L1.5 | 4 | build:OK | $0.1160 | 104,907/25,448 |
 | 6 | L1 | Audit | 1 | 07-07 19:55 | 0:15 | Progress |  | 2 |  | $0.0485 | 55,103/10,020 |
@@ -56,15 +55,10 @@ _Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
 | 31 | L6 | Deliver | 1 | 07-08 17:47 | 0:18 | Advanced | L6.3 | 2 | build:OK | $0.0474 | 58,256/8,744 |
 | 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
+| 33 | L6 | Audit | 1 | 07-08 18:39 | 0:10 | Progress |  | 2 |  | $0.0621 | 81,863/11,843 |
 
 ### Commits by session
 
-- **s25 (L5 Deliver)** — 5 commit(s):
-  - 85a74e3 feat(l5.3): unified ranked resolution — graph.Find for resolve/find/usages
-  - b6cce7e chore(conductor): s25 L5 working ▸L5.3 @ 15:42
-  - 54e5a4c chore(conductor): s25 L5 working ▸L5.3 @ 15:32
-  - 4d97d5e chore(conductor): s25 L5 working ▸L5.3 @ 15:22
-  - 0c1c090 chore(conductor): s25 L5 working ▸L5.3 @ 15:12
 - **s26 (L5 Deliver)** — 4 commit(s):
   - f9cd094 feat(l5.4): real flow tool + 23-tool MCP registry
   - 251f676 chore(conductor): s26 L5 working ▸L5.4 @ 16:14
@@ -104,6 +98,9 @@ _Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
   - 933493e chore(conductor): s32 L6 working ▸L6.4 @ 19:37
   - a81ef76 chore(conductor): s32 L6 working ▸L6.4 @ 19:27
   - 63c21ff chore(conductor): s32 L6 working ▸L6.4 @ 19:17
+- **s33 (L6 Audit)** — 2 commit(s):
+  - e9fc775 docs(l6): phase handover — L6 workbench repair audit close
+  - 45348bc fix(l6-audit): static audit fixes — observer mismatch, shortcut guards, atCap, Escape close
 
 ## Phase handovers (audit)
 
@@ -113,6 +110,7 @@ _Updated 2026-07-08 18:39 UTC · branch `feat/loom-l5` · HEAD `5e55097`_
 - `.conductor/handovers/L3.md`
 - `.conductor/handovers/L4.md`
 - `.conductor/handovers/L5.md`
+- `.conductor/handovers/L6.md`
 
 ## Last gate run
 
@@ -120,11 +118,7 @@ build:OK
 
 ## Last session result
 
-> Let me explore the current state of the relevant features.
-> Now I have a clear understanding. Let me implement the three checkpoints. Starting with L6.5 — adding a visible Table lens button and making Shift+E a global shortcut.
-> Now I'll implement all three checkpoints. Let me start with L6.5 — visible Table button + global Shift+E.
-> Now wire the table button event through Stage to WorkbenchPage:
-> Now wire the stage's `tableRequested` output in workbench-page and add global Shift+E:
+> SESSION-RESULT: L6 Workbench repair audit VERDICT — solid with 4 bugs fixed, all gates green. **F1 (critical):** Removed completely fabricated `observerCount` display from MCP page that showed session count as "observer(s)" — no observer-count RPC exists. **F5 (high):** Added `atCap()` guards with toast to titlebar/omnibox `createTab` callers, preventing silent active-tab analysis overwrite at tab cap. **F2 (medium):** Added `isTypingTarget` guards to Ctrl+E and Shift+E so typing capital E in inputs doesn't trigger shortcuts. **F3 (medium):** Added Escape key dismiss to tab-strip's confirm-close overlay. Gates: `pnpm check` green (lint 0, 27/27 tests, build 0w/0e), `dotnet build` 0w/0e. Hone…
 
 ## Tracker handoff
 
