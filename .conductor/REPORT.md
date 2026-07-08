@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 09:27 UTC · branch `feat/loom-l5` · HEAD `323f1a7`_
+_Updated 2026-07-08 09:27 UTC · branch `feat/loom-l5` · HEAD `d75064f`_
 
-**Status:** Idle
+**Status:** NeedsHuman — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume`
 **Stage:** L5 — MCP v2 cold-agent ergonomics · attempts used 1 · working ▸ L5.3
 **Checkpoints:** 21/35 done · **Sessions run:** 24 · **Cost:** $1.9421 · **Tokens:** 1,532,617 in / 432,227 out / 280,225 think
 **Confirmed phases:** L0, L1, L2, L3, L4
