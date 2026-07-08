@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 00:02 UTC · branch `feat/loom-l2` · HEAD `b812f6e`_
+_Updated 2026-07-08 00:12 UTC · branch `feat/loom-l2` · HEAD `b8f7ff9`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 0 · working ▸ L3.2
@@ -9,24 +9,24 @@ _Updated 2026-07-08 00:02 UTC · branch `feat/loom-l2` · HEAD `b812f6e`_
 
 ## Latest activity (live)
 
-_Session #12 (Deliver) · running 20m · last output 74s ago · $0.0192_
+_Session #12 (Deliver) · running 30m · last output 2s ago · $0.0445_
 
 **Thinking:**
-> I'm tracing how the semantic lite results flow through the diagnostics pipeline—checking where the stats get surfaced in the CLI output and stats page, then figuring out how to thread the SemanticLiteResult from DiscoveryPipeline through to the report and stats rendering. The result is currently jus…
-> I need to fix the return statement in ResolveNuGetMetadataRefs since I changed the signature to return a tuple but didn't update how the result is being returned.
-> I see there's a duplicate result assignment block that needs consolidating—I added a new one before the refs, but the original one at lines 218-222 is still there, so I need to replace both with a single tuple return statement.
+> I'm checking whether the project's FilePath is properly set and if the known file paths cache actually contains the C# files from that directory. I need to add instrumentation to track the tree count and reference count in the results.
+> The compilation flag is False, which means `CSharpCompilation.Create` is failing—likely due to a duplicate reference issue where the same assembly identity is being added multiple times, causing an exception during the build process.  I need to capture the actual exception type and message to unders…
+> I'm seeing an `ArgumentException` about duplicate syntax trees in the collection—this is happening because the same .cs file can match multiple project directories, either through nested project structures or shared files, and the path prefix matching is catching the same file for different projects…
 
 **Recent actions:**
-- `00:59:55` · First, let me fix the stats-plumbing bug in `SemanticLitePopulator` so tier routing is actually computed (not discarded).
-- `01:00:05` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:17` · Now update the two helper method signatures to return their counts:
-- `01:00:17` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:25` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:34` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:34` · I need to fix the return of that method (it now returns a tuple, not `result`). Let me read the current state.
-- `01:00:47` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:54` » read src\DevContext.Core\Graph2\SemanticLitePopulator.cs
-- `01:00:54` · Now update `UpgradeBodyFacts` to return counts and implement the L3.2 upgrade logic (tier-upgrade already-resolved refs, demand-set scoping, Law R2 upgrade-only…
+- `01:10:08` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
+- `01:10:27` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 4; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
+- `01:10:46` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `01:10:46` · `compilation=False trees=149 refs=59` — the compilation is **throwing** during `Create`. Let me capture the exception message.
+- `01:10:55` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `01:11:06` » edit src\DevContext.Core\Pipeline\DiscoveryPipeline.cs
+- `01:11:23` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 3; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
+- `01:11:55` · Found it: `ArgumentException: Syntax tree already present` — nested project dirs cause the same .cs file to be added multiple times. Let me dedup tree-gathering…
+- `01:11:55` » edit src\DevContext.Core\Graph2\SemanticLitePopulator.cs
+- `01:12:14` » bash dotnet build C:/Code/DevContext2-ui/src/DevContext.Cli -clp:ErrorsOnly 2>&1 | Select-Object -Last 3; dotnet run --project C:/Code/DevContext2-ui/src/DevCon…
 
 ## Stage progress
 
