@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 17:46 UTC · branch `feat/loom-l5` · HEAD `7154310`_
+_Updated 2026-07-08 17:57 UTC · branch `feat/loom-l5` · HEAD `b24a663`_
 
-**Status:** Idle — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
+**Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L6 — Workbench repair · attempts used 0 · working ▸ L6.3
-**Checkpoints:** 25/34 done · **Sessions run:** 30 · **Cost:** $2.3185 · **Tokens:** 1,948,006 in / 493,823 out / 345,116 think
+**Checkpoints:** 25/34 done · **Sessions run:** 31 · **Cost:** $2.3185 · **Tokens:** 1,948,006 in / 493,823 out / 345,116 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5
+
+## Latest activity (live)
+
+_Session #31 (Deliver) · running 10m · last output 2s ago · $0.0212_
+
+**Thinking:**
+> The S30 evidence claims: 1. `dotnet build`: 0w 0e — ✅ verified fresh 2. `dotnet test`: 484P/0F — ✅ verified fresh (408+12+64=484) 3. `pnpm check`: green — ✅ verified fresh 4. Cold QA: 92% actionable — need to verify, but the QA script timed out on fresh run. The mcp-cold-qa.md seems to be from L0.2 …
+> Let me read the key sections of the relevant files to audit L6.2 claims: 1. `workbench-page.ts` around line 202 for onEntry() 2. `inspector.ts` around lines 100-130 and 310-480 for code pane and loading/error states
+> I can see the key finding that L6.3 needs to fix:  At `inspector.ts:327-335`, the `filteredInsights` computed does substring matching on the evidence text against the node's title. This is what audit U4 flags: "filter is substring-on-evidence — empty match = show all". Let me look more carefully:  `…
+
+**Recent actions:**
+- `18:56:23` » grep selectNode|onEntry
+- `18:56:23` · Now let me audit the L6.2 code claims — the `onEntry` auto-select and code pane states:
+- `18:56:23` » grep codeLoading|codeError|codeHighlight|PrismJS
+- `18:56:29` » read src\DevContext.App\src\app\features\pages\workbench-page.ts
+- `18:56:30` » read src\DevContext.App\src\app\features\inspector\inspector.ts
+- `18:56:31` » read src\DevContext.App\src\app\features\inspector\inspector.ts
+- `18:56:55` » grep interface Insight|type Insight
+- `18:56:56` » grep insightGroups|insight-chip|insight-count|insights\(\)|Insights
+- `18:56:57` » grep neighbor|adjacent|1-hop|neighbors
+- `18:56:57` · L6.2 code audit confirms all claims — `onEntry()` at `workbench-page.ts:210`, code pane with file path at `inspector.ts:97-113`, loading/error states at `inspec…
 
 ## Stage progress
 
@@ -25,7 +46,6 @@ _Updated 2026-07-08 17:46 UTC · branch `feat/loom-l5` · HEAD `7154310`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | L0 | Deliver |  | 07-07 15:42 | 0:27 | GatesRed | L0.1 | 4 | build:FAIL · tests:FAIL · pnpm-check:OK · mcp-qa:OK · loom-guards:- |  |  |
 | 2 | L0 | Fix |  | 07-07 16:44 | 0:08 | Progress |  | 1 | build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:- |  |  |
 | 3 | L0 | Deliver |  | 07-07 17:00 | 0:36 | GatesRed | L0.2 L0.3 | 4 | build:OK · tests:FAIL |  |  |
 | 4 | L0 | Audit | 1 | 07-07 18:24 | 0:31 | Progress |  | 2 |  | $0.0535 | 58,007/12,076 |
@@ -55,6 +75,7 @@ _Updated 2026-07-08 17:46 UTC · branch `feat/loom-l5` · HEAD `7154310`_
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
 | 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
+| 31 | L6 | Deliver | 1 | 07-08 17:47 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
