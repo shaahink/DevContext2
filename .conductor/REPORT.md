@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 02:35 UTC · branch `feat/loom-l2` · HEAD `b218ba0`_
+_Updated 2026-07-08 02:45 UTC · branch `feat/loom-l2` · HEAD `0a85550`_
 
 **Status:** Running
 **Stage:** L3 — Semantic-lite tier · attempts used 1 · working ▸ L3.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 02:35 UTC · branch `feat/loom-l2` · HEAD `b218ba0`_
 
 ## Latest activity (live)
 
-_Session #16 (Deliver) · running 10m · last output 24s ago · $0.0029_
+_Session #16 (Deliver) · running 20m · last output 1s ago · $0.0208_
 
 **Thinking:**
-> The core, server, and desktop test suites are all passing, and the guards check out too. Now I'm running the mcp-qa tests to see how those perform.
-> All the build checks are passing—zero errors on the build itself, the test suites are running strong across Core, Server, and Desktop, and the guards validation came through despite that advisory about NodeId.ForType which isn't actually blocking anything. The checkout flow trace is particularly int…
-> The check script ran through lint, tests, and build successfully with no errors. All test suites passed — Core had 393 passing tests with 3 skipped, Server had 12 passing, and the build completed without issues.  Now I'm moving on to QA the previous session's work. Session #14 or #15 delivered the L…
+> The semantic upgrade isn't producing any variable declaration upgrades this time around—I'm getting zero across the board, which contradicts the previous session's count of 26. This is running through the trace scenario with deep-dive focus mode, so something's different about how the upgrades are b…
+> I see the issue—the probe is using a different scenario with focus/trace intent, but the report command uses `BuildFullGraph = true` with a specific scenario. I need to align the probe to match the report command's exact configuration, so let me check ReportCommand.cs to see what scenario and option…
+> I need to adjust my probe configuration to match what the `report` command uses—setting the profile to Focused mode, enabling full graph building, using the overview scenario, and pulling entry paths from the root result's candidates. Let me rewrite the probe with these parameters.
 
 **Recent actions:**
-- `03:27:27` » bash dotnet build DevContext.slnx -clp:ErrorsOnly 2>&1 | Select-Object -Last 20
-- `03:27:35` · Build green (0w/0e). Now tests, guards, and mcp-qa in parallel where possible.
-- `03:27:39` » bash powershell -File scripts/loom-guards.ps1 2>&1 | Select-Object -Last 20
-- `03:30:39` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --no-build 2>&1 | Select-String -Pattern "Passed!|Failed!|error|Passed:|Failed:|Skipped:" | Select-Ob…
-- `03:30:47` · Tests green (Core 393P/3S, Server 12P, Desktop 64P). Guards PASS. Now the MCP QA gate.
-- `03:33:35` » bash node eval/mcp-qa/run.js --quiet 2>&1 | Select-Object -Last 25
-- `03:33:45` · All gate battery items green so far. Now the UI gate (`pnpm check`).
-- `03:34:29` » bash pnpm check 2>&1 | Select-Object -Last 30
-- `03:34:45` » read eval-results\2026-07-08\dogfood-l3.3-final.md
-- `03:34:45` · All gate battery items GREEN: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · mcp-qa 8/8 · pnpm check PASS. Now QA of the previous session…
+- `03:43:38` » write tests\DevContext.Core.Tests\ZzScratchProbe.cs
+- `03:43:49` » read src\DevContext.Core\Graph2\BodyFacts.cs
+- `03:43:58` · Now let me build and run the probe.
+- `03:44:05` » bash dotnet build tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj -clp:ErrorsOnly 2>&1 | Select-Object -Last 8
+- `03:44:21` » bash dotnet test tests/DevContext.Core.Tests/DevContext.Core.Tests.csproj --no-build --filter "FullyQualifiedName~ZzScratchProbe" -l "console;verbosity=detailed…
+- `03:45:03` · Key finding: **0 var-decl/receiver/creation/generic upgrades** this run, and `analysis.AllBodyFacts` appears empty for the checkout file. The focus scenario dif…
+- `03:45:04` » bash git -C C:/code/DevContext2-ui grep -n "BuildFullGraph" -- "*.cs" | Select-Object -First 30
+- `03:45:17` » read src\DevContext.Cli\Commands\ReportCommand.cs
+- `03:45:37` · Let me align the probe with the `report` command's exact configuration (Focused profile, overview scenario, BuildFullGraph).
+- `03:45:37` » edit tests\DevContext.Core.Tests\ZzScratchProbe.cs
 
 ## Stage progress
 
