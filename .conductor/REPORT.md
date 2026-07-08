@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 22:10 UTC · branch `feat/loom-l7` · HEAD `8a5ebce`_
+_Updated 2026-07-08 22:20 UTC · branch `feat/loom-l7` · HEAD `5c31938`_
 
 **Status:** Running — build gate false-red due to DNS outage (resolved 2026-07-08) â€” resume to re-run
 **Stage:** L8 — Close-out · attempts used 0
@@ -9,24 +9,24 @@ _Updated 2026-07-08 22:10 UTC · branch `feat/loom-l7` · HEAD `8a5ebce`_
 
 ## Latest activity (live)
 
-_Session #41 (Audit) · running 10m · last output 30s ago · $0.0224_
+_Session #41 (Audit) · running 20m · last output 15s ago · $0.0594_
 
 **Thinking:**
-> Build succeeded 0w/0e. Now let me run the full gate battery (tests, pnpm check, loom-guards) and do deeper audit work in parallel.  Let me analyze the test fixes:  1. **Blazor test (line 208)**: Old: `Assert.Contains(result.Content, "SampleCollection", ...)` → New: `Assert.Contains("SampleCollection…
-> All tests pass: - Core: 414P/3S - Server: 12P - Desktop: 64P - Loom guards: 0 banned patterns  Now let me run the truth tests and pnpm check.
-> Gate battery results: - Truth tests: 7P/4S - all green - pnpm check: lint passed, tests 27/27 passed, build timed out (but ng lint and test succeeded - build likely just needs more time)  The build timed out but the first two checks (lint and test) both passed. Let me let the build finish separately…
+> All tests pass: - Core: 414P/3S - Server: 12P - Desktop: 64P  Now run truth tests and loom-guards and pnpm check:
+> The Worker test failed because the AzureFunctions repo is detected as Library, not Worker. The assertion `Assert.Contains("WORKER", ...)` failed. Looking at the error message: `String: "LIBRARY  DotNetWorker.Extensions     (183..."` — the repo is being detected as `LIBRARY` not `WORKER`. This is bec…
+> Now let me re-run the truth tests to verify they pass. Also, I see that "AzureFunctions" is in the Worker test. The repo is the Azure Functions .NET worker extension, which is a library project, not a worker app. The archetype detection correctly classifies it as Library. The truth test should verif…
 
 **Recent actions:**
-- `23:00:42` » read tests\DevContext.Core.Tests\TruthExpectationTests.cs
-- `23:01:14` » bash dotnet build DevContext.slnx 2>&1
-- `23:01:26` · Build is green (0w/0e). Now running the full gate battery:
-- `23:01:28` » bash powershell -File scripts/loom-guards.ps1 2>&1
-- `23:04:37` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --verbosity normal 2>&1
-- `23:05:56` » bash dotnet test DevContext.slnx --filter "Category=Truth" --verbosity normal 2>&1
-- `23:06:44` » bash pnpm check 2>&1
-- `23:07:06` · Truth tests: 7P/4S green. pnpm lint + test green (build timing out but proceeding). Now doing the deep audit of the test fixes and adjacent code.
-- `23:09:00` » task Audit MAP section header tests
-- `23:09:30` » task Audit truth test assertions
+- `23:13:28` · Server process from previous test run is holding file locks. Let me kill it and retry:
+- `23:13:46` » bash taskkill /F /IM "DevContext.Server.exe" 2>&1; Start-Sleep -Seconds 2; dotnet build DevContext.slnx 2>&1
+- `23:13:53` · Build 0w/0e. Now running the full gate battery:
+- `23:17:12` » bash dotnet test DevContext.slnx --filter "Category!=Eval" --verbosity normal 2>&1
+- `23:17:21` · All unit tests pass. Now run truth tests, loom-guards, and pnpm check:
+- `23:17:22` » bash powershell -File scripts/loom-guards.ps1 2>&1
+- `23:19:06` » bash pnpm check 2>&1
+- `23:19:25` » bash dotnet test DevContext.slnx --filter "Category=Truth" 2>&1
+- `23:19:37` » edit tests\DevContext.Core.Tests\TruthExpectationTests.cs
+- `23:19:37` · Worker test fails because AzureFunctions repo is correctly classified as `Library` (it's a NuGet package). Fixing the overly strict assertion I added:
 
 ## Stage progress
 
