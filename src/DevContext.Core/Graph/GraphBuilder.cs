@@ -1666,19 +1666,33 @@ public sealed class GraphBuilder
             DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
         };
 
-        // L3.2 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in the
-        // Tier-B compilation), so its LocalDeclOps carry only syntactic types. Re-attach the semantic tier
-        // that the whole-file pass already established, matched by (file, local name, short type) — no line
-        // dependency, so the synthetic tree's shifted lines don't matter. Law R2: upgrade only.
-        var semanticLocals = new Dictionary<(string File, string Name, string Type), Graph2.SymbolRef>();
+        // L3.2/L3.3 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in
+        // the Tier-B compilation), so its ops carry only syntactic types. Re-attach the semantic tier that the
+        // whole-file pass already established, matched by (file, expression text, short type) — no line
+        // dependency, so the synthetic tree's shifted lines don't matter. Covers dispatch via a `var` local
+        // (LocalDecl.InferredFrom), inline argument (`sender.Send(new XCommand(..))` — ArgFact.Type), and
+        // generic type arguments (`Adapt<T>`). Law R2: upgrade only.
+        var semanticRefs = new Dictionary<(string File, string Text, string Type), Graph2.SymbolRef>();
         if (upgradedFacts is not null)
         {
             foreach (var body in upgradedFacts)
             {
                 foreach (var op in body.Ops)
                 {
-                    if (op is LocalDeclOp { InferredFrom: { Tier: ResolutionTier.Semantic } sem } local)
-                        semanticLocals[(body.File, local.Name, sem.Text)] = sem;
+                    switch (op)
+                    {
+                        case LocalDeclOp { InferredFrom: { Tier: ResolutionTier.Semantic } sem } local:
+                            semanticRefs[(body.File, local.Name, sem.Text)] = sem;
+                            break;
+                        case InvocationOp inv:
+                            foreach (var arg in inv.Args)
+                                if (arg.Type is { Tier: ResolutionTier.Semantic } at)
+                                    semanticRefs[(body.File, arg.Text, at.Text)] = at;
+                            foreach (var ga in inv.GenericArgs)
+                                if (ga is { Tier: ResolutionTier.Semantic } gat)
+                                    semanticRefs[(body.File, gat.Text, gat.Text)] = gat;
+                            break;
+                    }
                 }
             }
         }
@@ -1706,7 +1720,7 @@ public sealed class GraphBuilder
                 var wrapped = $"namespace _ {{ public class _ {{ public void _() {{ ({body})(); }} }} }}";
                 var tree = CSharpSyntaxTree.ParseText(wrapped, path: filePath);
                 var facts = OverlaySemanticLocals(
-                    BodyFactExtractor.Extract(tree, filePath, project), filePath, semanticLocals);
+                    BodyFactExtractor.Extract(tree, filePath, project), filePath, semanticRefs);
 
                 foreach (var bodyFacts in facts)
                 {
@@ -1764,14 +1778,16 @@ public sealed class GraphBuilder
         }
     }
 
-    /// <summary>Re-attaches semantic local-declaration types (Tier B) onto facts re-parsed from a lambda
-    /// body, matched by (file, local name, short type). Upgrade-only (Law R2): a syntactic local whose
-    /// name+type matches a whole-file semantic bind is lifted to Semantic; everything else is untouched.</summary>
+    /// <summary>Re-attaches semantic types (Tier B) onto facts re-parsed from a lambda body, matched by
+    /// (file, expression text, short type). Upgrade-only (Law R2): a syntactic ref whose text+type matches a
+    /// whole-file semantic bind is lifted to Semantic; everything else is untouched. Covers dispatch via a
+    /// <c>var</c> local (<see cref="LocalDeclOp.InferredFrom"/>), inline argument (<see cref="ArgFact.Type"/>),
+    /// and generic type arguments (<see cref="InvocationOp.GenericArgs"/>).</summary>
     private static ImmutableArray<BodyFacts> OverlaySemanticLocals(
         ImmutableArray<BodyFacts> facts, string filePath,
-        Dictionary<(string File, string Name, string Type), Graph2.SymbolRef> semanticLocals)
+        Dictionary<(string File, string Text, string Type), Graph2.SymbolRef> semanticRefs)
     {
-        if (semanticLocals.Count == 0) return facts;
+        if (semanticRefs.Count == 0) return facts;
 
         var result = ImmutableArray.CreateBuilder<BodyFacts>(facts.Length);
         foreach (var body in facts)
@@ -1780,11 +1796,48 @@ public sealed class GraphBuilder
             var changed = false;
             for (var i = 0; i < ops.Length; i++)
             {
-                if (ops[i] is LocalDeclOp { InferredFrom: { Tier: not ResolutionTier.Semantic } inf } local
-                    && semanticLocals.TryGetValue((filePath, local.Name, inf.Text), out var sem))
+                switch (ops[i])
                 {
-                    ops = ops.SetItem(i, local with { InferredFrom = sem });
-                    changed = true;
+                    case LocalDeclOp { InferredFrom: { Tier: not ResolutionTier.Semantic } inf } local
+                        when semanticRefs.TryGetValue((filePath, local.Name, inf.Text), out var sem):
+                        ops = ops.SetItem(i, local with { InferredFrom = sem });
+                        changed = true;
+                        break;
+
+                    case InvocationOp inv:
+                    {
+                        var newInv = inv;
+                        var invChanged = false;
+
+                        if (!inv.Args.IsDefaultOrEmpty)
+                        {
+                            var args = inv.Args;
+                            var argsChanged = false;
+                            for (var ai = 0; ai < args.Length; ai++)
+                            {
+                                if (args[ai].Type is { Tier: not ResolutionTier.Semantic } at
+                                    && semanticRefs.TryGetValue((filePath, args[ai].Text, at.Text), out var semArg))
+                                { args = args.SetItem(ai, args[ai] with { Type = semArg }); argsChanged = true; }
+                            }
+                            if (argsChanged) { newInv = newInv with { Args = args }; invChanged = true; }
+                        }
+
+                        if (inv.GenericArgs.Length > 0)
+                        {
+                            var gargs = inv.GenericArgs;
+                            var gargsChanged = false;
+                            for (var gi = 0; gi < gargs.Length; gi++)
+                            {
+                                if (gargs[gi].Tier != ResolutionTier.Semantic
+                                    && semanticRefs.TryGetValue((filePath, gargs[gi].Text, gargs[gi].Text), out var semG))
+                                { gargs = gargs.SetItem(gi, semG); gargsChanged = true; }
+                            }
+                            if (gargsChanged) { newInv = newInv with { GenericArgs = gargs }; invChanged = true; }
+                        }
+
+                        if (invChanged) { ops = ops.SetItem(i, newInv); changed = true; }
+                        break;
+                    }
                 }
             }
             result.Add(changed ? body with { Ops = ops } : body);

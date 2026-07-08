@@ -181,6 +181,7 @@ public sealed class DiscoveryPipeline
                         + $"refs={semanticLiteResult.ReferenceCount}; upgraded "
                         + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
                         + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
+                        + $"+ {semanticLiteResult.ArgTypesResolved} arg-type "
                         + $"+ {semanticLiteResult.CallEdgesUpgraded} call-edge(s) to Semantic tier"
                         + (semanticLiteResult.DegradeReason.Length > 0 ? $" [{semanticLiteResult.DegradeReason}]" : ""));
                 }

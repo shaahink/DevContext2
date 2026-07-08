@@ -28,6 +28,9 @@ public sealed record SemanticLiteResult
     public int CreationOpsResolved { get; init; }
     /// <summary>Total number of <see cref="InvocationOp"/> generic args resolved via semantic binding.</summary>
     public int GenericArgsResolved { get; init; }
+    /// <summary>Total number of <see cref="InvocationOp"/> argument types (inline <c>new X()</c>/<c>Adapt&lt;T&gt;()</c>
+    /// dispatch arguments) resolved via semantic binding.</summary>
+    public int ArgTypesResolved { get; init; }
     /// <summary>Total number of CallEdges upgraded from Syntactic to Semantic via the merged compilation.</summary>
     public int CallEdgesUpgraded { get; init; }
     /// <summary>Number of syntax trees fed into the semantic-lite compilation.</summary>
@@ -169,8 +172,9 @@ public static class SemanticLitePopulator
         var receiversResolved = 0;
         var creationOpsResolved = 0;
         var genericArgsResolved = 0;
+        var argTypesResolved = 0;
         if (bodyFacts.Count > 0)
-            (upgraded, varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved) =
+            (upgraded, varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved) =
                 UpgradeBodyFacts(bodyFacts, compilation, allTrees, fileToProject);
 
         result = result with
@@ -181,6 +185,7 @@ public static class SemanticLitePopulator
             ReceiversResolved = receiversResolved,
             CreationOpsResolved = creationOpsResolved,
             GenericArgsResolved = genericArgsResolved,
+            ArgTypesResolved = argTypesResolved,
             TreeCount = allTrees.Count,
             ReferenceCount = nugetRefs.Length,
             CompilationBuilt = true,
@@ -310,7 +315,7 @@ public static class SemanticLitePopulator
     /// </list>
     /// Law R2: only upgrades, never downgrades and never re-points an existing resolution to a different
     /// short name. Returns the upgraded facts plus per-kind upgrade counts for tier-routing stats.</summary>
-    private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers, int Creations, int GenericArgs) UpgradeBodyFacts(
+    private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers, int Creations, int GenericArgs, int ArgTypes) UpgradeBodyFacts(
         IReadOnlyList<BodyFacts> facts,
         CSharpCompilation compilation,
         List<SyntaxTree> allTrees,
@@ -325,6 +330,7 @@ public static class SemanticLitePopulator
         var receiversResolved = 0;
         var creationOpsResolved = 0;
         var genericArgsResolved = 0;
+        var argTypesResolved = 0;
         var upgraded = ImmutableArray.CreateBuilder<BodyFacts>();
 
         foreach (var body in facts)
@@ -369,16 +375,53 @@ public static class SemanticLitePopulator
                         }
                         break;
                     }
-                    case InvocationOp inv when inv.ReceiverType is not { Tier: ResolutionTier.Semantic }:
+                    case InvocationOp inv:
                     {
-                        var bound = TryBindReceiverType(inv, tree, semanticModel);
-                        var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
-                        if (merged is not null)
+                        var newInv = inv;
+                        var invChanged = false;
+
+                        // (a) Receiver type — gates dispatch detection (ISender/IMediator etc.).
+                        if (inv.ReceiverType is not { Tier: ResolutionTier.Semantic })
                         {
-                            ops = ops.SetItem(i, inv with { ReceiverType = merged });
-                            changed = true;
-                            receiversResolved++;
+                            var bound = TryBindReceiverType(inv, tree, semanticModel);
+                            var merged = MergeSemantic(inv.ReceiverType, bound, inv.Line, tree.FilePath);
+                            if (merged is not null) { newInv = newInv with { ReceiverType = merged }; invChanged = true; receiversResolved++; }
                         }
+
+                        // (b) Generic type arguments (e.g. Adapt<T>, Map<T>) — bound directly (assembly-independent).
+                        if (newInv.GenericArgs.Length > 0)
+                        {
+                            var gargs = newInv.GenericArgs;
+                            var gargsChanged = false;
+                            for (var gi = 0; gi < gargs.Length; gi++)
+                            {
+                                if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
+                                var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
+                                var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
+                                if (merged is not null) { gargs = gargs.SetItem(gi, merged); gargsChanged = true; genericArgsResolved++; }
+                            }
+                            if (gargsChanged) { newInv = newInv with { GenericArgs = gargs }; invChanged = true; }
+                        }
+
+                        // (c) Argument types — the inline dispatch target `sender.Send(new XCommand(..))` /
+                        //     `sender.Send(request.Adapt<XCommand>())`, where there is no `var` local to carry
+                        //     the type. Binding the argument expression (or its mapping generic arg) makes the
+                        //     dispatched contract verified.
+                        if (!newInv.Args.IsDefaultOrEmpty)
+                        {
+                            var args = newInv.Args;
+                            var argsChanged = false;
+                            for (var ai = 0; ai < args.Length; ai++)
+                            {
+                                if (args[ai].Type is { Tier: ResolutionTier.Semantic }) continue;
+                                var bound = TryBindArgType(inv, ai, tree, semanticModel);
+                                var merged = MergeSemantic(args[ai].Type, bound, inv.Line, tree.FilePath);
+                                if (merged is not null) { args = args.SetItem(ai, args[ai] with { Type = merged }); argsChanged = true; argTypesResolved++; }
+                            }
+                            if (argsChanged) { newInv = newInv with { Args = args }; invChanged = true; }
+                        }
+
+                        if (invChanged) { ops = ops.SetItem(i, newInv); changed = true; }
                         break;
                     }
                     case CreationOp cr when cr.Type is not { Tier: ResolutionTier.Semantic }:
@@ -393,38 +436,50 @@ public static class SemanticLitePopulator
                         }
                         break;
                     }
-                    case InvocationOp inv when inv.GenericArgs.Length > 0:
-                    {
-                        // Upgrade each generic arg that is not already Semantic.
-                        var gargs = inv.GenericArgs;
-                        var gargsChanged = false;
-                        for (var gi = 0; gi < gargs.Length; gi++)
-                        {
-                            if (gargs[gi].Tier == ResolutionTier.Semantic) continue;
-                            var bound = TryBindGenericArg(inv, gi, tree, semanticModel);
-                            var merged = MergeSemantic(gargs[gi], bound, inv.Line, tree.FilePath);
-                            if (merged is not null)
-                            {
-                                gargs = gargs.SetItem(gi, merged);
-                                gargsChanged = true;
-                                genericArgsResolved++;
-                            }
-                        }
-                        if (gargsChanged)
-                        {
-                            ops = ops.SetItem(i, inv with { GenericArgs = gargs });
-                            changed = true;
-                        }
-                        break;
-                    }
                 }
             }
 
             upgraded.Add(changed ? body with { Ops = ops } : body);
         }
 
-        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved);
+        return (upgraded.ToImmutable(), varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved);
     }
+
+    /// <summary>Binds the type of argument <paramref name="argIndex"/> of the invocation at <c>inv.Line</c>
+    /// whose method name matches <c>inv.MethodName</c>. Uses <see cref="BindExpressionType"/> so an inline
+    /// <c>new XCommand(..)</c> binds via the object-creation type and an inline <c>expr.Adapt&lt;T&gt;()</c>
+    /// binds via its generic type argument (assembly-independent). Returns null when nothing resolves.</summary>
+    private static (string Short, string Fqn)? TryBindArgType(
+        InvocationOp inv, int argIndex, SyntaxTree tree, SemanticModel model)
+    {
+        try
+        {
+            var root = tree.GetRoot();
+            var span = tree.GetText().Lines[Math.Max(0, inv.Line - 1)].Span;
+            var node = root.FindNode(span);
+
+            // Prefer the invocation whose called method matches the op's method name (there can be several
+            // on one line in a fluent chain); fall back to the nearest enclosing invocation.
+            var invocation = node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>()
+                    .FirstOrDefault(x => MethodNameOf(x) == inv.MethodName)
+                ?? node?.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+                    .FirstOrDefault(x => MethodNameOf(x) == inv.MethodName)
+                ?? node?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+            if (invocation is null || argIndex >= invocation.ArgumentList.Arguments.Count) return null;
+
+            return BindExpressionType(invocation.ArgumentList.Arguments[argIndex].Expression, model);
+        }
+        catch { }
+        return null;
+    }
+
+    /// <summary>The simple (unqualified) method name of an invocation expression.</summary>
+    private static string MethodNameOf(InvocationExpressionSyntax inv) => inv.Expression switch
+    {
+        MemberAccessExpressionSyntax ma => ma.Name.Identifier.ValueText,
+        SimpleNameSyntax sn => sn.Identifier.ValueText,
+        _ => "",
+    };
 
     /// <summary>Binds the type of an object-creation expression at the given line and returns its
     /// <c>(short, fqn)</c> type when the semantic model resolves it to a real named type; null otherwise.</summary>
@@ -601,7 +656,15 @@ public static class SemanticLitePopulator
     }
 
     /// <summary>Binds the initializer of a local declaration and returns its <c>(short, fqn)</c> type when
-    /// the semantic model resolves it to a real (non-error) named type; null otherwise.</summary>
+    /// the semantic model resolves it to a real (non-error) named type; null otherwise.
+    /// <para>Two strategies, in order: (1) bind the whole initializer expression (covers <c>new X()</c> and
+    /// mapping calls when the mapping package is actually referenced); (2) when the initializer is a mapping
+    /// call (<c>expr.Adapt&lt;T&gt;()</c>, <c>Map&lt;T&gt;()</c>, <c>Create&lt;T&gt;()</c>) with a single explicit
+    /// generic type argument, bind THAT TYPE ARGUMENT directly. Strategy 2 is Roslyn name-resolution of the
+    /// type <c>T</c> in its lexical context — it succeeds even when the mapping extension method's assembly is
+    /// missing from disk (a partially-restored repo), which is the common eShop <c>Adapt&lt;Command&gt;</c>
+    /// dispatch case. This is a genuine semantic bind (the type symbol is real and in-scope), not a name guess,
+    /// so it earns the Semantic tier honestly.</para></summary>
     private static (string Short, string Fqn)? TryBindLocalDeclType(
         LocalDeclOp local, SyntaxTree tree, SemanticModel model)
     {
@@ -618,12 +681,58 @@ public static class SemanticLitePopulator
             {
                 if (!string.Equals(variable.Identifier.ValueText, local.Name, StringComparison.Ordinal))
                     continue;
-                if (variable.Initializer?.Value is null) continue;
-                return NamedType(model.GetTypeInfo(variable.Initializer.Value).Type);
+                var init = variable.Initializer?.Value;
+                if (init is null) continue;
+
+                return BindExpressionType(init, model);
             }
         }
         catch { }
         return null;
+    }
+
+    /// <summary>Binds an expression to its <c>(short, fqn)</c> named type using two strategies, in order:
+    /// (1) bind the whole expression (covers <c>new X()</c> and mapping calls when the mapping package is
+    /// referenced); (2) when the expression is a mapping call (<c>expr.Adapt&lt;T&gt;()</c>, <c>Map&lt;T&gt;()</c>,
+    /// <c>Create&lt;T&gt;()</c>) with a single explicit generic type argument, bind THAT TYPE ARGUMENT directly.
+    /// Strategy 2 is Roslyn name-resolution of the type <c>T</c> in its lexical context — it succeeds even when
+    /// the mapping extension method's assembly is missing from disk (a partially-restored repo), which is the
+    /// common eShop <c>Adapt&lt;Command&gt;</c> dispatch case. Both are genuine semantic binds (real, in-scope
+    /// type symbols), not name guesses, so they earn the Semantic tier honestly.</summary>
+    private static (string Short, string Fqn)? BindExpressionType(ExpressionSyntax expr, SemanticModel model)
+    {
+        var whole = NamedType(model.GetTypeInfo(expr).Type);
+        if (whole is not null) return whole;
+        return TryBindMappingGenericArg(expr, model);
+    }
+
+    /// <summary>Mapping methods whose single generic type argument is the produced type (mirrors
+    /// <c>BodyFactExtractor</c>'s <c>MappingMethods</c>). The type argument is bound directly so the produced
+    /// type survives even when the mapping library assembly is not on disk.</summary>
+    private static readonly HashSet<string> MappingMethods = new(StringComparer.Ordinal)
+    {
+        "Adapt", "Map", "MapTo", "MapFrom", "Create", "CreateFrom",
+    };
+
+    /// <summary>When <paramref name="expr"/> (possibly awaited) is a mapping call with a single explicit
+    /// generic type argument, binds that type argument to its <c>(short, fqn)</c> named type; null otherwise.</summary>
+    private static (string Short, string Fqn)? TryBindMappingGenericArg(ExpressionSyntax expr, SemanticModel model)
+    {
+        while (expr is AwaitExpressionSyntax ae) expr = ae.Expression;
+        if (expr is not InvocationExpressionSyntax inv) return null;
+
+        var name = inv.Expression switch
+        {
+            MemberAccessExpressionSyntax ma => ma.Name as GenericNameSyntax,
+            GenericNameSyntax gn => gn,
+            _ => null,
+        };
+        if (name is null
+            || !MappingMethods.Contains(name.Identifier.ValueText)
+            || name.TypeArgumentList.Arguments.Count != 1)
+            return null;
+
+        return NamedType(model.GetTypeInfo(name.TypeArgumentList.Arguments[0]).Type);
     }
 
     /// <summary>Binds the receiver expression of an invocation and returns its <c>(short, fqn)</c> type

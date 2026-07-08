@@ -7,16 +7,15 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L3 session #14 — L3.3 (verified-edge ratchet) partial: 65% → 68% (+7 ReadsWrites Semantic, +1 CallEdge).
-stage: **L3 IN PROGRESS** (L3.1 ✅, L3.2 ✅, L3.3 PARTIAL). L3.3 built body-facts semantic-loc index +
-      edge upgrade infra in AddSeamsFromDetectors + AddCallEdges. ReadsWrites: 26→19 approx (−7). Sends
-      blocked: dispatch lambdas bypass SemanticLitePopulator (extracted at graph-build by AddLambdaSeams).
-      Calls blocked: CallGraphExtractor uses per-file compilation, lacks NuGet refs. 80% target not met.
-gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm PASS · mcp-qa 8/8.
-trap: 8 Category=Eval FAIL remain PRE-EXISTING (empty eval-repo clones).
-next: **L3.3 cont'd** — extract lambda BodyFacts during BodyFactsExtractor so populator sees dispatch;
-       reorder pipeline (merged compilation before Stage3Specific) for CallGraphExtractor NuGet resolution.
-evidence: eval-results/2026-07-08/gate-battery-l3.3-s14.txt
+last: L3 session #16 — **L3.3 DONE**. Verified-edge ratchet 68% → **81%** (target ≥80% MET).
+stage: **L3 COMPLETE** (L3.1 ✅, L3.2 ✅, L3.3 ✅). Fix: assembly-independent semantic bind of
+      dispatch targets — bind the generic type ARG (`Adapt<T>`) / inline `new X()` creation, not the
+      whole (package-missing, unresolvable) invocation. Sends 32 approx → 0. Zero new edges (pure tier).
+gate: build 0w/0e · Core 393P/3S · Server 12P · Desktop 64P · guards PASS · pnpm 27P · mcp-qa 8/8.
+trap: Category=Eval FAILs PRE-EXISTING (TodoApi POST /todos lacks TodoDbContext — L7 call-spine gap;
+      proven via stash A/B on clean HEAD). DntSite sub-measurement skipped — repo absent on this machine.
+next: **L4.1** — Flow store on CodeGraph; spine-only Touches/Emits (audit E5); ServiceHops + provenance.
+evidence: eval-results/2026-07-08/gate-battery-l3.3-s16.txt
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -51,9 +50,10 @@ line under the row — never silent renumbering.
 | L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
 | L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-08/gate-battery-l3-s11.txt |
 | L3.2 | Targeted semantic upgrades (Law R2) | DONE | (l3.2) | eval-results/2026-07-08/gate-battery-l3.2-s12.txt |
-| L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | BLOCKED | | eval-results/2026-07-08/gate-battery-l3.3-s14.txt |
-> scope change: 65% → 68% via +7 ReadsWrites +1 CallEdge Semantic upgrade.
-> BLOCKED: Sends (lambdas bypass populator) + Calls (per-file compilation lacks NuGet refs).
+| L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | DONE | (l3.3-s16) | eval-results/2026-07-08/gate-battery-l3.3-s16.txt |
+> scope change: 65% → 68% (s14, +7 ReadsWrites +1 CallEdge) → **81% (s16)**: assembly-independent
+> semantic bind of dispatch targets (generic type-arg / inline `new X()`), Sends 32 approx → 0.
+> DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
 | L4.1 | Flow store; spine-only TOUCHES/EMITS | TODO | | |
 | L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | TODO | | |
 | L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | TODO | | |
