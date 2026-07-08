@@ -1,11 +1,32 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 06:26 UTC · branch `feat/loom-l2` · HEAD `e0a12e6`_
+_Updated 2026-07-08 06:37 UTC · branch `feat/loom-l2` · HEAD `e4aef98`_
 
-**Status:** Idle
+**Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.4
-**Checkpoints:** 18/35 done · **Sessions run:** 20 · **Cost:** $1.5724 · **Tokens:** 1,231,510 in / 345,030 out / 220,451 think
+**Checkpoints:** 18/35 done · **Sessions run:** 21 · **Cost:** $1.5724 · **Tokens:** 1,231,510 in / 345,030 out / 220,451 think
 **Confirmed phases:** L0, L1, L2, L3
+
+## Latest activity (live)
+
+_Session #21 (Deliver) · running 10m · last output 53s ago · $0.0262_
+
+**Thinking:**
+> Let me read the key evidence files from session #20 to audit its claims.
+> The `l4.3-consumers.md` couldn't be read as binary. Let me try reading it differently. Let me also now check the MCP overview output directly to verify the service map projection claim.  But first, let me re-verify the key claims from session #20:  1. Dogfood: 421n/276e/6SL/34ent/82% — the dogfood r…
+> The evidence looks strong. Let me verify the key claims:  1. **MCP overview** — Shows 6 services with full names: `Discount.Grpc (gRPC), Catalog.API, YarpApiGateway (Gateway), Ordering.API, Shopping.Web, Basket.API`. No "API"×3 issue. No library cards. ✅ 2. **MCP top_flows** — Shows ranked flows wit…
+
+**Recent actions:**
+- `07:35:31` · Build now 0w/0e. Let me verify the loom-guards and check git status.
+- `07:35:32` » bash git -C C:\Code\DevContext2-ui status --short
+- `07:35:32` » bash powershell -ExecutionPolicy Bypass -File scripts/loom-guards.ps1 2>&1
+- `07:35:41` » read eval-results\2026-07-08
+- `07:35:41` · Pre-session ritual complete — gate battery all green. Now QAing session #20 (L4.3). Let me read its evidence files and verify claims.
+- `07:35:45` » read eval-results\2026-07-08\gate-battery-l4.3-s20.txt
+- `07:35:45` » read {"filePath":"C:\\Code\\DevContext2-ui\\eval-results\\2026-07-08\\l4.3-consumers.md"}
+- `07:35:46` » read eval-results\2026-07-08\dogfood-l4.3.md
+- `07:35:54` » bash Get-Content -Raw "C:\Code\DevContext2-ui\eval-results\2026-07-08\l4.3-consumers.md" | Select-Object -First 100
+- `07:36:07` · QA on L4.3 evidence: the consumer output confirms exactly 6 runnables with full names, no libs, and the numbers match. Let me verify the code changes are actual…
 
 ## Stage progress
 
@@ -45,6 +66,7 @@ _Updated 2026-07-08 06:26 UTC · branch `feat/loom-l2` · HEAD `e0a12e6`_
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
+| 21 | L4 | Deliver | 1 | 07-08 06:26 | … | running |  | 0 |  |  |  |
 
 ### Commits by session
 
