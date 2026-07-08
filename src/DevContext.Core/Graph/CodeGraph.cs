@@ -286,7 +286,6 @@ public sealed class CodeGraphBuilder
             if (list[i].To == to && list[i].Kind == kind)
             {
                 if (list[i].Resolution == newResolution) return false;
-                if (list[i].Resolution == Resolution.Semantic && newResolution == Resolution.Syntactic) return false;
                 list[i] = list[i] with { Resolution = newResolution };
                 return true;
             }

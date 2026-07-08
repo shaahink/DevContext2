@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 
 using DevContext.Core.Contracts;
@@ -60,18 +59,23 @@ public sealed record SemanticLiteResult
 public static class SemanticLitePopulator
 {
     /// <summary>Framework reference assemblies loaded once from the TPA.</summary>
-    private static readonly Lazy<ImmutableArray<MetadataReference>> FrameworkRefs = new(() =>
+    private static readonly Lazy<(ImmutableArray<MetadataReference> Refs, HashSet<string> Names)> FrameworkRefs = new(() =>
     {
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
-        if (string.IsNullOrEmpty(tpa)) return [];
+        if (string.IsNullOrEmpty(tpa)) return ([], new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         var refs = ImmutableArray.CreateBuilder<MetadataReference>();
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in tpa.Split(Path.PathSeparator))
         {
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) continue;
-            try { refs.Add(MetadataReference.CreateFromFile(path)); }
+            try
+            {
+                refs.Add(MetadataReference.CreateFromFile(path));
+                names.Add(Path.GetFileNameWithoutExtension(path));
+            }
             catch { }
         }
-        return refs.ToImmutable();
+        return (refs.ToImmutable(), names);
     });
 
     /// <summary>Runs the semantic-lite populator. Builds one <c>CSharpCompilation</c> from all
@@ -89,12 +93,10 @@ public static class SemanticLitePopulator
         var result = new SemanticLiteResult();
         if (projects.Count == 0) return result;
 
-        var sw = Stopwatch.StartNew();
-
         var (nugetRefs, assetsProjects, degradedProjects) = ResolveNuGetMetadataRefs(projects, rootPath);
         result = result with { ProjectsWithAssets = assetsProjects, ProjectsDegraded = degradedProjects };
         var allTrees = new List<SyntaxTree>();
-        var fileToProject = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Map each source file to its most-specific owning project. Projects nest (a solution `src/` root
         // whose children live in `src/Services/Basket/…`), so a naive per-project prefix scan would add the
@@ -113,7 +115,7 @@ public static class SemanticLitePopulator
         {
             if (ct.IsCancellationRequested) break;
             if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
-            if (fileToProject.ContainsKey(path)) continue;
+            if (!seenPaths.Add(path)) continue;
 
             string? owner = null;
             foreach (var (dir, name) in projectDirs)
@@ -126,7 +128,6 @@ public static class SemanticLitePopulator
             {
                 var tree = cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult();
                 allTrees.Add(tree);
-                fileToProject[path] = owner;
                 perProject[owner] = perProject.TryGetValue(owner, out var c) ? c + 1 : 1;
             }
             catch { }
@@ -136,7 +137,7 @@ public static class SemanticLitePopulator
             if (!perProject.ContainsKey(name))
                 result = result with { ProjectsSkipped = result.ProjectsSkipped + 1 };
 
-        if (allTrees.Count == 0 || nugetRefs.Length == 0 && FrameworkRefs.Value.Length == 0)
+        if (allTrees.Count == 0 || nugetRefs.Length == 0 && FrameworkRefs.Value.Refs.Length == 0)
             return result with
             {
                 UpgradedBodyFacts = bodyFacts.ToImmutableArray(),
@@ -148,7 +149,7 @@ public static class SemanticLitePopulator
         try
         {
             var allRefs = ImmutableArray.CreateBuilder<MetadataReference>();
-            allRefs.AddRange(FrameworkRefs.Value);
+            allRefs.AddRange(FrameworkRefs.Value.Refs);
             allRefs.AddRange(nugetRefs);
 
             compilation = CSharpCompilation.Create("DevContextSemanticsLite",
@@ -175,7 +176,7 @@ public static class SemanticLitePopulator
         var argTypesResolved = 0;
         if (bodyFacts.Count > 0)
             (upgraded, varDeclsResolved, receiversResolved, creationOpsResolved, genericArgsResolved, argTypesResolved) =
-                UpgradeBodyFacts(bodyFacts, compilation, allTrees, fileToProject);
+                UpgradeBodyFacts(bodyFacts, compilation, allTrees);
 
         result = result with
         {
@@ -191,7 +192,6 @@ public static class SemanticLitePopulator
             CompilationBuilt = true,
         };
 
-        sw.Stop();
         return result;
     }
 
@@ -276,9 +276,12 @@ public static class SemanticLitePopulator
             }
         }
 
+        var fwNames = FrameworkRefs.Value.Names;
+
         var refs = ImmutableArray.CreateBuilder<MetadataReference>();
-        foreach (var (_, path) in best.Values)
+        foreach (var (name, (_, path)) in best)
         {
+            if (fwNames.Contains(name)) continue;
             try { refs.Add(MetadataReference.CreateFromFile(path)); }
             catch { }
         }
@@ -318,8 +321,7 @@ public static class SemanticLitePopulator
     private static (ImmutableArray<BodyFacts> Facts, int VarDecls, int Receivers, int Creations, int GenericArgs, int ArgTypes) UpgradeBodyFacts(
         IReadOnlyList<BodyFacts> facts,
         CSharpCompilation compilation,
-        List<SyntaxTree> allTrees,
-        Dictionary<string, string?> fileToProject)
+        List<SyntaxTree> allTrees)
     {
         var treeIndex = new Dictionary<string, SyntaxTree>(StringComparer.OrdinalIgnoreCase);
         foreach (var tree in allTrees)
@@ -623,7 +625,8 @@ public static class SemanticLitePopulator
         foreach (var op in body.Ops)
         {
             if (op is LocalDeclOp) return true;
-            if (op is InvocationOp { ReceiverText: not null }) return true;
+            if (op is InvocationOp) return true;
+            if (op is CreationOp) return true;
         }
         return false;
     }

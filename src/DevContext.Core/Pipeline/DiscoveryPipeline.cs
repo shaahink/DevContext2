@@ -169,7 +169,11 @@ public sealed class DiscoveryPipeline
                             semanticLiteResult = semanticLiteResult with { CallEdgesUpgraded = upgradedCount };
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
+                            $"Call-edge upgrade unavailable (degrading to syntactic edges): {ex.GetType().Name}");
+                    }
                 }
 
                 if (semanticLiteResult.ProjectsWithAssets > 0 || semanticLiteResult.ProjectsDegraded > 0)
