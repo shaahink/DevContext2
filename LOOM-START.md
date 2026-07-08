@@ -8,14 +8,14 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L6 session #32 — **L6.3 DONE** (gate battery green: 484P/0F).
-       Insights section now filters by graph adjacency (1-hop neighbors from
-       trace.neighbors()), parses evidenceActions Node:<id> patterns, honest
-       chip shows "0 / N" when no adjacent insights with repo-wide count.
-       Empty state: "None reference this node (N repo-wide)."
-stage: **L6.3 DONE**. L6 checkpoints remaining: 6.4–6.6.
-next: **L6.4** — Context Studio v2: service tree, preset scaffolds real cards.
-evidence: eval-results/2026-07-08/gate-battery-l6.3-s32.txt
+last: L6 session #33 — **L6.4/L6.5/L6.6 DONE** (gate battery green: 484P/0F).
+      L6.4: Context Studio v2 already delivered by M8 work (service tree, preset,
+      provenance, server pack copy). L6.5: visible Table toolbar button + global
+      Shift+E shortcut. L6.6: MCP session auto-refresh, confidence→verified
+      rename, DPI icon scaling.
+stage: **L6 DONE**. All L6 checkpoints (6.1–6.6) green.
+next: **L7.1** — Call-spine completion (≥70% entries ≥2-deep on MVC-class repos).
+evidence: eval-results/2026-07-08/gate-battery-l6-session-33.txt
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -70,9 +70,9 @@ line under the row — never silent renumbering.
 | L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | DONE | (l6.1-s29) | eval-results/2026-07-08/gate-battery-l6.1-s29.txt |
 | L6.2 | Code pane: entry selection shows source; states visible | DONE | da1823d | eval-results/2026-07-08/gate-battery-l6.2-s30.txt |
 | L6.3 | Inspector insights: adjacency filter + honest chip | DONE | (l6.3-s32) | eval-results/2026-07-08/gate-battery-l6.3-s32.txt |
-| L6.4 | Context Studio v2: service tree, preset scaffolds real cards | TODO | | |
-| L6.5 | Table lens button + focus-proof shortcut | TODO | | |
-| L6.6 | Chrome polish batch (MCP status, confidence stat, DPI sweep) | TODO | | |
+| L6.4 | Context Studio v2: service tree, preset scaffolds real cards | DONE | (l6.4-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
+| L6.5 | Table lens button + focus-proof shortcut | DONE | (l6.5-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
+| L6.6 | Chrome polish batch (MCP status, confidence stat, DPI sweep) | DONE | (l6.6-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
 | L7.1 | Call-spine completion (≥70% entries ≥2-deep on MVC-class repos) | TODO | | |
 | L7.2 | Archetype projections (desktop/worker/library/blazor) | TODO | | |
 | L7.3 | Style-detection guardrails + E9 scope fix | TODO | | |
