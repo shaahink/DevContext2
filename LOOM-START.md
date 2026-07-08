@@ -18,6 +18,8 @@ next: **L5.3** — Unified ranked resolution (graph.Find: resolve/find/usages/im
        `resolve "Order"`→aggregate #1). Flips run-cold B4+B9 (the 2 remaining reds).
 evidence: eval-results/2026-07-08/gate-battery-l5.2-s24.txt
            eval-results/2026-07-08/mcp-cold-qa-l5.2-s24.md
+HUMAN: `git push` failed this session — DNS could not resolve github.com (no network).
+       Commit a78c135 is landed locally, tree clean. Please `git push` (or rerun next session).
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
