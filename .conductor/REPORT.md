@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom run report
 
-_Updated 2026-07-08 05:03 UTC · branch `feat/loom-l2` · HEAD `304bc2b`_
+_Updated 2026-07-08 05:13 UTC · branch `feat/loom-l2` · HEAD `c71b22d`_
 
 **Status:** Running
 **Stage:** L4 — Flows + projections · attempts used 0 · working ▸ L4.3
@@ -9,24 +9,24 @@ _Updated 2026-07-08 05:03 UTC · branch `feat/loom-l2` · HEAD `304bc2b`_
 
 ## Latest activity (live)
 
-_Session #20 (Deliver) · running 20m · last output 106s ago · $0.0050_
+_Session #20 (Deliver) · running 30m · last output 6s ago · $0.0150_
 
 **Thinking:**
-> The projections are connected to the RPC, though L4.2 lacks unit test coverage for them—a QA concern but not necessarily a blocker. I need to verify the dogfood metrics by re-running the analysis with the CLI report command to confirm those numbers.
-> The QA checks confirm L4.2 is solid—the projections and RPC are working correctly with exact number matches, and while unit tests are missing, that doesn't block the checkpoint. Moving forward to L4.3 now.  For L4.3, I need to wire up the consumers: Home, Atlas, and MCP need to pull from the project…
-> I'm looking at a large surface area for L4.3 that involves consolidating how the home hero, Atlas diagram, MCP overview and top flows, and stepper strips all handle read projections—the goal is to eliminate their ad-hoc walk implementations. The gate for this level is tied to the UI drive gate in th…
+> I can reference the eShop repo in eval-repos for testing, but dogfood is the real baseline. I've got enough context now to move forward pragmatically with L4.3 as scoped: migrate the MCP overview and top_flows endpoints, the Home hero section, the Atlas diagram, and the stepper component to use proj…
+> I'll start by writing a projection regression test modeled after the existing test patterns, then verify that ServiceMapProjection correctly identifies all the services in the bundled eShop repository before moving on to wiring up the consumers.
+> I'm writing a regression test for ServiceMapProjection that validates it generates runnable services with complete names and excludes library cards, using the bundled eShop repository as a reliable test fixture. Then I'm mapping out the L4.3 implementation scope around the home hero section, Atlas d…
 
 **Recent actions:**
-- `05:55:53` » read eval-results\2026-07-08\dogfood-l4.2.md
-- `05:55:53` · L4.2 projections exist, are wired to RPC. Note: no unit tests for the projections themselves (QA observation). Let me verify the dogfood numbers claim with a fr…
-- `05:56:02` · Let me re-run dogfood fresh to confirm the 422/276/34/6/82% baseline still holds.
-- `05:56:12` » bash dotnet run --project src/DevContext.Cli --no-build -- report "C:\Users\shahi\source\repos\run-aspnetcore-microservices\src" -o eval-results/2026-07-08/qa-l…
-- `05:56:22` » bash Select-String -Path eval-results/2026-07-08/qa-l4.2-recheck.md -Pattern "Nodes|Edges|ServiceLinks|Entries|Verified edges|Analyzed in|Style" | Select-Object…
-- `05:56:46` · QA verdict: **L4.2 PASS** — dogfood reproduces exactly (422n/276e/6SL/34ent/82%), projections + `GetGraphFacets` RPC exist and are wired. Only gap noted: no ded…
-- `05:59:09` » task Map L4.3 consumers and ad-hoc walks
-- `05:59:33` » read src\DevContext.Mcp\DevContextTools.cs
-- `05:59:34` · This is a large checkpoint. Let me read the key implementation files to plan the change precisely.
-- `05:59:34` » read src\DevContext.Server\Endpoints\DevContextGrpcService.cs
+- `06:11:28` » grep Flows =|\.Flows\b|WithFlows|ImmutableArray<Flow>|BuildFlows|ComputeFlows
+- `06:11:44` · There's a bundled `eShop` repo. Let me first write a projection regression test to verify ServiceMapProjection produces correct services, then wire consumers. L…
+- `06:11:44` » read src\DevContext.Core\Graph\CodeGraph.cs
+- `06:11:54` » read tests\DevContext.Core.Tests\GlobalUsings.cs
+- `06:11:56` » bash Get-ChildItem eval-repos/eShop -Recurse -Filter "*.csproj" | Select-Object -ExpandProperty FullName
+- `06:11:56` · Let me write a projection regression test to verify ServiceMapProjection output, modeled on TraceQualityTests. First, let me confirm the test project's global u…
+- `06:12:27` · I have enough context. Let me now implement L4.3. First, a projection regression test against the bundled eShop repo (portable proof that ServiceMapProjection r…
+- `06:12:27` » read src\DevContext.Server\Mapping\ProtoMapper.cs
+- `06:12:54` · The full L4.2 machinery is present. Now let me implement L4.3. Let me write the projection regression test first.
+- `06:12:54` » write tests\DevContext.Core.Tests\GraphProjectionTests.cs
 
 ## Stage progress
 
