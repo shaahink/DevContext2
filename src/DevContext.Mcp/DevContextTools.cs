@@ -41,6 +41,61 @@ public sealed class DevContextTools
         return list.Sessions[0].Handle;
     }
 
+    // L5.2 — error envelope: every tool failure returns {error, hint, example}.
+    // Budget: error+hint+example <= 80 tokens. Kept terse by construction (short strings,
+    // WhenWritingNull drops absent fields). Candidates (did-you-mean) attach for unknown symbols.
+    private static string Envelope(string error, string hint, string example, object? candidates = null)
+        => JsonSerializer.Serialize(new { error, hint, example, candidates }, JsonOpts);
+
+    // Map an RpcException from the server into an actionable envelope for the given tool.
+    private static string FromRpc(RpcException ex, string tool, string example)
+    {
+        var msg = ex.Status.Detail;
+        var hint = ex.StatusCode switch
+        {
+            StatusCode.FailedPrecondition => "Run analyze(path) first, then retry.",
+            StatusCode.NotFound => "Handle expired or unknown — analyze again or check list_sessions().",
+            StatusCode.InvalidArgument => "Check the argument values against the tool schema.",
+            _ => "Retry; if it persists the session may need re-analysis.",
+        };
+        if (string.IsNullOrWhiteSpace(msg)) msg = $"{tool} failed ({ex.StatusCode}).";
+        return Envelope(msg, hint, example);
+    }
+
+    // Did-you-mean candidates for an unresolved symbol: top ranked title matches.
+    private async Task<object[]> SuggestAsync(string handle, string query, int take = 5)
+    {
+        try
+        {
+            var nodes = await _client.SearchNodesAsync(new SearchRequest
+            {
+                Handle = handle,
+                Query = FirstWord(query),
+                Limit = take,
+            });
+            return nodes.Nodes.Take(take)
+                .Select(n => (object)new { nodeId = n.NodeId, title = TrimTitle(n.Title), kind = n.Kind })
+                .ToArray();
+        }
+        catch { return Array.Empty<object>(); }
+    }
+
+    // Search by the most-selective token so an exact-substring miss still yields candidates
+    // (e.g. "how does checkout work" → "checkout").
+    private static string FirstWord(string s)
+    {
+        var parts = s.Split(new[] { ' ', '\t', '/', '.', ':' }, StringSplitOptions.RemoveEmptyEntries);
+        // longest token is usually the most distinctive symbol-ish word
+        var best = "";
+        foreach (var p in parts)
+            if (p.Length > best.Length && !IsStopWord(p)) best = p;
+        return best.Length > 0 ? best : s.Trim();
+    }
+
+    private static bool IsStopWord(string w) => w.ToLowerInvariant() is
+        "how" or "does" or "the" or "what" or "is" or "are" or "work" or "works"
+        or "a" or "an" or "of" or "for" or "get" or "post" or "put" or "delete" or "to" or "in";
+
     /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD returns existing handle. Example: analyze("C:/repos/MyApp")</summary>
     [McpServerTool]
     public async Task<string> Analyze(string path)
@@ -84,7 +139,14 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Overview(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "overview", "analyze(\"C:/repos/MyApp\") then overview()"); }
+        try { return await OverviewCore(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "overview", "overview(handle)"); }
+    }
+
+    private async Task<string> OverviewCore(string handle)
+    {
         // L4.3: services + top flows come from the graph projections (one truth), not ad-hoc walks.
         var facets = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 5 });
         var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
@@ -157,9 +219,19 @@ public sealed class DevContextTools
 
     /// <summary>Resolve a symbol/route/file to candidates with kind, service, path. Never silently picks — returns all matches. Example: resolve("abc123", "Product")</summary>
     [McpServerTool]
-    public async Task<string> Resolve(string? handle, string query, int limit = 10)
+    public async Task<string> Resolve(string? handle = null, string? query = null, int limit = 10)
     {
-        handle = ResolveHandle(handle);
+        if (string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing required parameter 'query'.",
+                "Pass the symbol/route/file to resolve.", "resolve(handle, query:\"Order\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "resolve", "analyze(path) then resolve(query:\"Order\")"); }
+        try { return await ResolveCore(handle, query, limit); }
+        catch (RpcException ex) { return FromRpc(ex, "resolve", "resolve(handle, query:\"Order\")"); }
+    }
+
+    private async Task<string> ResolveCore(string handle, string query, int limit)
+    {
         var nodes = await _client.SearchNodesAsync(new SearchRequest
         {
             Handle = handle,
@@ -188,6 +260,16 @@ public sealed class DevContextTools
                 inDegree = detail?.InDegree ?? 0,
                 tags = n.Tags.ToArray(),
             });
+        }
+
+        // L5.2 — unknown symbol returns candidates ("did you mean"), never zero-shaped success.
+        if (result.Count == 0)
+        {
+            var suggestions = await SuggestAsync(handle, query);
+            return Envelope($"No match for '{query}'.",
+                suggestions.Length > 0 ? "Did you mean one of these?" : "Try a broader term or find(query).",
+                "resolve(handle, query:\"Order\")",
+                suggestions.Length > 0 ? suggestions : null);
         }
 
         return JsonSerializer.Serialize(new
@@ -220,7 +302,8 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> CloseSession(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "close_session", "close_session(handle)"); }
         var resp = await _client.CloseSessionAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new { closed = resp.Closed, handle }, JsonOpts);
     }
@@ -250,7 +333,10 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Stats(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "stats", "analyze(path) then stats()"); }
+        try
+        {
         var resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -283,13 +369,16 @@ public sealed class DevContextTools
                 .Select(i => i.Title)
                 .ToArray(),
         }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "stats", "stats(handle)"); }
     }
 
     /// <summary>List entry points (HTTP routes, bus consumers, gRPC services). Filter by kind. Example: entrypoints("abc123", "HttpEndpoint")</summary>
     [McpServerTool]
     public async Task<string> Entrypoints(string? handle = null, string? kind = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "entrypoints", "analyze(path) then entrypoints()"); }
         var resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
         var entries = resp.EntryPoints.AsEnumerable();
         if (kind is not null)
@@ -321,7 +410,8 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Map(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "map", "analyze(path) then map()"); }
         var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -338,7 +428,8 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> TopFlows(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "top_flows", "analyze(path) then top_flows()"); }
         // L4.3: ranking + shaping done once by FlowListProjection (server-side), not client-side here.
         var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 20 });
         var flows = resp.FlowList?.Flows ?? new();
@@ -365,7 +456,8 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> InterestingPoints(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "interesting_points", "analyze(path) then interesting_points()"); }
         var map = await _client.GetMapAsync(new SessionRequest { Handle = handle });
         var pts = await _client.GetInterestingPointsAsync(new InterestingPointsRequest
         {
@@ -389,9 +481,14 @@ public sealed class DevContextTools
 
     /// <summary>Trace execution flow. format: default|compact. compact gives indented text with file:line. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
-    public async Task<string> Trace(string? handle, string focus, int depth = 6, string format = "default")
+    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default")
     {
-        handle = ResolveHandle(handle);
+        if (string.IsNullOrWhiteSpace(focus))
+            return Envelope("Missing required parameter 'focus'.",
+                "Pass an entry route or symbol. The parameter is 'focus', not 'route'.",
+                "trace(handle, focus:\"POST /basket/checkout\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "trace", "analyze(path) then trace(focus:\"POST /basket/checkout\")"); }
         try
         {
             var resp = await _client.GetTraceAsync(new TraceRequest
@@ -401,7 +498,14 @@ public sealed class DevContextTools
                 Depth = depth,
             });
             if (!resp.Found)
-                return JsonSerializer.Serialize(new { found = false, focus }, JsonOpts);
+            {
+                // L5.2 — brittle focus resolution now teaches: suggest real entries/nodes.
+                var suggestions = await SuggestAsync(handle, focus);
+                return Envelope($"No entry or node matched '{focus}'.",
+                    suggestions.Length > 0 ? "Did you mean one of these? Use an exact route or nodeId." : "Try top_flows() to list traceable entries.",
+                    "trace(handle, focus:\"POST /basket/checkout\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
 
             if (format == "compact")
             {
@@ -436,9 +540,9 @@ public sealed class DevContextTools
                 emittedEvents = resp.EmittedEvents.ToArray(),
             }, JsonOpts);
         }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+        catch (RpcException ex)
         {
-            return JsonSerializer.Serialize(new { found = false, focus, error = ex.Message }, JsonOpts);
+            return FromRpc(ex, "trace", "trace(handle, focus:\"POST /basket/checkout\")");
         }
     }
 
@@ -490,116 +594,184 @@ public sealed class DevContextTools
 
     /// <summary>Detail card for a graph node: title, kind, file path, degrees. Example: node("abc123", "OrderService")</summary>
     [McpServerTool]
-    public async Task<string> Node(string? handle, string nodeId)
+    public async Task<string> Node(string? handle = null, string? nodeId = null)
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
-        if (!resp.Found)
-            return JsonSerializer.Serialize(new { found = false, query = nodeId }, JsonOpts);
-
-        return JsonSerializer.Serialize(new
+        if (string.IsNullOrWhiteSpace(nodeId))
+            return Envelope("Missing required parameter 'nodeId'.",
+                "Pass a nodeId (or short name).", "node(handle, nodeId:\"OrderService\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "node", "analyze(path) then node(nodeId:\"OrderService\")"); }
+        try
         {
-            found = true,
-            nodeId = resp.NodeId,
-            title = resp.Title,
-            kind = resp.Kind,
-            tags = resp.Tags.ToArray(),
-            filePath = Rel(handle, resp.HasFilePath ? resp.FilePath : null),
-            lineNumber = resp.HasLineNumber ? (int?)resp.LineNumber : null,
-            outDegree = resp.OutDegree,
-            inDegree = resp.InDegree,
-        }, JsonOpts);
+            var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
+            if (!resp.Found)
+            {
+                var suggestions = await SuggestAsync(handle, nodeId);
+                return Envelope($"Node '{nodeId}' not found.",
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to find the nodeId.",
+                    "node(handle, nodeId:\"OrderService\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            return JsonSerializer.Serialize(new
+            {
+                found = true,
+                nodeId = resp.NodeId,
+                title = resp.Title,
+                kind = resp.Kind,
+                tags = resp.Tags.ToArray(),
+                filePath = Rel(handle, resp.HasFilePath ? resp.FilePath : null),
+                lineNumber = resp.HasLineNumber ? (int?)resp.LineNumber : null,
+                outDegree = resp.OutDegree,
+                inDegree = resp.InDegree,
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "node", "node(handle, nodeId:\"OrderService\")"); }
     }
 
     /// <summary>Outgoing/incoming edges of a node. direction: out|in|usages. Example: neighbors("abc123", "OrderService", "out")</summary>
     [McpServerTool]
-    public async Task<string> Neighbors(string? handle, string nodeId, string direction = "out")
+    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out")
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.GetNeighborsAsync(new NeighborsRequest
+        if (string.IsNullOrWhiteSpace(nodeId))
+            return Envelope("Missing required parameter 'nodeId'.",
+                "Pass a nodeId and direction (out|in|usages).",
+                "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "neighbors", "analyze(path) then neighbors(nodeId:\"OrderService\")"); }
+        try
         {
-            Handle = handle,
-            NodeId = nodeId,
-            Direction = direction,
-        });
-        return JsonSerializer.Serialize(new
-        {
-            nodeId,
-            direction,
-            count = resp.Edges.Count,
-            edges = resp.Edges.Select(e => new
+            var resp = await _client.GetNeighborsAsync(new NeighborsRequest
             {
-                from = e.From,
-                to = e.To,
-                kind = e.Kind,
-                resolution = e.Resolution,
-                otherTitle = e.OtherTitle,
-                provenance = Rel(handle, e.HasProvenance ? e.Provenance : null),
-            }).ToArray(),
-        }, JsonOpts);
+                Handle = handle,
+                NodeId = nodeId,
+                Direction = direction,
+            });
+            if (resp.Edges.Count == 0 && !NodeExists(handle, nodeId))
+            {
+                var suggestions = await SuggestAsync(handle, nodeId);
+                return Envelope($"Node '{nodeId}' not found.",
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to find the nodeId.",
+                    "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+            return JsonSerializer.Serialize(new
+            {
+                nodeId,
+                direction,
+                count = resp.Edges.Count,
+                edges = resp.Edges.Select(e => new
+                {
+                    from = e.From,
+                    to = e.To,
+                    kind = e.Kind,
+                    resolution = e.Resolution,
+                    otherTitle = e.OtherTitle,
+                    provenance = Rel(handle, e.HasProvenance ? e.Provenance : null),
+                }).ToArray(),
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "neighbors", "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")"); }
     }
 
     /// <summary>Find all usages (in-edges) of a node across the codebase. Example: usages("abc123", "IOrderRepository")</summary>
     [McpServerTool]
-    public async Task<string> Usages(string? handle, string nodeId)
+    public async Task<string> Usages(string? handle = null, string? nodeId = null)
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.GetNeighborsAsync(new NeighborsRequest
+        if (string.IsNullOrWhiteSpace(nodeId))
+            return Envelope("Missing required parameter 'nodeId'.",
+                "Pass a nodeId (or short name) to find usages of.",
+                "usages(handle, nodeId:\"IOrderRepository\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "usages", "analyze(path) then usages(nodeId:\"IOrderRepository\")"); }
+        try
         {
-            Handle = handle,
-            NodeId = nodeId,
-            Direction = "usages",
-        });
-        return JsonSerializer.Serialize(new
-        {
-            nodeId,
-            count = resp.Edges.Count,
-            usages = resp.Edges.Select(e => new
+            var resp = await _client.GetNeighborsAsync(new NeighborsRequest
             {
-                caller = e.From,
-                kind = e.Kind,
-                otherTitle = e.OtherTitle,
-                provenance = Rel(handle, e.HasProvenance ? e.Provenance : null),
-            }).ToArray(),
-        }, JsonOpts);
+                Handle = handle,
+                NodeId = nodeId,
+                Direction = "usages",
+            });
+
+            // L5.2 — zero usages: distinguish "unknown symbol" from "genuinely unused".
+            if (resp.Edges.Count == 0 && !NodeExists(handle, nodeId))
+            {
+                var suggestions = await SuggestAsync(handle, nodeId);
+                return Envelope($"Symbol '{nodeId}' not found.",
+                    suggestions.Length > 0 ? "Did you mean one of these? (usages needs an exact nodeId)" : "Use resolve(query) to get the exact nodeId.",
+                    "usages(handle, nodeId:\"IBasketRepository\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            return JsonSerializer.Serialize(new
+            {
+                nodeId,
+                count = resp.Edges.Count,
+                usages = resp.Edges.Select(e => new
+                {
+                    caller = e.From,
+                    kind = e.Kind,
+                    otherTitle = e.OtherTitle,
+                    provenance = Rel(handle, e.HasProvenance ? e.Provenance : null),
+                }).ToArray(),
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "usages", "usages(handle, nodeId:\"IOrderRepository\")"); }
     }
 
     /// <summary>Free-text search across graph nodes, paginated. limit default 20, cursor for offset. Example: find("abc123", "Order", kind:"Type", limit:10, cursor:0)</summary>
     [McpServerTool]
-    public async Task<string> Find(string? handle, string query, string? kind = null, int limit = 20, int cursor = 0)
+    public async Task<string> Find(string? handle = null, string? query = null, string? kind = null, int limit = 20, int cursor = 0)
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.SearchNodesAsync(new SearchRequest
+        if (string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing required parameter 'query'.",
+                "Pass a search term.", "find(handle, query:\"Order\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "find", "analyze(path) then find(query:\"Order\")"); }
+        try
         {
-            Handle = handle,
-            Query = query,
-            Limit = limit + cursor + 20, // fetch extra for offset
-        });
-
-        var results = resp.Nodes.AsEnumerable();
-        if (kind is not null)
-            results = results.Where(n => string.Equals(n.Kind, kind, StringComparison.OrdinalIgnoreCase));
-
-        var all = results.ToArray();
-        var page = all.Skip(cursor).Take(limit).ToArray();
-
-        return JsonSerializer.Serialize(new
-        {
-            query,
-            kind,
-            cursor,
-            limit,
-            count = page.Length,
-            total = all.Length,
-            hasMore = cursor + limit < all.Length,
-            results = page.Select(n => new
+            var resp = await _client.SearchNodesAsync(new SearchRequest
             {
-                nodeId = n.NodeId,
-                title = TrimTitle(n.Title), // M4.6 — strip lambda/code body from titles
-                kind = n.Kind,
-                tags = n.Tags.ToArray(),
-            }).ToArray(),
-        }, JsonOpts);
+                Handle = handle,
+                Query = query,
+                Limit = limit + cursor + 20, // fetch extra for offset
+            });
+
+            var results = resp.Nodes.AsEnumerable();
+            if (kind is not null)
+                results = results.Where(n => string.Equals(n.Kind, kind, StringComparison.OrdinalIgnoreCase));
+
+            var all = results.ToArray();
+            var page = all.Skip(cursor).Take(limit).ToArray();
+
+            if (all.Length == 0)
+            {
+                var suggestions = await SuggestAsync(handle, query);
+                return Envelope($"No nodes match '{query}'" + (kind is not null ? $" of kind '{kind}'." : "."),
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Try a broader term or drop the kind filter.",
+                    "find(handle, query:\"Order\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            return JsonSerializer.Serialize(new
+            {
+                query,
+                kind,
+                cursor,
+                limit,
+                count = page.Length,
+                total = all.Length,
+                hasMore = cursor + limit < all.Length,
+                results = page.Select(n => new
+                {
+                    nodeId = n.NodeId,
+                    title = TrimTitle(n.Title), // M4.6 — strip lambda/code body from titles
+                    kind = n.Kind,
+                    tags = n.Tags.ToArray(),
+                }).ToArray(),
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "find", "find(handle, query:\"Order\")"); }
     }
 
     // M4.6 — strip code body remnants from node titles (lambda-title leak fix)
@@ -624,7 +796,18 @@ public sealed class DevContextTools
     [McpServerTool]
     public async Task<string> Impact(string? handle = null, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null)
     {
-        handle = ResolveHandle(handle);
+        if (string.IsNullOrWhiteSpace(nodeId) && (files is null || files.Length == 0))
+            return Envelope("Provide 'nodeId' or 'files'.",
+                "Give a symbol nodeId, or the changed files for diff-aware impact.",
+                "impact(handle, nodeId:\"OrderService\", direction:\"down\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "impact", "analyze(path) then impact(nodeId:\"OrderService\")"); }
+        try { return await ImpactCore(handle, nodeId, maxDepth, direction, files); }
+        catch (RpcException ex) { return FromRpc(ex, "impact", "impact(handle, nodeId:\"OrderService\", direction:\"down\")"); }
+    }
+
+    private async Task<string> ImpactCore(string handle, string? nodeId, int maxDepth, string direction, string[]? files)
+    {
         var req = new ImpactRequest
         {
             Handle = handle,
@@ -638,6 +821,18 @@ public sealed class DevContextTools
             req.Files.AddRange(files);
 
         var resp = await _client.GetImpactAsync(req);
+
+        // L5.2 — unknown symbol must not masquerade as "no impact" (totalAffected:0).
+        // Verify the symbol exists; if it doesn't, return candidates instead of a false zero.
+        if (resp.TotalAffected == 0 && nodeId is not null && (files is null || files.Length == 0)
+            && !NodeExists(handle, nodeId))
+        {
+            var suggestions = await SuggestAsync(handle, nodeId);
+            return Envelope($"Symbol '{nodeId}' not found — not the same as zero impact.",
+                suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to find the exact nodeId.",
+                "impact(handle, nodeId:\"CheckoutBasketCommandHandler\", direction:\"up\")",
+                suggestions.Length > 0 ? suggestions : null);
+        }
 
         var results = resp.Results
             .GroupBy(r => string.IsNullOrEmpty(r.Service) ? "(unknown)" : r.Service)
@@ -659,71 +854,116 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
+    // Does an exact node id / resolvable name exist? Used to separate "unknown" from "zero impact".
+    private bool NodeExists(string handle, string nodeId)
+    {
+        try
+        {
+            var n = _client.GetNode(new NodeRequest { Handle = handle, NodeId = nodeId });
+            return n.Found;
+        }
+        catch { return false; }
+    }
+
     /// <summary>Find config key usage sites (IConfiguration, GetValue, GetSection). Optional key filter. Example: config("abc123", "GrpcSettings:DiscountUrl")</summary>
     [McpServerTool]
     public async Task<string> Config(string? handle = null, string? key = null)
     {
-        handle = ResolveHandle(handle);
-        var req = new ConfigRequest { Handle = handle };
-        if (key is not null) req.Key = key;
-
-        var resp = await _client.ConfigLookupAsync(req);
-
-        var bindings = resp.Bindings
-            .GroupBy(b => b.Key)
-            .ToDictionary(g => g.Key, g => g.Select(b => new
-            {
-                filePath = Rel(handle, b.FilePath),
-                lineNumber = b.LineNumber,
-                patternType = b.PatternType,
-                service = string.IsNullOrEmpty(b.Service) ? null : b.Service,
-                nodeId = string.IsNullOrEmpty(b.NodeId) ? null : b.NodeId,
-            }).ToArray());
-
-        return JsonSerializer.Serialize(new
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "config", "analyze(path) then config()"); }
+        try
         {
-            key = key ?? "(all)",
-            totalKeys = resp.TotalKeys,
-            keys = bindings,
-        }, JsonOpts);
+            var req = new ConfigRequest { Handle = handle };
+            if (key is not null) req.Key = key;
+
+            var resp = await _client.ConfigLookupAsync(req);
+
+            // L5.2 — a filtered key that matches nothing must not read as "repo has no config".
+            // Re-query unfiltered so we can offer the real keys as a next step.
+            if (resp.TotalKeys == 0 && key is not null)
+            {
+                var all = await _client.ConfigLookupAsync(new ConfigRequest { Handle = handle });
+                if (all.TotalKeys > 0)
+                {
+                    var available = all.Bindings.Select(b => b.Key).Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Where(k => k.Contains(key, StringComparison.OrdinalIgnoreCase))
+                        .Take(8).ToArray();
+                    if (available.Length == 0)
+                        available = all.Bindings.Select(b => b.Key).Distinct(StringComparer.OrdinalIgnoreCase).Take(8).ToArray();
+                    return Envelope($"No config key exactly '{key}' ({all.TotalKeys} keys exist).",
+                        "Keys are exact (e.g. 'ConnectionStrings:Db'). Try one of these or omit 'key'.",
+                        "config(handle, key:\"" + available[0] + "\")",
+                        available);
+                }
+            }
+
+            var bindings = resp.Bindings
+                .GroupBy(b => b.Key)
+                .ToDictionary(g => g.Key, g => g.Select(b => new
+                {
+                    filePath = Rel(handle, b.FilePath),
+                    lineNumber = b.LineNumber,
+                    patternType = b.PatternType,
+                    service = string.IsNullOrEmpty(b.Service) ? null : b.Service,
+                    nodeId = string.IsNullOrEmpty(b.NodeId) ? null : b.NodeId,
+                }).ToArray());
+
+            return JsonSerializer.Serialize(new
+            {
+                key = key ?? "(all)",
+                totalKeys = resp.TotalKeys,
+                keys = bindings,
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "config", "config(handle, key:\"ConnectionStrings:Database\")"); }
     }
 
     /// <summary>Best-effort: find test methods whose call closure reaches a node. Example: tests_for("abc123", "OrderService")</summary>
     [McpServerTool]
-    public async Task<string> TestsFor(string? handle, string nodeId, int maxDepth = 6)
+    public async Task<string> TestsFor(string? handle = null, string? nodeId = null, int maxDepth = 6)
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.FindTestsForAsync(new TestsForRequest
+        if (string.IsNullOrWhiteSpace(nodeId))
+            return Envelope("Missing required parameter 'nodeId'.",
+                "Pass a nodeId to find covering tests for.",
+                "tests_for(handle, nodeId:\"OrderService\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "tests_for", "analyze(path) then tests_for(nodeId:\"OrderService\")"); }
+        try
         {
-            Handle = handle,
-            NodeId = nodeId,
-            MaxDepth = maxDepth,
-        });
-
-        return JsonSerializer.Serialize(new
-        {
-            nodeId,
-            nodeTitle = resp.NodeTitle,
-            isBestEffort = resp.IsBestEffort,
-            count = resp.Tests.Count,
-            tests = resp.Tests.Select(t => new
+            var resp = await _client.FindTestsForAsync(new TestsForRequest
             {
-                title = t.Title,
-                nodeId = t.NodeId,
-                filePath = Rel(handle, t.FilePath),
-                lineNumber = t.LineNumber,
-                distance = t.Distance,
-                isDirect = t.IsDirect,
-                project = string.IsNullOrEmpty(t.Project) ? null : t.Project,
-            }).ToArray(),
-        }, JsonOpts);
+                Handle = handle,
+                NodeId = nodeId,
+                MaxDepth = maxDepth,
+            });
+
+            return JsonSerializer.Serialize(new
+            {
+                nodeId,
+                nodeTitle = resp.NodeTitle,
+                isBestEffort = resp.IsBestEffort,
+                count = resp.Tests.Count,
+                tests = resp.Tests.Select(t => new
+                {
+                    title = t.Title,
+                    nodeId = t.NodeId,
+                    filePath = Rel(handle, t.FilePath),
+                    lineNumber = t.LineNumber,
+                    distance = t.Distance,
+                    isDirect = t.IsDirect,
+                    project = string.IsNullOrEmpty(t.Project) ? null : t.Project,
+                }).ToArray(),
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "tests_for", "tests_for(handle, nodeId:\"OrderService\")"); }
     }
 
     /// <summary>List all insights (warnings, notable items, info) for the analyzed repo. Example: insights("abc123")</summary>
     [McpServerTool]
     public async Task<string> Insights(string? handle = null)
     {
-        handle = ResolveHandle(handle);
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "insights", "analyze(path) then insights()"); }
         var resp = await _client.GetStatsAsync(new SessionRequest { Handle = handle });
         return JsonSerializer.Serialize(new
         {
@@ -745,38 +985,74 @@ public sealed class DevContextTools
 
     /// <summary>Budget-priced context pack for a focus. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
     [McpServerTool]
-    public async Task<string> GetContext(string? handle, string focus, int budgetTokens = 8000, string intent = "trace")
+    public async Task<string> GetContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string intent = "trace")
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.GetContextAsync(new ContextRequest
+        if (string.IsNullOrWhiteSpace(focus))
+            return Envelope("Missing required parameter 'focus'.",
+                "Pass the entry/symbol to build context for.",
+                "get_context(handle, focus:\"POST /api/orders\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "get_context", "analyze(path) then get_context(focus:\"POST /api/orders\")"); }
+        try
         {
-            Handle = handle,
-            Focus = focus,
-            BudgetTokens = budgetTokens,
-            Intent = intent,
-        });
-        if (!resp.Found)
-            return JsonSerializer.Serialize(new { found = false, focus }, JsonOpts);
+            var resp = await _client.GetContextAsync(new ContextRequest
+            {
+                Handle = handle,
+                Focus = focus,
+                BudgetTokens = budgetTokens,
+                Intent = intent,
+            });
+            // L5.2 — focus that resolves to (almost) nothing teaches instead of returning a thin pack.
+            // A miss yields only the generic "identity" section (no trace/signatures/bodies).
+            var substantive = resp.Sections.Any(s => !string.Equals(s.Key, "identity", StringComparison.OrdinalIgnoreCase));
+            if (!resp.Found || !substantive)
+            {
+                var suggestions = await SuggestAsync(handle, focus);
+                return Envelope($"No context could be built for '{focus}'.",
+                    suggestions.Length > 0 ? "Did you mean one of these? Use an exact route or nodeId." : "Try top_flows() to find an entry.",
+                    "get_context(handle, focus:\"POST /basket/checkout\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
 
-        return JsonSerializer.Serialize(new
-        {
-            focus,
-            budgetTokens,
-            totalTokens = resp.TotalTokens,
-            sections = resp.Sections.Select(s => new { key = s.Key, tokens = s.Tokens }).ToArray(),
-            omitted = resp.Omitted.ToArray(),
-            content = string.Join("\n", resp.Sections.Select(s => s.Content)),
-        }, JsonOpts);
+            return JsonSerializer.Serialize(new
+            {
+                focus,
+                budgetTokens,
+                totalTokens = resp.TotalTokens,
+                sections = resp.Sections.Select(s => new { key = s.Key, tokens = s.Tokens }).ToArray(),
+                omitted = resp.Omitted.ToArray(),
+                content = string.Join("\n", resp.Sections.Select(s => s.Content)),
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "get_context", "get_context(handle, focus:\"POST /api/orders\")"); }
     }
 
     /// <summary>Read source code for a node. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", "OrderService", 30, "member")</summary>
     [McpServerTool]
-    public async Task<string> ReadSource(string? handle, string nodeId, int windowLines = 20, string mode = "window")
+    public async Task<string> ReadSource(string? handle = null, string? nodeId = null, int windowLines = 20, string mode = "window")
     {
-        handle = ResolveHandle(handle);
-        var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
+        if (string.IsNullOrWhiteSpace(nodeId))
+            return Envelope("Missing required parameter 'nodeId'.",
+                "Pass a nodeId. mode: window|member.",
+                "read_source(handle, nodeId:\"OrderService\", mode:\"member\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "read_source", "analyze(path) then read_source(nodeId:\"OrderService\")"); }
+
+        NodeResponse resp;
+        try
+        {
+            resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
+        }
+        catch (RpcException ex) { return FromRpc(ex, "read_source", "read_source(handle, nodeId:\"OrderService\")"); }
+
         if (!resp.Found || !resp.HasFilePath)
-            return JsonSerializer.Serialize(new { found = false, query = nodeId }, JsonOpts);
+        {
+            var suggestions = await SuggestAsync(handle, nodeId);
+            return Envelope($"No source location for '{nodeId}'.",
+                suggestions.Length > 0 ? "Did you mean one of these?" : "Use resolve(query) to find a node with a file location.",
+                "read_source(handle, nodeId:\"OrderService\")",
+                suggestions.Length > 0 ? suggestions : null);
+        }
 
         var filePath = resp.FilePath;
         try

@@ -59,10 +59,11 @@ try
         options.ServerInfo = new()
         {
             Name = "devcontext",
-            Version = "1.0.0", // M3.1 — version comes from server via Ping, static here
+            Version = "1.0.0", // M3.1 �?" version comes from server via Ping, static here
         };
     })
     .WithTools(toolsInstance)
+    .WithCallToolHandler(UnknownToolHandler.Handle)
     .WithStdioServerTransport();
 
     var provider = services.BuildServiceProvider();

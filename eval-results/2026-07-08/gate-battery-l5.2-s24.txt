@@ -1,0 +1,67 @@
+# Gate Battery — Loom L5.2 (session #24)
+
+**Date:** 2026-07-08
+**Branch:** feat/loom-l5
+**Checkpoint:** L5.2 — Error envelopes (error+hint+example ≤80 tok per tool failure)
+
+## Pre-session gate battery (before work)
+- dotnet build DevContext.slnx: 0 Warning(s) 0 Error(s)
+- dotnet test (Category!=Eval): Core 408P/3S · Server 12P · Desktop 64P
+- loom-guards.ps1: PASSED (0 banned; advisory 13 NodeId.ForType + 0 fqns[0], fixed by L3)
+- node eval/mcp-qa/run.js: 8/8 passing · checkout gate PASS (2c/813tok)
+- node eval/mcp-qa/run-cold.js (baseline post-L5.1): **0/12 actionable** (5 opaque, 4 false-success)
+
+## QA of previous session (L5.1) — VERDICT: PASS
+Audited fresh, not by claim:
+- All 20+ MCP tools call ResolveHandle (optional handle → most-recent session). Verified in DevContextTools.cs.
+- AnalysisSessionManager.ListSessions orders by LastAccess desc; ResolveHandle picks [0] = most recent. Correct.
+- Idempotency: AnalyzeAsync computes RepoKey(repoPath@HEAD), TryGetByRepo returns existing session before engine run; cache hit reports "cached" progress. CloseSession only removes repo index if it still points to the closing handle (no stale-index bug). Correct.
+- Gates green (above). No defects found; no rework needed.
+
+## Post-session gate battery (after L5.2)
+- dotnet build DevContext.slnx: **0 Warning(s) 0 Error(s)**
+- dotnet build src/DevContext.Mcp: 0w/0e
+- dotnet test (Category!=Eval): Core **408P/3S** · Server **12P** · Desktop **64P** (Desktop verified 64/64 on isolated re-run; 3 GitHubAnalysisE2ETests network-E2E flakes when run under full slnx with a leftover server process — unrelated to MCP change)
+- loom-guards.ps1: **PASSED**
+- node eval/mcp-qa/run.js (regression): **8/8 passing** · checkout gate PASS (2c/813tok)
+
+## Truth gate — cold-agent actionability (run-cold.js), L5.2 target
+- Baseline (post-L5.1): **0/12 (0%)** actionable · 5 opaque · 4 false-success
+- **After L5.2: 10/12 (83%)** actionable · **0 opaque** · 1 false-success
+
+| Probe | Before | After |
+|-------|--------|-------|
+| A1-overview-no-handle | opaque | **actionable** |
+| A2-trace-no-handle | opaque | **actionable** |
+| A3-resolve-no-handle | opaque | **actionable** |
+| B1-nonexistent-tool (`flow`) | signaled,no-next-step | **actionable** (did-you-mean top_flows + tool list) |
+| B2-trace-nl-focus | false-success | **actionable** (suggestions) |
+| B3-impact-madeup | false-success | **actionable** (unknown≠zero-impact + candidates) |
+| B4-usages-shortname | false-success | false-success — **owned by L5.3** (unified ranked resolution) |
+| B5-config-exact-key | false-success | **actionable** (available keys) |
+| B6-getcontext-nl-focus | unactionable | **actionable** (suggestions) |
+| B7-resolve-missing-required | opaque | **actionable** (schema hint) |
+| B8-trace-wrong-param-name | opaque | **actionable** ('focus' not 'route') |
+| B9-find-noise-query | unactionable | unactionable — **owned by L5.3** (Find ranking) |
+
+The two remaining reds (B4 usages short-name, B9 find ranking) are explicitly the
+L5.3 checkpoint ("resolve/find/usages/impact all use graph.Find ranking"). The 90%
+enforced gate arms in L5.5; L5.2 delivers the envelope machinery that lifts 0→83%.
+
+## Token budget (error+hint+example ≤80 tok)
+Measured on representative envelopes:
+- B1 unknown-tool (error+hint+example): ~30 tok
+- B3 unknown-symbol: ~55 tok
+- B5 config-miss: ~55 tok
+All ≤ 80. (`candidates`/`availableTools` are optional data fields carried in addition,
+per design §5 "error object with suggestions".)
+
+## What changed
+- `DevContextTools.cs`: Envelope/FromRpc/SuggestAsync helpers; every tool wraps failures
+  in `{error, hint, example}`; required params validated (query/focus/nodeId → schema
+  envelope); unknown symbols in impact/usages/node/neighbors/read_source return
+  candidates instead of zero-shaped success; config-miss lists real keys; trace/get_context
+  fuzzy-suggest on focus miss. All `string? handle` made optional (`= null`) so a
+  cold agent omitting handle hits our envelope, not the SDK's opaque bind error.
+- `UnknownToolHandler.cs` (new) + `Program.cs`: WithCallToolHandler returns an actionable
+  envelope (nearest tool by prefix/substring/Levenshtein + full tool list) for unknown tools.

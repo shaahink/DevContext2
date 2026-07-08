@@ -7,15 +7,17 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff  (overwrite this block, ≤10 lines, no history)
-last: L5 session #23 — **L5.1 DONE** (default-session ergonomics + idempotent analyze). All 20+
-       MCP tools accept optional `handle` (defaults to most-recent session). Analyze returns
-       existing handle for same repo+HEAD (server-side TryGetByRepo check before engine run).
-       Cache hit streams "cached" progress event. ResolveHandle helper picks ≤1 session auto.
-stage: **L5.1 DONE**. Next: L5.2 Error envelopes (error+hint+example ≤80 tok).
+last: L5 session #24 — **L5.2 DONE** (error envelopes). Every tool failure returns
+       `{error,hint,example}` ≤80 tok; required params validated→schema; unknown symbols
+       return candidates (not zero-shaped success); unknown tool → nearest-tool + list;
+       config-miss lists real keys; trace/get_context fuzzy-suggest. Handles now optional.
+       QA of L5.1: **PASS** (idempotency + most-recent resolution correct, no rework).
+stage: **L5.2 DONE**. Cold-agent actionability **0/12 → 10/12 (83%)**, 0 opaque errors.
 gate: build 0w/0e · Core 408P/3S · Server 12P · Desktop 64P · guards PASS · MCP QA 8/8.
-next: **L5.2** — Error envelopes (error+hint+example ≤80 tok per tool failure).
-evidence: eval-results/2026-07-08/gate-battery-l5.1-s23.txt
-           eval-results/2026-07-08/mcp-qa.md
+next: **L5.3** — Unified ranked resolution (graph.Find: resolve/find/usages/impact;
+       `resolve "Order"`→aggregate #1). Flips run-cold B4+B9 (the 2 remaining reds).
+evidence: eval-results/2026-07-08/gate-battery-l5.2-s24.txt
+           eval-results/2026-07-08/mcp-cold-qa-l5.2-s24.md
 
 ## Baseline numbers (2026-07-07, fresh runs — drift >5% without explanation blocks)
 
@@ -63,7 +65,7 @@ line under the row — never silent renumbering.
 > Edges/SL/entries/verified% unchanged. Hero now shows exactly 6 runnables (audit Claim 3 fix).
 | L4.4 | Server ContextPack round-trip (Trap A closed) | DONE | (l4.4-s21) | eval-results/2026-07-08/gate-battery-l4.4-s21.txt |
 | L5.1 | Default-session ergonomics | DONE | (l5.1-s23) | eval-results/2026-07-08/gate-battery-l5.1-s23.txt |
-| L5.2 | Error envelopes (error+hint+example ≤80 tok) | TODO | | |
+| L5.2 | Error envelopes (error+hint+example ≤80 tok) | DONE | (l5.2-s24) | eval-results/2026-07-08/gate-battery-l5.2-s24.txt |
 | L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | TODO | | |
 | L5.4 | Real `flow` tool + fuzzy focus | TODO | | |
 | L5.5 | Cold-agent QA becomes the gate | TODO | | |
