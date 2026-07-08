@@ -1,8 +1,12 @@
 # DevContext Desktop (Tauri + Angular)
 
 A cross-platform desktop client for DevContext. The UI (Angular 22, zoneless, signals) talks to
-`DevContext.Server` over **gRPC-Web**; the server wraps the unchanged `DevContext.Core` engine.
-Tauri provides the native shell (OS WebView — no bundled Chromium).
+`DevContext.Server` over **gRPC-Web**; the server wraps the `DevContext.Core` engine
+(post-Loom: Graph2 identity spine, BodyFacts pipeline, projections). Tauri provides the native
+shell (OS WebView — no bundled Chromium).
+
+**Phase:** Loom L8 (close-out). Branch: `feat/loom-l7`.
+See: `LOOM-START.md` (tracker), `docs/dev/HANDOVER-LOOM.md` (close-out doc).
 
 ## Prerequisites
 
@@ -273,63 +277,56 @@ After `pnpm dev:web`, analyze the dogfood repo and verify:
 ## Resume protocol for next agent
 
 ```powershell
-git -C C:/Code/DevContext2-ui checkout feat/meridian-m0
+git -C C:/Code/DevContext2-ui checkout feat/loom-l7
 git -C C:/Code/DevContext2-ui pull
 Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
+# Read LOOM-START.md for handoff + checkpoint state
+# Read docs/dev/briefs/loom-graph-design.md (design authority)
+# Read docs/dev/HANDOVER-LOOM.md (close-out doc)
 # Read this AGENTS.md from top
-# Read docs/dev/briefs/meridian-agent-playbook.md §UI-Context Studio + §4 (anti-patterns)
-# Read docs/dev/briefs/proposal-meridian.md §M8
-# Read MERIDIAN-START.md — Handoff block
 ```
 
 ### Session cycle for next agent
 
-1. **Static audit (MANDATORY first step)** — re-run the gate, A6 visual smoke, A11 silent-success, A5 dogfood check:
+1. **Gate battery (MANDATORY first step):**
    ```powershell
    cd src/DevContext.App; pnpm check
-   pnpm server     # terminal 1
-   pnpm dev:web    # terminal 2
    ```
-   - Verify `/context` route loads (puzzle icon in rail, 3-pane stub renders)
-   - Verify Ctrl+E navigates to /context (not export drawer)
-   - Verify Shift+E opens table lens with "Shared" column visible
-   - Verify dock cycles 0→2→3→0 via Ctrl+Shift+L
-   - Verify Code tab in Inspector shows `[innerHTML]` highlighted content (load a node's source)
-   - Check for console errors, empty states, dead links (A10)
+   From repo root:
+   ```powershell
+   dotnet build DevContext.slnx                                           # 0w 0e
+   dotnet test DevContext.slnx --filter "Category!=Eval"                  # unit + integration
+   powershell -File scripts/loom-guards.ps1                               # zero banned patterns
+   ```
 
-2. **Fix bugs** — address any anti-patterns found during audit. Check the closed M7 gaps haven't regressed:
-   - `rg "AuditTable|audit-table" src/app/ --include="*.ts"` — should show only comments
-   - `rg "TODO|FIXME" src/app/features/context-studio/ src/app/features/table-lens/ src/app/core/code-highlight.ts` — must return empty
+2. **Fix bugs** — address any regressions found. Verify known Loom invariants:
+   - `rg "Regex" src/DevContext.Core/Graph/` — must return empty
+   - `rg "NodeId.ForType" src/DevContext.Core/Graph/` — only advisory sites remain
+   - `rg "TODO|FIXME" src/app/features/context-studio/ src/app/features/table-lens/` — must return empty
 
-3. **Deliver M8 completion** (checkpoints M8.1b → M8.1e per the plan above):
-   - **M8.1b** — scope-picker.ts: tree + omnibox + "I'm changing this endpoint" preset
-   - **M8.1c** — composition-view.ts: orderable cards with type, title, body toggle, remove
-   - **M8.1d** — budget-panel.ts: slider, per-card meter, intent, format, Copy/Save with toast
-   - **M8.1e** — retire ExportDrawer + Inspector LLM section + dead code
+3. **Deliver** — one checkpoint at a time, with evidence artifact per checkpoint.
 
 4. **Commit** — one small commit per checkpoint:
    ```powershell
    git -C C:/Code/DevContext2-ui add <files>
-   git -C C:/Code/DevContext2-ui commit -m "feat(m8.1b): scope picker — service/entry tree + omnibox + presets"
-   # ... etc for c, d, e
+   git -C C:/Code/DevContext2-ui commit -m "feat(L<stage>): ..."
    ```
 
 5. **After ALL checkpoints green, update docs for the NEXT agent:**
-   - Overwrite `MERIDIAN-START.md` Handoff block
-   - Overwrite the `## M8 delivery` block below in this AGENTS.md
-   - Commit: `docs: handoff — M8 delivered, next M8.2 or engine gaps 1-2`
+   - Overwrite `LOOM-START.md` Handoff block
+   - Append `docs/dev/go-to-program/PROGRESS-LOG.md`
+   - Commit: `docs: handoff — L<stage> delivered`
 
 ---
 
-## M9 delivery (overwrite this block each session, no history)
+## L8 delivery — Loom close-out (overwrite this block each session, no history)
 
-status: M9 closed + M9-ext lens rendering delivered. All 7 gaps closed. Layer/Feature lenses now color project nodes.
-delivered: read_source RPC (proto → server → TS → inspector), layer/feature uplumb (proto → ProtoMapper → TS → lens-switcher unblocked → inspector chips), layer/feature lens cytoscape coloring (engine per-project aggregation + graph-canvas LensId input + lens-specific legend)
-last: pnpm check green (lint 0/0, test 27/27, build 0w/0e), dotnet build 0w 0e, dotnet test all green
-next: push + plan next phase
-gaps closed: ALL (1 read_source RPC, 2 layer/feature uplumb, 3 prismjs, 4 contrast, 5 shared handler, 6 dead audit-table, 7 dock cycle)
-trap: buildContext() still client-side v0 (adequate — content is server-generated via getContext RPC); freshness probe works via getStats() stale field (adequate)
-known: Layer/Feature lenses render per-project coloring (dominant layer/feature per project) — full node-level band/column cytoscape requires new per-node graph RPC
+status: L8.1 DONE — Loom phase closed. Branch `feat/loom-l7`.
+delivered: HANDOVER-LOOM.md, AGENTS.md rituals, truth test fixes (7P/4S), LOOM-START.md tracker updated.
+last: gate battery green (build 0w/0e, test 414P/3S Core + 64P Desktop + 12P Server, pnpm 27/27).
+next: conductor-DEBT.md resolution or next phase planning.
+evidence: eval-results/2026-07-08/gate-battery-l8-s40.txt, truth-battery-l8-s40.txt, docs/dev/HANDOVER-LOOM.md.
+
 
 M8.3 detail:
   - Server-side token meter: card.serverTokens stored from ContextResponse.totalTokens after getContext RPC

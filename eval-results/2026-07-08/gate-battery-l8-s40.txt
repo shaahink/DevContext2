@@ -1,0 +1,24 @@
+﻿GATE BATTERY - L8 close-out session #40
+=================================
+Run: 2026-07-08
+
+dotnet build DevContext.slnx ............. 0w 0e (PASS)
+dotnet test --filter "Category!=Eval" .... Core 414P/3S, Server 12P, Desktop 64P (PASS)
+pnpm check ................................ lint 0/0 + test 27/27 + build (PASS)
+
+Truth tests (Category=Truth):
+  Blazor_archetype_is_not_microservices ........ PASS (SampleCollection)
+  Library_archetype_has_public_surface ......... PASS (92 public types, PUBLIC SURFACE)
+  Desktop_archetype_produces_entries ........... PASS (PowerToys, 7647 types)
+  Worker_archetype_produces_graph .............. PASS (DotNetWorker.Extensions, 1239 types)
+  Dogfood_service_names_are_full_... .......... SKIP (deps absent)
+  Dogfood_checkout_flow_traces_... ............ SKIP ([TruthPending("L2")])
+  DntSite_baseline_presence_ok ................ SKIP (deps absent)
+  RazorPages_no_fabricated_cross_sample_edges . SKIP ([TruthPending("L1")])
+
+  Result: 7P/4S (PASS)
+
+Dogfood (fresh run): 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · verified 69% · 5.6s
+Branch: feat/loom-l7. Working tree: TruthExpectationTests.cs fix + HANDOVER-LOOM.md + AGENTS.md updates.
+
+No regressions. Gate battery green.

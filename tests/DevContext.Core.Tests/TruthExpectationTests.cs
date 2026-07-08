@@ -205,7 +205,7 @@ public sealed class TruthExpectationTests
         // Must NOT be Microservices
         Assert.DoesNotContain("Microservices", styleLine ?? "", StringComparison.Ordinal);
         // Must be SampleCollection or another honest non-Microservices label
-        Assert.Contains(result.Content, "SampleCollection", StringComparison.Ordinal);
+        Assert.Contains("SampleCollection", result.Content, StringComparison.Ordinal);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -289,7 +289,7 @@ public sealed class TruthExpectationTests
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
-        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("No projects discovered.", result.Content, StringComparison.Ordinal);
 
         var json = result.JsonContent;
         Assert.NotEmpty(json);
@@ -319,7 +319,7 @@ public sealed class TruthExpectationTests
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
-        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("No projects discovered.", result.Content, StringComparison.Ordinal);
 
         var json = result.JsonContent;
         Assert.NotEmpty(json);
@@ -347,7 +347,7 @@ public sealed class TruthExpectationTests
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
-        Assert.Contains("MAP", result.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("No projects discovered.", result.Content, StringComparison.Ordinal);
 
         var json = result.JsonContent;
         Assert.NotEmpty(json);

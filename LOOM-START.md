@@ -8,16 +8,17 @@ Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
 `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L7 session #38 — **L7.4 DONE** (gate battery green: 414P/3S Core, 64P Desktop,
-       12P Server, 27/27 pnpm). Multi-.sln directory detection: Blazor + MediatR + gRPC
-       + Ocelot + RazorPages now SampleCollection (not Microservices). 21/22 bench OK,
-       per-repo verdicts in bench-verdicts-l7.4-s38.md. Blazor truth test flipped to
-       active. 3 new archetype truth tests (Library/Desktop/Worker). Dogfood stable
-       436n/338e/34e/6SL/69%.
-stage: **L7.4 DONE**. L8.1 (close-out: clean-clone battery, HANDOVER-LOOM.md) next.
-next: **L8.1** — Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals.
-evidence: eval-results/2026-07-08/bench-verdicts-l7.4-s38.md, bench-summary.txt,
-          gate-battery-l7.4-s38.txt
+last: L8 session #40 — **L8.1 DONE** (close-out: gate battery green: 414P/3S Core, 64P Desktop,
+        12P Server, 27/27 pnpm, truth 7P/4S). QA of L7.4 found 4 truth test assertion bugs —
+        fixed (argument order, MAP section headers for non-App archetypes). HANDOVER-LOOM.md
+        created. AGENTS.md root + App updated with Loom rituals. Dogfood stable
+        436n/338e/34e/6SL/69%. 5 eShop TraceQuality + 1 EvalExpectation failures documented
+        as honest pre-existing gaps.
+stage: **L8 DONE**. Loom phase closed.
+next: **conductor-DEBT.md** (L0.4-L5.x: 8 items) or next phase planning.
+evidence: eval-results/2026-07-08/gate-battery-l8-s40.txt,
+          eval-results/2026-07-08/truth-battery-l8-s40.txt,
+          docs/dev/HANDOVER-LOOM.md
 
 ## Baseline numbers (2026-07-08, L7.1 post-PlainCallDetector — drift >5% documented below)
 
@@ -83,7 +84,7 @@ line under the row — never silent renumbering.
 | L7.2 | Archetype projections (desktop/worker/library/blazor) | DONE | (l7.2-s36) | eval-results/2026-07-08/gate-battery-l7.2-s36.txt |
 | L7.3 | Style-detection guardrails + E9 scope fix | DONE | (l7.3-s37) | eval-results/2026-07-08/gate-battery-l7.3-s37.txt |
 | L7.4 | Truth files per archetype; 22-repo truth bench | DONE | (l7.4-s38) | eval-results/2026-07-08/bench-verdicts-l7.4-s38.md |
-| L8.1 | Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals | TODO | | |
+| L8.1 | Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals | DONE | (l8.1-s40) | eval-results/2026-07-08/gate-battery-l8-s40.txt, docs/dev/HANDOVER-LOOM.md |
 
 ## Quick commands
 
