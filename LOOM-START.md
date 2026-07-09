@@ -6,11 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Phase A s78 QA-verified (attempt 4/6). No new code — a94c211 fix confirmed correct. Fresh checkout trace: raises BasketCheckoutEvent -> consumes BasketCheckoutEventHandler -> send CreateOrderCommand at depth 6. Type->Service bridge + BusPublishDetector both working.
-stage: Phase A VERIFIED (A1 DONE). No incomplete checkpoints remain in Phase A.
+last: Phase A s79 QA-verified (attempt 5/6). Fresh gate battery green + CLI analyze trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on real dogfood repo.
+stage: Phase A VERIFIED (A1 DONE, 6/6 attempts done). No incomplete checkpoints remain in Phase A.
 next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-A-qa-verified-fresh.txt, eval-results/2026-07-10/phase-A-checkout-trace-verified.md
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS.
+evidence: eval-results/2026-07-10/phase-A-s79-fresh-qa.txt (fresh gate + CLI analyze trace)
 
 
 ---
@@ -46,8 +46,8 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | VERIFIED | a94c211 (fix), d062f39 (QA s77), [current] (QA s78) | `eval-results/2026-07-10/phase-A-qa-verified-fresh.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md` |
-> fix: BodyFactsExtractor missing from TestPipeline.Build() — added + auto-extract fallback hardened. Bridge code in commit 4d997d9 was always correct. Checkout trace now follows cross-service hop through BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand. Fresh QA s78 confirmed: Raises edge from BusPublishDetector works, Type→Service bridge connects BasketCheckoutEvent to Ordering.Application, depth 6.
+| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | VERIFIED | a94c211 (fix), d062f39 (QA s77), 31796b4 (QA s78), [current] (QA s79) | `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md` |
+> fix: BodyFactsExtractor missing from TestPipeline.Build() — added + auto-extract fallback hardened. Bridge code in commit 4d997d9 was always correct. Checkout trace follows cross-service hop through BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand. QA s79 fresh gate battery + CLI analyze --focus trace confirmed: Raises edge from BusPublishDetector works on real dogfood repo, Type→Service bridge connects BasketCheckoutEvent to Ordering.Application, depth 6.
 
 ### Phase B: UI Regressions (QA Driver s73 RED assertions)
 
