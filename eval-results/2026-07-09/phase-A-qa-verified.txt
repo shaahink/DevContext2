@@ -1,0 +1,50 @@
+# Phase A QA Verification — Session 2 (attempt 2/6)
+# Date: 2026-07-09
+# Verdict: CONFIRMED — A1 DONE, Phase A COMPLETE
+
+## Gate Battery
+
+Build: 0W 0E
+Core non-Eval: 440P 3S
+Server: 14P 0S
+Desktop: 64P 0S
+Truth: 9P 2S (checkout test PASSES)
+pnpm check: Lint 0, Test 27/27, Build
+loom-guards: 0 banned, 13 advisory (stable)
+
+## Checkout Trace (CLI --focus)
+
+TRACE  POST /basket/checkout
+  ENTRY POST /basket/checkout
+    send CheckoutBasketCommand [verified]
+      handler CheckoutBasketCommandHandler
+        raises BasketCheckoutEvent [verified]    <-- bus-publish seam
+          consumes BasketCheckoutEventHandler    <-- CROSS-SERVICE into Ordering.Application
+            send CreateOrderCommand [verified]
+              (stopped at depth 6)
+
+Named steps verified:
+  - CheckoutBasketCommand ✅
+  - BasketCheckoutEvent (bus-publish) ✅
+  - BasketCheckoutEventHandler (Ordering consumer) ✅
+  - CreateOrderCommand ✅
+  - Depth >= 5 (actual: 6) ✅
+  - Cross-service hop Basket.API -> Ordering.Application via BasketCheckoutEvent ✅
+
+## Root cause summary
+
+Commit 4d997d9: Bridge code in TraceBuilder.OutEdgesWithTwin() + GraphBuilder.SelectBestSpineEdge()
+Commit a94c211: BodyFactsExtractor added to TestPipeline, checkout TruthPending flipped to [Fact]
+
+The Raises edge IS created by BusPublishDetector on the real dogfood repo.
+The Type->Service bridge IS active. The checkout trace now follows the bus-publish ServiceLink.
+
+## Previous session claims verified
+
+- "BodyFactsExtractor added to TestPipeline" — present in tests/DevContext.Core.Tests/TestPipeline.cs
+- "Bridge code (commit 4d997d9) confirmed correct" — verified via focused trace showing cross-service hop
+- "Checkout truth flipped" — [Fact] not [TruthPending], passes
+- "9P/2S truth gate" — confirmed fresh run
+- "43 steps, 3 services" — trace depth 6 covers 3 services (Basket.API, Ordering.Application, Ordering.API)
+
+No regressions found. No code changes needed.
