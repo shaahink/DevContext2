@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 18:44 UTC · branch `feat/loom-l7` · HEAD `0a57551`_
+_Updated 2026-07-09 19:29 UTC · branch `feat/loom-l7` · HEAD `a94c211`_
 
-**Status:** NeedsHuman — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
-**Checkpoints:** 1/15 done · **Sessions run:** 2 · **Cost:** $0.2676 · **Tokens:** 252,602 in / 27,285 out / 47,313 think
+**Status:** Idle
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 0
+**Checkpoints:** 2/15 done · **Sessions run:** 3 · **Cost:** $0.4290 · **Tokens:** 373,341 in / 55,883 out / 74,394 think
 
 ## Stage progress
 
@@ -23,6 +23,7 @@ _Updated 2026-07-09 18:44 UTC · branch `feat/loom-l7` · HEAD `0a57551`_
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | A | Deliver | 1 | 07-09 16:40 | 0:45 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.2300 | 180,448/24,998 |
 | 2 | A | Deliver | 2 | 07-09 17:30 | 0:20 | Stalled |  | 0 |  | $0.0376 | 72,154/2,287 |
+| 3 | A | Resume | 3r1 | 07-09 18:46 | 0:36 | Advanced | A1 | 1 | build:OK · tests:OK · truth:OK | $0.1614 | 120,739/28,598 |
 
 ## Timeline
 
@@ -38,6 +39,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-09 18:30:27  • session #2 A Deliver started (attempt 2/2)
 07-09 18:51:19  • session #2 A → Stalled  (20m52s)
 07-09 18:57:20  ■ needs human — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
+07-09 19:46:09  ◆ run resumed · Loom Gap Close
+07-09 19:46:57  • session #3 A Resume started (attempt 3/6)
+07-09 20:29:48  ▪ gate build pass [session]  (37.6s)
+07-09 20:29:48  ▪ gate tests pass [session]  (3m08s)
+07-09 20:29:48  ▪ gate truth pass [session]  (2m09s)
 ```
 
 ## Health
@@ -45,7 +51,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 2 · retries 1 (50 %) · overall Warn
+sessions 3 · retries 2 (67 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
 ```
 
@@ -54,8 +60,9 @@ sessions 2 · retries 1 (50 %) · overall Warn
 _Evidence-based confidence per checkpoint. A checkpoint without evidence is marked (none)._
 
 ```
-checkpoints confirmed: 1   with evidence: 1
+checkpoints confirmed: 2   with evidence: 2
 
+  A1    1 evidence item(s) ·  `eval-results/2026-07-09/phase-A-truth.txt`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -65,14 +72,27 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md, D .conductor/handovers/L8.md (+5 more)
-vs upstream: 3 ahead
+working tree: M eval-results/2026-07-09/mcp-qa.md, ?? .conductor-loom-prior/, ?? docs/workflows/loom-gap-close-plan.md, ?? plan.json
+vs upstream: up to date
 ```
 
 ### Commits by session
 
 - **s1 (A Deliver)** — 1 commit(s):
   - [`4d997d9`](https://github.com/shaahink/DevContext2/commit/4d997d9) fix(loom): Phase A — Type->Service bridge in TraceBuilder + GraphBuilder (L2.4 gap-close). Test stays [TruthPending(L2)] — Raises edge not created by current pipeline.
+- **s3 (A Resume)** — 1 commit(s):
+  - [`a94c211`](https://github.com/shaahink/DevContext2/commit/a94c211) fix(loom): Phase A — add BodyFactsExtractor to TestPipeline, flip checkout truth test
+
+## Phase handovers (audit)
+
+- `.conductor/handovers/L0.md`
+- `.conductor/handovers/L1.md`
+- `.conductor/handovers/L2.md`
+- `.conductor/handovers/L3.md`
+- `.conductor/handovers/L4.md`
+- `.conductor/handovers/L5.md`
+- `.conductor/handovers/L6.md`
+- `.conductor/handovers/L8.md`
 
 ## Last gate run
 
@@ -80,20 +100,15 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> Now let me read the remaining required documents:
-> Running the gate battery as prescribed by the pre-session ritual:
-> Build 0w/0e. Now run the remaining gate components:
-> Now I need to QA the previous session's claim that the Raises edge is missing. Let me investigate the BusPublishDetector and the pipeline.
+> SESSION-RESULT: Phase A (L2.4 gap close) is DONE. Root cause: `BodyFactsExtractor` was not registered in `TestPipeline.Build()`, so seam detectors received empty BodyFacts and the `Raises` edge was never created — the Type→Service bridge code (commit 4d997d9) was always correct but had no edge to bridge from. Fixed by adding `BodyFactsExtractor` to TestPipeline and hardening the auto-extract fallback (`null || empty`). Flipped `[TruthPending("L2")]` to `[Fact]` on the checkout flow test. All gates green: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout trace now reaches BasketCheckoutEventHandler→CreateOrderCommand cross-service), pnpm check PASS. Committed a94c211, …
 
 ## Tracker handoff
 
 ```
-last: Phase A s74 — Type→Service bridge coded in OutEdgesWithTwin() + SelectBestSpineEdge() (commit 4d997d9). Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions.
-FINDING: Raises edge (handler→BasketCheckoutEvent) NOT created by current pipeline. BusPublishDetector passes unit test (SeamDetectorTests.Use) but fails on real dogfood.
-DO NOT rewrite bridge — it's correct. Instead, investigate WHY BusPublishDetector misses the real handler: trace BodyFactExtractor pipeline for CheckoutBasketCommandHandler. Check AddSeamsFromDetectors→BodyFactExtractor flow. Compare synthetic test type vs real file-derived type (SourceBody difference? TypeDiscovery filtering?). Add diagnostic logging to BodyFactExtractor to see why handler type isn't processed.
-stage: Phase A IN PROGRESS — A1 bridge coded but blocked on missing Raises edge.
-next: Investigate BusPublishDetector activation on dogfood. Read docs/design-reviews/R1-L0-L3.md:62-66 for history.
-trap: The unit test CheckoutHandler works; real analysis doesn't — likely TypeDiscovery SourceBody issue in the pipeline.
+last: Phase A s76 — A1 DONE. Root cause: BodyFactsExtractor missing from TestPipeline.Build() (tests only). Fix: added BodyFactsExtractor to TestPipeline + fixed auto-extract fallback (null→null/empty). Bridge code (commit 4d997d9) confirmed correct — Raises edge + Type→Service bridge activate and checkout trace now reaches BasketCheckoutEventHandler→CreateOrderCommand cross-service.
+stage: Phase A COMPLETE — A1 checkpoint DONE.
+next: Phase B (UI regressions: tab strip height, code pane null) or Phase C polish batch.
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout flow activated), pnpm check PASS.
 
 
 ---
