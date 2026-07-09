@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 23:49 UTC · branch `feat/loom-l7` · HEAD `0016524`_
+_Updated 2026-07-09 23:50 UTC · branch `feat/loom-l7` · HEAD `c83917b`_
 
-**Status:** Idle
+**Status:** NeedsHuman — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 **Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 6
 **Checkpoints:** 2/15 done · **Sessions run:** 10 · **Cost:** $0.7378 · **Tokens:** 878,887 in / 86,525 out / 105,302 think
 
@@ -37,8 +37,6 @@ _Updated 2026-07-09 23:49 UTC · branch `feat/loom-l7` · HEAD `0016524`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 18:51:19  • session #2 A → Stalled  (20m52s)
-07-09 18:57:20  ■ needs human — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 07-09 19:46:09  ◆ run resumed · Loom Gap Close
 07-09 19:46:57  • session #3 A Resume started (attempt 3/6)
 07-09 20:29:48  ▪ gate build pass [session]  (37.6s)
@@ -77,6 +75,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 00:49:47  ▪ gate build pass [session]  (29.9s)
 07-10 00:49:47  ▪ gate tests pass [session]  (3m03s)
 07-10 00:49:47  ▪ gate truth pass [session]  (2m07s)
+07-10 00:49:48  • session #10 A → Progress · 1 commit(s)  (18m24s)
+07-10 00:50:03  ■ needs human — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 ```
 
 ## Health
@@ -107,7 +107,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/loom-l7
 working tree: M eval-results/2026-07-09/mcp-qa.md, ?? .conductor-loom-prior/
-vs upstream: up to date
+vs upstream: 1 ahead
 ```
 
 ### Commits by session
