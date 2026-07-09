@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 22:29 UTC · branch `feat/loom-l7` · HEAD `0610897`_
+_Updated 2026-07-09 22:50 UTC · branch `feat/loom-l7` · HEAD `d062f39`_
 
 **Status:** Idle
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
-**Checkpoints:** 2/15 done · **Sessions run:** 6 · **Cost:** $0.4871 · **Tokens:** 460,302 in / 63,739 out / 82,766 think
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 3
+**Checkpoints:** 2/15 done · **Sessions run:** 7 · **Cost:** $0.5343 · **Tokens:** 538,154 in / 68,514 out / 86,772 think
 
 ## Stage progress
 
@@ -27,6 +27,7 @@ _Updated 2026-07-09 22:29 UTC · branch `feat/loom-l7` · HEAD `0610897`_
 | 4 | A | Deliver | 1 | 07-09 19:29 | 2:09 | Interrupted |  | 0 |  |  |  |
 | 5 | A | Resume | 1r1 | 07-09 21:39 | 0:07 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0204 | 30,260/2,937 |
 | 6 | A | Deliver | 2 | 07-09 21:58 | 0:24 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0376 | 56,701/4,919 |
+| 7 | A | Deliver | 3 | 07-09 22:29 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0472 | 77,852/4,775 |
 
 ## Timeline
 
@@ -60,6 +61,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-09 23:29:45  ▪ gate build pass [session]  (36.4s)
 07-09 23:29:45  ▪ gate tests pass [session]  (3m07s)
 07-09 23:29:45  ▪ gate truth pass [session]  (3m21s)
+07-09 23:29:47  • session #6 A → Progress · 1 commit(s)  (31m16s)
+07-09 23:29:47  • session #7 A Deliver started (attempt 3/6)
+07-09 23:50:15  ▪ gate build pass [session]  (39.0s)
+07-09 23:50:15  ▪ gate tests pass [session]  (3m11s)
+07-09 23:50:15  ▪ gate truth pass [session]  (4m15s)
 ```
 
 ## Health
@@ -67,8 +73,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 6 · retries 3 (50 %) · overall Warn
+sessions 7 · retries 4 (57 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
+⚠ [high-retry-rate] 4/7 sessions were retries (57 %)
 ```
 
 ## Confidence
@@ -88,7 +95,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: M eval-results/2026-07-09/mcp-qa.md, ?? .conductor-loom-prior/, ?? eval-results/2026-07-09/phase-A-cli-trace.md
+working tree: ?? .conductor-loom-prior/, ?? eval-results/2026-07-09/phase-A-cli-trace.md
 vs upstream: up to date
 ```
 
@@ -102,6 +109,8 @@ vs upstream: up to date
   - [`6870df8`](https://github.com/shaahink/DevContext2/commit/6870df8) chore(loom): Phase A gap-close — recovered from conductor crash, A1 DONE, plan doc committed
 - **s6 (A Deliver)** — 1 commit(s):
   - [`0610897`](https://github.com/shaahink/DevContext2/commit/0610897) chore(loom): Phase A QA — fresh gate battery confirms A1 DONE, checkout trace cross-service verified
+- **s7 (A Deliver)** — 1 commit(s):
+  - [`d062f39`](https://github.com/shaahink/DevContext2/commit/d062f39) chore(loom): Phase A s77 QA-verified — orchestrator investigation confirms pipeline fix, no new code needed. Verify checkout trace cross-service hop at depth 6.
 
 ## Phase handovers (audit)
 
@@ -120,15 +129,16 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A confirmed DONE. Previous session claims verified: bridge code (4d997d9) + BodyFactsExtractor fix (a94c211) correctly activated the L2.4 checkout trace — focused CLI trace shows `POST /basket/checkout → CheckoutBasketCommand → CheckoutBasketCommandHandler → raises BasketCheckoutEvent → consumes BasketCheckoutEventHandler (Ordering.Application) → send CreateOrderCommand` at depth 6 across 3 services. All gates green (Build 0W/0E, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned). No regressions. Working tree clean, branch pushed. Next session: Phase B — fix tab strip height ≥30px (B1) and code pane null on entry selection (B2).
+> SESSION-RESULT: Phase A verified COMPLETE (attempt 3/6). No new code — the orchestrator's investigation into the BusPublishDetector Raises edge confirmed the root cause was already fixed in a94c211: `BodyFactsExtractor` was missing from `TestPipeline.Build()`, so seam detectors received no BodyFacts data and couldn't emit edges. The bridge code (4d997d9) was always correct, just starved of input. Fresh gate battery: Build 0W/0E, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout test now active and passing), pnpm check PASS, guards 0 banned. Focused CLI trace confirms `POST /basket/checkout → raises BasketCheckoutEvent → consumes BasketCheckoutEventHandler (Ordering.Application) → …
 
 ## Tracker handoff
 
 ```
-last: Phase A s76 QA-verified (attempt 2/6 complete). A1 DONE — confirmed with fresh gate battery + focused CLI trace showing cross-service hop (BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand at depth 6).
-stage: Phase A COMPLETE. All claims verified: bridge code correct, BodyFactsExtractor in TestPipeline, checkout truth passes.
+last: Phase A s77 QA-verified (attempt 3/6 complete). No new code — previous fix (a94c211) was correct and sufficient. Root cause confirmed: BodyFactsExtractor missing from TestPipeline meant BusPublishDetector had no BodyFacts and couldn't emit Raises edge. Orchestrator investigation done — pipeline now complete.
+stage: Phase A COMPLETE (A1 DONE). No incomplete checkpoints remain in Phase A.
 next: Phase B (UI regressions: tab strip >=30px, code pane non-null).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
+evidence: eval-results/2026-07-09/phase-A-qa-verified-s77.txt
 
 
 ---
