@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 23:11 UTC · branch `feat/loom-l7` · HEAD `31796b4`_
+_Updated 2026-07-09 23:31 UTC · branch `feat/loom-l7` · HEAD `80336e9`_
 
 **Status:** Idle
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 4
-**Checkpoints:** 2/15 done · **Sessions run:** 8 · **Cost:** $0.6462 · **Tokens:** 750,976 in / 73,373 out / 93,938 think
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 5
+**Checkpoints:** 2/15 done · **Sessions run:** 9 · **Cost:** $0.6943 · **Tokens:** 815,094 in / 81,107 out / 100,314 think
 
 ## Stage progress
 
@@ -29,14 +29,13 @@ _Updated 2026-07-09 23:11 UTC · branch `feat/loom-l7` · HEAD `31796b4`_
 | 6 | A | Deliver | 2 | 07-09 21:58 | 0:24 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0376 | 56,701/4,919 |
 | 7 | A | Deliver | 3 | 07-09 22:29 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0472 | 77,852/4,775 |
 | 8 | A | Deliver | 4 | 07-09 22:50 | 0:15 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.1119 | 212,822/4,859 |
+| 9 | A | Deliver | 5 | 07-09 23:11 | 0:13 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0482 | 64,118/7,734 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 17:40:38  ◆ run started · Loom Gap Close
-07-09 17:40:38  • session #1 A Deliver started (attempt 1/2)
 07-09 18:30:26  ▪ gate build pass [session]  (31.3s)
 07-09 18:30:26  ▪ gate tests pass [session]  (3m05s)
 07-09 18:30:26  ▪ gate truth pass [session]  (36.4s)
@@ -72,6 +71,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 00:11:34  ▪ gate build pass [session]  (39.6s)
 07-10 00:11:34  ▪ gate tests pass [session]  (3m08s)
 07-10 00:11:34  ▪ gate truth pass [session]  (2m14s)
+07-10 00:11:35  • session #8 A → Progress · 1 commit(s)  (21m18s)
+07-10 00:11:35  • session #9 A Deliver started (attempt 5/6)
+07-10 00:31:23  ▪ gate build pass [session]  (32.3s)
+07-10 00:31:23  ▪ gate tests pass [session]  (3m03s)
+07-10 00:31:23  ▪ gate truth pass [session]  (2m20s)
 ```
 
 ## Health
@@ -79,9 +83,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 8 · retries 5 (62 %) · overall Warn
+sessions 9 · retries 6 (67 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 5/8 sessions were retries (62 %)
+⚠ [high-retry-rate] 6/9 sessions were retries (67 %)
 ```
 
 ## Confidence
@@ -91,7 +95,7 @@ _Evidence-based confidence per checkpoint. A checkpoint without evidence is mark
 ```
 checkpoints confirmed: 2   with evidence: 2
 
-  A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-qa-verified-fresh.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
+  A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -119,6 +123,8 @@ vs upstream: up to date
   - [`d062f39`](https://github.com/shaahink/DevContext2/commit/d062f39) chore(loom): Phase A s77 QA-verified — orchestrator investigation confirms pipeline fix, no new code needed. Verify checkout trace cross-service hop at depth 6.
 - **s8 (A Deliver)** — 1 commit(s):
   - [`31796b4`](https://github.com/shaahink/DevContext2/commit/31796b4) chore(loom): Phase A s78 QA-verified — fresh gate battery + focused CLI trace confirms checkout cross-service hop at depth 6, A1 VERIFIED
+- **s9 (A Deliver)** — 1 commit(s):
+  - [`80336e9`](https://github.com/shaahink/DevContext2/commit/80336e9) chore(loom): Phase A s79 QA-verified — fresh gate battery + CLI analyze trace confirms checkout cross-service hop at depth 6, A1 VERIFIED. Phase A complete.
 
 ## Phase handovers (audit)
 
@@ -137,16 +143,16 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A (L2.4 Checkout Trace Bus-Publish) VERIFIED complete — the Type→Service bridge in TraceBuilder/GraphBuilder works correctly with the BodyFactsExtractor pipeline fix (a94c211), producing a depth-6 cross-service checkout trace (raises BasketCheckoutEvent → consumes BasketCheckoutEventHandler → send CreateOrderCommand). Truth gate 9P/2S. No regressions. Phase A has zero incomplete checkpoints. Next session should start Phase B (UI regressions: tab strip height ≥30px and code pane non-null).
+> SESSION-RESULT: Phase A QA-verified (s79, attempt 5/6). All claims from s77/s78 confirmed with fresh gate battery: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS. Fresh CLI analyze --focus trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on the real dogfood repo. Bridge code (4d997d9) and pipeline fix (a94c211) both correct. A1 VERIFIED; Phase A has zero incomplete checkpoints. Next session: Phase B (B1 tab strip >=30px, B2 code pane non-null). Commit 80336e9 pushed.
 
 ## Tracker handoff
 
 ```
-last: Phase A s78 QA-verified (attempt 4/6). No new code — a94c211 fix confirmed correct. Fresh checkout trace: raises BasketCheckoutEvent -> consumes BasketCheckoutEventHandler -> send CreateOrderCommand at depth 6. Type->Service bridge + BusPublishDetector both working.
-stage: Phase A VERIFIED (A1 DONE). No incomplete checkpoints remain in Phase A.
+last: Phase A s79 QA-verified (attempt 5/6). Fresh gate battery green + CLI analyze trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on real dogfood repo.
+stage: Phase A VERIFIED (A1 DONE, 6/6 attempts done). No incomplete checkpoints remain in Phase A.
 next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-A-qa-verified-fresh.txt, eval-results/2026-07-10/phase-A-checkout-trace-verified.md
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS.
+evidence: eval-results/2026-07-10/phase-A-s79-fresh-qa.txt (fresh gate + CLI analyze trace)
 
 
 ---
