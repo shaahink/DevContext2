@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 05:16 UTC · branch `feat/loom-l7` · HEAD `e5ea30f`_
+_Updated 2026-07-09 05:28 UTC · branch `feat/loom-l7` · HEAD `f81d18e`_
 
 **Status:** Idle
-**Stage:** D6 — L3.4 — TfmScore net10.0+ · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 56 · **Cost:** $3.7203 · **Tokens:** 3,732,438 in / 723,547 out / 546,761 think
+**Stage:** D7 — L2.5 — Lambda scope pollution + SeamContext dedup · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 57 · **Cost:** $3.7381 · **Tokens:** 3,756,874 in / 726,890 out / 549,796 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6
 
@@ -18,7 +18,7 @@ _Updated 2026-07-09 05:16 UTC · branch `feat/loom-l7` · HEAD `e5ea30f`_
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | SKIPPED ⚠ |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | SKIPPED ⚠ |
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | SKIPPED ⚠ |
-| D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | todo |
+| D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | **← active** |
 | D8 | L4.5 — Flow model hardening | 0/0 | todo |
 | D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | todo |
 | R1 | Design Review: L0+L1+L2 | 0/0 | todo |
@@ -30,7 +30,6 @@ _Updated 2026-07-09 05:16 UTC · branch `feat/loom-l7` · HEAD `e5ea30f`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
 | 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 05:16 UTC · branch `feat/loom-l7` · HEAD `e5ea30f`_
 | 54 | D6 | Deliver | 1 | 07-09 03:58 | 0:17 | Progress |  | 1 | build:OK | $0.0448 | 52,203/8,330 |
 | 55 | D6 | Deliver | 2 | 07-09 04:16 | 0:22 | Progress |  | 1 | build:OK | $0.0939 | 121,785/11,561 |
 | 56 | D6 | Deliver | 2 | 07-09 04:39 | 0:35 | Progress |  | 1 | build:OK | $0.0730 | 60,374/15,148 |
+| 57 | D7 | Deliver | 1 | 07-09 05:17 | 0:11 | Progress |  | 1 | build:OK | $0.0178 | 24,436/3,343 |
 
 ### Commits by session
 
-- **s47 (D2 Deliver)** — 1 commit(s):
-  - c444dd2 fix(debt): L5.x — audit-trap sweep (5 traps triaged, 1 fixed)
 - **s48 (D3 Deliver)** — 1 commit(s):
   - 091e22e fix(debt): L5.x — audit-trap sweep re-verified (attempt 2)
 - **s49 (D3 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 05:16 UTC · branch `feat/loom-l7` · HEAD `e5ea30f`_
   - bb7a224 fix(debt): L3.4 — TfmScore multi-digit minor + benchmark timing instrumentation (attempt 2)
 - **s56 (D6 Deliver)** — 1 commit(s):
   - d2f45f0 fix(debt): L2.5 — lambda scope pollution + SeamContext dedup (s56)
+- **s57 (D7 Deliver)** — 1 commit(s):
+  - f81d18e fix(debt): L2.5 — D7 QA audit (s57) — all claims verified, gate battery green
 
 ## Phase handovers (audit)
 
@@ -97,16 +97,16 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D6 QA confirmed PASS (TfmScore fix solid, evidence verified). D7 (L2.5) delivered: lambda scope pollution fixed via per-invocation `GetEnclosingParamType()` ancestry walk — multi-lambda test with same-named params now correctly scopes `x→IHandler` vs `x→ILogger`. SeamContext dedup: `BuildTypeEventSets()` + `BuildSeamContext()` shared helpers eliminate duplicate type scanning across both seam passes. All gates green: build 0w/0e, Core 433P/3S/0F (+1 test), Truth 8P/3S/0F, Server 12P/0F, dogfood 436n/338e/34e/6SL/69% (no regression). Commit `d2f45f0` pushed to `feat/loom-l7`. Next: D8 (L4.5 — Flow model hardening).
+> SESSION-RESULT: D7 (L2.5) was already complete from s56 — this session (s57) performed the QA audit. All 4 claims verified: per-lambda scoping via `GetEnclosingParamType()`, shared `BuildTypeEventSets()`/`BuildSeamContext()` helpers, `Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope` test, and zero SeamDetector regression. Gate battery green (433P Core, 11 BodyFactExtractor, 12 SeamDetector, 8P/3S Truth, 0 banned patterns). QA: PASS. Nothing is red. Next session should pick up D8 (L4.5 — Flow model hardening: depth warning, proportional budget, entry kind provenance, integration test).
 
 ## Tracker handoff
 
 ```
-last: D7 (L2.5) — Lambda scope pollution fixed via GetEnclosingParamType() per-invocation ancestry walk.
-        SeamContext dedup: BuildTypeEventSets() + BuildSeamContext() shared helpers called from both passes.
-        +1 multi-lambda test (x→IHandler vs x→ILogger). Dogfood 436n/338e/34e/6SL/69% (no regression).
-        D6 QA: PASS — TfmScore fix confirmed, evidence solid (attempt 2).
-stage: D7 COMPLETE. Next: D8 (L4.5 — Flow model hardening: depth, budget, kind, integration test).
+last: D7 QA (L2.5) — s57 audit of s56 D7: all 4 claims verified (lambda scope fix via
+        GetEnclosingParamType, BuildTypeEventSets+BuildSeamContext dedup, multi-lambda test,
+        no SeamDetector regression). Gate battery green (433P Core, 11 BodyFactExtractor,
+        12 SeamDetector, 8P/3S Truth). QA: PASS.
+stage: D7 COMPLETE (verified s57). Next: D8 (L4.5 — Flow model hardening: depth, budget, kind, integration test).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
