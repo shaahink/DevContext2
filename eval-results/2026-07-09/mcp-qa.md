@@ -13,7 +13,7 @@
 | q3-discount-callers | YES | 2 | 689 | Who calls the Discount service? | 10 Discount matches, usages=true |
 | q4-impact-of-handler | YES | 3 | 418 | What breaks if I change CheckoutBasketCommandHandler? | impact up=5 down=0 total=5 |
 | q5-ambiguous-product | YES | 1 | 585 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
-| q6-config-lookup | YES | 1 | 257 | What config keys are used? | config returned 4 keys |
+| q6-config-lookup | YES | 1 | 229 | What config keys are used? | config returned 4 keys |
 | q7-tests-for | YES | 2 | 140 | What tests cover CheckoutBasketCommandHandler? | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler |
 | gate-checkout | YES | 2 | 1523 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 1523 tok, found=true, 43 steps, cross-service=true |
 
