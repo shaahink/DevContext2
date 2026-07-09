@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 07:41 UTC · branch `feat/loom-l7` · HEAD `01c19af`_
+_Updated 2026-07-09 07:41 UTC · branch `feat/loom-l7` · HEAD `f0e8bb3`_
 
-**Status:** Idle
+**Status:** NeedsHuman — agent asked for a human in the tracker handoff (HUMAN: line) — resolve, then run `conductor resume`
 **Stage:** R1 — Design Review: L0+L1+L2 · attempts used 2
 **Checkpoints:** 1/1 done · **Sessions run:** 65 · **Cost:** $4.0654 · **Tokens:** 4,138,396 in / 795,353 out / 603,627 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
