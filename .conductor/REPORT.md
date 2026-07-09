@@ -1,19 +1,19 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `c444dd2`_
+_Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
 
 **Status:** Idle
-**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 2
+**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 47 · **Cost:** $3.3539 · **Tokens:** 3,289,779 in / 661,719 out / 483,896 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1
+**⚠ Skipped stages (need human review):** D1, D2
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
 | D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
-| D2 | L3.5 — TodoApi eval gap triage | 0/0 | **← active** |
+| D2 | L3.5 — TodoApi eval gap triage | 0/0 | SKIPPED ⚠ |
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | todo |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
