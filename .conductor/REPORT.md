@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 05:54 UTC · branch `feat/loom-l7` · HEAD `b026036`_
+_Updated 2026-07-09 06:09 UTC · branch `feat/loom-l7` · HEAD `bc014b9`_
 
 **Status:** Idle
 **Stage:** D7 — L2.5 — Lambda scope pollution + SeamContext dedup · attempts used 2
-**Checkpoints:** 1/1 done · **Sessions run:** 58 · **Cost:** $3.8013 · **Tokens:** 3,820,069 in / 740,995 out / 561,599 think
+**Checkpoints:** 1/1 done · **Sessions run:** 59 · **Cost:** $3.8315 · **Tokens:** 3,862,473 in / 746,023 out / 566,521 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 05:54 UTC · branch `feat/loom-l7` · HEAD `b026036`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 29 | L6 | Deliver | 1 | 07-08 16:54 | 0:25 | Advanced | L6.1 | 3 | build:OK | $0.0549 | 67,107/9,003 |
 | 30 | L6 | Deliver | 1 | 07-08 17:20 | 0:25 | Advanced | L6.2 | 4 | build:OK | $0.0549 | 76,585/6,787 |
 | 31 | L6 | Deliver | 1 | 07-08 17:47 | 0:18 | Advanced | L6.3 | 2 | build:OK | $0.0474 | 58,256/8,744 |
 | 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 05:54 UTC · branch `feat/loom-l7` · HEAD `b026036`_
 | 56 | D6 | Deliver | 2 | 07-09 04:39 | 0:35 | Progress |  | 1 | build:OK | $0.0730 | 60,374/15,148 |
 | 57 | D7 | Deliver | 1 | 07-09 05:17 | 0:11 | Progress |  | 1 | build:OK | $0.0178 | 24,436/3,343 |
 | 58 | D7 | Deliver | 2 | 07-09 05:29 | 0:24 | Progress |  | 1 | build:OK | $0.0631 | 63,195/14,105 |
+| 59 | D7 | Deliver | 2 | 07-09 05:54 | 0:14 | Progress |  | 1 | build:OK | $0.0302 | 42,404/5,028 |
 
 ### Commits by session
 
-- **s49 (D3 Deliver)** — 1 commit(s):
-  - 0038b46 fix(debt): L5.x — audit-trap sweep re-verified (attempt 2/2, s49)
 - **s52 (D5 Deliver)** — 1 commit(s):
   - 92c85b3 fix(debt): D5 L0.4 — truth gate wired into loom-guards.ps1 + [TruthPending] Skip.IfNot guard
 - **s53 (D5 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 05:54 UTC · branch `feat/loom-l7` · HEAD `b026036`_
   - f81d18e fix(debt): L2.5 — D7 QA audit (s57) — all claims verified, gate battery green
 - **s58 (D7 Deliver)** — 1 commit(s):
   - b026036 fix(debt): L4.5 — Flow model hardening (depth warning, proportional budget, entry kind, integration test)
+- **s59 (D7 Deliver)** — 1 commit(s):
+  - bc014b9 fix(debt): L2.5 — D7 re-verification QA (s59) — all gates green, D8 QA PASS
 
 ## Phase handovers (audit)
 
@@ -97,15 +97,16 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D8 (L4.5) landed on `feat/loom-l7` at `b026036`. Four items delivered: (1) Flow.IsTruncated depth-exhaustion flag + parameterized maxSpineDepth, (2) proportional budget in BuildMulti via reach-count weighting with 200-token floor, (3) EntryPointKind provenance via centralized `g.Tag()` + `DeriveEntryKind()`, (4) 2 new GetContextPack integration tests (Server 12→14P). D7 re-verified PASS with no regressions. Gate battery fully green: Build 0w/0e, Core 433P/3S, Server 14P, Truth 8P/3S, guards clean. Next session: D9 (L1.6 — SymbolTable member indexing + RefSite.FromType removal).
+> SESSION-RESULT: D7 L2.5 re-verified on attempt 2/2 with fresh artifacts — lambda scope pollution fixed via `GetEnclosingParamType()` per-lambda scoping (proven by `Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope`), SeamContext dedup active via `BuildTypeEventSets()` + `BuildSeamContext()` shared helpers used by both `AddSeamsFromDetectors` and `AddLambdaSeams`. Gate battery all green: 433P/0F/3S Core, 11P BodyFactExtractor, 12P SeamDetector, 8P/3S Truth, 14P Server, pnpm check clean. D8 L4.5 previous-session QA also verified PASS (Flow.IsTruncated, DeriveEntryKind, proportional budget, 2 ContextPack integration tests). No regressions, truth ratchet stable at 8P/3S. Work…
 
 ## Tracker handoff
 
 ```
-last: D8 (L4.5) — s58 Flow model hardening: Flow.IsTruncated depth warning, proportional budget
-        via reach counts in BuildMulti, EntryPointKind tagged on nodes + DeriveEntryKind,
-        GetContextPack integration tests (2 new, 14P Server). D7 re-verified PASS.
-stage: D8 COMPLETE. Next: D9 (L1.6 — SymbolTable member indexing, RefSite.FromType removal).
+last: D7 (L2.5) — s59 re-verification QA (attempt 2/2): lambda scope pollution fix
+        (GetEnclosingParamType per-lambda scoping), SeamContext dedup (BuildTypeEventSets +
+        BuildSeamContext shared helpers). All gates green (433P Core, 11 BodyFactExtractor,
+        12 SeamDetector, 8P Truth). D8 L4.5 QA re-verified PASS.
+stage: D7 DONE (re-verified s59). Next: D9 (L1.6 — SymbolTable member indexing, RefSite.FromType removal).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
