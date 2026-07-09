@@ -1,17 +1,18 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `f429a88`_
+_Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
 
 **Status:** Idle
-**Stage:** D1 — L0.5 — Cold-QA B9 denominator + UI boot-liveness · attempts used 2
+**Stage:** D1 — L0.5 — Cold-QA B9 denominator + UI boot-liveness · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 44 · **Cost:** $3.2497 · **Tokens:** 3,153,276 in / 643,621 out / 465,549 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
+**⚠ Skipped stages (need human review):** D1
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
-| D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | **← active** |
+| D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
 | D2 | L3.5 — TodoApi eval gap triage | 0/0 | todo |
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | todo |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
