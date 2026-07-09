@@ -6,10 +6,10 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Phase A s76 — A1 DONE. Root cause: BodyFactsExtractor missing from TestPipeline.Build() (tests only). Fix: added BodyFactsExtractor to TestPipeline + fixed auto-extract fallback (null→null/empty). Bridge code (commit 4d997d9) confirmed correct — Raises edge + Type→Service bridge activate and checkout trace now reaches BasketCheckoutEventHandler→CreateOrderCommand cross-service.
-stage: Phase A COMPLETE — A1 checkpoint DONE.
-next: Phase B (UI regressions: tab strip height, code pane null) or Phase C polish batch.
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout flow activated), pnpm check PASS.
+last: Phase A s76 RECOVERED (conductor crash mid-session). A1 DONE: BodyFactsExtractor added to TestPipeline (commit a94c211), bridge code (commit 4d997d9) confirmed correct, checkout truth flipped — trace now follows BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand cross-service (43 steps, 3 services).
+stage: Phase A COMPLETE. A1 DONE. plan.json + loom-gap-close-plan.md committed.
+next: Phase B (UI regressions: tab strip >=30px, code pane non-null).
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout flow activated), pnpm check PASS (27/27).
 
 
 ---
@@ -45,7 +45,7 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | DONE | TBD | `eval-results/2026-07-09/phase-A-truth.txt` |
+| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | DONE | a94c211 | `eval-results/2026-07-09/phase-A-truth.txt` |
 > fix: BodyFactsExtractor missing from TestPipeline.Build() — added + auto-extract fallback hardened. Bridge code in commit 4d997d9 was always correct. Checkout trace now follows cross-service hop through BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand.
 
 ### Phase B: UI Regressions (QA Driver s73 RED assertions)

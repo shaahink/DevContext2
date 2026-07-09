@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "planVersion": 1,
+  "name": "Loom Gap Close",
+  "repo": "C:/Code/DevContext2-ui",
+  "tracker": "LOOM-START.md",
+  "planDoc": "docs/workflows/loom-gap-close-plan.md",
+  "branchPattern": "feat/loom-l7",
+  "pauseOnBlocked": true,
+  "batteryCollapse": false,
+
+  "agent": {
+    "command": "opencode",
+    "args": ["run", "-m", "deepseek/deepseek-v4-pro", "--auto", "--format", "json", "{prompt}"],
+    "provider": "opencode",
+    "systemPrompt": "You are an expert .NET + Angular engineer fixing post-Loom gaps in DevContext, a Roslyn-based static analysis tool. You MUST follow the plan doc (docs/workflows/loom-gap-close-plan.md) exactly — each phase has a full history section explaining what was tried before and why it failed. Read it before touching code. Verify bugs exist before fixing them. Never commit unverified work. Prefer small, surgical edits. Follow the pre-session ritual in AGENTS.md.",
+    "tokenCeiling": 150000
+  },
+
+  "advisor": {
+    "enabled": true,
+    "command": "opencode",
+    "args": ["run", "-m", "deepseek/deepseek-v4-pro", "--format", "json", "{prompt}"],
+    "output": "json",
+    "timeoutMinutes": 6
+  },
+
+  "statusAgent": {
+    "enabled": true,
+    "command": "opencode",
+    "args": ["--prompt", "{prompt}"]
+  },
+
+  "stages": [
+    {
+      "id": "A",
+      "title": "Engine Gap — L2.4 Checkout Trace Bus-Publish",
+      "sessions": 2,
+      "notes": "Phase A: Fix the ONE material deviation. L2.4 checkout trace cannot follow bus-publish ServiceLink edges because Type nodes (BasketCheckoutEvent) have no edge to their containing Service node. Fix: extend OutEdgesWithTwin() in TraceBuilder.cs and SelectBestSpineEdge() in GraphBuilder.cs to bridge Type->Service when node.Project is known. Flip [TruthPending(\"L2\")], verify depth >= 5, verify checkout flow traces across 3 services.\n\nPRIOR SESSION FINDING (session 1, commit 4d997d9): Bridge code IS written in OutEdgesWithTwin() (TraceBuilder.cs:440-454) and SelectBestSpineEdge() (GraphBuilder.cs:239-257). Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions. BUT the bridge cannot activate because the Raises edge from BusPublishDetector is NOT created on the real dogfood repo. The BusPublishDetector passes unit tests (SeamDetectorTests.Use) but fails on real dogfood analysis — likely a TypeDiscovery or SourceBody pipeline issue where the handler type isn't correctly discovered for real analysis vs the synthetic test.\n\nDO NOT rewrite the bridge code — it's correct. Investigate why BusPublishDetector doesn't create the Raises edge: trace BodyFactExtractor pipeline for the CheckoutBasketCommandHandler in the dogfood repo (eShop). Check if AddSeamsFromDetectors → BodyFactExtractor pipeline processes the handler type. Compare: what does the unit test's synthetic CheckoutHandler do differently from the real one? The test may use in-memory types while analysis uses file-derived types — SourceBody may differ.\n\nRead docs/design-reviews/R1-L0-L3.md:62-66 for the full enforcement attempt story. Read docs/workflows/loom-gap-close-plan.md Phase A for deep root cause analysis.",
+      "dependsOn": []
+    },
+    {
+      "id": "B",
+      "title": "UI Regressions — Tab Strip + Code Pane",
+      "sessions": 1,
+      "notes": "Phase B: Fix two UI regressions found by QA Driver s73. B1: Tab strip measured 28px (target >= 30px). h-8=32px Tailwind class likely overridden by padding/font-size. Fix box model. B2: Code pane returns null in ui-audit-drive. read_source RPC may not be wired for the node type selected. Debug and fix. Verify both via ui-audit-drive.mjs --gate. Read docs/qa-reports/QA-BUGFIXES.md + eval-results/2026-07-09/ui/ui-gate.json.",
+      "dependsOn": ["A"]
+    },
+    {
+      "id": "C",
+      "title": "Polish Batch — 6 Small Items",
+      "sessions": 1,
+      "notes": "Phase C: Six small items in one session. C1: mcpRunning false on revisit (query server on mount). C2: Inspector substring false positives (word-boundary matching). C3: bench.ps1 encoding (replace backtick-n). C4: L7.1 spine-depth metric (add to GraphStats). C5: Perf budget doc + LOOM-START baseline fix (doc only). Read docs/workflows/loom-gap-close-plan.md Phase C for each item's full history and fix approach. Verify each with its specific gate.",
+      "dependsOn": ["B"]
+    },
+    {
+      "id": "D",
+      "title": "ContextPack Server Round-Trip",
+      "sessions": 1,
+      "notes": "Phase D: Move markdown assembly from client to server. ContextPackBuilder.BuildMulti() already returns structured cards. Add final markdown serialization there. Update getContext RPC to return assembled markdown. Remove client string concatenation in composition-view.ts. Verify output matches current format. Read docs/dev/HANDOVER-LOOM.md:184 Trap A for background.",
+      "dependsOn": ["C"]
+    },
+    {
+      "id": "E",
+      "title": "Eval Gap Investigation + Docs",
+      "sessions": 1,
+      "notes": "Phase E: Investigate pre-existing eval gaps. E1: 5 eShop TraceQualityTests fail (non-CQRS Carter proxy). Determine if genuine engine gap or expectations don't apply. Fix or document as known limitation. E2: EvalExpectationTests verticalslice expectations out of sync. Regenerate or fix. E3: Backfill L5-L8 sessions in PROGRESS-LOG.md from .conductor/handovers/. No engine changes in this phase — investigation + documentation only. Read docs/dev/HANDOVER-LOOM.md:182-183 for Eval-1/Eval-2 details.",
+      "dependsOn": ["D"]
+    },
+    {
+      "id": "F",
+      "title": "Final QA Close-out",
+      "sessions": 1,
+      "notes": "Phase F: Run FULL gate battery: build (0w/0e), tests (Category!=Eval), truth (expect 9P/2S), pnpm check, UI drive gate (A+C should flip green), MCP warm QA (8/8), MCP cold QA (>=90%), bench (22/22), loom-guards (0 banned). Update HANDOVER-LOOM.md section 7 with resolved gaps. Update LOOM-START.md handoff block. Produce evidence under eval-results/current-date/qa-close/. Commit: chore(loom): gap-close QA — all 6 phases verified.",
+      "persona": "qa",
+      "dependsOn": ["E"]
+    }
+  ],
+
+  "gates": [
+    { "name": "build",  "command": "dotnet build DevContext.slnx -clp:ErrorsOnly", "shell": "powershell", "tier": "fast" },
+    { "name": "tests",  "command": "dotnet test DevContext.slnx --filter \"Category!=Eval\"", "shell": "powershell", "tier": "fast", "timeoutMinutes": 15 },
+    { "name": "truth",  "command": "dotnet test DevContext.slnx --filter \"Category=Truth\"", "shell": "powershell", "tier": "fast", "timeoutMinutes": 10, "stages": ["A", "F"] },
+    { "name": "pnpm",   "command": "pnpm check", "shell": "powershell", "cwd": "src/DevContext.App", "tier": "fast", "stages": ["B", "C", "D", "F"], "timeoutMinutes": 10 },
+    { "name": "guards", "command": "powershell -File scripts/loom-guards.ps1", "shell": "powershell", "tier": "full", "timeoutMinutes": 5 },
+    { "name": "bench",  "command": "powershell -File scripts/bench.ps1", "shell": "powershell", "tier": "full", "stages": ["F"], "timeoutMinutes": 20 },
+    { "name": "mcp-qa", "command": "node eval/mcp-qa/run.js", "shell": "powershell", "tier": "full", "stages": ["F"], "timeoutMinutes": 10 },
+    { "name": "cold-qa","command": "node eval/mcp-qa/run-cold.js --gate", "shell": "powershell", "tier": "full", "stages": ["F"], "timeoutMinutes": 10 },
+    { "name": "ui-gate","command": "node src/DevContext.App/scripts/ui-audit-drive.mjs --gate", "shell": "powershell", "tier": "full", "stages": ["B", "F"], "timeoutMinutes": 10 }
+  ],
+
+  "limits": {
+    "stallMinutes": 15,
+    "sessionTimeoutMinutes": 240,
+    "maxResumesPerSession": 3,
+    "stageSlackFactor": 3,
+    "backoffMinutes": 30,
+    "maxBackoffs": 4
+  },
+
+  "gatePolicy": "perPhase",
+
+  "report": {
+    "commit": true,
+    "push": false
+  },
+
+  "readOrder": [
+    "LOOM-START.md",
+    "docs/workflows/loom-gap-close-plan.md",
+    "AGENTS.md",
+    "docs/qa-reports/QA-BUGFIXES.md",
+    "docs/qa-reports/QA-FINAL-LOOM.md",
+    "docs/dev/HANDOVER-LOOM.md",
+    "docs/dev/briefs/meridian-agent-playbook.md",
+    "docs/design-reviews/R1-L0-L3.md",
+    "docs/design-reviews/R2-L4-L6.md",
+    "docs/design-reviews/R3-L7-L8.md",
+    "docs/workflows/loom-debt-workflow.md",
+    "docs/dev/briefs/loom-graph-design.md",
+    "docs/dev/briefs/proposal-loom.md"
+  ],
+
+  "conventions": {
+    "status": {
+      "done": ["DONE", "PASS", "VERIFIED"],
+      "blocked": ["BLOCKED", "DEVIATES"],
+      "inProgress": ["IN PROGRESS"],
+      "todo": ["TODO"]
+    }
+  },
+
+  "audit": {
+    "enabled": false
+  }
+}
