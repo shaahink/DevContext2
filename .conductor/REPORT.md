@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 02:02 UTC · branch `feat/loom-l7` · HEAD `091e22e`_
+_Updated 2026-07-09 02:17 UTC · branch `feat/loom-l7` · HEAD `0038b46`_
 
 **Status:** Idle
-**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 48 · **Cost:** $3.4141 · **Tokens:** 3,377,093 in / 670,923 out / 492,082 think
+**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 49 · **Cost:** $3.4325 · **Tokens:** 3,396,733 in / 675,747 out / 495,769 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 02:02 UTC · branch `feat/loom-l7` · HEAD `091e22e`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
 | 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
@@ -60,13 +59,10 @@ _Updated 2026-07-09 02:02 UTC · branch `feat/loom-l7` · HEAD `091e22e`_
 | 46 | D2 | Deliver | 2 | 07-09 00:56 | 0:19 | Progress |  | 1 | build:OK | $0.0271 | 34,294/4,650 |
 | 47 | D2 | Deliver | 2 | 07-09 01:16 | 0:19 | Progress |  | 1 | build:OK | $0.0381 | 50,038/7,091 |
 | 48 | D3 | Deliver | 1 | 07-09 01:37 | 0:24 | Progress |  | 1 | build:OK | $0.0602 | 87,314/9,204 |
+| 49 | D3 | Deliver | 2 | 07-09 02:02 | 0:14 | Progress |  | 1 | build:OK | $0.0184 | 19,640/4,824 |
 
 ### Commits by session
 
-- **s41 (L8 Audit)** — 3 commit(s):
-  - 2036c5a fix(l8-audit): harden truth tests — LoggerFactory disposal, null safety, sentinel for JSON parse errors, archetype header assertions
-  - 9e25ce0 chore(conductor): s41 L8 working ▸L8 @ 23:20
-  - 5c31938 chore(conductor): s41 L8 working ▸L8 @ 23:10
 - **s42 (D1 Deliver)** — 1 commit(s):
   - 765dbac fix(debt): L0.5 — Cold-QA B9 denominator + UI boot-liveness
 - **s43 (D1 Deliver)** — 1 commit(s):
@@ -81,6 +77,8 @@ _Updated 2026-07-09 02:02 UTC · branch `feat/loom-l7` · HEAD `091e22e`_
   - c444dd2 fix(debt): L5.x — audit-trap sweep (5 traps triaged, 1 fixed)
 - **s48 (D3 Deliver)** — 1 commit(s):
   - 091e22e fix(debt): L5.x — audit-trap sweep re-verified (attempt 2)
+- **s49 (D3 Deliver)** — 1 commit(s):
+  - 0038b46 fix(debt): L5.x — audit-trap sweep re-verified (attempt 2/2, s49)
 
 ## Phase handovers (audit)
 
@@ -99,22 +97,22 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5.x audit-trap sweep re-verified and improved. QA'd Session 47 claims — 4 of 5 were accurate; Trap 1 (ServiceBoundaryInference) elevated from "documented" to "fixed" by adding a `ConcurrentDictionary` cache to `IsWebSdkProject`. All 5 traps now resolved: 2 fixed (SBInference cache, AmbiguityReport record), 3 documented/closed (single-call stable, NodeId.ForType@13 stable, BuildInfo.g.cs absent). Gate battery all green: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned. Dogfood: 436n/338e/34e/6SL/69%@4.5s. Branch pushed. Next session (#49): #4 Merge feat/loom-l7→develop (squash, git-only — see workflow §Merge Protocol).
+> SESSION-RESULT: L5.x audit-trap sweep re-verified (attempt 2/2, s49). All 5 traps confirmed stable — SBInference cache present, single-call site unchanged, NodeId.ForType stable @13, AmbiguityReport is record, BuildInfo.g.cs absent. Gate battery all green: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned, dogfood 436n/338e/34e/6SL/69% @3.9s. Session 48 claims QA'd clean. Next session (#50) should handle checkpoint #4: Merge feat/loom-l7 → develop per the squash protocol in `docs/workflows/loom-debt-workflow.md` §Merge Protocol.
 
 ## Tracker handoff
 
 ```
-last: Session 48 — #3 L5.x re-verification (orchestrator attempt 1/2). PASS.
-       QA'ed Session 47 claims; improved Trap 1 (added SBInference cache, not
-       just doc). All 5 traps now: 2 fixed, 3 closed. Dogfood 436n/338e/34e
-       @4.5s (no regress). Gates: build 0w/0e, 414P/3S Core, 8P/3S Truth.
-       AmbiguityReport is record. NodeId.ForType stable @13. Guards 0 banned.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed.
-next: Session 49 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
+last: Session 49 — #3 L5.x re-verification (orchestrator attempt 2/2). PASS.
+       Re-QA'd Session 48 claims; all 5 traps verified stable via fresh gates.
+       SBInference cache confirmed; AmbiguityReport record; NodeId.ForType @13;
+       BuildInfo.g.cs absent. Dogfood 436n/338e/34e/6SL/69% @3.9s (no regress).
+       Gates: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed (2 x L5.x verified).
+next: Session 50 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
        Read workflow §Merge Protocol. Do NOT code — this is git-only.
-trap: Branch stays feat/loom-l7. Server build was locked by prior test run;
-       Core build+pipeline verified independently. DntSite truth ~50s.
-evidence: eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt (fresh re-run)
+trap: None. All 5 traps remain stable; no drift detected.
+evidence: eval-results/2026-07-09/debt-L5.x-gate-attempt3.txt (fresh re-run)
+       eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt (Session 48)
 
 ---
 ```
