@@ -6,10 +6,11 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: D8 (L4.5) — s58 Flow model hardening: Flow.IsTruncated depth warning, proportional budget
-        via reach counts in BuildMulti, EntryPointKind tagged on nodes + DeriveEntryKind,
-        GetContextPack integration tests (2 new, 14P Server). D7 re-verified PASS.
-stage: D8 COMPLETE. Next: D9 (L1.6 — SymbolTable member indexing, RefSite.FromType removal).
+last: D7 (L2.5) — s59 re-verification QA (attempt 2/2): lambda scope pollution fix
+        (GetEnclosingParamType per-lambda scoping), SeamContext dedup (BuildTypeEventSets +
+        BuildSeamContext shared helpers). All gates green (433P Core, 11 BodyFactExtractor,
+        12 SeamDetector, 8P Truth). D8 L4.5 QA re-verified PASS.
+stage: D7 DONE (re-verified s59). Next: D9 (L1.6 — SymbolTable member indexing, RefSite.FromType removal).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
@@ -48,7 +49,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
 | 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) + QA `debt-L0.4-QA-gate-s54.txt` |
 | 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate-attempt2.txt` |
-| 7 | L2.5 — Lambda scope pollution + SeamContext dedup | DONE | `eval-results/2026-07-09/debt-L2.5-gate.txt` |
+| 7 | L2.5 — Lambda scope pollution + SeamContext dedup | DONE | `eval-results/2026-07-09/debt-L2.5-gate.txt` (s56), re-verified `eval-results/2026-07-09/debt-L2.5-gate-s59.txt` |
 | 8 | L4.5 — Flow model hardening | DONE | `eval-results/2026-07-09/debt-L4.5-gate.txt` |
 | 9 | L1.6 — SymbolTable member indexing | TODO | `eval-results/<date>/debt-L1.6-gate.txt` |
 
