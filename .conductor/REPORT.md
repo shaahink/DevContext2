@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 13:30 UTC · branch `feat/loom-l7` · HEAD `4d1b3b2`_
+_Updated 2026-07-09 13:43 UTC · branch `feat/loom-l7` · HEAD `77b1844`_
 
 **Status:** Idle — 
-**Stage:** R2 — Design Review: L4+L5+L6 · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 68 · **Cost:** $4.1929 · **Tokens:** 4,303,381 in / 821,604 out / 622,220 think
+**Stage:** R2 — Design Review: L4+L5+L6 · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 69 · **Cost:** $4.1970 · **Tokens:** 4,311,498 in / 822,014 out / 622,407 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8, D9, R1
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 13:30 UTC · branch `feat/loom-l7` · HEAD `4d1b3b2`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 39 | L7 | Audit | 1 | 07-08 21:18 | 0:05 | Progress |  | 0 |  | $0.0361 | 65,012/1,156 |
 | 40 | L8 | Deliver | 1 | 07-08 21:31 | 0:27 | Advanced | L8.1 | 3 | build:OK | $0.1221 | 180,508/19,522 |
 | 41 | L8 | Audit | 1 | 07-08 21:59 | 0:23 | Progress |  | 3 |  | $0.0717 | 106,952/10,206 |
 | 42 | D1 | Deliver | 1 | 07-08 23:56 | 0:13 | Progress |  | 1 | build:OK | $0.0410 | 51,880/8,904 |
@@ -60,6 +59,7 @@ _Updated 2026-07-09 13:30 UTC · branch `feat/loom-l7` · HEAD `4d1b3b2`_
 | 66 | R1 | Deliver | 1 | 07-09 12:59 | 0:12 | Progress |  | 1 | build:OK | $0.0539 | 66,314/12,272 |
 | 67 | R1 | Deliver | 2 | 07-09 13:12 | 0:09 | Progress |  | 1 | build:OK | $0.0288 | 38,437/5,144 |
 | 68 | R2 | Deliver | 1 | 07-09 13:22 | 0:07 | Progress |  | 1 | build:OK | $0.0447 | 60,234/8,835 |
+| 69 | R2 | Deliver | 2 | 07-09 13:30 | 0:12 | Stalled |  | 0 |  | $0.0041 | 8,117/410 |
 
 ### Commits by session
 
