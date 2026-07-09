@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 00:56 UTC · branch `feat/loom-l7` · HEAD `0020da9`_
+_Updated 2026-07-09 01:16 UTC · branch `feat/loom-l7` · HEAD `3c9e960`_
 
 **Status:** Idle
-**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 45 · **Cost:** $3.2888 · **Tokens:** 3,205,447 in / 649,978 out / 472,502 think
+**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 46 · **Cost:** $3.3158 · **Tokens:** 3,239,741 in / 654,628 out / 478,523 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 00:56 UTC · branch `feat/loom-l7` · HEAD `0020da9`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
@@ -60,13 +59,10 @@ _Updated 2026-07-09 00:56 UTC · branch `feat/loom-l7` · HEAD `0020da9`_
 | 43 | D1 | Deliver | 2 | 07-09 00:10 | 0:12 | Progress |  | 1 | build:OK | $0.0648 | 109,995/5,182 |
 | 44 | D1 | Deliver | 2 | 07-09 00:24 | 0:15 | Progress |  | 1 | build:OK | $0.0263 | 35,717/4,377 |
 | 45 | D2 | Deliver | 1 | 07-09 00:40 | 0:14 | Progress |  | 1 | build:OK | $0.0391 | 52,171/6,357 |
+| 46 | D2 | Deliver | 2 | 07-09 00:56 | 0:19 | Progress |  | 1 | build:OK | $0.0271 | 34,294/4,650 |
 
 ### Commits by session
 
-- **s37 (L7 Deliver)** — 3 commit(s):
-  - 66fe007 feat(l7.3): style-detection guardrails — SampleCollection, never Microservices for sample repos (E4/E9)
-  - 40c91e3 chore(conductor): s37 L7 working ▸L7.3 @ 21:30
-  - 25bd8fb chore(conductor): s37 L7 working ▸L7.3 @ 21:20
 - **s38 (L7 Deliver)** — 5 commit(s):
   - 347b6e0 feat(l7.4): truth files per archetype, 22-repo bench, multi-.sln directory detection
   - 89cfb7e chore(conductor): s38 L7 working ▸L7.4 @ 22:16
@@ -89,6 +85,8 @@ _Updated 2026-07-09 00:56 UTC · branch `feat/loom-l7` · HEAD `0020da9`_
   - f429a88 fix(debt): D1 (L0.5) — QA re-verify; handoff update
 - **s45 (D2 Deliver)** — 1 commit(s):
   - 0020da9 fix(debt): D2 L3.5 — TodoApi eval gap triaged (resolved)
+- **s46 (D2 Deliver)** — 1 commit(s):
+  - 3c9e960 docs(debt): D2 L3.5 QA — Session 46 confirmed resolved
 
 ## Phase handovers (audit)
 
@@ -107,22 +105,22 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D2 L3.5 (TodoApi eval gap triage) — RESOLVED with zero code changes. The gap described in conductor-DEBT.md (TodoDbContext absent from POST /todos/ trace) was closed by collective L2-L8 pipeline improvements. The test now passes cleanly: TodoDbContext resolved at depth-2 via approximate source-body analysis (`[approx]`). Evidence produced at `eval-results/2026-07-09/debt-L3.5-gate.txt`, CLI report at `debt-L3.5-todoreport.md`, trace at `debt-L3.5-todotrace.md`. All gates green: build 0w/0e, tests 490P/3S, truth 8P/3S, guards clean. D1 QA sustained. Next session: L5.x audit-trap sweep (5 items, ~20 min).
+> SESSION-RESULT: Session 46 — D2 (L3.5) QA confirmed all Session 45 claims as VERIFIED. TodoApi_baseline_presence_ok passes 3/3, Truth suite at 8P/3S/0F, TodoDbContext traced at depth-2 via source-body [approx] in POST /todos/. Gate battery green (build 0w/0e, 363P/3S Core, 76P Server+Desktop, 27/27 UI). No code changes needed — gap resolved by L2-L8 pipeline work. Committed and pushed to feat/loom-l7. Next session (#47) should tackle #3 L5.x (audit-trap sweep, 5 small traps). Note for next: TraceQualityTests.cs:30 still uses silent-return anti-pattern (L0.4 scope).
 
 ## Tracker handoff
 
 ```
-last: Session 45 — D2 (L3.5) COMPLETE. TodoApi test now passes (8P/3S truth).
-       TodoDbContext resolved via source-body [approx] in POST /todos/ trace at
-       depth-2. Gap resolved by L2-L8 pipeline work; no code change needed.
-       Test stays as-is (passing SkippableFact). QA of D1 (L0.5): sustained.
-       Fresh evidence: debt-L3.5-gate.txt + debt-L3.5-todoreport.md.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 done.
-next: Session 3 — L5.x: Audit-trap sweep (5 small traps, ~20 min).
-       Read conductor-DEBT.md #3 item for full spec.
-trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
-       (2) DntSite truth runs ~50s — adjust timeouts.
-evidence: eval-results/2026-07-09/debt-L3.5-gate.txt (+ debt-L3.5-todotrace.md)
+last: Session 46 — D2 (L3.5) QA (attempt 2/2) COMPLETE.
+       QA verdict: Session 45 claims VERIFIED. TodoApi 3P/0F, Truth 8P/3S.
+       TodoDbContext traced at depth-2 via source-body [approx]. No code change.
+       Gate battery green: build 0w/0e, 363P/3S Core, 76P Server+Desktop.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 confirmed. QA complete.
+next: Session 47 — #3 L5.x: Audit-trap sweep (5 small traps, ~20 min).
+       Read conductor-DEBT.md #3. Item is named "L5.x — Unresolved from
+       L0-L4 audit traps (sweep)." 5 traps to classify: fix or document.
+trap: Branch stays feat/loom-l7. DntSite truth ~50s — adjust timeouts.
+       TraceQualityTests.cs:30 still uses `return` not Skip.IfNot (L0.4 scope).
+evidence: eval-results/2026-07-09/debt-D2-qa-verify.txt (fresh truth re-run)
 
 ---
 ```
