@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 17:30 UTC · branch `feat/loom-l7` · HEAD `4d997d9`_
+_Updated 2026-07-09 17:51 UTC · branch `feat/loom-l7` · HEAD `7d78e11`_
 
 **Status:** Idle
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 1
-**Checkpoints:** 1/15 done · **Sessions run:** 1 · **Cost:** $0.2300 · **Tokens:** 180,448 in / 24,998 out / 45,929 think
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
+**Checkpoints:** 1/15 done · **Sessions run:** 2 · **Cost:** $0.2676 · **Tokens:** 252,602 in / 27,285 out / 47,313 think
 
 ## Stage progress
 
@@ -22,6 +22,7 @@ _Updated 2026-07-09 17:30 UTC · branch `feat/loom-l7` · HEAD `4d997d9`_
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | A | Deliver | 1 | 07-09 16:40 | 0:45 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.2300 | 180,448/24,998 |
+| 2 | A | Deliver | 2 | 07-09 17:30 | 0:20 | Stalled |  | 0 |  | $0.0376 | 72,154/2,287 |
 
 ## Timeline
 
@@ -33,6 +34,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-09 18:30:26  ▪ gate build pass [session]  (31.3s)
 07-09 18:30:26  ▪ gate tests pass [session]  (3m05s)
 07-09 18:30:26  ▪ gate truth pass [session]  (36.4s)
+07-09 18:30:26  • session #1 A → Progress · 1 commit(s)  (49m48s)
+07-09 18:30:27  • session #2 A Deliver started (attempt 2/2)
 ```
 
 ## Health
@@ -40,8 +43,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 1 · retries 0 (0 %) · overall Ok
-✓ no health concerns detected
+sessions 2 · retries 1 (50 %) · overall Warn
+⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
 ```
 
 ## Confidence
@@ -60,8 +63,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: D .conductor/REPORT.md, D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md (+5 more)
-vs upstream: up to date
+working tree: D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md, D .conductor/handovers/L8.md (+4 more)
+vs upstream: 1 ahead
 ```
 
 ### Commits by session
@@ -75,7 +78,10 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A checkpoint A1 — Type→Service bridge implemented in `OutEdgesWithTwin()` (TraceBuilder.cs:440-454) and `SelectBestSpineEdge()` (GraphBuilder.cs:239-257). Gate battery green: build 0w/0e, 518P/3S non-Eval, truth 8P/3S, guards 0 banned. However, the bridge cannot activate because the Raises edge from CheckoutBasketCommandHandler→BasketCheckoutEvent is not created by the current pipeline — the BusPunchDetector works in unit tests (SeamDetectorTests.Use true fact check passes) but fails on the real dogfood repo. The test remains `[TruthPending("L2")]`. Next session should investigate why the `AddSeamsFromDetectors`→`BodyFactExtractor` pipeline doesn't produce the expected …
+> Now let me read the remaining required documents:
+> Running the gate battery as prescribed by the pre-session ritual:
+> Build 0w/0e. Now run the remaining gate components:
+> Now I need to QA the previous session's claim that the Raises edge is missing. Let me investigate the BusPublishDetector and the pipeline.
 
 ## Tracker handoff
 
