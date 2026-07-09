@@ -8,7 +8,7 @@
       "owner": "L6.1",
       "expectedRedUntil": "L6",
       "pass": false,
-      "detail": "stripH=nullpx (want >=30)"
+      "detail": "stripH=28px (want >=30)"
     },
     {
       "id": "B-new-preserves-tabs",
@@ -16,8 +16,8 @@
       "audit": "U2",
       "owner": "L6.1",
       "expectedRedUntil": "L6",
-      "pass": false,
-      "detail": "New button not exercised (no session/button)"
+      "pass": true,
+      "detail": "before=[\"eshop-microservic…✕\",\"TodoApp.sln✕\"] after=[\"eshop-microservic…✕\",\"TodoApp.sln✕\",\"New tab✕\"] lost=[] added=true"
     },
     {
       "id": "C-code-pane-nonempty",
@@ -34,15 +34,13 @@
       "audit": "U6",
       "owner": "L6.4",
       "expectedRedUntil": "L6",
-      "pass": false,
-      "detail": "cards=null"
+      "pass": true,
+      "detail": "cards=5"
     }
   ],
   "reds": [
     "A-tabstrip-height",
-    "B-new-preserves-tabs",
-    "C-code-pane-nonempty",
-    "D-context-preset-cards"
+    "C-code-pane-nonempty"
   ],
   "unexpectedFails": []
 }
