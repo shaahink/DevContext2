@@ -6,16 +6,16 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: R2 reviewed L4+L5+L6 (15 checkpoints, 13 CONFORMS, 2 WITH-FINDINGS, 0 DEVIATES).
-      All gates green. 3 minor findings (ContextPack server assembly, MCP page init,
-      insights substring) — deferred v0, not blocking.
+last: R1 QA-verified (s67). Fresh gate battery green. Re-confirmed L2.4 DEVIATES:
+      checkout trace lacks bus-publish traversal — real gap, not attribute oversight.
+      17/17 checkpoint ratings from s65 accurate. R2 done (s66). Qa report:
+      eval-results/2026-07-09/R1-QA-gate-s67.txt.
 stage: **R3 queued** — review L7+L8+system-level contracts. Report target:
        docs/design-reviews/R3-L7-L8.md. QA Driver (cp #13) follows R3.
 next: R3 — reads loom-graph-design.md §6-8 + proposal-loom.md §L7-L8+cross-cutting
-      + handover L8.md. System contract audit: Laws R1/R2, SymbolId gate, no-regex gate,
-      NodeId.ForType advisory, honesty surfaces.
-trap: L2.4 checkout trace fix (~45-60 min, GraphQueryService/trace projections)
-      queued for after R3. L4.4 ContextPack server markdown assembly deferred.
+      + HANDOVER-LOOM.md §L7-L8 + HANDOVER-MERIDIAN.md. System contract audit:
+      Laws R1/R2, SymbolId gate, no-regex gate, NodeId.ForType advisory, honesty surfaces.
+trap: L2.4 checkout trace fix (~45-60 min) queued for after R3.
 
 
 ---
@@ -62,7 +62,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
-| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (1 finding queued) | `docs/design-reviews/R1-L0-L3.md` |
+| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (QA-verified s67) | `docs/design-reviews/R1-L0-L3.md` + `eval-results/2026-07-09/R1-QA-gate-s67.txt` |
 | 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE | `docs/design-reviews/R2-L4-L6.md` (s66) |
 | 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
 
