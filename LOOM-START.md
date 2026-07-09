@@ -6,11 +6,11 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: D7 (L2.5) — Lambda scope pollution fixed via GetEnclosingParamType() per-invocation ancestry walk.
-        SeamContext dedup: BuildTypeEventSets() + BuildSeamContext() shared helpers called from both passes.
-        +1 multi-lambda test (x→IHandler vs x→ILogger). Dogfood 436n/338e/34e/6SL/69% (no regression).
-        D6 QA: PASS — TfmScore fix confirmed, evidence solid (attempt 2).
-stage: D7 COMPLETE. Next: D8 (L4.5 — Flow model hardening: depth, budget, kind, integration test).
+last: D7 QA (L2.5) — s57 audit of s56 D7: all 4 claims verified (lambda scope fix via
+        GetEnclosingParamType, BuildTypeEventSets+BuildSeamContext dedup, multi-lambda test,
+        no SeamDetector regression). Gate battery green (433P Core, 11 BodyFactExtractor,
+        12 SeamDetector, 8P/3S Truth). QA: PASS.
+stage: D7 COMPLETE (verified s57). Next: D8 (L4.5 — Flow model hardening: depth, budget, kind, integration test).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
