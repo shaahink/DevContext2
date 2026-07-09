@@ -1,0 +1,44 @@
+﻿Test run for C:\Code\DevContext2-ui\tests\DevContext.Desktop.Tests\bin\Debug\net10.0-windows10.0.19041.0\DevContext.Desktop.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\Code\DevContext2-ui\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.12]   Discovering: DevContext.Desktop.Tests
+[xUnit.net 00:00:00.19]   Discovered:  DevContext.Desktop.Tests
+No test matches the given testcase filter `Category=Truth` in C:\Code\DevContext2-ui\tests\DevContext.Desktop.Tests\bin\Debug\net10.0-windows10.0.19041.0\DevContext.Desktop.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+
+[xUnit.net 00:00:00.12]   Discovering: DevContext.Core.Tests
+[xUnit.net 00:00:00.11]   Discovering: DevContext.Server.Tests
+[xUnit.net 00:00:00.15]   Discovered:  DevContext.Server.Tests
+No test matches the given testcase filter `Category=Truth` in C:\Code\DevContext2-ui\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+[xUnit.net 00:00:00.24]   Discovered:  DevContext.Core.Tests
+[xUnit.net 00:00:00.27]   Starting:    DevContext.Core.Tests
+
+  Passed DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [14 s]
+[xUnit.net 00:00:14.76]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [SKIP]
+[xUnit.net 00:00:14.76]       Truth ratchet: pending fix by L1
+[xUnit.net 00:00:14.77]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [SKIP]
+[xUnit.net 00:00:14.77]       Truth ratchet: pending fix by L2
+  Passed DevContext.Core.Tests.TruthExpectationTests.Library_archetype_has_public_surface [430 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [1 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.TodoApi_baseline_presence_ok [328 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [10 s]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [3 s]
+[xUnit.net 00:00:30.23]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+[xUnit.net 00:00:30.23]       Truth ratchet: pending fix by L1
+  Passed DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [792 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Dogfood_baseline_presence_ok [639 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+[xUnit.net 00:00:31.45]   Finished:    DevContext.Core.Tests
+  Passed DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [1 s]
+
+Test Run Successful.
+Total tests: 11
+     Passed: 8
+    Skipped: 3
+ Total time: 32.2089 Seconds

@@ -435,6 +435,23 @@ public sealed class TraceBuilder
                     yield return e;
             }
         }
+
+        // G5: Type->Service bridge — when at a Type node with known Project, yield ServiceLink
+        // edges from the containing Service node so trace can follow cross-service hops.
+        // This closes the L2.4 gap where traces stopped at event Type nodes (e.g.
+        // BasketCheckoutEvent) because Type nodes had no edge to their Service node's
+        // ServiceLinks. Safe by construction: if NodeId.ForService returns a node that
+        // doesn't exist, the foreach is a no-op.
+        if (id.Kind == NodeKind.Type)
+        {
+            var node = _graph.Node(id);
+            if (node?.Project is { Length: > 0 })
+            {
+                var serviceId = NodeId.ForService(node.Project);
+                foreach (var e in _graph.OutEdges(serviceId, EdgeKind.ServiceLink))
+                    yield return e;
+            }
+        }
     }
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>

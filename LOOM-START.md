@@ -1,18 +1,23 @@
 # Loom — Phase Tracker (resume here)
 
 **Read order for a fresh session:** this file → `AGENTS.md` (current phase protocol) →
-`conductor-DEBT.md` (debt catalog, sized + gated) → `docs/workflows/loom-debt-workflow.md`
-(the workflow for the current phase).
-Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
+`docs/workflows/loom-gap-close-plan.md` (plan doc with full history + fix detail per phase) →
+`docs/qa-reports/QA-BUGFIXES.md` → `docs/workflows/loom-debt-workflow.md` (rituals).
+Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: QA Driver cp#13 DONE (s73). Full live drive: CLI (432n/330e/34e/6SL/71% ✅),
-      MCP 8/8 + cold QA 10/11 (91% ✅), UI 8/8 surfaces screenshots (A+C RED as doc),
-      bench 22/22 OK, Truth 8P/3S, loom-guards 0 banned. 3 product claims verified
-      (1✅ 2⚠️tab28px+codeNull 3✅). QA-FINAL-LOOM.md + QA-BUGFIXES.md in docs/qa-reports/.
-stage: Loom-Debt COMPLETE (13/13 sessions). 10-item bugfix queue sized ~5 sessions.
-      Next: L2.4 checkout trace DEVIATES (P1) or tab strip/code pane (P2).
-trap: bench.ps1 backtick-n/em-dash encoding issue (P4, 5min).
+last: Phase A s74 — Type→Service bridge added in OutEdgesWithTwin() + SelectBestSpineEdge().
+       Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions.
+       FINDING: Raises edge (handler→BasketCheckoutEvent) NOT created by current pipeline.
+       BusPublishDetector passes unit test but fails on real dogfood — root cause TBD.
+       Without the Raises edge, the Type→Service bridge can't activate (trace stops before
+       event node). [TruthPending("L2")] left in place.
+stage: Phase A IN PROGRESS — A1 bridge coded but blocked on missing Raises edge.
+next: Investigate why BusPublishDetector doesn't create Raises edge for dogfood handler
+       (BodyFactExtractor may not process handler type correctly for real analysis).
+trap: The unit test CheckoutHandler works; real analysis doesn't — likely TypeDiscovery
+       SourceBody issue in the pipeline.
+docs: docs/workflows/loom-gap-close-plan.md Phase A; evidence eval-results/2026-07-09/
 
 
 ---
@@ -36,38 +41,58 @@ for the full close-out. The table below is preserved for reference; all rows are
 
 ---
 
-## Post-Loom checkpoints (in progress)
+## Post-Loom Gap Close — IN PROGRESS (6 phases, 14 checkpoints)
 
-Status ∈ TODO · IN PROGRESS · DONE · BLOCKED. Evidence under `eval-results/<date>/`.
-Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
+Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED.
+Evidence under `eval-results/<date>/`.
+Plan doc: `docs/workflows/loom-gap-close-plan.md` — read before each session.
+13 gaps from QA-BUGFIXES.md + R1/R2/R3 carry-forwards, re-investigated for root causes.
+Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessions).
 
-### Phase 1: Merge + Debt Cleanup
+### Phase A: Engine Gap — L2.4 Checkout Trace Bus-Publish
 
-| # | Checkpoint | Status | Evidence |
-|---|-----------|--------|----------|
-| 1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | DONE | `eval-results/2026-07-09/debt-L0.5-gate.txt` |
-| 2 | L3.5 — TodoApi eval gap triaged | DONE | `eval-results/2026-07-09/debt-L3.5-gate.txt` |
-| 3 | L5.x — Audit-trap sweep (5 items) | DONE | `eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt`, attempt3 re-verified s49 |
-| 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
-| 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) + QA `debt-L0.4-QA-gate-s54.txt` |
-| 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate-attempt2.txt` |
-| 7 | L2.5 — Lambda scope pollution + SeamContext dedup | DONE | `eval-results/2026-07-09/debt-L2.5-gate.txt` (s56), re-verified `eval-results/2026-07-09/debt-L2.5-gate-s59.txt` |
-| 8 | L4.5 — Flow model hardening | DONE | `eval-results/2026-07-09/debt-L4.5-gate-s60.txt` |
-| 9 | L1.6 — SymbolTable member indexing | DONE | `eval-results/2026-07-09/debt-L1.6-gate.txt` (QA: s62+s63 re-verified `debt-L1.6-QA-s63.txt`) |
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | IN PROGRESS — bridge coded, blocked on missing Raises edge | TBD | `eval-results/2026-07-09/phase-A-truth.txt` |
+> scope change: Bridge implemented but test can't activate — Raises edge from BusPublishDetector not created on dogfood (unit test passes, real analysis fails). Root cause investigation needed.
 
-### Phase 2: Static Design Review
+### Phase B: UI Regressions (QA Driver s73 RED assertions)
 
-| # | Checkpoint | Status | Evidence |
-|---|-----------|--------|----------|
-| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (QA-verified s67) | `docs/design-reviews/R1-L0-L3.md` + `eval-results/2026-07-09/R1-QA-gate-s67.txt` |
-| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE (QA-verified s68) | `docs/design-reviews/R2-L4-L6.md` (s66) + `eval-results/2026-07-09/R2-QA-gate-s68.txt` |
-| 12 | R3 — L7+L8 + system-level contracts review | DONE (s70) | `docs/design-reviews/R3-L7-L8.md` + `eval-results/2026-07-09/R3-gate-s70.txt` |
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| B1 | Tab strip height ≥30px — fix box model, verify ui-audit-drive assertion A green | TODO | | |
+| B2 | Code pane non-null — debug read_source RPC, fix node coverage, verify assertion C green | TODO | | |
 
-### Phase 3: Final QA
+### Phase C: Polish Batch (6 small items, 1 session)
 
-| # | Checkpoint | Status | Evidence |
-|---|-----------|--------|----------|
-| 13 | QA Driver — full live UI + CLI + MCP + bench | DONE (s73) | `docs/qa-reports/QA-FINAL-LOOM.md`, `QA-BUGFIXES.md`, `eval-results/2026-07-09/` |
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| C1 | MCP page mcpRunning queries server state on mount | TODO | | |
+| C2 | Inspector insights use word-boundary matching, not substring | TODO | | |
+| C3 | bench.ps1 encoding fix — replace backtick-n with Environment::NewLine | TODO | | |
+| C4 | L7.1 spine-depth metric added to GraphStats + CLI report output | TODO | | |
+| C5 | Perf budget doc updated (≤6s) + LOOM-START baseline truth count fixed (8P/3S) | TODO | | |
+
+### Phase D: ContextPack Server Round-Trip (Trap A)
+
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D1 | ContextPackBuilder serializes markdown server-side; client uses server output | TODO | | |
+
+### Phase E: Eval Gap Investigation (HANDOVER-LOOM §7.1 Eval-1/Eval-2)
+
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| E1 | eShop TraceQuality tests: fixed or documented as known limitation | TODO | | |
+| E2 | EvalExpectationTests verticalslice: fixed or documented | TODO | | |
+| E3 | PROGRESS-LOG.md backfilled with L5-L8 sessions from .conductor/handovers/ | TODO | | |
+
+### Phase F: Final QA Close-out
+
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| F1 | Full gate battery green: build + tests + truth (9P/2S) + pnpm + UI gate + MCP QA + bench + guards | TODO | | |
+| F2 | HANDOVER-LOOM.md §7 updated with resolved gaps + LOOM-START.md final handoff | TODO | | |
 
 ---
 

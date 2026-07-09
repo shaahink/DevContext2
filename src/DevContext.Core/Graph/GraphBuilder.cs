@@ -230,6 +230,32 @@ public sealed class GraphBuilder
             }
         }
 
+        // G5: Type->Service bridge — when at a Type node with known Project, consider
+        // ServiceLink edges from the containing Service node so the spine can follow
+        // cross-service hops. This closes the L2.4 gap where the checkout flow spine
+        // stopped at event Type nodes because they had no edge to their Service node's
+        // ServiceLinks. Safe by construction: if NodeId.ForService returns a node that
+        // doesn't exist, the foreach is a no-op.
+        if (nodeId.Kind == NodeKind.Type)
+        {
+            var typeNode = graph.Node(nodeId);
+            if (typeNode?.Project is { Length: > 0 })
+            {
+                var serviceId = NodeId.ForService(typeNode.Project);
+                foreach (var edge in graph.OutEdges(serviceId, EdgeKind.ServiceLink))
+                {
+                    if (visited.Contains(edge.To)) continue;
+                    var p = SpineEdgePriority(edge.Kind);
+                    if (p < bestPriority || (p == bestPriority && edge.Confidence > bestConfidence))
+                    {
+                        bestPriority = p;
+                        bestConfidence = edge.Confidence;
+                        best = edge;
+                    }
+                }
+            }
+        }
+
         if (best is not null && IsFrameworkLeaf(graph.Node(best.To)))
             return null;
 
