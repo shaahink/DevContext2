@@ -6,18 +6,17 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 44 — D1 (L0.5) RE-VERIFIED. Conductor attempt 2/2 QA pass. B9 excluded
-       from failure denominator (B9 rankQuality=true). checkBootLiveness() confirmed:
-       dead env exits non-zero, "GATE FAILED (boot-liveness)". Fresh run-cold.js:
-       9/11=82% (A1 variance, documented). Minor: ui-gate.md not separate file — liveness
-       evidence in debt-L0.5-gate.txt. All gates green: build 0w/0e, tests 490P/3S,
-       pnpm check green, guards clean.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done. Session 1 QA-reverified.
-next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
-       Read conductor-DEBT.md #2 item for full spec.
+last: Session 45 — D2 (L3.5) COMPLETE. TodoApi test now passes (8P/3S truth).
+       TodoDbContext resolved via source-body [approx] in POST /todos/ trace at
+       depth-2. Gap resolved by L2-L8 pipeline work; no code change needed.
+       Test stays as-is (passing SkippableFact). QA of D1 (L0.5): sustained.
+       Fresh evidence: debt-L3.5-gate.txt + debt-L3.5-todoreport.md.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 done.
+next: Session 3 — L5.x: Audit-trap sweep (5 small traps, ~20 min).
+       Read conductor-DEBT.md #3 item for full spec.
 trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
-       (2) 2 truth failures flagged (checkout trace + RazorPages fab) — Phase 2 review.
-evidence: eval-results/2026-07-09/debt-D1-qa-verify.txt (+ mcp-cold-qa.md, debt-L0.5-gate.txt)
+       (2) DntSite truth runs ~50s — adjust timeouts.
+evidence: eval-results/2026-07-09/debt-L3.5-gate.txt (+ debt-L3.5-todotrace.md)
 
 ---
 
@@ -50,7 +49,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
 | 1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | DONE | `eval-results/2026-07-09/debt-L0.5-gate.txt` |
-| 2 | L3.5 — TodoApi eval gap triaged | TODO | `eval-results/<date>/debt-L3.5-gate.txt` |
+| 2 | L3.5 — TodoApi eval gap triaged | DONE | `eval-results/2026-07-09/debt-L3.5-gate.txt` |
 | 3 | L5.x — Audit-trap sweep (5 items) | TODO | `eval-results/<date>/debt-L5.x-gate.txt` |
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
 | 5 | L0.4 — Truth gate in battery + TruthPending sweep | IN PROGRESS | 3/3 pending flipped, guards wiring remains |
