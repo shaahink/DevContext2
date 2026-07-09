@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
+_Updated 2026-07-09 00:56 UTC · branch `feat/loom-l7` · HEAD `0020da9`_
 
 **Status:** Idle
-**Stage:** D1 — L0.5 — Cold-QA B9 denominator + UI boot-liveness · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 44 · **Cost:** $3.2497 · **Tokens:** 3,153,276 in / 643,621 out / 465,549 think
+**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 45 · **Cost:** $3.2888 · **Tokens:** 3,205,447 in / 649,978 out / 472,502 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1
 
@@ -13,7 +13,7 @@ _Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
 | Stage | Title | Done | State |
 |---|---|---|---|
 | D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
-| D2 | L3.5 — TodoApi eval gap triage | 0/0 | todo |
+| D2 | L3.5 — TodoApi eval gap triage | 0/0 | **← active** |
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | todo |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
@@ -30,7 +30,6 @@ _Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
 | 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
@@ -60,14 +59,10 @@ _Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
 | 42 | D1 | Deliver | 1 | 07-08 23:56 | 0:13 | Progress |  | 1 | build:OK | $0.0410 | 51,880/8,904 |
 | 43 | D1 | Deliver | 2 | 07-09 00:10 | 0:12 | Progress |  | 1 | build:OK | $0.0648 | 109,995/5,182 |
 | 44 | D1 | Deliver | 2 | 07-09 00:24 | 0:15 | Progress |  | 1 | build:OK | $0.0263 | 35,717/4,377 |
+| 45 | D2 | Deliver | 1 | 07-09 00:40 | 0:14 | Progress |  | 1 | build:OK | $0.0391 | 52,171/6,357 |
 
 ### Commits by session
 
-- **s36 (L7 Deliver)** — 4 commit(s):
-  - 6fdd8cb feat(l7.2): archetype projections for desktop/worker/library/blazor
-  - 08060ae chore(conductor): s36 L7 working ▸L7.2 @ 21:06
-  - 4f827cd chore(conductor): s36 L7 working ▸L7.2 @ 20:56
-  - 34509a7 chore(conductor): s36 L7 working ▸L7.2 @ 20:46
 - **s37 (L7 Deliver)** — 3 commit(s):
   - 66fe007 feat(l7.3): style-detection guardrails — SampleCollection, never Microservices for sample repos (E4/E9)
   - 40c91e3 chore(conductor): s37 L7 working ▸L7.3 @ 21:30
@@ -92,6 +87,8 @@ _Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `5f89152`_
   - 416f60d fix(debt): L0.5 — QA verification, fresh evidence (attempt 2)
 - **s44 (D1 Deliver)** — 1 commit(s):
   - f429a88 fix(debt): D1 (L0.5) — QA re-verify; handoff update
+- **s45 (D2 Deliver)** — 1 commit(s):
+  - 0020da9 fix(debt): D2 L3.5 — TodoApi eval gap triaged (resolved)
 
 ## Phase handovers (audit)
 
@@ -110,23 +107,22 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D1 (L0.5) re-verified and confirmed solid. All gates green (build 0w/0e, tests 490P/3S, pnpm check green, guards clean). B9 rank-quality probe exclusion from failure denominator confirmed working via fresh `run-cold.js` (9/11=82% — A1 variance documented, not a regression). checkBootLiveness() in `ui-audit-drive.mjs:41` confirmed: dead env fails distinctly with non-zero exit. Minor findings: A1 probe flips actionable/unactionable between runs (natural MCP server response variance); referenced `ui-gate.md` evidence file doesn't exist separately (boot-liveness evidence captured within debt-L0.5-gate.txt). Next session should proceed to Session 2 — L3.5 TodoApi eval gap triage (…
+> SESSION-RESULT: D2 L3.5 (TodoApi eval gap triage) — RESOLVED with zero code changes. The gap described in conductor-DEBT.md (TodoDbContext absent from POST /todos/ trace) was closed by collective L2-L8 pipeline improvements. The test now passes cleanly: TodoDbContext resolved at depth-2 via approximate source-body analysis (`[approx]`). Evidence produced at `eval-results/2026-07-09/debt-L3.5-gate.txt`, CLI report at `debt-L3.5-todoreport.md`, trace at `debt-L3.5-todotrace.md`. All gates green: build 0w/0e, tests 490P/3S, truth 8P/3S, guards clean. D1 QA sustained. Next session: L5.x audit-trap sweep (5 items, ~20 min).
 
 ## Tracker handoff
 
 ```
-last: Session 44 — D1 (L0.5) RE-VERIFIED. Conductor attempt 2/2 QA pass. B9 excluded
-       from failure denominator (B9 rankQuality=true). checkBootLiveness() confirmed:
-       dead env exits non-zero, "GATE FAILED (boot-liveness)". Fresh run-cold.js:
-       9/11=82% (A1 variance, documented). Minor: ui-gate.md not separate file — liveness
-       evidence in debt-L0.5-gate.txt. All gates green: build 0w/0e, tests 490P/3S,
-       pnpm check green, guards clean.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done. Session 1 QA-reverified.
-next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
-       Read conductor-DEBT.md #2 item for full spec.
+last: Session 45 — D2 (L3.5) COMPLETE. TodoApi test now passes (8P/3S truth).
+       TodoDbContext resolved via source-body [approx] in POST /todos/ trace at
+       depth-2. Gap resolved by L2-L8 pipeline work; no code change needed.
+       Test stays as-is (passing SkippableFact). QA of D1 (L0.5): sustained.
+       Fresh evidence: debt-L3.5-gate.txt + debt-L3.5-todoreport.md.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 done.
+next: Session 3 — L5.x: Audit-trap sweep (5 small traps, ~20 min).
+       Read conductor-DEBT.md #3 item for full spec.
 trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
-       (2) 2 truth failures flagged (checkout trace + RazorPages fab) — Phase 2 review.
-evidence: eval-results/2026-07-09/debt-D1-qa-verify.txt (+ mcp-cold-qa.md, debt-L0.5-gate.txt)
+       (2) DntSite truth runs ~50s — adjust timeouts.
+evidence: eval-results/2026-07-09/debt-L3.5-gate.txt (+ debt-L3.5-todotrace.md)
 
 ---
 ```
