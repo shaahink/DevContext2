@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 02:17 UTC · branch `feat/loom-l7` · HEAD `0038b46`_
+_Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
 
 **Status:** Idle
-**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 2
+**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 49 · **Cost:** $3.4325 · **Tokens:** 3,396,733 in / 675,747 out / 495,769 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1, D2
+**⚠ Skipped stages (need human review):** D1, D2, D3
 
 ## Stage progress
 
@@ -14,7 +14,7 @@ _Updated 2026-07-09 02:17 UTC · branch `feat/loom-l7` · HEAD `0038b46`_
 |---|---|---|---|
 | D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
 | D2 | L3.5 — TodoApi eval gap triage | 0/0 | SKIPPED ⚠ |
-| D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | **← active** |
+| D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | SKIPPED ⚠ |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
