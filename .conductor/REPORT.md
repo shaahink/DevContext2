@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 15:23 UTC · branch `feat/loom-l7` · HEAD `39c70c1`_
+_Updated 2026-07-09 15:24 UTC · branch `feat/loom-l7` · HEAD `121c0e0`_
 
-**Status:** Idle — 
+**Status:** NeedsHuman — stage QA used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 **Stage:** QA — Final QA Driver — full live drive + bugfix plan · attempts used 2
 **Checkpoints:** 1/1 done · **Sessions run:** 73 · **Cost:** $4.4128 · **Tokens:** 4,580,231 in / 861,612 out / 649,102 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
