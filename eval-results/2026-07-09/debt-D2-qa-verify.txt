@@ -1,0 +1,10 @@
+﻿Test run for C:\Code\DevContext2-ui\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:21.80]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [SKIP]
+[xUnit.net 00:00:21.80]     DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [1 ms]
+[xUnit.net 00:00:38.59]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Passed!  - Failed:     0, Passed:     8, Skipped:     3, Total:    11, Duration: 40 s - DevContext.Core.Tests.dll (net10.0)

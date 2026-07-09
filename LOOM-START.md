@@ -6,17 +6,17 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 45 — D2 (L3.5) COMPLETE. TodoApi test now passes (8P/3S truth).
-       TodoDbContext resolved via source-body [approx] in POST /todos/ trace at
-       depth-2. Gap resolved by L2-L8 pipeline work; no code change needed.
-       Test stays as-is (passing SkippableFact). QA of D1 (L0.5): sustained.
-       Fresh evidence: debt-L3.5-gate.txt + debt-L3.5-todoreport.md.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 done.
-next: Session 3 — L5.x: Audit-trap sweep (5 small traps, ~20 min).
-       Read conductor-DEBT.md #3 item for full spec.
-trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
-       (2) DntSite truth runs ~50s — adjust timeouts.
-evidence: eval-results/2026-07-09/debt-L3.5-gate.txt (+ debt-L3.5-todotrace.md)
+last: Session 46 — D2 (L3.5) QA (attempt 2/2) COMPLETE.
+       QA verdict: Session 45 claims VERIFIED. TodoApi 3P/0F, Truth 8P/3S.
+       TodoDbContext traced at depth-2 via source-body [approx]. No code change.
+       Gate battery green: build 0w/0e, 363P/3S Core, 76P Server+Desktop.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 confirmed. QA complete.
+next: Session 47 — #3 L5.x: Audit-trap sweep (5 small traps, ~20 min).
+       Read conductor-DEBT.md #3. Item is named "L5.x — Unresolved from
+       L0-L4 audit traps (sweep)." 5 traps to classify: fix or document.
+trap: Branch stays feat/loom-l7. DntSite truth ~50s — adjust timeouts.
+       TraceQualityTests.cs:30 still uses `return` not Skip.IfNot (L0.4 scope).
+evidence: eval-results/2026-07-09/debt-D2-qa-verify.txt (fresh truth re-run)
 
 ---
 
