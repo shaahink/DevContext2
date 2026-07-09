@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 23:31 UTC · branch `feat/loom-l7` · HEAD `80336e9`_
+_Updated 2026-07-09 23:49 UTC · branch `feat/loom-l7` · HEAD `0016524`_
 
 **Status:** Idle
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 5
-**Checkpoints:** 2/15 done · **Sessions run:** 9 · **Cost:** $0.6943 · **Tokens:** 815,094 in / 81,107 out / 100,314 think
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 6
+**Checkpoints:** 2/15 done · **Sessions run:** 10 · **Cost:** $0.7378 · **Tokens:** 878,887 in / 86,525 out / 105,302 think
 
 ## Stage progress
 
@@ -30,17 +30,13 @@ _Updated 2026-07-09 23:31 UTC · branch `feat/loom-l7` · HEAD `80336e9`_
 | 7 | A | Deliver | 3 | 07-09 22:29 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0472 | 77,852/4,775 |
 | 8 | A | Deliver | 4 | 07-09 22:50 | 0:15 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.1119 | 212,822/4,859 |
 | 9 | A | Deliver | 5 | 07-09 23:11 | 0:13 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0482 | 64,118/7,734 |
+| 10 | A | Deliver | 6 | 07-09 23:31 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0434 | 63,793/5,418 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 18:30:26  ▪ gate build pass [session]  (31.3s)
-07-09 18:30:26  ▪ gate tests pass [session]  (3m05s)
-07-09 18:30:26  ▪ gate truth pass [session]  (36.4s)
-07-09 18:30:26  • session #1 A → Progress · 1 commit(s)  (49m48s)
-07-09 18:30:27  • session #2 A Deliver started (attempt 2/2)
 07-09 18:51:19  • session #2 A → Stalled  (20m52s)
 07-09 18:57:20  ■ needs human — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 07-09 19:46:09  ◆ run resumed · Loom Gap Close
@@ -76,6 +72,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 00:31:23  ▪ gate build pass [session]  (32.3s)
 07-10 00:31:23  ▪ gate tests pass [session]  (3m03s)
 07-10 00:31:23  ▪ gate truth pass [session]  (2m20s)
+07-10 00:31:23  • session #9 A → Progress · 1 commit(s)  (19m48s)
+07-10 00:31:23  • session #10 A Deliver started (attempt 6/6)
+07-10 00:49:47  ▪ gate build pass [session]  (29.9s)
+07-10 00:49:47  ▪ gate tests pass [session]  (3m03s)
+07-10 00:49:47  ▪ gate truth pass [session]  (2m07s)
 ```
 
 ## Health
@@ -83,9 +84,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 9 · retries 6 (67 %) · overall Warn
+sessions 10 · retries 7 (70 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 6/9 sessions were retries (67 %)
+⚠ [high-retry-rate] 7/10 sessions were retries (70 %)
 ```
 
 ## Confidence
@@ -125,6 +126,8 @@ vs upstream: up to date
   - [`31796b4`](https://github.com/shaahink/DevContext2/commit/31796b4) chore(loom): Phase A s78 QA-verified — fresh gate battery + focused CLI trace confirms checkout cross-service hop at depth 6, A1 VERIFIED
 - **s9 (A Deliver)** — 1 commit(s):
   - [`80336e9`](https://github.com/shaahink/DevContext2/commit/80336e9) chore(loom): Phase A s79 QA-verified — fresh gate battery + CLI analyze trace confirms checkout cross-service hop at depth 6, A1 VERIFIED. Phase A complete.
+- **s10 (A Deliver)** — 1 commit(s):
+  - [`0016524`](https://github.com/shaahink/DevContext2/commit/0016524) fix(loom): A — QA re-audit confirms Phase A (stale prior finding, Raises edge + bridge active)
 
 ## Phase handovers (audit)
 
@@ -143,16 +146,16 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A QA-verified (s79, attempt 5/6). All claims from s77/s78 confirmed with fresh gate battery: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS. Fresh CLI analyze --focus trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on the real dogfood repo. Bridge code (4d997d9) and pipeline fix (a94c211) both correct. A1 VERIFIED; Phase A has zero incomplete checkpoints. Next session: Phase B (B1 tab strip >=30px, B2 code pane non-null). Commit 80336e9 pushed.
+> SESSION-RESULT: Phase A re-audited and CONFIRMED — the orchestrator's PRIOR SESSION FINDING (from session 1) was stale; sessions s77-79 already fixed the pipeline by adding BodyFactsExtractor and hardening auto-extract fallback. Fresh gate battery (Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS) and focused CLI trace (`analyze --focus "POST /basket/checkout"`) both confirm: BusPublishDetector creates `raises BasketCheckoutEvent`, Type→Service bridge connects to `consumes BasketCheckoutEventHandler` (Ordering.Application), trace follows to `send CreateOrderCommand` at depth 6. Phase A has zero incomplete checkpoints — all work for stage A is done. Next sessio…
 
 ## Tracker handoff
 
 ```
-last: Phase A s79 QA-verified (attempt 5/6). Fresh gate battery green + CLI analyze trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on real dogfood repo.
-stage: Phase A VERIFIED (A1 DONE, 6/6 attempts done). No incomplete checkpoints remain in Phase A.
+last: s10 QA re-audit — fresh gate battery + focused checkout trace confirm Phase A valid. Orchestrator's "PRIOR SESSION FINDING" was stale (from s1, before s77-79 added BodyFactsExtractor + auto-extract fallback). Raises edge + Type→Service bridge active on real dogfood.
+stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10). No incomplete checkpoints.
 next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS.
-evidence: eval-results/2026-07-10/phase-A-s79-fresh-qa.txt (fresh gate + CLI analyze trace)
+evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (fresh gate + CLI focus trace + QA verdict)
 
 
 ---
