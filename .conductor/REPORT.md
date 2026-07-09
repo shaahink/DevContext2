@@ -1,6 +1,6 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 17:57 UTC · branch `feat/loom-l7` · HEAD `d0ab4de`_
+_Updated 2026-07-09 18:44 UTC · branch `feat/loom-l7` · HEAD `0a57551`_
 
 **Status:** NeedsHuman — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 **Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
@@ -65,8 +65,8 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md, D .conductor/handovers/L8.md (+4 more)
-vs upstream: 2 ahead
+working tree: D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md, D .conductor/handovers/L8.md (+5 more)
+vs upstream: 3 ahead
 ```
 
 ### Commits by session
@@ -88,18 +88,12 @@ build:OK · tests:OK · truth:OK
 ## Tracker handoff
 
 ```
-last: Phase A s74 — Type→Service bridge added in OutEdgesWithTwin() + SelectBestSpineEdge().
-       Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions.
-       FINDING: Raises edge (handler→BasketCheckoutEvent) NOT created by current pipeline.
-       BusPublishDetector passes unit test but fails on real dogfood — root cause TBD.
-       Without the Raises edge, the Type→Service bridge can't activate (trace stops before
-       event node). [TruthPending("L2")] left in place.
+last: Phase A s74 — Type→Service bridge coded in OutEdgesWithTwin() + SelectBestSpineEdge() (commit 4d997d9). Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions.
+FINDING: Raises edge (handler→BasketCheckoutEvent) NOT created by current pipeline. BusPublishDetector passes unit test (SeamDetectorTests.Use) but fails on real dogfood.
+DO NOT rewrite bridge — it's correct. Instead, investigate WHY BusPublishDetector misses the real handler: trace BodyFactExtractor pipeline for CheckoutBasketCommandHandler. Check AddSeamsFromDetectors→BodyFactExtractor flow. Compare synthetic test type vs real file-derived type (SourceBody difference? TypeDiscovery filtering?). Add diagnostic logging to BodyFactExtractor to see why handler type isn't processed.
 stage: Phase A IN PROGRESS — A1 bridge coded but blocked on missing Raises edge.
-next: Investigate why BusPublishDetector doesn't create Raises edge for dogfood handler
-       (BodyFactExtractor may not process handler type correctly for real analysis).
-trap: The unit test CheckoutHandler works; real analysis doesn't — likely TypeDiscovery
-       SourceBody issue in the pipeline.
-docs: docs/workflows/loom-gap-close-plan.md Phase A; evidence eval-results/2026-07-09/
+next: Investigate BusPublishDetector activation on dogfood. Read docs/design-reviews/R1-L0-L3.md:62-66 for history.
+trap: The unit test CheckoutHandler works; real analysis doesn't — likely TypeDiscovery SourceBody issue in the pipeline.
 
 
 ---
