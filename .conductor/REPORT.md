@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 14:19 UTC · branch `feat/loom-l7` · HEAD `6ad1ca9`_
+_Updated 2026-07-09 14:19 UTC · branch `feat/loom-l7` · HEAD `db48038`_
 
 **Status:** Idle — 
-**Stage:** R3 — Design Review: L7+L8 + system contracts · attempts used 2
+**Stage:** R3 — Design Review: L7+L8 + system contracts · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 71 · **Cost:** $4.2916 · **Tokens:** 4,436,799 in / 840,511 out / 634,405 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8, D9, R1, R2
+**⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8, D9, R1, R2, R3
 
 ## Stage progress
 
@@ -23,7 +23,7 @@ _Updated 2026-07-09 14:19 UTC · branch `feat/loom-l7` · HEAD `6ad1ca9`_
 | D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | SKIPPED ⚠ |
 | R1 | Design Review: L0+L1+L2 | 0/0 | SKIPPED ⚠ |
 | R2 | Design Review: L4+L5+L6 | 0/0 | SKIPPED ⚠ |
-| R3 | Design Review: L7+L8 + system contracts | 0/0 | **← active** |
+| R3 | Design Review: L7+L8 + system contracts | 0/0 | SKIPPED ⚠ |
 | QA | Final QA Driver — full live drive + bugfix plan | 0/0 | todo |
 
 ## Sessions
