@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 03:57 UTC · branch `feat/loom-l7` · HEAD `fd46006`_
+_Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
 
 **Status:** Idle
-**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 2
+**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 53 · **Cost:** $3.5086 · **Tokens:** 3,498,076 in / 688,508 out / 508,503 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1, D2, D3, D4
+**⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5
 
 ## Stage progress
 
@@ -16,7 +16,7 @@ _Updated 2026-07-09 03:57 UTC · branch `feat/loom-l7` · HEAD `fd46006`_
 | D2 | L3.5 — TodoApi eval gap triage | 0/0 | SKIPPED ⚠ |
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | SKIPPED ⚠ |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | SKIPPED ⚠ |
-| D5 | L0.4 — Truth gate auto-enforcement | 0/0 | **← active** |
+| D5 | L0.4 — Truth gate auto-enforcement | 0/0 | SKIPPED ⚠ |
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
 | D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | todo |
 | D8 | L4.5 — Flow model hardening | 0/0 | todo |
