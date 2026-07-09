@@ -6,16 +6,17 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: R2 QA-verified (s68). Gate battery green (build 0w/0e, Truth 8P/0F/3S,
-      pnpm check PASS, loom-guards 0 banned). 15/15 s66 checkpoint ratings confirmed
-      by fresh code inspection vs design doc. 0 DEVIATES. 2 CONFORMS-WITH-FINDINGS.
-      Evidence: eval-results/2026-07-09/R2-QA-gate-s68.txt.
-stage: **R3 queued** — review L7+L8+system-level contracts. Report target:
-       docs/design-reviews/R3-L7-L8.md. QA Driver (cp #13) follows R3.
-next: R3 — reads loom-graph-design.md §6-8 + proposal-loom.md §L7-L8+cross-cutting
-      + HANDOVER-LOOM.md §L7-L8 + HANDOVER-MERIDIAN.md. System contract audit:
-      Laws R1/R2, SymbolId gate, no-regex gate, NodeId.ForType advisory, honesty surfaces.
-trap: L2.4 checkout trace fix (~45-60 min) queued for after R3.
+last: R3 completed (s70). Design review report: docs/design-reviews/R3-L7-L8.md.
+      L7: 3P/4 (PASS-WITH-FINDINGS — L7.1 spine-depth metric missing). L8: 1/1
+      (PASS-WITH-FINDINGS — evidence freshness). Contracts: 9/10 CONFORMS, 1 DEVIATES
+      (fixed this session — baseline truth count was stale). 12/14 CONFORMS overall.
+      R2 QA re-confirmed (0 DEVIATES, 2 CONFORMS-WITH-FINDINGS). 7 remediation items
+      sized at ~4 sessions. Gate battery green (build 0w/0e, Truth 8P/3S, pnpm check
+      PASS, loom-guards 0 banned).
+stage: **QA Driver (cp #13) next** — live UI + CLI + MCP drive per loom-debt-workflow.md
+       Phase 3 protocol. Screenshots + product claims verification.
+trap: L2.4 checkout trace fix remains the single code DEVIATES across all 3 reviews.
+      L8 cold-agent QA + UI drive evidence not re-run fresh.
 
 
 ---
@@ -64,7 +65,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 |---|-----------|--------|----------|
 | 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (QA-verified s67) | `docs/design-reviews/R1-L0-L3.md` + `eval-results/2026-07-09/R1-QA-gate-s67.txt` |
 | 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE (QA-verified s68) | `docs/design-reviews/R2-L4-L6.md` (s66) + `eval-results/2026-07-09/R2-QA-gate-s68.txt` |
-| 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
+| 12 | R3 — L7+L8 + system-level contracts review | DONE (s70) | `docs/design-reviews/R3-L7-L8.md` + `eval-results/2026-07-09/R3-gate-s70.txt` |
 
 ### Phase 3: Final QA
 
@@ -82,7 +83,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | Checkout trace depth | 6 (L2.4) |
 | Cold-agent MCP actionability | 90% (L5.5) |
 | Tab strip height | 32px (L6.1) |
-| Truth tests | 9P/2F/0S (DntSite cloned — was skip, now passes. 2 failures flagged for Phase 2 review) |
+| Truth tests | 8P/3S (3 [TruthPending] ratchets: L1 server names, L2 checkout flow, L1 RazorPages; DntSite passes) |
 | eShop (non-CQRS proxy) | 479 nodes · 375 edges · 96 entries |
 
 ## Quick commands

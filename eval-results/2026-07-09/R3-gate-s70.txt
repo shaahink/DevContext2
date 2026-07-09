@@ -1,0 +1,42 @@
+R3 Gate Battery — s70 (2026-07-09 14:58:26)
+
+== dotnet build ==
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.81
+
+== dotnet test Category!=Eval ==
+Total tests: 14
+Total tests: 64
+Total tests: 443
+
+== Truth tests ==
+A total of 1 test files matched the specified pattern.
+  Passed DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [12 s]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Library_archetype_has_public_surface [312 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_service_names_are_full_and_runnables_only [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Dogfood_checkout_flow_traces_cross_service_depth_ge_5 [1 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.TodoApi_baseline_presence_ok [209 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [8 s]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [3 s]
+  Passed DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [584 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Dogfood_baseline_presence_ok [524 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+  Passed DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [1 s]
+Total tests: 11
+     Passed: 8
+    Skipped: 3
+ Total time: 28.3844 Seconds
+    0 Error(s)
+
+== loom-guards ==
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+
+Done.
