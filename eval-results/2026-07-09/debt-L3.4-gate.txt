@@ -1,0 +1,32 @@
+
+D6 L3.4 — GATE EVIDENCE
+========================
+Date: 2026-07-09 05:14:21
+Session: D6 (L3.4 TfmScore net10.0+) 
+Attempt: 1/2
+
+ARTIFACTS:
+1. TfmScore generically handles net\d+\.\d+ pattern (span-based, no allocations)
+2. 17 new SemanticLitePopulatorTests (net10.0=100, net9.0=90, net8.0=80, ..., net45=10 fallback)
+3. Dogfood SemanticLite pass: total analysis ~4.1s (within budget =4.0s)
+4. HasBindDemand profiled — BodyFactsExtractor 31ms, CallGraphExtractor 1068ms, total SpecificExtraction 1221ms
+5. DntSite absent on this machine — documented honestly per conductor protocol
+
+CHANGES:
+- src/DevContext.Core/Graph2/SemanticLitePopulator.cs: TfmScore made internal, span-based generic netX.Y parsing
+- tests/DevContext.Core.Tests/Graph2/SemanticLitePopulatorTests.cs: 17 theory/fact tests
+
+GATE BATTERY (fresh run):
+- dotnet build: 0w/0e ?
+- dotnet test --filter Category!=Eval: 431P/3S/0F ?
+- loom-guards.ps1: 0 banned patterns, 0 truth failures ?
+- pnpm check: 5 test files, 27 tests pass, build ?
+
+TRUTH RATCHET:
+- 0 truth failures (skips are the pending ratchet) ?
+- Advisory: 13 NodeId.ForType (unchanged) ?
+
+D5 QA RE-VERIFY:
+- D5 (L0.4) claims re-verified: truth gate wired in loom-guards.ps1, all 11 Skip.IfNot guards confirmed, no silent returns.
+- Commit 92c85b3 genuinely landed. QA verdict: PASS.
+

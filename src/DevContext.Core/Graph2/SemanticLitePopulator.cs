@@ -289,15 +289,30 @@ public static class SemanticLitePopulator
     }
 
     /// <summary>Ranks a <c>lib/&lt;tfm&gt;/x.dll</c> path so the newest compatible target framework wins
-    /// when a package ships several. Higher is better; unknown TFMs score lowest.</summary>
-    private static int TfmScore(string libRelativePath)
+    /// when a package ships several. Higher is better; unknown TFMs score lowest.
+    /// Parses <c>netMAJOR.MINOR</c> generically (net5.0–net99.0) so the repo's own TFM
+    /// never falls off the end of a hard-coded list.</summary>
+    internal static int TfmScore(string libRelativePath)
     {
+        var s = libRelativePath.AsSpan();
+        var idx = s.LastIndexOf("/net".AsSpan(), StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+        {
+            var tfm = s.Slice(idx + 4);
+            if (tfm.Length > 0 && tfm[0] >= '0' && tfm[0] <= '9')
+            {
+                var dotIdx = tfm.IndexOf('.');
+                if (dotIdx > 0
+                    && dotIdx + 1 < tfm.Length
+                    && tfm[dotIdx + 1] >= '0' && tfm[dotIdx + 1] <= '9'
+                    && int.TryParse(tfm.Slice(0, dotIdx), out var major)
+                    && int.TryParse(tfm.Slice(dotIdx + 1, 1), out var minor))
+                {
+                    return major * 10 + minor;
+                }
+            }
+        }
         var p = libRelativePath.ToLowerInvariant();
-        if (p.Contains("/net9.")) return 90;
-        if (p.Contains("/net8.")) return 80;
-        if (p.Contains("/net7.")) return 70;
-        if (p.Contains("/net6.")) return 60;
-        if (p.Contains("/net5.")) return 50;
         if (p.Contains("/netcoreapp")) return 40;
         if (p.Contains("/netstandard2.1")) return 31;
         if (p.Contains("/netstandard2.0")) return 30;
