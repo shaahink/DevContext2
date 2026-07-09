@@ -6,12 +6,12 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: D6 (L3.4) — TfmScore now generic span-based netX.Y parsing (net10.0=100).
-       17 SemanticLitePopulatorTests pass. Dogfood SemanticLite ~4.1s total (≤4.0s budget).
-       HasBindDemand profiled: BodyFacts 31ms, CallGraph 1068ms, total SpecExtract 1221ms.
-       DntSite absent on this machine — documented honestly per conductor protocol.
-stage: D6 COMPLETE. Next: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
-trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable.
+last: D6 (L3.4) attempt 2/2 — TfmScore now generic span-based netX.Y parsing (multi-digit minors).
+        18 SemanticLitePopulatorTests pass (incl. net10.10 multi-digit). Dogfood total 3.6s warm (≤4.0s).
+        Stopwatch instrumentation added around Populate + UpgradeCallEdges for benchmark tracing.
+        DntSite absent — documented honestly. QA of attempt 1: PASS-WITH-FINDINGS (evidence sloppy, fixed).
+stage: D6 COMPLETE (reattempt). Next: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
+trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
 
@@ -48,7 +48,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 3 | L5.x — Audit-trap sweep (5 items) | DONE | `eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt`, attempt3 re-verified s49 |
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
 | 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) + QA `debt-L0.4-QA-gate-s54.txt` |
-| 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate.txt` |
+| 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate-attempt2.txt` |
 | 7 | L2.5 — Lambda scope pollution + SeamContext dedup | TODO | `eval-results/<date>/debt-L2.5-gate.txt` |
 | 8 | L4.5 — Flow model hardening | TODO | `eval-results/<date>/debt-L4.5-gate.txt` |
 | 9 | L1.6 — SymbolTable member indexing | TODO | `eval-results/<date>/debt-L1.6-gate.txt` |

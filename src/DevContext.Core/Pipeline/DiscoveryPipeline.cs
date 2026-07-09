@@ -119,10 +119,14 @@ public sealed class DiscoveryPipeline
         SemanticLiteResult? semanticLiteResult = null;
         if (context.Options.BuildFullGraph || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full)
         {
+            var populateMs = 0.0;
+            var upgradeMs = 0.0;
             try
             {
+                var slSw = Stopwatch.StartNew();
                 semanticLiteResult = SemanticLitePopulator.Populate(
                     model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
+                populateMs = slSw.Elapsed.TotalMilliseconds;
 
                 // L3.3 — Upgrade CallEdges using the merged compilation (with NuGet refs) so cross-project
                 // calls that the per-file CallGraphExtractor couldn't resolve get verified Semantic edges.
@@ -153,9 +157,11 @@ public sealed class DiscoveryPipeline
                             catch { }
                         }
 
+                        var ceSw = Stopwatch.StartNew();
                         var existing = model.CallEdges.ToList();
                         var upgraded = SemanticLitePopulator.UpgradeCallEdges(
                             existing, tierBCompilation, allTrees, fileToProject);
+                        upgradeMs = ceSw.Elapsed.TotalMilliseconds;
                         var upgradedCount = upgraded.Count(e => e.Resolution == Resolution.Semantic)
                                            - existing.Count(e => e.Resolution == Resolution.Semantic);
                         if (upgradedCount > 0)
@@ -182,7 +188,7 @@ public sealed class DiscoveryPipeline
                         $"tier routing — A (syntax): {semanticLiteResult.ProjectsDegraded} project(s), "
                         + $"B (semantic-lite): {semanticLiteResult.ProjectsWithAssets} project(s); "
                         + $"compilation={semanticLiteResult.CompilationBuilt} trees={semanticLiteResult.TreeCount} "
-                        + $"refs={semanticLiteResult.ReferenceCount}; upgraded "
+                        + $"refs={semanticLiteResult.ReferenceCount}; timing populate={populateMs:F0}ms upgrade-edges={upgradeMs:F0}ms; upgraded "
                         + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
                         + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
                         + $"+ {semanticLiteResult.ArgTypesResolved} arg-type "

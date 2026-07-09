@@ -305,10 +305,13 @@ public static class SemanticLitePopulator
                 if (dotIdx > 0
                     && dotIdx + 1 < tfm.Length
                     && tfm[dotIdx + 1] >= '0' && tfm[dotIdx + 1] <= '9'
-                    && int.TryParse(tfm.Slice(0, dotIdx), out var major)
-                    && int.TryParse(tfm.Slice(dotIdx + 1, 1), out var minor))
+                    && int.TryParse(tfm.Slice(0, dotIdx), out var major))
                 {
-                    return major * 10 + minor;
+                    var minorEnd = dotIdx + 1;
+                    while (minorEnd < tfm.Length && tfm[minorEnd] >= '0' && tfm[minorEnd] <= '9')
+                        minorEnd++;
+                    if (int.TryParse(tfm.Slice(dotIdx + 1, minorEnd - dotIdx - 1), out var minor))
+                        return major * 10 + minor;
                 }
             }
         }

@@ -55,4 +55,10 @@ public sealed class SemanticLitePopulatorTests
         var score9 = SemanticLitePopulator.TfmScore("lib/net9.0/b.dll");
         Assert.True(score10 > score9);
     }
+
+    [Fact]
+    public void Multi_digit_minor_is_parsed()
+    {
+        Assert.Equal(10 * 10 + 10, SemanticLitePopulator.TfmScore("lib/net10.10/Foo.dll"));
+    }
 }
