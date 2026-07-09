@@ -18,7 +18,8 @@ public sealed class SymbolTable
 
     public SymbolTable(
         IEnumerable<TypeDiscovery> types,
-        Func<string, string?>? fileToProject = null)
+        Func<string, string?>? fileToProject = null,
+        IEnumerable<BodyFacts>? bodyFacts = null)
     {
         _fileToProject = fileToProject;
         _fqns = new HashSet<string>(StringComparer.Ordinal);
@@ -27,22 +28,42 @@ public sealed class SymbolTable
         _namespaceByFqn = new Dictionary<string, string>(StringComparer.Ordinal);
         _candidateCounts = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        if (types is null) return;
-
-        foreach (var t in types)
+        if (types is not null)
         {
-            _fqns.Add(t.Id);
-            if (!_byShort.TryGetValue(t.Name, out var list))
-                _byShort[t.Name] = list = [];
-            if (!list.Contains(t.Id)) list.Add(t.Id);
+            foreach (var t in types)
+            {
+                _fqns.Add(t.Id);
+                if (!_byShort.TryGetValue(t.Name, out var list))
+                    _byShort[t.Name] = list = [];
+                if (!list.Contains(t.Id)) list.Add(t.Id);
 
-            var proj = fileToProject?.Invoke(t.FilePath) ?? "";
-            var key = (t.Name, proj);
-            if (!_byProject.TryGetValue(key, out var plist))
-                _byProject[key] = plist = [];
-            if (!plist.Contains(t.Id)) plist.Add(t.Id);
+                var proj = fileToProject?.Invoke(t.FilePath) ?? "";
+                var key = (t.Name, proj);
+                if (!_byProject.TryGetValue(key, out var plist))
+                    _byProject[key] = plist = [];
+                if (!plist.Contains(t.Id)) plist.Add(t.Id);
 
-            _namespaceByFqn[t.Id] = t.Namespace;
+                _namespaceByFqn[t.Id] = t.Namespace;
+            }
+        }
+
+        if (bodyFacts is not null)
+        {
+            foreach (var body in bodyFacts)
+            {
+                var canonical = body.Member.Canonical;
+                _fqns.Add(canonical);
+
+                if (!_byShort.TryGetValue(body.MemberName, out var list))
+                    _byShort[body.MemberName] = list = [];
+                if (!list.Contains(canonical)) list.Add(canonical);
+
+                var project = body.Project ?? fileToProject?.Invoke(body.File ?? "") ?? "";
+                var key = (body.MemberName, project);
+                if (!_byProject.TryGetValue(key, out var plist))
+                    _byProject[key] = plist = [];
+                if (!plist.Contains(canonical)) plist.Add(canonical);
+            }
         }
 
         foreach (var (shortName, fqns) in _byShort)
@@ -75,12 +96,12 @@ public sealed class SymbolTable
             if (_fqns.Contains(bound.Canonical))
                 return r;
             if (_byShort.TryGetValue(r.Text, out var inScope) && inScope.Count == 1)
-                return r with { Resolved = new SymbolId(SymbolKind.Type, inScope[0]) };
+                return r with { Resolved = new SymbolId(KindFromCanonical(inScope[0]), inScope[0]) };
             return r;
         }
 
         if (_fqns.Contains(r.Text))
-            return r with { Resolved = new SymbolId(SymbolKind.Type, r.Text), Tier = ResolutionTier.Declared };
+            return r with { Resolved = new SymbolId(KindFromCanonical(r.Text), r.Text), Tier = ResolutionTier.Declared };
 
         var project = _fileToProject?.Invoke(r.Site.File) ?? r.Site.Project;
         if (!string.IsNullOrEmpty(project))
@@ -89,13 +110,13 @@ public sealed class SymbolTable
             if (_byProject.TryGetValue(key, out var sameProject) && sameProject.Count == 1)
                 return r with
                 {
-                    Resolved = new SymbolId(SymbolKind.Type, sameProject[0]),
+                    Resolved = new SymbolId(KindFromCanonical(sameProject[0]), sameProject[0]),
                     Tier = ResolutionTier.ProjectScoped,
                 };
             if (sameProject is { Count: > 1 })
             {
                 var ids = sameProject.Select(
-                    fqn => new SymbolId(SymbolKind.Type, fqn)).ToImmutableArray();
+                    fqn => new SymbolId(KindFromCanonical(fqn), fqn)).ToImmutableArray();
                 return r with
                 {
                     Candidates = ids,
@@ -112,13 +133,13 @@ public sealed class SymbolTable
             var first = fqns.First();
             return r with
             {
-                Resolved = new SymbolId(SymbolKind.Type, first),
+                Resolved = new SymbolId(KindFromCanonical(first), first),
                 Tier = ResolutionTier.GlobalUnique,
             };
         }
 
         var candidates = fqns.Select(
-            fqn => new SymbolId(SymbolKind.Type, fqn)).ToImmutableArray();
+            fqn => new SymbolId(KindFromCanonical(fqn), fqn)).ToImmutableArray();
         return r with
         {
             Candidates = candidates,
@@ -136,6 +157,9 @@ public sealed class SymbolTable
         var dot = fqn.LastIndexOf('.');
         return dot > 0 ? fqn[..dot] : fqn;
     }
+
+    private static SymbolKind KindFromCanonical(string canonical)
+        => canonical.Contains("::") ? SymbolKind.Member : SymbolKind.Type;
 }
 
 internal sealed class ByProjectComparer : IEqualityComparer<(string ShortName, string Project)>

@@ -252,4 +252,92 @@ public sealed class SymbolTableTests
     }
 
     private static RefSite Ref(string file, string project = "") => new() { File = file, Line = 1, Project = project };
+
+    private static BodyFacts BF(string typeFqn, string memberName, int paramCount, string file, string project)
+        => new(new SymbolId(SymbolKind.Member, $"{typeFqn}::{memberName}({paramCount})"), memberName, ImmutableArray<BodyOp>.Empty)
+        {
+            File = file,
+            Project = project,
+        };
+
+    // ── L1.6: Member resolution ──
+
+    [Fact]
+    public void Resolves_member_fqn_as_declared()
+    {
+        var table = new SymbolTable([], null, [BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API")]);
+        var r = table.Resolve(new SymbolRef { Text = "Basket.API.Controllers.BasketController::Post(1)", Site = Ref("") });
+        Assert.Equal(ResolutionTier.Declared, r.Tier);
+        Assert.Equal(SymbolKind.Member, r.Resolved?.Kind);
+    }
+
+    [Fact]
+    public void Resolves_unique_member_short_name_as_global_unique()
+    {
+        var table = new SymbolTable([], null, [BF("Basket.API.Controllers.BasketController", "Checkout", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API")]);
+        var r = table.Resolve(new SymbolRef { Text = "Checkout", Site = Ref("") });
+        Assert.Equal(ResolutionTier.GlobalUnique, r.Tier);
+        Assert.Equal(SymbolKind.Member, r.Resolved?.Kind);
+    }
+
+    [Fact]
+    public void Resolves_member_project_scoped()
+    {
+        var table = new SymbolTable(
+            [],
+            ProjectMapper,
+            [
+                BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API"),
+                BF("Catalog.API.Controllers.CatalogController", "Post", 2, "/src/Catalog/Controllers/CatalogController.cs", "Catalog.API"),
+            ]);
+        var r = table.Resolve(new SymbolRef { Text = "Post", Site = Ref("/src/Basket/Controllers/Checkout.cs") });
+        Assert.Equal(ResolutionTier.ProjectScoped, r.Tier);
+        Assert.Equal(SymbolKind.Member, r.Resolved?.Kind);
+        Assert.Equal("Basket.API.Controllers.BasketController::Post(1)", r.Resolved?.Canonical);
+    }
+
+    [Fact]
+    public void Detects_member_ambiguity_when_same_short_name_in_multiple_projects()
+    {
+        var table = new SymbolTable(
+            [],
+            ProjectMapper,
+            [
+                BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API"),
+                BF("Catalog.API.Controllers.CatalogController", "Post", 2, "/src/Catalog/Controllers/CatalogController.cs", "Catalog.API"),
+            ]);
+        var r = table.Resolve(new SymbolRef { Text = "Post", Site = Ref("/src/Shared/Utils.cs") });
+        Assert.Equal(ResolutionTier.Ambiguous, r.Tier);
+        Assert.Null(r.Resolved);
+        Assert.Equal(2, r.Candidates.Length);
+        Assert.All(r.Candidates, c => Assert.Equal(SymbolKind.Member, c.Kind));
+    }
+
+    [Fact]
+    public void Type_and_member_with_same_short_name_are_ambiguous()
+    {
+        var table = new SymbolTable(
+            [T("Basket.API.Models.Post", "Post", "Basket.API.Models", "/src/Basket/Models/Post.cs")],
+            ProjectMapper,
+            [BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API")]);
+        var r = table.Resolve(new SymbolRef { Text = "Post", Site = Ref("/src/Shared/Utils.cs") });
+        Assert.Equal(ResolutionTier.Ambiguous, r.Tier);
+        Assert.Equal(2, r.Candidates.Length);
+    }
+
+    [Fact]
+    public void Member_is_known_fqn()
+    {
+        var canonical = "Basket.API.Controllers.BasketController::Post(1)";
+        var table = new SymbolTable([], null, [BF("Basket.API.Controllers.BasketController", "Post", 1, "/src/Basket/Controllers/BasketController.cs", "Basket.API")]);
+        Assert.True(table.IsKnownFqn(canonical));
+    }
+
+    [Fact]
+    public void Type_not_resolved_as_member_when_no_member_indexed()
+    {
+        var table = new SymbolTable([T("Basket.API.CheckoutBasketCommand", "CheckoutBasketCommand", "Basket.API", "/src/Basket/Checkout.cs")], ProjectMapper);
+        var r = table.Resolve(new SymbolRef { Text = "CheckoutBasketCommand", Site = Ref("") });
+        Assert.Equal(SymbolKind.Type, r.Resolved?.Kind);
+    }
 }

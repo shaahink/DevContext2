@@ -1616,7 +1616,7 @@ public sealed class GraphBuilder
                 knownEntities.Add(node.Title);
         }
 
-        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, knownEntities);
+        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, knownEntities, allBodyFacts);
 
         var detectors = new ISeamDetector[]
         {
@@ -1800,7 +1800,7 @@ public sealed class GraphBuilder
         IReadOnlyList<BodyFacts>? upgradedFacts)
     {
         var (integrationTypes, domainTypes) = BuildTypeEventSets(model);
-        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, ImmutableHashSet<string>.Empty);
+        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, ImmutableHashSet<string>.Empty, upgradedFacts);
 
         // L3.2/L3.3 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in
         // the Tier-B compilation), so its ops carry only syntactic types. Re-attach the semantic tier that the
@@ -2422,11 +2422,11 @@ public sealed class GraphBuilder
 
     private static SeamContext BuildSeamContext(DiscoveryModel model, SolutionScope scope,
         IEnumerable<string> integrationEventTypes, IEnumerable<string> domainEventTypes,
-        IEnumerable<string> knownEntities)
+        IEnumerable<string> knownEntities, IReadOnlyList<BodyFacts>? bodyFacts = null)
     {
         return new SeamContext
         {
-            Symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile),
+            Symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile, bodyFacts),
             KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
             IntegrationEventTypes = integrationEventTypes.ToImmutableHashSet(StringComparer.Ordinal),
             DomainEventTypes = domainEventTypes.ToImmutableHashSet(StringComparer.Ordinal),

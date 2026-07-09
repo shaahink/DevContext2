@@ -6,11 +6,13 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: D8 (L4.5) — s60 QA + hardening: found D8 done in s58 but missing depth-warning
-        diagnostic. Fixed: FlowTruncated warning in DiscoveryPipeline.cs (DiagnosticLevel.Warning,
-        caps 5 IDs). All gates green (433P Core, 14P Server, 8P Truth). D8 fully verified DONE.
-stage: D8 DONE (s60). Next: D9 (L1.6 — SymbolTable member indexing, RefSite.FromType removal).
+last: D9 (L1.6) — s61 member indexing: SymbolTable indexes Member symbols from BodyFacts
+        pipeline. KindFromCanonical helper ("::" → Member). Resolve now produces correct
+        SymbolKind. RefSite.FromType deleted (0 callers). 7 new tests (26 total SymbolTable).
+        All gates green (440P Core, 14P Server, 64P Desktop, 8P Truth).
+stage: D9 DONE (s61). All 9 debt items COMPLETE. Next: Phase 2 — R1 design review (session 10).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
+note: Merge (#4) remains TODO — orchestrator deferred for coordinated PR.
 
 ---
 
@@ -50,7 +52,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate-attempt2.txt` |
 | 7 | L2.5 — Lambda scope pollution + SeamContext dedup | DONE | `eval-results/2026-07-09/debt-L2.5-gate.txt` (s56), re-verified `eval-results/2026-07-09/debt-L2.5-gate-s59.txt` |
 | 8 | L4.5 — Flow model hardening | DONE | `eval-results/2026-07-09/debt-L4.5-gate-s60.txt` |
-| 9 | L1.6 — SymbolTable member indexing | TODO | `eval-results/<date>/debt-L1.6-gate.txt` |
+| 9 | L1.6 — SymbolTable member indexing | DONE | `eval-results/2026-07-09/debt-L1.6-gate.txt` |
 
 ### Phase 2: Static Design Review
 
