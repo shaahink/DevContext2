@@ -1,0 +1,47 @@
+D9 L1.6 QA VERDICT (s62) — Session #61 Work Verified
+=====================================================
+Date: 2026-07-09
+Session: s62 (QA auditor for D9, launched as attempt 2/2)
+Branch: feat/loom-l7
+
+GATE BATTERY (fresh re-run):
+- dotnet build: 0w/0e ?
+- dotnet test --filter Category!=Eval:
+  Core: 440P/0F/3S ? (s61 claimed 440P/3S)
+  Server: 14P/0F/0S ?
+  Desktop: 64P/0F/0S ?
+- dotnet test --filter Category=Truth: 8P/0F/3S ?
+- loom-guards.ps1: 0 banned, 13 advisory ?
+
+CLAIM-BY-CLAIM AUDIT:
+1. SymbolTable indexes Member symbols from BodyFacts ?
+   - Constructor accepts IEnumerable<BodyFacts>? bodyFacts parameter
+   - Members indexed by canonical (FQN), short name, and project
+   - KindFromCanonical(): "::" ? Member, else Type
+   - All 6 Resolve() paths use KindFromCanonical()
+
+2. GraphBuilder passes bodyFacts to SymbolTable ?
+   - BuildSeamContext() accepts IReadOnlyList<BodyFacts>? bodyFacts
+   - Both call sites (AddSeamsFromDetectors, AddLambdaSeams) pass bodyFacts
+   - SymbolTable constructed at GraphBuilder.cs:2429 with bodyFacts
+
+3. RefSite.FromType deleted ?
+   - grep confirms 0 source-code callers (only doc references)
+   - RefSite.cs: 8 lines, record only, no FromType method
+
+4. 7 new member resolution tests ?
+   - Resolves_member_fqn_as_declared
+   - Resolves_unique_member_short_name_as_global_unique
+   - Resolves_member_project_scoped
+   - Detects_member_ambiguity_when_same_short_name_in_multiple_projects
+   - Type_and_member_with_same_short_name_are_ambiguous
+   - Member_is_known_fqn
+   - Type_not_resolved_as_member_when_no_member_indexed
+   All 7 pass; total SymbolTable tests: 26 (19 pre + 7 new)
+
+5. SymbolKind.Endpoint: 0 usages in codebase. Not gated for L1.6
+   (conductor-DEBT.md gate: "at minimum Member symbols"). BodyFacts does
+   not distinguish members from endpoints — that lives in EntryPointBuilder.
+
+QA VERDICT: D9 L1.6 GENUINELY DONE. All 9 Phase 1 checkpoints COMPLETE.
+Next: Phase 2 — R1 design review (L0+L1+L2). Merge (#4) remains TODO.
