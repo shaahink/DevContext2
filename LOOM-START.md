@@ -6,16 +6,15 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 1 (L0.5) DONE. B9 rank-quality probe excluded from failure-actionability
-       denominator (now 9/11=82%, was 10/12=83%). checkBootLiveness() added to
-       ui-audit-drive.mjs — dead env exits non-zero with "GATE FAILED (boot-liveness)".
-       Guards green. No engine changes.
+last: Session 1 (L0.5) QA-VERIFIED (attempt 2). B9 rank-quality probe excluded from
+       failure-actionability denominator (10/11=91%, was 10/12=83%). checkBootLiveness()
+       in ui-audit-drive.mjs verified: dead env exits non-zero with --gate, "GATE FAILED
+       (boot-liveness)". All gates green: build 0w/0e, tests 0F, pnpm check green, guards
+       clean. Fresh evidence recorded.
 stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done.
 next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
-trap: (1) AGENTS.md protocol still applies. Selective gates only.
-       (2) 2 truth test failures flagged (checkout trace + RazorPages fab) still
-       open — Phase 2 design review.
-       (3) Branch stays feat/loom-l7 (merge is Session 4).
+trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
+       (2) 2 truth failures flagged (checkout trace + RazorPages fab) — Phase 2 review.
 evidence: eval-results/2026-07-09/debt-L0.5-gate.txt (+ mcp-cold-qa.md, ui-gate.md)
 
 ---

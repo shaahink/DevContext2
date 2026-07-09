@@ -13,10 +13,10 @@ scored on (a) does it say what was wrong, and (b) does it give a copyable next s
 ## Actionability
 
 **Failure-actionability probes:** 11 (rank-quality probes excluded)  
-**Actionable failures: 9/11 (82%)**  
+**Actionable failures: 10/11 (91%)**  
 False-successes (silent wrong answers): 0  
 Opaque errors (no next step): 0  
-Gate (L5.5 ≥90%): BELOW — baseline, gate arms in L5.5  
+Gate (L5.5 ≥90%): PASS  
 Rank-quality probes (excluded from failure denominator): B9-find-noise-query  
 rank-quality (B9 find "Order"): top="Order" aggregate#1=true results=20  
 
@@ -24,9 +24,9 @@ rank-quality (B9 find "Order"): top="Order" aggregate#1=true results=20
 
 | Probe | Phase | Intent | Type | Verdict | Signaled | NextStep | Response (truncated) |
 |-------|-------|--------|------|---------|----------|----------|----------------------|
-| A1-overview-no-handle | A | overview before analyze | failure | unactionable | false | false | {"handle":"828cf781f2e44bab9a7f922f38761927","tokens":199,"text":"App: Discount.Grpc (gRPC |
-| A2-trace-no-handle | A | trace before analyze | failure | actionable | true | true | {"error":"No entry or node matched 'checkout'.","hint":"Did you mean one of these? Use an  |
-| A3-resolve-no-handle | A | resolve before analyze | failure | actionable | true | true | {"query":"Order","count":10,"ambiguous":true,"candidates":[{"nodeId":"Type:Ordering.Domain |
+| A1-overview-no-handle | A | overview before analyze | failure | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
+| A2-trace-no-handle | A | trace before analyze | failure | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
+| A3-resolve-no-handle | A | resolve before analyze | failure | actionable | true | true | {"error":"No active session. Run analyze first. Example: analyze(\"C:/repos/MyApp\")","hin |
 | B1-nonexistent-tool | B | call a tool that does not exist | failure | actionable | true | true | {"error":"Unknown tool 'dependencies'.","hint":"Use one of availableTools.","example":"ove |
 | B2-trace-nl-focus | B | natural-language focus | failure | actionable | true | true | {"error":"No entry or node matched 'how does checkout work'.","hint":"Did you mean one of  |
 | B3-impact-madeup | B | impact of a symbol that does not exist | failure | actionable | true | true | {"error":"Symbol 'TotallyMadeUpType' not found — not the same as zero impact.","hint":"Use |

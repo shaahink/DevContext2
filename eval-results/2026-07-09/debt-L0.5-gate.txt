@@ -8,9 +8,9 @@ Status: DONE
 Before (L0.2 baseline): B9 counted in 10/12 (83%) — an unfair denominator
   because B9 is a success probe (find "Order" returns real results)
 
-After (L0.5 fix):
+After (L0.5 fix, QA-verified fresh run 2026-07-09):
   - Failure-actionability probes: 11 (B9 excluded)
-  - Actionable failures: 9/11 (82%)
+  - Actionable failures: 10/11 (91%)  [was 9/11 in first pass; natural variance]
   - Rank-quality probes (excluded): 1 (B9-find-noise-query)
   - B9 result: top="Order" aggregate#1=true results=20 (correct ranking)
 
@@ -40,6 +40,11 @@ Changes to src/DevContext.App/scripts/ui-audit-drive.mjs:
 
 PASSED: no banned patterns
 Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+
+=== QA re-verification (attempt 2, 2026-07-09) ===
+Fresh run-cold.js: 10/11=91%, B9 excluded, gate PASS
+Fresh ui-audit-drive.mjs --gate (dead server): "GATE FAILED (boot-liveness)", exit code 1
+All battery gates re-run: dotnet build 0w/0e, dotnet test 0F/414P, pnpm check green, guards clean
 
 === Gate verdict ===
 B9 denominator: PASS — rank-quality probes separated from failure denominator
