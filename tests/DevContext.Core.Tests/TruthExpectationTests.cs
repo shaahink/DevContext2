@@ -37,7 +37,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
     {
         var repoPath = DogfoodPath();
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /basket/checkout");
 
@@ -76,7 +76,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_service_names_are_full_and_runnables_only()
     {
         var repoPath = DogfoodPath();
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: dogfood not found"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -145,7 +145,7 @@ public sealed class TruthExpectationTests
     public async Task RazorPages_no_fabricated_cross_sample_edges()
     {
         var repoPath = RepoPath("eval-repos/RazorPages");
-        if (!Directory.Exists(repoPath)) { _output.WriteLine("SKIP: RazorPages not cloned"); return; }
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /Students");
 

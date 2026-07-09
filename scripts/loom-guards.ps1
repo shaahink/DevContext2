@@ -11,6 +11,9 @@
 #   4. No `using System.Text.RegularExpressions` in Core/Graph (all regexes banished)
 # L3+ will additionally enforce:
 #   5. No `NodeId.ForType(` in Graph/ (the old path dies)
+# D5 (L0.4): Truth gate wired into battery. Runs Category=Truth tests and
+#   fails on actual failures (skips are the pending ratchet — green).
+#   This prevents silent truth regressions from reaching the branch.
 
 param(
     [switch]$Quiet
@@ -62,6 +65,28 @@ $nodeIdCount = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'NodeId.ForType
 $fqns0Count = (Select-String -Path "$graphDir\**\*.cs" -Pattern 'fqns[0]' -SimpleMatch 2>$null).Count
 if (-not $Quiet -and ($nodeIdCount -gt 0 -or $fqns0Count -gt 0)) {
     Write-Host "  Advisory: $nodeIdCount NodeId.ForType( (fixed by L3) + $fqns0Count fqns[0] (fixed by L3)" -ForegroundColor Yellow
+}
+
+# D5 (L0.4): Truth gate — runs Category=Truth tests; failures are banned, skips are ratchets.
+Write-Host "== truth gate -- dotnet test Category=Truth ==" -ForegroundColor Gray
+$testProject = Join-Path $repoRoot 'tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj'
+$truthOutput = & dotnet test $testProject --filter "Category=Truth" --no-build --verbosity normal 2>&1
+$truthExit = $LASTEXITCODE
+
+# Parse: count actual Failures (not skips). Skipped tests are the pending ratchet.
+$failedLines = $truthOutput | Select-String -Pattern 'Failed!|Failed\s*:\s*(?!\s*0)' | Select-Object -First 1
+$failedCount = 0
+if ($failedLines) {
+    $failedLine = $failedLines.Line
+    if ($failedLine -match 'Failed:\s*(\d+)') { $failedCount = [int]$matches[1] }
+    elseif ($failedLine -match 'Failed!') { $failedCount = 1 }
+}
+
+if ($truthExit -ne 0 -or $failedCount -gt 0) {
+    Write-Host "  FAILED: $failedCount truth test(s) red. Truth regressions must be fixed before proceeding." -ForegroundColor Red
+    $script:failures += $failedCount
+} else {
+    Write-Host "  PASSED: 0 truth failures (skips are the pending ratchet)" -ForegroundColor Green
 }
 
 if ($failures -gt 0) {

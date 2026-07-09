@@ -6,17 +6,15 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 49 — #3 L5.x re-verification (orchestrator attempt 2/2). PASS.
-       Re-QA'd Session 48 claims; all 5 traps verified stable via fresh gates.
-       SBInference cache confirmed; AmbiguityReport record; NodeId.ForType @13;
-       BuildInfo.g.cs absent. Dogfood 436n/338e/34e/6SL/69% @3.9s (no regress).
-       Gates: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed (2 x L5.x verified).
-next: Session 50 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
-       Read workflow §Merge Protocol. Do NOT code — this is git-only.
-trap: None. All 5 traps remain stable; no drift detected.
-evidence: eval-results/2026-07-09/debt-L5.x-gate-attempt3.txt (fresh re-run)
-       eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt (Session 48)
+last: D5 (L0.4) — Truth gate auto-enforcement delivered. Loom-guards.ps1 now
+       runs Category=Truth tests as gate #5; any failure exits non-zero.
+       3 [TruthPending] bodies converted from silent `return;` to Skip.IfNot
+       (forward-safe against green-wash when attributes are removed).
+       Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips=ratchets).
+       QA of D5 tracker (session s49) found it falsely marked DONE — c444dd2
+       was D3/L5.x, not D5. D5 now genuinely delivered in this session (s53).
+stage: D5 COMPLETE. Next: D6 (L3.4 — TfmScore net10.0+).
+trap: None. Advisory count (13 NodeId.ForType) unchanged. Truth ratchets stable.
 
 ---
 
@@ -52,13 +50,11 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 2 | L3.5 — TodoApi eval gap triaged | DONE | `eval-results/2026-07-09/debt-L3.5-gate.txt` |
 | 3 | L5.x — Audit-trap sweep (5 items) | DONE | `eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt`, attempt3 re-verified s49 |
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
-| 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | 3/3 pending flipped (c444dd2 includes wiring) |
+| 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) |
 | 6 | L3.4 — TfmScore handles net10.0+ | TODO | `eval-results/<date>/debt-L3.4-gate.txt` |
 | 7 | L2.5 — Lambda scope pollution + SeamContext dedup | TODO | `eval-results/<date>/debt-L2.5-gate.txt` |
 | 8 | L4.5 — Flow model hardening | TODO | `eval-results/<date>/debt-L4.5-gate.txt` |
 | 9 | L1.6 — SymbolTable member indexing | TODO | `eval-results/<date>/debt-L1.6-gate.txt` |
-
-> **Note:** L0.4 is DONE — 3 stale [TruthPending] fixes plus loom-guards.ps1 wiring landed in c444dd2.
 
 ### Phase 2: Static Design Review
 
