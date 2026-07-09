@@ -6,17 +6,16 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 46 — D2 (L3.5) QA (attempt 2/2) COMPLETE.
-       QA verdict: Session 45 claims VERIFIED. TodoApi 3P/0F, Truth 8P/3S.
-       TodoDbContext traced at depth-2 via source-body [approx]. No code change.
-       Gate battery green: build 0w/0e, 363P/3S Core, 76P Server+Desktop.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-2/9 confirmed. QA complete.
-next: Session 47 — #3 L5.x: Audit-trap sweep (5 small traps, ~20 min).
-       Read conductor-DEBT.md #3. Item is named "L5.x — Unresolved from
-       L0-L4 audit traps (sweep)." 5 traps to classify: fix or document.
-trap: Branch stays feat/loom-l7. DntSite truth ~50s — adjust timeouts.
+last: Session 47 — #3 L5.x: Audit-trap sweep COMPLETE.
+       5/5 traps triaged: AmbiguityReport→record (fixed), 4 documented/closed.
+       Gate battery: build 0w/0e, 414P/3S Core, 12P Server, 8P/3S Truth.
+       Advisory NodeId.ForType stable at 13. Guards 0 banned.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed.
+next: Session 48 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
+       Read workflow §Merge Protocol. Do NOT code — this is git-only.
+trap: Branch stays feat/loom-l7. DntSite truth ~50s.
        TraceQualityTests.cs:30 still uses `return` not Skip.IfNot (L0.4 scope).
-evidence: eval-results/2026-07-09/debt-D2-qa-verify.txt (fresh truth re-run)
+evidence: eval-results/2026-07-09/debt-L5.x-gate.txt (fresh battery re-run)
 
 ---
 
@@ -50,7 +49,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 |---|-----------|--------|----------|
 | 1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | DONE | `eval-results/2026-07-09/debt-L0.5-gate.txt` |
 | 2 | L3.5 — TodoApi eval gap triaged | DONE | `eval-results/2026-07-09/debt-L3.5-gate.txt` |
-| 3 | L5.x — Audit-trap sweep (5 items) | TODO | `eval-results/<date>/debt-L5.x-gate.txt` |
+| 3 | L5.x — Audit-trap sweep (5 items) | DONE | `eval-results/2026-07-09/debt-L5.x-gate.txt` |
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
 | 5 | L0.4 — Truth gate in battery + TruthPending sweep | IN PROGRESS | 3/3 pending flipped, guards wiring remains |
 | 6 | L3.4 — TfmScore handles net10.0+ | TODO | `eval-results/<date>/debt-L3.4-gate.txt` |

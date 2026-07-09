@@ -1,6 +1,6 @@
 namespace DevContext.Core.Graph2;
 
-public sealed class AmbiguityReport
+public sealed record AmbiguityReport
 {
     public int AmbiguousShortNameCount { get; init; }
     public ImmutableDictionary<string, int> CandidateCounts { get; init; }
