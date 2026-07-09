@@ -1,31 +1,34 @@
-﻿# Conductor — Loom run report
+﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-08 22:31 UTC · branch `feat/loom-l7` · HEAD `cfe178d`_
+_Updated 2026-07-09 00:10 UTC · branch `feat/loom-l7` · HEAD `765dbac`_
 
-**Status:** Completed
-**Stage:** L8 — Close-out · attempts used 0
-**Checkpoints:** 34/34 done · **Sessions run:** 41 · **Cost:** $3.1175 · **Tokens:** 2,955,684 in / 625,158 out / 445,730 think
+**Status:** Idle
+**Stage:** D1 — L0.5 — Cold-QA B9 denominator + UI boot-liveness · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 42 · **Cost:** $3.1585 · **Tokens:** 3,007,564 in / 634,062 out / 451,156 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 
 ## Stage progress
 
 | Stage | Title | Done | State |
 |---|---|---|---|
-| L0 | Truth harness | 3/3 | confirmed ✓ |
-| L1 | Identity spine | 5/5 | confirmed ✓ |
-| L2 | BodyFacts + seam detectors | 4/4 | confirmed ✓ |
-| L3 | Semantic-lite tier | 3/3 | confirmed ✓ |
-| L4 | Flows + projections | 4/4 | confirmed ✓ |
-| L5 | MCP v2 cold-agent ergonomics | 4/4 | confirmed ✓ |
-| L6 | Workbench repair | 6/6 | confirmed ✓ |
-| L7 | Repo-shape coverage | 4/4 | confirmed ✓ |
-| L8 | Close-out | 1/1 | confirmed ✓ |
+| D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | **← active** |
+| D2 | L3.5 — TodoApi eval gap triage | 0/0 | todo |
+| D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | todo |
+| D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
+| D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
+| D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
+| D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | todo |
+| D8 | L4.5 — Flow model hardening | 0/0 | todo |
+| D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | todo |
+| R1 | Design Review: L0+L1+L2 | 0/0 | todo |
+| R2 | Design Review: L4+L5+L6 | 0/0 | todo |
+| R3 | Design Review: L7+L8 + system contracts | 0/0 | todo |
+| QA | Final QA Driver — full live drive + bugfix plan | 0/0 | todo |
 
 ## Sessions
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 12 | L3 | Deliver | 1 | 07-07 23:42 | 1:10 | Advanced | L3.2 | 8 | build:OK | $0.1077 | 4,843/37,215 |
 | 13 | L3 | Deliver | 1 | 07-08 00:53 | 0:06 | KilledByUser |  | 0 |  | $0.0173 | 35,875/975 |
 | 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
@@ -55,16 +58,10 @@ _Updated 2026-07-08 22:31 UTC · branch `feat/loom-l7` · HEAD `cfe178d`_
 | 39 | L7 | Audit | 1 | 07-08 21:18 | 0:05 | Progress |  | 0 |  | $0.0361 | 65,012/1,156 |
 | 40 | L8 | Deliver | 1 | 07-08 21:31 | 0:27 | Advanced | L8.1 | 3 | build:OK | $0.1221 | 180,508/19,522 |
 | 41 | L8 | Audit | 1 | 07-08 21:59 | 0:23 | Progress |  | 3 |  | $0.0717 | 106,952/10,206 |
+| 42 | D1 | Deliver | 1 | 07-08 23:56 | 0:13 | Progress |  | 1 | build:OK | $0.0410 | 51,880/8,904 |
 
 ### Commits by session
 
-- **s32 (L6 Deliver)** — 6 commit(s):
-  - 5e55097 docs(l6): tracker handoff — L6.4/L6.5/L6.6 DONE, gate battery evidence
-  - d2205f9 feat(l6.6): MCP session auto-refresh, confidence->verified rename, DPI icon scaling
-  - 48125da feat(l6.5): visible Table lens button + global Shift+E shortcut
-  - 933493e chore(conductor): s32 L6 working ▸L6.4 @ 19:37
-  - a81ef76 chore(conductor): s32 L6 working ▸L6.4 @ 19:27
-  - 63c21ff chore(conductor): s32 L6 working ▸L6.4 @ 19:17
 - **s33 (L6 Audit)** — 2 commit(s):
   - e9fc775 docs(l6): phase handover — L6 workbench repair audit close
   - 45348bc fix(l6-audit): static audit fixes — observer mismatch, shortcut guards, atCap, Escape close
@@ -94,6 +91,8 @@ _Updated 2026-07-08 22:31 UTC · branch `feat/loom-l7` · HEAD `cfe178d`_
   - 2036c5a fix(l8-audit): harden truth tests — LoggerFactory disposal, null safety, sentinel for JSON parse errors, archetype header assertions
   - 9e25ce0 chore(conductor): s41 L8 working ▸L8 @ 23:20
   - 5c31938 chore(conductor): s41 L8 working ▸L8 @ 23:10
+- **s42 (D1 Deliver)** — 1 commit(s):
+  - 765dbac fix(debt): L0.5 — Cold-QA B9 denominator + UI boot-liveness
 
 ## Phase handovers (audit)
 
@@ -108,24 +107,26 @@ _Updated 2026-07-08 22:31 UTC · branch `feat/loom-l7` · HEAD `cfe178d`_
 
 ## Last gate run
 
-build:OK · tests:OK · pnpm-check:OK · mcp-qa:OK · loom-guards:OK
+build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L8 close-out audit complete — gate battery green (build 0w/0e, Core 414P/3S, Server 12P, Desktop 64P, truth 7P/4S, pnpm 27/27, loom-guards 0 banned). Found and fixed: 6 undisposed LoggerFactory instances, 1 Environment.CurrentDirectory null risk, 1 bare catch swallowing JSON errors (now returns -1 sentinel), 1 "No projects discovered." period inconsistency in RendererTests, and added missing LIBRARY + DESKTOP APP archetype header truth assertions. One attempted WORKER header assertion reverted when the AzureFunctions repo proved to correctly classify as Library (NuGet package). No engine code changed. Audit handover written to `.conductor/handovers/L8.md` with honest coverage…
+> SESSION-RESULT: Session 1 (L0.5) DONE. Two changes landed: (1) `run-cold.js` now separates rank-quality probes (B9) from the failure-actionability denominator — B9 is tagged `[rank-quality]` and excluded, yielding 9/11 (82%) instead of the misleading 10/12 (83%). (2) `ui-audit-drive.mjs` gained `checkBootLiveness()` — a dead environment now exits non-zero with "GATE FAILED (boot-liveness)" instead of silently passing green. Guards green, no engine/build changes. Evidence at `eval-results/2026-07-09/debt-L0.5-gate.txt`. Commit `765dbac` pushed to `feat/loom-l7`. Next session: #2 L3.5 TodoApi eval gap triage. Note: 6 files have uncommitted diff from orchestrator prep (AGENTS.md, conductor-DEBT…
 
 ## Tracker handoff
 
 ```
-last: L8 session #40 — **L8.1 DONE** (close-out: gate battery green: 414P/3S Core, 64P Desktop,
-        12P Server, 27/27 pnpm, truth 7P/4S). QA of L7.4 found 4 truth test assertion bugs —
-        fixed (argument order, MAP section headers for non-App archetypes). HANDOVER-LOOM.md
-        created. AGENTS.md root + App updated with Loom rituals. Dogfood stable
-        436n/338e/34e/6SL/69%. 5 eShop TraceQuality + 1 EvalExpectation failures documented
-        as honest pre-existing gaps.
-stage: **L8 DONE**. Loom phase closed.
-next: **conductor-DEBT.md** (L0.4-L5.x: 8 items) or next phase planning.
-evidence: eval-results/2026-07-08/gate-battery-l8-s40.txt,
-          eval-results/2026-07-08/truth-battery-l8-s40.txt,
-          docs/dev/HANDOVER-LOOM.md
+last: Session 1 (L0.5) DONE. B9 rank-quality probe excluded from failure-actionability
+       denominator (now 9/11=82%, was 10/12=83%). checkBootLiveness() added to
+       ui-audit-drive.mjs — dead env exits non-zero with "GATE FAILED (boot-liveness)".
+       Guards green. No engine changes.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done.
+next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
+trap: (1) AGENTS.md protocol still applies. Selective gates only.
+       (2) 2 truth test failures flagged (checkout trace + RazorPages fab) still
+       open — Phase 2 design review.
+       (3) Branch stays feat/loom-l7 (merge is Session 4).
+evidence: eval-results/2026-07-09/debt-L0.5-gate.txt (+ mcp-cold-qa.md, ui-gate.md)
+
+---
 ```
