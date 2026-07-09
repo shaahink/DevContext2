@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 03:44 UTC · branch `feat/loom-l7` · HEAD `92c85b3`_
+_Updated 2026-07-09 03:57 UTC · branch `feat/loom-l7` · HEAD `fd46006`_
 
 **Status:** Idle
-**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 52 · **Cost:** $3.4794 · **Tokens:** 3,458,566 in / 683,071 out / 503,558 think
+**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 53 · **Cost:** $3.5086 · **Tokens:** 3,498,076 in / 688,508 out / 508,503 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 03:44 UTC · branch `feat/loom-l7` · HEAD `92c85b3`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 03:44 UTC · branch `feat/loom-l7` · HEAD `92c85b3`_
 | 50 | D4 | Deliver | 1 | 07-09 02:18 | 0:01 | Interrupted |  | 0 |  |  |  |
 | 51 | D4 | Deliver | 1 | 07-09 03:07 | 1:02 | Interrupted |  | 0 |  |  |  |
 | 52 | D5 | Deliver | 1 | 07-09 03:30 | 0:13 | Progress |  | 1 | build:OK | $0.0469 | 61,833/7,324 |
+| 53 | D5 | Deliver | 2 | 07-09 03:44 | 0:13 | Progress |  | 1 | build:OK | $0.0292 | 39,510/5,437 |
 
 ### Commits by session
 
-- **s43 (D1 Deliver)** — 1 commit(s):
-  - 416f60d fix(debt): L0.5 — QA verification, fresh evidence (attempt 2)
 - **s44 (D1 Deliver)** — 1 commit(s):
   - f429a88 fix(debt): D1 (L0.5) — QA re-verify; handoff update
 - **s45 (D2 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 03:44 UTC · branch `feat/loom-l7` · HEAD `92c85b3`_
   - 0038b46 fix(debt): L5.x — audit-trap sweep re-verified (attempt 2/2, s49)
 - **s52 (D5 Deliver)** — 1 commit(s):
   - 92c85b3 fix(debt): D5 L0.4 — truth gate wired into loom-guards.ps1 + [TruthPending] Skip.IfNot guard
+- **s53 (D5 Deliver)** — 1 commit(s):
+  - fd46006 chore(debt): D5 L0.4 QA re-verify — all gates green, claims confirmed
 
 ## Phase handovers (audit)
 
@@ -97,20 +97,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D5 (L0.4) delivered. QA found D5 was falsely marked DONE in the tracker — commit c444dd2 was D3/L5.x, not D5. Loom-guards.ps1 now runs Category=Truth tests as gate #5 (failures exit non-zero). 3 [TruthPending] silent `return;` guards converted to `Skip.IfNot` (forward-safe). Gates all green: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips are the ratchets). Commit 92c85b3 on feat/loom-l7. Next session: D6 (L3.4 — TfmScore net10.0+).
+> SESSION-RESULT: D5 (L0.4) QA re-verified — all green. Build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F, loom-guards 0 banned. s53 commit 92c85b3 genuinely delivered all three D5 claims: truth gate wired into loom-guards.ps1 (gate #5, exits non-zero on failures), 3 [TruthPending] bodies converted from silent `return;` to `Skip.IfNot` (forward-safe against green-wash), advisory count stable at 13. Nothing red. Next session (D6): L3.4 — TfmScore net10.0+ pattern generalization (~35 min).
 
 ## Tracker handoff
 
 ```
-last: D5 (L0.4) — Truth gate auto-enforcement delivered. Loom-guards.ps1 now
-       runs Category=Truth tests as gate #5; any failure exits non-zero.
-       3 [TruthPending] bodies converted from silent `return;` to Skip.IfNot
-       (forward-safe against green-wash when attributes are removed).
-       Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips=ratchets).
-       QA of D5 tracker (session s49) found it falsely marked DONE — c444dd2
-       was D3/L5.x, not D5. D5 now genuinely delivered in this session (s53).
+last: D5 (L0.4) — QA re-verified (s54). loom-guards.ps1 truth gate #5 green.
+       3 [TruthPending] Skip.IfNot guards confirmed (no silent return).
+       Fresh-run gate battery: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F.
+       D5 genuinely landed by 92c85b3. QA found zero discrepancies.
 stage: D5 COMPLETE. Next: D6 (L3.4 — TfmScore net10.0+).
-trap: None. Advisory count (13 NodeId.ForType) unchanged. Truth ratchets stable.
+trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable.
 
 ---
 ```
