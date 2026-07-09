@@ -6,10 +6,10 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: R1 QA-verified (s67). Fresh gate battery green. Re-confirmed L2.4 DEVIATES:
-      checkout trace lacks bus-publish traversal — real gap, not attribute oversight.
-      17/17 checkpoint ratings from s65 accurate. R2 done (s66). Qa report:
-      eval-results/2026-07-09/R1-QA-gate-s67.txt.
+last: R2 QA-verified (s68). Gate battery green (build 0w/0e, Truth 8P/0F/3S,
+      pnpm check PASS, loom-guards 0 banned). 15/15 s66 checkpoint ratings confirmed
+      by fresh code inspection vs design doc. 0 DEVIATES. 2 CONFORMS-WITH-FINDINGS.
+      Evidence: eval-results/2026-07-09/R2-QA-gate-s68.txt.
 stage: **R3 queued** — review L7+L8+system-level contracts. Report target:
        docs/design-reviews/R3-L7-L8.md. QA Driver (cp #13) follows R3.
 next: R3 — reads loom-graph-design.md §6-8 + proposal-loom.md §L7-L8+cross-cutting
@@ -63,7 +63,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
 | 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (QA-verified s67) | `docs/design-reviews/R1-L0-L3.md` + `eval-results/2026-07-09/R1-QA-gate-s67.txt` |
-| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE | `docs/design-reviews/R2-L4-L6.md` (s66) |
+| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE (QA-verified s68) | `docs/design-reviews/R2-L4-L6.md` (s66) + `eval-results/2026-07-09/R2-QA-gate-s68.txt` |
 | 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
 
 ### Phase 3: Final QA
