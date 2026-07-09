@@ -248,6 +248,18 @@ public sealed class DiscoveryPipeline
             $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
             + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
 
+        // L4.5 — warn when flow spine depth budget is exhausted (silent truncation detection)
+        var truncatedFlows = codeGraph.Flows.Where(f => f.IsTruncated).Take(5).ToImmutableArray();
+        if (truncatedFlows.Length > 0)
+        {
+            var ids = string.Join(", ", truncatedFlows.Select(f => f.Id));
+            var suffix = codeGraph.Flows.Count(f => f.IsTruncated) > truncatedFlows.Length
+                ? $" (+{codeGraph.Flows.Count(f => f.IsTruncated) - truncatedFlows.Length} more)" : "";
+            model.AddDiagnostic(DiagnosticLevel.Warning, "FlowTruncated",
+                $"Spine depth budget (24) exhausted for {codeGraph.Flows.Count(f => f.IsTruncated)} flow(s): {ids}{suffix}. "
+                + "The real dispatch path may be longer than captured.");
+        }
+
         // I3 — compute insights post-graph (pure, cheap, no scoring)
         var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
 
