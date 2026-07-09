@@ -6,12 +6,19 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s64 R1 design review — rated all 17 L0+L1+L2 checkpoints against design doc.
-      Gate green (0w/0e, 8P/3S truth, 0 banned). QA s63 all claims reconfirmed.
-stage: R1 DONE. Verdict: ❌ FAIL (L2.4 DEVIATES: checkout truth test still [TruthPending("L2")],
-      headline artifact unenforced). All other 14/17 checkpoints CONFORM.
-trap: L2.4 remediation needed — ~10 min (remove attribute, verify, flip to enforced).
-note: Merge (#4) still TODO. Phase 2 session #10 complete. Next: R2 (session 11).
+last: s65 R1 re-audit (attempt 2/2). QA s64 report: all 17 ratings verified accurate.
+      Gate green (build 0w/0e, 8P/3S truth, 0 banned). L2.4 enforcement attempt FAILED:
+      removing [TruthPending("L2")] from checkout truth test reveals checkout trace
+      traversal does NOT follow bus-publish seams (BasketCheckoutEvent missing).
+      L2.4 gapped at trace walker, not detection. Est. fix: 45-60 min (GraphQueryService
+      + trace projections). 16/17 checkpoints conform.
+stage: R1 BLOCKED on L2.4 checkout trace traversal gap.
+HUMAN: L2.4 checkout trace needs implementation fix (~45-60 min) before R1 can PASS.
+      Trace walker does not follow bus-publish edges into Ordering.Application.
+      All other 16 checkpoints verified conforming. R1 report updated with
+      detailed finding + fix scope. Next session: either fix L2.4 trace traversal
+      (~45-60 min) or accept BLOCKED and proceed to R2 (L4+L5+L6 review).
+
 
 ---
 
@@ -57,7 +64,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
-| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | ❌ FAIL (L2.4 DEVIATES) | `docs/design-reviews/R1-L0-L3.md`, `eval-results/2026-07-09/R1-gate-s64.txt` |
+| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | BLOCKED (L2.4 checkout trace gapped) | docs/design-reviews/R1-L0-L3.md, eval-results/2026-07-09/R1-gate-s65.txt |
 | 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | TODO | `docs/design-reviews/R2-L4-L6.md` |
 | 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
 
