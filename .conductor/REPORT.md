@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 07:11 UTC · branch `feat/loom-l7` · HEAD `8891240`_
+_Updated 2026-07-09 07:11 UTC · branch `feat/loom-l7` · HEAD `1973513`_
 
 **Status:** Idle
-**Stage:** D9 — L1.6 — SymbolTable member indexing + dead code removal · attempts used 2
+**Stage:** D9 — L1.6 — SymbolTable member indexing + dead code removal · attempts used 0
 **Checkpoints:** 1/1 done · **Sessions run:** 63 · **Cost:** $3.9738 · **Tokens:** 4,030,600 in / 775,191 out / 589,751 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8
+**⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8, D9
 
 ## Stage progress
 
@@ -20,7 +20,7 @@ _Updated 2026-07-09 07:11 UTC · branch `feat/loom-l7` · HEAD `8891240`_
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | SKIPPED ⚠ |
 | D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | SKIPPED ⚠ |
 | D8 | L4.5 — Flow model hardening | 0/0 | SKIPPED ⚠ |
-| D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | **← active** |
+| D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | SKIPPED ⚠ |
 | R1 | Design Review: L0+L1+L2 | 0/0 | todo |
 | R2 | Design Review: L4+L5+L6 | 0/0 | todo |
 | R3 | Design Review: L7+L8 + system contracts | 0/0 | todo |
