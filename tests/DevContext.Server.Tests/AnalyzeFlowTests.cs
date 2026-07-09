@@ -174,4 +174,71 @@ public sealed class AnalyzeFlowTests(WebApplicationFactory<Program> factory)
 
     private static string FixturePath(string name) => Path.GetFullPath(Path.Combine(
         AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tests", "fixtures", name));
+
+    [Fact]
+    public async Task GetContextPack_with_flow_card_returns_content()
+    {
+        var client = CreateClient();
+        var handle = await AnalyzeControllerApp(client);
+
+        var entries = await client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
+        Assert.NotEmpty(entries.EntryPoints);
+        var firstEntryId = entries.EntryPoints[0].NodeId;
+
+        var pack = await client.GetContextPackAsync(new ContextPackRequest
+        {
+            Handle = handle,
+            BudgetTokens = 4000,
+            Intent = "trace",
+            Cards =
+            {
+                new ContextCardSpec
+                {
+                    Type = "flow",
+                    Title = "Primary Flow",
+                    EntryIds = { firstEntryId },
+                },
+            },
+        });
+
+        Assert.NotEmpty(pack.Cards);
+        Assert.NotEmpty(pack.AssembledMarkdown);
+        Assert.True(pack.TotalTokens > 0);
+        Assert.True(pack.AllocatedTokens > 0);
+
+        var card = pack.Cards[0];
+        Assert.Equal("flow", card.Type);
+        Assert.True(card.Tokens > 0);
+
+        // Verify key sections present in assembled markdown
+        Assert.Contains("## Primary Flow", pack.AssembledMarkdown, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetContextPack_multi_card_assembles_all()
+    {
+        var client = CreateClient();
+        var handle = await AnalyzeControllerApp(client);
+
+        var entries = await client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
+        Assert.NotEmpty(entries.EntryPoints);
+
+        var entryIds = entries.EntryPoints.Take(2).Select(e => e.NodeId).ToList();
+        var pack = await client.GetContextPackAsync(new ContextPackRequest
+        {
+            Handle = handle,
+            BudgetTokens = 6000,
+            Intent = "review",
+            Cards =
+            {
+                new ContextCardSpec { Type = "flow", Title = "Flow", EntryIds = { entryIds[0] } },
+                new ContextCardSpec { Type = "signatures", Title = "Signatures", EntryIds = { entryIds[1] } },
+            },
+        });
+
+        Assert.NotEmpty(pack.Cards);
+        Assert.True(pack.Cards.Count >= 1);
+        Assert.NotEmpty(pack.AssembledMarkdown);
+        Assert.Contains("DevContext — Context Pack", pack.AssembledMarkdown, StringComparison.Ordinal);
+    }
 }

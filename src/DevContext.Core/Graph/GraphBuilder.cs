@@ -68,6 +68,11 @@ public sealed class GraphBuilder
         foreach (var builder in _entryBuilders)
             entries = entries.AddRange(builder.Build(g, model, scope, names, _noise));
 
+        // L4.5 — store EntryPointKind on each entry's graph node so projections
+        // can derive the correct kind instead of falling back to PublicApi.
+        foreach (var entry in entries)
+            g.Tag(entry.Node, entry.Title, $"kind:{entry.Kind}");
+
         AddHandlerJoins(g, model, names, scope, _noise);            // worked example (Handles edge from MediatR detections)
         AddPipelineBehaviors(g, model, names, scope, _noise);       // B3: IPipelineBehavior → WrappedBy edges
 
@@ -103,13 +108,13 @@ public sealed class GraphBuilder
     /// <summary>L4.1 — Compute spine-first flows for all entries. Each flow is the primary dispatch
     /// path (entry → send → handler → ...) with touches/emits collected only from spine members
     /// (fixes audit E5: no EntityRelation reachability).</summary>
-    private static ImmutableArray<Flow> ComputeFlows(CodeGraph graph, ImmutableArray<EntryPoint> entries)
+    private static ImmutableArray<Flow> ComputeFlows(CodeGraph graph, ImmutableArray<EntryPoint> entries,
+        int maxSpineDepth = 24)
     {
         if (entries.IsDefaultOrEmpty) return [];
 
         var bridgeMembers = BuildBridgeIndex(graph);
         var flows = ImmutableArray.CreateBuilder<Flow>(entries.Length);
-        const int maxSpineDepth = 24;
 
         foreach (var entry in entries)
         {
@@ -130,10 +135,11 @@ public sealed class GraphBuilder
             CollectSpineTouchesAndEmits(graph, entry.Node, bridgeMembers, touchedIds, emittedIds);
 
             var currentId = entry.Node;
+            var isTruncated = true;
             for (var d = 0; d < maxSpineDepth; d++)
             {
                 var bestEdge = SelectBestSpineEdge(graph, currentId, bridgeMembers, visited);
-                if (bestEdge is null) break;
+                if (bestEdge is null) { isTruncated = false; break; }
 
                 visited.Add(bestEdge.To);
 
@@ -168,6 +174,7 @@ public sealed class GraphBuilder
                 Touches = [.. touchedIds],
                 Emits = [.. emittedIds],
                 Hops = hops.ToImmutable(),
+                IsTruncated = isTruncated,
             });
         }
 

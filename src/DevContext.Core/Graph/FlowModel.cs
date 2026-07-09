@@ -41,4 +41,9 @@ public sealed record Flow(
 
     /// <summary>Cross-service transitions encountered on the spine's ServiceLink edges.</summary>
     public ImmutableArray<ServiceHop> Hops { get; init; } = [];
+
+    /// <summary>True when the spine depth budget was exhausted (maxSpineDepth=24 by default).
+    /// Signals to consumers that the flow may be incomplete — the real dispatch path could be longer
+    /// than what was captured.</summary>
+    public bool IsTruncated { get; init; }
 }

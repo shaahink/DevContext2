@@ -177,29 +177,33 @@ public sealed class ContextPackBuilder
         int totalBudget = 8000,
         string? intent = null)
     {
-        // Collect unique entry focuses
-        var uniqueFocuses = new List<string>();
+        // Collect unique entry focuses with their reach counts for proportional budget
+        var uniqueFocuses = new List<(string Focus, int Reach)>();
         var seen = new HashSet<string>();
         foreach (var card in cards)
         {
             foreach (var eid in card.EntryIds)
             {
-                var focus = ResolveFocus(eid);
+                var (focus, reach) = ResolveFocusWithReach(eid);
                 if (focus is not null && seen.Add(focus))
-                    uniqueFocuses.Add(focus);
+                    uniqueFocuses.Add((focus, reach));
             }
         }
 
-        var perEntryBudget = uniqueFocuses.Count > 0
-            ? totalBudget / uniqueFocuses.Count
-            : totalBudget;
+        // L4.5 — proportional budget: each entry gets budget weighted by its reach count
+        // (complexity proxy). Minimum floor of 200 tokens per entry so tiny entries still
+        // get meaningful sections.
+        const int minEntryBudget = 200;
+        var focusBudgets = AllocateProportionalBudgets(uniqueFocuses, totalBudget, minEntryBudget);
+        // totalBudget updated to reflect what proportionally-allocated budgets sum to
 
         // Trace each unique entry once, build ALL sections.
         // Sections are stored per-focus so each card can aggregate from its own entries.
         var entrySections = new Dictionary<string, ImmutableArray<SectionAllocation>>();
-        foreach (var focus in uniqueFocuses)
+        foreach (var (focus, _) in uniqueFocuses)
         {
-            var (allSections, _) = BuildSections(focus, perEntryBudget, intent);
+            var budget = focusBudgets.GetValueOrDefault(focus, minEntryBudget);
+            var (allSections, _) = BuildSections(focus, budget, intent);
             if (allSections.Length > 0)
                 entrySections[focus] = allSections;
         }
@@ -448,6 +452,49 @@ public sealed class ContextPackBuilder
                     : entry.Title;
         }
         return null;
+    }
+
+    private (string? Focus, int Reach) ResolveFocusWithReach(string entryId)
+    {
+        foreach (var entry in _snapshot.Entries)
+        {
+            var nid = entry.Node.ToString();
+            if (nid == entryId || entry.Title == entryId ||
+                (entry.HttpMethod is { } hm && entry.Route is { } rt && $"{hm} {rt}" == entryId))
+            {
+                var focus = entry.HttpMethod is { } m && entry.Route is { } r
+                    ? $"{m} {r}"
+                    : entry.Title;
+                return (focus, entry.Reach);
+            }
+        }
+        return (null, 0);
+    }
+
+    private static Dictionary<string, int> AllocateProportionalBudgets(
+        List<(string Focus, int Reach)> focuses, int totalBudget, int minPerEntry)
+    {
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        if (focuses.Count == 0) return result;
+
+        var sumReach = focuses.Sum(f => Math.Max(f.Reach, 1)); // at least 1 to avoid div-by-zero
+        if (sumReach <= 0) sumReach = focuses.Count;
+
+        var remaining = totalBudget;
+        var allocated = 0;
+        for (var i = 0; i < focuses.Count; i++)
+        {
+            var (focus, reach) = focuses[i];
+            var isLast = i == focuses.Count - 1;
+            var share = isLast
+                ? remaining
+                : Math.Max(minPerEntry, (int)((double)Math.Max(reach, 1) / sumReach * totalBudget));
+            result[focus] = share;
+            remaining -= share;
+            allocated += share;
+        }
+
+        return result;
     }
 }
 

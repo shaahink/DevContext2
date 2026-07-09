@@ -220,7 +220,11 @@ public sealed class EntryTableProjection : IGraphProjection<EntryTableResult>
         var rows = graph.Flows.Select(f => f.Entry)
             .Concat(graph.Nodes
                 .Where(n => n.Kind == NodeKind.EntryPoint)
-                .Select(n => new EntryPoint(EntryPointKind.PublicApi, n.Title, n.Id) { Project = n.Project }))
+                .Select(n =>
+                {
+                    var kind = DeriveEntryKind(n);
+                    return new EntryPoint(kind, n.Title, n.Id) { Project = n.Project };
+                }))
             .DistinctBy(e => e.Node)
             .Select(e =>
             {
@@ -244,6 +248,17 @@ public sealed class EntryTableProjection : IGraphProjection<EntryTableResult>
             .ToImmutableArray();
 
         return new EntryTableResult { Rows = rows };
+    }
+
+    private static EntryPointKind DeriveEntryKind(GraphNode node)
+    {
+        foreach (var tag in node.Tags)
+        {
+            if (tag.StartsWith("kind:", StringComparison.Ordinal) &&
+                Enum.TryParse<EntryPointKind>(tag[5..], out var kind))
+                return kind;
+        }
+        return EntryPointKind.PublicApi;
     }
 }
 
