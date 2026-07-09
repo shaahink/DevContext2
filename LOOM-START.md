@@ -6,18 +6,16 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s65 R1 re-audit (attempt 2/2). QA s64 report: all 17 ratings verified accurate.
-      Gate green (build 0w/0e, 8P/3S truth, 0 banned). L2.4 enforcement attempt FAILED:
-      removing [TruthPending("L2")] from checkout truth test reveals checkout trace
-      traversal does NOT follow bus-publish seams (BasketCheckoutEvent missing).
-      L2.4 gapped at trace walker, not detection. Est. fix: 45-60 min (GraphQueryService
-      + trace projections). 16/17 checkpoints conform.
-stage: R1 BLOCKED on L2.4 checkout trace traversal gap.
-HUMAN: L2.4 checkout trace needs implementation fix (~45-60 min) before R1 can PASS.
-      Trace walker does not follow bus-publish edges into Ordering.Application.
-      All other 16 checkpoints verified conforming. R1 report updated with
-      detailed finding + fix scope. Next session: either fix L2.4 trace traversal
-      (~45-60 min) or accept BLOCKED and proceed to R2 (L4+L5+L6 review).
+last: R2 reviewed L4+L5+L6 (15 checkpoints, 13 CONFORMS, 2 WITH-FINDINGS, 0 DEVIATES).
+      All gates green. 3 minor findings (ContextPack server assembly, MCP page init,
+      insights substring) — deferred v0, not blocking.
+stage: **R3 queued** — review L7+L8+system-level contracts. Report target:
+       docs/design-reviews/R3-L7-L8.md. QA Driver (cp #13) follows R3.
+next: R3 — reads loom-graph-design.md §6-8 + proposal-loom.md §L7-L8+cross-cutting
+      + handover L8.md. System contract audit: Laws R1/R2, SymbolId gate, no-regex gate,
+      NodeId.ForType advisory, honesty surfaces.
+trap: L2.4 checkout trace fix (~45-60 min, GraphQueryService/trace projections)
+      queued for after R3. L4.4 ContextPack server markdown assembly deferred.
 
 
 ---
@@ -64,8 +62,8 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
-| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | BLOCKED (L2.4 checkout trace gapped) | docs/design-reviews/R1-L0-L3.md, eval-results/2026-07-09/R1-gate-s65.txt |
-| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | TODO | `docs/design-reviews/R2-L4-L6.md` |
+| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | DONE (1 finding queued) | `docs/design-reviews/R1-L0-L3.md` |
+| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | DONE | `docs/design-reviews/R2-L4-L6.md` (s66) |
 | 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
 
 ### Phase 3: Final QA
