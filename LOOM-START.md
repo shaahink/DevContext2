@@ -6,15 +6,12 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: D5 (L0.4) — Truth gate auto-enforcement delivered. Loom-guards.ps1 now
-       runs Category=Truth tests as gate #5; any failure exits non-zero.
-       3 [TruthPending] bodies converted from silent `return;` to Skip.IfNot
-       (forward-safe against green-wash when attributes are removed).
-       Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips=ratchets).
-       QA of D5 tracker (session s49) found it falsely marked DONE — c444dd2
-       was D3/L5.x, not D5. D5 now genuinely delivered in this session (s53).
+last: D5 (L0.4) — QA re-verified (s54). loom-guards.ps1 truth gate #5 green.
+       3 [TruthPending] Skip.IfNot guards confirmed (no silent return).
+       Fresh-run gate battery: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F.
+       D5 genuinely landed by 92c85b3. QA found zero discrepancies.
 stage: D5 COMPLETE. Next: D6 (L3.4 — TfmScore net10.0+).
-trap: None. Advisory count (13 NodeId.ForType) unchanged. Truth ratchets stable.
+trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable.
 
 ---
 
@@ -50,7 +47,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 2 | L3.5 — TodoApi eval gap triaged | DONE | `eval-results/2026-07-09/debt-L3.5-gate.txt` |
 | 3 | L5.x — Audit-trap sweep (5 items) | DONE | `eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt`, attempt3 re-verified s49 |
 | 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
-| 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) |
+| 5 | L0.4 — Truth gate in battery + TruthPending sweep | DONE | `eval-results/2026-07-09/debt-L0.4-gate.txt` (s53) + QA `debt-L0.4-QA-gate-s54.txt` |
 | 6 | L3.4 — TfmScore handles net10.0+ | TODO | `eval-results/<date>/debt-L3.4-gate.txt` |
 | 7 | L2.5 — Lambda scope pollution + SeamContext dedup | TODO | `eval-results/<date>/debt-L2.5-gate.txt` |
 | 8 | L4.5 — Flow model hardening | TODO | `eval-results/<date>/debt-L4.5-gate.txt` |
