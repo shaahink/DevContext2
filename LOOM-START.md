@@ -1,90 +1,92 @@
 # Loom — Phase Tracker (resume here)
 
-**Read order for a fresh session:** this file → `conductor-DEBT.md` (audit followups —
-unresolved bugs + deferred work from L0-L4 audits, sized + gated) → `docs/dev/briefs/loom-graph-design.md`
-(the design authority — MANDATORY) → your stage in `docs/dev/briefs/proposal-loom.md`
-→ `eval-results/2026-07-07/SESSION-AUDIT.md` (the findings your stage fixes).
-Branch scheme: `feat/loom-l<stage>`. Dogfood repo:
-`C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
+**Read order for a fresh session:** this file → `AGENTS.md` (current phase protocol) →
+`conductor-DEBT.md` (debt catalog, sized + gated) → `docs/workflows/loom-debt-workflow.md`
+(the workflow for the current phase).
+Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
-##  Handoff  (overwrite this block, ≤10 lines, no history)
-last: L8 session #40 — **L8.1 DONE** (close-out: gate battery green: 414P/3S Core, 64P Desktop,
-        12P Server, 27/27 pnpm, truth 7P/4S). QA of L7.4 found 4 truth test assertion bugs —
-        fixed (argument order, MAP section headers for non-App archetypes). HANDOVER-LOOM.md
-        created. AGENTS.md root + App updated with Loom rituals. Dogfood stable
-        436n/338e/34e/6SL/69%. 5 eShop TraceQuality + 1 EvalExpectation failures documented
-        as honest pre-existing gaps.
-stage: **L8 DONE**. Loom phase closed.
-next: **conductor-DEBT.md** (L0.4-L5.x: 8 items) or next phase planning.
-evidence: eval-results/2026-07-08/gate-battery-l8-s40.txt,
-          eval-results/2026-07-08/truth-battery-l8-s40.txt,
-          docs/dev/HANDOVER-LOOM.md
+## Handoff (overwrite this block, ≤12 lines, no history)
+last: Session 1 (L0.5) DONE. B9 rank-quality probe excluded from failure-actionability
+       denominator (now 9/11=82%, was 10/12=83%). checkBootLiveness() added to
+       ui-audit-drive.mjs — dead env exits non-zero with "GATE FAILED (boot-liveness)".
+       Guards green. No engine changes.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done.
+next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
+trap: (1) AGENTS.md protocol still applies. Selective gates only.
+       (2) 2 truth test failures flagged (checkout trace + RazorPages fab) still
+       open — Phase 2 design review.
+       (3) Branch stays feat/loom-l7 (merge is Session 4).
+evidence: eval-results/2026-07-09/debt-L0.5-gate.txt (+ mcp-cold-qa.md, ui-gate.md)
 
-## Baseline numbers (2026-07-08, L7.1 post-PlainCallDetector — drift >5% documented below)
+---
+
+## ✅ Loom delivery — COMPLETE (34/34 checkpoints)
+
+L0-L8 were delivered across 41 sessions. All gates green at phase-end. See `docs/dev/HANDOVER-LOOM.md`
+for the full close-out. The table below is preserved for reference; all rows are DONE.
+
+| # | Checkpoint | Status | Session | Evidence |
+|---|-----------|--------|---------|----------|
+| L0.1-L0.3 | Truth harness + cold-QA baseline + UI drive | DONE | s1-s4 | `eval-results/2026-07-07/` |
+| L1.1-L1.5 | Identity spine: SymbolTable, Service nodes, guards | DONE | s5-s6 | `eval-results/2026-07-07/gate-battery-l1-s5.txt` |
+| L2.1-L2.4 | BodyFacts + 5 seam detectors + regex funeral | DONE | s7-s10 | `eval-results/2026-07-07/gate-battery-l2-s8.txt` |
+| L3.1-L3.3 | Semantic-lite Tier B (81% verified) | DONE | s11-s17 | `eval-results/2026-07-08/gate-battery-l3.3-s16.txt` |
+| L4.1-L4.4 | Flows + projections + ContextPack | DONE | s18-s22 | `eval-results/2026-07-08/gate-battery-l4.4-s21.txt` |
+| L5.1-L5.5 | MCP v2 cold-agent (≥90% actionable) | DONE | s23-s28 | `eval-results/2026-07-08/gate-battery-l5.5-s28.txt` |
+| L6.1-L6.6 | Workbench repair (tabs, code, studio, table) | DONE | s29-s33 | `eval-results/2026-07-08/gate-battery-l6-session-33.txt` |
+| L7.1-L7.4 | Repo-shape coverage (archetypes, 22-repo bench) | DONE | s34-s39 | `eval-results/2026-07-08/bench-verdicts-l7.4-s38.md` |
+| L8.1 | Close-out (handover, AGENTS.md, rituals) | DONE | s40-s41 | `docs/dev/HANDOVER-LOOM.md` |
+
+---
+
+## Post-Loom checkpoints (in progress)
+
+Status ∈ TODO · IN PROGRESS · DONE · BLOCKED. Evidence under `eval-results/<date>/`.
+Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
+
+### Phase 1: Merge + Debt Cleanup
+
+| # | Checkpoint | Status | Evidence |
+|---|-----------|--------|----------|
+| 1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | DONE | `eval-results/2026-07-09/debt-L0.5-gate.txt` |
+| 2 | L3.5 — TodoApi eval gap triaged | TODO | `eval-results/<date>/debt-L3.5-gate.txt` |
+| 3 | L5.x — Audit-trap sweep (5 items) | TODO | `eval-results/<date>/debt-L5.x-gate.txt` |
+| 4 | Merge feat/loom-l7 → develop (squash per L-stage) | TODO | merge commits |
+| 5 | L0.4 — Truth gate in battery + TruthPending sweep | IN PROGRESS | 3/3 pending flipped, guards wiring remains |
+| 6 | L3.4 — TfmScore handles net10.0+ | TODO | `eval-results/<date>/debt-L3.4-gate.txt` |
+| 7 | L2.5 — Lambda scope pollution + SeamContext dedup | TODO | `eval-results/<date>/debt-L2.5-gate.txt` |
+| 8 | L4.5 — Flow model hardening | TODO | `eval-results/<date>/debt-L4.5-gate.txt` |
+| 9 | L1.6 — SymbolTable member indexing | TODO | `eval-results/<date>/debt-L1.6-gate.txt` |
+
+> **Note:** Session 5 (L0.4) is DONE because the 3 stale [TruthPending] fixes were applied
+> in-session as a prerequisite. The truth-gate-in-battery part (loom-guards.ps1) remains.
+
+### Phase 2: Static Design Review
+
+| # | Checkpoint | Status | Evidence |
+|---|-----------|--------|----------|
+| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | TODO | `docs/design-reviews/R1-L0-L3.md` |
+| 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | TODO | `docs/design-reviews/R2-L4-L6.md` |
+| 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
+
+### Phase 3: Final QA
+
+| # | Checkpoint | Status | Evidence |
+|---|-----------|--------|----------|
+| 13 | QA Driver — full live UI + CLI + MCP + bench | TODO | `docs/qa-reports/QA-FINAL-LOOM.md`, `QA-BUGFIXES.md` |
+
+---
+
+## Baseline numbers
 
 | Metric | Value |
-|---|---|---|
+|---|---|
 | Dogfood | 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · depth 6 · ~5.2s |
-| Checkout trace depth (CLI, `--focus "POST /basket/checkout"`) | **6 (L2.4 fixed — was 1)** |
-| Cold-agent MCP naive-call actionability | **90% (L5.5 gate met)** |
-| Tab strip height | **32px (L6.1 fixed — was 18px)** |
-| eShop (non-CQRS proxy) | 479 nodes · 375 edges · 96 entries · ~14.5s |
-
-> drift: +62 edges (+22.5%), +15 nodes (+3.6%) on dogfood — deliberate: PlainCallDetector
-> adds new Calls edges for in-solution method invocations previously untracked. Verified%
-> dropped 82→69% because new edges are syntactic tier (SemanticLitePopulator upgrades some).
-> Time 3.8→5.2s (+1.4s) within 2× Tier B budget.
-
-## Checkpoints
-
-Status ∈ TODO · IN PROGRESS · DONE · BLOCKED. Evidence = artifact path produced by a
-run this phase (a code path is not evidence). Scope changes get a `> scope change:`
-line under the row — never silent renumbering.
-
-| # | Checkpoint | Status | Commit | Evidence |
-|---|-----------|--------|--------|----------|
-| L0.1 | Truth expectations (6 repos, named flows/services/negatives) | DONE | bdcc840 | eval-results/2026-07-07/truth-gate-l0.1.txt |
-| L0.2 | Cold-agent MCP QA harness + baseline | DONE | 930fbf8 | eval-results/2026-07-07/mcp-cold-qa.md |
-| L0.3 | UI drive gate from ui-audit-drive.mjs (red items enumerated) | DONE | 9506977 | eval-results/2026-07-07/ui/ui-gate.md |
-| L1.1 | SymbolId/SymbolRef/ResolutionTier/SymbolTable + ambiguity fixtures | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
-| L1.2 | Service/Message/Store node kinds + boundary inference + Project stamp | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
-| L1.3 | ServiceLinks on Service nodes; `_eventPublishers` static deleted | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
-| L1.4 | loom-guards.ps1 ban-list green | DONE | fa4e415 | scripts/loom-guards.ps1 (green, 0 banned) |
-| L1.5 | impact/scope grouping via Service identity (no "(unknown)"/"Default") | DONE | fa4e415 | eval-results/2026-07-07/gate-battery-l1-s5.txt |
-| L2.1 | BodyFacts in the existing parse, cached (facts-v1) | DONE | 006daff | eval-results/2026-07-07/gate-battery-l2-s7.txt |
-| L2.2 | Seam detectors ×5 with dogfood-verbatim fixtures | DONE | 5dafd6e | eval-results/2026-07-07/gate-battery-l2-s7.txt |
-| L2.3 | Assembler consumes SeamMatches; regex paths deleted; ≤400-line assembler | DONE | (l2.3) | eval-results/2026-07-07/gate-battery-l2-s8.txt |
-| L2.4 | **Checkout truth test GREEN (depth ≥5, cross-service)** | DONE | (l2.4) | eval-results/2026-07-07/dogfood-l2-checkout-trace.md (depth 6) |
-| L3.1 | SemanticLitePopulator (assets.json → compilations, degrade path) | DONE | (l3.1) | eval-results/2026-07-08/gate-battery-l3-s11.txt |
-| L3.2 | Targeted semantic upgrades (Law R2) | DONE | (l3.2) | eval-results/2026-07-08/gate-battery-l3.2-s12.txt |
-| L3.3 | Verified-edge ratchet ≥80% dogfood; truth bench re-run | DONE | (l3.3-s16) | eval-results/2026-07-08/gate-battery-l3.3-s16.txt |
-> scope change: 65% → 68% (s14, +7 ReadsWrites +1 CallEdge) → **81% (s16)**: assembly-independent
-> semantic bind of dispatch targets (generic type-arg / inline `new X()`), Sends 32 approx → 0.
-> DntSite controller sub-measurement deferred — repo absent on this machine (ratchet gate met on dogfood).
-| L4.1 | Flow store; spine-only TOUCHES/EMITS (E5 fix); ServiceHops + provenance | DONE | (l4.1) | eval-results/2026-07-08/gate-battery-l4.1-s18.txt |
-| L4.2 | Projections + GetGraphFacets RPC (per-node lens data) | DONE | 73cca81 | eval-results/2026-07-08/gate-battery-l4.2-s19.txt |
-| L4.3 | Home/Atlas/MCP consume projections (ad-hoc walks deleted) | DONE | (l4.3-s20) | eval-results/2026-07-08/gate-battery-l4.3-s20.txt |
-> scope change: dogfood 422→421 nodes — BuildingBlocks (a class lib referencing
-> FluentValidation.AspNetCore) was mis-classified runnable by IsRunnableService's substring
-> "AspNetCore" package check; tightened to Microsoft.AspNetCore.App*/Web-SDK/Exe (design §2.4).
-> Edges/SL/entries/verified% unchanged. Hero now shows exactly 6 runnables (audit Claim 3 fix).
-| L4.4 | Server ContextPack round-trip (Trap A closed) | DONE | (l4.4-s21) | eval-results/2026-07-08/gate-battery-l4.4-s21.txt |
-| L5.1 | Default-session ergonomics | DONE | (l5.1-s23) | eval-results/2026-07-08/gate-battery-l5.1-s23.txt |
-| L5.2 | Error envelopes (error+hint+example ≤80 tok) | DONE | (l5.2-s24) | eval-results/2026-07-08/gate-battery-l5.2-s24.txt |
-| L5.3 | Unified ranked resolution (`resolve "Order"` → aggregate #1) | DONE | (l5.3-s25) | eval-results/2026-07-08/gate-battery-l5.3-s25.txt |
-| L5.4 | Real `flow` tool + fuzzy focus | DONE | (l5.4-s26) | eval-results/2026-07-08/gate-battery-l5.4-s26.txt
-| L5.5 | Cold-agent QA becomes the gate | DONE | (l5.5-s28) | eval-results/2026-07-08/gate-battery-l5.5-s28.txt |
-| L6.1 | Tabs: 32px+, New=createTab, clone-close confirm | DONE | (l6.1-s29) | eval-results/2026-07-08/gate-battery-l6.1-s29.txt |
-| L6.2 | Code pane: entry selection shows source; states visible | DONE | da1823d | eval-results/2026-07-08/gate-battery-l6.2-s30.txt |
-| L6.3 | Inspector insights: adjacency filter + honest chip | DONE | (l6.3-s32) | eval-results/2026-07-08/gate-battery-l6.3-s32.txt |
-| L6.4 | Context Studio v2: service tree, preset scaffolds real cards | DONE | (l6.4-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
-| L6.5 | Table lens button + focus-proof shortcut | DONE | (l6.5-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
-| L6.6 | Chrome polish batch (MCP status, confidence stat, DPI sweep) | DONE | (l6.6-s33) | eval-results/2026-07-08/gate-battery-l6-session-33.txt |
-| L7.1 | Call-spine completion (≥70% entries ≥2-deep on MVC-class repos) | DONE | (l7.1-s34) | eval-results/2026-07-08/gate-battery-l7.1-s34.txt |
-| L7.2 | Archetype projections (desktop/worker/library/blazor) | DONE | (l7.2-s36) | eval-results/2026-07-08/gate-battery-l7.2-s36.txt |
-| L7.3 | Style-detection guardrails + E9 scope fix | DONE | (l7.3-s37) | eval-results/2026-07-08/gate-battery-l7.3-s37.txt |
-| L7.4 | Truth files per archetype; 22-repo truth bench | DONE | (l7.4-s38) | eval-results/2026-07-08/bench-verdicts-l7.4-s38.md |
-| L8.1 | Close-out: clean-clone battery, HANDOVER-LOOM.md, AGENTS.md rituals | DONE | (l8.1-s40) | eval-results/2026-07-08/gate-battery-l8-s40.txt, docs/dev/HANDOVER-LOOM.md |
+| Checkout trace depth | 6 (L2.4) |
+| Cold-agent MCP actionability | 90% (L5.5) |
+| Tab strip height | 32px (L6.1) |
+| Truth tests | 9P/2F/0S (DntSite cloned — was skip, now passes. 2 failures flagged for Phase 2 review) |
+| eShop (non-CQRS proxy) | 479 nodes · 375 edges · 96 entries |
 
 ## Quick commands
 

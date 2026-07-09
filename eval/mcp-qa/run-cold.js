@@ -309,11 +309,17 @@ async function main() {
   }
 
   // ---- Score ----
-  const total = rows.length;
-  const actionable = rows.filter((r) => r.c.actionable).length;
-  const falseSuccess = rows.filter((r) => r.c.falseSuccess).length;
-  const opaque = rows.filter((r) => r.c.opaque).length;
-  const pct = total ? (actionable / total) : 0;
+  // Separate rank-quality probes (success probes verifying tool ranking quality)
+  // from failure probes (naive calls that SHOULD fail but differ in error signalling).
+  // B9 ("find a common word") is a rank-quality probe — it legitimately returns results
+  // and must not be scored in the failure-actionability denominator.
+  const failureRows = rows.filter((r) => !r.rankQuality);
+  const rankQualityRows = rows.filter((r) => r.rankQuality);
+  const totalFailures = failureRows.length;
+  const actionable = failureRows.filter((r) => r.c.actionable).length;
+  const falseSuccess = failureRows.filter((r) => r.c.falseSuccess).length;
+  const opaque = failureRows.filter((r) => r.c.opaque).length;
+  const pct = totalFailures ? (actionable / totalFailures) : 0;
 
   console.log("\n========================================");
   console.log("Cold-agent actionability (L0.2 baseline)");
@@ -321,12 +327,17 @@ async function main() {
   console.log("| Probe | Intent | Verdict |");
   console.log("|-------|--------|---------|");
   for (const r of rows) {
-    console.log(`| ${r.id.padEnd(26)} | ${r.intent.slice(0, 34).padEnd(34)} | ${r.c.verdict} |`);
+    const tag = r.rankQuality ? " [rank-quality]" : "";
+    console.log(`| ${r.id.padEnd(26)} | ${r.intent.slice(0, 34).padEnd(34)} | ${r.c.verdict}${tag} |`);
   }
   console.log("");
-  console.log(`Actionable failures: ${actionable}/${total} (${(pct * 100).toFixed(0)}%)`);
+  console.log(`Actionable failures: ${actionable}/${totalFailures} (${(pct * 100).toFixed(0)}%)`);
   console.log(`False-successes (silent wrong answers): ${falseSuccess}`);
   console.log(`Opaque errors (no next step): ${opaque}`);
+  if (rankQualityRows.length > 0) {
+    const rqList = rankQualityRows.map((r) => r.id).join(", ");
+    console.log(`Rank-quality probes (excluded from failure denominator): ${rankQualityRows.length} (${rqList})`);
+  }
   if (b9note) console.log(b9note);
   console.log(`Gate threshold (L5.5): ${(GATE_THRESHOLD * 100).toFixed(0)}%  ->  ${pct >= GATE_THRESHOLD ? "PASS" : "BELOW (expected at L0 baseline)"}`);
 
@@ -350,19 +361,24 @@ async function main() {
   md.push("");
   md.push("## Actionability");
   md.push("");
-  md.push(`**Actionable failures: ${actionable}/${total} (${(pct * 100).toFixed(0)}%)**  `);
+  md.push(`**Failure-actionability probes:** ${totalFailures} (rank-quality probes excluded)  `);
+  md.push(`**Actionable failures: ${actionable}/${totalFailures} (${(pct * 100).toFixed(0)}%)**  `);
   md.push(`False-successes (silent wrong answers): ${falseSuccess}  `);
   md.push(`Opaque errors (no next step): ${opaque}  `);
   md.push(`Gate (L5.5 ≥${(GATE_THRESHOLD * 100).toFixed(0)}%): ${pct >= GATE_THRESHOLD ? "PASS" : "BELOW — baseline, gate arms in L5.5"}  `);
+  if (rankQualityRows.length > 0) {
+    md.push(`Rank-quality probes (excluded from failure denominator): ${rankQualityRows.map((r) => r.id).join(", ")}  `);
+  }
   if (b9note) md.push(`${b9note}  `);
   md.push("");
   md.push("## Per-probe");
   md.push("");
-  md.push("| Probe | Phase | Intent | Verdict | Signaled | NextStep | Response (truncated) |");
-  md.push("|-------|-------|--------|---------|----------|----------|----------------------|");
+  md.push("| Probe | Phase | Intent | Type | Verdict | Signaled | NextStep | Response (truncated) |");
+  md.push("|-------|-------|--------|------|---------|----------|----------|----------------------|");
   for (const r of rows) {
+    const type = r.rankQuality ? "rank-quality" : "failure";
     const resp = (r.res.mcpError ? `mcpError: ${r.res.mcpError.message}` : r.res.rawText).slice(0, 90).replace(/\|/g, "/").replace(/\n/g, " ");
-    md.push(`| ${r.id} | ${r.phase} | ${r.intent} | ${r.c.verdict} | ${r.c.signaled} | ${r.c.nextStep} | ${resp} |`);
+    md.push(`| ${r.id} | ${r.phase} | ${r.intent} | ${type} | ${r.c.verdict} | ${r.c.signaled} | ${r.c.nextStep} | ${resp} |`);
   }
   md.push("");
   md.push("## Owning stages for the red items");

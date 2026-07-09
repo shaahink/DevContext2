@@ -35,6 +35,26 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const notes = [];
 const note = (s) => { notes.push(s); console.log("NOTE: " + s); };
 
+// Boot-liveness precondition (L0.5): fail distinctly if the app never renders.
+// Without this, `page.goto` to a dead server silently fails all assertions as
+// `expectedRedUntil` and `--gate` passes green on a dead environment.
+async function checkBootLiveness(page) {
+  for (let i = 0; i < 20; i++) {
+    try {
+      const hasApp = await page.evaluate(() => {
+        const root = document.querySelector("app-root");
+        const titlebar = document.querySelector("app-titlebar");
+        const tabStrip = document.querySelector("app-tab-strip");
+        const input = document.querySelector("input");
+        return !!(root || titlebar || tabStrip || input) ? "found" : null;
+      });
+      if (hasApp) { console.log("LIVENESS: app shell rendered ok"); return true; }
+    } catch (_) { /* page may not be ready */ }
+    await sleep(500);
+  }
+  return false;
+}
+
 // Each assertion: { id, desc, owner, expectedRedUntil, run() -> {pass, detail} }.
 const assertions = [];
 const results = [];
@@ -65,7 +85,26 @@ async function main() {
 
   try {
     // ── boot + analyze dogfood ──
-    await page.goto(APP_URL, { waitUntil: "networkidle" });
+    let gotoOk = false;
+    try { await page.goto(APP_URL, { waitUntil: "networkidle" }); gotoOk = true; }
+    catch (e) { note("page.goto failed: " + e.message.slice(0, 120)); }
+
+    const alive = await checkBootLiveness(page);
+    if (!alive) {
+      note("BOOT-LIVENESS FAILED: app shell did not render within 10s. Is server+ng running?");
+      await browser.close();
+      console.log("\n========================================");
+      console.log("UI drive gate — BOOT-LIVENESS FAILED");
+      console.log("========================================");
+      console.log("The app shell did not render. The server or Angular dev server may be down.");
+      console.log("Start: pnpm server (terminal 1) + pnpm dev:web (terminal 2), then retry.");
+      console.log("");
+      if (GATE) {
+        console.error("GATE FAILED (boot-liveness): app shell did not render");
+        process.exit(1);
+      }
+      process.exit(0);
+    }
     await sleep(2500);
     await shot(page, "01-boot");
 

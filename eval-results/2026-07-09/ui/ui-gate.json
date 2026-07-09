@@ -1,0 +1,48 @@
+{
+  "date": "2026-07-09",
+  "results": [
+    {
+      "id": "A-tabstrip-height",
+      "desc": "tab strip height >= 30px",
+      "audit": "U1",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "stripH=nullpx (want >=30)"
+    },
+    {
+      "id": "B-new-preserves-tabs",
+      "desc": "titlebar New preserves other tabs",
+      "audit": "U2",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "New button not exercised (no session/button)"
+    },
+    {
+      "id": "C-code-pane-nonempty",
+      "desc": "code pane non-empty on entry selection",
+      "audit": "U3",
+      "owner": "L6.2",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "code length=null"
+    },
+    {
+      "id": "D-context-preset-cards",
+      "desc": "context studio preset seeds >= 1 card",
+      "audit": "U6",
+      "owner": "L6.4",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "cards=null"
+    }
+  ],
+  "reds": [
+    "A-tabstrip-height",
+    "B-new-preserves-tabs",
+    "C-code-pane-nonempty",
+    "D-context-preset-cards"
+  ],
+  "unexpectedFails": []
+}
