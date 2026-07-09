@@ -189,4 +189,30 @@ public sealed class BodyFactExtractorTests
         Assert.Empty(model.Detections);
         Assert.Empty(model.Diagnostics);
     }
+
+    [Fact]
+    public void Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope()
+    {
+        const string code = """
+            namespace N;
+            class C
+            {
+                void M()
+                {
+                    var items = new List<int>();
+                    items.Select((IHandler x) => x.Execute());
+                    var strings = new List<string>();
+                    strings.Select((ILogger x) => x.Log("hello"));
+                }
+            }
+            """;
+        var addRoutes = Member(code, "M");
+        var execute = addRoutes.Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Execute");
+        var log = addRoutes.Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Log");
+
+        Assert.Equal("x", execute.ReceiverText);
+        Assert.Equal("IHandler", execute.ReceiverType?.Text);
+        Assert.Equal("x", log.ReceiverText);
+        Assert.Equal("ILogger", log.ReceiverType?.Text);
+    }
 }

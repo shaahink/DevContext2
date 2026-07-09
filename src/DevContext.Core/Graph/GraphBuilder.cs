@@ -1574,9 +1574,8 @@ public sealed class GraphBuilder
         if (allBodyFacts.Count == 0) return;
 
         // Build SeamContext from model detections + type base/interface data
+        var (integrationTypes, domainTypes) = BuildTypeEventSets(model);
         var knownEntities = new HashSet<string>(StringComparer.Ordinal);
-        var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
-        var domainTypes = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
         {
@@ -1590,28 +1589,6 @@ public sealed class GraphBuilder
             if (h.Kind == MediatRKind.Notification)
                 domainTypes.Add(h.RequestType);
         }
-        foreach (var t in model.Types.Values)
-        {
-            foreach (var bt in t.BaseTypes)
-            {
-                var stripped = StripGenerics(bt);
-                if (stripped.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase)
-                    || stripped is "INotification" or "IDomainEvent" or "IEvent")
-                {
-                    integrationTypes.Add(t.Name);
-                    break;
-                }
-                if (stripped.Contains("DomainEvent", StringComparison.Ordinal))
-                    domainTypes.Add(t.Name);
-            }
-        }
-        foreach (var t in model.Types.Values)
-        {
-            if (t.Name.Contains("DomainEvent", StringComparison.Ordinal))
-                domainTypes.Add(t.Name);
-        }
-
-        var symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile);
 
         // Entity and event names that are also FQNs
         foreach (var e in model.Detections.OfType<EfEntityDetection>())
@@ -1632,13 +1609,7 @@ public sealed class GraphBuilder
                 knownEntities.Add(node.Title);
         }
 
-        var ctx = new SeamContext
-        {
-            Symbols = symbols,
-            KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
-            IntegrationEventTypes = integrationTypes.ToImmutableHashSet(StringComparer.Ordinal),
-            DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
-        };
+        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, knownEntities);
 
         var detectors = new ISeamDetector[]
         {
@@ -1689,7 +1660,7 @@ public sealed class GraphBuilder
                         var originId = ToMemberNodeId(match.Origin);
                         EnsureMemberId(g, originId, body.MemberName, body.File, body.Project);
 
-                        var resolved = symbols.Resolve(match.Target);
+                        var resolved = ctx.Symbols!.Resolve(match.Target);
                         if (resolved.Tier == ResolutionTier.Ambiguous)
                             continue; // Law R1: no silent winners
 
@@ -1821,27 +1792,8 @@ public sealed class GraphBuilder
     private static void AddLambdaSeams(CodeGraphBuilder g, DiscoveryModel model, NameResolver names, SolutionScope scope,
         IReadOnlyList<BodyFacts>? upgradedFacts)
     {
-        var symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile);
-        var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
-        var domainTypes = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var t in model.Types.Values)
-        {
-            foreach (var bt in t.BaseTypes)
-            {
-                var stripped = StripGenerics(bt);
-                if (stripped.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase)
-                    || stripped is "INotification" or "IDomainEvent" or "IEvent")
-                { integrationTypes.Add(t.Name); break; }
-                if (stripped.Contains("DomainEvent", StringComparison.Ordinal))
-                    domainTypes.Add(t.Name);
-            }
-        }
-        var ctx = new SeamContext
-        {
-            Symbols = symbols,
-            IntegrationEventTypes = integrationTypes.ToImmutableHashSet(StringComparer.Ordinal),
-            DomainEventTypes = domainTypes.ToImmutableHashSet(StringComparer.Ordinal),
-        };
+        var (integrationTypes, domainTypes) = BuildTypeEventSets(model);
+        var ctx = BuildSeamContext(model, scope, integrationTypes, domainTypes, ImmutableHashSet<string>.Empty);
 
         // L3.2/L3.3 — semantic overlay: the lambda body is re-parsed in isolation (a synthetic tree not in
         // the Tier-B compilation), so its ops carry only syntactic types. Re-attach the semantic tier that the
@@ -1908,7 +1860,7 @@ public sealed class GraphBuilder
                         {
                             foreach (var match in detector.Detect(bodyFacts, ctx))
                             {
-                                var resolved = symbols.Resolve(match.Target);
+                                var resolved = ctx.Symbols!.Resolve(match.Target);
                                 if (resolved.Tier == ResolutionTier.Ambiguous) continue;
 
                                 NodeId targetId;
@@ -2432,5 +2384,45 @@ public sealed class GraphBuilder
         }
 
         return result.ToImmutable();
+    }
+
+    private static (HashSet<string> IntegrationTypes, HashSet<string> DomainTypes) BuildTypeEventSets(DiscoveryModel model)
+    {
+        var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
+        var domainTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var t in model.Types.Values)
+        {
+            foreach (var bt in t.BaseTypes)
+            {
+                var stripped = StripGenerics(bt);
+                if (stripped.Contains("IntegrationEvent", StringComparison.OrdinalIgnoreCase)
+                    || stripped is "INotification" or "IDomainEvent" or "IEvent")
+                {
+                    integrationTypes.Add(t.Name);
+                    break;
+                }
+                if (stripped.Contains("DomainEvent", StringComparison.Ordinal))
+                    domainTypes.Add(t.Name);
+            }
+        }
+        foreach (var t in model.Types.Values)
+        {
+            if (t.Name.Contains("DomainEvent", StringComparison.Ordinal))
+                domainTypes.Add(t.Name);
+        }
+        return (integrationTypes, domainTypes);
+    }
+
+    private static SeamContext BuildSeamContext(DiscoveryModel model, SolutionScope scope,
+        IEnumerable<string> integrationEventTypes, IEnumerable<string> domainEventTypes,
+        IEnumerable<string> knownEntities)
+    {
+        return new SeamContext
+        {
+            Symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile),
+            KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
+            IntegrationEventTypes = integrationEventTypes.ToImmutableHashSet(StringComparer.Ordinal),
+            DomainEventTypes = domainEventTypes.ToImmutableHashSet(StringComparer.Ordinal),
+        };
     }
 }

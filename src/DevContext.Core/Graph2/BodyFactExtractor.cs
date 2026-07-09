@@ -71,23 +71,7 @@ public static class BodyFactExtractor
         if (member is ConstructorDeclarationSyntax cd)
             foreach (var p in cd.ParameterList.Parameters) AddParam(scope, p);
 
-        foreach (var lambda in body.DescendantNodes())
-        {
-            switch (lambda)
-            {
-                case ParenthesizedLambdaExpressionSyntax pl:
-                    foreach (var p in pl.ParameterList.Parameters) AddParam(scope, p);
-                    break;
-                case SimpleLambdaExpressionSyntax sl:
-                    AddParam(scope, sl.Parameter);
-                    break;
-                case LocalFunctionStatementSyntax lf:
-                    foreach (var p in lf.ParameterList.Parameters) AddParam(scope, p);
-                    break;
-            }
-        }
-
-        // Pass 1: locals populate the scope so later uses (and receivers) resolve regardless of order.
+        // Pass 0: locals populate the scope so later uses (and receivers) resolve regardless of order.
         foreach (var decl in body.DescendantNodes().OfType<VariableDeclarationSyntax>())
         {
             var declaredType = decl.Type.IsVar ? null : decl.Type.ToString();
@@ -166,15 +150,20 @@ public static class BodyFactExtractor
         }
 
         SymbolRef? receiverType = null;
-        if (receiverText is not null && scope.TryGetValue(receiverText, out var rt))
-            receiverType = Ref(StripGenerics(rt), inv, filePath, project);
+        if (receiverText is not null)
+        {
+            var rt = ResolveFromScope(scope, inv, receiverText);
+            if (rt is not null)
+                receiverType = Ref(StripGenerics(rt), inv, filePath, project);
+        }
 
         var args = ImmutableArray.CreateBuilder<ArgFact>();
         foreach (var arg in inv.ArgumentList.Arguments)
         {
             var argText = RootIdentifier(arg.Expression) ?? arg.Expression.ToString();
             SymbolRef? argType = null;
-            if (scope.TryGetValue(argText, out var at))
+            var at = ResolveFromScope(scope, inv, argText);
+            if (at is not null)
                 argType = Ref(StripGenerics(at), arg, filePath, project);
             else if (InferInitializer(arg.Expression, methodReturns) is { } inlineType)
                 argType = Ref(inlineType, arg, filePath, project); // inline `new X(...)` / `.Adapt<X>()`
@@ -293,6 +282,43 @@ public static class BodyFactExtractor
     {
         if (p?.Type is null) return;
         scope[p.Identifier.ValueText] = StripGenerics(p.Type.ToString());
+    }
+
+    private static string? ResolveFromScope(Dictionary<string, string> scope, SyntaxNode node, string name)
+    {
+        if (scope.TryGetValue(name, out var type)) return type;
+        return GetEnclosingParamType(node, name);
+    }
+
+    private static string? GetEnclosingParamType(SyntaxNode node, string name)
+    {
+        for (var parent = node.Parent; parent != null; parent = parent.Parent)
+        {
+            switch (parent)
+            {
+                case ParenthesizedLambdaExpressionSyntax pl:
+                {
+                    foreach (var prm in pl.ParameterList.Parameters)
+                        if (prm.Type is not null && prm.Identifier.ValueText == name)
+                            return StripGenerics(prm.Type.ToString());
+                    break;
+                }
+                case SimpleLambdaExpressionSyntax sl:
+                {
+                    if (sl.Parameter is { Type: not null } prm && prm.Identifier.ValueText == name)
+                        return StripGenerics(prm.Type.ToString());
+                    break;
+                }
+                case LocalFunctionStatementSyntax lf:
+                {
+                    foreach (var prm in lf.ParameterList.Parameters)
+                        if (prm.Type is not null && prm.Identifier.ValueText == name)
+                            return StripGenerics(prm.Type.ToString());
+                    break;
+                }
+            }
+        }
+        return null;
     }
 
     private static string? RootIdentifier(ExpressionSyntax expr)
