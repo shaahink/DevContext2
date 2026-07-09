@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
+_Updated 2026-07-09 02:02 UTC · branch `feat/loom-l7` · HEAD `091e22e`_
 
 **Status:** Idle
-**Stage:** D2 — L3.5 — TodoApi eval gap triage · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 47 · **Cost:** $3.3539 · **Tokens:** 3,289,779 in / 661,719 out / 483,896 think
+**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 48 · **Cost:** $3.4141 · **Tokens:** 3,377,093 in / 670,923 out / 492,082 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2
 
@@ -14,7 +14,7 @@ _Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
 |---|---|---|---|
 | D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
 | D2 | L3.5 — TodoApi eval gap triage | 0/0 | SKIPPED ⚠ |
-| D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | todo |
+| D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | **← active** |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
@@ -30,7 +30,6 @@ _Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 18 | L4 | Deliver | 1 | 07-08 03:53 | 0:26 | Advanced | L4.1 | 4 | build:OK | $0.0751 | 87,814/13,061 |
 | 19 | L4 | Deliver | 1 | 07-08 04:20 | 0:21 | Advanced | L4.2 | 4 | build:OK | $0.0807 | 104,395/15,313 |
 | 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
 | 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
@@ -60,13 +59,10 @@ _Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
 | 45 | D2 | Deliver | 1 | 07-09 00:40 | 0:14 | Progress |  | 1 | build:OK | $0.0391 | 52,171/6,357 |
 | 46 | D2 | Deliver | 2 | 07-09 00:56 | 0:19 | Progress |  | 1 | build:OK | $0.0271 | 34,294/4,650 |
 | 47 | D2 | Deliver | 2 | 07-09 01:16 | 0:19 | Progress |  | 1 | build:OK | $0.0381 | 50,038/7,091 |
+| 48 | D3 | Deliver | 1 | 07-09 01:37 | 0:24 | Progress |  | 1 | build:OK | $0.0602 | 87,314/9,204 |
 
 ### Commits by session
 
-- **s40 (L8 Deliver)** — 3 commit(s):
-  - 8396a38 feat(l8): close-out — HANDOVER-LOOM.md, AGENTS.md rituals, truth test fixes (7P/4S)
-  - 464ab5f chore(conductor): s40 L8 working ▸L8.1 @ 22:51
-  - b6dedaa chore(conductor): s40 L8 working ▸L8.1 @ 22:41
 - **s41 (L8 Audit)** — 3 commit(s):
   - 2036c5a fix(l8-audit): harden truth tests — LoggerFactory disposal, null safety, sentinel for JSON parse errors, archetype header assertions
   - 9e25ce0 chore(conductor): s41 L8 working ▸L8 @ 23:20
@@ -83,6 +79,8 @@ _Updated 2026-07-09 01:37 UTC · branch `feat/loom-l7` · HEAD `09f32e4`_
   - 3c9e960 docs(debt): D2 L3.5 QA — Session 46 confirmed resolved
 - **s47 (D2 Deliver)** — 1 commit(s):
   - c444dd2 fix(debt): L5.x — audit-trap sweep (5 traps triaged, 1 fixed)
+- **s48 (D3 Deliver)** — 1 commit(s):
+  - 091e22e fix(debt): L5.x — audit-trap sweep re-verified (attempt 2)
 
 ## Phase handovers (audit)
 
@@ -101,21 +99,22 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: Landed checkpoint #3 (L5.x audit-trap sweep) — 5/5 traps triaged. AmbiguityReport converted from class to record (1-line fix at `SymbolTable.cs:3`). 4 traps documented/closed as low-risk or non-existent. QA of Session 45-46 (D2/L3.5 TodoApi) confirmed VERIFIED: TodoApi 3P/0F, Truth 8P/3S. Gate battery fully green: build 0w/0e, Core 414P/3S, Server 12P, Truth 8P/3S, guards 0 banned/advisory stable at 13. Nothing is red. Next session (#48) is the merge sprint — merge feat/loom-l7 → develop per the squash protocol in the workflow.
+> SESSION-RESULT: L5.x audit-trap sweep re-verified and improved. QA'd Session 47 claims — 4 of 5 were accurate; Trap 1 (ServiceBoundaryInference) elevated from "documented" to "fixed" by adding a `ConcurrentDictionary` cache to `IsWebSdkProject`. All 5 traps now resolved: 2 fixed (SBInference cache, AmbiguityReport record), 3 documented/closed (single-call stable, NodeId.ForType@13 stable, BuildInfo.g.cs absent). Gate battery all green: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned. Dogfood: 436n/338e/34e/6SL/69%@4.5s. Branch pushed. Next session (#49): #4 Merge feat/loom-l7→develop (squash, git-only — see workflow §Merge Protocol).
 
 ## Tracker handoff
 
 ```
-last: Session 47 — #3 L5.x: Audit-trap sweep COMPLETE.
-       5/5 traps triaged: AmbiguityReport→record (fixed), 4 documented/closed.
-       Gate battery: build 0w/0e, 414P/3S Core, 12P Server, 8P/3S Truth.
-       Advisory NodeId.ForType stable at 13. Guards 0 banned.
+last: Session 48 — #3 L5.x re-verification (orchestrator attempt 1/2). PASS.
+       QA'ed Session 47 claims; improved Trap 1 (added SBInference cache, not
+       just doc). All 5 traps now: 2 fixed, 3 closed. Dogfood 436n/338e/34e
+       @4.5s (no regress). Gates: build 0w/0e, 414P/3S Core, 8P/3S Truth.
+       AmbiguityReport is record. NodeId.ForType stable @13. Guards 0 banned.
 stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed.
-next: Session 48 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
+next: Session 49 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
        Read workflow §Merge Protocol. Do NOT code — this is git-only.
-trap: Branch stays feat/loom-l7. DntSite truth ~50s.
-       TraceQualityTests.cs:30 still uses `return` not Skip.IfNot (L0.4 scope).
-evidence: eval-results/2026-07-09/debt-L5.x-gate.txt (fresh battery re-run)
+trap: Branch stays feat/loom-l7. Server build was locked by prior test run;
+       Core build+pipeline verified independently. DntSite truth ~50s.
+evidence: eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt (fresh re-run)
 
 ---
 ```
