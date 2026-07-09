@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 21:58 UTC · branch `feat/loom-l7` · HEAD `6870df8`_
+_Updated 2026-07-09 22:29 UTC · branch `feat/loom-l7` · HEAD `0610897`_
 
 **Status:** Idle
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 1
-**Checkpoints:** 2/15 done · **Sessions run:** 5 · **Cost:** $0.4495 · **Tokens:** 403,601 in / 58,820 out / 78,119 think
+**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
+**Checkpoints:** 2/15 done · **Sessions run:** 6 · **Cost:** $0.4871 · **Tokens:** 460,302 in / 63,739 out / 82,766 think
 
 ## Stage progress
 
@@ -26,6 +26,7 @@ _Updated 2026-07-09 21:58 UTC · branch `feat/loom-l7` · HEAD `6870df8`_
 | 3 | A | Resume | 3r1 | 07-09 18:46 | 0:36 | Advanced | A1 | 1 | build:OK · tests:OK · truth:OK | $0.1614 | 120,739/28,598 |
 | 4 | A | Deliver | 1 | 07-09 19:29 | 2:09 | Interrupted |  | 0 |  |  |  |
 | 5 | A | Resume | 1r1 | 07-09 21:39 | 0:07 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0204 | 30,260/2,937 |
+| 6 | A | Deliver | 2 | 07-09 21:58 | 0:24 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0376 | 56,701/4,919 |
 
 ## Timeline
 
@@ -54,6 +55,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-09 22:58:29  ▪ gate build pass [session]  (1m02s)
 07-09 22:58:29  ▪ gate tests pass [session]  (3m45s)
 07-09 22:58:29  ▪ gate truth pass [session]  (6m30s)
+07-09 22:58:30  • session #5 A → Progress · 1 commit(s)  (18m53s)
+07-09 22:58:30  • session #6 A Deliver started (attempt 2/6)
+07-09 23:29:45  ▪ gate build pass [session]  (36.4s)
+07-09 23:29:45  ▪ gate tests pass [session]  (3m07s)
+07-09 23:29:45  ▪ gate truth pass [session]  (3m21s)
 ```
 
 ## Health
@@ -61,7 +67,7 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 5 · retries 2 (40 %) · overall Warn
+sessions 6 · retries 3 (50 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
 ```
 
@@ -72,7 +78,7 @@ _Evidence-based confidence per checkpoint. A checkpoint without evidence is mark
 ```
 checkpoints confirmed: 2   with evidence: 2
 
-  A1    1 evidence item(s) ·  `eval-results/2026-07-09/phase-A-truth.txt`
+  A1    2 evidence item(s) ·  `eval-results/2026-07-09/phase-A-truth.txt`, `eval-results/2026-07-09/phase-A-qa-verified.txt`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -82,7 +88,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: ?? .conductor-loom-prior/
+working tree: M eval-results/2026-07-09/mcp-qa.md, ?? .conductor-loom-prior/, ?? eval-results/2026-07-09/phase-A-cli-trace.md
 vs upstream: up to date
 ```
 
@@ -94,6 +100,8 @@ vs upstream: up to date
   - [`a94c211`](https://github.com/shaahink/DevContext2/commit/a94c211) fix(loom): Phase A — add BodyFactsExtractor to TestPipeline, flip checkout truth test
 - **s5 (A Resume)** — 1 commit(s):
   - [`6870df8`](https://github.com/shaahink/DevContext2/commit/6870df8) chore(loom): Phase A gap-close — recovered from conductor crash, A1 DONE, plan doc committed
+- **s6 (A Deliver)** — 1 commit(s):
+  - [`0610897`](https://github.com/shaahink/DevContext2/commit/0610897) chore(loom): Phase A QA — fresh gate battery confirms A1 DONE, checkout trace cross-service verified
 
 ## Phase handovers (audit)
 
@@ -112,15 +120,15 @@ build:OK · tests:OK · truth:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A gap-close recovered from interrupted conductor session — no half-done changes were found (the fix was already committed in a94c211); the only unfinished work was updating the LOOM-START.md checkpoint row (commit was TBD) and the handoff block, which have now been resolved in commit 6870df8. All fast-tier gates confirmed green: build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S with the checkout flow test now passing cross-service (43 steps, 3 services, BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand), and pnpm check PASS (27/27). Evidence artifacts (phase-A-truth.txt, mcp-qa.md refreshed), plan doc, and plan.json committed and pushed to …
+> SESSION-RESULT: Phase A confirmed DONE. Previous session claims verified: bridge code (4d997d9) + BodyFactsExtractor fix (a94c211) correctly activated the L2.4 checkout trace — focused CLI trace shows `POST /basket/checkout → CheckoutBasketCommand → CheckoutBasketCommandHandler → raises BasketCheckoutEvent → consumes BasketCheckoutEventHandler (Ordering.Application) → send CreateOrderCommand` at depth 6 across 3 services. All gates green (Build 0W/0E, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned). No regressions. Working tree clean, branch pushed. Next session: Phase B — fix tab strip height ≥30px (B1) and code pane null on entry selection (B2).
 
 ## Tracker handoff
 
 ```
-last: Phase A s76 RECOVERED (conductor crash mid-session). A1 DONE: BodyFactsExtractor added to TestPipeline (commit a94c211), bridge code (commit 4d997d9) confirmed correct, checkout truth flipped — trace now follows BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand cross-service (43 steps, 3 services).
-stage: Phase A COMPLETE. A1 DONE. plan.json + loom-gap-close-plan.md committed.
+last: Phase A s76 QA-verified (attempt 2/6 complete). A1 DONE — confirmed with fresh gate battery + focused CLI trace showing cross-service hop (BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand at depth 6).
+stage: Phase A COMPLETE. All claims verified: bridge code correct, BodyFactsExtractor in TestPipeline, checkout truth passes.
 next: Phase B (UI regressions: tab strip >=30px, code pane non-null).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout flow activated), pnpm check PASS (27/27).
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
 
 
 ---
