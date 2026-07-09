@@ -6,11 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Phase A s79 QA-verified (attempt 5/6). Fresh gate battery green + CLI analyze trace confirms BusPublishDetector creates Raises edge AND Type→Service bridge connects BasketCheckoutEvent→Ordering.Application→CreateOrderCommand at depth 6 on real dogfood repo.
-stage: Phase A VERIFIED (A1 DONE, 6/6 attempts done). No incomplete checkpoints remain in Phase A.
+last: s10 QA re-audit — fresh gate battery + focused checkout trace confirm Phase A valid. Orchestrator's "PRIOR SESSION FINDING" was stale (from s1, before s77-79 added BodyFactsExtractor + auto-extract fallback). Raises edge + Type→Service bridge active on real dogfood.
+stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10). No incomplete checkpoints.
 next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS.
-evidence: eval-results/2026-07-10/phase-A-s79-fresh-qa.txt (fresh gate + CLI analyze trace)
+evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (fresh gate + CLI focus trace + QA verdict)
 
 
 ---
