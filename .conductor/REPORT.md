@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 07:21 UTC · branch `feat/loom-l7` · HEAD `7355577`_
+_Updated 2026-07-09 07:41 UTC · branch `feat/loom-l7` · HEAD `01c19af`_
 
 **Status:** Idle
-**Stage:** R1 — Design Review: L0+L1+L2 · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 64 · **Cost:** $4.0164 · **Tokens:** 4,090,450 in / 784,706 out / 593,972 think
+**Stage:** R1 — Design Review: L0+L1+L2 · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 65 · **Cost:** $4.0654 · **Tokens:** 4,138,396 in / 795,353 out / 603,627 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8, D9
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 07:21 UTC · branch `feat/loom-l7` · HEAD `7355577`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
 | 36 | L7 | Deliver | 1 | 07-08 19:36 | 0:32 | Advanced | L7.2 | 4 | build:OK | $0.0928 | 97,550/20,172 |
 | 37 | L7 | Deliver | 1 | 07-08 20:10 | 0:24 | Advanced | L7.3 | 3 | build:OK | $0.0635 | 71,300/13,532 |
 | 38 | L7 | Deliver | 1 | 07-08 20:36 | 0:41 | Advanced | L7.4 | 5 | build:OK | $0.1082 | 114,801/19,578 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 07:21 UTC · branch `feat/loom-l7` · HEAD `7355577`_
 | 62 | D9 | Deliver | 1 | 07-09 06:53 | 0:08 | Progress |  | 1 | build:OK | $0.0243 | 32,782/3,988 |
 | 63 | D9 | Deliver | 2 | 07-09 07:02 | 0:08 | Progress |  | 1 | build:OK | $0.0231 | 32,233/4,651 |
 | 64 | R1 | Deliver | 1 | 07-09 07:11 | 0:09 | Progress |  | 1 | build:OK | $0.0425 | 59,850/9,515 |
+| 65 | R1 | Deliver | 2 | 07-09 07:21 | 0:19 | Progress |  | 1 | build:OK | $0.0491 | 47,946/10,647 |
 
 ### Commits by session
 
-- **s57 (D7 Deliver)** — 1 commit(s):
-  - f81d18e fix(debt): L2.5 — D7 QA audit (s57) — all claims verified, gate battery green
 - **s58 (D7 Deliver)** — 1 commit(s):
   - b026036 fix(debt): L4.5 — Flow model hardening (depth warning, proportional budget, entry kind, integration test)
 - **s59 (D7 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 07:21 UTC · branch `feat/loom-l7` · HEAD `7355577`_
   - 8891240 fix(debt): D9 L1.6 — re-verified all s61 claims fresh (s63), gates green, Phase 1 complete
 - **s64 (R1 Deliver)** — 1 commit(s):
   - 7355577 docs(review): R1 — design review L0+L1+L2, 14/17 conform, L2.4 deviates (checkout truth unenforced)
+- **s65 (R1 Deliver)** — 1 commit(s):
+  - 01c19af docs(review): R1 s65 — re-audit, L2.4 BLOCKED (checkout trace traversal gapped)
 
 ## Phase handovers (audit)
 
@@ -97,17 +97,24 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: R1 design review delivered. Rated all 17 L0+L1+L2 checkpoints against `loom-graph-design.md` — **14/17 CONFORM, 3 with findings, 1 ❌ DEVIATES (L2.4)**. The L0 truth harness (3/3, 1 finding: named-fact assertions in C# not JSON) and L1 identity spine (6/6, zero findings) pass audit with minor documentation gaps. L2 bodyfacts/seam-detectors (3/4) is solid architecturally — BodyFacts extraction, all 6 detectors, regex removal, and Law R1/R2 enforcement are correctly implemented — but the **headline artifact is broken**: `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` still carries `[TruthPending("L2")]` and is NEVER enforced in CI. The test body is correct (depth ≥5, nam…
+> SESSION-RESULT: R1 re-audited (s65, attempt 2/2). s64's 17 ratings verified accurate — 16/17 checkpoints conform. The sole deviation, L2.4, is **worse than expected**: removing `[TruthPending("L2")]` revealed the checkout trace traversal does NOT walk bus-publish seams (BasketCheckoutEvent missing from trace, CLI confirms no checkout entry in TRACE section). R1 marked **BLOCKED** — fix requires ~45-60 min of trace walker debugging (GraphQueryService + projections), not the ~10 min attribute removal originally estimated. Gate battery green (build 0w/0e, 440P/3S, 8P/3S truth, 0 banned). Working tree clean, pushed. Next session: fix L2.4 trace traversal (~45-60 min) or accept BLOCKED and procee…
 
 ## Tracker handoff
 
 ```
-last: s64 R1 design review — rated all 17 L0+L1+L2 checkpoints against design doc.
-      Gate green (0w/0e, 8P/3S truth, 0 banned). QA s63 all claims reconfirmed.
-stage: R1 DONE. Verdict: ❌ FAIL (L2.4 DEVIATES: checkout truth test still [TruthPending("L2")],
-      headline artifact unenforced). All other 14/17 checkpoints CONFORM.
-trap: L2.4 remediation needed — ~10 min (remove attribute, verify, flip to enforced).
-note: Merge (#4) still TODO. Phase 2 session #10 complete. Next: R2 (session 11).
+last: s65 R1 re-audit (attempt 2/2). QA s64 report: all 17 ratings verified accurate.
+      Gate green (build 0w/0e, 8P/3S truth, 0 banned). L2.4 enforcement attempt FAILED:
+      removing [TruthPending("L2")] from checkout truth test reveals checkout trace
+      traversal does NOT follow bus-publish seams (BasketCheckoutEvent missing).
+      L2.4 gapped at trace walker, not detection. Est. fix: 45-60 min (GraphQueryService
+      + trace projections). 16/17 checkpoints conform.
+stage: R1 BLOCKED on L2.4 checkout trace traversal gap.
+HUMAN: L2.4 checkout trace needs implementation fix (~45-60 min) before R1 can PASS.
+      Trace walker does not follow bus-publish edges into Ordering.Application.
+      All other 16 checkpoints verified conforming. R1 report updated with
+      detailed finding + fix scope. Next session: either fix L2.4 trace traversal
+      (~45-60 min) or accept BLOCKED and proceed to R2 (L4+L5+L6 review).
+
 
 ---
 ```
