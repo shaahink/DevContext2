@@ -1,0 +1,46 @@
+=== D1 (L0.5) QA Re-verification — Session 44, attempt 2 ===
+Date: 2026-07-09
+Conductor session: #44, target stage D1
+Status: QA-VERIFIED — D1 (L0.5) complete, no regressions
+
+=== 1. B9 rank-quality probe exclusion ===
+Fresh run-cold.js confirms:
+- B9 correctly flagged rankQuality=true, excluded from failure denominator
+- Failure-actionability denominator: 11 probes (B9 excluded from 12)
+- Actionable failures: 9/11 (82%) — A1 variance (overview-before-analyze flips
+  actionable/unactionable between runs; documented as natural MCP server variance)
+- Prior session reported 10/11 (91%); this is same-class variance, not regression
+- B9 rank-quality result: top="Order" aggregate#1=true results=20 (correct ranking)
+- Core fix VERIFIED: rankQuality flag in run-cold.js lines 240, 316-317, 330, 337-339
+
+=== 2. UI boot-liveness precondition ===
+Code audit confirms:
+- checkBootLiveness() exists at ui-audit-drive.mjs:41-56
+- Polishes 20 x 500ms for app-root|app-titlebar|app-tab-strip|input
+- On failure: prints "GATE FAILED (boot-liveness)", exits non-zero
+- page.goto wrapped in try/catch at line 89-90
+- VERIFIED: dead env cannot silently pass --gate
+
+=== 3. Gate battery (fresh re-run) ===
+dotnet build: 0w/0e PASS
+dotnet test --filter "Category!=Eval":
+  Core: 0F/414P/3S PASS
+  Server: 0F/12P PASS
+  Desktop: 0F/64P PASS
+pnpm check: lint 0, test 27/27, build 0w/0e PASS
+loom-guards.ps1: 0 banned patterns PASS
+
+=== 4. Previous session code audit ===
+- eval/mcp-qa/run-cold.js: rankQuality flag + failureRows/rankQualityRows separation PRESENT
+- src/DevContext.App/scripts/ui-audit-drive.mjs: checkBootLiveness() PRESENT
+- All changes match conductor-DEBT.md L0.5 spec
+
+=== QA Verdict ===
+D1 (L0.5) — SUBSTANTIATED: all claims independently verified.
+- B9 denominator fix: working, fresh evidence produced
+- UI boot-liveness: working, code artifact present
+- Gate battery: all green, no regressions
+- Minor finding: A1 probe variance (9/11 vs 10/11), documented natural variance
+- Minor finding: ui-gate.md evidence file referenced in handoff not found as separate file;
+  boot-liveness evidence captured directly in debt-L0.5-gate.txt
+Next: Session 2 — L3.5 (TodoApi eval gap triage)

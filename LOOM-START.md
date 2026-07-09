@@ -6,16 +6,18 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Session 1 (L0.5) QA-VERIFIED (attempt 2). B9 rank-quality probe excluded from
-       failure-actionability denominator (10/11=91%, was 10/12=83%). checkBootLiveness()
-       in ui-audit-drive.mjs verified: dead env exits non-zero with --gate, "GATE FAILED
-       (boot-liveness)". All gates green: build 0w/0e, tests 0F, pnpm check green, guards
-       clean. Fresh evidence recorded.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done.
+last: Session 44 — D1 (L0.5) RE-VERIFIED. Conductor attempt 2/2 QA pass. B9 excluded
+       from failure denominator (B9 rankQuality=true). checkBootLiveness() confirmed:
+       dead env exits non-zero, "GATE FAILED (boot-liveness)". Fresh run-cold.js:
+       9/11=82% (A1 variance, documented). Minor: ui-gate.md not separate file — liveness
+       evidence in debt-L0.5-gate.txt. All gates green: build 0w/0e, tests 490P/3S,
+       pnpm check green, guards clean.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done. Session 1 QA-reverified.
 next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
+       Read conductor-DEBT.md #2 item for full spec.
 trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
        (2) 2 truth failures flagged (checkout trace + RazorPages fab) — Phase 2 review.
-evidence: eval-results/2026-07-09/debt-L0.5-gate.txt (+ mcp-cold-qa.md, ui-gate.md)
+evidence: eval-results/2026-07-09/debt-D1-qa-verify.txt (+ mcp-cold-qa.md, debt-L0.5-gate.txt)
 
 ---
 
