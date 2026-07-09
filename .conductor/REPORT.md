@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 00:23 UTC · branch `feat/loom-l7` · HEAD `416f60d`_
+_Updated 2026-07-09 00:40 UTC · branch `feat/loom-l7` · HEAD `f429a88`_
 
 **Status:** Idle
 **Stage:** D1 — L0.5 — Cold-QA B9 denominator + UI boot-liveness · attempts used 2
-**Checkpoints:** 1/1 done · **Sessions run:** 43 · **Cost:** $3.2234 · **Tokens:** 3,117,559 in / 639,244 out / 460,185 think
+**Checkpoints:** 1/1 done · **Sessions run:** 44 · **Cost:** $3.2497 · **Tokens:** 3,153,276 in / 643,621 out / 465,549 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 
 ## Stage progress
@@ -29,7 +29,6 @@ _Updated 2026-07-09 00:23 UTC · branch `feat/loom-l7` · HEAD `416f60d`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 14 | L3 | Deliver | 1 | 07-08 01:04 | 0:15 | Stalled |  | 0 |  | $0.0162 | 33,675/883 |
 | 15 | L3 | Resume | 2r1 | 07-08 01:19 | 1:00 | running |  | 6 | build:OK | $0.2209 | 148,725/40,414 |
 | 16 | L3 | Deliver | 2 | 07-08 02:25 | 1:01 | Advanced | L3.3 | 7 | build:OK | $0.0957 | 4,386/33,614 |
 | 17 | L3 | Audit | 1 | 07-08 03:28 | 0:21 | Progress |  | 5 |  | $0.0983 | 113,338/14,318 |
@@ -59,12 +58,10 @@ _Updated 2026-07-09 00:23 UTC · branch `feat/loom-l7` · HEAD `416f60d`_
 | 41 | L8 | Audit | 1 | 07-08 21:59 | 0:23 | Progress |  | 3 |  | $0.0717 | 106,952/10,206 |
 | 42 | D1 | Deliver | 1 | 07-08 23:56 | 0:13 | Progress |  | 1 | build:OK | $0.0410 | 51,880/8,904 |
 | 43 | D1 | Deliver | 2 | 07-09 00:10 | 0:12 | Progress |  | 1 | build:OK | $0.0648 | 109,995/5,182 |
+| 44 | D1 | Deliver | 2 | 07-09 00:24 | 0:15 | Progress |  | 1 | build:OK | $0.0263 | 35,717/4,377 |
 
 ### Commits by session
 
-- **s35 (L7 Resume)** — 2 commit(s):
-  - 6e16685 feat(l7.1): PlainCallDetector for call-spine completion via BodyFacts
-  - 99f1ea9 chore(conductor): s35 L7 working ▸L7.1 @ 20:27
 - **s36 (L7 Deliver)** — 4 commit(s):
   - 6fdd8cb feat(l7.2): archetype projections for desktop/worker/library/blazor
   - 08060ae chore(conductor): s36 L7 working ▸L7.2 @ 21:06
@@ -92,6 +89,8 @@ _Updated 2026-07-09 00:23 UTC · branch `feat/loom-l7` · HEAD `416f60d`_
   - 765dbac fix(debt): L0.5 — Cold-QA B9 denominator + UI boot-liveness
 - **s43 (D1 Deliver)** — 1 commit(s):
   - 416f60d fix(debt): L0.5 — QA verification, fresh evidence (attempt 2)
+- **s44 (D1 Deliver)** — 1 commit(s):
+  - f429a88 fix(debt): D1 (L0.5) — QA re-verify; handoff update
 
 ## Phase handovers (audit)
 
@@ -110,21 +109,23 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: Session 1 L0.5 QA-verified (attempt 2). B9 rank-quality probe correctly separated from failure denominator — fresh run-cold.js shows 10/11=91% actionable (was 10/12=83% before fix). checkBootLiveness() verified: dead server exits non-zero with `--gate`, prints "GATE FAILED (boot-liveness)". All gates green: dotnet build 0w/0e, dotnet test 0F/414P/3S, pnpm check green (lint 0, tests 27/27, build 0w/0e), guards clean (0 banned). Commit 416f60d pushed to feat/loom-l7. Next session should deliver Session 2 — L3.5 TodoApi eval gap triage in TruthExpectationTests.cs (~25 min). The working tree has 2 untracked items (docs/workflows/, eval-results/2026-07-09/mcp-qa.md) that are condu…
+> SESSION-RESULT: D1 (L0.5) re-verified and confirmed solid. All gates green (build 0w/0e, tests 490P/3S, pnpm check green, guards clean). B9 rank-quality probe exclusion from failure denominator confirmed working via fresh `run-cold.js` (9/11=82% — A1 variance documented, not a regression). checkBootLiveness() in `ui-audit-drive.mjs:41` confirmed: dead env fails distinctly with non-zero exit. Minor findings: A1 probe flips actionable/unactionable between runs (natural MCP server response variance); referenced `ui-gate.md` evidence file doesn't exist separately (boot-liveness evidence captured within debt-L0.5-gate.txt). Next session should proceed to Session 2 — L3.5 TodoApi eval gap triage (…
 
 ## Tracker handoff
 
 ```
-last: Session 1 (L0.5) QA-VERIFIED (attempt 2). B9 rank-quality probe excluded from
-       failure-actionability denominator (10/11=91%, was 10/12=83%). checkBootLiveness()
-       in ui-audit-drive.mjs verified: dead env exits non-zero with --gate, "GATE FAILED
-       (boot-liveness)". All gates green: build 0w/0e, tests 0F, pnpm check green, guards
-       clean. Fresh evidence recorded.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done.
+last: Session 44 — D1 (L0.5) RE-VERIFIED. Conductor attempt 2/2 QA pass. B9 excluded
+       from failure denominator (B9 rankQuality=true). checkBootLiveness() confirmed:
+       dead env exits non-zero, "GATE FAILED (boot-liveness)". Fresh run-cold.js:
+       9/11=82% (A1 variance, documented). Minor: ui-gate.md not separate file — liveness
+       evidence in debt-L0.5-gate.txt. All gates green: build 0w/0e, tests 490P/3S,
+       pnpm check green, guards clean.
+stage: Phase 1/3 — Debt Cleanup. Sessions 1/9 done. Session 1 QA-reverified.
 next: Session 2 — L3.5: TodoApi eval gap triage (TruthExpectationTests.cs, ~25 min).
+       Read conductor-DEBT.md #2 item for full spec.
 trap: (1) Branch stays feat/loom-l7 (merge is Session 4).
        (2) 2 truth failures flagged (checkout trace + RazorPages fab) — Phase 2 review.
-evidence: eval-results/2026-07-09/debt-L0.5-gate.txt (+ mcp-cold-qa.md, ui-gate.md)
+evidence: eval-results/2026-07-09/debt-D1-qa-verify.txt (+ mcp-cold-qa.md, debt-L0.5-gate.txt)
 
 ---
 ```
