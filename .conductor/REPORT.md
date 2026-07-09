@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
+_Updated 2026-07-09 04:16 UTC · branch `feat/loom-l7` · HEAD `0c0530d`_
 
 **Status:** Idle
-**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 53 · **Cost:** $3.5086 · **Tokens:** 3,498,076 in / 688,508 out / 508,503 think
+**Stage:** D6 — L3.4 — TfmScore net10.0+ · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 54 · **Cost:** $3.5534 · **Tokens:** 3,550,279 in / 696,838 out / 516,738 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5
 
@@ -17,7 +17,7 @@ _Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | SKIPPED ⚠ |
 | D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | SKIPPED ⚠ |
 | D5 | L0.4 — Truth gate auto-enforcement | 0/0 | SKIPPED ⚠ |
-| D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
+| D6 | L3.4 — TfmScore net10.0+ | 0/0 | **← active** |
 | D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | todo |
 | D8 | L4.5 — Flow model hardening | 0/0 | todo |
 | D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | todo |
@@ -30,7 +30,6 @@ _Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
 | 51 | D4 | Deliver | 1 | 07-09 03:07 | 1:02 | Interrupted |  | 0 |  |  |  |
 | 52 | D5 | Deliver | 1 | 07-09 03:30 | 0:13 | Progress |  | 1 | build:OK | $0.0469 | 61,833/7,324 |
 | 53 | D5 | Deliver | 2 | 07-09 03:44 | 0:13 | Progress |  | 1 | build:OK | $0.0292 | 39,510/5,437 |
+| 54 | D6 | Deliver | 1 | 07-09 03:58 | 0:17 | Progress |  | 1 | build:OK | $0.0448 | 52,203/8,330 |
 
 ### Commits by session
 
-- **s44 (D1 Deliver)** — 1 commit(s):
-  - f429a88 fix(debt): D1 (L0.5) — QA re-verify; handoff update
 - **s45 (D2 Deliver)** — 1 commit(s):
   - 0020da9 fix(debt): D2 L3.5 — TodoApi eval gap triaged (resolved)
 - **s46 (D2 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 03:58 UTC · branch `feat/loom-l7` · HEAD `a39ef15`_
   - 92c85b3 fix(debt): D5 L0.4 — truth gate wired into loom-guards.ps1 + [TruthPending] Skip.IfNot guard
 - **s53 (D5 Deliver)** — 1 commit(s):
   - fd46006 chore(debt): D5 L0.4 QA re-verify — all gates green, claims confirmed
+- **s54 (D6 Deliver)** — 1 commit(s):
+  - 0c0530d fix(debt): D6 L3.4 — TfmScore handles net10.0+ generically via span-based netX.Y parsing
 
 ## Phase handovers (audit)
 
@@ -97,16 +97,16 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D5 (L0.4) QA re-verified — all green. Build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F, loom-guards 0 banned. s53 commit 92c85b3 genuinely delivered all three D5 claims: truth gate wired into loom-guards.ps1 (gate #5, exits non-zero on failures), 3 [TruthPending] bodies converted from silent `return;` to `Skip.IfNot` (forward-safe against green-wash), advisory count stable at 13. Nothing red. Next session (D6): L3.4 — TfmScore net10.0+ pattern generalization (~35 min).
+> SESSION-RESULT: D6 (L3.4) landed — TfmScore now uses generic span-based `netX.Y` parsing, net10.0 scores 100 (was 1), 17 new tests pass (17/17). All gates green: build 0w/0e, tests 431P/3S/0F, truth 0 failures, guards 0 banned. Dogfood SemanticLite pass ~4.1s total (within ≤4.0s budget). HasBindDemand profiled: BodyFacts 31ms, CallGraph 1068ms. DntSite absent documented honestly. D5 QA re-verified: no discrepancies. Committed `0c0530d`, pushed `feat/loom-l7`. Working tree clean. Next session (D7): L2.5 — Lambda scope pollution + SeamContext dedup.
 
 ## Tracker handoff
 
 ```
-last: D5 (L0.4) — QA re-verified (s54). loom-guards.ps1 truth gate #5 green.
-       3 [TruthPending] Skip.IfNot guards confirmed (no silent return).
-       Fresh-run gate battery: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F.
-       D5 genuinely landed by 92c85b3. QA found zero discrepancies.
-stage: D5 COMPLETE. Next: D6 (L3.4 — TfmScore net10.0+).
+last: D6 (L3.4) — TfmScore now generic span-based netX.Y parsing (net10.0=100).
+       17 SemanticLitePopulatorTests pass. Dogfood SemanticLite ~4.1s total (≤4.0s budget).
+       HasBindDemand profiled: BodyFacts 31ms, CallGraph 1068ms, total SpecExtract 1221ms.
+       DntSite absent on this machine — documented honestly per conductor protocol.
+stage: D6 COMPLETE. Next: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable.
 
 ---
