@@ -1,0 +1,19 @@
+Phase A — QA Verification (session 77, attempt 3/6)
+Date: 2026-07-09
+
+=== QA of Previous Session (s76, attempt 2/6) ===
+Previous claims: A1 DONE (commit a94c211), bridge code correct, BodyFactsExtractor fix, checkout trace works.
+
+FRESH VERIFICATION:
+1. Gate Battery: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned
+2. Focused CLI Trace (POST /basket/checkout):
+   POST /basket/checkout → send CheckoutBasketCommand → handler CheckoutBasketCommandHandler
+   → raises BasketCheckoutEvent → consumes BasketCheckoutEventHandler (Ordering.Application)
+   → send CreateOrderCommand — depth 6, cross-service hop confirmed
+3. Truth test Dogfood_checkout_flow_traces_cross_service_depth_ge_5: PASS (was [TruthPending("L2")], now active)
+
+Root cause confirmed: BodyFactsExtractor was missing from TestPipeline.Build(), so seam detectors
+(BusPublishDetector) had no BodyFacts data and couldn't create Raises edges. Commit a94c211 fixed this.
+Orchestrator concern about Raises edge not being created = RESOLVED by a94c211.
+
+QA VERDICT: A1 CLAIMS CONFIRMED. Phase A COMPLETE.

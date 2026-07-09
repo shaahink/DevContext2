@@ -6,10 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Phase A s76 QA-verified (attempt 2/6 complete). A1 DONE — confirmed with fresh gate battery + focused CLI trace showing cross-service hop (BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand at depth 6).
-stage: Phase A COMPLETE. All claims verified: bridge code correct, BodyFactsExtractor in TestPipeline, checkout truth passes.
+last: Phase A s77 QA-verified (attempt 3/6 complete). No new code — previous fix (a94c211) was correct and sufficient. Root cause confirmed: BodyFactsExtractor missing from TestPipeline meant BusPublishDetector had no BodyFacts and couldn't emit Raises edge. Orchestrator investigation done — pipeline now complete.
+stage: Phase A COMPLETE (A1 DONE). No incomplete checkpoints remain in Phase A.
 next: Phase B (UI regressions: tab strip >=30px, code pane non-null).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
+evidence: eval-results/2026-07-09/phase-A-qa-verified-s77.txt
 
 
 ---
