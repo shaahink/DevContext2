@@ -21,6 +21,7 @@ internal static class TestPipeline
             new EventBusExtractor(),
             new CallGraphExtractor(),
             new SourceBodyExtractor(),
+            new BodyFactsExtractor(),
             new IndirectWiringDetector(),
             new AspireExtractor(),
             new ProgramCsFlowExtractor(),

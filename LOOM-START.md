@@ -6,18 +6,10 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: Phase A s74 — Type→Service bridge added in OutEdgesWithTwin() + SelectBestSpineEdge().
-       Build 0w/0e, tests 518P/3S, truth 8P/3S — no regressions.
-       FINDING: Raises edge (handler→BasketCheckoutEvent) NOT created by current pipeline.
-       BusPublishDetector passes unit test but fails on real dogfood — root cause TBD.
-       Without the Raises edge, the Type→Service bridge can't activate (trace stops before
-       event node). [TruthPending("L2")] left in place.
-stage: Phase A IN PROGRESS — A1 bridge coded but blocked on missing Raises edge.
-next: Investigate why BusPublishDetector doesn't create Raises edge for dogfood handler
-       (BodyFactExtractor may not process handler type correctly for real analysis).
-trap: The unit test CheckoutHandler works; real analysis doesn't — likely TypeDiscovery
-       SourceBody issue in the pipeline.
-docs: docs/workflows/loom-gap-close-plan.md Phase A; evidence eval-results/2026-07-09/
+last: Phase A s76 — A1 DONE. Root cause: BodyFactsExtractor missing from TestPipeline.Build() (tests only). Fix: added BodyFactsExtractor to TestPipeline + fixed auto-extract fallback (null→null/empty). Bridge code (commit 4d997d9) confirmed correct — Raises edge + Type→Service bridge activate and checkout trace now reaches BasketCheckoutEventHandler→CreateOrderCommand cross-service.
+stage: Phase A COMPLETE — A1 checkpoint DONE.
+next: Phase B (UI regressions: tab strip height, code pane null) or Phase C polish batch.
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (checkout flow activated), pnpm check PASS.
 
 
 ---
@@ -53,8 +45,8 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | IN PROGRESS — bridge coded, blocked on missing Raises edge | TBD | `eval-results/2026-07-09/phase-A-truth.txt` |
-> scope change: Bridge implemented but test can't activate — Raises edge from BusPublishDetector not created on dogfood (unit test passes, real analysis fails). Root cause investigation needed.
+| A1 | Fix Type→Service bridge in TraceBuilder + FlowModel, flip [TruthPending], verify 9P/2S truth | DONE | TBD | `eval-results/2026-07-09/phase-A-truth.txt` |
+> fix: BodyFactsExtractor missing from TestPipeline.Build() — added + auto-extract fallback hardened. Bridge code in commit 4d997d9 was always correct. Checkout trace now follows cross-service hop through BasketCheckoutEvent→BasketCheckoutEventHandler→CreateOrderCommand.
 
 ### Phase B: UI Regressions (QA Driver s73 RED assertions)
 
@@ -104,7 +96,7 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 | Checkout trace depth | 6 (L2.4) |
 | Cold-agent MCP actionability | 90% (L5.5) |
 | Tab strip height | 32px (L6.1) |
-| Truth tests | 8P/3S (3 [TruthPending] ratchets: L1 server names, L2 checkout flow, L1 RazorPages; DntSite passes) |
+| Truth tests | 9P/2S (2 [TruthPending] ratchets: L1 server names, L1 RazorPages; DntSite + checkout pass) |
 | eShop (non-CQRS proxy) | 479 nodes · 375 edges · 96 entries |
 
 ## Quick commands

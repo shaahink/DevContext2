@@ -1571,7 +1571,7 @@ public sealed class GraphBuilder
     {
         // Auto-extract BodyFacts from model TypeDiscovery SourceBodies when the pipeline hasn't
         // pre-extracted them (backward compatibility for tests that build directly from model).
-        if (allBodyFacts is null)
+        if (allBodyFacts is null || allBodyFacts.Count == 0)
         {
             var facts = new List<BodyFacts>();
             foreach (var type in model.Types.Values)

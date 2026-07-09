@@ -33,7 +33,7 @@ public sealed class TruthExpectationTests
     /// BasketCheckoutEventHandler (Ordering consumer) → CreateOrder… depth ≥ 5.
     /// Today: depth-1, Sends edge mis-anchored on a DTO lambda. Fix: L2.4.
     /// </summary>
-    [TruthPending("L2")]
+    [Fact]
     public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
     {
         var repoPath = DogfoodPath();
@@ -420,6 +420,7 @@ public sealed class TruthExpectationTests
             MaxOutputTokens = 8000,
             OutputFormat = OutputFormat.Markdown,
             AllowRoslyn = true,
+            BuildFullGraph = true,
             Profile = intent.Profile,
         };
 
