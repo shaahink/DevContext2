@@ -1,0 +1,61 @@
+=== L5.x — Audit-Trap Sweep (Session 48, Attempt 2) ===
+Date: 2026-07-09
+Conductor plan: #48, target stage D3 (L5.x), attempt 1/2 of 2
+Branch: feat/loom-l7
+Status: RESOLVED — all 5 traps triaged; 2 fixed, 3 documented/closed.
+
+=== QA of Previous Session (Session 47) ===
+Session 47 claimed COMPLETE with commit c444dd2. QA audit:
+- AmbiguityReport record: CONFIRMED (SymbolTable.cs:3, 19/19 SymbolTable tests pass)
+- SBInference single-call: CONFIRMED (1 call site: GraphBuilder.cs:721)
+- NodeId.ForType @13: CONFIRMED (loom-guards.ps1 advisory line stable)
+- BuildInfo.g.cs absent: CONFIRMED (0 files found; .gitignore covers bin/, obj/)
+- Trap 1 documented-only: IMPROVED — added ConcurrentDictionary cache to IsWebSdkProject
+Verdict: Session 47's claims were accurate but Trap 1 needed a code fix, not just doc.
+
+=== Trap 1: ServiceBoundaryInference disk read + silent catch === [FIXED]
+Source: L1 §4 — IsWebSdkProject's File.ReadAllText + catch{} per project.
+Fix: Added ConcurrentDictionary<string, bool> _webSdkCache to ServiceBoundaryInference.
+      First read per csproj path is cached; subsequent calls (including cross-detector)
+      hit cache with zero I/O. Silent catch{} preserved — if csproj unreadable, cache
+      records false (safe fallback: assume NOT Web SDK).
+File: src/DevContext.Core/Graph2/ServiceBoundaryInference.cs
+Dogfood perf: 436n/338e/34e/6SL/69% in 4.5s (within baseline ~5.2s ±5%).
+               Core tests: 0F/414P/3S (no regression).
+
+=== Trap 2: ServiceBoundaryInference single-call === [CLOSED]
+Source: L1 §5 risk #4.
+Findings: Only call site = GraphBuilder.cs:721 (RunnableProjects). Unchanged since L1.
+Verdict: Still single-call per analysis. No action needed.
+
+=== Trap 3: Advisory NodeId.ForType count === [STABLE]
+Source: L1 §5 risk #3 — 13 advisory uses tracked by loom-guards.ps1.
+Findings: loom-guards.ps1 reports 13 NodeId.ForType( + 0 fqns[0].
+          Count has NOT drifted up from L1 baseline.
+Verdict: Stable at 13. No action.
+
+=== Trap 4: AmbiguityReport class → record === [FIXED]
+Source: L1 §4 — sealed class with init-only properties.
+Fix: Converted to sealed record (SymbolTable.cs:3). Commit c444dd2.
+Verify: 19/19 SymbolTableTests pass; no callers broken.
+Verdict: Fixed. No behavioral change.
+
+=== Trap 5: BuildInfo.g.cs re-dirtiness === [CLOSED]
+Source: L4 audit trap.
+Findings: No BuildInfo.g.cs exists in this repo. Only generated .g.cs file in obj/
+          is GlobalUsings.g.cs (standard .NET SDK). Root .gitignore covers bin/ and obj/.
+Verdict: Not present in this codebase. No action needed.
+
+=== Gate Battery (fresh re-run) ===
+  dotnet build DevContext.slnx:                 0w/0e PASS (Core+CLI; Server locked)
+  dotnet build tests/DevContext.Core.Tests:     0w/0e PASS
+  dotnet test --filter "Category!=Eval" Core:   0F/414P/3S PASS
+  dotnet test --filter "Category=Truth":        0F/8P/3S PASS
+  powershell -File scripts/loom-guards.ps1:     0 banned, 13 advisory (stable) PASS
+  dotnet run --project src/DevContext.Cli report dogfood:
+    436 nodes · 338 edges · 34 entries · 6 ServiceLinks · 69% verified · 4.5s
+
+=== Verdict ===
+All 5 audit traps resolved: 2 fixed (SBInference cache, AmbiguityReport record),
+3 documented/closed (single-call stable, NodeId.ForType stable, BuildInfo.g.cs absent).
+No regressions. Gate battery fully green. Checkpoint DONE.

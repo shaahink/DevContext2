@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using DevContext.Core.Contracts;
 using DevContext.Core.Graph;
 
@@ -5,6 +6,8 @@ namespace DevContext.Core.Graph2;
 
 public static class ServiceBoundaryInference
 {
+    private static readonly ConcurrentDictionary<string, bool> _webSdkCache = new(StringComparer.OrdinalIgnoreCase);
+
     public static bool IsRunnableService(ProjectInfo p)
     {
         // Design §2.4 runnable signals: OutputType=Exe, Web SDK (Microsoft.NET.Sdk.Web), or the
@@ -21,12 +24,21 @@ public static class ServiceBoundaryInference
 
     private static bool IsWebSdkProject(string csprojPath)
     {
+        if (_webSdkCache.TryGetValue(csprojPath, out var cached))
+            return cached;
+
         try
         {
             var text = File.ReadAllText(csprojPath);
-            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
+            var result = text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
+            _webSdkCache[csprojPath] = result;
+            return result;
         }
-        catch { return false; }
+        catch
+        {
+            _webSdkCache[csprojPath] = false;
+            return false;
+        }
     }
 
     public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope)
