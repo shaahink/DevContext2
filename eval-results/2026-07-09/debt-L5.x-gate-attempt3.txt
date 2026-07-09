@@ -1,0 +1,39 @@
+=== L5.x — Audit-Trap Sweep (Session 49, Attempt 2/2 Re-verification) ===
+Date: 2026-07-09
+Conductor plan: #49, target stage D3 (L5.x), attempt 2/2 of 2
+Branch: feat/loom-l7
+Status: CONFIRMED DONE — all 5 traps verified stable; Session 48 claims QA'd clean.
+
+=== Gate Battery (fresh re-run) ===
+  dotnet build DevContext.slnx:                 0w/0e PASS
+  dotnet test Core --filter "Category!=Eval":   0F/414P/3S PASS
+  dotnet test Core --filter "Category=Truth":   0F/8P/3S PASS
+  powershell -File scripts/loom-guards.ps1:     0 banned, 13 advisory PASS
+  dotnet run --project src/DevContext.Cli report dogfood:
+    436 nodes · 338 edges · 34 entries · 6 ServiceLinks · 69% verified · 3.9s
+
+=== QA of Session 48 (commit 091e22e) ===
+All 5 trap claims from Session 48 verified via fresh evidence:
+
+Trap 1 — SBInference cache: CONFIRMED.
+  _webSdkCache ConcurrentDictionary present in ServiceBoundaryInference.cs:9.
+  Cache pattern: TryGetValue on line 27, set on lines 34/39.
+  Dogfood perf 3.9s within baseline (no regression).
+
+Trap 2 — SBInference single-call: CONFIRMED.
+  Only call site = GraphBuilder.cs:721. No other callers found in src/.
+
+Trap 3 — NodeId.ForType advisory count: STABLE at 13.
+  loom-guards.ps1 reports 13 (unchanged from L1 baseline).
+
+Trap 4 — AmbiguityReport record: CONFIRMED.
+  public sealed record AmbiguityReport at SymbolTable.cs:3.
+  SymbolTableTests 19/19 pass (no regression).
+
+Trap 5 — BuildInfo.g.cs: CONFIRMED ABSENT.
+  Zero BuildInfo.g.cs files in repo. .gitignore covers bin/ and obj/.
+
+=== Verdict ===
+Session 48's claims all verified. No regressions. All gates green.
+Checkpoint #3 (L5.x) remains DONE. No additional fixes needed.
+This concludes attempt 2/2 — stage D3 complete and verified.
