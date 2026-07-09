@@ -6,12 +6,12 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s63 re-verified D9 (L1.6) — fresh gates (0w/0e, 440/14/64P 3S, 8P/3S truth, 0 banned).
-        All s61 claims reconfirmed: member indexing, GraphBuilder bodyFacts passthrough,
-        RefSite.FromType deleted (0 callers), 7 member tests → 26/26 pass.
-stage: D9 DONE (s61, QA s62+s63). Phase 1 COMPLETE (9/9). Next: Phase 2 R1 design review.
-trap: None. Advisory (13 NodeId.ForType) stable. Truth ratchets stable (8P/3S).
-note: Merge (#4) remains TODO. Phase 2 R1 ready to start (session 10).
+last: s64 R1 design review — rated all 17 L0+L1+L2 checkpoints against design doc.
+      Gate green (0w/0e, 8P/3S truth, 0 banned). QA s63 all claims reconfirmed.
+stage: R1 DONE. Verdict: ❌ FAIL (L2.4 DEVIATES: checkout truth test still [TruthPending("L2")],
+      headline artifact unenforced). All other 14/17 checkpoints CONFORM.
+trap: L2.4 remediation needed — ~10 min (remove attribute, verify, flip to enforced).
+note: Merge (#4) still TODO. Phase 2 session #10 complete. Next: R2 (session 11).
 
 ---
 
@@ -57,7 +57,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 
 | # | Checkpoint | Status | Evidence |
 |---|-----------|--------|----------|
-| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | TODO | `docs/design-reviews/R1-L0-L3.md` |
+| 10 | R1 — L0+L1+L2 review (truth, spine, bodyfacts) | ❌ FAIL (L2.4 DEVIATES) | `docs/design-reviews/R1-L0-L3.md`, `eval-results/2026-07-09/R1-gate-s64.txt` |
 | 11 | R2 — L4+L5+L6 review (flows, MCP, workbench) | TODO | `docs/design-reviews/R2-L4-L6.md` |
 | 12 | R3 — L7+L8 + system-level contracts review | TODO | `docs/design-reviews/R3-L7-L8.md` |
 

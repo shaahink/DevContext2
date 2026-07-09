@@ -1,0 +1,38 @@
+R1 Design Review Evidence — Session #64 (attempt 1/2)
+=======================================================
+Date: 2026-07-09
+Branch: feat/loom-l7 @ 83412c3
+Stage: R1 — Static Design Review: L0+L1+L2
+Session type: Phase 2 read-only audit (no code changes)
+
+GATE BATTERY (fresh re-run, s64):
+- dotnet build DevContext.slnx: 0w/0e ✓
+- dotnet test --filter Category=Truth: 8P/0F/3S ✓
+- loom-guards.ps1: 0 banned, 13 NodeId.ForType advisory (stable) ✓
+
+NOTE: Non-Eval tests and pnpm check not re-run — Phase 2 protocol
+      skips selective gates for read-only review sessions.
+
+QA OF PREVIOUS SESSION (s63 D9 L1.6):
+- SymbolTable member indexing ✓ (26/26 tests pass, 7 member tests)
+- GraphBuilder bodyFacts passthrough ✓ (line 2429)
+- RefSite.FromType deleted ✓ (0 callers in .cs files)
+- KindFromCanonical in all 6 Resolve paths ✓
+- Gate battery green ✓ (0w/0e, 440/14/64P 3S, 8P/3S truth, 0 banned)
+Verdict: D9 L1.6 GENUINELY DONE. All claims from s61/s62/s63 confirmed.
+
+R1 FINDINGS SUMMARY:
+- L0.1: CONFORMS-WITH-FINDINGS (named-fact assertions in C#, not JSON)
+- L0.2: CONFORMS (cold-agent QA correctly structured)
+- L0.3: CONFORMS (UI drive gate with boot-liveness)
+- L1.1-L1.6: ALL CONFORM (identity spine complete, 6/6)
+- L2.1: CONFORMS (BodyFacts extraction, 4 op types, no re-parse)
+- L2.2: CONFORMS (6 detectors, all pure, tested, ≤68 lines)
+- L2.3: CONFORMS-WITH-FINDINGS (assembler correct, GraphBuilder@2435 lines — not renamed per proposal's own <400 line threshold)
+- L2.4: DEVIATES (checkout trace truth test still [TruthPending("L2")] — headline artifact unenforced)
+
+MATERIAL GAP: L2.4 checkout trace not enforced in truth gate.
+  Test body IS correct (depth ≥5, named steps), but attribute skips it.
+  Remediation: remove [TruthPending("L2")] → verify pass → [SkippableFact].
+
+REPORT: docs/design-reviews/R1-L0-L3.md
