@@ -1,12 +1,12 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
+_Updated 2026-07-09 03:44 UTC · branch `feat/loom-l7` · HEAD `92c85b3`_
 
 **Status:** Idle
-**Stage:** D3 — L5.x — Audit-trap sweep (5 items) · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 49 · **Cost:** $3.4325 · **Tokens:** 3,396,733 in / 675,747 out / 495,769 think
+**Stage:** D5 — L0.4 — Truth gate auto-enforcement · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 52 · **Cost:** $3.4794 · **Tokens:** 3,458,566 in / 683,071 out / 503,558 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
-**⚠ Skipped stages (need human review):** D1, D2, D3
+**⚠ Skipped stages (need human review):** D1, D2, D3, D4
 
 ## Stage progress
 
@@ -15,8 +15,8 @@ _Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
 | D1 | L0.5 — Cold-QA B9 denominator + UI boot-liveness | 0/0 | SKIPPED ⚠ |
 | D2 | L3.5 — TodoApi eval gap triage | 0/0 | SKIPPED ⚠ |
 | D3 | L5.x — Audit-trap sweep (5 items) | 0/0 | SKIPPED ⚠ |
-| D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | todo |
-| D5 | L0.4 — Truth gate auto-enforcement | 0/0 | todo |
+| D4 | Merge feat/loom-l7 → develop (or skip if continuing on feature branch) | 0/0 | SKIPPED ⚠ |
+| D5 | L0.4 — Truth gate auto-enforcement | 0/0 | **← active** |
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | todo |
 | D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | todo |
 | D8 | L4.5 — Flow model hardening | 0/0 | todo |
@@ -30,9 +30,6 @@ _Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 20 | L4 | Deliver | 1 | 07-08 04:42 | 1:43 | Advanced | L4.3 | 12 | build:OK | $0.0958 | 4,581/32,889 |
-| 21 | L4 | Deliver | 1 | 07-08 06:26 | 0:35 | Advanced | L4.4 | 5 | build:OK | $0.1103 | 114,706/23,586 |
-| 22 | L4 | Audit | 1 | 07-08 07:03 | 0:19 | Progress |  | 2 |  | $0.0919 | 100,855/19,053 |
 | 23 | L5 | Deliver | 1 | 07-08 07:29 | 0:30 | Advanced | L5.1 | 4 | build:OK | $0.0707 | 81,796/14,428 |
 | 24 | L5 | Deliver | 1 | 07-08 08:00 | 1:26 | GatesRed | L5.2 | 10 | build:FAIL | $0.0967 | 3,750/30,130 |
 | 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
@@ -60,11 +57,12 @@ _Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
 | 47 | D2 | Deliver | 2 | 07-09 01:16 | 0:19 | Progress |  | 1 | build:OK | $0.0381 | 50,038/7,091 |
 | 48 | D3 | Deliver | 1 | 07-09 01:37 | 0:24 | Progress |  | 1 | build:OK | $0.0602 | 87,314/9,204 |
 | 49 | D3 | Deliver | 2 | 07-09 02:02 | 0:14 | Progress |  | 1 | build:OK | $0.0184 | 19,640/4,824 |
+| 50 | D4 | Deliver | 1 | 07-09 02:18 | 0:01 | Interrupted |  | 0 |  |  |  |
+| 51 | D4 | Deliver | 1 | 07-09 03:07 | 1:02 | Interrupted |  | 0 |  |  |  |
+| 52 | D5 | Deliver | 1 | 07-09 03:30 | 0:13 | Progress |  | 1 | build:OK | $0.0469 | 61,833/7,324 |
 
 ### Commits by session
 
-- **s42 (D1 Deliver)** — 1 commit(s):
-  - 765dbac fix(debt): L0.5 — Cold-QA B9 denominator + UI boot-liveness
 - **s43 (D1 Deliver)** — 1 commit(s):
   - 416f60d fix(debt): L0.5 — QA verification, fresh evidence (attempt 2)
 - **s44 (D1 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 02:18 UTC · branch `feat/loom-l7` · HEAD `86569c4`_
   - 091e22e fix(debt): L5.x — audit-trap sweep re-verified (attempt 2)
 - **s49 (D3 Deliver)** — 1 commit(s):
   - 0038b46 fix(debt): L5.x — audit-trap sweep re-verified (attempt 2/2, s49)
+- **s52 (D5 Deliver)** — 1 commit(s):
+  - 92c85b3 fix(debt): D5 L0.4 — truth gate wired into loom-guards.ps1 + [TruthPending] Skip.IfNot guard
 
 ## Phase handovers (audit)
 
@@ -97,22 +97,20 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: L5.x audit-trap sweep re-verified (attempt 2/2, s49). All 5 traps confirmed stable — SBInference cache present, single-call site unchanged, NodeId.ForType stable @13, AmbiguityReport is record, BuildInfo.g.cs absent. Gate battery all green: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned, dogfood 436n/338e/34e/6SL/69% @3.9s. Session 48 claims QA'd clean. Next session (#50) should handle checkpoint #4: Merge feat/loom-l7 → develop per the squash protocol in `docs/workflows/loom-debt-workflow.md` §Merge Protocol.
+> SESSION-RESULT: D5 (L0.4) delivered. QA found D5 was falsely marked DONE in the tracker — commit c444dd2 was D3/L5.x, not D5. Loom-guards.ps1 now runs Category=Truth tests as gate #5 (failures exit non-zero). 3 [TruthPending] silent `return;` guards converted to `Skip.IfNot` (forward-safe). Gates all green: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips are the ratchets). Commit 92c85b3 on feat/loom-l7. Next session: D6 (L3.4 — TfmScore net10.0+).
 
 ## Tracker handoff
 
 ```
-last: Session 49 — #3 L5.x re-verification (orchestrator attempt 2/2). PASS.
-       Re-QA'd Session 48 claims; all 5 traps verified stable via fresh gates.
-       SBInference cache confirmed; AmbiguityReport record; NodeId.ForType @13;
-       BuildInfo.g.cs absent. Dogfood 436n/338e/34e/6SL/69% @3.9s (no regress).
-       Gates: build 0w/0e, Core 0F/414P/3S, Truth 0F/8P/3S, guards 0 banned.
-stage: Phase 1/3 — Debt Cleanup. Sessions 1-3/9 confirmed (2 x L5.x verified).
-next: Session 50 — #4 Merge feat/loom-l7 → develop (squash per L-stage).
-       Read workflow §Merge Protocol. Do NOT code — this is git-only.
-trap: None. All 5 traps remain stable; no drift detected.
-evidence: eval-results/2026-07-09/debt-L5.x-gate-attempt3.txt (fresh re-run)
-       eval-results/2026-07-09/debt-L5.x-gate-attempt2.txt (Session 48)
+last: D5 (L0.4) — Truth gate auto-enforcement delivered. Loom-guards.ps1 now
+       runs Category=Truth tests as gate #5; any failure exits non-zero.
+       3 [TruthPending] bodies converted from silent `return;` to Skip.IfNot
+       (forward-safe against green-wash when attributes are removed).
+       Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips=ratchets).
+       QA of D5 tracker (session s49) found it falsely marked DONE — c444dd2
+       was D3/L5.x, not D5. D5 now genuinely delivered in this session (s53).
+stage: D5 COMPLETE. Next: D6 (L3.4 — TfmScore net10.0+).
+trap: None. Advisory count (13 NodeId.ForType) unchanged. Truth ratchets stable.
 
 ---
 ```
