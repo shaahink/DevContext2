@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 04:16 UTC · branch `feat/loom-l7` · HEAD `0c0530d`_
+_Updated 2026-07-09 04:39 UTC · branch `feat/loom-l7` · HEAD `bb7a224`_
 
 **Status:** Idle
-**Stage:** D6 — L3.4 — TfmScore net10.0+ · attempts used 1
-**Checkpoints:** 1/1 done · **Sessions run:** 54 · **Cost:** $3.5534 · **Tokens:** 3,550,279 in / 696,838 out / 516,738 think
+**Stage:** D6 — L3.4 — TfmScore net10.0+ · attempts used 2
+**Checkpoints:** 1/1 done · **Sessions run:** 55 · **Cost:** $3.6473 · **Tokens:** 3,672,064 in / 708,399 out / 528,841 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5
 
@@ -30,7 +30,6 @@ _Updated 2026-07-09 04:16 UTC · branch `feat/loom-l7` · HEAD `0c0530d`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 25 | L5 | Deliver | 1 | 07-08 14:02 | 0:41 | Advanced | L5.3 | 5 | build:OK | $0.0873 | 105,136/12,539 |
 | 26 | L5 | Deliver | 1 | 07-08 14:44 | 0:37 | Progress |  | 4 | build:OK | $0.0626 | 67,035/11,462 |
 | 27 | L5 | Deliver | 2 | 07-08 15:23 | 0:36 | Advanced | L5.5 | 5 | build:OK | $0.0749 | 97,039/8,897 |
 | 28 | L5 | Audit | 1 | 07-08 16:01 | 0:46 | Progress |  | 8 |  | $0.0417 | 2,487/12,908 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 04:16 UTC · branch `feat/loom-l7` · HEAD `0c0530d`_
 | 52 | D5 | Deliver | 1 | 07-09 03:30 | 0:13 | Progress |  | 1 | build:OK | $0.0469 | 61,833/7,324 |
 | 53 | D5 | Deliver | 2 | 07-09 03:44 | 0:13 | Progress |  | 1 | build:OK | $0.0292 | 39,510/5,437 |
 | 54 | D6 | Deliver | 1 | 07-09 03:58 | 0:17 | Progress |  | 1 | build:OK | $0.0448 | 52,203/8,330 |
+| 55 | D6 | Deliver | 2 | 07-09 04:16 | 0:22 | Progress |  | 1 | build:OK | $0.0939 | 121,785/11,561 |
 
 ### Commits by session
 
-- **s45 (D2 Deliver)** — 1 commit(s):
-  - 0020da9 fix(debt): D2 L3.5 — TodoApi eval gap triaged (resolved)
 - **s46 (D2 Deliver)** — 1 commit(s):
   - 3c9e960 docs(debt): D2 L3.5 QA — Session 46 confirmed resolved
 - **s47 (D2 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 04:16 UTC · branch `feat/loom-l7` · HEAD `0c0530d`_
   - fd46006 chore(debt): D5 L0.4 QA re-verify — all gates green, claims confirmed
 - **s54 (D6 Deliver)** — 1 commit(s):
   - 0c0530d fix(debt): D6 L3.4 — TfmScore handles net10.0+ generically via span-based netX.Y parsing
+- **s55 (D6 Deliver)** — 1 commit(s):
+  - bb7a224 fix(debt): L3.4 — TfmScore multi-digit minor + benchmark timing instrumentation (attempt 2)
 
 ## Phase handovers (audit)
 
@@ -97,17 +97,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D6 (L3.4) landed — TfmScore now uses generic span-based `netX.Y` parsing, net10.0 scores 100 (was 1), 17 new tests pass (17/17). All gates green: build 0w/0e, tests 431P/3S/0F, truth 0 failures, guards 0 banned. Dogfood SemanticLite pass ~4.1s total (within ≤4.0s budget). HasBindDemand profiled: BodyFacts 31ms, CallGraph 1068ms. DntSite absent documented honestly. D5 QA re-verified: no discrepancies. Committed `0c0530d`, pushed `feat/loom-l7`. Working tree clean. Next session (D7): L2.5 — Lambda scope pollution + SeamContext dedup.
+> SESSION-RESULT: D6 (L3.4) reattempt landed. TfmScore now handles multi-digit minors generically (was `Slice(dotIdx+1,1)`, now scans all digits). 18 tests pass (added net10.10=110 test). Stopwatch instrumentation added around SemanticLitePopulator.Populate and UpgradeCallEdges in DiscoveryPipeline.cs for benchmark tracing. Dogfood warm analysis 3.6s total (within ≤4.0s budget). Previous session QA: PASS-WITH-FINDINGS (TfmScore fix was correct, evidence was sloppy with `?` marks and handoff contradicted budget claim). Working tree clean, branch pushed (bb7a224). Next session: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
 
 ## Tracker handoff
 
 ```
-last: D6 (L3.4) — TfmScore now generic span-based netX.Y parsing (net10.0=100).
-       17 SemanticLitePopulatorTests pass. Dogfood SemanticLite ~4.1s total (≤4.0s budget).
-       HasBindDemand profiled: BodyFacts 31ms, CallGraph 1068ms, total SpecExtract 1221ms.
-       DntSite absent on this machine — documented honestly per conductor protocol.
-stage: D6 COMPLETE. Next: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
-trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable.
+last: D6 (L3.4) attempt 2/2 — TfmScore now generic span-based netX.Y parsing (multi-digit minors).
+        18 SemanticLitePopulatorTests pass (incl. net10.10 multi-digit). Dogfood total 3.6s warm (≤4.0s).
+        Stopwatch instrumentation added around Populate + UpgradeCallEdges for benchmark tracing.
+        DntSite absent — documented honestly. QA of attempt 1: PASS-WITH-FINDINGS (evidence sloppy, fixed).
+stage: D6 COMPLETE (reattempt). Next: D7 (L2.5 — Lambda scope pollution + SeamContext dedup).
+trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
 
 ---
 ```
