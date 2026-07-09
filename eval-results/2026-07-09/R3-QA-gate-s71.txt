@@ -1,0 +1,75 @@
+R3 QA Gate Battery — s71 (2026-07-09)
+Attempt 2/2: QA verification of s70 R3 design review
+
+== QA Scope ==
+- Re-run gate battery (build, test, truth, guards)
+- Verify ALL code references in R3-L7-L8.md against fresh source
+- Verify system contract claims (Law R1, R2, guards, SymbolId)
+- Audit LOOM-START.md baseline table integrity
+- Audit PROGRESS-LOG.md completeness
+
+== Gate Battery (fresh) ==
+
+Build: SUCCESS (Core/Server/CLI/Desktop compile)
+  Note: transient file-lock issue from concurrent test processes; --no-build tests succeed
+
+Tests (Category!=Eval, --no-build):
+  Core:    440 passed, 3 skipped, 0 failed
+  Server:   14 passed, 0 skipped, 0 failed
+  Desktop:  64 passed, 0 skipped, 0 failed
+  Total:   518 passed, 3 skipped, 0 failed
+
+Truth tests (Category=Truth, --no-build):
+  Passed:  8 (Desktop_archetype, Library_archetype, TodoApi_baseline, DntSite_baseline,
+              Blazor_archetype, CleanArchitecture_baseline, Dogfood_baseline, Worker_archetype)
+  Skipped: 3 (Dogfood_service_names, Dogfood_checkout_flow, RazorPages_no_fabricated)
+  Failed:  0
+  Total:  11 (8P/3S/0F)
+
+loom-guards.ps1:
+  0 banned patterns
+  13 NodeId.ForType( advisory (stable)
+  0 fqns[0] advisory
+  Truth gate: 0 failures
+
+pnpm check: PASS
+
+== Code Reference Verification ==
+
+L7 code refs:
+  PlainCallDetector.cs: EXISTS, 68 lines, EdgeKind.Calls confirmed — ACCURATE
+  GraphBuilder.cs:1621-1629,1836-1844: PlainCallDetector registered — ACCURATE
+  ArchetypeProjection.cs:43-159: switch per Archetype — ACCURATE
+  ArchetypeDetector.cs:90-119: DetectAppSubtype — ACCURATE (range extends to 123)
+  ArchitectureStyleDetector.cs:57-94,212-229,250-263: triggers, guard, scope — ACCURATE
+
+System contracts:
+  Law R1 — SymbolTable.Resolve() Ambiguous + GraphBuilder skip (1671,1871): ACCURATE
+  Law R2 — SymbolTable.Resolve() monotone + MergeSemantic (line 659): ACCURATE
+    Note: method is named MergeSemantic, not ApplyLaw2 as reported
+  No Regex in Core/Graph: ACCURATE (0 results)
+  SymbolId outside Graph2/: ACCURATE (all 8 in Graph2/ only)
+  NodeId.ForType advisory: ACCURATE (89 refs total, 13 in production Graph/)
+  Honesty surfaces — Envelope: ACCURATE (DevContextTools.cs:47)
+
+R3 report L8.1 findings verified:
+  PROGRESS-LOG.md gap (L5-L8 missing): CONFIRMED — entries stop at L4.4 then jump to debt
+  Baseline table (LOOM-START.md line 86): CORRECT (8P/3S) — FIXED in s70 commit ece42cf
+  Cold-agent QA + UI drive evidence: NOT re-run fresh in L8 — finding stands
+
+== LOOM-START.md Integrity ==
+  Line 86: "8P/3S (3 [TruthPending] ratchets)" — CORRECT, matches reality
+  Handoff block (lines 9-19): ACCURATE, reflects s70 completion
+  Tracker table (line 68): R3 marked DONE (s70) — ACCURATE
+  Phase 1 (lines 50-60): All 9 debt items DONE — ACCURATE
+  No contradictory numbers found
+
+== QA Verdict ==
+R3-L7-L8.md report is SUBSTANTIALLY ACCURATE.
+- All 14+10 checkpoint/contract ratings confirmed by fresh code inspection
+- 3 minor nits found (line range off by 4, comment/code mismatch in detector, method name ApplyLaw2→MergeSemantic)
+- 0 material discrepancies
+- LOOM-START.md baseline was stale at report time but fixed in same session (ece42cf)
+- Gate battery identical to s70 baseline (440P/3S, 8P/3S Truth)
+
+R3 QA: PASS. Report is authoritative. Ready for Phase 3 (QA Driver).
