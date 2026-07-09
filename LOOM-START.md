@@ -6,12 +6,12 @@
 Branch: `develop` (after merge). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s62 QA verified D9 (L1.6) — all s61 claims confirmed: SymbolTable member indexing works,
-        KindFromCanonical("::"→Member) in all 6 resolve paths, RefSite.FromType deleted (0 callers),
-        7 member tests pass, gates all green. D9 genuinely DONE.
-stage: D9 DONE (s61). All 9 Phase 1 checkpoints COMPLETE. Next: Phase 2 — R1 design review (session 10).
-trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
-note: Merge (#4) remains TODO. Phase 2 R1 ready to start.
+last: s63 re-verified D9 (L1.6) — fresh gates (0w/0e, 440/14/64P 3S, 8P/3S truth, 0 banned).
+        All s61 claims reconfirmed: member indexing, GraphBuilder bodyFacts passthrough,
+        RefSite.FromType deleted (0 callers), 7 member tests → 26/26 pass.
+stage: D9 DONE (s61, QA s62+s63). Phase 1 COMPLETE (9/9). Next: Phase 2 R1 design review.
+trap: None. Advisory (13 NodeId.ForType) stable. Truth ratchets stable (8P/3S).
+note: Merge (#4) remains TODO. Phase 2 R1 ready to start (session 10).
 
 ---
 
@@ -51,7 +51,7 @@ Three phases: Debt Cleanup (1-9) → Design Review (10-12) → QA Driver (13).
 | 6 | L3.4 — TfmScore handles net10.0+ | DONE | `eval-results/2026-07-09/debt-L3.4-gate-attempt2.txt` |
 | 7 | L2.5 — Lambda scope pollution + SeamContext dedup | DONE | `eval-results/2026-07-09/debt-L2.5-gate.txt` (s56), re-verified `eval-results/2026-07-09/debt-L2.5-gate-s59.txt` |
 | 8 | L4.5 — Flow model hardening | DONE | `eval-results/2026-07-09/debt-L4.5-gate-s60.txt` |
-| 9 | L1.6 — SymbolTable member indexing | DONE | `eval-results/2026-07-09/debt-L1.6-gate.txt` (QA: `debt-L1.6-QA-s62.txt`) |
+| 9 | L1.6 — SymbolTable member indexing | DONE | `eval-results/2026-07-09/debt-L1.6-gate.txt` (QA: s62+s63 re-verified `debt-L1.6-QA-s63.txt`) |
 
 ### Phase 2: Static Design Review
 
