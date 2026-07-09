@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom-Debt run report
 
-_Updated 2026-07-09 06:53 UTC · branch `feat/loom-l7` · HEAD `3206048`_
+_Updated 2026-07-09 07:02 UTC · branch `feat/loom-l7` · HEAD `ba8638d`_
 
 **Status:** Idle
-**Stage:** D8 — L4.5 — Flow model hardening · attempts used 0
-**Checkpoints:** 1/1 done · **Sessions run:** 61 · **Cost:** $3.9264 · **Tokens:** 3,965,585 in / 766,552 out / 582,518 think
+**Stage:** D9 — L1.6 — SymbolTable member indexing + dead code removal · attempts used 1
+**Checkpoints:** 1/1 done · **Sessions run:** 62 · **Cost:** $3.9507 · **Tokens:** 3,998,367 in / 770,540 out / 587,143 think
 **Confirmed phases:** L0, L1, L2, L3, L4, L5, L6, L7, L8
 **⚠ Skipped stages (need human review):** D1, D2, D3, D4, D5, D6, D7, D8
 
@@ -20,7 +20,7 @@ _Updated 2026-07-09 06:53 UTC · branch `feat/loom-l7` · HEAD `3206048`_
 | D6 | L3.4 — TfmScore net10.0+ | 0/0 | SKIPPED ⚠ |
 | D7 | L2.5 — Lambda scope pollution + SeamContext dedup | 0/0 | SKIPPED ⚠ |
 | D8 | L4.5 — Flow model hardening | 0/0 | SKIPPED ⚠ |
-| D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | todo |
+| D9 | L1.6 — SymbolTable member indexing + dead code removal | 0/0 | **← active** |
 | R1 | Design Review: L0+L1+L2 | 0/0 | todo |
 | R2 | Design Review: L4+L5+L6 | 0/0 | todo |
 | R3 | Design Review: L7+L8 + system contracts | 0/0 | todo |
@@ -30,7 +30,6 @@ _Updated 2026-07-09 06:53 UTC · branch `feat/loom-l7` · HEAD `3206048`_
 
 | # | Stage | Kind | Att | Started (UTC) | Dur | Outcome | New DONE | Commits | Gates | Cost | Tokens |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 32 | L6 | Deliver | 1 | 07-08 18:07 | 0:30 | Advanced | L6.4 L6.5 L6.6 | 6 | build:OK | $0.0999 | 131,660/13,753 |
 | 33 | L6 | Audit | 1 | 07-08 18:39 | 0:10 | Progress |  | 2 |  | $0.0621 | 81,863/11,843 |
 | 34 | L7 | Deliver | 1 | 07-08 18:53 | 0:23 | Stalled |  | 0 |  | $0.0155 | 28,345/1,441 |
 | 35 | L7 | Resume | 2r1 | 07-08 19:17 | 0:19 | Advanced | L7.1 | 2 | build:OK | $0.0797 | 71,431/11,388 |
@@ -60,11 +59,10 @@ _Updated 2026-07-09 06:53 UTC · branch `feat/loom-l7` · HEAD `3206048`_
 | 59 | D7 | Deliver | 2 | 07-09 05:54 | 0:14 | Progress |  | 1 | build:OK | $0.0302 | 42,404/5,028 |
 | 60 | D8 | Deliver | 1 | 07-09 06:10 | 0:20 | Progress |  | 1 | build:OK | $0.0458 | 60,918/7,893 |
 | 61 | D8 | Deliver | 2 | 07-09 06:31 | 0:20 | Progress |  | 1 | build:OK | $0.0490 | 42,194/12,636 |
+| 62 | D9 | Deliver | 1 | 07-09 06:53 | 0:08 | Progress |  | 1 | build:OK | $0.0243 | 32,782/3,988 |
 
 ### Commits by session
 
-- **s54 (D6 Deliver)** — 1 commit(s):
-  - 0c0530d fix(debt): D6 L3.4 — TfmScore handles net10.0+ generically via span-based netX.Y parsing
 - **s55 (D6 Deliver)** — 1 commit(s):
   - bb7a224 fix(debt): L3.4 — TfmScore multi-digit minor + benchmark timing instrumentation (attempt 2)
 - **s56 (D6 Deliver)** — 1 commit(s):
@@ -79,6 +77,8 @@ _Updated 2026-07-09 06:53 UTC · branch `feat/loom-l7` · HEAD `3206048`_
   - 2b7829c fix(debt): L4.5 — FlowTruncated depth warning diagnostic
 - **s61 (D8 Deliver)** — 1 commit(s):
   - d6e0e8c fix(debt): L1.6 — SymbolTable member indexing; RefSite.FromType removed
+- **s62 (D9 Deliver)** — 1 commit(s):
+  - ba8638d fix(debt): L1.6 QA s62 — verified all s61 claims, D9 genuinely DONE
 
 ## Phase handovers (audit)
 
@@ -97,18 +97,17 @@ build:OK
 
 ## Last session result
 
-> SESSION-RESULT: D9 L1.6 landed — SymbolTable now indexes Member symbols from BodyFacts pipeline output, KindFromCanonical helper converts `::` format to correct SymbolKind, Resolve returns Member or Type appropriately, RefSite.FromType deleted (0 callers), 7 new member resolution tests (26 total). All 9 debt items are now DONE (merge #4 deferred for coordinated PR). Gates: build 0w/0e, Core 440P/3S (+7), Server 14P/0S, Desktop 64P/0S, Truth 8P/3S, guards clean. Next session should start Phase 2 — R1 design review (L0+L1+L2).
+> SESSION-RESULT: D9 L1.6 QA verified — all s61 claims confirmed genuine (SymbolTable member indexing via BodyFacts pipeline, KindFromCanonical("::"→Member) in all 6 resolve paths, RefSite.FromType deleted with 0 callers, 7 member resolution tests pass). Gates: 0w/0e build, 440P/3S Core, 14P Server, 64P Desktop, 8P/3S Truth, 0 banned guards. All 9 Phase 1 debt items COMPLETE. Next session should advance to Phase 2 R1 design review (L0+L1+L2) per the workflow. Merge (#4) remains the only Phase 1 TODO, deferred for coordinated PR.
 
 ## Tracker handoff
 
 ```
-last: D9 (L1.6) — s61 member indexing: SymbolTable indexes Member symbols from BodyFacts
-        pipeline. KindFromCanonical helper ("::" → Member). Resolve now produces correct
-        SymbolKind. RefSite.FromType deleted (0 callers). 7 new tests (26 total SymbolTable).
-        All gates green (440P Core, 14P Server, 64P Desktop, 8P Truth).
-stage: D9 DONE (s61). All 9 debt items COMPLETE. Next: Phase 2 — R1 design review (session 10).
+last: s62 QA verified D9 (L1.6) — all s61 claims confirmed: SymbolTable member indexing works,
+        KindFromCanonical("::"→Member) in all 6 resolve paths, RefSite.FromType deleted (0 callers),
+        7 member tests pass, gates all green. D9 genuinely DONE.
+stage: D9 DONE (s61). All 9 Phase 1 checkpoints COMPLETE. Next: Phase 2 — R1 design review (session 10).
 trap: None. Advisory (13 NodeId.ForType) unchanged. Truth ratchets stable (8P/3S).
-note: Merge (#4) remains TODO — orchestrator deferred for coordinated PR.
+note: Merge (#4) remains TODO. Phase 2 R1 ready to start.
 
 ---
 ```
