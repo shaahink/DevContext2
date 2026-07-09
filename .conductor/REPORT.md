@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 17:51 UTC · branch `feat/loom-l7` · HEAD `7d78e11`_
+_Updated 2026-07-09 17:57 UTC · branch `feat/loom-l7` · HEAD `d0ab4de`_
 
-**Status:** Idle
+**Status:** NeedsHuman — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 **Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 2
 **Checkpoints:** 1/15 done · **Sessions run:** 2 · **Cost:** $0.2676 · **Tokens:** 252,602 in / 27,285 out / 47,313 think
 
@@ -36,6 +36,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-09 18:30:26  ▪ gate truth pass [session]  (36.4s)
 07-09 18:30:26  • session #1 A → Progress · 1 commit(s)  (49m48s)
 07-09 18:30:27  • session #2 A Deliver started (attempt 2/2)
+07-09 18:51:19  • session #2 A → Stalled  (20m52s)
+07-09 18:57:20  ■ needs human — stage A used all 2 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 ```
 
 ## Health
@@ -64,7 +66,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/loom-l7
 working tree: D .conductor/handovers/L0.md, D .conductor/handovers/L1.md, D .conductor/handovers/L2.md, D .conductor/handovers/L3.md, D .conductor/handovers/L4.md, D .conductor/handovers/L5.md, D .conductor/handovers/L6.md, D .conductor/handovers/L8.md (+4 more)
-vs upstream: 1 ahead
+vs upstream: 2 ahead
 ```
 
 ### Commits by session
