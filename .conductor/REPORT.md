@@ -1,17 +1,18 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-09 23:50 UTC · branch `feat/loom-l7` · HEAD `c83917b`_
+_Updated 2026-07-10 01:22 UTC · branch `feat/loom-l7` · HEAD `bdd0768`_
 
-**Status:** NeedsHuman — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
-**Stage:** A — Engine Gap — L2.4 Checkout Trace Bus-Publish · attempts used 6
-**Checkpoints:** 2/15 done · **Sessions run:** 10 · **Cost:** $0.7378 · **Tokens:** 878,887 in / 86,525 out / 105,302 think
+**Status:** Idle
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 1
+**Checkpoints:** 2/15 done · **Sessions run:** 12 · **Cost:** $0.7844 · **Tokens:** 955,709 in / 90,305 out / 110,517 think
+**⚠ Skipped stages (need human review):** A
 
 ## Stage progress
 
 | Stage | Title | Progress | State |
 |---|---|---|---|
-| A | Engine Gap — L2.4 Checkout Trace Bus-Publish |  0/0 | **← active** |
-| B | UI Regressions — Tab Strip + Code Pane |  0/0 | todo |
+| A | Engine Gap — L2.4 Checkout Trace Bus-Publish |  0/0 | SKIPPED ⚠ |
+| B | UI Regressions — Tab Strip + Code Pane |  0/0 | **← active** |
 | C | Polish Batch — 6 Small Items |  0/0 | todo |
 | D | ContextPack Server Round-Trip |  0/0 | todo |
 | E | Eval Gap Investigation + Docs |  0/0 | todo |
@@ -31,17 +32,14 @@ _Updated 2026-07-09 23:50 UTC · branch `feat/loom-l7` · HEAD `c83917b`_
 | 8 | A | Deliver | 4 | 07-09 22:50 | 0:15 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.1119 | 212,822/4,859 |
 | 9 | A | Deliver | 5 | 07-09 23:11 | 0:13 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0482 | 64,118/7,734 |
 | 10 | A | Deliver | 6 | 07-09 23:31 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0434 | 63,793/5,418 |
+| 11 | B | Deliver | 1 | 07-10 01:00 | 0:00 | Interrupted |  | 0 |  |  |  |
+| 12 | B | Resume | 1r1 | 07-10 01:01 | 0:16 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0467 | 76,822/3,780 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 19:46:09  ◆ run resumed · Loom Gap Close
-07-09 19:46:57  • session #3 A Resume started (attempt 3/6)
-07-09 20:29:48  ▪ gate build pass [session]  (37.6s)
-07-09 20:29:48  ▪ gate tests pass [session]  (3m08s)
-07-09 20:29:48  ▪ gate truth pass [session]  (2m09s)
 07-09 20:29:49  • session #3 A → Advanced · done A1 · 1 commit(s)  (42m52s)
 07-09 20:29:49  ✓ checkpoint A1 confirmed
 07-09 20:29:50  • session #4 A Deliver started (attempt 1/6)
@@ -77,6 +75,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 00:49:47  ▪ gate truth pass [session]  (2m07s)
 07-10 00:49:48  • session #10 A → Progress · 1 commit(s)  (18m24s)
 07-10 00:50:03  ■ needs human — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
+07-10 02:01:58  ◆ run resumed · Loom Gap Close
+07-10 02:01:58  • session #12 B Resume started (attempt 1/3)
+07-10 02:22:28  ▪ gate build pass [session]  (17.9s)
+07-10 02:22:28  ▪ gate tests pass [session]  (3m04s)
+07-10 02:22:28  ▪ gate pnpm pass [session]  (39.9s)
 ```
 
 ## Health
@@ -84,9 +87,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 10 · retries 7 (70 %) · overall Warn
+sessions 11 · retries 7 (64 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 7/10 sessions were retries (70 %)
+⚠ [high-retry-rate] 7/11 sessions were retries (64 %)
 ```
 
 ## Confidence
@@ -106,14 +109,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: M eval-results/2026-07-09/mcp-qa.md, ?? .conductor-loom-prior/
-vs upstream: 1 ahead
+working tree: ?? .conductor-loom-prior/, ?? eval-results/2026-07-10/mcp-qa.md
+vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s1 (A Deliver)** — 1 commit(s):
-  - [`4d997d9`](https://github.com/shaahink/DevContext2/commit/4d997d9) fix(loom): Phase A — Type->Service bridge in TraceBuilder + GraphBuilder (L2.4 gap-close). Test stays [TruthPending(L2)] — Raises edge not created by current pipeline.
 - **s3 (A Resume)** — 1 commit(s):
   - [`a94c211`](https://github.com/shaahink/DevContext2/commit/a94c211) fix(loom): Phase A — add BodyFactsExtractor to TestPipeline, flip checkout truth test
 - **s5 (A Resume)** — 1 commit(s):
@@ -128,6 +129,8 @@ vs upstream: 1 ahead
   - [`80336e9`](https://github.com/shaahink/DevContext2/commit/80336e9) chore(loom): Phase A s79 QA-verified — fresh gate battery + CLI analyze trace confirms checkout cross-service hop at depth 6, A1 VERIFIED. Phase A complete.
 - **s10 (A Deliver)** — 1 commit(s):
   - [`0016524`](https://github.com/shaahink/DevContext2/commit/0016524) fix(loom): A — QA re-audit confirms Phase A (stale prior finding, Raises edge + bridge active)
+- **s12 (B Resume)** — 1 commit(s):
+  - [`bdd0768`](https://github.com/shaahink/DevContext2/commit/bdd0768) chore(loom): s11 — post-interruption gate re-verification, Phase A confirmed, ready for Phase B
 
 ## Phase handovers (audit)
 
@@ -142,20 +145,20 @@ vs upstream: 1 ahead
 
 ## Last gate run
 
-build:OK · tests:OK · truth:OK
+build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase A re-audited and CONFIRMED — the orchestrator's PRIOR SESSION FINDING (from session 1) was stale; sessions s77-79 already fixed the pipeline by adding BodyFactsExtractor and hardening auto-extract fallback. Fresh gate battery (Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS) and focused CLI trace (`analyze --focus "POST /basket/checkout"`) both confirm: BusPublishDetector creates `raises BasketCheckoutEvent`, Type→Service bridge connects to `consumes BasketCheckoutEventHandler` (Ordering.Application), trace follows to `send CreateOrderCommand` at depth 6. Phase A has zero incomplete checkpoints — all work for stage A is done. Next sessio…
+> SESSION-RESULT: Post-interruption re-verification of Phase A (Loom Gap Close) confirmed green across all gates — build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check (lint 0, 27/27 tests, build 0w/0e), loom-guards 0 banned. No half-done changes were found in flight; the s10 evidence (`phase-A-s10-QA-audit.txt`) and gate state were already committed. A fresh gate battery snapshot (`gate-battery-s11-confirm.txt`) was produced, the LOOM-START.md handoff was updated for s11, the minor mcp-qa.md token drift (229→257 from QA re-run) was committed, and all was pushed to `feat/loom-l7`. Phase A checkpoint A1 remains VERIFIED — Phase B (UI regressions: B1 tab strip >=30px, B2 c…
 
 ## Tracker handoff
 
 ```
-last: s10 QA re-audit — fresh gate battery + focused checkout trace confirm Phase A valid. Orchestrator's "PRIOR SESSION FINDING" was stale (from s1, before s77-79 added BodyFactsExtractor + auto-extract fallback). Raises edge + Type→Service bridge active on real dogfood.
-stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10). No incomplete checkpoints.
+last: s11 post-interruption gate re-verification — fresh gate battery re-run confirms Phase A green. No half-done changes. mcp-qa.md token drift (229→257) from QA re-run committed.
+stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10, re-confirmed s11). No incomplete checkpoints.
 next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS.
-evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (fresh gate + CLI focus trace + QA verdict)
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
+evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (s10), eval-results/2026-07-10/gate-battery-s11-confirm.txt (s11)
 
 
 ---
