@@ -188,6 +188,53 @@ devcontext analyze . --format json --strict        # JSON with runReport
 - **LLM-value benchmark** — an honest harness measuring "does an LLM answer codebase questions better with DevContext output than with a raw file dump?" stays out of the README until it exists.
 - **Persistent index** — serialize `CodeGraph` keyed by content hash for instant warm runs. Designed for (serialization-ready records, stable NodeId scheme) but not built.
 
+## AI Agent Context
+
+This repo is designed to be navigable by coding agents (Copilot, Cursor, etc.). Key entry points:
+
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Cold-start instructions, gate battery, architecture layering, resume protocol |
+| `LOOM-START.md` | Phase tracker — current state, checkpoint table, handoff block |
+| `docs/dev/HANDOVER-LOOM.md` | Loom close-out: architecture, benchmarks, known gaps (read this first) |
+| `docs/dev/briefs/loom-graph-design.md` | Design authority — graph model, laws (R1/R2), pipeline |
+| `src/DevContext.App/AGENTS.md` | App conventions, run commands, M6-M8 verification checklist |
+| `proto/devcontext/v1/devcontext.proto` | gRPC contract — single source of truth for server/UI contract |
+
+### Architecture (Post-Loom)
+
+```
+DevContext.Core (kernel)  —  Graph2 namespace: SymbolTable, BodyFacts, SemanticLitePopulator,
+│                             SymbolRef/ResolutionTier, ISeamDetector, CodeGraphAssembler
+├── DevContext.Cli         —  dotnet tool: analyze . --focus Type:Method --depth 6
+├── DevContext.Server      —  gRPC-Web service: desktop + MCP backend
+├── DevContext.Mcp         —  MCP server: 23 tools, cold-agent ergonomics
+├── DevContext.Desktop     —  OLD WPF shell (superseded)
+DevContext.App (Angular 22) — CURRENT desktop client (Tauri + Angular, zoneless, signals)
+```
+
+### Graph model (Graph2 namespace)
+
+- **Identity spine:** `SymbolId(Kind, Canonical)` — one symbol, one id. `SymbolRef(Text, Site, Resolved?, Tier, Candidates)` — typed references across the extractor-graph boundary. `SymbolTable` — tiered resolution (Semantic > FileScoped > ProjectScoped > GlobalUnique > Ambiguous > Unresolved).
+- **Laws:** R1 (no silent winners — ambiguous edges skipped), R2 (tier monotone — never downgrade).
+- **Seam detectors:** `MediatRDispatchDetector`, `DomainEventRaiseDetector`, `IntegrationEventCreationDetector`, `EntityTouchDetector`, `BusPublishDetector`, `PlainCallDetector` — each ~60 lines, one file, one fixture.
+
+### Gate battery
+
+```powershell
+dotnet build DevContext.slnx                              # 0w 0e
+dotnet test DevContext.slnx --filter "Category!=Eval"     # Core 440P/3S, Server 14P, Desktop 64P
+dotnet test DevContext.slnx --filter "Category=Truth"      # 9P/2S
+cd src/DevContext.App; pnpm check                          # lint + vitest (27/27) + build
+powershell -File scripts/loom-guards.ps1                   # 0 banned patterns
+```
+
+### Screenshots
+
+| Home | Explore | Context Studio | Atlas |
+|------|---------|---------------|-------|
+| [![Home](docs/screenshots/home-thumb.png)](docs/screenshots/home.png) | [![Explore](docs/screenshots/explore-thumb.png)](docs/screenshots/explore.png) | [![Context](docs/screenshots/context-thumb.png)](docs/screenshots/context.png) | [![Atlas](docs/screenshots/atlas-thumb.png)](docs/screenshots/atlas.png) |
+
 ## Development
 
 ```bash
