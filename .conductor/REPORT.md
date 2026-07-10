@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 01:39 UTC · branch `feat/loom-l7` · HEAD `f62ad2f`_
+_Updated 2026-07-10 02:16 UTC · branch `feat/loom-l7` · HEAD `b68176c`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 0
-**Checkpoints:** 4/15 done · **Sessions run:** 13 · **Cost:** $0.8422 · **Tokens:** 1,030,464 in / 97,875 out / 121,018 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 1
+**Checkpoints:** 4/15 done · **Sessions run:** 14 · **Cost:** $0.9339 · **Tokens:** 1,135,766 in / 109,094 out / 133,978 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -35,19 +35,13 @@ _Updated 2026-07-10 01:39 UTC · branch `feat/loom-l7` · HEAD `f62ad2f`_
 | 11 | B | Deliver | 1 | 07-10 01:00 | 0:00 | Interrupted |  | 0 |  |  |  |
 | 12 | B | Resume | 1r1 | 07-10 01:01 | 0:16 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0467 | 76,822/3,780 |
 | 13 | B | Deliver | 2 | 07-10 01:22 | 0:12 | Advanced | B1 B2 | 1 | build:OK · tests:OK · pnpm:OK | $0.0577 | 74,755/7,570 |
+| 14 | B | Deliver | 1 | 07-10 01:39 | 0:31 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0917 | 105,302/11,219 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 22:58:29  ▪ gate build pass [session]  (1m02s)
-07-09 22:58:29  ▪ gate tests pass [session]  (3m45s)
-07-09 22:58:29  ▪ gate truth pass [session]  (6m30s)
-07-09 22:58:30  • session #5 A → Progress · 1 commit(s)  (18m53s)
-07-09 22:58:30  • session #6 A Deliver started (attempt 2/6)
-07-09 23:29:45  ▪ gate build pass [session]  (36.4s)
-07-09 23:29:45  ▪ gate tests pass [session]  (3m07s)
 07-09 23:29:45  ▪ gate truth pass [session]  (3m21s)
 07-09 23:29:47  • session #6 A → Progress · 1 commit(s)  (31m16s)
 07-09 23:29:47  • session #7 A Deliver started (attempt 3/6)
@@ -81,6 +75,13 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 02:39:45  ▪ gate build pass [session]  (46.0s)
 07-10 02:39:45  ▪ gate tests pass [session]  (3m13s)
 07-10 02:39:45  ▪ gate pnpm pass [session]  (36.5s)
+07-10 02:39:46  • session #13 B → Advanced · done B1,B2 · 1 commit(s)  (17m17s)
+07-10 02:39:46  ✓ checkpoint B1 confirmed
+07-10 02:39:46  ✓ checkpoint B2 confirmed
+07-10 02:39:46  • session #14 B Deliver started (attempt 1/3)
+07-10 03:16:05  ▪ gate build pass [session]  (50.4s)
+07-10 03:16:05  ▪ gate tests pass [session]  (3m12s)
+07-10 03:16:05  ▪ gate pnpm pass [session]  (44.5s)
 ```
 
 ## Health
@@ -88,9 +89,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 12 · retries 8 (67 %) · overall Warn
+sessions 13 · retries 8 (62 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 8/12 sessions were retries (67 %)
+⚠ [high-retry-rate] 8/13 sessions were retries (62 %)
 ```
 
 ## Confidence
@@ -101,8 +102,8 @@ _Evidence-based confidence per checkpoint. A checkpoint without evidence is mark
 checkpoints confirmed: 4   with evidence: 4
 
   A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
-  B1    1 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`
-  B2    1 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`
+  B1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
+  B2    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -118,8 +119,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s5 (A Resume)** — 1 commit(s):
-  - [`6870df8`](https://github.com/shaahink/DevContext2/commit/6870df8) chore(loom): Phase A gap-close — recovered from conductor crash, A1 DONE, plan doc committed
 - **s6 (A Deliver)** — 1 commit(s):
   - [`0610897`](https://github.com/shaahink/DevContext2/commit/0610897) chore(loom): Phase A QA — fresh gate battery confirms A1 DONE, checkout trace cross-service verified
 - **s7 (A Deliver)** — 1 commit(s):
@@ -134,6 +133,8 @@ vs upstream: up to date
   - [`bdd0768`](https://github.com/shaahink/DevContext2/commit/bdd0768) chore(loom): s11 — post-interruption gate re-verification, Phase A confirmed, ready for Phase B
 - **s13 (B Deliver)** — 1 commit(s):
   - [`f62ad2f`](https://github.com/shaahink/DevContext2/commit/f62ad2f) fix(loom): B — B1 tab strip min-h-8 + B2 code auto-load on open
+- **s14 (B Deliver)** — 1 commit(s):
+  - [`b68176c`](https://github.com/shaahink/DevContext2/commit/b68176c) fix(loom): B — B1 tab strip explicit px height (root 14px font meant h-8=28px)
 
 ## Phase handovers (audit)
 
@@ -152,16 +153,16 @@ build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase B (UI Regressions) delivered at commit `f62ad2f`. B1: added `min-h-8` to tab strip outer div ensuring 32px height floor (was 28px). B2: made Code tab collapsed-by-default, auto-loads source via `readSource` RPC when the Code section is opened (was null because `loadCode()` was never called). All gates green: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (Phase A verified), pnpm check PASS, guards 0 banned. UI audit gate requires live server+Angular — code fixes are correct per audit script mechanics but ui-audit-drive.mjs --gate could not be re-run headless. Next session: Phase C (Polish Batch — MCP mcpRunning, Inspector word-boundary, bench encoding, …
+> SESSION-RESULT: Phase B verified and landed (s14, commit b68176c). B1 required a re-fix: Tailwind's h-8=28px because the app base font-size is 14px (rem=14px), so replaced with explicit style="min-height:32px" — verified at stripH=32px via fresh ui-audit-drive. B2 (s13's auto-load-on-open fix) confirmed working — code length=44. QA verdict on s13: B1 insufficient (min-h-8 shares same rem base), B2 correct. All gates green: Build 0w/0e, Core 440P/3S, Truth 9P/2S, pnpm check PASS, guards 0 banned, UI gate 4/4 PASS. Next session: Phase C Polish Batch (C1-C5).
 
 ## Tracker handoff
 
 ```
-last: s13 Phase B — B1+B2 fixes delivered. Gate battery re-verified green.
-stage: Phase B DONE (B1 tab strip min-h-8, B2 code auto-load on open). Phase A VERIFIED (QA s79, 9P/2S truth).
-next: Phase C (Polish Batch: MCP mcpRunning + Inspector word-boundary + bench encoding + spine metric + perf doc).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-B-gate-battery.txt
+last: s14 Phase B — B1 re-fixed (root font-size 14px meant h-8=28px, now style="min-height:32px"); B2 verified (code length=44). QA of s13: B1 insufficient.
+stage: Phase B VERIFIED (B1 stripH=32px, B2 code non-null). UI gate 4/4 PASS. Phase A VERIFIED.
+next: Phase C (Polish Batch: C1 MCP mcpRunning + C2 Inspector word-boundary + C3 bench encoding + C4 spine metric + C5 perf doc).
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned, ui-audit 4/4.
+evidence: eval-results/2026-07-10/phase-B-gate-battery.txt, eval-results/2026-07-10/ui/ui-gate.json
 
 
 ---
