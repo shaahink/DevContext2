@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 03:09 UTC · branch `feat/loom-l7` · HEAD `62104b7`_
+_Updated 2026-07-10 03:23 UTC · branch `feat/loom-l7` · HEAD `8d8bf73`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 0
-**Checkpoints:** 9/15 done · **Sessions run:** 16 · **Cost:** $1.0736 · **Tokens:** 1,297,179 in / 130,510 out / 157,904 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 1
+**Checkpoints:** 9/15 done · **Sessions run:** 17 · **Cost:** $1.1305 · **Tokens:** 1,386,989 in / 135,671 out / 165,758 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -38,22 +38,13 @@ _Updated 2026-07-10 03:09 UTC · branch `feat/loom-l7` · HEAD `62104b7`_
 | 14 | B | Deliver | 1 | 07-10 01:39 | 0:31 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0917 | 105,302/11,219 |
 | 15 | B | Deliver | 2 | 07-10 02:16 | 0:28 | Stalled |  | 0 |  | $0.0472 | 73,047/4,203 |
 | 16 | B | Resume | 3r1 | 07-10 02:44 | 0:20 | Advanced | C1 C2 C3 C4 C5 | 1 | build:OK · tests:OK · pnpm:OK | $0.0925 | 88,366/17,213 |
+| 17 | B | Deliver | 1 | 07-10 03:09 | 0:09 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0569 | 89,810/5,161 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 23:50:17  • session #8 A Deliver started (attempt 4/6)
-07-10 00:11:34  ▪ gate build pass [session]  (39.6s)
-07-10 00:11:34  ▪ gate tests pass [session]  (3m08s)
-07-10 00:11:34  ▪ gate truth pass [session]  (2m14s)
-07-10 00:11:35  • session #8 A → Progress · 1 commit(s)  (21m18s)
-07-10 00:11:35  • session #9 A Deliver started (attempt 5/6)
-07-10 00:31:23  ▪ gate build pass [session]  (32.3s)
-07-10 00:31:23  ▪ gate tests pass [session]  (3m03s)
-07-10 00:31:23  ▪ gate truth pass [session]  (2m20s)
-07-10 00:31:23  • session #9 A → Progress · 1 commit(s)  (19m48s)
 07-10 00:31:23  • session #10 A Deliver started (attempt 6/6)
 07-10 00:49:47  ▪ gate build pass [session]  (29.9s)
 07-10 00:49:47  ▪ gate tests pass [session]  (3m03s)
@@ -84,6 +75,16 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 04:09:02  ▪ gate build pass [session]  (32.3s)
 07-10 04:09:02  ▪ gate tests pass [session]  (3m03s)
 07-10 04:09:02  ▪ gate pnpm pass [session]  (34.1s)
+07-10 04:09:03  • session #16 B → Advanced · done C1,C2,C3,C4,C5 · 1 commit(s)  (24m42s)
+07-10 04:09:03  ✓ checkpoint C1 confirmed
+07-10 04:09:03  ✓ checkpoint C2 confirmed
+07-10 04:09:03  ✓ checkpoint C3 confirmed
+07-10 04:09:03  ✓ checkpoint C4 confirmed
+07-10 04:09:03  ✓ checkpoint C5 confirmed
+07-10 04:09:03  • session #17 B Deliver started (attempt 1/3)
+07-10 04:23:22  ▪ gate build pass [session]  (30.7s)
+07-10 04:23:22  ▪ gate tests pass [session]  (3m03s)
+07-10 04:23:22  ▪ gate pnpm pass [session]  (59.3s)
 ```
 
 ## Health
@@ -91,9 +92,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 15 · retries 10 (67 %) · overall Warn
+sessions 16 · retries 10 (62 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 10/15 sessions were retries (67 %)
+⚠ [high-retry-rate] 10/16 sessions were retries (62 %)
 ```
 
 ## Confidence
@@ -126,8 +127,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s7 (A Deliver)** — 1 commit(s):
-  - [`d062f39`](https://github.com/shaahink/DevContext2/commit/d062f39) chore(loom): Phase A s77 QA-verified — orchestrator investigation confirms pipeline fix, no new code needed. Verify checkout trace cross-service hop at depth 6.
 - **s8 (A Deliver)** — 1 commit(s):
   - [`31796b4`](https://github.com/shaahink/DevContext2/commit/31796b4) chore(loom): Phase A s78 QA-verified — fresh gate battery + focused CLI trace confirms checkout cross-service hop at depth 6, A1 VERIFIED
 - **s9 (A Deliver)** — 1 commit(s):
@@ -142,6 +141,8 @@ vs upstream: up to date
   - [`b68176c`](https://github.com/shaahink/DevContext2/commit/b68176c) fix(loom): B — B1 tab strip explicit px height (root 14px font meant h-8=28px)
 - **s16 (B Resume)** — 1 commit(s):
   - [`62104b7`](https://github.com/shaahink/DevContext2/commit/62104b7) fix(loom): C — Phase C: MCP mcpRunning persist (C1), inspector word-boundary (C2), bench encoding (C3), spine-depth metric (C4), perf budget doc (C5)
+- **s17 (B Deliver)** — 1 commit(s):
+  - [`8d8bf73`](https://github.com/shaahink/DevContext2/commit/8d8bf73) qa(loom): B — s17 fresh QA re-verification, Phase B confirmed VERIFIED, all gates green
 
 ## Phase handovers (audit)
 
@@ -160,16 +161,16 @@ build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> SESSION-RESULT: Phase C (Polish Batch) delivered in one session (s16) — all 5 checkpoints VERIFIED. C1: MCP page `mcpRunning` state now persists via `DevContextApi` signal + queries server on mount via `getMcpStatus()` (server `StartMcp` fixed to use real `mcpObs.IsRunning`). C2: Inspector insights now use `wordBoundaryIncludes()` replacing loose substring matching (matches engine `IsWordBoundary` logic). C3: `bench.ps1` line 263 backtick-n replaced with `[Environment]::NewLine`, script parses without encoding errors. C4: `GraphStats.Compute()` now returns `EntriesWithDeepSpine` + `DeepSpineRatio`, surfaced in CLI report via `ReportRenderer.BuildStats()`. C5: `loom-graph-design.md` §8 perf b…
+> SESSION-RESULT:** Phase B re-verified — B1 (tab strip `height:32px;min-height:32px` inline style) and B2 (inspector `toggle('code')` auto-loads `read_source`) confirmed solid via code inspection, prior ui-gate.json (4/4 PASS), and fresh gate battery (Build 0w/0e, Tests 440P/14P/64P 0F, Truth 9P/2S, pnpm check PASS). Phase C (s16) QA passed all 5 checkpoints. Phase B has no incomplete checkpoints — Phase D (ContextPack server round-trip) is the next unstarted phase. Branch pushed, working tree clean.
 
 ## Tracker handoff
 
 ```
-last: s16 Phase C — 5 checkpoints delivered in one session. C1 mcpRunning state persists via DevContextApi + queries server on mount (getMcpStatus). C2 word-boundary matching replaces substring in inspector insights. C3 bench.ps1 encoding fixed with [Environment]::NewLine. C4 spine-depth metric in GraphStats + CLI report output. C5 perf budget doc updated (≤6s) + baseline confirmed correct (9P/2S).
-stage: Phase C VERIFIED. Phase A VERIFIED. Phase B VERIFIED.
+last: s17 Phase B QA — fresh gate battery re-run. B1 tab strip 32px confirmed (inline style fix). B2 code pane auto-load confirmed (toggle→loadCode). Phase C (s16) QA-verified (5/5 code inspection passed: mcpRunning, wordBoundaryIncludes, bench encoding, spine-depth, perf budget). No regressions found.
+stage: Phase C VERIFIED. Phase A VERIFIED. Phase B QA-RE-VERIFIED.
 next: Phase D (ContextPack server round-trip: D1 server-assembled markdown).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-C-gate-battery.txt
+evidence: eval-results/2026-07-10/phase-B-QA-s17.txt
 
 
 ---
