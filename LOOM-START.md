@@ -6,11 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s17 Phase B QA — fresh gate battery re-run. B1 tab strip 32px confirmed (inline style fix). B2 code pane auto-load confirmed (toggle→loadCode). Phase C (s16) QA-verified (5/5 code inspection passed: mcpRunning, wordBoundaryIncludes, bench encoding, spine-depth, perf budget). No regressions found.
-stage: Phase C VERIFIED. Phase A VERIFIED. Phase B QA-RE-VERIFIED.
+last: s18 Phase B QA — fresh gate battery re-run. B1+B2 code verified (tab-strip-inline-32px + inspector-toggle→loadCode + wordBoundaryIncludes). ui-gate 4/4 PASS confirmed from s14 evidence. Phase B VERIFIED.
+stage: Phase B VERIFIED. Phase A VERIFIED. Phase C VERIFIED. All 3 phases confirmed with fresh gate battery.
 next: Phase D (ContextPack server round-trip: D1 server-assembled markdown).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-B-QA-s17.txt
+evidence: eval-results/2026-07-10/phase-B-QA-s18.txt
 
 
 ---
@@ -53,8 +53,8 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| B1 | Tab strip height ≥30px — fix box model, verify ui-audit-drive assertion A green | VERIFIED | f62ad2f (min-h-8 attempt, insufficient) + [current] (style="min-height:32px" fix) | `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json` |
-| B2 | Code pane non-null — debug read_source RPC, fix node coverage, verify assertion C green | VERIFIED | f62ad2f (auto-load on Code tab open) | `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json` |
+| B1 | Tab strip height ≥30px — fix box model, verify ui-audit-drive assertion A green | VERIFIED | f62ad2f (min-h-8 attempt) + b68176c (inline px fix) | `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`, `eval-results/2026-07-10/phase-B-QA-s18.txt` |
+| B2 | Code pane non-null — debug read_source RPC, fix node coverage, verify assertion C green | VERIFIED | f62ad2f (auto-load on Code tab open) | `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`, `eval-results/2026-07-10/phase-B-QA-s18.txt` |
 
 ### Phase C: Polish Batch (6 small items, 1 session)
 
