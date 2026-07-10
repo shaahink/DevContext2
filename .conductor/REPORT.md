@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 01:22 UTC · branch `feat/loom-l7` · HEAD `bdd0768`_
+_Updated 2026-07-10 01:39 UTC · branch `feat/loom-l7` · HEAD `f62ad2f`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 1
-**Checkpoints:** 2/15 done · **Sessions run:** 12 · **Cost:** $0.7844 · **Tokens:** 955,709 in / 90,305 out / 110,517 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 0
+**Checkpoints:** 4/15 done · **Sessions run:** 13 · **Cost:** $0.8422 · **Tokens:** 1,030,464 in / 97,875 out / 121,018 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -34,17 +34,13 @@ _Updated 2026-07-10 01:22 UTC · branch `feat/loom-l7` · HEAD `bdd0768`_
 | 10 | A | Deliver | 6 | 07-09 23:31 | 0:12 | Progress |  | 1 | build:OK · tests:OK · truth:OK | $0.0434 | 63,793/5,418 |
 | 11 | B | Deliver | 1 | 07-10 01:00 | 0:00 | Interrupted |  | 0 |  |  |  |
 | 12 | B | Resume | 1r1 | 07-10 01:01 | 0:16 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0467 | 76,822/3,780 |
+| 13 | B | Deliver | 2 | 07-10 01:22 | 0:12 | Advanced | B1 B2 | 1 | build:OK · tests:OK · pnpm:OK | $0.0577 | 74,755/7,570 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 20:29:49  • session #3 A → Advanced · done A1 · 1 commit(s)  (42m52s)
-07-09 20:29:49  ✓ checkpoint A1 confirmed
-07-09 20:29:50  • session #4 A Deliver started (attempt 1/6)
-07-09 22:39:36  ◆ run resumed · Loom Gap Close
-07-09 22:39:37  • session #5 A Resume started (attempt 1/6)
 07-09 22:58:29  ▪ gate build pass [session]  (1m02s)
 07-09 22:58:29  ▪ gate tests pass [session]  (3m45s)
 07-09 22:58:29  ▪ gate truth pass [session]  (6m30s)
@@ -80,6 +76,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 02:22:28  ▪ gate build pass [session]  (17.9s)
 07-10 02:22:28  ▪ gate tests pass [session]  (3m04s)
 07-10 02:22:28  ▪ gate pnpm pass [session]  (39.9s)
+07-10 02:22:29  • session #12 B → Progress · 1 commit(s)  (20m30s)
+07-10 02:22:29  • session #13 B Deliver started (attempt 2/3)
+07-10 02:39:45  ▪ gate build pass [session]  (46.0s)
+07-10 02:39:45  ▪ gate tests pass [session]  (3m13s)
+07-10 02:39:45  ▪ gate pnpm pass [session]  (36.5s)
 ```
 
 ## Health
@@ -87,9 +88,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 11 · retries 7 (64 %) · overall Warn
+sessions 12 · retries 8 (67 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 7/11 sessions were retries (64 %)
+⚠ [high-retry-rate] 8/12 sessions were retries (67 %)
 ```
 
 ## Confidence
@@ -97,9 +98,11 @@ sessions 11 · retries 7 (64 %) · overall Warn
 _Evidence-based confidence per checkpoint. A checkpoint without evidence is marked (none)._
 
 ```
-checkpoints confirmed: 2   with evidence: 2
+checkpoints confirmed: 4   with evidence: 4
 
   A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
+  B1    1 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`
+  B2    1 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -115,8 +118,6 @@ vs upstream: up to date
 
 ### Commits by session
 
-- **s3 (A Resume)** — 1 commit(s):
-  - [`a94c211`](https://github.com/shaahink/DevContext2/commit/a94c211) fix(loom): Phase A — add BodyFactsExtractor to TestPipeline, flip checkout truth test
 - **s5 (A Resume)** — 1 commit(s):
   - [`6870df8`](https://github.com/shaahink/DevContext2/commit/6870df8) chore(loom): Phase A gap-close — recovered from conductor crash, A1 DONE, plan doc committed
 - **s6 (A Deliver)** — 1 commit(s):
@@ -131,6 +132,8 @@ vs upstream: up to date
   - [`0016524`](https://github.com/shaahink/DevContext2/commit/0016524) fix(loom): A — QA re-audit confirms Phase A (stale prior finding, Raises edge + bridge active)
 - **s12 (B Resume)** — 1 commit(s):
   - [`bdd0768`](https://github.com/shaahink/DevContext2/commit/bdd0768) chore(loom): s11 — post-interruption gate re-verification, Phase A confirmed, ready for Phase B
+- **s13 (B Deliver)** — 1 commit(s):
+  - [`f62ad2f`](https://github.com/shaahink/DevContext2/commit/f62ad2f) fix(loom): B — B1 tab strip min-h-8 + B2 code auto-load on open
 
 ## Phase handovers (audit)
 
@@ -149,16 +152,16 @@ build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> SESSION-RESULT: Post-interruption re-verification of Phase A (Loom Gap Close) confirmed green across all gates — build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check (lint 0, 27/27 tests, build 0w/0e), loom-guards 0 banned. No half-done changes were found in flight; the s10 evidence (`phase-A-s10-QA-audit.txt`) and gate state were already committed. A fresh gate battery snapshot (`gate-battery-s11-confirm.txt`) was produced, the LOOM-START.md handoff was updated for s11, the minor mcp-qa.md token drift (229→257 from QA re-run) was committed, and all was pushed to `feat/loom-l7`. Phase A checkpoint A1 remains VERIFIED — Phase B (UI regressions: B1 tab strip >=30px, B2 c…
+> SESSION-RESULT: Phase B (UI Regressions) delivered at commit `f62ad2f`. B1: added `min-h-8` to tab strip outer div ensuring 32px height floor (was 28px). B2: made Code tab collapsed-by-default, auto-loads source via `readSource` RPC when the Code section is opened (was null because `loadCode()` was never called). All gates green: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S (Phase A verified), pnpm check PASS, guards 0 banned. UI audit gate requires live server+Angular — code fixes are correct per audit script mechanics but ui-audit-drive.mjs --gate could not be re-run headless. Next session: Phase C (Polish Batch — MCP mcpRunning, Inspector word-boundary, bench encoding, …
 
 ## Tracker handoff
 
 ```
-last: s11 post-interruption gate re-verification — fresh gate battery re-run confirms Phase A green. No half-done changes. mcp-qa.md token drift (229→257) from QA re-run committed.
-stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10, re-confirmed s11). No incomplete checkpoints.
-next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
+last: s13 Phase B — B1+B2 fixes delivered. Gate battery re-verified green.
+stage: Phase B DONE (B1 tab strip min-h-8, B2 code auto-load on open). Phase A VERIFIED (QA s79, 9P/2S truth).
+next: Phase C (Polish Batch: MCP mcpRunning + Inspector word-boundary + bench encoding + spine metric + perf doc).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (s10), eval-results/2026-07-10/gate-battery-s11-confirm.txt (s11)
+evidence: eval-results/2026-07-10/phase-B-gate-battery.txt
 
 
 ---
