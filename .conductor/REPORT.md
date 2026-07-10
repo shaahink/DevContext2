@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 03:40 UTC · branch `feat/loom-l7` · HEAD `de33bc2`_
+_Updated 2026-07-10 03:56 UTC · branch `feat/loom-l7` · HEAD `349aebe`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 2
-**Checkpoints:** 9/15 done · **Sessions run:** 18 · **Cost:** $1.1774 · **Tokens:** 1,460,307 in / 141,623 out / 169,995 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 3
+**Checkpoints:** 9/15 done · **Sessions run:** 19 · **Cost:** $1.1816 · **Tokens:** 1,468,784 in / 141,978 out / 170,117 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -40,14 +40,13 @@ _Updated 2026-07-10 03:40 UTC · branch `feat/loom-l7` · HEAD `de33bc2`_
 | 16 | B | Resume | 3r1 | 07-10 02:44 | 0:20 | Advanced | C1 C2 C3 C4 C5 | 1 | build:OK · tests:OK · pnpm:OK | $0.0925 | 88,366/17,213 |
 | 17 | B | Deliver | 1 | 07-10 03:09 | 0:09 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0569 | 89,810/5,161 |
 | 18 | B | Deliver | 2 | 07-10 03:23 | 0:13 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0470 | 73,318/5,952 |
+| 19 | B | Deliver | 3 | 07-10 03:40 | 0:15 | Stalled |  | 0 |  | $0.0042 | 8,477/355 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-10 00:50:03  ■ needs human — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
-07-10 02:01:58  ◆ run resumed · Loom Gap Close
 07-10 02:01:58  • session #12 B Resume started (attempt 1/3)
 07-10 02:22:28  ▪ gate build pass [session]  (17.9s)
 07-10 02:22:28  ▪ gate tests pass [session]  (3m04s)
@@ -86,6 +85,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 04:40:52  ▪ gate build pass [session]  (29.9s)
 07-10 04:40:52  ▪ gate tests pass [session]  (3m02s)
 07-10 04:40:52  ▪ gate pnpm pass [session]  (32.8s)
+07-10 04:40:53  • session #18 B → Progress · 1 commit(s)  (17m29s)
+07-10 04:40:53  • session #19 B Deliver started (attempt 3/3)
 ```
 
 ## Health
@@ -93,9 +94,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 17 · retries 11 (65 %) · overall Warn
+sessions 18 · retries 12 (67 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 11/17 sessions were retries (65 %)
+⚠ [high-retry-rate] 12/18 sessions were retries (67 %)
 ```
 
 ## Confidence
@@ -123,7 +124,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/loom-l7
 working tree: ?? .conductor-loom-prior/, ?? tests/DevContext.Core.Tests/TestResults/, ?? tests/DevContext.Server.Tests/TestResults/
-vs upstream: up to date
+vs upstream: 1 ahead
 ```
 
 ### Commits by session
