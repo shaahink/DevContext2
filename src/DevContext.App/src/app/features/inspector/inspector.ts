@@ -313,7 +313,7 @@ export class Inspector {
   /** Emitted when the user jumps the trail — parent re-traces the restored step. */
   readonly restore = output<TrailStep>();
 
-  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set(['insights', 'callstack']));
+  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set(['code', 'insights', 'callstack']));
 
   /** Code tab (M7.1) — source content loaded via render RPC with full-membership body detail. */
   protected readonly codeContent = signal('');
@@ -411,13 +411,6 @@ export class Inspector {
     effect(() => {
       const node = this.trace.nodeDetail();
       if (node?.filePath) {
-        this.collapsed.update((set) => {
-          if (!set.has('code')) return set;
-          const next = new Set(set);
-          next.delete('code');
-          return next;
-        });
-        // Clear stale code content when node changes
         if (node.id !== this.codeNodeId) {
           this.codeContent.set('');
           this.codeError.set(null);
@@ -432,12 +425,17 @@ export class Inspector {
   }
 
   protected toggle(id: SectionId): void {
+    let opening = false;
     this.collapsed.update((set) => {
       const next = new Set(set);
-      if (next.has(id)) next.delete(id);
+      if (next.has(id)) { next.delete(id); opening = true; }
       else next.add(id);
       return next;
     });
+    if (opening && id === 'code') {
+      const node = this.trace.nodeDetail();
+      if (node?.filePath) this.loadCode(node);
+    }
   }
 
   protected jump(index: number): void {

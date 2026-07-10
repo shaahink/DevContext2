@@ -6,11 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s11 post-interruption gate re-verification — fresh gate battery re-run confirms Phase A green. No half-done changes. mcp-qa.md token drift (229→257) from QA re-run committed.
-stage: Phase A VERIFIED (A1 DONE — 6/6 attempts, re-audited s10, re-confirmed s11). No incomplete checkpoints.
-next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).
+last: s13 Phase B — B1+B2 fixes delivered. Gate battery re-verified green.
+stage: Phase B DONE (B1 tab strip min-h-8, B2 code auto-load on open). Phase A VERIFIED (QA s79, 9P/2S truth).
+next: Phase C (Polish Batch: MCP mcpRunning + Inspector word-boundary + bench encoding + spine metric + perf doc).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-A-s10-QA-audit.txt (s10), eval-results/2026-07-10/gate-battery-s11-confirm.txt (s11)
+evidence: eval-results/2026-07-10/phase-B-gate-battery.txt
 
 
 ---
@@ -53,8 +53,8 @@ Previous 3 phases (Debt Cleanup, Design Review, QA Driver) are DONE (13/13 sessi
 
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| B1 | Tab strip height ≥30px — fix box model, verify ui-audit-drive assertion A green | TODO | | |
-| B2 | Code pane non-null — debug read_source RPC, fix node coverage, verify assertion C green | TODO | | |
+| B1 | Tab strip height ≥30px — fix box model, verify ui-audit-drive assertion A green | DONE | [current] | `eval-results/2026-07-10/phase-B-gate-battery.txt` |
+| B2 | Code pane non-null — debug read_source RPC, fix node coverage, verify assertion C green | DONE | [current] | `eval-results/2026-07-10/phase-B-gate-battery.txt` |
 
 ### Phase C: Polish Batch (6 small items, 1 session)
 
