@@ -31,6 +31,24 @@ pnpm server     # just the .NET server (http://127.0.0.1:5179)
 
 The UI polls `Ping`/`/health`; the connection dot in the source bar shows server readiness.
 
+### Background process management (AI agents)
+
+**NEVER run `pnpm dev:web` or `concurrently` directly** — they block the terminal forever.
+Use the background launcher instead:
+
+```powershell
+# Start both servers in background PowerShell Jobs:
+powershell -File scripts/start-dev-bg.ps1
+
+# Check status:
+powershell -File scripts/start-dev-bg.ps1 -Status
+
+# Kill all:
+powershell -File scripts/start-dev-bg.ps1 -Kill
+```
+
+See root `AGENTS.md` for full anti-pattern list and screenshot capture workflow.
+
 ## Test & checks
 
 ```bash

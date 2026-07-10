@@ -1,10 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [develop, main]
-  pull_request:
-    branches: [develop, main]
+  # push:                          # disabled — uncomment to re-enable
+  #   branches: [develop, main]
+  # pull_request:
+  #   branches: [develop, main]
+  workflow_dispatch:                # manual trigger only
 
 jobs:
   build-and-test:
