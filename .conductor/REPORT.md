@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 02:44 UTC · branch `feat/loom-l7` · HEAD `8d4c03d`_
+_Updated 2026-07-10 03:09 UTC · branch `feat/loom-l7` · HEAD `62104b7`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 2
-**Checkpoints:** 4/15 done · **Sessions run:** 15 · **Cost:** $0.9811 · **Tokens:** 1,208,813 in / 113,297 out / 140,772 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 0
+**Checkpoints:** 9/15 done · **Sessions run:** 16 · **Cost:** $1.0736 · **Tokens:** 1,297,179 in / 130,510 out / 157,904 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -37,17 +37,13 @@ _Updated 2026-07-10 02:44 UTC · branch `feat/loom-l7` · HEAD `8d4c03d`_
 | 13 | B | Deliver | 2 | 07-10 01:22 | 0:12 | Advanced | B1 B2 | 1 | build:OK · tests:OK · pnpm:OK | $0.0577 | 74,755/7,570 |
 | 14 | B | Deliver | 1 | 07-10 01:39 | 0:31 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0917 | 105,302/11,219 |
 | 15 | B | Deliver | 2 | 07-10 02:16 | 0:28 | Stalled |  | 0 |  | $0.0472 | 73,047/4,203 |
+| 16 | B | Resume | 3r1 | 07-10 02:44 | 0:20 | Advanced | C1 C2 C3 C4 C5 | 1 | build:OK · tests:OK · pnpm:OK | $0.0925 | 88,366/17,213 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-09 23:29:47  • session #7 A Deliver started (attempt 3/6)
-07-09 23:50:15  ▪ gate build pass [session]  (39.0s)
-07-09 23:50:15  ▪ gate tests pass [session]  (3m11s)
-07-09 23:50:15  ▪ gate truth pass [session]  (4m15s)
-07-09 23:50:17  • session #7 A → Progress · 1 commit(s)  (20m29s)
 07-09 23:50:17  • session #8 A Deliver started (attempt 4/6)
 07-10 00:11:34  ▪ gate build pass [session]  (39.6s)
 07-10 00:11:34  ▪ gate tests pass [session]  (3m08s)
@@ -83,6 +79,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 03:16:05  ▪ gate pnpm pass [session]  (44.5s)
 07-10 03:16:07  • session #14 B → Progress · 1 commit(s)  (36m20s)
 07-10 03:16:07  • session #15 B Deliver started (attempt 2/3)
+07-10 03:44:20  • session #15 B → Stalled  (28m13s)
+07-10 03:44:20  • session #16 B Resume started (attempt 3/3)
+07-10 04:09:02  ▪ gate build pass [session]  (32.3s)
+07-10 04:09:02  ▪ gate tests pass [session]  (3m03s)
+07-10 04:09:02  ▪ gate pnpm pass [session]  (34.1s)
 ```
 
 ## Health
@@ -90,9 +91,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 14 · retries 9 (64 %) · overall Warn
+sessions 15 · retries 10 (67 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 9/14 sessions were retries (64 %)
+⚠ [high-retry-rate] 10/15 sessions were retries (67 %)
 ```
 
 ## Confidence
@@ -100,11 +101,16 @@ sessions 14 · retries 9 (64 %) · overall Warn
 _Evidence-based confidence per checkpoint. A checkpoint without evidence is marked (none)._
 
 ```
-checkpoints confirmed: 4   with evidence: 4
+checkpoints confirmed: 9   with evidence: 9
 
   A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
   B1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
   B2    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
+  C1    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
+  C2    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
+  C3    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
+  C4    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
+  C5    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
   L8.1  1 evidence item(s) ·  `docs/dev/HANDOVER-LOOM.md`
 ```
 
@@ -115,13 +121,11 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/loom-l7
 working tree: ?? .conductor-loom-prior/, ?? eval-results/2026-07-10/mcp-qa.md
-vs upstream: 1 ahead
+vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s6 (A Deliver)** — 1 commit(s):
-  - [`0610897`](https://github.com/shaahink/DevContext2/commit/0610897) chore(loom): Phase A QA — fresh gate battery confirms A1 DONE, checkout trace cross-service verified
 - **s7 (A Deliver)** — 1 commit(s):
   - [`d062f39`](https://github.com/shaahink/DevContext2/commit/d062f39) chore(loom): Phase A s77 QA-verified — orchestrator investigation confirms pipeline fix, no new code needed. Verify checkout trace cross-service hop at depth 6.
 - **s8 (A Deliver)** — 1 commit(s):
@@ -136,6 +140,8 @@ vs upstream: 1 ahead
   - [`f62ad2f`](https://github.com/shaahink/DevContext2/commit/f62ad2f) fix(loom): B — B1 tab strip min-h-8 + B2 code auto-load on open
 - **s14 (B Deliver)** — 1 commit(s):
   - [`b68176c`](https://github.com/shaahink/DevContext2/commit/b68176c) fix(loom): B — B1 tab strip explicit px height (root 14px font meant h-8=28px)
+- **s16 (B Resume)** — 1 commit(s):
+  - [`62104b7`](https://github.com/shaahink/DevContext2/commit/62104b7) fix(loom): C — Phase C: MCP mcpRunning persist (C1), inspector word-boundary (C2), bench encoding (C3), spine-depth metric (C4), perf budget doc (C5)
 
 ## Phase handovers (audit)
 
@@ -154,24 +160,16 @@ build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> Based on the "Loom Gap Close" plan, I need to start with the pre-session ritual. Let me read the required documents in order.
-> Now let me read the remaining required documents in parallel.
-> Now let me read the design reviews and remaining docs, plus the evidence files.
-> Let me read the remaining required docs and run the gate battery in parallel.
-> Build passes. Let me run the full gate battery now.
-> Tests pass (440P/3S Core, 14P Server, 64P Desktop, 0 failures). Let me run truth tests and pnpm check.
-> Gate battery is green: Build 0w/0e, Tests 518P/3S/0F, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-> 
-> Now let me QA the previous session (s14) as instructed. Let me verify the actual code chang…
+> SESSION-RESULT: Phase C (Polish Batch) delivered in one session (s16) — all 5 checkpoints VERIFIED. C1: MCP page `mcpRunning` state now persists via `DevContextApi` signal + queries server on mount via `getMcpStatus()` (server `StartMcp` fixed to use real `mcpObs.IsRunning`). C2: Inspector insights now use `wordBoundaryIncludes()` replacing loose substring matching (matches engine `IsWordBoundary` logic). C3: `bench.ps1` line 263 backtick-n replaced with `[Environment]::NewLine`, script parses without encoding errors. C4: `GraphStats.Compute()` now returns `EntriesWithDeepSpine` + `DeepSpineRatio`, surfaced in CLI report via `ReportRenderer.BuildStats()`. C5: `loom-graph-design.md` §8 perf b…
 
 ## Tracker handoff
 
 ```
-last: s14 Phase B — B1 re-fixed (root font-size 14px meant h-8=28px, now style="min-height:32px"); B2 verified (code length=44). QA of s13: B1 insufficient.
-stage: Phase B VERIFIED (B1 stripH=32px, B2 code non-null). UI gate 4/4 PASS. Phase A VERIFIED.
-next: Phase C (Polish Batch: C1 MCP mcpRunning + C2 Inspector word-boundary + C3 bench encoding + C4 spine metric + C5 perf doc).
-gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned, ui-audit 4/4.
-evidence: eval-results/2026-07-10/phase-B-gate-battery.txt, eval-results/2026-07-10/ui/ui-gate.json
+last: s16 Phase C — 5 checkpoints delivered in one session. C1 mcpRunning state persists via DevContextApi + queries server on mount (getMcpStatus). C2 word-boundary matching replaces substring in inspector insights. C3 bench.ps1 encoding fixed with [Environment]::NewLine. C4 spine-depth metric in GraphStats + CLI report output. C5 perf budget doc updated (≤6s) + baseline confirmed correct (9P/2S).
+stage: Phase C VERIFIED. Phase A VERIFIED. Phase B VERIFIED.
+next: Phase D (ContextPack server round-trip: D1 server-assembled markdown).
+gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
+evidence: eval-results/2026-07-10/phase-C-gate-battery.txt
 
 
 ---
