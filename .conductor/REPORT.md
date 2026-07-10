@@ -1,10 +1,10 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 03:23 UTC · branch `feat/loom-l7` · HEAD `8d8bf73`_
+_Updated 2026-07-10 03:40 UTC · branch `feat/loom-l7` · HEAD `de33bc2`_
 
 **Status:** Idle
-**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 1
-**Checkpoints:** 9/15 done · **Sessions run:** 17 · **Cost:** $1.1305 · **Tokens:** 1,386,989 in / 135,671 out / 165,758 think
+**Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 2
+**Checkpoints:** 9/15 done · **Sessions run:** 18 · **Cost:** $1.1774 · **Tokens:** 1,460,307 in / 141,623 out / 169,995 think
 **⚠ Skipped stages (need human review):** A
 
 ## Stage progress
@@ -39,17 +39,13 @@ _Updated 2026-07-10 03:23 UTC · branch `feat/loom-l7` · HEAD `8d8bf73`_
 | 15 | B | Deliver | 2 | 07-10 02:16 | 0:28 | Stalled |  | 0 |  | $0.0472 | 73,047/4,203 |
 | 16 | B | Resume | 3r1 | 07-10 02:44 | 0:20 | Advanced | C1 C2 C3 C4 C5 | 1 | build:OK · tests:OK · pnpm:OK | $0.0925 | 88,366/17,213 |
 | 17 | B | Deliver | 1 | 07-10 03:09 | 0:09 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0569 | 89,810/5,161 |
+| 18 | B | Deliver | 2 | 07-10 03:23 | 0:13 | Progress |  | 1 | build:OK · tests:OK · pnpm:OK | $0.0470 | 73,318/5,952 |
 
 ## Timeline
 
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-10 00:31:23  • session #10 A Deliver started (attempt 6/6)
-07-10 00:49:47  ▪ gate build pass [session]  (29.9s)
-07-10 00:49:47  ▪ gate tests pass [session]  (3m03s)
-07-10 00:49:47  ▪ gate truth pass [session]  (2m07s)
-07-10 00:49:48  • session #10 A → Progress · 1 commit(s)  (18m24s)
 07-10 00:50:03  ■ needs human — stage A used all 6 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 07-10 02:01:58  ◆ run resumed · Loom Gap Close
 07-10 02:01:58  • session #12 B Resume started (attempt 1/3)
@@ -85,6 +81,11 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 04:23:22  ▪ gate build pass [session]  (30.7s)
 07-10 04:23:22  ▪ gate tests pass [session]  (3m03s)
 07-10 04:23:22  ▪ gate pnpm pass [session]  (59.3s)
+07-10 04:23:24  • session #17 B → Progress · 1 commit(s)  (14m20s)
+07-10 04:23:24  • session #18 B Deliver started (attempt 2/3)
+07-10 04:40:52  ▪ gate build pass [session]  (29.9s)
+07-10 04:40:52  ▪ gate tests pass [session]  (3m02s)
+07-10 04:40:52  ▪ gate pnpm pass [session]  (32.8s)
 ```
 
 ## Health
@@ -92,9 +93,9 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 _Execution-health signals, folded from the event log (`.conductor/events.jsonl`)._
 
 ```
-sessions 16 · retries 10 (62 %) · overall Warn
+sessions 17 · retries 11 (65 %) · overall Warn
 ⚠ [context-saturation] session #1: 24,771,840 context tokens (≥ 20,000,000)
-⚠ [high-retry-rate] 10/16 sessions were retries (62 %)
+⚠ [high-retry-rate] 11/17 sessions were retries (65 %)
 ```
 
 ## Confidence
@@ -105,8 +106,8 @@ _Evidence-based confidence per checkpoint. A checkpoint without evidence is mark
 checkpoints confirmed: 9   with evidence: 9
 
   A1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-A-s79-fresh-qa.txt`, `eval-results/2026-07-10/phase-A-checkout-trace-verified.md`
-  B1    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
-  B2    2 evidence item(s) ·  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`
+  B1    3 evidence item(s) ··  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`, `eval-results/2026-07-10/phase-B-QA-s18.txt`
+  B2    3 evidence item(s) ··  `eval-results/2026-07-10/phase-B-gate-battery.txt`, `eval-results/2026-07-10/ui/ui-gate.json`, `eval-results/2026-07-10/phase-B-QA-s18.txt`
   C1    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
   C2    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
   C3    1 evidence item(s) ·  `eval-results/2026-07-10/phase-C-gate-battery.txt`
@@ -121,14 +122,12 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 
 ```
 branch: feat/loom-l7
-working tree: ?? .conductor-loom-prior/, ?? eval-results/2026-07-10/mcp-qa.md
+working tree: ?? .conductor-loom-prior/, ?? tests/DevContext.Core.Tests/TestResults/, ?? tests/DevContext.Server.Tests/TestResults/
 vs upstream: up to date
 ```
 
 ### Commits by session
 
-- **s8 (A Deliver)** — 1 commit(s):
-  - [`31796b4`](https://github.com/shaahink/DevContext2/commit/31796b4) chore(loom): Phase A s78 QA-verified — fresh gate battery + focused CLI trace confirms checkout cross-service hop at depth 6, A1 VERIFIED
 - **s9 (A Deliver)** — 1 commit(s):
   - [`80336e9`](https://github.com/shaahink/DevContext2/commit/80336e9) chore(loom): Phase A s79 QA-verified — fresh gate battery + CLI analyze trace confirms checkout cross-service hop at depth 6, A1 VERIFIED. Phase A complete.
 - **s10 (A Deliver)** — 1 commit(s):
@@ -143,6 +142,8 @@ vs upstream: up to date
   - [`62104b7`](https://github.com/shaahink/DevContext2/commit/62104b7) fix(loom): C — Phase C: MCP mcpRunning persist (C1), inspector word-boundary (C2), bench encoding (C3), spine-depth metric (C4), perf budget doc (C5)
 - **s17 (B Deliver)** — 1 commit(s):
   - [`8d8bf73`](https://github.com/shaahink/DevContext2/commit/8d8bf73) qa(loom): B — s17 fresh QA re-verification, Phase B confirmed VERIFIED, all gates green
+- **s18 (B Deliver)** — 1 commit(s):
+  - [`de33bc2`](https://github.com/shaahink/DevContext2/commit/de33bc2) qa(loom): B — s18 fresh QA re-verification, Phase B confirmed VERIFIED, all gates green
 
 ## Phase handovers (audit)
 
@@ -161,16 +162,16 @@ build:OK · tests:OK · pnpm:OK
 
 ## Last session result
 
-> SESSION-RESULT:** Phase B re-verified — B1 (tab strip `height:32px;min-height:32px` inline style) and B2 (inspector `toggle('code')` auto-loads `read_source`) confirmed solid via code inspection, prior ui-gate.json (4/4 PASS), and fresh gate battery (Build 0w/0e, Tests 440P/14P/64P 0F, Truth 9P/2S, pnpm check PASS). Phase C (s16) QA passed all 5 checkpoints. Phase B has no incomplete checkpoints — Phase D (ContextPack server round-trip) is the next unstarted phase. Branch pushed, working tree clean.
+> SESSION-RESULT: Phase B QA re-verified green. Fresh gate battery: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned. Code inspection confirms B1 (tab-strip.ts inline height:32px), B2 (inspector.ts toggle→loadCode), and all 5 Phase C fixes intact. UI gate 4/4 PASS confirmed (stripH=32px, code=44). No regressions, no incomplete checkpoints in Phase B. Next session should start Phase D (ContextPack server round-trip: D1 server-assembled markdown). Commit `de33bc2` pushed to `feat/loom-l7`.
 
 ## Tracker handoff
 
 ```
-last: s17 Phase B QA — fresh gate battery re-run. B1 tab strip 32px confirmed (inline style fix). B2 code pane auto-load confirmed (toggle→loadCode). Phase C (s16) QA-verified (5/5 code inspection passed: mcpRunning, wordBoundaryIncludes, bench encoding, spine-depth, perf budget). No regressions found.
-stage: Phase C VERIFIED. Phase A VERIFIED. Phase B QA-RE-VERIFIED.
+last: s18 Phase B QA — fresh gate battery re-run. B1+B2 code verified (tab-strip-inline-32px + inspector-toggle→loadCode + wordBoundaryIncludes). ui-gate 4/4 PASS confirmed from s14 evidence. Phase B VERIFIED.
+stage: Phase B VERIFIED. Phase A VERIFIED. Phase C VERIFIED. All 3 phases confirmed with fresh gate battery.
 next: Phase D (ContextPack server round-trip: D1 server-assembled markdown).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-B-QA-s17.txt
+evidence: eval-results/2026-07-10/phase-B-QA-s18.txt
 
 
 ---
