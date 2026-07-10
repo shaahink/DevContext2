@@ -5,6 +5,11 @@ namespace DevContext.Core.Extractors.Generic;
 /// rather than brittle project-name substrings. Called by the pipeline between Stage 2 and 3.
 /// PLAN-10 B2: replaces the old name-substring heuristic that misclassified eShop and VerticalSlice
 /// as MinimalApi.
+///
+/// L7.3 — Scope behavior: when given a subfolder within a multi-service repo, the pipeline resolves
+/// the closest ancestor .sln. The partial-closure guard (< 75% of sln projects) drops system-level
+/// verdicts (Microservices, ModularMonolith) so the style stays local. Multi-sample/docs repos with
+/// no unifying solution are detected as <see cref="ArchitectureStyle.SampleCollection"/> (E4 fix).
 /// </summary>
 public sealed class ArchitectureStyleDetector
 {
@@ -48,9 +53,64 @@ public sealed class ArchitectureStyleDetector
         var projectClassifier = new Graph.ProjectClassifier(model.Projects);
         var projectCount = model.Projects.Count(p => !projectClassifier.IsInTestProject(p.FilePath));
 
+        // L7.3 — Sample-collection guard (E4): when most projects live under sample/demo/docs
+        // paths, the repo is a showcase, not a unified architecture. Never report Microservices
+        // for a sample repo. Also triggers when there is no unifying solution + >3 projects.
+        // L7.4 — third trigger: project names carry sample-like words (e.g. BlazorSample_*).
+        // This catches repos like dotnet/blazor-samples where project dirs don't contain
+        // "/samples/" path segments (they're version-numbered directories instead), yet the
+        // project names themselves announce the sample nature.
+        var samplePathProjectCount = model.Projects.Count(p =>
+            !projectClassifier.IsInTestProject(p.FilePath)
+            && Graph.ProjectClassifier.IsSamplePath(p.FilePath));
+        var nonTestProjectCount = model.Projects.Count(p =>
+            !projectClassifier.IsInTestProject(p.FilePath));
+        var noUnifyingSolution = model.Solution is null;
+        if (samplePathProjectCount > 0 && nonTestProjectCount > 0
+            && (decimal)samplePathProjectCount / nonTestProjectCount > 0.5m)
+        {
+            var ratio = (float)samplePathProjectCount / nonTestProjectCount;
+            scores[ArchitectureStyle.SampleCollection] = (0.6f + ratio * 0.2f,
+                $"{samplePathProjectCount}/{nonTestProjectCount} projects are samples/demos/docs — no unified architecture");
+        }
+        else if (noUnifyingSolution && nonTestProjectCount > 3)
+        {
+            scores[ArchitectureStyle.SampleCollection] = (0.65f,
+                $"{nonTestProjectCount} projects, no unifying solution — likely sample collection");
+        }
+        // L7.4 — Multi-.sln directory detection: when the resolver walked down into a
+        // subdirectory to find a single .sln, but the overall analyzed project count is
+        // much larger than that .sln's project set, we have a multi-sample directory
+        // (e.g. dotnet/blazor-samples where each sample has its own .sln). Score as
+        // SampleCollection with moderate confidence. Only fires when there is a stark
+        // mismatch (≥ 5×), avoiding false positives on normal multi-.sln repos.
+        if (model.Solution is { } sln
+            && sln.ProjectPaths.Length > 0
+            && nonTestProjectCount > sln.ProjectPaths.Length * 5)
+        {
+            var scConfidence = 0.62f;
+            scores[ArchitectureStyle.SampleCollection] = (scConfidence,
+                $"{nonTestProjectCount} projects but .sln only covers {sln.ProjectPaths.Length} — multi-sample directory");
+        }
+
         // ── Evidence-driven scoring ──────────────────────────────────────────────────
 
-        // Microservices: Aspire + many projects (constellation)
+        // Microservices: at least 2 runnable web services + (gateway OR bus) evidence.
+        // Detects multi-service constellations even without Aspire orchestration (M1.9 / D5).
+        var runnableWebCount = CountRunnableWebProjects(model);
+        var hasGatewayEvidence = signals.TryGetValue(ArchitectureSignals.Keys.Gateway, out var gwSig) && gwSig.Detected;
+        var hasBusEvidence = signals.TryGetValue(ArchitectureSignals.Keys.MassTransit, out _)
+            || signals.TryGetValue(ArchitectureSignals.Keys.NServiceBus, out _);
+
+        if (runnableWebCount >= 2 && (hasGatewayEvidence || hasBusEvidence))
+        {
+            evidence.Add($"{runnableWebCount} runnable web services with "
+                + (hasGatewayEvidence ? "gateway" : "") + (hasGatewayEvidence && hasBusEvidence ? " + " : "") + (hasBusEvidence ? "message bus" : ""));
+            scores[ArchitectureStyle.Microservices] = (Math.Min(0.6f + runnableWebCount * 0.05f, 0.85f),
+                string.Join("; ", evidence));
+        }
+
+        // Microservices: Aspire + many projects (constellation) — keep existing detection for Aspire repos
         // Only scores when there's an explicit AppHost — not just Aspire infra packages
         var hasAppHost = model.Projects.Any(p =>
             p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
@@ -112,9 +172,19 @@ public sealed class ArchitectureStyleDetector
                 $"Minimal APIs + {projectCount} project(s); no MediatR");
         }
 
-        // ModularMonolith: bounded-context / module naming in projects
-        var moduleNames = model.Projects.Select(p => p.Name.ToLowerInvariant())
-            .Where(n => n.Contains("module") || n.Contains("bounded") || n.Contains("context"))
+        // ModularMonolith: bounded-context / module naming in projects. E8: match a whole dot-separated
+        // NAME SEGMENT, not any substring — a bare "context" substring matched DevContext's own product
+        // name ("DevContext.Cli", "DevContext.Core", ...), giving every project in this repo a false
+        // "module" credit ("9 module-like sub-projects"). Test/bench projects never count either — a
+        // *.Tests or benchmarks project is never itself a bounded-context module.
+        var moduleNames = model.Projects
+            .Where(p => !projectClassifier.IsInTestProject(p.FilePath) && !Graph.ProjectClassifier.IsSamplePath(p.FilePath))
+            .Select(p => p.Name)
+            .Where(n => n.Split('.').Any(seg =>
+                seg.Equals("Module", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("Modules", StringComparison.OrdinalIgnoreCase)
+                || seg.Equals("BoundedContext", StringComparison.OrdinalIgnoreCase)))
+            .Select(n => n.ToLowerInvariant())
             .ToList();
         if (moduleNames.Count >= 2 && !scores.ContainsKey(ArchitectureStyle.Microservices))
         {
@@ -139,11 +209,18 @@ public sealed class ArchitectureStyleDetector
             }
         }
 
-        // Partial-closure guard (Iteration 4 / Critical 3): a single-service closure of a larger solution
-        // may state its LOCAL style (CleanArchitecture/ControllerBased/MinimalApi) but cannot pronounce the
-        // SYSTEM architecture. When we clearly analysed a subset (≤ 75% of the .sln's projects), drop the
-        // system-level verdicts. Whole-solution runs (incl. eShop's Aspire AppHost constellation) analyse
-        // ~all projects, so they keep Microservices.
+        // L7.3 — Partial-closure guard (Iteration 4 / Critical 3 / E9 partial-scope fix):
+        // a single-service closure of a larger solution may state its LOCAL style (CleanArchitecture/
+        // ControllerBased/MinimalApi) but cannot pronounce the SYSTEM architecture. When we clearly
+        // analysed a subset (< 75% of the .sln's projects), drop the system-level verdicts. Whole-
+        // solution runs (incl. eShop's Aspire AppHost constellation) analyse ~all projects, so they
+        // keep Microservices.
+        //
+        // Root-vs-subfolder behavior: when the user passes a subfolder path (not a .sln file), the
+        // pipeline resolves the closest ancestor .sln or walks up to repo root. If the subfolder
+        // contains a single service's project tree within a multi-service repo, this guard ensures
+        // the style remains local. If no .sln is found at all, the no-unifying-solution branch above
+        // (SampleCollection) fires.
         var slnProjectCount = model.Solution?.ProjectPaths.Length ?? 0;
         if (slnProjectCount > 0 && model.Projects.Length < slnProjectCount * 3 / 4)
         {
@@ -155,18 +232,35 @@ public sealed class ArchitectureStyleDetector
             return (ArchitectureStyle.Unknown, 0, null);
 
         // Topology-over-structure rule: when Aspire AppHost orchestration is present,
-        // the Microservices topology signal outranks any intra-service style (e.g.
-        // CleanArchitecture within individual services). A monorepo of CleanArchitecture
-        // services behind an AppHost IS Microservices — the structural style is a
-        // secondary trait of each service, not the primary system architecture.
+        // the Microservices topology signal outranks any intra-service style. Same rule
+        // applies without Aspire: ≥2 web services + gateway + bus evidence outranks
+        // single-project CleanArchitecture scores (M1.9 / D5).
         if (scores.TryGetValue(ArchitectureStyle.Microservices, out var msEntry)
             && scores.TryGetValue(ArchitectureStyle.CleanArchitecture, out var caEntry)
-            && hasAppHost)
+            && (hasAppHost || (runnableWebCount >= 2 && hasGatewayEvidence && hasBusEvidence)))
         {
             // Boost Microservices just above the strongest CleanArchitecture score so
-            // it wins the MaxBy. Keep the original evidence so the user sees what was
-            // detected.
+            // it wins the MaxBy.
             scores[ArchitectureStyle.Microservices] = (Math.Max(msEntry.Score, caEntry.Score + 0.01f), msEntry.Evidence);
+        }
+
+        // L7.3 — SampleCollection guardrail (E4): a sample/docs repo is NEVER Microservices.
+        // When the detector has evidence this is a sample collection, it outranks any system-level
+        // style verdict. The confidence floor is 0.60 so it beats a bare MinimalApi/NLayer default.
+        if (scores.TryGetValue(ArchitectureStyle.SampleCollection, out var scEntry))
+        {
+            scores.Remove(ArchitectureStyle.Microservices);
+            scores.Remove(ArchitectureStyle.CleanArchitecture);
+            scores.Remove(ArchitectureStyle.VerticalSlices);
+            scores.Remove(ArchitectureStyle.ModularMonolith);
+            // Let local styles (ControllerBased, MinimalApi, NLayer) stay in case the sample
+            // collection contains a coherent subset, but boost SampleCollection above them.
+            foreach (var other in scores.Keys.Except([ArchitectureStyle.SampleCollection]).ToList())
+            {
+                var cur = scores[other];
+                if (cur.Score >= scEntry.Score)
+                    scores[ArchitectureStyle.SampleCollection] = (cur.Score + 0.02f, scEntry.Evidence);
+            }
         }
 
         var best = scores.MaxBy(kv => kv.Value.Score);
@@ -253,9 +347,141 @@ public sealed class ArchitectureStyleDetector
             || lowered.Contains(".eventbus");
     }
 
+    /// <summary>M1.9 — counts runnable web service projects (Exe output with web-server packages
+    /// or "api"/"web" project naming convention). Used for microservices detection.</summary>
+    private static int CountRunnableWebProjects(DiscoveryModel model)
+    {
+        var count = 0;
+        foreach (var proj in model.Projects)
+        {
+            if (IsInfrastructureProject(proj.Name)) continue;
+            var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
+            var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
+            var hasWebPkg = proj.PackageReferences.Any(pr =>
+                pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
+                || pr.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase));
+            var isWebByName = proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase);
+            if (isExe || isWebSdk || hasWebPkg || isWebByName)
+                count++;
+        }
+        return count;
+    }
+
+    private static bool IsWebSdkProject(string csprojPath)
+    {
+        try
+        {
+            var text = File.ReadAllText(csprojPath);
+            return text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
     private readonly record struct ProjectRefStats(string Name, int Incoming, int Outgoing)
     {
         public bool HighFanIn => Incoming >= 2;
         public bool LowFanOut => Outgoing <= 2;
+    }
+
+    // ── M1.9 Per-service style rollup ─────────────────────────────────────────
+
+    /// <summary>M1.9 / D5 — For each runnable web service project, detect its local architecture
+    /// style and technology stack. Called by the pipeline after solution-level style detection.</summary>
+    public static ImmutableArray<PerServiceStyle> DetectPerServiceStyles(DiscoveryModel model)
+    {
+        var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
+        var projectClassifier = new Graph.ProjectClassifier(model.Projects);
+        var signals = model.Architecture.All;
+
+        foreach (var proj in model.Projects)
+        {
+            if (!IsRunnableService(proj)) continue;
+            if (IsInfrastructureProject(proj.Name)) continue;
+            if (projectClassifier.IsInTestProject(proj.FilePath)) continue;
+
+            var pkgs = proj.PackageReferences;
+            var hasMediatR = pkgs.Any(p => p.Name.Contains("MediatR", StringComparison.OrdinalIgnoreCase));
+            var hasEfCore = pkgs.Any(p => p.Name.Contains("EntityFramework", StringComparison.OrdinalIgnoreCase));
+            var hasMassTransit = pkgs.Any(p => p.Name.Contains("MassTransit", StringComparison.OrdinalIgnoreCase));
+            var hasFluentValidation = pkgs.Any(p => p.Name.Contains("FluentValidation", StringComparison.OrdinalIgnoreCase));
+            var hasGrpc = pkgs.Any(p => p.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase));
+            var hasYarp = pkgs.Any(p => p.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase));
+            var hasRefit = pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase));
+            var hasRazorPages = pkgs.Any(p => p.Name.Contains("Microsoft.AspNetCore.Mvc.RazorPages", StringComparison.OrdinalIgnoreCase));
+            var isWebByName = proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase);
+            var isGrpcByName = proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase)
+                || proj.Name.EndsWith(".GrpcService", StringComparison.OrdinalIgnoreCase);
+
+            var stackTags = ImmutableArray.CreateBuilder<string>();
+            var style = "Unknown";
+
+            // gRPC-dedicated service: has gRPC server packages AND name matches gRPC convention,
+            // with NO competing web/app framework. A web API that uses gRPC client should NOT
+            // be classified as a gRPC service.
+            var hasOtherWebPkg = pkgs.Any(p =>
+                (p.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase)
+                 && !p.Name.Contains("Grpc.AspNetCore", StringComparison.OrdinalIgnoreCase))
+                || p.Name.Contains("MediatR", StringComparison.OrdinalIgnoreCase)
+                || p.Name.Contains("Microsoft.AspNetCore.Mvc", StringComparison.OrdinalIgnoreCase));
+            var isGrpcDedicated = hasGrpc && !hasOtherWebPkg && (isGrpcByName
+                || !pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase)));
+            if (isGrpcDedicated)
+            {
+                style = "gRPC Service";
+                stackTags.Add("gRPC");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Gateway first (YARP/Ocelot and not a normal web service)
+            if (hasYarp)
+            {
+                style = "Gateway";
+                stackTags.Add("YARP");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Web application styles
+            if (hasMediatR)
+            {
+                stackTags.Add("MediatR");
+                style = hasEfCore ? "Clean Architecture" : "CQRS";
+            }
+            if (hasEfCore) stackTags.Add("EF Core");
+            if (hasMassTransit) stackTags.Add("MassTransit");
+            if (hasFluentValidation) stackTags.Add("FluentValidation");
+            if (hasRefit) stackTags.Add("Refit");
+
+            // Infer from project naming if no strong signal
+            if (style == "Unknown")
+            {
+                if (isWebByName)
+                {
+                    style = hasRazorPages ? "Razor Pages" : "Web App";
+                    if (hasRazorPages) stackTags.Add("Razor");
+                }
+                else if (proj.Name.EndsWith(".API", StringComparison.OrdinalIgnoreCase))
+                {
+                    style = "Web API";
+                }
+            }
+
+            results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+        }
+
+        return results.ToImmutable();
+    }
+
+    /// <summary>True when a project is a runnable web service (Exe output OR web SDK —
+    /// requires an explicit build-to-executable signal). A class library referencing
+    /// AspNetCore packages (e.g. a shared BuildingBlocks project) is NOT runnable.</summary>
+    private static bool IsRunnableService(ProjectInfo proj)
+    {
+        var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
+        var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
+        return isExe || isWebSdk;
     }
 }

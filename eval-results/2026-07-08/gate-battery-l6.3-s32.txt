@@ -1,0 +1,43 @@
+== L6.3 Gate Battery — Session #32 ==
+Date: 2026-07-08
+Stage: L6.3 — Inspector insights: adjacency filter + honest chip
+
+== dotnet build ==
+0 Warning(s), 0 Error(s)
+
+== dotnet test (Category!=Eval) ==
+Core:     408 passed, 3 skipped, 0 failed
+Server:    12 passed, 0 failed
+Desktop:   64 passed, 0 failed
+Total:    484 passed, 3 skipped, 0 failed
+
+== pnpm check (lint + vitest + build) ==
+Lint: 0 errors, 0 warnings
+Test: 27/27 passed (5 files)
+Build: 0w 0e
+
+== loom-guards.ps1 ==
+PASSED: no banned patterns (13 advisory, tracked)
+
+== L6.3 deliverable ==
+filteredInsights() in inspector.ts:332-358 now filters by graph adjacency:
+1. Builds 1-hop neighborhood set from trace.neighbors() (from/to node IDs) + selected node
+2. Parses evidenceActions for Node:<id> patterns → matches against adjacency set
+3. Falls back to actionTarget matching (exact node ID)
+4. Tertiary: evidence string contains a neighbor title (existing behavior, now scoped to adjacency)
+
+Honest chip (template lines 140-168):
+- When node selected + adjacent > 0: chip shows adjacent count
+- When node selected + adjacent = 0 but total > 0: chip shows "0 / N" (dimmer)
+- Empty state: "None reference this node (N repo-wide)."
+- No node selected: shows all insights (unchanged behavior)
+
+Source: src/DevContext.App/src/app/features/inspector/inspector.ts
+
+== Previous session QA (L6.2, S30) ==
+- onEntry() → selectNode() after trace verified at workbench-page.ts:210
+- Code pane file path + load source button verified at inspector.ts:97-113
+- Loading/error/skeleton states verified at inspector.ts:117-126
+- PrismJS via [innerHTML]="highlightedCode()" verified at inspector.ts:116
+- Cold QA 92% (11/12) reproduced in evidence file
+Verdict: L6.2 claims confirmed genuine. All checks verified against fresh code.

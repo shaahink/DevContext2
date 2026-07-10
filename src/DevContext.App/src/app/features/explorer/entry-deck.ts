@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, input, model, output, viewChild } from '@angular/core';
 
-import { type EntryGroupVm, type EntryVm, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
+import { type EntryGroupVm, type EntryVm, KIND_COLORS, KIND_ICONS, KIND_LABELS } from '../../models/view-models';
 import { Icon } from '../../ui/icon/icon';
 
 interface KindStat {
@@ -12,7 +12,7 @@ interface KindStat {
 /**
  * Entry Deck (F proposal §2) — the left column of the Workbench. A flat keyboard-first
  * listbox, NOT a table: j/k (or arrows) scrub the selection, `/` focuses the filter,
- * Enter re-emits the current row, Shift+E asks the parent for the full audit table.
+ * Enter re-emits the current row, Shift+E asks the parent for the table lens.
  * The parent owns what selection MEANS (debounced trace + trail push) — the deck only
  * moves a cursor.
  */
@@ -35,7 +35,7 @@ interface KindStat {
       </div>
     }
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
-      <app-icon name="search" [size]="12" class="shrink-0 text-ink-subtle" />
+      <app-icon name="search" [size]="14" class="shrink-0 text-ink-subtle" />
       <input
         #filterBox
         type="text"
@@ -80,13 +80,22 @@ interface KindStat {
               {{ entry.httpMethod }}
             </span>
           }
-          <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="entry.title">
-            {{ entry.route || entry.title }}
-          </span>
+          <div class="min-w-0 flex-1 truncate">
+            <span class="font-mono text-xs text-ink" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ entry.route || entry.title }}</span>
+            @if (entry.target) {
+              <span class="ml-1 text-2xs text-ink-subtle">{{ entry.target }}</span>
+            }
+          </div>
+          @if (entry.groupPath) {
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ entry.groupPath }}</span>
+          }
+          @if (entry.authAttributes?.length) {
+            <span class="shrink-0 text-2xs text-accent" [title]="entry.authAttributes.join(', ')">&#128274;</span>
+          }
           @if (!entry.target) {
             <span class="shrink-0 text-2xs text-warn" title="Unwired: no resolved target">○</span>
           }
-          <app-icon [name]="kindIcon(entry.kind)" [size]="12" class="shrink-0 text-ink-subtle" />
+          <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" />
         </div>
       } @empty {
         <div class="px-3 py-6 text-center text-xs text-ink-subtle">
@@ -225,6 +234,11 @@ export class EntryDeck {
 
   protected kindIcon(kind: string): string {
     return KIND_ICONS[kind] ?? 'dot';
+  }
+
+  /** M7.3: Per-kind color from the M7.0 registry — CSS variable reference. */
+  protected kindColor(kind: string): string {
+    return KIND_COLORS[kind] ?? 'var(--vibe-ink-subtle)';
   }
 
   protected methodClass(method: string): string {

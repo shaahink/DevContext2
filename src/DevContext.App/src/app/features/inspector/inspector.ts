@@ -2,29 +2,45 @@ import { Component, computed, effect, inject, output, signal } from '@angular/co
 
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { AtlasStore } from '../../state/atlas.store';
-import { TrailStore, type TrailStep } from '../../state/trail.store';
+import { TrailStore, type TrailFlowGroup, type TrailStep } from '../../state/trail.store';
 import { SessionStore } from '../../state/session.store';
 import { TraceStore } from '../../state/trace.store';
-import { Skeleton } from '../../ui/skeleton/skeleton';
 import { ToastService } from '../../ui/toast/toast';
+import { Skeleton } from '../../ui/skeleton/skeleton';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
-import { formatCompact } from '../../core/format';
+import { highlightCSharp } from '../../core/code-highlight';
+import type { TraceNodeVm } from '../../models/view-models';
+import type { Insight } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 
-type SectionId = 'details' | 'callstack' | 'insights' | 'llm' | 'trail';
+type SectionId = 'details' | 'code' | 'insights' | 'callstack' | 'trail';
 
-const RENDER_DEBOUNCE_MS = 250;
+const SEVERITY_CLASS: Record<string, string> = {
+  warning: '!bg-danger/10 !text-danger',
+  notable: '!bg-warn/10 !text-warn',
+  info: '!bg-accent/10 !text-accent',
+};
+
+function wordBoundaryIncludes(haystack: string, needle: string): boolean {
+  let start = 0;
+  while ((start = haystack.indexOf(needle, start)) !== -1) {
+    const left = start === 0 ? true : !isAlphanumeric(haystack[start - 1]);
+    const right = start + needle.length === haystack.length ? true : !isAlphanumeric(haystack[start + needle.length]);
+    if (left && right) return true;
+    start++;
+  }
+  return false;
+}
+
+function isAlphanumeric(c: string): boolean {
+  const cc = c.charCodeAt(0);
+  return (cc >= 48 && cc <= 57) || (cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || cc === 95;
+}
 
 /**
  * Inspector (F proposal §2) — the right panel. Content is driven ENTIRELY by the
  * current selection; sections collapse independently. Details fill instantly from
  * local data (selection echo, §5.2) while RPC-backed sections follow.
- *
- * LLM context renders via the Render RPC (250ms debounce, real token count from
- * `estimatedTokens`) — migrated from section-lens.ts, which this supersedes.
- *
- * TODO(W4 remainder): Call stack hosts a compact ProgressiveTraceTree at depth 2.
- * TODO(W5): Insights section filters stats().insights by the current selection.
  */
 @Component({
   selector: 'app-inspector',
@@ -43,14 +59,21 @@ const RENDER_DEBOUNCE_MS = 250;
           @if (node.filePath) {
             <p class="flex items-start gap-1.5 break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath">
               <span class="min-w-0 flex-1">{{ node.filePath }}</span>
+              @if (node.lineNumber) {<span class="shrink-0 tabular-nums">:{{ node.lineNumber }}</span>}
               @if (isTauriEnv) {
                 <button type="button" class="shrink-0 text-ink-subtle hover:text-ink hover:underline" (click)="revealInExplorer(node.filePath)" title="Reveal in Explorer">reveal</button>
               }
             </p>
           }
           <p class="text-2xs tabular-nums text-ink-muted">in {{ node.inDegree }} · out {{ node.outDegree }}</p>
-          @if (node.tags.length > 0) {
+          @if (node.tags.length > 0 || node.layer || node.feature) {
             <div class="flex flex-wrap gap-1 pt-1">
+              @if (node.layer) {
+                <span class="chip !bg-vibe-accent/15 !text-vibe-accent" title="Architecture layer">{{ node.layer }}</span>
+              }
+              @if (node.feature) {
+                <span class="chip !bg-vibe-info/15 !text-vibe-info" title="Feature area">{{ node.feature }}</span>
+              }
               @for (tag of node.tags; track tag) {
                 <span class="chip">{{ tag }}</span>
               }
@@ -77,50 +100,120 @@ const RENDER_DEBOUNCE_MS = 250;
       }
     }
 
-    <!-- LLM context (Render RPC, 250ms debounce — proposal §2/§5.1). A plain div, not a
-         button, because the row also hosts the Copy button — nested <button>s are
-         invalid HTML and Angular's DOM renderer won't sanitize that away (it never
-         parses HTML text, so the browser never gets a chance to auto-correct it). -->
-    <div class="section-h border-b border-line">
-      <button type="button" class="flex min-w-0 flex-1 items-center gap-1" (click)="toggle('llm')">
-        <span class="text-2xs">{{ open('llm') ? '▾' : '▸' }}</span> LLM context
-      </button>
-      @if (renderContent()) {
-        <span class="tabular-nums text-2xs text-ink-subtle" [class.animate-pulse]="renderLoading()">
-          ≈{{ fmtK(tokenEstimate()) }} tok
-        </span>
-        <button
-          type="button"
-          class="chip"
-          [class.active]="copied()"
-          (click)="copy($event)"
-          title="Copy LLM context"
-        >
-          {{ copied() ? 'copied' : 'copy' }}
-        </button>
+    <!-- Code (M7.1) — file path + line, reveal/copy actions. Opens source when available. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('code')">
+      <span class="text-2xs">{{ open('code') ? '▾' : '▸' }}</span> Code
+      @if (trace.nodeDetail()?.filePath; as fp) {
+        <span class="ml-1 min-w-0 truncate font-mono text-2xs text-ink-subtle">{{ basename(fp) }}</span>
       }
-    </div>
-    @if (open('llm')) {
-      @if (renderContent(); as markdown) {
-        <pre
-          class="prose-zone max-h-96 overflow-y-auto whitespace-pre-wrap break-words border-b border-line px-2 py-2 font-mono text-2xs transition-opacity"
-          [class.opacity-60]="renderLoading()"
-        >{{ markdown }}</pre>
-      } @else if (renderLoading()) {
-        <div class="space-y-1.5 border-b border-line px-2 py-2">
-          <app-skeleton />
-          <app-skeleton width="80%" />
-          <app-skeleton width="60%" />
-        </div>
-      } @else if (renderError(); as err) {
-        <div class="border-b border-line px-2 py-3 text-2xs text-danger">
-          {{ err }} —
-          <button type="button" class="text-accent hover:underline" (click)="render()">Retry</button>
-        </div>
+    </button>
+    @if (open('code')) {
+      @if (trace.nodeDetail(); as node) {
+        @if (node.filePath) {
+          <div class="space-y-1.5 border-b border-line px-2 py-2">
+            <p class="break-all font-mono text-xs text-accent" [title]="node.filePath">
+              {{ node.filePath }}
+              @if (node.lineNumber) {<span class="tabular-nums text-ink-subtle">:{{ node.lineNumber }}</span>}
+            </p>
+            <div class="flex flex-wrap gap-1">
+              <button type="button" class="chip" [class.active]="codePathCopied()" (click)="copyFilePath(node.filePath)">
+                {{ codePathCopied() ? 'copied' : 'copy path' }}
+              </button>
+              @if (isTauriEnv) {
+                <button type="button" class="chip" (click)="revealInExplorer(node.filePath)">
+                  reveal in explorer
+                </button>
+              }
+              <button type="button" class="chip" (click)="loadCode(node)">
+                {{ codeLoading() ? 'loading…' : 'load source' }}
+              </button>
+            </div>
+            @if (codeContent()) {
+              <pre class="code-block max-h-80 overflow-y-auto whitespace-pre border border-line bg-base p-2 font-mono text-2xs leading-relaxed"><code [innerHTML]="highlightedCode()"></code></pre>
+            } @else if (codeLoading()) {
+              <div class="space-y-1 py-2">
+                <app-skeleton />
+                <app-skeleton width="80%" />
+                <app-skeleton width="60%" />
+                <app-skeleton width="90%" />
+              </div>
+            } @else if (codeError(); as err) {
+              <p class="text-2xs text-ink-muted">{{ err }}</p>
+            }
+          </div>
+        } @else {
+          <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
+            No source file path for this node.
+          </p>
+        }
       } @else {
         <p class="border-b border-line px-2 py-3 text-2xs text-ink-subtle">
-          Trace something to build LLM-ready context.
+          Select a node to view its source location.
         </p>
+      }
+    }
+
+    <!-- Insights (L6.3) — adjacency-filtered, honest chip. Default collapsed. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('insights')">
+      <span class="text-2xs">{{ open('insights') ? '▾' : '▸' }}</span> Insights
+      @if (filteredInsights().length > 0) {
+        <span class="ml-1 chip tabular-nums">{{ filteredInsights().length }}</span>
+      } @else if (trace.nodeDetail() && totalInsightCount() > 0) {
+        <span class="ml-1 chip tabular-nums text-ink-subtle">0 / {{ totalInsightCount() }}</span>
+      }
+    </button>
+    @if (open('insights')) {
+      @if (session.ready() && filteredInsights().length > 0) {
+        @for (group of insightGroups(); track group.severity) {
+          <div class="border-b border-line px-2 py-1">
+            <div class="text-2xs font-semibold text-ink-subtle mb-1">{{ group.severity }}</div>
+            @for (insight of group.insights; track insight.id) {
+              <div class="flex items-start gap-1 py-0.5">
+                <span class="chip shrink-0 text-2xs leading-none" [class]="severityClass(insight.severity)">{{ insight.severity }}</span>
+                <span class="min-w-0 text-2xs text-ink leading-snug" [title]="insight.detail">{{ insight.title }}</span>
+              </div>
+            }
+          </div>
+        }
+      } @else if (trace.nodeDetail() && totalInsightCount() > 0) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">None reference this node ({{ totalInsightCount() }} repo-wide).</p>
+      } @else if (trace.nodeDetail()) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">No insights reference this node.</p>
+      } @else {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">Select a node to see related insights.</p>
+      }
+    }
+
+    <!-- Call Stack (M9-ext) — compact tree showing ancestors + children around selected node at depth 2. Default collapsed. -->
+    <button type="button" class="section-h border-b border-line" (click)="toggle('callstack')">
+      <span class="text-2xs">{{ open('callstack') ? '▾' : '▸' }}</span> Call Stack
+      @if (callStackPath().length > 0) {
+        <span class="ml-1 chip tabular-nums">{{ callStackPath().length }}</span>
+      }
+    </button>
+    @if (open('callstack')) {
+      @if (callStackPath().length > 0) {
+        @for (step of callStackPath(); track step.id) {
+          <div
+            class="list-row"
+            role="button"
+            tabindex="0"
+            [class.selected]="step.id === trace.selectedNodeId()"
+            (click)="jumpToStackNode(step.id)"
+            (keydown.enter)="jumpToStackNode(step.id)"
+            (keydown.space)="jumpToStackNode(step.id); $event.preventDefault()"
+          >
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ step.depth === 0 ? '⌂' : step.depth > selectionDepth() ? '↳' : '·' }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+            @if (step.provenance) {
+              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1">{{ step.provenance }}</span>
+            }
+          </div>
+        }
+      } @else if (trace.nodeDetail()) {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">No call stack available — trace may not have been computed at this depth.</p>
+      } @else {
+        <p class="px-2 py-3 text-2xs text-ink-subtle">Select a node in the trace to see its call stack.</p>
       }
     }
 
@@ -133,29 +226,80 @@ const RENDER_DEBOUNCE_MS = 250;
       }
     </button>
     @if (open('trail')) {
-      @for (step of trail.breadcrumb(); track step.ts; let i = $index) {
-        <div
-          class="list-row"
-          role="button"
-          tabindex="0"
-          [class.selected]="i === trail.cursor()"
-          (click)="jump(i)"
-          (keydown.enter)="jump(i)"
-          (keydown.space)="jump(i); $event.preventDefault()"
-        >
-          <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
-          <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
-          <button
-            type="button"
-            class="shrink-0 text-2xs"
-            [class.text-accent]="trail.isPinned(step)"
-            [class.text-ink-subtle]="!trail.isPinned(step)"
-            (click)="pin(step, $event)"
-            title="Pin to export pack (p)"
+      @for (group of trail.groupedBreadcrumb(); track group.fromIndex; let gi = $index) {
+        @if (group.grouped) {
+          <!-- M7.3: Grouped flow steps — collapsed by default, expand to see individual steps -->
+          <div
+            class="list-row cursor-pointer"
+            role="button"
+            tabindex="0"
+            [class.selected]="isCursorInGroup(group)"
+            (click)="toggleGroup(group.fromIndex)"
+            (keydown.enter)="toggleGroup(group.fromIndex)"
+            (keydown.space)="toggleGroup(group.fromIndex); $event.preventDefault()"
           >
-            ◈
-          </button>
-        </div>
+            <span class="shrink-0 text-2xs text-ink-subtle">
+              {{ isGroupExpanded(group.fromIndex) ? '▾' : '▸' }}
+            </span>
+            <span class="chip active tabular-nums shrink-0">{{ group.steps.length }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs text-ink-muted" [title]="group.steps[0].title">
+              {{ group.steps[0].title }}
+            </span>
+            <span class="shrink-0 text-2xs text-ink-subtle">flow</span>
+          </div>
+          @if (isGroupExpanded(group.fromIndex)) {
+            @for (step of group.steps; track step.ts; let si = $index) {
+              <div
+                class="list-row pl-6"
+                role="button"
+                tabindex="0"
+                [class.selected]="(group.fromIndex + si) === trail.cursor()"
+                (click)="jump(group.fromIndex + si)"
+                (keydown.enter)="jump(group.fromIndex + si)"
+                (keydown.space)="jump(group.fromIndex + si); $event.preventDefault()"
+              >
+                <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
+                <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+                <button
+                  type="button"
+                  class="shrink-0 text-2xs"
+                  [class.text-accent]="trail.isPinned(step)"
+                  [class.text-ink-subtle]="!trail.isPinned(step)"
+                  (click)="pin(step, $event)"
+                  title="Pin to export pack (p)"
+                >
+                  ◈
+                </button>
+              </div>
+            }
+          }
+        } @else {
+          <!-- Solo step (ungrouped) -->
+          @for (step of group.steps; track step.ts) {
+          <div
+            class="list-row"
+            role="button"
+            tabindex="0"
+            [class.selected]="group.fromIndex === trail.cursor()"
+            (click)="jump(group.fromIndex)"
+            (keydown.enter)="jump(group.fromIndex)"
+            (keydown.space)="jump(group.fromIndex); $event.preventDefault()"
+          >
+            <span class="shrink-0 text-2xs text-ink-subtle">{{ stepGlyph(step) }}</span>
+            <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
+            <button
+              type="button"
+              class="shrink-0 text-2xs"
+              [class.text-accent]="trail.isPinned(step)"
+              [class.text-ink-subtle]="!trail.isPinned(step)"
+              (click)="pin(step, $event)"
+              title="Pin to export pack (p)"
+            >
+              ◈
+            </button>
+          </div>
+          }
+        }
       } @empty {
         <p class="px-2 py-3 text-2xs text-ink-subtle">
           Your exploration path collects here — pins seed the export pack.
@@ -185,30 +329,110 @@ export class Inspector {
   /** Emitted when the user jumps the trail — parent re-traces the restored step. */
   readonly restore = output<TrailStep>();
 
-  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set());
-  protected readonly copied = signal(false);
+  private readonly collapsed = signal<ReadonlySet<SectionId>>(new Set(['code', 'insights', 'callstack']));
 
-  protected readonly renderContent = signal('');
-  protected readonly tokenEstimate = signal(0);
-  protected readonly renderLoading = signal(false);
-  protected readonly renderError = signal<string | null>(null);
+  /** Code tab (M7.1) — source content loaded via render RPC with full-membership body detail. */
+  protected readonly codeContent = signal('');
+  protected readonly codeLoading = signal(false);
+  protected readonly codeError = signal<string | null>(null);
+  protected readonly codePathCopied = signal(false);
+  protected readonly highlightedCode = computed(() => highlightCSharp(this.codeContent()));
+  private codeNodeId: string | null = null;
+  /** M7.3: Which trail groups are expanded (keyed by fromIndex). Collapsed by default. */
+  private readonly expandedGroups = signal<ReadonlySet<number>>(new Set());
 
-  private renderTimer: ReturnType<typeof setTimeout> | null = null;
-  private renderedFocus: string | null = null;
+  // ── Insights section (L6.3 — graph-adjacency filter + honest chip) ─
+
+  /** All repo insights filtered to the selected node's 1-hop neighborhood
+   *  (evidence nodeIds ∩ adjacent node IDs), or all if no node selected. */
+  protected readonly filteredInsights = computed(() => {
+    const insights = this.session.insights() as Insight[];
+    const node = this.trace.nodeDetail();
+    if (!node || insights.length === 0) return insights;
+
+    const neighbors = this.trace.neighbors();
+    const adjIds = new Set<string>([node.id]);
+    const adjTitles = new Set<string>([node.title.toLowerCase()]);
+    for (const e of neighbors) {
+      adjIds.add(e.from);
+      adjIds.add(e.to);
+      adjTitles.add(e.otherTitle.toLowerCase());
+    }
+
+    return insights.filter((i) => {
+      if (i.evidenceActions?.some((a: string) => {
+        if (!a.startsWith('Node:')) return false;
+        return adjIds.has(a.slice(5));
+      })) return true;
+
+      if (i.actionTarget && adjIds.has(i.actionTarget)) return true;
+
+      return i.evidence.some((e: string) => {
+        const el = e.toLowerCase();
+        return Array.from(adjTitles).some((t) => wordBoundaryIncludes(el, t));
+      });
+    });
+  });
+
+  /** Total repo-wide insight count for the honest-empty-state label. */
+  protected readonly totalInsightCount = computed(() => this.session.insights().length);
+
+  protected readonly insightGroups = computed(() => {
+    const groups: { severity: string; insights: Insight[] }[] = [];
+    const map = new Map<string, Insight[]>();
+    for (const i of this.filteredInsights()) {
+      const key = i.severity;
+      const existing = map.get(key);
+      if (existing) existing.push(i);
+      else map.set(key, [i]);
+    }
+    if (map.has('warning')) groups.push({ severity: 'Warning', insights: map.get('warning')! });
+    if (map.has('notable')) groups.push({ severity: 'Notable', insights: map.get('notable')! });
+    if (map.has('info')) groups.push({ severity: 'Info', insights: map.get('info')! });
+    return groups;
+  });
+
+  protected severityClass(severity: string): string {
+    return SEVERITY_CLASS[severity] ?? '';
+  }
+
+  // ── Call Stack section (M9-ext W4) ────────────────────────────────
+
+  protected readonly selectionDepth = computed(() => {
+    const selId = this.trace.selectedNodeId();
+    const tree = this.trace.tree();
+    if (!tree || !selId) return -1;
+    const found = findNode(tree, selId);
+    return found ? found.depth : -1;
+  });
+
+  protected readonly callStackPath = computed(() => {
+    const tree = this.trace.tree();
+    const selId = this.trace.selectedNodeId();
+    if (!tree || !selId) return [] as TraceNodeVm[];
+    const path = walkAncestors(tree, selId);
+    const leaf = path[path.length - 1];
+    if (leaf) {
+      return [...path, ...leaf.children.slice(0, 6)];
+    }
+    return path;
+  });
+
+  protected jumpToStackNode(nodeId: string): void {
+    this.trace.selectNode(nodeId);
+  }
 
   constructor() {
+    // M7.1: Auto-open Code tab and clear stale content when a node is selected.
     effect(() => {
-      const focus = this.trace.focus();
-      if (!focus) {
-        this.renderedFocus = null;
-        this.renderContent.set('');
-        this.renderError.set(null);
-        return;
+      const node = this.trace.nodeDetail();
+      if (node?.filePath) {
+        if (node.id !== this.codeNodeId) {
+          this.codeContent.set('');
+          this.codeError.set(null);
+          this.codeNodeId = node.id;
+        }
       }
-      if (focus === this.renderedFocus) return;
-      const handle = this.session.handle();
-      if (!handle) return;
-      this.debouncedRender(handle, focus);
     });
   }
 
@@ -217,12 +441,17 @@ export class Inspector {
   }
 
   protected toggle(id: SectionId): void {
+    let opening = false;
     this.collapsed.update((set) => {
       const next = new Set(set);
-      if (next.has(id)) next.delete(id);
+      if (next.has(id)) { next.delete(id); opening = true; }
       else next.add(id);
       return next;
     });
+    if (opening && id === 'code') {
+      const node = this.trace.nodeDetail();
+      if (node?.filePath) this.loadCode(node);
+    }
   }
 
   protected jump(index: number): void {
@@ -235,11 +464,23 @@ export class Inspector {
     this.trail.togglePin(step);
   }
 
-  protected copy(event: Event): void {
-    event.stopPropagation();
-    void copyToClipboard(this.renderContent()).then(() => {
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 1500);
+  /** M7.3: Whether the cursor falls within this group's step range. */
+  protected isCursorInGroup(group: TrailFlowGroup): boolean {
+    const c = this.trail.cursor();
+    return c >= group.fromIndex && c <= group.toIndex;
+  }
+
+  /** M7.3: Expand/collapse a trail flow group. */
+  protected isGroupExpanded(fromIndex: number): boolean {
+    return this.expandedGroups().has(fromIndex);
+  }
+
+  protected toggleGroup(fromIndex: number): void {
+    this.expandedGroups.update((set) => {
+      const next = new Set(set);
+      if (next.has(fromIndex)) next.delete(fromIndex);
+      else next.add(fromIndex);
+      return next;
     });
   }
 
@@ -250,38 +491,38 @@ export class Inspector {
       .catch(() => this.toast.show('Could not reveal file — it may not exist on this machine.', 'error'));
   }
 
-  protected fmtK(n: number): string {
-    return formatCompact(n);
+  /** M7.1: Copy file path to clipboard with visual feedback. */
+  protected copyFilePath(filePath: string | undefined): void {
+    if (!filePath) return;
+    void copyToClipboard(filePath).then(() => {
+      this.codePathCopied.set(true);
+      setTimeout(() => this.codePathCopied.set(false), 2000);
+    });
   }
 
-  /** Manual retry (error state) — bypasses the "already rendered this focus" guard. */
-  protected render(): void {
+  /** Gap 1: Load raw source code for the selected node via the readSource RPC. */
+  protected loadCode(node: { id: string; title: string; filePath?: string }): void {
     const handle = this.session.handle();
-    const focus = this.trace.focus();
-    if (!handle || !focus) return;
-    void this.doRender(handle, focus);
+    if (!handle) return;
+    this.codeLoading.set(true);
+    this.codeError.set(null);
+    this.codeContent.set('');
+
+    this.api
+      .readSource(handle, node.id)
+      .then((res) => {
+        this.codeContent.set(res.content);
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : 'Failed to load source';
+        this.codeError.set(msg);
+      })
+      .finally(() => this.codeLoading.set(false));
   }
 
-  private debouncedRender(handle: string, focus: string): void {
-    if (this.renderTimer) clearTimeout(this.renderTimer);
-    this.renderTimer = setTimeout(() => void this.doRender(handle, focus), RENDER_DEBOUNCE_MS);
-  }
-
-  private async doRender(handle: string, focus: string): Promise<void> {
-    this.renderedFocus = focus;
-    this.renderLoading.set(true);
-    this.renderError.set(null);
-    try {
-      const res = await this.api.render(handle, { focus, detail: this.trace.detail(), format: 'markdown' });
-      this.renderContent.set(res.content);
-      this.tokenEstimate.set(res.estimatedTokens);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Render failed — is the server running?';
-      this.renderError.set(msg);
-      this.toast.show(msg, 'error');
-    } finally {
-      this.renderLoading.set(false);
-    }
+  /** M7.1: Extract base filename from a full path. */
+  protected basename(path: string): string {
+    return path.replace(/^.*[/\\]/, '');
   }
 
   protected stepGlyph(step: TrailStep): string {
@@ -294,6 +535,28 @@ export class Inspector {
         return '↳';
       case 'insight':
         return '⚑';
+      default:
+        return '·';
     }
   }
+}
+
+/** DFS lookup in a trace tree for a node by id. */
+function findNode(root: TraceNodeVm, nodeId: string): TraceNodeVm | null {
+  if (root.id === nodeId) return root;
+  for (const child of root.children) {
+    const found = findNode(child, nodeId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Collect ancestors of `nodeId` in the trace tree (from root down to the node itself). */
+function walkAncestors(root: TraceNodeVm, nodeId: string): TraceNodeVm[] {
+  if (root.id === nodeId) return [root];
+  for (const child of root.children) {
+    const path = walkAncestors(child, nodeId);
+    if (path.length > 0) return [root, ...path];
+  }
+  return [];
 }

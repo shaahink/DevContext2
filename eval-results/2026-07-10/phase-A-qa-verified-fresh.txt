@@ -1,0 +1,35 @@
+Phase A — Fresh QA Verification (session 78, attempt 4/6)
+Date: 2026-07-10
+
+=== QA of Previous Session (s77, attempt 3/6) ===
+Previous claims: A1 DONE (commit a94c211), checkpoint trace cross-service, Truth 9P/2S.
+
+FRESH VERIFICATION (re-run, not trusted):
+1. Gate Battery:
+   - Build: 0w/0e
+   - Core Tests: 440P/3S
+   - Server Tests: 14P
+   - Desktop Tests: 64P
+   - Truth: 9P/2S (Dogfood_checkout_flow_traces_cross_service_depth_ge_5: PASS)
+   - pnpm check: lint 0, test 27/27, build 0w/0e
+   - loom-guards: 0 banned, 13 NodeId.ForType advisory (stable)
+
+2. Focused CLI Trace (POST /basket/checkout) — FRESH RUN:
+   POST /basket/checkout -> send CheckoutBasketCommand
+   -> handler CheckoutBasketCommandHandler
+   -> raises BasketCheckoutEvent (BusPublishDetector: WORKING)
+   -> consumes BasketCheckoutEventHandler (Ordering.Application, Type->Service bridge: WORKING)
+   -> send CreateOrderCommand (depth 6, cross-service hop confirmed)
+
+3. Trace contains all 4 named assertions from truth test:
+   - CheckoutBasketCommand: PRESENT
+   - BasketCheckoutEvent: PRESENT
+   - BasketCheckoutEventHandler: PRESENT
+   - CreateOrderCommand: PRESENT
+
+Root cause fix (a94c211) confirmed: BodyFactsExtractor in TestPipeline + auto-extract fallback.
+Bridge code (4d997d9) confirmed correct: Type->Service bridge in OutEdgesWithTwin() + SelectBestSpineEdge().
+
+QA VERDICT: Phase A CLAIMS CONFIRMED. A1 is VERIFIED DONE. No regressions. No incomplete checkpoints remain in Phase A.
+
+Next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).

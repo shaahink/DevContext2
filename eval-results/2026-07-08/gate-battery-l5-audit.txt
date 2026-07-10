@@ -1,0 +1,58 @@
+=== Loom L5 AUDIT Gate Battery (post-fix) ===
+Date: 2026-07-08
+Session: L5 static-audit hardening (post-s28)
+Diff range audited: 2b060200a11916d02d0b69df310ce9759097c39d..HEAD (L5.1–L5.5)
+
+=== Build ===
+dotnet build DevContext.slnx: SUCCEEDED (0w/0e)
+
+=== Tests (Category!=Eval) ===
+  Core:    408 passed, 3 skipped, 0 failed
+  Server:  12 passed,  0 skipped, 0 failed  (incl. new L5.1 no-duplicate-session assertion)
+  Desktop: 64 passed,  0 skipped, 0 failed
+
+=== UI (src/DevContext.App: pnpm check) ===
+  lint:  PASS (all files)
+  test:  5 files / 27 tests PASS
+  build: SUCCEEDED
+
+=== MCP QA (scripted, run.js) ===
+  8/8 passing; checkout gate PASS (2c/813tok, 24 steps, cross-service)
+
+=== MCP QA (cold, run-cold.js --gate) ===
+  Server ready: 23 tools, tools/list ~1337 tok (target <=1.5k)
+  Actionable: 11/12 (92%)  [B9 is a rank-quality success, not a failure probe]
+  false-successes: 0   opaque errors: 0
+  rank-quality B9 find "Order": top="Order" aggregate#1=true results=20
+  Gate threshold (>=90%): PASS
+  NOTE: false-success detector strictness RESTORED this session (removed a dead
+        `resolvedFrom` exception that could mask a count:0+resolvedFrom silent wrong
+        answer). Gate still green — the exception was excusing a shape the tool
+        no longer emits.
+
+=== Guards ===
+  scripts/loom-guards.ps1: PASSED (0 banned patterns; 13 NodeId.ForType advisory, deferred to L3)
+
+=== Fixes landed this audit ===
+  F1  AnalysisSessionManager: cached (idempotent) analyze double-counted CallCount and
+      redundantly re-stamped LastAccess/LastActivity (Get() already did). Removed the
+      duplicate mutations. Regression test: re-analyze yields exactly ONE session.
+  F3  run-cold.js classify(): removed dead `resolvedFrom` exception that loosened the
+      false-success detector (ratchet — restores gate strictness, still green).
+  F4  usages short-name resolution: previously fetched Limit=1 and silently used the top
+      match among possibly-many exact-title matches. Now fetches Limit=10, counts exact
+      matches, and returns an ambiguity envelope (with candidates) when >1 — honoring
+      L5.3 "never silently picks". Single-exact and substring-only paths preserved.
+  F5  Program.cs: repaired mojibake ("â€”" -> "-") introduced into the version comment.
+  F9  NodeExists: converted sync-over-async gRPC call (_client.GetNode) to awaited
+      GetNodeAsync (NodeExistsAsync) at all 3 call sites (neighbors/usages/impact).
+
+=== Known / deferred (see .conductor/handovers/L5.md) ===
+  - Concurrent analyze of the same repo+HEAD can still run analysis twice and create a
+    duplicate session (idempotency is check-then-act, unguarded). Low probability under
+    stdio/desktop (serial calls). Documented as a risk; not fixed (locking not low-risk).
+  - UnknownToolHandler tool-name list is hardcoded (23 names) and can drift from the
+    [McpServerTool] methods; no MCP test project exists to guard it.
+  - gRPC SearchNodes with an empty query now returns 0 results (was: first N nodes) as a
+    side effect of routing through graph.Find. No live caller depends on the old behavior
+    (omnibox guards >=2 chars; mcp-page is a dev playground). Arguably more correct.

@@ -93,7 +93,7 @@ interface OmniItem {
                   (click)="execute(item)"
                   (mouseenter)="hover(item)"
                 >
-                  <app-kind-icon [kind]="item.icon" [size]="12" class="shrink-0 text-ink-subtle" />
+                  <app-kind-icon [kind]="item.icon" [size]="14" class="shrink-0 text-ink-subtle" />
                   <span class="min-w-0 flex-1 truncate text-xs text-ink">{{ item.label }}</span>
                   @if (item.sub) {
                     <span class="max-w-[40%] shrink-0 truncate font-mono text-2xs text-ink-subtle">{{ item.sub }}</span>
@@ -324,9 +324,12 @@ export class Omnibox {
   /** Jump straight to a specific past repo (what the titlebar's recents dropdown does —
    * the old Palette couldn't, GAP-B3). */
   private openRecent(path: string): void {
-    this.session.cancel();
-    const tabId = this.workspace.activeId();
-    if (tabId) this.workspace.closeTab(tabId);
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
+    const label = path.split(/[\\/]/).pop() || path;
+    this.workspace.createTab(path, label);
     const defs = this.prefs.analyzeDefaults();
     const spec: AnalyzeSpec = { path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
     void this.session.analyze(spec);

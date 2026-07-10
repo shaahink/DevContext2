@@ -44,7 +44,7 @@ import { formatCompact, timeAgo } from '../../core/format';
       </div>
       <div class="mt-3 flex gap-2">
         <app-button variant="primary" size="sm" (click)="analyze.emit(repo().fullName)">
-          <app-icon name="play" [size]="12" /> Analyze
+          <app-icon name="play" [size]="14" /> Analyze
         </app-button>
         <a
           [href]="repo().htmlUrl"
@@ -52,7 +52,7 @@ import { formatCompact, timeAgo } from '../../core/format';
           rel="noopener"
           class="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-2xs text-ink-muted hover:text-ink"
         >
-          <app-icon name="network" [size]="11" /> GitHub
+          <app-icon name="network" [size]="14" /> GitHub
         </a>
       </div>
     </div>

@@ -1,7 +1,11 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>How control transferred into a trace step — the human-facing label for an <see cref="EdgeKind"/>.</summary>
-public enum SeamKind { Entry, Call, Send, Handle, Raise, Consume, Data, Resolve, Pipeline }
+public enum SeamKind { Entry, Call, Send, Handle, Raise, Consume, Data, Resolve, Pipeline, CrossService }
 
 /// <summary>One node in an entry-rooted trace tree.</summary>
 public sealed record TraceStep(
@@ -51,6 +55,7 @@ public sealed record TraceOptions
     [
         EdgeKind.Sends, EdgeKind.Handles, EdgeKind.Calls, EdgeKind.Raises,
         EdgeKind.Consumes, EdgeKind.ReadsWrites, EdgeKind.Resolves,
+        EdgeKind.ServiceLink,
     ];
 }
 
@@ -326,15 +331,15 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
-            // Salient source comes from the FROM node's body; for a Member node, fall back to its
-            // parent Type's body (the body scans attach edges + bodies at the type level).
-            var fromNode = _graph.Node(edge.From) ?? node;
-            var salientSource = fromNode.SourceBody ?? (
-                fromNode.Id.Kind == NodeKind.Member
-                && _graph.Node(NodeId.ForType(ExtractTypeKey(fromNode.Id.Key))) is { } twin
-                    ? twin.SourceBody
-                    : null);
-            var salient = ExtractSalient(salientSource, edge.Provenance);
+            // The snippet shows what THIS step (the callee) actually is — its own signature + opening
+            // body lines — not the caller's call site (E3). The old code took lines from the FROM
+            // node's body around the provenance line, which (a) is the wrong node's code entirely, and
+            // (b) for the common Type-body fallback, indexed an absolute file line number into a
+            // substring that starts wherever the type is declared in the file, not at line 1 — landing
+            // on unrelated code (a stray field declaration, a sibling method). Parsing the callee's own
+            // declaration out of its type's SourceBody by member NAME sidesteps both bugs at once: no
+            // file-line↔offset mapping needed.
+            var salient = ExtractCalleeSalient(child);
 
             // Framework-boundary stop: don't descend into generic framework internals
             // Pipeline annotation (Iteration 3 Step 3): when a Sends edge reaches a request Type,
@@ -372,6 +377,7 @@ public sealed class TraceBuilder
             Truncated = ranked.Count > taken.Count,
             Omitted = ranked.Count - taken.Count,
             MultiImplCount = multiImplCount,
+            Salient = ExtractCalleeSalient(node),
         };
     }
 
@@ -429,6 +435,23 @@ public sealed class TraceBuilder
                     yield return e;
             }
         }
+
+        // G5: Type->Service bridge — when at a Type node with known Project, yield ServiceLink
+        // edges from the containing Service node so trace can follow cross-service hops.
+        // This closes the L2.4 gap where traces stopped at event Type nodes (e.g.
+        // BasketCheckoutEvent) because Type nodes had no edge to their Service node's
+        // ServiceLinks. Safe by construction: if NodeId.ForService returns a node that
+        // doesn't exist, the foreach is a no-op.
+        if (id.Kind == NodeKind.Type)
+        {
+            var node = _graph.Node(id);
+            if (node?.Project is { Length: > 0 })
+            {
+                var serviceId = NodeId.ForService(node.Project);
+                foreach (var e in _graph.OutEdges(serviceId, EdgeKind.ServiceLink))
+                    yield return e;
+            }
+        }
     }
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn"</summary>
@@ -447,32 +470,81 @@ public sealed class TraceBuilder
         EdgeKind.ReadsWrites => SeamKind.Data,
         EdgeKind.Resolves => SeamKind.Resolve,
         EdgeKind.WrappedBy => SeamKind.Pipeline,
+        EdgeKind.ServiceLink => SeamKind.CrossService,
         _ => SeamKind.Call,
     };
 
-    /// <summary>Extracts up to 3 salient source lines around a provenance line from SourceBody.</summary>
-    private static ImmutableArray<string> ExtractSalient(string? sourceBody, string? provenance)
+    /// <summary>
+    /// The callee's own signature + up to 2 opening body lines, parsed directly out of its declaring
+    /// type's SourceBody by matching the member name (E3). A Type-kind callee (e.g. reached via a
+    /// Resolves edge) shows its own class declaration + opening lines instead. This replaces the old
+    /// approach of indexing an absolute file line number into a type-body substring that starts
+    /// wherever the type happens to be declared in the file (never line 1) — a mapping that silently
+    /// landed on unrelated code. Matching by name needs no file-line↔offset translation at all.
+    /// </summary>
+    private ImmutableArray<string> ExtractCalleeSalient(GraphNode callee)
     {
-        if (string.IsNullOrEmpty(sourceBody) || string.IsNullOrEmpty(provenance))
-            return [];
+        if (callee.Kind == NodeKind.Type)
+            return TakeOpeningLines(callee.SourceBody);
 
-        var colon = provenance.LastIndexOf(':');
-        if (colon < 0 || !int.TryParse(provenance[(colon + 1)..], out var lineNumber))
-            return [];
+        if (callee.Kind != NodeKind.Member) return [];
 
-        var lines = sourceBody.Replace("\r\n", "\n").Split('\n');
-        var idx = lineNumber - 1; // provenance is 1-based
-        if (idx < 0 || idx >= lines.Length)
-            return [];
+        var owner = _graph.Node(NodeId.ForType(ExtractTypeKey(callee.Id.Key)));
+        if (owner?.SourceBody is not { Length: > 0 } typeBody) return [];
 
-        var salientLines = ImmutableArray.CreateBuilder<string>();
-        var context = 1; // 1 line before and after
-        for (var i = Math.Max(0, idx - context); i <= Math.Min(lines.Length - 1, idx + context); i++)
+        var memberName = callee.Id.Key[(callee.Id.Key.LastIndexOf('.') + 1)..];
+        return TakeOpeningLines(FindMemberDeclarationText(typeBody, memberName));
+    }
+
+    /// <summary>Parses a type's SourceBody and returns the source text of the direct member (method,
+    /// ctor, or property) whose name matches — or null when nothing matches (e.g. an inherited/
+    /// framework method the type doesn't declare itself). Ctor name is the type's own short name,
+    /// matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s caller-method key.</summary>
+    private static string? FindMemberDeclarationText(string typeSourceBody, string memberName)
+    {
+        SyntaxNode root;
+        try
         {
-            var line = lines[i].Trim();
-            if (line.Length > 0)
-                salientLines.Add(line);
+            root = CSharpSyntaxTree.ParseText(typeSourceBody).GetRoot();
         }
-        return salientLines.ToImmutable();
+        catch
+        {
+            return null;
+        }
+
+        var typeDecl = root.DescendantNodes().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+        if (typeDecl is null) return null;
+
+        foreach (var member in typeDecl.Members)
+        {
+            switch (member)
+            {
+                case MethodDeclarationSyntax m when m.Identifier.ValueText == memberName:
+                    return m.ToString();
+                case ConstructorDeclarationSyntax c when typeDecl.Identifier.ValueText == memberName:
+                    return c.ToString();
+                case PropertyDeclarationSyntax p when p.Identifier.ValueText == memberName:
+                    return p.ToString();
+            }
+        }
+        return null;
+    }
+
+    /// <summary>First few non-empty, non-brace-only lines of a declaration's own text — the signature
+    /// plus the start of its body, trimmed of the noise (blank lines, lone braces) that made the old
+    /// snippets read like debris.</summary>
+    private static ImmutableArray<string> TakeOpeningLines(string? text, int maxLines = 3)
+    {
+        if (string.IsNullOrEmpty(text)) return [];
+
+        var result = ImmutableArray.CreateBuilder<string>();
+        foreach (var raw in text.Replace("\r\n", "\n").Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || line is "{" or "}") continue;
+            result.Add(line);
+            if (result.Count >= maxLines) break;
+        }
+        return result.ToImmutable();
     }
 }

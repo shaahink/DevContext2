@@ -642,7 +642,7 @@ public sealed class MarkdownRenderer : IContextRenderer
         {
         sb.AppendLine($"## {SectionNames.CallGraph}");
             sb.AppendLine();
-            sb.AppendLine("Not available in current profile. Re-run with `--profile debug` to enable call graph extraction and BFS reachability analysis from entry points.");
+            sb.AppendLine("Not available for this analysis — no call graph was assembled (the scanned scope has no source files, or graph extraction was skipped for this run).");
             sb.AppendLine();
             return;
         }

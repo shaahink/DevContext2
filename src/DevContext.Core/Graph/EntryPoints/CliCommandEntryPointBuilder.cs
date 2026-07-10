@@ -18,7 +18,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"cli:{cmd.CommandType}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = cmd.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(cmd.CommandType));
+            var typeId = NodeId.ForType(names.Resolve(cmd.CommandType, cmd.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
@@ -30,6 +30,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{cmd.SourceFile}:{cmd.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(cmd.SourceFile),
             });
         }
         return entries.ToImmutable();

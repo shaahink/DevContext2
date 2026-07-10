@@ -1,9 +1,12 @@
 using DevContext.Server.Endpoints;
+using DevContext.Server.Services;
 using DevContext.Server.Sessions;
+using DevContext.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<EngineHostCache>();
+builder.Services.AddSingleton<CloneRegistry>();
 
 var serverOptions = new ServerOptions();
 builder.Configuration.GetSection("DevContext").Bind(serverOptions);
@@ -11,6 +14,9 @@ builder.Services.AddSingleton(serverOptions);
 
 builder.Services.AddSingleton<IEngineRunner, EngineRunner>();
 builder.Services.AddSingleton<IAnalysisSessionManager, AnalysisSessionManager>();
+
+// M3.3 — MCP observability service
+builder.Services.AddSingleton<McpObservabilityService>();
 
 builder.Services.AddGrpc();
 

@@ -1,0 +1,6 @@
+{
+  "excludePatterns": [
+    ".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos",
+    "fixtures", "goldens"
+  ]
+}

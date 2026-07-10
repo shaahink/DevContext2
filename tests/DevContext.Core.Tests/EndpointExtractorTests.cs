@@ -226,6 +226,118 @@ public sealed class EndpointExtractorTests
         Assert.Contains("[AllowAnonymous]", pub.AuthAttributes);
     }
 
+    [Fact]
+    public async Task GroupLevel_RequireAuthorization_AsStandaloneStatement_PropagatesToMembers()
+    {
+        // The TodoApi shape (E1): `group.RequireAuthorization(pb => ...)` as its own statement, not
+        // chained onto MapGroup or onto any individual Map call.
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var todos = app.MapGroup("/todos");
+            todos.RequireAuthorization(pb => pb.RequireCurrentUser());
+            todos.MapGet("/", () => Results.Ok(new[] { "todo1" }));
+            todos.MapPost("/", (CreateTodo cmd) => Results.Created());
+            app.Run();
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        Assert.All(endpoints, e => Assert.Contains("[Authorize]", e.AuthAttributes));
+    }
+
+    [Fact]
+    public async Task GroupLevel_RequireAuthorization_ChainedOnMapGroup_PropagatesToMembers()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var admin = app.MapGroup("/admin").RequireAuthorization("AdminPolicy");
+            admin.MapGet("/stats", () => "stats");
+            app.Run();
+            """);
+
+        var endpoint = result.Detections.OfType<EndpointDetection>().Single();
+        Assert.Contains("[Authorize(AdminPolicy)]", endpoint.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task EndpointOwnAllowAnonymous_OverridesGroupRequireAuthorization()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var todos = app.MapGroup("/todos");
+            todos.RequireAuthorization();
+            todos.MapGet("/", () => "list");
+            todos.MapGet("/public", () => "public").AllowAnonymous();
+            app.Run();
+            """);
+
+        var endpoints = result.Detections.OfType<EndpointDetection>().ToList();
+        var list = endpoints.Single(e => e.RouteTemplate == "/todos/");
+        var pub = endpoints.Single(e => e.RouteTemplate == "/todos/public");
+
+        Assert.Contains("[Authorize]", list.AuthAttributes);
+        Assert.Contains("[AllowAnonymous]", pub.AuthAttributes);
+        Assert.DoesNotContain("[Authorize]", pub.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task NoGroupAuth_LeavesMembersWithNoAuthAttributes()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var todos = app.MapGroup("/todos");
+            todos.MapGet("/", () => "list");
+            app.Run();
+            """);
+
+        var endpoint = result.Detections.OfType<EndpointDetection>().Single();
+        Assert.Empty(endpoint.AuthAttributes);
+    }
+
+    [Fact]
+    public async Task GlobalFallbackPolicy_RequireAuthenticatedUser_IsDetected()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            });
+            var app = builder.Build();
+            app.MapGet("/orders", () => "orders");
+            app.Run();
+            """);
+
+        var globalAuth = result.Detections.OfType<GlobalAuthPolicyDetection>().SingleOrDefault();
+        Assert.NotNull(globalAuth);
+        Assert.True(globalAuth!.HasFallbackPolicy);
+    }
+
+    [Fact]
+    public async Task AddAuthorization_WithoutFallbackPolicy_DoesNotEmitGlobalSignal()
+    {
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddAuthorization();
+            var app = builder.Build();
+            app.MapGet("/orders", () => "orders");
+            app.Run();
+            """);
+
+        Assert.Empty(result.Detections.OfType<GlobalAuthPolicyDetection>());
+    }
+
     private static async Task<DiscoveryModel> RunExtractorOnSourceAsync(string fileName, string source)
     {
         var fs = new FakeFileSystem();

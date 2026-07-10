@@ -3,6 +3,7 @@ using DevContext.Cli.Commands;
 
 var services = new ServiceCollection();
 services.AddSingleton<ILoggerFactory>(_ => LoggerFactory.Create(b => b.AddSerilog(dispose: true)));
+services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger<DiscoveryPipeline>());
 services.AddDevContextServices(".");
 
 var registrar = new TypeRegistrar(services);
@@ -22,6 +23,11 @@ app.Configure(config =>
         .WithDescription("Query the analysis graph (JSON-first)")
         .WithExample(new[] { "query", "entrypoints", "--path", "." })
         .WithExample(new[] { "query", "trace", "--focus", "POST /api/orders" });
+
+    config.AddCommand<ReportCommand>("report")
+        .WithDescription("Produce a full report doc — identity, stats, top flows, traces, insights, map, run report")
+        .WithExample(new[] { "report", "." })
+        .WithExample(new[] { "report", ".", "--format", "json", "--output", "report.json" });
 
     config.AddCommand<InitCommand>("init")
         .WithDescription("Create devcontext.json in the current directory");

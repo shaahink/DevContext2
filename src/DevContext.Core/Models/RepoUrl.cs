@@ -19,8 +19,13 @@ public sealed record RepoUrl(string Owner, string Repo, string? Ref)
         if (url.StartsWith("github.com/", StringComparison.OrdinalIgnoreCase))
             url = "https://" + url;
 
-        // Shorthand: "user/repo"
-        if (url.Count(c => c == '/') == 1 && !url.Contains("://") && !url.Contains(' '))
+        // Shorthand: "user/repo". Excludes anything that structurally looks like a path rather than a
+        // GitHub owner/repo pair (E9): a drive letter or backslash (Windows paths), or a leading
+        // "."/"/" (relative or absolute local paths) — "C:/foo" and "./bar" both have exactly one
+        // slash and would otherwise be misread as shorthand.
+        if (url.Count(c => c == '/') == 1 && !url.Contains("://") && !url.Contains(' ')
+            && !url.Contains(':') && !url.Contains('\\')
+            && !url.StartsWith('.') && !url.StartsWith('/'))
         {
             var parts = url.Split('/');
             if (parts.Length == 2 && !string.IsNullOrEmpty(parts[0]) && !string.IsNullOrEmpty(parts[1]))

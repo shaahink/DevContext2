@@ -68,6 +68,7 @@ public sealed class SourceBodyExtractor : IDiscoveryExtractor
                 // MediatR Send / event-raise can be anywhere in a method); the compression stage caps
                 // SourceBody for rendering afterwards (it runs after graph assembly).
                 type.SourceBody = typeDecl.ToFullString();
+                type.StartLine = typeDecl.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
             }
         }
     }

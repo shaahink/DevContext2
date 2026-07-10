@@ -20,6 +20,7 @@ export const SEAM_COLORS: Record<string, string> = {
   Data: '#6cb2eb',
   Resolve: '#5ac8fa',
   Pipeline: '#d16d9e',
+  CrossService: '#98c379',
 };
 
 /** Case-insensitive lookup — defends against a caller passing lowercase (a real bug found

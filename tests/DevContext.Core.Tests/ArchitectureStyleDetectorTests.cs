@@ -159,24 +159,18 @@ public sealed class ArchitectureStyleDetectorTests
     [Fact]
     public void EShop_shape_is_microservices_not_MinimalApi()
     {
-        // Aspire + many projects → Microservices
+        // Aspire + many projects → Microservices (with a .sln — real eShop has one)
         var model = new DiscoveryModel();
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MediatR, 1.0f));
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.8f));
         model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
-        model.Projects = [
-            Project("Ordering.API"),
-            Project("Ordering.Domain"),
-            Project("Ordering.Application"),
-            Project("Ordering.Infrastructure"),
-            Project("Basket.API"),
-            Project("Payment.API"),
-            Project("Catalog.API"),
-            Project("EventBus"),
-            Project("ServiceDefaults"),
-            Project("AppHost"),
-        ];
+        var projectNames = new[] { "Ordering.API", "Ordering.Domain", "Ordering.Application",
+            "Ordering.Infrastructure", "Basket.API", "Payment.API", "Catalog.API",
+            "EventBus", "ServiceDefaults", "AppHost" };
+        model.Projects = [.. projectNames.Select(Project)];
+        model.Solution = new SolutionInfo("eShop.slnx", "eShop",
+            [.. projectNames.Select(n => $"{n}.csproj")]);
         model.Detections.Add(new MediatRHandlerDetection("CreateOrderCommand", "bool", "CreateOrderCommandHandler", MediatRKind.Command)
         {
             ExtractorName = "test", SourceFile = "Ordering.Application/Commands/CreateOrderCommandHandler.cs", LineNumber = 20,
@@ -253,5 +247,163 @@ public sealed class ArchitectureStyleDetectorTests
 
         var (style, _, _) = ArchitectureStyleDetector.Detect(model);
         Assert.Equal(ArchitectureStyle.Microservices, style);
+    }
+
+    [Fact]
+    public void ModularMonolith_detected_from_real_module_segment_naming()
+    {
+        // E8 positive: a genuine bounded-context naming convention ("Module" as a whole dot-separated
+        // name segment) still triggers ModularMonolith.
+        var model = new DiscoveryModel();
+        model.Projects =
+        [
+            Project("Ordering.Module"), Project("Catalog.Module"), Project("Shipping.Module"),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.ModularMonolith, style);
+    }
+
+    [Fact]
+    public void ModularMonolith_not_claimed_from_product_name_substring_or_test_projects()
+    {
+        // E8 negative: DevContext's own self-analysis shape. Every project name contains "context" as a
+        // SUBSTRING (the product is called "DevContext") but none of them is a bounded-context module by
+        // naming convention, and a *.Tests project must never count towards the module tally even when it
+        // does carry a real "Module" segment.
+        var model = new DiscoveryModel();
+        model.Projects =
+        [
+            new ProjectInfo("DevContext.Cli", @"C:\repo\src\DevContext.Cli\DevContext.Cli.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Core", @"C:\repo\src\DevContext.Core\DevContext.Core.csproj", "C#", [], [], []),
+            new ProjectInfo("DevContext.Server", @"C:\repo\src\DevContext.Server\DevContext.Server.csproj", "C#", [], [], []),
+            new ProjectInfo("Catalog.Module.Tests", @"C:\repo\tests\Catalog.Module.Tests\Catalog.Module.Tests.csproj", "C#", [], [], []),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.ModularMonolith, style);
+    }
+
+    [Fact]
+    public void SampleCollection_when_majority_of_projects_are_in_sample_paths()
+    {
+        // E4 / L7.3: a repo where >50% of non-test projects live under sample/demo paths
+        // is a sample collection, not Microservices, even if it has web-signal projects.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Gateway, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
+        model.Projects =
+        [
+            new ProjectInfo("BlazorApp1", @"C:\repo\samples\BlazorApp1\BlazorApp1.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp2", @"C:\repo\samples\BlazorApp2\BlazorApp2.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp3", @"C:\repo\samples\BlazorApp3\BlazorApp3.csproj", "C#", [], [], []),
+            new ProjectInfo("BlazorApp4", @"C:\repo\samples\BlazorApp4\BlazorApp4.csproj", "C#", [], [], []),
+            new ProjectInfo("SharedLib", @"C:\repo\src\Shared\SharedLib.csproj", "C#", [], [], []),
+        ];
+
+        var (style, confidence, via) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.SampleCollection, style);
+        Assert.True(confidence > 0.7f, $"Confidence {confidence} should be > 0.7");
+        Assert.Contains("samples", via);
+    }
+
+    [Fact]
+    public void SampleCollection_when_no_unifying_solution_and_many_projects()
+    {
+        // L7.3: a docs/examples repo with no .sln file and >3 projects → SampleCollection
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Controllers, 0.9f));
+        model.Projects =
+        [
+            Project("ExampleA"), Project("ExampleB"), Project("ExampleC"), Project("ExampleD"),
+        ];
+        model.Solution = null;
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.SampleCollection, style);
+    }
+
+    [Fact]
+    public void SampleCollection_outranks_Microservices()
+    {
+        // L7.3 guardrail: SampleCollection MUST never report as Microservices (E4 fix).
+        // Even with strong microservices signals, sample-path dominance wins.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Gateway, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MediatR, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.EfCore, 1.0f));
+        model.Projects =
+        [
+            new ProjectInfo("DemoApi", @"C:\repo\samples\DemoApi\DemoApi.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Domain", @"C:\repo\samples\DemoApi\DemoApi.Domain.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Application", @"C:\repo\samples\DemoApi\DemoApi.Application.csproj", "C#", [], [], []),
+            new ProjectInfo("DemoApi.Infrastructure", @"C:\repo\samples\DemoApi\DemoApi.Infrastructure.csproj", "C#", [], [], []),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.Microservices, style);
+        Assert.NotEqual(ArchitectureStyle.CleanArchitecture, style);
+        Assert.Equal(ArchitectureStyle.SampleCollection, style);
+    }
+
+    [Fact]
+    public void Non_sample_paths_do_not_trigger_SampleCollection()
+    {
+        // Regression: a normal microservices repo without sample paths must NOT be flagged.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Projects =
+        [
+            new ProjectInfo("Ordering.API", @"C:\repo\src\Ordering.API\Ordering.API.csproj", "C#", [], [], []),
+            new ProjectInfo("Basket.API", @"C:\repo\src\Basket.API\Basket.API.csproj", "C#", [], [], []),
+            new ProjectInfo("AppHost", @"C:\repo\src\AppHost\AppHost.csproj", "C#", [], [], []),
+        ];
+        model.Solution = new SolutionInfo("eShop.slnx", "eShop",
+            ["Ordering.API.csproj", "Basket.API.csproj", "AppHost.csproj"]);
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.SampleCollection, style);
+    }
+
+    [Fact]
+    public void SampleCollection_when_many_projects_but_sln_covers_few()
+    {
+        // L7.4: multi-.sln sample directory (e.g. dotnet/blazor-samples). The resolver
+        // walked down to find a single small .sln (1-2 projects) but the pipeline
+        // collected 100+ projects from the top-level directory. This mismatch is a
+        // strong signal of a multi-sample collection.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Gateway, 1.0f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MassTransit, 1.0f));
+        var projects = ImmutableArray.CreateBuilder<ProjectInfo>();
+        for (int i = 0; i < 30; i++)
+            projects.Add(new ProjectInfo($"App{i}", $@"C:\repo\10.0\App{i}\App{i}.csproj", "C#", [], [], []));
+        model.Projects = projects.ToImmutable();
+        model.Solution = new SolutionInfo("BlazorSample.sln", "BlazorSample",
+            ["BlazorSample.csproj"]); // .sln covers only 1 project, but 30 analyzed
+
+        var (style, _, via) = ArchitectureStyleDetector.Detect(model);
+        Assert.Equal(ArchitectureStyle.SampleCollection, style);
+        Assert.Contains("multi-sample", via);
+    }
+
+    [Fact]
+    public void Normal_repo_with_sln_matching_projects_not_flagged()
+    {
+        // Regression: a normal repo where the .sln covers all projects must NOT be flagged.
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MinimalApis, 0.9f));
+        model.Projects = [Project("MyApp"), Project("MyApp.Core"), Project("MyApp.Infra")];
+        model.Solution = new SolutionInfo("MyApp.sln", "MyApp",
+            ["MyApp.csproj", "MyApp.Core.csproj", "MyApp.Infra.csproj"]);
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.SampleCollection, style);
     }
 }

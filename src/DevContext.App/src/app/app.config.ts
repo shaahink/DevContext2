@@ -21,6 +21,8 @@ const routes: Routes = [
       { path: 'explore', loadComponent: () => import('./features/pages/workbench-page').then((m) => m.WorkbenchPage) },
       { path: 'atlas', loadComponent: () => import('./features/pages/atlas-page').then((m) => m.AtlasPage) },
       { path: 'insights', loadComponent: () => import('./features/pages/insights-page').then((m) => m.InsightsPage) },
+      { path: 'mcp', loadComponent: () => import('./features/pages/mcp-page').then((m) => m.McpPage) },
+      { path: 'context', loadComponent: () => import('./features/context-studio/context-studio').then((m) => m.ContextStudio) },
       { path: 'settings', loadComponent: () => import('./features/settings/settings-view').then((m) => m.SettingsView) },
       // Dev-only token sheet + component gallery (proposal W0.4) — never in a prod build's nav.
       ...(isDevMode()

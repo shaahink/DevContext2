@@ -1,3 +1,5 @@
+using DevContext.Core.Models;
+
 namespace DevContext.Core.Graph;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -15,6 +17,7 @@ namespace DevContext.Core.Graph;
 public enum NodeKind
 {
     Type, Member, EntryPoint,
+    Service, Message, Store,
 }
 
 /// <summary>Role labels attached to a Type node's <see cref="GraphNode.Tags"/>. These replace the old
@@ -35,6 +38,20 @@ public static class RoleTags
     public const string Pipeline = "pipeline";
     public const string DataStore = "datastore";
     public const string Consumer = "consumer";
+    /// <summary>Marks a Service node as a runnable deployable (has an entry assembly / web SDK), as
+    /// opposed to a Service node synthesized for a class library that only participates in a
+    /// cross-service seam. Design §1.3: "A class library is NOT a Service."</summary>
+    public const string Runnable = "runnable";
+}
+
+/// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport
+/// seam: bus publish→consume, gRPC client→server, HTTP-via-gateway, or direct Refit/HttpClient.</summary>
+public static class ServiceLinkTags
+{
+    public const string BusPublishConsume = "bus-publish→consume";
+    public const string Grpc = "grpc";
+    public const string HttpViaGateway = "http-via-gateway";
+    public const string RefitDirect = "refit-direct";
 }
 
 /// <summary>The kind of a directed edge. Each maps to a trace "seam". Direction is always caller→callee
@@ -61,6 +78,12 @@ public enum EdgeKind
     /// Derived from navigation properties; the arrow direction is BelongsTo (child → parent) for
     /// depth-from-aggregate-root computation.</summary>
     EntityRelation,
+    /// <summary>Cross-service wiring edge: project A → project B via bus/gRPC/HTTP/YARP. The edge
+    /// represents a runtime communication seam between runnable services. Sub-kind is carried as a
+    /// tag on the edge via <see cref="ServiceLinkTags"/>.</summary>
+    ServiceLink,
+    Exposes,
+    DependsOn,
 }
 
 /// <summary>How confidently an edge was established — surfaced in the report (P3: show your work).</summary>
@@ -87,6 +110,9 @@ public readonly record struct NodeId(NodeKind Kind, string Key)
     public static NodeId ForType(string fqn) => new(NodeKind.Type, fqn);
     public static NodeId ForMember(string typeFqn, string member) => new(NodeKind.Member, $"{typeFqn}.{member}");
     public static NodeId ForEntry(string key) => new(NodeKind.EntryPoint, key);
+    public static NodeId ForService(string name) => new(NodeKind.Service, name);
+    public static NodeId ForMessage(string fqn) => new(NodeKind.Message, fqn);
+    public static NodeId ForStore(string fqn) => new(NodeKind.Store, fqn);
 }
 
 /// <summary>A node. Serialization-stable: holds primitive data, never live model references.</summary>
@@ -101,8 +127,14 @@ public sealed record GraphNode(
     public string? Project { get; init; }
     /// <summary>Full source body text of the type declaration (when applicable).</summary>
     public string? SourceBody { get; init; }
+    /// <summary>1-based start line of this node's declaration in its source file.</summary>
+    public int? LineNumber { get; init; }
     /// <summary>Free-form labels (e.g. "aggregate", "command", "scoped").</summary>
     public ImmutableArray<string> Tags { get; init; } = [];
+    /// <summary>D9 Architecture layer classification (e.g. "Api", "Domain", "Infrastructure").</summary>
+    public string? Layer { get; init; }
+    /// <summary>D9 Feature classification derived from namespace/folder conventions.</summary>
+    public string? Feature { get; init; }
 }
 
 /// <summary>A directed, typed edge with provenance and resolution confidence.</summary>
@@ -117,6 +149,8 @@ public sealed record GraphEdge(
     public Resolution Resolution { get; init; } = Resolution.Join;
     /// <summary>0..1 confidence.</summary>
     public float Confidence { get; init; } = 1.0f;
+    /// <summary>Free-form labels for sub-classification (e.g. ServiceLinkTags.BusPublishConsume).</summary>
+    public ImmutableArray<string> Tags { get; init; } = [];
     /// <summary>When >1, how many DI implementations exist for this Resolves edge's service type
     /// (I1.6 multi-impl honesty). Zero otherwise.</summary>
     public int MultiImplCount { get; init; }
@@ -157,6 +191,18 @@ public sealed class CodeGraph
     public int NodeCount => _nodes.Count;
     /// <summary>Total edge count.</summary>
     public int EdgeCount => _outEdges.Values.Sum(e => e.Length);
+    /// <summary>All edges in the graph (from every node's outgoing adjacency). Lazy, one-allocation.</summary>
+    public IEnumerable<GraphEdge> AllEdges => _outEdges.Values.SelectMany(e => e);
+    /// <summary>L3.4 — True when the graph required hub-scoping because normal call-edge binding produced
+    /// too few edges (entries &lt; 5 or edge/node ratio &lt; 0.1). Reported honestly in Stats.</summary>
+    public bool IsSparseGraph { get; init; }
+    /// <summary>L3.4 — Number of hub-scoped nodes additional edges were bound for.</summary>
+    public int HubScopeNodeCount { get; init; }
+    /// <summary>D9 — Layer violations detected during graph assembly.</summary>
+    public ImmutableArray<LayerViolation> LayerViolations { get; init; } = [];
+    /// <summary>L4 — Precomputed flows (spine-only), one per entry. Computed at assembly time, consumed
+    /// by projections, MCP tools, and UI surfaces (design §1.4, §3).</summary>
+    public ImmutableArray<Flow> Flows { get; init; } = [];
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -185,6 +231,7 @@ public sealed class CodeGraphBuilder
     private readonly Dictionary<NodeId, GraphNode> _nodes = [];
     private readonly Dictionary<NodeId, List<GraphEdge>> _out = [];
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
+    private readonly List<Flow> _flows = [];
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
@@ -209,6 +256,9 @@ public sealed class CodeGraphBuilder
                 FilePath = existing.FilePath ?? node.FilePath,
                 SourceBody = existing.SourceBody ?? node.SourceBody,
                 Project = existing.Project ?? node.Project,
+                LineNumber = existing.LineNumber ?? node.LineNumber,
+                Layer = existing.Layer ?? node.Layer,
+                Feature = existing.Feature ?? node.Feature,
             };
             _nodes[node.Id] = merged;
             return merged;
@@ -232,17 +282,45 @@ public sealed class CodeGraphBuilder
         return true;
     }
 
+    /// <summary>L3.3 — Upgrades the <see cref="GraphEdge.Resolution"/> of an existing edge in-place when
+    /// a semantic populator (Tier B) has verified the target. No-op if the edge doesn't exist or the
+    /// new resolution is not an upgrade (Syntactic can go to Semantic; Semantic cannot go to Syntactic).</summary>
+    public bool UpgradeEdge(NodeId from, NodeId to, EdgeKind kind, Resolution newResolution)
+    {
+        if (newResolution == Resolution.Syntactic) return false;
+        if (!_out.TryGetValue(from, out var list)) return false;
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i].To == to && list[i].Kind == kind)
+            {
+                if (list[i].Resolution == newResolution) return false;
+                list[i] = list[i] with { Resolution = newResolution };
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>True if a node with the given id has been added.</summary>
     public bool HasNode(NodeId id) => _nodes.ContainsKey(id);
+
+    /// <summary>Total nodes added so far.</summary>
+    public int NodeCount => _nodes.Count;
+
+    /// <summary>Total edges added so far.</summary>
+    public int EdgeCount => _edgeKeys.Count;
 
     /// <summary>The node with the given id, or null. Lets passes inspect what's already there
     /// (e.g. restrict Calls edges to declared in-scope types, which carry a FilePath).</summary>
     public GraphNode? GetNode(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
 
+    /// <summary>L4 — Sets the computed flows on the builder. Replaces any previously set flows.</summary>
+    public void SetFlows(IEnumerable<Flow> flows) { _flows.Clear(); _flows.AddRange(flows); }
+
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
-    public CodeGraph Build()
+    public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen);
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows] };
     }
 }

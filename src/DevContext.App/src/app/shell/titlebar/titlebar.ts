@@ -8,6 +8,7 @@ import { RecentStore } from '../../state/recent.store';
 import { PrefsStore } from '../../state/prefs.store';
 import type { AnalyzeSpec } from '../../data-access/devcontext-api';
 import { Icon } from '../../ui/icon/icon';
+import { ToastService } from '../../ui/toast/toast';
 import { isTauri } from '../../core/tauri-env';
 
 let tauriWindowApi: {
@@ -41,7 +42,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
   selector: 'app-titlebar',
   imports: [Icon],
   template: `
-    <header class="flex h-[30px] w-full shrink-0 items-center border-b border-line bg-base px-2 select-none">
+    <header class="flex h-10 w-full shrink-0 items-center border-b border-line bg-base px-2 select-none">
       <div class="flex h-full items-center gap-1.5" data-tauri-drag-region>
         <span
           class="flex cursor-pointer items-center gap-1.5 px-1 font-mono text-xs font-semibold tracking-tight text-ink"
@@ -63,7 +64,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
               class="flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-2xs text-ink-muted transition-colors hover:bg-hover hover:text-ink"
               (click)="repoMenuOpen.set(!repoMenuOpen())"
             >
-              <app-icon name="folder-open" [size]="11" />
+              <app-icon name="folder-open" [size]="14" />
               <span class="max-w-[180px] truncate font-mono">{{ repoLabel() }}</span>
               <svg width="9" height="5" viewBox="0 0 10 6" class="transition-transform" [class.rotate-180]="repoMenuOpen()"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
             </button>
@@ -83,7 +84,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
                         class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-ink-muted transition-colors hover:bg-hover hover:text-ink"
                         (click)="selectRecent(r.path)"
                       >
-                        <app-icon name="folder-open" [size]="11" />
+                        <app-icon name="folder-open" [size]="14" />
                         <span class="truncate font-mono">{{ r.label }}</span>
                       </button>
                     }
@@ -95,7 +96,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
                     class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-accent transition-colors hover:bg-hover"
                     (click)="newAnalysis()"
                   >
-                    <app-icon name="play" [size]="11" />
+                    <app-icon name="play" [size]="14" />
                     New analysis…
                   </button>
                 </div>
@@ -109,7 +110,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
           (click)="openOmnibox()"
           title="Search or jump (Ctrl+K)"
         >
-          <app-icon name="search" [size]="11" class="shrink-0" />
+          <app-icon name="search" [size]="14" class="shrink-0" />
           <span class="min-w-0 flex-1 truncate text-left">search or jump…</span>
           <span class="kbd shrink-0">Ctrl+K</span>
         </button>
@@ -123,7 +124,7 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
             (click)="newAnalysis()"
             title="New analysis"
           >
-            <app-icon name="play" [size]="10" /> New
+            <app-icon name="play" [size]="14" /> New
           </button>
         }
         <span
@@ -162,10 +163,11 @@ async function loadTauriWindowApi(): Promise<typeof tauriWindowApi> {
 export class Titlebar {
   protected readonly connection = inject(ConnectionStore);
   protected readonly session = inject(SessionStore);
-  private readonly workspace = inject(WorkspaceStore);
+  protected readonly workspace = inject(WorkspaceStore);
   private readonly recentStore = inject(RecentStore);
   private readonly prefs = inject(PrefsStore);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly recents = this.recentStore.recents;
   protected readonly repoMenuOpen = signal(false);
@@ -181,17 +183,22 @@ export class Titlebar {
 
   protected newAnalysis(): void {
     this.repoMenuOpen.set(false);
-    this.session.cancel();
-    const tabId = this.workspace.activeId();
-    if (tabId) this.workspace.closeTab(tabId);
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
+    this.workspace.createTab('', 'New tab');
     void this.router.navigateByUrl('/');
   }
 
   protected selectRecent(path: string): void {
     this.repoMenuOpen.set(false);
-    this.session.cancel();
-    const tabId = this.workspace.activeId();
-    if (tabId) this.workspace.closeTab(tabId);
+    if (this.workspace.atCap()) {
+      this.toast.show(`Tab limit (${WorkspaceStore.MAX_TABS}) — close one to open another`, 'info');
+      return;
+    }
+    const label = path.split(/[\\/]/).pop() || path;
+    this.workspace.createTab(path, label);
     const defs = this.prefs.analyzeDefaults();
     const spec: AnalyzeSpec = { path, depth: defs.depth, detail: defs.detail, noRoslyn: defs.noRoslyn, cleanup: defs.cleanup };
     void this.session.analyze(spec);

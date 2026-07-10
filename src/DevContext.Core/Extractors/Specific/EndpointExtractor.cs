@@ -57,8 +57,16 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
         var allInvocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-        // Phase 1b pre-scan: MapGroup + NewVersionedApi chain detection — resolve group prefixes
+        // Global auth signal (E1): AddAuthorization(o => o.FallbackPolicy/DefaultPolicy =
+        // ...RequireAuthenticatedUser()) protects every endpoint that carries no other auth metadata.
+        // Detected once per analysis so AnonymousEndpointsSource never calls a covered endpoint "anonymous".
+        DetectGlobalAuthFallback(root, filePath, detectedKeys, model);
+
+        // Phase 1b pre-scan: MapGroup + NewVersionedApi chain detection — resolve group prefixes and
+        // group-level auth conventions (RequireAuthorization/AllowAnonymous applied to the group, either
+        // chained onto MapGroup(...) or as a later statement on the group variable — E1).
         var groupPrefixes = ExtractGroupPrefixes(root);
+        var groupAuth = ExtractGroupAuth(root, groupPrefixes);
 
         // Phase 1: Find direct MapGet/MapPost/etc calls (app.MapGet("/route", handler))
         foreach (var invocation in allInvocations)
@@ -68,12 +76,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
 
             // Check if this is a call on a MapGroup variable (e.g. api.MapGet(...))
-            var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
-                && groupPrefixes.TryGetValue(groupVar.Identifier.ValueText, out var gp)
-                ? gp
-                : null;
+            var groupVarName = memberAccess.Expression is IdentifierNameSyntax groupVar ? groupVar.Identifier.ValueText : null;
+            var groupPrefix = groupVarName is not null && groupPrefixes.TryGetValue(groupVarName, out var gp) ? gp : null;
+            var groupAuthAttrs = groupVarName is not null && groupAuth.TryGetValue(groupVarName, out var ga) ? ga : [];
 
-            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix);
+            AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix, groupAuthAttrs);
         }
 
         // Phase 2: Find extension methods that take IEndpointRouteBuilder/WebApplication
@@ -86,6 +93,7 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         {
             // Scan for MapGroup calls within the extension method body for prefix resolution
             var extGroupPrefixes = ExtractGroupPrefixes(extMethod);
+            var extGroupAuth = ExtractGroupAuth(extMethod, extGroupPrefixes);
             var extInvocations = extMethod.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (var invocation in extInvocations)
             {
@@ -93,12 +101,11 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
                 if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
                 if (!MapMethods.Contains(memberAccess.Name.Identifier.ValueText)) continue;
 
-                var groupPrefix = memberAccess.Expression is IdentifierNameSyntax groupVar
-                    && extGroupPrefixes.TryGetValue(groupVar.Identifier.ValueText, out var gp)
-                    ? gp
-                    : null;
+                var groupVarName = memberAccess.Expression is IdentifierNameSyntax groupVar ? groupVar.Identifier.ValueText : null;
+                var groupPrefix = groupVarName is not null && extGroupPrefixes.TryGetValue(groupVarName, out var gp) ? gp : null;
+                var groupAuthAttrs = groupVarName is not null && extGroupAuth.TryGetValue(groupVarName, out var ga) ? ga : [];
 
-                AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix);
+                AddEndpoint(invocation, memberAccess, filePath, detectedKeys, model, groupPrefix, groupAuthAttrs);
             }
         }
 
@@ -127,7 +134,8 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
         string filePath,
         HashSet<string> detectedKeys,
         DiscoveryModel model,
-        string? groupPrefix = null)
+        string? groupPrefix = null,
+        ImmutableArray<string> groupAuthAttributes = default)
     {
         var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
         if (!detectedKeys.Add($"{filePath}:{line}")) return;
@@ -146,7 +154,12 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
             : routeTemplate;
         fullRoute = NormalizeRoute(fullRoute);
 
-        var authAttrs = ExtractAuthFromChain(invocation);
+        // Endpoint's own chain (`.MapGet(...).RequireAuthorization()`/`.AllowAnonymous()`) always wins;
+        // an endpoint with no auth call of its own inherits whatever the group decided (E1).
+        var ownAuthAttrs = ExtractAuthFromChain(invocation);
+        var authAttrs = ownAuthAttrs.Length > 0
+            ? ownAuthAttrs
+            : (groupAuthAttributes.IsDefault ? [] : groupAuthAttributes);
         var handlerArg = FindHandler(invocation);
         var handlerMethod = handlerArg switch
         {
@@ -213,22 +226,119 @@ public sealed class EndpointExtractor : IDiscoveryExtractor
 
         while (node.Parent is MemberAccessExpressionSyntax ma && ma.Parent is InvocationExpressionSyntax chainInvoke)
         {
-            var methodName = ma.Name.Identifier.ValueText;
-            if (methodName == "RequireAuthorization")
-            {
-                var policyArg = chainInvoke.ArgumentList.Arguments.FirstOrDefault();
-                auth.Add(policyArg?.Expression is LiteralExpressionSyntax lit
-                    ? $"[Authorize({lit.Token.ValueText})]"
-                    : "[Authorize]");
-            }
-            else if (methodName == "AllowAnonymous")
-            {
-                auth.Add("[AllowAnonymous]");
-            }
+            var attr = AuthAttributeForCall(ma.Name.Identifier.ValueText, chainInvoke);
+            if (attr is not null) auth.Add(attr);
             node = chainInvoke;
         }
 
         return [.. auth];
+    }
+
+    private static string? AuthAttributeForCall(string methodName, InvocationExpressionSyntax call)
+    {
+        if (methodName == "RequireAuthorization")
+        {
+            var policyArg = call.ArgumentList.Arguments.FirstOrDefault();
+            return policyArg?.Expression is LiteralExpressionSyntax lit
+                ? $"[Authorize({lit.Token.ValueText})]"
+                : "[Authorize]";
+        }
+        if (methodName == "AllowAnonymous") return "[AllowAnonymous]";
+        return null;
+    }
+
+    /// <summary>
+    /// Group-level auth conventions (E1): a group builder can be given `RequireAuthorization`/
+    /// `AllowAnonymous` either chained directly onto its `MapGroup(...)` call, or as a separate later
+    /// statement on the group variable (`group.RequireAuthorization(pb => ...)`) — the common shape for
+    /// custom policy builders. Member endpoints registered on that group inherit these unless they
+    /// specify their own auth chain.
+    /// </summary>
+    private static Dictionary<string, ImmutableArray<string>> ExtractGroupAuth(
+        SyntaxNode root, Dictionary<string, string> groupPrefixes)
+    {
+        var groupAuth = new Dictionary<string, List<string>>();
+
+        void AddAuth(string varName, string? attr)
+        {
+            if (attr is null) return;
+            if (!groupAuth.TryGetValue(varName, out var list))
+            {
+                list = [];
+                groupAuth[varName] = list;
+            }
+            list.Add(attr);
+        }
+
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            var methodName = memberAccess.Name.Identifier.ValueText;
+
+            // Standalone statement on a known group variable — `group.RequireAuthorization(...)`.
+            if ((methodName == "RequireAuthorization" || methodName == "AllowAnonymous")
+                && memberAccess.Expression is IdentifierNameSyntax idExpr
+                && groupPrefixes.ContainsKey(idExpr.Identifier.ValueText))
+            {
+                AddAuth(idExpr.Identifier.ValueText, AuthAttributeForCall(methodName, invocation));
+                continue;
+            }
+
+            // Chained directly onto the MapGroup(...) call — `app.MapGroup("/x").RequireAuthorization()`.
+            if (methodName != "MapGroup") continue;
+            var varName = FindAssignedVariable(invocation);
+            if (varName is null || !groupPrefixes.ContainsKey(varName)) continue;
+
+            foreach (var attr in ExtractAuthFromChain(invocation))
+                AddAuth(varName, attr);
+        }
+
+        return groupAuth.ToDictionary(kv => kv.Key, kv => (ImmutableArray<string>)[.. kv.Value]);
+    }
+
+    /// <summary>
+    /// Detects an app-wide fallback/default authorization policy
+    /// (`AddAuthorization(o => o.FallbackPolicy = ...RequireAuthenticatedUser())`). When present, an
+    /// endpoint with no auth metadata of its own is protected by default — the insight layer must not
+    /// call it "anonymous" (E1).
+    /// </summary>
+    private static void DetectGlobalAuthFallback(
+        SyntaxNode root, string filePath, HashSet<string> detectedKeys, DiscoveryModel model)
+    {
+        if (detectedKeys.Contains("global-auth-fallback-policy")) return;
+
+        foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) continue;
+            if (memberAccess.Name.Identifier.ValueText != "AddAuthorization") continue;
+
+            var lambda = invocation.ArgumentList.Arguments
+                .Select(a => a.Expression)
+                .OfType<LambdaExpressionSyntax>()
+                .FirstOrDefault();
+            if (lambda is null) continue;
+
+            var setsAuthRequiredDefault = lambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Any(a =>
+                    a.Left is MemberAccessExpressionSyntax lma
+                    && lma.Name.Identifier.ValueText is "FallbackPolicy" or "DefaultPolicy"
+                    && a.Right.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+                        .Any(i => i.Expression is MemberAccessExpressionSyntax rma
+                            && rma.Name.Identifier.ValueText == "RequireAuthenticatedUser"));
+
+            if (!setsAuthRequiredDefault) continue;
+
+            detectedKeys.Add("global-auth-fallback-policy");
+            var line = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            model.Detections.Add(new GlobalAuthPolicyDetection(true)
+            {
+                ExtractorName = "EndpointExtractor",
+                SourceFile = filePath,
+                LineNumber = line,
+            });
+            return;
+        }
     }
 
     private static Dictionary<string, string> ExtractGroupPrefixes(SyntaxNode root)

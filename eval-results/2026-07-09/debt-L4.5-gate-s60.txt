@@ -1,0 +1,49 @@
+
+D8 L4.5 — GATE EVIDENCE (s60 — QA + hardening)
+==================================================
+Date: 2026-07-09
+Session: s60 (session #60 — D8 L4.5 Flow model hardening, attempt 1/2)
+Branch: feat/loom-l7
+
+D8 OVERVIEW:
+Orchestrator launched s60 targeting D8 (L4.5), but D8 was previously marked DONE
+in s58 with evidence `eval-results/2026-07-09/debt-L4.5-gate.txt`. Session s60 QA'd
+all s58 claims and found 1 gap.
+
+QA OF PREVIOUS SESSION (s58, D8 claims):
+- Claim 1: IsTruncated flag + maxSpineDepth configurable ✓ (PRESENT, correct)
+- Claim 2: Proportional budget via AllocateProportionalBudgets ✓ (PRESENT, correct)
+- Claim 3: EntryPointKind provenance via "kind:" tag ✓ (PRESENT, correct)
+- Claim 4: GetContextPack integration tests ✓ (2 tests, both pass)
+
+GAP FOUND — Depth warning diagnostic MISSING:
+  Conductor-DEBT requirement: "Flow spine warns (log event, not exception) when
+  max depth reached." IsTruncated was set on Flow but never surfaced as a warning.
+  No logging anywhere in the pipeline consumed the flag.
+
+  FIX: Added DiagnosticLevel.Warning "FlowTruncated" in DiscoveryPipeline.cs
+  after graph assembly. Emits warning with truncated flow IDs when any flow
+  has IsTruncated == true. Caps at 5 IDs to avoid spam.
+
+CHANGES:
+- src/DevContext.Core/Pipeline/DiscoveryPipeline.cs: +12 lines — FlowTruncated
+  warning diagnostic after GraphAssembly info diagnostic.
+
+D8 CHECKPOINT RE-VERIFIED:
+1. Flow spine depth warning   ✓ (diagnostic added)
+2. maxSpineDepth configurable  ✓ (parameter on ComputeFlows)
+3. Proportional budget         ✓ (AllocateProportionalBudgets via reach)
+4. EntryPointKind provenance   ✓ ("kind:" tag in GraphBuilder, DeriveEntryKind)
+5. GetContextPack integration   ✓ (2 tests, 2P/0F)
+
+GATE BATTERY (fresh run, post-fix):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval (Core): 433P/0F/3S ✓
+- dotnet test --filter Category!=Eval (Server): 14P/0F/0S ✓ (+2 GetContextPack)
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- loom-guards.ps1: 0 banned, 13 advisory ✓
+
+TRUTH RATCHET: stable at 8P/3S/0F — 0 regressions. No ratchet changes.
+
+QA VERDICT: D8 is genuinely DONE. All 4 sub-items implemented + depth warning
+gap fixed.

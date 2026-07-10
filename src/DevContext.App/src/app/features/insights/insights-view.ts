@@ -1,6 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
-import { Card } from '../../ui/card/card';
 import { RouterLink } from '@angular/router';
 
 const SEVERITY_CLASS: Record<string, string> = {
@@ -15,15 +14,27 @@ const SEVERITY_LABEL_CLASS: Record<string, string> = {
   info: 'bg-accent/10 text-accent',
 };
 
+const IMPACT_GROUPS: Record<string, string> = {
+  warning: 'Act on this',
+  notable: 'Act on this',
+  info: 'Know this',
+};
+
 interface InsightGroup {
-  category: string;
-  insights: { id: string; title: string; severity: string; severityClass: string; detail: string; evidence: string[] }[];
+  impact: string;
+  insights: {
+    id: string; title: string; severity: string; severityClass: string;
+    detail: string; evidence: string[];
+    confidence: number; confidenceBasis?: string;
+    whyItMatters?: string; action: string; actionTarget?: string;
+    evidenceActions: string[];
+  }[];
 }
 
 @Component({
   selector: 'app-insights-view',
   standalone: true,
-  imports: [Card, RouterLink],
+  imports: [RouterLink],
   template: `
     <div class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
       <h2 class="text-lg font-semibold text-ink">Insights</h2>
@@ -59,29 +70,50 @@ interface InsightGroup {
       <!-- Loaded -->
       @else {
         <div class="space-y-3">
-          @for (group of groups(); track group.category) {
+          @for (group of groups(); track group.impact) {
             <div>
-              <span class="text-2xs text-ink-muted uppercase tracking-wider">{{ group.category }}</span>
+              <span class="text-2xs text-ink-muted uppercase tracking-wider">{{ group.impact }}</span>
               <div class="mt-1.5 space-y-2">
                 @for (insight of group.insights; track insight.id) {
-                  <app-card>
+                  <div class="rounded border border-line bg-surface-1 p-3">
                     <div class="border-l-2 pl-3" [class]="insight.severityClass">
                       <div class="flex items-center gap-2">
                         <span class="text-xs font-semibold text-ink">{{ insight.title }}</span>
                         <span class="rounded px-1.5 py-px text-2xs" [class]="severityLabelClass(insight.severity)">{{ insight.severity }}</span>
+                        @if (insight.confidence > 0) {
+                          <span class="text-2xs tabular-nums text-ink-subtle" [title]="insight.confidenceBasis ?? ''">{{ (insight.confidence * 100).toFixed(0) }}% conf</span>
+                        }
                       </div>
+                      @if (insight.whyItMatters) {
+                        <p class="mt-1 text-2xs text-ink-muted italic">{{ insight.whyItMatters }}</p>
+                      }
                       @if (insight.detail) {
                         <p class="mt-1 text-2xs text-ink-muted">{{ insight.detail }}</p>
                       }
                       @if (insight.evidence.length) {
                         <div class="mt-1.5 flex flex-wrap gap-1">
-                          @for (ev of insight.evidence; track ev) {
-                            <span class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted">{{ ev }}</span>
+                          @for (ev of insight.evidence; track ev; let idx = $index) {
+                            @if (eaRoute(insight.evidenceActions[idx] ?? ''); as route) {
+                              <a
+                                class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted hover:bg-surface-3 hover:text-accent transition-colors"
+                                [routerLink]="[route.route]"
+                                [queryParams]="route.params"
+                              >{{ ev }}</a>
+                            } @else {
+                              <span class="rounded bg-surface-2 px-1.5 py-0.5 text-2xs text-ink-muted">{{ ev }}</span>
+                            }
                           }
                         </div>
                       }
+                      @if (paRoute(insight.action, insight.actionTarget); as route) {
+                        <a class="mt-1.5 inline-block text-2xs text-accent hover:underline"
+                           [routerLink]="[route.route]"
+                           [queryParams]="route.params">
+                          {{ actionLabel(insight.action) }}
+                        </a>
+                      }
                     </div>
-                  </app-card>
+                  </div>
                 }
               </div>
             </div>
@@ -89,7 +121,7 @@ interface InsightGroup {
         </div>
       }
 
-      <!-- Coverage bar (always when stats loaded) -->
+      <!-- Coverage bar -->
       @if (store.stats(); as s) {
         <div class="border-t border-line pt-3">
           <span class="text-2xs text-ink-muted uppercase">Coverage</span>
@@ -104,7 +136,7 @@ interface InsightGroup {
         </div>
       }
 
-      <!-- Engine drawer -->
+      <!-- Engine details -->
       @if (store.stats(); as s) {
         <details class="border-t border-line pt-3">
           <summary class="text-xs text-ink-muted cursor-pointer hover:text-ink">Engine details</summary>
@@ -128,30 +160,75 @@ export class InsightsView {
     const list = this.store.insights();
     if (!list.length) return [] as InsightGroup[];
 
-    const map = new Map<string, { id: string; title: string; severity: string; severityClass: string; detail: string; evidence: string[] }[]>();
+    const map = new Map<string, {
+      id: string; title: string; severity: string; severityClass: string;
+      detail: string; evidence: string[];
+      confidence: number; confidenceBasis?: string;
+      whyItMatters?: string; action: string; actionTarget?: string;
+      evidenceActions: string[];
+    }[]>();
     for (const i of list) {
-      const cat = i.category || 'Other';
-      if (!map.has(cat)) map.set(cat, []);
-      map.get(cat)!.push({
+      const impact = IMPACT_GROUPS[i.severity] ?? 'Know this';
+      if (!map.has(impact)) map.set(impact, []);
+      map.get(impact)!.push({
         id: i.id,
         title: i.title,
         severity: i.severity,
         severityClass: SEVERITY_CLASS[i.severity] ?? SEVERITY_CLASS['info'],
         detail: i.detail,
-        evidence: i.evidence,
+        evidence: [...new Set(i.evidence)],
+        confidence: i.confidence,
+        confidenceBasis: i.confidenceBasis,
+        whyItMatters: i.whyItMatters,
+        action: i.action,
+        actionTarget: i.actionTarget,
+        evidenceActions: i.evidenceActions ?? [],
       });
     }
-    return [...map.entries()].map(([category, insights]) => ({ category, insights }));
+    return [...map.entries()].map(([impact, insights]) => ({ impact, insights }));
   });
 
   readonly coveragePct = computed(() => {
     const g = this.store.stats()?.graph;
     if (!g || !g.entries) return 0;
-    return Math.round((g.entriesWithTarget / g.entries) * 100);
+    return Math.round(((g.entriesWithTarget ?? 0) / g.entries) * 100);
   });
 
   severityLabelClass(severity: string): string {
     return SEVERITY_LABEL_CLASS[severity] ?? SEVERITY_LABEL_CLASS['info'];
+  }
+
+  actionLabel(action: string): string {
+    switch (action) {
+      case 'Focus': return 'Trace it →';
+      case 'Node': return 'Open node →';
+      case 'Filter': return 'Filter →';
+      default: return action;
+    }
+  }
+
+  eaRoute(encoded: string): { route: string; params: Record<string, string> } | null {
+    if (!encoded || encoded === 'None') return null;
+    const idx = encoded.indexOf(':');
+    if (idx < 0) return null;
+    const kind = encoded.slice(0, idx);
+    const target = encoded.slice(idx + 1);
+    switch (kind) {
+      case 'Focus': return { route: '/explore', params: { focus: target } };
+      case 'Node': return { route: '/explore', params: { focus: target, view: 'node' } };
+      case 'Filter': return { route: '/explore', params: { kind: target } };
+      default: return null;
+    }
+  }
+
+  paRoute(action: string, target?: string): { route: string; params: Record<string, string> } | null {
+    if (!action || action === 'None' || !target) return null;
+    switch (action) {
+      case 'Focus': return { route: '/explore', params: { focus: target } };
+      case 'Node': return { route: '/explore', params: { focus: target, view: 'node' } };
+      case 'Filter': return { route: '/explore', params: { kind: target } };
+      default: return null;
+    }
   }
 
   retryStats(): void {

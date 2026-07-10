@@ -45,7 +45,7 @@
 }
 
 @utility text-2xs {
-  font-size: 0.6875rem; /* 11px — was 10px, bumped for legibility */
+  font-size: 0.75rem; /* 12px — minimum body text per M7.0 */
 }
 
 @utility text-xs {
@@ -66,7 +66,7 @@
   --vibe-line-strong: #333a46;
   --vibe-ink: #dfe2e8;
   --vibe-ink-muted: #99a0ac;
-  --vibe-ink-subtle: #6b7280;
+  --vibe-ink-subtle: #7a8291;
   --vibe-accent: #8b93ff;
   --vibe-accent-ink: #10122b;
   --vibe-success: #7bd88f;
@@ -105,7 +105,7 @@
   --vibe-line-strong: #333a46;
   --vibe-ink: #dfe2e8;
   --vibe-ink-muted: #99a0ac;
-  --vibe-ink-subtle: #6b7280;
+  --vibe-ink-subtle: #7a8291;
   --vibe-accent: #8b93ff;
   --vibe-accent-ink: #10122b;
   --vibe-success: #7bd88f;
@@ -125,7 +125,7 @@
   --vibe-line-strong: #b8bfc9;
   --vibe-ink: #23262c;
   --vibe-ink-muted: #556270;
-  --vibe-ink-subtle: #8b95a1;
+  --vibe-ink-subtle: #5c6673;
   --vibe-accent: #5b63d6;
   --vibe-accent-ink: #ffffff;
   --vibe-success: #1a7f37;
@@ -145,7 +145,7 @@
   --vibe-line-strong: #3a3a3a;
   --vibe-ink: #c4c4c4;
   --vibe-ink-muted: #808080;
-  --vibe-ink-subtle: #5a5a5a;
+  --vibe-ink-subtle: #858585;
   --vibe-accent: #e6a817;
   --vibe-accent-ink: #0c0c0c;
   --vibe-success: #60c060;
@@ -364,7 +364,7 @@ body {
 .line-stage {
   color: var(--vibe-ink-muted);
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .line-msg {
@@ -375,7 +375,7 @@ body {
 .line-pct {
   color: var(--vibe-accent);
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .log-cursor {
@@ -407,7 +407,7 @@ body {
 
 .console-section-title {
   margin-bottom: 0.375rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -478,7 +478,7 @@ body {
 
 .lens-pane-title {
   margin-bottom: 0.75rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -518,7 +518,7 @@ body {
   overflow-y: auto;
   max-height: 70vh;
   font-family: var(--vibe-font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
@@ -590,9 +590,9 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    height: 1.25rem;
+    height: 1.375rem;
     padding: 0 0.375rem;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     line-height: 1;
     border: 1px solid var(--vibe-line);
     border-radius: var(--vibe-radius-sm);
@@ -608,7 +608,7 @@ body {
   /* Keyboard hint. */
   .kbd {
     font-family: var(--vibe-font-mono);
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     padding: 0.0625rem 0.25rem;
     border: 1px solid var(--vibe-line);
     border-bottom-width: 2px;
@@ -624,7 +624,7 @@ body {
     gap: 0.25rem;
     height: 1.5rem;
     padding: 0 0.5rem;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--vibe-ink-muted);
     user-select: none;
@@ -708,5 +708,83 @@ body {
   .hairline::after,
   .skeleton {
     animation: none;
+  }
+}
+
+/* ---- PrismJS syntax highlighting (M7.1) ---- */
+.code-block .token.comment,
+.code-block .token.block-comment,
+.code-block .token.prolog,
+.code-block .token.doctype,
+.code-block .token.cdata {
+  color: var(--vibe-ink-subtle);
+  font-style: italic;
+}
+.code-block .token.punctuation {
+  color: var(--vibe-ink-muted);
+}
+.code-block .token.property,
+.code-block .token.tag,
+.code-block .token.boolean,
+.code-block .token.number,
+.code-block .token.constant,
+.code-block .token.symbol {
+  color: var(--vibe-warn);
+}
+.code-block .token.selector,
+.code-block .token.attr-name,
+.code-block .token.string,
+.code-block .token.char,
+.code-block .token.builtin {
+  color: color-mix(in srgb, var(--vibe-warn) 80%, var(--vibe-ink));
+}
+.code-block .token.operator,
+.code-block .token.entity,
+.code-block .token.url {
+  color: var(--vibe-ink-muted);
+}
+.code-block .token.atrule,
+.code-block .token.attr-value,
+.code-block .token.keyword {
+  color: var(--vibe-accent);
+}
+.code-block .token.function,
+.code-block .token.class-name {
+  color: color-mix(in srgb, var(--vibe-accent) 80%, var(--vibe-ink));
+}
+.code-block .token.regex,
+.code-block .token.important,
+.code-block .token.variable {
+  color: var(--vibe-warn);
+}
+.code-block .token.important,
+.code-block .token.bold {
+  font-weight: bold;
+}
+.code-block .token.italic {
+  font-style: italic;
+}
+.code-block .token.entity {
+  cursor: help;
+}
+
+/* L6.6: DPI-aware icon sizing — scale up on high-DPI displays so icons and text stay proportional.
+   At 125%+ DPI, browsers scale text via font-size but SVG icons remain fixed px; we compensate. */
+@media (-webkit-device-pixel-ratio: 1.25) {
+  app-icon svg {
+    scale: 1.125;
+    transform-origin: center;
+  }
+}
+@media (-webkit-device-pixel-ratio: 1.5) {
+  app-icon svg {
+    scale: 1.2;
+    transform-origin: center;
+  }
+}
+@media (-webkit-device-pixel-ratio: 2) {
+  app-icon svg {
+    scale: 1.25;
+    transform-origin: center;
   }
 }

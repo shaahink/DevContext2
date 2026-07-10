@@ -43,6 +43,46 @@ service DevContextService {
 
   // Liveness/readiness probe.
   rpc Ping(PingRequest) returns (PingResponse);
+
+  // Impact analysis: finds which entry points reach a given node (up) or which nodes
+  // are affected by it (down). Supports diff-aware mode via a file list.
+  rpc GetImpact(ImpactRequest) returns (ImpactResponse);
+
+  // Configuration key lookup: find config keys and their binding/consumption sites.
+  rpc ConfigLookup(ConfigRequest) returns (ConfigResponse);
+
+  // Best-effort test discovery: find test methods whose call closure reaches a node.
+  rpc FindTestsFor(TestsForRequest) returns (TestsForResponse);
+
+  // Archetype-aware interesting starting points ("where to start reading").
+  rpc GetInterestingPoints(InterestingPointsRequest) returns (InterestingPointsResponse);
+
+  // Budget-priced context pack for a trace focus, with per-section content (not just a
+  // flat markdown blob) — the desktop export drawer's Flow/Trail presets and the MCP
+  // get_context tool share this one builder (L5.4 ContextPackBuilder).
+  rpc GetContext(ContextRequest) returns (ContextResponse);
+
+  // L4.4 — Multi-card context pack: server assembles the complete pack once from card specs
+  // (type + entry IDs), with per-card budget-driven section assembly. Replaces N individual
+  // GetContext calls. Copy/Save = exactly the server's assembled markdown pack. Closes Trap A.
+  rpc GetContextPack(ContextPackRequest) returns (ContextPackResponse);
+
+  // Read raw source code for a graph node — full member span or a context window around
+  // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
+  rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
+
+  // L4.2 — Graph facets: service map, flow list, entry table, and per-node layer/feature
+  // bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
+  // surfaces without individual Node RPCs.
+  rpc GetGraphFacets(GraphFacetsRequest) returns (GraphFacetsResponse);
+
+  // M3.1 — list all active sessions (MCP page session list).
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+
+  // M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
+  rpc StartMcp(StartMcpRequest) returns (StartMcpResponse);
+  rpc StopMcp(StopMcpRequest) returns (StopMcpResponse);
+  rpc ObserveToolCalls(ObserveToolCallsRequest) returns (stream ToolCallEvent);
 }
 
 // ---------------------------------------------------------------------------
@@ -94,6 +134,8 @@ message AnalysisSummary {
   repeated string warnings = 9;
   bool is_library = 10;
   string archetype = 11;
+  bool stale = 12;
+  string stale_message = 13;
 }
 
 message SessionRequest {
@@ -121,6 +163,13 @@ message EntryPoint {
   optional string provenance = 6;
   optional string project = 7;
   optional string target = 8;
+  optional string group_path = 9;
+  repeated string auth_attributes = 10;
+  double score = 11;
+  int32 reach = 12;
+  int32 cross_projects = 13;
+  optional string layer = 14;     // D9: architectural layer
+  optional string feature = 15;   // D9: feature area
 }
 
 // ---------------------------------------------------------------------------
@@ -142,16 +191,28 @@ message MapResponse {
   repeated string pipeline_behaviors = 12;
   repeated string stack = 13;
   LibrarySurface surface = 14;
+  // Per-service style assessment — one entry per runnable web project (M1.9 / D5)
+  repeated ServiceStyle service_styles = 15;
+  // L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor)
+  optional ArchetypeView archetype_view = 16;
 }
 
 message ProjectNode {
   string name = 1;
   repeated string depends_on = 2;
+  optional string layer = 3;      // D9: project-level architectural layer
+  optional string feature = 4;    // D9: project-level feature area
 }
 
 message PackageGroup {
   string label = 1;
   repeated string packages = 2;
+}
+
+message ServiceStyle {
+  string project_name = 1;
+  string style = 2;
+  repeated string stack = 3;
 }
 
 message LibrarySurface {
@@ -168,6 +229,30 @@ message SurfaceType {
   string name = 1;
   string kind = 2;
   repeated string members = 3;
+}
+
+// L7.2 — archetype-shaped entry-point view for Desktop, Worker, Blazor, and Library.
+message ArchetypeView {
+  string archetype = 1;
+  string section_label = 2;
+  repeated ArchetypeEntryGroup groups = 3;
+}
+
+message ArchetypeEntryGroup {
+  string project = 1;
+  optional string layer = 2;
+  repeated ArchetypeEntryRow entries = 3;
+}
+
+message ArchetypeEntryRow {
+  string kind = 1;
+  string title = 2;
+  optional string route = 3;
+  optional string target = 4;
+  optional string group_path = 5;
+  int32 depth = 6;
+  int32 hops = 7;
+  double score = 8;
 }
 
 // ---------------------------------------------------------------------------
@@ -203,6 +288,8 @@ message TraceNode {
   repeated string tags = 11;
   repeated string pipeline = 12;
   repeated TraceNode children = 13;
+  optional string layer = 14;     // D9: architectural layer
+  optional string feature = 15;   // D9: feature area
 }
 
 // ---------------------------------------------------------------------------
@@ -223,6 +310,9 @@ message NodeResponse {
   optional string file_path = 6;
   int32 out_degree = 7;
   int32 in_degree = 8;
+  optional int32 line_number = 9;
+  optional string layer = 10;     // D9: "Api" | "Application" | "Domain" | "Infrastructure" | etc.
+  optional string feature = 11;   // D9: namespace-derived feature area
 }
 
 message NeighborsRequest {
@@ -275,6 +365,28 @@ message StatsResponse {
   FunnelStat funnel = 7;
   int64 total_wall_ms = 8;
   repeated Insight insights = 9;
+  ConfidenceLedger confidence_ledger = 10;
+}
+
+message ConfidenceLedger {
+  double overall = 1;
+  double verified_edge_pct = 2;
+  double approx_edge_pct = 3;
+  int32 total_edges = 4;
+  repeated SeamConfidence per_seam = 5;
+  double auth_coverage_pct = 6;
+  int32 endpoints_with_auth = 7;
+  int32 total_endpoints = 8;
+  double entry_target_pct = 9;
+  int32 entries_with_target = 10;
+  int32 total_entries = 11;
+}
+
+message SeamConfidence {
+  string seam = 1;
+  int32 total = 2;
+  int32 verified = 3;
+  int32 approx = 4;
 }
 
 message Insight {
@@ -284,6 +396,12 @@ message Insight {
   string title = 4;
   string detail = 5;
   repeated string evidence = 6;
+  double confidence = 7;
+  optional string confidence_basis = 8;
+  optional string why_it_matters = 9;
+  string action = 10;                  // D6: TypedActionKind string, e.g. "Focus", "Node", "Filter", "None"
+  optional string action_target = 11;  // D6: target string for the primary action
+  repeated string evidence_actions = 12; // D6: parallel to evidence[]. Format: "Focus:key" | "Node:id" | "Filter:kind" | "" (none)
 }
 
 message StageStat {
@@ -325,6 +443,8 @@ message GraphStat {
   int32 edges = 2;
   int32 entries = 3;
   int32 entries_with_target = 4;
+  bool sparse_graph = 5;
+  int32 hub_scope_nodes = 6;
 }
 
 message FunnelStat {
@@ -362,6 +482,119 @@ message SectionInfo {
 }
 
 // ---------------------------------------------------------------------------
+// Impact (blast-radius analysis, transitive + diff-aware)
+// ---------------------------------------------------------------------------
+
+message ImpactRequest {
+  string handle = 1;
+  string node_id = 2;
+  int32 max_depth = 3;
+  string direction = 4;       // "up" (default, who reaches this) | "down" (what does this affect) | "both"
+  bool transitive = 5;        // default true — follow edges transitively
+  repeated string files = 6;  // diff-aware mode: find impact of changing these files
+}
+
+message ImpactResponse {
+  repeated ImpactResult results = 1;
+  string direction = 2;       // echo back the direction used
+  int32 total_affected = 3;   // total nodes in the impact closure
+}
+
+message ImpactResult {
+  string entry_title = 1;
+  string kind = 2;
+  int32 hops = 3;
+  string node_id = 4;
+  optional string file_path = 5;
+  optional int32 line_number = 6;
+  string service = 7;         // project/service the affected node belongs to
+  string node_title = 8;      // display title of the affected node
+}
+
+// ---------------------------------------------------------------------------
+// Interesting points (archetype-aware starting points)
+// ---------------------------------------------------------------------------
+
+message InterestingPointsRequest {
+  string handle = 1;
+  optional string archetype = 2;
+}
+
+message InterestingPointsResponse {
+  repeated InterestingPoint points = 1;
+}
+
+message InterestingPoint {
+  string node_id = 1;
+  string title = 2;
+  string kind = 3;
+  string why = 4;
+  repeated string tags = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Context pack (budgeted, per-section — desktop export drawer + MCP get_context)
+// ---------------------------------------------------------------------------
+
+message ContextRequest {
+  string handle = 1;
+  string focus = 2;
+  optional int32 budget_tokens = 3;  // default 8000
+  optional string intent = 4;        // "trace" (default) | "explain" | "review"
+}
+
+message ContextResponse {
+  bool found = 1;
+  string focus = 2;
+  int32 total_tokens = 3;
+  repeated ContextSection sections = 4;
+  repeated string omitted = 5;       // human-readable notes on what got cut/trimmed
+}
+
+message ContextSection {
+  string key = 1;       // "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
+  int32 tokens = 2;
+  string content = 3;
+}
+
+// ---------------------------------------------------------------------------
+// L4.4 — Multi-card context pack (server assembles the complete pack)
+// ---------------------------------------------------------------------------
+
+message ContextPackRequest {
+  string handle = 1;
+  repeated ContextCardSpec cards = 2;
+  int32 budget_tokens = 3;          // total budget across all cards (default 8000)
+  string intent = 4;                // "trace" (default) | "explain" | "review"
+}
+
+message ContextCardSpec {
+  string type = 1;                  // "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+  string title = 2;
+  repeated string entry_ids = 3;    // nodeIds of selected entries
+}
+
+message ContextPackResponse {
+  repeated ContextCardItem cards = 1;
+  string assembled_markdown = 2;    // full pack ready for Copy/Save
+  int32 total_tokens = 3;
+  int32 allocated_tokens = 4;
+  repeated string omitted = 5;
+}
+
+message ContextCardItem {
+  string type = 1;
+  string title = 2;
+  int32 tokens = 3;
+  repeated SectionAllocation sections = 4;
+}
+
+message SectionAllocation {
+  string key = 1;
+  int32 tokens = 2;
+}
+
+// ---------------------------------------------------------------------------
 // Health
 // ---------------------------------------------------------------------------
 
@@ -370,4 +603,220 @@ message PingRequest {}
 message PingResponse {
   string version = 1;
   bool ready = 2;
+}
+
+// ---------------------------------------------------------------------------
+// M3.1 — Session listing (MCP page)
+// ---------------------------------------------------------------------------
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated SessionInfo sessions = 1;
+}
+
+message SessionInfo {
+  string handle = 1;
+  string repo = 2;
+  string commit_sha = 3;
+  int64 age_seconds = 4;
+  int32 calls = 5;
+  int64 token_total = 6;
+  string status = 7;
+  int32 nodes = 8;
+  int32 edges = 9;
+  int32 entries = 10;
+}
+
+// ---------------------------------------------------------------------------
+// M3.3 — MCP observability (tool-call event stream + start/stop)
+// ---------------------------------------------------------------------------
+
+message StartMcpRequest {}
+
+message StartMcpResponse {
+  bool running = 1;
+}
+
+message StopMcpRequest {}
+
+message StopMcpResponse {
+  bool stopped = 1;
+}
+
+message ObserveToolCallsRequest {}
+
+message ToolCallEvent {
+  string session_handle = 1;
+  string tool = 2;
+  string args_digest = 3;
+  int64 bytes = 4;
+  int64 est_tokens = 5;
+  int64 elapsed_ms = 6;
+  int64 timestamp_utc_ms = 7;
+  string session_repo = 8;
+}
+
+// ---------------------------------------------------------------------------
+// M4.7 — Config key lookup (configuration keys → binding/consumption sites)
+// ---------------------------------------------------------------------------
+
+message ConfigRequest {
+  string handle = 1;
+  optional string key = 2;   // filter to a specific config key; omit for all keys
+}
+
+message ConfigResponse {
+  repeated ConfigBinding bindings = 1;
+  int32 total_keys = 2;      // number of distinct config keys found
+}
+
+message ConfigBinding {
+  string key = 1;            // config key, e.g. "GrpcSettings:DiscountUrl"
+  string file_path = 2;      // file where the key is consumed
+  int32 line_number = 3;     // line in file
+  optional string node_id = 4;  // graph node containing this usage, if resolvable
+  string pattern_type = 5;   // "GetValue" | "GetSection" | "Indexer" | "GetConnectionString" | "GetRequiredSection"
+  string service = 6;        // project/service name
+}
+
+// ---------------------------------------------------------------------------
+// M4.9 — Tests-for (best-effort test method discovery from call closure)
+// ---------------------------------------------------------------------------
+
+message TestsForRequest {
+  string handle = 1;
+  string node_id = 2;        // target node to find tests for
+  int32 max_depth = 3;       // how far up the call chain to search (default 6)
+}
+
+message TestsForResponse {
+  repeated TestRef tests = 1;
+  string node_id = 2;        // echo back
+  string node_title = 3;
+  bool is_best_effort = 4;   // always true — heuristic detection
+}
+
+message TestRef {
+  string node_id = 1;        // the test method's node id
+  string title = 2;          // test method name
+  string file_path = 3;      // file containing the test
+  int32 line_number = 4;     // line of the test method
+  int32 distance = 5;        // BFS distance from target to this test
+  bool is_direct = 6;        // true if distance == 1 (direct caller)
+  string project = 7;        // test project name
+}
+
+// ---------------------------------------------------------------------------
+// ReadSource — raw source code for a graph node (Inspector Code tab)
+// ---------------------------------------------------------------------------
+
+enum ReadSourceMode {
+  READ_SOURCE_MODE_UNSPECIFIED = 0;
+  READ_SOURCE_MODE_MEMBER = 1;    // full declaration body of the node's member
+  READ_SOURCE_MODE_WINDOW = 2;    // context window around the node's line
+}
+
+message ReadSourceRequest {
+  string session_id = 1;          // session handle
+  string node_id = 2;             // graph node id to read source for
+  ReadSourceMode mode = 3;        // MEMBER (full span) or WINDOW (context window)
+  int32 window_lines = 4;         // lines above/below for WINDOW mode (default 50)
+}
+
+message ReadSourceResponse {
+  string content = 1;             // raw source text
+  string language = 2;            // "csharp", "razor", "cshtml", etc.
+  string file_path = 3;           // absolute path to the source file
+  int32 start_line = 4;           // first line of the returned range
+  int32 end_line = 5;             // last line of the returned range
+  string node_title = 6;          // node display title for headers
+}
+
+// ---------------------------------------------------------------------------
+// L4.2 — Graph facets (service map, flow list, entry table, layer bands)
+// ---------------------------------------------------------------------------
+
+message GraphFacetsRequest {
+  string handle = 1;
+  int32 max_flows = 2;         // max flows to return (default 10)
+}
+
+message GraphFacetsResponse {
+  ServiceMapFacet service_map = 1;
+  FlowListFacet flow_list = 2;
+  EntryTableFacet entry_table = 3;
+  LayerBandFacet layer_band = 4;
+}
+
+message ServiceMapFacet {
+  repeated ServiceCard services = 1;
+  repeated TransportLink transports = 2;
+}
+
+message ServiceCard {
+  string name = 1;
+  string display_name = 2;
+  string kind = 3;
+  optional string layer = 4;
+  optional string feature = 5;
+  repeated string stack = 6;
+}
+
+message TransportLink {
+  string from_service = 1;
+  string to_service = 2;
+  string transport = 3;
+  optional string evidence = 4;
+}
+
+message FlowListFacet {
+  repeated FlowCard flows = 1;
+  int32 total_flows = 2;
+}
+
+message FlowCard {
+  string id = 1;
+  string title = 2;
+  string kind = 3;
+  int32 depth = 4;
+  int32 hops = 5;
+  int32 touches = 6;
+  int32 emits = 7;
+  double score = 8;
+  optional string node_id = 9;      // L4.3 — entry node id for deep-linking
+  optional string route = 10;       // L4.3 — HTTP route when the entry is an endpoint
+  optional string http_method = 11; // L4.3 — HTTP verb
+  optional string target = 12;      // L4.3 — dispatch target (command/handler)
+  optional string group_path = 13;  // L4.3 — grouping path
+}
+
+message EntryTableFacet {
+  repeated EntryTableRow rows = 1;
+}
+
+message EntryTableRow {
+  string kind = 1;
+  string title = 2;
+  optional string route = 3;
+  optional string target = 4;
+  optional string project = 5;
+  optional string group_path = 6;
+  optional string layer = 7;
+  optional string feature = 8;
+  double score = 9;
+  int32 reach = 10;
+  int32 cross_projects = 11;
+}
+
+message LayerBandFacet {
+  repeated NodeBand node_bands = 1;
+  repeated string layers = 2;
+  repeated string features = 3;
+}
+
+message NodeBand {
+  string node_id = 1;
+  optional string layer = 2;
+  optional string feature = 3;
 }

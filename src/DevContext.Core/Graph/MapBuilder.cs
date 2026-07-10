@@ -15,15 +15,23 @@ public sealed record MapModel
     public Archetype Archetype { get; init; } = Archetype.App;
     /// <summary>The capability-grouped public API, when <see cref="Archetype"/> is Library.</summary>
     public LibrarySurface? Surface { get; init; }
+    /// <summary>L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor).</summary>
+    public ArchetypeView? ArchetypeView { get; init; }
     /// <summary>When the analysed set is a partial closure of the owning solution (e.g. pointing at one
     /// microservice of many), a human-readable scope descriptor — keyed so the Map never claims a
     /// whole-system style from a single-service slice (Iteration 4 / Critical 3).</summary>
     public string? ScopeNote { get; init; }
     /// <summary>Gateway routes from ocelot.json / YARP config (W7).</summary>
     public ImmutableArray<GatewayRoute> Routes { get; init; } = [];
+    /// <summary>Per-service style assessment (M1.9 / D5). One entry per runnable web project.</summary>
+    public ImmutableArray<PerServiceStyle> ServiceStyles { get; init; } = [];
 }
 
-public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn);
+public sealed record ProjectNode(string Name, ImmutableArray<string> DependsOn)
+{
+    public string? Layer { get; init; }
+    public string? Feature { get; init; }
+}
 
 public sealed record PackageGroup(string Label, ImmutableArray<string> Packages);
 
@@ -32,7 +40,12 @@ public sealed class MapBuilder
     public static MapModel Build(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         var archetype = ArchetypeDetector.Detect(model, entries);
-        var topology = BuildTopology(model);
+        var topology = BuildTopology(model, graph);
+        var archetypeView = archetype is Archetype.Desktop or Archetype.Worker
+            or Archetype.Blazor or Archetype.Library
+            ? new ArchetypeProjection().Project(graph,
+                new ProjectionOptions { Archetype = archetype })
+            : null;
         return new MapModel
         {
             Style = model.DetectedStyle.ToString(),
@@ -45,8 +58,10 @@ public sealed class MapBuilder
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
             Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
+            ArchetypeView = archetypeView,
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
+            ServiceStyles = model.PerServiceStyles,
         };
     }
 
@@ -64,12 +79,38 @@ public sealed class MapBuilder
         return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
     }
 
-    private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model)
+    private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model, CodeGraph graph)
     {
         var classifier = new ProjectClassifier(model.Projects);
         var scoped = model.Solution is { ProjectPaths.Length: > 0 } sln
             ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : null;
+
+        var layerCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+        var featureCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in graph.Nodes)
+        {
+            if (node.Project is not { } proj) continue;
+            if (node.Layer is { } l)
+            {
+                if (!layerCounts.TryGetValue(proj, out var lc))
+                    layerCounts[proj] = lc = new();
+                lc[l] = lc.GetValueOrDefault(l) + 1;
+            }
+            if (node.Feature is { } f)
+            {
+                if (!featureCounts.TryGetValue(proj, out var fc))
+                    featureCounts[proj] = fc = new();
+                fc[f] = fc.GetValueOrDefault(f) + 1;
+            }
+        }
+
+        string? Dominant(Dictionary<string, int> counts) =>
+            counts is { Count: > 0 } ? counts.OrderByDescending(kv => kv.Value).First().Key : null;
+
+        var perProjectLayer = layerCounts.ToDictionary(kv => kv.Key, kv => Dominant(kv.Value), StringComparer.OrdinalIgnoreCase);
+        var perProjectFeature = featureCounts.ToDictionary(kv => kv.Key, kv => Dominant(kv.Value), StringComparer.OrdinalIgnoreCase);
 
         // ProjectReferences come through as raw ".../X.csproj" relative paths; reduce to project
         // names so the topology reads "A ── B" (and so the name-based scope filter actually matches —
@@ -85,7 +126,11 @@ public sealed class MapBuilder
                     [.. p.ProjectReferences
                         .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
                         .Where(r => r.Length > 0 && (scoped is null || scoped.Contains(r)))
-                        .OrderBy(r => r)]))
+                        .OrderBy(r => r)])
+                {
+                    Layer = perProjectLayer.GetValueOrDefault(p.Name),
+                    Feature = perProjectFeature.GetValueOrDefault(p.Name),
+                })
         ];
     }
 
@@ -158,12 +203,31 @@ public sealed class MapBuilder
             if (di.ImplementationType is { Length: > 0 } body
                 && body.Contains("AddOpenBehavior", StringComparison.Ordinal))
             {
-                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(body,
-                    @"AddOpenBehavior\s*\(\s*typeof\s*\(\s*(\w+)",
-                    System.Text.RegularExpressions.RegexOptions.Compiled))
+                var pos = 0;
+                while ((pos = body.IndexOf("AddOpenBehavior", pos, StringComparison.Ordinal)) >= 0)
                 {
-                    if (m.Groups[1].Value is { Length: > 0 } name && name != "?")
-                        behaviors.Add(name);
+                    pos += "AddOpenBehavior".Length;
+                    var rest = body[pos..];
+                    var bp = 0;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp < rest.Length && rest[bp] == '(') bp++;
+                    while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                    if (bp + "typeof".Length <= rest.Length
+                        && rest.AsSpan(bp, "typeof".Length).SequenceEqual("typeof"))
+                    {
+                        bp += "typeof".Length;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        if (bp < rest.Length && rest[bp] == '(') bp++;
+                        while (bp < rest.Length && char.IsWhiteSpace(rest[bp])) bp++;
+                        var start = bp;
+                        while (bp < rest.Length && (char.IsLetterOrDigit(rest[bp]) || rest[bp] == '_')) bp++;
+                        if (bp > start)
+                        {
+                            var name = rest[start..bp];
+                            if (name.Length > 0 && name != "?")
+                                behaviors.Add(name);
+                        }
+                    }
                 }
             }
         }

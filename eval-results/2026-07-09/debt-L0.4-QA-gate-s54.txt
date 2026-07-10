@@ -1,0 +1,35 @@
+===== Gate Battery (fresh run s54 QA re-verify of D5 L0.4) =====
+Date: 2026-07-09
+Session: s54 (autonomous QA/re-verify of s53 D5 work)
+Commit audited: 92c85b3 — fix(debt): D5 L0.4
+
+Build: 0w/0e — GREEN
+Tests (Category!=Eval): 490P/3S/0F (Core 414P/3S + Desktop 64P + Server 12P) — GREEN
+Truth (Category=Truth): 8P/3S/0F — GREEN
+loom-guards: 0 banned patterns — GREEN (Advisory: 13 NodeId.ForType unchanged)
+pnpm check: lint+test+build — GREEN
+
+===== D5 (L0.4) Claim Verification =====
+
+Claim 1: "loom-guards.ps1 now runs Category=Truth tests as gate #5; any failure exits non-zero."
+  RESULT: CONFIRMED. Lines 70-90 in scripts/loom-guards.ps1 run dotnet test --filter
+  "Category=Truth" --no-build, parse the output for failure count, and exit non-zero
+  if any actual failures found (skips are the ratchet — treated as green).
+
+Claim 2: "3 [TruthPending] bodies converted from silent return; to Skip.IfNot"
+  RESULT: CONFIRMED. git diff 92c85b3^..92c85b3 shows exactly 3 conversions:
+  - Dogfood_checkout_flow_traces_cross_service_depth_ge_5
+  - Dogfood_service_names_are_full_and_runnables_only
+  - RazorPages_no_fabricated_cross_sample_edges
+  All three now use Skip.IfNot(Directory.Exists(...), ...) instead of
+  if(!Directory.Exists(p)) { return; }. No other silent-return guards remain.
+
+Claim 3: "Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F (skips=ratchets)"
+  RESULT: CONFIRMED. All numbers match fresh re-run exactly.
+
+QA VERDICT: D5 (L0.4) — GENUINELY COMPLETE. No discrepancies found.
+  The delivery matches conductor-DEBT.md §L0.4 specification:
+  - Truth gate in automated battery: YES (loom-guards.ps1 gate #5)
+  - Pending-test guards audited: YES (3 Skip.IfNot conversions)
+  - Forward-safe against green-wash: YES (Skip.IfNot, not silent return)
+  - Build 0w/0e: YES

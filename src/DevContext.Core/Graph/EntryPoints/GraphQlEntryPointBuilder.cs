@@ -16,7 +16,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"graphql:{field.TypeName}.{field.FieldName}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = field.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(field.TypeName));
+            var typeId = NodeId.ForType(names.Resolve(field.TypeName, field.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
@@ -28,6 +28,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{field.SourceFile}:{field.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(field.SourceFile),
             });
         }
         return entries.ToImmutable();

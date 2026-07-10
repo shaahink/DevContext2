@@ -30,8 +30,8 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
             var typeName = de.Kind == DesktopEntryKind.RelayCommand
                 ? (de.TypeName.Contains('.') ? de.TypeName[..de.TypeName.LastIndexOf('.')] : de.TypeName)
                 : de.TypeName;
-            var handlerNodeId = g.HasNode(NodeId.ForType(names.Resolve(typeName)))
-                ? NodeId.ForType(names.Resolve(typeName))
+            var handlerNodeId = g.HasNode(NodeId.ForType(names.Resolve(typeName, de.SourceFile)))
+                ? NodeId.ForType(names.Resolve(typeName, de.SourceFile))
                 : (NodeId?)null;
 
             if (handlerNodeId is { } hn)
@@ -45,6 +45,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{de.SourceFile}:{de.LineNumber}",
                 HandlerNode = handlerNodeId,
+                Project = scope.ProjectForFile(de.SourceFile),
             });
         }
         return entries.ToImmutable();

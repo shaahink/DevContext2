@@ -1,0 +1,51 @@
+
+D9 L1.6 — GATE EVIDENCE (s61)
+===============================
+Date: 2026-07-09
+Session: s61 (session #61 — D9 L1.6 SymbolTable member indexing + RefSite.FromType removal)
+Branch: feat/loom-l7
+
+PRE-SESSION:
+- Read LOOM-START.md handoff, conductor-DEBT.md, loom-debt-workflow.md
+- Gate battery baseline: build 0w/0e, Core 433P/3S, Server 14P/0S, Truth 8P/3S
+- D8 s60 QA: all 5 claims verified (depth warning, proportional budget, kind provenance,
+  integration tests). QA verdict: D8 genuinely DONE.
+
+CHANGES:
+1. src/DevContext.Core/Graph2/SymbolTable.cs:
+   - Added IEnumerable<BodyFacts>? bodyFacts parameter to constructor
+   - Indexes member canonicallly (FQN), short name, and by project alongside types
+   - Added KindFromCanonical() helper: canonical with "::" → Member, else Type
+   - All 6 Resolve() resolution paths now use KindFromCanonical() instead of
+     hardcoded SymbolKind.Type
+
+2. src/DevContext.Core/Graph/GraphBuilder.cs:
+   - BuildSeamContext() accepts IReadOnlyList<BodyFacts>? bodyFacts (default null)
+   - Passes bodyFacts to SymbolTable constructor
+   - Both call sites (AddSeamsFromDetectors, AddLambdaSeams) pass bodyFacts
+
+3. src/DevContext.Core/Graph2/RefSite.cs:
+   - Removed RefSite.FromType() — confirmed 0 callers (grep: only definition)
+
+4. tests/DevContext.Core.Tests/Graph2/SymbolTableTests.cs:
+   - Added 7 member resolution tests:
+     - Resolves_member_fqn_as_declared
+     - Resolves_unique_member_short_name_as_global_unique
+     - Resolves_member_project_scoped
+     - Detects_member_ambiguity_when_same_short_name_in_multiple_projects
+     - Type_and_member_with_same_short_name_are_ambiguous
+     - Member_is_known_fqn
+     - Type_not_resolved_as_member_when_no_member_indexed
+
+GATE BATTERY (fresh run, post-D9):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval (Core): 440P/0F/3S ✓ (+7 member tests)
+- dotnet test --filter Category!=Eval (Server): 14P/0F/0S ✓
+- dotnet test --filter Category!=Eval (Desktop): 64P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- loom-guards.ps1: 0 banned, 13 advisory ✓
+- pnpm check: lint 0/0, 27 tests pass ✓
+
+TRUTH RATCHET: stable at 8P/3S/0F — 0 regressions.
+
+D9 L1.6 VERDICT: DONE.

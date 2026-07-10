@@ -1,0 +1,75 @@
+# L4.3 Gate Battery + Evidence (2026-07-08, session #20)
+
+Stage L4 — Flows + projections. Checkpoint **L4.3 — Home/Atlas/MCP consume projections; ad-hoc walks deleted**.
+Branch feat/loom-l2. Dogfood: run-aspnetcore-microservices/src. Conductor session #20 (attempt 1/4, target L4).
+
+## Artifact-to-prove-done
+MCP `overview`/`top_flows` and the Home hero + Atlas diagram now read the L4.2 graph projections
+(`GetGraphFacets` RPC) instead of ad-hoc walks. Fresh MCP drive shows the hero source
+(`ServiceMapProjection`) renders **exactly the 6 runnables with full names, no library cards**:
+`Discount.Grpc, Catalog.API, YarpApiGateway, Ordering.API, Shopping.Web, Basket.API`.
+
+## QA of previous session (L4.2) — VERDICT: PASS
+- Re-ran dogfood fresh: **422n/276e/6SL/34ent/82%** — reproduces the L4.2 claim exactly
+  (`eval-results/2026-07-08/qa-l4.2-recheck.md`).
+- Projections (`GraphProjections.cs`, 4 classes) + `GetGraphFacets` RPC + ProtoMapper + server
+  handler all present and wired (commit 73cca81).
+- Gap found (not a blocker for L4.2, fixed in L4.3): no dedicated projection unit tests existed —
+  added `GraphProjectionTests.cs` (4 tests) this session.
+
+## L4.3 delivered
+
+### Consumers switched to projections
+1. **MCP `overview`** (`DevContextTools.cs`) — services + top flows + service links now come from
+   `GetGraphFacets` (`ServiceMapProjection` + `FlowListProjection`). Deleted the client-side
+   `ServiceStyles.Select`, `entries.OrderByDescending(Score).Take(5)`, and `map.Topology` walks.
+2. **MCP `top_flows`** (`DevContextTools.cs`) — deleted the client-side
+   `EntryPoints.OrderByDescending(Score).Take(20)`; reads `FlowListProjection.Flows` (server-ranked).
+3. **Home hero + Atlas diagram** (`service-map-hero.ts`) — reads `graphFacets.serviceMap.services`;
+   renders `DisplayName` verbatim (no `name.split('.').pop()`), gateway/core layout by `Kind`, bus
+   rail from projection `transports`. Falls back to topology when facets absent. Atlas diagram reuses
+   the same hero, so it inherits the fix.
+
+### Real defect fixed (ratchet, not green-wash)
+`ServiceBoundaryInference.IsRunnableService` classified any project with a package whose name merely
+*contains* "AspNetCore" as a runnable — so the dogfood library **BuildingBlocks** (refs
+`FluentValidation.AspNetCore`) rendered as a service (audit Claim 3 / E3). Tightened to the ASP.NET
+shared-framework reference (`Microsoft.AspNetCore.App*`) + Web SDK + Exe (design §2.4). Runnable
+Service nodes now tagged `RoleTags.Runnable`; `ServiceMapProjection` surfaces runnable-tagged nodes
+only (`IncludeLibraries` opt-in for the full set). Regression tests added.
+
+### Proto (additive)
+`FlowCard` gained `node_id`, `route`, `http_method`, `target`, `group_path` so `top_flows` renders
+fully from the projection. TS regenerated (`pnpm gen:proto`).
+
+## Results (dogfood)
+
+| Metric | L4.2 s19 | L4.3 s20 | Δ |
+|--------|----------|----------|---|
+| Nodes | 422 | 421 | −1 (BuildingBlocks no longer a false-positive Service node — explained) |
+| Edges | 276 | 276 | 0 |
+| Entries | 34 | 34 | 0 |
+| ServiceLinks | 6 | 6 | 0 |
+| Verified edges | 82% | 82% | 0 |
+| Service cards (hero) | 8 incl. libraries | **6 runnables, no libraries** | fixed |
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 398P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (lint 0/0, 27 tests, bundle built) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+| node eval/mcp-qa/run.js | 8/8 · checkout gate PASS (2c/813tok) |
+
+## Truth gates touched
+- Service-map truth: hero/overview now shows the 6 runnables with full names, no library cards
+  (design §3 / audit Claim 3) — proven by `eval-results/2026-07-08/l4.3-consumers.md`.
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/l4.3-consumers.md — MCP overview + top_flows raw output (6 runnables, full names)
+- eval-results/2026-07-08/dogfood-l4.3.md — fresh dogfood report (421n/276e/6SL/82%)
+- eval-results/2026-07-08/qa-l4.2-recheck.md — L4.2 QA re-run (422n/276e/82%)
+- eval-results/2026-07-08/mcp-qa.md — 8/8 QA (overview sourced from projections)
+- eval-results/2026-07-08/gate-battery-l4.3-s20.txt — this file

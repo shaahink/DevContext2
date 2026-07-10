@@ -22,4 +22,6 @@ public sealed record EngineResult(
     string Explanation,
     ImmutableArray<string> Warnings,
     string? GitClonePath,
-    string? Cleanup = null);
+    string? Cleanup = null,
+    bool Stale = false,
+    string? StaleMessage = null);

@@ -1,0 +1,43 @@
+Phase A — Fresh QA Verification (session 79, attempt 5/6)
+Date: 2026-07-10
+
+=== QA Previous Sessions (s77, s78) ===
+Previous claims: A1 VERIFIED (commit a94c211 + QA commits d062f39, 31796b4).
+Bridge code (4d997d9) correct. Pipeline fix (a94c211) correct.
+
+=== FRESH GATE BATTERY (re-run, not trusted) ===
+1. Build: 0w/0e
+2. Core Tests: 440P/3S/0F
+3. Server Tests: 14P/0S/0F
+4. Desktop Tests: 64P/0S/0F
+5. Truth: 9P/2S (Dogfood_checkout_flow_traces_cross_service_depth_ge_5: PASS)
+6. pnpm check: lint 0, test 27/27, build 0w/0e
+
+=== FRESH CLI ANALYZE TRACE (real dogfood repo) ===
+Command: dotnet run --no-build -- analyze C:\Users\shahi\source\repos\run-aspnetcore-microservices\src --focus "POST /basket/checkout" --trace
+
+Result: TRACE POST /basket/checkout — depth 6, cross-service confirmed.
+
+Key seams in trace:
+  - send CheckoutBasketCommand [verified]
+  - handler CheckoutBasketCommandHandler
+  - raises BasketCheckoutEvent [verified]  ← BusPublishDetector WORKING
+  - consumes BasketCheckoutEventHandler     ← Type→Service bridge WORKING (cross-service hop to Ordering.Application)
+  - send CreateOrderCommand [verified]      ← depth 6, cross-service
+
+All 4 named assertions from truth test verified:
+  - CheckoutBasketCommand: PRESENT
+  - BasketCheckoutEvent: PRESENT
+  - BasketCheckoutEventHandler: PRESENT
+  - CreateOrderCommand: PRESENT
+
+=== ROOT CAUSE VERIFICATION ===
+- Bridge code (4d997d9): Type→Service bridge in OutEdgesWithTwin() + SelectBestSpineEdge() — correct.
+- Pipeline fix (a94c211): BodyFactsExtractor added to TestPipeline.Build() — correct.
+- BusPublishDetector creates Raises edge on real dogfood repo — CONFIRMED.
+- Type→Service bridge connects BasketCheckoutEvent → Ordering.Application — CONFIRMED.
+- Trace follows cross-service hop to CreateOrderCommand at depth 6 — CONFIRMED.
+
+QA VERDICT: Phase A claims CONFIRMED. A1 is VERIFIED DONE with fresh evidence. No regressions. No incomplete checkpoints remain in Phase A.
+
+Next: Phase B (UI regressions: B1 tab strip >=30px, B2 code pane non-null).

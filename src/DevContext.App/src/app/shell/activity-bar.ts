@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -29,7 +29,7 @@ export interface RailItem {
           [class.pointer-events-none]="!enabled(item)"
           [class.hover:text-ink]="enabled(item)"
           [routerLink]="enabled(item) ? item.route : null"
-          [attr.title]="enabled(item) ? item.label + ' (g ' + item.shortKey + ')' : 'Analyze a repo first'"
+          [attr.title]="enabled(item) ? item.label : 'Analyze a repo first'"
         >
           @if (isActive(item.route)) {
             <span class="absolute left-0 top-1 bottom-1 w-[3px] rounded-r bg-accent"></span>
@@ -41,6 +41,10 @@ export interface RailItem {
                 {{ count > 99 ? '99+' : count }}
               </span>
             }
+          </span>
+          <!-- M7.4: Hover label — tooltip-style label appearing on hover -->
+          <span class="absolute left-full ml-1.5 hidden items-center rounded-sm border border-line bg-surface px-2 py-0.5 text-xs text-ink whitespace-nowrap shadow-overlay group-hover:flex z-10">
+            {{ item.label }}
           </span>
         </a>
       }
@@ -59,14 +63,17 @@ export class ActivityBar {
     { id: 'explore', label: 'Explore', icon: 'layers', route: '/explore', shortKey: 'e', requiresSession: true, badge: () => this.session.entryCount() },
     { id: 'atlas', label: 'Atlas', icon: 'boxes', route: '/atlas', shortKey: 'a', requiresSession: true },
     { id: 'insights', label: 'Insights', icon: 'zap', route: '/insights', shortKey: 'i', requiresSession: true, badge: () => this.session.insightCount() },
+    { id: 'mcp',      label: 'MCP',      icon: 'activity', route: '/mcp',      shortKey: 'm', requiresSession: false },
+    { id: 'context',  label: 'Context',  icon: 'puzzle',  route: '/context',  shortKey: 'c', requiresSession: true },
     { id: 'settings', label: 'Settings', icon: 'settings', route: '/settings', shortKey: 's', requiresSession: false },
   ];
 
   constructor() {
     this._currentUrl.set(this.router.url);
-    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+    const sub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
       this._currentUrl.set(e.urlAfterRedirects);
     });
+    inject(DestroyRef).onDestroy(() => sub.unsubscribe());
   }
 
   protected enabled(item: RailItem): boolean {

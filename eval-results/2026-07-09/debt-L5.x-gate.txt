@@ -1,0 +1,58 @@
+=== L5.x — Audit-Trap Sweep (Session 47) ===
+Date: 2026-07-09
+Conductor plan: #47, target stage D2→D3 (L5.x), attempt 1/1
+Branch: feat/loom-l7
+Status: RESOLVED — all 5 traps triaged; 1 fixed, 4 documented/closed.
+
+=== Trap 1: ServiceBoundaryInference disk read + silent catch ===
+Source: L1 §4 — conductor flagged IsWebSdkProject's File.ReadAllText + catch{}.
+Findings:
+  - IsWebSdkProject reads csproj via File.ReadAllText per project (not per call).
+  - Called once per solution (GraphBuilder.cs:721 runs RunnableProjects once).
+  - For dogfood (6 projects), reads at most 6 small files. Cost negligible (<1ms).
+  - Silent catch{} is intentional: if csproj can't be read, assume NOT Web SDK. Valid fallback.
+Verdict: DOCUMENT AS LOW-RISK. Caching unnecessary; single-call per analysis.
+         No code change.
+
+=== Trap 2: ServiceBoundaryInference single-call ===
+Source: L1 §5 risk #4 — conductor noted it may be called multiple times.
+Findings:
+  - Only call site: GraphBuilder.cs:721 (RunnableProjects).
+  - IsRunnableService/IsWebSdkProject only called from RunnableProjects.
+  - Unchanged since L1 audit.
+Verdict: CLOSE as "still single-call, no action."
+
+=== Trap 3: Advisory NodeId.ForType count ===
+Source: L1 §5 risk #3 — 13 advisory uses tracked by guards.
+Findings:
+  - loom-guards.ps1: "Advisory: 13 NodeId.ForType( (fixed by L3)"
+  - Count has NOT drifted up since L1 baseline.
+Verdict: STABLE at 13. No action. State preserved.
+
+=== Trap 4: AmbiguityReport class → record ===
+Source: L1 §4 — class not record.
+Findings:
+  - AmbiguityReport is a sealed class with init-only properties.
+  - Converted to sealed record (SymbolTable.cs:3).
+  - No behavioral change: all tests pass, no callers broken.
+  - Commit: fix(debt): L5.x — convert AmbiguityReport to record
+Verdict: FIXED.
+
+=== Trap 5: BuildInfo.g.cs re-dirtiness ===
+Source: L4 audit trap — conductor noted BuildInfo.g.cs dirties on every build.
+Findings:
+  - No BuildInfo.g.cs exists in this repo.
+  - Only generated .g.cs file in obj is GlobalUsings.g.cs (standard .NET SDK).
+  - Root .gitignore properly covers bin/ and obj/.
+Verdict: CLOSE as "not present in this codebase."
+
+=== Gate Battery (fresh re-run) ===
+  dotnet build DevContext.slnx: 0w/0e PASS
+  dotnet test --filter "Category!=Eval" Core: 0F/414P/3S PASS
+  dotnet test --filter "Category!=Eval" Server: 0F/12P/0S PASS
+  dotnet test --filter "Category=Truth": 0F/8P/3S PASS
+  powershell -File scripts/loom-guards.ps1: 0 banned, 13 advisory (stable) PASS
+
+=== Verdict ===
+All 5 audit traps triaged. 1 fixed (AmbiguityReport record), 4 documented/closed.
+No regressions. Gate battery fully green.

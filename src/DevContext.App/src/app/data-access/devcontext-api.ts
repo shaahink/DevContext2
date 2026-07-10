@@ -1,19 +1,26 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import { DEVCONTEXT_CLIENT } from '../core/grpc/client';
 import type {
   AnalysisSummary,
   CloseResponse,
+  ContextPackResponse,
+  ContextResponse,
   EntryPointsResponse,
+  GraphFacetsResponse,
+  ImpactResponse,
+  InterestingPointsResponse,
   MapResponse,
   NeighborsResponse,
   NodeResponse,
   ProgressEvent,
+  ReadSourceResponse,
   RenderResponse,
   SearchResponse,
   StatsResponse,
   TraceResponse,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
 export interface AnalyzeSpec {
   readonly path: string;
@@ -71,6 +78,10 @@ export class DevContextApi {
     return this.client.getMap({ handle });
   }
 
+  getGraphFacets(handle: string, maxFlows = 10): Promise<GraphFacetsResponse> {
+    return this.client.getGraphFacets({ handle, maxFlows });
+  }
+
   listEntryPoints(handle: string): Promise<EntryPointsResponse> {
     return this.client.listEntryPoints({ handle });
   }
@@ -111,12 +122,58 @@ export class DevContextApi {
     return this.client.closeSession({ handle });
   }
 
+  getImpact(handle: string, nodeId: string, maxDepth?: number): Promise<ImpactResponse> {
+    return this.client.getImpact({ handle, nodeId, maxDepth: maxDepth ?? 0 });
+  }
+
+  getInterestingPoints(handle: string, archetype?: string): Promise<InterestingPointsResponse> {
+    return this.client.getInterestingPoints({ handle, archetype });
+  }
+
+  getContext(handle: string, focus: string, options?: { budgetTokens?: number; intent?: 'trace' | 'explain' | 'review' }): Promise<ContextResponse> {
+    return this.client.getContext({ handle, focus, budgetTokens: options?.budgetTokens, intent: options?.intent });
+  }
+
+  getContextPack(handle: string, cards: { type: string; title: string; entryIds: string[] }[], options?: { budgetTokens?: number; intent?: string }): Promise<ContextPackResponse> {
+    return this.client.getContextPack({
+      handle,
+      cards: cards.map((c) => ({ type: c.type, title: c.title, entryIds: c.entryIds })),
+      budgetTokens: options?.budgetTokens ?? 8000,
+      intent: options?.intent ?? 'trace',
+    });
+  }
+
+  readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {
+    return this.client.readSource({
+      sessionId: handle,
+      nodeId,
+      mode: options?.mode ?? ReadSourceMode.MEMBER,
+      windowLines: options?.windowLines ?? 0,
+    });
+  }
+
   async ping(): Promise<{ ready: boolean; version: string }> {
     try {
       const res = await this.client.ping({});
       return { ready: res.ready, version: res.version };
     } catch {
       return { ready: false, version: '' };
+    }
+  }
+
+  protected readonly _mcpRunning = signal(false);
+  readonly mcpRunning = this._mcpRunning.asReadonly();
+
+  setMcpRunning(running: boolean): void {
+    this._mcpRunning.set(running);
+  }
+
+  async getMcpStatus(): Promise<boolean> {
+    try {
+      const resp = await this.client.startMcp({});
+      return resp.running;
+    } catch {
+      return false;
     }
   }
 }

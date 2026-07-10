@@ -1,0 +1,48 @@
+
+D7 L2.5 — GATE EVIDENCE
+=========================
+Date: 2026-07-09
+Session: s56 (session #56 — D6 QA + D7 L2.5)
+Branch: feat/loom-l7
+
+QA OF PREVIOUS SESSION (s55, D6):
+- D6 (L3.4 TfmScore net10.0+) confirmed DONE with solid evidence (attempt 2)
+- TfmScore: generic span-based netX.Y parsing with multi-digit minors ✓
+- 18 SemanticLitePopulatorTests pass ✓
+- Dogfood timing instrumentation present ✓
+- QA verdict: PASS
+
+CHANGES (D7 — L2.5):
+1. Lambda scope pollution: removed global lambda param collection from WalkMember; added
+   per-invocation lambda-local param resolution via GetEnclosingParamType()
+2. SeamContext dedup: extracted BuildTypeEventSets() and BuildSeamContext() shared helpers;
+   both AddSeamsFromDetectors and AddLambdaSeams call them — eliminates duplicate type scanning
+3. Added 1 test: Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope
+
+GATE BATTERY (fresh run):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval (Core): 433P/0F/3S ✓ (+1 test)
+- dotnet test --filter FullyQualifiedName~BodyFactExtractor: 10P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~SeamDetector: 12P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- dotnet test --filter Category!=Eval (Server): 12P/0F/0S ✓
+- loom-guards.ps1: 0 banned patterns, advisory 13 NodeId.ForType ✓
+- pnpm check: (ran earlier) 5 test files, 27 tests pass ✓
+
+DOGFOOD:
+- 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · 69% verified
+- No regression from D6 baseline ✓
+
+LAMBDA SCOPE FIX VERIFIED:
+- Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope: PASS
+  (x→IHandler in Lambda 1, x→ILogger in Lambda 2 — no cross-lambda pollution)
+- Captures_invocation_with_receiver_type_from_lambda_param: PASS (lambda param still resolves)
+- All 10 BodyFactExtractor tests pass unchanged ✓
+
+SEAMCONTEXT DEDUP VERIFIED:
+- BuildTypeEventSets() shared helper returns (integrationTypes, domainTypes)
+- BuildSeamContext() shared helper constructs SeamContext from computed sets
+- Both AddSeamsFromDetectors and AddLambdaSeams use shared helpers ✓
+- All 12 SeamDetector tests pass unchanged ✓
+
+TRUTH RATCHET: stable at 8P/3S/0F — 0 regressions

@@ -20,11 +20,14 @@ namespace DevContext.Core.Models;
 [JsonDerivedType(typeof(EventFlowDetection), "EventFlowDetection")]
 [JsonDerivedType(typeof(DesktopEntryDetection), "DesktopEntryDetection")]
 [JsonDerivedType(typeof(GrpcServiceDetection), "GrpcServiceDetection")]
-[JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
+    [JsonDerivedType(typeof(GrpcClientDetection), "GrpcClientDetection")]
+    [JsonDerivedType(typeof(SignalRHubDetection), "SignalRHubDetection")]
 [JsonDerivedType(typeof(FunctionEntryDetection), "FunctionEntryDetection")]
 [JsonDerivedType(typeof(GrainDetection), "GrainDetection")]
 [JsonDerivedType(typeof(GraphQlFieldDetection), "GraphQlFieldDetection")]
-[JsonDerivedType(typeof(CliCommandDetection), "CliCommandDetection")]
+    [JsonDerivedType(typeof(CliCommandDetection), "CliCommandDetection")]
+    [JsonDerivedType(typeof(RefitRouteDetection), "RefitRouteDetection")]
+    [JsonDerivedType(typeof(GlobalAuthPolicyDetection), "GlobalAuthPolicyDetection")]
 public abstract record Detection
 {
     /// <summary>Name of the extractor that produced this detection.</summary>
@@ -58,6 +61,13 @@ public sealed record EndpointDetection(
     int HandlerLine = 0,
     string? HandlerBody = null
 ) : Detection;
+
+/// <summary>
+/// App-wide fallback/default authorization policy signal (e.g.
+/// <c>AddAuthorization(o =&gt; o.FallbackPolicy = ...RequireAuthenticatedUser())</c>). When present, an
+/// endpoint with no per-endpoint or per-group auth metadata is protected by default, not anonymous.
+/// </summary>
+public sealed record GlobalAuthPolicyDetection(bool HasFallbackPolicy) : Detection;
 
 /// <summary>Detection for a MediatR handler implementation.</summary>
 public sealed record MediatRHandlerDetection(
@@ -151,6 +161,14 @@ public sealed record GrpcServiceDetection(
     ImmutableArray<string> Methods
 ) : Detection;
 
+/// <summary>Detection for a gRPC generated client type usage (injected XxxClient type).</summary>
+public sealed record GrpcClientDetection(
+    string ClientType,
+    string ServiceName,
+    string OwningClass,
+    ImmutableArray<string> Methods
+) : Detection;
+
 /// <summary>Detection for a SignalR hub class (extends Hub or Hub&lt;T&gt;).</summary>
 public sealed record SignalRHubDetection(
     string HubType,
@@ -183,4 +201,12 @@ public sealed record CliCommandDetection(
     string CommandType,
     string SettingsType,
     string ExecuteMethod
+) : Detection;
+
+/// <summary>Detection for a Refit HTTP client interface (attributed with [Get]/[Post]/etc.).</summary>
+public sealed record RefitRouteDetection(
+    string InterfaceType,
+    string MethodName,
+    string HttpMethod,
+    string RouteTemplate
 ) : Detection;

@@ -1,0 +1,64 @@
+== L6 Gate Battery — Session #33 ==
+Date: 2026-07-08
+Stage: L6 — Workbench repair: L6.4, L6.5, L6.6 delivered
+
+== dotnet build ==
+0 Warning(s), 0 Error(s)
+
+== dotnet test (Category!=Eval) ==
+Core:     408 passed, 3 skipped, 0 failed
+Server:    12 passed, 0 failed
+Desktop:   64 passed, 0 failed
+Total:    484 passed, 3 skipped, 0 failed
+
+== pnpm check (lint + vitest + build) ==
+Lint: 0 errors, 0 warnings
+Test: 27/27 passed (5 files)
+Build: 0w 0e
+
+== L6 QA — previous session (L6.3, S32) ==
+- L6.3 commit de809de verified genuine: filteredInsights() adjacency filter present
+- Honest chip "0 / N" and empty state "None reference this node" confirmed
+- Gate battery evidence (gate-battery-l6.3-s32.txt) re-confirmed valid
+- mcp-qa.md drift: q6 token count 229→257 (rerun variation, restored)
+Verdict: L6.3 claims confirmed genuine.
+
+== L6.4 deliverable — Context Studio v2: service tree + preset scaffolds real cards ==
+The M8 Context Studio work (commit 2781d56) already delivered a comprehensive
+implementation on the feat/loom-l5 branch:
+- scope-picker.ts: filteredServices() groups entries by project (Service identity from L1)
+- scope-picker.ts: applyPreset() seeds 5 cards (flow+bodies+contracts+validators+tests)
+- scope-picker.ts: toggleEntry() adds/removes entries; footer shows "N of M selected"
+- composition-view.ts: provenance chips on every card (file:line from EntryVm)
+- context-studio.ts: buildContext() prefers serverPackMarkdown from getContextPack RPC
+- budget-panel.ts: token slider, per-card meter, intent ordering, format selector
+- Omnibox search, trail seeds, drag-drop reorder all functional
+All L6.4 spec requirements verified satisfied by existing code. No new code required.
+
+Files: src/DevContext.App/src/app/features/context-studio/*.ts
+
+== L6.5 deliverable — Table lens button + global Shift+E ==
+- lens-switcher.ts: Added visible "Table" button (hamburger icon + label) after lens buttons
+- stage.ts: Wired tableRequested output from LensSwitcher
+- workbench-page.ts: Wired stage tableRequested → tableOpen.set(true)
+- workbench-page.ts: Added Shift+E to onGlobalKey() for global shortcut
+Table lens now accessible via visible toolbar button AND global Shift+E (regardless of focus).
+
+Files: lens-switcher.ts, stage.ts, workbench-page.ts
+
+== L6.6 deliverable — Chrome polish batch ==
+MCP page:
+- mcp-page.ts: Added setInterval(30s) auto-refresh for sessions + observer count
+- mcp-page.ts: statusText() computed reflects live session state instead of static toggle label
+- mcp-page.ts: Implemented OnInit/OnDestroy for lifecycle management
+
+Confidence stat:
+- identity-strip.ts: Renamed label from "confidence" to "verified" with tooltip unchanged
+
+DPI icons:
+- styles.css: Added @media queries for device-pixel-ratio 1.25/1.5/2 to scale app-icon SVGs
+
+Files: mcp-page.ts, identity-strip.ts, styles.css
+
+== loom-guards.ps1 ==
+PASSED: no banned patterns (13 advisory)

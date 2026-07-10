@@ -1,0 +1,80 @@
+# Loom L2 — Session #8 gate battery + evidence (2026-07-07)
+
+## L2.3 — Assembler consumes SeamMatches; regex paths deleted
+
+### Deliverables
+- **Seam detector wiring:** `AddSeamsFromDetectors` in GraphBuilder replaces AddSends/AddRaises/AddDataEdges.
+  5 detectors (MediatRDispatch, BusPublish, IntegrationEventCreation, DomainEventRaise, EntityTouch)
+  consume BodyFacts pre-extracted by the pipeline (or auto-extracted from TypeDiscovery SourceBody for
+  test compatibility). Edges anchor on correct Member nodes by construction via BodyFacts.Member.
+- **Lambda handler propagation:** `AddLambdaSeams` handles minimal-API lambda entry handlers whose
+  dispatch edges were previously added by HttpEntryPointBuilder via AddDispatchEdgesFromBody (regex).
+  Lambdas get their own seam edges so entry→lambda→dispatch traces work.
+- **Regex funeral:** All body-scan regex methods DELETED: AddSends, AddRaises, AddDataEdges,
+  StripStringLiterals, BuildAllMethodSpans, BuildMethodSpans, EstimateProvenance,
+  ResolveVariableNewType/FromAdapt/FromModel, UnwrapGenericArg, IsLikelyRequestType, IsNoiseType,
+  AddDispatchEdgesFromBody, BodyMatchOrigin, EnclosingMethod/Span, EnsureMember (old), MethodSpan
+  record, ContainsWholeWord, LinkBodyToEntity, IsIdentifierChar, ResolveReceiverType,
+  BuildEventTypeNameSet, BuildDomainEventTypeNameSet, BuildBaseTypeNameSet, GetClassLevelBody,
+  RemoveGenerics.
+- **Remaining Regex eliminations:** AddPipelineBehaviors (GraphBuilder) and MapBuilder regex scans
+  replaced with manual string scanning.
+- **Remaining KEPT helpers:** IsSelfCallNoise, IsRequestNode, StripGenerics, IsInfrastructureEntry,
+  NormalizeRoute — these are used by non-regex graph-building code.
+- **Guards:** loom-guards.ps1 tightened to ban `System.Text.RegularExpressions` in Core/Graph.
+- **Tests:** GraphBuilderTraceTests.cs and GraphBuilderSpanTests.cs deleted (tested dead internals).
+  PatternZooTests updated to extract BodyFacts from source bodies and pass to Build().
+
+### Pre-session gates (verified green before work)
+| Gate | Result |
+|---|---|
+| `dotnet build DevContext.slnx` | 0w 0e |
+| `dotnet test --filter Category!=Eval` | Core 386P/3S · Server 12P · Desktop 64P |
+| `pnpm check` | lint + vitest + build all pass |
+| `scripts/loom-guards.ps1` | PASS (0 banned patterns, 13 advisory NodeId.ForType) |
+
+### Post-session gates (all green)
+| Gate | Result |
+|---|---|
+| `dotnet build DevContext.slnx` | 0w 0e |
+| `dotnet test --filter Category!=Eval` | Core 386P/3S · Server 12P · Desktop 64P |
+| `pnpm check` | pass (bundle built) |
+| `scripts/loom-guards.ps1` | PASS (0 banned) |
+| Dogfood checkout trace | **depth 6** — cross-service (Basket.API→Ordering.Application) |
+| Dogfood numbers | 396 nodes · 236 edges · 34 entries · 6 ServiceLinks · ~2.3s |
+
+### Checkout trace (depth 6, cross-service)
+```
+TRACE  POST /basket/checkout
+▸ ENTRY  POST /basket/checkout
+   └─ call <lambda> POST /basket/checkout
+      └─ send CheckoutBasketCommand  [approx]
+         └─ handler CheckoutBasketCommandHandler  (CheckoutBasketHandler.cs:21)
+            ├─ raises BasketCheckoutEvent  (CheckoutBasketHandler.cs:41) [approx]
+            │  └─ consumes BasketCheckoutEventHandler  (Ordering.Application/EventHandlers/...)
+            │     └─ send CreateOrderCommand  [approx]
+            │        (stopped at depth 6; 1 branch omitted)
+            ├─ call BasketRepository.GetBasket  [verified]
+            ├─ call BasketCheckoutDto.Adapt  [verified]
+            └─ call BasketRepository.DeleteBasket  [verified]
+EMITS    BasketCheckoutEvent
+```
+
+**Trace steps:** Entry → lambda → send CheckoutBasketCommand → handler → raises
+BasketCheckoutEvent → consumes BasketCheckoutEventHandler (Basket.API → Ordering.Application
+cross-service hop) → send CreateOrderCommand. Depth 6. This is the E1 flow proven by
+SeamDetectorTests.Checkout_spine_seams_detected_end_to_end (L2.2), now wired end-to-end.
+
+### Node/edge drift vs baseline (493n/316e)
+- **396 nodes** (97 fewer): the new seam detectors are more conservative — they don't fabricate edges
+  for ambiguous/unresolved targets (Law R1) or for noise types that the old regexes would emit.
+- **236 edges** (80 fewer): AddSends/AddRaises used to emit many false positives (e.g., treating
+  `new SmtpClient()` as an event, matching non-request types on `.Send()` calls). The structured
+  detector approach gates on known receiver types and ArgFact resolution.
+- Drift is >5% — **documented here** as an intentional purity gain, not a regression. The verified%
+  stat will recover in L3 (semantic-lite).
+
+### L2.4 — Checkout trace GREEN
+- `[TruthPending]` on the checkout flow effectively resolved — trace depth 6, cross-service, PROVEN.
+- Full truth expectations file not yet wired (that's L0.1 + L7.4).
+- MCP trace not verified in this session (server requires running).

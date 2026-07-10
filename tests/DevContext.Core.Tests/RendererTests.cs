@@ -28,7 +28,7 @@ public sealed class RendererTests
         var renderer = new MarkdownRenderer();
         var result = await renderer.RenderAsync(model, options, default);
 
-        Assert.Contains("No projects discovered", result.Content);
+        Assert.Contains("No projects discovered.", result.Content);
         Assert.Contains("No endpoints detected", result.Content);
         Assert.Contains("No types discovered", result.Content);
     }

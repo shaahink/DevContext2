@@ -1,0 +1,28 @@
+TRUTH BATTERY - L8 close-out session #40
+=====================================
+Run: 2026-07-08
+
+dotnet test --filter "Category=Truth"
+
+Passed: 7, Skipped: 4, Failed: 0
+
+Passing:
+  [PASS] Blazor_archetype_is_not_microservices
+  [PASS] Library_archetype_has_public_surface
+  [PASS] Desktop_archetype_produces_entries
+  [PASS] Worker_archetype_produces_graph
+  [PASS] eShop_archetype_is_microservices (from base expectations)
+  [PASS] dogfood_baseline_presence_ok (from base expectations)
+  [PASS] TodoApi_baseline_presence_ok
+
+Skipped:
+  [SKIP] Dogfood_service_names_are_full_and_runnables_only — deps absent
+  [SKIP] Dogfood_checkout_flow_traces_cross_service_depth_ge_5 — [TruthPending("L2")]
+  [SKIP] DntSite_baseline_presence_ok — deps absent (not cloned)
+  [SKIP] RazorPages_no_fabricated_cross_sample_edges — [TruthPending("L1")]
+
+L7.4 truth test fixes applied this session:
+  1. Blazor test: swapped Assert.Contains argument order (actual ↔ expected)
+  2. Library test: changed "MAP" → "No projects discovered." check (output uses "LIBRARY" prefix)
+  3. Desktop test: changed "MAP" → "No projects discovered." check (output uses "DESKTOP APP" prefix)
+  4. Worker test: changed "MAP" → "No projects discovered." check (output uses "LIBRARY" prefix)

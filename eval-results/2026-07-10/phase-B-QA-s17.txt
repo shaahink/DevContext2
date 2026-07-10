@@ -1,0 +1,33 @@
+=== Phase B QA Session s17 (2026-07-10) ===
+
+Gate Battery (fresh run):
+  dotnet build DevContext.slnx ................ 0w 0e PASS
+  dotnet test --filter Category!=Eval ......... Core 440P/3S + Server 14P + Desktop 64P = 0F PASS
+  dotnet test --filter Category=Truth ......... 9P/2S PASS (2 [TruthPending]: L1 server names, L1 RazorPages)
+  pnpm check ................................. Lint 0, Test 27/27, Build 0w/0e PASS
+  loom-guards.ps1 (manual) ................... 0 banned, 13 advisory (stable)
+
+=== B1 Tab Strip Height (VERIFIED) ===
+Code: tab-strip.ts:21 — style="height:32px;min-height:32px" on container div
+Root cause (per s14): html,body font-size=14px means 1rem=14px, so Tailwind h-8=28px.
+Fix: Explicit pixel height bypasses relative unit calculation.
+Evidence: eval-results/2026-07-10/ui/ui-gate.json shows stripH=32px, A-tabstrip-height PASS.
+
+=== B2 Code Pane Non-Null (VERIFIED) ===
+Code: inspector.ts:451-454 — toggle('code') auto-loads source on open when node has filePath
+Code: inspector.ts:503-521 — loadCode() calls api.readSource(handle, node.id) for raw C# source
+Evidence: eval-results/2026-07-10/ui/ui-gate.json shows code length=44, C-code-pane-nonempty PASS.
+
+=== QA of Previous Session (s16, Phase C) ===
+C1 (MCP mcpRunning): DevContextApi.getMcpStatus() queries server on mount. Code in mcp-page.ts:274-276. VERIFIED.
+C2 (Inspector word-boundary): wordBoundaryIncludes() at inspector.ts:24-30 uses character-class edge detection. VERIFIED.
+C3 (bench.ps1 encoding): Line 263 uses [Environment]::NewLine. VERIFIED.
+C4 (Spine-depth metric): GraphStats.Compute returns (EntriesWithDeepSpine, DeepSpineRatio). GraphQuery.cs:63, FlowModel.cs:45. VERIFIED.
+C5 (Perf budget): loom-graph-design.md §8 updated to ≤6s. LOOM-START.md baseline verified 9P/2S. VERIFIED.
+
+All 5 Phase C checkpoints pass code inspection. No regressions found.
+
+=== Phase B Verdict ===
+Both B1 and B2 are VERIFIED by code inspection + prior evidence (ui-gate.json 4/4 PASS).
+No remaining incomplete checkpoints in Phase B.
+Gate battery green. Working tree clean.

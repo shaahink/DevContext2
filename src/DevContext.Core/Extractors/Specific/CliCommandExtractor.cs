@@ -1,7 +1,11 @@
 namespace DevContext.Core.Extractors.Specific;
 
-/// <summary>Detects CLI command handlers — classes extending <c>Command&lt;TSettings&gt;</c>
-/// (Spectre.Console.Cli) or implementing <c>ICommand</c> (System.CommandLine).
+/// <summary>Detects CLI command handlers — classes extending <c>Command&lt;TSettings&gt;</c>/
+/// <c>AsyncCommand&lt;TSettings&gt;</c> (Spectre.Console.Cli), or a bare <c>Command</c>/<c>RootCommand</c>
+/// base gated on the file importing System.CommandLine (E7: bare-name bases and any
+/// <c>ICommand</c>-ish interface also collide with unrelated frameworks — WPF's
+/// <c>System.Windows.Input.ICommand</c> MVVM pattern, the Command Palette extension SDK's own
+/// <c>Command</c>/<c>IInvokableCommand</c> — so those are never trusted on name alone).
 /// Produces <see cref="CliCommandDetection"/> entries.</summary>
 [ExtractorOrder(65)]
 public sealed class CliCommandExtractor : IDiscoveryExtractor
@@ -14,7 +18,7 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
         [ArchitectureSignals.Keys.CliCommands],
         ["cli-command-detections"],
         ["model.Detections"],
-        "Scans for Command<TSettings> subclasses and ICommand implementations");
+        "Scans for Command<TSettings> subclasses and System.CommandLine-gated Command/RootCommand bases");
 
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.CliCommands);
@@ -31,6 +35,16 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
             catch { continue; }
 
             var root = await syntaxTree.GetRootAsync(ct);
+
+            // E7: System.CommandLine's bare `Command`/`RootCommand` base names collide with unrelated
+            // frameworks' own types of the same name (e.g. the Command Palette extension SDK's own
+            // `Command` base for UI action items) — require the file to actually import System.CommandLine
+            // before trusting a bare-name match.
+            var hasSystemCommandLineUsing = root.DescendantNodes()
+                .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax>()
+                .Any(u => u.Name?.ToString() is { } n
+                    && (n == "System.CommandLine" || n.StartsWith("System.CommandLine.", StringComparison.Ordinal)));
+
             foreach (var classDecl in root.DescendantNodes()
                 .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax>())
             {
@@ -56,17 +70,18 @@ public sealed class CliCommandExtractor : IDiscoveryExtractor
                         settingsType = name[13..^1];
                         break;
                     }
-                    if (name == "RootCommand" || name == "Command")
+                    // E7: bare "Command"/"RootCommand" only means System.CommandLine when the file
+                    // actually imports it — otherwise it's as likely the Command Palette extension SDK's
+                    // own unrelated Command base (Microsoft.CommandPalette.Extensions.Toolkit.Command).
+                    if ((name == "RootCommand" || name == "Command") && hasSystemCommandLineUsing)
                     {
                         isCommand = true;
                         break;
                     }
-                    // Check interfaces
-                    if (name == "ICommand" || name.Contains("ICommand"))
-                    {
-                        isCommand = true;
-                        break;
-                    }
+                    // Note: WPF's System.Windows.Input.ICommand (Execute/CanExecute, used pervasively by
+                    // MVVM RelayCommand/AsyncCommand/ButtonClickCommand view-model helpers) is NOT a CLI
+                    // marker — System.CommandLine has no public ICommand interface to detect from, so a
+                    // bare "ICommand" match here was pure false-positive noise (E7), not a real seam.
                 }
 
                 if (!isCommand) continue;

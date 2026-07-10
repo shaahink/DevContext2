@@ -1,0 +1,130 @@
+# L3.3 Gate Battery + Evidence (2026-07-08, session #16)
+
+Stage L3 — Semantic-lite tier. Checkpoint **L3.3 — Verified-edge ratchet ≥80% dogfood**.
+Branch feat/loom-l2. Dogfood: run-aspnetcore-microservices/src. Conductor session #16 (attempt 2/4).
+
+## Artifact-to-prove-done (stated up front)
+Fresh dogfood `report` shows **Verified edges ≥ 80%** with node/edge counts unchanged
+(pure tier upgrades, no fabrication) and the full gate battery green.
+→ `eval-results/2026-07-08/dogfood-l3.3-s16.md` (81%, 422n/276e, cold).
+
+## QA of previous session (#14/#15, L3.3 PARTIAL) — verified against fresh artifacts
+
+VERDICT: **Previous claims REPRODUCE; BLOCKED status was honest.**
+- Fresh cold `report` on the previous committed HEAD (c2edd79) → 422n/276e/34ent, **68%**
+  verified, seam-approx breakdown identical to the s14 artifact (Sends 32, Calls 30,
+  ReadsWrites 19). No green-washing; the ≥80% target genuinely unmet at 68%.
+- The recorded blockers were correct in symptom but the *stated* root cause was incomplete
+  (see below). The lambda-overlay infra from s14 was sound; it was starved of Semantic
+  inputs because Tier-B binding silently produced them for almost nothing on this repo.
+
+## Root-cause diagnosis (this session, empirical via a scratch probe)
+
+`approx = edges with Resolution.Syntactic`; verified = everything else. The dominant
+approx bucket was **Sends 32/33**. The dispatch pattern is uniform in eShop:
+`var command = request.Adapt<XCommand>(); await sender.Send(command);` (and DELETE/GET
+endpoints: `sender.Send(new XQuery(...))`).
+
+Tier-B `SemanticLitePopulator` built ONE merged `CSharpCompilation` and tried to bind the
+whole initializer `request.Adapt<CheckoutBasketCommand>()`. That bind returned an **error
+type** for EVERY invocation in every web/endpoint file, because:
+1. **Mapster.dll / Carter.dll are physically absent** from this machine's NuGet caches
+   (assets.json present, packages not fully restored) → the `Adapt` extension method can
+   never resolve → the whole invocation is an error type.
+2. The merged compilation also lacks the **ASP.NET shared framework** (we load only the
+   console host TPA, not `Microsoft.AspNetCore.App`) → endpoint files carry hundreds of
+   errors.
+
+KEY INSIGHT (probe-proven): binding the **generic type ARGUMENT** `CheckoutBasketCommand`
+of `Adapt<CheckoutBasketCommand>` resolves to the real in-scope type
+`Basket.API.Basket.CheckoutBasket.CheckoutBasketCommand` **even in the broken merged
+compilation** — type-argument resolution is local name resolution and does not depend on
+the missing `Adapt` method assembly. Likewise, an inline `new XCommand(..)` object-creation
+binds directly (no external package needed). Both are genuine Roslyn semantic binds — not
+name guesses — so they earn the Semantic tier honestly.
+
+## L3.3 delivered — assembly-independent semantic binding of dispatch targets
+
+Three focused changes (all upgrade-only, Law R2; zero new edges, zero regex):
+
+1. **`SemanticLitePopulator.BindExpressionType`** (new shared helper): bind whole expression
+   first (covers `new X()` and mapping calls when the package IS present); if that yields an
+   error type AND the expression is a mapping call (`Adapt<T>`/`Map<T>`/`Create<T>`…) with a
+   single explicit generic arg, bind THAT TYPE ARGUMENT directly. Used by
+   `TryBindLocalDeclType` (the `var command = …Adapt<T>()` case).
+
+2. **Combined `InvocationOp` upgrade** in `UpgradeBodyFacts`: one case now upgrades receiver
+   type + generic args + **argument types**. (Fixes a latent switch-ordering bug where an
+   invocation with a receiver never reached the generic-arg branch, so `generic-arg` upgrades
+   were always 0.) New `TryBindArgType` binds the inline dispatch arg
+   `sender.Send(new XQuery())` / `sender.Send(request.Adapt<XCommand>())` via the same
+   `BindExpressionType`. Recorded as `arg-type` in the tier-routing stat.
+
+3. **Lambda-seam overlay generalised** (`GraphBuilder.OverlaySemanticLocals` +
+   `AddLambdaSeams`): the re-parsed lambda facts now receive Semantic tiers for ArgFact types
+   and generic args (not just `var` locals), matched by (file, expression-text, short-type).
+   This carries the whole-file Tier-B binds onto the lambda-anchored edges the trace walks.
+
+## Results (fresh cold dogfood run — `dogfood-l3.3-s16.md`)
+
+| Metric | s14 (before) | s16 (after) | Δ |
+|--------|--------------|-------------|---|
+| Nodes | 422 | 422 | 0 |
+| Edges | 276 | 276 | 0 |
+| Entries | 34 | 34 | 0 |
+| ServiceLinks | 6 | 6 | 0 |
+| **Verified edges** | **68%** | **81%** | **+13pp — TARGET ≥80% MET** |
+| Analyzed in | 3.9s | 3.9s | 0 (within design §8 budget) |
+
+Seam approx (Syntactic) before → after:
+
+| Seam | Edges | Approx s14 | Approx s16 |
+|------|-------|-----------|-----------|
+| Calls | 121 | 30 | 30 |
+| **Sends** | 33 | **32** | **0** |
+| Handles | 18 | 0 | 0 |
+| Raises | 4 | 3 | 1 |
+| Consumes | 5 | 0 | 0 |
+| ReadsWrites | 26 | 19 | 16 |
+| Resolves | 26 | 1 | 1 |
+| WrappedBy | 36 | 0 | 0 |
+| EntityRelation | 1 | 1 | 1 |
+| ServiceLink | 6 | 3 | 3 |
+
+Total approx 89 → 52; verified 187/276 (68%) → 224/276 (**81%**). Node/edge counts
+unchanged — every gain is a tier upgrade of an already-existing edge, not a new edge, so
+no fabrication was introduced. The flagship checkout Send now renders `[verified]`; the
+`POST /basket/checkout` trace is 24 steps, cross-service (mcp-qa gate-checkout).
+
+## Generalization (secondary, not the gate)
+
+CleanArchitecture (`cleanarch-l3.3-s16.md`): **Sends 24/24 verified (0 approx)** — the fix
+generalizes to another MediatR/CQRS repo. Its overall verified share (54%) is dragged by
+Calls (28/47 approx) and ReadsWrites (34/48 approx), which are separate levers outside
+L3.3's scope (Calls → CallGraph semantic pass; ReadsWrites → EntityTouch binding).
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 393P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (5 test files, 27 tests, bundle built) |
+| node eval/mcp-qa/run.js --quiet | 8/8 PASS · gate-checkout PASS (24 steps, cross-service) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+
+## Known-red / recorded (unchanged by this session — verified via stash A/B)
+
+- Category=Eval failures are PRE-EXISTING (verified: `TodoApi_baseline_presence_ok` — no
+  `TodoDbContext` in the POST /todos trace — fails identically on clean HEAD c2edd79 with
+  my changes stashed). It is an L7 repo-shape/call-spine gap, unrelated to L3.3.
+- **DntSite controller-resolution sub-measurement (34/94 baseline): NOT MEASURED — the
+  DntSite repo is absent on this machine** (`%LOCALAPPDATA%\DevContext\repos` has only
+  CleanArchitecture / TodoApi / files / powertoys). The ratchet gate (the checkpoint's
+  binding bar) is the dogfood ≥80% share, which is met; the DntSite delta is a "measure and
+  record" item that requires the clone. Left for a session/machine that has DntSite.
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/dogfood-l3.3-s16.md — fresh cold dogfood report (81% verified)
+- eval-results/2026-07-08/cleanarch-l3.3-s16.md — generalization data point (Sends 24/24)
+- eval-results/2026-07-08/gate-battery-l3.3-s16.txt — this file

@@ -109,13 +109,13 @@ const MOCK_TRACE: TraceNodeVm = {
 
       <h2 class="section-h -ml-2 mb-2 text-sm">Type ramp</h2>
       <div class="mb-8 space-y-1">
-        <p class="text-2xs text-ink">text-2xs — labels, meta (11px)</p>
-        <p class="text-xs text-ink">text-xs — dense UI default (12px)</p>
-        <p class="text-sm text-ink">text-sm — 13px UI base</p>
-        <p class="text-base text-ink">text-base — section titles (15px-ish)</p>
+        <p class="text-2xs text-ink">text-2xs — labels, meta (12px)</p>
+        <p class="text-xs text-ink">text-xs — dense UI default (13px)</p>
+        <p class="text-sm text-ink">text-sm — 14px UI base</p>
+        <p class="text-base text-ink">text-base — section titles (15px)</p>
         <p class="text-lg font-semibold text-ink">text-lg — page titles</p>
         <p class="prose-zone">
-          .prose-zone — where reading happens (LLM pane, insight detail, Home digest): 13.5px,
+          .prose-zone — where reading happens (LLM pane, insight detail, Home digest): 15px,
           1.6 leading, 68ch max width.
         </p>
         <p class="font-mono text-xs text-ink">font-mono — JetBrains Mono, node ids/routes/tokens</p>

@@ -34,4 +34,20 @@ public sealed record EntryPoint(
     /// <summary>The graph node (Type or Member) that this entry's Calls edge points to. Set during
     /// graph construction so EnrichEntryTargets can resolve targets without scanning by name.</summary>
     public NodeId? HandlerNode { get; init; }
+    /// <summary>Namespace- or project-derived grouping path (e.g. "Controllers/Orders", "Services/Ordering").
+    /// Surfaces as the grouping column in the entries table and powers per-module rollups.</summary>
+    public string? GroupPath { get; init; }
+    /// <summary>Authorization attributes applied to this entry (e.g. "[Authorize]", "[AllowAnonymous]"),
+    /// surfaces the auth column in entries and powers security insight cards.</summary>
+    public ImmutableArray<string> AuthAttributes { get; init; } = [];
+    /// <summary>L3.2 — Graph-aware composite score (0..1) for ranking entries by importance.</summary>
+    public double Score { get; init; }
+    /// <summary>Distinct nodes reachable from this entry's Calls/Sends edges (BFS, depth 6).</summary>
+    public int Reach { get; init; }
+    /// <summary>Count of Sends + Raises + Consumes edges in this entry's reach.</summary>
+    public int SeamRichness { get; init; }
+    /// <summary>Count of ReadsWrites edges targeting Entity/Aggregate nodes in this entry's reach.</summary>
+    public int EntityTouches { get; init; }
+    /// <summary>Number of distinct projects (by file path) in this entry's reach.</summary>
+    public int CrossProjects { get; init; }
 }

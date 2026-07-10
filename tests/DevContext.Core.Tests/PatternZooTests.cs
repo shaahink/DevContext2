@@ -1,4 +1,6 @@
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DevContext.Core.Tests;
 
@@ -10,19 +12,27 @@ public sealed class PatternZooTests
     private static (CodeGraph graph, ImmutableArray<EntryPoint> entries) Build(string sourceBody, ImmutableArray<MethodSignature>? methods = null)
     {
         var model = new DiscoveryModel { Projects = [Pi] };
+        var filePath = @"C:\repo\PatternZoo\Handler.cs";
         model.Types.TryAdd("PatternZoo.Handler", new TypeDiscovery
         {
             Id = "PatternZoo.Handler",
             Name = "Handler",
             Namespace = "PatternZoo",
-            FilePath = @"C:\repo\PatternZoo\Handler.cs",
+            FilePath = filePath,
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
             SourceBody = sourceBody,
             Methods = methods ?? [],
         });
-        return Builder.Build(model, SolutionScope.FromModel(model));
+
+        // L2.3: extract BodyFacts from source body so the seam detectors (not the old regex methods) produce edges.
+        // Wrap in namespace so BodyFactExtractor produces FQNs matching the model's type id.
+        var wrappedSource = $"namespace PatternZoo {{ {sourceBody} }}";
+        var parseOpts = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
+        var tree = CSharpSyntaxTree.ParseText(wrappedSource, parseOpts, path: filePath);
+        var facts = BodyFactExtractor.Extract(tree, filePath, "PatternZoo");
+        return Builder.Build(model, SolutionScope.FromModel(model), facts);
     }
 
     [Fact]

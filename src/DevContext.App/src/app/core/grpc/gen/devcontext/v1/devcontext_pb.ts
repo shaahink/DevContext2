@@ -2,15 +2,15 @@
 // @generated from file devcontext/v1/devcontext.proto (package devcontext.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file devcontext/v1/devcontext.proto.
  */
 export const file_devcontext_v1_devcontext: GenFile = /*@__PURE__*/
-  fileDesc("Ch5kZXZjb250ZXh0L3YxL2RldmNvbnRleHQucHJvdG8SDWRldmNvbnRleHQudjEirwEKDkFuYWx5emVSZXF1ZXN0EgwKBHBhdGgYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEhEKCW5vX3Jvc2x5bhgFIAEoCBIUCgdjbGVhbnVwGAYgASgJSAOIAQFCCAoGX2ZvY3VzQggKBl9kZXB0aEIJCgdfZGV0YWlsQgoKCF9jbGVhbnVwIqcBCgxBbmFseXplRXZlbnQSMAoIcHJvZ3Jlc3MYASABKAsyHC5kZXZjb250ZXh0LnYxLlByb2dyZXNzRXZlbnRIABIuCgZyZXN1bHQYAiABKAsyHC5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXN1bHRIABIsCgVlcnJvchgDIAEoCzIbLmRldmNvbnRleHQudjEuQW5hbHl6ZUVycm9ySABCBwoFZXZlbnQiQAoNUHJvZ3Jlc3NFdmVudBINCgVzdGFnZRgBIAEoCRIPCgdwZXJjZW50GAIgASgBEg8KB21lc3NhZ2UYAyABKAkiUAoNQW5hbHl6ZVJlc3VsdBIOCgZoYW5kbGUYASABKAkSLwoHc3VtbWFyeRgCIAEoCzIeLmRldmNvbnRleHQudjEuQW5hbHlzaXNTdW1tYXJ5Ii0KDEFuYWx5emVFcnJvchIPCgdtZXNzYWdlGAEgASgJEgwKBGNvZGUYAiABKAki4AEKD0FuYWx5c2lzU3VtbWFyeRINCgVsYWJlbBgBIAEoCRIQCghwcm9qZWN0cxgCIAEoBRINCgVub2RlcxgDIAEoBRINCgVlZGdlcxgEIAEoBRIPCgdlbnRyaWVzGAUgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBiABKAUSEgoKZWxhcHNlZF9tcxgHIAEoAxITCgtleHBsYW5hdGlvbhgIIAEoCRIQCgh3YXJuaW5ncxgJIAMoCRISCgppc19saWJyYXJ5GAogASgIEhEKCWFyY2hldHlwZRgLIAEoCSIgCg5TZXNzaW9uUmVxdWVzdBIOCgZoYW5kbGUYASABKAkiHwoNQ2xvc2VSZXNwb25zZRIOCgZjbG9zZWQYASABKAgiRgoTRW50cnlQb2ludHNSZXNwb25zZRIvCgxlbnRyeV9wb2ludHMYASADKAsyGS5kZXZjb250ZXh0LnYxLkVudHJ5UG9pbnQi7AEKCkVudHJ5UG9pbnQSDAoEa2luZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIPCgdub2RlX2lkGAMgASgJEhgKC2h0dHBfbWV0aG9kGAQgASgJSACIAQESEgoFcm91dGUYBSABKAlIAYgBARIXCgpwcm92ZW5hbmNlGAYgASgJSAKIAQESFAoHcHJvamVjdBgHIAEoCUgDiAEBEhMKBnRhcmdldBgIIAEoCUgEiAEBQg4KDF9odHRwX21ldGhvZEIICgZfcm91dGVCDQoLX3Byb3ZlbmFuY2VCCgoIX3Byb2plY3RCCQoHX3RhcmdldCKqAwoLTWFwUmVzcG9uc2USEAoIbWFya2Rvd24YASABKAkSDQoFc3R5bGUYAiABKAkSGAoQc3R5bGVfY29uZmlkZW5jZRgDIAEoARIbCg5zdHlsZV9ldmlkZW5jZRgEIAEoCUgAiAEBEhcKCnNjb3BlX25vdGUYBSABKAlIAYgBARIRCglhcmNoZXR5cGUYBiABKAkSEgoKaXNfbGlicmFyeRgHIAEoCBIVCg1wcm9qZWN0X2NvdW50GAggASgFEiwKCHRvcG9sb2d5GAkgAygLMhouZGV2Y29udGV4dC52MS5Qcm9qZWN0Tm9kZRItCghwYWNrYWdlcxgKIAMoCzIbLmRldmNvbnRleHQudjEuUGFja2FnZUdyb3VwEhIKCmFnZ3JlZ2F0ZXMYCyADKAkSGgoScGlwZWxpbmVfYmVoYXZpb3JzGAwgAygJEg0KBXN0YWNrGA0gAygJEi4KB3N1cmZhY2UYDiABKAsyHS5kZXZjb250ZXh0LnYxLkxpYnJhcnlTdXJmYWNlQhEKD19zdHlsZV9ldmlkZW5jZUINCgtfc2NvcGVfbm90ZSIvCgtQcm9qZWN0Tm9kZRIMCgRuYW1lGAEgASgJEhIKCmRlcGVuZHNfb24YAiADKAkiLwoMUGFja2FnZUdyb3VwEg0KBWxhYmVsGAEgASgJEhAKCHBhY2thZ2VzGAIgAygJIlcKDkxpYnJhcnlTdXJmYWNlEisKBmdyb3VwcxgBIAMoCzIbLmRldmNvbnRleHQudjEuU3VyZmFjZUdyb3VwEhgKEGV4dGVuc2lvbl9wb2ludHMYAiADKAkiTAoMU3VyZmFjZUdyb3VwEhEKCW5hbWVzcGFjZRgBIAEoCRIpCgV0eXBlcxgCIAMoCzIaLmRldmNvbnRleHQudjEuU3VyZmFjZVR5cGUiOgoLU3VyZmFjZVR5cGUSDAoEbmFtZRgBIAEoCRIMCgRraW5kGAIgASgJEg8KB21lbWJlcnMYAyADKAkiawoMVHJhY2VSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRINCgVmb2N1cxgCIAEoCRISCgVkZXB0aBgDIAEoBUgAiAEBEhMKBmRldGFpbBgEIAEoCUgBiAEBQggKBl9kZXB0aEIJCgdfZGV0YWlsIooBCg1UcmFjZVJlc3BvbnNlEg0KBWZvdW5kGAEgASgIEhAKCG1hcmtkb3duGAIgASgJEiYKBHJvb3QYAyABKAsyGC5kZXZjb250ZXh0LnYxLlRyYWNlTm9kZRIYChB0b3VjaGVkX2VudGl0aWVzGAQgAygJEhYKDmVtaXR0ZWRfZXZlbnRzGAUgAygJIqQCCglUcmFjZU5vZGUSDwoHbm9kZV9pZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIMCgRraW5kGAMgASgJEgwKBHNlYW0YBCABKAkSDQoFZGVwdGgYBSABKAUSFwoKcHJvdmVuYW5jZRgGIAEoCUgAiAEBEhIKCnJlc29sdXRpb24YByABKAkSEQoJdHJ1bmNhdGVkGAggASgIEg8KB29taXR0ZWQYCSABKAUSFAoHc2FsaWVudBgKIAEoCUgBiAEBEgwKBHRhZ3MYCyADKAkSEAoIcGlwZWxpbmUYDCADKAkSKgoIY2hpbGRyZW4YDSADKAsyGC5kZXZjb250ZXh0LnYxLlRyYWNlTm9kZUINCgtfcHJvdmVuYW5jZUIKCghfc2FsaWVudCIuCgtOb2RlUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDwoHbm9kZV9pZBgCIAEoCSKmAQoMTm9kZVJlc3BvbnNlEg0KBWZvdW5kGAEgASgIEg8KB25vZGVfaWQYAiABKAkSDQoFdGl0bGUYAyABKAkSDAoEa2luZBgEIAEoCRIMCgR0YWdzGAUgAygJEhYKCWZpbGVfcGF0aBgGIAEoCUgAiAEBEhIKCm91dF9kZWdyZWUYByABKAUSEQoJaW5fZGVncmVlGAggASgFQgwKCl9maWxlX3BhdGgiRgoQTmVpZ2hib3JzUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDwoHbm9kZV9pZBgCIAEoCRIRCglkaXJlY3Rpb24YAyABKAkiNwoRTmVpZ2hib3JzUmVzcG9uc2USIgoFZWRnZXMYASADKAsyEy5kZXZjb250ZXh0LnYxLkVkZ2UifwoERWRnZRIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEgwKBGtpbmQYAyABKAkSEgoKcmVzb2x1dGlvbhgEIAEoCRIXCgpwcm92ZW5hbmNlGAUgASgJSACIAQESEwoLb3RoZXJfdGl0bGUYBiABKAlCDQoLX3Byb3ZlbmFuY2UiPQoNU2VhcmNoUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDQoFcXVlcnkYAiABKAkSDQoFbGltaXQYAyABKAUiNwoOU2VhcmNoUmVzcG9uc2USJQoFbm9kZXMYASADKAsyFi5kZXZjb250ZXh0LnYxLk5vZGVSZWYiRQoHTm9kZVJlZhIPCgdub2RlX2lkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBGtpbmQYAyABKAkSDAoEdGFncxgEIAMoCSL8AgoNU3RhdHNSZXNwb25zZRIoCgZzdGFnZXMYASADKAsyGC5kZXZjb250ZXh0LnYxLlN0YWdlU3RhdBIwCgpleHRyYWN0b3JzGAIgAygLMhwuZGV2Y29udGV4dC52MS5FeHRyYWN0b3JTdGF0EiYKBXNlYW1zGAMgAygLMhcuZGV2Y29udGV4dC52MS5TZWFtU3RhdBIpCgZjb3JwdXMYBCABKAsyGS5kZXZjb250ZXh0LnYxLkNvcnB1c1N0YXQSJwoFY2FjaGUYBSABKAsyGC5kZXZjb250ZXh0LnYxLkNhY2hlU3RhdBInCgVncmFwaBgGIAEoCzIYLmRldmNvbnRleHQudjEuR3JhcGhTdGF0EikKBmZ1bm5lbBgHIAEoCzIZLmRldmNvbnRleHQudjEuRnVubmVsU3RhdBIVCg10b3RhbF93YWxsX21zGAggASgDEigKCGluc2lnaHRzGAkgAygLMhYuZGV2Y29udGV4dC52MS5JbnNpZ2h0ImoKB0luc2lnaHQSCgoCaWQYASABKAkSEAoIY2F0ZWdvcnkYAiABKAkSEAoIc2V2ZXJpdHkYAyABKAkSDQoFdGl0bGUYBCABKAkSDgoGZGV0YWlsGAUgASgJEhAKCGV2aWRlbmNlGAYgAygJIi4KCVN0YWdlU3RhdBINCgVzdGFnZRgBIAEoCRISCgplbGFwc2VkX21zGAIgASgDIqkBCg1FeHRyYWN0b3JTdGF0EgwKBG5hbWUYASABKAkSEgoKZWxhcHNlZF9tcxgCIAEoAxITCgt0eXBlc19hZGRlZBgDIAEoBRIYChBkZXRlY3Rpb25zX2FkZGVkGAQgASgFEg8KB3NraXBwZWQYBSABKAgSGAoLc2tpcF9yZWFzb24YBiABKAlIAIgBARIMCgR0aWVyGAcgASgJQg4KDF9za2lwX3JlYXNvbiI3CghTZWFtU3RhdBIMCgRzZWFtGAEgASgJEg0KBWNvdW50GAIgASgFEg4KBmFwcHJveBgDIAEoBSJJCgpDb3JwdXNTdGF0EhMKC3RvdGFsX2ZpbGVzGAEgASgFEhQKDGNzaGFycF9maWxlcxgCIAEoBRIQCghwcm9qZWN0cxgDIAEoBSJpCglDYWNoZVN0YXQSEQoJdGV4dF9oaXRzGAEgASgFEhMKC3RleHRfbWlzc2VzGAIgASgFEhgKEHN5bnRheF90cmVlX2hpdHMYAyABKAUSGgoSc3ludGF4X3RyZWVfbWlzc2VzGAQgASgFIlcKCUdyYXBoU3RhdBINCgVub2RlcxgBIAEoBRINCgVlZGdlcxgCIAEoBRIPCgdlbnRyaWVzGAMgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBCABKAUiewoKRnVubmVsU3RhdBIYChB0eXBlc19kaXNjb3ZlcmVkGAEgASgFEhYKDnR5cGVzX2luY2x1ZGVkGAIgASgFEhIKCnJhd190b2tlbnMYAyABKAUSFwoPcmVuZGVyZWRfdG9rZW5zGAQgASgFEg4KBmJ1ZGdldBgFIAEoBSK6AQoNUmVuZGVyUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEg4KBmZvcm1hdBgFIAEoCRIQCghzZWN0aW9ucxgGIAMoCRIbChNpbmNsdWRlX2RpYWdub3N0aWNzGAcgASgIQggKBl9mb2N1c0IICgZfZGVwdGhCCQoHX2RldGFpbCJ5Cg5SZW5kZXJSZXNwb25zZRIPCgdjb250ZW50GAEgASgJEg4KBmZvcm1hdBgCIAEoCRIYChBlc3RpbWF0ZWRfdG9rZW5zGAMgASgFEiwKCHNlY3Rpb25zGAQgAygLMhouZGV2Y29udGV4dC52MS5TZWN0aW9uSW5mbyIqCgtTZWN0aW9uSW5mbxILCgNrZXkYASABKAkSDgoGdG9rZW5zGAIgASgFIg0KC1BpbmdSZXF1ZXN0Ii4KDFBpbmdSZXNwb25zZRIPCgd2ZXJzaW9uGAEgASgJEg0KBXJlYWR5GAIgASgIMr8GChFEZXZDb250ZXh0U2VydmljZRJHCgdBbmFseXplEh0uZGV2Y29udGV4dC52MS5BbmFseXplUmVxdWVzdBobLmRldmNvbnRleHQudjEuQW5hbHl6ZUV2ZW50MAESSwoMQ2xvc2VTZXNzaW9uEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBocLmRldmNvbnRleHQudjEuQ2xvc2VSZXNwb25zZRJUCg9MaXN0RW50cnlQb2ludHMSHS5kZXZjb250ZXh0LnYxLlNlc3Npb25SZXF1ZXN0GiIuZGV2Y29udGV4dC52MS5FbnRyeVBvaW50c1Jlc3BvbnNlEkMKBkdldE1hcBIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaGi5kZXZjb250ZXh0LnYxLk1hcFJlc3BvbnNlEkUKCEdldFRyYWNlEhsuZGV2Y29udGV4dC52MS5UcmFjZVJlcXVlc3QaHC5kZXZjb250ZXh0LnYxLlRyYWNlUmVzcG9uc2USQgoHR2V0Tm9kZRIaLmRldmNvbnRleHQudjEuTm9kZVJlcXVlc3QaGy5kZXZjb250ZXh0LnYxLk5vZGVSZXNwb25zZRJRCgxHZXROZWlnaGJvcnMSHy5kZXZjb250ZXh0LnYxLk5laWdoYm9yc1JlcXVlc3QaIC5kZXZjb250ZXh0LnYxLk5laWdoYm9yc1Jlc3BvbnNlEkoKC1NlYXJjaE5vZGVzEhwuZGV2Y29udGV4dC52MS5TZWFyY2hSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5TZWFyY2hSZXNwb25zZRJHCghHZXRTdGF0cxIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaHC5kZXZjb250ZXh0LnYxLlN0YXRzUmVzcG9uc2USRQoGUmVuZGVyEhwuZGV2Y29udGV4dC52MS5SZW5kZXJSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5SZW5kZXJSZXNwb25zZRI/CgRQaW5nEhouZGV2Y29udGV4dC52MS5QaW5nUmVxdWVzdBobLmRldmNvbnRleHQudjEuUGluZ1Jlc3BvbnNlQhSqAhFEZXZDb250ZXh0LlByb3Rvc2IGcHJvdG8z");
+  fileDesc("Ch5kZXZjb250ZXh0L3YxL2RldmNvbnRleHQucHJvdG8SDWRldmNvbnRleHQudjEirwEKDkFuYWx5emVSZXF1ZXN0EgwKBHBhdGgYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEhEKCW5vX3Jvc2x5bhgFIAEoCBIUCgdjbGVhbnVwGAYgASgJSAOIAQFCCAoGX2ZvY3VzQggKBl9kZXB0aEIJCgdfZGV0YWlsQgoKCF9jbGVhbnVwIqcBCgxBbmFseXplRXZlbnQSMAoIcHJvZ3Jlc3MYASABKAsyHC5kZXZjb250ZXh0LnYxLlByb2dyZXNzRXZlbnRIABIuCgZyZXN1bHQYAiABKAsyHC5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXN1bHRIABIsCgVlcnJvchgDIAEoCzIbLmRldmNvbnRleHQudjEuQW5hbHl6ZUVycm9ySABCBwoFZXZlbnQiQAoNUHJvZ3Jlc3NFdmVudBINCgVzdGFnZRgBIAEoCRIPCgdwZXJjZW50GAIgASgBEg8KB21lc3NhZ2UYAyABKAkiUAoNQW5hbHl6ZVJlc3VsdBIOCgZoYW5kbGUYASABKAkSLwoHc3VtbWFyeRgCIAEoCzIeLmRldmNvbnRleHQudjEuQW5hbHlzaXNTdW1tYXJ5Ii0KDEFuYWx5emVFcnJvchIPCgdtZXNzYWdlGAEgASgJEgwKBGNvZGUYAiABKAkihgIKD0FuYWx5c2lzU3VtbWFyeRINCgVsYWJlbBgBIAEoCRIQCghwcm9qZWN0cxgCIAEoBRINCgVub2RlcxgDIAEoBRINCgVlZGdlcxgEIAEoBRIPCgdlbnRyaWVzGAUgASgFEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYBiABKAUSEgoKZWxhcHNlZF9tcxgHIAEoAxITCgtleHBsYW5hdGlvbhgIIAEoCRIQCgh3YXJuaW5ncxgJIAMoCRISCgppc19saWJyYXJ5GAogASgIEhEKCWFyY2hldHlwZRgLIAEoCRINCgVzdGFsZRgMIAEoCBIVCg1zdGFsZV9tZXNzYWdlGA0gASgJIiAKDlNlc3Npb25SZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCSIfCg1DbG9zZVJlc3BvbnNlEg4KBmNsb3NlZBgBIAEoCCJGChNFbnRyeVBvaW50c1Jlc3BvbnNlEi8KDGVudHJ5X3BvaW50cxgBIAMoCzIZLmRldmNvbnRleHQudjEuRW50cnlQb2ludCKjAwoKRW50cnlQb2ludBIMCgRraW5kGAEgASgJEg0KBXRpdGxlGAIgASgJEg8KB25vZGVfaWQYAyABKAkSGAoLaHR0cF9tZXRob2QYBCABKAlIAIgBARISCgVyb3V0ZRgFIAEoCUgBiAEBEhcKCnByb3ZlbmFuY2UYBiABKAlIAogBARIUCgdwcm9qZWN0GAcgASgJSAOIAQESEwoGdGFyZ2V0GAggASgJSASIAQESFwoKZ3JvdXBfcGF0aBgJIAEoCUgFiAEBEhcKD2F1dGhfYXR0cmlidXRlcxgKIAMoCRINCgVzY29yZRgLIAEoARINCgVyZWFjaBgMIAEoBRIWCg5jcm9zc19wcm9qZWN0cxgNIAEoBRISCgVsYXllchgOIAEoCUgGiAEBEhQKB2ZlYXR1cmUYDyABKAlIB4gBAUIOCgxfaHR0cF9tZXRob2RCCAoGX3JvdXRlQg0KC19wcm92ZW5hbmNlQgoKCF9wcm9qZWN0QgkKB190YXJnZXRCDQoLX2dyb3VwX3BhdGhCCAoGX2xheWVyQgoKCF9mZWF0dXJlIt8DCgtNYXBSZXNwb25zZRIQCghtYXJrZG93bhgBIAEoCRINCgVzdHlsZRgCIAEoCRIYChBzdHlsZV9jb25maWRlbmNlGAMgASgBEhsKDnN0eWxlX2V2aWRlbmNlGAQgASgJSACIAQESFwoKc2NvcGVfbm90ZRgFIAEoCUgBiAEBEhEKCWFyY2hldHlwZRgGIAEoCRISCgppc19saWJyYXJ5GAcgASgIEhUKDXByb2plY3RfY291bnQYCCABKAUSLAoIdG9wb2xvZ3kYCSADKAsyGi5kZXZjb250ZXh0LnYxLlByb2plY3ROb2RlEi0KCHBhY2thZ2VzGAogAygLMhsuZGV2Y29udGV4dC52MS5QYWNrYWdlR3JvdXASEgoKYWdncmVnYXRlcxgLIAMoCRIaChJwaXBlbGluZV9iZWhhdmlvcnMYDCADKAkSDQoFc3RhY2sYDSADKAkSLgoHc3VyZmFjZRgOIAEoCzIdLmRldmNvbnRleHQudjEuTGlicmFyeVN1cmZhY2USMwoOc2VydmljZV9zdHlsZXMYDyADKAsyGy5kZXZjb250ZXh0LnYxLlNlcnZpY2VTdHlsZUIRCg9fc3R5bGVfZXZpZGVuY2VCDQoLX3Njb3BlX25vdGUibwoLUHJvamVjdE5vZGUSDAoEbmFtZRgBIAEoCRISCgpkZXBlbmRzX29uGAIgAygJEhIKBWxheWVyGAMgASgJSACIAQESFAoHZmVhdHVyZRgEIAEoCUgBiAEBQggKBl9sYXllckIKCghfZmVhdHVyZSIvCgxQYWNrYWdlR3JvdXASDQoFbGFiZWwYASABKAkSEAoIcGFja2FnZXMYAiADKAkiQgoMU2VydmljZVN0eWxlEhQKDHByb2plY3RfbmFtZRgBIAEoCRINCgVzdHlsZRgCIAEoCRINCgVzdGFjaxgDIAMoCSJXCg5MaWJyYXJ5U3VyZmFjZRIrCgZncm91cHMYASADKAsyGy5kZXZjb250ZXh0LnYxLlN1cmZhY2VHcm91cBIYChBleHRlbnNpb25fcG9pbnRzGAIgAygJIkwKDFN1cmZhY2VHcm91cBIRCgluYW1lc3BhY2UYASABKAkSKQoFdHlwZXMYAiADKAsyGi5kZXZjb250ZXh0LnYxLlN1cmZhY2VUeXBlIjoKC1N1cmZhY2VUeXBlEgwKBG5hbWUYASABKAkSDAoEa2luZBgCIAEoCRIPCgdtZW1iZXJzGAMgAygJImsKDFRyYWNlUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDQoFZm9jdXMYAiABKAkSEgoFZGVwdGgYAyABKAVIAIgBARITCgZkZXRhaWwYBCABKAlIAYgBAUIICgZfZGVwdGhCCQoHX2RldGFpbCKKAQoNVHJhY2VSZXNwb25zZRINCgVmb3VuZBgBIAEoCBIQCghtYXJrZG93bhgCIAEoCRImCgRyb290GAMgASgLMhguZGV2Y29udGV4dC52MS5UcmFjZU5vZGUSGAoQdG91Y2hlZF9lbnRpdGllcxgEIAMoCRIWCg5lbWl0dGVkX2V2ZW50cxgFIAMoCSLkAgoJVHJhY2VOb2RlEg8KB25vZGVfaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDAoEa2luZBgDIAEoCRIMCgRzZWFtGAQgASgJEg0KBWRlcHRoGAUgASgFEhcKCnByb3ZlbmFuY2UYBiABKAlIAIgBARISCgpyZXNvbHV0aW9uGAcgASgJEhEKCXRydW5jYXRlZBgIIAEoCBIPCgdvbWl0dGVkGAkgASgFEhQKB3NhbGllbnQYCiABKAlIAYgBARIMCgR0YWdzGAsgAygJEhAKCHBpcGVsaW5lGAwgAygJEioKCGNoaWxkcmVuGA0gAygLMhguZGV2Y29udGV4dC52MS5UcmFjZU5vZGUSEgoFbGF5ZXIYDiABKAlIAogBARIUCgdmZWF0dXJlGA8gASgJSAOIAQFCDQoLX3Byb3ZlbmFuY2VCCgoIX3NhbGllbnRCCAoGX2xheWVyQgoKCF9mZWF0dXJlIi4KC05vZGVSZXF1ZXN0Eg4KBmhhbmRsZRgBIAEoCRIPCgdub2RlX2lkGAIgASgJIpACCgxOb2RlUmVzcG9uc2USDQoFZm91bmQYASABKAgSDwoHbm9kZV9pZBgCIAEoCRINCgV0aXRsZRgDIAEoCRIMCgRraW5kGAQgASgJEgwKBHRhZ3MYBSADKAkSFgoJZmlsZV9wYXRoGAYgASgJSACIAQESEgoKb3V0X2RlZ3JlZRgHIAEoBRIRCglpbl9kZWdyZWUYCCABKAUSGAoLbGluZV9udW1iZXIYCSABKAVIAYgBARISCgVsYXllchgKIAEoCUgCiAEBEhQKB2ZlYXR1cmUYCyABKAlIA4gBAUIMCgpfZmlsZV9wYXRoQg4KDF9saW5lX251bWJlckIICgZfbGF5ZXJCCgoIX2ZlYXR1cmUiRgoQTmVpZ2hib3JzUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDwoHbm9kZV9pZBgCIAEoCRIRCglkaXJlY3Rpb24YAyABKAkiNwoRTmVpZ2hib3JzUmVzcG9uc2USIgoFZWRnZXMYASADKAsyEy5kZXZjb250ZXh0LnYxLkVkZ2UifwoERWRnZRIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEgwKBGtpbmQYAyABKAkSEgoKcmVzb2x1dGlvbhgEIAEoCRIXCgpwcm92ZW5hbmNlGAUgASgJSACIAQESEwoLb3RoZXJfdGl0bGUYBiABKAlCDQoLX3Byb3ZlbmFuY2UiPQoNU2VhcmNoUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDQoFcXVlcnkYAiABKAkSDQoFbGltaXQYAyABKAUiNwoOU2VhcmNoUmVzcG9uc2USJQoFbm9kZXMYASADKAsyFi5kZXZjb250ZXh0LnYxLk5vZGVSZWYiRQoHTm9kZVJlZhIPCgdub2RlX2lkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBGtpbmQYAyABKAkSDAoEdGFncxgEIAMoCSK4AwoNU3RhdHNSZXNwb25zZRIoCgZzdGFnZXMYASADKAsyGC5kZXZjb250ZXh0LnYxLlN0YWdlU3RhdBIwCgpleHRyYWN0b3JzGAIgAygLMhwuZGV2Y29udGV4dC52MS5FeHRyYWN0b3JTdGF0EiYKBXNlYW1zGAMgAygLMhcuZGV2Y29udGV4dC52MS5TZWFtU3RhdBIpCgZjb3JwdXMYBCABKAsyGS5kZXZjb250ZXh0LnYxLkNvcnB1c1N0YXQSJwoFY2FjaGUYBSABKAsyGC5kZXZjb250ZXh0LnYxLkNhY2hlU3RhdBInCgVncmFwaBgGIAEoCzIYLmRldmNvbnRleHQudjEuR3JhcGhTdGF0EikKBmZ1bm5lbBgHIAEoCzIZLmRldmNvbnRleHQudjEuRnVubmVsU3RhdBIVCg10b3RhbF93YWxsX21zGAggASgDEigKCGluc2lnaHRzGAkgAygLMhYuZGV2Y29udGV4dC52MS5JbnNpZ2h0EjoKEWNvbmZpZGVuY2VfbGVkZ2VyGAogASgLMh8uZGV2Y29udGV4dC52MS5Db25maWRlbmNlTGVkZ2VyIrwCChBDb25maWRlbmNlTGVkZ2VyEg8KB292ZXJhbGwYASABKAESGQoRdmVyaWZpZWRfZWRnZV9wY3QYAiABKAESFwoPYXBwcm94X2VkZ2VfcGN0GAMgASgBEhMKC3RvdGFsX2VkZ2VzGAQgASgFEi8KCHBlcl9zZWFtGAUgAygLMh0uZGV2Y29udGV4dC52MS5TZWFtQ29uZmlkZW5jZRIZChFhdXRoX2NvdmVyYWdlX3BjdBgGIAEoARIbChNlbmRwb2ludHNfd2l0aF9hdXRoGAcgASgFEhcKD3RvdGFsX2VuZHBvaW50cxgIIAEoBRIYChBlbnRyeV90YXJnZXRfcGN0GAkgASgBEhsKE2VudHJpZXNfd2l0aF90YXJnZXQYCiABKAUSFQoNdG90YWxfZW50cmllcxgLIAEoBSJPCg5TZWFtQ29uZmlkZW5jZRIMCgRzZWFtGAEgASgJEg0KBXRvdGFsGAIgASgFEhAKCHZlcmlmaWVkGAMgASgFEg4KBmFwcHJveBgEIAEoBSK6AgoHSW5zaWdodBIKCgJpZBgBIAEoCRIQCghjYXRlZ29yeRgCIAEoCRIQCghzZXZlcml0eRgDIAEoCRINCgV0aXRsZRgEIAEoCRIOCgZkZXRhaWwYBSABKAkSEAoIZXZpZGVuY2UYBiADKAkSEgoKY29uZmlkZW5jZRgHIAEoARIdChBjb25maWRlbmNlX2Jhc2lzGAggASgJSACIAQESGwoOd2h5X2l0X21hdHRlcnMYCSABKAlIAYgBARIOCgZhY3Rpb24YCiABKAkSGgoNYWN0aW9uX3RhcmdldBgLIAEoCUgCiAEBEhgKEGV2aWRlbmNlX2FjdGlvbnMYDCADKAlCEwoRX2NvbmZpZGVuY2VfYmFzaXNCEQoPX3doeV9pdF9tYXR0ZXJzQhAKDl9hY3Rpb25fdGFyZ2V0Ii4KCVN0YWdlU3RhdBINCgVzdGFnZRgBIAEoCRISCgplbGFwc2VkX21zGAIgASgDIqkBCg1FeHRyYWN0b3JTdGF0EgwKBG5hbWUYASABKAkSEgoKZWxhcHNlZF9tcxgCIAEoAxITCgt0eXBlc19hZGRlZBgDIAEoBRIYChBkZXRlY3Rpb25zX2FkZGVkGAQgASgFEg8KB3NraXBwZWQYBSABKAgSGAoLc2tpcF9yZWFzb24YBiABKAlIAIgBARIMCgR0aWVyGAcgASgJQg4KDF9za2lwX3JlYXNvbiI3CghTZWFtU3RhdBIMCgRzZWFtGAEgASgJEg0KBWNvdW50GAIgASgFEg4KBmFwcHJveBgDIAEoBSJJCgpDb3JwdXNTdGF0EhMKC3RvdGFsX2ZpbGVzGAEgASgFEhQKDGNzaGFycF9maWxlcxgCIAEoBRIQCghwcm9qZWN0cxgDIAEoBSJpCglDYWNoZVN0YXQSEQoJdGV4dF9oaXRzGAEgASgFEhMKC3RleHRfbWlzc2VzGAIgASgFEhgKEHN5bnRheF90cmVlX2hpdHMYAyABKAUSGgoSc3ludGF4X3RyZWVfbWlzc2VzGAQgASgFIoYBCglHcmFwaFN0YXQSDQoFbm9kZXMYASABKAUSDQoFZWRnZXMYAiABKAUSDwoHZW50cmllcxgDIAEoBRIbChNlbnRyaWVzX3dpdGhfdGFyZ2V0GAQgASgFEhQKDHNwYXJzZV9ncmFwaBgFIAEoCBIXCg9odWJfc2NvcGVfbm9kZXMYBiABKAUiewoKRnVubmVsU3RhdBIYChB0eXBlc19kaXNjb3ZlcmVkGAEgASgFEhYKDnR5cGVzX2luY2x1ZGVkGAIgASgFEhIKCnJhd190b2tlbnMYAyABKAUSFwoPcmVuZGVyZWRfdG9rZW5zGAQgASgFEg4KBmJ1ZGdldBgFIAEoBSK6AQoNUmVuZGVyUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSEgoFZm9jdXMYAiABKAlIAIgBARISCgVkZXB0aBgDIAEoBUgBiAEBEhMKBmRldGFpbBgEIAEoCUgCiAEBEg4KBmZvcm1hdBgFIAEoCRIQCghzZWN0aW9ucxgGIAMoCRIbChNpbmNsdWRlX2RpYWdub3N0aWNzGAcgASgIQggKBl9mb2N1c0IICgZfZGVwdGhCCQoHX2RldGFpbCJ5Cg5SZW5kZXJSZXNwb25zZRIPCgdjb250ZW50GAEgASgJEg4KBmZvcm1hdBgCIAEoCRIYChBlc3RpbWF0ZWRfdG9rZW5zGAMgASgFEiwKCHNlY3Rpb25zGAQgAygLMhouZGV2Y29udGV4dC52MS5TZWN0aW9uSW5mbyIqCgtTZWN0aW9uSW5mbxILCgNrZXkYASABKAkSDgoGdG9rZW5zGAIgASgFInkKDUltcGFjdFJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg8KB25vZGVfaWQYAiABKAkSEQoJbWF4X2RlcHRoGAMgASgFEhEKCWRpcmVjdGlvbhgEIAEoCRISCgp0cmFuc2l0aXZlGAUgASgIEg0KBWZpbGVzGAYgAygJImkKDkltcGFjdFJlc3BvbnNlEiwKB3Jlc3VsdHMYASADKAsyGy5kZXZjb250ZXh0LnYxLkltcGFjdFJlc3VsdBIRCglkaXJlY3Rpb24YAiABKAkSFgoOdG90YWxfYWZmZWN0ZWQYAyABKAUixQEKDEltcGFjdFJlc3VsdBITCgtlbnRyeV90aXRsZRgBIAEoCRIMCgRraW5kGAIgASgJEgwKBGhvcHMYAyABKAUSDwoHbm9kZV9pZBgEIAEoCRIWCglmaWxlX3BhdGgYBSABKAlIAIgBARIYCgtsaW5lX251bWJlchgGIAEoBUgBiAEBEg8KB3NlcnZpY2UYByABKAkSEgoKbm9kZV90aXRsZRgIIAEoCUIMCgpfZmlsZV9wYXRoQg4KDF9saW5lX251bWJlciJQChhJbnRlcmVzdGluZ1BvaW50c1JlcXVlc3QSDgoGaGFuZGxlGAEgASgJEhYKCWFyY2hldHlwZRgCIAEoCUgAiAEBQgwKCl9hcmNoZXR5cGUiTAoZSW50ZXJlc3RpbmdQb2ludHNSZXNwb25zZRIvCgZwb2ludHMYASADKAsyHy5kZXZjb250ZXh0LnYxLkludGVyZXN0aW5nUG9pbnQiWwoQSW50ZXJlc3RpbmdQb2ludBIPCgdub2RlX2lkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBGtpbmQYAyABKAkSCwoDd2h5GAQgASgJEgwKBHRhZ3MYBSADKAkifQoOQ29udGV4dFJlcXVlc3QSDgoGaGFuZGxlGAEgASgJEg0KBWZvY3VzGAIgASgJEhoKDWJ1ZGdldF90b2tlbnMYAyABKAVIAIgBARITCgZpbnRlbnQYBCABKAlIAYgBAUIQCg5fYnVkZ2V0X3Rva2Vuc0IJCgdfaW50ZW50IocBCg9Db250ZXh0UmVzcG9uc2USDQoFZm91bmQYASABKAgSDQoFZm9jdXMYAiABKAkSFAoMdG90YWxfdG9rZW5zGAMgASgFEi8KCHNlY3Rpb25zGAQgAygLMh0uZGV2Y29udGV4dC52MS5Db250ZXh0U2VjdGlvbhIPCgdvbWl0dGVkGAUgAygJIj4KDkNvbnRleHRTZWN0aW9uEgsKA2tleRgBIAEoCRIOCgZ0b2tlbnMYAiABKAUSDwoHY29udGVudBgDIAEoCSJ6ChJDb250ZXh0UGFja1JlcXVlc3QSDgoGaGFuZGxlGAEgASgJEi0KBWNhcmRzGAIgAygLMh4uZGV2Y29udGV4dC52MS5Db250ZXh0Q2FyZFNwZWMSFQoNYnVkZ2V0X3Rva2VucxgDIAEoBRIOCgZpbnRlbnQYBCABKAkiQQoPQ29udGV4dENhcmRTcGVjEgwKBHR5cGUYASABKAkSDQoFdGl0bGUYAiABKAkSEQoJZW50cnlfaWRzGAMgAygJIqEBChNDb250ZXh0UGFja1Jlc3BvbnNlEi0KBWNhcmRzGAEgAygLMh4uZGV2Y29udGV4dC52MS5Db250ZXh0Q2FyZEl0ZW0SGgoSYXNzZW1ibGVkX21hcmtkb3duGAIgASgJEhQKDHRvdGFsX3Rva2VucxgDIAEoBRIYChBhbGxvY2F0ZWRfdG9rZW5zGAQgASgFEg8KB29taXR0ZWQYBSADKAkicgoPQ29udGV4dENhcmRJdGVtEgwKBHR5cGUYASABKAkSDQoFdGl0bGUYAiABKAkSDgoGdG9rZW5zGAMgASgFEjIKCHNlY3Rpb25zGAQgAygLMiAuZGV2Y29udGV4dC52MS5TZWN0aW9uQWxsb2NhdGlvbiIwChFTZWN0aW9uQWxsb2NhdGlvbhILCgNrZXkYASABKAkSDgoGdG9rZW5zGAIgASgFIg0KC1BpbmdSZXF1ZXN0Ii4KDFBpbmdSZXNwb25zZRIPCgd2ZXJzaW9uGAEgASgJEg0KBXJlYWR5GAIgASgIIhUKE0xpc3RTZXNzaW9uc1JlcXVlc3QiRAoUTGlzdFNlc3Npb25zUmVzcG9uc2USLAoIc2Vzc2lvbnMYASADKAsyGi5kZXZjb250ZXh0LnYxLlNlc3Npb25JbmZvIrcBCgtTZXNzaW9uSW5mbxIOCgZoYW5kbGUYASABKAkSDAoEcmVwbxgCIAEoCRISCgpjb21taXRfc2hhGAMgASgJEhMKC2FnZV9zZWNvbmRzGAQgASgDEg0KBWNhbGxzGAUgASgFEhMKC3Rva2VuX3RvdGFsGAYgASgDEg4KBnN0YXR1cxgHIAEoCRINCgVub2RlcxgIIAEoBRINCgVlZGdlcxgJIAEoBRIPCgdlbnRyaWVzGAogASgFIhEKD1N0YXJ0TWNwUmVxdWVzdCIjChBTdGFydE1jcFJlc3BvbnNlEg8KB3J1bm5pbmcYASABKAgiEAoOU3RvcE1jcFJlcXVlc3QiIgoPU3RvcE1jcFJlc3BvbnNlEg8KB3N0b3BwZWQYASABKAgiGQoXT2JzZXJ2ZVRvb2xDYWxsc1JlcXVlc3QisQEKDVRvb2xDYWxsRXZlbnQSFgoOc2Vzc2lvbl9oYW5kbGUYASABKAkSDAoEdG9vbBgCIAEoCRITCgthcmdzX2RpZ2VzdBgDIAEoCRINCgVieXRlcxgEIAEoAxISCgplc3RfdG9rZW5zGAUgASgDEhIKCmVsYXBzZWRfbXMYBiABKAMSGAoQdGltZXN0YW1wX3V0Y19tcxgHIAEoAxIUCgxzZXNzaW9uX3JlcG8YCCABKAkiOQoNQ29uZmlnUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSEAoDa2V5GAIgASgJSACIAQFCBgoEX2tleSJUCg5Db25maWdSZXNwb25zZRIuCghiaW5kaW5ncxgBIAMoCzIcLmRldmNvbnRleHQudjEuQ29uZmlnQmluZGluZxISCgp0b3RhbF9rZXlzGAIgASgFIo0BCg1Db25maWdCaW5kaW5nEgsKA2tleRgBIAEoCRIRCglmaWxlX3BhdGgYAiABKAkSEwoLbGluZV9udW1iZXIYAyABKAUSFAoHbm9kZV9pZBgEIAEoCUgAiAEBEhQKDHBhdHRlcm5fdHlwZRgFIAEoCRIPCgdzZXJ2aWNlGAYgASgJQgoKCF9ub2RlX2lkIkUKD1Rlc3RzRm9yUmVxdWVzdBIOCgZoYW5kbGUYASABKAkSDwoHbm9kZV9pZBgCIAEoCRIRCgltYXhfZGVwdGgYAyABKAUidgoQVGVzdHNGb3JSZXNwb25zZRIlCgV0ZXN0cxgBIAMoCzIWLmRldmNvbnRleHQudjEuVGVzdFJlZhIPCgdub2RlX2lkGAIgASgJEhIKCm5vZGVfdGl0bGUYAyABKAkSFgoOaXNfYmVzdF9lZmZvcnQYBCABKAgihwEKB1Rlc3RSZWYSDwoHbm9kZV9pZBgBIAEoCRINCgV0aXRsZRgCIAEoCRIRCglmaWxlX3BhdGgYAyABKAkSEwoLbGluZV9udW1iZXIYBCABKAUSEAoIZGlzdGFuY2UYBSABKAUSEQoJaXNfZGlyZWN0GAYgASgIEg8KB3Byb2plY3QYByABKAkiewoRUmVhZFNvdXJjZVJlcXVlc3QSEgoKc2Vzc2lvbl9pZBgBIAEoCRIPCgdub2RlX2lkGAIgASgJEisKBG1vZGUYAyABKA4yHS5kZXZjb250ZXh0LnYxLlJlYWRTb3VyY2VNb2RlEhQKDHdpbmRvd19saW5lcxgEIAEoBSKEAQoSUmVhZFNvdXJjZVJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAkSEAoIbGFuZ3VhZ2UYAiABKAkSEQoJZmlsZV9wYXRoGAMgASgJEhIKCnN0YXJ0X2xpbmUYBCABKAUSEAoIZW5kX2xpbmUYBSABKAUSEgoKbm9kZV90aXRsZRgGIAEoCSI3ChJHcmFwaEZhY2V0c1JlcXVlc3QSDgoGaGFuZGxlGAEgASgJEhEKCW1heF9mbG93cxgCIAEoBSLjAQoTR3JhcGhGYWNldHNSZXNwb25zZRIzCgtzZXJ2aWNlX21hcBgBIAEoCzIeLmRldmNvbnRleHQudjEuU2VydmljZU1hcEZhY2V0Ei8KCWZsb3dfbGlzdBgCIAEoCzIcLmRldmNvbnRleHQudjEuRmxvd0xpc3RGYWNldBIzCgtlbnRyeV90YWJsZRgDIAEoCzIeLmRldmNvbnRleHQudjEuRW50cnlUYWJsZUZhY2V0EjEKCmxheWVyX2JhbmQYBCABKAsyHS5kZXZjb250ZXh0LnYxLkxheWVyQmFuZEZhY2V0InEKD1NlcnZpY2VNYXBGYWNldBIsCghzZXJ2aWNlcxgBIAMoCzIaLmRldmNvbnRleHQudjEuU2VydmljZUNhcmQSMAoKdHJhbnNwb3J0cxgCIAMoCzIcLmRldmNvbnRleHQudjEuVHJhbnNwb3J0TGluayKOAQoLU2VydmljZUNhcmQSDAoEbmFtZRgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSDAoEa2luZBgDIAEoCRISCgVsYXllchgEIAEoCUgAiAEBEhQKB2ZlYXR1cmUYBSABKAlIAYgBARINCgVzdGFjaxgGIAMoCUIICgZfbGF5ZXJCCgoIX2ZlYXR1cmUicAoNVHJhbnNwb3J0TGluaxIUCgxmcm9tX3NlcnZpY2UYASABKAkSEgoKdG9fc2VydmljZRgCIAEoCRIRCgl0cmFuc3BvcnQYAyABKAkSFQoIZXZpZGVuY2UYBCABKAlIAIgBAUILCglfZXZpZGVuY2UiTAoNRmxvd0xpc3RGYWNldBImCgVmbG93cxgBIAMoCzIXLmRldmNvbnRleHQudjEuRmxvd0NhcmQSEwoLdG90YWxfZmxvd3MYAiABKAUisQIKCEZsb3dDYXJkEgoKAmlkGAEgASgJEg0KBXRpdGxlGAIgASgJEgwKBGtpbmQYAyABKAkSDQoFZGVwdGgYBCABKAUSDAoEaG9wcxgFIAEoBRIPCgd0b3VjaGVzGAYgASgFEg0KBWVtaXRzGAcgASgFEg0KBXNjb3JlGAggASgBEhQKB25vZGVfaWQYCSABKAlIAIgBARISCgVyb3V0ZRgKIAEoCUgBiAEBEhgKC2h0dHBfbWV0aG9kGAsgASgJSAKIAQESEwoGdGFyZ2V0GAwgASgJSAOIAQESFwoKZ3JvdXBfcGF0aBgNIAEoCUgEiAEBQgoKCF9ub2RlX2lkQggKBl9yb3V0ZUIOCgxfaHR0cF9tZXRob2RCCQoHX3RhcmdldEINCgtfZ3JvdXBfcGF0aCI9Cg9FbnRyeVRhYmxlRmFjZXQSKgoEcm93cxgBIAMoCzIcLmRldmNvbnRleHQudjEuRW50cnlUYWJsZVJvdyKqAgoNRW50cnlUYWJsZVJvdxIMCgRraW5kGAEgASgJEg0KBXRpdGxlGAIgASgJEhIKBXJvdXRlGAMgASgJSACIAQESEwoGdGFyZ2V0GAQgASgJSAGIAQESFAoHcHJvamVjdBgFIAEoCUgCiAEBEhcKCmdyb3VwX3BhdGgYBiABKAlIA4gBARISCgVsYXllchgHIAEoCUgEiAEBEhQKB2ZlYXR1cmUYCCABKAlIBYgBARINCgVzY29yZRgJIAEoARINCgVyZWFjaBgKIAEoBRIWCg5jcm9zc19wcm9qZWN0cxgLIAEoBUIICgZfcm91dGVCCQoHX3RhcmdldEIKCghfcHJvamVjdEINCgtfZ3JvdXBfcGF0aEIICgZfbGF5ZXJCCgoIX2ZlYXR1cmUiXwoOTGF5ZXJCYW5kRmFjZXQSKwoKbm9kZV9iYW5kcxgBIAMoCzIXLmRldmNvbnRleHQudjEuTm9kZUJhbmQSDgoGbGF5ZXJzGAIgAygJEhAKCGZlYXR1cmVzGAMgAygJIlsKCE5vZGVCYW5kEg8KB25vZGVfaWQYASABKAkSEgoFbGF5ZXIYAiABKAlIAIgBARIUCgdmZWF0dXJlGAMgASgJSAGIAQFCCAoGX2xheWVyQgoKCF9mZWF0dXJlKmwKDlJlYWRTb3VyY2VNb2RlEiAKHFJFQURfU09VUkNFX01PREVfVU5TUEVDSUZJRUQQABIbChdSRUFEX1NPVVJDRV9NT0RFX01FTUJFUhABEhsKF1JFQURfU09VUkNFX01PREVfV0lORE9XEAIysA4KEURldkNvbnRleHRTZXJ2aWNlEkcKB0FuYWx5emUSHS5kZXZjb250ZXh0LnYxLkFuYWx5emVSZXF1ZXN0GhsuZGV2Y29udGV4dC52MS5BbmFseXplRXZlbnQwARJLCgxDbG9zZVNlc3Npb24SHS5kZXZjb250ZXh0LnYxLlNlc3Npb25SZXF1ZXN0GhwuZGV2Y29udGV4dC52MS5DbG9zZVJlc3BvbnNlElQKD0xpc3RFbnRyeVBvaW50cxIdLmRldmNvbnRleHQudjEuU2Vzc2lvblJlcXVlc3QaIi5kZXZjb250ZXh0LnYxLkVudHJ5UG9pbnRzUmVzcG9uc2USQwoGR2V0TWFwEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBoaLmRldmNvbnRleHQudjEuTWFwUmVzcG9uc2USRQoIR2V0VHJhY2USGy5kZXZjb250ZXh0LnYxLlRyYWNlUmVxdWVzdBocLmRldmNvbnRleHQudjEuVHJhY2VSZXNwb25zZRJCCgdHZXROb2RlEhouZGV2Y29udGV4dC52MS5Ob2RlUmVxdWVzdBobLmRldmNvbnRleHQudjEuTm9kZVJlc3BvbnNlElEKDEdldE5laWdoYm9ycxIfLmRldmNvbnRleHQudjEuTmVpZ2hib3JzUmVxdWVzdBogLmRldmNvbnRleHQudjEuTmVpZ2hib3JzUmVzcG9uc2USSgoLU2VhcmNoTm9kZXMSHC5kZXZjb250ZXh0LnYxLlNlYXJjaFJlcXVlc3QaHS5kZXZjb250ZXh0LnYxLlNlYXJjaFJlc3BvbnNlEkcKCEdldFN0YXRzEh0uZGV2Y29udGV4dC52MS5TZXNzaW9uUmVxdWVzdBocLmRldmNvbnRleHQudjEuU3RhdHNSZXNwb25zZRJFCgZSZW5kZXISHC5kZXZjb250ZXh0LnYxLlJlbmRlclJlcXVlc3QaHS5kZXZjb250ZXh0LnYxLlJlbmRlclJlc3BvbnNlEj8KBFBpbmcSGi5kZXZjb250ZXh0LnYxLlBpbmdSZXF1ZXN0GhsuZGV2Y29udGV4dC52MS5QaW5nUmVzcG9uc2USSAoJR2V0SW1wYWN0EhwuZGV2Y29udGV4dC52MS5JbXBhY3RSZXF1ZXN0Gh0uZGV2Y29udGV4dC52MS5JbXBhY3RSZXNwb25zZRJLCgxDb25maWdMb29rdXASHC5kZXZjb250ZXh0LnYxLkNvbmZpZ1JlcXVlc3QaHS5kZXZjb250ZXh0LnYxLkNvbmZpZ1Jlc3BvbnNlEk8KDEZpbmRUZXN0c0ZvchIeLmRldmNvbnRleHQudjEuVGVzdHNGb3JSZXF1ZXN0Gh8uZGV2Y29udGV4dC52MS5UZXN0c0ZvclJlc3BvbnNlEmkKFEdldEludGVyZXN0aW5nUG9pbnRzEicuZGV2Y29udGV4dC52MS5JbnRlcmVzdGluZ1BvaW50c1JlcXVlc3QaKC5kZXZjb250ZXh0LnYxLkludGVyZXN0aW5nUG9pbnRzUmVzcG9uc2USSwoKR2V0Q29udGV4dBIdLmRldmNvbnRleHQudjEuQ29udGV4dFJlcXVlc3QaHi5kZXZjb250ZXh0LnYxLkNvbnRleHRSZXNwb25zZRJXCg5HZXRDb250ZXh0UGFjaxIhLmRldmNvbnRleHQudjEuQ29udGV4dFBhY2tSZXF1ZXN0GiIuZGV2Y29udGV4dC52MS5Db250ZXh0UGFja1Jlc3BvbnNlElEKClJlYWRTb3VyY2USIC5kZXZjb250ZXh0LnYxLlJlYWRTb3VyY2VSZXF1ZXN0GiEuZGV2Y29udGV4dC52MS5SZWFkU291cmNlUmVzcG9uc2USVwoOR2V0R3JhcGhGYWNldHMSIS5kZXZjb250ZXh0LnYxLkdyYXBoRmFjZXRzUmVxdWVzdBoiLmRldmNvbnRleHQudjEuR3JhcGhGYWNldHNSZXNwb25zZRJXCgxMaXN0U2Vzc2lvbnMSIi5kZXZjb250ZXh0LnYxLkxpc3RTZXNzaW9uc1JlcXVlc3QaIy5kZXZjb250ZXh0LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlEksKCFN0YXJ0TWNwEh4uZGV2Y29udGV4dC52MS5TdGFydE1jcFJlcXVlc3QaHy5kZXZjb250ZXh0LnYxLlN0YXJ0TWNwUmVzcG9uc2USSAoHU3RvcE1jcBIdLmRldmNvbnRleHQudjEuU3RvcE1jcFJlcXVlc3QaHi5kZXZjb250ZXh0LnYxLlN0b3BNY3BSZXNwb25zZRJaChBPYnNlcnZlVG9vbENhbGxzEiYuZGV2Y29udGV4dC52MS5PYnNlcnZlVG9vbENhbGxzUmVxdWVzdBocLmRldmNvbnRleHQudjEuVG9vbENhbGxFdmVudDABQhSqAhFEZXZDb250ZXh0LlByb3Rvc2IGcHJvdG8z");
 
 /**
  * @generated from message devcontext.v1.AnalyzeRequest
@@ -230,6 +230,16 @@ export type AnalysisSummary = Message<"devcontext.v1.AnalysisSummary"> & {
    * @generated from field: string archetype = 11;
    */
   archetype: string;
+
+  /**
+   * @generated from field: bool stale = 12;
+   */
+  stale: boolean;
+
+  /**
+   * @generated from field: string stale_message = 13;
+   */
+  staleMessage: string;
 };
 
 /**
@@ -333,6 +343,45 @@ export type EntryPoint = Message<"devcontext.v1.EntryPoint"> & {
    * @generated from field: optional string target = 8;
    */
   target?: string | undefined;
+
+  /**
+   * @generated from field: optional string group_path = 9;
+   */
+  groupPath?: string | undefined;
+
+  /**
+   * @generated from field: repeated string auth_attributes = 10;
+   */
+  authAttributes: string[];
+
+  /**
+   * @generated from field: double score = 11;
+   */
+  score: number;
+
+  /**
+   * @generated from field: int32 reach = 12;
+   */
+  reach: number;
+
+  /**
+   * @generated from field: int32 cross_projects = 13;
+   */
+  crossProjects: number;
+
+  /**
+   * D9: architectural layer
+   *
+   * @generated from field: optional string layer = 14;
+   */
+  layer?: string | undefined;
+
+  /**
+   * D9: feature area
+   *
+   * @generated from field: optional string feature = 15;
+   */
+  feature?: string | undefined;
 };
 
 /**
@@ -415,6 +464,13 @@ export type MapResponse = Message<"devcontext.v1.MapResponse"> & {
    * @generated from field: devcontext.v1.LibrarySurface surface = 14;
    */
   surface?: LibrarySurface | undefined;
+
+  /**
+   * Per-service style assessment — one entry per runnable web project (M1.9 / D5)
+   *
+   * @generated from field: repeated devcontext.v1.ServiceStyle service_styles = 15;
+   */
+  serviceStyles: ServiceStyle[];
 };
 
 /**
@@ -437,6 +493,20 @@ export type ProjectNode = Message<"devcontext.v1.ProjectNode"> & {
    * @generated from field: repeated string depends_on = 2;
    */
   dependsOn: string[];
+
+  /**
+   * D9: project-level architectural layer
+   *
+   * @generated from field: optional string layer = 3;
+   */
+  layer?: string | undefined;
+
+  /**
+   * D9: project-level feature area
+   *
+   * @generated from field: optional string feature = 4;
+   */
+  feature?: string | undefined;
 };
 
 /**
@@ -469,6 +539,33 @@ export const PackageGroupSchema: GenMessage<PackageGroup> = /*@__PURE__*/
   messageDesc(file_devcontext_v1_devcontext, 12);
 
 /**
+ * @generated from message devcontext.v1.ServiceStyle
+ */
+export type ServiceStyle = Message<"devcontext.v1.ServiceStyle"> & {
+  /**
+   * @generated from field: string project_name = 1;
+   */
+  projectName: string;
+
+  /**
+   * @generated from field: string style = 2;
+   */
+  style: string;
+
+  /**
+   * @generated from field: repeated string stack = 3;
+   */
+  stack: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ServiceStyle.
+ * Use `create(ServiceStyleSchema)` to create a new message.
+ */
+export const ServiceStyleSchema: GenMessage<ServiceStyle> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 13);
+
+/**
  * @generated from message devcontext.v1.LibrarySurface
  */
 export type LibrarySurface = Message<"devcontext.v1.LibrarySurface"> & {
@@ -488,7 +585,7 @@ export type LibrarySurface = Message<"devcontext.v1.LibrarySurface"> & {
  * Use `create(LibrarySurfaceSchema)` to create a new message.
  */
 export const LibrarySurfaceSchema: GenMessage<LibrarySurface> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 13);
+  messageDesc(file_devcontext_v1_devcontext, 14);
 
 /**
  * @generated from message devcontext.v1.SurfaceGroup
@@ -510,7 +607,7 @@ export type SurfaceGroup = Message<"devcontext.v1.SurfaceGroup"> & {
  * Use `create(SurfaceGroupSchema)` to create a new message.
  */
 export const SurfaceGroupSchema: GenMessage<SurfaceGroup> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 14);
+  messageDesc(file_devcontext_v1_devcontext, 15);
 
 /**
  * @generated from message devcontext.v1.SurfaceType
@@ -537,7 +634,7 @@ export type SurfaceType = Message<"devcontext.v1.SurfaceType"> & {
  * Use `create(SurfaceTypeSchema)` to create a new message.
  */
 export const SurfaceTypeSchema: GenMessage<SurfaceType> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 15);
+  messageDesc(file_devcontext_v1_devcontext, 16);
 
 /**
  * @generated from message devcontext.v1.TraceRequest
@@ -569,7 +666,7 @@ export type TraceRequest = Message<"devcontext.v1.TraceRequest"> & {
  * Use `create(TraceRequestSchema)` to create a new message.
  */
 export const TraceRequestSchema: GenMessage<TraceRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 16);
+  messageDesc(file_devcontext_v1_devcontext, 17);
 
 /**
  * @generated from message devcontext.v1.TraceResponse
@@ -606,7 +703,7 @@ export type TraceResponse = Message<"devcontext.v1.TraceResponse"> & {
  * Use `create(TraceResponseSchema)` to create a new message.
  */
 export const TraceResponseSchema: GenMessage<TraceResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 17);
+  messageDesc(file_devcontext_v1_devcontext, 18);
 
 /**
  * @generated from message devcontext.v1.TraceNode
@@ -676,6 +773,20 @@ export type TraceNode = Message<"devcontext.v1.TraceNode"> & {
    * @generated from field: repeated devcontext.v1.TraceNode children = 13;
    */
   children: TraceNode[];
+
+  /**
+   * D9: architectural layer
+   *
+   * @generated from field: optional string layer = 14;
+   */
+  layer?: string | undefined;
+
+  /**
+   * D9: feature area
+   *
+   * @generated from field: optional string feature = 15;
+   */
+  feature?: string | undefined;
 };
 
 /**
@@ -683,7 +794,7 @@ export type TraceNode = Message<"devcontext.v1.TraceNode"> & {
  * Use `create(TraceNodeSchema)` to create a new message.
  */
 export const TraceNodeSchema: GenMessage<TraceNode> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 18);
+  messageDesc(file_devcontext_v1_devcontext, 19);
 
 /**
  * @generated from message devcontext.v1.NodeRequest
@@ -705,7 +816,7 @@ export type NodeRequest = Message<"devcontext.v1.NodeRequest"> & {
  * Use `create(NodeRequestSchema)` to create a new message.
  */
 export const NodeRequestSchema: GenMessage<NodeRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 19);
+  messageDesc(file_devcontext_v1_devcontext, 20);
 
 /**
  * @generated from message devcontext.v1.NodeResponse
@@ -750,6 +861,25 @@ export type NodeResponse = Message<"devcontext.v1.NodeResponse"> & {
    * @generated from field: int32 in_degree = 8;
    */
   inDegree: number;
+
+  /**
+   * @generated from field: optional int32 line_number = 9;
+   */
+  lineNumber?: number | undefined;
+
+  /**
+   * D9: "Api" | "Application" | "Domain" | "Infrastructure" | etc.
+   *
+   * @generated from field: optional string layer = 10;
+   */
+  layer?: string | undefined;
+
+  /**
+   * D9: namespace-derived feature area
+   *
+   * @generated from field: optional string feature = 11;
+   */
+  feature?: string | undefined;
 };
 
 /**
@@ -757,7 +887,7 @@ export type NodeResponse = Message<"devcontext.v1.NodeResponse"> & {
  * Use `create(NodeResponseSchema)` to create a new message.
  */
 export const NodeResponseSchema: GenMessage<NodeResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 20);
+  messageDesc(file_devcontext_v1_devcontext, 21);
 
 /**
  * @generated from message devcontext.v1.NeighborsRequest
@@ -786,7 +916,7 @@ export type NeighborsRequest = Message<"devcontext.v1.NeighborsRequest"> & {
  * Use `create(NeighborsRequestSchema)` to create a new message.
  */
 export const NeighborsRequestSchema: GenMessage<NeighborsRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 21);
+  messageDesc(file_devcontext_v1_devcontext, 22);
 
 /**
  * @generated from message devcontext.v1.NeighborsResponse
@@ -803,7 +933,7 @@ export type NeighborsResponse = Message<"devcontext.v1.NeighborsResponse"> & {
  * Use `create(NeighborsResponseSchema)` to create a new message.
  */
 export const NeighborsResponseSchema: GenMessage<NeighborsResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 22);
+  messageDesc(file_devcontext_v1_devcontext, 23);
 
 /**
  * @generated from message devcontext.v1.Edge
@@ -845,7 +975,7 @@ export type Edge = Message<"devcontext.v1.Edge"> & {
  * Use `create(EdgeSchema)` to create a new message.
  */
 export const EdgeSchema: GenMessage<Edge> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 23);
+  messageDesc(file_devcontext_v1_devcontext, 24);
 
 /**
  * @generated from message devcontext.v1.SearchRequest
@@ -872,7 +1002,7 @@ export type SearchRequest = Message<"devcontext.v1.SearchRequest"> & {
  * Use `create(SearchRequestSchema)` to create a new message.
  */
 export const SearchRequestSchema: GenMessage<SearchRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 24);
+  messageDesc(file_devcontext_v1_devcontext, 25);
 
 /**
  * @generated from message devcontext.v1.SearchResponse
@@ -889,7 +1019,7 @@ export type SearchResponse = Message<"devcontext.v1.SearchResponse"> & {
  * Use `create(SearchResponseSchema)` to create a new message.
  */
 export const SearchResponseSchema: GenMessage<SearchResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 25);
+  messageDesc(file_devcontext_v1_devcontext, 26);
 
 /**
  * @generated from message devcontext.v1.NodeRef
@@ -921,7 +1051,7 @@ export type NodeRef = Message<"devcontext.v1.NodeRef"> & {
  * Use `create(NodeRefSchema)` to create a new message.
  */
 export const NodeRefSchema: GenMessage<NodeRef> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 26);
+  messageDesc(file_devcontext_v1_devcontext, 27);
 
 /**
  * @generated from message devcontext.v1.StatsResponse
@@ -971,6 +1101,11 @@ export type StatsResponse = Message<"devcontext.v1.StatsResponse"> & {
    * @generated from field: repeated devcontext.v1.Insight insights = 9;
    */
   insights: Insight[];
+
+  /**
+   * @generated from field: devcontext.v1.ConfidenceLedger confidence_ledger = 10;
+   */
+  confidenceLedger?: ConfidenceLedger | undefined;
 };
 
 /**
@@ -978,7 +1113,106 @@ export type StatsResponse = Message<"devcontext.v1.StatsResponse"> & {
  * Use `create(StatsResponseSchema)` to create a new message.
  */
 export const StatsResponseSchema: GenMessage<StatsResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 27);
+  messageDesc(file_devcontext_v1_devcontext, 28);
+
+/**
+ * @generated from message devcontext.v1.ConfidenceLedger
+ */
+export type ConfidenceLedger = Message<"devcontext.v1.ConfidenceLedger"> & {
+  /**
+   * @generated from field: double overall = 1;
+   */
+  overall: number;
+
+  /**
+   * @generated from field: double verified_edge_pct = 2;
+   */
+  verifiedEdgePct: number;
+
+  /**
+   * @generated from field: double approx_edge_pct = 3;
+   */
+  approxEdgePct: number;
+
+  /**
+   * @generated from field: int32 total_edges = 4;
+   */
+  totalEdges: number;
+
+  /**
+   * @generated from field: repeated devcontext.v1.SeamConfidence per_seam = 5;
+   */
+  perSeam: SeamConfidence[];
+
+  /**
+   * @generated from field: double auth_coverage_pct = 6;
+   */
+  authCoveragePct: number;
+
+  /**
+   * @generated from field: int32 endpoints_with_auth = 7;
+   */
+  endpointsWithAuth: number;
+
+  /**
+   * @generated from field: int32 total_endpoints = 8;
+   */
+  totalEndpoints: number;
+
+  /**
+   * @generated from field: double entry_target_pct = 9;
+   */
+  entryTargetPct: number;
+
+  /**
+   * @generated from field: int32 entries_with_target = 10;
+   */
+  entriesWithTarget: number;
+
+  /**
+   * @generated from field: int32 total_entries = 11;
+   */
+  totalEntries: number;
+};
+
+/**
+ * Describes the message devcontext.v1.ConfidenceLedger.
+ * Use `create(ConfidenceLedgerSchema)` to create a new message.
+ */
+export const ConfidenceLedgerSchema: GenMessage<ConfidenceLedger> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 29);
+
+/**
+ * @generated from message devcontext.v1.SeamConfidence
+ */
+export type SeamConfidence = Message<"devcontext.v1.SeamConfidence"> & {
+  /**
+   * @generated from field: string seam = 1;
+   */
+  seam: string;
+
+  /**
+   * @generated from field: int32 total = 2;
+   */
+  total: number;
+
+  /**
+   * @generated from field: int32 verified = 3;
+   */
+  verified: number;
+
+  /**
+   * @generated from field: int32 approx = 4;
+   */
+  approx: number;
+};
+
+/**
+ * Describes the message devcontext.v1.SeamConfidence.
+ * Use `create(SeamConfidenceSchema)` to create a new message.
+ */
+export const SeamConfidenceSchema: GenMessage<SeamConfidence> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 30);
 
 /**
  * @generated from message devcontext.v1.Insight
@@ -1013,6 +1247,42 @@ export type Insight = Message<"devcontext.v1.Insight"> & {
    * @generated from field: repeated string evidence = 6;
    */
   evidence: string[];
+
+  /**
+   * @generated from field: double confidence = 7;
+   */
+  confidence: number;
+
+  /**
+   * @generated from field: optional string confidence_basis = 8;
+   */
+  confidenceBasis?: string | undefined;
+
+  /**
+   * @generated from field: optional string why_it_matters = 9;
+   */
+  whyItMatters?: string | undefined;
+
+  /**
+   * D6: TypedActionKind string, e.g. "Focus", "Node", "Filter", "None"
+   *
+   * @generated from field: string action = 10;
+   */
+  action: string;
+
+  /**
+   * D6: target string for the primary action
+   *
+   * @generated from field: optional string action_target = 11;
+   */
+  actionTarget?: string | undefined;
+
+  /**
+   * D6: parallel to evidence[]. Format: "Focus:key" | "Node:id" | "Filter:kind" | "" (none)
+   *
+   * @generated from field: repeated string evidence_actions = 12;
+   */
+  evidenceActions: string[];
 };
 
 /**
@@ -1020,7 +1290,7 @@ export type Insight = Message<"devcontext.v1.Insight"> & {
  * Use `create(InsightSchema)` to create a new message.
  */
 export const InsightSchema: GenMessage<Insight> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 28);
+  messageDesc(file_devcontext_v1_devcontext, 31);
 
 /**
  * @generated from message devcontext.v1.StageStat
@@ -1042,7 +1312,7 @@ export type StageStat = Message<"devcontext.v1.StageStat"> & {
  * Use `create(StageStatSchema)` to create a new message.
  */
 export const StageStatSchema: GenMessage<StageStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 29);
+  messageDesc(file_devcontext_v1_devcontext, 32);
 
 /**
  * @generated from message devcontext.v1.ExtractorStat
@@ -1089,7 +1359,7 @@ export type ExtractorStat = Message<"devcontext.v1.ExtractorStat"> & {
  * Use `create(ExtractorStatSchema)` to create a new message.
  */
 export const ExtractorStatSchema: GenMessage<ExtractorStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 30);
+  messageDesc(file_devcontext_v1_devcontext, 33);
 
 /**
  * @generated from message devcontext.v1.SeamStat
@@ -1116,7 +1386,7 @@ export type SeamStat = Message<"devcontext.v1.SeamStat"> & {
  * Use `create(SeamStatSchema)` to create a new message.
  */
 export const SeamStatSchema: GenMessage<SeamStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 31);
+  messageDesc(file_devcontext_v1_devcontext, 34);
 
 /**
  * @generated from message devcontext.v1.CorpusStat
@@ -1143,7 +1413,7 @@ export type CorpusStat = Message<"devcontext.v1.CorpusStat"> & {
  * Use `create(CorpusStatSchema)` to create a new message.
  */
 export const CorpusStatSchema: GenMessage<CorpusStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 32);
+  messageDesc(file_devcontext_v1_devcontext, 35);
 
 /**
  * @generated from message devcontext.v1.CacheStat
@@ -1175,7 +1445,7 @@ export type CacheStat = Message<"devcontext.v1.CacheStat"> & {
  * Use `create(CacheStatSchema)` to create a new message.
  */
 export const CacheStatSchema: GenMessage<CacheStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 33);
+  messageDesc(file_devcontext_v1_devcontext, 36);
 
 /**
  * @generated from message devcontext.v1.GraphStat
@@ -1200,6 +1470,16 @@ export type GraphStat = Message<"devcontext.v1.GraphStat"> & {
    * @generated from field: int32 entries_with_target = 4;
    */
   entriesWithTarget: number;
+
+  /**
+   * @generated from field: bool sparse_graph = 5;
+   */
+  sparseGraph: boolean;
+
+  /**
+   * @generated from field: int32 hub_scope_nodes = 6;
+   */
+  hubScopeNodes: number;
 };
 
 /**
@@ -1207,7 +1487,7 @@ export type GraphStat = Message<"devcontext.v1.GraphStat"> & {
  * Use `create(GraphStatSchema)` to create a new message.
  */
 export const GraphStatSchema: GenMessage<GraphStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 34);
+  messageDesc(file_devcontext_v1_devcontext, 37);
 
 /**
  * @generated from message devcontext.v1.FunnelStat
@@ -1244,7 +1524,7 @@ export type FunnelStat = Message<"devcontext.v1.FunnelStat"> & {
  * Use `create(FunnelStatSchema)` to create a new message.
  */
 export const FunnelStatSchema: GenMessage<FunnelStat> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 35);
+  messageDesc(file_devcontext_v1_devcontext, 38);
 
 /**
  * @generated from message devcontext.v1.RenderRequest
@@ -1293,7 +1573,7 @@ export type RenderRequest = Message<"devcontext.v1.RenderRequest"> & {
  * Use `create(RenderRequestSchema)` to create a new message.
  */
 export const RenderRequestSchema: GenMessage<RenderRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 36);
+  messageDesc(file_devcontext_v1_devcontext, 39);
 
 /**
  * @generated from message devcontext.v1.RenderResponse
@@ -1325,7 +1605,7 @@ export type RenderResponse = Message<"devcontext.v1.RenderResponse"> & {
  * Use `create(RenderResponseSchema)` to create a new message.
  */
 export const RenderResponseSchema: GenMessage<RenderResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 37);
+  messageDesc(file_devcontext_v1_devcontext, 40);
 
 /**
  * @generated from message devcontext.v1.SectionInfo
@@ -1347,7 +1627,482 @@ export type SectionInfo = Message<"devcontext.v1.SectionInfo"> & {
  * Use `create(SectionInfoSchema)` to create a new message.
  */
 export const SectionInfoSchema: GenMessage<SectionInfo> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 38);
+  messageDesc(file_devcontext_v1_devcontext, 41);
+
+/**
+ * @generated from message devcontext.v1.ImpactRequest
+ */
+export type ImpactRequest = Message<"devcontext.v1.ImpactRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * @generated from field: string node_id = 2;
+   */
+  nodeId: string;
+
+  /**
+   * @generated from field: int32 max_depth = 3;
+   */
+  maxDepth: number;
+
+  /**
+   * "up" (default, who reaches this) | "down" (what does this affect) | "both"
+   *
+   * @generated from field: string direction = 4;
+   */
+  direction: string;
+
+  /**
+   * default true — follow edges transitively
+   *
+   * @generated from field: bool transitive = 5;
+   */
+  transitive: boolean;
+
+  /**
+   * diff-aware mode: find impact of changing these files
+   *
+   * @generated from field: repeated string files = 6;
+   */
+  files: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ImpactRequest.
+ * Use `create(ImpactRequestSchema)` to create a new message.
+ */
+export const ImpactRequestSchema: GenMessage<ImpactRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 42);
+
+/**
+ * @generated from message devcontext.v1.ImpactResponse
+ */
+export type ImpactResponse = Message<"devcontext.v1.ImpactResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.ImpactResult results = 1;
+   */
+  results: ImpactResult[];
+
+  /**
+   * echo back the direction used
+   *
+   * @generated from field: string direction = 2;
+   */
+  direction: string;
+
+  /**
+   * total nodes in the impact closure
+   *
+   * @generated from field: int32 total_affected = 3;
+   */
+  totalAffected: number;
+};
+
+/**
+ * Describes the message devcontext.v1.ImpactResponse.
+ * Use `create(ImpactResponseSchema)` to create a new message.
+ */
+export const ImpactResponseSchema: GenMessage<ImpactResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 43);
+
+/**
+ * @generated from message devcontext.v1.ImpactResult
+ */
+export type ImpactResult = Message<"devcontext.v1.ImpactResult"> & {
+  /**
+   * @generated from field: string entry_title = 1;
+   */
+  entryTitle: string;
+
+  /**
+   * @generated from field: string kind = 2;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: int32 hops = 3;
+   */
+  hops: number;
+
+  /**
+   * @generated from field: string node_id = 4;
+   */
+  nodeId: string;
+
+  /**
+   * @generated from field: optional string file_path = 5;
+   */
+  filePath?: string | undefined;
+
+  /**
+   * @generated from field: optional int32 line_number = 6;
+   */
+  lineNumber?: number | undefined;
+
+  /**
+   * project/service the affected node belongs to
+   *
+   * @generated from field: string service = 7;
+   */
+  service: string;
+
+  /**
+   * display title of the affected node
+   *
+   * @generated from field: string node_title = 8;
+   */
+  nodeTitle: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ImpactResult.
+ * Use `create(ImpactResultSchema)` to create a new message.
+ */
+export const ImpactResultSchema: GenMessage<ImpactResult> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 44);
+
+/**
+ * @generated from message devcontext.v1.InterestingPointsRequest
+ */
+export type InterestingPointsRequest = Message<"devcontext.v1.InterestingPointsRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * @generated from field: optional string archetype = 2;
+   */
+  archetype?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.InterestingPointsRequest.
+ * Use `create(InterestingPointsRequestSchema)` to create a new message.
+ */
+export const InterestingPointsRequestSchema: GenMessage<InterestingPointsRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 45);
+
+/**
+ * @generated from message devcontext.v1.InterestingPointsResponse
+ */
+export type InterestingPointsResponse = Message<"devcontext.v1.InterestingPointsResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.InterestingPoint points = 1;
+   */
+  points: InterestingPoint[];
+};
+
+/**
+ * Describes the message devcontext.v1.InterestingPointsResponse.
+ * Use `create(InterestingPointsResponseSchema)` to create a new message.
+ */
+export const InterestingPointsResponseSchema: GenMessage<InterestingPointsResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 46);
+
+/**
+ * @generated from message devcontext.v1.InterestingPoint
+ */
+export type InterestingPoint = Message<"devcontext.v1.InterestingPoint"> & {
+  /**
+   * @generated from field: string node_id = 1;
+   */
+  nodeId: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: string why = 4;
+   */
+  why: string;
+
+  /**
+   * @generated from field: repeated string tags = 5;
+   */
+  tags: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.InterestingPoint.
+ * Use `create(InterestingPointSchema)` to create a new message.
+ */
+export const InterestingPointSchema: GenMessage<InterestingPoint> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 47);
+
+/**
+ * @generated from message devcontext.v1.ContextRequest
+ */
+export type ContextRequest = Message<"devcontext.v1.ContextRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * @generated from field: string focus = 2;
+   */
+  focus: string;
+
+  /**
+   * default 8000
+   *
+   * @generated from field: optional int32 budget_tokens = 3;
+   */
+  budgetTokens?: number | undefined;
+
+  /**
+   * "trace" (default) | "explain" | "review"
+   *
+   * @generated from field: optional string intent = 4;
+   */
+  intent?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.ContextRequest.
+ * Use `create(ContextRequestSchema)` to create a new message.
+ */
+export const ContextRequestSchema: GenMessage<ContextRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 48);
+
+/**
+ * @generated from message devcontext.v1.ContextResponse
+ */
+export type ContextResponse = Message<"devcontext.v1.ContextResponse"> & {
+  /**
+   * @generated from field: bool found = 1;
+   */
+  found: boolean;
+
+  /**
+   * @generated from field: string focus = 2;
+   */
+  focus: string;
+
+  /**
+   * @generated from field: int32 total_tokens = 3;
+   */
+  totalTokens: number;
+
+  /**
+   * @generated from field: repeated devcontext.v1.ContextSection sections = 4;
+   */
+  sections: ContextSection[];
+
+  /**
+   * human-readable notes on what got cut/trimmed
+   *
+   * @generated from field: repeated string omitted = 5;
+   */
+  omitted: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ContextResponse.
+ * Use `create(ContextResponseSchema)` to create a new message.
+ */
+export const ContextResponseSchema: GenMessage<ContextResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 49);
+
+/**
+ * @generated from message devcontext.v1.ContextSection
+ */
+export type ContextSection = Message<"devcontext.v1.ContextSection"> & {
+  /**
+   * "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: int32 tokens = 2;
+   */
+  tokens: number;
+
+  /**
+   * @generated from field: string content = 3;
+   */
+  content: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ContextSection.
+ * Use `create(ContextSectionSchema)` to create a new message.
+ */
+export const ContextSectionSchema: GenMessage<ContextSection> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 50);
+
+/**
+ * @generated from message devcontext.v1.ContextPackRequest
+ */
+export type ContextPackRequest = Message<"devcontext.v1.ContextPackRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * @generated from field: repeated devcontext.v1.ContextCardSpec cards = 2;
+   */
+  cards: ContextCardSpec[];
+
+  /**
+   * total budget across all cards (default 8000)
+   *
+   * @generated from field: int32 budget_tokens = 3;
+   */
+  budgetTokens: number;
+
+  /**
+   * "trace" (default) | "explain" | "review"
+   *
+   * @generated from field: string intent = 4;
+   */
+  intent: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ContextPackRequest.
+ * Use `create(ContextPackRequestSchema)` to create a new message.
+ */
+export const ContextPackRequestSchema: GenMessage<ContextPackRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 51);
+
+/**
+ * @generated from message devcontext.v1.ContextCardSpec
+ */
+export type ContextCardSpec = Message<"devcontext.v1.ContextCardSpec"> & {
+  /**
+   * "flow" | "signatures" | "bodies" | "di_wiring" | "config" | "entities" | "contracts" | "tests" | "identity"
+   *
+   * @generated from field: string type = 1;
+   */
+  type: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * nodeIds of selected entries
+   *
+   * @generated from field: repeated string entry_ids = 3;
+   */
+  entryIds: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ContextCardSpec.
+ * Use `create(ContextCardSpecSchema)` to create a new message.
+ */
+export const ContextCardSpecSchema: GenMessage<ContextCardSpec> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 52);
+
+/**
+ * @generated from message devcontext.v1.ContextPackResponse
+ */
+export type ContextPackResponse = Message<"devcontext.v1.ContextPackResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.ContextCardItem cards = 1;
+   */
+  cards: ContextCardItem[];
+
+  /**
+   * full pack ready for Copy/Save
+   *
+   * @generated from field: string assembled_markdown = 2;
+   */
+  assembledMarkdown: string;
+
+  /**
+   * @generated from field: int32 total_tokens = 3;
+   */
+  totalTokens: number;
+
+  /**
+   * @generated from field: int32 allocated_tokens = 4;
+   */
+  allocatedTokens: number;
+
+  /**
+   * @generated from field: repeated string omitted = 5;
+   */
+  omitted: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ContextPackResponse.
+ * Use `create(ContextPackResponseSchema)` to create a new message.
+ */
+export const ContextPackResponseSchema: GenMessage<ContextPackResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 53);
+
+/**
+ * @generated from message devcontext.v1.ContextCardItem
+ */
+export type ContextCardItem = Message<"devcontext.v1.ContextCardItem"> & {
+  /**
+   * @generated from field: string type = 1;
+   */
+  type: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * @generated from field: int32 tokens = 3;
+   */
+  tokens: number;
+
+  /**
+   * @generated from field: repeated devcontext.v1.SectionAllocation sections = 4;
+   */
+  sections: SectionAllocation[];
+};
+
+/**
+ * Describes the message devcontext.v1.ContextCardItem.
+ * Use `create(ContextCardItemSchema)` to create a new message.
+ */
+export const ContextCardItemSchema: GenMessage<ContextCardItem> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 54);
+
+/**
+ * @generated from message devcontext.v1.SectionAllocation
+ */
+export type SectionAllocation = Message<"devcontext.v1.SectionAllocation"> & {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: int32 tokens = 2;
+   */
+  tokens: number;
+};
+
+/**
+ * Describes the message devcontext.v1.SectionAllocation.
+ * Use `create(SectionAllocationSchema)` to create a new message.
+ */
+export const SectionAllocationSchema: GenMessage<SectionAllocation> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 55);
 
 /**
  * @generated from message devcontext.v1.PingRequest
@@ -1360,7 +2115,7 @@ export type PingRequest = Message<"devcontext.v1.PingRequest"> & {
  * Use `create(PingRequestSchema)` to create a new message.
  */
 export const PingRequestSchema: GenMessage<PingRequest> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 39);
+  messageDesc(file_devcontext_v1_devcontext, 56);
 
 /**
  * @generated from message devcontext.v1.PingResponse
@@ -1382,7 +2137,977 @@ export type PingResponse = Message<"devcontext.v1.PingResponse"> & {
  * Use `create(PingResponseSchema)` to create a new message.
  */
 export const PingResponseSchema: GenMessage<PingResponse> = /*@__PURE__*/
-  messageDesc(file_devcontext_v1_devcontext, 40);
+  messageDesc(file_devcontext_v1_devcontext, 57);
+
+/**
+ * @generated from message devcontext.v1.ListSessionsRequest
+ */
+export type ListSessionsRequest = Message<"devcontext.v1.ListSessionsRequest"> & {
+};
+
+/**
+ * Describes the message devcontext.v1.ListSessionsRequest.
+ * Use `create(ListSessionsRequestSchema)` to create a new message.
+ */
+export const ListSessionsRequestSchema: GenMessage<ListSessionsRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 58);
+
+/**
+ * @generated from message devcontext.v1.ListSessionsResponse
+ */
+export type ListSessionsResponse = Message<"devcontext.v1.ListSessionsResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.SessionInfo sessions = 1;
+   */
+  sessions: SessionInfo[];
+};
+
+/**
+ * Describes the message devcontext.v1.ListSessionsResponse.
+ * Use `create(ListSessionsResponseSchema)` to create a new message.
+ */
+export const ListSessionsResponseSchema: GenMessage<ListSessionsResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 59);
+
+/**
+ * @generated from message devcontext.v1.SessionInfo
+ */
+export type SessionInfo = Message<"devcontext.v1.SessionInfo"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * @generated from field: string repo = 2;
+   */
+  repo: string;
+
+  /**
+   * @generated from field: string commit_sha = 3;
+   */
+  commitSha: string;
+
+  /**
+   * @generated from field: int64 age_seconds = 4;
+   */
+  ageSeconds: bigint;
+
+  /**
+   * @generated from field: int32 calls = 5;
+   */
+  calls: number;
+
+  /**
+   * @generated from field: int64 token_total = 6;
+   */
+  tokenTotal: bigint;
+
+  /**
+   * @generated from field: string status = 7;
+   */
+  status: string;
+
+  /**
+   * @generated from field: int32 nodes = 8;
+   */
+  nodes: number;
+
+  /**
+   * @generated from field: int32 edges = 9;
+   */
+  edges: number;
+
+  /**
+   * @generated from field: int32 entries = 10;
+   */
+  entries: number;
+};
+
+/**
+ * Describes the message devcontext.v1.SessionInfo.
+ * Use `create(SessionInfoSchema)` to create a new message.
+ */
+export const SessionInfoSchema: GenMessage<SessionInfo> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 60);
+
+/**
+ * @generated from message devcontext.v1.StartMcpRequest
+ */
+export type StartMcpRequest = Message<"devcontext.v1.StartMcpRequest"> & {
+};
+
+/**
+ * Describes the message devcontext.v1.StartMcpRequest.
+ * Use `create(StartMcpRequestSchema)` to create a new message.
+ */
+export const StartMcpRequestSchema: GenMessage<StartMcpRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 61);
+
+/**
+ * @generated from message devcontext.v1.StartMcpResponse
+ */
+export type StartMcpResponse = Message<"devcontext.v1.StartMcpResponse"> & {
+  /**
+   * @generated from field: bool running = 1;
+   */
+  running: boolean;
+};
+
+/**
+ * Describes the message devcontext.v1.StartMcpResponse.
+ * Use `create(StartMcpResponseSchema)` to create a new message.
+ */
+export const StartMcpResponseSchema: GenMessage<StartMcpResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 62);
+
+/**
+ * @generated from message devcontext.v1.StopMcpRequest
+ */
+export type StopMcpRequest = Message<"devcontext.v1.StopMcpRequest"> & {
+};
+
+/**
+ * Describes the message devcontext.v1.StopMcpRequest.
+ * Use `create(StopMcpRequestSchema)` to create a new message.
+ */
+export const StopMcpRequestSchema: GenMessage<StopMcpRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 63);
+
+/**
+ * @generated from message devcontext.v1.StopMcpResponse
+ */
+export type StopMcpResponse = Message<"devcontext.v1.StopMcpResponse"> & {
+  /**
+   * @generated from field: bool stopped = 1;
+   */
+  stopped: boolean;
+};
+
+/**
+ * Describes the message devcontext.v1.StopMcpResponse.
+ * Use `create(StopMcpResponseSchema)` to create a new message.
+ */
+export const StopMcpResponseSchema: GenMessage<StopMcpResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 64);
+
+/**
+ * @generated from message devcontext.v1.ObserveToolCallsRequest
+ */
+export type ObserveToolCallsRequest = Message<"devcontext.v1.ObserveToolCallsRequest"> & {
+};
+
+/**
+ * Describes the message devcontext.v1.ObserveToolCallsRequest.
+ * Use `create(ObserveToolCallsRequestSchema)` to create a new message.
+ */
+export const ObserveToolCallsRequestSchema: GenMessage<ObserveToolCallsRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 65);
+
+/**
+ * @generated from message devcontext.v1.ToolCallEvent
+ */
+export type ToolCallEvent = Message<"devcontext.v1.ToolCallEvent"> & {
+  /**
+   * @generated from field: string session_handle = 1;
+   */
+  sessionHandle: string;
+
+  /**
+   * @generated from field: string tool = 2;
+   */
+  tool: string;
+
+  /**
+   * @generated from field: string args_digest = 3;
+   */
+  argsDigest: string;
+
+  /**
+   * @generated from field: int64 bytes = 4;
+   */
+  bytes: bigint;
+
+  /**
+   * @generated from field: int64 est_tokens = 5;
+   */
+  estTokens: bigint;
+
+  /**
+   * @generated from field: int64 elapsed_ms = 6;
+   */
+  elapsedMs: bigint;
+
+  /**
+   * @generated from field: int64 timestamp_utc_ms = 7;
+   */
+  timestampUtcMs: bigint;
+
+  /**
+   * @generated from field: string session_repo = 8;
+   */
+  sessionRepo: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ToolCallEvent.
+ * Use `create(ToolCallEventSchema)` to create a new message.
+ */
+export const ToolCallEventSchema: GenMessage<ToolCallEvent> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 66);
+
+/**
+ * @generated from message devcontext.v1.ConfigRequest
+ */
+export type ConfigRequest = Message<"devcontext.v1.ConfigRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * filter to a specific config key; omit for all keys
+   *
+   * @generated from field: optional string key = 2;
+   */
+  key?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.ConfigRequest.
+ * Use `create(ConfigRequestSchema)` to create a new message.
+ */
+export const ConfigRequestSchema: GenMessage<ConfigRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 67);
+
+/**
+ * @generated from message devcontext.v1.ConfigResponse
+ */
+export type ConfigResponse = Message<"devcontext.v1.ConfigResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.ConfigBinding bindings = 1;
+   */
+  bindings: ConfigBinding[];
+
+  /**
+   * number of distinct config keys found
+   *
+   * @generated from field: int32 total_keys = 2;
+   */
+  totalKeys: number;
+};
+
+/**
+ * Describes the message devcontext.v1.ConfigResponse.
+ * Use `create(ConfigResponseSchema)` to create a new message.
+ */
+export const ConfigResponseSchema: GenMessage<ConfigResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 68);
+
+/**
+ * @generated from message devcontext.v1.ConfigBinding
+ */
+export type ConfigBinding = Message<"devcontext.v1.ConfigBinding"> & {
+  /**
+   * config key, e.g. "GrpcSettings:DiscountUrl"
+   *
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * file where the key is consumed
+   *
+   * @generated from field: string file_path = 2;
+   */
+  filePath: string;
+
+  /**
+   * line in file
+   *
+   * @generated from field: int32 line_number = 3;
+   */
+  lineNumber: number;
+
+  /**
+   * graph node containing this usage, if resolvable
+   *
+   * @generated from field: optional string node_id = 4;
+   */
+  nodeId?: string | undefined;
+
+  /**
+   * "GetValue" | "GetSection" | "Indexer" | "GetConnectionString" | "GetRequiredSection"
+   *
+   * @generated from field: string pattern_type = 5;
+   */
+  patternType: string;
+
+  /**
+   * project/service name
+   *
+   * @generated from field: string service = 6;
+   */
+  service: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ConfigBinding.
+ * Use `create(ConfigBindingSchema)` to create a new message.
+ */
+export const ConfigBindingSchema: GenMessage<ConfigBinding> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 69);
+
+/**
+ * @generated from message devcontext.v1.TestsForRequest
+ */
+export type TestsForRequest = Message<"devcontext.v1.TestsForRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * target node to find tests for
+   *
+   * @generated from field: string node_id = 2;
+   */
+  nodeId: string;
+
+  /**
+   * how far up the call chain to search (default 6)
+   *
+   * @generated from field: int32 max_depth = 3;
+   */
+  maxDepth: number;
+};
+
+/**
+ * Describes the message devcontext.v1.TestsForRequest.
+ * Use `create(TestsForRequestSchema)` to create a new message.
+ */
+export const TestsForRequestSchema: GenMessage<TestsForRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 70);
+
+/**
+ * @generated from message devcontext.v1.TestsForResponse
+ */
+export type TestsForResponse = Message<"devcontext.v1.TestsForResponse"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.TestRef tests = 1;
+   */
+  tests: TestRef[];
+
+  /**
+   * echo back
+   *
+   * @generated from field: string node_id = 2;
+   */
+  nodeId: string;
+
+  /**
+   * @generated from field: string node_title = 3;
+   */
+  nodeTitle: string;
+
+  /**
+   * always true — heuristic detection
+   *
+   * @generated from field: bool is_best_effort = 4;
+   */
+  isBestEffort: boolean;
+};
+
+/**
+ * Describes the message devcontext.v1.TestsForResponse.
+ * Use `create(TestsForResponseSchema)` to create a new message.
+ */
+export const TestsForResponseSchema: GenMessage<TestsForResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 71);
+
+/**
+ * @generated from message devcontext.v1.TestRef
+ */
+export type TestRef = Message<"devcontext.v1.TestRef"> & {
+  /**
+   * the test method's node id
+   *
+   * @generated from field: string node_id = 1;
+   */
+  nodeId: string;
+
+  /**
+   * test method name
+   *
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * file containing the test
+   *
+   * @generated from field: string file_path = 3;
+   */
+  filePath: string;
+
+  /**
+   * line of the test method
+   *
+   * @generated from field: int32 line_number = 4;
+   */
+  lineNumber: number;
+
+  /**
+   * BFS distance from target to this test
+   *
+   * @generated from field: int32 distance = 5;
+   */
+  distance: number;
+
+  /**
+   * true if distance == 1 (direct caller)
+   *
+   * @generated from field: bool is_direct = 6;
+   */
+  isDirect: boolean;
+
+  /**
+   * test project name
+   *
+   * @generated from field: string project = 7;
+   */
+  project: string;
+};
+
+/**
+ * Describes the message devcontext.v1.TestRef.
+ * Use `create(TestRefSchema)` to create a new message.
+ */
+export const TestRefSchema: GenMessage<TestRef> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 72);
+
+/**
+ * @generated from message devcontext.v1.ReadSourceRequest
+ */
+export type ReadSourceRequest = Message<"devcontext.v1.ReadSourceRequest"> & {
+  /**
+   * session handle
+   *
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+
+  /**
+   * graph node id to read source for
+   *
+   * @generated from field: string node_id = 2;
+   */
+  nodeId: string;
+
+  /**
+   * MEMBER (full span) or WINDOW (context window)
+   *
+   * @generated from field: devcontext.v1.ReadSourceMode mode = 3;
+   */
+  mode: ReadSourceMode;
+
+  /**
+   * lines above/below for WINDOW mode (default 50)
+   *
+   * @generated from field: int32 window_lines = 4;
+   */
+  windowLines: number;
+};
+
+/**
+ * Describes the message devcontext.v1.ReadSourceRequest.
+ * Use `create(ReadSourceRequestSchema)` to create a new message.
+ */
+export const ReadSourceRequestSchema: GenMessage<ReadSourceRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 73);
+
+/**
+ * @generated from message devcontext.v1.ReadSourceResponse
+ */
+export type ReadSourceResponse = Message<"devcontext.v1.ReadSourceResponse"> & {
+  /**
+   * raw source text
+   *
+   * @generated from field: string content = 1;
+   */
+  content: string;
+
+  /**
+   * "csharp", "razor", "cshtml", etc.
+   *
+   * @generated from field: string language = 2;
+   */
+  language: string;
+
+  /**
+   * absolute path to the source file
+   *
+   * @generated from field: string file_path = 3;
+   */
+  filePath: string;
+
+  /**
+   * first line of the returned range
+   *
+   * @generated from field: int32 start_line = 4;
+   */
+  startLine: number;
+
+  /**
+   * last line of the returned range
+   *
+   * @generated from field: int32 end_line = 5;
+   */
+  endLine: number;
+
+  /**
+   * node display title for headers
+   *
+   * @generated from field: string node_title = 6;
+   */
+  nodeTitle: string;
+};
+
+/**
+ * Describes the message devcontext.v1.ReadSourceResponse.
+ * Use `create(ReadSourceResponseSchema)` to create a new message.
+ */
+export const ReadSourceResponseSchema: GenMessage<ReadSourceResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 74);
+
+/**
+ * @generated from message devcontext.v1.GraphFacetsRequest
+ */
+export type GraphFacetsRequest = Message<"devcontext.v1.GraphFacetsRequest"> & {
+  /**
+   * @generated from field: string handle = 1;
+   */
+  handle: string;
+
+  /**
+   * max flows to return (default 10)
+   *
+   * @generated from field: int32 max_flows = 2;
+   */
+  maxFlows: number;
+};
+
+/**
+ * Describes the message devcontext.v1.GraphFacetsRequest.
+ * Use `create(GraphFacetsRequestSchema)` to create a new message.
+ */
+export const GraphFacetsRequestSchema: GenMessage<GraphFacetsRequest> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 75);
+
+/**
+ * @generated from message devcontext.v1.GraphFacetsResponse
+ */
+export type GraphFacetsResponse = Message<"devcontext.v1.GraphFacetsResponse"> & {
+  /**
+   * @generated from field: devcontext.v1.ServiceMapFacet service_map = 1;
+   */
+  serviceMap?: ServiceMapFacet | undefined;
+
+  /**
+   * @generated from field: devcontext.v1.FlowListFacet flow_list = 2;
+   */
+  flowList?: FlowListFacet | undefined;
+
+  /**
+   * @generated from field: devcontext.v1.EntryTableFacet entry_table = 3;
+   */
+  entryTable?: EntryTableFacet | undefined;
+
+  /**
+   * @generated from field: devcontext.v1.LayerBandFacet layer_band = 4;
+   */
+  layerBand?: LayerBandFacet | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.GraphFacetsResponse.
+ * Use `create(GraphFacetsResponseSchema)` to create a new message.
+ */
+export const GraphFacetsResponseSchema: GenMessage<GraphFacetsResponse> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 76);
+
+/**
+ * @generated from message devcontext.v1.ServiceMapFacet
+ */
+export type ServiceMapFacet = Message<"devcontext.v1.ServiceMapFacet"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.ServiceCard services = 1;
+   */
+  services: ServiceCard[];
+
+  /**
+   * @generated from field: repeated devcontext.v1.TransportLink transports = 2;
+   */
+  transports: TransportLink[];
+};
+
+/**
+ * Describes the message devcontext.v1.ServiceMapFacet.
+ * Use `create(ServiceMapFacetSchema)` to create a new message.
+ */
+export const ServiceMapFacetSchema: GenMessage<ServiceMapFacet> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 77);
+
+/**
+ * @generated from message devcontext.v1.ServiceCard
+ */
+export type ServiceCard = Message<"devcontext.v1.ServiceCard"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string display_name = 2;
+   */
+  displayName: string;
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: optional string layer = 4;
+   */
+  layer?: string | undefined;
+
+  /**
+   * @generated from field: optional string feature = 5;
+   */
+  feature?: string | undefined;
+
+  /**
+   * @generated from field: repeated string stack = 6;
+   */
+  stack: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.ServiceCard.
+ * Use `create(ServiceCardSchema)` to create a new message.
+ */
+export const ServiceCardSchema: GenMessage<ServiceCard> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 78);
+
+/**
+ * @generated from message devcontext.v1.TransportLink
+ */
+export type TransportLink = Message<"devcontext.v1.TransportLink"> & {
+  /**
+   * @generated from field: string from_service = 1;
+   */
+  fromService: string;
+
+  /**
+   * @generated from field: string to_service = 2;
+   */
+  toService: string;
+
+  /**
+   * @generated from field: string transport = 3;
+   */
+  transport: string;
+
+  /**
+   * @generated from field: optional string evidence = 4;
+   */
+  evidence?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.TransportLink.
+ * Use `create(TransportLinkSchema)` to create a new message.
+ */
+export const TransportLinkSchema: GenMessage<TransportLink> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 79);
+
+/**
+ * @generated from message devcontext.v1.FlowListFacet
+ */
+export type FlowListFacet = Message<"devcontext.v1.FlowListFacet"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.FlowCard flows = 1;
+   */
+  flows: FlowCard[];
+
+  /**
+   * @generated from field: int32 total_flows = 2;
+   */
+  totalFlows: number;
+};
+
+/**
+ * Describes the message devcontext.v1.FlowListFacet.
+ * Use `create(FlowListFacetSchema)` to create a new message.
+ */
+export const FlowListFacetSchema: GenMessage<FlowListFacet> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 80);
+
+/**
+ * @generated from message devcontext.v1.FlowCard
+ */
+export type FlowCard = Message<"devcontext.v1.FlowCard"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string kind = 3;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: int32 depth = 4;
+   */
+  depth: number;
+
+  /**
+   * @generated from field: int32 hops = 5;
+   */
+  hops: number;
+
+  /**
+   * @generated from field: int32 touches = 6;
+   */
+  touches: number;
+
+  /**
+   * @generated from field: int32 emits = 7;
+   */
+  emits: number;
+
+  /**
+   * @generated from field: double score = 8;
+   */
+  score: number;
+
+  /**
+   * L4.3 — entry node id for deep-linking
+   *
+   * @generated from field: optional string node_id = 9;
+   */
+  nodeId?: string | undefined;
+
+  /**
+   * L4.3 — HTTP route when the entry is an endpoint
+   *
+   * @generated from field: optional string route = 10;
+   */
+  route?: string | undefined;
+
+  /**
+   * L4.3 — HTTP verb
+   *
+   * @generated from field: optional string http_method = 11;
+   */
+  httpMethod?: string | undefined;
+
+  /**
+   * L4.3 — dispatch target (command/handler)
+   *
+   * @generated from field: optional string target = 12;
+   */
+  target?: string | undefined;
+
+  /**
+   * L4.3 — grouping path
+   *
+   * @generated from field: optional string group_path = 13;
+   */
+  groupPath?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.FlowCard.
+ * Use `create(FlowCardSchema)` to create a new message.
+ */
+export const FlowCardSchema: GenMessage<FlowCard> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 81);
+
+/**
+ * @generated from message devcontext.v1.EntryTableFacet
+ */
+export type EntryTableFacet = Message<"devcontext.v1.EntryTableFacet"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.EntryTableRow rows = 1;
+   */
+  rows: EntryTableRow[];
+};
+
+/**
+ * Describes the message devcontext.v1.EntryTableFacet.
+ * Use `create(EntryTableFacetSchema)` to create a new message.
+ */
+export const EntryTableFacetSchema: GenMessage<EntryTableFacet> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 82);
+
+/**
+ * @generated from message devcontext.v1.EntryTableRow
+ */
+export type EntryTableRow = Message<"devcontext.v1.EntryTableRow"> & {
+  /**
+   * @generated from field: string kind = 1;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+
+  /**
+   * @generated from field: optional string route = 3;
+   */
+  route?: string | undefined;
+
+  /**
+   * @generated from field: optional string target = 4;
+   */
+  target?: string | undefined;
+
+  /**
+   * @generated from field: optional string project = 5;
+   */
+  project?: string | undefined;
+
+  /**
+   * @generated from field: optional string group_path = 6;
+   */
+  groupPath?: string | undefined;
+
+  /**
+   * @generated from field: optional string layer = 7;
+   */
+  layer?: string | undefined;
+
+  /**
+   * @generated from field: optional string feature = 8;
+   */
+  feature?: string | undefined;
+
+  /**
+   * @generated from field: double score = 9;
+   */
+  score: number;
+
+  /**
+   * @generated from field: int32 reach = 10;
+   */
+  reach: number;
+
+  /**
+   * @generated from field: int32 cross_projects = 11;
+   */
+  crossProjects: number;
+};
+
+/**
+ * Describes the message devcontext.v1.EntryTableRow.
+ * Use `create(EntryTableRowSchema)` to create a new message.
+ */
+export const EntryTableRowSchema: GenMessage<EntryTableRow> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 83);
+
+/**
+ * @generated from message devcontext.v1.LayerBandFacet
+ */
+export type LayerBandFacet = Message<"devcontext.v1.LayerBandFacet"> & {
+  /**
+   * @generated from field: repeated devcontext.v1.NodeBand node_bands = 1;
+   */
+  nodeBands: NodeBand[];
+
+  /**
+   * @generated from field: repeated string layers = 2;
+   */
+  layers: string[];
+
+  /**
+   * @generated from field: repeated string features = 3;
+   */
+  features: string[];
+};
+
+/**
+ * Describes the message devcontext.v1.LayerBandFacet.
+ * Use `create(LayerBandFacetSchema)` to create a new message.
+ */
+export const LayerBandFacetSchema: GenMessage<LayerBandFacet> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 84);
+
+/**
+ * @generated from message devcontext.v1.NodeBand
+ */
+export type NodeBand = Message<"devcontext.v1.NodeBand"> & {
+  /**
+   * @generated from field: string node_id = 1;
+   */
+  nodeId: string;
+
+  /**
+   * @generated from field: optional string layer = 2;
+   */
+  layer?: string | undefined;
+
+  /**
+   * @generated from field: optional string feature = 3;
+   */
+  feature?: string | undefined;
+};
+
+/**
+ * Describes the message devcontext.v1.NodeBand.
+ * Use `create(NodeBandSchema)` to create a new message.
+ */
+export const NodeBandSchema: GenMessage<NodeBand> = /*@__PURE__*/
+  messageDesc(file_devcontext_v1_devcontext, 85);
+
+/**
+ * @generated from enum devcontext.v1.ReadSourceMode
+ */
+export enum ReadSourceMode {
+  /**
+   * @generated from enum value: READ_SOURCE_MODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * full declaration body of the node's member
+   *
+   * @generated from enum value: READ_SOURCE_MODE_MEMBER = 1;
+   */
+  MEMBER = 1,
+
+  /**
+   * context window around the node's line
+   *
+   * @generated from enum value: READ_SOURCE_MODE_WINDOW = 2;
+   */
+  WINDOW = 2,
+}
+
+/**
+ * Describes the enum devcontext.v1.ReadSourceMode.
+ */
+export const ReadSourceModeSchema: GenEnum<ReadSourceMode> = /*@__PURE__*/
+  enumDesc(file_devcontext_v1_devcontext, 0);
 
 /**
  * DevContextService is the single seam between the UI and the DevContext.Core engine.
@@ -1504,6 +3229,130 @@ export const DevContextService: GenService<{
     methodKind: "unary";
     input: typeof PingRequestSchema;
     output: typeof PingResponseSchema;
+  },
+  /**
+   * Impact analysis: finds which entry points reach a given node (up) or which nodes
+   * are affected by it (down). Supports diff-aware mode via a file list.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.GetImpact
+   */
+  getImpact: {
+    methodKind: "unary";
+    input: typeof ImpactRequestSchema;
+    output: typeof ImpactResponseSchema;
+  },
+  /**
+   * Configuration key lookup: find config keys and their binding/consumption sites.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.ConfigLookup
+   */
+  configLookup: {
+    methodKind: "unary";
+    input: typeof ConfigRequestSchema;
+    output: typeof ConfigResponseSchema;
+  },
+  /**
+   * Best-effort test discovery: find test methods whose call closure reaches a node.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.FindTestsFor
+   */
+  findTestsFor: {
+    methodKind: "unary";
+    input: typeof TestsForRequestSchema;
+    output: typeof TestsForResponseSchema;
+  },
+  /**
+   * Archetype-aware interesting starting points ("where to start reading").
+   *
+   * @generated from rpc devcontext.v1.DevContextService.GetInterestingPoints
+   */
+  getInterestingPoints: {
+    methodKind: "unary";
+    input: typeof InterestingPointsRequestSchema;
+    output: typeof InterestingPointsResponseSchema;
+  },
+  /**
+   * Budget-priced context pack for a trace focus, with per-section content (not just a
+   * flat markdown blob) — the desktop export drawer's Flow/Trail presets and the MCP
+   * get_context tool share this one builder (L5.4 ContextPackBuilder).
+   *
+   * @generated from rpc devcontext.v1.DevContextService.GetContext
+   */
+  getContext: {
+    methodKind: "unary";
+    input: typeof ContextRequestSchema;
+    output: typeof ContextResponseSchema;
+  },
+  /**
+   * L4.4 — Multi-card context pack: server assembles the complete pack once from card specs
+   * (type + entry IDs), with per-card budget-driven section assembly. Replaces N individual
+   * GetContext calls. Copy/Save = exactly the server's assembled markdown pack. Closes Trap A.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.GetContextPack
+   */
+  getContextPack: {
+    methodKind: "unary";
+    input: typeof ContextPackRequestSchema;
+    output: typeof ContextPackResponseSchema;
+  },
+  /**
+   * Read raw source code for a graph node — full member span or a context window around
+   * the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.ReadSource
+   */
+  readSource: {
+    methodKind: "unary";
+    input: typeof ReadSourceRequestSchema;
+    output: typeof ReadSourceResponseSchema;
+  },
+  /**
+   * L4.2 — Graph facets: service map, flow list, entry table, and per-node layer/feature
+   * bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
+   * surfaces without individual Node RPCs.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.GetGraphFacets
+   */
+  getGraphFacets: {
+    methodKind: "unary";
+    input: typeof GraphFacetsRequestSchema;
+    output: typeof GraphFacetsResponseSchema;
+  },
+  /**
+   * M3.1 — list all active sessions (MCP page session list).
+   *
+   * @generated from rpc devcontext.v1.DevContextService.ListSessions
+   */
+  listSessions: {
+    methodKind: "unary";
+    input: typeof ListSessionsRequestSchema;
+    output: typeof ListSessionsResponseSchema;
+  },
+  /**
+   * M3.3 — MCP observability: start/stop MCP endpoint, stream tool-call events to the UI.
+   *
+   * @generated from rpc devcontext.v1.DevContextService.StartMcp
+   */
+  startMcp: {
+    methodKind: "unary";
+    input: typeof StartMcpRequestSchema;
+    output: typeof StartMcpResponseSchema;
+  },
+  /**
+   * @generated from rpc devcontext.v1.DevContextService.StopMcp
+   */
+  stopMcp: {
+    methodKind: "unary";
+    input: typeof StopMcpRequestSchema;
+    output: typeof StopMcpResponseSchema;
+  },
+  /**
+   * @generated from rpc devcontext.v1.DevContextService.ObserveToolCalls
+   */
+  observeToolCalls: {
+    methodKind: "server_streaming";
+    input: typeof ObserveToolCallsRequestSchema;
+    output: typeof ToolCallEventSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_devcontext_v1_devcontext, 0);

@@ -30,7 +30,8 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css"],
+            "allowedCommonJsDependencies": ["cytoscape-fcose", "prismjs", "prismjs/components/prism-csharp"]
           },
           "configurations": {
             "production": {

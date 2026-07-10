@@ -1,0 +1,63 @@
+=== D2 (L3.5) TodoApi Eval Gap Triage — Session 45 ===
+Date: 2026-07-09
+Conductor plan: #45, target stage D2, attempt 1/2
+Branch: feat/loom-l7
+Status: RESOLVED — gap closed by pipeline improvements (L2-L8).
+
+=== 1. Investigation ===
+conductor-DEBT.md #2 states TodoApi_baseline_presence_ok failed since L3:
+  "TodoDbContext is absent from the POST /todos trace"
+
+Fresh reproduction (attempted first):
+  - dotnet test --filter "TodoApi_baseline_presence_ok"
+    Result: PASSED (not skipped, not failed)
+    Output: "TodoApi baseline: trace confirms TodoDbContext"
+  - TodoApi eval repo present at eval-repos/TodoApi
+
+=== 2. Root Cause of Original Failure ===
+At L3 time, the call-graph pipeline could not resolve TodoDbContext through
+the lambda wrapping in TodoApi.cs POST /todos/ handler. The entry-to-context
+flow traversed the lambda but did not resolve the captured field (TodoDbContext
+from DI/injection) used within the lambda body.
+
+Pipeline improvements since L3 that resolved this:
+  - L2 (BodyFacts + seam detectors): improved body-level fact extraction
+  - L4 (flows + projections): better call-graph traversal
+  - L7 (repo-shape coverage): improved endpoint-to-type resolution
+  - L8 (call-spine hardening): LoggerFactory disposal, null-safety fixes
+
+=== 3. Current Trace (via CLI) ===
+TRACE  POST /todos/
+       Todo.Api/Todos/TodoApi.cs:38
+       Todo.Api
+  ENTRY  POST /todos/  (Todo.Api/Todos/TodoApi.cs:38)
+     +-- call <lambda> POST /todos/  (Todo.Api/Todos/TodoApi.cs:38)
+        +-- call TodoDbContext  (Todo.Api/Todos/TodoApi.cs:9) [approx]
+               public class TodoDbContext(DbContextOptions<TodoDbContext> options)
+
+TodoDbContext appears at depth-2 via approximate source-body resolution.
+The trace is valid: entry -> lambda -> injected DbContext.
+
+=== 4. Truth Test Suite (fresh run) ===
+8 Passed, 3 Skipped (TruthPending L1/L2), 0 Failed.
+  P: Dogfood_baseline, Blazor_archetype, CleanArchitecture_baseline,
+     TodoApi_baseline, DntSite_baseline, Library_archetype,
+     Desktop_archetype, Worker_archetype
+  S: Dogfood_checkout_flow (L2), Dogfood_service_names (L1),
+     RazorPages_no_fabricated (L1)
+
+TodoApi_baseline_presence_ok passes without modification.
+No TruthPending marker needed. No code change required.
+
+=== 5. Gate Battery (fresh re-run) ===
+  dotnet build DevContext.slnx: 0w/0e PASS
+  dotnet test --filter "Category!=Eval": 0F/490P/3S PASS
+  dotnet test --filter "Category=Truth": 0F/8P/3S PASS
+  powershell -File scripts/loom-guards.ps1: 0 banned patterns PASS
+
+=== 6. Verdict ===
+D2 (L3.5) — NO ACTION REQUIRED. The eval gap described in conductor-DEBT.md
+#2 has been resolved by the collective L2-L8 pipeline work. The test passes
+and TodoDbContext is correctly traced. No [TruthPending] marker needed.
+The test remains a passing SkippableFact in the [Category=Eval, Category=Truth]
+suite. Commit message: docs(debt): D2 L3.5 — TodoApi gap triaged (resolved)

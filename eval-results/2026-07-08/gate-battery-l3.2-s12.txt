@@ -1,0 +1,99 @@
+# L3.2 Gate Battery + Evidence (2026-07-08, session #12)
+
+Stage L3 — Semantic-lite tier. Checkpoint L3.2 — Targeted semantic upgrades (Law R2: upgrade only).
+Branch feat/loom-l2 (continued from L3.1). Dogfood: run-aspnetcore-microservices/src.
+
+## Pre-session gate battery (fresh runs)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 388P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (5 files, 27 tests, bundle built) |
+| node eval/mcp-qa/run.js --quiet | 8/8 PASS (checkout 24 steps, cross-service) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+
+## QA of previous session (L3.1) — audited against fresh artifacts
+
+VERDICT: L3.1 real code delivered but with a stats-reporting bug and a wrong evidence path.
+
+1. [FIXED THIS SESSION — real bug] Tier-routing stats were ALWAYS ZERO. `ResolveNuGetMetadataRefs`
+   and `UpgradeBodyFacts` mutated a pass-by-value `record` copy / local ints that were discarded, so
+   ProjectsWithAssets/Degraded/VarDeclsResolved/ReceiversResolved never propagated. Consequence: the
+   "Tier B built" diagnostic never fired — the L3 gate "tier routing visible" was structurally unmet.
+   The L3.1 claim "Stats recorded" was false. Fixed: helpers now return their counts; Populate assigns them.
+2. [FIXED THIS SESSION — real bug] The Tier-B compilation ALWAYS THREW and silently degraded
+   (`ArgumentException: Syntax tree already present`): nested project dirs added the same .cs tree twice.
+   So L3.1 produced ZERO semantic upgrades despite claiming to. Fixed: each file mapped to its
+   most-specific project, every tree added once. Also NuGet refs now de-duped by assembly identity.
+3. [tracker] L3.1 evidence path in LOOM-START pointed to eval-results/2026-07-07/gate-battery-l3-s11.txt;
+   the file is actually at eval-results/2026-07-08/. Corrected in tracker.
+4. [artifact] L3.1's artifact recorded "pnpm check FAIL"; a fresh run is GREEN. Stale/transient.
+5. Dogfood numbers reproduce: 422 nodes / 275 edges / 34 entries / 6 ServiceLinks (pre-L3.2).
+
+## L3.2 Delivered — targeted semantic upgrades (Law R2: upgrade only)
+
+- SemanticLitePopulator now genuinely builds a Tier-B CSharpCompilation (bug #2 fixed) and binds the
+  demand set (bodies with locals/receiver invocations — design §6 "bind lazily").
+- LocalDecl inferred types + receiver types upgraded via SemanticModel; short Text kept for detector
+  matching, bound FQN in Resolved, Tier=Semantic. Confirm-only against the syntactic short name → no
+  graph-node identity drift.
+- Law R2 in SymbolTable.Resolve: an already-Semantic bind is never downgraded or re-ambiguated; maps
+  onto the in-scope node id when the short name is unique (ambiguous-ref arbitration).
+- ResolveArgTarget prefers a Semantic local type over the arg's syntactic type (the bind is authoritative).
+- Seam edges (AddSeamsFromDetectors + AddLambdaSeams) now carry the resolved tier → Semantic binds
+  become VERIFIED edges instead of hardcoded Resolution.Syntactic.
+- MediatRDispatchDetector receiver gating robust to fully-qualified bound receivers (short-name extraction).
+- Lambda seam pass gets a semantic overlay (matched by file+local-name+short-type; no line dependency).
+- Tier routing now VISIBLE in diagnostics / --include-diagnostics (was structurally always-zero in L3.1).
+
+### Dogfood measurement (debug/full profile, Tier B active)
+
+Tier routing diagnostic (fresh):
+  SemanticLitePopulator: tier routing — A (syntax): 0 project(s), B (semantic-lite): 11 project(s);
+  compilation=True trees=146 refs=59; upgraded 26 var-decl + 7 receiver type(s) to Semantic tier
+
+Graph numbers: 422 nodes · 276 edges · 34 entries · 33/34 → target · 6 ServiceLinks · ~2.0s
+  (edges 275 → 276: +1 Raises = a semantically-resolved IntegrationEvent creation syntactic missed;
+   nodes unchanged at 422 — confirm-only upgrades do not drift identity.)
+
+Verified seam edges (Approx column = Resolution.Syntactic count):
+  |            | before L3.2 | after L3.2 |
+  | Sends      | 33 / 33 approx (0 verified) | 33 / 32 approx (1 VERIFIED) |
+  | Raises     |  3 /  3 approx (0 verified) |  4 /  3 approx (1 VERIFIED) |
+  Report "Verified edges": 64.7% → 65.2% (rounds to 65%). Small at edge level (2 seam edges) because
+  most dogfood dispatches use inline `new X()` (already syntactic) or lambdas; the ≥80% ratchet is L3.3.
+
+Example verified via genuine Roslyn bind (BasketCheckoutEventHandler.Consume):
+  var command = MapToCreateOrderCommand(context.Message);  // same-class return → Semantic bind
+  await sender.Send(command);                              // Sends CreateOrderCommand → [verified]
+
+### Degrade path (no assets.json)
+
+tests/fixtures/MinimalApiProject (0 assets) → "A (syntax): 3 project(s), B: 0"; no compilation, no
+crash, 16 nodes/8 edges. Fresh clones without obj/ degrade to Tier A → perf-neutral by construction.
+
+### Tests
+
+- Core 393P/3S (+5 new: 3 SymbolTable R2/arbitration, 2 MediatRDispatch semantic-tier/FQN-receiver).
+- Server 12P · Desktop 64P.
+- Graph2 subset: 50 pass.
+
+## Post-session gate battery (all green, re-run)
+
+| dotnet build | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 393P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS |
+| node eval/mcp-qa/run.js --quiet | 8/8 PASS |
+| loom-guards | PASS |
+
+## Known-red / out of scope (recorded, not weakened)
+
+- Eval tests (Category=Eval): 8 FAIL / 42 pass / 5 skip. PROVEN PRE-EXISTING via `git stash` A/B — the
+  identical 8 fail on baseline without my changes. Root cause: empty/incomplete eval-repo clones in this
+  environment (e.g. eval-repos/VerticalSlice has 0 .cs files → 0 detections, arch-style Unknown). Not a
+  product regression; unrelated to L3.2. Owner: L0/L7 (repo-shape / truth harness), needs repo re-clone.
+- L3.3 (verified-edge ratchet ≥80%) NOT attempted — dogfood at 65%. The upgrade mechanism is now in
+  place; the ratchet needs precision work (external-symbol binding in the merged compilation — e.g.
+  Mapster `.Adapt<T>()` binds unreliably in a whole-solution best-effort compilation — plus verifying
+  Calls/ReadsWrites edges) and the full truth bench.

@@ -1,0 +1,46 @@
+=== Phase A QA Audit — Session 10 (2026-07-10) ===
+Orchestrator session #10, attempt 6/6 re-audit of Phase A claims.
+
+=== GATE BATTERY (fresh) ===
+dotnet build DevContext.slnx -clp:ErrorsOnly → 0w/0e
+dotnet test --filter "Category!=Eval" → Core 440P/3S, Server 14P, Desktop 64P (0 failures)
+dotnet test --filter "Category=Truth" → 9P/2S
+pnpm check (src/DevContext.App) → lint 0, test 27/27, build 0w/0e
+
+=== TRUTH TEST ===
+Dogfood_checkout_flow_traces_cross_service_depth_ge_5: PASS (not [TruthPending] anymore)
+The test asserts BasketCheckoutEvent, BasketCheckoutEventHandler, CreateOrderCommand all present, seamHops >= 5.
+
+=== CLI FOCUSED TRACE (real dogfood) ===
+dotnet run --project src/DevContext.Cli -- analyze <dogfood> --focus "POST /basket/checkout" -o checkout-trace.md
+
+Trace output (61 lines, depth 6):
+  ENTRY POST /basket/checkout (Basket.API)
+    └─ call <lambda>
+       └─ send CheckoutBasketCommand [verified]
+          └─ handler CheckoutBasketCommandHandler
+             └─ raises BasketCheckoutEvent [verified]   ← BusPublishDetector edge
+                └─ consumes BasketCheckoutEventHandler    ← Type→Service bridge
+                   └─ send CreateOrderCommand [verified] ← Cross-service hop confirmed
+                      (stopped at depth 6; 1 branch omitted)
+
+=== VERIFIED CHAIN ===
+BasketCheckoutEvent → BasketCheckoutEventHandler → CreateOrderCommand
+at depth 6 across 3 services (Basket.API → Ordering.Application).
+
+=== QA VERDICT ===
+Phase A claims **CONFIRMED**:
+- BusPublishDetector creates Raises edge on real dogfood repo: YES
+- Type→Service bridge connects BasketCheckoutEvent → Ordering.Application: YES
+- Checkout trace follows cross-service hop to CreateOrderCommand: YES
+- Depth >= 5: YES (depth 6)
+- Truth 9P/2S: YES (checkout test now passing, was [TruthPending("L2")])
+
+Orchestrator PRIOR SESSION FINDING (session 1, commit 4d997d9) is STALE.
+The finding claimed "the Raises edge from BusPublishDetector is NOT created on the real dogfood repo."
+This was true at session 1 but was fixed by sessions s77-s79:
+- s77: Added BodyFactsExtractor to TestPipeline.Build()
+- s78: Hardened auto-extract fallback in the pipeline
+- s79: Final QA verification
+
+Phase A has NO incomplete checkpoints. All work complete.

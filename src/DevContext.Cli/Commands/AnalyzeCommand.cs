@@ -28,12 +28,21 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
 
         var inputPath = settings.Path ?? ".";
 
-        // GitHub repo support: clone if URL detected
+        // GitHub repo support: clone if URL detected. An explicit --repo is always honored as a repo
+        // reference. The positional path, though, is only tried as "owner/repo" shorthand when it does
+        // NOT already exist on disk — otherwise any one-slash relative path (eval-repos/eShop,
+        // src/DevContext.Core) gets hijacked as a GitHub shorthand and fails with a confusing
+        // "Repository not found" instead of being analyzed locally (E9: local-path existence beats
+        // owner/repo shorthand).
         var gitClonePath = null as string;
-        var repoUrl = RepoUrl.Parse(settings.Repo ?? inputPath);
+        var fullInputPath = _fs.GetFullPath(inputPath);
+        var inputExistsLocally = _fs.FileExists(fullInputPath) || _fs.DirectoryExists(fullInputPath);
+        var repoUrl = settings.Repo is { Length: > 0 }
+            ? RepoUrl.Parse(settings.Repo)
+            : inputExistsLocally ? null : RepoUrl.Parse(inputPath);
         if (repoUrl is { IsValid: true })
         {
-            var git = new GitCloneService();
+            var git = new GitCloneService(new CloneRegistry());
             if (!git.IsGitAvailable)
             {
                 AnsiConsole.MarkupLine("[red]Git is not installed. Install Git to clone GitHub repositories.[/]");
@@ -68,7 +77,27 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             inputPath = gitClonePath;
         }
 
-        var rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
+        ProjectRootResult rootResult;
+        try
+        {
+            rootResult = await ProjectRootResolver.ResolveAsync(inputPath, _fs, ct);
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+            return 2;
+        }
+
+        // E9: an empty/invalid directory — no .sln/.slnx anywhere reachable (this dir, its ancestors,
+        // or one level of subfolders) and no .csproj underneath it either — is a hard error, not a
+        // silent "folder mode" analysis of nothing. Analyzing it used to fall through to the legacy
+        // pre-kernel renderer with a near-empty graph and exit 0, looking like a successful run.
+        if (rootResult is { Method: ResolutionMethod.FolderMode, EntryCandidates.Length: 0 })
+        {
+            AnsiConsole.MarkupLine($"[red]No .sln, .slnx, or .csproj found at or under '{inputPath}'.[/]");
+            AnsiConsole.MarkupLine("[dim]Point --path at a solution, project, or a folder that contains one.[/]");
+            return 2;
+        }
 
         // Build IntentInput from settings
         var focusInput = settings.Focus ?? settings.Around;

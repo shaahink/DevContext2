@@ -16,6 +16,16 @@ export interface TrailStep {
   readonly ts: number;
 }
 
+/** M7.3: A group of consecutive trail steps belonging to the same flow (same focus). */
+export interface TrailFlowGroup {
+  /** Whether this is a group (multiple steps) or a single step rendered solo. */
+  readonly grouped: boolean;
+  readonly steps: readonly TrailStep[];
+  /** Index range of these steps in the original breadcrumb. */
+  readonly fromIndex: number;
+  readonly toIndex: number;
+}
+
 interface TrailSlice {
   readonly steps: readonly TrailStep[];
   /** Index of the CURRENT step in `steps`; -1 = no selection yet. Undo moves it left,
@@ -58,6 +68,35 @@ export class TrailStore {
   readonly pinCount = computed(() => this.pins().length);
   /** Steps from the root up to and including the current one — the breadcrumb. */
   readonly breadcrumb = computed(() => this.steps().slice(0, this.cursor() + 1));
+  /** M7.3: Breadcrumb collapsed into flow groups — consecutive steps with the same
+   *  `focus` are grouped together with a count. Solo steps render as ungrouped. */
+  readonly groupedBreadcrumb = computed<TrailFlowGroup[]>(() => {
+    const bc = this.breadcrumb();
+    if (bc.length === 0) return [];
+    const groups: TrailFlowGroup[] = [];
+    let i = 0;
+    while (i < bc.length) {
+      const start = i;
+      const focus = bc[i].focus;
+      // Collect consecutive steps with the same focus (reroot steps have empty focus — keep separate)
+      while (i < bc.length && bc[i].focus === focus && focus !== '') i++;
+      // Reroot steps (empty focus) are always solo
+      if (focus === '') {
+        while (i < bc.length && bc[i].focus === '') {
+          groups.push({ grouped: false, steps: [bc[i]], fromIndex: i, toIndex: i });
+          i++;
+        }
+        continue;
+      }
+      const count = i - start;
+      if (count > 1) {
+        groups.push({ grouped: true, steps: bc.slice(start, i), fromIndex: start, toIndex: i - 1 });
+      } else {
+        groups.push({ grouped: false, steps: [bc[start]], fromIndex: start, toIndex: start });
+      }
+    }
+    return groups;
+  });
   readonly current = computed(() => this.steps()[this.cursor()] ?? null);
   readonly canUndo = computed(() => this.cursor() > 0);
   readonly canRedo = computed(() => this.cursor() < this.steps().length - 1);

@@ -1,0 +1,62 @@
+# L5.1 Gate Battery + Evidence (2026-07-08, session #23)
+
+Stage L5 — MCP v2 cold-agent ergonomics. Checkpoint **L5.1 — Default-session ergonomics**.
+Branch feat/loom-l5. Dogfood: run-aspnetcore-microservices/src. Conductor session #23 (attempt 1/4, target L5).
+
+## Artifact-to-prove-done
+All 20+ MCP tools accept optional `handle` (defaults to most-recent session). Analyze is idempotent
+by repo+HEAD — re-analyzing the same repo returns the existing handle. Server-side cache hit
+streams "cached" progress event.
+
+## L5.1 delivered
+
+### Server (AnalysisSessionManager.cs)
+- Moved repoPath/commitSha resolution BEFORE engine run
+- Checks TryGetByRepo before running engine — returns existing session on match
+- Reports "cached" progress event on cache hit (preserves progress streaming contract)
+
+### MCP client (DevContextTools.cs)
+- Added ResolveHandle(string? handle) helper:
+  - If handle provided → use it
+  - If 0 sessions → FailedPrecondition: "No active session. Run analyze first."
+  - Uses most-recent session (ListSessions sorted by LastAccess DESC)
+- ALL tools now accept optional handle: string? handle = null
+  (overview, resolve, status, close_session, stats, entrypoints, map, top_flows,
+   interesting_points, trace, node, neighbors, usages, find, impact, config, tests_for,
+   insights, get_context, read_source)
+- analyze tool hint updated to mention default-session behavior
+- analyze tool is idempotent (server-side check + client gets cached handle)
+
+### Tests
+- SessionManagementTests.Warm_reuse_same_root_uses_cached_host: Assert.Equal (not NotEqual)
+  — handles now expected to be identical for same repo+HEAD
+- All 12 Server tests pass (0 fail)
+
+## Results (dogfood — unchanged, engine unchanged)
+| Metric | Value |
+|--------|-------|
+| Nodes | 421 |
+| Edges | 276 |
+| ServiceLinks | 6 |
+| Entries | 34 |
+| Verified edges | 82% |
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 408P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (lint 0/0, tests, bundle built) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+| node eval/mcp-qa/run.js | 8/8 · checkout gate PASS (2c/813tok) |
+
+## Default-session verification (manual, fresh dogfood analyze + tool call)
+- analyze(dogfood) → returns handle with hint about auto-session
+- overview(null) → resolves default handle automatically → returns 199 tokens
+- resolve(null, "Product") → resolves default handle → 10 candidates
+- Impact: agent no longer needs to thread handle through all calls
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/gate-battery-l5.1-s23.txt — this file
+- eval-results/2026-07-08/mcp-qa.md — 8/8 QA (token drift from prior session)

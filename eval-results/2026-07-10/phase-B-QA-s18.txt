@@ -1,0 +1,28 @@
+﻿=== Phase B QA Session s18 (2026-07-10) ===
+
+Gate Battery (fresh run):
+  dotnet build DevContext.slnx ................ 0w 0e PASS
+  dotnet test --filter Category!=Eval ......... Core 440P/3S + Server 14P + Desktop 64P = 0F PASS
+  dotnet test --filter Category=Truth ......... 9P/2S PASS
+  pnpm check ................................. Lint 0, Test 27/27, Build 0w/0e PASS
+  loom-guards.ps1 ............................. 0 banned, 13 advisory PASS
+
+=== QA of Previous Session (s17) ===
+Code inspection confirms all fixes are in place:
+  B1: tab-strip.ts:21 — style='height:32px;min-height:32px' on container div.
+  B2: inspector.ts:451-454 — toggle('code') auto-loads source on open when node has filePath.
+  B2: inspector.ts:504-513 — loadCode() calls api.readSource(handle, node.id).
+  C1: mcp-page.ts:274-276 — getMcpStatus() queries server on mount.
+  C2: inspector.ts:24-32 — wordBoundaryIncludes() uses character-class edge detection.
+  C3: bench.ps1:263 — uses [Environment]::NewLine.
+  C4: GraphStats.cs:16 — returns EntriesWithDeepSpine + DeepSpineRatio.
+  C5: loom-graph-design.md:300 — Dogfood ≤ 6s (Tier A only ≤ 4s).
+
+=== Phase B Verdict ===
+Both B1 and B2 are VERIFIED. UI gate evidence (ui-gate.json) shows 4/4 PASS:
+  A-tabstrip-height: stripH=32px PASS
+  C-code-pane-nonempty: code length=44 PASS
+
+QA Verdict: Phase B confirmed green. No regressions. No incomplete checkpoints.
+
+Next: Phase D (ContextPack server round-trip).

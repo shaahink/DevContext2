@@ -1,0 +1,44 @@
+D9 L1.6 QA VERDICT (s63) — Session #63 Re-Verification (attempt 2/2)
+======================================================================
+Date: 2026-07-09
+Session: s63 (Conductor orchestrator launched QA re-verify, D9 target)
+Branch: feat/loom-l7
+
+GATE BATTERY (fresh re-run, s63):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval:
+  Core: 440P/0F/3S ✓
+  Server: 14P/0F/0S ✓
+  Desktop: 64P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/0F/3S ✓
+- loom-guards.ps1: 0 banned, 13 advisory (stable) ✓
+
+CLAIM-BY-CLAIM RE-AUDIT (fresh s63 evidence):
+1. SymbolTable indexes Member symbols from BodyFacts ✓
+   - Constructor parameter: IEnumerable<BodyFacts>? bodyFacts (SymbolTable.cs:22)
+   - Lines 50-67: indexes members by canonical, short name, and project
+   - KindFromCanonical(): "::" => Member, else Type (line 161-162)
+   - All 6 Resolve() paths use KindFromCanonical() (99, 104, 113, 119, 136, 142)
+
+2. GraphBuilder passes bodyFacts to SymbolTable ✓
+   - Single construction site: GraphBuilder.cs:2429
+   - "Symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile, bodyFacts)"
+
+3. RefSite.FromType deleted ✓
+   - RefSite.cs: 8-line record, no FromType method
+   - grep confirms 0 FromType references in Graph2/
+
+4. 7 member resolution tests pass (26 total SymbolTable tests) ✓
+   - dotnet test --filter "FullyQualifiedName~SymbolTable": 26P/0F/0S
+   - Resolves_member_fqn_as_declared
+   - Resolves_unique_member_short_name_as_global_unique
+   - Resolves_member_project_scoped
+   - Detects_member_ambiguity_when_same_short_name_in_multiple_projects
+   - Type_and_member_with_same_short_name_are_ambiguous
+   - Member_is_known_fqn
+   - Type_not_resolved_as_member_when_no_member_indexed
+
+QA VERDICT: D9 L1.6 GENUINELY DONE (re-verified s63).
+All 9 Phase 1 checkpoints COMPLETE. Merge (#4) remains TODO.
+Next: Phase 2 — R1 design review (session 10).
+Conductor-DEBT.md items 1-9 all DONE. Phase 1 COMPLETE.

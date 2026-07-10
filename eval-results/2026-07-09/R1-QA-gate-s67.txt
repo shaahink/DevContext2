@@ -1,0 +1,52 @@
+# R1 QA Verification — Session #67
+# Date: 2026-07-09
+# Reviewer: opencode/deepseek-v4-pro (autonomous)
+
+## Gate battery (pre-session, fresh run)
+- dotnet build DevContext.slnx: 0w, 0e
+- dotnet test --filter "Category!=Eval": Core 440P/3S | Server 14P | Desktop 64P
+- pnpm check (lint + vitest + build): 27 tests passed, build OK
+- scripts/loom-guards.ps1: 0 banned patterns, 13 NodeId.ForType advisory (stable)
+- dotnet test --filter "Category=Truth": 8P/3S (dogfood checkout + service names + razor skipped pending)
+
+## R1-L0-L3.md claims verification (cross-check vs fresh code inspection)
+
+| Claim | Design Spec | Source | Verdict |
+|-------|-------------|--------|---------|
+| L0.1 | Truth tests with named-fact assertions | TruthExpectationTests.cs: 8P/3S, Skip.IfNot guards | CONFORMS-WITH-FINDINGS (matches s65 rating) |
+| L0.2 | Cold-agent MCP QA probes | eval/mcp-qa/run-cold.js: 12 probes, classify() | CONFORMS |
+| L0.3 | UI drive gate with visual assertions | ui-audit-drive.mjs: 4 assertions, 10 screenshots | CONFORMS |
+| L1.1 | SymbolId (8-kind), SymbolRef (5-field), ResolutionTier (7-value) | SymbolKind.cs:3-13, SymbolRef.cs:3-10, ResolutionTier.cs | CONFORMS |
+| L1.2 | Service/Message/Store node kinds + ServiceBoundaryInference | CodeGraph.cs:17-21, ServiceBoundaryInference.cs | CONFORMS |
+| L1.3 | ServiceLinks → Service→Service edges | CLI report: 6 ServiceLinks with full names | CONFORMS |
+| L1.4 | loom-guards bans patterns | 0 banned, 13 advisory (stable) | CONFORMS |
+| L1.5 | MapBuilder reads Service identity | CLI report: full names, no "(unknown)" | CONFORMS |
+| L1.6 | SymbolTable member indexing | SymbolTable.cs, 26/26 tests pass | CONFORMS |
+| L2.1 | BodyFacts extraction (4 op types) | BodyFacts.cs:22-39, GetLineSpan at line 352 | CONFORMS |
+| L2.2 | 6 detectors implementing ISeamDetector | Seams/*Detector.cs, all <=68 lines | CONFORMS |
+| L2.3 | AddSeamsFromDetectors, regex methods deleted | GraphBuilder.cs:1543, 0 regex refs in Core/Graph | CONFORMS-WITH-FINDINGS (matches s65: GraphBuilder 2435 lines) |
+| L2.4 | Checkout trace depth >= 5 enforced | [TruthPending("L2")] still present at line 36 | DEVIATES (confirmed: test still skipped; CLI trace does not cross service boundary for checkout) |
+
+## L2.4 re-confirmation (fresh CLI run)
+- CLI report shows: bus edge exists [bus] Basket.API -> Ordering.Application (BasketCheckoutEvent)
+- TRACE section only contains Trace 1: POST /orders (25 hops). No trace for POST /basket/checkout.
+- The checkout entry exists in Top Flows (#9) but has zero trace output.
+- Root cause (unchanged from s65): trace traversal does not walk bus-publish seams for checkout entry.
+
+## Law cross-check
+
+| Law | Design Requirement | Verified | Rating |
+|-----|-------------------|----------|--------|
+| R1 — no silent winners | Ambiguous edges skipped in traversals | SymbolTable.cs:109-147, GraphBuilder.cs:1671-1672 | CONFORMS |
+| R2 — tier monotone | Never downgrade Declared/Semantic | SymbolTable.cs:87-101 | CONFORMS |
+| No Regex in Core/Graph | Zero regex usage | guards: 0 matches | CONFORMS |
+| SymbolId factory gate | Only SymbolTable constructs | guards: 0 banned new SymbolId( | CONFORMS |
+
+## QA Verdict
+R1-L0-L3.md (s65 attempt 2/2) is accurate. All 17 checkpoint ratings confirmed by fresh code inspection.
+The L2.4 DEVIATES finding is genuine and proportional — trace traversal gap exists, test correctly marked [TruthPending].
+No changes needed to the review report.
+
+## Action items from R1
+1. Fix checkout trace traversal (L2.4) — est. 45-60 min — GraphQueryService.cs, trace projections
+2. [TruthPending("L2")]→[SkippableFact] after fix — 5 min

@@ -13,12 +13,14 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
         foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
         {
             if (!scope.Contains(mc.SourceFile) || !noise.IsProductionEntrySource(mc.SourceFile)) continue;
+            // M1.5: filter DI registration noise (AddMassTransit, UsingRabbitMq etc.)
+            if (mc.MessageType == "<registration>") continue;
             if (!seen.Add(mc.ConsumerType)) continue;
 
             var id = NodeId.ForEntry($"bus:{mc.ConsumerType}");
             g.AddNode(new GraphNode(id, mc.ConsumerType, NodeKind.EntryPoint) { FilePath = mc.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType));
+            var typeId = NodeId.ForType(names.Resolve(mc.ConsumerType, mc.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
@@ -30,6 +32,7 @@ public sealed class MessageConsumerEntryBuilder : IEntryPointBuilder
             {
                 Provenance = $"{mc.SourceFile}:{mc.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(mc.SourceFile),
             });
         }
         return entries.ToImmutable();

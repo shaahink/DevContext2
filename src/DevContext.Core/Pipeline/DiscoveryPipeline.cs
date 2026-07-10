@@ -5,10 +5,14 @@ using System.Text;
 using DevContext.Core.Analysis;
 using DevContext.Core.Extractors.Generic;
 using DevContext.Core.Graph;
+using DevContext.Core.Graph2;
 using DevContext.Core.Insights;
+using DevContext.Core.Models;
 using DevContext.Core.Observers;
 using DevContext.Core.Rendering;
 using DevContext.Core.Validation;
+
+using Microsoft.CodeAnalysis;
 
 namespace DevContext.Core.Pipeline;
 
@@ -108,6 +112,97 @@ public sealed class DiscoveryPipeline
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
+        // L3.1 — SemanticLitePopulator: Tier B (assets.json → compilations → semantic upgrades).
+        // Runs after BodyFacts extraction but before GraphAssembly; degrades per-project when
+        // assets.json is missing. Upgraded BodyFacts feed into seam detectors for higher-quality
+        // resolution (receiver types, var/Adapt<T> decls).
+        SemanticLiteResult? semanticLiteResult = null;
+        if (context.Options.BuildFullGraph || context.Options.Profile is ExtractionProfile.Debug or ExtractionProfile.Full)
+        {
+            var populateMs = 0.0;
+            var upgradeMs = 0.0;
+            try
+            {
+                var slSw = Stopwatch.StartNew();
+                semanticLiteResult = SemanticLitePopulator.Populate(
+                    model.Projects, context.Analysis.AllBodyFacts, context.Cache, context.RootPath, ct);
+                populateMs = slSw.Elapsed.TotalMilliseconds;
+
+                // L3.3 — Upgrade CallEdges using the merged compilation (with NuGet refs) so cross-project
+                // calls that the per-file CallGraphExtractor couldn't resolve get verified Semantic edges.
+                if (semanticLiteResult.CompilationBuilt && semanticLiteResult.Compilation is { } tierBCompilation)
+                {
+                    try
+                    {
+                        var fileToProject = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+                        var projectDirs = new List<(string Dir, string Name)>();
+                        foreach (var proj in model.Projects)
+                        {
+                            var projDir = Path.GetDirectoryName(proj.FilePath);
+                            if (projDir is not null) projectDirs.Add((projDir, proj.Name));
+                        }
+                        projectDirs.Sort((a, b) => b.Dir.Length - a.Dir.Length);
+                        foreach (var path in context.Cache.KnownFilePaths)
+                        {
+                            if (fileToProject.ContainsKey(path)) continue;
+                            foreach (var (dir, name) in projectDirs)
+                                if (path.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+                                { fileToProject[path] = name; break; }
+                        }
+
+                        var allTrees = new List<SyntaxTree>();
+                        foreach (var path in fileToProject.Keys)
+                        {
+                            try { allTrees.Add(context.Cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult()); }
+                            catch { }
+                        }
+
+                        var ceSw = Stopwatch.StartNew();
+                        var existing = model.CallEdges.ToList();
+                        var upgraded = SemanticLitePopulator.UpgradeCallEdges(
+                            existing, tierBCompilation, allTrees, fileToProject);
+                        upgradeMs = ceSw.Elapsed.TotalMilliseconds;
+                        var upgradedCount = upgraded.Count(e => e.Resolution == Resolution.Semantic)
+                                           - existing.Count(e => e.Resolution == Resolution.Semantic);
+                        if (upgradedCount > 0)
+                        {
+                            model.CallEdges.Clear();
+                            foreach (var e in upgraded) model.CallEdges.Add(e);
+                            context.Analysis.CallGraph = new CallGraph(
+                                upgraded.GroupBy(e => $"{e.CallerType}.{e.CallerMethod}")
+                                    .ToDictionary(g => g.Key,
+                                        g => g.ToImmutableArray()));
+                            semanticLiteResult = semanticLiteResult with { CallEdgesUpgraded = upgradedCount };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
+                            $"Call-edge upgrade unavailable (degrading to syntactic edges): {ex.GetType().Name}");
+                    }
+                }
+
+                if (semanticLiteResult.ProjectsWithAssets > 0 || semanticLiteResult.ProjectsDegraded > 0)
+                {
+                    model.AddDiagnostic(DiagnosticLevel.Info, "SemanticLitePopulator",
+                        $"tier routing — A (syntax): {semanticLiteResult.ProjectsDegraded} project(s), "
+                        + $"B (semantic-lite): {semanticLiteResult.ProjectsWithAssets} project(s); "
+                        + $"compilation={semanticLiteResult.CompilationBuilt} trees={semanticLiteResult.TreeCount} "
+                        + $"refs={semanticLiteResult.ReferenceCount}; timing populate={populateMs:F0}ms upgrade-edges={upgradeMs:F0}ms; upgraded "
+                        + $"{semanticLiteResult.VarDeclsResolved} var-decl + {semanticLiteResult.ReceiversResolved} receiver "
+                        + $"+ {semanticLiteResult.CreationOpsResolved} creation + {semanticLiteResult.GenericArgsResolved} generic-arg "
+                        + $"+ {semanticLiteResult.ArgTypesResolved} arg-type "
+                        + $"+ {semanticLiteResult.CallEdgesUpgraded} call-edge(s) to Semantic tier"
+                        + (semanticLiteResult.DegradeReason.Length > 0 ? $" [{semanticLiteResult.DegradeReason}]" : ""));
+                }
+            }
+            catch (Exception ex)
+            {
+                model.AddDiagnostic(DiagnosticLevel.Warning, "SemanticLitePopulator",
+                    $"Tier B unavailable; using Tier A ({ex.GetType().Name}).");
+            }
+        }
+
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
@@ -137,18 +232,33 @@ public sealed class DiscoveryPipeline
                 + "Point at a specific project (e.g. its folder or .csproj) to analyse just its reference closure.");
         }
 
+        // M1.8: gateway routes must be populated BEFORE GraphBuilder.Build so
+        // AddHttpServiceLinks can read model.GatewayRoutes during graph construction.
+        PopulateGatewayRoutes(model, context);
+
         var graphResolver = new SyntacticSymbolResolver();
         var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
-        var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope);
-
-        // W7: scan for ocelot.json files in the project root and extract gateway routes
-        PopulateGatewayRoutes(model, context);
+        var graphBodyFacts = semanticLiteResult?.UpgradedBodyFacts ?? context.Analysis.AllBodyFacts;
+        var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope,
+            graphBodyFacts);
 
         var mapModel = MapBuilder.Build(model, codeGraph, entryPoints);
         model.Archetype = mapModel.Archetype.ToString();
         model.AddDiagnostic(DiagnosticLevel.Info, "GraphAssembly",
             $"graph: {codeGraph.NodeCount} nodes, {codeGraph.EdgeCount} edges, {entryPoints.Length} entry points"
             + (scope.SolutionName is { } sln ? $" (scope: {sln})" : ""));
+
+        // L4.5 — warn when flow spine depth budget is exhausted (silent truncation detection)
+        var truncatedFlows = codeGraph.Flows.Where(f => f.IsTruncated).Take(5).ToImmutableArray();
+        if (truncatedFlows.Length > 0)
+        {
+            var ids = string.Join(", ", truncatedFlows.Select(f => f.Id));
+            var suffix = codeGraph.Flows.Count(f => f.IsTruncated) > truncatedFlows.Length
+                ? $" (+{codeGraph.Flows.Count(f => f.IsTruncated) - truncatedFlows.Length} more)" : "";
+            model.AddDiagnostic(DiagnosticLevel.Warning, "FlowTruncated",
+                $"Spine depth budget (24) exhausted for {codeGraph.Flows.Count(f => f.IsTruncated)} flow(s): {ids}{suffix}. "
+                + "The real dispatch path may be longer than captured.");
+        }
 
         // I3 — compute insights post-graph (pure, cheap, no scoring)
         var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
@@ -160,7 +270,7 @@ public sealed class DiscoveryPipeline
         if (collector is not null)
         {
             var csharpFiles = context.Analysis.AllSourceFiles?.Count ?? 0;
-            collector.SetCorpusFileCounts(0, csharpFiles);
+            collector.SetCorpusFileCounts(0, csharpFiles, model.Projects.Length);
 
             if (context.Cache is ICacheStatsSource ac)
                 collector.SetCacheStats(ac.GetStats());
@@ -341,7 +451,7 @@ public sealed class DiscoveryPipeline
 
             // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
             // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
-            var (seams, withTarget) = query.Stats();
+            var (seams, withTarget, _, _) = query.Stats();
 
             if (!string.IsNullOrEmpty(request.Entry))
             {
@@ -464,7 +574,7 @@ public sealed class DiscoveryPipeline
     {
         if (!request.IncludeDiagnostics) return string.Empty;
         var lines = snapshot.Model.Diagnostics
-            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder")
+            .Where(d => d.Source is "GraphAssembly" or "CallGraphExtractor" or "GraphBuilder" or "SemanticLitePopulator")
             .Select(d => $"  {d.Source}: {d.Message}")
             .ToList();
         if (lines.Count == 0) return string.Empty;
@@ -594,6 +704,9 @@ public sealed class DiscoveryPipeline
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = via ?? "ArchitectureStyleDetector";
+
+        // M1.9 / D5 — per-service style rollup
+        model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
     }
 
     /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>
@@ -696,6 +809,79 @@ public sealed class DiscoveryPipeline
             catch { /* non-json or malformed — skip */ }
         }
 
+        // M1.8: YARP ReverseProxy config from appsettings*.json
+        foreach (var file in Directory.EnumerateFiles(root, "appsettings*.json", SearchOption.AllDirectories))
+        {
+            if (file.Contains("\\.git\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
+                || file.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (ProjectClassifier.IsSamplePath(file) || ProjectClassifier.IsTestPath(file))
+                continue;
+
+            try
+            {
+                var json = File.ReadAllText(file);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var reverseProxy = doc.RootElement.TryGetProperty("ReverseProxy", out var rp) ? rp : default;
+                if (reverseProxy.ValueKind != System.Text.Json.JsonValueKind.Object) continue;
+
+                var routesSection = reverseProxy.TryGetProperty("Routes", out var routesEl) ? routesEl : default;
+                var clustersSection = reverseProxy.TryGetProperty("Clusters", out var clustersEl) ? clustersEl : default;
+                if (routesSection.ValueKind != System.Text.Json.JsonValueKind.Object) continue;
+
+                // Build cluster→destinations map
+                var clusterDestinations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                if (clustersSection.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    foreach (var cluster in clustersSection.EnumerateObject())
+                    {
+                        var dests = cluster.Value.TryGetProperty("Destinations", out var d) ? d : default;
+                        if (dests.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            foreach (var dest in dests.EnumerateObject())
+                            {
+                                var addr = dest.Value.TryGetProperty("Address", out var a) ? a.GetString() ?? "" : "";
+                                if (addr.Length > 0 && !clusterDestinations.ContainsKey(cluster.Name))
+                                    clusterDestinations[cluster.Name] = addr;
+                            }
+                        }
+                    }
+                }
+
+                // Parse each route
+                foreach (var route in routesSection.EnumerateObject())
+                {
+                    var r = route.Value;
+                    var clusterId = r.TryGetProperty("ClusterId", out var ci) ? ci.GetString() ?? "" : "";
+                    var match = r.TryGetProperty("Match", out var m) ? m : default;
+                    var path = match.ValueKind == System.Text.Json.JsonValueKind.Object
+                        ? (match.TryGetProperty("Path", out var p) ? p.GetString() ?? "" : "")
+                        : "";
+
+                    // Parse transforms to get downstream path pattern
+                    var transforms = r.TryGetProperty("Transforms", out var tr) ? tr : default;
+                    var pathPattern = path;
+                    if (transforms.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        foreach (var transform in transforms.EnumerateArray())
+                        {
+                            if (transform.TryGetProperty("PathPattern", out var pp) && pp.GetString() is { } pattern)
+                            {
+                                pathPattern = pattern;
+                                break;
+                            }
+                        }
+                    }
+
+                    var downstreamHost = clusterDestinations.TryGetValue(clusterId, out var dh) ? dh : "";
+
+                    model.GatewayRoutes.Add(new GatewayRoute(path, "", pathPattern, downstreamHost));
+                }
+            }
+            catch { /* non-json or malformed — skip */ }
+        }
+
         static string FormatMethods(System.Text.Json.JsonElement el)
         {
             if (el.ValueKind == System.Text.Json.JsonValueKind.Array)
@@ -730,6 +916,18 @@ public sealed class DiscoveryPipeline
             new BusiestAggregateSource(),
             new TopologyChokepointSource(),
             new MultiImplSource(),
+            // L4.2 — per-archetype composition
+            new WebArchetypeSource(),
+            new LibraryArchetypeSource(),
+            new MessagingArchetypeSource(),
+            new DesktopArchetypeSource(),
+            new CliArchetypeSource(),
+            new GatewayArchetypeSource(),
+            // M2.2 — wiring-grounded insights
+            new EventFlowSource(),
+            new SpofSource(),
+            new UnvalidatedEndpointsSource(),
+            new ConfigDefaultsSource(),
         };
 
         var all = new List<Insight>();

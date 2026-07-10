@@ -1,4 +1,5 @@
-import { Component, computed, inject, model, output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, model, output, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 import type { NeighborDirection } from '../../data-access/devcontext-api';
 import { filterApproxTree, type TraceNodeVm } from '../../models/view-models';
@@ -7,6 +8,7 @@ import { TraceStore } from '../../state/trace.store';
 import { GraphCanvas } from '../../ui/graph-canvas/graph-canvas';
 import { Meter, type MeterVariant } from '../../ui/meter/meter';
 import { TraceNodeComponent } from '../trace/trace-node';
+import { LensSwitcher, type LensId } from './lens-switcher';
 
 export type StageAltitude = 'system' | 'flow' | 'node';
 export type FlowMode = 'tree' | 'graph';
@@ -33,26 +35,44 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
  */
 @Component({
   selector: 'app-stage',
-  imports: [GraphCanvas, TraceNodeComponent, Meter],
+  imports: [GraphCanvas, TraceNodeComponent, Meter, NgClass, LensSwitcher],
   host: { class: 'panel relative flex h-full min-h-0 flex-col' },
   template: `
-    @if (trace.loading()) {
-      <div class="hairline"></div>
-    }
+    <div
+      [ngClass]="zenMode() ? 'fixed inset-0 z-50 flex flex-col bg-base' : 'contents'"
+      (keydown.escape)="zenMode.set(false)"
+      tabindex="0"
+    >
+      @if (trace.loading()) {
+        <div class="hairline"></div>
+      }
 
-    <div class="flex items-center gap-1 border-b border-line px-2 py-1">
-      @for (alt of altitudes; track alt.id) {
+      <div class="flex items-center gap-1 border-b border-line px-2 py-1" (dblclick)="zenMode.set(!zenMode())" title="Double-click for zen mode">
         <button
           type="button"
-          class="chip"
-          [class.active]="altitude() === alt.id"
-          [title]="alt.hint"
-          (click)="altitude.set(alt.id)"
-        >
-          {{ alt.label }}
-        </button>
-      }
-      <span class="mx-1 h-4 w-px bg-line"></span>
+          class="chip shrink-0"
+          [class.active]="zenMode()"
+          (click)="zenMode.set(!zenMode()); $event.stopPropagation()"
+          title="Zen mode (F)"
+        >&#9641;</button>
+
+        <!-- M7.2: Lens switcher — replaces old altitude buttons. L6.5: + Table button. -->
+        <app-lens-switcher [(lensModel)]="lensModel" (tableRequested)="tableRequested.emit()" />
+
+        @if (lensModel() === 'service' || lensModel() === 'layer' || lensModel() === 'feature') {
+          @for (alt of altitudes; track alt.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.active]="altitude() === alt.id"
+              [title]="alt.hint"
+              (click)="altitude.set(alt.id)"
+            >
+              {{ alt.label }}
+            </button>
+          }
+        }
+      @if (lensModel() === 'flow') {
       @if (altitude() === 'flow') {
         <button type="button" class="chip" [class.active]="flowMode() === 'tree'" (click)="flowMode.set('tree')">
           Tree
@@ -98,6 +118,7 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
           Graph
         </button>
       }
+      }
       <span class="flex-1"></span>
       @if (altitude() === 'flow' && verifiedPct() !== null) {
         <div class="flex items-center gap-1.5" title="Verified vs approx resolution across this trace">
@@ -114,11 +135,14 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
       @switch (altitude()) {
         @case ('system') {
           @if (topology().length > 0) {
-            <app-graph-canvas
-              class="block h-full"
-              [data]="{ mode: 'topology', projects: topology() }"
-              (nodeSelected)="onProjectTap($event)"
-            />
+              <app-graph-canvas
+                class="block h-full"
+                [data]="{ mode: 'topology', projects: topology() }"
+                [highlightedNodeId]="highlightedNodeId()"
+                [zenMode]="zenMode()"
+                [lensId]="lensModel()"
+                (nodeSelected)="onProjectTap($event)"
+              />
           } @else {
             <div class="flex h-full items-center justify-center text-xs text-ink-subtle">
               Analyze a repo to see its project topology.
@@ -141,6 +165,9 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'trace', root: rawTree, maxDepth: graphDepth() }"
+                [highlightedNodeId]="highlightedNodeId()"
+                [zenMode]="zenMode()"
+                [lensId]="'flow'"
                 (nodeSelected)="onFlowTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />
@@ -165,6 +192,9 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
               <app-graph-canvas
                 class="block h-full"
                 [data]="{ mode: 'neighbors', centerId: nodeId, centerTitle: trace.nodeDetail()?.title ?? nodeId, edges: trace.neighbors() }"
+                [highlightedNodeId]="highlightedNodeId()"
+                [zenMode]="zenMode()"
+                [lensId]="'flow'"
                 (nodeSelected)="onNodeTap($event)"
                 (nodeActivated)="retrace.emit($event)"
               />
@@ -209,17 +239,25 @@ const DIRECTIONS: readonly { id: NeighborDirection; label: string; hint: string 
 export class Stage {
   protected readonly session = inject(SessionStore);
   protected readonly trace = inject(TraceStore);
+  protected readonly zenMode = signal(false);
 
   readonly nodeSelected = output<string>();
   /** Double-click anywhere on the canvas — parent re-traces from this node (proposal §2). */
   readonly retrace = output<string>();
   /** System altitude project click — parent filters the Entry Deck to it. */
   readonly projectSelected = output<string>();
+  /** L6.5: Visible Table lens button clicked. */
+  readonly tableRequested = output<void>();
 
   /** `model()` so the Workbench can lift it into `?view` URL state (proposal §8.3). */
   readonly altitude = model<StageAltitude>('flow');
   /** `model()` so the Workbench's `v t`/`v g` shortcuts (§8.4) can drive it directly. */
   readonly flowMode = model<FlowMode>('tree');
+
+  /** M7.2: Lens model — lifted to WorkbenchPage so each page owns its default.
+   *  Service/flow are live; layer/feature are structural slots (engine data pending). */
+  readonly lensModel = model<LensId>('flow');
+
   protected readonly graphDepth = signal(3);
   protected readonly nodeViewMode = signal<NodeViewMode>('list');
   protected readonly directions = DIRECTIONS;
@@ -256,6 +294,9 @@ export class Stage {
     { id: 'node', label: 'Node', hint: 'Selected node neighborhood (v n)' },
   ];
 
+  /** M7.1: Highlight the selected node in graph views with an accent ring. */
+  protected readonly highlightedNodeId = computed(() => this.trace.selectedNodeId());
+
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
 
   protected onGraphDepth(event: Event): void {
@@ -278,6 +319,30 @@ export class Stage {
 
   protected onNodeTap(nodeId: string): void {
     if (nodeId) this.nodeSelected.emit(nodeId);
+  }
+
+  constructor() {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'F' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const tag = (event.target as HTMLElement | null)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        event.preventDefault();
+        this.zenMode.update((z) => !z);
+      }
+    };
+    // Window-level F key for zen mode toggle
+    window.addEventListener('keydown', onKey);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener('keydown', onKey));
+
+    // M7.2: Lens → altitude derivation. Service/layer/feature → system, flow → flow.
+    effect(() => {
+      const lens = this.lensModel();
+      if (lens === 'flow') {
+        this.altitude.set('flow');
+      } else {
+        this.altitude.set('system');
+      }
+    });
   }
 
   protected meterVariant(pct: number): MeterVariant {

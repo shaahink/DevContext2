@@ -1,0 +1,52 @@
+
+D7 L2.5 — QA AUDIT EVIDENCE (Session #57)
+============================================
+Date: 2026-07-09
+Session: s57 (D7 QA — L2.5 Lambda scope pollution + SeamContext dedup)
+Branch: feat/loom-l7
+
+QA OF PREVIOUS SESSION (s56, D7):
+- D7 (L2.5) was claimed COMPLETE from s56. This session is a fresh QA audit.
+
+QA FINDINGS — all claims verified:
+
+1. LAMBDA SCOPE POLLUTION FIX — VERIFIED
+   BodyFactExtractor.WalkMember (lines 59-125): scope dictionary built only from
+   fields/properties/ctor-params/method-params/locals — no global lambda parameter
+   collection anywhere.
+   GetEnclosingParamType() (lines 293-322): per-invocation lexical walk-up through
+   ParenthesizedLambdaExpressionSyntax, SimpleLambdaExpressionSyntax, and
+   LocalFunctionStatementSyntax. Resolves the closest matching typed parameter.
+   Called from BuildInvocation at lines 155-157 (receiver) and 165-166 (arguments).
+   Innermost-lambda-wins rule; unannotated lambda params fall through to outer scope.
+
+2. SEAMCONTEXT DEDUP — VERIFIED
+   BuildTypeEventSets() (GraphBuilder.cs lines 2389-2414): classifies types into
+   integration/domain event sets.
+   BuildSeamContext() (GraphBuilder.cs lines 2416-2427): constructs SeamContext from
+   computed sets + known entities.
+   Called from AddSeamsFromDetectors (lines 1577, 1612) and AddLambdaSeams (lines
+   1795, 1796). Lambda variant passes empty knownEntities — correct, because lambda
+   entry handlers don't produce entity-touch seams.
+
+3. MULTI-LAMBDA TEST — VERIFIED
+   BodyFactExtractorTests.cs lines 194-217:
+   Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope
+   Tests x→IHandler (Lambda 1) vs x→ILogger (Lambda 2) — asserts correct receiver
+   type for each scope, no cross-lambda pollution.
+
+4. SEAMDETECTOR REGRESSION — VERIFIED
+   All 10 existing detector tests use SeamContext.Empty (Symbols=null, hash sets
+   empty by default). Every detector null-checks ctx.Symbols or uses .IsEmpty
+   guards. Shared-context extraction produces identical objects to old inline code.
+
+GATE BATTERY (fresh run, s57):
+- dotnet build: Core/Server/Tests build OK; Desktop.dll locked (env issue, not code)
+- dotnet test --filter Category!=Eval (Core): 433P/0F/3S ✓
+- dotnet test --filter Category!=Eval (Server): 12P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~BodyFactExtractor: 11P/0F/0S ✓ (+1 test)
+- dotnet test --filter FullyQualifiedName~SeamDetector: 12P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- loom-guards.ps1: 0 banned patterns, advisory 13 NodeId.ForType ✓
+
+QA VERDICT: PASS — D7 is complete and verified. No issues found.

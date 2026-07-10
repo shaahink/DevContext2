@@ -1,0 +1,37 @@
+D7 L2.5 — RE-VERIFICATION QA (session #59, attempt 2/2)
+=========================================================
+Date: 2026-07-09
+Branch: feat/loom-l7
+Verdict: DONE (re-verified all claims with fresh artifacts)
+
+QA OF PREVIOUS SESSION (D8 L4.5, s58):
+- FlowModel.IsTruncated: present (FlowModel.cs:48) ✓
+- DeriveEntryKind: present (GraphProjections.cs:253) ✓
+- Proportionally-weighted budget: present (ContextPackBuilder.cs:193-198) ✓
+- GetContextPack integration tests: 2 tests PASS ✓
+- Server tests: 14P/0F/0S ✓
+- D8 QA verdict: PASS — all claims verified against code + fresh test run
+
+D7 L2.5 RE-VERIFICATION:
+1. Lambda scope pollution fix: GetEnclosingParamType() walks up the syntax tree to find the
+   nearest enclosing lambda's typed parameter. WalkMember no longer collects all lambda params into
+   the member-level scope — per-lambda scoping is correct.
+2. Multi_lambda_with_same_name_param_produces_correct_receiver_per_scope: PASS
+   (x→IHandler in Lambda 1, x→ILogger in Lambda 2 — no cross-lambda pollution) ✓
+3. SeamContext dedup: BuildTypeEventSets() (GraphBuilder.cs:2396) + BuildSeamContext() (line 2423)
+   shared helpers called from both AddSeamsFromDetectors (line 1584/1619) and AddLambdaSeams
+   (line 1802/1803) — eliminates duplicate type scanning ✓
+
+GATE BATTERY (fresh run, s59):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval (Core): 433P/0F/3S ✓
+- dotnet test --filter Category!=Eval (Server): 14P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~BodyFactExtractor: 11P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~Multi_lambda: 1P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~SeamDetector: 12P/0F/0S ✓
+- dotnet test --filter FullyQualifiedName~ContextPack: 2P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- loom-guards.ps1: 0 banned patterns, advisory 13 NodeId.ForType ✓
+- pnpm check: lint OK · vitest 27/27 · build OK ✓
+
+No regressions from prior D7 gate evidence. All numbers stable.

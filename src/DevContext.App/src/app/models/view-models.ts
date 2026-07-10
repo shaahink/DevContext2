@@ -16,8 +16,17 @@ export interface EntryVm {
   readonly target?: string;
   readonly provenance?: string;
   readonly project?: string;
+  readonly groupPath?: string;
+  /** L3.2 — Graph-aware composite score (0..1) for ranking entries by importance. */
+  readonly score?: number;
+  /** L3.5 — Authorization attributes (e.g. "[Authorize]", "[AllowAnonymous]"). */
+  readonly authAttributes?: readonly string[];
   /** The string passed to GetTrace to trace this entry. */
   readonly focus: string;
+  /** D9 — Architectural layer (Api, Application, Domain, Infrastructure, etc.) */
+  readonly layer?: string;
+  /** D9 — Feature area derived from namespace/folder conventions. */
+  readonly feature?: string;
 }
 
 export interface EntryGroupVm {
@@ -39,6 +48,8 @@ export interface TraceNodeVm {
   readonly salient?: string;
   readonly tags: readonly string[];
   readonly children: readonly TraceNodeVm[];
+  readonly layer?: string;
+  readonly feature?: string;
 }
 
 export interface NodeDetailVm {
@@ -49,6 +60,9 @@ export interface NodeDetailVm {
   readonly filePath?: string;
   readonly outDegree: number;
   readonly inDegree: number;
+  readonly lineNumber?: number;
+  readonly layer?: string;
+  readonly feature?: string;
 }
 
 export interface EdgeVm {
@@ -67,6 +81,13 @@ export const KIND_LABELS: Record<string, string> = {
   ScheduledJob: 'Scheduled jobs',
   DomainEventHandler: 'Domain events',
   PublicApi: 'Public API',
+  GrpcService: 'gRPC',
+  SignalRHub: 'SignalR hubs',
+  FunctionEntry: 'Functions',
+  GrainMethod: 'Grains',
+  GraphQlField: 'GraphQL',
+  CliCommand: 'CLI',
+  UiEntry: 'UI',
 };
 
 export const KIND_ICONS: Record<string, string> = {
@@ -76,6 +97,25 @@ export const KIND_ICONS: Record<string, string> = {
   ScheduledJob: 'refresh',
   DomainEventHandler: 'dot',
   PublicApi: 'network',
+};
+
+/** Per-kind CSS color variable references — the single registry for kind coloring
+ * across the whole UI (M7.0). Every surface maps kinds → hue from here, never inline.
+ * Values are `var(--vibe-*)` so they automatically follow the active vibe/theme. */
+export const KIND_COLORS: Record<string, string> = {
+  HttpEndpoint: 'var(--vibe-info)',
+  MessageConsumer: 'var(--vibe-warn)',
+  HostedService: 'var(--vibe-success)',
+  ScheduledJob: 'var(--vibe-accent)',
+  DomainEventHandler: 'var(--vibe-accent-dim)',
+  PublicApi: 'var(--vibe-info)',
+  GrpcService: 'var(--vibe-danger)',
+  SignalRHub: 'var(--vibe-warn)',
+  FunctionEntry: 'var(--vibe-success)',
+  GrainMethod: 'var(--vibe-accent)',
+  GraphQlField: 'var(--vibe-info)',
+  CliCommand: 'var(--vibe-ink-muted)',
+  UiEntry: 'var(--vibe-accent)',
 };
 
 const ENTRY_KIND_LABELS: Record<string, string> = KIND_LABELS;
@@ -100,7 +140,12 @@ export function toEntryVm(e: EntryPoint): EntryVm {
     target: e.target,
     provenance: e.provenance,
     project: e.project,
+    groupPath: e.groupPath,
+    score: e.score,
+    authAttributes: e.authAttributes,
     focus,
+    layer: e.layer,
+    feature: e.feature,
   };
 }
 
@@ -155,6 +200,8 @@ export function toTraceVm(node: TraceNode): TraceNodeVm {
     salient: node.salient,
     tags: node.tags,
     children: node.children.map(toTraceVm),
+    layer: node.layer,
+    feature: node.feature,
   };
 }
 
@@ -167,6 +214,9 @@ export function toNodeDetailVm(n: NodeResponse): NodeDetailVm {
     filePath: n.filePath,
     outDegree: n.outDegree,
     inDegree: n.inDegree,
+    lineNumber: n.lineNumber,
+    layer: n.layer,
+    feature: n.feature,
   };
 }
 

@@ -1,0 +1,14 @@
+﻿== Loom L1 Gate Battery — Session #5 (2026-07-07) ==
+
+dotnet build DevContext.slnx: 0w/0e — PASS
+dotnet test (non-Eval): Core 364P/3S, Server 12P, Desktop 64P — PASS
+pnpm check: lint + test(27/27) + build — PASS (ran in session start)
+loom-guards.ps1: 0 banned patterns — PASS
+
+L1.1 SymbolTable tests: 9/9 — PASS
+L1.2 Service nodes: AddServiceNodes creates Service nodes for runnable projects; Project stamped on Type nodes — PASS (364/367 all green)
+L1.3 ServiceLinks: _eventPublishers instance; ServiceLink edges use NodeKind.Service — PASS
+L1.4 guards: scripts/loom-guards.ps1 green, advisory 13 NodeId.ForType + 0 fqns[0] (fixed by L2)
+L1.5 impact/scope: GraphNode.Project stamped in AddTypeNodes; EntryPoint.Project stamped in all 11 builders — PASS
+
+Dogfood baseline: 493n, 316e, 34 entries, 6 SL — preserved (no drift measured)

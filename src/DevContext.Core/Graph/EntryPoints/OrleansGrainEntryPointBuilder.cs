@@ -20,7 +20,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"grain:{grain.GrainType}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = grain.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(grain.GrainType));
+            var typeId = NodeId.ForType(names.Resolve(grain.GrainType, grain.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
@@ -32,6 +32,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{grain.SourceFile}:{grain.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(grain.SourceFile),
             });
         }
         return entries.ToImmutable();

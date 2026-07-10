@@ -1,0 +1,46 @@
+{
+  "date": "2026-07-09",
+  "results": [
+    {
+      "id": "A-tabstrip-height",
+      "desc": "tab strip height >= 30px",
+      "audit": "U1",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "stripH=28px (want >=30)"
+    },
+    {
+      "id": "B-new-preserves-tabs",
+      "desc": "titlebar New preserves other tabs",
+      "audit": "U2",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "before=[\"eshop-microservic…✕\",\"TodoApp.sln✕\"] after=[\"eshop-microservic…✕\",\"TodoApp.sln✕\",\"New tab✕\"] lost=[] added=true"
+    },
+    {
+      "id": "C-code-pane-nonempty",
+      "desc": "code pane non-empty on entry selection",
+      "audit": "U3",
+      "owner": "L6.2",
+      "expectedRedUntil": "L6",
+      "pass": false,
+      "detail": "code length=null"
+    },
+    {
+      "id": "D-context-preset-cards",
+      "desc": "context studio preset seeds >= 1 card",
+      "audit": "U6",
+      "owner": "L6.4",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "cards=5"
+    }
+  ],
+  "reds": [
+    "A-tabstrip-height",
+    "C-code-pane-nonempty"
+  ],
+  "unexpectedFails": []
+}

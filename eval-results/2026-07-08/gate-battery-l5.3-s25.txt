@@ -1,0 +1,25 @@
+=== Loom L5.3 Gate Battery — Session #25 ===
+Date: 2026-07-08
+
+=== Build ===
+dotnet build DevContext.slnx: SUCCEEDED (0w/0e)
+
+=== Tests ===
+dotnet test --filter "Category!=Eval": ALL PASS
+  Core: 408 passed, 3 skipped, 0 failed
+  Server: 12 passed, 0 skipped, 0 failed
+  Desktop: 64 passed, 0 skipped, 0 failed
+
+=== UI ===
+pnpm check: PASS (lint + test + build)
+
+=== MCP QA (scripted) ===
+8/8 passing, checkout gate PASS (2c/813tok, 24 steps, cross-service)
+
+=== MCP QA (cold) ===
+Actionable: 10/12 (83%), false-successes: 0, opaque errors: 0
+rank-quality B9 find "Order": top="Order" aggregate#1=true (was "ApplicationDbContext.SaveChangesAsync")
+B4 usages shortname: resolved via ranked search, 0 false-successes (was false-success)
+
+=== Guards ===
+scripts/loom-guards.ps1: PASS (0 banned patterns)

@@ -6,5 +6,11 @@ public interface IAnalysisSessionManager
 
     AnalysisSession? Get(string handle);
 
-    bool CloseSession(string handle);
+    Task<bool> CloseSessionAsync(string handle);
+
+    // M3.1 — server-of-record: repo+HEAD keyed lookup
+    AnalysisSession? TryGetByRepo(string repoPath, string commitSha);
+
+    // M3.1 — session list for MCP page
+    IReadOnlyList<AnalysisSession> ListSessions();
 }

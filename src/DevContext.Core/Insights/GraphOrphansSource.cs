@@ -14,6 +14,10 @@ public sealed class GraphOrphansSource : IInsightSource
     {
         if (graph.NodeCount < 10) yield break;
 
+        var handlesCount = graph.AllEdges.Count(e => e.Kind == EdgeKind.Handles);
+        var sendsCount = graph.AllEdges.Count(e => e.Kind == EdgeKind.Sends);
+        if (handlesCount < 5 && sendsCount < 10) yield break;
+
         var entryIds = new HashSet<NodeId>(
             entries.Where(e => graph.Contains(e.Node)).Select(e => e.Node));
         var diTypes = model.Detections.OfType<DiRegistrationDetection>()
@@ -21,13 +25,16 @@ public sealed class GraphOrphansSource : IInsightSource
             .Where(t => t is not null)
             .ToHashSet();
 
+        var conventionDiTypes = FindConventionDiTypes(model);
+
         var orphans = graph.Nodes
             .Where(n => n.Kind == NodeKind.Type
                 && !n.Tags.Contains("framework")
                 && !n.Tags.Contains("internal")
                 && graph.InEdges(n.Id).Length == 0
                 && !entryIds.Contains(n.Id)
-                && !diTypes.Contains(n.Id.Key))
+                && !diTypes.Contains(n.Id.Key)
+                && !conventionDiTypes.Contains(n.Id.Key))
             .Take(5)
             .Select(n => n.Title)
             .ToList();
@@ -37,6 +44,54 @@ public sealed class GraphOrphansSource : IInsightSource
         var severity = orphans.Count >= 3 ? Severity.Notable : Severity.Info;
         yield return Insight.Create(Id, Category, severity,
             $"Possible dead code: {orphans.Count} public types with zero inbound references",
-            orphans);
+            orphans,
+            confidence: 0.4,
+            confidenceBasis: "Dead-code detection is conservative — convention-scanned types (MediatR handlers, validators, etc.) are excluded");
+    }
+
+    private static HashSet<string> FindConventionDiTypes(DiscoveryModel model)
+    {
+        var result = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in model.Types.Values)
+        {
+            var ifaceNames = type.ImplementedInterfaces;
+            if (ifaceNames.IsDefaultOrEmpty) continue;
+            foreach (var iface in ifaceNames)
+            {
+                if (IsDiConventionInterface(iface))
+                {
+                    result.Add(type.Id);
+                    break;
+                }
+            }
+        }
+
+        foreach (var type in model.Types.Values)
+        {
+            var baseTypes = type.BaseTypes;
+            if (baseTypes.IsDefaultOrEmpty) continue;
+            foreach (var bt in baseTypes)
+            {
+                if (bt.StartsWith("AbstractValidator", StringComparison.OrdinalIgnoreCase)
+                    || bt.StartsWith("DbContext", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.Add(type.Id);
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static bool IsDiConventionInterface(string iface)
+    {
+        return iface.StartsWith("IRequestHandler<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("INotificationHandler<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("IValidator<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("IConsumer<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("IEventHandler<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("ICommandHandler<", StringComparison.OrdinalIgnoreCase)
+            || iface.StartsWith("IQueryHandler<", StringComparison.OrdinalIgnoreCase);
     }
 }

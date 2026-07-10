@@ -26,7 +26,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"worker:{shortName}");
             g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile });
 
-            var typeId = NodeId.ForType(names.Resolve(shortName));
+            var typeId = NodeId.ForType(names.Resolve(shortName, bw.SourceFile));
             if (g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
@@ -38,6 +38,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
             {
                 Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
                 HandlerNode = typeId,
+                Project = scope.ProjectForFile(bw.SourceFile),
             });
         }
         return entries.ToImmutable();

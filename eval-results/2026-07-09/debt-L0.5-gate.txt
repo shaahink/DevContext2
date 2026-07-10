@@ -1,0 +1,52 @@
+=== L0.5 Debt Session Gate Evidence ===
+Date: 2026-07-09
+Session: 1 — Cold-QA B9 denominator + UI boot-liveness
+Status: DONE
+
+=== 1. B9 rank-quality probe excluded from failure denominator ===
+
+Before (L0.2 baseline): B9 counted in 10/12 (83%) — an unfair denominator
+  because B9 is a success probe (find "Order" returns real results)
+
+After (L0.5 fix, QA-verified fresh run 2026-07-09):
+  - Failure-actionability probes: 11 (B9 excluded)
+  - Actionable failures: 10/11 (91%)  [was 9/11 in first pass; natural variance]
+  - Rank-quality probes (excluded): 1 (B9-find-noise-query)
+  - B9 result: top="Order" aggregate#1=true results=20 (correct ranking)
+
+Changes to eval/mcp-qa/run-cold.js:
+  - Scoring separates rows by rankQuality flag
+  - failureRows used for actionability denominator
+  - rankQualityRows reported separately with probe IDs
+  - Per-probe table shows Type column (failure|rank-quality)
+  - Artifact markdown updated to match
+
+=== 2. UI drive boot-liveness precondition ===
+
+Before: page.goto on dead server → all assertions RED(expectedRed) → --gate passes GREEN
+
+After (L0.5 fix):
+  - checkBootLiveness() waits up to 10s for app shell elements
+  - If app shell never renders: exits with clear message + GATE FAILED
+  - Tested with dead server: "GATE FAILED (boot-liveness): app shell did not render"
+  - With live server: continues to normal assertion flow
+
+Changes to src/DevContext.App/scripts/ui-audit-drive.mjs:
+  - Added checkBootLiveness() function (20 x 500ms poll for app-root|input|tab-strip)
+  - page.goto wrapped in try/catch to avoid throwing before liveness check
+  - On boot failure: closes browser, prints clear diagnostic, exits non-zero when --gate
+
+=== 3. Loom guards ===
+
+PASSED: no banned patterns
+Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+
+=== QA re-verification (attempt 2, 2026-07-09) ===
+Fresh run-cold.js: 10/11=91%, B9 excluded, gate PASS
+Fresh ui-audit-drive.mjs --gate (dead server): "GATE FAILED (boot-liveness)", exit code 1
+All battery gates re-run: dotnet build 0w/0e, dotnet test 0F/414P, pnpm check green, guards clean
+
+=== Gate verdict ===
+B9 denominator: PASS — rank-quality probes separated from failure denominator
+UI boot-liveness: PASS — dead env fails distinctly (--gate exits non-zero)
+Guards: PASS — no regression

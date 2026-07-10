@@ -9,11 +9,11 @@ import { TraceStore } from '../../state/trace.store';
 import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
-import { AuditTable } from '../explorer/audit-table';
 import { EntryDeck } from '../explorer/entry-deck';
+import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
-import { ExportDrawer } from '../export/export-drawer';
 import { Inspector } from '../inspector/inspector';
+import { TableLens } from '../table-lens/table-lens';
 
 const TRACE_DEBOUNCE_MS = 150;
 /** Inspector width per dock level (% of the workbench). Level 3 = focus mode. */
@@ -42,7 +42,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, AuditTable, ExportDrawer],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -68,9 +68,11 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
             class="min-w-0 flex-1"
             [(altitude)]="stageAltitude"
             [(flowMode)]="stageFlowMode"
+            [(lensModel)]="stageLens"
             (nodeSelected)="onNode($event)"
             (retrace)="onRetrace($event)"
             (projectSelected)="projectFilter.set($event)"
+            (tableRequested)="tableOpen.set(true)"
           />
         }
         @if (dockLevel() > 0) {
@@ -88,17 +90,14 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
       </div>
     }
 
-    <app-audit-table
-      [open]="auditOpen()"
-      [groups]="session.entryGroups()"
-      (selectionChange)="onAuditSelect($event)"
-      (dismissed)="auditOpen.set(false)"
-    />
-
-    <app-export-drawer
-      [open]="exportOpen()"
-      (dismissed)="exportOpen.set(false)"
-    />
+    @if (tableOpen()) {
+      <div class="fixed inset-0 z-50 flex flex-col bg-base">
+        <app-table-lens
+          [groups]="session.entryGroups()"
+          (dismissed)="tableOpen.set(false)"
+        />
+      </div>
+    }
 
     @if (vPending()) {
       <div class="fixed bottom-12 left-1/2 z-50 -translate-x-1/2 overlay-float px-3 py-1.5 font-mono text-xs text-ink-muted">
@@ -124,10 +123,10 @@ export class WorkbenchPage implements OnDestroy {
   /** Lifted from Stage/EntryDeck's `model()`s so they can mirror into `?view&kind&q`. */
   protected readonly stageAltitude = signal<StageAltitude>('flow');
   protected readonly stageFlowMode = signal<FlowMode>('tree');
+  protected readonly stageLens = signal<LensId>('flow');
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
-  protected readonly auditOpen = signal(false);
-  protected readonly exportOpen = signal(false);
+  protected readonly tableOpen = signal(false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */
@@ -153,10 +152,14 @@ export class WorkbenchPage implements OnDestroy {
     const params = this.route.snapshot.queryParamMap;
     const urlView = params.get('view');
     if (isStageAltitude(urlView)) this.stageAltitude.set(urlView);
+    const urlLens = params.get('lens');
+    if (isLensId(urlLens)) this.stageLens.set(urlLens);
     const urlKind = params.get('kind');
     if (urlKind) this.deckKind.set(urlKind);
     const urlQuery = params.get('q');
     if (urlQuery) this.deckFilterText.set(urlQuery);
+    const urlProject = params.get('project');
+    if (urlProject) this.projectFilter.set(urlProject);
 
     const urlFocus = params.get('focus');
     if (urlFocus) {
@@ -164,7 +167,11 @@ export class WorkbenchPage implements OnDestroy {
         const handle = this.session.handle();
         if (!handle || !this.session.ready()) return;
         restoreFocus.destroy();
-        void this.trace.trace(handle, urlFocus);
+        if (urlView === 'node') {
+          this.trace.selectNode(urlFocus);
+        } else {
+          void this.trace.trace(handle, urlFocus);
+        }
       });
     }
 
@@ -174,6 +181,7 @@ export class WorkbenchPage implements OnDestroy {
       const queryParams = {
         focus: this.trace.focus() || null,
         view: this.stageAltitude() === 'flow' ? null : this.stageAltitude(),
+        lens: this.stageLens() === 'flow' ? null : this.stageLens(),
         kind: this.deckKind(),
         q: this.deckFilterText() || null,
       };
@@ -194,12 +202,14 @@ export class WorkbenchPage implements OnDestroy {
   /** Deck scrub — debounced so j/k sweeps commit once, then trace + trail push. */
   protected onEntry(entry: EntryVm): void {
     if (this.pendingTrace !== null) clearTimeout(this.pendingTrace);
-    this.pendingTrace = setTimeout(() => {
+    this.pendingTrace = window.setTimeout(() => {
       this.pendingTrace = null;
       const handle = this.session.handle();
       if (!handle) return;
       this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
-      void this.trace.trace(handle, entry.focus);
+      void this.trace.trace(handle, entry.focus).then(() => {
+        if (this.trace.found()) void this.trace.selectNode(entry.nodeId);
+      });
     }, TRACE_DEBOUNCE_MS);
   }
 
@@ -236,17 +246,7 @@ export class WorkbenchPage implements OnDestroy {
   }
 
   protected onOpenAudit(): void {
-    this.auditOpen.set(true);
-  }
-
-  /** Audit table row "Trace" — same as picking the entry in the deck (trace + trail
-   * push), then close the overlay since that's the point of selecting from it. */
-  protected onAuditSelect(entry: EntryVm): void {
-    this.auditOpen.set(false);
-    const handle = this.session.handle();
-    if (!handle) return;
-    this.trail.push({ kind: 'entry', id: entry.nodeId, title: entry.title, focus: entry.focus });
-    void this.trace.trace(handle, entry.focus);
+    this.tableOpen.set(true);
   }
 
   protected onGlobalKey(event: KeyboardEvent): void {
@@ -260,8 +260,15 @@ export class WorkbenchPage implements OnDestroy {
       return;
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'e') {
+      if (isTypingTarget(event.target)) return;
       event.preventDefault();
-      this.exportOpen.set(true);
+      void this.router.navigateByUrl('/context');
+      return;
+    }
+    if (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'e') {
+      if (isTypingTarget(event.target)) return;
+      event.preventDefault();
+      this.tableOpen.set(true);
       return;
     }
     if (event.ctrlKey && !event.shiftKey && event.key.toLowerCase() === 'z') {
@@ -303,20 +310,24 @@ export class WorkbenchPage implements OnDestroy {
       switch (event.key) {
         case 't':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('flow');
           this.stageFlowMode.set('tree');
           break;
         case 'g':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('flow');
           this.stageFlowMode.set('graph');
           break;
         case 's':
           event.preventDefault();
+          this.stageLens.set('service');
           this.stageAltitude.set('system');
           break;
         case 'n':
           event.preventDefault();
+          this.stageLens.set('flow');
           this.stageAltitude.set('node');
           break;
       }
@@ -335,12 +346,8 @@ export class WorkbenchPage implements OnDestroy {
       this.trace.cancelTrace();
       return;
     }
-    if (this.auditOpen()) {
-      this.auditOpen.set(false);
-      return;
-    }
-    if (this.exportOpen()) {
-      this.exportOpen.set(false);
+    if (this.tableOpen()) {
+      this.tableOpen.set(false);
       return;
     }
     if (this.nodePeek.nodeId()) {
@@ -363,11 +370,14 @@ export class WorkbenchPage implements OnDestroy {
 
   private toggleDock(): void {
     const level = this.dockLevel();
-    if (level > 0) {
-      this.lastVisibleDock = level;
+    if (level >= 3) {
+      this.lastVisibleDock = 3;
       this.dockLevel.set(0);
+    } else if (level > 0) {
+      this.lastVisibleDock = level;
+      this.dockLevel.set(level + 1);
     } else {
-      this.dockLevel.set(this.lastVisibleDock);
+      this.dockLevel.set(this.lastVisibleDock || 2);
     }
     this.prefs.setDockLevel(this.dockLevel());
   }
@@ -380,6 +390,12 @@ function shortNodeTitle(nodeId: string): string {
 
 function isStageAltitude(value: string | null): value is StageAltitude {
   return value !== null && (VALID_ALTITUDES as readonly string[]).includes(value);
+}
+
+const VALID_LENSES: readonly LensId[] = ['service', 'layer', 'feature', 'flow'];
+
+function isLensId(value: string | null): value is LensId {
+  return value !== null && (VALID_LENSES as readonly string[]).includes(value as LensId);
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {

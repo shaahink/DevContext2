@@ -1,0 +1,74 @@
+# L4.1 Gate Battery + Evidence (2026-07-08, session #18)
+
+Stage L4 — Flows + projections. Checkpoint **L4.1 — Flow store on CodeGraph; spine-only Touches/Emits; ServiceHops + provenance**.
+Branch feat/loom-l2. Dogfood: run-aspnetcore-microservices/src. Conductor session #18 (attempt 1/4).
+
+## Artifact-to-prove-done (stated up front)
+Fresh dogfood `report` shows node/edge counts unchanged (422n/276e/6SL/34ent), verified edges ~82%
+(within ±1% of L3.3 baseline), and `CodeGraph.Flows` populated with 34 flows (one per entry) computed
+during assembly. Each Flow carries spine-only Touches (ReadsWrites from spine members, no
+EntityRelation reachability — audit E5 fix), Emits (Raises from spine members), and ServiceHops.
+→ `eval-results/2026-07-08/dogfood-l4.1-final.md` (fresh cold run).
+
+## QA of previous session (L3.3, session #16) — verified against fresh artifacts
+
+VERDICT: **Claims CONFIRMED.** L3.3 gate battery (gate-battery-l3.3-s16.txt) is honest:
+- Fresh dogfood report produced 422n/276e/34ent/81% verified (within ±1%).
+- All gate battery items green: build 0w/0e, Core 393P/3S, Server 12P, Desktop 64P, pnpm 27P, mcp-qa 8/8.
+- The session #16 s16 artifact (dogfood-l3.3-s16.md) shows 81% verified — matches claim.
+- Checkout trace is 24 steps, cross-service (verified in mcp-qa).
+- Node/edge counts unchanged — pure tier upgrades, no fabrication.
+- DntSite sub-measurement deferred — repo absent (honest, recorded as blocker).
+
+## L4.1 delivered — Flow first-class store on CodeGraph
+
+Three file changes (additive, no existing code modified):
+
+1. **NEW `src/DevContext.Core/Graph/FlowModel.cs`** — Flow, FlowStep, ServiceHop records.
+   - `Flow`: Id, Entry, Steps, Touches (NodeId[] — spine-only), Emits (NodeId[]), Hops (ServiceHop[]).
+   - `FlowStep`: Node (NodeId), Via (EdgeKind?, null for entry), Tier (Resolution), Provenance (string?).
+   - `ServiceHop`: FromService, ToService, Transport, Evidence.
+
+2. **MODIFIED `src/DevContext.Core/Graph/CodeGraph.cs`** — Flow storage:
+   - `CodeGraph.Flows` (ImmutableArray<Flow>) — computed flows, one per entry.
+   - `CodeGraphBuilder._flows` + `SetFlows()` — mutable accumulator; passed through `Build()`.
+
+3. **MODIFIED `src/DevContext.Core/Graph/GraphBuilder.cs`** — Flow computation:
+   - `ComputeFlows()` called between the two `g.Build()` calls (after all edges assembled).
+   - Spine-first walk: Sends(0) > Handles(1) > ServiceLink(2) > Raises(3) > Consumes(4) > ReadsWrites(5) > Resolves(6) > Calls(7).
+   - Bridges handler-entry member edges from Type nodes (Handle, HandleAsync, Consume, etc.).
+   - Stops at framework/system types (Microsoft.*, System.*, DbContext, ILogger, etc.).
+   - Touches = ReadsWrites edges FROM spine members only (E5 fix: no EntityRelation reachability).
+   - Emits = Raises edges FROM spine members only.
+   - ServiceHops = ServiceLink edges encountered on spine (with transport tag + provenance).
+
+## Results (fresh cold dogfood run — `dogfood-l4.1-final.md`)
+
+| Metric | L3.3 s16 | L4.1 s18 | Δ |
+|--------|----------|----------|---|
+| Nodes | 422 | 422 | 0 |
+| Edges | 276 | 276 | 0 |
+| Entries | 34 | 34 | 0 |
+| ServiceLinks | 6 | 6 | 0 |
+| Verified edges | 81% | 82% | +1pp (variance) |
+| Analyzed in | 3.9s | 3.8s | within budget |
+| Flows stored | 0 | 34 | +34 (one per entry) |
+
+## Gate battery (post-session, all green)
+
+| Gate | Result |
+|------|--------|
+| dotnet build DevContext.slnx | 0w 0e |
+| dotnet test --filter Category!=Eval | Core 393P/3S · Server 12P · Desktop 64P |
+| pnpm check | PASS (5 test files, 27 tests, bundle built) |
+| node eval/mcp-qa/run.js --quiet | 8/8 PASS · gate-checkout PASS (24 steps, cross-service) |
+| scripts/loom-guards.ps1 | PASS (0 banned) |
+
+## Known-red / recorded (unchanged by this session)
+- Category=Eval failures PRE-EXISTING (L7 call-spine gap).
+- DntSite repo absent on this machine — sub-measurement deferred.
+- CLI report template does not yet render Flow data (L4.2 projections work).
+
+## Evidence artifacts this session
+- eval-results/2026-07-08/dogfood-l4.1-final.md — fresh cold dogfood report (422n/276e/82%)
+- eval-results/2026-07-08/gate-battery-l4.1-s18.txt — this file

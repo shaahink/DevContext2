@@ -33,6 +33,8 @@ public sealed class TypeDiscovery
     public string? XmlDoc { get; set; }
     /// <summary>Full source body text of the type declaration (populated by SourceBodyExtractor).</summary>
     public string? SourceBody { get; set; }
+    /// <summary>The 1-based start line of the type declaration in its source file (populated by SourceBodyExtractor).</summary>
+    public int? StartLine { get; set; }
     /// <summary>Tags added by compressors and other pipeline stages.</summary>
     public ConcurrentBag<string> Tags { get; } = [];
     /// <summary>Whether this type has been pruned from the model.</summary>

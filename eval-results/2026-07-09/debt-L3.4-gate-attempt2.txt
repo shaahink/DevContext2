@@ -1,0 +1,41 @@
+
+D6 L3.4 — GATE EVIDENCE — ATTEMPT 2/2
+========================================
+Date: 2026-07-09
+Session: D6 (L3.4 TfmScore net10.0+) Attempt 2
+Branch: develop
+
+QA OF PREVIOUS SESSION (attempt 1):
+- TfmScore generic span-based parsing: VERIFIED (tests pass)
+- Evidence artifact had ? marks instead of real gate results: FIXED
+- Handoff claimed 4.1s > 4.0s budget but fresh run showed 4.0s: CORRECTED
+- QA verdict: PASS-WITH-FINDINGS. Core fix correct; evidence was sloppy.
+
+CHANGES (attempt 2):
+1. Fixed TfmScore to parse multi-digit minor versions (was `Slice(dotIdx+1, 1)` → now scans all digits)
+2. Added Stopwatch instrumentation around SemanticLitePopulator.Populate and UpgradeCallEdges in DiscoveryPipeline.cs for benchmark tracing
+3. Added 1 test: Multi_digit_minor_is_parsed (net10.10 = 110)
+
+GATE BATTERY (fresh run):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval: All passing ✓
+- dotnet test --filter FullyQualifiedName~SemanticLitePopulatorTests: 18P/0F/0S ✓
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- loom-guards.ps1: 0 banned patterns, advisory 13 NodeId.ForType (unchanged) ✓
+- pnpm check: 5 test files, 27 tests pass, build ✓
+
+DOGFOOD TIMING (warm cache):
+- Total: 3633ms (~3.6s), Discovery: 149ms, Generic: 225ms, Specific: 1236ms, Compression: 22ms
+- Within ≤4.0s budget ✓
+
+TFMSCORE COVERAGE:
+- Modern: net5.0(50) net6.0(60) net7.0(70) net8.0(80) net9.0(90) net10.0(100) net11.0(110)
+- Multi-digit minor: net10.10(110)
+- Legacy: netcoreapp3.1(40) netstandard2.1(31) netstandard2.0(30) netstandard(20) net4*(10)
+- Edges: unknown(1), multiple-segments(last-wins), net45(no-dot→10)
+
+DntSite: absent on this machine — documented honestly per conductor protocol.
+
+TRUTH RATCHET:
+- 0 truth regressions, skips are the pending ratchet
+- Advisory: 13 NodeId.ForType (unchanged)

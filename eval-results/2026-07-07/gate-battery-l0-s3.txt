@@ -1,0 +1,69 @@
+# Gate Battery + Truth Gates — Loom L0 session #3 (2026-07-07)
+
+Fresh runs, post-session. Attempt 3/4 for stage L0. All commands from repo root
+`C:/Code/DevContext2-ui` unless noted.
+
+## Gate battery (pre-session ritual §1.2 + post-session §1.1)
+
+| Gate | Command | Result |
+|------|---------|--------|
+| Build | `dotnet build DevContext.slnx` | **0 warnings / 0 errors** (6.8s incremental) |
+| Tests | `dotnet test --filter "Category!=Eval" --no-build` | **Core 355P/3S · Server 12P · Desktop 64P** |
+| UI    | `pnpm check` (App) | **lint 0/0 · vitest 27/27 · build 0w/0e** |
+| MCP (scripted) | `node eval/mcp-qa/run.js --quiet` | **8/8 · checkout gate PASS (2c/313tok)** |
+
+## Truth gates (stage L0)
+
+| Gate | Command | Result |
+|------|---------|--------|
+| Truth expectations | `dotnet test --filter "FullyQualifiedName~TruthExpectationTests" --no-build` | **4 passed / 4 skipped** (TruthPending L1/L2/L7) |
+
+Truth-gate detail: 4 green presence baselines (dogfood, TodoApi, DntSite, CleanArchitecture);
+4 red-but-skipped ratchets carrying `[TruthPending]`:
+- `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` → L2
+- `Dogfood_service_names_are_full_and_runnables_only` → L1
+- `RazorPages_no_fabricated_cross_sample_edges` → L1
+- `Blazor_archetype_is_not_microservices` → L7
+
+## L0.2 — Cold-agent MCP QA baseline
+
+`node eval/mcp-qa/run-cold.js` → `eval-results/2026-07-07/mcp-cold-qa.md`
+
+**Actionable failures: 0/12 (0%)** — reproduces audit §4 drive #1 (15/15 opaque failures).
+Breakdown: 5 opaque errors (no next step), 5 false-successes (silent wrong answers:
+NL-focus trace, made-up-type impact, short-name usages, exact-key config, NL get_context),
+1 signaled-no-next-step (nonexistent tool `flow`), 1 noise (find "Order"). tools/list
+envelope ~1227 tok (L5 target ≤1.5k). Gate arms in L5.5 (≥90%); baseline recorded red.
+
+## L0.3 — UI drive gate baseline
+
+`node src/DevContext.App/scripts/ui-audit-drive.mjs` (server :5179 + ng :4200)
+→ `eval-results/2026-07-07/ui/` (10 screenshots + ui-gate.md + ui-gate.json)
+
+| # | Assertion | Result | Owner |
+|---|-----------|--------|-------|
+| A | tab strip height ≥ 30px | **RED** (18px) | L6.1 |
+| B | titlebar New preserves other tabs | **RED** (destroys active tab: [eshop,TodoApp]→[eshop]) | L6.1 |
+| C | code pane non-empty on entry selection | **RED** (null) | L6.2 |
+| D | context studio preset seeds ≥ 1 card | **PASS** (5 cards) | L6.4 |
+
+**Truth finding:** assertion D is already GREEN post-Meridian-M8 (preset seeds
+flow+bodies+contracts+validators+tests = 5 cards). The plan predicted it red-until-L6;
+reality is better. Recorded honestly as PASS — no green-washing. A/B/C remain red with
+owners; gate does not fail the battery (reds are expected-red until L6; `--gate` arms in L6).
+
+## QA of session #2 (L0.1)
+
+Re-ran L0.1's `truth-gate-l0.1.txt` fresh → reproduces 4P/4S. L0.1 is genuine. Two
+green-washing vectors found and ratcheted UP (tightened, never weakened):
+1. `Dogfood_checkout_flow_traces_cross_service_depth_ge_5` asserted only `seamHops >= 2`
+   despite its name/plan target (≥5, cross-service). Ratcheted to `>= 5` and added the
+   cross-service named-fact assertions `BasketCheckoutEventHandler` + `CreateOrderCommand`
+   (source: Ordering.Application/Orders/EventHandlers/Integration/BasketCheckoutEventHandler.cs
+   → `sender.Send(CreateOrderCommand)`). Still `[TruthPending("L2")]`.
+2. `Dogfood_service_names_are_full_and_runnables_only` had a dead comment describing a
+   never-written negative. Encoded it: library projects (BuildingBlocks, BuildingBlocks.Messaging,
+   Ordering.Application/Domain/Infrastructure) must not appear as per-service style lines.
+   Still `[TruthPending("L1")]`. Verified against fresh dogfood overview
+   (`qa-dogfood-overview.md`): the engine's STYLE "per service:" block already lists exactly
+   the 6 runnables; libraries appear only in the dependency list.

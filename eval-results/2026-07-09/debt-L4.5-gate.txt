@@ -1,0 +1,56 @@
+
+D8 L4.5 — GATE EVIDENCE
+=========================
+Date: 2026-07-09
+Session: s58 (session #58 — D7 QA re-verify + D8 L4.5 Flow model hardening)
+Branch: feat/loom-l7
+
+QA OF PREVIOUS SESSION (s57, D7):
+- D7 (L2.5 Lambda scope pollution + SeamContext dedup) re-verified COMPLETE
+- All 4 claims confirmed: GetEnclosingParamType, BuildTypeEventSets+BuildSeamContext,
+  multi-lambda test, SeamDetector regression-free
+- Gate battery green (433P Core, 11 BodyFactExtractor, 12 SeamDetector, 8P/3S Truth)
+- QA verdict: PASS — D7 confirmed complete, no regressions
+
+NOTE: Orchestrator launched with stale info (targeted D7, attempt 2/2). D7 was already
+completed in s56 and QA'd in s57. Session s58 re-verified D7 and proceeded to D8 (L4.5).
+
+CHANGES (D8 — L4.5):
+
+1. Flow spine depth warning (FlowModel.cs + GraphBuilder.cs):
+   - Added IsTruncated bool to Flow record — true when spine exhausts maxSpineDepth
+   - maxSpineDepth moved from hardcoded const to parameter (default 24, configurable)
+   - ComputeFlows now tracks whether loop exhausted vs broke naturally
+
+2. Proportional budget in BuildMulti (ContextPackBuilder.cs):
+   - ResolveFocusWithReach() returns (focus, reach) tuple from snapshot entries
+   - AllocateProportionalBudgets() weights each entry by its reach count
+   - Minimum floor of 200 tokens per entry prevents starvation
+   - Falls back gracefully when reach data is absent
+
+3. EntryPointKind provenance (GraphBuilder.cs + GraphProjections.cs):
+   - GraphBuilder tags each entry-point node with "kind:{EntryPointKind}" via g.Tag()
+   - EntryTableProjection.DeriveEntryKind() reads tag to get correct kind
+   - PublicApi remains the safe fallback when no kind tag is present
+   - Zero changes to individual entry-point builders (centralized tagging)
+
+4. GetContextPack integration test (AnalyzeFlowTests.cs):
+   - GetContextPack_with_flow_card_returns_content: single flow card, verifies pack
+   - GetContextPack_multi_card_assembles_all: multi-card, verifies assembled markdown
+
+GATE BATTERY (fresh run):
+- dotnet build: 0w/0e ✓
+- dotnet test --filter Category!=Eval (Core): 433P/0F/3S ✓ (unchanged)
+- dotnet test --filter Category!=Eval (Server): 14P/0F/0S ✓ (+2 new GetContextPack tests)
+- dotnet test --filter Category=Truth: 8P/3S/0F ✓
+- dotnet test --filter FullyQualifiedName~GraphProjection: 14P/0F/0S ✓
+- loom-guards.ps1: 0 banned patterns, advisory 13 NodeId.ForType ✓
+- pnpm check: (not required for engine-only changes)
+
+TRUTH RATCHET: stable at 8P/3S/0F — 0 regressions
+
+ENTRYPOINT KIND VERIFICATION:
+- GraphBuilder.Build now tags each entry-point node with "kind:{kind}" tag
+- EntryTableProjection.DeriveEntryKind() parses tag → correct EntryPointKind
+- Existing EntryTable_stray_entry_uses_public_api_kind test still passes
+  (falls back to PublicApi when no kind tag present — correct behavior)

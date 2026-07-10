@@ -50,15 +50,24 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: ^2.5.4
         version: 2.5.4
+      '@types/prismjs':
+        specifier: ^1.26.6
+        version: 1.26.6
       cytoscape:
         specifier: ^3.34.0
         version: 3.34.0
       cytoscape-dagre:
         specifier: ^4.0.0
         version: 4.0.0(cytoscape@3.34.0)
+      cytoscape-fcose:
+        specifier: ^2.2.0
+        version: 2.2.0(cytoscape@3.34.0)
       lucide:
         specifier: ^1.22.0
         version: 1.22.0
+      prismjs:
+        specifier: ^1.30.0
+        version: 1.30.0
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -1807,6 +1816,9 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
+  '@types/prismjs@1.26.6':
+    resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==}
+
   '@typescript-eslint/eslint-plugin@8.60.1':
     resolution: {integrity: sha512-JQ4S5GB0tfjO8BuJ4fcX+HodkzJjYBV+7OJ+wLygaX7OGQ7FudyHL4NSCA6ob+w3Yn+5MkKIozOwQhXeM7opVg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -2154,6 +2166,9 @@ packages:
     resolution: {integrity: sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw==}
     engines: {node: '>= 0.10'}
 
+  cose-base@2.2.0:
+    resolution: {integrity: sha512-AzlgcsCbUMymkADOJtQm3wO9S3ltPfYOFD5033keQn9NJzIbtnZj+UdBJe7DYml/8TdbtHJW3j58SOnKhWY/5g==}
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -2177,6 +2192,11 @@ packages:
     resolution: {integrity: sha512-wsDgi1hHpWfslQxe/Gd/xCCeg2YUDrzwulhHOSI7fMfll92FFVY2AWhSRulLiOVcyDE4zz0rRd/+1TBTw+ew5Q==}
     peerDependencies:
       cytoscape: ^3.2.22
+
+  cytoscape-fcose@2.2.0:
+    resolution: {integrity: sha512-ki1/VuRIHFCzxWNrsshHYPs6L7TvLu3DL+TyIGEsRcvVERmxokbf5Gdk7mFxZnTdiGtnA4cfSmjZJMviqSuZrQ==}
+    peerDependencies:
+      cytoscape: ^3.2.0
 
   cytoscape@3.34.0:
     resolution: {integrity: sha512-62rNSrioXw93uliKFBwjukeQyeWwH2PqDrTac31r2P6464u3AUvTk0xS4LVvT251g7IgkFunrI48ZEZGjywSOg==}
@@ -2659,6 +2679,9 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
+  layout-base@2.0.1:
+    resolution: {integrity: sha512-dp3s92+uNI1hWIpPGH3jK2kxE2lMjdXdr+DH8ynZHpd6PUlH6x6cbuXnoMmiNumznqaNO31xu9e79F0uuZ0JFg==}
+
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -3046,6 +3069,10 @@ packages:
     resolution: {integrity: sha512-HWmu+K+zvHNpaMfSnYeqdqrDbR16cuIXaPx8WoHaviQkDJh1/0BNtOZmHVQI5jc3wXv0H1yXc9wjvFdXh+n3hQ==}
     engines: {node: '>=14'}
     hasBin: true
+
+  prismjs@1.30.0:
+    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
+    engines: {node: '>=6'}
 
   proc-log@6.1.0:
     resolution: {integrity: sha512-iG+GYldRf2BQ0UDUAd6JQ/RwzaQy6mXmsk/IzlYyal4A4SNFw54MeH4/tLkF4I5WoWG9SQwuqWzS99jaFQHBuQ==}
@@ -5011,6 +5038,8 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/prismjs@1.26.6': {}
+
   '@typescript-eslint/eslint-plugin@8.60.1(@typescript-eslint/parser@8.60.1(eslint@10.6.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.6.0(jiti@2.7.0))(typescript@6.0.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -5432,6 +5461,10 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
+  cose-base@2.2.0:
+    dependencies:
+      layout-base: 2.0.1
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -5462,6 +5495,11 @@ snapshots:
 
   cytoscape-dagre@4.0.0(cytoscape@3.34.0):
     dependencies:
+      cytoscape: 3.34.0
+
+  cytoscape-fcose@2.2.0(cytoscape@3.34.0):
+    dependencies:
+      cose-base: 2.2.0
       cytoscape: 3.34.0
 
   cytoscape@3.34.0: {}
@@ -5992,6 +6030,8 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
+  layout-base@2.0.1: {}
+
   levn@0.4.1:
     dependencies:
       prelude-ls: 1.2.1
@@ -6412,6 +6452,8 @@ snapshots:
   prelude-ls@1.2.1: {}
 
   prettier@3.9.3: {}
+
+  prismjs@1.30.0: {}
 
   proc-log@6.1.0: {}
 
