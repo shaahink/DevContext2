@@ -48,6 +48,13 @@ public sealed class EvalExpectationTests : IDisposable
             return;
         }
 
+        // Guard against empty repo directories (e.g. cloned without content, directory exists but no files)
+        if (!Directory.EnumerateFiles(repoPath, "*", SearchOption.AllDirectories).Any())
+        {
+            _output.WriteLine($"SKIP {repoName}: repo directory exists but is empty at {repoPath}. Re-clone the repo.");
+            return;
+        }
+
         _output.WriteLine($"Running analysis on {repoName} ({repoPath})...");
 
         // Run pipeline in-process — markdown + json

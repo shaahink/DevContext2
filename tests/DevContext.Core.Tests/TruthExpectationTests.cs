@@ -72,7 +72,7 @@ public sealed class TruthExpectationTests
     /// NO class libraries. Today: 3 cards labeled "API", class libraries shown as
     /// peer "services". Fix: L1.2 (Service node kind + boundary inference).
     /// </summary>
-    [TruthPending("L1")]
+    [SkippableFact]
     public async Task Dogfood_service_names_are_full_and_runnables_only()
     {
         var repoPath = DogfoodPath();

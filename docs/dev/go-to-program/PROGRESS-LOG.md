@@ -1,4 +1,4 @@
-# Progress Log � go-to program
+﻿# Progress Log � go-to program
 
 > Append-only session log. Date � Changed � Verified � Next.
 
@@ -2301,5 +2301,100 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 **Evidence:** eval-results/2026-07-08/gate-battery-l4.4-s21.txt, dogfood-l4.4.md.
 
 **Next:** L5.1 � Default-session MCP ergonomics. Updated: LOOM-START.md, PROGRESS-LOG.md.
+---
+
+## 2026-07-08 - Loom L5: MCP v2 Cold-Agent Ergonomics (sessions #23-#28)
+
+**L5.1 (s23):** Default-session MCP:  + "ResolveHandle" + @ returns first session when handle omitted.  + "AnalyzeAsync" + @ idempotent by repo+HEAD.
+
+**L5.2 (s24):** Error envelopes: every tool failure returns  + "{error, hint, example}" + @. Parameter-binding failures list expected schema. Unknown tool -> tool list with closest-name suggestion. Unknown symbol -> candidates ("did you mean"). Envelope <=80 tok.
+
+**L5.3 (s25):** Unified ranked resolution:  + "GraphQuery.Find" + @ 4-rank system (exact > prefix > word-boundary > substring).  + "KindPriority" + @: Type/Service=3, EntryPoint/Member=2. All 22 tools use same ranking.
+
+**L5.4 (s26):** Real  + "low" + @ tool: compact Flow rendering <=150 tok typical, deep-link to  + "	race" + @ for detail. 23-tool MCP registry.
+
+**L5.5 (s27-s28):** Cold QA gate >=90% actionability. Fixed B4 usages-shortname silent resolve. Post-audit hardening (resolve, idempotent analyze, async node lookup). Cold QA: 92% actionable.
+
+**Stage L5: ALL DONE.** Commits: ac7a7dd, a78c135, 85a74e3, f9cd094, 87888cd, df1d007, ce4d1d4, f3c6696.
+
+## 2026-07-08 - Loom L6: Workbench Repair (sessions #29-#33)
+
+**L6.1 (s29):** Tab strip 32px. New =  + "createTab()" + @ preserves existing tabs. Clone-close confirm with Escape dismiss. atCap() guard with toast.
+
+**L6.2 (s30):** Code pane:  + "loadCode()" + @ calls  + "ead_source" + @ RPC, PrismJS highlighting. Loading skeleton, error state, "Select a node" empty state.
+
+**L6.3 (s31):** Inspector insights adjacency-filtered: builds adjId set from node + 1-hop neighbors. 3-tier matching. Honest chip counts only filtered, total repo-wide for empty label.
+
+**L6.4-L6.6 (s32-s33):** Context Studio v2 (delivered by prior M8). Table lens: toolbar button + global Shift+E shortcut. MCP page auto-refresh 30s. Confidence->Verified rename. DPI icon scaling.
+
+**Stage L6: ALL DONE.** Commits: 753e84d, da1823d, de809de, d2205f9, 5e55097, e9fc775.
+
+## 2026-07-08 - Loom L7: Repo-Shape Coverage (sessions #34-#39)
+
+**L7.1 (s34-s35):** PlainCallDetector (68 lines) produces EdgeKind.Calls from BodyFacts. Excludes MediatR, bus receivers, framework noise. Resolves against SymbolTable.
+
+**L7.2 (s36):** Archetype projections: Desktop (window/command tree), Worker (schedule/queue), Library (public surface), Blazor (route/component). Each gets ONE projection + report section.
+
+**L7.3 (s37):** Style guardrails: SampleCollection for multi-sample repos, never Microservices (E4). 3 trigger conditions. E9 partial-scope closure. 21 guardrail tests.
+
+**L7.4 (s38-s39):** Truth files per archetype (Blazor, FluentValidation, PowerToys, AzureFunctions). 22-repo bench: 21/22 OK. Blazor Microservices->SampleCollection fix.
+
+**Stage L7: ALL DONE.** Commits: 6e16685, 6fdd8cb, 66fe007, 347b6e0.
+
+## 2026-07-08 - Loom L8: Close-out (sessions #40-#41)
+
+**L8.1 (s40-s41):** HANDOVER-LOOM.md created (10 sections + 2 appendices). AGENTS.md updated with Loom rituals, resume protocol. LOOM-START.md tracker closed (34/34 DONE). Truth tests fixed (7P/4S). L8 audit hardened truth tests.
+
+**Loom delivery: COMPLETE.** Commits: 8396a38, 2036c5a.
+
+---
+
+## 2026-07-09 - Post-Loom Debt Cleanup (sessions #42-#63)
+
+**L0.5 (D1, s42-s44):** Cold-QA B9 denominator fix. UI boot-liveness precondition.
+
+**L3.5 (D2, s45-s46):** TodoApi eval gap triaged, root cause L7 call-spine gap.
+
+**L5.x (D3, s47-s49):** Audit-trap sweep (5 traps). Advisory counts stable.
+
+**L0.4 (D5, s53-s54):** Truth gate wired into loom-guards.ps1. Skip.IfNot guards.
+
+**L3.4 (D6, s55-s56):** TfmScore handles net10.0+ generically.
+
+**L2.5 (D7, s56-s59):** Lambda scope pollution fixed. SeamContext shared builder.
+
+**L4.5 (D8, s59-s60):** Flow depth warning. Proportional budget. Integration test.
+
+**L1.6 (D9, s61-s63):** SymbolTable member indexing. RefSite.FromType deleted.
+
+**Debt: ALL 8 DONE.**
+
+---
+
+## 2026-07-09 - Design Reviews R1-R3 (sessions #64-#72)
+
+**R1 (s64-s67):** L0+L1+L2 - 14/17 CONFORMS, 1 DEVIATES (L2.4 checkout trace).
+
+**R2 (s68-s69):** L4+L5+L6 - 13/15 CONFORMS, 2 CONFORMS-WITH-FINDINGS.
+
+**R3 (s70-s72):** L7+L8+Contracts - 12/14 CONFORMS, 1 DEVIATES (stale baseline), 6 contracts CONFORMS.
+
+## 2026-07-09 - QA Driver (session #73)
+
+**s73:** Full live drive: CLI + MCP warm/cold + UI 7 pages + 22-repo bench. QA verdict: PASS-WITH-FINDINGS.
+
+---
+
+## 2026-07-10 - Post-Loom Gap Close Phases A-C (sessions #74-#79)
+
+**Phase A (s74-s79):** L2.4 checkout trace bus-publish fix. Type->Service bridge. Truth: 9P/2S.
+
+**Phase B (s12-s18):** Tab strip 32px + Code pane auto-load. UI gate: 4/4 PASS.
+
+**Phase C:** MCP mcpRunning persist, inspector word-boundary, bench encoding, spine-depth metric, perf doc.
+
+**Phases A+B+C: VERIFIED.**
+
+---
 2026-07-09 04:43 — s53: D5 (L0.4) — Truth gate auto-enforcement delivered. Wired truth gate into loom-guards.ps1 (new gate #5). Converted 3 [TruthPending] silent returns to Skip.IfNot. Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F. Evidence: eval-results/2026-07-09/debt-L0.4-gate.txt. Commit: 92c85b3.
 2026-07-09 04:51 — s54: D5 (L0.4) QA re-verify — Fresh-run gate battery confirms all claims. Build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F, guards green. QA verdict: D5 genuinely complete, zero discrepancies. Evidence: eval-results/2026-07-09/debt-L0.4-QA-gate-s54.txt.
