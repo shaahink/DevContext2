@@ -6,11 +6,11 @@
 Branch: `feat/loom-l7` (no merge until Phase F passes). Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: s16 Phase C — 5 checkpoints delivered in one session. C1 mcpRunning state persists via DevContextApi + queries server on mount (getMcpStatus). C2 word-boundary matching replaces substring in inspector insights. C3 bench.ps1 encoding fixed with [Environment]::NewLine. C4 spine-depth metric in GraphStats + CLI report output. C5 perf budget doc updated (≤6s) + baseline confirmed correct (9P/2S).
-stage: Phase C VERIFIED. Phase A VERIFIED. Phase B VERIFIED.
+last: s17 Phase B QA — fresh gate battery re-run. B1 tab strip 32px confirmed (inline style fix). B2 code pane auto-load confirmed (toggle→loadCode). Phase C (s16) QA-verified (5/5 code inspection passed: mcpRunning, wordBoundaryIncludes, bench encoding, spine-depth, perf budget). No regressions found.
+stage: Phase C VERIFIED. Phase A VERIFIED. Phase B QA-RE-VERIFIED.
 next: Phase D (ContextPack server round-trip: D1 server-assembled markdown).
 gate: Build 0w/0e, Core 440P/3S, Server 14P, Desktop 64P, Truth 9P/2S, pnpm check PASS, guards 0 banned.
-evidence: eval-results/2026-07-10/phase-C-gate-battery.txt
+evidence: eval-results/2026-07-10/phase-B-QA-s17.txt
 
 
 ---
