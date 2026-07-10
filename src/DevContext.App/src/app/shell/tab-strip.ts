@@ -18,7 +18,7 @@ import { type TabState, WorkspaceStore } from '../state/workspace.store';
   selector: 'app-tab-strip',
   imports: [],
   template: `
-    <div class="relative flex h-8 min-h-8 items-stretch border-b border-line bg-surface">
+    <div class="relative flex items-stretch border-b border-line bg-surface" style="height:32px;min-height:32px">
       @if (confirmCloseId()) {
         <div class="absolute inset-0 z-10 flex items-center gap-2 px-3 text-xs bg-surface" tabindex="-1" (keydown.escape)="cancelConfirmClose()">
           <span class="text-ink">Cancel analysis of <span class="font-mono text-ink">{{ confirmCloseLabel() }}</span>?</span>

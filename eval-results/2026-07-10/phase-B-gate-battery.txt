@@ -1,14 +1,23 @@
-=== Phase B Pre-Session Gate Battery (2026-07-10 s13) ===
+﻿=== Phase B Gate Battery (2026-07-10 s14) ===
 
 dotnet build DevContext.slnx ................ 0w 0e PASS
 dotnet test --filter Category!=Eval ......... 440P 3S Core + 64P Desktop + 14P Server = 0F PASS
 dotnet test --filter Category=Truth ......... 9P 2S PASS
 pnpm check (src/DevContext.App) ............. Lint 0, Test 27/27, Build 0w/0e PASS
 loom-guards.ps1 ............................. 0 banned, 13 advisory PASS
+ui-audit-drive.mjs --gate ................... 4/4 PASS (stripH=32px, code length=44, tabs preserved, cards=5)
 
-B1 fix: tab-strip.ts:21 added min-h-8 to outer div (h-8 min-h-8)
-B2 fix: inspector.ts:316 Code tab collapsed by default; toggle handler auto-loads source on open
+=== B1 Fix (re-fixed s14): tab strip height ===
+Root cause: html,body font-size=14px means 1rem=14px, so Tailwind h-8 = 28px not 32px.
+Fix: Replaced h-8 min-h-8 with inline style="height:32px;min-height:32px" in tab-strip.ts:21.
+Verified: ui-audit-drive assertion A-tabstrip-height PASS (stripH=32px, want >=30px).
 
-UI gate (ui-audit-drive.mjs --gate) requires running server+Angular, could not be verified headless.
-B1 assertion expected outcome: stripH >= 30px (was 28px) - min-h-8 ensures 32px floor
-B2 assertion expected outcome: code length > 0 (was null) - auto-load on Code tab open
+=== B2 Fix (verified s14): code pane auto-load ===
+s13 fix: Code tab collapsed by default; toggle auto-loads source on open (inspector.ts:316,435-438).
+Verified: ui-audit-drive assertion C-code-pane-nonempty PASS (code length=44).
+
+=== QA of s13 (previous session) ===
+Verdict: B1 fix was insufficient (min-h-8 still 28px due to 14px root font-size). B2 fix is correct.
+Both now verified with fresh ui-audit-drive run (4/4 PASS).
+Evidence: eval-results/2026-07-10/ui/ui-gate.json, ui-gate.md
+
