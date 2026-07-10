@@ -1,8 +1,8 @@
 ﻿# Conductor — Loom Gap Close run report
 
-_Updated 2026-07-10 03:56 UTC · branch `feat/loom-l7` · HEAD `349aebe`_
+_Updated 2026-07-10 13:53 UTC · branch `feat/loom-l7` · HEAD `133bebc`_
 
-**Status:** Idle
+**Status:** NeedsHuman — stage B used all 3 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 **Stage:** B — UI Regressions — Tab Strip + Code Pane · attempts used 3
 **Checkpoints:** 9/15 done · **Sessions run:** 19 · **Cost:** $1.1816 · **Tokens:** 1,468,784 in / 141,978 out / 170,117 think
 **⚠ Skipped stages (need human review):** A
@@ -47,8 +47,6 @@ _Updated 2026-07-10 03:56 UTC · branch `feat/loom-l7` · HEAD `349aebe`_
 _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 
 ```
-07-10 02:01:58  • session #12 B Resume started (attempt 1/3)
-07-10 02:22:28  ▪ gate build pass [session]  (17.9s)
 07-10 02:22:28  ▪ gate tests pass [session]  (3m04s)
 07-10 02:22:28  ▪ gate pnpm pass [session]  (39.9s)
 07-10 02:22:29  • session #12 B → Progress · 1 commit(s)  (20m30s)
@@ -87,6 +85,8 @@ _Transitions with duration, from the event log (`.conductor/events.jsonl`)._
 07-10 04:40:52  ▪ gate pnpm pass [session]  (32.8s)
 07-10 04:40:53  • session #18 B → Progress · 1 commit(s)  (17m29s)
 07-10 04:40:53  • session #19 B Deliver started (attempt 3/3)
+07-10 04:56:17  • session #19 B → Stalled  (15m24s)
+07-10 14:53:44  ■ needs human — stage B used all 3 attempts without completing — inspect and `conductor resume` (or `conductor skip`)
 ```
 
 ## Health
@@ -124,7 +124,7 @@ _Live git snapshot (branch, working tree, sync vs upstream)._
 ```
 branch: feat/loom-l7
 working tree: ?? .conductor-loom-prior/, ?? tests/DevContext.Core.Tests/TestResults/, ?? tests/DevContext.Server.Tests/TestResults/
-vs upstream: 1 ahead
+vs upstream: 2 ahead
 ```
 
 ### Commits by session
