@@ -136,7 +136,7 @@ public static class ReportRenderer
 
         var graph = query.Graph;
         var entries = snapshot.Entries;
-        var (seams, withTarget) = query.Stats();
+        var (seams, withTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
         var report = snapshot.Report;
         var model = snapshot.Model;
 
@@ -151,6 +151,9 @@ public static class ReportRenderer
             sb.AppendLine($"| ServiceLinks | {serviceLinkCount} |");
         sb.AppendLine($"| Entries | {entries.Length} |");
         sb.AppendLine($"| With target | {withTarget}/{entries.Length} |");
+
+        if (entries.Length > 0)
+            sb.AppendLine($"| Deep spine (>=2) | {entriesWithDeepSpine}/{entries.Length} ({deepSpineRatio:P0}) |");
 
         var totalEdges = seams.Length > 0 ? seams.Sum(s => s.Count) : graph.EdgeCount;
         var approx = seams.Length > 0 ? seams.Sum(s => s.Approx) : 0;
@@ -295,7 +298,7 @@ public static class ReportRenderer
             sb.AppendLine();
         }
 
-        var (seams, withTarget) = query.Stats();
+        var (seams, withTarget, _, _) = query.Stats();
         if (seams.Length > 0)
         {
             sb.AppendLine("### Graph Seams");

@@ -21,6 +21,22 @@ const SEVERITY_CLASS: Record<string, string> = {
   info: '!bg-accent/10 !text-accent',
 };
 
+function wordBoundaryIncludes(haystack: string, needle: string): boolean {
+  let start = 0;
+  while ((start = haystack.indexOf(needle, start)) !== -1) {
+    const left = start === 0 ? true : !isAlphanumeric(haystack[start - 1]);
+    const right = start + needle.length === haystack.length ? true : !isAlphanumeric(haystack[start + needle.length]);
+    if (left && right) return true;
+    start++;
+  }
+  return false;
+}
+
+function isAlphanumeric(c: string): boolean {
+  const cc = c.charCodeAt(0);
+  return (cc >= 48 && cc <= 57) || (cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || cc === 95;
+}
+
 /**
  * Inspector (F proposal §2) — the right panel. Content is driven ENTIRELY by the
  * current selection; sections collapse independently. Details fill instantly from
@@ -353,7 +369,7 @@ export class Inspector {
 
       return i.evidence.some((e: string) => {
         const el = e.toLowerCase();
-        return Array.from(adjTitles).some((t) => el.includes(t));
+        return Array.from(adjTitles).some((t) => wordBoundaryIncludes(el, t));
       });
     });
   });

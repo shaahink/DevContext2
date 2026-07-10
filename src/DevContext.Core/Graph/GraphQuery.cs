@@ -60,7 +60,7 @@ public sealed class GraphQuery
     public MapModel? Map() => _map;
 
     /// <summary>stats() — per-seam edge counts (with the approx share) and entry→target coverage.</summary>
-    public (ImmutableArray<SeamStat> Seams, int EntriesWithTarget) Stats()
+    public (ImmutableArray<SeamStat> Seams, int EntriesWithTarget, int EntriesWithDeepSpine, double DeepSpineRatio) Stats()
         => GraphStats.Compute(_graph, _entries);
 
     /// <summary>trace(entry, depth, ...) — resolve a focus to an entry and walk it. Null when the focus

@@ -1,6 +1,7 @@
 import { Component, inject, signal, type WritableSignal, type OnDestroy, type OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DEVCONTEXT_CLIENT, type DevContextClient } from '../../core/grpc/client';
+import { DevContextApi } from '../../data-access/devcontext-api';
 import { ToastService } from '../../ui/toast/toast';
 
 interface ToolCallEntry {
@@ -235,9 +236,11 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
 })
 export class McpPage implements OnInit, OnDestroy {
   private readonly client: DevContextClient = inject(DEVCONTEXT_CLIENT);
+  private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
 
   protected readonly mcpRunning = signal(false);
+  private mcpStateSynced = false;
   protected readonly copied = signal<string | null>(null);
   protected readonly events: WritableSignal<ToolCallEntry[]> = signal([]);
   protected readonly totalTokens = signal(0);
@@ -262,11 +265,19 @@ export class McpPage implements OnInit, OnDestroy {
     return live > 0 ? `Server running with ${live} session(s). Toggle to accept new MCP connections.` : 'Endpoint stopped. Toggle to allow new sessions.';
   });
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.refreshSessions();
     this.sessionTimer = setInterval(() => {
       this.refreshSessions();
     }, 30_000);
+
+    const serverRunning = await this.api.getMcpStatus();
+    if (serverRunning) {
+      this.mcpRunning.set(true);
+      this.api.setMcpRunning(true);
+      this.startStream();
+    }
+    this.mcpStateSynced = true;
   }
 
   ngOnDestroy(): void {
@@ -278,11 +289,13 @@ export class McpPage implements OnInit, OnDestroy {
     if (this.mcpRunning()) {
       this.client.stopMcp({}).then(() => {
         this.mcpRunning.set(false);
+        this.api.setMcpRunning(false);
         this.stopStream();
-      }).catch((err) => { this.mcpRunning.set(false); this.toast.show('Failed to stop MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
+      }).catch((err) => { this.mcpRunning.set(false); this.api.setMcpRunning(false); this.toast.show('Failed to stop MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
     } else {
       this.client.startMcp({}).then((resp) => {
         this.mcpRunning.set(resp.running);
+        this.api.setMcpRunning(resp.running);
         if (resp.running) this.startStream();
       }).catch((err) => { this.toast.show('Failed to start MCP: ' + (err instanceof Error ? err.message : String(err)), 'error'); });
     }

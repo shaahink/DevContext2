@@ -260,4 +260,4 @@ if ($Truth) {
     Write-Host "`n===== Truth gate complete =====" -ForegroundColor Green
 }
 
-Write-Host "`n===== Bench complete =====" -ForegroundColor Cyan
+Write-Host ([Environment]::NewLine + "===== Bench complete =====") -ForegroundColor Cyan

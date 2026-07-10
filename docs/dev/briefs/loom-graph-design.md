@@ -297,8 +297,8 @@ through a compatibility pass until L4 removes the shims.
 
 ## 8. Performance budget
 
-Dogfood ≤ 4s (today 3.9s); DntSite ≤ 20s; MassTransit ≤ 50s — Tier A. Tier B adds ≤ 2×
-on first run, amortized by the existing content-keyed cache (BodyFacts and compilations
+Dogfood ≤ 6s (Tier A only ≤ 4s); DntSite ≤ 20s; MassTransit ≤ 50s. Tier B adds
+≤ 2× on first run, amortized by the existing content-keyed cache (BodyFacts and compilations
 cache per file/project). The bench records tier routing so regressions are attributable.
 
 ## 9. What agents must NOT do (learned the hard way)

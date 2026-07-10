@@ -451,7 +451,7 @@ public sealed class DiscoveryPipeline
 
             // Graph-shaped stats (per-seam coverage + entry-target count) — the same numbers for the
             // Map and any Trace, so the stats page reflects the whole assembled graph, not the lens.
-            var (seams, withTarget) = query.Stats();
+            var (seams, withTarget, _, _) = query.Stats();
 
             if (!string.IsNullOrEmpty(request.Entry))
             {

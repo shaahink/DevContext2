@@ -66,7 +66,7 @@ public sealed class DevContextGrpcService(
         try
         {
             var session = await work.ConfigureAwait(false);
-            var (_, entriesWithTarget) = session.Query.Stats();
+            var (_, entriesWithTarget, _, _) = session.Query.Stats();
             var summary = ProtoMapper.ToSummary(session.Engine, session.Snapshot, entriesWithTarget);
             await responseStream.WriteAsync(new Proto.AnalyzeEvent
             {
@@ -471,7 +471,7 @@ public sealed class DevContextGrpcService(
         => WrapT(request.Handle, session =>
         {
             var snapshot = session.Snapshot;
-            var (seams, entriesWithTarget) = session.Query.Stats();
+            var (seams, entriesWithTarget, _, _) = session.Query.Stats();
             return ProtoMapper.ToStatsResponse(
                 snapshot.Report,
                 snapshot.Graph,
@@ -535,7 +535,10 @@ public sealed class DevContextGrpcService(
     }
 
     public override Task<Proto.StartMcpResponse> StartMcp(Proto.StartMcpRequest request, ServerCallContext context)
-        => Task.FromResult(new Proto.StartMcpResponse { Running = true });
+    {
+        mcpObs.Start();
+        return Task.FromResult(new Proto.StartMcpResponse { Running = mcpObs.IsRunning });
+    }
 
     public override Task<Proto.StopMcpResponse> StopMcp(Proto.StopMcpRequest request, ServerCallContext context)
     {

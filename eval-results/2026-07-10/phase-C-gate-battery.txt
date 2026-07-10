@@ -1,0 +1,42 @@
+Phase C — Polish Batch Gate Battery
+Date: 2026-07-10
+Checkpoints: C1 MCP mcpRunning, C2 Inspector word-boundary, C3 bench.ps1 encoding, C4 spine-depth metric, C5 perf budget doc
+
+=== BUILD ===
+dotnet build DevContext.slnx: 0w 0e
+
+=== TESTS (Category!=Eval) ===
+dotnet test --filter Category!=Eval: Core 440P/3S, Desktop 64P, Server 14P — 0F
+
+=== TRUTH ===
+dotnet test --filter Category=Truth: 9P/2S (2 [TruthPending]: L1 server names, L1 RazorPages; DntSite + checkout pass)
+
+=== pnpm check ===
+Lint 0, Test 27/27, Build 0w/0e
+
+=== GUARDS ===
+loom-guards.ps1: 0 banned, 13 advisory (stable)
+
+=== C1 — MCP mcpRunning ===
+- DevContextApi now has mcpRunning signal that persists across route navigations
+- ngOnInit queries server via getMcpStatus() for actual state
+- server StartMcp fixed to call mcpObs.Start() + return real IsRunning
+
+=== C2 — Inspector word-boundary ===
+- wordBoundaryIncludes() added to inspector.ts
+- Replaces loose substring matching for insight evidence filtering
+- Matches engine IsWordBoundary logic from GraphQuery.cs
+
+=== C3 — bench.ps1 encoding ===
+- Line 263: backtick-n replaced with [Environment]::NewLine
+- Script parses without encoding errors
+
+=== C4 — Spine-depth metric ===
+- GraphStats.Compute() now returns (Seams, EntriesWithTarget, EntriesWithDeepSpine, DeepSpineRatio)
+- Flow depth >= 2 counted from graph.Flows
+- ReportRenderer BuildStats outputs "Deep spine (>=2)" row with count/ratio
+- Call sites updated: GraphQuery, ReportRenderer, DiscoveryPipeline, DevContextGrpcService, TraceQualityTests
+
+=== C5 — Perf budget + baseline ===
+- loom-graph-design.md §8: Dogfood ≤4s → ≤6s (Tier A only ≤4s)
+- LOOM-START.md baseline: already correct at 9P/2S (verified)

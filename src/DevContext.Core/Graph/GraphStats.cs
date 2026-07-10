@@ -13,7 +13,7 @@ public static class GraphStats
 {
     /// <summary>Tallies every out-edge by kind (with the syntactic/approx share) and counts entries that
     /// resolved a target. Cheap — one pass over the graph's adjacency.</summary>
-    public static (ImmutableArray<SeamStat> Seams, int EntriesWithTarget) Compute(
+    public static (ImmutableArray<SeamStat> Seams, int EntriesWithTarget, int EntriesWithDeepSpine, double DeepSpineRatio) Compute(
         CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
         var byKind = new Dictionary<EdgeKind, (int Count, int Approx)>();
@@ -35,6 +35,13 @@ public static class GraphStats
             ? 0
             : entries.Count(e => !string.IsNullOrEmpty(e.Target));
 
-        return (seams, withTarget);
+        var flows = graph.Flows;
+        var totalEntries = entries.IsDefaultOrEmpty ? 0 : entries.Length;
+        var deepCount = totalEntries == 0
+            ? 0
+            : flows.Count(f => f.Steps.Length >= 2);
+        var ratio = totalEntries == 0 ? 0.0 : (double)deepCount / totalEntries;
+
+        return (seams, withTarget, deepCount, ratio);
     }
 }

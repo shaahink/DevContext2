@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import { DEVCONTEXT_CLIENT } from '../core/grpc/client';
 import type {
@@ -158,6 +158,22 @@ export class DevContextApi {
       return { ready: res.ready, version: res.version };
     } catch {
       return { ready: false, version: '' };
+    }
+  }
+
+  protected readonly _mcpRunning = signal(false);
+  readonly mcpRunning = this._mcpRunning.asReadonly();
+
+  setMcpRunning(running: boolean): void {
+    this._mcpRunning.set(running);
+  }
+
+  async getMcpStatus(): Promise<boolean> {
+    try {
+      const resp = await this.client.startMcp({});
+      return resp.running;
+    } catch {
+      return false;
     }
   }
 }
