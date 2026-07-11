@@ -1,6 +1,39 @@
-﻿# Progress Log � go-to program
+﻿# Progress Log — go-to program
 
-> Append-only session log. Date � Changed � Verified � Next.
+> Append-only session log. Date — Changed — Verified — Next.
+
+---
+
+## 2026-07-11 — MCP+UI Audit: Blind-drive evaluation, Context Studio gap analysis (feat/mcp-drive-audit)
+
+**Changed:**
+- Wrote `eval-results/2026-07-11/mcp-blind-drive.mjs` — Node.js script that drives devcontext-mcp over stdio JSON-RPC against 2 test fixture repos blind (CleanArchProject, ControllerApp)
+- Wrote `eval-results/2026-07-11/mcp-blind-drive-report.md` — per-tool report card: 23 tools exercised, 6× token reduction vs grep, 3 fixable gaps found
+- Wrote `eval-results/2026-07-11/ui-context-studio-audit.md` — deep code audit of all 8 pipeline layers: ContextPackBuilder, gRPC handlers, Angular components, proto contracts. Identified 6 functional gaps, 6 UX gaps, 16 recommendations.
+
+**MCP blind-drive findings (key):**
+- `overview`/`map`/`resolve`/`impact` work correctly: 1-call understanding, correct archetype detection, no silent disambiguation
+- `trace`/`get_context` fail with bare routes (`"/products"`) — expecting `"GET /products"` format only
+- `read_source` returns `lineNumber: undefined` for EntryPoint nodes (bug)
+- `top_flows` has `target: null` for all entries (data gap)
+- Error handling: 5/5 probes actionable (100%) — L5.x work holding
+- Token efficiency: MCP 6× fewer tokens than grep (7 vs ~20 commands, ~1125 vs ~7k tokens)
+
+**UI Context Studio findings (key gaps):**
+- **No verification at all** — zero ability to confirm generated context matches actual source (CRITICAL gap)
+- `omitted[]` list is server-computed but NEVER shown in UI (silent truncation)
+- `config` and `tests` card types are dead stubs (loading spinner → no content)
+- Focus resolution is brittle: bare routes fail, NL queries fail (by design but creates friction)
+- Save always writes `.md` extension even for plain text format
+- No error state in CompositionView (silent failure on RPC error)
+- No JSON export, no per-card copy, no keyboard shortcuts, no provenance in trace skeleton
+
+**Verified:**
+- `dotnet build` 0w/0e
+- `dotnet test --filter "Category!=Eval"`: Core 440P/3S, Server 14P, Desktop 64P
+- MCP blind-drive: 2 repos, 51 calls, 6,105 tokens, 6/6 errors actionable
+
+**Next:** Fix R1-R5 (immediate bugs: omitted display, route resolution, lineNumber, error UI, file extension) → Then R6 (verification panel)
 
 ---
 

@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-07-11T00:03:17.488Z",
+  "server": "http://127.0.0.1:5179",
+  "tools": 23,
+  "repos": [
+    {
+      "repo": "CleanArchProject",
+      "steps": [
+        "analyze: handle=f614a40c8f4648b8bb1cf833536726eb elapsed=4.1s",
+        "overview: tokens=47, text=\"App: Web\r\n  11 nodes · 5 edges · 1 entries · 4 projects\r\nTop flows:\r\n  HttpEndpoint: GET /products\r\n\"",
+        "stats: nodes=11 edges=5 seams=4 warnings=0",
+        "entrypoints: 1 entries",
+        "map: archetype=App style=CleanArchitecture",
+        "top_flows: 1 flows",
+        "trace: found=false",
+        "resolve: tested 5 symbols",
+        "node: GET /products kind=EntryPoint in=0 out=1",
+        "read_source: file=src/Web/Program.cs lines=1-19",
+        "get_context: budget=undefined actual=undefined sections=undefined",
+        "impact: dir=up affected=2",
+        "insights: 6 items",
+        "tests_for: count=0 bestEffort=true",
+        "error-probe: bad tool blerg -> handler-caught",
+        "error-probe: bad resolve -> signaled+hint",
+        "error-probe: bad usages -> signaled",
+        "error-probe: bad impact -> signaled",
+        "error-probe: NL get_context -> signaled",
+        "FINAL: 25 calls, 2940 tokens, 3/3 errors actionable"
+      ],
+      "totalCalls": 25,
+      "totalTokens": 2940,
+      "score": "3/3 actionable errors + 1 bad-tool handled",
+      "numCallsThatProducedData": 19
+    },
+    {
+      "repo": "ControllerApp",
+      "steps": [
+        "analyze: handle=b8092d1b415e42e1a00d45198d6b09ea elapsed=1.0s",
+        "overview: tokens=73, text=\"App: Api\r\n  18 nodes · 13 edges · 3 entries · 3 projects\r\nTop flows:\r\n  HttpEndpoint: DELETE /api/Pr\"",
+        "stats: nodes=18 edges=13 seams=2 warnings=0",
+        "entrypoints: 3 entries",
+        "map: archetype=App style=ControllerBased",
+        "top_flows: 3 flows",
+        "trace: found=false",
+        "resolve: tested 5 symbols",
+        "node: DELETE /api/Products kind=EntryPoint in=0 out=1",
+        "read_source: file=src/Api/Controllers/ProductsController.cs lines=1-21",
+        "get_context: budget=undefined actual=undefined sections=undefined",
+        "impact: dir=up affected=2",
+        "config: keys=0",
+        "insights: 6 items",
+        "tests_for: count=0 bestEffort=true",
+        "error-probe: bad tool blerg -> handler-caught",
+        "error-probe: bad resolve -> signaled+hint",
+        "error-probe: bad usages -> signaled",
+        "error-probe: bad impact -> signaled",
+        "error-probe: NL get_context -> signaled",
+        "FINAL: 26 calls, 3165 tokens, 3/3 errors actionable"
+      ],
+      "totalCalls": 26,
+      "totalTokens": 3165,
+      "score": "3/3 actionable errors + 1 bad-tool handled",
+      "numCallsThatProducedData": 20
+    }
+  ]
+}
