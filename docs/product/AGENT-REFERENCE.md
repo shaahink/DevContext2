@@ -48,22 +48,40 @@ MCP mgmt:  StartMcp · StopMcp · ObserveToolCalls
 Editing the proto: rebuild `DevContext.Contracts` (C# stubs) **and** run `pnpm gen:proto` (TypeScript)
 so both sides stay in lockstep, then wire the server handler + app data-access.
 
-## Engine internals (structural altitude)
+## Engine internals
 
-`DevContext.Core` runs a two-phase pipeline. Read `docs/dev/briefs/loom-graph-design.md` before
-touching graph code — it is the design authority (identity laws, pipeline stages, prohibitions).
+`DevContext.Core` runs a two-phase pipeline (`Pipeline/DiscoveryPipeline.cs`). For the file-level map
+of every module, see `docs/dev/CODE-MAP.md`; for the graph-model design authority (identity laws,
+prohibitions), `docs/dev/briefs/loom-graph-design.md`.
 
-**ANALYZE** (builds the immutable snapshot):
-- Discovery — solution/project structure, source file tree, package → signal mapping.
-- Graph2 identity spine — `SymbolTable` (FQN candidates, never a blind `fqns[0]` pick), stable node/
-  symbol ids. This is the post-Loom rewrite that replaced the old regex/`NodeId.ForType` paths.
-- BodyFacts — per-member facts scanned from bodies (sends, raises, reads/writes, calls) feeding seam detection.
-- Detection + seam joins — endpoints, MediatR handlers, message consumers, EF entities, DI regs,
-  hosted workers, middleware, cross-service links; joined into a connected `CodeGraph`.
-- Projections — Map/Trace/Facet views computed from the graph.
+**ANALYZE** (`AnalyzeAsync` — builds the immutable `AnalysisSnapshot`):
+1. **Stage 1** (sequential) — discovery + parse-once cache warmup.
+2. **Stage 2** (parallel) — syntax structure, package→signal mapping, layer classify, DI regs,
+   Program.cs flow, and per-member **BodyFacts**.
+3. **Seal** — resolve focus points, seal signals, run `ArchitectureStyleDetector` (no more signal writes).
+4. **Stage 3** (parallel, two waves — detectors then the `Deep` call graph) — endpoints, controllers,
+   MediatR, EF Core, event bus, anti-patterns, call graph.
+5. **Semantic-lite (Tier B)** — `Graph2/SemanticLitePopulator` builds real compilations from `assets.json`
+   and upgrades BodyFacts + call edges to `Semantic` resolution (Debug/Full profile or full-graph builds).
+6. **Graph assembly** — `Graph/GraphBuilder.Build` joins detections + types + seams into the `CodeGraph`
+   and entry points; `MapBuilder` derives the `MapModel`.
+7. **Insights** + **compression**, then freeze into the snapshot.
 
-**RENDER** (cheap, repeatable, lens-driven): a `RenderRequest` selects format + sections + focus; the
-renderer emits Markdown / JSON (and HTML) from the snapshot without re-analyzing.
+**The identity spine** (`Graph2/SymbolTable`): every unresolved name goes through `Resolve`, a **monotone
+resolution-tier ladder** — `Semantic` (verified, never downgraded) → `Declared` (exact FQN) →
+`ProjectScoped` → `GlobalUnique` → `Ambiguous` → `Unresolved`. Ambiguous names are carried as
+`Candidates` and **never blindly first-matched** (Laws R1/R2). **Seam detectors** (`Graph2/Seams/`,
+`ISeamDetector`) read BodyFacts and emit `SeamMatch` records — they never write the graph; the assembler
+resolves each target through the SymbolTable and skips ambiguous ones. This is the post-Loom "regex
+funeral" (zero body-scan regexes in `Graph/`, enforced by `scripts/loom-guards.ps1`).
+
+> **Kernel invariant:** the CodeGraph + Map/Trace are assembled *before* scoring/compression and never
+> read the token budget or pruner state — "token budget out of the kernel," locked by
+> `BudgetIndependenceTests`. Map/Trace output is invariant across `--max-tokens`.
+
+**RENDER** (cheap, repeatable, lens-driven): a `RenderRequest` selects format + sections + focus;
+`RenderPlanBuilder` computes the plan and the renderers emit Markdown / JSON / HTML from the snapshot —
+a client of the query layer (`Graph/GraphQuery`), never a re-analysis.
 
 ### Edge model (trace priority)
 
@@ -87,18 +105,12 @@ keep traces focused.
 
 ### `DevContext.Core` layout
 
-```
-Graph2/        identity spine — SymbolTable, symbol/node ids (the current path)
-Graph/         graph model, BodyFacts, projections
-Analysis/      analysis cache (parse-once), snapshot
-Extractors/    detection extractors (reform in place — do not add new ones)
-Rendering/     Markdown / JSON / HTML renderers
-Pipeline/      ANALYZE/RENDER orchestration, AnalysisSnapshot, RenderRequest/RenderPlan
-Insights/      architecture findings (dependency violations, wiring gaps)
-Resolvers/     project-root + focus-point resolution
-Compression/   token-shaping compressors
-Contracts/ Models/ Configuration/ Services/ IO/ Utilities/ Validation/
-```
+`Graph/` (model + `GraphBuilder` + `GraphQuery` + `TraceBuilder` + 11 entry-point builders) ·
+`Graph2/` (identity spine — `SymbolTable`, `BodyFacts`, 6 seam detectors, `SemanticLitePopulator`) ·
+`Pipeline/` (orchestration, `AnalysisSnapshot`, `RenderRequest`/`RenderPlan`) · `Extractors/`
+(Generic + Specific — reform in place) · `Rendering/` · `Insights/` · `Analysis/` (parse-once cache) ·
+`Resolvers/` · `Compression/`. Full module-by-module map with sizes and a "where do I change X?" index:
+**`docs/dev/CODE-MAP.md`**.
 
 ## CLI reference (`devcontext analyze`)
 

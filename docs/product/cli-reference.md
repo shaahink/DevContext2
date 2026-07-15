@@ -1,114 +1,96 @@
 # CLI Reference
 
+Verified against `src/DevContext.Cli/Settings/AnalyzeSettings.cs`.
+
 ## `devcontext analyze [PATH] [OPTIONS]`
 
-Analyze a .NET project and output structured context for LLMs.
+Analyze a .NET solution and emit a **Map** (no focus) or a **Trace** (with `--focus`).
 
-**Arguments**:
+**Argument**:
 
 | Argument | Description |
 |----------|-------------|
-| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, a directory, or a `github.com/user/repo` URL. Defaults to `.` (current directory). |
+| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, a folder, or `Type:Method` notation. **Use an absolute path** — a relative path is parsed as a GitHub `owner/repo` and cloned. Use `--repo` for an explicit URL. |
 
----
+## The model: focus drives everything
 
-## The model: Focus drives everything
+| You run | You get |
+|---------|---------|
+| `devcontext analyze <path>` | **Map** — architecture style, stack, project topology, entry points, packages |
+| `devcontext analyze <path> --focus <entry>` | **Trace** — the wiring path from that entry, down the seams |
 
-There are exactly two situations, selected by whether you give a `--focus`:
+There is no scenario/profile to choose — presence of `--focus` selects Map vs Trace. (The old
+`--scenario`/`--profile`/`--task`/`--around` model is retired; see *Retired flags* below.)
 
-| You run | You get | Derived scenario | Derived profile |
-|---------|---------|------------------|-----------------|
-| `devcontext analyze .` | **Map** — architecture style, stack, project topology, entry points, packages | `overview` | `focused` |
-| `devcontext analyze . --focus <entry>` | **Trace** — the call stack from that entry, down the wiring | `deep-dive` | `debug` (call graph on) |
-
-You normally never set scenario or profile by hand — `--focus` derives both. `--scenario` / `--profile` exist only as advanced overrides.
-
----
-
-## Focus (`-f`, `--focus`)
-
-The entry point to trace from. Repeatable (first focus drives the trace).
-
-| Format | Example | Resolves to |
-|--------|---------|-------------|
-| `TypeName` | `OrdersController` | A Type/Handler/Service graph node |
-| `TypeName:MethodName` | `OrdersController:Create` | The type (trace walks its out-edges) |
-| `VERB /route` | `POST /api/orders` | The matching HTTP endpoint |
-
-```
-# Whole-codebase Map
-devcontext analyze .
-
-# Trace from an endpoint
-devcontext analyze . --focus "POST /api/orders"
-
-# Trace from a type, 3 hops deep, full method bodies
-devcontext analyze . --focus OrdersController --depth 3 --detail full
-```
+## Focus & trace
 
 | Flag | Description |
 |------|-------------|
-| `-f, --focus <FOCUS>` | Entry point to trace from (see formats above). Repeatable. |
-| `--depth <N>` | Trace depth from the focus (1–10, default 6). |
-| `--detail <LEVEL>` | Trace body detail: `signature` (names only), `salient` (key body lines, default), `full` (method slice). |
+| `-f, --focus <FOCUS>` | Entry point to trace from. **Repeatable.** Formats: `TypeName` · `TypeName:MethodName` · `VERB /route` (e.g. `POST /api/orders`). |
+| `--depth <N>` | Graph depth from the focus point (1–10). |
+| `--detail <LEVEL>` | Trace body detail: `signature` · `salient` (default) · `full`. |
+| `--include-map` | When tracing, also render the Map/architecture sections alongside the trace. |
 
-**Deprecated aliases** (still accepted): `-a, --around` is an alias for `--focus`; `-t, --task` (free-text intent) is deprecated — use `--focus`.
-
----
+```
+devcontext analyze C:\src\Shop                                   # Map
+devcontext analyze C:\src\Shop --focus "POST /api/orders"        # Trace from an endpoint
+devcontext analyze C:\src\Shop --focus OrdersController --depth 3 --detail full
+```
 
 ## Output
 
 | Flag | Description |
 |------|-------------|
-| `-o, --output <FILE>` | Write output to file (default: stdout). |
-| `--format <FMT>` | `markdown` (default) → Map/Trace narrative; `json` / `html` → structured legacy renderers. |
-| `--max-tokens <N>` | Token budget (default 8000; `devcontext.json` validates 100–100000). |
-| `--token-view` | Per-section token accounting in the output. |
-| `--include-provenance` | (Catalog output) show why each type was included. |
-| `--include-anti-patterns` | (Catalog output) include anti-pattern detection. |
-| `--include-diagnostics` | Show diagnostics — under a Map/Trace this appends graph + call-graph diagnostics. |
+| `-o, --output <FILE>` | Write the rendered content to a file. stdout still carries an explanation line + the stats summary. |
+| `--format <FMT>` | `markdown` (default) · `json`. |
+| `--include-diagnostics` | Append diagnostics (graph + call-graph) to the output. |
 
----
+> **JSON isn't pure on stdout** — the CLI prints an explanation + stats line around the content. Write
+> with `-o out.json` and parse the file.
 
-## Diagnostics & debugging
+## Speed & caching
 
 | Flag | Description |
 |------|-------------|
-| `--stats` (alias `--metrics`) | Print the full RunReport (stage waterfall, extractor table, scorer funnel, cache/corpus). |
-| `--dry-run` | Plan only — lists which extractors would run, without executing. |
+| `--no-roslyn` | Disable the Roslyn deep tier — faster, deterministic; some deep/dispatch edges drop. |
+| `--lite` | Skip the full graph build (source bodies + call graph); the Map still renders but loses dispatch targets/deep traces, and a focus re-analyzes. |
+| `--fast` | Skip heavy extractors (call graph, anti-patterns, unconditional scanners) for max speed. |
+| `--no-cache` | Always perform a fresh analysis (result is still cached for future runs). |
+| `--cache-only` | Fail if a cached snapshot is not available (CI reproducibility). |
+
+## Diagnostics
+
+| Flag | Description |
+|------|-------------|
+| `--stats` | Print the full RunReport (stage waterfall, extractor table, scorer/token funnel, cache/corpus/graph). |
+| `--dry-run` | Plan only — no extraction. |
 | `--strict` | Exit code 2 if any output self-check invariant fails. |
-| `--verbose` | Info-level Serilog logging. |
-| `--trace` | Debug-level Serilog logging (includes Roslyn events). |
-
----
-
-## Advanced
-
-| Flag | Description |
-|------|-------------|
-| `--no-roslyn` | Skip the Roslyn deep tier (faster; weaker semantic call resolution). |
-| `-s, --scenario <NAME>` | Override the derived scenario: `overview` \| `deep-dive` (`trace` is an alias). |
-| `-p, --profile <NAME>` | Override the derived profile: `focused` \| `debug` \| `full`. |
-
----
+| `--verbose` / `--trace` | Info-level / Debug-level (incl. Roslyn) Serilog logging. |
+| `--quiet` | Suppress output on success; errors still go to stderr. |
 
 ## GitHub repositories
-
-A `github.com/user/repo` URL as `[PATH]` (or via `--repo`) is cloned, analyzed, then cleaned up.
 
 | Flag | Description |
 |------|-------------|
 | `--repo <URL>` | GitHub repo URL to clone and analyze. |
 | `--ref <REF>` | Branch or tag to check out (default: repo default). |
-| `--cleanup <MODE>` | `auto` (default — delete after analysis) \| `keep` (retain the clone). |
-| `--keep` | Shorthand for `--cleanup keep`. |
+| `--keep` | Keep the cloned repo after analysis (default: cleaned up). |
 
----
+## Retired flags (accepted as hidden no-op stubs, then removed)
+
+`--around`, `--scenario`, `--profile`, `--task` → use `--focus`. `--max-tokens`, `--token-view`,
+`--include-provenance`, `--include-anti-patterns`, `--metrics`, `--cleanup` → the token-budget /
+scenario / catalog model is retired. These still parse (for a grace period) but do nothing — don't use
+them in scripts.
 
 ## Other commands
 
 | Command | Description |
 |---------|-------------|
-| `devcontext init` | Create `devcontext.json` in the current directory. |
-| `devcontext scenarios` | List scenarios (`overview`, `deep-dive`) with their required sections. |
+| `devcontext query` | Graph queries over a session (`-f/--focus`, `--path`, `--direction`, `--attach`, `--format`, `--depth`). |
+| `devcontext report` | Render a report from a prior analysis. |
+| `devcontext init` | Create a `devcontext.json` in the current directory. |
+| `devcontext scenarios` | List registered scenarios. |
 | `devcontext version` | Show version and commit hash. |
+
+See `docs/product/configuration.md` for `devcontext.json`, and `docs/product/AGENT-REFERENCE.md` for the engine.

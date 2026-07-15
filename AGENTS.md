@@ -12,6 +12,7 @@ server, and an Angular 22 / Tauri desktop app. One engine (`DevContext.Core`) po
 2. `docs/dev/DEVELOPER-PIPELINE.md` — **the developer pipeline**: build, test, gate battery, run, bench,
    eval, screenshots, branch/release. Start here for anything hands-on.
 3. `docs/product/AGENT-REFERENCE.md` — engine internals: ANALYZE→RENDER pipeline, Graph2, contracts, models.
+   Its companion `docs/dev/CODE-MAP.md` is the source-verified module map + "where do I change X?" index.
 4. `src/DevContext.App/AGENTS.md` — desktop app conventions (Angular layering, run commands, gRPC codegen).
 5. `docs/dev/briefs/loom-graph-design.md` — graph-model design authority (**mandatory before touching graph code**).
 6. `docs/dev/HANDOVER-LOOM.md` — most recent engine close-out: architecture, benchmarks, known gaps.
