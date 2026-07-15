@@ -613,4 +613,75 @@ public sealed class GraphBuilderTests
         Assert.Contains(graph.OutEdges(orderItemId, EdgeKind.EntityRelation),
             e => e.To == orderId);
     }
+
+    [Fact]
+    public void Http_entry_point_node_stamps_line_number()
+    {
+        // MCP blind-drive audit (2026-07-11) bug #2: EntryPoint graph nodes never carried LineNumber,
+        // so read_source fell back to the whole file for every entry. HttpEntryPointBuilder is one of
+        // 11 builders with the same gap — this pins the fix on the most common (HTTP) case.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new EndpointDetection("GET", "/products", "?", "<lambda>", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Web\Program.cs",
+            LineNumber = 13,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        var node = graph.Node(entry.Node);
+        Assert.NotNull(node);
+        Assert.Equal(13, node!.LineNumber);
+    }
+
+    [Fact]
+    public void Flow_carries_resolved_target_matching_enriched_entry()
+    {
+        // MCP blind-drive audit (2026-07-11) bug #3: top_flows always reported target: null because
+        // ComputeFlows ran over the pre-enrichment entries — graph.Flows[i].Entry.Target was frozen
+        // before EnrichEntryTargets ran. Pins that graph.Flows carries the SAME enriched Target as the
+        // returned entry inventory (used by `entrypoints`, which already worked).
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Web", @"C:\repo\src\Web\Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("Web.Controllers.FileConfigurationController", new TypeDiscovery
+        {
+            Id = "Web.Controllers.FileConfigurationController",
+            Name = "FileConfigurationController",
+            Namespace = "Web.Controllers",
+            FilePath = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Presentation,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/configuration",
+            "FileConfigurationController", "Get", [], [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\src\Web\Controllers\FileConfigurationController.cs",
+            LineNumber = 23,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var entry = Assert.Single(entries);
+        Assert.NotNull(entry.Target);
+
+        var flow = Assert.Single(graph.Flows);
+        Assert.Equal(entry.Target, flow.Entry.Target);
+    }
 }

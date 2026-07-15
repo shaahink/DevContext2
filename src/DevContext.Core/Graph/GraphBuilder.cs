@@ -97,12 +97,16 @@ public sealed class GraphBuilder
         AddHttpServiceLinks(g, model, names, scope, _noise);
 
         var preGraph = g.Build(isSparse, hubCount);
-        g.SetFlows(ComputeFlows(preGraph, entries));
+        // Enrich (target/group-path/score) BEFORE computing flows: preGraph and the final graph share
+        // identical nodes/edges (violations are metadata only), so this is safe here, and it means
+        // graph.Flows carries the resolved Target — top_flows no longer reports it as null.
+        var enrichedEntries = EnrichEntryScores(
+            EnrichEntryGroupPaths(EnrichEntryTargets(preGraph, entries), names, scope),
+            preGraph, scope);
+        g.SetFlows(ComputeFlows(preGraph, enrichedEntries));
         var violations = DetectLayerViolations(preGraph, archetype);
         var graph = g.Build(isSparse, hubCount, violations);
-        return (graph, EnrichEntryScores(
-            EnrichEntryGroupPaths(EnrichEntryTargets(graph, entries), names, scope),
-            graph, scope));
+        return (graph, enrichedEntries);
     }
 
     /// <summary>L4.1 — Compute spine-first flows for all entries. Each flow is the primary dispatch

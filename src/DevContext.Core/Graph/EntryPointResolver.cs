@@ -22,6 +22,23 @@ public static class EntryPointResolver
             string.Equals(e.Title, f, StringComparison.OrdinalIgnoreCase));
         if (byTitle is not null) return byTitle;
 
+        // Bare route ("/products", no HTTP verb prefix): match HttpEndpoint entries by Route so an
+        // agent that just learned the route from `entrypoints` doesn't need a round-trip through
+        // resolve()/find() first. A single match resolves directly; an ambiguous route (several verbs
+        // on the same path) prefers GET — the natural "explore this endpoint" default — over failing.
+        if (f.StartsWith('/'))
+        {
+            var routeMatches = entries.Where(e =>
+                e.Kind == EntryPointKind.HttpEndpoint && e.Route is { } r &&
+                string.Equals(GraphBuilder.NormalizeRoute(r), GraphBuilder.NormalizeRoute(f), StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (routeMatches.Count == 1) return routeMatches[0];
+            if (routeMatches.Count > 1)
+                return routeMatches.FirstOrDefault(e =>
+                    string.Equals(e.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+                    ?? routeMatches[0];
+        }
+
         return ResolveFromNode(graph, f);
     }
 

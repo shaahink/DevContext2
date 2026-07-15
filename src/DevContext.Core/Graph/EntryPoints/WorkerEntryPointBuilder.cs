@@ -24,7 +24,7 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
                 : EntryPointKind.HostedService;
 
             var id = NodeId.ForEntry($"worker:{shortName}");
-            g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile });
+            g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile, LineNumber = bw.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(shortName, bw.SourceFile));
             if (g.HasNode(typeId))

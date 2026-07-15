@@ -22,7 +22,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             var key = $"{ep.HttpMethod} {ep.RouteTemplate}";
             var id = NodeId.ForEntry(key);
-            g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile });
+            g.AddNode(new GraphNode(id, key, NodeKind.EntryPoint) { FilePath = ep.SourceFile, LineNumber = ep.LineNumber });
 
             var isLambdaHandler = ep.HandlerMethod is "<lambda>" or "<anonymous>"
                 || string.IsNullOrEmpty(ep.HandlerType)

@@ -18,7 +18,7 @@ public sealed class FunctionsEntryPointBuilder : IEntryPointBuilder
             var triggers = string.Join(", ", fn.Triggers);
             var title = $"{key} [{triggers}]";
             var id = NodeId.ForEntry($"func:{key}");
-            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = fn.SourceFile });
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = fn.SourceFile, LineNumber = fn.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(fn.ClassName, fn.SourceFile));
             if (g.HasNode(typeId))

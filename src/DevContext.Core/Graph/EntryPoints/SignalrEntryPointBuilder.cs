@@ -15,7 +15,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
             if (!seen.Add(hub.HubType)) continue;
 
             var id = NodeId.ForEntry($"signalr:{hub.HubType}");
-            g.AddNode(new GraphNode(id, hub.HubType, NodeKind.EntryPoint) { FilePath = hub.SourceFile });
+            g.AddNode(new GraphNode(id, hub.HubType, NodeKind.EntryPoint) { FilePath = hub.SourceFile, LineNumber = hub.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(hub.HubType, hub.SourceFile));
             if (g.HasNode(typeId))

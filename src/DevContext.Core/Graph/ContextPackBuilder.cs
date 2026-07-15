@@ -440,35 +440,43 @@ public sealed class ContextPackBuilder
         return sb.ToString();
     }
 
-    private string? ResolveFocus(string entryId)
-    {
-        foreach (var entry in _snapshot.Entries)
-        {
-            var nid = entry.Node.ToString();
-            if (nid == entryId || entry.Title == entryId ||
-                (entry.HttpMethod is { } hm && entry.Route is { } rt && $"{hm} {rt}" == entryId))
-                return entry.HttpMethod is { } m && entry.Route is { } r
-                    ? $"{m} {r}"
-                    : entry.Title;
-        }
-        return null;
-    }
+    private string? ResolveFocus(string entryId) => FindEntry(entryId) is { } e
+        ? (e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title)
+        : null;
 
     private (string? Focus, int Reach) ResolveFocusWithReach(string entryId)
     {
+        if (FindEntry(entryId) is not { } e) return (null, 0);
+        var focus = e.HttpMethod is { } m && e.Route is { } r ? $"{m} {r}" : e.Title;
+        return (focus, e.Reach);
+    }
+
+    // GAP 4 (UI Context Studio audit) — same bare-route gap as EntryPointResolver: a card seeded with
+    // a bare route id ("/products") must resolve, not just "GET /products" or the raw nodeId.
+    private EntryPoint? FindEntry(string entryId)
+    {
         foreach (var entry in _snapshot.Entries)
         {
             var nid = entry.Node.ToString();
             if (nid == entryId || entry.Title == entryId ||
                 (entry.HttpMethod is { } hm && entry.Route is { } rt && $"{hm} {rt}" == entryId))
-            {
-                var focus = entry.HttpMethod is { } m && entry.Route is { } r
-                    ? $"{m} {r}"
-                    : entry.Title;
-                return (focus, entry.Reach);
-            }
+                return entry;
         }
-        return (null, 0);
+
+        if (entryId.StartsWith('/'))
+        {
+            var routeMatches = _snapshot.Entries.Where(e =>
+                e.Kind == EntryPointKind.HttpEndpoint && e.Route is { } r &&
+                string.Equals(GraphBuilder.NormalizeRoute(r), GraphBuilder.NormalizeRoute(entryId), StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (routeMatches.Count == 1) return routeMatches[0];
+            if (routeMatches.Count > 1)
+                return routeMatches.FirstOrDefault(e =>
+                    string.Equals(e.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+                    ?? routeMatches[0];
+        }
+
+        return null;
     }
 
     private static Dictionary<string, int> AllocateProportionalBudgets(

@@ -16,7 +16,7 @@ public sealed class CliCommandEntryPointBuilder : IEntryPointBuilder
 
             var title = $"{cmd.CommandType} —settings {cmd.SettingsType}";
             var id = NodeId.ForEntry($"cli:{cmd.CommandType}");
-            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = cmd.SourceFile });
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = cmd.SourceFile, LineNumber = cmd.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(cmd.CommandType, cmd.SourceFile));
             if (g.HasNode(typeId))

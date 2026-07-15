@@ -14,7 +14,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
 
             var title = $"{field.OperationType}/{field.TypeName}.{field.FieldName}";
             var id = NodeId.ForEntry($"graphql:{field.TypeName}.{field.FieldName}");
-            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = field.SourceFile });
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = field.SourceFile, LineNumber = field.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(field.TypeName, field.SourceFile));
             if (g.HasNode(typeId))

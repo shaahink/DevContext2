@@ -1,0 +1,307 @@
+MCP Blind-Drive Audit
+Date: 2026-07-15T00:29:54.995Z
+Server: http://127.0.0.1:5179
+MCP EXE: C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+
+Available tools (23): analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages
+
+============================================================
+REPO 1: CleanArchProject
+Path: C:\code\DevContext2\tests\fixtures\CleanArchProject
+============================================================
+
+--- STEP 1: analyze ---
+  Handle: b0a771229b2e4ad2879b42eb8d409fbd
+  Elapsed: 3.1s
+
+--- STEP 2: overview ---
+  Result: {"handle":"b0a771229b2e4ad2879b42eb8d409fbd","tokens":66,"text":"App: Web\r\n  11 nodes · 5 edges · 1 entries · 4 projects\r\nTop flows:\r\n  HttpEndpoint: GET /products → GetProductsQuery\r\nStart here: <lambda> GET /products, GetProductsQuery, cfg => cfg.RegisterServicesFromAssembly(typeof(GetProd...
+
+--- STEP 3: stats ---
+  Meta: nodes=11 edges=5
+  Nodes: 11 | Edges: 5 | Entries: 1
+  Seams: [{"kind":"Calls","total":1,"verified":1,"approx":0},{"kind":"Sends","total":1,"verified":0,"approx":1},{"kind":"Handles","total":1,"verified":1,"approx":0},{"kind":"Resolves","total":2,"verified":2,"approx":0}]
+  Warnings: 
+
+--- STEP 4: entrypoints ---
+  Count: 1
+    [HttpEndpoint] GET /products → GetProductsQuery (Web)
+
+--- STEP 5: map ---
+  Meta: style=CleanArchitecture archetype=App projects=4
+  Archetype: App | Style: CleanArchitecture | Confidence: 0.800000011920929
+  Topology: [{"name":"Application","dependsOn":["Domain"]},{"name":"Domain","dependsOn":[]},{"name":"Infrastructure","dependsOn":["Domain"]},{"name":"Web","dependsOn":["Application","Infrastructure"]}]
+
+--- STEP 6: top_flows ---
+  Count: 1
+    HttpEndpoint: GET /products → GetProductsQuery (score=0.8, depth=4)
+
+--- STEP 7: trace("/products") compact ---
+  Found: true
+  Text:
+Entry: EntryPoint: GET /products
+▼ EntryPoint: GET /products  src/Web/Program.cs:13
+  → Member: <lambda> GET /products  src/Web/Program.cs:13
+    · Type: GetProductsQuery (public record GetProductsQuery() : IRequest<List<Product>>;) [approx]  src/Web/Program.cs:3
+      · Type: GetProductsHandler (public class GetProductsHandler : IRequestHandler<GetProductsQuery, List<Product>>
+public async Task<List<Product>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
+return await Task.FromResult(new List<Product>)  src/Application/Handlers/GetProductsHandler.cs:8
+
+
+--- STEP 7b: trace("/products") verbose ---
+  Entry: GET /products (EntryPoint:GET /products)
+  Touched: none
+  Emits: none
+
+--- STEP 8: resolve key symbols ---
+  resolve("Product"): count=5, ambiguous=true
+    - [Type] Product (Type:Domain.Entities.Product) src/Domain/Entities/Product.cs:3
+    - [Type] GetProductsQuery (Type:Application.Handlers.GetProductsQuery) src/Application/Handlers/GetProductsHandler.cs:6
+    - [Type] cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) (Type:cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly)) :
+  resolve("Program"): count=1, ambiguous=false
+    - [Member] <lambda> GET /products (Member:Program.<lambda> GET /products) src/Web/Program.cs:
+  resolve("Handler"): count=3, ambiguous=true
+    - [Type] GetProductsQuery (Type:Application.Handlers.GetProductsQuery) src/Application/Handlers/GetProductsHandler.cs:6
+    - [Type] cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly) (Type:cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly)) :
+    - [Type] GetProductsHandler (Type:Application.Handlers.GetProductsHandler) src/Application/Handlers/GetProductsHandler.cs:8
+  resolve("Controller"): count=undefined, ambiguous=undefined
+    Error: No match for 'Controller'.. Hint: Try a broader term or find(query).
+  resolve("DbContext"): count=2, ambiguous=true
+    - [Type] AddDbContext (Type:AddDbContext) :
+    - [Type] AppDbContext (Type:Infrastructure.Data.AppDbContext) src/Infrastructure/Data/AppDbContext.cs:6
+
+--- STEP 9: node("EntryPoint:GET /products") ---
+  Title: GET /products
+  Kind: EntryPoint | File: src/Web/Program.cs:13
+  In-degree: 0 | Out-degree: 1
+  Tags: kind:HttpEndpoint
+
+--- STEP 9b: neighbors("EntryPoint:GET /products") ---
+  Outgoing edges: 1
+    → [Calls] <lambda> GET /products (src/Web/Program.cs:13)
+
+--- STEP 9c: read_source("EntryPoint:GET /products", window, 30) ---
+  Found: true | File: src/Web/Program.cs
+  Lines: 4-19 / 19
+  Content preview:
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetProductsHandler).Assembly));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.Get...
+
+--- STEP 10: get_context("/products", budget=4000, intent=trace) ---
+  Focus: /products | Budget: 4000 | Total: 318
+  Sections: identity(17tok), trace(44tok), signatures(163tok), bodies(94tok)
+  Omitted: none
+  Content preview (first 500 chars):
+# 
+Archetype: app | 1 entries | 11 nodes
+Services: Web (CQRS)
+
+Focus: GET /products (HttpEndpoint)
+- [Entry] GET /products
+  - [Call] <lambda> GET /products
+    - [Send] GetProductsQuery [approx]
+      - [Handle] GetProductsHandler
+
+- `EntryPoint:GET /products` — GET /products
+  Location: C:\code\DevContext2\tests\fixtures\CleanArchProject\src\Web\Program.cs:13
+- `Member:Program.<lambda> GET /products` — <lambda> GET /products
+  Location: C:\code\DevContext2\tests\fixtures\CleanArchPr...
+
+--- STEP 11: find("GetProductsQuery") ---
+  Results: 1 / 1
+    [Type] GetProductsQuery (Type:Application.Handlers.GetProductsQuery)
+
+--- STEP 11b: impact("Type:Application.Handlers.GetProductsQuery", up, maxDepth=4) ---
+  Direction: up | Total affected: 2
+  By service: {"(unknown)":[{"title":"<lambda> GET /products","kind":"Member","hops":1,"nodeId":"Member:Program.<lambda> GET /products","filePath":"src/Web/Program.cs"},{"title":"GET /products","kind":"HttpEndpoint","hops":2,"nodeId":"EntryPoint:GET /products","filePath":"src/Web/Program.cs","lineNumber":13}]}
+
+--- STEP 13: insights ---
+  Count: 6
+    [Warning] Auth surface: 0 protected, 1 unannotated of 1 API endpoints: 
+    [Notable] 1/1 endpoints anonymous: 
+    [Info] Entry targets resolved 1/1 (100%) — use --focus for deeper traces: 
+    [Info] Routing surface: 1 routes exposed: 
+    [Info] Public surface: 0 interfaces, 3 classes (4 total public types): 
+
+--- STEP 14: tests_for("EntryPoint:GET /products") ---
+  Node: GET /products | Best-effort: true | Count: 0
+
+--- STEP 15: Error handling probes ---
+  15a: Calling non-existent tool 'blerg'...
+  CAUGHT (handler): {"error":"Unknown tool 'blerg'.","hint":"Use one of availableTools.","example":"overview(handle)","availableTools":["analyze","overview","resolve","status","close_session","list_sessions","stats","ent
+  15b: resolve non-existent symbol 'ZzBbNotReal'...
+  count=undefined error="No match for 'ZzBbNotReal'." hint="Try a broader term or find(query)."
+  15c: usages of non-existent 'IFakeRepository'...
+  count=undefined error="Symbol 'IFakeRepository' not found."
+  15d: impact of non-existent 'FakeService'...
+  affected=undefined error="Symbol 'FakeService' not found — not the same as zero impact."
+  15e: get_context with natural language 'how does this work'...
+  focus="undefined" error="No context could be built for 'how does this work'." sections=0
+
+>>> CleanArchProject: 25 calls, 3333 tokens, 3/3 errors actionable
+
+============================================================
+REPO 2: ControllerApp
+Path: C:\code\DevContext2\tests\fixtures\ControllerApp
+============================================================
+
+--- STEP 1: analyze ---
+  Handle: 0761c51f576f4448ae602cfac124aaf5
+  Elapsed: 1.0s
+
+--- STEP 2: overview ---
+  Result: {"handle":"0761c51f576f4448ae602cfac124aaf5","tokens":95,"text":"App: Api\r\n  18 nodes · 13 edges · 3 entries · 3 projects\r\nTop flows:\r\n  HttpEndpoint: POST /api/Products → ProductService.CreateAsync\r\n  HttpEndpoint: DELETE /api/Products → ProductService.DeleteAsync\r\n  HttpEndpoint: GET /ap...
+
+--- STEP 3: stats ---
+  Meta: nodes=18 edges=13
+  Nodes: 18 | Edges: 13 | Entries: 3
+  Seams: [{"kind":"Calls","total":11,"verified":7,"approx":4},{"kind":"Resolves","total":2,"verified":2,"approx":0}]
+  Warnings: 
+
+--- STEP 4: entrypoints ---
+  Count: 3
+    [HttpEndpoint] DELETE /api/Products → ProductService.DeleteAsync (Api)
+    [HttpEndpoint] POST /api/Products → ProductService.CreateAsync (Api)
+    [HttpEndpoint] GET /api/Products → ProductService.GetByIdAsync (Api)
+
+--- STEP 5: map ---
+  Meta: style=ControllerBased archetype=App projects=3
+  Archetype: App | Style: ControllerBased | Confidence: 0.550000011920929
+  Topology: [{"name":"Api","dependsOn":["Core","Infrastructure"]},{"name":"Core","dependsOn":[]},{"name":"Infrastructure","dependsOn":["Core"]}]
+
+--- STEP 6: top_flows ---
+  Count: 3
+    HttpEndpoint: POST /api/Products → ProductService.CreateAsync (score=0.5, depth=3)
+    HttpEndpoint: DELETE /api/Products → ProductService.DeleteAsync (score=0.329, depth=3)
+    HttpEndpoint: GET /api/Products → ProductService.GetByIdAsync (score=0.329, depth=3)
+
+--- STEP 7: trace("/api/Products") compact ---
+  Found: true
+  Text:
+Entry: EntryPoint: GET /api/Products
+▼ EntryPoint: GET /api/Products  src/Api/Controllers/ProductsController.cs:20
+  → Member: ProductsController.GetById ([HttpGet("{id}")]
+public async Task<IActionResult> GetById(int id)
+var product = await _products.GetByIdAsync(id);)  src/Api/Controllers/ProductsController.cs:20
+    → Type: IProductService (public interface IProductService
+Task<Product?> GetByIdAsync(int id);
+Task<Product> CreateAsync(string name, decimal price);) [approx]  src/Api/Controllers/ProductsController.cs:23
+      · Type: ProductService (public sealed class ProductService : IProductService
+public Task<Product?> GetByIdAsync(int id)
+=> Task.FromResult<Product?>(new Product(id, "sample", 9.99m));)  src/Api/Program.cs:7
+    → Member: ProductService.GetByIdAsync (public Task<Product?> GetByIdAsync(int id)
+=> Task.FromResult<Product?>(new Product(id, "sample", 9.99m));)  src/Api/Controllers/ProductsController.cs:23
+
+
+--- STEP 7b: trace("/api/Products") verbose ---
+  Entry: GET /api/Products (EntryPoint:GET /api/Products)
+  Touched: none
+  Emits: none
+
+--- STEP 8: resolve key symbols ---
+  resolve("Product"): count=5, ambiguous=true
+    - [Type] Product (Type:Core.Product) src/Core/Product.cs:3
+    - [Type] ProductService (Type:Infrastructure.ProductService) src/Infrastructure/ProductService.cs:5
+    - [Type] ProductDto (Type:Core.ProductDto) src/Core/Product.cs:5
+  resolve("Program"): count=undefined, ambiguous=undefined
+    Error: No match for 'Program'.. Hint: Try a broader term or find(query).
+  resolve("Handler"): count=undefined, ambiguous=undefined
+    Error: No match for 'Handler'.. Hint: Try a broader term or find(query).
+  resolve("Controller"): count=4, ambiguous=true
+    - [Type] ProductsController (Type:Api.Controllers.ProductsController) src/Api/Controllers/ProductsController.cs:7
+    - [Member] ProductsController.Create (Member:Api.Controllers.ProductsController.Create) src/Api/Controllers/ProductsController.cs:
+    - [Member] ProductsController.GetById (Member:Api.Controllers.ProductsController.GetById) src/Api/Controllers/ProductsController.cs:
+  resolve("DbContext"): count=undefined, ambiguous=undefined
+    Error: No match for 'DbContext'.. Hint: Try a broader term or find(query).
+
+--- STEP 9: node("EntryPoint:DELETE /api/Products") ---
+  Title: DELETE /api/Products
+  Kind: EntryPoint | File: src/Api/Controllers/ProductsController.cs:35
+  In-degree: 0 | Out-degree: 1
+  Tags: kind:HttpEndpoint
+
+--- STEP 9b: neighbors("EntryPoint:DELETE /api/Products") ---
+  Outgoing edges: 1
+    → [Calls] ProductsController.Delete (src/Api/Controllers/ProductsController.cs:35)
+
+--- STEP 9c: read_source("EntryPoint:DELETE /api/Products", window, 30) ---
+  Found: true | File: src/Api/Controllers/ProductsController.cs
+  Lines: 26-41 / 41
+  Content preview:
+
+    [HttpPost]
+    public async Task<IActionResult> Create(ProductDto dto)
+    {
+        var created = await _products.CreateAsync(dto.Name, dto.Price);
+        await _audit.RecordAsync($"created product {created.Id}");
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, create...
+
+--- STEP 10: get_context("/api/Products", budget=4000, intent=trace) ---
+  Focus: /api/Products | Budget: 4000 | Total: 469
+  Sections: identity(17tok), trace(56tok), signatures(209tok), bodies(172tok), di_wiring(15tok)
+  Omitted: none
+  Content preview (first 500 chars):
+# 
+Archetype: app | 3 entries | 18 nodes
+Services: Api (Unknown)
+
+Focus: GET /api/Products (HttpEndpoint)
+- [Entry] GET /api/Products
+  - [Call] ProductsController.GetById
+    - [Call] IProductService [approx]
+      - [Resolve] ProductService
+    - [Call] ProductService.GetByIdAsync
+
+- `EntryPoint:GET /api/Products` — GET /api/Products
+  Location: C:\code\DevContext2\tests\fixtures\ControllerApp\src\Api\Controllers\ProductsController.cs:20
+- `Member:Api.Controllers.ProductsController....
+
+--- STEP 11: find("ProductService.DeleteAsync") ---
+  Results: 1 / 1
+    [Member] ProductService.DeleteAsync (Member:Infrastructure.ProductService.DeleteAsync)
+
+--- STEP 11b: impact("Member:Infrastructure.ProductService.DeleteAsync", up, maxDepth=4) ---
+  Direction: up | Total affected: 2
+  By service: {"(unknown)":[{"title":"ProductsController.Delete","kind":"Member","hops":1,"nodeId":"Member:Api.Controllers.ProductsController.Delete","filePath":"src/Api/Controllers/ProductsController.cs"},{"title":"DELETE /api/Products","kind":"HttpEndpoint","hops":2,"nodeId":"EntryPoint:DELETE /api/Products","filePath":"src/Api/Controllers/ProductsController.cs","lineNumber":35}]}
+
+--- STEP 12: config ---
+  Total keys: 0
+  Keys: {}
+
+--- STEP 13: insights ---
+  Count: 6
+    [Warning] 3/3 endpoints anonymous, incl. 2 POST/PUT/DELETE: 
+    [Warning] Auth surface: 0 protected, 3 unannotated of 3 API endpoints: 
+    [Info] Entry targets resolved 3/3 (100%) — use --focus for deeper traces: 
+    [Info] Routing surface: 3 routes exposed: 
+    [Info] Public surface: 2 interfaces, 3 classes (7 total public types): 
+
+--- STEP 14: tests_for("EntryPoint:DELETE /api/Products") ---
+  Node: DELETE /api/Products | Best-effort: true | Count: 0
+
+--- STEP 15: Error handling probes ---
+  15a: Calling non-existent tool 'blerg'...
+  CAUGHT (handler): {"error":"Unknown tool 'blerg'.","hint":"Use one of availableTools.","example":"overview(handle)","availableTools":["analyze","overview","resolve","status","close_session","list_sessions","stats","ent
+  15b: resolve non-existent symbol 'ZzBbNotReal'...
+  count=undefined error="No match for 'ZzBbNotReal'." hint="Try a broader term or find(query)."
+  15c: usages of non-existent 'IFakeRepository'...
+  count=undefined error="Symbol 'IFakeRepository' not found."
+  15d: impact of non-existent 'FakeService'...
+  affected=undefined error="Symbol 'FakeService' not found — not the same as zero impact."
+  15e: get_context with natural language 'how does this work'...
+  focus="undefined" error="No context could be built for 'how does this work'." sections=0
+
+>>> ControllerApp: 26 calls, 3979 tokens, 3/3 errors actionable
+
+
+Report written to C:\code\DevContext2\eval-results\2026-07-11\mcp-blind-drive-report.json
+
+============================================================
+SUMMARY
+============================================================
+  CleanArchProject: 25 calls, 3333 tokens, errors: 3/3 actionable errors + 1 bad-tool handled
+  ControllerApp: 26 calls, 3979 tokens, errors: 3/3 actionable errors + 1 bad-tool handled

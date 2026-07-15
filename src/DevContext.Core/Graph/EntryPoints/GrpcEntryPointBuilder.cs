@@ -21,7 +21,7 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
             if (svc.Methods.Length == 0)
             {
                 var id = NodeId.ForEntry($"grpc:{svc.ImplementationType}");
-                g.AddNode(new GraphNode(id, $"{svc.ServiceName}.{svc.ImplementationType}", NodeKind.EntryPoint) { FilePath = svc.SourceFile });
+                g.AddNode(new GraphNode(id, $"{svc.ServiceName}.{svc.ImplementationType}", NodeKind.EntryPoint) { FilePath = svc.SourceFile, LineNumber = svc.LineNumber });
 
                 if (g.HasNode(svcTypeNodeId))
                     g.AddEdge(new GraphEdge(id, svcTypeNodeId, EdgeKind.Calls)
@@ -46,7 +46,7 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
                 var methodTitle = $"{svc.ServiceName}.{method}";
                 var methodKey = $"grpc:{svc.ServiceName}.{method}";
                 var methodId = NodeId.ForEntry(methodKey);
-                g.AddNode(new GraphNode(methodId, methodTitle, NodeKind.EntryPoint) { FilePath = svc.SourceFile });
+                g.AddNode(new GraphNode(methodId, methodTitle, NodeKind.EntryPoint) { FilePath = svc.SourceFile, LineNumber = svc.LineNumber });
 
                 var memberNodeId = g.HasNode(NodeId.ForMember(svcTypeFqn, method))
                     ? NodeId.ForMember(svcTypeFqn, method)

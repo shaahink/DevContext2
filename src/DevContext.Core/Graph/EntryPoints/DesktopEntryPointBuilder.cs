@@ -25,7 +25,7 @@ public sealed class DesktopEntryPointBuilder : IEntryPointBuilder
                 ? $"[RelayCommand] {de.TypeName}"
                 : de.TypeName;
 
-            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = de.SourceFile });
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = de.SourceFile, LineNumber = de.LineNumber });
 
             var typeName = de.Kind == DesktopEntryKind.RelayCommand
                 ? (de.TypeName.Contains('.') ? de.TypeName[..de.TypeName.LastIndexOf('.')] : de.TypeName)

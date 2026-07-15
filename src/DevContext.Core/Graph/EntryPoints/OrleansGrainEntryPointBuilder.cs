@@ -18,7 +18,7 @@ public sealed class OrleansGrainEntryPointBuilder : IEntryPointBuilder
                 ? $" ({grain.Methods.Length} methods: {string.Join(", ", grain.Methods.Take(3))})" : "";
             var title = $"{grain.GrainType} : {grain.InterfaceType}{methodStr}";
             var id = NodeId.ForEntry($"grain:{grain.GrainType}");
-            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = grain.SourceFile });
+            g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = grain.SourceFile, LineNumber = grain.LineNumber });
 
             var typeId = NodeId.ForType(names.Resolve(grain.GrainType, grain.SourceFile));
             if (g.HasNode(typeId))
