@@ -7,18 +7,16 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 **T2 COMPLETE (8 of 8)** on feat/tapestry-t2 — pushed through 9e9d921. Final two this session:
-**T2.6** (ed3ff46, one event join): ONE `EventWiringProjection` (publisher→event→consumer) on `CodeGraph.EventWiring`, joined on
-SHORT event-type name within the detected event set (eShop declares each integration event TWICE across services — a node-id join
-can't connect them; domain events across layer-projects of the SAME service are NOT cross-service). Board (`EventFlowSource`),
-overview `EVENT WIRING` section + `CROSS-SERVICE` ServiceLinks (emitted FROM the projection, provenance at the publishing member),
-and flow markers all render from it. Deleted legacy `AddBusServiceLinks` + `_eventPublishers`. eShop 13 integration / 8 cross-service, ZERO drift.
-**T2.8** (9e9d921, split): GraphBuilder.cs 2484 lines → 6 partial files (main 118 + Flows/Entries/Nodes/Seams/ServiceLinks);
-retired stale AddSends comment; verified no `kind:` parsing remains. Byte-identical dogfood drift (439/339/34/205/11/5 before==after).
-T1 (wrapup→t0→t1) DELIVERED to develop @ c2f7250. feat/tapestry-t2 NOT yet merged to develop — user review pending.
-stage: ALL T2 VERIFIED (T2.1-T2.8) on feat/tapestry-t2. **Next phase: T3 (MCP v3)** off develop after T2 merges, OR continue on this branch.
-next: **T3.1** (unified symbol addressing — every symbol-taking MCP tool accepts `query`, resolved via graph.Find; nodeId stays the precise form; error envelope ≤80 tok). Read proposal-tapestry.md §T3 + audit addendum T3.7/T3.8. T3 blocked-by T2 (now done). Consider merging feat/tapestry-t2 → develop first (whole T2 stack) if user approves.
-gate: T2.6 — build 0w/0e · fast 497P/0F · McpQa 2m51s no-regression · eval 58P/6S/0F · loom-guards PASSED · EventWiringTests(6). T2.8 — dogfood drift byte-identical. Evidence: tapestry-t2/T2.6-EVIDENCE.md, T2.8-EVIDENCE.md, gates-t2.6.txt.
+last: 2026-07-16 **T2 DELIVERED to develop @ 94a29db** — whole feat/tapestry-t2 stack (8/8) merged --no-ff + pushed after a
+tip re-verification (GATE: PASS — build 0w/0e · fast · MCP QA · eval 58P/6S/0F 7m26s · CLI matrix; log
+eval-results/2026-07-15/tapestry-t2/gates-deliver.txt). **NOW ON feat/tapestry-t3 (off develop).**
+NOTE: `develop` is checked out in the sibling worktree `C:/Code/DevContext2-ui` (has WIP src-tauri/Cargo.toml) — advance develop
+THERE via `git -C /c/Code/DevContext2-ui`, never `git checkout develop` in the main worktree (it will fail). T2 touched no App/Cargo files.
+stage: **T3 (MCP v3) IN PROGRESS.** Delivering all 8: T3.1 unified addressing → T3.2 entrypoints summary → T3.5 repo-rel + start-here
+noise → T3.6 self-describing → T3.3 trace budget (proto change) → T3.4 config latency → T3.7 CLI parity → T3.8 report hygiene.
+next: **T3.1** — shared MCP resolver (extract the `usages` exact-title/ambiguity logic); add `query` synonym to node/neighbors/impact/
+tests_for/read_source (+ trace/flow/get_context); nodeId stays precise; error envelope ≤80 tok. Read proposal-tapestry.md §T3 + addendum T3.7/T3.8.
+gate: (T3 not yet started) — baseline is the T2 delivery GATE: PASS above. Plan/notes in scratchpad t3-plan.md.
 
 ---
 
@@ -62,12 +60,12 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T3 — MCP v3
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T3.1 | Unified symbol addressing (query accepted everywhere; envelopes ≤80 tok) | TODO | | |
-| T3.2 | entrypoints summary default ≤1.5k tok (full:true escape) | TODO | | |
+| T3.1 | Unified symbol addressing (query accepted everywhere; envelopes ≤80 tok) | VERIFIED | (T3.1 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · run.js q8 (impact/node/read_source via query) PASS · ResolveQueryAsync ambiguity-honest · 8 tools + query synonym |
+| T3.2 | entrypoints summary default ≤1.5k tok (full:true escape) | VERIFIED | (T3.2 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q9 byKind + top-15, 843 tok summary, full:true→34 (==count) |
 | T3.3 | trace budgetTokens (default ~4k, named omissions, deep-links) | TODO | | |
 | T3.4 | config latency ≤500ms warm (was 10.5s on shamshir) | TODO | | |
 | T3.5 | Repo-relative paths + Start-here noise filter | TODO | | |
-| T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | TODO | | |
+| T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | VERIFIED | (T3.6 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q10 method note tests_for+config · flow/trace cross-doc |
 | T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | TODO | | |
 | T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | TODO | | |
 
