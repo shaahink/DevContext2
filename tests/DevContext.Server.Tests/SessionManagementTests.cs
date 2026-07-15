@@ -3,12 +3,10 @@ using DevContext.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
 
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace DevContext.Server.Tests;
 
-public sealed class SessionManagementTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class SessionManagementTests(ServerTestFactory factory)
+    : IClassFixture<ServerTestFactory>
 {
     private DevContextService.DevContextServiceClient CreateClient()
     {

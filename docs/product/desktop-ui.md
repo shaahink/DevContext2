@@ -1,115 +1,73 @@
 # Desktop UI Guide
 
-The DevContext Desktop app wraps the same engine as the CLI in an interactive WPF + BlazorWebView
-shell: a left config panel, a right output panel with Human / LLM / Stats tabs, and a right-side
-section drawer that filters both views in sync.
+The DevContext desktop app is an **Angular 22 (zoneless, signals) + Tauri 2** client over the same
+engine as the CLI: the UI talks gRPC-Web to `DevContext.Server`, which analyzes once and serves every
+view from the immutable snapshot. There is no WPF shell any more — if a doc mentions
+`DevContext.Desktop`, BlazorWebView, or a Human/LLM/Stats tab layout, it is describing the retired app.
+
+Source: `src/DevContext.App` (see its `AGENTS.md` for build/run). Contract:
+`proto/devcontext/v1/devcontext.proto`. Run for development: `pnpm dev:web` (browser) or `pnpm dev`
+(Tauri window); agents use `scripts/start-dev-bg.ps1`.
 
 ---
 
-## Layout
+## Shell
 
 ```
-┌── ConfigPanel ──────┬── OutputPanel ───────────────────────┐
-│                      │  [Human] [LLM] [Stats]   [Sections]  │
-│  Source              │                                      │
-│  Focus   [Map/Trace] │  MAP  MyApp  (12 projects)           │
-│  Depth   (trace)     │  STACK  net10.0 · Minimal APIs …     │
-│  Detail  (trace)     │  TOPOLOGY (depends-on) …             │
-│  Output              │  ENTRY POINTS …                      │
-│   Format             │                                      │
-│   Advanced           │                                      │
-│                      │                                      │
-│  [ Analyze ]         │                                      │
-└──────────────────────┴──────────────────────────────────────┘
+┌ titlebar ─ tabs (one per repo session) ─ window controls ───────────────┐
+├ activity bar │                                              │           │
+│  Home        │                 routed page                  │ inspector │
+│  Explore     │                                              │ (Explore) │
+│  Atlas       │                                              │           │
+│  Insights    │                                              │           │
+│  MCP         │                                              │           │
+│  Context     │                                              │           │
+│  Settings    │                                              │           │
+├ trail bar (recently visited nodes) ──────────────────────────────────────┤
+└ statusbar ─ connection · session stats · clickable segments ────────────┘
 ```
 
----
+- **Tabs** (`shell/tab-strip.ts`): one tab per analyzed repo, VS Code-style (32px strip, close on
+  hover, middle-click close, active underline). Titlebar **New** always creates a tab; it never
+  replaces or cancels others. Closing a tab that is still cloning/analyzing asks first.
+- **Activity bar** (`shell/activity-bar.ts`): Home `h` · Explore `e` · Atlas `a` · Insights `i` ·
+  MCP `m` · Context `c` · Settings `s`. Session-scoped pages are disabled until a repo is analyzed.
+  Explore and Insights badges show live entry/insight counts.
+- **Trail bar**: breadcrumb of visited nodes, grouped by flow; feeds Context Studio's
+  "From current trail" seed.
+- `?` opens the full keyboard-shortcut overlay. Dark theme is the default; a Paper light theme and
+  system-follow live in Settings.
 
-## ConfigPanel (left)
+## Pages
 
-### Source
+| Route | What it shows |
+|---|---|
+| `/` **Home** | Repo hero: service-map hero (runnables, gateway/bus lanes), entries sparkbar, wiring-health %, freshness chip, top flows, "needs attention" insights, onboarding links (trace a detected flow, open Atlas, point your agent at the MCP). |
+| `/explore` **Workbench** | The main graph workbench: stage canvas (Cytoscape) + **lenses** — Service / Layer / Feature / Flow (`?lens=`), plus a virtualized **Table lens** (toolbar toggle, `Shift+E`, CSV export). Left: entry deck. Right: **Inspector** with Overview / Code tabs (PrismJS-highlighted `read_source`), graph-adjacent insights, neighbors, and trail. Omnibox (`Ctrl+K`) searches nodes/entries; node hover shows a peek card. |
+| `/atlas` **Atlas** | The printable architecture read: service diagram → top flows as stepper strips → event wiring board (publisher/event/consumer) → per-service cards (style badge, stack tags) → cross-cutting (pipeline behaviors, packages) → hub radar. Export copies a markdown one-pager. |
+| `/insights` **Insights** | The full insight list (risk/wiring/topology/coverage…), filterable, each with evidence and deep links into Explore. |
+| `/mcp` **MCP** | Agent hand-off page: live server/session status and copyable MCP client config. |
+| `/context` **Context Studio** | Build an LLM context pack: scope picker (services → entries tree + omnibox + presets like "I'm changing this endpoint"), composition cards (flow, signatures, bodies, DI wiring, entities, contracts, identity…), budget slider (1k–16k tokens) with per-card server-measured meters, intent selector (trace/explain/review), markdown/plain format, Copy/Save of the **server-assembled** pack (`Ctrl+E` from anywhere). |
+| `/settings` **Settings** | Theme (dark/light/system), storage (cache location/size, clones), app info. |
 
-A local path (`.sln`, `.csproj`, or directory) or a GitHub URL (`github.com/user/repo`). Recent
-paths appear as clickable chips. For a GitHub URL a cleanup selector appears: **Auto-clean on exit**
-(default) or **Keep permanently**. A cloned repo is reused for the whole session — changing options
-or the focus re-analyzes the existing clone instead of re-cloning — and is deleted on app close when
-"Auto-clean on exit" is selected.
+## The model — analyze once, query many
 
-### Focus  — one control, mode is derived
+Analyzing a repo (local path or GitHub URL) creates a **session**; every page is a cheap query over
+that session's frozen snapshot — switching lenses, tracing entries, or building context packs never
+re-analyzes. Re-analyze explicitly from the source bar (stale chip appears when the repo changed on
+disk). Multiple sessions coexist as tabs; the MCP server exposes the same sessions to agents.
 
-A single field accepting a `TypeName`, `Type:Method`, or `GET /api/route`. The badge next to the
-label shows the **derived mode**:
+## Where behavior lives (for contributors)
 
-- **Empty → Map.** Whole-codebase architecture map (style, stack, topology, entry points, packages).
-- **Set → Trace.** The call stack from that entry, down the wiring.
+| Concern | File(s) |
+|---|---|
+| Routes | `src/app/app.config.ts` |
+| Shell/tabs/rail/statusbar | `src/app/shell/*` |
+| Graph canvas + lenses | `src/app/ui/graph-canvas/*`, `src/app/features/pages/workbench-page.ts` |
+| Inspector (code pane, insights) | `src/app/features/inspector/*` |
+| Context Studio | `src/app/features/context-studio/*` |
+| Signal stores | `src/app/state/*` |
+| gRPC client + generated types | `src/app/core/`, `src/app/core/grpc/gen/**` (`pnpm gen:proto`) |
 
-After an analysis the field doubles as an **entry picker**: a dropdown lists the entry points found
-in the graph (HTTP, bus consumers, hosted services, …). Pick one to trace it; clear the field to go
-back to the Map. Changing the focus re-analyzes (the trace needs the call graph, which only the
-deep-dive/Debug profile builds) — debounced so typing doesn't spawn a run per keystroke. This is the
-exact same `--focus` behavior as the CLI.
-
-### Depth & Detail  (Trace only)
-
-Shown only when a focus is set:
-
-- **Depth** (1–10, default 6) — hops to follow from the entry.
-- **Detail** — `Signature` (names only), `Salient` (key body lines), `Full` (method slice).
-
-Both are render-time dials: changing them re-renders the existing analysis without re-analyzing.
-
-### Output
-
-- **Format** — Markdown (Map/Trace narrative) or JSON (structured; preview only in the LLM tab).
-- **Advanced**:
-  - *Include diagnostics* — appends graph + call-graph diagnostics under a Map/Trace.
-  - *Skip Roslyn* — faster; weaker semantic call resolution.
-  - *Dry run* — plan only; lists which extractors would run.
-  - *Include provenance* / *Include anti-pattern detection* — only shown when the legacy catalog
-    output is active (no graph); they don't affect the Map/Trace narrative.
-
-The token-budget slider is intentionally hidden in the current build: the budget doesn't constrain
-the Map/Trace narrative, so it would be a dead control. Section-level token accounting is still
-shown in the section drawer (see below).
-
----
-
-## OutputPanel (right)
-
-### Tabs
-
-- **Human** — styled HTML rendering of the output.
-- **LLM** — the raw markdown, ready to paste into any LLM.
-- **Stats** — the RunReport (stage timing, extractors, cache/corpus).
-
-Both Human and LLM render the **same sections** — just HTML vs raw markdown.
-
-### Sections drawer
-
-The **Sections** button (top-right, with a badge counting hidden sections) opens a right-side drawer
-listing every section of the current output — the Map/Trace narrative blocks (Overview, Topology,
-Entry points, Cross-cutting, Packages, …) or, in catalog mode, the legacy tables. Each row shows its
-token contribution. Toggling a section hides it in **both** the Human and LLM views at once; the DOM
-stays intact (no scroll jump), so it's instant. A budget bar at the top of the drawer shows selected
-tokens against the budget.
-
-### Toolbar
-
-- **?** — what-is-this overlay.
-- **Copy** — copies the Human view.
-- **Save** — downloads `.md` / `.json`.
-- **Copy LLM** — copies the LLM view.
-
----
-
-## Status & logging
-
-The status line shows estimated tokens and elapsed time. The Analyze button is disabled until a
-source path is filled. DevContext Desktop logs to `%LocalAppData%\DevContext\`:
-
-| File | Contents |
-|------|----------|
-| `devcontext.log` | General logs (rolling daily, 7 days retained) |
-| `crash.log` | Error-level entries — crashes with full stack traces |
-
-Global exception handlers are registered for the WPF dispatcher, AppDomain, and unobserved tasks.
+Gate: `pnpm check` (lint + vitest + build). UI drive gate:
+`node src/DevContext.App/scripts/ui-audit-drive.mjs` (server + ng serve required).

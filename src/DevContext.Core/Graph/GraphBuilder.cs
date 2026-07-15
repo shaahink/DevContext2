@@ -104,6 +104,7 @@ public sealed class GraphBuilder
             EnrichEntryGroupPaths(EnrichEntryTargets(preGraph, entries), names, scope),
             preGraph, scope);
         g.SetFlows(ComputeFlows(preGraph, enrichedEntries));
+        g.SetEntries(enrichedEntries);   // T1.8 — projections read the true kind off this record, not node tags
         var violations = DetectLayerViolations(preGraph, archetype);
         var graph = g.Build(isSparse, hubCount, violations);
         return (graph, enrichedEntries);
@@ -408,6 +409,7 @@ public sealed class GraphBuilder
     {
         var ownerTypeKey = ExtractTypeKey(member.Id.Key);
         GraphNode? bestFallback = null;
+        GraphNode? bestFallbackType = null;
         var bestOutDegree = -1;
         foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
@@ -429,25 +431,44 @@ public sealed class GraphBuilder
             // EF/LINQ verb (Where/FindAsync/SaveChangesAsync/...), even when the syntactic resolver
             // attributed it to a wrapper type (e.g. an `[AsParameters]` services struct) rather than the
             // DbContext itself.
+            var calleeMemberName = callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null;
             if (calleeType.Tags.Contains(RoleTags.DataStore)
-                || IsDataAccessNoiseMethod(callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null))
+                || IsDataAccessNoiseMethod(calleeMemberName)
+                || IsObjectNoiseMethod(calleeMemberName))
                 continue;
 
             // Prefer a DI-resolved service (the action's real collaborator) outright; else remember the
             // meaningful callee with the highest out-degree of its own — a real handler keeps working,
             // a leaf call doesn't.
             if (calleeType.Tags.Contains(RoleTags.Service))
-                return callee.Title;
+                return TargetTitle(callee, calleeType, calleeMemberName);
 
             var outDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
             if (outDegree > bestOutDegree)
             {
                 bestOutDegree = outDegree;
                 bestFallback = callee;
+                bestFallbackType = calleeType;
             }
         }
-        return bestFallback?.Title;
+        return bestFallback is null
+            ? null
+            : TargetTitle(bestFallback, bestFallbackType!,
+                bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null);
     }
+
+    /// <summary>An entry target is always rendered <c>Type.Method</c> for a member callee. The semantic
+    /// body-scan seams sometimes create a member node with a BARE method-name title (e.g. DntSite's
+    /// auto-registered <c>FeedsService</c>, whose target read as an ownerless "GetNewsAsync"); its NodeId
+    /// still encodes the owning type, so reconstruct the qualified name from the resolved type node so
+    /// "FeedsService.GetNewsAsync" survives (T1.3). A callee whose title is already qualified — or a Type
+    /// callee — keeps its own title.</summary>
+    private static string TargetTitle(GraphNode callee, GraphNode calleeType, string? memberName)
+        => callee.Kind == NodeKind.Member
+            && memberName is { Length: > 0 }
+            && !callee.Title.Contains('.', StringComparison.Ordinal)
+            ? $"{calleeType.Title}.{memberName}"
+            : callee.Title;
 
     /// <summary>"TypeFqn.MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
     private static string ExtractMemberName(string memberKey)
@@ -473,6 +494,11 @@ public sealed class GraphBuilder
 
     private static bool IsDataAccessNoiseMethod(string? methodName)
         => methodName is not null && _dataAccessNoiseMethods.Contains(methodName);
+
+    /// <summary>System.Object/lifetime plumbing — calling <c>service.ToString()</c> must never make
+    /// that service the entry's target (seen live: "GET /api/ctrader/listen → CTraderListenService.ToString").</summary>
+    private static bool IsObjectNoiseMethod(string? methodName)
+        => methodName is "ToString" or "GetHashCode" or "Equals" or "GetType" or "Dispose" or "DisposeAsync";
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn" (strips the trailing member segment from a Member key).</summary>
     private static string ExtractTypeKey(string memberKey)
@@ -566,19 +592,23 @@ public sealed class GraphBuilder
             project = scope.ProjectForFile(filePath);
         }
 
+        // T1.6 — HTTP feature areas come from the ROUTE first, not the handler namespace. Grouping every
+        // endpoint under its shared "…Api" namespace collapsed 128 shamshir endpoints into one useless
+        // "Api (128 entries)" module row; the route's first meaningful segment is the real feature
+        // (/api/addons/* → addons, /api/orders/* → orders). Namespace/folder still groups non-HTTP entries.
+        if (entry.Kind == EntryPointKind.HttpEndpoint && entry.Route is { } route
+            && HttpRouteGroupPath(route) is { } routeGroup)
+            return routeGroup;
+
         if (entry.HandlerNode is { } hn)
         {
             var fqn = ExtractTypeKey(hn.Key);
             ns = names.GetNamespace(fqn);
         }
 
-        // 2. Fall back to route-based grouping for HTTP entries with no handler namespace
-        if (ns is null && entry.Kind == EntryPointKind.HttpEndpoint && entry.Route is { } route)
-            return HttpRouteGroupPath(route);
-
         if (ns is null) return project;
 
-        // 3. Derive GroupPath from namespace, stripping project-root prefix
+        // Derive GroupPath from namespace, stripping project-root prefix
         return NamespaceGroupPath(ns, project);
     }
 
@@ -618,18 +648,27 @@ public sealed class GraphBuilder
         return string.Join("/", remaining);
     }
 
-    /// <summary>Derives GroupPath from an HTTP route template (e.g. "GET /api/orders/{id}" → "api/orders").</summary>
+    /// <summary>T1.6 — Derives the FEATURE-AREA GroupPath from an HTTP route: the first meaningful path
+    /// segment, skipping the "api" prefix, version segments (v1, v2.0), and route parameters
+    /// (e.g. "GET /api/orders/{id}" → "orders", "POST /api/v2/addons" → "addons"). Returns null for a
+    /// route with no meaningful segment (e.g. "/") so the caller can fall back to namespace/project.</summary>
     private static string? HttpRouteGroupPath(string route)
     {
         var space = route.IndexOf(' ');
         var path = space > 0 ? route[(space + 1)..] : route;
-        path = path.TrimStart('/');
-        // Strip trailing parameter segments
-        var lastSlash = path.LastIndexOf('/');
-        if (lastSlash >= 0 && path[lastSlash + 1] == '{')
-            path = path[..lastSlash];
-        return path switch { "" => null, var p => p };
+        foreach (var seg in path.Split('/', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (seg.StartsWith('{')) continue;                                   // route parameter
+            if (seg.Equals("api", StringComparison.OrdinalIgnoreCase)) continue; // ubiquitous api prefix
+            if (IsRouteVersionSegment(seg)) continue;                            // v1, v2, v2.0
+            return seg.ToLowerInvariant();                                       // first meaningful segment = feature
+        }
+        return null;
     }
+
+    /// <summary>True for an API-version route segment like "v1" or "v2.0" (letter v + digit).</summary>
+    private static bool IsRouteVersionSegment(string s)
+        => s.Length >= 2 && s[0] is 'v' or 'V' && char.IsDigit(s[1]);
 
     /// <summary>L3.2 — Computes graph-aware scores for each entry: BFS from the entry's node outward
     /// through Calls/Sends edges to count reach, seam richness, entity touches, and cross-project depth.

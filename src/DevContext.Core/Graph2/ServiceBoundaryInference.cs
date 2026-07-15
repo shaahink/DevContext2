@@ -15,36 +15,48 @@ public static class ServiceBoundaryInference
         // A regular package whose name merely CONTAINS "AspNetCore" (e.g. FluentValidation.AspNetCore)
         // is NOT a runnable signal — a class library referencing it is still a library
         // (audit Claim 3 / E3: BuildingBlocks rendered as a service off an AspNetCore package ref).
+        // T1.4 — an implied-Exe SDK is a runnable signal even with no explicit <OutputType>: the Worker SDK
+        // (a hosted-service background host, shamshir's TradingEngine.Host) and the Aspire AppHost SDK
+        // (the orchestrator, shamshir's TradingEngine.AppHost) both produce executables. Without this the
+        // per-service list showed only the Web + Exe-console projects and missed the worker and the AppHost.
         var isExe = p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
         var hasAspNetFramework = p.PackageReferences.Any(
             pr => pr.Name.StartsWith("Microsoft.AspNetCore.App", StringComparison.OrdinalIgnoreCase));
-        var hasWebServer = p.FilePath is { } cp && IsWebSdkProject(cp);
-        return isExe || hasAspNetFramework || hasWebServer;
+        var hasWebServer = p.FilePath is { } cp && CsprojSdkContains(cp, "Microsoft.NET.Sdk.Web");
+        var isWorkerHost = p.FilePath is { } wp && CsprojSdkContains(wp, "Microsoft.NET.Sdk.Worker");
+        var isAspireHost = p.FilePath is { } ap && CsprojSdkContains(ap, "Aspire.AppHost.Sdk");
+        return isExe || hasAspNetFramework || hasWebServer || isWorkerHost || isAspireHost;
     }
 
-    private static bool IsWebSdkProject(string csprojPath)
+    /// <summary>True when the csproj's <c>Sdk</c> attribute contains the given marker (cached read). Used
+    /// for Web / Worker / Aspire-AppHost SDK detection where the SDK implies an executable output.</summary>
+    internal static bool CsprojSdkContains(string csprojPath, string marker)
     {
-        if (_webSdkCache.TryGetValue(csprojPath, out var cached))
+        var key = csprojPath + "|" + marker;
+        if (_webSdkCache.TryGetValue(key, out var cached))
             return cached;
 
         try
         {
             var text = File.ReadAllText(csprojPath);
-            var result = text.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
-            _webSdkCache[csprojPath] = result;
+            var result = text.Contains(marker, StringComparison.OrdinalIgnoreCase);
+            _webSdkCache[key] = result;
             return result;
         }
         catch
         {
-            _webSdkCache[csprojPath] = false;
+            _webSdkCache[key] = false;
             return false;
         }
     }
 
     public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope)
     {
+        // T1.9 — the service topology is production only. eShop's FunctionalTests reference the ASP.NET
+        // Core shared framework (WebApplicationFactory), so IsRunnableService would render 5 test projects
+        // as service cards. Exclude test/benchmark/sample projects by classification, not path regex.
         return scope.Projects
-            .Where(p => IsRunnableService(p))
+            .Where(p => ProjectClassifier.IsProductionProject(p) && IsRunnableService(p))
             .ToImmutableArray();
     }
 }

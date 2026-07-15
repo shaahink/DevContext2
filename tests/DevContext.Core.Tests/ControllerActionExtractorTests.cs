@@ -119,6 +119,38 @@ public sealed class ControllerActionExtractorTests
     }
 
     [Fact]
+    public async Task Composes_route_template_from_verb_attribute_argument()
+    {
+        // [HttpGet("packs/{id}")] carries the action route in the verb attribute — the most
+        // common controller routing style. Seen live: shamshir rendered every AddOnPacks action
+        // as a duplicate "GET /api/addons" because only [Route] attributes were read.
+        var (ctx, model) = Setup("""
+            [ApiController]
+            [Route("api/addons")]
+            public class AddOnPacksController : ControllerBase
+            {
+                [HttpGet("packs")]
+                public IActionResult GetAll() => Ok();
+                [HttpGet("packs/{id}")]
+                public IActionResult Get(string id) => Ok();
+                [HttpDelete("packs/{id}")]
+                public IActionResult Delete(string id) => NoContent();
+                [HttpGet(Name = "NamedNoRoute")]
+                public IActionResult Named() => Ok();
+            }
+            """);
+        var extractor = new ControllerActionExtractor();
+        await extractor.ExtractAsync(ctx, model, default);
+
+        var endpoints = model.Detections.OfType<EndpointDetection>().ToArray();
+        Assert.Contains(endpoints, e => e.HttpMethod == "GET" && e.RouteTemplate == "/api/addons/packs");
+        Assert.Contains(endpoints, e => e.HttpMethod == "GET" && e.RouteTemplate == "/api/addons/packs/{id}");
+        Assert.Contains(endpoints, e => e.HttpMethod == "DELETE" && e.RouteTemplate == "/api/addons/packs/{id}");
+        // Name = "…" is a named argument, not a route template — the action keeps the controller route.
+        Assert.Contains(endpoints, e => e.HandlerMethod == "Named" && e.RouteTemplate == "/api/addons");
+    }
+
+    [Fact]
     public async Task Handles_multiple_Route_attributes_per_action()
     {
         var (ctx, model) = Setup("""

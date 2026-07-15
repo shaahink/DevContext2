@@ -389,19 +389,20 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         return map;
     }
 
-    /// <summary>All source files that declare an entry point (endpoint, worker, MediatR handler) — the
-    /// seed for entry-scoped call-graph binding in Map mode (Iteration 6). The Map needs call edges only
-    /// from entry-handler methods for entry→target resolution; binding these files (~70 for DntSite)
-    /// instead of the whole repo (~1342) drops cold Stage-3 time by ~25s with no correctness impact.</summary>
+    /// <summary>All source files that declare an application entry surface — the seed for entry-scoped
+    /// call-graph binding in Map mode (Iteration 6). The Map needs call edges only from entry-handler
+    /// methods for entry→target resolution; binding these files (~70 for DntSite) instead of the whole
+    /// repo (~1342) drops cold Stage-3 time by ~25s with no correctness impact.
+    /// <para>T1.1: catalog-driven — every detection that implements <see cref="IEntrySurfaceDetection"/>
+    /// contributes its file, so gRPC/Functions/Orleans/GraphQL/consumer/CLI entries get seeds too, not
+    /// just the original endpoint/handler/worker/hub four. Adding a new AppEntry surface no longer needs
+    /// an edit here (R-T1: a detection lands with its render and its call-graph reach in one place).</para></summary>
     private static HashSet<string> EntrySeedFiles(DiscoveryModel model)
     {
         var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var ep in model.Detections.OfType<EndpointDetection>())
-            if (!string.IsNullOrEmpty(ep.SourceFile)) files.Add(ep.SourceFile);
-        foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
-            if (!string.IsNullOrEmpty(h.SourceFile)) files.Add(h.SourceFile);
-        foreach (var w in model.Detections.OfType<BackgroundWorkerDetection>())
-            if (!string.IsNullOrEmpty(w.SourceFile)) files.Add(w.SourceFile);
+        foreach (var d in model.Detections)
+            if (d is IEntrySurfaceDetection && !string.IsNullOrEmpty(d.SourceFile))
+                files.Add(d.SourceFile);
         return files;
     }
 

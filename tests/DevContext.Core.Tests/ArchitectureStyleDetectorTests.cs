@@ -250,6 +250,26 @@ public sealed class ArchitectureStyleDetectorTests
     }
 
     [Fact]
+    public void Aspire_orchestrated_monolith_is_not_microservices()
+    {
+        // Seen live (shamshir): an AppHost orchestrating exactly 2 runnables (Web + Host) over a
+        // 14-project layered solution. The AppHost's ProjectReferences are the orchestrated set —
+        // counting all solution projects had labeled this Microservices with "19 service projects".
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.Aspire, 1.0f));
+        model.Projects =
+        [
+            new ProjectInfo("Trading.AppHost", "Trading.AppHost.csproj", "C#", [],
+                ["src/Trading.Web/Trading.Web.csproj", "src/Trading.Host/Trading.Host.csproj"], []),
+            Project("Trading.Web"), Project("Trading.Host"), Project("Trading.Domain"),
+            Project("Trading.Application"), Project("Trading.Infrastructure"), Project("Trading.Services"),
+        ];
+
+        var (style, _, _) = ArchitectureStyleDetector.Detect(model);
+        Assert.NotEqual(ArchitectureStyle.Microservices, style);
+    }
+
+    [Fact]
     public void ModularMonolith_detected_from_real_module_segment_naming()
     {
         // E8 positive: a genuine bounded-context naming convention ("Module" as a whole dot-separated

@@ -117,10 +117,30 @@ public sealed class ArchitectureStyleDetector
             || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)));
         if (hasAspire && hasAppHost && projectCount >= 3)
         {
-            var svcCount = model.Projects.Count(p => !IsInfrastructureProject(p.Name));
-            evidence.Add($"Aspire orchestration with {svcCount} service projects");
-            var score = Math.Min(0.65f + svcCount * 0.05f, 0.82f); // cap below VerticalSlices (0.85)
-            scores[ArchitectureStyle.Microservices] = (score, string.Join("; ", evidence));
+            // The AppHost's ProjectReferences ARE the orchestrated runnables (typed AddProject<T>
+            // requires one per service). Counting every solution project mislabels an
+            // Aspire-orchestrated monolith-plus-worker (2 runnables) as Microservices. When the
+            // AppHost carries no ProjectReferences (path-based AddProject overload), fall back to
+            // the whole-solution service count.
+            var orchestrated = model.Projects
+                .Where(p => p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+                    || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)))
+                .SelectMany(p => p.ProjectReferences)
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(n => !string.IsNullOrEmpty(n))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count();
+            var svcCount = orchestrated > 0
+                ? orchestrated
+                : model.Projects.Count(p => !IsInfrastructureProject(p.Name));
+            if (svcCount >= 3)
+            {
+                evidence.Add(orchestrated > 0
+                    ? $"Aspire orchestration of {svcCount} runnable services"
+                    : $"Aspire orchestration with {svcCount} service projects");
+                var score = Math.Min(0.65f + svcCount * 0.05f, 0.82f); // cap below VerticalSlices (0.85)
+                scores[ArchitectureStyle.Microservices] = (score, string.Join("; ", evidence));
+            }
         }
 
         // CleanArchitecture: MediatR + DDD layer conventions + aggregates
@@ -393,11 +413,19 @@ public sealed class ArchitectureStyleDetector
     {
         var results = ImmutableArray.CreateBuilder<PerServiceStyle>();
         var projectClassifier = new Graph.ProjectClassifier(model.Projects);
+        var scope = Graph.SolutionScope.FromModel(model);   // T1.4 — canonical file→project mapping
         var signals = model.Architecture.All;
 
         foreach (var proj in model.Projects)
         {
             if (!IsRunnableService(proj)) continue;
+            // T1.4 — the Aspire AppHost is a runnable orchestrator; surface it (before the infra skip that
+            // otherwise hides ".apphost") so the constellation's conductor isn't dropped to "no services".
+            if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(new PerServiceStyle(proj.Name, "Aspire AppHost", ["Aspire"]));
+                continue;
+            }
             if (IsInfrastructureProject(proj.Name)) continue;
             if (projectClassifier.IsInTestProject(proj.FilePath)) continue;
 
@@ -410,12 +438,53 @@ public sealed class ArchitectureStyleDetector
             var hasYarp = pkgs.Any(p => p.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase));
             var hasRefit = pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase));
             var hasRazorPages = pkgs.Any(p => p.Name.Contains("Microsoft.AspNetCore.Mvc.RazorPages", StringComparison.OrdinalIgnoreCase));
+            var hasMaui = pkgs.Any(p => p.Name.Contains("Microsoft.Maui", StringComparison.OrdinalIgnoreCase));
+            var hasCliParser = pkgs.Any(p => p.Name.Contains("Spectre.Console.Cli", StringComparison.OrdinalIgnoreCase)
+                || p.Name.Contains("System.CommandLine", StringComparison.OrdinalIgnoreCase));
+            var isWorkerSdk = proj.FilePath is { } wp && IsWorkerSdkProject(wp);
             var isWebByName = proj.Name.EndsWith(".Web", StringComparison.OrdinalIgnoreCase);
             var isGrpcByName = proj.Name.EndsWith(".Grpc", StringComparison.OrdinalIgnoreCase)
                 || proj.Name.EndsWith(".GrpcService", StringComparison.OrdinalIgnoreCase);
+            var isConsoleExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
+                && !(proj.FilePath is { } cpx && IsWebSdkProject(cpx));
+
+            // T1.4 — per-service evidence from this project's OWN detections (SourceFile under its dir):
+            // Blazor page routes, HTTP endpoints, and message/worker entries distinguish a Blazor storefront
+            // from a REST API, and a background consumer from a web host, when packages alone are ambiguous.
+            bool Owns(string? file) => file is not null
+                && string.Equals(scope.ProjectForFile(file), proj.Name, StringComparison.OrdinalIgnoreCase);
+            var ownsBlazorPages = model.Detections.OfType<EndpointDetection>()
+                .Any(d => d.HandlerMethod == "<component>" && Owns(d.SourceFile));
+            var ownsHttpEndpoints = model.Detections.OfType<EndpointDetection>()
+                .Any(d => d.HandlerMethod != "<component>" && Owns(d.SourceFile));
+            var ownsBackground = model.Detections.Any(d =>
+                (d is MessageConsumerDetection || d is BackgroundWorkerDetection) && Owns(d.SourceFile));
 
             var stackTags = ImmutableArray.CreateBuilder<string>();
             var style = "Unknown";
+
+            // MAUI first — a cross-platform client is not a web service whatever else it references.
+            if (hasMaui)
+            {
+                style = "MAUI App";
+                stackTags.Add(".NET MAUI");
+                if (hasEfCore) stackTags.Add("EF Core");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Blazor storefront/client — BEFORE the Gateway rung: eShop's WebApp is a Blazor BFF that also
+            // references YARP, and read "Gateway [YARP]" while it is really the storefront. A project that
+            // owns Blazor @page routes is a Blazor app; the YARP proxy is a stack detail, not the identity.
+            if (ownsBlazorPages)
+            {
+                style = "Blazor";
+                stackTags.Add("Blazor");
+                if (hasYarp) stackTags.Add("YARP");
+                if (hasEfCore) stackTags.Add("EF Core");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
 
             // gRPC-dedicated service: has gRPC server packages AND name matches gRPC convention,
             // with NO competing web/app framework. A web API that uses gRPC client should NOT
@@ -435,7 +504,20 @@ public sealed class ArchitectureStyleDetector
                 continue;
             }
 
-            // Gateway first (YARP/Ocelot and not a normal web service)
+            // Worker service — a Worker-SDK host, OR a host that consumes messages / runs background work
+            // and exposes NO HTTP endpoints (eShop PaymentProcessor is a Web-SDK project with only a
+            // RabbitMQ consumer; OrderProcessor is a Worker SDK). It read "Unknown" before.
+            if (isWorkerSdk || (ownsBackground && !ownsHttpEndpoints))
+            {
+                style = "Worker Service";
+                stackTags.Add("Worker");
+                if (hasMassTransit) stackTags.Add("MassTransit");
+                if (hasEfCore) stackTags.Add("EF Core");
+                results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
+                continue;
+            }
+
+            // Gateway (YARP/Ocelot and not a Blazor/normal web service)
             if (hasYarp)
             {
                 style = "Gateway";
@@ -467,6 +549,16 @@ public sealed class ArchitectureStyleDetector
                 {
                     style = "Web API";
                 }
+                // T1.4 — a console Exe with a CLI parser (or by convention) is a CLI tool, not "Unknown"
+                // (shamshir's ResearchCli). Guarded to console Exes so it never mislabels a web host.
+                else if (hasCliParser || (isConsoleExe && !ownsHttpEndpoints
+                    && (proj.Name.EndsWith("Cli", StringComparison.OrdinalIgnoreCase)
+                        || proj.Name.EndsWith("Console", StringComparison.OrdinalIgnoreCase)
+                        || proj.Name.EndsWith("Tool", StringComparison.OrdinalIgnoreCase))))
+                {
+                    style = "CLI";
+                    stackTags.Add("CLI");
+                }
             }
 
             results.Add(new PerServiceStyle(proj.Name, style, stackTags.ToImmutable()));
@@ -475,13 +567,21 @@ public sealed class ArchitectureStyleDetector
         return results.ToImmutable();
     }
 
-    /// <summary>True when a project is a runnable web service (Exe output OR web SDK —
-    /// requires an explicit build-to-executable signal). A class library referencing
-    /// AspNetCore packages (e.g. a shared BuildingBlocks project) is NOT runnable.</summary>
+    /// <summary>True when a project is a runnable service. Delegates to the canonical runnable check
+    /// (<see cref="Graph2.ServiceBoundaryInference.IsRunnableService"/>) so per-service styles and service
+    /// nodes agree on Exe / Web-SDK / Worker-SDK / Aspire-AppHost signals (T1.4).</summary>
     private static bool IsRunnableService(ProjectInfo proj)
+        => Graph2.ServiceBoundaryInference.IsRunnableService(proj);
+
+    /// <summary>True when the csproj uses the Worker SDK (<c>Microsoft.NET.Sdk.Worker</c>). Cached like
+    /// the web-SDK probe; a background-processing host is a Worker Service, not "Unknown".</summary>
+    private static bool IsWorkerSdkProject(string csprojPath)
     {
-        var isExe = proj.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
-        var isWebSdk = proj.FilePath is { } cp && IsWebSdkProject(cp);
-        return isExe || isWebSdk;
+        try
+        {
+            var text = File.ReadAllText(csprojPath);
+            return text.Contains("Microsoft.NET.Sdk.Worker", StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
     }
 }

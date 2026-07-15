@@ -66,6 +66,22 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
     {
         var adjacency = new Dictionary<string, ImmutableArray<string>>();
 
+        // T1.5 — the sample/test path checks below must be RELATIVE to the analysis root (like
+        // NoiseFilter.IsProductionEntrySource). An ABSOLUTE-substring match suppressed every package
+        // signal for any repo cloned under a path segment named "tests" or "samples" (e.g.
+        // C:\dev\samples\MyApp\...): the whole repo's stack/archetype went blank. Strip the root first so
+        // only the repo's OWN samples/tests subfolders are suppressed.
+        var rootPrefix = (context.RootPath ?? "").Replace('\\', '/').TrimEnd('/');
+        string BelowRoot(string path)
+        {
+            var norm = (path ?? "").Replace('\\', '/');
+            return rootPrefix.Length > 0 && norm.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase)
+                ? norm[rootPrefix.Length..]
+                : norm;
+        }
+        bool IsSuppressedPath(string path) =>
+            Graph.ProjectClassifier.IsSamplePath(BelowRoot(path)) || Graph.ProjectClassifier.IsTestPath(BelowRoot(path));
+
         // ── F2: Code-based signal detection (MUST run first) ────────────────
         // A framework's own source doesn't reference itself as a NuGet package.
         // Detect signals from project/solution names for self-referencing repos.
@@ -92,9 +108,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
             {
                 if (TryMatchSignal(pkg.Name, out var signalKey, out var matchedKey))
                 {
-                    if (selfSourcedKeys.Contains(signalKey)
-                        || Graph.ProjectClassifier.IsSamplePath(projectInfo.FilePath)
-                        || Graph.ProjectClassifier.IsTestPath(projectInfo.FilePath))
+                    if (selfSourcedKeys.Contains(signalKey) || IsSuppressedPath(projectInfo.FilePath))
                         continue;
 
                     model.Architecture.Register(FeatureSignal.CreateDetected(
@@ -116,8 +130,9 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                 {
                     var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
 
-                    // Detect signals from project SDK via catalog
-                    var sdk = doc.Root?.Attribute("Sdk")?.Value;
+                    // Detect signals from project SDK via catalog. The Sdk attribute may pin a
+                    // version ("Aspire.AppHost.Sdk/13.3.5") — match on the name alone.
+                    var sdk = doc.Root?.Attribute("Sdk")?.Value?.Split('/')[0];
                     if (sdk is not null
                         && SdkSignalMap.TryGetValue(sdk, out var sdkSignalKey)
                         && !selfSourcedKeys.Contains(sdkSignalKey))
@@ -144,9 +159,7 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                     {
                         if (TryMatchSignal(pkgName, out var extraSignalKey, out var matchedKey2))
                         {
-                            if (selfSourcedKeys.Contains(extraSignalKey)
-                                || Graph.ProjectClassifier.IsSamplePath(csprojPath)
-                                || Graph.ProjectClassifier.IsTestPath(csprojPath))
+                            if (selfSourcedKeys.Contains(extraSignalKey) || IsSuppressedPath(csprojPath))
                                 continue;
 
                             model.Architecture.Register(FeatureSignal.CreateDetected(

@@ -163,11 +163,16 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
     {
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
-            var attrName = attr.Name.ToString();
-            var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
-            foreach (var verb in HttpVerbs)
-                if (name == verb || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
+            if (IsHttpVerbAttributeName(attr.Name.ToString())) return true;
         }
+        return false;
+    }
+
+    private static bool IsHttpVerbAttributeName(string attrName)
+    {
+        var name = attrName.Contains('<') ? attrName[..attrName.IndexOf('<')] : attrName;
+        foreach (var verb in HttpVerbs)
+            if (name == verb || name.EndsWith("." + verb, StringComparison.Ordinal)) return true;
         return false;
     }
 
@@ -257,7 +262,9 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
         foreach (var attr in method.AttributeLists.SelectMany(a => a.Attributes))
         {
             var attrName = attr.Name.ToString();
-            if (IsRouteAttribute(attrName))
+            // [Route("…")] and [HttpGet("packs/{id}")] both carry the action's route
+            // template as their first positional argument.
+            if (IsRouteAttribute(attrName) || IsHttpVerbAttributeName(attrName))
             {
                 var template = ExtractRouteTemplate(attr);
                 if (template is not null)
@@ -271,7 +278,8 @@ public sealed class ControllerActionExtractor : IDiscoveryExtractor
     {
         if (attr.ArgumentList == null) return null;
 
-        var arg = attr.ArgumentList.Arguments.FirstOrDefault();
+        // Only a positional argument is a template — [HttpGet(Name = "GetPacks")] is not a route.
+        var arg = attr.ArgumentList.Arguments.FirstOrDefault(a => a.NameEquals is null);
         if (arg == null) return null;
 
         if (arg.Expression is LiteralExpressionSyntax lit)

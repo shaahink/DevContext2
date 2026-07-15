@@ -63,6 +63,99 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Blazor_page_routes_are_ui_entries_not_http_endpoints()
+    {
+        // T1.7 — a Blazor @page route (BlazorEntryExtractor stamps HandlerMethod "<component>" on a
+        // .razor file) is an interactive UI entry, NOT an HTTP REST endpoint. Rendering it as
+        // HttpEndpoint polluted the "N/M endpoints anonymous" security surface with UI pages. A real
+        // API endpoint alongside it must still read as HttpEndpoint.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("WebApp", @"C:\repo\src\WebApp\WebApp.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new EndpointDetection("GET", "/checkout", "Checkout", "<component>", [], [])
+        {
+            ExtractorName = "BlazorEntryExtractor", SourceFile = @"C:\repo\src\WebApp\Pages\Checkout.razor", LineNumber = 1,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/api/orders", "OrdersApi", "GetAsync", [], [])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\WebApp\OrdersApi.cs", LineNumber = 12,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var page = entries.Single(e => e.Route == "/checkout");
+        Assert.Equal(EntryPointKind.UiEntry, page.Kind);
+        Assert.Null(page.HttpMethod);   // a UI page carries no REST verb
+
+        var api = entries.Single(e => e.Route == "/api/orders");
+        Assert.Equal(EntryPointKind.HttpEndpoint, api.Kind);
+    }
+
+    [Fact]
+    public void Same_route_endpoints_are_disambiguated_not_merged()
+    {
+        // T1.7 — an API-version pair (eShop `GET /items` v1/v2 → GetAllItemsV1 / GetAllItems) shares
+        // verb+route but is two real endpoints. They must yield TWO entries with DISTINCT titles and node
+        // ids (the deck fired NG0955 dup-keys when they collapsed onto one), disambiguated by the action.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Catalog.API", @"C:\repo\src\Catalog.API\Catalog.API.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items", "CatalogApi", "GetAllItemsV1", [], [])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.API\CatalogApi.cs", LineNumber = 21,
+        });
+        model.Detections.Add(new EndpointDetection("GET", "/api/catalog/items", "CatalogApi", "GetAllItems", [], [])
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Catalog.API\CatalogApi.cs", LineNumber = 26,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var catalogItems = entries.Where(e => e.Route == "/api/catalog/items").ToList();
+        Assert.Equal(2, catalogItems.Count);                              // never merged
+        Assert.Equal(2, catalogItems.Select(e => e.Node).Distinct().Count()); // distinct node ids → no dup-key
+        Assert.Equal(2, catalogItems.Select(e => e.Title).Distinct().Count()); // distinct titles
+        Assert.Contains(catalogItems, e => e.Title.Contains("GetAllItemsV1", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Http_entries_group_by_route_feature_not_namespace()
+    {
+        // T1.6 — feature areas for HTTP endpoints come from the route's first meaningful segment
+        // (skipping api/version/param), not the shared handler namespace that collapses everything into
+        // one "Api (N entries)" module row. Versioned routes fold into the same feature.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("TradingEngine.Web", @"C:\repo\src\TradingEngine.Web\TradingEngine.Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new EndpointDetection("GET", "/api/runs/{id}", "RunsApi", "GetRun", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 10 });
+        model.Detections.Add(new EndpointDetection("POST", "/api/runs", "RunsApi", "CreateRun", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 20 });
+        model.Detections.Add(new EndpointDetection("GET", "/api/v2/strategies", "StrategiesApi", "List", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\StrategiesApi.cs", LineNumber = 5 });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.Equal(["runs"], entries.Where(e => e.Route!.Contains("/runs")).Select(e => e.GroupPath).Distinct());
+        Assert.Equal("strategies", entries.Single(e => e.Route == "/api/v2/strategies").GroupPath); // version segment skipped
+    }
+
+    [Fact]
     public void Background_workers_become_entry_points()
     {
         // DntSite audit: 24 DNTScheduler jobs were detected but never surfaced as entries.

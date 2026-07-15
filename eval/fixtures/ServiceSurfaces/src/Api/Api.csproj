@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Package refs trip the Grpc / Functions / GraphQL signals (source-only; no restore needed
+         for analysis). Each surface's handler calls into a distinctly-named service so the seeded
+         call graph has a target to resolve (T1.1). -->
+    <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.0" />
+  </ItemGroup>
+</Project>
