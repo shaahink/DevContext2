@@ -217,14 +217,12 @@ public sealed class EntryTableProjection : IGraphProjection<EntryTableResult>
 {
     public EntryTableResult Project(CodeGraph graph, ProjectionOptions options)
     {
-        var rows = graph.Flows.Select(f => f.Entry)
-            .Concat(graph.Nodes
-                .Where(n => n.Kind == NodeKind.EntryPoint)
-                .Select(n =>
-                {
-                    var kind = DeriveEntryKind(n);
-                    return new EntryPoint(kind, n.Title, n.Id) { Project = n.Project };
-                }))
+        // T1.8 — Single-source the kind: rows come from the authoritative entry inventory
+        // (graph.Entries), whose EntryPointKind is stamped by the builder that produced the entry.
+        // We no longer re-derive kind from node `kind:` tags nor default untagged EntryPoint nodes
+        // to PublicApi (the "gRPC 75" facet lie): one entry = one row = its true kind. A bare
+        // EntryPoint node with no matching Entry record is an assembler bug to surface, not a bucket.
+        var rows = graph.Entries
             .DistinctBy(e => e.Node)
             .Select(e =>
             {
@@ -248,17 +246,6 @@ public sealed class EntryTableProjection : IGraphProjection<EntryTableResult>
             .ToImmutableArray();
 
         return new EntryTableResult { Rows = rows };
-    }
-
-    private static EntryPointKind DeriveEntryKind(GraphNode node)
-    {
-        foreach (var tag in node.Tags)
-        {
-            if (tag.StartsWith("kind:", StringComparison.Ordinal) &&
-                Enum.TryParse<EntryPointKind>(tag[5..], out var kind))
-                return kind;
-        }
-        return EntryPointKind.PublicApi;
     }
 }
 

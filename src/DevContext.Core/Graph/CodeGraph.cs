@@ -203,6 +203,11 @@ public sealed class CodeGraph
     /// <summary>L4 — Precomputed flows (spine-only), one per entry. Computed at assembly time, consumed
     /// by projections, MCP tools, and UI surfaces (design §1.4, §3).</summary>
     public ImmutableArray<Flow> Flows { get; init; } = [];
+    /// <summary>T1.8 — The authoritative entry inventory (the same records GraphBuilder returns), carried
+    /// on the graph so projections read the true <see cref="EntryPointKind"/> off the builder-stamped
+    /// record instead of re-deriving it from node tags (the "gRPC 75" facet lie). One entry = one record;
+    /// a bare EntryPoint node with no matching record is an assembler error, not a PublicApi default.</summary>
+    public ImmutableArray<EntryPoint> Entries { get; init; } = [];
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -232,6 +237,7 @@ public sealed class CodeGraphBuilder
     private readonly Dictionary<NodeId, List<GraphEdge>> _out = [];
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
     private readonly List<Flow> _flows = [];
+    private ImmutableArray<EntryPoint> _entries = [];
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
@@ -317,10 +323,14 @@ public sealed class CodeGraphBuilder
     /// <summary>L4 — Sets the computed flows on the builder. Replaces any previously set flows.</summary>
     public void SetFlows(IEnumerable<Flow> flows) { _flows.Clear(); _flows.AddRange(flows); }
 
+    /// <summary>T1.8 — Sets the authoritative entry inventory on the builder so the frozen graph carries
+    /// the true <see cref="EntryPointKind"/> per entry. Replaces any previously set entries.</summary>
+    public void SetEntries(ImmutableArray<EntryPoint> entries) { _entries = entries.IsDefault ? [] : entries; }
+
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
     public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows] };
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows], Entries = _entries };
     }
 }

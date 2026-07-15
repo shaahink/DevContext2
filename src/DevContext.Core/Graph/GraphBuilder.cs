@@ -104,6 +104,7 @@ public sealed class GraphBuilder
             EnrichEntryGroupPaths(EnrichEntryTargets(preGraph, entries), names, scope),
             preGraph, scope);
         g.SetFlows(ComputeFlows(preGraph, enrichedEntries));
+        g.SetEntries(enrichedEntries);   // T1.8 — projections read the true kind off this record, not node tags
         var violations = DetectLayerViolations(preGraph, archetype);
         var graph = g.Build(isSparse, hubCount, violations);
         return (graph, enrichedEntries);

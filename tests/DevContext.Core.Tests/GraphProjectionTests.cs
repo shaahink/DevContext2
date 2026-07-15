@@ -175,30 +175,49 @@ public sealed class GraphProjectionTests
     }
 
     [Fact]
-    public void EntryTable_flows_and_stray_entries_deduplicated()
+    public void EntryTable_duplicate_entry_records_deduplicated_by_node()
     {
         var g = new CodeGraphBuilder();
         var e1 = NodeId.ForEntry("GET /orders");
         g.AddNode(new GraphNode(e1, "GET /orders", NodeKind.EntryPoint));
-        g.SetFlows([MakeFlow("GET /orders", e1, score: 1.0)]);
-
-        // Same entry appears as both a flow entry AND a stray node — only one row.
+        // T1.8 — the same node appearing twice in the inventory collapses to one row.
+        g.SetEntries([
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /orders", e1) { Score = 1.0 },
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /orders", e1) { Score = 1.0 },
+        ]);
         var graph = g.Build();
         var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
         Assert.Single(result.Rows);
     }
 
     [Fact]
-    public void EntryTable_stray_entry_uses_public_api_kind()
+    public void EntryTable_kind_comes_from_entry_record_not_node_tag()
     {
+        // T1.8 — the row kind is the builder-stamped EntryPointKind (single-sourced), even when the
+        // node carries no `kind:` tag. A gRPC entry reads "GrpcService", never a PublicApi default.
+        var g = new CodeGraphBuilder();
+        var node = NodeId.ForEntry("Basket/GetBasket");
+        g.AddNode(new GraphNode(node, "Basket.GetBasket", NodeKind.EntryPoint) { Project = "Basket.API" });
+        g.SetEntries([new EntryPoint(EntryPointKind.GrpcService, "Basket.GetBasket", node) { Project = "Basket.API" }]);
+        var graph = g.Build();
+
+        var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
+        var row = Assert.Single(result.Rows);
+        Assert.Equal("GrpcService", row.Kind);
+        Assert.Equal("Basket.API", row.Project);
+    }
+
+    [Fact]
+    public void EntryTable_entrypoint_node_without_entry_record_is_omitted()
+    {
+        // T1.8 — a bare EntryPoint node with no matching Entry record is NOT invented as a PublicApi
+        // row (the deleted DeriveEntryKind default); the inventory is the single source of truth.
         var g = new CodeGraphBuilder();
         g.AddNode(new GraphNode(NodeId.ForEntry("worker"), "worker", NodeKind.EntryPoint) { Project = "Worker" });
         var graph = g.Build();
 
         var result = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
-        var row = Assert.Single(result.Rows);
-        Assert.Equal("PublicApi", row.Kind);
-        Assert.Equal("Worker", row.Project);
+        Assert.Empty(result.Rows);
     }
 
     [Fact]
