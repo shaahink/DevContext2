@@ -68,7 +68,7 @@ captures alongside. If you then fix a defect, add a "Post-fix re-audit" section 
 Reproduce → write/extend a failing test (or note the gap a passing test missed — e.g. shallow
 substring checks) → fix at the source → re-capture → confirm the scorecard flips → ratchet
 `eval/expectations/*.json` + goldens **with review** (`$env:UPDATE_GOLDENS=1`, never blind) → gate
-green (Core 269/2-skip · Desktop 64 · build 0-warn).
+green (`dotnet test DevContext.slnx --filter "Category!=Eval"` · build 0-warn).
 
 ## Gotchas
 

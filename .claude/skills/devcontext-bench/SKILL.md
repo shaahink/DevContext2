@@ -46,8 +46,8 @@ Sends/Raises tier (deferred).
 
 1. Bench → identify the top cost from the table/phases.
 2. Apply ONE change (parallelize a serial loop · scope work to the focus · fix an O(n²) · trim refs).
-3. `dotnet build DevContext.slnx` → **rebuild CLI after a Core edit** · `dotnet test tests/DevContext.Core.Tests`
-   (268/2-skip) + `tests/DevContext.Desktop.Tests` (64) — **no detection/golden regressions**.
+3. `dotnet build DevContext.slnx` → **rebuild CLI after a Core edit** ·
+   `dotnet test DevContext.slnx --filter "Category!=Eval"` — **no detection/golden regressions**.
 4. Re-bench the same repos; record the delta vs baseline; commit with the before/after numbers.
 
 ## Correctness guardrails (perf must not change output)

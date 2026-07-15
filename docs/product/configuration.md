@@ -1,118 +1,64 @@
 # Configuration Guide
 
-## devcontext.json
+Verified against `src/DevContext.Cli/Services/DevContextConfig.cs`.
 
-Create a `devcontext.json` at your project root for persistent settings:
+## `devcontext.json`
+
+Place a `devcontext.json` at your project root for persistent settings. The CLI loads it from the
+current directory; CLI flags override it. Only the fields below are recognised.
 
 ```json
 {
-  "$schema": "./devcontext.schema.json",
-  "defaultScenario": "overview",
-  "maxOutputTokens": 6000,
-  "excludePatterns": [".git", "bin", "obj", "Migrations"],
+  "excludePatterns": [".git", "bin", "obj", ".vs", "node_modules", ".idea", "Migrations"],
   "entryPaths": ["src/Api"]
 }
 ```
 
----
+The repo's own `devcontext.json` is a good minimal example — it sets only `excludePatterns`.
 
 ## Fields
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `defaultScenario` | `string` | `"overview"` | Default mode: `"overview"` or `"deep-dive"` (engine key). Alias `"trace"` maps to `"deep-dive"`. `"audit"` deprecated. |
-| `maxOutputTokens` | `int` | `8000` | Token budget for pruning. Range: 500–50000 |
-| `excludePatterns` | `string[]` | `[".git", "bin", "obj", ".vs", "node_modules", ".idea"]` | File/directory patterns to exclude from file tree scanning |
-| `entryPaths` | `string[]` | `[]` | Directories or files to limit analysis to (e.g., `["src/Api"]`) |
+| Field | Type | Status | Description |
+|-------|------|--------|-------------|
+| `excludePatterns` | `string[]` | **active** | File/dir name patterns skipped during the file-tree scan (case-insensitive substring match). |
+| `entryPaths` | `string[]` | **active** | Restrict analysis to these directories/files (e.g. `["src/Api"]`). |
+| `maxOutputTokens` | `int` | legacy | Validated to 100–100000, but the token budget is retired for Map/Trace — it affects only the legacy JSON/HTML catalog. See note below. |
+| `defaultScenario` | `string` | legacy | Validated against the registered scenarios; the scenario/profile model is retired in favour of `--focus`. |
+| `defaultProfile` | `string` | legacy | `quick` \| `focused` \| `debug` \| `full`. Legacy — see note. |
+| `profiles` | `object` | legacy | Named overrides, each `{ profile, maxOutputTokens, noRoslyn }`. Legacy. |
 
----
+> **Legacy fields note.** `maxOutputTokens`, `defaultScenario`, `defaultProfile`, and `profiles` are
+> still parsed and range/enum-validated (a bad value is an error), but the token-budget + scenario/
+> profile model has been retired at the CLI (the matching flags are hidden no-op stubs). For current
+> Map/Trace output they have no effect. Prefer `--focus` / `--detail` on the CLI. (Tracked in
+> `docs/dev/NOTABLE-FINDINGS.md` — the config schema is mid-migration.)
 
-## Mode & Profile
-
-### Mode (Scenario)
-
-Two modes with backward-compatible engine keys:
-
-| Mode | Engine key | Best for |
-|------|-----------|----------|
-| Overview | `overview` | Broad architecture map, endpoints, entities, wiring |
-| Trace | `deep-dive` | Entry-point focused with call graph, handler chains |
-
-- `trace` is accepted as a CLI alias for `deep-dive`
-- `audit` is deprecated — maps to `overview` with a warning
-
-### Profile (Auto-Derived)
-
-Profile is automatically derived from which sections are selected. You can still pass `--profile` explicitly for backward compatibility:
-
-| Profile | When automatically selected |
-|---------|---------------------------|
-| `focused` | Default — no call graph or source code sections checked |
-| `debug` | Call graph section is checked |
-| `full` | Source code section is checked |
-
----
-
-## CLI Flags vs Config
-
-CLI flags override `devcontext.json`:
-
-```bash
-# Config says maxOutputTokens: 6000, but CLI overrides
-devcontext . --max-tokens 12000
-```
-
-The `--task` flag also overrides the config's `defaultScenario` and `defaultProfile`:
-
-```bash
-devcontext . --task "trace the order handler"
-# Auto-selects: scenario=deep-dive, profile=debug
-# Overrides any defaultScenario/defaultProfile in config
-```
-
----
-
-## Exclude Patterns
-
-Control which files and directories are skipped during file tree discovery:
+## Exclude patterns
 
 ```json
 {
-  "excludePatterns": [
-    ".git",
-    "bin",
-    "obj",
-    ".vs",
-    "node_modules",
-    ".idea",
-    "Migrations",
-    "wwwroot/lib",
-    "Generated"
-  ]
+  "excludePatterns": [".git", "bin", "obj", ".vs", "node_modules", ".idea", "Migrations", "wwwroot/lib", "Generated"]
 }
 ```
 
-Patterns are matched against file/directory names (case-insensitive substring match).
+Matched against file/directory names (case-insensitive substring). Excluding `Migrations`, generated
+folders, and vendored assets keeps the Map focused and the analysis fast.
 
----
+## CLI flags override config
 
-## Desktop Settings
-
-The Desktop app persists settings in `%LocalAppData%\DevContext\settings.json`:
-
-```json
-{
-  "lastScenario": "overview",
-  "lastProfile": "focused",
-  "lastFormat": "markdown",
-  "lastTokens": 8000,
-  "lastAround": "",
-  "lastTask": "",
-  "includeProvenance": false,
-  "includeDiagnostics": false,
-  "noRoslyn": false,
-  "lastActiveSections": ["Architecture overview", "Endpoints", "MediatR Handlers", "Data model", "DI / Wiring", "Related types"]
-}
+```bash
+devcontext analyze .                 # uses devcontext.json in the current dir
+devcontext analyze . --no-roslyn     # flag wins over config
 ```
 
-Recent project paths are stored in `%LocalAppData%\DevContext\recent.json`.
+## Validation
+
+`DevContextConfig.Validate()` rejects an out-of-range `maxOutputTokens`, an unknown `defaultProfile`,
+or a `defaultScenario` not in the registered set. An unparseable `devcontext.json` is ignored (treated
+as absent) rather than fatal.
+
+## Desktop settings
+
+The desktop app (`DevContext.App`, Angular/Tauri) manages its own appearance/analysis/storage settings
+in its Settings page — it does not read `devcontext.json`. (The former WPF desktop's
+`%LocalAppData%\DevContext\settings.json` is gone with that app.)
