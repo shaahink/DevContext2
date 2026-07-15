@@ -16,8 +16,8 @@ SyntaxStructureExtractor keys TypeDiscovery.Id "global.OrdersApi", so the Sends 
 Fix: GetTypeFullName uses the "global" fallback. eShop /draft now traces entry→send CreateOrderDraftCommand [verified]→handler→data
 Order (was 2 nodes). Verified via isolated repro + real eShop drive (eval harness is overview-only, can't pin a focus-trace).
 T1 (wrapup→t0→t1) already DELIVERED to develop @ c2f7250. Remaining T2: T2.1 T2.2 T2.3 T2.4 T2.6 T2.7 T2.8.
-stage: T2.5 VERIFIED. T2.1–T2.4, T2.6–T2.8 TODO on feat/tapestry-t2.
-next: **T2.6** (one event join — RabbitMQ board/one-pager/flow from Graph2 seams) or T2.2 (member line numbers, enables T4/T5); then the rest of T2.
+stage: T2.5 + T2.7 VERIFIED on feat/tapestry-t2. Remaining: T2.2 T2.3 T2.1 T2.4 T2.6 T2.8.
+next: **T2.2** (member line numbers — enabler for T4/T5), then T2.3 T2.1 T2.4 T2.6, T2.8 (GraphBuilder split) LAST. Full gate battery pending at a milestone (fast+loom-guards green per commit so far).
 gate: **gates.ps1 GATE: PASS** (tapestry-t2/gates-t2.5.txt) — build 0w/0e · fast tests · MCP QA (dogfood, no regression) · eval 58P/6S/0F (no drift) · CLI matrix. loom-guards PASSED (0 truth failures). eShop drift 1092/833→1089/837 (nodes −3 orphan-member dedup, edges +4 Sends, entries 109 unchanged; explained).
 
 ---
@@ -56,7 +56,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T2.4 | Type-focus trace shaping (member groups, named omissions) | TODO | | |
 | T2.5 | Param-passed dispatch seam: receiver normalization + global-namespace member-id fix (audit A1) | VERIFIED | (T2.5 commit) | tapestry-t2/T2.5-EVIDENCE.md · eshop-draft-trace-{before,after}.md · gates-t2.5.txt · SeamDetectorTests + BodyFactExtractorTests |
 | T2.6 | One event join: board/one-pager/flow from Graph2 seams; legacy joins deleted (audit A10) | TODO | | |
-| T2.7 | `global` display fallback namespace→project→folder (audit A7) | TODO | | |
+| T2.7 | `global` never rendered — display fallback namespace→folder; regression-lock after T2.5's global.* ids (audit A7) | VERIFIED | (T2.7 commit) | NamespaceDisplayTests + LibrarySurfaceBuilderTests (global→folder label); engine Map/report/pack verified `global`-clean on eShop |
 | T2.8 | Old-graph retirement cleanup: tags · stale comments · GraphBuilder split (audit §0b) | TODO | | |
 
 ### T3 — MCP v3
