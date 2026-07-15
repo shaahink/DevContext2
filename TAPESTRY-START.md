@@ -16,9 +16,9 @@ IsProductionProject); most-depended = MediatR not MediatR.Examples. T1.4: per-se
 Aspire AppHost, zero Unknown; Blazor beats YARP); runnable adds Worker+Aspire SDK; rollup moved after Stage 3. T1.5: OpenAPI
 package dropped as a false minimal-apis signal (shamshir MinimalApi→NLayer); DependencyExtractor sample/test suppression now
 root-relative. T1.6: HTTP feature areas from route prefix (shamshir "Api (128)"→8 areas). Evidence in commit bodies.
-stage: T0 + T1.* ALL VERIFIED. wrapup+t0+t1 await review/merge to develop. T1 stage DONE.
-next: **T2** — start T2.5 (param-passed MediatR dispatch, the eShop /draft flagship-flow unlock) FIRST, then T2.1…; or merge feat/tapestry-t1 → develop.
-gate: **gates.ps1 GATE: PASS** (tapestry-t1/gates-t1-final.txt) — build 0w/0e · fast tests · MCP QA (dogfood checkout 46 steps) · eval 58P/6S/0F · CLI matrix. loom-guards clean.
+stage: T0 + T1.* **DELIVERED** — feat/tapestry-t1 (wrapup→t0→t1, linear) merged --no-ff into develop @ **c2f7250** and pushed to origin/develop (2026-07-15). T1 stage DONE.
+next: **T2** — branch `feat/tapestry-t2` off develop; start T2.5 (param-passed MediatR dispatch, the eShop /draft flagship-flow unlock) FIRST, then T2.1…
+gate: **gates.ps1 GATE: PASS** re-verified on the tip pre-merge (tapestry-t1/gates-deliver.txt) — build 0w/0e · fast tests · MCP QA · eval 58P/6S/0F · CLI matrix. loom-guards PASSED (0 truth failures).
 
 ---
 
