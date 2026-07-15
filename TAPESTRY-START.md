@@ -7,20 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 Tapestry T1.2 + T1.3 delivered on feat/tapestry-t1 (off feat/tapestry-t0). These were the
-two reds the T0 handover staged as its "one honest caveat" → fixing them flips gates.ps1 to a clean GATE: PASS.
-T1.2 (0f410a9): gateway archetype now keys on a GENUINE peer-service count (real Exe/Web-SDK hosts that pass
-NoiseFilter.IsProductionEntrySource, not proxy-package refs) — NOT self-source (the dogfood repo names a project
-YarpApiGateway and self-sources the signal exactly as YARP does; self-source flipped it to Gateway, caught by the
-dogfood Truth gate). yarp → Gateway; dogfood → App; eShop unchanged. T1.3 (3ea6c34): entry target reconstructs
-Type.Method when a Graph2 seam leaves a bare method-name title (dntsite FeedsService, auto-registered → interface→impl
-from the type graph). New tests/fixtures/ConventionalController + conventionalcontroller.json pin it fast (dntsite eval
-is ~6m45s). Evidence: eval-results/2026-07-15/tapestry-t1/.
-stage: T1.2 + T1.3 VERIFIED. feat/wrapup-2026-07-15 + feat/tapestry-t0 + feat/tapestry-t1 all await review/merge.
-next: T1.1 catalog-driven EntrySeedFiles (gRPC/Functions/Orleans/GraphQL seeds — needs service-app fixtures, not the
-framework repos which are Library) → then T1.4/T1.5/T1.6 (need shamshir pole + 22-repo bench).
-gate: build 0w/0e · Core 448P/3S · Server 14P · Truth 5P/6S · loom-guards clean · full eval 0 fail (yarp Gateway,
-dntsite targets, all archetype/style green) · gates.ps1 GATE: PASS (see tapestry-t1/gates-t1.txt).
+last: 2026-07-15 audit session (parallel worktree) merged into feat/tapestry-t1 (c3bcb9a): live blind-drive
+feature-design audit — eShop through every GUI page (6 Playwright rounds, token exports captured to disk) + CLI
+report/query over 8 benchmark libraries → eval-results/2026-07-15/feature-design-audit.md (17 correctness findings
+A1–A17, per-surface B, export audit C incl. the stale-Copy bug, library lens D, consistency matrix E). Addendum
+APPROVED mode A and woven: new T1.7–T1.9, T2.5–T2.8, T3.7–T3.8, T4.6, T5.6, T6.7–T6.11, T7.4 + gate riders on
+T1.4/T1.5/T2.2/T6.3/T6.4 — full per-checkpoint spec (evidence, verified code loci, traps):
+docs/dev/briefs/proposal-tapestry-audit-addendum.md. Graph verdict recorded (§0b): Graph2 substrate is already
+THE feed, regex scans deleted; retirement = T2.8 cleanup only. Repro drivers: src/DevContext.App/scripts/audit-drive*.mts.
+Prior state (T1.2 0f410a9 gateway peer-count, T1.3 3ea6c34 Type.Method targets, both VERIFIED): tapestry-t1/T1-EVIDENCE.md.
+stage: T0 + T1.2/T1.3 VERIFIED · audit weave landed (docs-only). wrapup+t0+t1 await review/merge to develop.
+next: T1.1 catalog-driven EntrySeedFiles, then T1.7+T1.8 (same territory); T2.5 FIRST when T2 opens (audit A1).
+gate: unchanged since 527c382 — build 0w/0e · full eval 0 fail · gates.ps1 GATE: PASS (weave is docs-only).
 
 ---
 
@@ -45,6 +43,9 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T1.4 | Runnable/per-service inference (Exe + AppHost refs; CLI archetype) | TODO | | |
 | T1.5 | Style-ladder arbitration (controllers-heavy ≠ MinimalApi) | TODO | | |
 | T1.6 | Feature areas from route prefixes (no more "Api (122 entries)") | TODO | | |
+| T1.7 | Entry taxonomy hygiene: gRPC RPC-only · MAUI noise out · Blazor≠HTTP · dup disambiguation (audit A2–A5) | TODO | | |
+| T1.8 | Kind single-sourcing: EntryTableProjection joins Entries, no tag default (audit "gRPC 75") | TODO | | |
+| T1.9 | Topology noise: tests/samples out of services/depended/dead-code (audit A16/D) | TODO | | |
 
 ### T2 — Graph quality
 | # | Checkpoint | Status | Commit | Evidence |
@@ -53,6 +54,10 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T2.2 | Member LineNumber stamping (packs show file:line everywhere) | TODO | | |
 | T2.3 | Target quality: Type.Method titles · direct-EF label · mutating-verb guard | TODO | | |
 | T2.4 | Type-focus trace shaping (member groups, named omissions) | TODO | | |
+| T2.5 | Param-passed dispatch seam: BodyFacts params + resolver fallback + receiver normalization (audit A1) | TODO | | |
+| T2.6 | One event join: board/one-pager/flow from Graph2 seams; legacy joins deleted (audit A10) | TODO | | |
+| T2.7 | `global` display fallback namespace→project→folder (audit A7) | TODO | | |
+| T2.8 | Old-graph retirement cleanup: tags · stale comments · GraphBuilder split (audit §0b) | TODO | | |
 
 ### T3 — MCP v3
 | # | Checkpoint | Status | Commit | Evidence |
@@ -63,6 +68,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T3.4 | config latency ≤500ms warm (was 10.5s on shamshir) | TODO | | |
 | T3.5 | Repo-relative paths + Start-here noise filter | TODO | | |
 | T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | TODO | | |
+| T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | TODO | | |
+| T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | TODO | | |
 
 ### T4 — Context generation v2
 | # | Checkpoint | Status | Commit | Evidence |
@@ -72,6 +79,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T4.3 | config + tests sections server-side (R9) | TODO | | |
 | T4.4 | Per-section provenance + tier mix (R10) | TODO | | |
 | T4.5 | VerifyContextPack staleness API (R6 engine half) + MCP verify_context | TODO | | |
+| T4.6 | Pack assembly correctness: contracts≠signatures · empty sections omitted · archetype header (audit C2) | TODO | | |
 
 ### T5 — Context Studio v2
 | # | Checkpoint | Status | Commit | Evidence |
@@ -81,17 +89,23 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | TODO | | |
 | T5.4 | Worker/hub presets | TODO | | |
 | T5.5 | Card content honesty: real previews (no title echo) · per-card provenance · one unit · scope-error tooltips | TODO | | |
+| T5.6 | Studio recompute-on-change: budget/format re-pack · plain≠markdown · save name · preset/Add UX (audit C1) | TODO | | |
 
 ### T6 — Workbench & pages revamp
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T6.0 | Full 7-page UI audit vs dogfood AND shamshir (screenshots + findings doc) | TODO | | |
+| T6.0 | Full 7-page UI audit vs dogfood AND shamshir (eShop pole DONE 2026-07-15; shamshir pole remains) | IN PROGRESS | c3bcb9a | eval-results/2026-07-15/feature-design-audit.md |
 | T6.1 | Home/Atlas honest on monolith+workers repos | TODO | | |
 | T6.2 | Canvas revamp: entry-kind glyphs, tier-styled edges, archetype lens defaults | TODO | | |
 | T6.3 | Insights honesty: noise thresholds + archetype-aware copy (no "Desktop apps" on web repos) | TODO | | |
 | T6.4 | MCP page multi-session truth · Settings storage truth | TODO | | |
 | T6.5 | Keyboard reality: wire h/e/a/i/m/c/s nav (or drop affordance) · route-restore `/` bug · drive-gate kbd battery | TODO | | |
 | T6.6 | Theme parity: shell follows light mode · 3 vibes × 3 modes screenshot matrix in the gate | TODO | | |
+| T6.7 | Hero graphs draw edges (service-map-hero reuses Service-lens canvas; MAP header chips) (audit B1) | TODO | | |
+| T6.8 | Names/paths/metrics: no last-segment names · repo-relative paths · metric tooltips (audit A8/A14/B5/B6) | TODO | | |
+| T6.9 | First-run & session: deck sort · Trace-checkout target · persistent tiles · session reattach (audit B2–B4) | TODO | | |
+| T6.10 | MCP page ergonomics: full handle + use-button · feed origin filter (audit B9) | TODO | | |
+| T6.11 | One-pager fidelity: rides T2.6+T6.8 · file download · eShop golden (audit C3) | TODO | | |
 
 ### T7 — Bench + perf honesty
 | # | Checkpoint | Status | Commit | Evidence |
@@ -99,6 +113,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T7.1 | Bench + truth files extended (CompositionApp, gRPC service, aspire-samples) | TODO | | |
 | T7.2 | Perf baseline + edge-explosion check (devcontext-bench) | TODO | | |
 | T7.3 | Stage waterfall ≥95% wall-time accounted | TODO | | |
+| T7.4 | Page-render RPC budget ≤15/navigation; server flow/facet memo (audit B11) | TODO | | |
 
 ### T8 — Close-out
 | # | Checkpoint | Status | Commit | Evidence |
