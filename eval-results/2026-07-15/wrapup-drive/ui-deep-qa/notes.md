@@ -1,0 +1,31 @@
+# Deep QA notes — eShop dogfood (2026-07-15)
+
+- trace-checkout landed on: http://localhost:4200/explore?focus=GET%20%2FCheckout
+- insights link landed on: http://localhost:4200/insights
+- kbd overlay visible: true
+- kbd 'e' -> /insights (want /explore) FAIL
+- kbd 'a' -> /insights (want /atlas) FAIL
+- kbd 'i' -> /insights (want /insights) OK
+- kbd 'm' -> /insights (want /mcp) FAIL
+- kbd 'c' -> /insights (want /context) FAIL
+- kbd 's' -> /insights (want /settings) FAIL
+- kbd 'h' -> /insights (want /) FAIL
+- lens Service: button not found
+- lens Layer: button not found
+- lens Feature: button not found
+- lens Flow: button not found
+- view Table: button not found
+- view Tree: button not found
+- view Graph: button not found
+- code pane len: 874
+- csv button present
+- omnibox has checkout results: true
+- omnibox enter landed: http://localhost:4200/explore?focus=GET%20%2FCheckout
+- atlas export feedback (Copied?): true
+- insights: no clickable insight row
+- studio totals text sample: 110 tok | 110 tok | 171 tok | 171 tok
+- omitted visible after min budget: false
+- studio: copy button missing
+- studio: save button missing
+- mcp status text: SESSIONS
+- mcp copy config clicked

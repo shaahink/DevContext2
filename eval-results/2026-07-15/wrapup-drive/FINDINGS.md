@@ -55,6 +55,25 @@ Artifacts in this directory unless noted.
 | 31 | Atlas: MAP text renders as flattened wall; service diagram = same 3 boxes; event wiring empty | T6.1 | 03-atlas.png |
 | 32 | /mcp page polls continuously (never network-idle) | T6.4 | tour timeout log |
 
+## Deep UI QA — eShop dogfood, user-style drive (`ui-deep-qa/`, 33 shots, script `src/DevContext.App/scripts/deep-qa-eshop.mjs`)
+
+| # | Finding | Status | Evidence |
+|---|---------|--------|----------|
+| 37 | **Single-key nav shortcuts (h/e/a/i/m/c/s) do not navigate** — activity bar declares them (`shortKey`), only `?` overlay + `Ctrl+K` + `Shift+E` work | T6.5 | notes.md kbd-* FAIL rows |
+| 38 | Light mode themes the routed page but the SHELL stays dark (titlebar, tab strip, activity rail) — half-themed UI | T6.6 | 31-explore-light.png, 30-home-light.png |
+| 39 | THEME/VIBE has 3 vibes (Modern/Terminal/Hacker) × 3 modes — Terminal/Hacker never QA'd; no gate covers them | T6.6 | 30-home-light.png (settings) |
+| 40 | Studio card previews echo the card TITLE ("Flow: /ProductList") instead of content; preview adds no information | T5.5 | 24-studio-budget-min.png |
+| 41 | Studio provenance chips: all 5 preset cards cite the same `ProductList.cshtml.cs:3` (entry echo, not per-card source) | T5.3 | 24-studio-budget-min.png |
+| 42 | Studio meter mixes units: server cards "110 tok" vs dead-stub tests/validator cards "~10L" (lines) — R9 stubs visible in UI | T4.3/T5.1 | 24-studio-budget-min.png |
+| 43 | Omitted list absent even at 634/1000 tok near-cap (audit R1 confirmed live) | T5.1 | 24-studio-budget-min.png, notes.md |
+| 44 | Insights copy bugs: "Missing validation … every WRITE endpoint" lists GET endpoints as evidence; "Module map: … DESKTOP apps are organised" on a web microservices repo | T6.3 | 21-insights-page.png |
+| 45 | "Possible dead code" chips include framework-shaped types (NotFoundException, OrderItem) — noise | T6.3 | 21-insights-page.png |
+| 46 | Omnibox works well: Ctrl+K → "checkout" → Enter deep-links to `/explore?focus=GET /Checkout` | verified good | 13-15 shots |
+| 47 | Atlas "Export one-pager" works (Copied! feedback) | verified good | 20-atlas-export-clicked.png |
+| 48 | Inspector five sections all render (Details/Code 874ch/Insights/Call Stack/Trail) | verified good | 07-11 shots |
+| 49 | Navigating to `/` after visiting Settings renders Settings (route restore?) — Home unreachable by URL in that state | T6.5 verify | 30-home-light.png |
+| 50 | Scope-picker groups by service with counts (Shopping.Web 10 …) ✓; `DiscountProtoServic…` row carries a red error icon with no visible explanation | T5.5/T6.2 | 24-studio-budget-min.png |
+
 ## Tooling / process (cost this session real time)
 
 | # | Finding | Status | Evidence |

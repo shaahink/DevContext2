@@ -73,6 +73,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T5.2 | Verification panel (R6 UI) | TODO | | |
 | T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | TODO | | |
 | T5.4 | Worker/hub presets | TODO | | |
+| T5.5 | Card content honesty: real previews (no title echo) · per-card provenance · one unit · scope-error tooltips | TODO | | |
 
 ### T6 — Workbench & pages revamp
 | # | Checkpoint | Status | Commit | Evidence |
@@ -80,8 +81,10 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T6.0 | Full 7-page UI audit vs dogfood AND shamshir (screenshots + findings doc) | TODO | | |
 | T6.1 | Home/Atlas honest on monolith+workers repos | TODO | | |
 | T6.2 | Canvas revamp: entry-kind glyphs, tier-styled edges, archetype lens defaults | TODO | | |
-| T6.3 | Insights noise thresholds | TODO | | |
+| T6.3 | Insights honesty: noise thresholds + archetype-aware copy (no "Desktop apps" on web repos) | TODO | | |
 | T6.4 | MCP page multi-session truth · Settings storage truth | TODO | | |
+| T6.5 | Keyboard reality: wire h/e/a/i/m/c/s nav (or drop affordance) · route-restore `/` bug · drive-gate kbd battery | TODO | | |
+| T6.6 | Theme parity: shell follows light mode · 3 vibes × 3 modes screenshot matrix in the gate | TODO | | |
 
 ### T7 — Bench + perf honesty
 | # | Checkpoint | Status | Commit | Evidence |

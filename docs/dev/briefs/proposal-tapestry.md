@@ -278,6 +278,11 @@ Checkpoints:
 - **T5.4 Entry-kind presets.** "I'm changing this endpoint" exists; add worker/hub presets
   ("I'm changing this hub method" → hub method + orchestrator spine + consumers + tests) — the
   anchors exist since `202c593`.
+- **T5.5 Card content honesty** (deep-QA findings 40–42, 50): card previews must show actual
+  section content, not a title echo ("Flow: /ProductList"); provenance chips must cite each
+  card's OWN source set, not the entry's line five times; one unit everywhere (server tokens —
+  the `~10L` line-estimates disappear when T4.3 makes tests/config real); scope-picker error
+  badges (red icon on `DiscountProtoServic…`) get a tooltip saying what is wrong.
 
 **What the agent will get wrong:** fixing R4 with a toast only — the cards themselves must show
 failed state; testing only in `ng serve` (verify one Tauri smoke per session, Loom L6 rule).
@@ -305,17 +310,29 @@ Checkpoints:
 - **T6.2 Graph canvas revamp.** Worker/hub/CLI entries first-class in the Service lens; entry-kind
   glyphs; edge styling by resolution tier (verified solid / approx dashed) — honesty visible in
   the picture; lens defaults per archetype.
-- **T6.3 Insights noise pass.** "ViewModel-View: 0 VMs + 6 Views" on a non-MVVM web app and
-  "Module map: 1 feature areas" are noise — suppress below evidence thresholds (T1.6 fixes the
-  module map's data).
+- **T6.3 Insights honesty pass.** Noise: "ViewModel-View: 0 VMs" on non-MVVM apps, dead-code
+  chips naming framework-shaped types (finding 45). Copy bugs: "every WRITE endpoint needs a
+  validator" evidenced by GET endpoints; "Desktop apps are organised in feature areas" rendered
+  on a web microservices repo (finding 44 — templated copy must be archetype-aware). "Module map:
+  1 feature areas" suppressed below thresholds (T1.6 fixes the data).
 - **T6.4 MCP + Settings truth.** MCP page reflects live sessions (verify multi-session); Settings
   storage shows real cache paths/sizes.
+- **T6.5 Keyboard reality** (finding 37): the activity bar declares single-key shortcuts
+  (h/e/a/i/m/c/s) that do not navigate — wire them globally (capture phase, not while an input is
+  focused) or remove the affordance; verify the `/` route cannot get stuck rendering Settings
+  after a route-restore (finding 49); extend `ui-audit-drive` with a keyboard assertion battery
+  (`?`, Ctrl+K, Shift+E, single-key nav).
+- **T6.6 Theme parity** (findings 38–39): light mode currently themes the routed page while the
+  titlebar/tab-strip/activity-rail stay dark — the shell must follow the mode; the 3 vibes
+  (Modern/Terminal/Hacker) × 3 modes get a 6-screenshot matrix in the drive gate so unthemed
+  surfaces can't ship.
 
 **What the agent will get wrong:** restyling instead of fixing data (T6.1 needs T1.4's runnables,
-not CSS); auditing only dogfood (the whole point is the second pole).
+not CSS); auditing only dogfood (the whole point is the second pole); asserting keyboard shortcuts
+by dispatching synthetic events at the handler (drive real `page.keyboard.press`).
 
-**Gate:** ui-audit-drive all green; the T6.0 audit doc exists with screenshot pairs for every
-changed page; `pnpm check` green.
+**Gate:** ui-audit-drive all green incl. the keyboard battery + theme matrix; the T6.0 audit doc
+exists with screenshot pairs for every changed page; `pnpm check` green.
 
 ---
 
