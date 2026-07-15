@@ -211,6 +211,10 @@ public sealed class CodeGraph
     /// record instead of re-deriving it from node tags (the "gRPC 75" facet lie). One entry = one record;
     /// a bare EntryPoint node with no matching record is an assembler error, not a PublicApi default.</summary>
     public ImmutableArray<EntryPoint> Entries { get; init; } = [];
+    /// <summary>T2.6 — the single publisher→event→consumer projection, built once from the Raises/Consumes
+    /// seams. The event board, one-pager, and flow cross-service markers all read this so they cannot tell
+    /// three different stories about the same bus.</summary>
+    public ImmutableArray<EventWire> EventWiring { get; init; } = [];
 
     /// <summary>Returns the node with the given id, or null.</summary>
     public GraphNode? Node(NodeId id) => _nodes.TryGetValue(id, out var n) ? n : null;
@@ -241,6 +245,7 @@ public sealed class CodeGraphBuilder
     private readonly HashSet<(NodeId, NodeId, EdgeKind)> _edgeKeys = [];
     private readonly List<Flow> _flows = [];
     private ImmutableArray<EntryPoint> _entries = [];
+    private ImmutableArray<EventWire> _eventWiring = [];
 
     /// <summary>All nodes added so far.</summary>
     public IEnumerable<GraphNode> Nodes => _nodes.Values;
@@ -330,10 +335,14 @@ public sealed class CodeGraphBuilder
     /// the true <see cref="EntryPointKind"/> per entry. Replaces any previously set entries.</summary>
     public void SetEntries(ImmutableArray<EntryPoint> entries) { _entries = entries.IsDefault ? [] : entries; }
 
+    /// <summary>T2.6 — Sets the event-wiring projection so the frozen graph carries the single
+    /// publisher→event→consumer join every event surface renders from. Replaces any previously set wiring.</summary>
+    public void SetEventWiring(ImmutableArray<EventWire> wiring) { _eventWiring = wiring.IsDefault ? [] : wiring; }
+
     /// <summary>Freezes the accumulated nodes/edges into an immutable <see cref="CodeGraph"/>.</summary>
     public CodeGraph Build(bool isSparse = false, int hubScopeNodeCount = 0, ImmutableArray<LayerViolation> layerViolations = default)
     {
         var outFrozen = _out.ToDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
-        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows], Entries = _entries };
+        return new CodeGraph(_nodes, outFrozen) { IsSparseGraph = isSparse, HubScopeNodeCount = hubScopeNodeCount, LayerViolations = layerViolations, Flows = [.. _flows], Entries = _entries, EventWiring = _eventWiring };
     }
 }

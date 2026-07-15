@@ -76,6 +76,30 @@ public sealed class JsonContextRenderer : IContextRenderer
                 : null,
             MaxTokens = options.EstimatedTokens,
             RunReport = options.Report,
+            EventWiring = BuildEventWiring(options.Snapshot?.Graph),
         };
+    }
+
+    /// <summary>T2.6 — surfaces the graph's event-wiring projection into the JSON contract. The counts are
+    /// the deterministic gate handle (e.g. eShop's ≥8 integration events); the rows let a JSON-only
+    /// consumer render the same board without holding the graph.</summary>
+    private static EventWiringOutput? BuildEventWiring(Graph.CodeGraph? graph)
+    {
+        if (graph is null || graph.EventWiring.IsDefaultOrEmpty) return null;
+        var wiring = graph.EventWiring;
+        var events = wiring.Select(w => new EventWireOutput(
+            w.EventName,
+            w.IsIntegration,
+            w.IsCrossService,
+            [.. w.Publishers.Select(p => p.Service ?? p.Title).Distinct(StringComparer.Ordinal)],
+            [.. w.Consumers.Select(c => c.Service ?? c.Title).Distinct(StringComparer.Ordinal)]))
+            .OrderBy(e => e.Event, StringComparer.Ordinal)
+            .ToList();
+        return new EventWiringOutput(
+            wiring.Length,
+            wiring.Count(w => w.IsIntegration),
+            wiring.Count(w => w.IsCrossService),
+            wiring.Count(w => w.IsOrphan),
+            events);
     }
 }

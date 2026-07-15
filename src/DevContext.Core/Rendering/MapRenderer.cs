@@ -33,6 +33,7 @@ public static class MapRenderer
         Add(sections, "Topology", sb => AppendTopology(sb, ctx.Map));
         Add(sections, "Routes", sb => AppendGatewayRoutes(sb, ctx.Map));
         Add(sections, "Cross-service", sb => AppendServiceLinks(sb, ctx));
+        Add(sections, "Event wiring", sb => AppendEventWiring(sb, ctx));
         Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
@@ -292,6 +293,31 @@ public static class MapRenderer
             if (sl.Provenance is { Length: > 0 } prov)
                 sb.Append($"  ({prov})");
             sb.AppendLine();
+        }
+        sb.AppendLine();
+    }
+
+    /// <summary>T2.6 — the event board, rendered from the single <see cref="CodeGraph.EventWiring"/>
+    /// projection (the same rows the insight and flow markers use). Integration events only: cross-service
+    /// hops first (the integration contract), then the rest. Domain events are in-process and stay out.</summary>
+    private static void AppendEventWiring(StringBuilder sb, MapRenderContext ctx)
+    {
+        var wiring = ctx.Snapshot.Graph?.EventWiring ?? [];
+        var integration = wiring.Where(w => w.IsIntegration).ToList();
+        if (integration.Count == 0) return;
+
+        var crossService = integration.Count(w => w.IsCrossService);
+        sb.AppendLine($"EVENT WIRING  ({integration.Count} integration events, {crossService} cross-service)");
+        foreach (var w in integration
+            .OrderByDescending(w => w.IsCrossService)
+            .ThenBy(w => w.EventName, StringComparer.Ordinal))
+        {
+            var pubs = w.Publishers.Select(p => p.Service).OfType<string>().Distinct(StringComparer.Ordinal).ToList();
+            var cons = w.Consumers.Select(c => c.Service).OfType<string>().Distinct(StringComparer.Ordinal).ToList();
+            var pubStr = pubs.Count > 0 ? string.Join(", ", pubs) : "(external)";
+            var conStr = cons.Count > 0 ? string.Join(", ", cons) : "(no consumer)";
+            var marker = w.IsCrossService ? "→" : "·";
+            sb.AppendLine($"  {w.EventName}: {pubStr} {marker} {conStr}");
         }
         sb.AppendLine();
     }

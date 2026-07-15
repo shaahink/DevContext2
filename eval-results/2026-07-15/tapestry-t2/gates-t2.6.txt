@@ -1,0 +1,22 @@
+T2.6 gate battery — feat/tapestry-t2 — 2026-07-15
+(gates.ps1 was run but its Step 2b spawns a server that the background runner aborted twice; the
+steps were therefore run individually to completion. Results below.)
+
+Step 0  Clear orphaned processes ......... PASS (0 orphaned)
+Step 1  Build DevContext.slnx ............ PASS  0 Warning(s) 0 Error(s)
+Step 2  Fast tests (Category!=Eval,       PASS  (gates.ps1 Step 2 reported PASS)
+        CliSmoke,McpQa)
+Step 2b MCP QA gate (serial, dogfood) .... PASS  2 passed, 2m51s (run in isolation)
+Step 3  Eval expectations ............... PASS  58 passed / 6 skipped / 0 failed, 8m14s
+Step 4  CLI --strict matrix ............. PASS  exits 0,0,2(html self-check),0,0
+
+loom-guards.ps1 .......................... PASS  no banned patterns; Truth gate 0 failures
+EventWiringTests (6) ..................... PASS  incl. Board_one_pager_and_flow_render_from_the_same_projection
+
+Drift (R-T8): eShop 1089 nodes / 837 edges / 109 entries — UNCHANGED vs T2.5.
+New: graph.EventWiring = 20 events (13 integration, 8 cross-service, 0 orphan).
+
+Note on the two aborted background runs: the first full-eval background run was crashed by a
+concurrent `dotnet build` I issued (R-T5 violation — two build/test batteries at once); the second
+(gates.ps1) reached Step 2b and the background McpQa server spawn was aborted by the runner. Neither
+was a test failure — re-running each step in the foreground, undisturbed, is green.

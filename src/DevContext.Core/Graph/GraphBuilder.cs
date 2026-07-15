@@ -21,9 +21,6 @@ public sealed class GraphBuilder
     private readonly ISymbolResolver _resolver;
     private readonly NoiseFilter _noise;
 
-    // M1.6: event→project mappings collected from seam detectors, consumed by AddBusServiceLinks
-    private Dictionary<string, HashSet<string>>? _eventPublishers;
-
     // P3: Entry-point builders — one per entry-point kind. Adding a new kind
     // (Blazor, gRPC, SignalR, etc.) means adding one class that implements
     // IEntryPointBuilder — no changes to GraphBuilder itself.
@@ -55,7 +52,6 @@ public sealed class GraphBuilder
     {
         var g = new CodeGraphBuilder();
         var names = new NameResolver(model.Types.Values, f => scope.ProjectForFile(f)); // project-scoped (M1.4 / W5)
-        _eventPublishers = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
         var archetype = ArchitectureArchetypeParser.Parse(model.Archetype);
 
         AddTypeNodes(g, model, scope, archetype);
@@ -91,10 +87,20 @@ public sealed class GraphBuilder
         AddCallEdges(g, model, names, bodyFacts);                      // C1: Calls edges from CallEdges (member→member)
         var (isSparse, hubCount) = AddHubScopeEdges(g, model, names, entries); // L3.4
 
-        // ── M1.6-M1.8: Cross-service ServiceLink joins ────────────────────
-        AddBusServiceLinks(g, model, names, scope, _noise);
+        // ── M1.7-M1.8: Cross-service ServiceLink joins ────────────────────
         AddGrpcServiceLinks(g, model, names, scope, _noise);
         AddHttpServiceLinks(g, model, names, scope, _noise);
+
+        // ── T2.6: the one event join ──────────────────────────────────────
+        // Build the single publisher→event→consumer projection from the Raises/Consumes seams already in
+        // the graph, store it, and emit the cross-service bus ServiceLink edges from it — superseding the
+        // old project-name join (the former AddBusServiceLinks). A short intermediate freeze gives the
+        // projection a queryable view; the emitted links land before preGraph so flows see them.
+        var seamGraph = g.Build(isSparse, hubCount);
+        var eventWiring = EventWiringProjection.Build(
+            seamGraph, scope.ProjectForFile, _noise.IsProductionEntrySource);
+        g.SetEventWiring(eventWiring);
+        EventWiringProjection.EmitServiceLinks(g, eventWiring);
 
         var preGraph = g.Build(isSparse, hubCount);
         // Enrich (target/group-path/score) BEFORE computing flows: preGraph and the final graph share
@@ -1323,6 +1329,7 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(handlerId, h.HandlerType, NodeKind.Type)
             {
                 FilePath = h.SourceFile,
+                Project = scope.ProjectForFile(h.SourceFile),
                 Tags = [RoleTags.Handler],
                 Layer = "Application",
             });
@@ -1350,6 +1357,7 @@ public sealed class GraphBuilder
             g.AddNode(new GraphNode(handlerId, mc.ConsumerType, NodeKind.Type)
             {
                 FilePath = mc.SourceFile,
+                Project = scope.ProjectForFile(mc.SourceFile),
                 Tags = [RoleTags.Consumer],
                 Layer = "Infrastructure",
             });
@@ -1657,9 +1665,9 @@ public sealed class GraphBuilder
     /// <see cref="SymbolTable"/> and materialise graph nodes/edges. Ambiguous targets are skipped per
     /// Law R1 (no silent winners); unresolved (external) types use the short name as-is. Edge provenance
     /// comes from the body-fact line number, anchored on the correct Member node by construction — never a
-    /// char-offset estimate. Event→project mappings are tracked for the downstream cross-service bus
-    /// ServiceLink join (replaces the old regex-based <c>_eventPublishers</c> collection).</summary>
-    private void AddSeamsFromDetectors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
+    /// char-offset estimate. The Raises edges written here are the publisher half of the T2.6
+    /// <see cref="EventWiringProjection"/>.</summary>
+    private static void AddSeamsFromDetectors(CodeGraphBuilder g, DiscoveryModel model, NameResolver names,
         SolutionScope scope, IReadOnlyList<BodyFacts>? allBodyFacts)
     {
         // Auto-extract BodyFacts from model TypeDiscovery SourceBodies when the pipeline hasn't
@@ -1837,20 +1845,6 @@ public sealed class GraphBuilder
                             Resolution = isSemantic ? Resolution.Semantic : Resolution.Syntactic,
                             Confidence = match.Confidence,
                         });
-
-                        // Track event→publisher for cross-service bus ServiceLink join
-                        if (match.Kind == EdgeKind.Raises
-                            && (match.DetectorId is "BusPublish" or "IntegrationEventCreation"))
-                        {
-                            var pubProject = scope.ProjectForFile(body.File) ?? body.Project;
-                            if (!string.IsNullOrEmpty(pubProject) && _eventPublishers is not null)
-                            {
-                                var trackingKey = resolved.Resolved?.Canonical ?? match.Target.Text;
-                                if (!_eventPublishers.TryGetValue(trackingKey, out var pubSet))
-                                    _eventPublishers[trackingKey] = pubSet = [];
-                                pubSet.Add(pubProject);
-                            }
-                        }
                     }
                 }
                 catch { /* detector failure → skip its matches, continue with others */ }
@@ -2158,73 +2152,8 @@ public sealed class GraphBuilder
     internal static string NormalizeRoute(string route) => route.TrimStart('/').TrimEnd('/');
 
 
-    // ── M1.6-M1.8: Cross-service ServiceLink joins (W4) ──────────────────────────
-
-    /// <summary>M1.6 — Cross-project MassTransit bus ServiceLinks. Uses event→publisher
-    /// mappings collected during AddSends, matched against MessageConsumerDetection consumers.</summary>
-    private void AddBusServiceLinks(CodeGraphBuilder g, DiscoveryModel model,
-        NameResolver names, SolutionScope scope, NoiseFilter noise)
-    {
-
-        if (_eventPublishers is null || _eventPublishers.Count == 0) return;
-
-        // Collect consumer projects from MessageConsumerDetection detections
-        var consumesByEvent = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var mc in model.Detections.OfType<MessageConsumerDetection>())
-        {
-            if (!scope.Contains(mc.SourceFile)) continue;
-            if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
-
-            var eventFqn = names.Resolve(mc.MessageType, mc.SourceFile);
-            var consumerProject = scope.ProjectForFile(mc.SourceFile) ?? "";
-            if (string.IsNullOrEmpty(consumerProject)) continue;
-
-            if (!consumesByEvent.TryGetValue(eventFqn, out var conSet))
-                consumesByEvent[eventFqn] = conSet = [];
-            conSet.Add(consumerProject);
-        }
-
-        // Cross-project join: match publishers to consumers
-        foreach (var (eventFqn, publisherProjects) in _eventPublishers)
-        {
-            if (!consumesByEvent.TryGetValue(eventFqn, out var consumerProjects))
-            {
-                // Try short-name match as fallback
-                var shortName = eventFqn.Contains('.') ? eventFqn[(eventFqn.LastIndexOf('.') + 1)..] : eventFqn;
-                var matches = consumesByEvent.Where(kv => kv.Key.EndsWith("." + shortName, StringComparison.OrdinalIgnoreCase)
-                    || kv.Key.Equals(shortName, StringComparison.OrdinalIgnoreCase)).ToList();
-                if (matches.Count == 0) continue;
-                consumerProjects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var (_, cps) in matches)
-                    foreach (var cp in cps)
-                        consumerProjects.Add(cp);
-                if (consumerProjects.Count == 0) continue;
-            }
-
-            foreach (var pubProject in publisherProjects)
-            {
-                foreach (var conProject in consumerProjects)
-                {
-                    if (string.Equals(pubProject, conProject, StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    var fromId = NodeId.ForService(pubProject);
-                    var toId = NodeId.ForService(conProject);
-                    g.AddNode(new GraphNode(fromId, pubProject, NodeKind.Service));
-                    g.AddNode(new GraphNode(toId, conProject, NodeKind.Service));
-
-                    g.AddEdge(new GraphEdge(fromId, toId, EdgeKind.ServiceLink)
-                    {
-                        Provenance = $"{pubProject}→{conProject}:{eventFqn}",
-                        Resolution = Resolution.Join,
-                        Confidence = 0.8f,
-                        Tags = [ServiceLinkTags.BusPublishConsume],
-                    });
-
-                }
-            }
-        }
-    }
+    // ── M1.7-M1.8: Cross-service ServiceLink joins (W4) ──────────────────────────
+    // (The bus publish→consume join is now the T2.6 EventWiringProjection, emitted in Build.)
 
     /// <summary>M1.7 — Cross-project gRPC ServiceLinks. Matches <see cref="GrpcClientDetection"/>
     /// (client type usage in project A) to <see cref="GrpcServiceDetection"/> (service implementation

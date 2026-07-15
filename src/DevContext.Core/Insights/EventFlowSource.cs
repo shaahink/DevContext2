@@ -5,8 +5,10 @@ using DevContext.Core.Models;
 
 namespace DevContext.Core.Insights;
 
-/// <summary>M2.2 — Event flow map: published events with/without consumers, cross-service event wiring.
-/// Uses existing Raises/Consumes edges and ServiceLink edges to build a per-event flow picture.</summary>
+/// <summary>M2.2 / T2.6 — Event board: the published→consumed picture, rendered from the single
+/// <see cref="CodeGraph.EventWiring"/> projection so the board, the one-pager Event Wiring section, and
+/// flow cross-service markers all agree. One evidence row per event: its publisher→consumer services when
+/// it crosses a boundary, or its publisher when it is an in-repo-orphan.</summary>
 public sealed class EventFlowSource : IInsightSource
 {
     public string Id => "wiring.event-flow";
@@ -14,78 +16,56 @@ public sealed class EventFlowSource : IInsightSource
 
     public IEnumerable<Insight> Compute(DiscoveryModel model, CodeGraph graph, ImmutableArray<EntryPoint> entries)
     {
-        var published = new HashSet<string>(StringComparer.Ordinal);
-        var consumed = new HashSet<string>(StringComparer.Ordinal);
-        var publisherMap = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        var consumerMap = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        var eventKeyToNodeId = new Dictionary<string, string>(StringComparer.Ordinal);
+        var wiring = graph.EventWiring;
+        if (wiring.IsDefaultOrEmpty || wiring.Length == 0) yield break;
 
-        foreach (var e in graph.AllEdges)
-        {
-            if (e.Kind == EdgeKind.Raises)
-            {
-                var eventNode = graph.Node(e.To);
-                if (eventNode is null) continue;
-                published.Add(eventNode.Id.Key);
-                eventKeyToNodeId[eventNode.Id.Key] = eventNode.Id.ToString();
-                if (!publisherMap.TryGetValue(eventNode.Id.Key, out var pubs))
-                    publisherMap[eventNode.Id.Key] = pubs = [];
-                var fromNode = graph.Node(e.From);
-                if (fromNode is not null) pubs.Add(fromNode.Title);
-            }
-            else if (e.Kind == EdgeKind.Consumes)
-            {
-                var consumerNode = graph.Node(e.To);
-                if (consumerNode is null) continue;
-                consumed.Add(e.From.Key);
-                eventKeyToNodeId[e.From.Key] = e.From.ToString();
-                if (!consumerMap.TryGetValue(e.From.Key, out var cons))
-                    consumerMap[e.From.Key] = cons = [];
-                cons.Add(consumerNode.Title);
-            }
-        }
+        var integration = wiring.Count(w => w.IsIntegration);
+        var crossService = wiring.Count(w => w.IsCrossService);
+        var orphans = wiring.Count(w => w.IsOrphan);
+        var consumed = wiring.Length - orphans;
 
-        var orphanEvents = published.Except(consumed).ToList();
-        var crossServiceEvents = graph.AllEdges
-            .Where(e => e.Kind == EdgeKind.ServiceLink && e.Tags.Contains(ServiceLinkTags.BusPublishConsume))
+        // Rank cross-service events first (they define the integration contract), then orphans, then the
+        // rest — most-informative rows survive the report cap.
+        var ranked = wiring
+            .OrderByDescending(w => w.IsCrossService)
+            .ThenByDescending(w => w.IsOrphan)
+            .ThenBy(w => w.EventName, StringComparer.Ordinal)
             .ToList();
 
-        if (published.Count > 0)
+        var evidence = new List<string>();
+        var actions = new List<TypedAction?>();
+        foreach (var w in ranked.Take(12))
         {
-            var evidence = new List<string>();
-            var actions = new List<TypedAction?>();
-
-            if (orphanEvents.Count > 0)
-            {
-                evidence.Add($"{orphanEvents.Count} orphan events (published, no internal consumer)");
-                actions.Add(null);
-                foreach (var oe in orphanEvents.Take(3))
-                {
-                    var label = publisherMap.TryGetValue(oe, out var pubs) && pubs.Count > 0
-                        ? $"{oe} ← {pubs[0]}"
-                        : oe;
-                    evidence.Add(label);
-                    actions.Add(eventKeyToNodeId.TryGetValue(oe, out var nid) ? TypedAction.Node(nid) : null);
-                }
-            }
-            if (crossServiceEvents.Count > 0)
-            {
-                evidence.Add($"{crossServiceEvents.Count} cross-service event flows");
-                actions.Add(null);
-            }
-            evidence.Add($"{consumed.Count}/{published.Count} events consumed");
-            actions.Add(null);
-
-            var severity = orphanEvents.Count > published.Count / 2 ? Severity.Notable : Severity.Info;
-
-            yield return Insight.Create(Id, Category, severity,
-                $"Event flow: {published.Count} published, {consumed.Count} consumed, {orphanEvents.Count} orphan",
-                evidence,
-                confidence: 0.65,
-                confidenceBasis: "Event publisher/consumer mapping derived from Raises+Consumes edges — body-scan based, may miss indirect publish patterns",
-                whyItMatters: "Orphan events may signal incomplete wiring or dead notifications — cross-service events define the integration contract.",
-                action: orphanEvents.FirstOrDefault() is { } first && eventKeyToNodeId.TryGetValue(first, out var fnid) ? TypedAction.Node(fnid) : null,
-                evidenceActions: actions.ToImmutableArray());
+            evidence.Add(Describe(w));
+            actions.Add(TypedAction.Node(w.EventNode.ToString()));
         }
+
+        var severity = crossService > 0 || orphans > wiring.Length / 2 ? Severity.Notable : Severity.Info;
+
+        yield return Insight.Create(Id, Category, severity,
+            $"Event wiring: {wiring.Length} events ({integration} integration), {crossService} cross-service, {orphans} orphan",
+            evidence,
+            confidence: 0.7,
+            confidenceBasis: "Publisher→event→consumer join over Raises+Consumes seams; events matched by type name within the detected event set",
+            whyItMatters: "Cross-service events are the integration contract between services; orphan events may signal dead notifications or a consumer outside the repo.",
+            action: ranked.FirstOrDefault() is { } first ? TypedAction.Node(first.EventNode.ToString()) : null,
+            evidenceActions: actions.ToImmutableArray());
+    }
+
+    private static string Describe(EventWire w)
+    {
+        if (w.IsCrossService)
+        {
+            var froms = w.CrossServicePairs.Select(p => p.From).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var tos = w.CrossServicePairs.Select(p => p.To).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            return $"{w.EventName}: {string.Join(", ", froms)} → {string.Join(", ", tos)}";
+        }
+        if (w.IsOrphan)
+        {
+            var pub = w.Publishers.FirstOrDefault()?.Service ?? w.Publishers.FirstOrDefault()?.Title;
+            return pub is { Length: > 0 } ? $"{w.EventName} ← {pub} (no consumer)" : $"{w.EventName} (no consumer)";
+        }
+        var consumers = w.Consumers.Select(c => c.Service ?? c.Title).Distinct(StringComparer.OrdinalIgnoreCase);
+        return $"{w.EventName} → {string.Join(", ", consumers)}";
     }
 }

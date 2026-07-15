@@ -48,6 +48,28 @@ public sealed class KernelJsonRenderer : IContextRenderer
             output.GraphNodeCount = snapshot.Graph?.NodeCount;
             output.GraphEdgeCount = snapshot.Graph?.EdgeCount;
 
+            if (snapshot.Graph is { EventWiring.IsDefaultOrEmpty: false } g)
+            {
+                output.EventWiring = new EventWiringDto
+                {
+                    Total = g.EventWiring.Length,
+                    Integration = g.EventWiring.Count(w => w.IsIntegration),
+                    CrossService = g.EventWiring.Count(w => w.IsCrossService),
+                    Orphan = g.EventWiring.Count(w => w.IsOrphan),
+                    Events = [.. g.EventWiring
+                        .OrderByDescending(w => w.IsCrossService)
+                        .ThenBy(w => w.EventName, StringComparer.Ordinal)
+                        .Select(w => new EventWireDto
+                        {
+                            Event = w.EventName,
+                            Integration = w.IsIntegration,
+                            CrossService = w.IsCrossService,
+                            Publishers = [.. w.Publishers.Select(p => p.Service ?? p.Title).Distinct(StringComparer.Ordinal)],
+                            Consumers = [.. w.Consumers.Select(c => c.Service ?? c.Title).Distinct(StringComparer.Ordinal)],
+                        })],
+                };
+            }
+
             if (!snapshot.Insights.IsDefaultOrEmpty)
             {
                 output.Insights = [.. snapshot.Insights.Select(i => new InsightDto
@@ -86,6 +108,25 @@ internal sealed class KernelJsonOutput
     public int? GraphEdgeCount { get; set; }
     public List<KernelSignal> Signals { get; set; } = [];
     public List<InsightDto> Insights { get; set; } = [];
+    public EventWiringDto? EventWiring { get; set; }
+}
+
+internal sealed class EventWiringDto
+{
+    public int Total { get; set; }
+    public int Integration { get; set; }
+    public int CrossService { get; set; }
+    public int Orphan { get; set; }
+    public List<EventWireDto> Events { get; set; } = [];
+}
+
+internal sealed class EventWireDto
+{
+    public string Event { get; set; } = "";
+    public bool Integration { get; set; }
+    public bool CrossService { get; set; }
+    public List<string> Publishers { get; set; } = [];
+    public List<string> Consumers { get; set; } = [];
 }
 
 internal sealed class InsightDto
