@@ -252,6 +252,28 @@ if ($Truth) {
 
     Write-Host "  Truth gate $($sw.Elapsed.TotalSeconds.ToString('F1'))s -> $truthLog" -ForegroundColor $(if ($testExit -eq 0) { 'Green' } else { 'Red' })
 
+    # Tapestry T0.3 / R-T8 — per-kind entry counts feed the baseline drift table. Parse each report's
+    # ENTRY POINTS per-kind headers ("HTTP (56)", "Background (2)", "SignalR (1)", ...) and print a
+    # per-repo breakdown so entries-by-kind can be recorded without re-reading raw output by hand.
+    Write-Host "`n  Per-kind entry counts (this run's reports):" -ForegroundColor Cyan
+    $kindPattern = '^\s*(HTTP|Background|Scheduled|SignalR|gRPC|GraphQL|Functions|Grain|CLI|Public API|Desktop|Message)\s+\((\d+)\)\s*$'
+    foreach ($repo in $config.repos) {
+        $rf = Join-Path $runDir "$($repo.name)-report.md"
+        if (-not (Test-Path $rf)) { continue }
+        $counts = [ordered]@{}
+        foreach ($m in (Select-String -Path $rf -Pattern $kindPattern -AllMatches)) {
+            foreach ($mm in $m.Matches) {
+                $k = $mm.Groups[1].Value
+                $counts[$k] = ([int]$mm.Groups[2].Value) + $(if ($counts.Contains($k)) { $counts[$k] } else { 0 })
+            }
+        }
+        if ($counts.Count -gt 0) {
+            $total = ($counts.Values | Measure-Object -Sum).Sum
+            $parts = ($counts.GetEnumerator() | ForEach-Object { "$($_.Value) $($_.Key)" }) -join ' · '
+            Write-Host ("    {0,-22} {1} entries = {2}" -f $repo.name, $total, $parts)
+        }
+    }
+
     if ($testExit -ne 0) {
         Write-Error "Truth gate FAILED — one or more truth checks are red. Fix or record before proceeding."
         exit 1

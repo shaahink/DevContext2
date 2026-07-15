@@ -7,13 +7,17 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 wrap-up session — audited Loom delivery live (engine+MCP+UI vs shamshir),
-fixed 8 detection/graph gaps (commits 99acf40, 202c593 on feat/wrapup-2026-07-15),
-wrote this plan. Evidence: eval-results/2026-07-15/wrapup-drive/.
-stage: T0 not started. feat/wrapup-2026-07-15 awaits user review/merge to develop.
-next: T0.1 orphan-proof tooling (pre-session ritual §1 applies — kill orphans manually until then).
-gate at handoff: build 0w/0e · Core 453P/3S · Server 14P · truth 5P/6S · guards clean ·
-pnpm check PASS · eval: dntsite target-* + yarp archetype-gateway red (pre-existing, T1.2/T1.3).
+last: 2026-07-15 Tapestry T0 delivered on feat/tapestry-t0 (off feat/wrapup-2026-07-15). T0.1 orphan-proof:
+gates.ps1 Step 0 orphan-kill + McpQa moved to a serial Step 2b (it flaked under parallel load, passes alone);
+start-dev-bg fixed the real leak (PS 5.1 Get-Process has no CommandLine → CIM), 240s wait, file logs;
+Server.Tests teardown factory (in-process host spawns NO server — the anticipated leak did not reproduce).
+T0.2 CompositionApp fixture + compositionapp.json pin the 8 wrap-up fixes (green). T0.3 drift table filled
+(dogfood 432/330/34 unchanged → engine stable; shamshir source moved) + bench -Truth prints per-kind counts.
+Evidence: eval-results/2026-07-15/tapestry-t0/. Manual orphan-kill ritual now AUTOMATED by gates.ps1 Step 0.
+stage: T0 VERIFIED. feat/wrapup-2026-07-15 + feat/tapestry-t0 await user review/merge to develop.
+next: T1.1 catalog-driven EntrySeedFiles — gRPC/Functions/Orleans/GraphQL get call-graph seeds (read T1 §).
+gate: gates.ps1 Steps 0/1/2/2b + CLI green twice cold · CompositionApp eval green · Server 14P · Core 449P/3S
+(McpQa now serial) · sole eval red = dntsite target-* (pre-existing, T1.3); yarp archetype-gateway (T1.2).
 
 ---
 
@@ -25,9 +29,9 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T0 — Harness & hygiene
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T0.1 | Orphan-proof gates + launcher (Server.Tests teardown, gates.ps1 step 0, start-dev-bg Kill-All-on-timeout + logs) | TODO | | |
-| T0.2 | CompositionApp fixture + eval expectations (pins the 2026-07-15 fixes) | TODO | | |
-| T0.3 | Truth re-baseline: dogfood + shamshir drift table below filled from fresh runs | TODO | | |
+| T0.1 | Orphan-proof gates + launcher (Server.Tests teardown, gates.ps1 step 0 + serial McpQa step, start-dev-bg CIM kill/240s/logs) | VERIFIED | f36b66d | tapestry-t0/T0-EVIDENCE.md · gates-run1/2.txt |
+| T0.2 | CompositionApp fixture + eval expectations (pins the 2026-07-15 fixes) | VERIFIED | abadb2e | compositionapp.json green · T0-EVIDENCE.md |
+| T0.3 | Truth re-baseline: dogfood + shamshir drift table below filled from fresh runs | VERIFIED | (T0.3 commit) | drift table below · bench.ps1 -Truth per-kind |
 
 ### T1 — Detection strength
 | # | Checkpoint | Status | Commit | Evidence |
@@ -106,6 +110,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 |---|---|---|---|---|---|---|
 | dogfood | 2026-07-15 | 432 | 330 | 34 | Microservices | mcp-qa.md M4 snapshot |
 | shamshir | 2026-07-15 | 2804 | 3301 | 128 = HTTP 122 · Background 4 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | post-fix v3 map + MCP overview |
+| dogfood | 2026-07-15 T0 | 432 | 330 | 34 = HTTP 27 · gRPC 4 · +3 per-svc | Microservices | **T0.3 baseline.** Identical to prior row → engine unchanged by T0 (`analyze --no-cache`). |
+| shamshir | 2026-07-15 T0 | 2850 | 3349 | 135 = HTTP 128 · Background 5 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | **T0.3 baseline.** +46 nodes/+48 edges/+7 entries vs prior. Engine is byte-identical on dogfood, so the delta is shamshir's own source moving (live repo), not a regression. |
 
 ## Quick commands
 
