@@ -116,7 +116,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ## Quick commands
 
 ```powershell
-# Pre-session (until T0.1): kill orphans
+# Pre-session orphan-kill is now automatic (gates.ps1 Step 0, T0.1 landed). Manual form if ever needed:
 Get-Process DevContext.Server,testhost -ErrorAction SilentlyContinue | Stop-Process -Force
 
 dotnet build DevContext.slnx                                   # 0w/0e is the bar

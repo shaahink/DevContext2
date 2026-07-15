@@ -38,9 +38,10 @@ extend it, don't reopen it).
 **Pre-session ritual** (≤10 min):
 1. Read `TAPESTRY-START.md` handoff block + your stage section here + the evidence files your
    stage cites.
-2. **Kill orphans first** (until T0.1 makes this automatic):
-   `Get-Process DevContext.Server,testhost -ErrorAction SilentlyContinue | Stop-Process -Force`
-   — the wrap-up session lost four builds to leaked servers locking `bin/`.
+2. **Orphan kill is now automatic** (T0.1 landed): `eval/gates.ps1` Step 0 clears leaked
+   `DevContext.Server`/`testhost` (and dotnet hosts running the server dll) before building — the
+   wrap-up session lost four builds to leaked servers locking `bin/`. Manual form if ever needed:
+   `Get-Process DevContext.Server,testhost -ErrorAction SilentlyContinue | Stop-Process -Force`.
 3. Run the gate battery (below). Red before you start → fix or record, never build on red.
 4. State in the tracker, in one line, what artifact proves your stage done.
 
