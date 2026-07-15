@@ -1,0 +1,8 @@
+{
+  "repo": "tests/fixtures/ConventionalController",
+  "checks": [
+    { "id": "detection-endpoints", "type": "detection-count", "detectionType": "EndpointDetection", "min": 1, "max": 20, "status": "expected", "note": "T1.3: conventional [controller]/[action] actions (no HTTP verb attribute) are detected as endpoints." },
+    { "id": "target-news",     "type": "output-contains", "format": "markdown", "value": "FeedsService.GetNewsAsync", "status": "expected", "note": "T1.3: a primary-ctor-injected, auto-registered service (interface->impl via the type graph, not a DI registration) resolves its action's entry->target as Type.Method — the fast pin for DntSite's FeedController.News." },
+    { "id": "target-comments", "type": "output-contains", "format": "markdown", "value": "FeedsService.GetCommentsAsync", "status": "expected", "note": "T1.3: a sibling action resolves a DIFFERENT qualified target (divergence), and the seam's bare method-name title is reconstructed to Type.Method." }
+  ]
+}

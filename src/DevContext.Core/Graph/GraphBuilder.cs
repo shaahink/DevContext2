@@ -408,6 +408,7 @@ public sealed class GraphBuilder
     {
         var ownerTypeKey = ExtractTypeKey(member.Id.Key);
         GraphNode? bestFallback = null;
+        GraphNode? bestFallbackType = null;
         var bestOutDegree = -1;
         foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
@@ -439,17 +440,34 @@ public sealed class GraphBuilder
             // meaningful callee with the highest out-degree of its own — a real handler keeps working,
             // a leaf call doesn't.
             if (calleeType.Tags.Contains(RoleTags.Service))
-                return callee.Title;
+                return TargetTitle(callee, calleeType, calleeMemberName);
 
             var outDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
             if (outDegree > bestOutDegree)
             {
                 bestOutDegree = outDegree;
                 bestFallback = callee;
+                bestFallbackType = calleeType;
             }
         }
-        return bestFallback?.Title;
+        return bestFallback is null
+            ? null
+            : TargetTitle(bestFallback, bestFallbackType!,
+                bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null);
     }
+
+    /// <summary>An entry target is always rendered <c>Type.Method</c> for a member callee. The semantic
+    /// body-scan seams sometimes create a member node with a BARE method-name title (e.g. DntSite's
+    /// auto-registered <c>FeedsService</c>, whose target read as an ownerless "GetNewsAsync"); its NodeId
+    /// still encodes the owning type, so reconstruct the qualified name from the resolved type node so
+    /// "FeedsService.GetNewsAsync" survives (T1.3). A callee whose title is already qualified — or a Type
+    /// callee — keeps its own title.</summary>
+    private static string TargetTitle(GraphNode callee, GraphNode calleeType, string? memberName)
+        => callee.Kind == NodeKind.Member
+            && memberName is { Length: > 0 }
+            && !callee.Title.Contains('.', StringComparison.Ordinal)
+            ? $"{calleeType.Title}.{memberName}"
+            : callee.Title;
 
     /// <summary>"TypeFqn.MethodName" → "MethodName" (the inverse of <see cref="ExtractTypeKey"/>).</summary>
     private static string ExtractMemberName(string memberKey)
