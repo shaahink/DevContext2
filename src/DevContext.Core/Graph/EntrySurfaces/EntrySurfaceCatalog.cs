@@ -66,7 +66,12 @@ public static class EntrySurfaceCatalog
             Kind:       EntryPointKind.HttpEndpoint,
             RenderLabel:"HTTP",
             Role:       SurfaceRole.AppEntry,
-            Packages:   ["Microsoft.AspNetCore.OpenApi"],
+            // T1.5 — the minimal-apis signal is what TRIGGERS endpoint extraction (EndpointExtractor
+            // ShouldRun gates on it), so the Web SDK hint stays load-bearing. But an OpenApi package is
+            // NOT a minimal-API signal — a controllers app that documents itself with OpenAPI/Swagger
+            // referenced Microsoft.AspNetCore.OpenApi and got flagged MinimalApi at confidence 1.0,
+            // out-ranking its real controllers. Dropped: OpenAPI is orthogonal to the endpoint style.
+            Packages:   [],
             SdkHints:   ["Microsoft.NET.Sdk.Web"],
             SelfNamePatterns: []),
 
