@@ -334,7 +334,7 @@ public static class EntrySurfaceCatalog
             RenderLabel:"",
             Role:       SurfaceRole.FrameworkLibrary,
             Packages:   ["Aspire.Hosting"],
-            SdkHints:   [],
+            SdkHints:   ["Aspire.AppHost.Sdk"],
             SelfNamePatterns: []),
 
         new(SignalKey: ArchitectureSignals.Keys.Scrutor,

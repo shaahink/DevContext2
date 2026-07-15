@@ -103,6 +103,16 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                         ArchitectureSignals.Keys.RazorPages, 0.9f, "SyntaxPattern",
                         $"Class {typeDiscovery.Name} derives from PageModel"));
                 }
+
+                // SignalR: detect Hub base type. Built-in SignalR ships in the ASP.NET Core
+                // shared framework — modern apps carry no SignalR package reference at all.
+                if (typeDiscovery.BaseTypes.Any(b =>
+                    b is "Hub" || b.StartsWith("Hub<", StringComparison.Ordinal)))
+                {
+                    model.Architecture.Register(FeatureSignal.CreateDetected(
+                        ArchitectureSignals.Keys.SignalR, 0.9f, "SyntaxPattern",
+                        $"Class {typeDiscovery.Name} derives from Hub"));
+                }
             }
         }
     }

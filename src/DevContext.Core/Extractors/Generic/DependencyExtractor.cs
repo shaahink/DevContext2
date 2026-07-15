@@ -116,8 +116,9 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                 {
                     var doc = await context.Cache.GetXmlAsync(csprojPath, ct);
 
-                    // Detect signals from project SDK via catalog
-                    var sdk = doc.Root?.Attribute("Sdk")?.Value;
+                    // Detect signals from project SDK via catalog. The Sdk attribute may pin a
+                    // version ("Aspire.AppHost.Sdk/13.3.5") — match on the name alone.
+                    var sdk = doc.Root?.Attribute("Sdk")?.Value?.Split('/')[0];
                     if (sdk is not null
                         && SdkSignalMap.TryGetValue(sdk, out var sdkSignalKey)
                         && !selfSourcedKeys.Contains(sdkSignalKey))

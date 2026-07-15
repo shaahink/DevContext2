@@ -117,10 +117,30 @@ public sealed class ArchitectureStyleDetector
             || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)));
         if (hasAspire && hasAppHost && projectCount >= 3)
         {
-            var svcCount = model.Projects.Count(p => !IsInfrastructureProject(p.Name));
-            evidence.Add($"Aspire orchestration with {svcCount} service projects");
-            var score = Math.Min(0.65f + svcCount * 0.05f, 0.82f); // cap below VerticalSlices (0.85)
-            scores[ArchitectureStyle.Microservices] = (score, string.Join("; ", evidence));
+            // The AppHost's ProjectReferences ARE the orchestrated runnables (typed AddProject<T>
+            // requires one per service). Counting every solution project mislabels an
+            // Aspire-orchestrated monolith-plus-worker (2 runnables) as Microservices. When the
+            // AppHost carries no ProjectReferences (path-based AddProject overload), fall back to
+            // the whole-solution service count.
+            var orchestrated = model.Projects
+                .Where(p => p.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase)
+                    || p.PackageReferences.Any(pr => pr.Name.StartsWith("Aspire.Hosting", StringComparison.OrdinalIgnoreCase)))
+                .SelectMany(p => p.ProjectReferences)
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(n => !string.IsNullOrEmpty(n))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count();
+            var svcCount = orchestrated > 0
+                ? orchestrated
+                : model.Projects.Count(p => !IsInfrastructureProject(p.Name));
+            if (svcCount >= 3)
+            {
+                evidence.Add(orchestrated > 0
+                    ? $"Aspire orchestration of {svcCount} runnable services"
+                    : $"Aspire orchestration with {svcCount} service projects");
+                var score = Math.Min(0.65f + svcCount * 0.05f, 0.82f); // cap below VerticalSlices (0.85)
+                scores[ArchitectureStyle.Microservices] = (score, string.Join("; ", evidence));
+            }
         }
 
         // CleanArchitecture: MediatR + DDD layer conventions + aggregates

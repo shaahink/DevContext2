@@ -429,8 +429,10 @@ public sealed class GraphBuilder
             // EF/LINQ verb (Where/FindAsync/SaveChangesAsync/...), even when the syntactic resolver
             // attributed it to a wrapper type (e.g. an `[AsParameters]` services struct) rather than the
             // DbContext itself.
+            var calleeMemberName = callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null;
             if (calleeType.Tags.Contains(RoleTags.DataStore)
-                || IsDataAccessNoiseMethod(callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null))
+                || IsDataAccessNoiseMethod(calleeMemberName)
+                || IsObjectNoiseMethod(calleeMemberName))
                 continue;
 
             // Prefer a DI-resolved service (the action's real collaborator) outright; else remember the
@@ -473,6 +475,11 @@ public sealed class GraphBuilder
 
     private static bool IsDataAccessNoiseMethod(string? methodName)
         => methodName is not null && _dataAccessNoiseMethods.Contains(methodName);
+
+    /// <summary>System.Object/lifetime plumbing — calling <c>service.ToString()</c> must never make
+    /// that service the entry's target (seen live: "GET /api/ctrader/listen → CTraderListenService.ToString").</summary>
+    private static bool IsObjectNoiseMethod(string? methodName)
+        => methodName is "ToString" or "GetHashCode" or "Equals" or "GetType" or "Dispose" or "DisposeAsync";
 
     /// <summary>"TypeFqn.MethodName" → "TypeFqn" (strips the trailing member segment from a Member key).</summary>
     private static string ExtractTypeKey(string memberKey)

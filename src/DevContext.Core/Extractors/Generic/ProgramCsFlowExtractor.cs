@@ -10,6 +10,12 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
     private static readonly ImmutableArray<string> MapMethods =
         [.. HttpConstants.MapMethods, "MapGrpcService", "MapHub", "MapBlazorHub"];
 
+    // Startup composition is routinely factored out of Program.cs into extension methods
+    // (ServiceRegistration.cs, *ServiceCollectionExtensions.cs, MiddlewarePipeline.cs, …).
+    // Files containing any of these tokens join the walk-set regardless of file name.
+    private static readonly ImmutableArray<string> StartupCompositionTokens =
+        ["AddHostedService", "AddDNTScheduler", "MapHub", "MapGrpcService", "MapBlazorHub"];
+
     public string Name => "ProgramCsFlowExtractor";
     public ExtractorTier Tier => ExtractorTier.Fast;
     public ExtractorCategory Category => ExtractorCategory.Generic;
@@ -25,15 +31,31 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
-        var programFiles = context.Analysis.AllSourceFiles
-            .Where(f =>
+        var programFiles = new List<string>();
+        foreach (var f in context.Analysis.AllSourceFiles)
+        {
+            var name = Path.GetFileName(f);
+            if (name.Equals("Program.cs", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("SchedulersConfig.cs", StringComparison.OrdinalIgnoreCase)
+                || name.Contains("Scheduler", StringComparison.OrdinalIgnoreCase))
             {
-                var name = Path.GetFileName(f);
-                return name.Equals("Program.cs", StringComparison.OrdinalIgnoreCase)
-                    || name.Equals("SchedulersConfig.cs", StringComparison.OrdinalIgnoreCase)
-                    || name.Contains("Scheduler", StringComparison.OrdinalIgnoreCase);
-            })
-            .ToList();
+                programFiles.Add(f);
+                continue;
+            }
+
+            // Cheap text probe over the cached source keeps the walk-set small while
+            // catching startup composition factored into extension-method files.
+            try
+            {
+                var text = await context.Cache.GetTextAsync(f, ct).ConfigureAwait(false);
+                if (StartupCompositionTokens.Any(t => text.Contains(t, StringComparison.Ordinal)))
+                    programFiles.Add(f);
+            }
+            catch
+            {
+                // unreadable file — skip, the named-file paths above were not affected
+            }
+        }
 
         foreach (var filePath in programFiles)
         {
@@ -175,17 +197,30 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 continue; // DNTScheduler is detected via individual jobs
             }
 
-            // AddHostedService<T> detection
-            if (invocation.ArgumentList.Arguments.Count > 0)
-            {
-                var arg = invocation.ArgumentList.Arguments[0].Expression;
-                implementationType = arg?.ToString() ?? "?";
-            }
-            else if (invocation.Expression is MemberAccessExpressionSyntax ma
-                     && ma.Name is GenericNameSyntax genericName
-                     && genericName.TypeArgumentList.Arguments.Count > 0)
+            // AddHostedService<T> detection — the generic type argument is authoritative; a factory
+            // argument (`AddHostedService(sp => sp.GetRequiredService<EngineWorker>())`) yields the
+            // resolved type, never the raw lambda text.
+            if (invocation.Expression is MemberAccessExpressionSyntax ma
+                && ma.Name is GenericNameSyntax genericName
+                && genericName.TypeArgumentList.Arguments.Count > 0)
             {
                 implementationType = genericName.TypeArgumentList.Arguments[0].ToString();
+            }
+            else if (invocation.ArgumentList.Arguments.Count > 0)
+            {
+                var arg = invocation.ArgumentList.Arguments[0].Expression;
+                if (arg is LambdaExpressionSyntax lambda)
+                {
+                    var resolved = lambda.DescendantNodes().OfType<GenericNameSyntax>()
+                        .FirstOrDefault(gn => gn.Identifier.ValueText is "GetRequiredService" or "GetService"
+                            && gn.TypeArgumentList.Arguments.Count == 1);
+                    implementationType = resolved?.TypeArgumentList.Arguments[0].ToString()
+                        ?? arg.ToString();
+                }
+                else
+                {
+                    implementationType = arg?.ToString() ?? "?";
+                }
             }
             var serviceType = DetermineWorkerServiceType(implementationType);
 
