@@ -7,19 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 Tapestry T1.1 delivered on feat/tapestry-t1 — catalog-driven entry seeds. `EntrySeedFiles` was a
-hardcoded four (endpoints/MediatR/workers/hubs); gRPC/Functions/Orleans/GraphQL/consumer/CLI entries got NO Map-mode
-call-graph seed → targetless, depth-1. Fix: marker `IEntrySurfaceDetection` on every AppEntry detection → EntrySeedFiles
-unions their SourceFile (catalog-driven; new surface feeds seeds with no extractor edit; Desktop deferred to T1.7). Plus
-Functions/GraphQL entry builders now create+anchor the handler MEMBER (like HTTP/gRPC) so ResolveEntryTarget surfaces
-the service (was Type-anchored → only read Sends). New service-app fixture eval/fixtures/ServiceSurfaces (gRPC+Functions+
-GraphQL, 3/3 target: SayHello→GreetingService.BuildGreeting etc.) + EntrySurfaceSeedTests + servicesurfaces.json. Fixture
-lives under eval/fixtures NOT tests/ so package signals aren't suppressed. Evidence: tapestry-t1/T1-EVIDENCE.md.
-Two T1.5 findings recorded (not fixed): OpenApi package = false MinimalApi signal (flips controller apps); DependencyExtractor
-suppresses signals for repos rooted under /tests//samples/ (unlike NoiseFilter). eShop/shamshir NOT re-driven (surface-neutral).
-stage: T0 + T1.1 + T1.2/T1.3 VERIFIED. wrapup+t0+t1 all await review/merge to develop. Remaining T1: T1.4/T1.5/T1.6 (shamshir+bench), T1.7/T1.8/T1.9 (eShop+UI drive).
-next: T1.4 runnable/per-service inference, or T1.5 style arbitration (has 2 ready findings above), or T1.7+T1.8 (entry taxonomy, eShop pole).
-gate: build 0w/0e · Core 453P/3S · Server 14P · Truth 0 fail · loom-guards clean · full eval 57P/6S/0 fail (servicesurfaces + 3 seed cases green) · gates.ps1 GATE: PASS (tapestry-t1/gates-t1-final.txt).
+last: 2026-07-15 **T1 COMPLETE** — T1.4–T1.9 delivered on feat/tapestry-t1 (6 commits ff89fda…785f2f8), driving eShop
+(eval-repos) + shamshir. T1.8 kind single-sourcing: CodeGraph.Entries carries the true EntryPointKind; EntryTableProjection
+joins it (deleted DeriveEntryKind/PublicApi default). T1.7 taxonomy: gRPC = public-override RPCs of the nested Service.ServiceBase
+(eShop 20→3, killed the ViewModelBase false-positives); Blazor @page → UiEntry (anon-endpoints 49/56→36/43); same-route
+endpoints disambiguated not merged (NG0955). T1.9: tests/samples/benchmarks out of service topology (ProjectClassifier.
+IsProductionProject); most-depended = MediatR not MediatR.Examples. T1.4: per-service styles honest (MAUI/Worker/Blazor/CLI/
+Aspire AppHost, zero Unknown; Blazor beats YARP); runnable adds Worker+Aspire SDK; rollup moved after Stage 3. T1.5: OpenAPI
+package dropped as a false minimal-apis signal (shamshir MinimalApi→NLayer); DependencyExtractor sample/test suppression now
+root-relative. T1.6: HTTP feature areas from route prefix (shamshir "Api (128)"→8 areas). Evidence in commit bodies.
+stage: T0 + T1.* ALL VERIFIED. wrapup+t0+t1 await review/merge to develop. T1 stage DONE.
+next: **T2** — start T2.5 (param-passed MediatR dispatch, the eShop /draft flagship-flow unlock) FIRST, then T2.1…; or merge feat/tapestry-t1 → develop.
+gate: **gates.ps1 GATE: PASS** (tapestry-t1/gates-t1-final.txt) — build 0w/0e · fast tests · MCP QA (dogfood checkout 46 steps) · eval 58P/6S/0F · CLI matrix. loom-guards clean.
 
 ---
 
@@ -41,12 +40,12 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T1.1 | Catalog-driven EntrySeedFiles (all AppEntry surfaces feed call-graph seeds) | VERIFIED | 5f492d5 | tapestry-t1/T1-EVIDENCE.md · ServiceSurfaces fixture (gRPC/Functions/GraphQL 3/3 target) · servicesurfaces.json + EntrySurfaceSeedTests |
 | T1.2 | Gateway archetype rung — yarp eval flips green | VERIFIED | 0f410a9 | tapestry-t1/T1-EVIDENCE.md · yarp Gateway + dogfood App (Truth) |
 | T1.3 | dntsite FeedsService entry-target gap — target-* evals flip green | VERIFIED | 3ea6c34 | tapestry-t1/T1-EVIDENCE.md · dntsite eval green + ConventionalController fixture |
-| T1.4 | Runnable/per-service inference (Exe + AppHost refs; CLI archetype) | TODO | | |
-| T1.5 | Style-ladder arbitration (controllers-heavy ≠ MinimalApi) | TODO | | |
-| T1.6 | Feature areas from route prefixes (no more "Api (122 entries)") | TODO | | |
-| T1.7 | Entry taxonomy hygiene: gRPC RPC-only · MAUI noise out · Blazor≠HTTP · dup disambiguation (audit A2–A5) | TODO | | |
-| T1.8 | Kind single-sourcing: EntryTableProjection joins Entries, no tag default (audit "gRPC 75") | TODO | | |
-| T1.9 | Topology noise: tests/samples out of services/depended/dead-code (audit A16/D) | TODO | | |
+| T1.4 | Runnable/per-service inference (Exe + AppHost refs; CLI archetype) | VERIFIED | 2e7747b | eShop per-service all honest (MAUI/Worker/Blazor/gRPC/Web API, 0 Unknown); shamshir 4 runnables (AppHost/Host/ResearchCli/Web) up from 2 · PerServiceStyleTests |
+| T1.5 | Style-ladder arbitration (controllers-heavy ≠ MinimalApi) | VERIFIED | 0df9778 | OpenAPI≠minimal-apis + root-relative suppression; shamshir MinimalApi→NLayer · EntrySurfaceCatalogTests · eval 30P/0F (TodoApi still MinimalApi) |
+| T1.6 | Feature areas from route prefixes (no more "Api (122 entries)") | VERIFIED | 785f2f8 | shamshir "Api (128)"→8 feature areas (runs/data-manager/system/…); eShop catalog/orders · GraphBuilderTests |
+| T1.7 | Entry taxonomy hygiene: gRPC RPC-only · MAUI noise out · Blazor≠HTTP · dup disambiguation (audit A2–A5) | VERIFIED | 631709d | eShop gRPC 20→3 (ViewModelBase false-pos killed); Blazor→UiEntry (anon 49/56→36/43); catalog v1/v2 disambiguated · GraphBuilderTests + EntrySurfaceSeedTests + eshop.json pins |
+| T1.8 | Kind single-sourcing: EntryTableProjection joins Entries, no tag default (audit "gRPC 75") | VERIFIED | ff89fda | CodeGraph.Entries → projection joins true kind; DeriveEntryKind/PublicApi default deleted · GraphProjectionTests + EntrySurfaceSeedTests |
+| T1.9 | Topology noise: tests/samples out of services/depended/dead-code (audit A16/D) | VERIFIED | 0aff0e1 | ProjectClassifier.IsProductionProject; eShop 11 runnable services (no test cards); MediatR most-depended = MediatR not .Examples · TopologyNoiseTests |
 
 ### T2 — Graph quality
 | # | Checkpoint | Status | Commit | Evidence |
@@ -133,6 +132,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | shamshir | 2026-07-15 T0 | 2850 | 3349 | 135 = HTTP 128 · Background 5 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | **T0.3 baseline.** +46 nodes/+48 edges/+7 entries vs prior. Engine is byte-identical on dogfood, so the delta is shamshir's own source moving (live repo), not a regression. |
 | dogfood | 2026-07-15 T1 | 432 | 330 | 34 | Microservices (App) | **T1.2+T1.3 baseline.** Unchanged from T0.3 — both change archetype SELECTION and a target DISPLAY string, not graph structure; `Dogfood_baseline_presence_ok` green. shamshir NOT re-driven this session (structurally neutral: no gateway signal; the target-title fix only affects display, not counts). |
 | dogfood | 2026-07-15 T1.1 | 439 | 339 | 34 | Microservices (App) | **T1.1.** +7 nodes / +9 edges vs T0.3 (432/330), entries unchanged — the seed change binds the Discount gRPC service files, so its RPC members gain Calls edges (strictly additive: deepens, never removes). Measured by the McpQa gate (mcp-qa.md): checkout flow trace deepened **43 → 46 steps** (1324 → 1442 tok). Truth `Dogfood_baseline_presence_ok` + MCP QA green; no eval-repo count/archetype/style eval moved (57P/0F). shamshir surface-neutral (its HTTP/SignalR/worker mix was already seeded). |
+| eShop | 2026-07-15 T1 | 1092 | 833 | 109 = HTTP 43 · Bus 13 · Background 1 · Domain 7 · UI 42 · gRPC 3 | Microservices (0.91) | **T1.4–T1.9 pole.** gRPC 20→3 (T1.7 killed ViewModelBase false-positives + private helpers); Blazor @page moved HTTP→UI (anon-endpoints 49/56→36/43); per-service all honest (MAUI/Worker/Blazor/Web API/gRPC, 0 Unknown); services production-only (11 runnable, 5 test projects out); module map catalog/orders (route-derived). eshop.json pins gRPC (3) + UI (. |
+| shamshir | 2026-07-15 T1 | 2882 | 3375 | 135 = HTTP 128 · Background 5 · SignalR 2 | **NLayer (0.6)** | **T1.4–T1.9 pole.** Style MinimalApi→**NLayer** (T1.5 dropped the false OpenAPI minimal-apis signal); per-service 2→4 runnables (AppHost/Host-Worker/ResearchCli-CLI/Web); module map **"Api (128)"→8 feature areas** (runs 22 · data-manager 15 · system 8 · strategies 8 · research 8 · …). +32 nodes/+26 edges vs T0.3 (2850/3349) = live-repo source drift <1.2%, entries unchanged; NO count regression. |
 
 ## Quick commands
 
