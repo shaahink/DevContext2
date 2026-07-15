@@ -37,6 +37,37 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void TypeFocus_trace_groups_by_member_not_a_flat_wall_of_callees()
+    {
+        // A Type focus (Orchestrator) must open with its OWN members as branches, each expanding to its
+        // call spine — not a flat aggregation of every member's callees behind "(N branches omitted)" (T2.4).
+        var b = new CodeGraphBuilder();
+        var orchType = NodeId.ForType("Demo.Orchestrator");
+        var op1 = NodeId.ForMember("Demo.Orchestrator", "Op1");
+        var op2 = NodeId.ForMember("Demo.Orchestrator", "Op2");
+        var helper1 = NodeId.ForMember("Demo.Helper1", "Run");
+        var helper2 = NodeId.ForMember("Demo.Helper2", "Run");
+        b.AddNode(new GraphNode(orchType, "Orchestrator", NodeKind.Type) { FilePath = "o.cs" });
+        b.AddNode(new GraphNode(op1, "Orchestrator.Op1", NodeKind.Member) { FilePath = "o.cs", LineNumber = 3 });
+        b.AddNode(new GraphNode(op2, "Orchestrator.Op2", NodeKind.Member) { FilePath = "o.cs", LineNumber = 4 });
+        b.AddNode(new GraphNode(helper1, "Helper1.Run", NodeKind.Member) { FilePath = "h.cs" });
+        b.AddNode(new GraphNode(helper2, "Helper2.Run", NodeKind.Member) { FilePath = "h.cs" });
+        b.AddEdge(new GraphEdge(op1, helper1, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(op2, helper2, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.PublicApi, "Orchestrator", orchType);
+        var trace = new TraceBuilder(graph).Build(entry, new TraceOptions { MaxDepth = 6, MaxFanOut = 12 });
+
+        // The root's branches are the type's members (not the flat Helper callees).
+        var childTitles = trace.Root.Children.Select(c => c.Node.Title).OrderBy(t => t).ToArray();
+        Assert.Equal(new[] { "Orchestrator.Op1", "Orchestrator.Op2" }, childTitles);
+        // Each member expands to its own callee.
+        var op1Step = trace.Root.Children.Single(c => c.Node.Title == "Orchestrator.Op1");
+        Assert.Contains(op1Step.Children, gc => gc.Node.Title == "Helper1.Run");
+    }
+
+    [Fact]
     public void EntryTarget_labels_direct_data_access_when_only_the_dbcontext_is_called()
     {
         // An action whose only meaningful collaborator is a DbContext has no service layer — say so
