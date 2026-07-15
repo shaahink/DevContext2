@@ -4,6 +4,42 @@
 
 ---
 
+## 2026-07-15 — MCP fix session: closed all 3 blind-drive bugs + master plan (feat/mcp-drive-audit)
+
+**Changed:**
+- `EntryPointResolver.cs` + `ContextPackBuilder.cs`: bare-route resolution ("/products" → "GET
+  /products"), ambiguous routes prefer GET. Fixes bug #1 (trace/get_context "no entry matched").
+- All 11 `IEntryPointBuilder`s: stamp `LineNumber` on the `GraphNode` (was FilePath-only). Fixes bug
+  #2 (read_source/node `lineNumber: undefined`).
+- `GraphBuilder.Build`: reordered so target/group-path/score enrichment runs before `ComputeFlows` —
+  `graph.Flows[i].Entry.Target` is no longer frozen at null. Fixes bug #3 (top_flows `target: null`).
+- 8 new tests (`EntryPointResolverTests.cs` + 2 in `GraphBuilderTests.cs`).
+- Merged `develop` into this branch (commit `42bfa2f`) — brings in the WPF desktop removal.
+- Wrote `docs/dev/go-to-program/HANDOVER-2026-07-15.md` (session handover + repo-state snapshot +
+  4-bucket master plan) and `eval-results/2026-07-15/mcp-blind-drive-fix-verification.md` (fix detail
+  + live re-verification transcripts).
+
+**Verified:**
+- `dotnet build DevContext.slnx` 0w/0e.
+- Core 448P/3S (was 440P/3S — +8 new tests, 0 regressions), Server 14P, Desktop 64P (pre-merge, WPF
+  suite since deleted).
+- Eval-category: 25/27 pass; 2 failures (`dntsite` target-name gap, `yarp` gateway-archetype)
+  confirmed pre-existing + unrelated via `git stash` comparison against unmodified code.
+- Live re-run of the original `mcp-blind-drive.mjs` against both fixture repos with the fixes
+  applied — all 3 symptoms gone in real tool output, not just unit tests.
+- Housekeeping: confirmed `go-to/implement-iterations`, `feat/universal-coverage-v2`, and 5 other
+  branches are fully merged into `develop`; found `docs/go-to-program-addendum` as the one genuinely
+  unmerged (trivial, docs-only) branch; found `DevContext2-goto-audit` worktree dir is orphaned (no
+  `.git`, harmless); did not touch the other live worktree (`DevContext2-ui`, has 1 unpushed commit).
+
+**Next:** See `HANDOVER-2026-07-15.md` §4 for the full 4-bucket plan. Cheapest high-value picks: UI
+Context Studio R1/R4/R5 (omitted-list display, error UI, save-extension fix), the `dntsite`/`yarp`
+eval gaps. Highest-leverage engine fix: the span-unbounded Sends/Raises bug (V1.1, confirmed, not yet
+fixed). Needs a human decision before executing: whether Desktop V3's plan (WPF-era) is dead now that
+WPF was removed in favor of the Angular app.
+
+---
+
 ## 2026-07-11 — MCP+UI Audit: Blind-drive evaluation, Context Studio gap analysis (feat/mcp-drive-audit)
 
 **Changed:**
