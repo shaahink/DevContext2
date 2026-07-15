@@ -382,6 +382,11 @@ public sealed class SeamDetectorTests
         var sends = result.AllEdges.Where(e => e.Kind == EdgeKind.Sends).ToList();
         Assert.Contains(sends, e => e.From == originId
             && result.Nodes.Any(n => n.Id == e.To && n.Title.Contains("CreateOrderDraftCommand", StringComparison.Ordinal)));
+
+        // T2.2: the seam-origin member node carries its own decl line (CreateOrderDraftAsync is at line 3),
+        // stamped from BodyFacts.DeclLine — no bare trailing colon in packs.
+        var origin = result.Nodes.Single(n => n.Id == originId);
+        Assert.Equal(3, origin.LineNumber);
     }
 
     [Fact]

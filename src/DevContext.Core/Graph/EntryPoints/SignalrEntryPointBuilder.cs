@@ -34,6 +34,7 @@ public sealed class SignalrEntryPointBuilder : IEntryPointBuilder
                     g.AddNode(new GraphNode(memberId, $"{hub.HubType}.{method}", NodeKind.Member)
                     {
                         FilePath = hub.SourceFile,
+                        LineNumber = hub.LineNumber, // T2.2: no trailing-colon members
                     });
                     g.AddEdge(new GraphEdge(id, memberId, EdgeKind.Calls)
                     {

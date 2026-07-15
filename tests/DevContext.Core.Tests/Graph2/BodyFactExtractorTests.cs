@@ -66,6 +66,25 @@ public sealed class BodyFactExtractorTests
     }
 
     [Fact]
+    public void Body_facts_carry_the_member_declaration_line()
+    {
+        // T2.2: the member's own decl line, from the syntax walk (no re-parse), so the assembler can stamp
+        // file:line on member nodes and packs never render a bare trailing colon.
+        const string code = """
+            namespace N;
+            class C
+            {
+                public void First() { }
+
+                public void Second(int x) { }
+            }
+            """;
+        var facts = Extract(code);
+        Assert.Equal(4, facts.Single(b => b.MemberName == "First").DeclLine);
+        Assert.Equal(6, facts.Single(b => b.MemberName == "Second").DeclLine);
+    }
+
+    [Fact]
     public void Captures_receiver_member_for_property_accessed_receiver()
     {
         // eShop OrdersApi shape: the sender is reached through an [AsParameters] record (services.Mediator).

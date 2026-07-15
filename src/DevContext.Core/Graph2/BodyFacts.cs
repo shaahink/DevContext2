@@ -10,6 +10,9 @@ public sealed record BodyFacts(SymbolId Member, string MemberName, ImmutableArra
     public string File { get; init; } = "";
     /// <summary>Owning project/service of the member.</summary>
     public string Project { get; init; } = "";
+    /// <summary>1-based declaration line of the member (from the syntax walk — no re-parse). Lets the
+    /// assembler stamp <c>file:line</c> on member nodes so packs never render a bare trailing colon (T2.2).</summary>
+    public int DeclLine { get; init; }
 }
 
 /// <summary>One structured operation observed in a member body, at a known 1-based line.</summary>

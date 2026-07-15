@@ -1734,7 +1734,7 @@ public sealed class GraphBuilder
                     foreach (var match in detector.Detect(body, ctx))
                     {
                         var originId = ToMemberNodeId(match.Origin);
-                        EnsureMemberId(g, originId, body.MemberName, body.File, body.Project);
+                        EnsureMemberId(g, originId, body.MemberName, body.File, body.Project, body.DeclLine);
 
                         var resolved = ctx.Symbols!.Resolve(match.Target);
                         if (resolved.Tier == ResolutionTier.Ambiguous)
@@ -2052,13 +2052,14 @@ public sealed class GraphBuilder
     }
 
     /// <summary>Ensures a Member node exists in the graph for the given id (first-write wins).</summary>
-    private static void EnsureMemberId(CodeGraphBuilder g, NodeId id, string? memberName, string? file, string? project)
+    private static void EnsureMemberId(CodeGraphBuilder g, NodeId id, string? memberName, string? file, string? project, int? line = null)
     {
         if (g.HasNode(id)) return;
         g.AddNode(new GraphNode(id, memberName ?? id.Key, NodeKind.Member)
         {
             FilePath = file,
             Project = project,
+            LineNumber = line is > 0 ? line : null,
         });
     }
 

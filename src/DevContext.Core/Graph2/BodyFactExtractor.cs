@@ -36,7 +36,12 @@ public static class BodyFactExtractor
 
                 var ops = WalkMember(member, body, typeScope, methodReturns, filePath, project);
                 var memberId = new SymbolId(SymbolKind.Member, $"{typeFqn}::{name}({paramCount})");
-                result.Add(new BodyFacts(memberId, name, ops) { File = filePath, Project = project });
+                result.Add(new BodyFacts(memberId, name, ops)
+                {
+                    File = filePath,
+                    Project = project,
+                    DeclLine = Line(member),
+                });
             }
         }
 
