@@ -7,17 +7,20 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 Tapestry T0 delivered on feat/tapestry-t0 (off feat/wrapup-2026-07-15). T0.1 orphan-proof:
-gates.ps1 Step 0 orphan-kill + McpQa moved to a serial Step 2b (it flaked under parallel load, passes alone);
-start-dev-bg fixed the real leak (PS 5.1 Get-Process has no CommandLine → CIM), 240s wait, file logs;
-Server.Tests teardown factory (in-process host spawns NO server — the anticipated leak did not reproduce).
-T0.2 CompositionApp fixture + compositionapp.json pin the 8 wrap-up fixes (green). T0.3 drift table filled
-(dogfood 432/330/34 unchanged → engine stable; shamshir source moved) + bench -Truth prints per-kind counts.
-Evidence: eval-results/2026-07-15/tapestry-t0/. Manual orphan-kill ritual now AUTOMATED by gates.ps1 Step 0.
-stage: T0 VERIFIED. feat/wrapup-2026-07-15 + feat/tapestry-t0 await user review/merge to develop.
-next: T1.1 catalog-driven EntrySeedFiles — gRPC/Functions/Orleans/GraphQL get call-graph seeds (read T1 §).
-gate: gates.ps1 Steps 0/1/2/2b + CLI green twice cold · CompositionApp eval green · Server 14P · Core 449P/3S
-(McpQa now serial) · sole eval red = dntsite target-* (pre-existing, T1.3); yarp archetype-gateway (T1.2).
+last: 2026-07-15 Tapestry T1.2 + T1.3 delivered on feat/tapestry-t1 (off feat/tapestry-t0). These were the
+two reds the T0 handover staged as its "one honest caveat" → fixing them flips gates.ps1 to a clean GATE: PASS.
+T1.2 (0f410a9): gateway archetype now keys on a GENUINE peer-service count (real Exe/Web-SDK hosts that pass
+NoiseFilter.IsProductionEntrySource, not proxy-package refs) — NOT self-source (the dogfood repo names a project
+YarpApiGateway and self-sources the signal exactly as YARP does; self-source flipped it to Gateway, caught by the
+dogfood Truth gate). yarp → Gateway; dogfood → App; eShop unchanged. T1.3 (3ea6c34): entry target reconstructs
+Type.Method when a Graph2 seam leaves a bare method-name title (dntsite FeedsService, auto-registered → interface→impl
+from the type graph). New tests/fixtures/ConventionalController + conventionalcontroller.json pin it fast (dntsite eval
+is ~6m45s). Evidence: eval-results/2026-07-15/tapestry-t1/.
+stage: T1.2 + T1.3 VERIFIED. feat/wrapup-2026-07-15 + feat/tapestry-t0 + feat/tapestry-t1 all await review/merge.
+next: T1.1 catalog-driven EntrySeedFiles (gRPC/Functions/Orleans/GraphQL seeds — needs service-app fixtures, not the
+framework repos which are Library) → then T1.4/T1.5/T1.6 (need shamshir pole + 22-repo bench).
+gate: build 0w/0e · Core 448P/3S · Server 14P · Truth 5P/6S · loom-guards clean · full eval 0 fail (yarp Gateway,
+dntsite targets, all archetype/style green) · gates.ps1 GATE: PASS (see tapestry-t1/gates-t1.txt).
 
 ---
 
@@ -37,8 +40,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | T1.1 | Catalog-driven EntrySeedFiles (all AppEntry surfaces feed call-graph seeds) | TODO | | |
-| T1.2 | Gateway archetype rung — yarp eval flips green | TODO | | |
-| T1.3 | dntsite FeedsService entry-target gap — target-* evals flip green | TODO | | |
+| T1.2 | Gateway archetype rung — yarp eval flips green | VERIFIED | 0f410a9 | tapestry-t1/T1-EVIDENCE.md · yarp Gateway + dogfood App (Truth) |
+| T1.3 | dntsite FeedsService entry-target gap — target-* evals flip green | VERIFIED | 3ea6c34 | tapestry-t1/T1-EVIDENCE.md · dntsite eval green + ConventionalController fixture |
 | T1.4 | Runnable/per-service inference (Exe + AppHost refs; CLI archetype) | TODO | | |
 | T1.5 | Style-ladder arbitration (controllers-heavy ≠ MinimalApi) | TODO | | |
 | T1.6 | Feature areas from route prefixes (no more "Api (122 entries)") | TODO | | |
@@ -112,6 +115,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | shamshir | 2026-07-15 | 2804 | 3301 | 128 = HTTP 122 · Background 4 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | post-fix v3 map + MCP overview |
 | dogfood | 2026-07-15 T0 | 432 | 330 | 34 = HTTP 27 · gRPC 4 · +3 per-svc | Microservices | **T0.3 baseline.** Identical to prior row → engine unchanged by T0 (`analyze --no-cache`). |
 | shamshir | 2026-07-15 T0 | 2850 | 3349 | 135 = HTTP 128 · Background 5 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | **T0.3 baseline.** +46 nodes/+48 edges/+7 entries vs prior. Engine is byte-identical on dogfood, so the delta is shamshir's own source moving (live repo), not a regression. |
+| dogfood | 2026-07-15 T1 | 432 | 330 | 34 | Microservices (App) | **T1.2+T1.3 baseline.** Unchanged from T0.3 — both change archetype SELECTION and a target DISPLAY string, not graph structure; `Dogfood_baseline_presence_ok` green. shamshir NOT re-driven this session (structurally neutral: no gateway signal; the target-title fix only affects display, not counts). |
 
 ## Quick commands
 
