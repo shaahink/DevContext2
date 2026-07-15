@@ -32,6 +32,9 @@ public sealed record TraceStep(
     /// <summary>When >0, how many DI implementations exist for this Resolves step's service type
     /// (I1.6 multi-impl honesty).</summary>
     public int MultiImplCount { get; init; }
+    /// <summary>This Resolves step's binding comes only from a test project — a last-resort wiring
+    /// rendered "[test-only registration]" so it is not mistaken for the production binding (T2.1).</summary>
+    public bool TestOnly { get; init; }
 }
 
 /// <summary>An entry-rooted trace: the call stack down the wiring, with indirection bridged.</summary>
@@ -361,12 +364,14 @@ public sealed class TraceBuilder
                     Salient = salient,
                     Pipeline = pipeline,
                     MultiImplCount = edge.MultiImplCount,
+                    TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi),
                 });
                 continue;
             }
 
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
-                depth + 1, opts, follow, visited, edge.MultiImplCount) with { Salient = salient, Pipeline = pipeline });
+                depth + 1, opts, follow, visited, edge.MultiImplCount)
+                with { Salient = salient, Pipeline = pipeline, TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi) });
         }
 
         return new TraceStep(node, seam, depth)

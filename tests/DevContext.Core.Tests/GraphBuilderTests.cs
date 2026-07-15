@@ -58,6 +58,50 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void DiResolve_wired_only_from_a_test_project_is_tagged_test_only()
+    {
+        // Shamshir: ITradeRepository → SqliteTradeRepository was wired only from InProcessEngineSmokeTests.
+        // The Resolves edge must be tagged test-only (rendered "[test-only registration]") so it is not
+        // mistaken for the production binding (T2.1). Uses NoiseFilter, not a path regex.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Engine", @"C:\repo\src\Engine\Engine.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Engine.Tests", @"C:\repo\test\Engine.Tests\Engine.Tests.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("Engine.ITradeRepository", new TypeDiscovery
+        {
+            Id = "Engine.ITradeRepository", Name = "ITradeRepository", Namespace = "Engine",
+            FilePath = @"C:\repo\src\Engine\ITradeRepository.cs", Kind = TypeKind.Interface,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Engine.SqliteTradeRepository", new TypeDiscovery
+        {
+            Id = "Engine.SqliteTradeRepository", Name = "SqliteTradeRepository", Namespace = "Engine",
+            FilePath = @"C:\repo\src\Engine\SqliteTradeRepository.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
+            ImplementedInterfaces = ["ITradeRepository"],
+        });
+        model.Detections.Add(new DiRegistrationDetection("ITradeRepository", "SqliteTradeRepository", "Scoped", [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\test\Engine.Tests\InProcessEngineSmokeTests.cs",
+            LineNumber = 89,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var resolves = Assert.Single(graph.AllEdges, e => e.Kind == EdgeKind.Resolves);
+        Assert.Contains(RoleTags.TestOnlyDi, resolves.Tags);
+    }
+
+    [Fact]
     public void Build_joins_endpoint_and_handler_and_filters_test_code()
     {
         var model = new DiscoveryModel

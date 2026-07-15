@@ -1387,6 +1387,19 @@ public sealed class GraphBuilder
             }
         }
 
+        // T2.1: which services have a PRODUCTION DI registration? A test-project registration is a
+        // last-resort binding (shamshir wired ITradeRepository→SqliteTradeRepository only from an
+        // InProcessEngineSmokeTests file) — prefer production, and tag a test-only edge so the render is
+        // honest. Uses NoiseFilter.IsProductionEntrySource (which already encodes the test/sample rules),
+        // never a path regex.
+        var productionRegisteredSvc = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
+        {
+            if (di.Shape != DiRegistrationShape.DirectBinding) continue;
+            if (!scope.Contains(di.SourceFile) || !_noise.IsProductionEntrySource(di.SourceFile)) continue;
+            productionRegisteredSvc.Add(StripGenerics(di.ServiceType));
+        }
+
         foreach (var di in model.Detections.OfType<DiRegistrationDetection>())
         {
             if (!scope.Contains(di.SourceFile)) continue;
@@ -1397,6 +1410,11 @@ public sealed class GraphBuilder
                 || di.ImplementationType.StartsWith("_ =>")
                 || di.ImplementationType.StartsWith("(")
                 || di.ImplementationType.Contains("GetRequiredService")) continue;
+
+            var svcShort = StripGenerics(di.ServiceType);
+            var isProdRegistration = _noise.IsProductionEntrySource(di.SourceFile);
+            // Production wins: skip a test-only registration when a production one exists for the same service.
+            if (!isProdRegistration && productionRegisteredSvc.Contains(svcShort)) continue;
 
             var svcFqn = names.Resolve(di.ServiceType, di.SourceFile);
             var implFqn = names.Resolve(di.ImplementationType, di.SourceFile);
@@ -1417,13 +1435,13 @@ public sealed class GraphBuilder
             });
 
             // I1.6 — tag Resolves edges with multi-impl count for render annotation
-            var svcShort = StripGenerics(di.ServiceType);
             var multiCount = implCounts.TryGetValue(svcShort, out var c) && c > 1 ? c : 0;
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
                 Provenance = $"{di.SourceFile}:{di.LineNumber}",
                 Resolution = Resolution.Join,
                 MultiImplCount = multiCount,
+                Tags = isProdRegistration ? [] : [RoleTags.TestOnlyDi], // T2.1: last-resort test binding
             });
         }
 

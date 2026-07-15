@@ -42,6 +42,9 @@ public static class RoleTags
     /// opposed to a Service node synthesized for a class library that only participates in a
     /// cross-service seam. Design §1.3: "A class library is NOT a Service."</summary>
     public const string Runnable = "runnable";
+    /// <summary>Edge tag on a Resolves edge whose ONLY DI registration is in a test project — a
+    /// last-resort wiring the reader should not mistake for the production binding (T2.1).</summary>
+    public const string TestOnlyDi = "test-only-di";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport

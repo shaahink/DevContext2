@@ -116,6 +116,10 @@ public static class TraceRenderer
         if (step.MultiImplCount > 1)
             sb.Append($" [×{step.MultiImplCount} impls]");
 
+        // T2.1 — the binding comes only from a test project (last-resort, not the production wiring).
+        if (step.TestOnly)
+            sb.Append(" [test-only registration]");
+
         sb.AppendLine();
 
         // Salient body lines at --detail salient or full
