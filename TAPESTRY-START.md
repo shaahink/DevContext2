@@ -16,8 +16,8 @@ SyntaxStructureExtractor keys TypeDiscovery.Id "global.OrdersApi", so the Sends 
 Fix: GetTypeFullName uses the "global" fallback. eShop /draft now traces entry→send CreateOrderDraftCommand [verified]→handler→data
 Order (was 2 nodes). Verified via isolated repro + real eShop drive (eval harness is overview-only, can't pin a focus-trace).
 T1 (wrapup→t0→t1) already DELIVERED to develop @ c2f7250. Remaining T2: T2.1 T2.2 T2.3 T2.4 T2.6 T2.7 T2.8.
-stage: T2.5 + T2.7 + T2.2 VERIFIED on feat/tapestry-t2. Remaining: T2.3 T2.1 T2.4 T2.6 T2.8.
-next: **T2.3** (target quality — Type.Method titles, direct-EF label, mutating-verb guard), then T2.1 T2.4 T2.6, T2.8 LAST. Full gate battery running as the T2.7+T2.2 milestone (fast+loom-guards green per commit).
+stage: T2.5 + T2.7 + T2.2 + T2.3 VERIFIED on feat/tapestry-t2. Remaining: T2.1 T2.4 T2.6 T2.8.
+next: **T2.1** (production-first DI provenance — test-only Resolves tag), then T2.4 T2.6, T2.8 LAST. Milestone gate GATE: PASS after T2.2 (tapestry-t2/gates-t2-milestone1.txt); next milestone gate due after T2.1/T2.4.
 gate: **gates.ps1 GATE: PASS** (tapestry-t2/gates-t2.5.txt) — build 0w/0e · fast tests · MCP QA (dogfood, no regression) · eval 58P/6S/0F (no drift) · CLI matrix. loom-guards PASSED (0 truth failures). eShop drift 1092/833→1089/837 (nodes −3 orphan-member dedup, edges +4 Sends, entries 109 unchanged; explained).
 
 ---
@@ -52,7 +52,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 |---|-----------|--------|--------|----------|
 | T2.1 | Production-first DI Resolves (+ test-only tag) | TODO | | |
 | T2.2 | Member LineNumber stamping — BodyFacts.DeclLine → seam-origin + entry-handler members; no trailing colon | VERIFIED | (T2.2 commit) | BodyFactExtractorTests.Body_facts_carry_the_member_declaration_line + SeamDetectorTests (origin node LineNumber); repro trace members all file:line |
-| T2.3 | Target quality: Type.Method titles · direct-EF label · mutating-verb guard | TODO | | |
+| T2.3 | Target quality: Type.Method titles (already TargetTitle/T1.3) · direct-EF label · mutating-verb getter guard | VERIFIED | (T2.3 commit) | GraphBuilderTests.EntryTarget_mutating_verb_prefers_a_non_getter_service_call + EntryTarget_labels_direct_data_access_when_only_the_dbcontext_is_called |
 | T2.4 | Type-focus trace shaping (member groups, named omissions) | TODO | | |
 | T2.5 | Param-passed dispatch seam: receiver normalization + global-namespace member-id fix (audit A1) | VERIFIED | (T2.5 commit) | tapestry-t2/T2.5-EVIDENCE.md · eshop-draft-trace-{before,after}.md · gates-t2.5.txt · SeamDetectorTests + BodyFactExtractorTests |
 | T2.6 | One event join: board/one-pager/flow from Graph2 seams; legacy joins deleted (audit A10) | TODO | | |

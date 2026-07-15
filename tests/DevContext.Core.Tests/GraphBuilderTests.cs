@@ -4,6 +4,59 @@ namespace DevContext.Core.Tests;
 
 public sealed class GraphBuilderTests
 {
+    // ── T2.3 target quality: entry-target resolution over a hand-built graph ──────────────────────
+    private static GraphNode Type(NodeId id, string title, params string[] tags) =>
+        new(id, title, NodeKind.Type) { FilePath = "o.cs", Tags = [.. tags] };
+    private static GraphNode Member(NodeId id, string title) =>
+        new(id, title, NodeKind.Member) { FilePath = "o.cs" };
+
+    [Fact]
+    public void EntryTarget_mutating_verb_prefers_a_non_getter_service_call()
+    {
+        // POST /api/system/reset calls Orchestrator.GetAll() (getter, first) AND Orchestrator.Reset() —
+        // the mutating verb must resolve to Reset, not the getter (audit A7 / T2.3).
+        var b = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /api/system/reset");
+        var handlerId = NodeId.ForMember("Api.SystemController", "Reset");
+        var orchType = NodeId.ForType("Api.BacktestOrchestrator");
+        var getAll = NodeId.ForMember("Api.BacktestOrchestrator", "GetAll");
+        var reset = NodeId.ForMember("Api.BacktestOrchestrator", "Reset");
+        b.AddNode(new GraphNode(entryId, "POST /api/system/reset", NodeKind.EntryPoint));
+        b.AddNode(Member(handlerId, "SystemController.Reset"));
+        b.AddNode(Type(orchType, "BacktestOrchestrator", RoleTags.Service));
+        b.AddNode(Member(getAll, "BacktestOrchestrator.GetAll"));
+        b.AddNode(Member(reset, "BacktestOrchestrator.Reset"));
+        b.AddEdge(new GraphEdge(entryId, handlerId, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(handlerId, getAll, EdgeKind.Calls)); // getter first
+        b.AddEdge(new GraphEdge(handlerId, reset, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.HttpEndpoint, "POST /api/system/reset", entryId)
+        { HttpMethod = "POST", HandlerNode = handlerId };
+        Assert.Equal("BacktestOrchestrator.Reset", GraphBuilder.ResolveEntryTarget(graph, entry));
+    }
+
+    [Fact]
+    public void EntryTarget_labels_direct_data_access_when_only_the_dbcontext_is_called()
+    {
+        // An action whose only meaningful collaborator is a DbContext has no service layer — say so
+        // ("direct data access (TradingDbContext)") rather than resolving to nothing (T2.3).
+        var b = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /api/data/save");
+        var handlerId = NodeId.ForMember("Api.DataController", "Save");
+        var dbType = NodeId.ForType("Api.TradingDbContext");
+        b.AddNode(new GraphNode(entryId, "POST /api/data/save", NodeKind.EntryPoint));
+        b.AddNode(Member(handlerId, "DataController.Save"));
+        b.AddNode(Type(dbType, "TradingDbContext", RoleTags.DataStore));
+        b.AddEdge(new GraphEdge(entryId, handlerId, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(handlerId, dbType, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.HttpEndpoint, "POST /api/data/save", entryId)
+        { HttpMethod = "POST", HandlerNode = handlerId };
+        Assert.Equal("direct data access (TradingDbContext)", GraphBuilder.ResolveEntryTarget(graph, entry));
+    }
+
     [Fact]
     public void Build_joins_endpoint_and_handler_and_filters_test_code()
     {

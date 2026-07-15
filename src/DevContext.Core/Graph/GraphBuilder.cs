@@ -361,9 +361,12 @@ public sealed class GraphBuilder
 
     /// <summary>Resolves an entry's primary target by following the entry's Calls edge to the
     /// target node, then checking that node's Sends edges — same traversal the TraceBuilder uses.</summary>
-    private static string? ResolveEntryTarget(CodeGraph graph, EntryPoint entry)
+    internal static string? ResolveEntryTarget(CodeGraph graph, EntryPoint entry)
     {
         if (entry.Node.Key.Contains("<dynamic>", StringComparison.Ordinal)) return null;
+
+        // T2.3 mutating-verb guard: a write endpoint should not resolve to a getter collaborator.
+        var isMutating = entry.HttpMethod is "POST" or "PUT" or "DELETE" or "PATCH";
 
         foreach (var call in graph.OutEdges(entry.Node, EdgeKind.Calls))
         {
@@ -383,7 +386,7 @@ public sealed class GraphBuilder
                     //    action) resolves to the dominant in-scope service it calls. The action member's
                     //    own Calls edges are precise post member-origin (Iteration 1), so this takes
                     //    controllers from 0 → target without guessing via the whole class.
-                    return ResolvePrimaryCall(graph, node);
+                    return ResolvePrimaryCall(graph, node, isMutating);
                 case NodeKind.Type:
                     var sends = graph.OutEdges(node.Id, EdgeKind.Sends)
                         .Select(s => s.To).Distinct().ToList();
@@ -405,12 +408,16 @@ public sealed class GraphBuilder
     /// "ProductService.GetByIdAsync"), or null when the action calls nothing meaningful — honest, never
     /// guessed via the whole class (member-origin made the action's own Calls edges precise, so the old
     /// <c>ResolveViaParentType</c> whole-type crutch is retired).</summary>
-    private static string? ResolvePrimaryCall(CodeGraph graph, GraphNode member)
+    private static string? ResolvePrimaryCall(CodeGraph graph, GraphNode member, bool isMutating)
     {
         var ownerTypeKey = ExtractTypeKey(member.Id.Key);
+        GraphNode? serviceCallee = null;
+        GraphNode? serviceCalleeType = null;
+        string? serviceMember = null;
         GraphNode? bestFallback = null;
         GraphNode? bestFallbackType = null;
         var bestOutDegree = -1;
+        string? skippedDataStore = null;
         foreach (var call in graph.OutEdges(member.Id, EdgeKind.Calls))
         {
             var callee = graph.Node(call.To);
@@ -426,23 +433,38 @@ public sealed class GraphBuilder
             var calleeType = graph.Node(NodeId.ForType(calleeTypeKey));
             if (calleeType?.FilePath is null) continue;
 
-            // E6: a raw data-access call is an implementation detail, not the endpoint's meaning — skip a
-            // callee on a DataStore-tagged type (a DbContext) and any call whose OWN method name is a bare
-            // EF/LINQ verb (Where/FindAsync/SaveChangesAsync/...), even when the syntactic resolver
-            // attributed it to a wrapper type (e.g. an `[AsParameters]` services struct) rather than the
-            // DbContext itself.
             var calleeMemberName = callee.Kind == NodeKind.Member ? ExtractMemberName(callee.Id.Key) : null;
-            if (calleeType.Tags.Contains(RoleTags.DataStore)
-                || IsDataAccessNoiseMethod(calleeMemberName)
-                || IsObjectNoiseMethod(calleeMemberName))
+
+            // E6 / T2.3: a raw data-access call is an implementation detail, not the endpoint's meaning — skip
+            // a DataStore-tagged callee (a DbContext) and bare EF/LINQ/object verbs. But remember the store:
+            // if it is the ONLY meaningful collaborator, the endpoint has no service layer and we say so
+            // ("direct data access (X)") rather than resolving to nothing or to a noise verb.
+            if (calleeType.Tags.Contains(RoleTags.DataStore))
+            {
+                skippedDataStore ??= calleeType.Title;
+                continue;
+            }
+            if (IsDataAccessNoiseMethod(calleeMemberName) || IsObjectNoiseMethod(calleeMemberName))
                 continue;
 
-            // Prefer a DI-resolved service (the action's real collaborator) outright; else remember the
-            // meaningful callee with the highest out-degree of its own — a real handler keeps working,
-            // a leaf call doesn't.
+            // Prefer a DI-resolved service (the action's real collaborator). T2.3 mutating-verb guard: a
+            // mutating entry (POST/PUT/DELETE/PATCH) must not pick a getter (GetAll) when a non-getter service
+            // callee exists on the same member — keep the first service callee, but upgrade a getter to a
+            // non-getter when the verb mutates.
             if (calleeType.Tags.Contains(RoleTags.Service))
-                return TargetTitle(callee, calleeType, calleeMemberName);
+            {
+                if (serviceCallee is null
+                    || (isMutating && IsGetter(serviceMember) && !IsGetter(calleeMemberName)))
+                {
+                    serviceCallee = callee;
+                    serviceCalleeType = calleeType;
+                    serviceMember = calleeMemberName;
+                }
+                continue;
+            }
 
+            // Non-service meaningful callee — remember the one with the highest out-degree of its own
+            // (a real handler keeps working, a leaf call doesn't).
             var outDegree = graph.OutEdges(callee.Id, EdgeKind.Calls).Length;
             if (outDegree > bestOutDegree)
             {
@@ -451,11 +473,21 @@ public sealed class GraphBuilder
                 bestFallbackType = calleeType;
             }
         }
-        return bestFallback is null
-            ? null
-            : TargetTitle(bestFallback, bestFallbackType!,
+
+        if (serviceCallee is not null)
+            return TargetTitle(serviceCallee, serviceCalleeType!, serviceMember);
+        if (bestFallback is not null)
+            return TargetTitle(bestFallback, bestFallbackType!,
                 bestFallback.Kind == NodeKind.Member ? ExtractMemberName(bestFallback.Id.Key) : null);
+        // No service/handler call — the endpoint accesses the data store directly; label it as such.
+        return skippedDataStore is { } ds ? $"direct data access ({ds})" : null;
     }
+
+    /// <summary>A read-only accessor name (<c>Get…</c>). A mutating endpoint should prefer a non-getter
+    /// collaborator over one of these when both are called on the same member (T2.3 — POST /reset must not
+    /// resolve to <c>Orchestrator.GetAll</c>).</summary>
+    private static bool IsGetter(string? methodName)
+        => methodName is { Length: > 0 } && methodName.StartsWith("Get", StringComparison.Ordinal);
 
     /// <summary>An entry target is always rendered <c>Type.Method</c> for a member callee. The semantic
     /// body-scan seams sometimes create a member node with a BARE method-name title (e.g. DntSite's
