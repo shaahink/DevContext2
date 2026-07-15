@@ -7,20 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 **T2.6 DONE** on feat/tapestry-t2 — the one event join (audit A10). Built ONE `EventWiringProjection`
-(publisher→event→consumer), stored on `CodeGraph.EventWiring`, joined on SHORT event-type name within the detected event set
-(eShop declares each integration event TWICE — publisher + consumer copy in different namespaces — so a node-id join can't connect
-them; domain events crossing layer-projects of the SAME service are NOT cross-service). Three surfaces now render from it: board
-(`EventFlowSource` reads graph.EventWiring), overview `EVENT WIRING` section (MapRenderer) + `CROSS-SERVICE` ServiceLinks, and flow
-markers — bus ServiceLinks are EMITTED from the projection with provenance anchored at the PUBLISHING member (A10c). Deleted the
-legacy `AddBusServiceLinks` + `_eventPublishers` join. eShop: 13 integration events / 8 cross-service (all correct), ZERO drift.
-T1 (wrapup→t0→t1) DELIVERED to develop @ c2f7250. **Remaining T2: only T2.8** (GraphBuilder split — do LAST).
-stage: T2.5 T2.7 T2.2 T2.3 T2.1 T2.4 T2.6 VERIFIED on feat/tapestry-t2 (7 of 8). Remaining: **T2.8** (GraphBuilder split).
-next: **T2.8** (§0b mechanical, behavior-neutral: verify no `kind:` tag parsing remains (T1.8 removed the projection use), remove stale
-`AddSends` comments, split GraphBuilder.cs ~2500 lines into assembler modules — partial classes by concern: entries / seams /
-service-links / DI / call-graph / flows. Gate: **byte-identical dogfood drift row** on the split commit (`analyze --no-cache` —
-nodes/edges/entries unchanged). Trap: sneaking a behavior change into the split — the drift row MUST be unchanged.
-gate: **gates.ps1 steps green** (tapestry-t2/gates-t2.6.txt partial + T2.6-EVIDENCE.md) — build 0w/0e · fast tests · MCP QA (2m51s, no regression) · eval 58P/6S/0F (no drift) · CLI matrix clean. loom-guards PASSED. EventWiringTests (6) incl. board/one-pager/flow agree. eShop drift 1089/837/109 UNCHANGED vs T2.5 (projection emits the same ServiceLink set the old join did).
+last: 2026-07-15 **T2 COMPLETE (8 of 8)** on feat/tapestry-t2 — pushed through 9e9d921. Final two this session:
+**T2.6** (ed3ff46, one event join): ONE `EventWiringProjection` (publisher→event→consumer) on `CodeGraph.EventWiring`, joined on
+SHORT event-type name within the detected event set (eShop declares each integration event TWICE across services — a node-id join
+can't connect them; domain events across layer-projects of the SAME service are NOT cross-service). Board (`EventFlowSource`),
+overview `EVENT WIRING` section + `CROSS-SERVICE` ServiceLinks (emitted FROM the projection, provenance at the publishing member),
+and flow markers all render from it. Deleted legacy `AddBusServiceLinks` + `_eventPublishers`. eShop 13 integration / 8 cross-service, ZERO drift.
+**T2.8** (9e9d921, split): GraphBuilder.cs 2484 lines → 6 partial files (main 118 + Flows/Entries/Nodes/Seams/ServiceLinks);
+retired stale AddSends comment; verified no `kind:` parsing remains. Byte-identical dogfood drift (439/339/34/205/11/5 before==after).
+T1 (wrapup→t0→t1) DELIVERED to develop @ c2f7250. feat/tapestry-t2 NOT yet merged to develop — user review pending.
+stage: ALL T2 VERIFIED (T2.1-T2.8) on feat/tapestry-t2. **Next phase: T3 (MCP v3)** off develop after T2 merges, OR continue on this branch.
+next: **T3.1** (unified symbol addressing — every symbol-taking MCP tool accepts `query`, resolved via graph.Find; nodeId stays the precise form; error envelope ≤80 tok). Read proposal-tapestry.md §T3 + audit addendum T3.7/T3.8. T3 blocked-by T2 (now done). Consider merging feat/tapestry-t2 → develop first (whole T2 stack) if user approves.
+gate: T2.6 — build 0w/0e · fast 497P/0F · McpQa 2m51s no-regression · eval 58P/6S/0F · loom-guards PASSED · EventWiringTests(6). T2.8 — dogfood drift byte-identical. Evidence: tapestry-t2/T2.6-EVIDENCE.md, T2.8-EVIDENCE.md, gates-t2.6.txt.
 
 ---
 
