@@ -129,6 +129,7 @@ public static class BodyFactExtractor
         Dictionary<string, string> methodReturns, string filePath, string project)
     {
         string? receiverText = null;
+        string? receiverMember = null;
         string methodName;
         var genericArgs = ImmutableArray<SymbolRef>.Empty;
 
@@ -137,6 +138,11 @@ public static class BodyFactExtractor
             case MemberAccessExpressionSyntax ma:
                 (methodName, genericArgs) = SplitName(ma.Name, inv, filePath, project);
                 receiverText = RootIdentifier(ma.Expression);
+                // When the receiver is itself a member access (services.Mediator), keep its trailing
+                // segment so dispatch detection sees "Mediator", not just the root "services".
+                receiverMember = ma.Expression is MemberAccessExpressionSyntax innerMa
+                    ? innerMa.Name.Identifier.ValueText
+                    : null;
                 break;
             case GenericNameSyntax gn:
                 (methodName, genericArgs) = SplitName(gn, inv, filePath, project);
@@ -170,7 +176,10 @@ public static class BodyFactExtractor
             args.Add(new ArgFact(argText, argType));
         }
 
-        return new InvocationOp(Line(inv), receiverText, receiverType, methodName, genericArgs, args.ToImmutable());
+        return new InvocationOp(Line(inv), receiverText, receiverType, methodName, genericArgs, args.ToImmutable())
+        {
+            ReceiverMember = receiverMember,
+        };
     }
 
     private static (string Name, ImmutableArray<SymbolRef> Generics) SplitName(
@@ -360,7 +369,11 @@ public static class BodyFactExtractor
 
     private static string GetTypeFullName(TypeDeclarationSyntax typeDecl)
     {
-        var ns = typeDecl.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault()?.Name.ToString();
-        return ns is null ? typeDecl.Identifier.ValueText : $"{ns}.{typeDecl.Identifier.ValueText}";
+        // Global-namespace types get the "global" prefix that SyntaxStructureExtractor uses for the
+        // TypeDiscovery.Id (namespaceName ?? "global"). Without it the BodyFacts member id ("OrdersApi")
+        // diverges from the graph's node id ("global.OrdersApi"), so a seam edge on the member is orphaned
+        // from the entry's handler node — the eShop OrdersApi (no namespace) /draft flow (T2.5).
+        var ns = typeDecl.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault()?.Name.ToString() ?? "global";
+        return $"{ns}.{typeDecl.Identifier.ValueText}";
     }
 }

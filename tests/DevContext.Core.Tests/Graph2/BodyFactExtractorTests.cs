@@ -27,6 +27,18 @@ public sealed class BodyFactExtractorTests
     }
 
     [Fact]
+    public void Member_id_prefixes_global_for_a_namespaceless_type()
+    {
+        // A global-namespace type must key its members "global.Type::..." to match SyntaxStructureExtractor's
+        // TypeDiscovery.Id (namespace ?? "global"). Without the prefix the BodyFacts member id ("OrdersApi")
+        // diverges from the graph node id ("global.OrdersApi"), orphaning a seam edge from the entry node —
+        // eShop's namespaceless OrdersApi /draft flow (T2.5).
+        const string code = "public static class OrdersApi { public void Handle(int x) { } }";
+        var m = Assert.Single(Extract(code));
+        Assert.Equal("global.OrdersApi::Handle(1)", m.Member.Canonical);
+    }
+
+    [Fact]
     public void Captures_invocation_with_receiver_type_from_lambda_param()
     {
         // Verbatim shape of CheckoutBasketEndpoints.AddRoutes — the minimal-API lambda receiver.
@@ -50,6 +62,26 @@ public sealed class BodyFactExtractorTests
         Assert.Equal("sender", send.ReceiverText);
         Assert.Equal("ISender", send.ReceiverType?.Text);
         Assert.Equal("command", Assert.Single(send.Args).Text);
+        Assert.Null(send.ReceiverMember); // bare-identifier receiver — ReceiverText already names it
+    }
+
+    [Fact]
+    public void Captures_receiver_member_for_property_accessed_receiver()
+    {
+        // eShop OrdersApi shape: the sender is reached through an [AsParameters] record (services.Mediator).
+        // The root identifier is "services"; the trailing ".Mediator" segment must be captured so dispatch
+        // detection can recognise it as MediatR (T2.5).
+        const string code = """
+            namespace Ordering.Api;
+            public static class OrdersApi
+            {
+                public static async Task Handle(CreateOrderDraftCommand command, OrderServices services)
+                    => await services.Mediator.Send(command);
+            }
+            """;
+        var send = Member(code, "Handle").Ops.OfType<InvocationOp>().Single(i => i.MethodName == "Send");
+        Assert.Equal("services", send.ReceiverText);
+        Assert.Equal("Mediator", send.ReceiverMember);
     }
 
     [Fact]
