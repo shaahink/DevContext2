@@ -48,9 +48,21 @@ public sealed class GrpcEntryPointBuilder : IEntryPointBuilder
                 var methodId = NodeId.ForEntry(methodKey);
                 g.AddNode(new GraphNode(methodId, methodTitle, NodeKind.EntryPoint) { FilePath = svc.SourceFile, LineNumber = svc.LineNumber });
 
-                var memberNodeId = g.HasNode(NodeId.ForMember(svcTypeFqn, method))
-                    ? NodeId.ForMember(svcTypeFqn, method)
-                    : svcTypeNodeId;
+                // Anchor on the RPC method member, creating it up-front (like the HTTP builder) so the
+                // seeded call graph's edges (T1.1) attach to it and entry→target resolves the service the
+                // RPC calls — not the owning gRPC type. Entry builders run before the call graph, so the
+                // member node won't pre-exist; create it when the owning type is known.
+                NodeId memberNodeId;
+                if (g.HasNode(svcTypeNodeId))
+                {
+                    memberNodeId = NodeId.ForMember(svcTypeFqn, method);
+                    g.AddNode(new GraphNode(memberNodeId, $"{svc.ImplementationType}.{method}", NodeKind.Member)
+                    { FilePath = svc.SourceFile, LineNumber = svc.LineNumber });
+                }
+                else
+                {
+                    memberNodeId = svcTypeNodeId;
+                }
                 g.AddEdge(new GraphEdge(methodId, memberNodeId, EdgeKind.Calls)
                 {
                     Provenance = $"{svc.SourceFile}:{svc.LineNumber}",

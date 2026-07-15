@@ -1,0 +1,14 @@
+{
+  "repo": "eval/fixtures/ServiceSurfaces",
+  "checks": [
+    { "id": "signal-grpc",      "type": "signal-present", "value": "grpc",           "status": "expected", "note": "T1.1: Grpc.AspNetCore package signal. Fixture lives under eval/fixtures (not tests/) so DependencyExtractor's test/sample path suppression doesn't hide its package signals." },
+    { "id": "signal-functions", "type": "signal-present", "value": "azure-functions", "status": "expected", "note": "T1.1: Microsoft.Azure.Functions.Worker package signal." },
+    { "id": "signal-graphql",   "type": "signal-present", "value": "graphql",        "status": "expected", "note": "T1.1: HotChocolate.AspNetCore package signal." },
+    { "id": "det-grpc",     "type": "detection-count", "detectionType": "GrpcServiceDetection",  "min": 1, "max": 1, "status": "expected", "note": "One gRPC service impl (GreeterService : Greeter.GreeterBase)." },
+    { "id": "det-function", "type": "detection-count", "detectionType": "FunctionEntryDetection", "min": 1, "max": 1, "status": "expected", "note": "One Azure Function ([Function] trigger method OrderIngestFunction.Run)." },
+    { "id": "det-graphql",  "type": "detection-count", "detectionType": "GraphQlFieldDetection",  "min": 1, "max": 1, "status": "expected", "note": "One GraphQL resolver field ([QueryType] CatalogQuery.GetProduct)." },
+    { "id": "target-grpc",     "type": "output-contains", "format": "markdown", "value": "GreetingService.BuildGreeting",   "status": "expected", "note": "T1.1: the gRPC RPC's entry target resolves the service it calls — proves the gRPC file is seeded into the Map-mode call graph and the entry anchors on the RPC member (was targetless: no call-graph seed for gRPC)." },
+    { "id": "target-function", "type": "output-contains", "format": "markdown", "value": "OrderIngestService.IngestOrder",  "status": "expected", "note": "T1.1: the Function trigger's entry target resolves its service — proves the Functions file is seeded and the entry anchors on the trigger member." },
+    { "id": "target-graphql",  "type": "output-contains", "format": "markdown", "value": "CatalogLookupService.FindProduct", "status": "expected", "note": "T1.1: the GraphQL resolver's entry target resolves its service — proves the resolver file is seeded and the entry anchors on the resolver member." }
+  ]
+}

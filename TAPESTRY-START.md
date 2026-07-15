@@ -7,18 +7,19 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 audit session (parallel worktree) merged into feat/tapestry-t1 (c3bcb9a): live blind-drive
-feature-design audit — eShop through every GUI page (6 Playwright rounds, token exports captured to disk) + CLI
-report/query over 8 benchmark libraries → eval-results/2026-07-15/feature-design-audit.md (17 correctness findings
-A1–A17, per-surface B, export audit C incl. the stale-Copy bug, library lens D, consistency matrix E). Addendum
-APPROVED mode A and woven: new T1.7–T1.9, T2.5–T2.8, T3.7–T3.8, T4.6, T5.6, T6.7–T6.11, T7.4 + gate riders on
-T1.4/T1.5/T2.2/T6.3/T6.4 — full per-checkpoint spec (evidence, verified code loci, traps):
-docs/dev/briefs/proposal-tapestry-audit-addendum.md. Graph verdict recorded (§0b): Graph2 substrate is already
-THE feed, regex scans deleted; retirement = T2.8 cleanup only. Repro drivers: src/DevContext.App/scripts/audit-drive*.mts.
-Prior state (T1.2 0f410a9 gateway peer-count, T1.3 3ea6c34 Type.Method targets, both VERIFIED): tapestry-t1/T1-EVIDENCE.md.
-stage: T0 + T1.2/T1.3 VERIFIED · audit weave landed (docs-only). wrapup+t0+t1 await review/merge to develop.
-next: T1.1 catalog-driven EntrySeedFiles, then T1.7+T1.8 (same territory); T2.5 FIRST when T2 opens (audit A1).
-gate: unchanged since 527c382 — build 0w/0e · full eval 0 fail · gates.ps1 GATE: PASS (weave is docs-only).
+last: 2026-07-15 Tapestry T1.1 delivered on feat/tapestry-t1 — catalog-driven entry seeds. `EntrySeedFiles` was a
+hardcoded four (endpoints/MediatR/workers/hubs); gRPC/Functions/Orleans/GraphQL/consumer/CLI entries got NO Map-mode
+call-graph seed → targetless, depth-1. Fix: marker `IEntrySurfaceDetection` on every AppEntry detection → EntrySeedFiles
+unions their SourceFile (catalog-driven; new surface feeds seeds with no extractor edit; Desktop deferred to T1.7). Plus
+Functions/GraphQL entry builders now create+anchor the handler MEMBER (like HTTP/gRPC) so ResolveEntryTarget surfaces
+the service (was Type-anchored → only read Sends). New service-app fixture eval/fixtures/ServiceSurfaces (gRPC+Functions+
+GraphQL, 3/3 target: SayHello→GreetingService.BuildGreeting etc.) + EntrySurfaceSeedTests + servicesurfaces.json. Fixture
+lives under eval/fixtures NOT tests/ so package signals aren't suppressed. Evidence: tapestry-t1/T1-EVIDENCE.md.
+Two T1.5 findings recorded (not fixed): OpenApi package = false MinimalApi signal (flips controller apps); DependencyExtractor
+suppresses signals for repos rooted under /tests//samples/ (unlike NoiseFilter). eShop/shamshir NOT re-driven (surface-neutral).
+stage: T0 + T1.1 + T1.2/T1.3 VERIFIED. wrapup+t0+t1 all await review/merge to develop. Remaining T1: T1.4/T1.5/T1.6 (shamshir+bench), T1.7/T1.8/T1.9 (eShop+UI drive).
+next: T1.4 runnable/per-service inference, or T1.5 style arbitration (has 2 ready findings above), or T1.7+T1.8 (entry taxonomy, eShop pole).
+gate: build 0w/0e · Core 453P/3S · Server 14P · Truth 0 fail · loom-guards clean · full eval 57P/6S/0 fail (servicesurfaces + 3 seed cases green) · gates.ps1 GATE: PASS (tapestry-t1/gates-t1-final.txt).
 
 ---
 
@@ -37,7 +38,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T1 — Detection strength
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T1.1 | Catalog-driven EntrySeedFiles (all AppEntry surfaces feed call-graph seeds) | TODO | | |
+| T1.1 | Catalog-driven EntrySeedFiles (all AppEntry surfaces feed call-graph seeds) | VERIFIED | (pending) | tapestry-t1/T1-EVIDENCE.md · ServiceSurfaces fixture (gRPC/Functions/GraphQL 3/3 target) · servicesurfaces.json + EntrySurfaceSeedTests |
 | T1.2 | Gateway archetype rung — yarp eval flips green | VERIFIED | 0f410a9 | tapestry-t1/T1-EVIDENCE.md · yarp Gateway + dogfood App (Truth) |
 | T1.3 | dntsite FeedsService entry-target gap — target-* evals flip green | VERIFIED | 3ea6c34 | tapestry-t1/T1-EVIDENCE.md · dntsite eval green + ConventionalController fixture |
 | T1.4 | Runnable/per-service inference (Exe + AppHost refs; CLI archetype) | TODO | | |
@@ -131,6 +132,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | dogfood | 2026-07-15 T0 | 432 | 330 | 34 = HTTP 27 · gRPC 4 · +3 per-svc | Microservices | **T0.3 baseline.** Identical to prior row → engine unchanged by T0 (`analyze --no-cache`). |
 | shamshir | 2026-07-15 T0 | 2850 | 3349 | 135 = HTTP 128 · Background 5 · SignalR 2 | MinimalApi (moderate; wrong — T1.5) | **T0.3 baseline.** +46 nodes/+48 edges/+7 entries vs prior. Engine is byte-identical on dogfood, so the delta is shamshir's own source moving (live repo), not a regression. |
 | dogfood | 2026-07-15 T1 | 432 | 330 | 34 | Microservices (App) | **T1.2+T1.3 baseline.** Unchanged from T0.3 — both change archetype SELECTION and a target DISPLAY string, not graph structure; `Dogfood_baseline_presence_ok` green. shamshir NOT re-driven this session (structurally neutral: no gateway signal; the target-title fix only affects display, not counts). |
+| dogfood | 2026-07-15 T1.1 | 439 | 339 | 34 | Microservices (App) | **T1.1.** +7 nodes / +9 edges vs T0.3 (432/330), entries unchanged — the seed change binds the Discount gRPC service files, so its RPC members gain Calls edges (strictly additive: deepens, never removes). Measured by the McpQa gate (mcp-qa.md): checkout flow trace deepened **43 → 46 steps** (1324 → 1442 tok). Truth `Dogfood_baseline_presence_ok` + MCP QA green; no eval-repo count/archetype/style eval moved (57P/0F). shamshir surface-neutral (its HTTP/SignalR/worker mix was already seeded). |
 
 ## Quick commands
 

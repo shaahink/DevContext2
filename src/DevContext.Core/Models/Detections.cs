@@ -40,6 +40,18 @@ public abstract record Detection
     public float Confidence { get; init; } = 1.0f;
 }
 
+/// <summary>
+/// Marks a detection whose <see cref="Detection.SourceFile"/> declares an application entry surface
+/// (a <c>SurfaceRole.AppEntry</c> shape in <see cref="Graph.EntrySurfaces.EntrySurfaceCatalog"/>). Its
+/// file seeds Map-mode call-graph binding (<c>CallGraphExtractor.EntrySeedFiles</c>) so the entry's
+/// handler method gets Calls edges — the basis for entry→target resolution and a non-shallow precomputed
+/// Flow. Before T1.1 the seed set was a hardcoded four (endpoints, MediatR, workers, hubs); gRPC/
+/// Functions/Orleans/GraphQL/consumer/CLI entries got no call edges in Map mode and traced as shallow as
+/// hubs once did. Implementing this on a new AppEntry detection feeds it into the seed set automatically —
+/// no <c>CallGraphExtractor</c> edit. (Desktop UI stays out until its entry taxonomy is cleaned up in T1.7.)
+/// </summary>
+public interface IEntrySurfaceDetection;
+
 /// <summary>Categorizes a MediatR handler as a Command, Query, or Notification handler.</summary>
 public enum MediatRKind { Command, Query, Notification }
 /// <summary>Describes the kind of background worker.</summary>
@@ -60,7 +72,7 @@ public sealed record EndpointDetection(
     string? GroupPrefix = null,
     int HandlerLine = 0,
     string? HandlerBody = null
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>
 /// App-wide fallback/default authorization policy signal (e.g.
@@ -75,7 +87,7 @@ public sealed record MediatRHandlerDetection(
     string ResponseType,
     string HandlerType,
     MediatRKind Kind
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for an EF Core entity and its DbSet registration.</summary>
 public sealed record EfEntityDetection(
@@ -90,7 +102,7 @@ public sealed record BackgroundWorkerDetection(
     string ServiceType,
     string ImplementationType,
     BackgroundWorkerKind Kind
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for registered middleware in the pipeline.</summary>
 public sealed record MiddlewareDetection(
@@ -112,7 +124,7 @@ public sealed record MessageConsumerDetection(
     string MessageType,
     string ConsumerType,
     string BusKind
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Classification of how a DI registration binds service to implementation.</summary>
 public enum DiRegistrationShape
@@ -159,7 +171,7 @@ public sealed record GrpcServiceDetection(
     string ServiceName,
     string ImplementationType,
     ImmutableArray<string> Methods
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a gRPC generated client type usage (injected XxxClient type).</summary>
 public sealed record GrpcClientDetection(
@@ -173,35 +185,35 @@ public sealed record GrpcClientDetection(
 public sealed record SignalRHubDetection(
     string HubType,
     ImmutableArray<string> HubMethods
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for an Azure Functions entry point (method with [Function] + trigger attributes).</summary>
 public sealed record FunctionEntryDetection(
     string ClassName,
     string MethodName,
     ImmutableArray<string> Triggers
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for an Orleans grain class (implements IGrainWithXKey or inherits Grain).</summary>
 public sealed record GrainDetection(
     string GrainType,
     string InterfaceType,
     ImmutableArray<string> Methods
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a GraphQL resolver field (query/mutation/subscription type).</summary>
 public sealed record GraphQlFieldDetection(
     string TypeName,
     string FieldName,
     string OperationType
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a CLI command handler (Spectre.Console.Cli / System.CommandLine).</summary>
 public sealed record CliCommandDetection(
     string CommandType,
     string SettingsType,
     string ExecuteMethod
-) : Detection;
+) : Detection, IEntrySurfaceDetection;
 
 /// <summary>Detection for a Refit HTTP client interface (attributed with [Get]/[Post]/etc.).</summary>
 public sealed record RefitRouteDetection(

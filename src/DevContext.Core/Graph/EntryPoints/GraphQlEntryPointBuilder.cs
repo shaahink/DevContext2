@@ -16,9 +16,25 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"graphql:{field.TypeName}.{field.FieldName}");
             g.AddNode(new GraphNode(id, title, NodeKind.EntryPoint) { FilePath = field.SourceFile, LineNumber = field.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(field.TypeName, field.SourceFile));
+            // Anchor on the resolver METHOD member, creating it up-front (like the HTTP builder), not the
+            // owning type: the seeded call graph (T1.1) puts the resolver's Calls edges on the member, and
+            // entry→target resolution drills a Member landing but only reads Sends on a Type landing — so a
+            // plain-service resolver would show no target if anchored on the type.
+            var typeFqn = names.Resolve(field.TypeName, field.SourceFile);
+            var typeId = NodeId.ForType(typeFqn);
+            NodeId handlerNode;
             if (g.HasNode(typeId))
-                g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
+            {
+                handlerNode = NodeId.ForMember(typeFqn, field.FieldName);
+                g.AddNode(new GraphNode(handlerNode, $"{field.TypeName}.{field.FieldName}", NodeKind.Member)
+                { FilePath = field.SourceFile, LineNumber = field.LineNumber });
+            }
+            else
+            {
+                handlerNode = typeId;
+            }
+            if (g.HasNode(handlerNode))
+                g.AddEdge(new GraphEdge(id, handlerNode, EdgeKind.Calls)
                 {
                     Provenance = $"{field.SourceFile}:{field.LineNumber}",
                     Resolution = Resolution.Join,
@@ -27,7 +43,7 @@ public sealed class GraphQlEntryPointBuilder : IEntryPointBuilder
             entries.Add(new EntryPoint(EntryPointKind.GraphQlField, title, id)
             {
                 Provenance = $"{field.SourceFile}:{field.LineNumber}",
-                HandlerNode = typeId,
+                HandlerNode = handlerNode,
                 Project = scope.ProjectForFile(field.SourceFile),
             });
         }
