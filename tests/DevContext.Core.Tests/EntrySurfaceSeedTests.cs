@@ -38,6 +38,47 @@ public sealed class EntrySurfaceSeedTests
         Assert.Equal(expectedTarget, entry!.Target);
     }
 
+    /// <summary>
+    /// T1.8 — kind single-sourcing. The EntryTable facet (what the deck chips and App facet counts read)
+    /// must carry each entry's TRUE <see cref="EntryPointKind"/> — the same record the builder stamped —
+    /// not a tag-re-derived kind that silently defaults to PublicApi (the "gRPC 75" facet lie). Proven
+    /// end-to-end: the table's kind multiset equals the inventory's, and the non-HTTP surfaces keep their
+    /// real kinds (GrpcService/FunctionEntry/GraphQlField), never PublicApi.
+    /// </summary>
+    [Fact]
+    public async Task EntryTable_facet_kinds_single_source_from_the_inventory()
+    {
+        var repoPath = RepoPath("eval/fixtures/ServiceSurfaces");
+        Assert.True(Directory.Exists(repoPath), repoPath);
+
+        var snapshot = await AnalyzeMapAsync(repoPath);
+        Assert.NotNull(snapshot.Graph);
+        var table = new EntryTableProjection().Project(snapshot.Graph!, ProjectionOptions.Default);
+
+        // Facet rows == inventory (deduped by node) — one entry, one row, no invented rows.
+        var inventoryKinds = snapshot.Entries
+            .DistinctBy(e => e.Node)
+            .Select(e => e.Kind.ToString())
+            .OrderBy(k => k).ToArray();
+        var tableKinds = table.Rows.Select(r => r.Kind).OrderBy(k => k).ToArray();
+        Assert.Equal(inventoryKinds, tableKinds);
+
+        // The three service surfaces surface with their real kinds — no PublicApi default.
+        foreach (var kind in new[] { "GrpcService", "FunctionEntry", "GraphQlField" })
+            Assert.Contains(kind, tableKinds);
+
+        // T1.7 — gRPC entries are proto RPCs only, and only for the nested `Service.ServiceBase` protoc
+        // form. The private helper Normalize() is not an entry; WeatherViewModel : ViewModelBase (a plain
+        // MVVM base, not nested) is not a gRPC service and its override RefreshAsync() is not an RPC.
+        var grpc = snapshot.Entries.Where(e => e.Kind == EntryPointKind.GrpcService).ToArray();
+        Assert.Single(grpc);
+        Assert.Contains("SayHello", grpc[0].Title, StringComparison.Ordinal);
+        Assert.DoesNotContain(snapshot.Entries, e => e.Title.Contains("Normalize", StringComparison.Ordinal));
+        Assert.DoesNotContain(snapshot.Entries, e => e.Title.Contains("RefreshAsync", StringComparison.Ordinal));
+        Assert.DoesNotContain(snapshot.Entries, e =>
+            e.Kind == EntryPointKind.GrpcService && e.Title.Contains("Weather", StringComparison.Ordinal));
+    }
+
     private static async Task<AnalysisSnapshot> AnalyzeMapAsync(string repoPath)
     {
         var fs = new RealFileSystem();

@@ -13,6 +13,8 @@
     { "id": "no-infra-openapi-entry", "type": "output-not-contains", "format": "markdown", "value": "OpenApi.Extensions.cs", "status": "expected", "note": "Phase 2: Scalar/OpenAPI GET / pseudo-entry from ServiceDefaults is filtered (Step 3 infra filter)." },
     { "id": "no-msbuild-vars", "type": "output-not-contains", "format": "markdown", "value": "$(", "status": "expected", "note": "Phase 4 / Low 16: no unevaluated MSBuild variables in STACK/PACKAGES." },
     { "id": "entry-kind-grpc", "type": "entry-kind-present", "value": "GrpcServiceDetection", "format": "gRPC", "status": "expected", "note": "G1-G3 fix: Basket.BasketService gRPC entry must be detected and rendered." },
+    { "id": "grpc-rpc-only", "type": "output-contains", "format": "markdown", "value": "gRPC (3)", "status": "expected", "note": "T1.7 (R-T7, counted from src/Basket.API/Grpc/BasketService.cs): gRPC entries are proto RPCs only — the 3 public-override RPCs of the nested Basket.BasketBase (GetBasket/UpdateBasket/DeleteBasket). The 4 private helpers (ThrowNotAuthenticated, MapToCustomerBasket*) are not RPCs, and the old 'any *Base' rule wrongly catalogued every ClientApp ViewModelBase subclass as a gRPC service (was 20 incl. 7 ViewModel.InitializeAsync)." },
+    { "id": "blazor-ui-not-http", "type": "output-contains", "format": "markdown", "value": "UI (", "status": "expected", "note": "T1.7: Blazor @page routes render as UiEntry (not HttpEndpoint), so they leave the API security surface and the anonymous-endpoints insight recomputes onto real endpoints (was 49/56 incl. Blazor pages, now over the real API)." },
     { "id": "analysis-time",  "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
   ]
 }

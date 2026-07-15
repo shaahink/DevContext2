@@ -12,5 +12,9 @@ public sealed class GreeterService : Greeter.GreeterBase
     public GreeterService(IGreetingService greetings) => _greetings = greetings;
 
     public override Task<HelloReply> SayHello(HelloRequest request)
-        => Task.FromResult(new HelloReply(_greetings.BuildGreeting(request.Name)));
+        => Task.FromResult(new HelloReply(Normalize(_greetings.BuildGreeting(request.Name))));
+
+    // T1.7 — a private helper is NOT a proto RPC: it must never surface as a gRPC entry
+    // (mirrors eShop BasketService.MapToCustomerBasket*). Only `public override` RPCs are entries.
+    private static string Normalize(string s) => s.Trim();
 }

@@ -41,19 +41,38 @@ public sealed class GrpcServiceExtractor : IDiscoveryExtractor
                 foreach (var bt in baseList.Types)
                 {
                     var baseName = bt.Type.ToString();
-                    // gRPC generated base: Xxx.XxxBase
+                    // T1.7 — a gRPC generated service base is ALWAYS the nested `Service.ServiceBase`
+                    // form protoc emits (Greeter.GreeterBase, Basket.BasketBase,
+                    // DiscountProtoService.DiscountProtoServiceBase). The old rule — any type ending in
+                    // "Base" — matched MAUI/MVVM `ViewModelBase`, so every eShop ClientApp ViewModel was
+                    // catalogued as a gRPC service (7 `InitializeAsync` RPCs in the deck). Require the
+                    // `X.XBase` nesting: the last segment must equal the outer type's simple name + "Base".
                     if (!baseName.EndsWith("Base", StringComparison.Ordinal)) continue;
+                    var dot = baseName.LastIndexOf('.');
+                    if (dot < 0) continue;                       // not nested → not a generated gRPC base
+                    var baseSimple = baseName[(dot + 1)..];      // "GreeterBase"
+                    var outer = baseName[..dot];                 // "Greeter" (possibly namespace-qualified)
+                    var outerDot = outer.LastIndexOf('.');
+                    var outerSimple = outerDot >= 0 ? outer[(outerDot + 1)..] : outer;  // "Greeter"
+                    if (!baseSimple.Equals(outerSimple + "Base", StringComparison.Ordinal)) continue;
 
                     var className = classDecl.Identifier.ValueText;
-                    var dot = baseName.LastIndexOf('.');
-                    var serviceName = dot >= 0 ? baseName[..dot] : baseName[..^4];
+                    var serviceName = outerSimple;
 
-                    // Collect methods as gRPC service methods
+                    // T1.7 — gRPC entries are proto RPCs only: the generated XxxBase declares each RPC
+                    // as `public virtual`, so an implementation overrides it with `public override`.
+                    // Private helpers (ThrowNotAuthenticated, MapToCustomerBasket*) are NOT RPCs — they
+                    // were inflating the "gRPC 7" facet with 4 BasketService helpers. Filter to overrides.
                     var methods = new List<string>();
                     foreach (var method in classDecl.Members
                         .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>())
                     {
-                        methods.Add(method.Identifier.ValueText);
+                        var mods = method.Modifiers;
+                        var isRpcOverride =
+                            mods.Any(m => m.ValueText == "override") &&
+                            mods.Any(m => m.ValueText == "public");
+                        if (isRpcOverride)
+                            methods.Add(method.Identifier.ValueText);
                     }
 
                     model.Detections.Add(new GrpcServiceDetection(
