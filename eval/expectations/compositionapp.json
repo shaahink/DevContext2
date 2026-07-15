@@ -1,0 +1,13 @@
+{
+  "repo": "tests/fixtures/CompositionApp",
+  "checks": [
+    { "id": "arch-style-not-microservices", "type": "json-equals", "path": "$.architecture.style", "value": "ControllerBased", "status": "expected", "note": "T0.2: an Aspire AppHost orchestrating only 2 project references must NOT be claimed as Microservices by project count; a controllers-heavy composed app reads honestly as ControllerBased." },
+    { "id": "signal-aspire", "type": "signal-present", "value": "aspire", "status": "expected", "note": "T0.2: SDK-style Aspire (Sdk=\"Aspire.AppHost.Sdk/13.3.5\") fires the aspire signal from the project SDK attribute, not a package." },
+    { "id": "entry-kind-background", "type": "entry-kind-present", "value": "BackgroundWorkerDetection", "format": "Background", "status": "expected", "note": "T0.2: hosted services registered in an extension method — incl. the factory-lambda AddHostedService(sp => sp.GetRequiredService<T>()) — render as Background entries (extension-method startup composition is walked)." },
+    { "id": "entry-kind-signalr", "type": "entry-kind-present", "value": "SignalRHubDetection", "format": "SignalR", "status": "expected", "note": "T0.2: built-in (shared-framework) SignalR hub detected and rendered as a SignalR entry with no explicit SignalR package reference." },
+    { "id": "route-composed-pack", "type": "output-contains", "format": "markdown", "value": "/api/addons/packs/{id}", "status": "expected", "note": "T0.2: verb-attribute route [HttpGet(\"packs/{id}\")] composes onto [Route(\"api/addons\")]; previously all actions collapsed to one duplicate truncated route." },
+    { "id": "route-composed-theme", "type": "output-contains", "format": "markdown", "value": "/api/addons/themes/{slug}", "status": "expected", "note": "T0.2: a sibling verb-attribute route composes to its own distinct route/target (proves no collapse across sibling actions)." },
+    { "id": "worker-real-type", "type": "output-contains", "format": "markdown", "value": "BacktestWorker", "status": "expected", "note": "T0.2: the factory-lambda hosted service resolves to the real BacktestWorker type, not to the lambda." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}
