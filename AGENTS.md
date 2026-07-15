@@ -1,83 +1,94 @@
 # AGENTS.md — DevContext monorepo
 
-Branch `feat/loom-l7`. Monorepo: engine + server + CLI (C#), desktop app (Angular + Rust/Tauri).
+Integration branch: **`develop`** (open PRs here). Monorepo: a C# engine + gRPC server + CLI + MCP
+server, and an Angular 22 / Tauri desktop app. One engine (`DevContext.Core`) powers every surface.
 
-## Cold start
-1. Read `LOOM-START.md` — the current stage card (branch, checkpoints, key files, gate).
-2. `docs/dev/briefs/loom-graph-design.md` — the design authority (MANDATORY before touching graph code).
-3. `src/DevContext.App/AGENTS.md` — app conventions, run commands, architecture layering.
-4. `docs/dev/briefs/meridian-agent-playbook.md` — quality bar, anti-patterns, run/test instructions.
-5. `docs/dev/HANDOVER-LOOM.md` — Loom close-out: architecture, benchmarks, known gaps.
+> **What it does:** point it at any .NET repo and it produces a **Map** (what's here) and a **Trace**
+> (how things connect) — sized for an LLM prompt, readable by a human, honest about how it got there.
 
-## Verify loop
-```powershell
-# From C:/Code/DevContext2-ui/src/DevContext.App
-pnpm check          # lint + vitest + build
-pnpm server         # start .NET server (separate terminal)
-pnpm dev:web        # start Angular dev server
+## Cold start (read in this order)
 
-# From C:/Code/DevContext2-ui
-dotnet build DevContext.slnx                         # 0 warnings
-dotnet test  DevContext.slnx --filter "Category!=Eval"
-powershell -File scripts/loom-guards.ps1              # zero banned patterns
+1. `README.md` — product tour, features, quickstart.
+2. `docs/dev/DEVELOPER-PIPELINE.md` — **the developer pipeline**: build, test, gate battery, run, bench,
+   eval, screenshots, branch/release. Start here for anything hands-on.
+3. `docs/product/AGENT-REFERENCE.md` — engine internals: ANALYZE→RENDER pipeline, Graph2, contracts, models.
+4. `src/DevContext.App/AGENTS.md` — desktop app conventions (Angular layering, run commands, gRPC codegen).
+5. `docs/dev/briefs/loom-graph-design.md` — graph-model design authority (**mandatory before touching graph code**).
+6. `docs/dev/HANDOVER-LOOM.md` — most recent engine close-out: architecture, benchmarks, known gaps.
+7. `proto/devcontext/v1/devcontext.proto` — the gRPC contract; single source of truth for server ⇄ app ⇄ MCP.
+
+## Architecture
+
+```
+DevContext.Core       kernel — analysis pipeline, Graph2 identity spine, BodyFacts, projections,
+                      renderers. Roslyn is folded in here (Microsoft.CodeAnalysis.CSharp package).
+├── DevContext.Cli        `devcontext` dotnet tool — the primary scriptable surface
+├── DevContext.Contracts  proto → C# codegen (Grpc.Tools)
+├── DevContext.Server     gRPC-Web backend wrapping Core (analyze-once, query-many)
+└── DevContext.Mcp        MCP server — ~24 tools mapping to the gRPC RPCs
+
+DevContext.App        Angular 22 (zoneless, signals) + Tauri 2 desktop shell; talks to Server over gRPC-Web
 ```
 
-## Loom rituals (inherited from proposal-loom.md §1 — keep alive for next phase)
+There is **no** `DevContext.Desktop` or `DevContext.Roslyn` project — the WPF/Avalonia desktop was
+retired in favour of the Angular/Tauri app, and Roslyn is a package reference inside Core. If a doc
+still mentions those projects, it is stale.
 
-### Pre-session ritual (≤10 min)
-1. Read `LOOM-START.md` handoff block + stage section + design doc sections cited by your stage.
-2. Run the gate battery: `dotnet build` (0w/0e) · `dotnet test --filter Category!=Eval` · `pnpm check`.
-   **If anything is red before you start, fix or record — never build on red.**
-3. State in the tracker, in one line, what artifact will prove your stage done.
+## Gate battery (green before every commit)
 
-### Post-session ritual (≤15 min)
-1. Re-run the gate battery + the truth gates your stage touches.
-2. Produce the evidence artifact (fresh run output under `eval-results/<date>/`).
-3. Update `LOOM-START.md`: handoff block (overwrite, ≤10 lines), checkpoint row with commit hash + artifact path.
-4. Commit per checkpoint, push. Never merge unasked.
+```powershell
+# From repo root — engine:
+dotnet build DevContext.slnx                              # 0 warnings / 0 errors (warnings are errors)
+dotnet test  DevContext.slnx --filter "Category!=Eval"    # fast unit + integration
+dotnet test  DevContext.slnx --filter "Category=Truth"    # truth gates (skips are the pending ratchet)
+powershell -File scripts/loom-guards.ps1                  # banned-pattern check + truth gate
+powershell -File eval/gates.ps1                           # build → fast tests → eval → CLI --strict matrix
 
-### Discipline invariants
-- The design doc's §9 prohibitions are hard rules. `scripts/loom-guards.ps1` — keep it green.
-- Every claim in the tracker names a fresh artifact.
-- Scope changes get a `> scope change:` line under the checkpoint row.
-- **Tests policy:** unit tests that pin *internal string mechanics* may be deleted when their subject dies.
-  Truth gates and goldens may only be *ratcheted* (loosened never; tightened with a fresh-run diff).
+# From src/DevContext.App — desktop app:
+pnpm check                                                # lint + vitest + production build
+```
+
+`dotnet build DevContext.slnx` covers `Cli`, `Contracts`, `Core`, `Mcp`, `Server` and the two test
+projects (`DevContext.Core.Tests`, `DevContext.Server.Tests`). **Rebuild the CLI after a Core edit** —
+`dotnet build src/DevContext.Cli` — its `bin` carries its own copy of `DevContext.Core.dll`, so an
+unrebuilt CLI runs stale engine code.
 
 ## Hard rules
-- `pnpm check` green before every commit. `dotnet build` green for engine changes.
-- Docs move with code in the same commit.
-- Append `docs/dev/go-to-program/PROGRESS-LOG.md` after every session.
-- Do not write new C# extractors — reform in place.
-- Commit before starting work, push after finishing.
 
-## Work items
-- **Loom L0–L7** ✅ — Truth harness, identity spine, BodyFacts + seam detectors, semantic-lite, flows + projections, MCP v2, workbench repair, repo-shape coverage.
-- **Loom L8** ✅ — Close-out: gate battery, truth tests fixed (7P/4S), HANDOVER-LOOM.md, AGENTS.md rituals.
-- **Meridian M0–M9** ✅ — see `docs/dev/HANDOVER-MERIDIAN.md`.
-- **Lighthouse L0–L7** ✅ — see `docs/dev/HANDOVER-LIGHTHOUSE.md`.
-- **Fable** ✅ — W0-W7 done. See `docs/dev/HANDOVER-FABLE-FINAL.md`.
-- **U3 Facet views** ⬜ — blocked on engine E4.
-- **conductor-DEBT.md** ⬜ — L0.4–L5.x: 8 items (SymbolTable member indexing, BodyFacts scoping, TfmScore, Flow hardening, audit sweep).
+- Gate battery green before every commit; `dotnet build` 0w/0e for engine changes; `pnpm check` for app changes.
+- Docs move with code in the **same commit** — if a doc names a file/flag/count, it must still be true.
+- Do not write new C# extractors — reform in place.
+- Truth gates and goldens are **ratcheted** only: loosen never; tighten with a fresh-run diff. Unit
+  tests that pin internal string mechanics may be deleted when their subject dies.
+- Commit before starting work; push after finishing. **Never merge unasked.**
+
+## Branch & merge discipline
+
+- Integration branch is `develop`; feature branches branch from and PR into `develop`.
+- `main` is always deployable; tagged releases (`v*`) publish the CLI to NuGet and the desktop to GitHub Releases.
+- **Worktrees:** this repo is often driven by several agents at once. Give each its own worktree +
+  branch so nobody edits the same files under another agent:
+  ```powershell
+  git worktree add -b feat/my-thing C:/Code/DevContext2-<slug> develop
+  git worktree list        # see who is where
+  ```
+  Never assume a fixed worktree path in a doc — resolve it with `git worktree list`.
 
 ## AI agent process management
 
-Agents MUST NOT run foreground-blocking servers (`pnpm dev:web`, `pnpm server`, `concurrently`).
-Instead use the background launcher:
+Agents MUST NOT run foreground-blocking servers (`pnpm dev`, `pnpm dev:web`, `pnpm server`,
+`concurrently`, `tauri dev`) — they block the terminal forever and hang the session. Use the
+background launcher instead:
 
 ```powershell
-# Start both .NET server + Angular dev server in background PowerShell Jobs:
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1
-
-# Check status:
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Status
-
-# Kill all:
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1            # start .NET server + Angular dev server as Jobs
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Status    # check status
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill      # kill all
 ```
 
 ### Screenshot capture (Playwright)
 
-Use `scripts/capture-readme.mts` with `--no-spawn` (services must be running already):
+Services must already be running (`--no-spawn`):
 
 ```powershell
 powershell -File src/DevContext.App/scripts/start-dev-bg.ps1
@@ -89,36 +100,15 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 
 | Anti-pattern | Why it hangs the agent |
 |---|---|
-| `pnpm dev:web` or `concurrently` in foreground | Blocks the terminal forever — the command never returns |
-| `spawn()` with `detached: true` + `unref()` inside a Node script | **Does NOT work in practice** — child processes get re-attached to the shell and block on stdio. Node's `child_process` detached mode is unreliable on Windows for keeping the parent responsive. |
-| `page.goto(..., { waitUntil: 'networkidle' })` | Hangs forever on pages with live connections (MCP, WebSocket feeds, SSE streams). Use `domcontentloaded` instead. |
-| Per-shot timeouts > 90s | One hanging shot blocks all remaining captures. Every `capture()` must have a sub-timeout via `Promise.race`. |
-| `page.waitForSelector(selector, { timeout: 300_000 })` | No progress logging — the agent sees zero output for 5 minutes and kills the session. Use a polling loop with heartbeat logging every 10s. |
-| Silent waits > 15s | Always log "still waiting for X (Ns elapsed)" so the agent can see progress. |
+| `pnpm dev` / `dev:web` / `concurrently` / `tauri dev` in foreground | Blocks the terminal forever — the command never returns |
+| `spawn(..., { detached: true }).unref()` in a Node script | Does **not** reliably detach on Windows — the child re-attaches to the shell and blocks on stdio |
+| `page.goto(..., { waitUntil: 'networkidle' })` | Hangs forever on pages with live connections (MCP, WebSocket, SSE). Use `domcontentloaded` |
+| Per-shot timeouts > 90s, or `waitForSelector(timeout: 300_000)` | One hung shot blocks the rest and the agent sees no output. Wrap each shot in `Promise.race([fn(), timeout(90s)])` with heartbeat logging |
+| Silent waits > 15s | Always log "still waiting for X (Ns elapsed)" so the agent sees progress |
 
-### Correct Playwright patterns (from `capture-readme.mts`)
+## Where the work is tracked
 
-1. **Per-shot hard timeout:** wrap each capture in `Promise.race([fn(), timeout(90s)])`
-2. **Never skip** — catch errors per-shot, take a last-resort screenshot, log the error, continue to next shot
-3. **Progress tally:** `[ok/total] screenshot-name ✓/✗` after every shot
-4. **Heartbeat:** every 10s during long waits: `⌛ still waiting: selector-name (10s tick)`
-5. **Navigation:** prefer `domcontentloaded` + explicit `sleep(2000)`; never `networkidle`
-
-## Resume protocol (post-Loom)
-```powershell
-git -C C:/Code/DevContext2-ui checkout feat/loom-l7
-git -C C:/Code/DevContext2-ui pull
-dotnet build C:/Code/DevContext2-ui/DevContext.slnx
-Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
-# Read LOOM-START.md for handoff + checkpoint state
-# Read docs/dev/briefs/loom-graph-design.md
-# Read docs/dev/HANDOVER-LOOM.md
-```
-
-## Next session — Conductor Debt Resolution or Next Phase
-
-1. **conductor-DEBT.md** — 8 items, sized small-medium, fully gated. Start from L0.4 (truth gate auto-enforcement).
-2. **eShop TraceQuality investigation** — 5 failing tests on non-CQRS repo.
-3. **EvalExpectationTests verticalslice** — expectations out of sync.
-
-Baseline (L8): 436 nodes · 338 edges · 34 entries · 6 ServiceLinks · verified 69% · Analyzed ~5.6s.
+- `conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts scoping, TfmScore, Flow hardening, audit sweep).
+- `docs/dev/HANDOVER-*.md` — per-phase close-outs (Loom, Meridian, Lighthouse, Fable, Desktop, Library-support). Read the newest for current architecture + known gaps.
+- `LOOM-START.md` / `MERIDIAN-START.md` — phase trackers (historical checkpoint tables + handoff blocks).
+- `docs/dev/go-to-program/PROGRESS-LOG.md` — append one line after every session.

@@ -5,8 +5,12 @@ A cross-platform desktop client for DevContext. The UI (Angular 22, zoneless, si
 (post-Loom: Graph2 identity spine, BodyFacts pipeline, projections). Tauri provides the native
 shell (OS WebView — no bundled Chromium).
 
-**Phase:** Loom L8 (close-out). Branch: `feat/loom-l7`.
-See: `LOOM-START.md` (tracker), `docs/dev/HANDOVER-LOOM.md` (close-out doc).
+Integration branch: **`develop`**. Engine close-out: `docs/dev/HANDOVER-LOOM.md`.
+Dev pipeline (build/test/gate/run): `docs/dev/DEVELOPER-PIPELINE.md`. Root agent doc: `AGENTS.md`.
+
+> The M6/M7/M8 checkpoint tables and "OPEN gap" sections further down are a **historical record** of
+> the Meridian/Loom sessions — several listed gaps (e.g. the `ReadSource` RPC, layer/feature uplumb)
+> have since shipped. Treat the proto (`proto/devcontext/v1/devcontext.proto`) as the source of truth.
 
 ## Prerequisites
 

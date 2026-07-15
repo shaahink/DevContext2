@@ -1,239 +1,177 @@
 # DevContext — Tool Reference for Agents
 
-## What It Is
+Engine-internals reference for the current (post-Loom, Graph2) architecture. For the hands-on
+pipeline (build/test/run/gate) see `docs/dev/DEVELOPER-PIPELINE.md`; for the graph-model design
+authority see `docs/dev/briefs/loom-graph-design.md`.
 
-DevContext is a static analysis tool for .NET codebases. It scans a project, extracts structured context (endpoints, workers, entities, DI wiring, middleware), prunes to fit a token budget, and produces a document ready to paste into any LLM.
+## What it is
 
-**Two surfaces**: CLI (`dotnet tool install -g DevContext.Cli`) and Windows Desktop (self-contained `.exe`).
+DevContext turns any .NET solution into a **structured code graph** and renders two artifacts from it:
+a **Map** (what's in the repo — architecture style, topology, entry points, packages) and a **Trace**
+(how things connect — endpoint → handler → event → consumer → entity → DI). Both are sized for an LLM
+prompt, readable by a human, and carry provenance (`file:line`) for how each fact was derived.
 
----
+**Surfaces** (all wrap one engine, `DevContext.Core`):
 
-## How Data Flows
+| Surface | Project | Notes |
+|---------|---------|-------|
+| CLI (`devcontext`) | `DevContext.Cli` | Primary scriptable surface; `dotnet tool install -g DevContext.Cli` |
+| Desktop | `DevContext.App` | Angular 22 (zoneless, signals) + Tauri 2; talks to the server over gRPC-Web |
+| gRPC-Web server | `DevContext.Server` | Analyze-once/query-many backend the desktop calls |
+| MCP server | `DevContext.Mcp` | ~23 tools mapping to the gRPC RPCs, for AI-agent integration |
+| Contract codegen | `DevContext.Contracts` | proto → C# stubs (Grpc.Tools) |
+
+> There is **no** `DevContext.Desktop` (retired WPF/Blazor/Avalonia app) and **no** `DevContext.Roslyn`
+> project — Roslyn is a `Microsoft.CodeAnalysis.CSharp` package reference inside `DevContext.Core`.
+
+## The core model: analyze once, query many
+
+Analysis is **immutable**: `Analyze` builds an `AnalysisSnapshot` (the code graph + model + options)
+once. Map, Trace, Node, Neighbors, Search, Context, etc. are cheap **render-time queries** over that
+same snapshot — never a re-analysis. The server keeps snapshots per session; the desktop holds a
+session handle and issues query RPCs as you navigate.
+
+### gRPC contract (`proto/devcontext/v1/devcontext.proto` — single source of truth)
+
+The proto is the authority for server ⇄ app ⇄ MCP. RPCs:
 
 ```
-User input (path/task) 
-  → ProjectRootResolver (finds .sln, walks up, or uses folder)
-  → DiscoveryPipeline (ANALYZE phase — produces immutable AnalysisSnapshot)
-    Stage 1: DISCOVERY (sequential) — FileTreeExtractor, SolutionDiscovery, ProjectStructureExtractor
-      → Populates: AllSourceFiles, AllProjectFiles, model.Solution, model.Projects
-    Stage 2: GENERIC (parallel) — DependencyExtractor, SyntaxStructureExtractor, 
-             LayerClassifier, DiRegistrationExtractor, ProgramCsFlowExtractor
-      → Populates: model.Types, model.Detections, Architecture signals
-    [Signal Sealing] — ArchitectureStyleDetector runs, no more signal writes
-    Stage 3: SPECIFIC (parallel, signal-gated, mutually independent) — EndpointExtractor,
-             ControllerActionExtractor, EfCoreExtractor, CallGraphExtractor, et al.
-      → Populates: EndpointDetection, EfEntityDetection, et al.
-    Stage 4: SCORING — PathProximityPruner → CallReachabilityPruner → 
-             PatternRelevancePruner (score only, no destruction)
-      → Computes: FinalScore, IsHardExcluded, ExclusionReason on every TypeDiscovery
-    Stage 5: COMPRESSION — 5 compressors (trivial members, boilerplate, dedup, namespace, LLM formatting)
-      → Runs over all non-hard-excluded types. AggressiveTruncator moved to render-time.
-  → AnalysisSnapshot (immutable: model, scenario, options, analysis context)
-
-  → DiscoveryPipeline (RENDER phase — cheap, repeatable, driven by RenderRequest lens)
-    RenderPlanBuilder: ranks types by FinalScore, enforces budget+cap via IncludedTypeIds,
-                       tracks excluded types with reasons (visible in cut list)
-    Stage 6: RENDERING — MarkdownRenderer / JsonContextRenderer / HtmlContextRenderer
-      → Uses RenderPlan.IncludedTypeIds + PerTypeCharCap for filtering and truncation
-  → RenderedContext: content + tokens + sections + self-check results
+Session:   Analyze · ListSessions · CloseSession · Ping · GetStats
+Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints
+Trace:     GetTrace · GetNeighbors · GetNode · GetImpact
+Search:    SearchNodes · FindTestsFor · ConfigLookup
+Source:    ReadSource · Render
+Context:   GetContext · GetContextPack
+MCP mgmt:  StartMcp · StopMcp · ObserveToolCalls
 ```
 
-### Key contracts
+Editing the proto: rebuild `DevContext.Contracts` (C# stubs) **and** run `pnpm gen:proto` (TypeScript)
+so both sides stay in lockstep, then wire the server handler + app data-access.
 
-| Interface | Location | Purpose |
-|-----------|----------|---------|
-| `IDiscoveryExtractor` | `src/DevContext.Core/Contracts/` | All 19 extractors implement this. `ShouldRun()` gates by signals. `ExtractAsync()` populates model. |
-| `IDiscoveryObserver` | Same | Pipeline lifecycle callbacks. Desktop uses `DesktopProgressObserver`, CLI uses `SpectreDiscoveryObserver`. |
-| `IContextRenderer` | Same | `MarkdownRenderer`, `JsonContextRenderer`, `HtmlContextRenderer`. `RenderAsync(model, options, ct)` → `RenderedContext`. |
-| `IAnalysisCache` | `src/DevContext.Core/Analysis/` | Parse-once cache. Syntax trees, XML docs, file text keyed by path. |
-| `IAnalysisService` | `src/DevContext.Desktop/Services/` | Desktop facade: `AnalyzeAsync(opts)` → `SnapshotResult`, `RenderAsync(snapshot, request)` → `RenderResult`. |
+## Engine internals (structural altitude)
 
-### Models
+`DevContext.Core` runs a two-phase pipeline. Read `docs/dev/briefs/loom-graph-design.md` before
+touching graph code — it is the design authority (identity laws, pipeline stages, prohibitions).
 
-| Model | Location | Key Fields |
-|-------|----------|------------|
-| `DiscoveryModel` | `src/DevContext.Core/Models/` | `Types: ConcurrentDictionary<string, TypeDiscovery>`, `Detections: ConcurrentBag<Detection>`, `Architecture: FeatureSignals`, `Projects: ImmutableArray<ProjectInfo>` |
-| `TypeDiscovery` | Same | `Id`, `Name`, `Namespace`, `FilePath`, `FinalScore`, `IsHardExcluded`, `ExclusionReason`, `PathProximityScore`, `RelevanceScore`, `SourceBody` |
-| `AnalysisSnapshot` | `src/DevContext.Core/Pipeline/` | Immutable analyze result: `Model`, `Analysis`, `Scenario`, `Options` |
-| `RenderRequest` | Same | Lens: `Format`, `MaxTokens`, `Sections`, `IncludeProvenance`, `IncludeDiagnostics` |
-| `RenderPlan` | Same | Computed lens: `IncludedTypeIds`, `Excluded: PlannedExclusion[]`, `PerTypeCharCap`, `EstimatedTokens` |
-| `Detection` (base) | `src/DevContext.Core/Models/` | `SourceFile`, `LineNumber`, `Confidence`, `ExtractorName`. 12 derived types. |
-| `ExtractionOptions` | Same | `Profile`, `MaxOutputTokens`, `AllowRoslyn`, `ExcludeExtractors`, `ExcludePatterns` |
-| `RenderOptions` | `src/DevContext.Core/Contracts/` | `IncludeDiagnostics`, `RequiredSections`, `FocusPoints`, `CallGraph`, `ProjectGraph`, `Plan` |
+**ANALYZE** (builds the immutable snapshot):
+- Discovery — solution/project structure, source file tree, package → signal mapping.
+- Graph2 identity spine — `SymbolTable` (FQN candidates, never a blind `fqns[0]` pick), stable node/
+  symbol ids. This is the post-Loom rewrite that replaced the old regex/`NodeId.ForType` paths.
+- BodyFacts — per-member facts scanned from bodies (sends, raises, reads/writes, calls) feeding seam detection.
+- Detection + seam joins — endpoints, MediatR handlers, message consumers, EF entities, DI regs,
+  hosted workers, middleware, cross-service links; joined into a connected `CodeGraph`.
+- Projections — Map/Trace/Facet views computed from the graph.
 
----
+**RENDER** (cheap, repeatable, lens-driven): a `RenderRequest` selects format + sections + focus; the
+renderer emits Markdown / JSON (and HTML) from the snapshot without re-analyzing.
 
-## CLI & Desktop
+### Edge model (trace priority)
 
-### CLI (`devcontext analyze`)
+The trace is a structural traversal over the typed graph. Each edge carries provenance (`file:line`),
+resolution (Join / Syntactic / Semantic), and confidence. Higher-priority edges win when the traversal
+must choose:
+
+| Edge | Priority | Built from |
+|------|----------|-----------|
+| Sends | 0 (highest) | `.Send(new XCommand())` / `.Publish(new XEvent())` |
+| Handles | 1 | MediatR handler join |
+| Raises | 2 | `AddDomainEvent(new XEvent())` |
+| Consumes | 3 | event → handler join |
+| ReadsWrites | 4 | EF entity + body reference |
+| Resolves | 5 | DI registration + single implementor |
+| WrappedBy | 6 | `IPipelineBehavior` |
+| Calls | 7 (lowest) | Roslyn call graph |
+
+Depth limit (default 6), fan-out cap, framework-boundary detection, revisit guard, and cycle breaking
+keep traces focused.
+
+### `DevContext.Core` layout
+
+```
+Graph2/        identity spine — SymbolTable, symbol/node ids (the current path)
+Graph/         graph model, BodyFacts, projections
+Analysis/      analysis cache (parse-once), snapshot
+Extractors/    detection extractors (reform in place — do not add new ones)
+Rendering/     Markdown / JSON / HTML renderers
+Pipeline/      ANALYZE/RENDER orchestration, AnalysisSnapshot, RenderRequest/RenderPlan
+Insights/      architecture findings (dependency violations, wiring gaps)
+Resolvers/     project-root + focus-point resolution
+Compression/   token-shaping compressors
+Contracts/ Models/ Configuration/ Services/ IO/ Utilities/ Validation/
+```
+
+## CLI reference (`devcontext analyze`)
 
 ```
 devcontext analyze [PATH] [OPTIONS]
-
-PATH: .sln, .csproj, directory, or github.com/user/repo
---scenario overview|deep-dive|trace  (default: overview)
---around TypeName[:MethodName]      (entry point for proximity pruning + call graph)
---task "free text intent"           (auto-selects scenario + profile)
---max-tokens 8000                   (token budget)
---format markdown|json|html
---include-diagnostics
---metrics
---dry-run
---no-roslyn
 ```
 
-### Desktop (`DevContext.Desktop.exe`)
+`PATH` accepts a `.sln`, `.csproj`, a folder, or `Type:Method` notation. Always pass an **absolute**
+local path — a relative path is parsed as a GitHub `owner/repo` shorthand and triggers a clone (use
+`--repo` for an explicit GitHub URL).
 
-WPF + Blazor Hybrid app. ConfigPanel (left sidebar) for input, OutputPanel (right) for results.
+| Option | Meaning |
+|--------|---------|
+| `-f, --focus <F>` | Focus point (repeatable): `TypeName` \| `TypeName:MethodName` \| `GET /route`. Presence switches Map → Trace. |
+| `--depth <1-10>` | Graph depth from the focus point |
+| `--detail <level>` | Trace detail: `signature` \| `salient` \| `full` (default `salient`) |
+| `--include-map` | When tracing, also render the Map/architecture sections alongside the trace |
+| `--format <fmt>` | `markdown` \| `json` |
+| `-o, --output <file>` | Write rendered content to a file (stdout still carries the explanation + stats line) |
+| `--stats` | Show the full RunReport (timing, funnel, cache, corpus, parallelism, graph) |
+| `--strict` | Exit code 2 on any self-check invariant violation (CI gate) |
+| `--include-diagnostics` | Include diagnostics in output |
+| `--no-roslyn` | Disable the Roslyn deep tier (faster, deterministic; some deep/dispatch edges drop) |
+| `--lite` | Skip the full graph build (source bodies + call graph) for speed; Map still renders, focus re-analyzes |
+| `--fast` | Skip heavy extractors (call graph, anti-patterns, unconditional scanners) for max speed |
+| `--no-cache` / `--cache-only` | Force fresh analysis / require a cached snapshot (CI reproducibility) |
+| `--repo <url>` / `--ref <branch>` / `--keep` | Clone a GitHub repo, check out a ref, keep the clone |
+| `--dry-run` | Plan only — no extraction |
+| `--verbose` / `--trace` / `--quiet` | Info logging / debug logging (incl. Roslyn) / suppress success output |
 
-**ConfigPanel**:
-- Source field (local path or GitHub URL)
-- Intent field (natural language)
-- Mode toggle (Overview / Trace)
-- Entry point field (Trace mode)
-- 12 section checkboxes → profile auto-derived (Call graph→Debug, Source code→Full)
-- Token budget slider
-- Output format + Advanced toggles
+> **Retired flags** (accepted as hidden no-op stubs for a grace period, then gone): `--around`,
+> `--scenario`, `--profile`, `--task`, `--max-tokens`, `--token-view`, `--include-provenance`,
+> `--include-anti-patterns`, `--metrics`, `--cleanup`. The token budget and scenario/profile model
+> were removed — use `--focus` and `--detail`. Don't reference these in new docs or scripts.
 
-**OutputPanel**:
-- Human View tab: rendered HTML via `HtmlContextRenderer` (section nav, color-coded DI cards, collapsible call graph)
-- LLM View tab: raw markdown for copy-paste
-- Sections drawer: toggle individual sections, see token contributions
-- Copy / Save / Copy LLM buttons with toast notifications
+Other CLI commands: `init` (config scaffold), `query` (graph queries — `--focus`, `--direction`,
+`--attach`), `report`, `scenarios`, `version`.
 
-**Settings persisted** in `%LocalAppData%\DevContext\settings.json` + `recent.json`.
+## MCP tools (`DevContext.Mcp` — server name `devcontext`)
 
----
+~23 tools over the gRPC RPCs (`DevContextTools.cs`):
 
-## Extractors (20 total)
+```
+Analyze · Overview · Resolve · Status · CloseSession · ListSessions · Stats · Entrypoints ·
+Map · TopFlows · Flow · InterestingPoints · Trace · Node · Neighbors · Usages · Find ·
+Impact · Config · TestsFor · Insights · GetContext · ReadSource
+```
 
-### Stage 1 — Discovery (sequential)
-
-| # | Extractor | Finds |
-|---|-----------|-------|
-| 1 | `SolutionDiscoveryExtractor` | `.sln`/`.slnx` files, project paths |
-| 2 | `FileTreeExtractor` | All `.cs`, `.csproj` files (respects exclude patterns) |
-| 3 | `ProjectStructureExtractor` | Target frameworks, project refs, NuGet packages |
-
-### Stage 2 — Generic (parallel)
-
-| # | Extractor | Finds |
-|---|-----------|-------|
-| 4 | `DependencyExtractor` | Package→signal mapping (34 mappings), project dependency graph |
-| 5 | `SyntaxStructureExtractor` | All type declarations, methods, properties, base types, attributes |
-| 6 | `LayerClassifier` | Classifies each project into ArchitectureLayer by path/name/package heuristics |
-| 7 | `DiRegistrationExtractor` | `AddSingleton/Scoped/Transient`, `Add*` extensions, `AutoInjectAllServices` bulk patterns |
-| 8 | `ProgramCsFlowExtractor` | Middleware pipeline (`Use*`/`Map*`), background workers (`AddHostedService`, `AddDNTScheduler`), orphan patterns |
-
-**Between Stage 2 and 3**: `ArchitectureStyleDetector` runs (determines MinimalApi, ControllerBased, NLayer, CleanArchitecture, etc.). Signals sealed — no more writes to Architecture.
-
-### Stage 3 — Specific (sequential, signal-gated)
-
-| # | Extractor | Gated by | Finds |
-|---|-----------|----------|-------|
-| 9 | `EndpointExtractor` | `minimal-apis` / `fast-endpoints` | Minimal API `MapGet/Post/etc.`, FastEndpoints endpoints |
-| 10 | `ControllerActionExtractor` | `controllers` | MVC controller actions, bare `[Route]` with verb inference, token expansion |
-| 11 | `MediatRExtractor` | `mediatr` | `IRequestHandler<T>`, `INotificationHandler<T>` |
-| 12 | `EfCoreExtractor` | `efcore` | `DbContext`, `DbSet<T>`, `modelBuilder.Entity<T>()`, migrations |
-| 13 | `CallGraphExtractor` | (Debug/Full profile) | BFS call graph, DI map, field-type resolution |
-| 14 | `EventBusExtractor` | `masstransit` / `nservicebus` | Message bus consumers |
-| 15 | `InMemoryEventBusExtractor` | (always) | `IEventHandler<T>`, `Subscribe<T>`, `Publish<T>` |
-| 16 | `IndirectWiringDetector` | `deep-dive` scenario | Activator.CreateInstance, service locator, Castle Proxy |
-| 17 | `SourceBodyExtractor` | (Full profile) | Source text for non-pruned types |
-| 18 | `AntiPatternDetector` | (opt-in) | Fire-and-forget, service locator, CancellationToken.None, async void |
-| 19 | `AspireExtractor` | `aspire` | AppHost resources, Redis/Postgres/etc., relationships |
-
-### Dedicated detectors
-
-| Detector | When | What |
-|----------|------|------|
-| `ArchitectureStyleDetector` | Between Stage 2 and 3 | Scores 7 styles (MinimalApi, NLayer, CleanArchitecture, ControllerBased, etc.) from sealed signals |
-| `FocusPointResolver` | After Stage 2 | Resolves `--around Type:Method` to specific types in `model.Types` |
-
----
-
-## Rendering
-
-### MarkdownRenderer (`Format: "markdown"`)
-
-Produces the default output. Used by CLI and Desktop LLM View. ~1,069 lines, god class with ~35 methods. Renders 15+ sections with tables, code blocks, ASCII trees.
-
-### HtmlContextRenderer (`Format: "html"`)
-
-New in v1.0 — semantic HTML for Desktop Human View. ~500 lines. Produces:
-- Sticky section navigation bar
-- Responsive endpoint tables with relative paths and tooltips
-- Collapsible call graph tree (`<details><summary>`)
-- Color-coded DI registration cards (Singleton=blue, Scoped=green, Bulk=orange)
-- Numbered middleware pipeline
-- Background workers as chip list
-- Anti-patterns grouped by file (collapsible)
-- All using existing CSS variables from `app.css`
-
-### JsonContextRenderer (`Format: "json"`)
-
-Flat JSON output. `DevContextOutput` record with `SchemaVersion = "1.0"`. Detections serialized as `IReadOnlyList<object>`. Used programmatically — less feature-complete than Markdown.
-
----
+The desktop MCP page manages the server (status, config snippets, sessions, live log feed, try-a-tool
+sandbox). See `AGENTS.md` for background-process rules when running any server as an agent.
 
 ## Testing
 
-| Project | Tests | Framework | Key Patterns |
-|---------|-------|-----------|-------------|
-| `tests/DevContext.Core.Tests` | 169 | xUnit + NSubstitute | `FakeFileSystem` for AST input, `DiscoveryContextBuilder` for pipeline setup, `GoldenTestHelper` for output regression |
-| `tests/DevContext.Desktop.Tests` | 64 | xUnit + NSubstitute | `IAnalysisService` mocked, ViewModel property-batching verified, section parsing tested |
+| Project | Covers |
+|---------|--------|
+| `tests/DevContext.Core.Tests` | graph, map, trace, query, eval expectations, goldens, truth gates |
+| `tests/DevContext.Server.Tests` | gRPC services |
 
-**Golden tests**: 7 `.md` / `.json` fixtures in `tests/goldens/`. Use `UPDATE_GOLDENS=1` to regenerate. Check exact output format.
+Test categories drive the gate battery: `Category!=Eval` (fast), `Category=Eval` (real-repo
+expectations), `Category=Truth` (truth gates — skips are the pending ratchet). Goldens in
+`tests/goldens/`; regenerate with `$env:UPDATE_GOLDENS=1` and **review the diff**. Desktop app tests
+run under Vitest (`pnpm test`).
 
-**Key extractor tests**: `ControllerActionExtractorTests` (8 tests: verb inference, token expansion, FQN, multi-route), `ArchitectureStyleDetectorTests` (4 tests: ControllerBased, MinimalApi, NLayer, CleanArchitecture).
+## Branch & release
 
----
+`develop` is the integration branch (feature branches PR here); `main` is always deployable. MinVer
+with a `v` tag prefix drives the release workflow (CLI → NuGet on Linux; desktop `.zip` → GitHub
+Release on Windows). See `docs/dev/DEVELOPER-PIPELINE.md` §11.
 
-## Report Generation Flow
+## See also
 
-```
-MainViewModel.AnalyzeAsync
-  → creates AnalysisOptions { Scenario, ActiveSections, Around, Task, ... }
-  → AnalysisService.AnalyzeAsync
-      → IntentInferrer.Infer(Task) → overrides scenario/profile (if --task used)
-      → Builds ExtractionOptions + SharedAnalysisContext
-      → DiscoveryPipeline.RunAsync
-          → All 6 stages (discovery → rendering)
-          → Returns markdown (CLI/LLM) + HTML (Human View)
-      → Returns AnalysisResult { Content, HtmlContent, ElapsedMs }
-  → MainViewModel processes result:
-      → Task.Run(BuildSectionData) — parses output into SectionGroups
-      → Batched UI update (single OnPropertyChanged)
-      → HtmlContent shown in Human View tab
-```
-
----
-
-## Branch & Release Strategy
-
-```
-main   ← always deployable, tagged releases
-develop ← integration, feature branches merge here
-```
-
-**Versioning**: MinVer with `v` tag prefix. `git tag -a v1.0.5` triggers release.yml:
-- Linux: build CLI, run Core tests, `dotnet pack` → `.nupkg` → NuGet.org
-- Windows: `dotnet publish` Desktop → `.zip` artifact → GitHub Release
-
-**Release command**:
-```bash
-git tag -a v1.0.5 -m "Release notes"
-git push origin v1.0.5
-```
-
-## Session Gate
-
-**Before finishing any session**, run the self-validation gate script:
-
-```powershell
-.\eval\gates.ps1
-```
-
-This builds the solution, runs fast unit tests (excluding Eval and CliSmoke),
-runs the eval expectation suite, and exercises the CLI with `--strict` mode.
-A session that ends on `GATE: FAIL` is not done — fix or report the blocker.
+- `docs/dev/DEVELOPER-PIPELINE.md` — build, test, gate battery, run, bench, eval, screenshots.
+- `docs/dev/briefs/loom-graph-design.md` — graph-model design authority (identity laws, prohibitions).
+- `docs/dev/HANDOVER-LOOM.md` — engine close-out: architecture, benchmarks, known gaps.
+- `docs/product/TRACE-ENGINE-DESIGN.md` — trace traversal design.
+- `proto/devcontext/v1/devcontext.proto` — the gRPC contract.
