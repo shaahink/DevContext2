@@ -22,7 +22,7 @@ public sealed class TraceQualityTests
     [Theory]
     [InlineData("eval-repos/TodoApi", "POST /todos/", new[] { "TodoDbContext" })]
     [InlineData("eval-repos/VerticalSlice/MinimalClean", "POST /Products", new[] { "CreateEndpoint", "Product" })]
-    [InlineData("tests/fixtures/ControllerApp", "GET /api/Products", new[] { "ProductService", "GetByIdAsync" })]
+    [InlineData("tests/fixtures/ControllerApp", "GET /api/Products/{id}", new[] { "ProductService", "GetByIdAsync" })]
     [InlineData("analysis-repos/serilog", "Log", new[] { "Logger" })]
     [InlineData("analysis-repos/serilog", "LoggerConfiguration", new[] { "LoggerConfiguration" })]
     public async Task Trace_bridges_indirection(string repoRel, string entry, string[] expected)
@@ -147,8 +147,10 @@ public sealed class TraceQualityTests
         if (!Directory.Exists(repoPath))
             return; // fixture missing — skip silently
 
-        var get = await RunTraceAsync(repoPath, "GET /api/Products");
-        var del = await RunTraceAsync(repoPath, "DELETE /api/Products");
+        // Routes compose the verb-attribute template since 2026-07-15 ([HttpGet("{id}")] →
+        // /api/Products/{id}) — same route, different verbs, so divergence is the whole test.
+        var get = await RunTraceAsync(repoPath, "GET /api/Products/{id}");
+        var del = await RunTraceAsync(repoPath, "DELETE /api/Products/{id}");
 
         // Each descends into its own service method...
         Assert.Contains("GetByIdAsync", get, StringComparison.Ordinal);

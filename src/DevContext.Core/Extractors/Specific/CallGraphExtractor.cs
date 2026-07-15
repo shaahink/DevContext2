@@ -402,6 +402,8 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             if (!string.IsNullOrEmpty(h.SourceFile)) files.Add(h.SourceFile);
         foreach (var w in model.Detections.OfType<BackgroundWorkerDetection>())
             if (!string.IsNullOrEmpty(w.SourceFile)) files.Add(w.SourceFile);
+        foreach (var hub in model.Detections.OfType<SignalRHubDetection>())
+            if (!string.IsNullOrEmpty(hub.SourceFile)) files.Add(hub.SourceFile);
         return files;
     }
 

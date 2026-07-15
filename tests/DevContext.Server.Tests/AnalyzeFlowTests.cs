@@ -60,7 +60,7 @@ public sealed class AnalyzeFlowTests(WebApplicationFactory<Program> factory)
         var trace = await client.GetTraceAsync(new TraceRequest
         {
             Handle = handle,
-            Focus = "GET /api/Products",
+            Focus = "GET /api/Products/{id}",
             Depth = 4,
         });
         Assert.True(trace.Found);

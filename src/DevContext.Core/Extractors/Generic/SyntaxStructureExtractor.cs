@@ -36,6 +36,14 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         var files = context.Analysis.AllSourceFiles;
         var perFile = new List<TypeDiscovery>[files.Count];
 
+        // A repo that IS the SignalR framework self-sources the signal via ProjectName (0.7f);
+        // a higher-confidence SyntaxPattern registration would overwrite DetectedVia and break
+        // Library archetype detection (ArchetypeDetector.IsSelfSourcedFrameworkSignal).
+        var signalRSelfPatterns = Graph.EntrySurfaces.EntrySurfaceCatalog.All
+            .First(d => d.SignalKey == ArchitectureSignals.Keys.SignalR).SelfNamePatterns;
+        var selfSourcesSignalR = model.Projects.Any(p =>
+            signalRSelfPatterns.Any(pat => p.Name.Contains(pat, StringComparison.OrdinalIgnoreCase)));
+
         var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
         await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
         {
@@ -106,7 +114,7 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
                 // SignalR: detect Hub base type. Built-in SignalR ships in the ASP.NET Core
                 // shared framework — modern apps carry no SignalR package reference at all.
-                if (typeDiscovery.BaseTypes.Any(b =>
+                if (!selfSourcesSignalR && typeDiscovery.BaseTypes.Any(b =>
                     b is "Hub" || b.StartsWith("Hub<", StringComparison.Ordinal)))
                 {
                     model.Architecture.Register(FeatureSignal.CreateDetected(

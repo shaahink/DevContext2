@@ -26,8 +26,27 @@ public sealed class WorkerEntryPointBuilder : IEntryPointBuilder
             var id = NodeId.ForEntry($"worker:{shortName}");
             g.AddNode(new GraphNode(id, shortName, NodeKind.EntryPoint) { FilePath = bw.SourceFile, LineNumber = bw.LineNumber });
 
-            var typeId = NodeId.ForType(names.Resolve(shortName, bw.SourceFile));
-            if (g.HasNode(typeId))
+            var typeFqn = names.Resolve(shortName, bw.SourceFile);
+            var typeId = NodeId.ForType(typeFqn);
+
+            // Anchor on the worker's execute member when the call graph bound it — the member's
+            // own edges are the real spine (a Type anchor either dead-ends or walks the whole
+            // class via the ctor twin). ExecuteAsync = BackgroundService, StartAsync = IHostedService.
+            var linkedMember = false;
+            foreach (var method in (string[])["ExecuteAsync", "StartAsync"])
+            {
+                var memberId = NodeId.ForMember(typeFqn, method);
+                if (!g.HasNode(memberId)) continue;
+                g.AddEdge(new GraphEdge(id, memberId, EdgeKind.Calls)
+                {
+                    Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
+                    Resolution = Resolution.Join,
+                });
+                linkedMember = true;
+                break;
+            }
+
+            if (!linkedMember && g.HasNode(typeId))
                 g.AddEdge(new GraphEdge(id, typeId, EdgeKind.Calls)
                 {
                     Provenance = $"{bw.SourceFile}:{bw.LineNumber}",
