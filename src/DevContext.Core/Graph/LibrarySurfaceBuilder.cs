@@ -94,7 +94,10 @@ public static class LibrarySurfaceBuilder
         .. types
             .GroupBy(t => t.Namespace)
             .OrderBy(g => g.Key, StringComparer.Ordinal)
-            .Select(g => new SurfaceGroup(g.Key,
+            // A global-namespace type must not surface as a "global" group label (T2.7) — fall back to the
+            // type's top folder. Grouping key stays t.Namespace so identity is unchanged; only the label maps.
+            .Select(g => new SurfaceGroup(
+                NamespaceDisplay.Label(g.Key, NamespaceDisplay.FolderLabel(g.First().FilePath)),
                 [.. g.OrderBy(t => t.Name, StringComparer.Ordinal).Select(ToSurfaceType)]))
     ];
 

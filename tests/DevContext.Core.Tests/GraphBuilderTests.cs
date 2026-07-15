@@ -4,6 +4,134 @@ namespace DevContext.Core.Tests;
 
 public sealed class GraphBuilderTests
 {
+    // ── T2.3 target quality: entry-target resolution over a hand-built graph ──────────────────────
+    private static GraphNode Type(NodeId id, string title, params string[] tags) =>
+        new(id, title, NodeKind.Type) { FilePath = "o.cs", Tags = [.. tags] };
+    private static GraphNode Member(NodeId id, string title) =>
+        new(id, title, NodeKind.Member) { FilePath = "o.cs" };
+
+    [Fact]
+    public void EntryTarget_mutating_verb_prefers_a_non_getter_service_call()
+    {
+        // POST /api/system/reset calls Orchestrator.GetAll() (getter, first) AND Orchestrator.Reset() —
+        // the mutating verb must resolve to Reset, not the getter (audit A7 / T2.3).
+        var b = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /api/system/reset");
+        var handlerId = NodeId.ForMember("Api.SystemController", "Reset");
+        var orchType = NodeId.ForType("Api.BacktestOrchestrator");
+        var getAll = NodeId.ForMember("Api.BacktestOrchestrator", "GetAll");
+        var reset = NodeId.ForMember("Api.BacktestOrchestrator", "Reset");
+        b.AddNode(new GraphNode(entryId, "POST /api/system/reset", NodeKind.EntryPoint));
+        b.AddNode(Member(handlerId, "SystemController.Reset"));
+        b.AddNode(Type(orchType, "BacktestOrchestrator", RoleTags.Service));
+        b.AddNode(Member(getAll, "BacktestOrchestrator.GetAll"));
+        b.AddNode(Member(reset, "BacktestOrchestrator.Reset"));
+        b.AddEdge(new GraphEdge(entryId, handlerId, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(handlerId, getAll, EdgeKind.Calls)); // getter first
+        b.AddEdge(new GraphEdge(handlerId, reset, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.HttpEndpoint, "POST /api/system/reset", entryId)
+        { HttpMethod = "POST", HandlerNode = handlerId };
+        Assert.Equal("BacktestOrchestrator.Reset", GraphBuilder.ResolveEntryTarget(graph, entry));
+    }
+
+    [Fact]
+    public void TypeFocus_trace_groups_by_member_not_a_flat_wall_of_callees()
+    {
+        // A Type focus (Orchestrator) must open with its OWN members as branches, each expanding to its
+        // call spine — not a flat aggregation of every member's callees behind "(N branches omitted)" (T2.4).
+        var b = new CodeGraphBuilder();
+        var orchType = NodeId.ForType("Demo.Orchestrator");
+        var op1 = NodeId.ForMember("Demo.Orchestrator", "Op1");
+        var op2 = NodeId.ForMember("Demo.Orchestrator", "Op2");
+        var helper1 = NodeId.ForMember("Demo.Helper1", "Run");
+        var helper2 = NodeId.ForMember("Demo.Helper2", "Run");
+        b.AddNode(new GraphNode(orchType, "Orchestrator", NodeKind.Type) { FilePath = "o.cs" });
+        b.AddNode(new GraphNode(op1, "Orchestrator.Op1", NodeKind.Member) { FilePath = "o.cs", LineNumber = 3 });
+        b.AddNode(new GraphNode(op2, "Orchestrator.Op2", NodeKind.Member) { FilePath = "o.cs", LineNumber = 4 });
+        b.AddNode(new GraphNode(helper1, "Helper1.Run", NodeKind.Member) { FilePath = "h.cs" });
+        b.AddNode(new GraphNode(helper2, "Helper2.Run", NodeKind.Member) { FilePath = "h.cs" });
+        b.AddEdge(new GraphEdge(op1, helper1, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(op2, helper2, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.PublicApi, "Orchestrator", orchType);
+        var trace = new TraceBuilder(graph).Build(entry, new TraceOptions { MaxDepth = 6, MaxFanOut = 12 });
+
+        // The root's branches are the type's members (not the flat Helper callees).
+        var childTitles = trace.Root.Children.Select(c => c.Node.Title).OrderBy(t => t).ToArray();
+        Assert.Equal(new[] { "Orchestrator.Op1", "Orchestrator.Op2" }, childTitles);
+        // Each member expands to its own callee.
+        var op1Step = trace.Root.Children.Single(c => c.Node.Title == "Orchestrator.Op1");
+        Assert.Contains(op1Step.Children, gc => gc.Node.Title == "Helper1.Run");
+    }
+
+    [Fact]
+    public void EntryTarget_labels_direct_data_access_when_only_the_dbcontext_is_called()
+    {
+        // An action whose only meaningful collaborator is a DbContext has no service layer — say so
+        // ("direct data access (TradingDbContext)") rather than resolving to nothing (T2.3).
+        var b = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /api/data/save");
+        var handlerId = NodeId.ForMember("Api.DataController", "Save");
+        var dbType = NodeId.ForType("Api.TradingDbContext");
+        b.AddNode(new GraphNode(entryId, "POST /api/data/save", NodeKind.EntryPoint));
+        b.AddNode(Member(handlerId, "DataController.Save"));
+        b.AddNode(Type(dbType, "TradingDbContext", RoleTags.DataStore));
+        b.AddEdge(new GraphEdge(entryId, handlerId, EdgeKind.Calls));
+        b.AddEdge(new GraphEdge(handlerId, dbType, EdgeKind.Calls));
+        var graph = b.Build();
+
+        var entry = new EntryPoint(EntryPointKind.HttpEndpoint, "POST /api/data/save", entryId)
+        { HttpMethod = "POST", HandlerNode = handlerId };
+        Assert.Equal("direct data access (TradingDbContext)", GraphBuilder.ResolveEntryTarget(graph, entry));
+    }
+
+    [Fact]
+    public void DiResolve_wired_only_from_a_test_project_is_tagged_test_only()
+    {
+        // Shamshir: ITradeRepository → SqliteTradeRepository was wired only from InProcessEngineSmokeTests.
+        // The Resolves edge must be tagged test-only (rendered "[test-only registration]") so it is not
+        // mistaken for the production binding (T2.1). Uses NoiseFilter, not a path regex.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Engine", @"C:\repo\src\Engine\Engine.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Engine.Tests", @"C:\repo\test\Engine.Tests\Engine.Tests.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("Engine.ITradeRepository", new TypeDiscovery
+        {
+            Id = "Engine.ITradeRepository", Name = "ITradeRepository", Namespace = "Engine",
+            FilePath = @"C:\repo\src\Engine\ITradeRepository.cs", Kind = TypeKind.Interface,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Engine.SqliteTradeRepository", new TypeDiscovery
+        {
+            Id = "Engine.SqliteTradeRepository", Name = "SqliteTradeRepository", Namespace = "Engine",
+            FilePath = @"C:\repo\src\Engine\SqliteTradeRepository.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
+            ImplementedInterfaces = ["ITradeRepository"],
+        });
+        model.Detections.Add(new DiRegistrationDetection("ITradeRepository", "SqliteTradeRepository", "Scoped", [])
+        {
+            ExtractorName = "test",
+            SourceFile = @"C:\repo\test\Engine.Tests\InProcessEngineSmokeTests.cs",
+            LineNumber = 89,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var resolves = Assert.Single(graph.AllEdges, e => e.Kind == EdgeKind.Resolves);
+        Assert.Contains(RoleTags.TestOnlyDi, resolves.Tags);
+    }
+
     [Fact]
     public void Build_joins_endpoint_and_handler_and_filters_test_code()
     {

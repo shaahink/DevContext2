@@ -1,0 +1,15 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+milestone2: build+fast+MCPQA PASS (gate killed in eval); eval re-run 58P/6S/0F

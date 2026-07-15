@@ -61,6 +61,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                     {
                         FilePath = ep.SourceFile,
                         SourceBody = ep.HandlerBody,
+                        LineNumber = ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber, // T2.2: no trailing-colon members
                     });
                     g.AddEdge(new GraphEdge(id, memberNodeId, EdgeKind.Calls)
                     {
@@ -100,6 +101,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
                     {
                         FilePath = ep.SourceFile,
                         SourceBody = ep.HandlerBody,
+                        LineNumber = ep.HandlerLine > 0 ? ep.HandlerLine : ep.LineNumber, // T2.2
                     });
                     g.AddEdge(new GraphEdge(id, lambdaId, EdgeKind.Calls)
                     {

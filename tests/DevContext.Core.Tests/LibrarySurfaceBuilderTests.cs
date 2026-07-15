@@ -50,4 +50,30 @@ public sealed class LibrarySurfaceBuilderTests
         Assert.Contains("ServiceCollectionExtensions.AddAutoMapper", surface.ExtensionPoints);
         Assert.DoesNotContain(surface.Groups, g => g.Namespace == "AutoMapper.Tests"); // test project excluded
     }
+
+    [Fact]
+    public void Global_namespace_type_groups_under_its_folder_not_the_literal_global()
+    {
+        // A public type with no namespace is keyed Namespace="global" (SyntaxStructureExtractor). T2.7
+        // requires the rendered group label to fall back to the top folder — never the literal "global".
+        var model = new DiscoveryModel
+        {
+            Projects = [
+                new ProjectInfo("Widgets", @"C:\repo\src\Widgets\Widgets.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: "Library", IsPackable: true),
+            ],
+        };
+        model.Types.TryAdd("global.WidgetFactory", new TypeDiscovery
+        {
+            Id = "global.WidgetFactory", Name = "WidgetFactory", Namespace = "global",
+            FilePath = @"C:\repo\src\Widgets\Factories\WidgetFactory.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Application,
+            Methods = [M("Create")],
+        });
+
+        var surface = LibrarySurfaceBuilder.Build(model);
+
+        Assert.DoesNotContain(surface.Groups, g => g.Namespace == "global"); // never the sentinel
+        Assert.Contains(surface.Groups, g => g.Namespace == "Factories");     // folder fallback
+    }
 }

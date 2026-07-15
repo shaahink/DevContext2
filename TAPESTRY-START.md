@@ -7,18 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 **T1 COMPLETE** — T1.4–T1.9 delivered on feat/tapestry-t1 (6 commits ff89fda…785f2f8), driving eShop
-(eval-repos) + shamshir. T1.8 kind single-sourcing: CodeGraph.Entries carries the true EntryPointKind; EntryTableProjection
-joins it (deleted DeriveEntryKind/PublicApi default). T1.7 taxonomy: gRPC = public-override RPCs of the nested Service.ServiceBase
-(eShop 20→3, killed the ViewModelBase false-positives); Blazor @page → UiEntry (anon-endpoints 49/56→36/43); same-route
-endpoints disambiguated not merged (NG0955). T1.9: tests/samples/benchmarks out of service topology (ProjectClassifier.
-IsProductionProject); most-depended = MediatR not MediatR.Examples. T1.4: per-service styles honest (MAUI/Worker/Blazor/CLI/
-Aspire AppHost, zero Unknown; Blazor beats YARP); runnable adds Worker+Aspire SDK; rollup moved after Stage 3. T1.5: OpenAPI
-package dropped as a false minimal-apis signal (shamshir MinimalApi→NLayer); DependencyExtractor sample/test suppression now
-root-relative. T1.6: HTTP feature areas from route prefix (shamshir "Api (128)"→8 areas). Evidence in commit bodies.
-stage: T0 + T1.* **DELIVERED** — feat/tapestry-t1 (wrapup→t0→t1, linear) merged --no-ff into develop @ **c2f7250** and pushed to origin/develop (2026-07-15). T1 stage DONE.
-next: **T2** — branch `feat/tapestry-t2` off develop; start T2.5 (param-passed MediatR dispatch, the eShop /draft flagship-flow unlock) FIRST, then T2.1…
-gate: **gates.ps1 GATE: PASS** re-verified on the tip pre-merge (tapestry-t1/gates-deliver.txt) — build 0w/0e · fast tests · MCP QA · eval 58P/6S/0F · CLI matrix. loom-guards PASSED (0 truth failures).
+last: 2026-07-15 **T2 COMPLETE (8 of 8)** on feat/tapestry-t2 — pushed through 9e9d921. Final two this session:
+**T2.6** (ed3ff46, one event join): ONE `EventWiringProjection` (publisher→event→consumer) on `CodeGraph.EventWiring`, joined on
+SHORT event-type name within the detected event set (eShop declares each integration event TWICE across services — a node-id join
+can't connect them; domain events across layer-projects of the SAME service are NOT cross-service). Board (`EventFlowSource`),
+overview `EVENT WIRING` section + `CROSS-SERVICE` ServiceLinks (emitted FROM the projection, provenance at the publishing member),
+and flow markers all render from it. Deleted legacy `AddBusServiceLinks` + `_eventPublishers`. eShop 13 integration / 8 cross-service, ZERO drift.
+**T2.8** (9e9d921, split): GraphBuilder.cs 2484 lines → 6 partial files (main 118 + Flows/Entries/Nodes/Seams/ServiceLinks);
+retired stale AddSends comment; verified no `kind:` parsing remains. Byte-identical dogfood drift (439/339/34/205/11/5 before==after).
+T1 (wrapup→t0→t1) DELIVERED to develop @ c2f7250. feat/tapestry-t2 NOT yet merged to develop — user review pending.
+stage: ALL T2 VERIFIED (T2.1-T2.8) on feat/tapestry-t2. **Next phase: T3 (MCP v3)** off develop after T2 merges, OR continue on this branch.
+next: **T3.1** (unified symbol addressing — every symbol-taking MCP tool accepts `query`, resolved via graph.Find; nodeId stays the precise form; error envelope ≤80 tok). Read proposal-tapestry.md §T3 + audit addendum T3.7/T3.8. T3 blocked-by T2 (now done). Consider merging feat/tapestry-t2 → develop first (whole T2 stack) if user approves.
+gate: T2.6 — build 0w/0e · fast 497P/0F · McpQa 2m51s no-regression · eval 58P/6S/0F · loom-guards PASSED · EventWiringTests(6). T2.8 — dogfood drift byte-identical. Evidence: tapestry-t2/T2.6-EVIDENCE.md, T2.8-EVIDENCE.md, gates-t2.6.txt.
 
 ---
 
@@ -50,14 +50,14 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T2 — Graph quality
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T2.1 | Production-first DI Resolves (+ test-only tag) | TODO | | |
-| T2.2 | Member LineNumber stamping (packs show file:line everywhere) | TODO | | |
-| T2.3 | Target quality: Type.Method titles · direct-EF label · mutating-verb guard | TODO | | |
-| T2.4 | Type-focus trace shaping (member groups, named omissions) | TODO | | |
-| T2.5 | Param-passed dispatch seam: BodyFacts params + resolver fallback + receiver normalization (audit A1) | TODO | | |
-| T2.6 | One event join: board/one-pager/flow from Graph2 seams; legacy joins deleted (audit A10) | TODO | | |
-| T2.7 | `global` display fallback namespace→project→folder (audit A7) | TODO | | |
-| T2.8 | Old-graph retirement cleanup: tags · stale comments · GraphBuilder split (audit §0b) | TODO | | |
+| T2.1 | Production-first DI Resolves (+ test-only tag) — prefer prod registration; test-only edge tagged + rendered "[test-only registration]" | VERIFIED | (T2.1 commit) | GraphBuilderTests.DiResolve_wired_only_from_a_test_project_is_tagged_test_only; NoiseFilter.IsProductionEntrySource (no regex) |
+| T2.2 | Member LineNumber stamping — BodyFacts.DeclLine → seam-origin + entry-handler members; no trailing colon | VERIFIED | (T2.2 commit) | BodyFactExtractorTests.Body_facts_carry_the_member_declaration_line + SeamDetectorTests (origin node LineNumber); repro trace members all file:line |
+| T2.3 | Target quality: Type.Method titles (already TargetTitle/T1.3) · direct-EF label · mutating-verb getter guard | VERIFIED | (T2.3 commit) | GraphBuilderTests.EntryTarget_mutating_verb_prefers_a_non_getter_service_call + EntryTarget_labels_direct_data_access_when_only_the_dbcontext_is_called |
+| T2.4 | Type-focus trace shaping — members as branches (top-N by out-degree), named omission | VERIFIED | (T2.4 commit) | GraphBuilderTests.TypeFocus_trace_groups_by_member_not_a_flat_wall_of_callees; repro Orchestrator focus 15-op "(18 branches)"→member groups + "(3 omitted)" |
+| T2.5 | Param-passed dispatch seam: receiver normalization + global-namespace member-id fix (audit A1) | VERIFIED | (T2.5 commit) | tapestry-t2/T2.5-EVIDENCE.md · eshop-draft-trace-{before,after}.md · gates-t2.5.txt · SeamDetectorTests + BodyFactExtractorTests |
+| T2.6 | One event join: board/one-pager/flow from Graph2 seams; legacy joins deleted (audit A10) | VERIFIED | (T2.6 commit) | tapestry-t2/T2.6-EVIDENCE.md · EventWiringTests (6, incl. board/one-pager/flow agree) · eshop.json integration-event-rows(≥8)+cross-service-events(≥1) · eShop 13 integration events / 8 cross-service, zero drift (1089/837/109) |
+| T2.7 | `global` never rendered — display fallback namespace→folder; regression-lock after T2.5's global.* ids (audit A7) | VERIFIED | (T2.7 commit) | NamespaceDisplayTests + LibrarySurfaceBuilderTests (global→folder label); engine Map/report/pack verified `global`-clean on eShop |
+| T2.8 | Old-graph retirement cleanup: tags · stale comments · GraphBuilder split (audit §0b) | VERIFIED | (T2.8 commit) | tapestry-t2/T2.8-EVIDENCE.md · GraphBuilder.cs 2484→6 partial files (main 118 + Flows/Entries/Nodes/Seams/ServiceLinks); no `kind:` parsing remains (verified); stale AddSends comment removed; **dogfood drift byte-identical** 439/339/34/205/11 before=after; fast 497P/0F |
 
 ### T3 — MCP v3
 | # | Checkpoint | Status | Commit | Evidence |
@@ -134,6 +134,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | dogfood | 2026-07-15 T1.1 | 439 | 339 | 34 | Microservices (App) | **T1.1.** +7 nodes / +9 edges vs T0.3 (432/330), entries unchanged — the seed change binds the Discount gRPC service files, so its RPC members gain Calls edges (strictly additive: deepens, never removes). Measured by the McpQa gate (mcp-qa.md): checkout flow trace deepened **43 → 46 steps** (1324 → 1442 tok). Truth `Dogfood_baseline_presence_ok` + MCP QA green; no eval-repo count/archetype/style eval moved (57P/0F). shamshir surface-neutral (its HTTP/SignalR/worker mix was already seeded). |
 | eShop | 2026-07-15 T1 | 1092 | 833 | 109 = HTTP 43 · Bus 13 · Background 1 · Domain 7 · UI 42 · gRPC 3 | Microservices (0.91) | **T1.4–T1.9 pole.** gRPC 20→3 (T1.7 killed ViewModelBase false-positives + private helpers); Blazor @page moved HTTP→UI (anon-endpoints 49/56→36/43); per-service all honest (MAUI/Worker/Blazor/Web API/gRPC, 0 Unknown); services production-only (11 runnable, 5 test projects out); module map catalog/orders (route-derived). eshop.json pins gRPC (3) + UI (. |
 | shamshir | 2026-07-15 T1 | 2882 | 3375 | 135 = HTTP 128 · Background 5 · SignalR 2 | **NLayer (0.6)** | **T1.4–T1.9 pole.** Style MinimalApi→**NLayer** (T1.5 dropped the false OpenAPI minimal-apis signal); per-service 2→4 runnables (AppHost/Host-Worker/ResearchCli-CLI/Web); module map **"Api (128)"→8 feature areas** (runs 22 · data-manager 15 · system 8 · strategies 8 · research 8 · …). +32 nodes/+26 edges vs T0.3 (2850/3349) = live-repo source drift <1.2%, entries unchanged; NO count regression. |
+| eShop | 2026-07-15 T2.6 | 1089 | 837 | 109 | Microservices (0.91) | **T2.6 pole.** UNCHANGED vs T2.5 (1089/837/109). The one `EventWiringProjection` replaces the legacy `AddBusServiceLinks` join and emits the identical bus ServiceLink set (5 links, 8 cross-service integration events collapsing to 5 distinct service pairs), so graph structure is byte-neutral. New: `graph.EventWiring` (20 events, 13 integration, 8 cross-service, 0 orphan) surfaced in `EVENT WIRING` map section + JSON `$.eventWiring`. `gateway.downstream-wiring` unchanged (4 targets). Setting Project on consumer/handler nodes + richer ServiceLink provenance did not move counts. |
+| eShop | 2026-07-15 T2.5 | 1089 | 837 | 109 | Microservices (0.91) | **T2.5 pole.** vs T1 (1092/833): nodes **−3** (orphan duplicate member nodes merged — the global-namespace member-id fix unifies the seam origin with the entry's handler node), edges **+4** (new/connected `Sends` — property-accessed `services.Mediator.Send` on OrdersApi's draft/cancel/ship/create endpoints; "Sends only rise"), entries 109 unchanged. eShop /draft trace 2 nodes → deep (entry→send CreateOrderDraftCommand [verified]→handler→data Order). Dogfood MCP-QA checkout unchanged (no regression); eval 58P/6S/0F. |
 
 ## Quick commands
 

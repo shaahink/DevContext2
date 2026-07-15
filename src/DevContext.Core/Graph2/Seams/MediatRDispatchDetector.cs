@@ -39,10 +39,7 @@ public sealed class MediatRDispatchDetector : ISeamDetector
             // A bus receiver with the same verb belongs to BusPublishDetector — do not double-emit.
             if (recv is not null && DispatchClassifier.IsBusReceiver(recv, inv.MethodName)) continue;
 
-            var isMediatR = recv is not null
-                ? Receivers.Contains(recv)
-                : inv.ReceiverText is not null && NameHints.Contains(inv.ReceiverText);
-            if (!isMediatR || inv.Args.IsDefaultOrEmpty) continue;
+            if (!IsMediatRReceiver(recv, inv) || inv.Args.IsDefaultOrEmpty) continue;
 
             var target = SeamDetectorHelpers.ResolveArgTarget(inv.Args[0], body);
             if (target is null) continue;
@@ -51,6 +48,22 @@ public sealed class MediatRDispatchDetector : ISeamDetector
                 body.Member, EdgeKind.Sends, SeamDetectorHelpers.Resolve(target, ctx),
                 0.7f, $"{body.File}:{inv.Line}", Id);
         }
+    }
+
+    /// <summary>Recognises a MediatR dispatch receiver across three shapes, in precedence order:
+    /// (1) a resolved receiver type naming a MediatR contract (<c>ISender</c>/<c>IMediator</c>…) — authoritative;
+    /// (2) a property-accessed receiver whose trailing segment is a MediatR name (<c>services.Mediator</c> →
+    /// <c>Mediator</c>), where the resolved type is the container's, not the sender's; (3) an unresolved bare
+    /// receiver whose identifier is a conventional sender name (<c>sender</c>/<c>_mediator</c>). A resolved
+    /// non-MediatR bare receiver (<c>IEmailSender sender</c>) deliberately fails all three — the type is
+    /// trusted over the variable name, so a stray <c>sender</c> does not fabricate a dispatch.</summary>
+    private static bool IsMediatRReceiver(string? resolvedReceiverType, InvocationOp inv)
+    {
+        if (resolvedReceiverType is not null && Receivers.Contains(resolvedReceiverType))
+            return true;
+        if (inv.ReceiverMember is { } member && (Receivers.Contains(member) || NameHints.Contains(member)))
+            return true;
+        return resolvedReceiverType is null && inv.ReceiverText is { } root && NameHints.Contains(root);
     }
 
     /// <summary>Short (unqualified) type name from a possibly fully-qualified type text.</summary>

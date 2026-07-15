@@ -147,6 +147,46 @@ public sealed class SeamDetectorTests
     }
 
     [Fact]
+    public void MediatRDispatch_detects_property_accessed_sender_with_param_command()
+    {
+        // Verbatim eShop OrdersApi.CreateOrderDraftAsync — the flagship /draft flow (T2.5). The sender is
+        // reached through an [AsParameters] record (services.Mediator) and the command is a method
+        // parameter. Neither the root identifier ("services") nor its container type ("OrderServices")
+        // names MediatR — the receiver's trailing ".Mediator" segment is what makes this a dispatch.
+        const string ordersApi = """
+            namespace Ordering.API.Apis;
+            public static class OrdersApi
+            {
+                public static async Task<OrderDraftDTO> CreateOrderDraftAsync(
+                    CreateOrderDraftCommand command, [AsParameters] OrderServices services)
+                {
+                    return await services.Mediator.Send(command);
+                }
+            }
+            """;
+        var send = Assert.Single(Detect(new MediatRDispatchDetector(), ordersApi));
+        Assert.Equal(EdgeKind.Sends, send.Kind);
+        Assert.Equal("CreateOrderDraftCommand", send.Target.Text);
+        Assert.Equal("MediatRDispatch", send.DetectorId);
+    }
+
+    [Fact]
+    public void MediatRDispatch_ignores_non_mediatr_bare_sender_with_known_type()
+    {
+        // Guard against the false positive the T2.5 receiver-name signal could invite: a variable named
+        // `sender` whose resolved type is NOT MediatR (an email sender) must not fabricate a dispatch —
+        // the resolved type is trusted over the conventional variable name.
+        const string emailSend = """
+            namespace N;
+            public class Notifier
+            {
+                public void Notify(IEmailSender sender, EmailMessage email) { sender.Send(email); }
+            }
+            """;
+        Assert.Empty(Detect(new MediatRDispatchDetector(), emailSend));
+    }
+
+    [Fact]
     public void BusPublish_detects_publish_of_integration_event()
     {
         var seams = Detect(new BusPublishDetector(), CheckoutHandler);
@@ -281,6 +321,72 @@ public sealed class SeamDetectorTests
         var builder = new GraphBuilder(new SyntacticSymbolResolver(), new NoiseFilter(new ProjectClassifier(model.Projects)));
         var (result, _) = builder.Build(model, scope, facts);
         Assert.True(result.NodeCount > 0);
+    }
+
+    [Fact]
+    public void Assembler_emits_sends_edge_from_global_namespace_endpoint_member()
+    {
+        // T2.5 through the FULL assembler, in the exact eShop OrdersApi shape: a GLOBAL-namespace static
+        // class whose endpoint reaches the sender through an [AsParameters] record (services.Mediator.Send)
+        // with a method-parameter command. Two fixes must hold together:
+        //   (1) the receiver "services.Mediator" is recognised as MediatR (its trailing segment),
+        //   (2) the member id is "global.OrdersApi::…" — matching SyntaxStructureExtractor's TypeDiscovery.Id
+        //       ("global.OrdersApi") — so the Sends edge's ORIGIN is the very node the HTTP entry links to,
+        //       not an orphaned "OrdersApi::…" node the trace can never reach.
+        var filePath = @"C:\repo\src\Ordering.API\Apis\OrdersApi.cs";
+        var source = """
+            public static class OrdersApi
+            {
+                public static async Task<OrderDraftDTO> CreateOrderDraftAsync(
+                    CreateOrderDraftCommand command, OrderServices services)
+                {
+                    return await services.Mediator.Send(command);
+                }
+            }
+            """;
+        var model = new DiscoveryModel
+        {
+            Projects = [new("Ordering.API", @"C:\repo\src\Ordering.API\Ordering.API.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Types.TryAdd("global.OrdersApi", new TypeDiscovery
+        {
+            Id = "global.OrdersApi",
+            Name = "OrdersApi",
+            Namespace = "global",
+            FilePath = filePath,
+            Kind = Models.TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+            SourceBody = source,
+        });
+        model.Types.TryAdd("Ordering.API.Application.Commands.CreateOrderDraftCommand", new TypeDiscovery
+        {
+            Id = "Ordering.API.Application.Commands.CreateOrderDraftCommand",
+            Name = "CreateOrderDraftCommand",
+            Namespace = "Ordering.API.Application.Commands",
+            FilePath = @"C:\repo\src\Ordering.API\Application\Commands\CreateOrderDraftCommand.cs",
+            Kind = Models.TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+            Layer = ArchitectureLayer.Application,
+        });
+        var scope = SolutionScope.FromModel(model);
+        var tree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions().WithPreprocessorSymbols("DEBUG"), filePath);
+        var facts = BodyFactExtractor.Extract(tree, filePath, "Ordering.API");
+
+        var builder = new GraphBuilder(new SyntacticSymbolResolver(), new NoiseFilter(new ProjectClassifier(model.Projects)));
+        var (result, _) = builder.Build(model, scope, facts);
+
+        // The Sends edge must originate on the global.OrdersApi member (the entry's handler node id) and
+        // target the command — both the receiver fix and the global-namespace id fix are required.
+        var originId = NodeId.ForMember("global.OrdersApi", "CreateOrderDraftAsync");
+        var sends = result.AllEdges.Where(e => e.Kind == EdgeKind.Sends).ToList();
+        Assert.Contains(sends, e => e.From == originId
+            && result.Nodes.Any(n => n.Id == e.To && n.Title.Contains("CreateOrderDraftCommand", StringComparison.Ordinal)));
+
+        // T2.2: the seam-origin member node carries its own decl line (CreateOrderDraftAsync is at line 3),
+        // stamped from BodyFacts.DeclLine — no bare trailing colon in packs.
+        var origin = result.Nodes.Single(n => n.Id == originId);
+        Assert.Equal(3, origin.LineNumber);
     }
 
     [Fact]

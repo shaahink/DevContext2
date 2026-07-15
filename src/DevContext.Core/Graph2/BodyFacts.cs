@@ -10,6 +10,9 @@ public sealed record BodyFacts(SymbolId Member, string MemberName, ImmutableArra
     public string File { get; init; } = "";
     /// <summary>Owning project/service of the member.</summary>
     public string Project { get; init; } = "";
+    /// <summary>1-based declaration line of the member (from the syntax walk — no re-parse). Lets the
+    /// assembler stamp <c>file:line</c> on member nodes so packs never render a bare trailing colon (T2.2).</summary>
+    public int DeclLine { get; init; }
 }
 
 /// <summary>One structured operation observed in a member body, at a known 1-based line.</summary>
@@ -25,7 +28,14 @@ public sealed record InvocationOp(
     SymbolRef? ReceiverType,
     string MethodName,
     ImmutableArray<SymbolRef> GenericArgs,
-    ImmutableArray<ArgFact> Args) : BodyOp(Line);
+    ImmutableArray<ArgFact> Args) : BodyOp(Line)
+{
+    /// <summary>The receiver's trailing member-access segment (<c>services.Mediator</c> → <c>Mediator</c>),
+    /// or null when the receiver is a bare identifier (<see cref="ReceiverText"/> already names it) or absent.
+    /// The root identifier alone hides a property-accessed sender, so dispatch detection consults this to
+    /// recognise <c>services.Mediator.Send(cmd)</c> without resolving the container's cross-type members (T2.5).</summary>
+    public string? ReceiverMember { get; init; }
+}
 
 /// <summary>An object creation: <c>new X(...)</c> or <c>new X { ... }</c>.</summary>
 public sealed record CreationOp(int Line, SymbolRef Type) : BodyOp(Line);

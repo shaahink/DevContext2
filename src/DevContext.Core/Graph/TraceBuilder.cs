@@ -32,6 +32,9 @@ public sealed record TraceStep(
     /// <summary>When >0, how many DI implementations exist for this Resolves step's service type
     /// (I1.6 multi-impl honesty).</summary>
     public int MultiImplCount { get; init; }
+    /// <summary>This Resolves step's binding comes only from a test project — a last-resort wiring
+    /// rendered "[test-only registration]" so it is not mistaken for the production binding (T2.1).</summary>
+    public bool TestOnly { get; init; }
 }
 
 /// <summary>An entry-rooted trace: the call stack down the wiring, with indirection bridged.</summary>
@@ -308,6 +311,13 @@ public sealed class TraceBuilder
             };
         }
 
+        // T2.4: a Type-focus root presents its OWN members as branches (top-N by out-degree, with a
+        // named omission), rather than a flat aggregation of every member's callees — which opened a
+        // Type trace with "(106 more branches omitted)" before any content.
+        if (node.Id == _entryRootNodeId && node.Id.Kind == NodeKind.Type
+            && _entryKind == EntryPointKind.PublicApi)
+            return WalkTypeMembers(node, seam, depth, opts, follow, visited);
+
         // Dedup by (target, kind): a Handler/Service node and its Type twin can carry the SAME edge
         // (e.g. a Raises edge mirrored onto both), which would otherwise render the child twice.
         var edges = OutEdgesWithTwin(node.Id)
@@ -361,12 +371,14 @@ public sealed class TraceBuilder
                     Salient = salient,
                     Pipeline = pipeline,
                     MultiImplCount = edge.MultiImplCount,
+                    TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi),
                 });
                 continue;
             }
 
             children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
-                depth + 1, opts, follow, visited, edge.MultiImplCount) with { Salient = salient, Pipeline = pipeline });
+                depth + 1, opts, follow, visited, edge.MultiImplCount)
+                with { Salient = salient, Pipeline = pipeline, TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi) });
         }
 
         return new TraceStep(node, seam, depth)
@@ -409,6 +421,41 @@ public sealed class TraceBuilder
     /// node yields its own join edges PLUS the edges of its handler-entry members (Handle/HandleAsync/…):
     /// Handles/Consumes seams land on the handler Type, so we bridge into the one entry method that carries
     /// the handler's real wiring — not every sibling method.</summary>
+    /// <summary>T2.4 — For a Type focus, the branches are the type's own members (ranked by out-degree),
+    /// each expanded to its own call spine, with a "(N branches omitted)" tail — instead of a flat wall of
+    /// every member's callees. Members that call nothing followable are dropped (they add no spine).</summary>
+    private TraceStep WalkTypeMembers(GraphNode typeNode, SeamKind seam, int depth,
+        TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited)
+    {
+        var members = _graph.Nodes
+            .Where(n => n.Kind == NodeKind.Member
+                && string.Equals(ExtractTypeKey(n.Id.Key), typeNode.Id.Key, StringComparison.Ordinal)
+                && !n.Title.StartsWith("<lambda>", StringComparison.Ordinal))
+            .Select(n => (Node: n, OutDeg: _graph.OutEdges(n.Id).Count(e => follow.Contains(e.Kind))))
+            .Where(m => m.OutDeg > 0)
+            .OrderByDescending(m => m.OutDeg)
+            .ThenBy(m => m.Node.Id.Key, StringComparer.Ordinal)
+            .ToList();
+
+        var taken = members.Take(opts.MaxFanOut).ToList();
+        var children = ImmutableArray.CreateBuilder<TraceStep>(taken.Count);
+        foreach (var (member, _) in taken)
+        {
+            var prov = member.FilePath is { } fp
+                ? (member.LineNumber is { } ln ? $"{fp}:{ln}" : fp)
+                : null;
+            children.Add(Walk(member, SeamKind.Call, prov, Resolution.Join, depth + 1, opts, follow, visited));
+        }
+
+        return new TraceStep(typeNode, seam, depth)
+        {
+            Children = children.ToImmutable(),
+            Truncated = members.Count > taken.Count,
+            Omitted = members.Count - taken.Count,
+            Salient = ExtractCalleeSalient(typeNode),
+        };
+    }
+
     private IEnumerable<GraphEdge> OutEdgesWithTwin(NodeId id)
     {
         foreach (var e in _graph.OutEdges(id))

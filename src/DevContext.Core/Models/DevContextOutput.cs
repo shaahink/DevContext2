@@ -21,7 +21,26 @@ public sealed record DevContextOutput
     public IReadOnlyList<string>? PruningNotes { get; init; }
     public int MaxTokens { get; init; }
     public RunReport? RunReport { get; init; }
+    /// <summary>T2.6 — the event-wiring projection surfaced for consumers that don't hold the graph.
+    /// Null on catalog/library paths that never build a graph.</summary>
+    public EventWiringOutput? EventWiring { get; init; }
 }
+
+/// <summary>T2.6 — event-wiring counts + rows, so a JSON consumer sees the same publisher→consumer
+/// picture the board renders. Counts are the gate-visible summary; <see cref="Events"/> lists each event.</summary>
+public sealed record EventWiringOutput(
+    int Total,
+    int Integration,
+    int CrossService,
+    int Orphan,
+    IReadOnlyList<EventWireOutput> Events);
+
+public sealed record EventWireOutput(
+    string Event,
+    bool Integration,
+    bool CrossService,
+    IReadOnlyList<string> Publishers,
+    IReadOnlyList<string> Consumers);
 
 public sealed record SolutionOutput(string Name, string FilePath, IReadOnlyList<string> ProjectPaths);
 public sealed record ArchitectureOutput(string Style, float Confidence);
