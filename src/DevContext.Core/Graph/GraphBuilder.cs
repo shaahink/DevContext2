@@ -592,19 +592,23 @@ public sealed class GraphBuilder
             project = scope.ProjectForFile(filePath);
         }
 
+        // T1.6 — HTTP feature areas come from the ROUTE first, not the handler namespace. Grouping every
+        // endpoint under its shared "…Api" namespace collapsed 128 shamshir endpoints into one useless
+        // "Api (128 entries)" module row; the route's first meaningful segment is the real feature
+        // (/api/addons/* → addons, /api/orders/* → orders). Namespace/folder still groups non-HTTP entries.
+        if (entry.Kind == EntryPointKind.HttpEndpoint && entry.Route is { } route
+            && HttpRouteGroupPath(route) is { } routeGroup)
+            return routeGroup;
+
         if (entry.HandlerNode is { } hn)
         {
             var fqn = ExtractTypeKey(hn.Key);
             ns = names.GetNamespace(fqn);
         }
 
-        // 2. Fall back to route-based grouping for HTTP entries with no handler namespace
-        if (ns is null && entry.Kind == EntryPointKind.HttpEndpoint && entry.Route is { } route)
-            return HttpRouteGroupPath(route);
-
         if (ns is null) return project;
 
-        // 3. Derive GroupPath from namespace, stripping project-root prefix
+        // Derive GroupPath from namespace, stripping project-root prefix
         return NamespaceGroupPath(ns, project);
     }
 
@@ -644,18 +648,27 @@ public sealed class GraphBuilder
         return string.Join("/", remaining);
     }
 
-    /// <summary>Derives GroupPath from an HTTP route template (e.g. "GET /api/orders/{id}" → "api/orders").</summary>
+    /// <summary>T1.6 — Derives the FEATURE-AREA GroupPath from an HTTP route: the first meaningful path
+    /// segment, skipping the "api" prefix, version segments (v1, v2.0), and route parameters
+    /// (e.g. "GET /api/orders/{id}" → "orders", "POST /api/v2/addons" → "addons"). Returns null for a
+    /// route with no meaningful segment (e.g. "/") so the caller can fall back to namespace/project.</summary>
     private static string? HttpRouteGroupPath(string route)
     {
         var space = route.IndexOf(' ');
         var path = space > 0 ? route[(space + 1)..] : route;
-        path = path.TrimStart('/');
-        // Strip trailing parameter segments
-        var lastSlash = path.LastIndexOf('/');
-        if (lastSlash >= 0 && path[lastSlash + 1] == '{')
-            path = path[..lastSlash];
-        return path switch { "" => null, var p => p };
+        foreach (var seg in path.Split('/', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (seg.StartsWith('{')) continue;                                   // route parameter
+            if (seg.Equals("api", StringComparison.OrdinalIgnoreCase)) continue; // ubiquitous api prefix
+            if (IsRouteVersionSegment(seg)) continue;                            // v1, v2, v2.0
+            return seg.ToLowerInvariant();                                       // first meaningful segment = feature
+        }
+        return null;
     }
+
+    /// <summary>True for an API-version route segment like "v1" or "v2.0" (letter v + digit).</summary>
+    private static bool IsRouteVersionSegment(string s)
+        => s.Length >= 2 && s[0] is 'v' or 'V' && char.IsDigit(s[1]);
 
     /// <summary>L3.2 — Computes graph-aware scores for each entry: BFS from the entry's node outward
     /// through Calls/Sends edges to count reach, seam richness, entity touches, and cross-project depth.

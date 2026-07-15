@@ -129,6 +129,33 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void Http_entries_group_by_route_feature_not_namespace()
+    {
+        // T1.6 — feature areas for HTTP endpoints come from the route's first meaningful segment
+        // (skipping api/version/param), not the shared handler namespace that collapses everything into
+        // one "Api (N entries)" module row. Versioned routes fold into the same feature.
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("TradingEngine.Web", @"C:\repo\src\TradingEngine.Web\TradingEngine.Web.csproj", "C#", ["net10.0"], [], [])],
+        };
+        model.Detections.Add(new EndpointDetection("GET", "/api/runs/{id}", "RunsApi", "GetRun", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 10 });
+        model.Detections.Add(new EndpointDetection("POST", "/api/runs", "RunsApi", "CreateRun", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\RunsApi.cs", LineNumber = 20 });
+        model.Detections.Add(new EndpointDetection("GET", "/api/v2/strategies", "StrategiesApi", "List", [], [])
+        { ExtractorName = "test", SourceFile = @"C:\repo\src\TradingEngine.Web\Api\StrategiesApi.cs", LineNumber = 5 });
+
+        var scope = SolutionScope.FromModel(model);
+        var (_, entries) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        Assert.Equal(["runs"], entries.Where(e => e.Route!.Contains("/runs")).Select(e => e.GroupPath).Distinct());
+        Assert.Equal("strategies", entries.Single(e => e.Route == "/api/v2/strategies").GroupPath); // version segment skipped
+    }
+
+    [Fact]
     public void Background_workers_become_entry_points()
     {
         // DntSite audit: 24 DNTScheduler jobs were detected but never surfaced as entries.
