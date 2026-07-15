@@ -1,4 +1,8 @@
-# Loom — Phase Tracker (resume here)
+# Loom — Phase Tracker (CLOSED — do not resume here)
+
+> **Loom is delivered and squash-merged to `develop`** (`ee0c8b3`, close-out in
+> `docs/dev/HANDOVER-LOOM.md`). The active phase is **Tapestry** — start at `TAPESTRY-START.md`.
+> This file is a historical record only.
 
 **Read order for a fresh session:** this file → `AGENTS.md` (current phase protocol) →
 `docs/workflows/loom-gap-close-plan.md` (plan doc with full history + fix detail per phase) →

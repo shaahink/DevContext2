@@ -13,7 +13,7 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 4. [`DEV-PAINS.md`](DEV-PAINS.md) — demand-side: pains → features, CORE/MENU/LATER tiers.
 5. [`ITERATION-R2-verify-and-finish.md`](ITERATION-R2-verify-and-finish.md) — **current** round-2 plan:
    the verification result (what the tracker over-claims), the finding list, and the remaining UI/UX +
-   engine work. MCP stays deferred.
+   engine work. (Written when MCP was deferred — the MCP has since shipped via Loom L5; see I6 row.)
 6. The iteration guide whose Status below ≠ DONE. Do its Step 0 first; guides cite `file:line` as of
    authoring — verify before editing.
 
@@ -27,7 +27,7 @@ design, and the **execution iterations** written for agent sessions (DeepSeek v4
 | I4 | [Desktop UX](ITERATION-I4-desktop-ux.md) — node card, palette, smart sections, honesty ribbon, packs | V3/V7 | I2 (+I3) | **PARTIAL** — shell/node-card/palette/ribbon shipped; Insights view, NodeLink, Graph, Settings, Entries table, trace/palette/connection/overview/export all delivered (R2). MCP deferred. |
 | I5 | [Facet menu](ITERATION-I5-facet-menu.md) — F1–F13 pick-any (★ blast radius, message matrix) | V2/V3 | I1+I2 | **PARTIAL** — catalog + F13 only (F1–F12 open, see E4) |
 | **R2** | [**Verify & Finish**](ITERATION-R2-verify-and-finish.md) — insights-on-wire fix, NodeLink, Graph/Settings views, entries table, trace/palette/connection polish + engine carry-over | — | I2 | **DONE** — R2.1–R2.10 delivered. E1–E5 engine carry-over still pending. |
-| I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | DEFERRED |
+| I6 | [MCP server](ITERATION-I6-mcp.md) — stdio tools = GraphQuery ops | V4 | I2 | **DONE (via Loom L5, not this track)** — `src/DevContext.Mcp` ships 23 tools over the gRPC RPCs (not the direct-GraphQuery stdio shape this guide sketched); cold-agent QA ≥90% actionable. The I6 guide is superseded — read `docs/dev/HANDOVER-LOOM.md` + `docs/dev/CODE-MAP.md` §8 instead. |
 | I7 | [Benchmark + insights audit](ITERATION-I7-benchmark-audit.md) — new-shape repos, run, judge, ratchet | V5.4 | I3 | NOT STARTED |
 | I8 | [Caching & storage](ITERATION-I8-caching-storage.md) — repo-hash snapshot cache, clone consolidation, Settings→Storage | V5 | I2 | **DONE** |
 | I9 | [Release readiness](ITERATION-I9-release-readiness.md) — about/updates/logs/errors, CLI polish floor | V7 | I4, I8 | **PARTIAL** — CLI exit codes + --quiet done; desktop/updates/error boundary remaining |

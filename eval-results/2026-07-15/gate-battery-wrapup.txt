@@ -1,0 +1,26 @@
+﻿=== unit tests (Category!=Eval) ===
+
+Passed!  - Failed:     0, Passed:    14, Skipped:     0, Total:    14, Duration: 6 s - DevContext.Server.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:   448, Skipped:     3, Total:   451, Duration: 2 m 55 s - DevContext.Core.Tests.dll (net10.0)
+
+
+=== truth gates ===
+
+Passed!  - Failed:     0, Passed:     5, Skipped:     6, Total:    11, Duration: 23 s - DevContext.Core.Tests.dll (net10.0)
+
+
+=== loom guards ===
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+=== eval gates ===
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 3: Eval expectation tests ---

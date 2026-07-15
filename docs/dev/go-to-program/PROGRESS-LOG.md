@@ -2467,3 +2467,32 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 ---
 2026-07-09 04:43 — s53: D5 (L0.4) — Truth gate auto-enforcement delivered. Wired truth gate into loom-guards.ps1 (new gate #5). Converted 3 [TruthPending] silent returns to Skip.IfNot. Gates: build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F. Evidence: eval-results/2026-07-09/debt-L0.4-gate.txt. Commit: 92c85b3.
 2026-07-09 04:51 — s54: D5 (L0.4) QA re-verify — Fresh-run gate battery confirms all claims. Build 0w/0e, tests 490P/3S/0F, truth 8P/3S/0F, guards green. QA verdict: D5 genuinely complete, zero discrepancies. Evidence: eval-results/2026-07-09/debt-L0.4-QA-gate-s54.txt.
+
+
+## 2026-07-15 (session 2) — Wrap-up: Loom delivery audit + 8 detection/graph fixes + Tapestry plan (feat/wrapup-2026-07-15)
+
+**Changed:**
+- 5 detection fixes (commit `99acf40`): verb-attribute route composition
+  (ControllerActionExtractor), content-probe file selection + factory-lambda worker resolution
+  (ProgramCsFlowExtractor), Hub base-type SignalR signal (SyntaxStructureExtractor), Aspire SDK
+  hint + version-strip (EntrySurfaceCatalog/DependencyExtractor), AppHost-ProjectReferences
+  Microservices counting (ArchitectureStyleDetector), ToString-target guard (GraphBuilder).
+- 3 graph fixes (commit `202c593`): hub entries anchor on hub-method member nodes, worker entries
+  anchor on ExecuteAsync/StartAsync, hub files join call-graph seeds; SignalR self-source guard
+  (framework repo keeps Library archetype); test pins updated to composed true routes.
+- Docs: `docs/product/desktop-ui.md` rewritten for the Angular/Tauri app (was WPF-stale);
+  go-to README I6 row corrected (MCP shipped via Loom L5, not DEFERRED); LOOM-START.md marked
+  CLOSED pointing at Tapestry; merged `docs/go-to-program-addendum` (5 planning docs).
+- **New mega plan: `docs/dev/briefs/proposal-tapestry.md` + `TAPESTRY-START.md`** — T0-T8
+  waterfall (harness, detection, graph, MCP v3, context v2, Studio v2, pages revamp, bench, close),
+  per-stage recommended approach + what-the-agent-will-get-wrong + numeric gates, 8 hard rules
+  distilled from this session (R-T1..R-T8).
+
+**Verified:**
+- Drove engine/MCP/UI against `C:\code\shamshir` (never-seen 14-project repo): 36 findings indexed
+  in `eval-results/2026-07-15/wrapup-drive/FINDINGS.md` (8 fixed, rest staged into Tapestry).
+- Build 0w/0e; Core 453P/3S; Server 14P; goldens + TraceQuality + signalr evals green;
+  truth 5P/6S; loom-guards clean; pnpm check PASS; UI drive gate 4/4; MCP cold QA 11/11 (100%).
+- Pre-existing reds (unchanged, staged): dntsite target-* (T1.3), yarp archetype-gateway (T1.2).
+
+**Next:** user review/merge of `feat/wrapup-2026-07-15`; then Tapestry T0.1 (orphan-proof gates).
