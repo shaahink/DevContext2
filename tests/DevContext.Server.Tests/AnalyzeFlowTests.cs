@@ -3,15 +3,13 @@ using DevContext.Protos;
 using Grpc.Core;
 using Grpc.Net.Client;
 
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace DevContext.Server.Tests;
 
 /// <summary>End-to-end gRPC tests over the real composition root (in-memory test host). Validates the
 /// First View contract: analyze (streamed) → map → entry points → trace → node/neighbors, all over one
 /// analyzed snapshot (analyze once, query many).</summary>
-public sealed class AnalyzeFlowTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class AnalyzeFlowTests(ServerTestFactory factory)
+    : IClassFixture<ServerTestFactory>
 {
     private DevContextService.DevContextServiceClient CreateClient()
     {

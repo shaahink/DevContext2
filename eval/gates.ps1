@@ -28,6 +28,21 @@ function Write-Fail {
     $script:exitCode = $Step
 }
 
+# Step 0: Clear orphaned build-locking processes (Tapestry T0.1b).
+# The wrap-up audit lost four builds to leaked DevContext.Server processes holding bin/. Clearing
+# them here makes the gate trustworthy from cold, replacing the manual pre-session kill ritual.
+Write-Step "Step 0: Clear orphaned build-locking processes"
+$orphansKilled = 0
+Get-Process DevContext.Server, testhost -ErrorAction SilentlyContinue | ForEach-Object {
+    try { $_.Kill(); $script:orphansKilled++ } catch {}
+}
+# Windows PowerShell 5.1's Get-Process has no CommandLine, so a dotnet host running our server dll
+# is found via CIM. The regex matches the server dll but not DevContext.Server.Tests.dll.
+Get-CimInstance Win32_Process -Filter "Name = 'dotnet.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match 'DevContext\.Server\.dll' } |
+    ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop; $script:orphansKilled++ } catch {} }
+Write-Pass "Cleared $orphansKilled orphaned process(es)"
+
 # Step 1: Build
 Write-Step "Step 1: Build solution"
 $sln = Join-Path $repoRoot "DevContext.slnx"
@@ -41,9 +56,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Pass "Build succeeded"
 
-# Step 2: Fast unit tests (exclude Eval, CliSmoke)
+# Step 2: Fast unit tests (exclude Eval, CliSmoke, and McpQa).
+# McpQa is a 3-minute external `node` MCP drive against the dogfood repo (its own Category, meant to
+# be independently selectable). Run inside the parallel unit suite it loses a shared-state race and
+# fails intermittently, yet passes reliably on its own — so it runs serially as Step 2b below. This
+# keeps the fast suite fast and deterministic (Tapestry T0.1: gates trusted cold).
 Write-Step "Step 2: Fast unit tests"
-$filterArg = "Category!=Eval&Category!=CliSmoke"
+$filterArg = "Category!=Eval&Category!=CliSmoke&Category!=McpQa"
 $testResult = dotnet test $sln --filter $filterArg --no-build 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host $testResult
@@ -53,6 +72,18 @@ if ($LASTEXITCODE -ne 0) {
     exit 2
 }
 Write-Pass "Fast tests passed"
+
+# Step 2b: MCP QA gate (serial — see note above).
+Write-Step "Step 2b: MCP QA gate (serial)"
+$mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host $mcpResult
+    Write-Fail "MCP QA gate failed" -Step 2
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 2b - MCP QA)" -ForegroundColor Red
+    exit 2
+}
+Write-Pass "MCP QA gate passed"
 
 # Step 3: Eval tests
 Write-Step "Step 3: Eval expectation tests"
