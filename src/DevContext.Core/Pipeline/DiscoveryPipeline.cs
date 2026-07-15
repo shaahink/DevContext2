@@ -112,6 +112,12 @@ public sealed class DiscoveryPipeline
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
+        // T1.4 — per-service style rollup runs AFTER Stage 3 so it can read the specific detections
+        // (Blazor @page routes, gRPC RPCs, message consumers) that distinguish a Blazor storefront from a
+        // gateway and a background worker from a web host. The overall style (ApplyArchitectureStyle) stays
+        // between Stage 2 and 3 because it seals a signal; this rollup only feeds the map/render.
+        model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
+
         // L3.1 — SemanticLitePopulator: Tier B (assets.json → compilations → semantic upgrades).
         // Runs after BodyFacts extraction but before GraphAssembly; degrades per-project when
         // assets.json is missing. Upgraded BodyFacts feed into seam detectors for higher-quality
@@ -704,9 +710,8 @@ public sealed class DiscoveryPipeline
         model.DetectedStyle = style;
         model.StyleConfidence = confidence;
         model.StyleDetectedVia = via ?? "ArchitectureStyleDetector";
-
-        // M1.9 / D5 — per-service style rollup
-        model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
+        // NB: per-service style rollup (DetectPerServiceStyles) is deferred to after Stage 3 (T1.4) so it
+        // can consume specific detections; it is NOT computed here.
     }
 
     /// <summary>Runs output self-checks, records results as diagnostics, and returns the rendered context with failure info attached.</summary>
