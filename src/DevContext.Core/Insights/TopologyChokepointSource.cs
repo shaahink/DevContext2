@@ -14,11 +14,23 @@ public sealed class TopologyChokepointSource : IInsightSource
     {
         if (model.Projects.Length < 3) yield break;
 
+        // T1.9 — most-depended-upon names a PRODUCTION project. A sample/test/benchmark project must never
+        // be the answer (MediatR.Examples outranking MediatR), but it still counts as a dependent — for a
+        // library repo its samples/tests ARE what depends on the library, so excluding them as the answer
+        // (not as dependents) is what surfaces MediatR itself. Classify by project, not path regex.
+        var projByName = new Dictionary<string, ProjectInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in model.Projects)
+            projByName[ProjectName(p.FilePath)] = p;
+
         var depCounts = new Dictionary<string, int>();
         foreach (var proj in model.Projects)
         {
             foreach (var dep in proj.ProjectReferences)
             {
+                // The depended project (the answer) must be production — skip MediatR.Examples, benchmarks…
+                if (projByName.TryGetValue(ProjectName(dep), out var depProj)
+                    && !ProjectClassifier.IsProductionProject(depProj))
+                    continue;
                 if (!depCounts.ContainsKey(dep)) depCounts[dep] = 0;
                 depCounts[dep]++;
             }

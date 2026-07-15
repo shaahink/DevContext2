@@ -64,7 +64,8 @@ public sealed class ProjectClassifier
             || p.Contains("/tests/", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsTestProject(ProjectInfo p)
+    /// <summary>True when the project is a test project (name suffix or a test-framework package ref).</summary>
+    public static bool IsTestProject(ProjectInfo p)
     {
         var name = p.Name;
         if (name.EndsWith("Tests", StringComparison.OrdinalIgnoreCase)
@@ -81,6 +82,27 @@ public sealed class ProjectClassifier
 
         return false;
     }
+
+    /// <summary>True when the project is a benchmark harness (name suffix or a BenchmarkDotNet package ref).</summary>
+    public static bool IsBenchmarkProject(ProjectInfo p)
+    {
+        var name = p.Name;
+        if (name.EndsWith("Benchmarks", StringComparison.OrdinalIgnoreCase)
+            || name.EndsWith("Benchmark", StringComparison.OrdinalIgnoreCase))
+            return true;
+        foreach (var pkg in p.PackageReferences)
+            if (pkg.Name.Contains("BenchmarkDotNet", StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    /// <summary>T1.9 — project-level classification (not path regex): true when the project is real
+    /// production code, i.e. NOT a test project, benchmark harness, or a sample/example/demo project
+    /// (by its directory). The service topology (diagram, services count, most-depended-upon, dead-code)
+    /// consumes only production projects so tests/samples/benchmarks stop rendering as service cards or
+    /// out-ranking the real library (e.g. MediatR.Examples over MediatR).</summary>
+    public static bool IsProductionProject(ProjectInfo p)
+        => !IsTestProject(p) && !IsBenchmarkProject(p) && !IsSamplePath(p.FilePath);
 
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
 }
