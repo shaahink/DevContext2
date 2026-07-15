@@ -30,16 +30,29 @@ public static class ArchetypeDetector
     /// L7.2: Worker and Blazor detected as App subtypes based on entry-point shape.</summary>
     public static Archetype Detect(DiscoveryModel model, ImmutableArray<EntryPoint> entries)
     {
-        // M1.9: gateway with multiple services → microservices App, not Gateway alone
+        // M1.9 / T1.2: a gateway is the solution's archetype only when it isn't merely one service among
+        // many. A YARP/Ocelot gateway sitting in front of ≥2 real backend services is a ROLE inside a
+        // microservices app (the dogfood's YarpApiGateway, eShop's BFF) → App; YARP's and Ocelot's own
+        // PRODUCT repos are gateways because their only non-sample/test host IS the proxy. So count genuine
+        // PEER services: real hosts (Exe or Web SDK) that are production sources — NoiseFilter excludes the
+        // samples/tests/testassets/benchmarks a framework repo ships — that don't themselves reference the
+        // reverse-proxy package. (Self-source is NOT the discriminator: a microservices app naming a
+        // project "YarpApiGateway" self-sources the gateway signal exactly as YARP's own repo does; only
+        // the peer count separates them. A library that merely references AspNetCore is not a peer host —
+        // counting it flipped YARP's own ReverseProxy library into a second "service".)
         if (model.Architecture.Has(ArchitectureSignals.Keys.Gateway))
         {
-            var runnableSvcCount = model.Projects.Count(p =>
-                IsRunnableService(p) && !p.PackageReferences.Any(pr =>
+            var gwNoise = new NoiseFilter(new ProjectClassifier(model.Projects));
+            var peerServiceCount = model.Projects.Count(p =>
+                !string.IsNullOrEmpty(p.FilePath)
+                && IsRunnableHost(p)
+                && gwNoise.IsProductionEntrySource(p.FilePath)
+                && !p.PackageReferences.Any(pr =>
                     pr.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase)
                     || pr.Name.Contains("Ocelot", StringComparison.OrdinalIgnoreCase)));
-            if (runnableSvcCount >= 2)
-                return Archetype.App; // gateway is a role within microservices
-            return Archetype.Gateway; // single service behind gateway — Gateway archetype
+            if (peerServiceCount >= 2)
+                return Archetype.App;   // gateway is a role within a microservices app
+            return Archetype.Gateway;   // the gateway IS the app — Gateway archetype
         }
 
         // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
@@ -122,13 +135,15 @@ public static class ArchetypeDetector
         return Archetype.App;
     }
 
-    /// <summary>M1.9 — true when the project is a runnable service (Exe or web SDK, not a library).</summary>
-    private static bool IsRunnableService(ProjectInfo p)
+    /// <summary>T1.2 — true when the project is a genuinely runnable host: an executable (OutputType Exe)
+    /// or a Web SDK project (Microsoft.NET.Sdk.Web). Deliberately does NOT treat "references an AspNetCore
+    /// package" as a service — a library built on ASP.NET Core (e.g. YARP's own ReverseProxy) is not a
+    /// peer service, and counting it flipped the gateway archetype from Gateway to App (M1.9 regression).</summary>
+    private static bool IsRunnableHost(ProjectInfo p)
     {
         var isExe = p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true;
-        var isWebSdk = p.PackageReferences.Any(pr => pr.Name.Contains("AspNetCore", StringComparison.OrdinalIgnoreCase));
-        var hasWebServer = p.FilePath is { } cp && IsWebSdkProject(cp);
-        return isExe || isWebSdk || hasWebServer;
+        var hasWebSdk = p.FilePath is { } cp && IsWebSdkProject(cp);
+        return isExe || hasWebSdk;
     }
 
     private static bool IsWebSdkProject(string csprojPath)
