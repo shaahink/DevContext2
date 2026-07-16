@@ -26,7 +26,7 @@
       "owner": "L6.2",
       "expectedRedUntil": "L6",
       "pass": true,
-      "detail": "code length=695"
+      "detail": "code length=874"
     },
     {
       "id": "D-context-preset-cards",
@@ -43,7 +43,7 @@
       "audit": "R1",
       "owner": "T5.1",
       "pass": true,
-      "detail": "visible=true text=Omitted (8) tests (Validators for /products): no content for its entries — omitt"
+      "detail": "visible=true text=Omitted (7) tests (Validators for /ProductList): no content for its entries — om"
     },
     {
       "id": "F-pack-error-retry",
@@ -59,7 +59,7 @@
       "audit": "C1",
       "owner": "T5.6",
       "pass": true,
-      "detail": "4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true"
+      "detail": "4k=7689ch(hdr4k=true) 1k=6288ch(hdr1k=true) differ=true"
     },
     {
       "id": "H-plain-not-markdown",
@@ -67,7 +67,7 @@
       "audit": "C1",
       "owner": "T5.6",
       "pass": true,
-      "detail": "plain=6891ch differ=true noHeadings=true"
+      "detail": "plain=6069ch differ=true noHeadings=true"
     },
     {
       "id": "I-verification-stale-cycle",
@@ -76,6 +76,30 @@
       "owner": "T5.2",
       "pass": true,
       "detail": "fresh=true staleAfterEdit=true freshAfterRestore=true"
+    },
+    {
+      "id": "J-keyboard-battery",
+      "desc": "single-key + g-prefix nav, ? help, Ctrl+K omnibox all work",
+      "audit": "37",
+      "owner": "T6.5",
+      "pass": true,
+      "detail": "{\"singleE\":\"/explore\",\"singleA\":\"/atlas\",\"gThenH\":\"/\",\"helpOpen\":true,\"omniboxOpen\":true}"
+    },
+    {
+      "id": "K-route-restore-home",
+      "desc": "fresh boot of / renders Home even after a /settings visit",
+      "audit": "49",
+      "owner": "T6.5",
+      "pass": true,
+      "detail": "restoreHome=true"
+    },
+    {
+      "id": "L-theme-matrix",
+      "desc": "every declared vibe x theme paints the shell surfaces in that mode",
+      "audit": "38-39",
+      "owner": "T6.6",
+      "pass": true,
+      "detail": "modern/dark:ok modern/light:ok terminal/dark:ok hacker/dark:ok"
     }
   ],
   "reds": [],

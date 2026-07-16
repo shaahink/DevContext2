@@ -19,6 +19,9 @@
 //   G. budget change re-packs: copy@4k != copy@1k, header matches slider (audit C1, owner T5.6)
 //   H. plain format copy != markdown copy        (audit C1, owner T5.6)
 //   I. verification ledger: fresh -> edit cited file -> stale -> restore -> fresh (audit R6, owner T5.2)
+//   J. keyboard battery: single-key + g-prefix nav, ? help, Ctrl+K omnibox (finding 37, owner T6.5)
+//   K. route-restore never hijacks /: after visiting /settings, a fresh boot of / renders Home (finding 49, owner T6.5)
+//   L. theme matrix: every declared vibe x theme paints the SHELL surfaces in that mode (findings 38-39, owner T6.6)
 //
 // Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
@@ -93,7 +96,8 @@ async function main() {
   const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null,
     omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null,
     copy4k: null, copy1k: null, copyPlain: null,
-    verifFreshBefore: null, verifStaleAfterEdit: null, verifFreshAfterRestore: null };
+    verifFreshBefore: null, verifStaleAfterEdit: null, verifFreshAfterRestore: null,
+    kbd: null, restoreHome: null, themeMatrix: null };
 
   try {
     // ── boot + analyze dogfood ──
@@ -294,16 +298,25 @@ async function main() {
     } else note("H: plain format button NOT found");
 
     // ── I. verification ledger: fresh → edit a cited file → stale → restore → fresh (T5.2, audit R6) ──
-    // Deterministic focus: add the checkout flow via the omnibox, then drift its handler on disk.
-    const handlerFile = path.join(DOGFOOD, "Services", "Basket", "Basket.API", "Basket", "CheckoutBasket", "CheckoutBasketHandler.cs");
-    if (fs.existsSync(handlerFile)) {
-      const search = page.locator("app-scope-picker input").first();
-      if (await search.count()) {
-        await search.fill("checkout"); await sleep(600);
-        const hit = page.locator("app-scope-picker button", { hasText: /checkout/i }).first();
-        if (await hit.count()) { await hit.click({ force: true }); await sleep(3000); }
-        await search.press("Escape").catch(() => {});
-      }
+    // The drift file comes from the pack's OWN provenance chips (T5.3): edit whatever the
+    // current pack actually cites. The old hardcoded CheckoutBasketHandler.cs went stale-proof
+    // whenever the preset seeded a different focus (the search-and-click fallback then landed
+    // on WebApp's unwired `GET /Checkout` — audit B2's exact trap — and the gate failed for
+    // the wrong reason). Reading the chips also proves they point at real files on disk.
+    const chipLocs = await page.evaluate(() =>
+      [...document.querySelectorAll("[data-testid='provenance-chip']")]
+        .map((el) => (el.getAttribute("title") || "").replace(/ — click to copy$/u, ""))
+        .filter(Boolean));
+    note("I: provenance chips: " + JSON.stringify(chipLocs.slice(0, 4)));
+    let handlerFile = null;
+    for (const loc of chipLocs) {
+      const idx = loc.lastIndexOf(":");
+      const rel = idx > 1 ? loc.slice(0, idx) : loc;
+      const abs = path.isAbsolute(rel) ? rel : path.join(DOGFOOD, rel);
+      if (fs.existsSync(abs) && abs.endsWith(".cs")) { handlerFile = abs; break; }
+    }
+    note("I: drift file: " + handlerFile);
+    if (handlerFile) {
       const verifState = () => page.evaluate(() => ({
         panel: !!document.querySelector("[data-testid='verification-panel']"),
         fresh: !!document.querySelector("[data-testid='verification-fresh']"),
@@ -338,7 +351,97 @@ async function main() {
         note("verification after restore: " + JSON.stringify(v));
         await shot(page, "18-verification-restored");
       }
-    } else note("I: CheckoutBasketHandler.cs not found under dogfood — skipped");
+    } else note("I: no provenance chip resolved to a file on disk — skipped");
+
+    // ── J. keyboard battery (T6.5, finding 37) — REAL key presses, not synthetic dispatch ──
+    {
+      const pathOf = () => page.evaluate(() => location.pathname);
+      await page.evaluate(() => { document.activeElement?.blur?.(); document.body.click?.(); });
+      const kbd = {};
+      await page.keyboard.press("e"); await sleep(700);
+      kbd.singleE = await pathOf();
+      await page.keyboard.press("a"); await sleep(700);
+      kbd.singleA = await pathOf();
+      await page.keyboard.press("g"); await sleep(200);
+      await page.keyboard.press("h"); await sleep(700);
+      kbd.gThenH = await pathOf();
+      await page.keyboard.press("?"); await sleep(400);
+      kbd.helpOpen = await page.evaluate(() => document.body.innerText.includes("Keyboard Shortcuts"));
+      await page.keyboard.press("Escape"); await sleep(200);
+      await page.keyboard.press("Control+k"); await sleep(400);
+      kbd.omniboxOpen = await page.evaluate(() => !!document.querySelector("app-omnibox input"));
+      await page.keyboard.press("Escape"); await sleep(200);
+      state.kbd = kbd;
+      note("keyboard: " + JSON.stringify(kbd));
+      await shot(page, "19-keyboard-help");
+    }
+
+    // ── K. route-restore never hijacks / (T6.5, finding 49) ──
+    // Visit /settings (persisted as the tab's route), then cold-boot at /: the shamshir
+    // audit caught Settings rendering on every fresh load of / after this sequence.
+    {
+      await page.goto(APP_URL + "/settings", { waitUntil: "domcontentloaded" }).catch(() => {});
+      await sleep(1500);
+      await page.goto(APP_URL + "/", { waitUntil: "domcontentloaded" }).catch(() => {});
+      await sleep(2500);
+      const p = await page.evaluate(() => location.pathname);
+      const looksLikeSettings = await page.evaluate(() => document.body.innerText.includes("APPEARANCE MODE"));
+      state.restoreHome = p === "/" && !looksLikeSettings;
+      note(`route-restore: path=${p} settingsRendered=${looksLikeSettings}`);
+      await shot(page, "20-route-restore-home");
+    }
+
+    // ── L. theme matrix (T6.6, findings 38-39): every vibe x declared theme paints the shell ──
+    // Terminal/Hacker are dark-only BY DESIGN (vibe definitions) — the matrix covers what
+    // each vibe declares, so an undeclared combo can't silently ship half-themed.
+    {
+      const combos = [
+        ["modern", "dark"], ["modern", "light"], ["terminal", "dark"], ["hacker", "dark"],
+      ];
+      const matrix = [];
+      for (const [vibe, theme] of combos) {
+        await page.evaluate(([v, t]) => {
+          localStorage.setItem("devcontext-vibe", v);
+          localStorage.setItem("devcontext-theme", t);
+        }, [vibe, theme]);
+        await page.goto(APP_URL + "/", { waitUntil: "domcontentloaded" }).catch(() => {});
+        await sleep(2200);
+        const sample = await page.evaluate(() => {
+          const lum = (bg) => {
+            const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (!m) return null;
+            if (m[4] !== undefined && Number(m[4]) === 0) return null; // transparent
+            return (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255;
+          };
+          const pick = (sel) => {
+            const el = document.querySelector(sel);
+            return el ? lum(getComputedStyle(el).backgroundColor) : null;
+          };
+          return {
+            resolved: document.documentElement.getAttribute("data-theme"),
+            surfaces: [
+              pick("app-titlebar > *") ?? pick("app-titlebar"),
+              pick("app-tab-strip > div"),
+              pick("app-activity-bar nav"),
+              pick("app-statusbar > *") ?? pick("app-statusbar"),
+              lum(getComputedStyle(document.body).backgroundColor),
+            ].filter((l) => l !== null),
+          };
+        });
+        const wantDark = theme === "dark";
+        const offenders = sample.surfaces.filter((l) => (wantDark ? l > 0.5 : l < 0.5)).length;
+        const ok = sample.resolved === theme && sample.surfaces.length >= 2 && offenders === 0;
+        matrix.push({ vibe, theme, ok, resolved: sample.resolved, surfaces: sample.surfaces.map((l) => l.toFixed(2)), offenders });
+        note(`theme ${vibe}/${theme}: resolved=${sample.resolved} surfaces=[${sample.surfaces.map((l) => l.toFixed(2))}] offenders=${offenders}`);
+        await shot(page, `21-theme-${vibe}-${theme}`);
+      }
+      state.themeMatrix = matrix;
+      // restore default
+      await page.evaluate(() => {
+        localStorage.setItem("devcontext-vibe", "modern");
+        localStorage.setItem("devcontext-theme", "dark");
+      });
+    }
 
   } catch (e) {
     note("DRIVE ERROR: " + e.message);
@@ -379,6 +482,22 @@ async function main() {
           pass: state.verifFreshBefore === true && state.verifStaleAfterEdit === true && state.verifFreshAfterRestore === true,
           detail: `fresh=${state.verifFreshBefore} staleAfterEdit=${state.verifStaleAfterEdit} freshAfterRestore=${state.verifFreshAfterRestore}`,
         }) },
+      { id: "J-keyboard-battery", desc: "single-key + g-prefix nav, ? help, Ctrl+K omnibox all work", audit: "37", owner: "T6.5",
+        run: () => {
+          const k = state.kbd;
+          if (!k) return { pass: false, detail: "keyboard battery not exercised" };
+          const ok = k.singleE === "/explore" && k.singleA === "/atlas" && k.gThenH === "/" && k.helpOpen === true && k.omniboxOpen === true;
+          return { pass: ok, detail: JSON.stringify(k) };
+        } },
+      { id: "K-route-restore-home", desc: "fresh boot of / renders Home even after a /settings visit", audit: "49", owner: "T6.5",
+        run: () => ({ pass: state.restoreHome === true, detail: `restoreHome=${state.restoreHome}` }) },
+      { id: "L-theme-matrix", desc: "every declared vibe x theme paints the shell surfaces in that mode", audit: "38-39", owner: "T6.6",
+        run: () => {
+          const m = state.themeMatrix;
+          if (!m) return { pass: false, detail: "matrix not exercised" };
+          const bad = m.filter((c) => !c.ok);
+          return { pass: bad.length === 0, detail: m.map((c) => `${c.vibe}/${c.theme}:${c.ok ? "ok" : "BAD(" + c.resolved + "," + c.surfaces + ")"}`).join(" ") };
+        } },
     );
     for (const a of assertions) {
       let r; try { r = a.run(); } catch (e) { r = { pass: false, detail: "assert error: " + e.message }; }
