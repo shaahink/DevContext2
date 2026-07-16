@@ -29,6 +29,10 @@ Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`):
 - **GitHub readiness** — CI re-enabled mirroring the local gate battery (engine + app jobs); release
   workflow fixed (CLI → NuGet; the dead WPF job removed); README restructured around the four
   surfaces; new `docs/product/mcp-reference.md`; reference docs re-verified against source.
+  Desktop installer: `DevContext.Server` is published and bundled into the Tauri app as a sidecar
+  (spawned via `dotnet`, .NET 10 runtime required) and `v*` tags now attach Windows installers to
+  the GitHub Release alongside the CLI package. New weekly/manual `eval.yml` workflow runs the full
+  gate battery (`eval/gates.ps1 -SkipMcpQa`) against the pinned eval-repo set.
 
 ## v1.0.0 (2026-06-11)
 

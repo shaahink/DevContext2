@@ -1,10 +1,10 @@
 name: Release
 
-# Tagging v* packs the CLI (MinVer derives the version from the tag) and publishes:
-#   - NuGet (when NUGET_API_KEY secret is set)
-#   - a GitHub Release with the .nupkg attached
-# There is no desktop job yet: the Tauri app needs DevContext.Server bundled as a sidecar
-# before a downloadable installer works — tracked in GITHUB-READY-START.md (desktop packaging gap).
+# Tagging v* publishes:
+#   - CLI: MinVer derives the version from the tag; NuGet push (when NUGET_API_KEY is set)
+#   - Desktop: Tauri installer with DevContext.Server bundled as a sidecar
+#     (pnpm publish:server via beforeBuildCommand; users need the .NET 10 runtime)
+#   - a GitHub Release with the .nupkg + installers attached
 
 on:
   push:
@@ -45,20 +45,61 @@ jobs:
           name: nuget-package
           path: nupkg/*.nupkg
 
+  desktop:
+    name: Desktop — Tauri installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: pnpm/action-setup@v4 # version comes from packageManager in package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/DevContext.App/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        working-directory: src/DevContext.App
+
+      # beforeBuildCommand (tauri.conf.json) publishes DevContext.Server into
+      # src-tauri/resources/server and builds the Angular frontend before bundling.
+      - name: Build installer
+        run: pnpm tauri build
+        working-directory: src/DevContext.App
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-installers
+          path: |
+            src/DevContext.App/src-tauri/target/release/bundle/nsis/*.exe
+            src/DevContext.App/src-tauri/target/release/bundle/msi/*.msi
+
   release:
     name: GitHub Release
-    needs: [cli]
+    needs: [cli, desktop]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: nuget-package
           path: artifacts
+          merge-multiple: true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*.nupkg
+          files: |
+            artifacts/*.nupkg
+            artifacts/*.exe
+            artifacts/*.msi
           generate_release_notes: true

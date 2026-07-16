@@ -24,7 +24,7 @@ query it from whichever surface fits your workflow.
 | Surface | What it's for | Get it |
 |---------|---------------|--------|
 | **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (Linux/macOS/Windows, needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)) |
-| **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Build from source (Windows) — see [Quickstart](#quickstart) |
+| **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
 | **MCP server** (24 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
 | **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
 
@@ -157,9 +157,11 @@ devcontext analyze . --format json --strict        # JSON with validation
 
 Full flag reference: [docs/product/cli-reference.md](docs/product/cli-reference.md) · configuration: [docs/product/configuration.md](docs/product/configuration.md)
 
-### Desktop app (build from source)
+### Desktop app
 
-Requires the .NET 10 SDK, Node 22 + [pnpm](https://pnpm.io), and (for the native window) the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/) on Windows:
+**Install (Windows):** download the installer (`DevContext_*_x64-setup.exe`) from [Releases](https://github.com/shaahink/DevContext2/releases) — it bundles the analysis server as a sidecar (installers attach to releases starting with the next tag). The app spawns the server via `dotnet`, so the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0) must be installed.
+
+**Or build from source** — requires the .NET 10 SDK, Node 22 + [pnpm](https://pnpm.io), and (for the native window) the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/) on Windows:
 
 ```bash
 dotnet build DevContext.slnx
@@ -167,9 +169,10 @@ cd src/DevContext.App
 pnpm install
 pnpm dev:web        # browser mode at http://localhost:4200 (server auto-started)
 pnpm dev            # or: native Tauri window
+pnpm tauri build    # or: build the installer yourself (bundles the server sidecar)
 ```
 
-A downloadable installer is planned once server bundling lands (tracked in `GITHUB-READY-START.md`). UI guide: [docs/product/desktop-ui.md](docs/product/desktop-ui.md)
+UI guide: [docs/product/desktop-ui.md](docs/product/desktop-ui.md)
 
 ### MCP (AI agents)
 

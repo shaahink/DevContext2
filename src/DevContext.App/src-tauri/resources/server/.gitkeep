@@ -1,0 +1,3 @@
+# Keeps resources/server present so tauri-build's bundle.resources glob always matches.
+# `pnpm publish:server` fills this directory with the DevContext.Server sidecar publish;
+# without it the app runs in dev mode (separate server on :5179).
