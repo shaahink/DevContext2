@@ -342,8 +342,42 @@ internal static class ProtoMapper
             TotalTokens = pack.TotalTokens,
         };
         foreach (var s in pack.Sections)
-            resp.Sections.Add(new Proto.ContextSection { Key = s.Section, Tokens = s.Tokens, Content = s.Content });
+        {
+            var section = new Proto.ContextSection
+            {
+                Key = s.Section, Tokens = s.Tokens, Content = s.Content,
+                Verified = s.Verified, Approx = s.Approx,
+            };
+            section.SourceLocations.AddRange(s.SourceLocations);
+            resp.Sections.Add(section);
+        }
         resp.Omitted.AddRange(pack.Omitted);
+        return resp;
+    }
+
+    /// <summary>T4.5 — per-section staleness verdicts + the cheap whole-repo HEAD drift signal.</summary>
+    public static Proto.VerifyContextResponse ToVerifyContextResponse(
+        string focus, bool found, string? analyzedHead, string? currentHead,
+        System.Collections.Immutable.ImmutableArray<SectionVerification> sections)
+    {
+        var resp = new Proto.VerifyContextResponse
+        {
+            Found = found,
+            Focus = focus,
+            AnalyzedGitHead = analyzedHead ?? "",
+            CurrentGitHead = currentHead ?? "",
+            AnyStale = sections.Any(s => s.Stale),
+        };
+        foreach (var s in sections)
+        {
+            var sv = new Proto.SectionVerification
+            {
+                Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
+            };
+            foreach (var d in s.Changed)
+                sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
+            resp.Sections.Add(sv);
+        }
         return resp;
     }
 
@@ -364,7 +398,15 @@ internal static class ProtoMapper
                 Tokens = card.TotalTokens,
             };
             foreach (var sa in card.Sections)
-                item.Sections.Add(new Proto.SectionAllocation { Key = sa.Section, Tokens = sa.Tokens });
+            {
+                var alloc = new Proto.SectionAllocation
+                {
+                    Key = sa.Section, Tokens = sa.Tokens,
+                    Verified = sa.Verified, Approx = sa.Approx,
+                };
+                alloc.SourceLocations.AddRange(sa.SourceLocations);
+                item.Sections.Add(alloc);
+            }
             resp.Cards.Add(item);
         }
         resp.Omitted.AddRange(pack.Omitted);

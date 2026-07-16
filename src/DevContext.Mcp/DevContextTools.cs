@@ -1304,6 +1304,54 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "get_context", "get_context(handle, focus:\"POST /api/orders\")"); }
     }
 
+    /// <summary>Has the source drifted since analyze? Compares analyze-time file hashes vs disk per pack section for a focus. Returns per-section stale flags, changed files with line deltas, and repo HEAD then/now. Method: hash + line-count delta only (no diff). Example: verify_context("abc123", "POST /api/orders")</summary>
+    [McpServerTool]
+    public async Task<string> VerifyContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string? query = null)
+    {
+        focus ??= query; // same synonym contract as get_context (T3.1)
+        if (string.IsNullOrWhiteSpace(focus))
+            return Envelope("Missing required parameter 'focus' (or 'query').",
+                "Pass the entry/symbol whose context should be verified.",
+                "verify_context(handle, focus:\"POST /api/orders\")");
+        try { handle = ResolveHandle(handle); }
+        catch (RpcException ex) { return FromRpc(ex, "verify_context", "analyze(path) then verify_context(focus:\"POST /api/orders\")"); }
+        try
+        {
+            var resp = await _client.VerifyContextAsync(new VerifyContextRequest
+            {
+                Handle = handle,
+                Focus = focus,
+                BudgetTokens = budgetTokens,
+            });
+            if (!resp.Found)
+            {
+                var suggestions = await SuggestAsync(handle, focus);
+                return Envelope($"No context to verify for '{focus}'.",
+                    suggestions.Length > 0 ? "Did you mean one of these?" : "Try top_flows() to find an entry.",
+                    "verify_context(handle, focus:\"POST /basket/checkout\")",
+                    suggestions.Length > 0 ? suggestions : null);
+            }
+
+            return JsonSerializer.Serialize(new
+            {
+                focus,
+                anyStale = resp.AnyStale,
+                headMoved = resp.AnalyzedGitHead.Length > 0 && resp.AnalyzedGitHead != resp.CurrentGitHead,
+                analyzedGitHead = resp.AnalyzedGitHead,
+                currentGitHead = resp.CurrentGitHead,
+                sections = resp.Sections.Select(s => new
+                {
+                    key = s.Key,
+                    stale = s.Stale,
+                    filesChecked = s.FilesChecked,
+                    changed = s.Changed.Select(c => new { file = c.File, status = c.Status, lineDelta = c.LineDelta }).ToArray(),
+                }).ToArray(),
+                method = "analyze-time sha256 + line-count vs disk now; 'unknown' = no analyze-time fingerprint for the file; re-run analyze to refresh",
+            }, JsonOpts);
+        }
+        catch (RpcException ex) { return FromRpc(ex, "verify_context", "verify_context(handle, focus:\"POST /api/orders\")"); }
+    }
+
     /// <summary>Read source code for a node. Address with 'nodeId' or 'query'. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", query:"OrderService", mode:"member")</summary>
     [McpServerTool]
     public async Task<string> ReadSource(string? handle = null, string? nodeId = null, int windowLines = 20, string mode = "window", string? query = null)

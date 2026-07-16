@@ -10,13 +10,13 @@ namespace DevContext.Mcp;
 // an actionable envelope naming the closest real tools + the full list.
 internal static class UnknownToolHandler
 {
-    // The 23 tool names the server exposes (McpServerTool methods on DevContextTools).
+    // The 24 tool names the server exposes (McpServerTool methods on DevContextTools).
     private static readonly string[] ToolNames =
     [
         "analyze", "overview", "resolve", "status", "close_session", "list_sessions",
         "stats", "entrypoints", "map", "top_flows", "flow", "interesting_points",
         "trace", "node", "neighbors", "usages", "find", "impact", "config",
-        "tests_for", "insights", "get_context", "read_source",
+        "tests_for", "insights", "get_context", "verify_context", "read_source",
     ];
 
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };

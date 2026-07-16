@@ -67,6 +67,11 @@ service DevContextService {
   // GetContext calls. Copy/Save = exactly the server's assembled markdown pack. Closes Trap A.
   rpc GetContextPack(ContextPackRequest) returns (ContextPackResponse);
 
+  // T4.5 (audit R6) — staleness verification: compares the snapshot's analyze-time file
+  // fingerprints against disk per pack section (hash + line-count delta, v1 by design).
+  // Powers the MCP verify_context tool and the Studio verification panel (T5.2).
+  rpc VerifyContext(VerifyContextRequest) returns (VerifyContextResponse);
+
   // Read raw source code for a graph node — full member span or a context window around
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
@@ -553,9 +558,12 @@ message ContextResponse {
 }
 
 message ContextSection {
-  string key = 1;       // "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
+  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests"
   int32 tokens = 2;
   string content = 3;
+  repeated string source_locations = 4;  // T4.4 — repo-relative file:line set the section derived from (capped)
+  int32 verified = 5;                    // T4.4 — items resolved semantically / by join
+  int32 approx = 6;                      // T4.4 — items resolved by syntax/string heuristics
 }
 
 // ---------------------------------------------------------------------------
@@ -593,6 +601,41 @@ message ContextCardItem {
 message SectionAllocation {
   string key = 1;
   int32 tokens = 2;
+  repeated string source_locations = 3;  // T4.4 — provenance chips (T5.3)
+  int32 verified = 4;
+  int32 approx = 5;
+}
+
+// ---------------------------------------------------------------------------
+// T4.5 — Context staleness verification (audit R6, engine half)
+// ---------------------------------------------------------------------------
+
+message VerifyContextRequest {
+  string handle = 1;
+  string focus = 2;
+  optional int32 budget_tokens = 3;  // section shaping mirrors get_context (default 8000)
+}
+
+message VerifyContextResponse {
+  bool found = 1;                    // focus resolved to an entry
+  string focus = 2;
+  bool any_stale = 3;
+  string analyzed_git_head = 4;      // HEAD at analyze time ("" outside git)
+  string current_git_head = 5;       // HEAD now — a cheap whole-repo drift signal
+  repeated SectionVerification sections = 6;
+}
+
+message SectionVerification {
+  string key = 1;
+  bool stale = 2;                    // any cited file modified or deleted since analyze
+  int32 files_checked = 3;
+  repeated FileDelta changed = 4;
+}
+
+message FileDelta {
+  string file = 1;                   // repo-relative
+  string status = 2;                 // "modified" | "deleted" | "unknown" (no analyze-time fingerprint)
+  int32 line_delta = 3;              // lines now − lines at analyze (0 for unknown)
 }
 
 // ---------------------------------------------------------------------------

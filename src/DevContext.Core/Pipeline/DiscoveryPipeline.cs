@@ -291,6 +291,8 @@ public sealed class DiscoveryPipeline
             RootPath = context.RootPath,
             AnalyzedAtUtc = DateTimeOffset.UtcNow,
             GitHead = GitHeadReader.Read(context.RootPath),
+            FileFingerprints = FileFingerprinter.Capture(
+                codeGraph.Nodes.Where(n => n.FilePath is not null).Select(n => n.FilePath!)),
             Graph = codeGraph,
             Map = mapModel,
             Entries = entryPoints,

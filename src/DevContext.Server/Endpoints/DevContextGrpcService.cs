@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Channels;
 
+using DevContext.Core.Analysis;
 using DevContext.Core.Graph;
 using DevContext.Server.Mapping;
 using DevContext.Server.Services;
@@ -261,6 +262,22 @@ public sealed class DevContextGrpcService(
 
             var pack = builder.BuildMulti(specs, budget, intent);
             return ProtoMapper.ToContextPackResponse(pack);
+        });
+
+    // T4.5 (audit R6) — staleness verification: rebuild the focus's sections (cheap — the graph
+    // is immutable since analyze, so the file sets are stable) and compare each section's
+    // analyze-time file fingerprints against disk now.
+    public override Task<Proto.VerifyContextResponse> VerifyContext(Proto.VerifyContextRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var builder = new ContextPackBuilder(session.Query, session.Snapshot);
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var pack = builder.Build(request.Focus, budget);
+
+            var sections = new ContextPackVerifier(session.Snapshot).Verify(pack.Sections);
+            var currentHead = GitHeadReader.Read(session.Snapshot.RootPath);
+            return ProtoMapper.ToVerifyContextResponse(
+                request.Focus, pack.Found, session.Snapshot.GitHead, currentHead, sections);
         });
 
     public override Task<Proto.GraphFacetsResponse> GetGraphFacets(Proto.GraphFacetsRequest request, ServerCallContext context)
