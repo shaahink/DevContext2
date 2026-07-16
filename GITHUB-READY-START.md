@@ -76,6 +76,32 @@ Work needed: publish Server → Tauri resource + set env in Rust, or ship self-c
   since changed. Re-capture via `capture-readme.mts` next time services are up (needs live app).
 - CHANGELOG — caught up in G4 with a `[Unreleased]` section summarizing post-v1.0.0 phases.
 
+## Next session — wrap-up list (resume here, in this worktree)
+
+Work in `C:/Code/DevContext2-github-ready` on `feat/github-ready` (pushed; 6 commits `dd276a6..3ecd883`).
+Ordered by value; each item is independent:
+
+1. **Eval workflow (CI companion)** — new `.github/workflows/eval.yml`, `workflow_dispatch` + weekly
+   `schedule`, windows-latest, `submodules: true`, running `powershell -File eval/gates.ps1`. It
+   clones real repos from `eval-repos.json` (network fine in Actions); check total runtime and add
+   a generous `timeout-minutes`. Keeps PR CI fast while eval still runs unattended.
+2. **Desktop sidecar packaging (the big one)** — `dotnet publish` DevContext.Server, bundle it as a
+   Tauri resource, set `DEVCONTEXT_SERVER_DLL` from the Rust shell (`src-tauri/src/lib.rs:64` — env
+   var already honored; today nothing sets it in packaged builds). Then restore a desktop job in
+   `release.yml` and flip README's "build from source" to a download link. Verify with a local
+   `pnpm tauri build` + install.
+3. **Screenshot refresh** — 12 shots predate T4 (Context Studio/MCP changed):
+   `powershell -File src/DevContext.App/scripts/start-dev-bg.ps1`, then
+   `node --experimental-strip-types src/DevContext.App/scripts/capture-readme.mts --no-spawn`, then `-Kill`.
+4. **Root tracker archive (quiet window only)** — move closed `L3-/LOOM-/MERIDIAN-START.md`,
+   `conductor-*.md`, `plan.json` to `docs/dev/archive/`; update every pointer (AGENTS.md §"Where the
+   work is tracked", README) in the same commit. **Never move `TAPESTRY-START.md`** (active).
+   Check `git worktree list` first — don't archive under another agent.
+5. **PR** `feat/github-ready` → `develop` once `feat/tapestry-t4` merges (this branch is based on the
+   t4 head — rebase if T4 changed during review). Never merge unasked.
+6. **Coordinate with the engine strand** — empty-fixture-dir→skip in `TruthExpectationTests`
+   (Tapestry owns the file); owner decisions on `eval-results/` (432 files) + `analysis-exports/`.
+
 ## Session log
 
 - 2026-07-16 — worktree created off `bcae33d`; baseline `dotnet build DevContext.slnx` green (exit 0);
