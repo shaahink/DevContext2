@@ -67,7 +67,7 @@ public sealed class ContextPackBuilder
     /// <summary>T4.2 — signatures stay structural: spine-first (BFS) up to a token cap so a deep
     /// trace can't starve the bodies section (shamshir at depth 6 grew this to 2.5k of a 4k pack).
     /// The cut is named — the reader knows how many members the list left out.</summary>
-    private string BuildCalleeSignatures(Trace trace, int tokenBudget)
+    private string BuildCalleeSignatures(Trace trace, int tokenBudget, SectionProvenance prov)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
@@ -90,6 +90,9 @@ public sealed class ContextPackBuilder
             }
             sb.Append(entry);
             used += tokens;
+            prov.Tally(step.Resolution);
+            if (step.Node.FilePath is { } pf)
+                prov.Locations.Add(Location(pf, step.Node.LineNumber));
         }
         if (omittedCount > 0)
             sb.AppendLine($"- … (+{omittedCount} more members — raise budgetTokens for the full list)");
@@ -116,7 +119,7 @@ public sealed class ContextPackBuilder
     /// spine-first (breadth-first, closest to the entry first): each step gets its FULL declaration
     /// text when that fits (capped per body so one god-class can't eat the pack), else its salient
     /// snippet with a visible `… (+N lines)` truncation marker, else it is counted omitted.</summary>
-    private (string Text, int OmittedBodies) BuildBodiesToFill(Trace trace, int tokenBudget)
+    private (string Text, int OmittedBodies) BuildBodiesToFill(Trace trace, int tokenBudget, SectionProvenance prov)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
@@ -145,6 +148,7 @@ public sealed class ContextPackBuilder
                 {
                     sb.Append(fullBlock);
                     remaining -= fullTokens;
+                    TallyBody(prov, step);
                     continue;
                 }
             }
@@ -159,6 +163,7 @@ public sealed class ContextPackBuilder
                 {
                     sb.Append(snippetBlock);
                     remaining -= snippetTokens;
+                    TallyBody(prov, step);
                     continue;
                 }
             }
@@ -167,6 +172,13 @@ public sealed class ContextPackBuilder
         }
 
         return (sb.ToString(), omitted);
+
+        void TallyBody(SectionProvenance p, TraceStep step)
+        {
+            p.Tally(step.Resolution);
+            if (step.Node.FilePath is { } fp)
+                p.Locations.Add(Location(fp, step.Node.LineNumber));
+        }
     }
 
     /// <summary>The fullest body text available for a node: its own SourceBody, else its declaration
@@ -215,7 +227,7 @@ public sealed class ContextPackBuilder
     /// (commands/queries/events) on the traced spine. Audit C2: the contracts card was a verbatim
     /// duplicate of signatures — this section selects only contract-shaped types, with the
     /// declaration line as the payload. Entities are excluded (they have their own section).</summary>
-    private string BuildContracts(Trace trace)
+    private string BuildContracts(Trace trace, SectionProvenance prov)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
@@ -227,10 +239,14 @@ public sealed class ContextPackBuilder
 
             sb.Append($"- `{node.Title}` ({role})");
             if (node.FilePath is { } fp)
+            {
                 sb.Append($" — {Location(fp, node.LineNumber)}");
+                prov.Locations.Add(Location(fp, node.LineNumber));
+            }
             sb.AppendLine();
             if (DeclarationLine(node.SourceBody) is { } decl)
                 sb.AppendLine($"  `{decl}`");
+            prov.Tally(Resolution.Semantic); // contract shapes come from the node's own declaration
         }
         return sb.ToString();
     }
@@ -274,7 +290,7 @@ public sealed class ContextPackBuilder
     /// <summary>T4.3 (R9) — the config keys the traced spine actually reads, each with the
     /// file:line of the binding site. Scans only the spine's own files (a handful), so this is
     /// cheap at pack time; the session-wide scan cache (T3.4) is a server concern, not ours.</summary>
-    private string BuildConfigSection(Trace trace)
+    private string BuildConfigSection(Trace trace, SectionProvenance prov)
     {
         var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var step in WalkSteps(trace.Root))
@@ -296,6 +312,8 @@ public sealed class ContextPackBuilder
             var more = group.Count() - 1;
             if (more > 0) sb.Append($" (+{more} more sites)");
             sb.AppendLine();
+            prov.Tally(Resolution.Semantic); // a literal key in the syntax tree is a certain binding
+            prov.Locations.Add(Location(first.FilePath, first.LineNumber));
         }
         return sb.ToString();
     }
@@ -303,7 +321,7 @@ public sealed class ContextPackBuilder
     /// <summary>T4.3 (R9) — tests whose call closure reaches a spine member, by the same
     /// heuristic the tests_for tool uses (one source: <see cref="TestHeuristics"/>). Best-effort:
     /// an empty section means no test REACHED the spine by these signals, never "untested".</summary>
-    private string BuildTestsSection(Trace trace)
+    private string BuildTestsSection(Trace trace, SectionProvenance prov)
     {
         const int maxProbes = 10;
         const int maxRows = 12;
@@ -326,8 +344,12 @@ public sealed class ContextPackBuilder
 
                 sb.Append($"- `{title}` — reaches `{node.Title}` (distance {distance})");
                 if (filePath is not null)
+                {
                     sb.Append($" — {Location(filePath, lineNumber)}");
+                    prov.Locations.Add(Location(filePath, lineNumber));
+                }
                 sb.AppendLine();
+                prov.Tally(Resolution.Syntactic); // name/path heuristic — approximate by design
 
                 if (seenTests.Count >= maxRows)
                 {
@@ -342,7 +364,7 @@ public sealed class ContextPackBuilder
         return "_best-effort: name/path/project heuristic — no rows ≠ untested_\n" + sb;
     }
 
-    private string BuildDiRegistrations(Trace? trace)
+    private string BuildDiRegistrations(Trace? trace, SectionProvenance prov)
     {
         var types = new HashSet<NodeId>();
         if (trace is not null)
@@ -371,7 +393,10 @@ public sealed class ContextPackBuilder
             if (resolvers.Length == 0) continue;
             found = true;
             foreach (var r in resolvers)
+            {
                 sb.AppendLine($"- `{r.OtherTitle}` → {nodeId.Key} ({r.Resolution})");
+                prov.Tally(r.Resolution);
+            }
         }
         return found ? sb.ToString() : "";
     }
@@ -579,52 +604,72 @@ public sealed class ContextPackBuilder
         // Shape the skeleton only when it actually exceeds its cap — ShapeToBudget estimates
         // trace cost WITH salient text, so shaping an already-fitting skeleton over-cuts it.
         var skeletonFull = BuildTraceSkeleton(trace);
-        var skeleton = EstimateTokens(skeletonFull) <= skeletonCap
-            ? skeletonFull
-            : BuildTraceSkeleton(TraceBuilder.ShapeToBudget(trace, skeletonCap));
-        var signatures = BuildCalleeSignatures(trace, signaturesCap);
+        var shapedTrace = EstimateTokens(skeletonFull) <= skeletonCap
+            ? trace
+            : TraceBuilder.ShapeToBudget(trace, skeletonCap);
+        var skeleton = ReferenceEquals(shapedTrace, trace) ? skeletonFull : BuildTraceSkeleton(shapedTrace);
+        var skeletonProv = new SectionProvenance();
+        foreach (var step in WalkSteps(shapedTrace.Root))
+        {
+            skeletonProv.Tally(step.Resolution);
+            if (step.Node.FilePath is { } fp)
+                skeletonProv.Locations.Add(Location(fp, step.Node.LineNumber));
+        }
+        var sigProv = new SectionProvenance();
+        var signatures = BuildCalleeSignatures(trace, signaturesCap, sigProv);
+        var contractsProv = new SectionProvenance();
+        var contracts = BuildContracts(trace, contractsProv);
+        var diProv = new SectionProvenance();
+        var di = BuildDiRegistrations(trace, diProv);
+        var configProv = new SectionProvenance();
+        var config = BuildConfigSection(trace, configProv);
+        var testsProv = new SectionProvenance();
+        var tests = BuildTestsSection(trace, testsProv);
 
         if (mode == "explain")
         {
-            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", di, ref budgetTokens, diProv);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", config, ref budgetTokens, configProv);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", tests, ref budgetTokens, testsProv);
+            tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv);
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
+            tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens, skeletonProv);
         }
         else if (mode == "review")
         {
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens, skeletonProv))
                 return ([.. sections], [.. omitted]);
 
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv))
                 return ([.. sections], [.. omitted]);
 
-            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", di, ref budgetTokens, diProv);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", config, ref budgetTokens, configProv);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", tests, ref budgetTokens, testsProv);
         }
         else
         {
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens, skeletonProv))
                 return ([.. sections], [.. omitted]);
 
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens, sigProv))
                 return ([.. sections], [.. omitted]);
 
-            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", contracts, ref budgetTokens, contractsProv);
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", di, ref budgetTokens, diProv);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", config, ref budgetTokens, configProv);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", tests, ref budgetTokens, testsProv);
         }
 
-        var (bodies, omittedBodies) = BuildBodiesToFill(trace, budgetTokens);
-        tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens);
+        var bodiesProv = new SectionProvenance();
+        // −30: headroom for the provenance footer tokensAddSection appends, so an exact fill
+        // can't tip the section over the remaining budget.
+        var (bodies, omittedBodies) = BuildBodiesToFill(trace, budgetTokens - 30, bodiesProv);
+        tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens, bodiesProv);
         if (omittedBodies > 0)
             omitted.Add($"bodies: {omittedBodies} member bodies omitted (budget) — raise budgetTokens or read_source the member");
 
@@ -633,7 +678,8 @@ public sealed class ContextPackBuilder
 
     private static bool tokensAddSection(
         List<SectionAllocation> sections, List<string> omitted,
-        int totalBudget, string sectionName, string text, ref int remainingBudget)
+        int totalBudget, string sectionName, string text, ref int remainingBudget,
+        SectionProvenance? prov = null)
     {
         // T4.6 — an empty section never ships (audit C2's "Entities — 0 tok"); it is recorded
         // in omitted[] so the reader knows the pack looked and found nothing.
@@ -643,6 +689,13 @@ public sealed class ContextPackBuilder
             return true;
         }
 
+        // T4.4 (R10) — every section says where it came from and how sure it is.
+        if (prov is { IsEmpty: false })
+        {
+            if (!text.EndsWith('\n')) text += "\n";
+            text += $"_provenance: {prov.Locations.Count} source sites · {prov.Verified} verified · {prov.Approx} approx_\n";
+        }
+
         var tokens = EstimateTokens(text);
         if (tokens > remainingBudget)
         {
@@ -650,7 +703,7 @@ public sealed class ContextPackBuilder
             {
                 var trimmed = TruncateToBudget(text, remainingBudget - 50);
                 var trimTokens = EstimateTokens(trimmed);
-                sections.Add(new SectionAllocation(sectionName, trimTokens, trimmed));
+                sections.Add(Allocate(sectionName, trimTokens, trimmed, prov));
                 omitted.Add($"{sectionName}: trimmed from {tokens} to {trimTokens} tokens");
                 remainingBudget -= trimTokens;
                 return true;
@@ -658,9 +711,17 @@ public sealed class ContextPackBuilder
             omitted.Add($"{sectionName}: omitted ({tokens} tokens, budget exhausted)");
             return false;
         }
-        sections.Add(new SectionAllocation(sectionName, tokens, text));
+        sections.Add(Allocate(sectionName, tokens, text, prov));
         remainingBudget -= tokens;
         return true;
+
+        static SectionAllocation Allocate(string name, int tokens, string content, SectionProvenance? prov)
+            => new(name, tokens, content)
+            {
+                SourceLocations = prov is null ? [] : [.. prov.Locations.OrderBy(l => l, StringComparer.Ordinal).Take(20)],
+                Verified = prov?.Verified ?? 0,
+                Approx = prov?.Approx ?? 0,
+            };
     }
 
     /// <summary>T4.1 — repo display name: the solution name when there is one (an analysis root
@@ -802,7 +863,31 @@ public sealed record ContextPack(
     public bool Found { get; init; } = true;
 }
 
-public sealed record SectionAllocation(string Section, int Tokens, string Content);
+public sealed record SectionAllocation(string Section, int Tokens, string Content)
+{
+    /// <summary>T4.4 (R10) — the repo-relative file:line set this section derived from (deduped, capped).</summary>
+    public ImmutableArray<string> SourceLocations { get; init; } = [];
+    /// <summary>T4.4 (R10) — items resolved semantically or by detection join (trustworthy).</summary>
+    public int Verified { get; init; }
+    /// <summary>T4.4 (R10) — items resolved by syntax/string heuristics (approximate).</summary>
+    public int Approx { get; init; }
+}
+
+/// <summary>T4.4 (R10) — accumulates a section's provenance while it renders: every source site
+/// it drew from plus the resolution-tier mix (Semantic/Join = verified, Syntactic = approx).</summary>
+internal sealed class SectionProvenance
+{
+    public HashSet<string> Locations { get; } = new(StringComparer.Ordinal);
+    public int Verified { get; private set; }
+    public int Approx { get; private set; }
+    public bool IsEmpty => Locations.Count == 0 && Verified == 0 && Approx == 0;
+
+    public void Tally(Resolution resolution)
+    {
+        if (resolution == Resolution.Syntactic) Approx++;
+        else Verified++;
+    }
+}
 
 /// <summary>L4.4 — One card spec the UI sends to the server.</summary>
 public sealed record ContextCardSpec(string Type, string Title, ImmutableArray<string> EntryIds);

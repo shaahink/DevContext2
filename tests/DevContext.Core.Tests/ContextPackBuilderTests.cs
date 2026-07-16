@@ -326,6 +326,26 @@ public sealed class ContextPackBuilderTests
     }
 
     [Fact]
+    public void Sections_carry_provenance_footer_and_structured_tiers()
+    {
+        // T4.4 (R10) — each section says where it came from (repo-relative file:line set) and
+        // how sure it is (verified = Semantic/Join, approx = Syntactic), both in the markdown
+        // footer and as structured fields for the UI's provenance chips (T5.3).
+        var (query, snapshot) = Arrange();
+
+        var pack = new ContextPackBuilder(query, snapshot).Build("POST /orders");
+
+        var signatures = pack.Sections.Single(s => s.Section == "signatures");
+        Assert.Contains("_provenance:", signatures.Content, StringComparison.Ordinal);
+        Assert.Contains("verified", signatures.Content, StringComparison.Ordinal);
+        Assert.NotEmpty(signatures.SourceLocations);
+        Assert.Contains("src/App/OrdersController.cs:11", signatures.SourceLocations);
+        Assert.True(signatures.Verified + signatures.Approx > 0, "tier mix is empty");
+        // Structured locations are repo-relative like everything else in the pack.
+        Assert.DoesNotContain(signatures.SourceLocations, l => l.Contains(":\\") || l.StartsWith("C:/"));
+    }
+
+    [Fact]
     public void Multi_pack_header_names_repo_and_fills_archetype()
     {
         var (query, snapshot) = Arrange(
