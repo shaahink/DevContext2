@@ -14,10 +14,13 @@ EventWiringFacet = T2.6 join over gRPC + one-pager download). Stage gate `t6-fea
 **Wrap-up catches: eShop checkout-titled entries are ALL 1-hop client commands ([RelayCommand] CheckoutViewModel = 2 nodes) — trace tile now picks deep
 checkout else deepest request-shaped flow; CLI crashed on `--focus "[RelayCommand] X"` (Spectre markup unescaped, AnalyzeCommand — fixed); innerText is
 CSS-uppercased (assert case-insensitive); "Entry focus — click a node" is the inspector's NORMAL hint, count nested app-trace-node for depth.**
-next: **T7 (bench + perf honesty)** — T7.1 bench+truth files (CompositionApp/gRPC/aspire-samples), T7.2 perf baseline + edge-explosion, T7.3 waterfall,
-T7.4 RPC budget ≤15/nav. Branch feat/tapestry-t7 stacked off t6. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
-gotchas: start-dev-bg.ps1 web job can die silently (launch ng serve directly via bash bg + watch web.out.log); ng-watcher wedges on mid-edit errors; dogfood
-has PRE-EXISTING local mods since 2025-12 (YarpApiGateway/Program.cs EMPTY) — baselines include them, do NOT restore.
+next: **T7** on feat/tapestry-t7 (stacked off t6, which is pushed): T7.0 harness wall-speed (gates -Scope + eval stamp/split + launcher rewrite +
+.gitignore fix) lands first — verify gates-t7.0-full.txt says GATE: PASS, then T7.1 bench+truth files, T7.2 perf baseline + edge-explosion, T7.3
+waterfall, T7.4 RPC budget ≤15/nav. Standing: trigger the first `.github/workflows/eval.yml` run when the github-ready strand merges (cloud battery
+replaces local pre-merge full runs). develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
+gotchas: battery cadence is now IN the script (gates -Scope app ≈ 90s; full detached + poll for GATE:, keep working meanwhile — only push/merge waits);
+launcher is idempotent w/ pid files (old Start-Job form is gone); ng-watcher wedges on mid-edit errors; dogfood has PRE-EXISTING local mods since
+2025-12 (YarpApiGateway/Program.cs EMPTY) — baselines include them, do NOT restore.
 
 ---
 
@@ -109,6 +112,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T7 — Bench + perf honesty
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
+| T7.0 | Harness wall-speed rider: gates.ps1 -Scope full/engine/app + engine-stamp eval cache + 2-host eval split + pnpm check as Step 5 · launcher rewrite (pid files, tree-kill, idempotent, no handle-inheritance hang) · .gitignore de-mojibake (UTF-16 tail made TestResults/.dev-logs rules dead) · overlap-the-battery rule written (skill+docs) | IN PROGRESS | | tapestry-t7/gates-t7.0-full.txt (before: 25 min serial, eval 12m29s; app scope 1m29s) |
 | T7.1 | Bench + truth files extended (CompositionApp, gRPC service, aspire-samples) | TODO | | |
 | T7.2 | Perf baseline + edge-explosion check (devcontext-bench) | TODO | | |
 | T7.3 | Stage waterfall ≥95% wall-time accounted | TODO | | |

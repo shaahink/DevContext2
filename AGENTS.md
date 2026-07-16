@@ -43,7 +43,11 @@ dotnet build DevContext.slnx                              # 0 warnings / 0 error
 dotnet test  DevContext.slnx --filter "Category!=Eval"    # fast unit + integration
 dotnet test  DevContext.slnx --filter "Category=Truth"    # truth gates (skips are the pending ratchet)
 powershell -File scripts/loom-guards.ps1                  # banned-pattern check + truth gate
-powershell -File eval/gates.ps1                           # build → fast tests → eval → CLI --strict matrix
+powershell -File eval/gates.ps1                           # FULL battery: build → tests → eval → CLI → pnpm check
+powershell -File eval/gates.ps1 -Scope app                # app-only checkpoint (~90s); -Scope engine skips app
+#   full = the only boundary-citable form; eval step is stamp-cached (eval/.eval-stamp.json) +
+#   split over two test hosts. At a boundary launch full DETACHED and keep working — see
+#   .claude/skills/dev-pipeline/SKILL.md
 
 # From src/DevContext.App — desktop app:
 pnpm check                                                # lint + vitest + production build
@@ -82,7 +86,7 @@ Agents MUST NOT run foreground-blocking servers (`pnpm dev`, `pnpm dev:web`, `pn
 background launcher instead:
 
 ```powershell
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1            # start .NET server + Angular dev server as Jobs
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1            # start server+web (idempotent; pid files in .dev-pids/)
 powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Status    # check status
 powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill      # kill all
 ```

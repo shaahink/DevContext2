@@ -26,20 +26,38 @@ Integration branch is **`develop`**. Full reference: `docs/dev/DEVELOPER-PIPELIN
 
 ## The gate battery (green before every commit)
 
-```powershell
-# Repo root — engine:
-dotnet build DevContext.slnx                              # 0 warnings / 0 errors (warnings are errors)
-dotnet test  DevContext.slnx --filter "Category!=Eval"    # fast unit + integration
-dotnet test  DevContext.slnx --filter "Category=Truth"    # truth gates (skips = pending ratchet)
-powershell -File scripts/loom-guards.ps1                  # banned-pattern check + truth gate
-powershell -File eval/gates.ps1                           # build → fast tests → eval → CLI --strict matrix
+The battery is ONE script with a scope knob (T7.0). Pick the scope that matches the change;
+only an unqualified `GATE: PASS` from `-Scope full` is citable at a stage/push/merge boundary.
 
-# src/DevContext.App — desktop app:
-pnpm check                                                # lint + vitest + build
+```powershell
+powershell -File eval/gates.ps1                # FULL (default): build → fast tests → McpQa →
+                                               #   eval → CLI matrix → pnpm check. THE boundary gate.
+powershell -File eval/gates.ps1 -Scope engine  # engine-only mid-stage checkpoint (skips pnpm check)
+powershell -File eval/gates.ps1 -Scope app     # app-only checkpoint: build + pnpm check (~90s)
+powershell -File eval/gates.ps1 -SkipEval      # engine fast form (eval skipped, labeled)
+powershell -File scripts/loom-guards.ps1       # banned-pattern check + truth gate — run at every commit
 ```
 
-Run only the engine gates for engine-only changes, only `pnpm check` for app-only changes; run both
-when a change crosses the gRPC contract. `eval/gates.ps1` prints `GATE: PASS` / `GATE: FAIL (step N)`.
+Speed facts (measured 2026-07-16): full serial was ~25 min; the eval step now runs SPLIT across
+two test hosts (~halves its 12.5 min) and is ENGINE-STAMP CACHED — a green eval writes
+`eval/.eval-stamp.json` (hash over Core/CLI sources, Core tests, expectations, fixtures); while
+the stamp matches, Step 3 skips with "verdict transfers" and the run is still a citable full
+gate. Delete the stamp file to force a re-run. `-SerialEval` restores the one-process eval.
+
+**Overlap rule (don't idle behind the battery):** at a stage boundary, commit → launch the full
+battery DETACHED → keep working on the next checkpoint (new branch/worktree) while it runs. Only
+push/merge waits for `GATE:` in the log. Launch pattern:
+
+```powershell
+Start-Process powershell -ArgumentList @('-NoProfile','-File','eval\gates.ps1') `
+  -WorkingDirectory (Get-Location) -WindowStyle Hidden `
+  -RedirectStandardOutput 'eval-results\<date>\gates-<tag>.txt' -RedirectStandardError 'eval-results\<date>\gates-<tag>.err.txt'
+# then poll the file for "GATE:" — do NOT run the battery as a foreground agent command (10-min cap kills it)
+```
+
+Also standing: truth gates `dotnet test DevContext.slnx --filter "Category=Truth"` (skips = pending
+ratchet). CI: `.github/workflows/eval.yml` (github-ready strand) runs the eval suite in the cloud —
+once that strand is merged, prefer CI for the pre-merge full battery and keep local scoped runs.
 
 ## Build & run
 
@@ -48,9 +66,11 @@ dotnet build DevContext.slnx                 # everything C#
 dotnet build src/DevContext.Cli              # REBUILD the CLI after any Core edit (stale-dll trap)
 
 # Run the app (agent-safe background launcher — NEVER foreground pnpm dev/dev:web/server/tauri):
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1            # start
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Status    # status
-powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill      # stop
+# T7.0 rewrite: direct processes + pid files (.dev-pids/), taskkill /T tree-kill, works from ANY
+# shell, idempotent (re-invoking while up is a 2s no-op), returns promptly (~25s cold).
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1            # start (idempotent)
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Status    # pid + live health per side
+powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill      # tree-kill both + orphan sweep
 
 # Drive the CLI (absolute paths only — a relative path is parsed as a GitHub repo and cloned):
 dotnet run --project src/DevContext.Cli -- analyze C:\abs\repo                # Map
@@ -97,3 +117,10 @@ Don't trust the build — exercise the surface you changed:
 - **PowerShell mojibakes `·`** — match ASCII markers (`nodes`/`edges`/`depth`); capture with `Out-File -Encoding utf8`.
 - **JSON isn't pure on stdout** — use `-o out.json` and parse the file; don't `Select-Object -First N` a CLI pipe (corrupts the exit code).
 - **Never foreground** `pnpm dev`/`dev:web`/`server`/`tauri dev`/`concurrently` — they hang the session.
+- **PS 5.1 `Start-Process -PassThru`**: cache `$null = $proc.Handle` immediately or `.ExitCode`
+  reads `$null` after exit (and `$null -ne 0` is `$true` — a green child scored as failure).
+  Also: PS-level `-RedirectStandardOutput` on a daemon child leaks the caller's stdout handle
+  into it — an agent shell piping the script never sees EOF. Let `cmd /c ... > log 2> err` own
+  the redirect instead (this is how start-dev-bg.ps1 works now).
+- **`.cmd` shims (pnpm) can't be exec'd** by CreateProcess (any redirected Start-Process) —
+  launch via `cmd /d /c pnpm …`.

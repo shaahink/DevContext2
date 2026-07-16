@@ -110,7 +110,15 @@ pnpm check                                                # lint + test + build
   the `Category=Truth` gate (actual failures ban; skips are the pending ratchet). Exit 0 = clean.
 - **`eval/gates.ps1`** — the self-validation gate: build → fast tests (`Category!=Eval&Category!=CliSmoke`)
   → eval expectations → a CLI `--strict` matrix (`--strict`, `--format json/html --strict`, `--dry-run`,
-  `--max-tokens 2000 --strict`). Prints `GATE: PASS` / `GATE: FAIL (step N)`.
+  `--max-tokens 2000 --strict`) → `pnpm check`. Prints `GATE: PASS` / `GATE: FAIL (step N)`.
+  **Scopes (T7.0):** `-Scope full` (default; the only boundary-citable form) · `-Scope engine`
+  (skips the app check) · `-Scope app` (build + app check, ~90s) · `-SkipEval` (mid-stage fast
+  form). Non-full verdicts self-label "not a merge gate". The eval step runs split across two
+  test hosts (`-SerialEval` to disable) and is engine-stamp cached: a green run writes
+  `eval/.eval-stamp.json`; while the hash of Core/CLI sources + Core tests + expectations +
+  fixtures is unchanged, Step 3 skips and the previous verdict transfers. At a boundary, launch
+  the full battery DETACHED (`Start-Process` + redirect to a log, poll for `GATE:`) and keep
+  working on the next checkpoint — only push/merge waits for green.
 - **`pnpm check`** = `pnpm lint && pnpm test && pnpm build`.
 
 ## 6. Run the app
