@@ -202,8 +202,10 @@ during long waits. Related drivers: `visual-gate.mts`, `audit-screenshots.mts`, 
 
 - **Branch:** feature branches off `develop`; PR into `develop`. `main` is always deployable.
   Multiple agents → multiple worktrees (`git worktree add -b <branch> C:/Code/DevContext2-<slug> develop`).
-- **Release:** MinVer with a `v` tag prefix drives the release workflow — Linux builds & tests the CLI
-  and `dotnet pack` → NuGet; Windows `dotnet publish` the desktop → `.zip` → GitHub Release.
+- **Release:** MinVer with a `v` tag prefix drives `.github/workflows/release.yml` — Windows builds,
+  tests (fast suite), and `dotnet pack`s the CLI → NuGet (when `NUGET_API_KEY` is set) + GitHub
+  Release with the `.nupkg`. There is no desktop artifact yet: the Tauri app needs
+  `DevContext.Server` bundled as a sidecar first (tracked in `GITHUB-READY-START.md`).
   ```powershell
   git tag -a v1.2.3 -m "Release notes"; git push origin v1.2.3
   ```

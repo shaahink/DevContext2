@@ -10,7 +10,7 @@ Analyze a .NET solution and emit a **Map** (no focus) or a **Trace** (with `--fo
 
 | Argument | Description |
 |----------|-------------|
-| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, a folder, or `Type:Method` notation. **Use an absolute path** — a relative path is parsed as a GitHub `owner/repo` and cloned. Use `--repo` for an explicit URL. |
+| `[PATH]` | Root path. Accepts `.sln`, `.csproj`, a folder, or `Type:Method` notation. **Prefer an absolute path** — a relative path that doesn't exist on disk is tried as a GitHub `owner/repo` shorthand and cloned (an existing local path always wins). Use `--repo` for an explicit URL. |
 
 ## The model: focus drives everything
 

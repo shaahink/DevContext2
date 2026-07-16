@@ -18,7 +18,7 @@ prompt, readable by a human, and carry provenance (`file:line`) for how each fac
 | CLI (`devcontext`) | `DevContext.Cli` | Primary scriptable surface; `dotnet tool install -g DevContext.Cli` |
 | Desktop | `DevContext.App` | Angular 22 (zoneless, signals) + Tauri 2; talks to the server over gRPC-Web |
 | gRPC-Web server | `DevContext.Server` | Analyze-once/query-many backend the desktop calls |
-| MCP server | `DevContext.Mcp` | ~23 tools mapping to the gRPC RPCs, for AI-agent integration |
+| MCP server | `DevContext.Mcp` | 24 tools mapping to the gRPC RPCs, for AI-agent integration |
 | Contract codegen | `DevContext.Contracts` | proto → C# stubs (Grpc.Tools) |
 
 > There is **no** `DevContext.Desktop` (retired WPF/Blazor/Avalonia app) and **no** `DevContext.Roslyn`
@@ -41,7 +41,7 @@ Map:       GetMap · ListEntryPoints · GetGraphFacets · GetInterestingPoints
 Trace:     GetTrace · GetNeighbors · GetNode · GetImpact
 Search:    SearchNodes · FindTestsFor · ConfigLookup
 Source:    ReadSource · Render
-Context:   GetContext · GetContextPack
+Context:   GetContext · GetContextPack · VerifyContext
 MCP mgmt:  StartMcp · StopMcp · ObserveToolCalls
 ```
 
@@ -118,9 +118,9 @@ keep traces focused.
 devcontext analyze [PATH] [OPTIONS]
 ```
 
-`PATH` accepts a `.sln`, `.csproj`, a folder, or `Type:Method` notation. Always pass an **absolute**
-local path — a relative path is parsed as a GitHub `owner/repo` shorthand and triggers a clone (use
-`--repo` for an explicit GitHub URL).
+`PATH` accepts a `.sln`, `.csproj`, a folder, or `Type:Method` notation. Prefer an **absolute** local
+path — a relative path that doesn't exist on disk is tried as a GitHub `owner/repo` shorthand and
+triggers a clone; an existing local path always wins (use `--repo` for an explicit GitHub URL).
 
 | Option | Meaning |
 |--------|---------|
@@ -151,12 +151,13 @@ Other CLI commands: `init` (config scaffold), `query` (graph queries — `--focu
 
 ## MCP tools (`DevContext.Mcp` — server name `devcontext`)
 
-~23 tools over the gRPC RPCs (`DevContextTools.cs`):
+24 tools over the gRPC RPCs (`DevContextTools.cs`; public catalog with setup snippets:
+`docs/product/mcp-reference.md`):
 
 ```
 Analyze · Overview · Resolve · Status · CloseSession · ListSessions · Stats · Entrypoints ·
 Map · TopFlows · Flow · InterestingPoints · Trace · Node · Neighbors · Usages · Find ·
-Impact · Config · TestsFor · Insights · GetContext · ReadSource
+Impact · Config · TestsFor · Insights · GetContext · VerifyContext · ReadSource
 ```
 
 The desktop MCP page manages the server (status, config snippets, sessions, live log feed, try-a-tool
@@ -177,8 +178,9 @@ run under Vitest (`pnpm test`).
 ## Branch & release
 
 `develop` is the integration branch (feature branches PR here); `main` is always deployable. MinVer
-with a `v` tag prefix drives the release workflow (CLI → NuGet on Linux; desktop `.zip` → GitHub
-Release on Windows). See `docs/dev/DEVELOPER-PIPELINE.md` §11.
+with a `v` tag prefix drives the release workflow (`.github/workflows/release.yml`: build + test +
+pack the CLI on Windows → NuGet + GitHub Release; no desktop artifact until server-sidecar bundling
+lands — see `GITHUB-READY-START.md`). See `docs/dev/DEVELOPER-PIPELINE.md` §11.
 
 ## See also
 
