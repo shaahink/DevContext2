@@ -399,6 +399,85 @@ const QA_QUESTIONS = [
     },
     tokenBudget: 1500,
   },
+  {
+    // T3.1 — unified symbol addressing: symbol tools accept a fuzzy `query`, not just `nodeId`.
+    // A naive agent that reaches for `query` (like resolve/find take) must not die on the param name.
+    id: "q8-query-addressing",
+    question: "Address impact/node/read_source by fuzzy query (not nodeId)?",
+    run: async (client, handle, tracker) => {
+      const sym = "CheckoutBasketCommandHandler";
+      const imp = await toolCall(client, "impact", { handle, query: sym, direction: "up" }, tracker);
+      const node = await toolCall(client, "node", { handle, query: sym }, tracker);
+      const src = await toolCall(client, "read_source", { handle, query: sym, mode: "member" }, tracker);
+      const impOk = imp.error === undefined && typeof imp.totalAffected === "number";
+      const nodeOk = node.error === undefined && node.found === true;
+      const srcOk = src.error === undefined && src.found === true && typeof src.content === "string";
+      return {
+        pass: impOk && nodeOk && srcOk,
+        detail: `query→ impact=${impOk} node=${nodeOk} read_source=${srcOk}`,
+      };
+    },
+    tokenBudget: 3000,
+  },
+  {
+    // T3.2 — entrypoints summary default: per-kind counts + top-N by score, bounded tokens,
+    // full:true escape hatch. A 128-entry repo must not dump ~10k tokens on the first call.
+    id: "q9-entrypoints-summary",
+    question: "List entry points as a bounded summary (not a token wall)?",
+    run: async (client, handle, tracker) => {
+      const summary = await toolCall(client, "entrypoints", { handle }, tracker);
+      const hasByKind = summary.byKind && typeof summary.byKind === "object" && Object.keys(summary.byKind).length > 0;
+      const bounded = typeof summary.showing === "number" && summary.showing <= (summary.count ?? 0);
+      const summaryTokens = estimateTokens(JSON.stringify(summary));
+      const fullResp = await toolCall(client, "entrypoints", { handle, full: true }, tracker);
+      const fullShowing = fullResp.showing ?? (fullResp.entries?.length ?? 0);
+      const escapeWorks = fullShowing >= (summary.showing ?? 0) && fullShowing === (fullResp.count ?? fullShowing);
+      return {
+        pass: hasByKind && bounded && escapeWorks && summaryTokens <= 1500,
+        detail: `byKind=${hasByKind}, showing ${summary.showing}/${summary.count} (${summaryTokens}tok), full→${fullShowing}`,
+      };
+    },
+    tokenBudget: 3000,
+  },
+  {
+    // T3.6 — self-describing heuristics: tests_for/config responses carry a one-line `method` note
+    // so a "0 results" answer is not misread as authoritative absence.
+    id: "q10-self-describing",
+    question: "Do best-effort tools explain their method (what 0 means)?",
+    run: async (client, handle, tracker) => {
+      const find = await toolCall(client, "find", { handle, query: "CheckoutBasketCommandHandler", limit: 5 }, tracker);
+      const nodeId = (find.results ?? [])[0]?.nodeId;
+      const tests = await toolCall(client, "tests_for", { handle, nodeId, maxDepth: 6 }, tracker);
+      const cfg = await toolCall(client, "config", { handle }, tracker);
+      const testsMethod = typeof tests.method === "string" && tests.method.length > 10;
+      const cfgMethod = typeof cfg.method === "string" && cfg.method.length > 10;
+      return {
+        pass: testsMethod && cfgMethod,
+        detail: `method note: tests_for=${testsMethod}, config=${cfgMethod}`,
+      };
+    },
+    tokenBudget: 2000,
+  },
+  {
+    // T3.3 — trace token budget: a small budget shapes the tree and names the cut ("N omitted") with a
+    // deep-link hint, instead of dumping the full (13.6k-token on shamshir) spine.
+    id: "q11-trace-budget",
+    question: "Does trace respect a token budget with named omissions?",
+    run: async (client, handle, tracker) => {
+      const focus = "POST /basket/checkout";
+      const budgeted = await toolCall(client, "trace", { handle, focus, format: "compact", budgetTokens: 400 }, tracker);
+      const full = await toolCall(client, "trace", { handle, focus, format: "compact", budgetTokens: 0 }, tracker);
+      const budgetedSteps = (budgeted.text ?? "").split("\n").filter(Boolean).length;
+      const fullSteps = (full.text ?? "").split("\n").filter(Boolean).length;
+      const omittedNamed = (budgeted.omitted ?? 0) > 0 && typeof budgeted.hint === "string";
+      const bounded = budgetedSteps < fullSteps && (budgeted.tokens ?? 9999) <= 700;
+      return {
+        pass: budgeted.found === true && bounded && omittedNamed,
+        detail: `budget400: ${budgetedSteps} steps/${budgeted.tokens}tok omitted=${budgeted.omitted}; full: ${fullSteps} steps/${full.tokens}tok`,
+      };
+    },
+    tokenBudget: 3000,
+  },
 ];
 
 // ---- Checkout gate: "how does checkout create an order?" in <=3 calls, <=2k tokens ----
@@ -570,8 +649,18 @@ async function main() {
     const passing = results.filter((r) => r.passed).length;
     const total = results.length;
     const gateOk = results.find((r) => r.id === "gate-checkout")?.passed ?? false;
-    console.log(`QA Score: ${passing}/${total} passing`);
+    const qaRatio = total > 0 ? passing / total : 0;
+    console.log(`QA Score: ${passing}/${total} passing (${(qaRatio * 100).toFixed(0)}%)`);
     console.log(`Gate (checkout <=3c/2ktok): ${gateOk ? "PASS" : "FAIL"}`);
+
+    // T3.1 — the harness is now a real regression ratchet (T3 gate: "cold QA >=90% actionable").
+    // Below 90% actionable, or a broken checkout gate, exits non-zero so McpQaGateTests goes red.
+    if (qaRatio < 0.9 || !gateOk) {
+      console.log(`Gate (QA >=90% actionable): FAIL`);
+      process.exitCode = 1;
+    } else {
+      console.log(`Gate (QA >=90% actionable): PASS`);
+    }
 
     // ---- Transport checks ----
     log("\nTransport checks...");

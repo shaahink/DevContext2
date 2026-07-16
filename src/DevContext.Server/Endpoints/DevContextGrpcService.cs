@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
 using DevContext.Core.Graph;
@@ -140,8 +139,9 @@ public sealed class DevContextGrpcService(
         {
             var depth = request.HasDepth ? request.Depth : 6;
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
+            var budgetTokens = request.HasBudgetTokens ? request.BudgetTokens : 0; // T3.3 — 0 = unlimited
 
-            var trace = session.Query.Trace(request.Focus, depth);
+            var trace = session.Query.Trace(request.Focus, depth, budgetTokens: budgetTokens);
             if (trace is null)
                 return new Proto.TraceResponse { Found = false };
 
@@ -353,11 +353,9 @@ public sealed class DevContextGrpcService(
             };
         });
 
-    // M4.7 — config key lookup: scan source files for IConfiguration/GetValue/GetSection usage
-    private static readonly Regex ConfigKeyRegex = new(
-        @"(?:\bIConfiguration\b|\bConfiguration\b|(?<!\w)(?:_config|_configuration|_cfg|_conf|_c)\b|(?<!\w)(?:cfg|conf)\b(?=\s*\.\s*\[))\s*(?:\[""([^""]+)""\]|\.GetValue<[^>]+>\(""([^""]+)""\)|\.GetSection\(""([^""]+)""\)|\.GetConnectionString\(""([^""]+)""\)|\.GetRequiredSection\(""([^""]+)""\))",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
+    // M4.7 / T3.4 — config key lookup. The file scan + regex is now done ONCE per session
+    // (AnalysisSession.ConfigBindings, cached) and filtered in-memory here — previously it re-scanned
+    // every node-bearing file on every call (10.5s on shamshir). ConfigScanner owns the scan.
     public override Task<Proto.ConfigResponse> ConfigLookup(Proto.ConfigRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {
@@ -365,63 +363,19 @@ public sealed class DevContextGrpcService(
             var keyFilter = request.HasKey ? request.Key : null;
             var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var filesByPath = session.Query.Graph.Nodes
-                .Where(n => n.FilePath is not null)
-                .GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.AsEnumerable(), StringComparer.OrdinalIgnoreCase);
-
-            foreach (var (filePath, nodes) in filesByPath)
+            foreach (var b in session.ConfigBindings())
             {
-                if (!File.Exists(filePath)) continue;
-                string[] lines;
-                try { lines = File.ReadAllLines(filePath); }
-                catch { continue; }
-
-                var service = nodes.FirstOrDefault()?.Project ?? "";
-                var nodesInFile = nodes.ToDictionary(n => n.Id.Key, StringComparer.OrdinalIgnoreCase);
-
-                for (var i = 0; i < lines.Length; i++)
+                if (keyFilter is not null && !string.Equals(b.Key, keyFilter, StringComparison.OrdinalIgnoreCase)) continue;
+                seenKeys.Add(b.Key);
+                resp.Bindings.Add(new Proto.ConfigBinding
                 {
-                    var matches = ConfigKeyRegex.Matches(lines[i]);
-                    foreach (Match m in matches)
-                    {
-                        string? key = null;
-                        string patternType = "Indexer";
-                        for (var g = 1; g <= 5; g++)
-                        {
-                            if (m.Groups[g].Success)
-                            {
-                                key = m.Groups[g].Value;
-                                patternType = g switch { 1 => "Indexer", 2 => "GetValue", 3 => "GetSection", 4 => "GetConnectionString", 5 => "GetRequiredSection", _ => "Indexer" };
-                                break;
-                            }
-                        }
-                        if (key is null) continue;
-                        if (keyFilter is not null && !string.Equals(key, keyFilter, StringComparison.OrdinalIgnoreCase)) continue;
-
-                        seenKeys.Add(key);
-
-                        string? nodeId = null;
-                        foreach (var (nodeKey, node) in nodesInFile)
-                        {
-                            if (node.LineNumber is { } ln && ln == i + 1)
-                            {
-                                nodeId = node.Id.ToString();
-                                break;
-                            }
-                        }
-
-                        resp.Bindings.Add(new Proto.ConfigBinding
-                        {
-                            Key = key,
-                            FilePath = filePath,
-                            LineNumber = i + 1,
-                            NodeId = nodeId ?? "",
-                            PatternType = patternType,
-                            Service = service,
-                        });
-                    }
-                }
+                    Key = b.Key,
+                    FilePath = b.FilePath,
+                    LineNumber = b.LineNumber,
+                    NodeId = b.NodeId,
+                    PatternType = b.PatternType,
+                    Service = b.Service,
+                });
             }
 
             resp.TotalKeys = seenKeys.Count;

@@ -100,4 +100,38 @@ public sealed class GraphQueryTests
         Assert.Single(q.EntryPoints(EntryPointKind.HttpEndpoint));
         Assert.Single(q.EntryPoints(EntryPointKind.ScheduledJob));
     }
+
+    [Fact]
+    public void GetInterestingPoints_excludes_framework_and_store_noise() // T3.5
+    {
+        var g = new CodeGraphBuilder();
+        var svc = NodeId.ForType("Shop.OrderService");
+        var repo = NodeId.ForType("Shop.OrderRepository");
+        var list = NodeId.ForType("List");                              // BCL type name → noise
+        var sysList = NodeId.ForType("System.Collections.Generic.List");// System.* → noise
+        var db = NodeId.ForStore("Shop.AppDbContext");                  // infra store → noise
+
+        g.AddNode(new GraphNode(svc, "OrderService", NodeKind.Type) { FilePath = "src/OrderService.cs" });
+        g.AddNode(new GraphNode(repo, "OrderRepository", NodeKind.Type) { FilePath = "src/OrderRepository.cs" });
+        g.AddNode(new GraphNode(list, "List", NodeKind.Type));          // framework: no repo file
+        g.AddNode(new GraphNode(sysList, "System.Collections.Generic.List", NodeKind.Type) { FilePath = "x.cs" });
+        g.AddNode(new GraphNode(db, "AppDbContext", NodeKind.Store) { FilePath = "src/AppDbContext.cs", Tags = [RoleTags.DataStore] });
+
+        // Give the noise nodes high degree so, unfiltered, they would top centrality.
+        foreach (var caller in new[] { svc, repo })
+        {
+            g.AddEdge(new GraphEdge(caller, db, EdgeKind.ReadsWrites));
+            g.AddEdge(new GraphEdge(caller, list, EdgeKind.Calls));
+            g.AddEdge(new GraphEdge(caller, sysList, EdgeKind.Calls));
+        }
+        g.AddEdge(new GraphEdge(svc, repo, EdgeKind.Calls));
+
+        var q = new GraphQuery(g.Build(), []);
+        var titles = q.GetInterestingPoints().Select(p => p.Title).ToArray();
+
+        Assert.Contains("OrderService", titles);                          // real repo type survives
+        Assert.DoesNotContain("List", titles);                            // BCL noise filtered
+        Assert.DoesNotContain("System.Collections.Generic.List", titles); // System.* filtered
+        Assert.DoesNotContain("AppDbContext", titles);                    // infra store filtered
+    }
 }

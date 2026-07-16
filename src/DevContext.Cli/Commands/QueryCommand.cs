@@ -79,8 +79,11 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             return 0;
         }
 
-        // ── Graph-bound operations (node, neighbors, usages, search) ──
-        if (settings.Op is "node" or "neighbors" or "usages" or "search")
+        // ── Graph-bound operations ──
+        // T3.7 — entrypoints/stats/trace now run against the snapshot's GraphQuery with the same JSON
+        // shape as the MCP tools (one shape, two transports), instead of falling through to the overview
+        // render (which ignored --focus and returned the map payload for all three).
+        if (settings.Op is "node" or "neighbors" or "usages" or "search" or "entrypoints" or "stats" or "trace")
         {
             if (snapshot.Graph is not { NodeCount: > 0 })
             {
@@ -97,6 +100,9 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "node" => NodeOp(query, settings.Focus ?? ""),
                 "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
+                "entrypoints" => EntrypointsOp(query),
+                "stats" => StatsOp(query, snapshot.Graph),
+                "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
                 _ => null
             };
 
@@ -106,7 +112,9 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 return 1;
             }
 
-            AnsiConsole.WriteLine(JsonSerializer.Serialize(output, JsonOpts));
+            // T3.7 — write machine-readable JSON to RAW stdout. AnsiConsole wraps at the console width,
+            // which splits long file:line strings mid-value and corrupts the JSON for a parser.
+            Console.WriteLine(JsonSerializer.Serialize(output, JsonOpts));
             return 0;
         }
 
@@ -197,6 +205,85 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             }).ToArray(),
         };
     }
+
+    // T3.7 — entrypoints: entry list (ranked by score) + per-kind counts. Same shape as the MCP tool.
+    private static object EntrypointsOp(DevContext.Core.Graph.GraphQuery query)
+    {
+        var entries = query.EntryPoints();
+        var byKind = entries.GroupBy(e => e.Kind.ToString())
+            .OrderByDescending(g => g.Count())
+            .ToDictionary(g => g.Key, g => g.Count());
+        return new
+        {
+            count = entries.Length,
+            byKind,
+            entries = entries.OrderByDescending(e => e.Score).Select(e => new
+            {
+                kind = e.Kind.ToString(),
+                title = e.Title,
+                nodeId = e.Node.Key,
+                httpMethod = e.HttpMethod,
+                route = e.Route,
+                target = e.Target,
+                project = e.Project,
+                score = e.Score,
+                provenance = e.Provenance,
+            }).ToArray(),
+        };
+    }
+
+    // T3.7 — stats: graph counts + per-kind entry counts + seam breakdown (verified/approx).
+    private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph)
+    {
+        var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
+        var entries = query.EntryPoints();
+        var byKind = entries.GroupBy(e => e.Kind.ToString())
+            .OrderByDescending(g => g.Count())
+            .ToDictionary(g => g.Key, g => g.Count());
+        return new
+        {
+            nodeCount = graph.NodeCount,
+            edgeCount = graph.EdgeCount,
+            entryCount = entries.Length,
+            entriesWithTarget,
+            entriesWithDeepSpine,
+            deepSpineRatio,
+            entriesByKind = byKind,
+            seams = seams.Select(s => new { kind = s.Seam, total = s.Count, verified = s.Count - s.Approx, approx = s.Approx }).ToArray(),
+        };
+    }
+
+    // T3.7 — trace: GraphQuery.Trace(focus, depth) as a JSON tree. Honors --focus/--depth (the render
+    // fallback ignored both). Returns null on empty focus so the shared "--focus required" path fires.
+    private static object? TraceOp(DevContext.Core.Graph.GraphQuery query, string focus, int depth)
+    {
+        if (string.IsNullOrWhiteSpace(focus)) return null;
+        var trace = query.Trace(focus, depth);
+        if (trace is null) return new { found = false, focus, error = $"No entry or node matched '{focus}'" };
+        return new
+        {
+            found = true,
+            focus,
+            entry = new { title = trace.Entry.Title, kind = trace.Entry.Kind.ToString() },
+            root = SerializeStep(trace.Root),
+            touchedEntities = trace.TouchedEntities.ToArray(),
+            emittedEvents = trace.EmittedEvents.ToArray(),
+        };
+    }
+
+    private static object SerializeStep(DevContext.Core.Graph.TraceStep step) => new
+    {
+        title = step.Node.Title,
+        kind = step.Node.Kind.ToString(),
+        nodeId = step.Node.Id.Key,
+        seam = step.Seam.ToString(),
+        resolution = step.Resolution.ToString(),
+        filePath = step.Node.FilePath,
+        lineNumber = step.Node.LineNumber,
+        truncated = step.Truncated,
+        omitted = step.Omitted > 0 ? step.Omitted : (int?)null,
+        children = step.Children.Select(SerializeStep).ToArray(),
+    };
 
     private static object Search(DevContext.Core.Graph.GraphQuery query, string term)
     {

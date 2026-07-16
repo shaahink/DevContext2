@@ -96,6 +96,50 @@ public sealed class DevContextTools
         "how" or "does" or "the" or "what" or "is" or "are" or "work" or "works"
         or "a" or "an" or "of" or "for" or "get" or "post" or "put" or "delete" or "to" or "in";
 
+    // T3.1 — unified symbol addressing. Every symbol-taking tool accepts a fuzzy `query` alongside
+    // its precise `nodeId`/`focus`. A `query` is resolved to ONE precise nodeId through the same
+    // ranked search resolve/find use, honoring ambiguity — it NEVER silently picks (Law L5.3).
+    // Returns (nodeId, null) on a clean resolve, or (null, <=80-tok envelope) for the caller to
+    // return on a miss/ambiguous match. An explicit "Kind:Key" precise id passes straight through.
+    private async Task<(string? NodeId, string? Envelope)> ResolveQueryAsync(string handle, string query, string example)
+    {
+        if (query.Contains(':', StringComparison.Ordinal))
+            return (query, null);
+
+        var search = await _client.SearchNodesAsync(new SearchRequest { Handle = handle, Query = query, Limit = 10 });
+        if (search.Nodes.Count == 0)
+        {
+            var suggestions = await SuggestAsync(handle, query);
+            return (null, Envelope($"No symbol matched '{query}'.",
+                suggestions.Length > 0 ? "Did you mean one of these?" : "Try resolve(query) or a broader term.",
+                example, suggestions.Length > 0 ? suggestions : null));
+        }
+
+        // graph.Find ranks exact-title matches first; only an exact, unique title resolves silently.
+        var exact = search.Nodes
+            .Where(n => string.Equals(TrimTitle(n.Title), query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (exact.Count == 1)
+            return (exact[0].NodeId, null);
+
+        if (exact.Count == 0)
+        {
+            var candidates = search.Nodes.Take(5)
+                .Select(n => (object)new { nodeId = n.NodeId, title = TrimTitle(n.Title), kind = n.Kind })
+                .ToArray();
+            return (null, Envelope($"'{query}' has no exact match — ambiguous.",
+                "Pass a precise nodeId from resolve(query).", example, candidates));
+        }
+
+        // Same short name in multiple projects (identity-ambiguity) — never pick one for them.
+        var multi = exact.Take(5)
+            .Select(n => (object)new { nodeId = n.NodeId, title = TrimTitle(n.Title), kind = n.Kind })
+            .ToArray();
+        return (null, Envelope($"'{query}' matches {exact.Count} nodes — ambiguous.",
+            "Pass the exact nodeId (from resolve(query)).", example, multi));
+    }
+
     /// <summary>Start analysis of a .NET repo. Returns a handle for subsequent calls. Idempotent: same repo+HEAD returns existing handle. Example: analyze("C:/repos/MyApp")</summary>
     [McpServerTool]
     public async Task<string> Analyze(string path)
@@ -373,36 +417,71 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "stats", "stats(handle)"); }
     }
 
-    /// <summary>List entry points (HTTP routes, bus consumers, gRPC services). Filter by kind. Example: entrypoints("abc123", "HttpEndpoint")</summary>
+    /// <summary>List entry points (HTTP routes, bus consumers, gRPC services). Summary by default: per-kind counts + top-N by score (≤~1.5k tok). Pass kind to filter, top to widen, full:true for every entry. Example: entrypoints("abc123", kind:"HttpEndpoint"), entrypoints("abc123", full:true)</summary>
     [McpServerTool]
-    public async Task<string> Entrypoints(string? handle = null, string? kind = null)
+    public async Task<string> Entrypoints(string? handle = null, string? kind = null, bool full = false, int top = 15)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "entrypoints", "analyze(path) then entrypoints()"); }
         var resp = await _client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
-        var entries = resp.EntryPoints.AsEnumerable();
+
+        // Per-kind counts over the WHOLE set (honest even when the body is truncated).
+        var byKind = resp.EntryPoints
+            .GroupBy(e => e.Kind)
+            .OrderByDescending(g => g.Count())
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var filtered = resp.EntryPoints.AsEnumerable();
         if (kind is not null)
-            entries = entries.Where(e => string.Equals(e.Kind, kind, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(e => string.Equals(e.Kind, kind, StringComparison.OrdinalIgnoreCase));
+        var pool = filtered.OrderByDescending(e => e.Score).ToArray();
+
+        // T3.2 — default is a bounded summary; full:true returns every entry with the rich fields.
+        var shown = full ? pool : pool.Take(Math.Max(1, top)).ToArray();
+        var omitted = pool.Length - shown.Length;
+
+        object Rich(EntryPoint e) => new
+        {
+            kind = e.Kind,
+            title = e.Title,
+            nodeId = e.NodeId,
+            httpMethod = e.HasHttpMethod ? e.HttpMethod : null,
+            route = e.HasRoute ? e.Route : null,
+            project = e.HasProject ? e.Project : null,
+            target = e.HasTarget ? e.Target : null,
+            groupPath = e.HasGroupPath ? e.GroupPath : null,
+            authAttributes = e.AuthAttributes.ToArray(),
+            score = e.Score,
+            reach = e.Reach,
+            crossProjects = e.CrossProjects,
+        };
+        object Lean(EntryPoint e) => new
+        {
+            kind = e.Kind,
+            title = e.Title,
+            nodeId = e.NodeId,
+            httpMethod = e.HasHttpMethod ? e.HttpMethod : null,
+            route = e.HasRoute ? e.Route : null,
+            target = e.HasTarget ? e.Target : null,
+            project = e.HasProject ? e.Project : null,
+            score = e.Score,
+        };
+
+        string? hint = null;
+        if (!full && omitted > 0)
+            hint = kind is null
+                ? $"Summary: top {shown.Length} of {pool.Length} by score. entrypoints(kind:\"HttpEndpoint\") to filter, entrypoints(full:true) for all."
+                : $"Top {shown.Length} of {pool.Length} '{kind}' by score. entrypoints(kind:\"{kind}\", full:true) for all.";
 
         return JsonSerializer.Serialize(new
         {
             count = resp.EntryPoints.Count,
             kind,
-            entries = entries.Select(e => new
-            {
-                kind = e.Kind,
-                title = e.Title,
-                nodeId = e.NodeId,
-                httpMethod = e.HasHttpMethod ? e.HttpMethod : null,
-                route = e.HasRoute ? e.Route : null,
-                project = e.HasProject ? e.Project : null,
-                target = e.HasTarget ? e.Target : null,
-                groupPath = e.HasGroupPath ? e.GroupPath : null,
-                authAttributes = e.AuthAttributes.ToArray(),
-                score = e.Score,
-                reach = e.Reach,
-                crossProjects = e.CrossProjects,
-            }).ToArray(),
+            byKind,
+            showing = shown.Length,
+            omitted = omitted > 0 ? omitted : (int?)null,
+            entries = shown.Select(e => full ? Rich(e) : Lean(e)).ToArray(),
+            hint,
         }, JsonOpts);
     }
 
@@ -452,13 +531,14 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Compact flow summary for an entry (≤150 tok typical). Deep-link to trace for full detail. Example: flow("abc123", "POST /basket/checkout")</summary>
+    /// <summary>Compact flow summary for an entry (≤150 tok typical): what it touches/emits, not the full call spine. Deep-link to trace() for full detail. Address with 'focus' OR 'query'. Example: flow("abc123", "POST /basket/checkout")</summary>
     [McpServerTool]
-    public async Task<string> Flow(string? handle = null, string? focus = null, int depth = 8)
+    public async Task<string> Flow(string? handle = null, string? focus = null, int depth = 8, string? query = null)
     {
+        focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
-            return Envelope("Missing required parameter 'focus'.",
-                "Pass the entry route or symbol to summarize.",
+            return Envelope("Missing required parameter 'focus' (or 'query').",
+                "Pass the entry route or symbol to summarize as 'focus' or 'query'.",
                 "flow(handle, focus:\"POST /basket/checkout\")");
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "flow", "analyze(path) then flow(focus:\"POST /basket/checkout\")"); }
@@ -528,6 +608,24 @@ public sealed class DevContextTools
         return count;
     }
 
+    // T3.3 — total nodes the token budget cut across the tree (sum of per-subtree Omitted counts).
+    private static int OmittedNodes(TraceNode? node)
+    {
+        if (node is null) return 0;
+        var sum = node.Omitted;
+        foreach (var child in node.Children)
+            sum += OmittedNodes(child);
+        return sum;
+    }
+
+    // T3.3 — when the budget cut nodes, teach the agent how to get the rest without re-tracing.
+    private static string? BudgetHint(TraceNode? node, int budgetTokens)
+    {
+        var omitted = OmittedNodes(node);
+        if (omitted == 0) return null;
+        return $"{omitted} node(s) omitted to fit ~{budgetTokens} tok. Raise budgetTokens (or 0 for full), or read_source(nodeId)/flow(focus) into a truncated subtree.";
+    }
+
     /// <summary>Archetype-aware starting points for exploring the codebase. Example: interesting_points("abc123")</summary>
     [McpServerTool]
     public async Task<string> InterestingPoints(string? handle = null)
@@ -555,13 +653,14 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Trace execution flow. format: default|compact. compact gives indented text with file:line. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
+    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = call spine from ONE entry (deep); use flow() for a compact summary. format: default|compact. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
-    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default")
+    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default", string? query = null, int budgetTokens = 4000)
     {
+        focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
-            return Envelope("Missing required parameter 'focus'.",
-                "Pass an entry route or symbol. The parameter is 'focus', not 'route'.",
+            return Envelope("Missing required parameter 'focus' (or 'query').",
+                "Pass an entry route or symbol as 'focus' or 'query'.",
                 "trace(handle, focus:\"POST /basket/checkout\")");
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "trace", "analyze(path) then trace(focus:\"POST /basket/checkout\")"); }
@@ -572,6 +671,7 @@ public sealed class DevContextTools
                 Handle = handle,
                 Focus = focus,
                 Depth = depth,
+                BudgetTokens = budgetTokens, // T3.3 — server shapes the tree to this budget
             });
             if (!resp.Found)
             {
@@ -599,7 +699,7 @@ public sealed class DevContextTools
 
                 var compact = sb.ToString();
                 var tokens = (compact.Length + 3) / 4;
-                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, text = compact }, JsonOpts);
+                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, budgetTokens, omitted = OmittedNodes(resp.Root), hint = BudgetHint(resp.Root, budgetTokens), text = compact }, JsonOpts);
             }
 
             return JsonSerializer.Serialize(new
@@ -611,6 +711,9 @@ public sealed class DevContextTools
                     title = resp.Root.Title,
                     kind = resp.Root.Kind,
                 } : null,
+                budgetTokens,
+                omitted = OmittedNodes(resp.Root),
+                hint = BudgetHint(resp.Root, budgetTokens),
                 root = resp.Root is not null ? SerializeTraceNode(resp.Root) : null,
                 touchedEntities = resp.TouchedEntities.ToArray(),
                 emittedEvents = resp.EmittedEvents.ToArray(),
@@ -668,15 +771,21 @@ public sealed class DevContextTools
         children = node.Children.Select(SerializeTraceNode).ToArray(),
     };
 
-    /// <summary>Detail card for a graph node: title, kind, file path, degrees. Example: node("abc123", "OrderService")</summary>
+    /// <summary>Detail card for a graph node: title, kind, file path, degrees. Address with 'nodeId' (precise) or 'query' (fuzzy). Example: node("abc123", query:"OrderService")</summary>
     [McpServerTool]
-    public async Task<string> Node(string? handle = null, string? nodeId = null)
+    public async Task<string> Node(string? handle = null, string? nodeId = null, string? query = null)
     {
-        if (string.IsNullOrWhiteSpace(nodeId))
-            return Envelope("Missing required parameter 'nodeId'.",
-                "Pass a nodeId (or short name).", "node(handle, nodeId:\"OrderService\")");
+        if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing 'nodeId' or 'query'.",
+                "Pass a precise nodeId, or a fuzzy query to resolve.", "node(handle, query:\"OrderService\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "node", "analyze(path) then node(nodeId:\"OrderService\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "node", "analyze(path) then node(query:\"OrderService\")"); }
+        if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
+        {
+            var (resolved, env) = await ResolveQueryAsync(handle, query!, "node(handle, query:\"OrderService\")");
+            if (env is not null) return env;
+            nodeId = resolved!; // non-null when env is null (ResolveQueryAsync contract)
+        }
         try
         {
             var resp = await _client.GetNodeAsync(new NodeRequest { Handle = handle, NodeId = nodeId });
@@ -705,16 +814,22 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "node", "node(handle, nodeId:\"OrderService\")"); }
     }
 
-    /// <summary>Outgoing/incoming edges of a node. direction: out|in|usages. Example: neighbors("abc123", "OrderService", "out")</summary>
+    /// <summary>Outgoing/incoming edges of a node. Address with 'nodeId' (precise) or 'query' (fuzzy). direction: out|in|usages. Example: neighbors("abc123", query:"OrderService", direction:"out")</summary>
     [McpServerTool]
-    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out")
+    public async Task<string> Neighbors(string? handle = null, string? nodeId = null, string direction = "out", string? query = null)
     {
-        if (string.IsNullOrWhiteSpace(nodeId))
-            return Envelope("Missing required parameter 'nodeId'.",
-                "Pass a nodeId and direction (out|in|usages).",
-                "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")");
+        if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing 'nodeId' or 'query'.",
+                "Pass a precise nodeId (or a fuzzy query) and direction (out|in|usages).",
+                "neighbors(handle, query:\"OrderService\", direction:\"out\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "neighbors", "analyze(path) then neighbors(nodeId:\"OrderService\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "neighbors", "analyze(path) then neighbors(query:\"OrderService\")"); }
+        if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
+        {
+            var (resolved, env) = await ResolveQueryAsync(handle, query!, "neighbors(handle, query:\"OrderService\", direction:\"out\")");
+            if (env is not null) return env;
+            nodeId = resolved!; // non-null when env is null (ResolveQueryAsync contract)
+        }
         try
         {
             var resp = await _client.GetNeighborsAsync(new NeighborsRequest
@@ -750,16 +865,17 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "neighbors", "neighbors(handle, nodeId:\"OrderService\", direction:\"out\")"); }
     }
 
-    /// <summary>Find all usages (in-edges) of a node across the codebase. Accepts nodeId or short name. Example: usages("abc123", "IOrderRepository")</summary>
+    /// <summary>Find all usages (in-edges) of a node across the codebase. Address with 'nodeId'/'query' — a short name or fuzzy query resolves (ambiguity-honest). Example: usages("abc123", query:"IOrderRepository")</summary>
     [McpServerTool]
-    public async Task<string> Usages(string? handle = null, string? nodeId = null)
+    public async Task<string> Usages(string? handle = null, string? nodeId = null, string? query = null)
     {
+        nodeId ??= query; // T3.1 — `query` synonym; usages already resolves short names below
         if (string.IsNullOrWhiteSpace(nodeId))
-            return Envelope("Missing required parameter 'nodeId'.",
-                "Pass a nodeId (or short name) to find usages of.",
-                "usages(handle, nodeId:\"IOrderRepository\")");
+            return Envelope("Missing 'nodeId' or 'query'.",
+                "Pass a nodeId, short name, or fuzzy query to find usages of.",
+                "usages(handle, query:\"IOrderRepository\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "usages", "analyze(path) then usages(nodeId:\"IOrderRepository\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "usages", "analyze(path) then usages(query:\"IOrderRepository\")"); }
         try
         {
             var resolved = nodeId;
@@ -936,18 +1052,24 @@ public sealed class DevContextTools
         return title;
     }
 
-    /// <summary>Transitive impact analysis: upward (what reaches this) or downward (what does this affect). Grouped by service. Diff-aware files mode for "I changed X". Example: impact("abc123", "OrderService", 4, "down"), impact("abc123", files:["path/to/file.cs"])</summary>
+    /// <summary>Transitive impact analysis: upward (what reaches this) or downward (what does this affect). Grouped by service. Address the symbol with 'nodeId' or 'query'; or diff-aware 'files' mode for "I changed X". Example: impact("abc123", query:"OrderService", direction:"down"), impact("abc123", files:["path/to/file.cs"])</summary>
     [McpServerTool]
-    public async Task<string> Impact(string? handle = null, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null)
+    public async Task<string> Impact(string? handle = null, string? nodeId = null, int maxDepth = 4, string direction = "up", string[]? files = null, string? query = null)
     {
-        if (string.IsNullOrWhiteSpace(nodeId) && (files is null || files.Length == 0))
-            return Envelope("Provide 'nodeId' or 'files'.",
-                "Give a symbol nodeId, or the changed files for diff-aware impact.",
-                "impact(handle, nodeId:\"OrderService\", direction:\"down\")");
+        if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query) && (files is null || files.Length == 0))
+            return Envelope("Provide 'nodeId'/'query' or 'files'.",
+                "Give a symbol (nodeId or fuzzy query), or the changed files for diff-aware impact.",
+                "impact(handle, query:\"OrderService\", direction:\"down\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "impact", "analyze(path) then impact(nodeId:\"OrderService\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "impact", "analyze(path) then impact(query:\"OrderService\")"); }
+        if (string.IsNullOrWhiteSpace(nodeId) && !string.IsNullOrWhiteSpace(query) && (files is null || files.Length == 0))
+        {   // T3.1 — resolve fuzzy query to a precise nodeId
+            var (resolved, env) = await ResolveQueryAsync(handle, query, "impact(handle, query:\"OrderService\", direction:\"down\")");
+            if (env is not null) return env;
+            nodeId = resolved!; // non-null when env is null (ResolveQueryAsync contract)
+        }
         try { return await ImpactCore(handle, nodeId, maxDepth, direction, files); }
-        catch (RpcException ex) { return FromRpc(ex, "impact", "impact(handle, nodeId:\"OrderService\", direction:\"down\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "impact", "impact(handle, query:\"OrderService\", direction:\"down\")"); }
     }
 
     private async Task<string> ImpactCore(string handle, string? nodeId, int maxDepth, string direction, string[]? files)
@@ -1056,22 +1178,30 @@ public sealed class DevContextTools
             {
                 key = key ?? "(all)",
                 totalKeys = resp.TotalKeys,
+                // T3.6 — self-describing: name the scan and its blind spot.
+                method = "Scanned source for IConfiguration indexer / GetValue / GetSection / GetConnectionString with literal keys. Dynamically-built keys are not captured.",
                 keys = bindings,
             }, JsonOpts);
         }
         catch (RpcException ex) { return FromRpc(ex, "config", "config(handle, key:\"ConnectionStrings:Database\")"); }
     }
 
-    /// <summary>Best-effort: find test methods whose call closure reaches a node. Example: tests_for("abc123", "OrderService")</summary>
+    /// <summary>Best-effort: find test methods whose call closure reaches a node. Address with 'nodeId' or 'query'. Method: walks in-edges up to maxDepth and name/path/project-classifies callers as tests; 0 means none reached (not "untested"). Example: tests_for("abc123", query:"OrderService")</summary>
     [McpServerTool]
-    public async Task<string> TestsFor(string? handle = null, string? nodeId = null, int maxDepth = 6)
+    public async Task<string> TestsFor(string? handle = null, string? nodeId = null, int maxDepth = 6, string? query = null)
     {
-        if (string.IsNullOrWhiteSpace(nodeId))
-            return Envelope("Missing required parameter 'nodeId'.",
-                "Pass a nodeId to find covering tests for.",
-                "tests_for(handle, nodeId:\"OrderService\")");
+        if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing 'nodeId' or 'query'.",
+                "Pass a nodeId (or fuzzy query) to find covering tests for.",
+                "tests_for(handle, query:\"OrderService\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "tests_for", "analyze(path) then tests_for(nodeId:\"OrderService\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "tests_for", "analyze(path) then tests_for(query:\"OrderService\")"); }
+        if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
+        {
+            var (resolved, env) = await ResolveQueryAsync(handle, query!, "tests_for(handle, query:\"OrderService\")");
+            if (env is not null) return env;
+            nodeId = resolved!; // non-null when env is null (ResolveQueryAsync contract)
+        }
         try
         {
             var resp = await _client.FindTestsForAsync(new TestsForRequest
@@ -1086,6 +1216,8 @@ public sealed class DevContextTools
                 nodeId,
                 nodeTitle = resp.NodeTitle,
                 isBestEffort = resp.IsBestEffort,
+                // T3.6 — self-describing: say what was scanned and what 0 means.
+                method = $"Walked in-edges ≤{maxDepth} hops; callers classified as tests by name/path/project. 0 = none reached in-graph, not proof of no coverage.",
                 count = resp.Tests.Count,
                 tests = resp.Tests.Select(t => new
                 {
@@ -1127,13 +1259,14 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Budget-priced context pack for a focus. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
+    /// <summary>Budget-priced context pack for a focus. Address with 'focus' OR 'query'. budgetTokens default 8000. intent: trace|explain|review. Example: get_context("abc123", "POST /api/orders", 4000, "trace")</summary>
     [McpServerTool]
-    public async Task<string> GetContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string intent = "trace")
+    public async Task<string> GetContext(string? handle = null, string? focus = null, int budgetTokens = 8000, string intent = "trace", string? query = null)
     {
+        focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
-            return Envelope("Missing required parameter 'focus'.",
-                "Pass the entry/symbol to build context for.",
+            return Envelope("Missing required parameter 'focus' (or 'query').",
+                "Pass the entry/symbol to build context for as 'focus' or 'query'.",
                 "get_context(handle, focus:\"POST /api/orders\")");
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "get_context", "analyze(path) then get_context(focus:\"POST /api/orders\")"); }
@@ -1171,16 +1304,22 @@ public sealed class DevContextTools
         catch (RpcException ex) { return FromRpc(ex, "get_context", "get_context(handle, focus:\"POST /api/orders\")"); }
     }
 
-    /// <summary>Read source code for a node. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", "OrderService", 30, "member")</summary>
+    /// <summary>Read source code for a node. Address with 'nodeId' or 'query'. mode: window (default, windowLines lines around) | member (full declaration body). Example: read_source("abc123", query:"OrderService", mode:"member")</summary>
     [McpServerTool]
-    public async Task<string> ReadSource(string? handle = null, string? nodeId = null, int windowLines = 20, string mode = "window")
+    public async Task<string> ReadSource(string? handle = null, string? nodeId = null, int windowLines = 20, string mode = "window", string? query = null)
     {
-        if (string.IsNullOrWhiteSpace(nodeId))
-            return Envelope("Missing required parameter 'nodeId'.",
-                "Pass a nodeId. mode: window|member.",
-                "read_source(handle, nodeId:\"OrderService\", mode:\"member\")");
+        if (string.IsNullOrWhiteSpace(nodeId) && string.IsNullOrWhiteSpace(query))
+            return Envelope("Missing 'nodeId' or 'query'.",
+                "Pass a nodeId (or fuzzy query). mode: window|member.",
+                "read_source(handle, query:\"OrderService\", mode:\"member\")");
         try { handle = ResolveHandle(handle); }
-        catch (RpcException ex) { return FromRpc(ex, "read_source", "analyze(path) then read_source(nodeId:\"OrderService\")"); }
+        catch (RpcException ex) { return FromRpc(ex, "read_source", "analyze(path) then read_source(query:\"OrderService\")"); }
+        if (string.IsNullOrWhiteSpace(nodeId)) // T3.1 — resolve fuzzy query to a precise nodeId
+        {
+            var (resolved, env) = await ResolveQueryAsync(handle, query!, "read_source(handle, query:\"OrderService\", mode:\"member\")");
+            if (env is not null) return env;
+            nodeId = resolved!; // non-null when env is null (ResolveQueryAsync contract)
+        }
 
         NodeResponse resp;
         try

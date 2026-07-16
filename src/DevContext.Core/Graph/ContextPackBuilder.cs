@@ -64,7 +64,7 @@ public sealed class ContextPackBuilder
             BuildTraceSkeletonRecursive(sb, child, indent + 1);
     }
 
-    private static string BuildCalleeSignatures(Trace trace)
+    private string BuildCalleeSignatures(Trace trace)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
@@ -72,16 +72,27 @@ public sealed class ContextPackBuilder
         return sb.ToString();
     }
 
-    private static void CollectSignatures(TraceStep step, StringBuilder sb, HashSet<NodeId> seen)
+    private void CollectSignatures(TraceStep step, StringBuilder sb, HashSet<NodeId> seen)
     {
         if (seen.Add(step.Node.Id))
         {
             sb.AppendLine($"- `{step.Node.Kind}:{step.Node.Id.Key}` — {step.Node.Title}");
             if (step.Node.FilePath is { } fp)
-                sb.AppendLine($"  Location: {fp}:{step.Node.LineNumber}");
+                sb.AppendLine($"  Location: {RelPath(fp)}:{step.Node.LineNumber}");
         }
         foreach (var child in step.Children)
             CollectSignatures(child, sb, seen);
+    }
+
+    /// <summary>T3.5 — pack locations are repo-relative, never absolute machine paths (they waste
+    /// tokens and leak layout). Falls back to the raw path when it isn't under the analysis root.</summary>
+    private string RelPath(string filePath)
+    {
+        var root = _snapshot.RootPath;
+        if (string.IsNullOrEmpty(root) || string.IsNullOrEmpty(filePath)) return filePath;
+        var abs = filePath.Replace('\\', '/');
+        var rooted = root.Replace('\\', '/').TrimEnd('/') + "/";
+        return abs.StartsWith(rooted, StringComparison.OrdinalIgnoreCase) ? abs[rooted.Length..] : abs;
     }
 
     private static string BuildSalientBodies(Trace trace)

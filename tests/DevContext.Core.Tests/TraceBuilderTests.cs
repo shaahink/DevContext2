@@ -155,4 +155,55 @@ public sealed class TraceBuilderTests
         var calleeStep = trace.Root.Children.Single().Children.Single(c => c.Node.Id == calleeId);
         Assert.Empty(calleeStep.Salient);
     }
+
+    // T3.3 — token budget shaping.
+    private static TraceStep Step(string title, params TraceStep[] children)
+    {
+        var node = new GraphNode(NodeId.ForType("Ns." + title), title, NodeKind.Type);
+        return new TraceStep(node, SeamKind.Call, 0) { Children = [.. children] };
+    }
+
+    private static int CountNodes(TraceStep s)
+    {
+        var n = 1;
+        foreach (var c in s.Children) n += CountNodes(c);
+        return n;
+    }
+
+    private static int TotalOmitted(TraceStep s)
+    {
+        var sum = s.Omitted;
+        foreach (var c in s.Children) sum += TotalOmitted(c);
+        return sum;
+    }
+
+    [Fact]
+    public void ShapeToBudget_cuts_to_budget_names_omissions_and_keeps_the_root()
+    {
+        // 10 children, each with one grandchild → 21 nodes.
+        var root = Step("Entry", Enumerable.Range(0, 10)
+            .Select(i => Step($"Child{i}", Step($"Grand{i}"))).ToArray());
+        var trace = new Trace(new EntryPoint(EntryPointKind.HttpEndpoint, "Entry", NodeId.ForEntry("Entry")), root);
+        var full = CountNodes(trace.Root);
+        Assert.Equal(21, full);
+
+        var shaped = TraceBuilder.ShapeToBudget(trace, budgetTokens: 20);
+        var kept = CountNodes(shaped.Root);
+
+        Assert.Equal("Entry", shaped.Root.Node.Title);            // root always survives
+        Assert.True(kept < full, $"expected < {full} nodes, got {kept}");
+        Assert.True(TotalOmitted(shaped.Root) > 0);               // the cut is named, not silent
+        Assert.Equal(full, kept + TotalOmitted(shaped.Root));     // every node is kept xor counted omitted
+    }
+
+    [Fact]
+    public void ShapeToBudget_zero_is_unlimited_and_unchanged()
+    {
+        var root = Step("Entry", Step("A", Step("A1")), Step("B"));
+        var trace = new Trace(new EntryPoint(EntryPointKind.HttpEndpoint, "Entry", NodeId.ForEntry("Entry")), root);
+
+        var unlimited = TraceBuilder.ShapeToBudget(trace, 0);
+        Assert.Equal(CountNodes(trace.Root), CountNodes(unlimited.Root));
+        Assert.Equal(0, TotalOmitted(unlimited.Root));
+    }
 }

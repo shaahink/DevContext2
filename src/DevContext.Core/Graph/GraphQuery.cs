@@ -65,11 +65,14 @@ public sealed class GraphQuery
 
     /// <summary>trace(entry, depth, ...) — resolve a focus to an entry and walk it. Null when the focus
     /// matches no entry/node. Same resolution + traversal the CLI/Desktop use.</summary>
-    public Trace? Trace(string focus, int depth = 6, int maxFanOut = 12)
+    public Trace? Trace(string focus, int depth = 6, int maxFanOut = 12, int budgetTokens = 0)
     {
         var entry = EntryPointResolver.Resolve(_entries, _graph, focus);
         if (entry is null) return null;
-        return new TraceBuilder(_graph).Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
+        var trace = new TraceBuilder(_graph).Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
+        // T3.3 — an optional token budget shapes the tree post-build (query layer, not graph assembly —
+        // the kernel invariant is preserved). 0 = unlimited, so the default trace is unchanged.
+        return budgetTokens > 0 ? TraceBuilder.ShapeToBudget(trace, budgetTokens) : trace;
     }
 
     /// <summary>node(id) — the detail card for a node, or null when it doesn't exist.</summary>
@@ -146,7 +149,7 @@ public sealed class GraphQuery
     /// points, each with a human-readable "why" explanation.</summary>
     public ImmutableArray<InterestingPoint> GetInterestingPoints(string? archetype = null)
     {
-        return (archetype?.ToLowerInvariant()) switch
+        var raw = (archetype?.ToLowerInvariant()) switch
         {
             "web" => InterestingForWeb(),
             "library" => InterestingForLibrary(),
@@ -155,6 +158,34 @@ public sealed class GraphQuery
             "cli" => InterestingForCli(),
             _ => InterestingByCentrality(),
         };
+        // T3.5 — "Start here" must point at repo code an agent would actually open first, never
+        // framework types (List, System.*) or infra stores (a DbContext). Same spirit as the target
+        // noise rules (TraceBuilder.IsFrameworkLeaf); applied to every strategy's output as a catch-all.
+        return raw.Where(p => !IsStartHereNoise(p.Id)).ToImmutableArray();
+    }
+
+    private static readonly HashSet<string> BclNoiseTitles = new(StringComparer.Ordinal)
+    {
+        "List", "Dictionary", "HashSet", "IEnumerable", "IList", "ICollection", "IDictionary",
+        "IReadOnlyList", "IReadOnlyCollection", "Task", "ValueTask", "String", "Object", "Array",
+        "Guid", "DateTime", "TimeSpan", "DbContext", "ILogger", "IMediator", "ISender", "IPublisher",
+    };
+
+    /// <summary>T3.5 — a node that should never be offered as a starting point: an infra store
+    /// (DbContext), a BCL/framework type (System.*, Microsoft.*, List/Dictionary/…), or a type not
+    /// declared in the analyzed repo (no source file). Services/entries are exempt (they legitimately
+    /// have no single declaring file).</summary>
+    private bool IsStartHereNoise(NodeId id)
+    {
+        var n = _graph.Node(id);
+        if (n is null) return true;
+        if (n.Kind == NodeKind.Store || n.Tags.Contains(RoleTags.DataStore)) return true;
+        var t = n.Title;
+        if (t.StartsWith("System.", StringComparison.Ordinal) || t.StartsWith("Microsoft.", StringComparison.Ordinal))
+            return true;
+        if (BclNoiseTitles.Contains(t)) return true;
+        if (n.FilePath is null && n.Kind is not (NodeKind.Service or NodeKind.EntryPoint)) return true;
+        return false;
     }
 
     private ImmutableArray<InterestingPoint> InterestingForWeb()
@@ -304,8 +335,9 @@ public sealed class GraphQuery
     private ImmutableArray<InterestingPoint> InterestingByCentrality()
     {
         var results = ImmutableArray.CreateBuilder<InterestingPoint>();
-        foreach (var n in _graph.Nodes.OrderByDescending(n =>
-            _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length).Take(20))
+        foreach (var n in _graph.Nodes
+            .Where(n => !IsStartHereNoise(n.Id)) // T3.5 — filter before Take so 20 clean points survive
+            .OrderByDescending(n => _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length).Take(20))
         {
             var deg = _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length;
             results.Add(new InterestingPoint(n.Id, n.Title, n.Kind,

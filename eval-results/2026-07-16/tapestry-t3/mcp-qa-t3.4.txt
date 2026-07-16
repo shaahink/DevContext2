@@ -1,0 +1,62 @@
+DevContext MCP QA Harness (M4 post-gate)
+Repo: C:/Users/shahi/source/repos/run-aspnetcore-microservices/src
+MCP:  C:\code\DevContext2\src\DevContext.Mcp\bin\Debug\net10.0\devcontext-mcp.exe
+
+Server ready. 23 tools: analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages
+Analyzing dogfood repo...
+Analyzed in 123.7s, handle: a588628d0b4f497ea05741740cc36103
+Baseline: 439 nodes, 339 edges, 34 entries
+
+Running QA questions...
+
+  q1-overview: What is this repo? (one-call repo brief) ... PASS
+    overview 224 tok, archetype=true flows=true counts=true services=true  [1c 224tok]
+  q2-checkout-flow: How does checkout work? ... PASS
+    trace found: 46 steps, cross-service, 1467 tok  [1c 1467tok]
+  q3-discount-callers: Who calls the Discount service? ... PASS
+    10 Discount matches, usages=true  [2c 698tok]
+  q4-impact-of-handler: What breaks if I change CheckoutBasketCommandHandler? ... PASS
+    impact up=5 down=0 total=5  [3c 434tok]
+  q5-ambiguous-product: What is Product? (disambiguation check) ... PASS
+    resolve returned 10 candidates, ambiguous=true, hint=yes  [1c 592tok]
+  q6-config-lookup: What config keys are used? ... PASS
+    config returned 4 keys  [1c 297tok]
+  q7-tests-for: What tests cover CheckoutBasketCommandHandler? ... PASS
+    tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler  [2c 175tok]
+  q8-query-addressing: Address impact/node/read_source by fuzzy query (not nodeId)? ... PASS
+    query→ impact=true node=true read_source=true  [3c 697tok]
+  q9-entrypoints-summary: List entry points as a bounded summary (not a token wall)? ... PASS
+    byKind=true, showing 15/34 (843tok), full→34  [2c 3173tok]
+  q10-self-describing: Do best-effort tools explain their method (what 0 means)? ... PASS
+    method note: tests_for=true, config=true  [3c 472tok]
+
+--- Checkout Gate: how does checkout create an order? ---
+[gate] overview() ...
+[gate] trace("POST /basket/checkout", format=compact) ...
+
+========================================
+QA Scored Table (M4 post-gate)
+========================================
+| Question     | Pass | Calls | Tokens | Detail |
+|--------------|------|-------|--------|--------|
+| q1-overview  | YES  | 1     | 224    | overview 224 tok, archetype=true flows=true counts=true services=true |
+| q2-checkout-flow | YES  | 1     | 1467   | trace found: 46 steps, cross-service, 1467 tok |
+| q3-discount-callers | YES  | 2     | 698    | 10 Discount matches, usages=true |
+| q4-impact-of-handler | YES  | 3     | 434    | impact up=5 down=0 total=5 |
+| q5-ambiguous-product | YES  | 1     | 592    | resolve returned 10 candidates, ambiguous=true, hint=yes |
+| q6-config-lookup | YES  | 1     | 297    | config returned 4 keys |
+| q7-tests-for | YES  | 2     | 175    | tests_for found 0 tests (best-effort), node=CheckoutBasketCommandHandler |
+| q8-query-addressing | YES  | 3     | 697    | query→ impact=true node=true read_source=true |
+| q9-entrypoints-summary | YES  | 2     | 3173   | byKind=true, showing 15/34 (843tok), full→34 |
+| q10-self-describing | YES  | 3     | 472    | method note: tests_for=true, config=true |
+| gate-checkout | YES  | 2     | 1691   | 2 calls, 1691 tok, found=true, 46 steps, cross-service=true |
+
+QA Score: 11/11 passing (100%)
+Gate (checkout <=3c/2ktok): PASS
+Gate (QA >=90% actionable): PASS
+
+Transport checks...
+list_sessions: 1 session(s)
+After close: 0 session(s)
+
+Artifact written to C:\code\DevContext2\eval-results\2026-07-16\mcp-qa.md

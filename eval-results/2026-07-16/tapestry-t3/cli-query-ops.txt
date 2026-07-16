@@ -1,0 +1,187 @@
+# T3.7 CLI query ops — verified against tests/fixtures/MinimalApiProject (2026-07-16)
+
+## query entrypoints --format json (>0 entries + per-kind counts)
+{
+  "count": 2,
+  "byKind": {
+    "HttpEndpoint": 2
+  },
+  "entries": [
+    {
+      "kind": "HttpEndpoint",
+      "title": "POST /orders",
+      "nodeId": "POST /orders",
+      "httpMethod": "POST",
+      "route": "/orders",
+      "target": "CreateOrderCommand",
+      "project": "Api",
+      "score": 0.8,
+      "provenance": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Program.cs
+:15"
+    },
+    {
+      "kind": "HttpEndpoint",
+      "title": "GET /orders",
+      "nodeId": "GET /orders",
+      "httpMethod": "GET",
+      "route": "/orders",
+      "target": "GetOrdersQuery",
+      "project": "Api",
+      "score": 0.667,
+      "provenance": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Program.cs
+:9"
+    }
+  ]
+}
+
+## query stats --format json (node/edge/entry counts + per-kind + seams)
+{
+  "nodeCount": 16,
+  "edgeCount": 9,
+  "entryCount": 2,
+  "entriesWithTarget": 2,
+  "entriesWithDeepSpine": 2,
+  "deepSpineRatio": 1,
+  "entriesByKind": {
+    "HttpEndpoint": 2
+  },
+  "seams": [
+    {
+      "kind": "Calls",
+      "total": 4,
+      "verified": 3,
+      "approx": 1
+    },
+    {
+      "kind": "Sends",
+      "total": 2,
+      "verified": 0,
+      "approx": 2
+    },
+    {
+      "kind": "Handles",
+      "total": 1,
+      "verified": 1,
+      "approx": 0
+    },
+    {
+      "kind": "Resolves",
+      "total": 2,
+      "verified": 1,
+      "approx": 1
+    }
+  ]
+}
+
+## query trace (no focus) → required-focus guard
+--focus is required for this operation.
+(exit code checked separately: 1)
+
+## query trace --focus 'POST /orders' → found tree
+{
+  "found": true,
+  "focus": "POST /orders",
+  "entry": {
+    "title": "POST /orders",
+    "kind": "HttpEndpoint"
+  },
+  "root": {
+    "title": "POST /orders",
+    "kind": "EntryPoint",
+    "nodeId": "POST /orders",
+    "seam": "Entry",
+    "resolution": "Join",
+    "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Program.cs
+",
+    "lineNumber": 15,
+    "truncated": false,
+    "children": [
+      {
+        "title": "\u003Clambda\u003E POST /orders",
+        "kind": "Member",
+        "nodeId": "global.CreateOrderCommand.\u003Clambda\u003E POST /orders",
+        "seam": "Call",
+        "resolution": "Join",
+        "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Program.cs
+",
+        "lineNumber": 15,
+        "truncated": false,
+        "children": [
+          {
+            "title": "CreateOrderCommand",
+            "kind": "Type",
+            "nodeId": "global.CreateOrderCommand",
+            "seam": "Send",
+            "resolution": "Syntactic",
+            "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Program.cs
+",
+            "lineNumber": 24,
+            "truncated": false,
+            "children": [
+              {
+                "title": "CreateOrderHandler",
+                "kind": "Type",
+                "nodeId": "Api.Handlers.CreateOrderHandler",
+                "seam": "Handle",
+                "resolution": "Join",
+                "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Api\\Handlers\\
+CreateOrderHandler.cs",
+                "lineNumber": 6,
+                "truncated": false,
+                "children": [
+                  {
+                    "title": "IOrderRepository",
+                    "kind": "Type",
+                    "nodeId": "Core.IOrderRepository",
+                    "seam": "Call",
+                    "resolution": "Syntactic",
+                    "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Core\\IOrderRep
+ository.cs",
+                    "lineNumber": 3,
+                    "truncated": false,
+                    "children": [
+                      {
+                        "title": "OrderRepository",
+                        "kind": "Type",
+                        "nodeId": "Infrastructure.OrderRepository",
+                        "seam": "Resolve",
+                        "resolution": "Syntactic",
+                        "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Infrastructure\
+\OrderRepository.cs",
+                        "lineNumber": 5,
+                        "truncated": false,
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "title": "OrderRepository.AddAsync",
+                    "kind": "Member",
+                    "nodeId": "Infrastructure.OrderRepository.AddAsync",
+                    "seam": "Call",
+                    "resolution": "Semantic",
+                    "filePath": 
+"C:\\code\\DevContext2\\tests\\fixtures\\MinimalApiProject\\src\\Infrastructure\
+\OrderRepository.cs",
+                    "truncated": false,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "touchedEntities": [],
+  "emittedEvents": []
+}

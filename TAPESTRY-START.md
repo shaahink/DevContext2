@@ -7,18 +7,16 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-15 **T2 COMPLETE (8 of 8)** on feat/tapestry-t2 — pushed through 9e9d921. Final two this session:
-**T2.6** (ed3ff46, one event join): ONE `EventWiringProjection` (publisher→event→consumer) on `CodeGraph.EventWiring`, joined on
-SHORT event-type name within the detected event set (eShop declares each integration event TWICE across services — a node-id join
-can't connect them; domain events across layer-projects of the SAME service are NOT cross-service). Board (`EventFlowSource`),
-overview `EVENT WIRING` section + `CROSS-SERVICE` ServiceLinks (emitted FROM the projection, provenance at the publishing member),
-and flow markers all render from it. Deleted legacy `AddBusServiceLinks` + `_eventPublishers`. eShop 13 integration / 8 cross-service, ZERO drift.
-**T2.8** (9e9d921, split): GraphBuilder.cs 2484 lines → 6 partial files (main 118 + Flows/Entries/Nodes/Seams/ServiceLinks);
-retired stale AddSends comment; verified no `kind:` parsing remains. Byte-identical dogfood drift (439/339/34/205/11/5 before==after).
-T1 (wrapup→t0→t1) DELIVERED to develop @ c2f7250. feat/tapestry-t2 NOT yet merged to develop — user review pending.
-stage: ALL T2 VERIFIED (T2.1-T2.8) on feat/tapestry-t2. **Next phase: T3 (MCP v3)** off develop after T2 merges, OR continue on this branch.
-next: **T3.1** (unified symbol addressing — every symbol-taking MCP tool accepts `query`, resolved via graph.Find; nodeId stays the precise form; error envelope ≤80 tok). Read proposal-tapestry.md §T3 + audit addendum T3.7/T3.8. T3 blocked-by T2 (now done). Consider merging feat/tapestry-t2 → develop first (whole T2 stack) if user approves.
-gate: T2.6 — build 0w/0e · fast 497P/0F · McpQa 2m51s no-regression · eval 58P/6S/0F · loom-guards PASSED · EventWiringTests(6). T2.8 — dogfood drift byte-identical. Evidence: tapestry-t2/T2.6-EVIDENCE.md, T2.8-EVIDENCE.md, gates-t2.6.txt.
+last: 2026-07-16 **T3 (MCP v3) — 8/8 CHECKPOINTS + delivery gate GREEN on feat/tapestry-t3** (off develop @ 94a29db). Order landed:
+T3.1+T3.2+T3.6 (dbc217e) → T3.5 (f8e76ca) → T3.7 (afeb0f3) → T3.4 (bd66486) → T3.3 (31c64b2) → T3.8 (9bdce29) → CLI json fix (165f834).
+**Delivery drive: loom-guards caught the last blocker — T3.4's extracted ConfigScanner carried a `System.Text.RegularExpressions`
+import into Core/Graph (banned, L2.3 regex funeral). REFORMED to a Roslyn syntax walk (ParseText+DescendantNodes): loom-guards PASS,
+dogfood config parity (4 keys, McpQa 12/12), faster cold (shamshir all-.cs upper bound 3.9s vs old 10.5s). Fresh GATE: PASS.**
+NOTE: `develop` is checked out in the sibling worktree `C:/Code/DevContext2-ui` (WIP src-tauri/Cargo.toml) — advance develop THERE
+via `git -C /c/Code/DevContext2-ui`, never `git checkout develop` in main (it fails). T3 touched no App SOURCE (only generated pb.ts).
+stage: **T3 delivery gate GREEN (GATE: PASS + loom-guards PASS).** Merging feat/tapestry-t3 → develop --no-ff (via ui worktree) + push.
+next: **T4 (Context generation v2)** off develop — T4.1 pack identity header + repo-relative file:line (rides T2.2/T3.5); read proposal-tapestry.md §T4 + addendum T4.6.
+gate: gates-t3-delivery.txt = GATE: PASS (build/fast/McpQa 12/12/eval 58P·6S·0F/CLI matrix + Step 4b). Per-checkpoint evidence under eval-results/2026-07-16/tapestry-t3/.
 
 ---
 
@@ -62,14 +60,14 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T3 — MCP v3
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T3.1 | Unified symbol addressing (query accepted everywhere; envelopes ≤80 tok) | TODO | | |
-| T3.2 | entrypoints summary default ≤1.5k tok (full:true escape) | TODO | | |
-| T3.3 | trace budgetTokens (default ~4k, named omissions, deep-links) | TODO | | |
-| T3.4 | config latency ≤500ms warm (was 10.5s on shamshir) | TODO | | |
-| T3.5 | Repo-relative paths + Start-here noise filter | TODO | | |
-| T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | TODO | | |
-| T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | TODO | | |
-| T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | TODO | | |
+| T3.1 | Unified symbol addressing (query accepted everywhere; envelopes ≤80 tok) | VERIFIED | (T3.1 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · run.js q8 (impact/node/read_source via query) PASS · ResolveQueryAsync ambiguity-honest · 8 tools + query synonym |
+| T3.2 | entrypoints summary default ≤1.5k tok (full:true escape) | VERIFIED | (T3.2 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q9 byKind + top-15, 843 tok summary, full:true→34 (==count) |
+| T3.3 | trace budgetTokens (default ~4k, named omissions, deep-links) | VERIFIED | (T3.3 commit) | proto TraceRequest.budget_tokens; GraphQuery.Trace(budgetTokens); TraceBuilder.ShapeToBudget (BFS keep, named per-subtree omissions); MCP trace budgetTokens=4000 + deep-link hint. TraceBuilderTests (cut+named+root-kept; 0=unlimited). McpQa q11: budget400→11 steps/323tok omitted=19 vs full 46/1467. pnpm check 0 (proto regen also synced stale ArchetypeView) |
+| T3.4 | config latency ≤500ms warm (was 10.5s on shamshir) | VERIFIED | (T3.4 commit) | ConfigScanner extracted (Core) + cached once per session (AnalysisSession.ConfigBindings, `??=`); ConfigLookup filters in-memory. ConfigScannerTests (keys across patterns + missing-file safe). McpQa q6 PASS via cache. shamshir warm-latency measured in delivery drive |
+| T3.5 | Repo-relative paths + Start-here noise filter | VERIFIED | (T3.5 commit) | GraphQueryTests.GetInterestingPoints_excludes_framework_and_store_noise · GetInterestingPoints filters System.*/BCL/Store; ContextPackBuilder pack Location repo-relative (RootPath) · gates-t3.5.txt GATE: PASS eval 58P/6S/0F, overview intact |
+| T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | VERIFIED | (T3.6 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q10 method note tests_for+config · flow/trace cross-doc |
+| T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | VERIFIED | (T3.7 commit) | QueryCommand entrypoints/stats/trace run against GraphQuery (MCP-shaped JSON), no longer fall to overview render; gates.ps1 Step 4b asserts each op; cli-query-ops.txt (entrypoints 2/byKind, stats 16n/9e, trace no-focus exit 1 + focus found) |
+| T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | VERIFIED | (T3.8 commit) | **MassTransit report 476KB→34.5KB (<40KB gate)**; PUBLIC SURFACE capped 25 ns × 12 types + "…N more (--format json)"; no Run Report in default output (0); map footer + library footer derive from repo's OWN top entry (goldens: POST /api/orders/→POST /orders / GET /products). LibrarySurfaceRendererTests (cap) + regenerated goldens. masstransit-report.md |
 
 ### T4 — Context generation v2
 | # | Checkpoint | Status | Commit | Evidence |
