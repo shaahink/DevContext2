@@ -447,6 +447,41 @@ internal static class ProtoMapper
         return resp;
     }
 
+    // T7.4 — the server-side flow atlas (per-entry flow stats + top-hub degrees) in one response.
+    public static Proto.FlowIndexResponse ToFlowIndexResponse(FlowIndexResult index)
+    {
+        var resp = new Proto.FlowIndexResponse();
+        foreach (var f in index.Flows)
+        {
+            var row = new Proto.FlowStatRow
+            {
+                Focus = f.Focus,
+                Title = f.Title,
+                Kind = f.Kind,
+                Found = f.Found,
+                NodeCount = f.NodeCount,
+                MaxDepth = f.MaxDepth,
+                BoundaryCrossings = f.BoundaryCrossings,
+                DataTouches = f.DataTouches,
+                VerifiedPct = f.VerifiedPct,
+                Score = f.Score,
+            };
+            row.TouchedEntities.AddRange(f.TouchedEntities);
+            row.EmittedEvents.AddRange(f.EmittedEvents);
+            row.NodeIds.AddRange(f.NodeIds);
+            row.HubIds.AddRange(f.HubIds);
+            resp.Flows.Add(row);
+        }
+        foreach (var h in index.HubDegrees)
+            resp.HubDegrees.Add(new Proto.HubDegreeRow
+            {
+                NodeId = h.NodeId,
+                InDegree = h.InDegree,
+                OutDegree = h.OutDegree,
+            });
+        return resp;
+    }
+
     public static Proto.GraphFacetsResponse ToGraphFacetsResponse(
         ServiceMapResult serviceMap,
         FlowListResult flowList,

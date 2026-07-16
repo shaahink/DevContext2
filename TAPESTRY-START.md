@@ -116,7 +116,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T7.1 | Bench + truth files extended (CompositionApp, gRPC service, aspire-samples) | VERIFIED | (T7.1 commit) | tapestry-t7/T7.1-EVIDENCE.md · 25-repo verdicts refresh (bench-t7.1.txt, truth 12P/3S/0F) · 2 engine fixes forced by new poles (dot-dir sln decoy + scaffolding-over-product pick, SolutionDiscoveryExtractorTests 8/8) · aspire markdown-render honesty pinned TruthPending(T8) |
 | T7.2 | Perf baseline + edge-explosion check (devcontext-bench) | VERIFIED | (T7.2 commit) | tapestry-t7/T7.2-EVIDENCE.md · PERF-2026-07-17-0036.md vs Jun-20 baseline · big-repo wall = SemanticLite (DntSite 81.1s of 94.7s; bind itself 84s→3.2s) · OrchardCore edges 1708→11904 = coverage not fabrication, bind flat 5.1s · named lever: persist/reuse merged compilation (own checkpoint) |
 | T7.3 | Stage waterfall ≥95% wall-time accounted | VERIFIED | (T7.3 commit) | tapestry-t7/T7.3-EVIDENCE.md · shamshir 99.7% (SemanticLite=21.2s was the invisible half) · dogfood 96.8% · Snapshot stage now inside the wall clock · StageWaterfallTests |
-| T7.4 | Page-render RPC budget ≤15/navigation; server flow/facet memo (audit B11) | TODO | | |
+| T7.4 | Page-render RPC budget ≤15/navigation; server flow/facet memo (audit B11) | VERIFIED | (T7.4 commit) | tapestry-t7/T7.4-EVIDENCE.md · GetFlowIndex RPC + FlowIndexBuilder (Core) + session memo; AtlasStore = ONE call (worker queue + getNode fan-out deleted) · drive M: fresh load **8 RPCs** (was ~150+), navs 0–1 (bar ≤15) · 13/13 drive PASS · fixed client boundary-seam name bug (only 'send' ever scored) |
 
 ### T8 — Close-out
 | # | Checkpoint | Status | Commit | Evidence |

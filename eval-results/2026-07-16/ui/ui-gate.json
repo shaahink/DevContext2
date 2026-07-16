@@ -26,7 +26,7 @@
       "owner": "L6.2",
       "expectedRedUntil": "L6",
       "pass": true,
-      "detail": "code length=874"
+      "detail": "code length=562"
     },
     {
       "id": "D-context-preset-cards",
@@ -43,7 +43,7 @@
       "audit": "R1",
       "owner": "T5.1",
       "pass": true,
-      "detail": "visible=true text=Omitted (7) tests (Validators for /ProductList): no content for its entries — om"
+      "detail": "visible=true text=Omitted (8) tests (Validators for /products): no content for its entries — omitt"
     },
     {
       "id": "F-pack-error-retry",
@@ -59,7 +59,7 @@
       "audit": "C1",
       "owner": "T5.6",
       "pass": true,
-      "detail": "4k=7689ch(hdr4k=true) 1k=6288ch(hdr1k=true) differ=true"
+      "detail": "4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true"
     },
     {
       "id": "H-plain-not-markdown",
@@ -67,7 +67,7 @@
       "audit": "C1",
       "owner": "T5.6",
       "pass": true,
-      "detail": "plain=6069ch differ=true noHeadings=true"
+      "detail": "plain=6891ch differ=true noHeadings=true"
     },
     {
       "id": "I-verification-stale-cycle",
@@ -100,6 +100,14 @@
       "owner": "T6.6",
       "pass": true,
       "detail": "modern/dark:ok modern/light:ok terminal/dark:ok hacker/dark:ok"
+    },
+    {
+      "id": "M-rpc-budget",
+      "desc": "page-render RPC budget: fresh load <20 UI calls, each SPA nav <=15",
+      "audit": "B11",
+      "owner": "T7.4",
+      "pass": true,
+      "detail": "fresh=8{\"Ping\":2,\"ListSessions\":1,\"GetMap\":1,\"ListEntryPoints\":1,\"GetGraphFacets\":1,\"GetFlowIndex\":1,\"GetStats\":1} atlas=1 explore=0 home=1"
     }
   ],
   "reds": [],

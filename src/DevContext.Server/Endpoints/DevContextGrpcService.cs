@@ -281,6 +281,11 @@ public sealed class DevContextGrpcService(
                 request.Focus, pack.Found, session.Snapshot.GitHead, currentHead, sections);
         });
 
+    // T7.4 (audit B11) — the whole flow atlas in one call, memoized on the session: the app's
+    // per-boot ~100 GetTrace + ~10 GetNode storm becomes 1 RPC (page-render budget ≤15/nav).
+    public override Task<Proto.FlowIndexResponse> GetFlowIndex(Proto.FlowIndexRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session => ProtoMapper.ToFlowIndexResponse(session.FlowIndex()));
+
     public override Task<Proto.GraphFacetsResponse> GetGraphFacets(Proto.GraphFacetsRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {

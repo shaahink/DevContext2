@@ -22,6 +22,7 @@
 //   J. keyboard battery: single-key + g-prefix nav, ? help, Ctrl+K omnibox (finding 37, owner T6.5)
 //   K. route-restore never hijacks /: after visiting /settings, a fresh boot of / renders Home (finding 49, owner T6.5)
 //   L. theme matrix: every declared vibe x theme paints the SHELL surfaces in that mode (findings 38-39, owner T6.6)
+//   M. page-render RPC budget: fresh load <20 UI-origin calls, each SPA nav <=15 (audit B11, owner T7.4)
 //
 // Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
@@ -97,7 +98,7 @@ async function main() {
     omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null,
     copy4k: null, copy1k: null, copyPlain: null,
     verifFreshBefore: null, verifStaleAfterEdit: null, verifFreshAfterRestore: null,
-    kbd: null, restoreHome: null, themeMatrix: null };
+    kbd: null, restoreHome: null, themeMatrix: null, rpcBudget: null };
 
   try {
     // ── boot + analyze dogfood ──
@@ -443,6 +444,61 @@ async function main() {
       });
     }
 
+    // ── M. page-render RPC budget (T7.4, audit B11) ──
+    // The audit saw home+atlas fire ~150 GetTrace + dozens of GetNode in ~2s (the client-side
+    // atlas indexer re-ran on every boot). With the server-side flow index (one memoized
+    // getFlowIndex per session) a fresh page load must stay under 20 UI-origin RPCs and each
+    // in-app navigation under 15.
+    {
+      const rpcOf = (url) => {
+        const m = url.match(/\/devcontext\.v1\.DevContextService\/(\w+)$/);
+        return m ? m[1] : null;
+      };
+      let counting = false;
+      let calls = [];
+      page.on("request", (req) => {
+        if (!counting || req.method() !== "POST") return;
+        const rpc = rpcOf(req.url());
+        if (rpc) calls.push(rpc);
+      });
+      const tally = (list) => {
+        const t = {};
+        for (const c of list) t[c] = (t[c] ?? 0) + 1;
+        return t;
+      };
+      const countDuring = async (fn, settleMs) => {
+        calls = [];
+        counting = true;
+        await fn();
+        await sleep(settleMs);
+        counting = false;
+        return [...calls];
+      };
+
+      // Fresh page load (boot reattach path — where the old indexer storm re-fired).
+      const fresh = await countDuring(async () => {
+        await page.goto(APP_URL + "/", { waitUntil: "domcontentloaded" }).catch(() => {});
+      }, 7000);
+      await shot(page, "22-rpc-fresh-load");
+
+      // In-app navigations via single-key nav (real SPA transitions, no reload).
+      await page.locator("body").click({ position: { x: 10, y: 500 } }).catch(() => {});
+      const navAtlas = await countDuring(async () => { await page.keyboard.press("a"); }, 3500);
+      const navExplore = await countDuring(async () => { await page.keyboard.press("e"); }, 3500);
+      const navHome = await countDuring(async () => {
+        await page.keyboard.press("g");
+        await page.keyboard.press("h");
+      }, 3500);
+
+      state.rpcBudget = {
+        fresh: fresh.length, freshTally: tally(fresh),
+        atlas: navAtlas.length, atlasTally: tally(navAtlas),
+        explore: navExplore.length, exploreTally: tally(navExplore),
+        home: navHome.length, homeTally: tally(navHome),
+      };
+      note(`rpc budget: fresh=${fresh.length} ${JSON.stringify(tally(fresh))} · atlas=${navAtlas.length} · explore=${navExplore.length} · home=${navHome.length}`);
+    }
+
   } catch (e) {
     note("DRIVE ERROR: " + e.message);
   } finally {
@@ -497,6 +553,13 @@ async function main() {
           if (!m) return { pass: false, detail: "matrix not exercised" };
           const bad = m.filter((c) => !c.ok);
           return { pass: bad.length === 0, detail: m.map((c) => `${c.vibe}/${c.theme}:${c.ok ? "ok" : "BAD(" + c.resolved + "," + c.surfaces + ")"}`).join(" ") };
+        } },
+      { id: "M-rpc-budget", desc: "page-render RPC budget: fresh load <20 UI calls, each SPA nav <=15", audit: "B11", owner: "T7.4",
+        run: () => {
+          const r = state.rpcBudget;
+          if (!r) return { pass: false, detail: "rpc budget not exercised" };
+          const ok = r.fresh < 20 && r.atlas <= 15 && r.explore <= 15 && r.home <= 15;
+          return { pass: ok, detail: `fresh=${r.fresh}${JSON.stringify(r.freshTally)} atlas=${r.atlas} explore=${r.explore} home=${r.home}` };
         } },
     );
     for (const a of assertions) {

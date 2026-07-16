@@ -7,6 +7,7 @@ import type {
   ContextPackResponse,
   ContextResponse,
   EntryPointsResponse,
+  FlowIndexResponse,
   GraphFacetsResponse,
   ImpactResponse,
   InterestingPointsResponse,
@@ -82,6 +83,12 @@ export class DevContextApi {
 
   getGraphFacets(handle: string, maxFlows = 10): Promise<GraphFacetsResponse> {
     return this.client.getGraphFacets({ handle, maxFlows });
+  }
+
+  /** T7.4 — the whole flow atlas (per-entry stats + hub degrees) in ONE call, memoized
+   * server-side per session. Replaces the client-side ~100-getTrace background indexer. */
+  getFlowIndex(handle: string, signal?: AbortSignal): Promise<FlowIndexResponse> {
+    return this.client.getFlowIndex({ handle }, { signal });
   }
 
   listEntryPoints(handle: string): Promise<EntryPointsResponse> {

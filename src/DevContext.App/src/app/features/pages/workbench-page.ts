@@ -137,15 +137,10 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly vPending = signal(false);
 
   constructor() {
-    // Background flow indexing itself starts on analysis-ready (SessionStore.analyze()'s
-    // success path), not here — that's what makes Home's Top Flows work without ever
-    // visiting /explore. This page only cares about pausing it during a user trace.
-
-    // User latency beats background indexing: park the atlas while a trace is in flight.
-    effect(() => {
-      if (this.trace.loading()) this.atlas.pause();
-      else this.atlas.resume();
-    });
+    // Background flow indexing starts on analysis-ready (SessionStore.analyze()'s success
+    // path), not here — that's what makes Home's Top Flows work without ever visiting
+    // /explore. T7.4: the index is ONE memoized server call now, so the old pause-while-
+    // a-user-trace-is-in-flight parking (and the whole pause/resume surface) is gone.
 
     // Read URL state once (deep-link compat, proposal §8.3) — never re-read reactively,
     // since we're the ones writing it below (would otherwise fight the write effect).
