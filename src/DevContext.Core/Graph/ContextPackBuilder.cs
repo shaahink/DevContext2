@@ -25,6 +25,11 @@ public sealed class ContextPackBuilder
 
     public ContextPack Build(string focus, int budgetTokens = 8000, string? intent = null)
     {
+        // T5.2 — unified addressing (T3.1 rule): a nodeId or bare route resolves like it does
+        // in BuildMulti before tracing. Without this, VerifyContext(focus=nodeId) traced null
+        // and returned identity-only sections — 0 files checked, always "fresh" while the disk
+        // drifted underneath.
+        focus = ResolveFocus(focus) ?? focus;
         var (sections, omitted) = BuildSections(focus, budgetTokens, intent);
         if (sections.Length == 0)
         {

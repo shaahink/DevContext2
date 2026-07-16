@@ -13,3 +13,6 @@ errors cleared after retry: true
 copy @4k: 10749 chars
 copy @1k: 7158 chars
 copy plain@1k: 6891 chars
+verification before edit: {"panel":true,"fresh":true,"stale":false}
+verification after edit: {"panel":true,"fresh":false,"stale":true}
+verification after restore: {"panel":true,"fresh":true,"stale":false}

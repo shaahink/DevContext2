@@ -20,6 +20,7 @@ green-wash. Run with `--gate` (armed in L6) to enforce.
 | F-pack-error-retry | failed pack RPC shows card error; retry recovers | PASS | R4 | T5.1 | errorShown=true clearedAfterRetry=true |
 | G-repack-on-budget | budget change re-packs: copy@4k != copy@1k, headers match slider | PASS | C1 | T5.6 | 4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true |
 | H-plain-not-markdown | plain copy differs from markdown copy (bytes) | PASS | C1 | T5.6 | plain=6891ch differ=true noHeadings=true |
+| I-verification-stale-cycle | verification ledger: fresh -> stale on disk edit -> fresh on restore | PASS | R6 | T5.2 | fresh=true staleAfterEdit=true freshAfterRestore=true |
 
 ## Red items enumerated (owner stage)
 

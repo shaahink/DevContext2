@@ -7,18 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T5.1 + T5.6 VERIFIED on feat/tapestry-t5** (off tapestry-t4 @ bcae33d; T5.1 = 89c2797, T5.6 = cc05b46, pushed). T5.1: omitted[] end-to-end — ROOT CAUSE
-server-side: BuildMulti DISCARDED BuildSections' omission reasons, pack omitted[] was ALWAYS empty (single-card Build() reported fine); now propagated
-(focus-attributed >1 entry, deduped, cap 12) + BudgetPanel renders; card error strip + Retry (old catch mutated cards in place — zoneless never
-re-rendered); save .txt/.md. T5.6 (audit C1): schedulePack (350ms debounce, seq-guarded) on add/remove/reorder/retry/budget/intent — ALWAYS the whole
-card set (pack was latest-batch-only!); ONE buildContext path, legacy client fallback DELETED (exports = server pack or disabled; failure clears pack);
-plain strips syntax keeps content; save `${repo}-context-${date}.{md|txt}`; preset disabled @0 entries; "Add N to context" primary; config/tests specs
-server-side now. Drive gate **8/8 PASS** (was 4 expected-red): E omitted@1k · F error+retry · G copy@4k≠copy@1k w/ matching Budget headers · H
-plain≠markdown. Tauri smoke alive 20s (L6 rule). 37 vitest; gates-t5.1.txt GATE: PASS (eval 58P/6S/0F); T5.6 dotnet-delta ZERO (app-only, recorded).
-stage: **T5 2/6 (T5.1, T5.6) — pushed, NOT merged pending user review.** Evidence eval-results/2026-07-16/tapestry-t5/.
-next: T5.2 verification panel (R6 UI over T4.5 verify_context RPC) → T5.3 per-card copy + JSON export + file:line chips → T5.5 card content honesty
-→ T5.4 worker/hub presets. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
-gotcha: ng-serve watcher WEDGES after a mid-edit compile error (stale vite-error-overlay blocks clicks, watcher stops) — restart ng serve, don't trust HMR.
+last: 2026-07-16 **T5 COMPLETE — 6/6 on feat/tapestry-t5** (off tapestry-t4 @ bcae33d): T5.1 89c2797 → T5.6 cc05b46 → T5.2 fea8973(+fix) → T5.3 e1f3c3b →
+T5.5 98d7fa1 → T5.4 4150e46. Studio trust arc done: omitted[] end-to-end (BuildMulti DISCARDED the reasons — always-empty omitted[]), error+Retry, whole-set
+re-pack on every change (pack was latest-batch-only; ONE buildContext path, client fallback DELETED), verification ledger (auto-verify per re-pack, Refresh/
+Re-analyze), per-card copy + json format + own-source file:line chips (proto SectionAllocation.content=6 — sections were counts about text the client never
+got), real previews (title echo dead), kind-aware presets (hub/worker). **Two live-drive catches: Build() never ResolveFocus'd → VerifyContext(nodeId) = 0
+files checked = eternal "fresh" (fixed at Build, T3.1 addressing); GrpcService kind glyph was danger-red = fake error badge (finding 50).** Drive gate
+**9/9 PASS** incl. I-verification-stale-cycle (fresh→disk edit→stale→restore→fresh). 45 vitest · Tauri smoke · gates-t5.1.txt GATE: PASS + stage battery
+gates-t5-stage.txt (verify GATE: PASS before merge) + loom-guards after it.
+next: **T6 (Workbench & pages revamp)** — T6.0 shamshir pole of the UI audit first, then T6.1+. Known T6 seeds: icon REGISTRY blank names (eye/eye-off/
+grip-vertical/edit/history/box), chip→code-pane nav (T6.8). develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
+gotchas: ng-watcher wedges on mid-edit errors (restart ng); NUL bytes from edit text break correlation invisibly (`grep` says binary — `cat -A`); dogfood has
+PRE-EXISTING local mods since 2025-12: YarpApiGateway/Program.cs EMPTY + CreateOrderHandler tweak — baselines include them, do NOT restore.
 
 ---
 
@@ -85,10 +85,10 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | T5.1 | R1 omitted list · R4 error state · R5 save extension | VERIFIED | 89c2797 | tapestry-t5/T5.1-EVIDENCE.md · **root cause: BuildMulti DISCARDED BuildSections' omission reasons — pack omitted[] was always empty**; now propagated (focus-attributed, deduped, cap 12) + `Multi_pack_propagates_section_omission_reasons` · R4 error strip + Retry (old catch mutated cards in place — no signal fire) · R5 .txt/.md · 4 vitest specs · ui-audit-drive E/F armed, **6/6 PASS (first all-green drive)** · gates-t5.1.txt GATE: PASS (eval 58P/6S/0F) |
-| T5.2 | Verification panel (R6 UI) | TODO | | |
-| T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | TODO | | |
-| T5.4 | Worker/hub presets | TODO | | |
-| T5.5 | Card content honesty: real previews (no title echo) · per-card provenance · one unit · scope-error tooltips | TODO | | |
+| T5.2 | Verification panel (R6 UI) | VERIFIED | fea8973 + fix | tapestry-t5/T5.2-EVIDENCE.md · VerificationPanel in the budget rail (fresh/stale banner · per-section ✓/⚠ rows · changed files w/ line delta · HEAD drift · Refresh + Re-analyze) · auto-verify after every re-pack, merged across focuses, advisory-on-failure · **live-drive catch: Build() never ran ResolveFocus — VerifyContext(focus=nodeId) traced null → identity-only → 0 files checked → eternal "fresh"; fixed at Build() (T3.1 addressing) + `Build_resolves_a_node_id_focus_like_a_title`** · drive I-verification-stale-cycle PASS (fresh→disk edit→stale→restore→fresh, shots 16-18) · 3 specs |
+| T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | VERIFIED | e1f3c3b | tapestry-t5/T5.3-EVIDENCE.md · proto `SectionAllocation.content=6` (sections were counts about text the client never received) + one regen · per-card copy (pack-shaped, real content) · json = third format: structured pack (cards/sections/provenance/omitted/verification/markdown) `${repo}-context-${date}.json` · chips = the card's OWN sourceLocations (tail text, full path title, click copies file:line; code-pane nav deferred to T6.8) · NUL-byte gotcha pinned |
+| T5.4 | Worker/hub presets | VERIFIED | 4150e46 | tapestry-t5/T5.4-EVIDENCE.md · "I'm changing this entry" + kind-aware `presetSeedsFor`: SignalRHub → hub flow/orchestrator bodies/consumer wiring/messages/tests · worker kinds → flow/bodies/config-read/messages/tests · endpoints unchanged · 3 specs |
+| T5.5 | Card content honesty: real previews (no title echo) · per-card provenance · one unit · scope-error tooltips | VERIFIED | 98d7fa1 | tapestry-t5/T5.5-EVIDENCE.md · previews = real section text (finding 40 title echo dead) · ~NL → ~N tok (one unit) · finding 50 was COLOR SEMANTICS: GrpcService kind glyph was danger-red (read as error badge) → accent-dim + kind [title] tooltips; bonus: `--vibe-accent-pink` never existed (di_wiring badge colorless) → accent-dim, tests → warn · per-card provenance rode T5.3 |
 | T5.6 | Studio recompute-on-change: budget/format re-pack · plain≠markdown · save name · preset/Add UX (audit C1) | VERIFIED | cc05b46 | tapestry-t5/T5.6-EVIDENCE.md · schedulePack (350ms debounce, seq-guarded) on add/remove/reorder/retry/budget/intent, ALWAYS the whole card set (pack was latest-batch-only before) · ONE buildContext path — legacy client fallback DELETED, exports = server pack or disabled (exportReady/"Packing…"), failure clears pack · plain strips syntax keeps content · save `${repo}-context-${date}.{md\|txt}` · preset disabled @0 + "Add N to context" primary · config/tests specs now server-side (T4.3) · 10 vitest specs (37P) · drive **8/8 PASS**: G copy@4k(10749ch/"Budget: 4000")≠copy@1k(7158ch/"Budget: 1000"), H plain≠markdown · Tauri smoke alive (L6 rule) · dotnet delta zero vs gates-t5.1.txt |
 
 ### T6 — Workbench & pages revamp
@@ -137,6 +137,19 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | eShop | 2026-07-15 T2.6 | 1089 | 837 | 109 | Microservices (0.91) | **T2.6 pole.** UNCHANGED vs T2.5 (1089/837/109). The one `EventWiringProjection` replaces the legacy `AddBusServiceLinks` join and emits the identical bus ServiceLink set (5 links, 8 cross-service integration events collapsing to 5 distinct service pairs), so graph structure is byte-neutral. New: `graph.EventWiring` (20 events, 13 integration, 8 cross-service, 0 orphan) surfaced in `EVENT WIRING` map section + JSON `$.eventWiring`. `gateway.downstream-wiring` unchanged (4 targets). Setting Project on consumer/handler nodes + richer ServiceLink provenance did not move counts. |
 | eShop | 2026-07-15 T2.5 | 1089 | 837 | 109 | Microservices (0.91) | **T2.5 pole.** vs T1 (1092/833): nodes **−3** (orphan duplicate member nodes merged — the global-namespace member-id fix unifies the seam origin with the entry's handler node), edges **+4** (new/connected `Sends` — property-accessed `services.Mediator.Send` on OrdersApi's draft/cancel/ship/create endpoints; "Sends only rise"), entries 109 unchanged. eShop /draft trace 2 nodes → deep (entry→send CreateOrderDraftCommand [verified]→handler→data Order). Dogfood MCP-QA checkout unchanged (no regression); eval 58P/6S/0F. |
 | dogfood | 2026-07-16 T4 | 439 | 339 | 34 | Microservices (App) | **T4 stage end.** Identical to T1.1 baseline — T4 is pack-layer + snapshot-metadata only (identity header, body fill, contracts/config/tests sections, provenance, fingerprints); graph structure untouched by design. Checkout pack: 35%→90.5% budget use @4k. shamshir pack 99.4% (live MCP captures in tapestry-t4/). |
+| dogfood | 2026-07-16 T5 | 439 | 339 | 34 | Microservices (App) | **T5 stage end.** Identical to T4 — T5 is Studio/pack-serving layer only (omitted[] propagation, section content on the wire, Build() focus resolution); graph structure untouched by design. Fresh McpQa M4 baseline in the stage battery (gates-t5-stage.txt GATE: PASS, eval 58P/6S/0F). Note: dogfood working copy carries PRE-EXISTING local mods since 2025-12-12 (YarpApiGateway/Program.cs empty + CreateOrderHandler tweak) — every baseline row in this table includes them; do not restore. |
+
+## Battery cadence (2026-07-16 — user directive; refines §1 "green before every commit")
+
+The full battery (~25–35 min) runs at **boundaries only**: stage close-out · before pushing
+dotnet-touching commits · always before merge (with loom-guards). One run validates the TIP
+and retroactively covers every commit since the last run — say so in the evidence.
+Between boundaries, tier by change: **app-only** → `pnpm check` + ui-audit-drive, record
+"dotnet delta zero vs <last GATE: PASS artifact>"; **dotnet mid-stage** → targeted
+`dotnet test tests/<affected>.Tests` + loom-guards (~90s, fine per commit), or
+`eval/gates.ps1 -SkipEval` (build+fast+McpQa+CLI, ~6 min — verdict self-labels
+"PASS (FAST … not a merge gate)"). R-T5 (one battery at a time) and R-T7 (ratchet)
+unchanged. Launch batteries DETACHED and watch the log for `GATE:`.
 
 ## Quick commands
 

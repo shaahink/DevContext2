@@ -216,6 +216,26 @@ public sealed class ContextPackBuilderTests
     }
 
     [Fact]
+    public void Build_resolves_a_node_id_focus_like_a_title()
+    {
+        // T5.2 — the Studio's VerifyContext passes card entry NODE IDS as the focus. Build()
+        // handed the raw string to Trace(), got null, and returned identity-only sections —
+        // the verifier then checked 0 files and reported "fresh" forever while the disk
+        // drifted. A nodeId focus must resolve exactly like a title (T3.1 unified addressing).
+        var (query, snapshot) = Arrange();
+        var builder = new ContextPackBuilder(query, snapshot);
+
+        var byTitle = builder.Build("POST /orders");
+        var byNodeId = builder.Build(snapshot.Entries[0].Node.ToString());
+
+        Assert.True(byNodeId.Found);
+        Assert.Contains(byNodeId.Sections, s => s.Section == "trace");
+        Assert.Equal(
+            byTitle.Sections.Select(s => s.Section),
+            byNodeId.Sections.Select(s => s.Section));
+    }
+
+    [Fact]
     public void Multi_pack_propagates_section_omission_reasons()
     {
         // T5.1 (audit R1) — BuildMulti built the per-section omission reasons and threw them

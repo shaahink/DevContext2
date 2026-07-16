@@ -4,7 +4,15 @@
 .DESCRIPTION
     Windows PowerShell 5.1 compatible. Run before finishing any session.
     Exits with 0 on PASS, non-zero on FAIL.
+
+    -SkipEval (T5 battery-cadence directive, 2026-07-16): skips Step 3 (the ~11-minute eval
+    expectation suite) for MID-STAGE dotnet checkpoints. The verdict line then reads
+    "GATE: PASS (FAST - eval skipped; not a merge gate)" so a fast run can never be cited
+    as the boundary gate. Stage close-out, pre-push, and pre-merge ALWAYS run the full form.
 #>
+param(
+    [switch]$SkipEval
+)
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -86,27 +94,32 @@ if ($LASTEXITCODE -ne 0) {
 Write-Pass "MCP QA gate passed"
 
 # Step 3: Eval tests
-Write-Step "Step 3: Eval expectation tests"
-$evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
-$evalExit = $LASTEXITCODE
-Write-Host $evalResult
+if ($SkipEval) {
+    Write-Step "Step 3: Eval expectation tests - SKIPPED (-SkipEval; mid-stage fast run)"
+    Write-Host "  the full battery must still run at the stage/push/merge boundary" -ForegroundColor Yellow
+} else {
+    Write-Step "Step 3: Eval expectation tests"
+    $evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
+    $evalExit = $LASTEXITCODE
+    Write-Host $evalResult
 
-$aspirationalLines = $evalResult | Select-String "ASPIRATIONAL-FAIL" | ForEach-Object { $_.Line }
-if ($aspirationalLines) {
-    Write-Host ""
-    Write-Host "Aspirational failures (non-blocking):" -ForegroundColor Yellow
-    foreach ($line in $aspirationalLines) {
-        Write-Host "  $line" -ForegroundColor Yellow
+    $aspirationalLines = $evalResult | Select-String "ASPIRATIONAL-FAIL" | ForEach-Object { $_.Line }
+    if ($aspirationalLines) {
+        Write-Host ""
+        Write-Host "Aspirational failures (non-blocking):" -ForegroundColor Yellow
+        foreach ($line in $aspirationalLines) {
+            Write-Host "  $line" -ForegroundColor Yellow
+        }
     }
-}
 
-if ($evalExit -ne 0) {
-    Write-Fail "Eval tests failed" -Step 3
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 3 - eval)" -ForegroundColor Red
-    exit 3
+    if ($evalExit -ne 0) {
+        Write-Fail "Eval tests failed" -Step 3
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 3 - eval)" -ForegroundColor Red
+        exit 3
+    }
+    Write-Pass "Eval tests passed"
 }
-Write-Pass "Eval tests passed"
 
 # Step 4: CLI strict-mode matrix
 Write-Step "Step 4: CLI --strict matrix"
@@ -205,7 +218,11 @@ if ($queryFailed -gt 0) {
 }
 Write-Pass "CLI query ops: entrypoints/stats/trace return graph JSON"
 
-# Final
+# Final — a fast run labels itself so it can never be cited as the boundary gate.
 Write-Host ""
-Write-Host "GATE: PASS" -ForegroundColor Green
+if ($SkipEval) {
+    Write-Host "GATE: PASS (FAST - eval skipped; not a merge gate)" -ForegroundColor Yellow
+} else {
+    Write-Host "GATE: PASS" -ForegroundColor Green
+}
 exit 0

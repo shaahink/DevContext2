@@ -68,6 +68,14 @@
       "owner": "T5.6",
       "pass": true,
       "detail": "plain=6891ch differ=true noHeadings=true"
+    },
+    {
+      "id": "I-verification-stale-cycle",
+      "desc": "verification ledger: fresh -> stale on disk edit -> fresh on restore",
+      "audit": "R6",
+      "owner": "T5.2",
+      "pass": true,
+      "detail": "fresh=true staleAfterEdit=true freshAfterRestore=true"
     }
   ],
   "reds": [],

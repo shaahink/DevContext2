@@ -10,7 +10,7 @@
 |---|------|-------|--------|----------|--------|
 | q1-overview | YES | 1 | 224 | What is this repo? (one-call repo brief) | overview 224 tok, archetype=true flows=true counts=true services=true |
 | q2-checkout-flow | YES | 1 | 1467 | How does checkout work? | trace found: 46 steps, cross-service, 1467 tok |
-| q3-discount-callers | YES | 2 | 697 | Who calls the Discount service? | 10 Discount matches, usages=true |
+| q3-discount-callers | YES | 2 | 698 | Who calls the Discount service? | 10 Discount matches, usages=true |
 | q4-impact-of-handler | YES | 3 | 434 | What breaks if I change CheckoutBasketCommandHandler? | impact up=5 down=0 total=5 |
 | q5-ambiguous-product | YES | 1 | 592 | What is Product? (disambiguation check) | resolve returned 10 candidates, ambiguous=true, hint=yes |
 | q6-config-lookup | YES | 1 | 297 | What config keys are used? | config returned 4 keys |
