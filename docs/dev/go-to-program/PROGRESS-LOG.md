@@ -2497,23 +2497,34 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 
 **Next:** user review/merge of `feat/wrapup-2026-07-15`; then Tapestry T0.1 (orphan-proof gates).
 
-## 2026-07-16 — Tapestry T4 opener: T4.1 pack identity + T4.6 assembly correctness (feat/tapestry-t4)
+## 2026-07-16 — Tapestry T4 COMPLETE: context generation v2, 6/6 checkpoints (feat/tapestry-t4)
 
 *(T0–T3 sessions tracked in TAPESTRY-START.md handoff/checkpoints, not logged here.)*
 
-- **T4.1** — pack identity header (`# {repo} — {focus}` + `analyzed {utc} · HEAD {sha7}`) and
-  repo-relative `file:line` on every located node (no trailing colon on unstamped lines, salient
-  bodies carry `— file:line`). Root causes: `snapshot.Explanation` never populated by the pipeline
-  (the audit's empty `# ` title / `_Archetype: _`), no analyzed-at/HEAD on the snapshot, `int?`
-  LineNumber interpolated blind. `AnalysisSnapshot` gains `AnalyzedAtUtc`+`GitHead`
-  (`GitHeadReader` extracted from `SnapshotCacheService`); Studio archetype now from the Map.
-- **T4.6** — `BuildContracts`: contracts card selects message contracts (role tags) + interfaces +
-  DTOs from the traced spine (was a verbatim `["signatures"]` alias); empty sections/cards dropped
-  AND recorded in `omitted[]` (no more "Entities — 0 tok"); `<!-- context card -->` markers out of
-  the human copy. Engine-only: app sends the same card types, server now fulfills them honestly.
-- **Verified:** ContextPackBuilderTests (8) + ContextPackAssemblyTests (CompositionApp full-pipeline
-  gate) + AnalyzeFlowTests header update; dogfood MCP get_context captured
-  (eval-results/2026-07-16/tapestry-t4/pack-dogfood-checkout.json — contracts=174tok distinct,
-  `entities: empty — omitted`); loom-guards PASS; full gates battery in tapestry-t4/gates-t4.txt.
+- **T4.1+T4.6 (0d47247)** — pack identity header (`# {repo} — {focus}` + `analyzed {utc} ·
+  HEAD {sha7}`); root causes: `snapshot.Explanation` never populated by the pipeline (the audit's
+  empty `# ` title / `_Archetype: _`), no analyzed-at/HEAD on the snapshot, `int?` LineNumber
+  interpolated blind (dangling `path:`). Repo-relative `file:line` everywhere. Contracts card is a
+  real selection (role-tag messages + interfaces + DTOs), not a signatures alias; empty
+  sections/cards dropped AND recorded in `omitted[]`; HTML markers out of the human copy.
+- **T4.2 (8099bd6)** — budget-filling packs: bodies fill the remainder spine-first (full member
+  text via the salient lookup, per-body cap, `… (+N lines)` markers, omitted counts); trace depth
+  scales with budget (4→6 @ ≥3k); skeleton/signatures capped so structure can't starve bodies.
+  Dogfood checkout 35% → **90.5%**; shamshir **99.4%** @ 4k.
+- **T4.3 (9f60263)** — real config/tests sections (were dead client stubs): spine-file
+  `ConfigScanner` subset + `FindCallers`×`TestHeuristics` rows with best-effort disclaimer.
+  **Pre-existing bug fixed:** the tests_for heuristic matched `/tests/` on ABSOLUTE paths — a repo
+  living under tests/ (fixtures, clones) made every member a "test"; now root-relative.
+- **T4.4 (d15d0aa)** — per-section `_provenance: N source sites · V verified · A approx_` footers
+  + structured SourceLocations/Verified/Approx on SectionAllocation (T5.3 chips).
+- **T4.5 (a010229)** — verify_context: analyze-time `FileFingerprints` (sha256+lines) on the
+  snapshot; `ContextPackVerifier` compares each section's cited files vs disk (modified/deleted/
+  unknown); VerifyContext RPC + provenance proto fields (one regen, pnpm check 27P); MCP
+  verify_context (24th tool). Live dogfood drift cycle: fresh=false → +2-line edit=true →
+  git-restore=false, per-section verdicts naming the file.
+- **Verified:** 16 pack tests (unit + CompositionApp assembly + verifier end-to-end on a temp
+  fixture copy); two stage-end batteries GATE: PASS (gates-t4.txt, gates-t4-stage.txt);
+  loom-guards PASS after every checkpoint; live MCP captures under eval-results/2026-07-16/tapestry-t4/.
 
-**Next:** T4.2 budget utilization (≥85%, spine-first body expansion, `… (+N lines)` markers).
+**Next:** user review/merge of feat/tapestry-t4 → develop; then T5 (Context Studio v2): T5.1
+quick wins + T5.6 recompute-on-change (the token-export trust bug).
