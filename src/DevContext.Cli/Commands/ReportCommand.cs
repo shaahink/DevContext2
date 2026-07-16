@@ -95,10 +95,7 @@ public sealed class ReportCommand : AsyncCommand<ReportSettings>
             AllowRoslyn = true,
             BuildFullGraph = true,
             OutputFormat = OutputFormat.Markdown,
-            ExcludePatterns =
-            [
-                ".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos",
-            ],
+            ExcludePatterns = ExtractionOptions.DefaultExcludePatterns,
         };
 
         var scenario = ScenarioRegistry.BuiltIn["overview"];

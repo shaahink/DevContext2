@@ -73,6 +73,31 @@ public sealed class FileTreeExtractorTests
         Assert.DoesNotContain(analysis.AllSourceFiles, f => f.Contains("Ignored.cs"));
     }
 
+    [Fact]
+    public async Task ExtractAsync_ExcludesNestedAgentWorktreesByDefault()
+    {
+        // T6.0 shamshir catch: `.claude/worktrees/<branch>/` holds a full git-worktree COPY of the
+        // repo. Walking it doubles every path-keyed surface (topology "28 projects" on a 14-project
+        // repo, per-service cards x2) while id-keyed graph nodes merge silently. `.claude` is agent
+        // tooling, never production source — the DEFAULT options must prune it.
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"repo\src\App\Program.cs", "class Program {}");
+        fs.AddFile(@"repo\src\App\App.csproj", "<Project />");
+        fs.AddFile(@"repo\.claude\worktrees\refactor\src\App\Program.cs", "class Program {}");
+        fs.AddFile(@"repo\.claude\worktrees\refactor\src\App\App.csproj", "<Project />");
+
+        var cache = new FakeAnalysisCache(fs);
+        var analysis = new SharedAnalysisContext();
+        var ctx = CreateContext(fs, cache, analysis, rootPath: "repo");
+
+        var extractor = new FileTreeExtractor();
+        await extractor.ExtractAsync(ctx, new DiscoveryModel(), CancellationToken.None);
+
+        Assert.Single(analysis.AllProjectFiles);
+        Assert.Single(analysis.AllSourceFiles);
+        Assert.DoesNotContain(analysis.AllProjectFiles, f => f.Contains(".claude"));
+    }
+
     private static DiscoveryContext CreateContext(
         IFileSystem fs, IAnalysisCache cache, SharedAnalysisContext analysis,
         ExtractionOptions? options = null, string rootPath = "src")

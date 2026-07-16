@@ -20,8 +20,13 @@ export interface FlowStat {
   readonly verifiedPct: number;
   readonly touchedEntities: readonly string[];
   readonly emittedEvents: readonly string[];
-  /** Every nodeId on the flow — feeds reachedBy() and hubs. */
+  /** Every nodeId on the flow — feeds reachedBy(). */
   readonly nodeIds: readonly string[];
+  /** nodeIds minus data-seam nodes — feeds hubs(). A DbContext and its EF members sit at
+   * the end of most flows on data-heavy repos (shamshir: 7 of 10 hub rows were
+   * TradingDbContext.*, T6.0 S1.4) — they're plumbing every flow shares, not the
+   * orchestration hubs the radar is for. */
+  readonly hubIds: readonly string[];
   /** Importance ranking: breadth × (1 + boundary crossings). */
   readonly score: number;
 }
@@ -130,7 +135,7 @@ export class AtlasStore {
   readonly hubs = computed<readonly HubStat[]>(() => {
     const counts = new Map<string, number>();
     for (const flow of this.flows()) {
-      for (const id of new Set(flow.nodeIds)) counts.set(id, (counts.get(id) ?? 0) + 1);
+      for (const id of new Set(flow.hubIds)) counts.set(id, (counts.get(id) ?? 0) + 1);
     }
     return [...counts.entries()]
       .filter(([, n]) => n > 1)
@@ -323,6 +328,7 @@ function computeFlowStat(
   let dataTouches = 0;
   let verified = 0;
   const nodeIds: string[] = [];
+  const hubIds: string[] = [];
 
   const stack: TraceNodeVm[] = [root];
   while (stack.length > 0) {
@@ -333,6 +339,7 @@ function computeFlowStat(
     const seam = (node.seam ?? '').toLowerCase();
     if (BOUNDARY_SEAMS.has(seam)) boundaryCrossings++;
     if (seam === 'data') dataTouches++;
+    else hubIds.push(node.id);
     if (node.resolution === 'Semantic') verified++;
     for (const child of node.children) stack.push(child);
   }
@@ -350,6 +357,7 @@ function computeFlowStat(
     touchedEntities: touched,
     emittedEvents: emitted,
     nodeIds,
+    hubIds,
     score: nodeCount * (1 + boundaryCrossings),
   };
 }
@@ -368,6 +376,7 @@ function emptyFlowStat(entry: EntryVm, found: boolean): FlowStat {
     touchedEntities: [],
     emittedEvents: [],
     nodeIds: [],
+    hubIds: [],
     score: 0,
   };
 }

@@ -151,7 +151,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 _ => OutputFormat.Markdown
             },
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
-                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos"],
+                ?? ExtractionOptions.DefaultExcludePatterns,
             ExcludeExtractors = settings.Fast
                 ? resolvedIntent.Scenario.DisableExtractors
                     .AddRange((string[])["InMemoryEventBusExtractor", "AntiPatternDetector", "IndirectWiringDetector"])
