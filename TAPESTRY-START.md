@@ -64,7 +64,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T3.2 | entrypoints summary default ≤1.5k tok (full:true escape) | VERIFIED | (T3.2 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q9 byKind + top-15, 843 tok summary, full:true→34 (==count) |
 | T3.3 | trace budgetTokens (default ~4k, named omissions, deep-links) | TODO | | |
 | T3.4 | config latency ≤500ms warm (was 10.5s on shamshir) | TODO | | |
-| T3.5 | Repo-relative paths + Start-here noise filter | TODO | | |
+| T3.5 | Repo-relative paths + Start-here noise filter | VERIFIED | (T3.5 commit) | GraphQueryTests.GetInterestingPoints_excludes_framework_and_store_noise · GetInterestingPoints filters System.*/BCL/Store; ContextPackBuilder pack Location repo-relative (RootPath) · gates-t3.5.txt GATE: PASS eval 58P/6S/0F, overview intact |
 | T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | VERIFIED | (T3.6 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q10 method note tests_for+config · flow/trace cross-doc |
 | T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | TODO | | |
 | T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | TODO | | |
