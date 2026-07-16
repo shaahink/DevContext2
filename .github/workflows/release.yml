@@ -1,88 +1,64 @@
 name: Release
 
+# Tagging v* packs the CLI (MinVer derives the version from the tag) and publishes:
+#   - NuGet (when NUGET_API_KEY secret is set)
+#   - a GitHub Release with the .nupkg attached
+# There is no desktop job yet: the Tauri app needs DevContext.Server bundled as a sidecar
+# before a downloadable installer works — tracked in GITHUB-READY-START.md (desktop packaging gap).
+
 on:
   push:
     tags: ['v*']
 
 jobs:
   cli:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-
-    - name: Restore
-      run: dotnet restore src/DevContext.Cli
-
-    - name: Build
-      run: dotnet build src/DevContext.Cli --no-restore -c Release
-
-    - name: Test Core
-      run: dotnet test tests/DevContext.Core.Tests --no-restore -c Release
-
-    - name: Pack
-      run: dotnet pack src/DevContext.Cli -c Release --no-build -o nupkg
-
-    - name: Push to NuGet
-      if: env.NUGET_API_KEY != ''
-      run: dotnet nuget push nupkg/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-
-    - name: Upload CLI artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget-package
-        path: nupkg/*.nupkg
-
-  desktop:
+    name: CLI — pack & publish
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # MinVer walks tag history for the version
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-    - name: Restore
-      run: dotnet restore src/DevContext.Desktop
+      - name: Build
+        run: dotnet build DevContext.slnx --configuration Release
 
-    - name: Publish
-      run: dotnet publish src/DevContext.Desktop -c Release -r win-x64 --self-contained -o publish/desktop
+      - name: Test — fast suite
+        run: dotnet test DevContext.slnx --configuration Release --no-build --filter "Category!=Eval&Category!=Network"
 
-    - name: Zip
-      run: Compress-Archive -Path publish/desktop/* -DestinationPath publish/DevContext.Desktop.zip
+      - name: Pack CLI
+        run: dotnet pack src/DevContext.Cli --configuration Release --no-build -o nupkg
 
-    - name: Upload Desktop artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DevContext.Desktop.zip
-        path: publish/DevContext.Desktop.zip
+      - name: Push to NuGet
+        if: env.NUGET_API_KEY != ''
+        run: dotnet nuget push nupkg/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: nupkg/*.nupkg
 
   release:
-    needs: [cli, desktop]
+    name: GitHub Release
+    needs: [cli]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-    - uses: actions/download-artifact@v4
-      with:
-        pattern: '*'
-        path: artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          artifacts/nuget-package/*.nupkg
-          artifacts/DevContext.Desktop.zip/DevContext.Desktop.zip
-        generate_release_notes: true
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.nupkg
+          generate_release_notes: true
