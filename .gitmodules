@@ -1,0 +1,9 @@
+[submodule "eval-repos/TodoApi"]
+	path = eval-repos/TodoApi
+	url = https://github.com/davidfowl/TodoApi.git
+[submodule "eval-repos/VerticalSlice"]
+	path = eval-repos/VerticalSlice
+	url = https://github.com/ardalis/CleanArchitecture.git
+[submodule "eval-repos/eShop"]
+	path = eval-repos/eShop
+	url = https://github.com/dotnet/eShop.git

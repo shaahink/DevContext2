@@ -20,6 +20,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true # eval-repos/* fixtures — truth gates fail on empty fixture dirs
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -29,8 +31,10 @@ jobs:
       - name: Build (warnings are errors)
         run: dotnet build DevContext.slnx
 
+      # McpQa is excluded: eval/mcp-qa/run.js targets a machine-local dogfood repo (run.js:14)
+      # and a live server port — impossible in CI. It runs serially in eval/gates.ps1 locally.
       - name: Test — fast suite
-        run: dotnet test DevContext.slnx --no-build --filter "Category!=Eval&Category!=Network"
+        run: dotnet test DevContext.slnx --no-build --filter "Category!=Eval&Category!=Network&Category!=McpQa"
 
       - name: Loom guards + truth gate
         run: powershell -File scripts/loom-guards.ps1

@@ -2528,3 +2528,16 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 
 **Next:** user review/merge of feat/tapestry-t4 → develop; then T5 (Context Studio v2): T5.1
 quick wins + T5.6 recompute-on-change (the token-export trust bug).
+
+## 2026-07-16 — GitHub-ready strand G1–G5: CI/CD + public docs + reference refresh + fixture submodules (feat/github-ready)
+
+- Worktree C:/Code/DevContext2-github-ready off T4 head bcae33d (docs describe the post-T4-merge truth; tracker: GITHUB-READY-START.md).
+- G1 (dd276a6): ci.yml re-enabled — push/PR triggers were commented out; engine job mirrors the local gate battery (Debug build, fast tests, loom-guards+truth, CLI --strict smoke) + app job (pnpm check). release.yml: dead DevContext.Desktop job removed (any v* tag failed the workflow), CLI→NuGet via MinVer + GH Release.
+- G2 (3910202): README reworked around the four surfaces (CLI/desktop/MCP/server) with an honest build-from-source desktop story; NEW docs/product/mcp-reference.md (all 24 tools from source); CONTRIBUTING 24 tools.
+- G3 (e3b8782): CODE-MAP (GraphBuilder partials ~2.5k, ContextPackBuilder 908 + Verifier/FileFingerprint, 24 gRPC handlers, 24 MCP tools), AGENT-REFERENCE (+VerifyContext RPC/tool, release flow), cli-reference relative-path claim (E9: local path beats owner/repo), DEVELOPER-PIPELINE §11.
+- G4 (094faaf): CHANGELOG [Unreleased] catch-up (Lighthouse→Loom→Meridian→desktop redo→Tapestry T0-T4); .gitignore had 7 UTF-16 mojibake lines — eval-artifact patterns matched nothing; rewritten.
+- G5: **fresh clones had a red truth gate** — eval-repos/{TodoApi,VerticalSlice,eShop} gitlinks had no .gitmodules → empty dirs → truth tests ran (not skipped) against empty repos. .gitmodules reconstructed (pins verified vs live clones), CI checkout submodules:true.
+- **Verified (fresh worktree = fresh-clone proxy):** dotnet build 0w/0e; loom-guards PASS after submodule init; fast suite PASS; CLI --strict exit 0.
+- Open (owner calls, in tracker): desktop sidecar packaging; eval-results (432 tracked files) / analysis-exports clutter; root tracker archive; screenshot refresh; empty-fixture-dir→skip fix (engine strand owns TruthExpectationTests).
+
+**Next:** PR feat/github-ready → develop after feat/tapestry-t4 merges (branch is based on the t4 head).

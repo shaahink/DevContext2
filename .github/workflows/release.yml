@@ -28,7 +28,7 @@ jobs:
         run: dotnet build DevContext.slnx --configuration Release
 
       - name: Test — fast suite
-        run: dotnet test DevContext.slnx --configuration Release --no-build --filter "Category!=Eval&Category!=Network"
+        run: dotnet test DevContext.slnx --configuration Release --no-build --filter "Category!=Eval&Category!=Network&Category!=McpQa"
 
       - name: Pack CLI
         run: dotnet pack src/DevContext.Cli --configuration Release --no-build -o nupkg

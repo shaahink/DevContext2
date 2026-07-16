@@ -26,6 +26,20 @@ projects, every public doc claim is source-verified, and remaining gaps are trac
   failed the whole workflow. **Fixed in G1** (job removed; see desktop-packaging gap below).
 - `eval/gates.ps1` is NOT in CI — it clones real eval repos (network, ~minutes). Candidate for a
   manual/nightly workflow later; the local battery remains the merge gate for eval.
+- **Fresh clones had a red truth gate (G5 fix).** `eval-repos/{TodoApi,VerticalSlice,eShop}` were
+  committed as gitlinks **without `.gitmodules`** — unfetchable for anyone cloning the repo. Git
+  materializes them as empty dirs, so `Skip.IfNot(Directory.Exists(...))` in `TruthExpectationTests`
+  doesn't skip — the tests run against empty repos and FAIL (reproduced in this fresh worktree).
+  Fixed: `.gitmodules` reconstructed (URLs from the live clones; pins already in the tree:
+  TodoApi `307a1ea`, VerticalSlice = ardalis/CleanArchitecture `74624fb`, eShop `9b4f943`) and
+  `submodules: true` added to the CI engine checkout. **Open recommendation for the engine strand:**
+  make the fixture-absent guard treat an *empty* directory as absent so a submodule-less checkout
+  skips instead of failing (test code is owned by the Tapestry strand — not touched here).
+- **`Category=McpQa` excluded from CI test filters.** `McpQaGateTests` shells out to
+  `eval/mcp-qa/run.js`, which targets a machine-local dogfood repo (`run.js:14`) and a live server
+  port — it can never pass on GitHub Actions, and it collides with another agent's live server when
+  two sessions share the machine (observed in this worktree: 508/512 pass, only McpQa red while the
+  Tapestry agent was mid-session). It remains a serial step in `eval/gates.ps1` locally.
 
 ### Desktop packaging gap (open — blocks "download the desktop app")
 A packaged Tauri build only works when `DEVCONTEXT_SERVER_DLL` points at a published
