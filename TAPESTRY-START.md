@@ -115,7 +115,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T7.0 | Harness wall-speed rider: gates.ps1 -Scope full/engine/app + engine-stamp eval cache + 2-host eval split + pnpm check as Step 5 · launcher rewrite (pid files, tree-kill, idempotent, no handle-inheritance hang) · .gitignore de-mojibake (UTF-16 tail made TestResults/.dev-logs rules dead) · overlap-the-battery rule written (skill+docs+AGENTS) | VERIFIED | 1654a49 | gates-t7.0-full-run2.txt **GATE: PASS in 13m23s** (was ~25 min serial; eval 12m29s→8m03s split; -Scope app 1m29s; stamp-cached full ≈5½ min) · run-1 catch: PS 5.1 .ExitCode reads $null w/o cached .Handle — green hosts scored FAIL (fixed, pinned in skill gotchas) |
 | T7.1 | Bench + truth files extended (CompositionApp, gRPC service, aspire-samples) | VERIFIED | (T7.1 commit) | tapestry-t7/T7.1-EVIDENCE.md · 25-repo verdicts refresh (bench-t7.1.txt, truth 12P/3S/0F) · 2 engine fixes forced by new poles (dot-dir sln decoy + scaffolding-over-product pick, SolutionDiscoveryExtractorTests 8/8) · aspire markdown-render honesty pinned TruthPending(T8) |
 | T7.2 | Perf baseline + edge-explosion check (devcontext-bench) | TODO | | |
-| T7.3 | Stage waterfall ≥95% wall-time accounted | TODO | | |
+| T7.3 | Stage waterfall ≥95% wall-time accounted | VERIFIED | (T7.3 commit) | tapestry-t7/T7.3-EVIDENCE.md · shamshir 99.7% (SemanticLite=21.2s was the invisible half) · dogfood 96.8% · Snapshot stage now inside the wall clock · StageWaterfallTests |
 | T7.4 | Page-render RPC budget ≤15/navigation; server flow/facet memo (audit B11) | TODO | | |
 
 ### T8 — Close-out

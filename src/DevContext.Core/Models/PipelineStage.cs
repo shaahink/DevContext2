@@ -13,10 +13,18 @@ public enum PipelineStage
     SignalSealing,
     /// <summary>Specific (stage 3) extraction.</summary>
     SpecificExtraction,
+    /// <summary>Tier-B semantic-lite population + call-edge upgrade (T7.3 — was invisible in the waterfall).</summary>
+    SemanticLite,
+    /// <summary>Graph assembly: gateway routes + CodeGraph + Map build (T7.3 — was invisible in the waterfall).</summary>
+    GraphAssembly,
+    /// <summary>Post-graph insight computation (T7.3 — was invisible in the waterfall).</summary>
+    Insights,
     /// <summary>Scoring stage.</summary>
     Scoring,
     /// <summary>Compression stage.</summary>
     Compression,
+    /// <summary>Snapshot finalization: file fingerprints + snapshot assembly (T7.3 — ran after the wall clock stopped).</summary>
+    Snapshot,
     /// <summary>Rendering stage.</summary>
     Rendering
 }

@@ -118,6 +118,12 @@ public sealed class DiscoveryPipeline
         // between Stage 2 and 3 because it seals a signal; this rollup only feeds the map/render.
         model.PerServiceStyles = ArchitectureStyleDetector.DetectPerServiceStyles(model);
 
+        // T7.3 — every post-extraction phase lands in a named waterfall row: on shamshir the observed
+        // stages summed to ~25s of a 51s wall because semantic-lite, graph assembly, insights and
+        // snapshotting ran between/after the observed stages, invisible.
+        context.Observer.OnStageStarted(PipelineStage.SemanticLite);
+        var semanticLiteSw = Stopwatch.StartNew();
+
         // L3.1 — SemanticLitePopulator: Tier B (assets.json → compilations → semantic upgrades).
         // Runs after BodyFacts extraction but before GraphAssembly; degrades per-project when
         // assets.json is missing. Upgraded BodyFacts feed into seam detectors for higher-quality
@@ -209,6 +215,8 @@ public sealed class DiscoveryPipeline
             }
         }
 
+        context.Observer.OnStageCompleted(PipelineStage.SemanticLite, semanticLiteSw.Elapsed);
+
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
@@ -225,6 +233,9 @@ public sealed class DiscoveryPipeline
         // the legacy pruners drive ONLY the legacy catalog RenderPlan (JSON/HTML). So token budgeting is
         // already structurally out of the kernel; BudgetIndependenceTests locks this (Map/Trace output is
         // invariant across --max-tokens). Do not re-couple budget to graph assembly.
+        context.Observer.OnStageStarted(PipelineStage.GraphAssembly);
+        var graphAssemblySw = Stopwatch.StartNew();
+
         var scope = SolutionScope.FromModel(model);
 
         // G1 Phase 4 — perf guardrail. Whole-solution runs (no closure narrowing) over a large solution
@@ -266,10 +277,25 @@ public sealed class DiscoveryPipeline
                 + "The real dispatch path may be longer than captured.");
         }
 
+        context.Observer.OnStageCompleted(PipelineStage.GraphAssembly, graphAssemblySw.Elapsed);
+
         // I3 — compute insights post-graph (pure, cheap, no scoring)
+        context.Observer.OnStageStarted(PipelineStage.Insights);
+        var insightsSw = Stopwatch.StartNew();
         var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
+        context.Observer.OnStageCompleted(PipelineStage.Insights, insightsSw.Elapsed);
 
         await RunCompressionAsync(context, model, ct);
+
+        // T7.3 — fingerprinting ran inside the snapshot initializer AFTER OnPipelineCompleted had
+        // stopped the wall clock, so its cost (sha256 over every node-bearing file) was invisible.
+        // Compute it as an observed stage, and only then close the pipeline clock.
+        context.Observer.OnStageStarted(PipelineStage.Snapshot);
+        var snapshotSw = Stopwatch.StartNew();
+        var fileFingerprints = FileFingerprinter.Capture(
+            codeGraph.Nodes.Where(n => n.FilePath is not null).Select(n => n.FilePath!));
+        var gitHead = GitHeadReader.Read(context.RootPath);
+        context.Observer.OnStageCompleted(PipelineStage.Snapshot, snapshotSw.Elapsed);
 
         context.Observer.OnPipelineCompleted(model);
 
@@ -290,9 +316,8 @@ public sealed class DiscoveryPipeline
             Options = context.Options,
             RootPath = context.RootPath,
             AnalyzedAtUtc = DateTimeOffset.UtcNow,
-            GitHead = GitHeadReader.Read(context.RootPath),
-            FileFingerprints = FileFingerprinter.Capture(
-                codeGraph.Nodes.Where(n => n.FilePath is not null).Select(n => n.FilePath!)),
+            GitHead = gitHead,
+            FileFingerprints = fileFingerprints,
             Graph = codeGraph,
             Map = mapModel,
             Entries = entryPoints,
