@@ -216,6 +216,23 @@ public sealed class ContextPackBuilderTests
     }
 
     [Fact]
+    public void Multi_pack_propagates_section_omission_reasons()
+    {
+        // T5.1 (audit R1) — BuildMulti built the per-section omission reasons and threw them
+        // away, so the Studio's GetContextPack always reported an empty omitted[] while
+        // silently cutting sections. The single-focus form carries the reasons verbatim.
+        var (query, snapshot) = Arrange();
+        var entryId = snapshot.Entries[0].Node.ToString();
+
+        var pack = new ContextPackBuilder(query, snapshot).BuildMulti(
+            [new ContextCardSpec("flow", "Flow", [entryId])],
+            totalBudget: 4000);
+
+        Assert.Contains("di_wiring: empty — omitted", pack.Omitted);
+        Assert.Contains("entities: empty — omitted", pack.Omitted);
+    }
+
+    [Fact]
     public void Bodies_expand_to_full_text_and_mark_truncation_when_cut()
     {
         // T4.2 — the audit's 612/4000 under-fill: bodies fill the remaining budget spine-first.

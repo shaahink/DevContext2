@@ -14,6 +14,8 @@
 //   B. titlebar "New" preserves other tabs     (audit U2, owner L6.1)
 //   C. code pane non-empty on entry selection  (audit U3, owner L6.2)
 //   D. context studio preset seeds >= 1 card    (audit U6, owner L6.4)
+//   E. tiny-budget pack renders omitted[] list  (audit R1, owner T5.1)
+//   F. failed pack RPC shows error + retry works (audit R4, owner T5.1)
 //
 // Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
@@ -81,7 +83,8 @@ async function main() {
   page.on("console", (m) => { if (m.type() === "error") note("console.error: " + m.text().slice(0, 200)); });
 
   // Shared drive state captured for the assertions.
-  const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null };
+  const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null,
+    omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null };
 
   try {
     // ── boot + analyze dogfood ──
@@ -202,6 +205,56 @@ async function main() {
       await shot(page, "10-context-preset");
     } else note("context preset button NOT found");
 
+    // ── E. tiny-budget pack renders omitted[] (T5.1, audit R1) ──
+    // Slide the budget to the 1k floor, then seed a fresh preset batch — the pack
+    // request runs at 1k, the server cuts sections, and the panel must SAY so.
+    const setSlider = async (value) => page.evaluate((v) => {
+      const el = document.querySelector("#budget-slider");
+      if (!el) return false;
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setter.call(el, String(v));
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      return true;
+    }, value);
+    const seedPreset = async () => {
+      const btn = page.locator("button", { hasText: /changing this endpoint/i }).first();
+      if (!(await btn.count())) return false;
+      await btn.click(); await sleep(600);
+      const entry = page.locator("app-scope-picker button", { hasText: /\/|GET|POST|PUT|DELETE/ }).first();
+      if (!(await entry.count())) return false;
+      await entry.click(); await sleep(2500);
+      return true;
+    };
+    if (await setSlider(1000)) {
+      note("budget slider set to 1000");
+      if (await seedPreset()) {
+        state.omittedVisible = await page.evaluate(() =>
+          !!document.querySelector("[data-testid='omitted-list']"));
+        state.omittedText = await page.evaluate(() =>
+          document.querySelector("[data-testid='omitted-list']")?.textContent?.trim().slice(0, 160) ?? null);
+        note("omitted list visible: " + state.omittedVisible + " text: " + state.omittedText);
+        await shot(page, "11-context-omitted");
+      } else note("E: preset re-seed failed");
+    } else note("E: budget slider NOT found");
+
+    // ── F. failed pack RPC shows per-card error + retry recovers (T5.1, audit R4) ──
+    await page.route("**/GetContextPack", (route) => route.abort("connectionrefused"));
+    if (await seedPreset()) {
+      state.errorShown = await page.evaluate(() =>
+        document.querySelectorAll("[data-testid='card-error']").length > 0);
+      note("card error shown while server unreachable: " + state.errorShown);
+      await shot(page, "12-context-error");
+      await page.unroute("**/GetContextPack");
+      const retry = page.locator("[data-testid='card-retry']").first();
+      if (await retry.count()) {
+        await retry.click(); await sleep(2500);
+        state.errorClearedAfterRetry = await page.evaluate(() =>
+          document.querySelectorAll("[data-testid='card-error']").length === 0);
+        note("errors cleared after retry: " + state.errorClearedAfterRetry);
+        await shot(page, "13-context-retry");
+      } else note("F: retry button NOT found");
+    } else { note("F: preset re-seed failed"); await page.unroute("**/GetContextPack"); }
+
   } catch (e) {
     note("DRIVE ERROR: " + e.message);
   } finally {
@@ -221,6 +274,10 @@ async function main() {
         run: () => ({ pass: (state.codeContent?.length ?? 0) > 0, detail: `code length=${state.codeContent?.length ?? "null"}` }) },
       { id: "D-context-preset-cards", desc: "context studio preset seeds >= 1 card", audit: "U6", owner: "L6.4", expectedRedUntil: "L6",
         run: () => ({ pass: (state.presetCards ?? 0) >= 1, detail: `cards=${state.presetCards ?? "null"}` }) },
+      { id: "E-omitted-list-rendered", desc: "tiny-budget pack renders the omitted[] list", audit: "R1", owner: "T5.1",
+        run: () => ({ pass: state.omittedVisible === true, detail: `visible=${state.omittedVisible} text=${String(state.omittedText).slice(0, 80)}` }) },
+      { id: "F-pack-error-retry", desc: "failed pack RPC shows card error; retry recovers", audit: "R4", owner: "T5.1",
+        run: () => ({ pass: state.errorShown === true && state.errorClearedAfterRetry === true, detail: `errorShown=${state.errorShown} clearedAfterRetry=${state.errorClearedAfterRetry}` }) },
     );
     for (const a of assertions) {
       let r; try { r = a.run(); } catch (e) { r = { pass: false, detail: "assert error: " + e.message }; }

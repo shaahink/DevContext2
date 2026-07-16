@@ -84,7 +84,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T5 — Context Studio v2
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T5.1 | R1 omitted list · R4 error state · R5 save extension | TODO | | |
+| T5.1 | R1 omitted list · R4 error state · R5 save extension | VERIFIED | (T5.1 commit) | tapestry-t5/T5.1-EVIDENCE.md · **root cause: BuildMulti DISCARDED BuildSections' omission reasons — pack omitted[] was always empty**; now propagated (focus-attributed, deduped, cap 12) + `Multi_pack_propagates_section_omission_reasons` · R4 error strip + Retry (old catch mutated cards in place — no signal fire) · R5 .txt/.md · 4 vitest specs · ui-audit-drive E/F armed, **6/6 PASS (first all-green drive)** · gates-t5.1.txt GATE: PASS (eval 58P/6S/0F) |
 | T5.2 | Verification panel (R6 UI) | TODO | | |
 | T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | TODO | | |
 | T5.4 | Worker/hub presets | TODO | | |

@@ -76,6 +76,20 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         }
       </div>
 
+      @if (omitted().length > 0) {
+        <div class="mt-3 border-t border-line pt-2" data-testid="omitted-list">
+          <h3 class="mb-1 flex items-center gap-1 text-2xs font-semibold uppercase tracking-wider text-warn">
+            <app-icon name="alert-triangle" [size]="12" />
+            Omitted ({{ omitted().length }})
+          </h3>
+          <ul class="space-y-0.5">
+            @for (line of omitted(); track line) {
+              <li class="text-2xs leading-snug text-ink-subtle" [title]="line">{{ line }}</li>
+            }
+          </ul>
+        </div>
+      }
+
       <div class="mt-3 border-t border-line pt-2">
         <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Intent</h3>
         <div class="flex gap-1 mb-2">
@@ -150,6 +164,8 @@ export class BudgetPanel {
   private readonly toast = inject(ToastService);
 
   readonly cards = input<readonly ContextCard[]>([]);
+  /** T5.1 (audit R1) — the server's omitted[] lines; silent truncation is a trust bug. */
+  readonly omitted = input<readonly string[]>([]);
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();

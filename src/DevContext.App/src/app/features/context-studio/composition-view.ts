@@ -15,6 +15,8 @@ export interface ContextCard {
   serverTokens: number | null;
   sectionTokens: readonly { key: string; tokens: number }[];
   provenance: readonly string[];
+  /** T5.1 (audit R4) — RPC failure message; a failed card must say so, not just stop spinning. */
+  error: string | null;
 }
 
 const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
@@ -50,7 +52,8 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
       @for (card of cards(); track card.id; let i = $index) {
         <div
           class="mb-1 rounded border border-line bg-surface transition-colors"
-          [class.border-accent/30]="card.type === 'flow'"
+          [class.border-accent/30]="card.type === 'flow' && !card.error"
+          [class.border-danger/50]="!!card.error"
           [class.opacity-60]="card.loading"
           draggable="true"
           (dragstart)="onDragStart($event, i)"
@@ -90,6 +93,20 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
               <app-icon name="x" [size]="14" />
             </button>
           </div>
+          @if (card.error && !card.loading) {
+            <div class="flex items-center gap-1.5 border-t border-danger/30 bg-danger/10 px-2 py-1" data-testid="card-error">
+              <app-icon name="alert-triangle" [size]="12" class="shrink-0 text-danger" />
+              <span class="min-w-0 flex-1 truncate text-2xs text-danger" [title]="card.error">{{ card.error }}</span>
+              <button
+                type="button"
+                class="shrink-0 rounded border border-danger/40 px-1.5 py-px text-2xs text-danger hover:bg-danger/20 transition-colors"
+                data-testid="card-retry"
+                (click)="onRetry()"
+              >
+                Retry
+              </button>
+            </div>
+          }
           @if (card.provenance.length > 0 || card.sectionTokens.length > 0) {
             <div class="flex items-center gap-1 px-2 py-0.5 border-t border-line/50">
               @for (pv of card.provenance; track pv) {
@@ -133,6 +150,8 @@ export class CompositionView {
   readonly cardToggleBody = output<string>();
   readonly cardRemove = output<string>();
   readonly cardReorder = output<{ fromIndex: number; toIndex: number }>();
+  /** T5.1 (audit R4) — retry re-requests every failed card in one batch. */
+  readonly cardRetry = output<void>();
 
   protected readonly dragIndex = signal<number | null>(null);
   protected readonly dragOverIndex = signal<number | null>(null);
@@ -167,6 +186,10 @@ export class CompositionView {
 
   protected onRemove(id: string): void {
     this.cardRemove.emit(id);
+  }
+
+  protected onRetry(): void {
+    this.cardRetry.emit();
   }
 
   protected onDragStart(event: DragEvent, index: number): void {

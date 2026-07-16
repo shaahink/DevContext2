@@ -466,12 +466,18 @@ public sealed class ContextPackBuilder
         // Trace each unique entry once, build ALL sections.
         // Sections are stored per-focus so each card can aggregate from its own entries.
         var entrySections = new Dictionary<string, ImmutableArray<SectionAllocation>>();
+        var sectionOmissions = new List<string>();
         foreach (var (focus, _) in uniqueFocuses)
         {
             var budget = focusBudgets.GetValueOrDefault(focus, minEntryBudget);
-            var (allSections, _) = BuildSections(focus, budget, intent);
+            var (allSections, focusOmitted) = BuildSections(focus, budget, intent);
             if (allSections.Length > 0)
                 entrySections[focus] = allSections;
+            // T5.1 (audit R1) — these omission reasons were built and discarded here, so
+            // GetContextPack always reported an empty omitted[] while silently cutting
+            // sections. Attribute per focus when the pack spans more than one entry.
+            foreach (var line in focusOmitted)
+                sectionOmissions.Add(uniqueFocuses.Count > 1 ? $"{focus} — {line}" : line);
         }
 
         // Build per-card items — each card aggregates sections from ALL its entries
@@ -525,6 +531,14 @@ public sealed class ContextPackBuilder
 
             cardItems.Add(new ContextCardPack(card.Type, card.Title, picked, cardTokens));
         }
+
+        // T5.1 (audit R1) — section-level omissions ride after the card-level ones,
+        // deduped (the same section line repeats across cards sharing a focus) and capped.
+        const int omissionCap = 12;
+        var distinctOmissions = sectionOmissions.Distinct().ToList();
+        omitted.AddRange(distinctOmissions.Take(omissionCap));
+        if (distinctOmissions.Count > omissionCap)
+            omitted.Add($"… +{distinctOmissions.Count - omissionCap} more omissions");
 
         // Assemble full markdown pack. T4.1: header names the repo + when/what was analyzed;
         // the archetype comes from the Map (snapshot.Explanation is never populated — audit C2's

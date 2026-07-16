@@ -33,6 +33,7 @@ import {
   Settings,
   Square,
   Sun,
+  TriangleAlert,
   Webhook,
   X,
   Zap,
@@ -40,6 +41,7 @@ import {
 
 const REGISTRY: Record<string, IconNode> = {
   activity: Activity,
+  'alert-triangle': TriangleAlert,
   'arrow-right': ArrowRight,
   'arrow-up': ArrowUp,
   boxes: Boxes,

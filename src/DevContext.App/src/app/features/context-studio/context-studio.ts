@@ -33,11 +33,13 @@ const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
         (cardToggleBody)="onToggleBody($event)"
         (cardRemove)="onRemove($event)"
         (cardReorder)="onReorder($event)"
+        (cardRetry)="onRetry()"
       />
 
       <app-budget-panel
         class="w-48 shrink-0 border-l border-line bg-surface"
         [cards]="cards()"
+        [omitted]="packOmitted()"
         [(budget)]="budgetTokens"
         [(selectedIntent)]="selectedIntent"
         [(selectedFormat)]="selectedFormat"
@@ -87,6 +89,9 @@ export class ContextStudio {
 
   protected serverPackMarkdown: string | null = null;
 
+  /** T5.1 (audit R1) — what the server cut, rendered in the budget panel. */
+  protected readonly packOmitted = signal<readonly string[]>([]);
+
   protected onCardsChange(seeds: readonly ContextCardSeed[]): void {
     const handle = this.session.handle();
     if (!handle) return;
@@ -112,6 +117,7 @@ export class ContextStudio {
       provenance: s.entryIds
         .map((id) => entryMap.get(id)?.provenance)
         .filter((p): p is string => !!p),
+      error: null,
     }));
 
     this.cards.update((prev) => [...prev, ...newCards]);
@@ -119,14 +125,17 @@ export class ContextStudio {
     void this.loadAllCards(newCards, handle);
   }
 
-  private async loadAllCards(newCards: ContextCard[], handle: string): Promise<void> {
+  private async loadAllCards(newCards: readonly ContextCard[], handle: string): Promise<void> {
     // L4.4 — Single GetContextPack call replaces N individual GetContext calls (closes Trap A).
+    const requestedIds = new Set(newCards.map((c) => c.id));
     const cardSpecs = newCards
       .filter((c) => c.type !== 'config' && c.type !== 'tests')
       .map((c) => ({ type: c.type, title: c.title, entryIds: [...c.entryIds] }));
 
     if (cardSpecs.length === 0) {
-      for (const c of newCards) c.loading = false;
+      this.cards.update((prev) =>
+        prev.map((c) => (requestedIds.has(c.id) ? { ...c, loading: false } : c)),
+      );
       return;
     }
 
@@ -137,6 +146,7 @@ export class ContextStudio {
       });
 
       this.serverPackMarkdown = pack.assembledMarkdown || null;
+      this.packOmitted.set(pack.omitted);
 
       const cardByType = new Map<string, typeof pack.cards[0]>();
       for (const ci of pack.cards) {
@@ -145,21 +155,40 @@ export class ContextStudio {
 
       this.cards.update((prev) =>
         prev.map((c) => {
+          if (!requestedIds.has(c.id)) return c;
           const ci = cardByType.get(c.type);
           if (!ci) return { ...c, loading: false };
           return {
             ...c,
             content: ci.title,
             loading: false,
+            error: null,
             serverTokens: ci.tokens > 0 ? ci.tokens : null,
             estimatedLines: ci.tokens > 0 ? Math.max(1, Math.round(ci.tokens / 2.5)) : c.estimatedLines,
             sectionTokens: ci.sections.map((s) => ({ key: s.key, tokens: s.tokens })),
           };
         }),
       );
-    } catch {
-      for (const c of newCards) c.loading = false;
+    } catch (e) {
+      // T5.1 (audit R4) — a failed RPC must SAY so on the cards, not just stop the spinners.
+      // The old path also mutated card objects in place, which never triggered a signal update.
+      const message = e instanceof Error ? e.message : 'Context pack request failed';
+      this.cards.update((prev) =>
+        prev.map((c) => (requestedIds.has(c.id) ? { ...c, loading: false, error: message } : c)),
+      );
     }
+  }
+
+  /** T5.1 (audit R4) — retry every failed card in one batch. */
+  protected onRetry(): void {
+    const handle = this.session.handle();
+    if (!handle) return;
+    const failed = this.cards().filter((c) => c.error !== null);
+    if (failed.length === 0) return;
+    this.cards.update((prev) =>
+      prev.map((c) => (c.error !== null ? { ...c, loading: true, error: null } : c)),
+    );
+    void this.loadAllCards(failed, handle);
   }
 
   protected onToggleBody(id: string): void {
@@ -227,14 +256,20 @@ export class ContextStudio {
   }
 
   protected onSave(): void {
-    const text = this.buildContext(this.selectedFormat());
-    const blob = new Blob([text], { type: this.selectedFormat() === 'plain' ? 'text/plain' : 'text/markdown;charset=utf-8' });
+    const format = this.selectedFormat();
+    const text = this.buildContext(format);
+    const blob = new Blob([text], { type: format === 'plain' ? 'text/plain' : 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'devcontext-context.md';
+    a.download = this.saveFileName(format);
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  /** T5.1 (audit R5) — plain format saves .txt, not a hardcoded .md. */
+  protected saveFileName(format: OutputFormat): string {
+    return format === 'plain' ? 'devcontext-context.txt' : 'devcontext-context.md';
   }
 
   private buildContext(format: OutputFormat): string {
