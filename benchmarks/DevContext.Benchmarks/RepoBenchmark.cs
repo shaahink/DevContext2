@@ -32,7 +32,9 @@ public static class RepoBenchmark
     {
         var root = FindWorkspaceRoot();
         var eval = Path.Combine(root, "eval-repos");
-        var dntSite = @"C:\Users\shahi\AppData\Local\DevContext\repos\VahidN-DntSite-default";
+        // T7.2 — the historical AppData clone is gone; the standing eval-repos clone is the same
+        // repo (fresher rev), and eval-repos.json's DntSite entry was repointed there in T7.1.
+        var dntSite = Path.Combine(eval, "DntSite");
 
         var cases = new List<RepoCase>
         {
@@ -106,6 +108,9 @@ public static class RepoBenchmark
         public double Stage3Ms { get; init; }
         public string TopExtractors { get; init; } = "";
         public string CallGraphPhases { get; init; } = "";
+        /// <summary>T7.2/T7.3 — the full named-stage waterfall (SemanticLite, GraphAssembly, … are
+        /// not extractors, so the extractor columns can't attribute their cost).</summary>
+        public string StageBreakdown { get; init; } = "";
     }
 
     private static async Task<RunRow?> MeasureAsync(DiscoveryPipeline pipeline, IFileSystem fs, string repoPath, string? focus)
@@ -166,6 +171,10 @@ public static class RepoBenchmark
                 .Select(d => d.Message[(d.Message.IndexOf("phases:", StringComparison.Ordinal) + 8)..])
                 .FirstOrDefault() ?? "";
 
+            var stageBreakdown = string.Join(" | ", lastReport.Stages
+                .Where(s => s.Elapsed.TotalMilliseconds >= 1)
+                .Select(s => $"{s.Stage} {s.Elapsed.TotalMilliseconds:F0}ms"));
+
             return new RunRow
             {
                 MedianMs = med.Ms,
@@ -179,6 +188,7 @@ public static class RepoBenchmark
                 Stage3Ms = lastReport.Parallelism.Stage3Wall.TotalMilliseconds,
                 TopExtractors = string.Join(", ", top),
                 CallGraphPhases = cgPhases,
+                StageBreakdown = stageBreakdown,
             };
         }
         catch (Exception ex)
@@ -207,6 +217,11 @@ public static class RepoBenchmark
         sb.AppendLine();
         foreach (var r in rows.Where(r => !string.IsNullOrEmpty(r.CallGraphPhases)))
             sb.AppendLine($"- **{r.Repo}** {r.Mode}: {r.CallGraphPhases}");
+        sb.AppendLine();
+        sb.AppendLine("## Stage waterfall per run (T7.3 rows — SemanticLite/GraphAssembly/… aren't extractors)");
+        sb.AppendLine();
+        foreach (var r in rows.Where(r => !string.IsNullOrEmpty(r.StageBreakdown)))
+            sb.AppendLine($"- **{r.Repo}** {r.Mode}: {r.StageBreakdown}");
         return sb.ToString();
     }
 
