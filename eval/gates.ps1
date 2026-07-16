@@ -156,6 +156,55 @@ if ($cliFailed -gt 0) {
 }
 Write-Pass "CLI matrix: all commands ran successfully"
 
+# Step 4b: CLI query ops (Tapestry T3.7).
+# entrypoints/stats/trace now run against the snapshot's GraphQuery (one JSON shape shared with MCP),
+# not the overview render. Assert each op returns real graph JSON on the fixture.
+Write-Step "Step 4b: CLI query ops (T3.7)"
+$queryFailed = 0
+
+$epJson = & dotnet run --no-build --project $cliProject -- query entrypoints --path $testDir --format json 2>&1 | Out-String
+try { $ep = $epJson | ConvertFrom-Json } catch { $ep = $null }
+if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Properties.Count -gt 0)) {
+    Write-Host "    entrypoints: $($ep.count) entries across $($ep.byKind.PSObject.Properties.Count) kind(s)" -ForegroundColor Green
+} else {
+    Write-Host "    entrypoints: expected >0 entries with per-kind counts" -ForegroundColor Red; $queryFailed++
+}
+
+$stJson = & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json 2>&1 | Out-String
+try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
+if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind) {
+    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, per-kind counts present" -ForegroundColor Green
+} else {
+    Write-Host "    stats: expected node counts + entriesByKind" -ForegroundColor Red; $queryFailed++
+}
+
+# trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
+& dotnet run --no-build --project $cliProject -- query trace --path $testDir 2>&1 | Out-Null
+if ($LASTEXITCODE -eq 1) {
+    Write-Host "    trace (no focus): required-focus guard fired (exit 1)" -ForegroundColor Green
+} else {
+    Write-Host "    trace (no focus): expected exit 1, got $LASTEXITCODE" -ForegroundColor Red; $queryFailed++
+}
+$focus = $null
+if ($ep -and $ep.entries -and $ep.entries.Count -gt 0) { $focus = $ep.entries[0].title }
+if ($focus) {
+    $trJson = & dotnet run --no-build --project $cliProject -- query trace --path $testDir --focus $focus --format json 2>&1 | Out-String
+    try { $tr = $trJson | ConvertFrom-Json } catch { $tr = $null }
+    if ($tr -and $tr.found -eq $true -and $tr.root) {
+        Write-Host "    trace('$focus'): found, root=$($tr.root.title)" -ForegroundColor Green
+    } else {
+        Write-Host "    trace('$focus'): expected found=true with a root (focus not honored)" -ForegroundColor Red; $queryFailed++
+    }
+}
+
+if ($queryFailed -gt 0) {
+    Write-Fail "$queryFailed CLI query op(s) failed" -Step 4
+    Write-Host ""
+    Write-Host "GATE: FAIL (step 4b - CLI query ops)" -ForegroundColor Red
+    exit 4
+}
+Write-Pass "CLI query ops: entrypoints/stats/trace return graph JSON"
+
 # Final
 Write-Host ""
 Write-Host "GATE: PASS" -ForegroundColor Green
