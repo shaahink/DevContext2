@@ -112,7 +112,9 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 return 1;
             }
 
-            AnsiConsole.WriteLine(JsonSerializer.Serialize(output, JsonOpts));
+            // T3.7 — write machine-readable JSON to RAW stdout. AnsiConsole wraps at the console width,
+            // which splits long file:line strings mid-value and corrupts the JSON for a parser.
+            Console.WriteLine(JsonSerializer.Serialize(output, JsonOpts));
             return 0;
         }
 
