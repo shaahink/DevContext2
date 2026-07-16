@@ -75,12 +75,12 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T4 — Context generation v2
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T4.1 | Pack identity header + repo-relative file:line locations | VERIFIED | (T4.1 commit) | tapestry-t4/T4.1-EVIDENCE.md · pack-dogfood-checkout.json (`# eshop-microservices — POST /basket/checkout` + `analyzed … · HEAD 7e43d80`; every located node repo-rel `file:line`, no trailing colon, no abs paths) · ContextPackBuilderTests (5) · root causes: snapshot.Explanation never populated (empty `# ` title) + `int?` LineNumber rendering `path:` |
+| T4.1 | Pack identity header + repo-relative file:line locations | VERIFIED | 0d47247 | tapestry-t4/T4.1-EVIDENCE.md · pack-dogfood-checkout.json (`# eshop-microservices — POST /basket/checkout` + `analyzed … · HEAD 7e43d80`; every located node repo-rel `file:line`, no trailing colon, no abs paths) · ContextPackBuilderTests (5) · root causes: snapshot.Explanation never populated (empty `# ` title) + `int?` LineNumber rendering `path:` |
 | T4.2 | Budget utilization ≥85% (spine-first body expansion, +N-lines markers) | TODO | | |
 | T4.3 | config + tests sections server-side (R9) | TODO | | |
 | T4.4 | Per-section provenance + tier mix (R10) | TODO | | |
 | T4.5 | VerifyContextPack staleness API (R6 engine half) + MCP verify_context | TODO | | |
-| T4.6 | Pack assembly correctness: contracts≠signatures · empty sections omitted · archetype header (audit C2) | VERIFIED | (T4.6 commit) | tapestry-t4/T4.6-EVIDENCE.md · BuildContracts (role-tag messages + interfaces + DTOs, entities excluded) — dogfood contracts=174tok distinct from signatures=445 · empty sections/cards dropped + recorded in omitted[] · `<!-- context card -->` out of AssembledMarkdown · ContextPackAssemblyTests (CompositionApp full-pipeline gate: contracts≠signatures, archetype filled, no `, 0 tok_`, no `<!--`) |
+| T4.6 | Pack assembly correctness: contracts≠signatures · empty sections omitted · archetype header (audit C2) | VERIFIED | 0d47247 | tapestry-t4/T4.6-EVIDENCE.md · BuildContracts (role-tag messages + interfaces + DTOs, entities excluded) — dogfood contracts=174tok distinct from signatures=445 · empty sections/cards dropped + recorded in omitted[] · `<!-- context card -->` out of AssembledMarkdown · ContextPackAssemblyTests (CompositionApp full-pipeline gate: contracts≠signatures, archetype filled, no `, 0 tok_`, no `<!--`) |
 
 ### T5 — Context Studio v2
 | # | Checkpoint | Status | Commit | Evidence |
