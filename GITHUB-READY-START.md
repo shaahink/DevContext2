@@ -12,8 +12,8 @@ projects, every public doc claim is source-verified, and remaining gaps are trac
 
 | # | Chunk | Scope | Status | Commit |
 |---|-------|-------|--------|--------|
-| G1 | CI/CD | `ci.yml`: enable push/PR triggers, mirror the gate battery (Debug build, fast tests, loom-guards + truth, CLI `--strict` smoke), add App job (`pnpm check`). `release.yml`: drop the deleted `DevContext.Desktop` job, CLI → NuGet via MinVer, release notes. | done | — |
-| G2 | Public docs | README overhaul (multi-surface presentation, honest desktop install story, 24 MCP tools, current agent pointers, de-brittled counts). NEW `docs/product/mcp-reference.md` (all 24 tools, setup snippets). CONTRIBUTING count fix. | pending | — |
+| G1 | CI/CD | `ci.yml`: enable push/PR triggers, mirror the gate battery (Debug build, fast tests, loom-guards + truth, CLI `--strict` smoke), add App job (`pnpm check`). `release.yml`: drop the deleted `DevContext.Desktop` job, CLI → NuGet via MinVer, release notes. | done | `dd276a6` |
+| G2 | Public docs | README overhaul (multi-surface presentation, honest desktop install story, 24 MCP tools, current agent pointers, de-brittled counts). NEW `docs/product/mcp-reference.md` (all 24 tools, setup snippets). CONTRIBUTING count fix. | done | — |
 | G3 | Reference docs | Bring `docs/dev/CODE-MAP.md`, `docs/product/AGENT-REFERENCE.md`, `cli-reference.md`, `configuration.md`, `desktop-ui.md` up to T2–T4 state (verify counts, paths, flags vs source). | pending | — |
 | G4 | Repo audit | CHANGELOG catch-up, root/tracked-file clutter audit (`analysis-exports/`, `eval-results/` 432 tracked files, root phase trackers), desktop-packaging gap, screenshot freshness. Deliverable: audit section below + safe fixes applied. | pending | — |
 
