@@ -67,7 +67,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | T3.5 | Repo-relative paths + Start-here noise filter | VERIFIED | (T3.5 commit) | GraphQueryTests.GetInterestingPoints_excludes_framework_and_store_noise · GetInterestingPoints filters System.*/BCL/Store; ContextPackBuilder pack Location repo-relative (RootPath) · gates-t3.5.txt GATE: PASS eval 58P/6S/0F, overview intact |
 | T3.6 | Self-describing heuristics (tests_for/config method note; flow-vs-trace docs) | VERIFIED | (T3.6 commit) | tapestry-t3/T3-MCP-EVIDENCE.md · q10 method note tests_for+config · flow/trace cross-doc |
 | T3.7 | CLI query parity: entrypoints/stats/trace implemented, kernel JSON envelope (audit A15) | VERIFIED | (T3.7 commit) | QueryCommand entrypoints/stats/trace run against GraphQuery (MCP-shaped JSON), no longer fall to overview render; gates.ps1 Step 4b asserts each op; cli-query-ops.txt (entrypoints 2/byKind, stats 16n/9e, trace no-focus exit 1 + focus found) |
-| T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | TODO | | |
+| T3.8 | Report hygiene: telemetry behind --stats · surface cap · repo-derived footer (audit C5/D) | VERIFIED | (T3.8 commit) | **MassTransit report 476KB→34.5KB (<40KB gate)**; PUBLIC SURFACE capped 25 ns × 12 types + "…N more (--format json)"; no Run Report in default output (0); map footer + library footer derive from repo's OWN top entry (goldens: POST /api/orders/→POST /orders / GET /products). LibrarySurfaceRendererTests (cap) + regenerated goldens. masstransit-report.md |
 
 ### T4 — Context generation v2
 | # | Checkpoint | Status | Commit | Evidence |

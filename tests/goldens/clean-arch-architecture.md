@@ -19,4 +19,4 @@ PACKAGES
    ORM/Data:  Microsoft.EntityFrameworkCore 10.0.0-preview.3.25171.5
    Mediator/CQRS:  MediatR 12.0.0
 
-→ drill in:  --focus "<entry>"   (e.g. --focus "POST /api/orders/" or --focus <TypeName>)
+→ drill in:  --focus "<entry>"   (e.g. --focus "GET /products")

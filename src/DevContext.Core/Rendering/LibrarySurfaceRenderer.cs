@@ -93,14 +93,21 @@ public static class LibrarySurfaceRenderer
         sb.AppendLine();
     }
 
-    private static void AppendSurface(StringBuilder sb, LibrarySurface? surface)
+    // T3.8 — cap the enumerated surface. MassTransit's 4,531 public types across 210 namespaces
+    // rendered a 476 KB report; the flat catalog is a reference, not a read. Show the top namespaces,
+    // each capped to its top types, and point at --format json for the full surface
+    // (gate: MassTransit report < 40 KB).
+    private const int MaxTypesPerNamespace = 12;
+    private const int MaxNamespaces = 25;
+
+    internal static void AppendSurface(StringBuilder sb, LibrarySurface? surface)
     {
         if (surface is null || surface.Groups.IsDefaultOrEmpty) return;
         sb.AppendLine("PUBLIC SURFACE");
-        foreach (var group in surface.Groups)
+        foreach (var group in surface.Groups.Take(MaxNamespaces))
         {
             sb.AppendLine($"   {group.Namespace}");
-            foreach (var type in group.Types)
+            foreach (var type in group.Types.Take(MaxTypesPerNamespace))
             {
                 var kind = type.Kind.ToString().ToLowerInvariant();
                 var members = type.Members.IsDefaultOrEmpty ? "" : ":  " + string.Join(", ", type.Members);
@@ -108,7 +115,11 @@ public static class LibrarySurfaceRenderer
                 if (!string.IsNullOrEmpty(type.Doc))
                     sb.AppendLine($"         {type.Doc}");
             }
+            if (group.Types.Length > MaxTypesPerNamespace)
+                sb.AppendLine($"      … and {group.Types.Length - MaxTypesPerNamespace} more (use --format json for the full surface)");
         }
+        if (surface.Groups.Length > MaxNamespaces)
+            sb.AppendLine($"   … and {surface.Groups.Length - MaxNamespaces} more namespaces (use --format json for the full surface)");
         if (!surface.Internals.IsDefaultOrEmpty)
         {
             var n = surface.Internals.Sum(g => g.Types.Length);

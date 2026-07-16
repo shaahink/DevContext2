@@ -37,7 +37,7 @@ public static class MapRenderer
         Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
-        Add(sections, "Footer", AppendFooter);
+        Add(sections, "Footer", sb => AppendFooter(sb, ctx));
 
         return new ValueTask<RenderedContext>(NarrativeSections.ToRenderedContext(sections));
     }
@@ -411,9 +411,17 @@ public static class MapRenderer
     /// <summary>Max gateway routes shown, remainder disclosed (W4).</summary>
     private const int MaxRoutes = 30;
 
-    private static void AppendFooter(StringBuilder sb)
+    // T3.8 — the drill-in example is derived from THIS repo's own top-scored entry, not a hardcoded
+    // eShop route ("POST /api/orders/") that resolves on no other repo (audit C5/D).
+    private static void AppendFooter(StringBuilder sb, MapRenderContext ctx)
     {
-        sb.AppendLine("→ drill in:  --focus \"<entry>\"   (e.g. --focus \"POST /api/orders/\" or --focus <TypeName>)");
+        var example = ctx.Map.Entries.IsDefaultOrEmpty
+            ? "<TypeName>"
+            : ctx.Map.Entries
+                .OrderByDescending(e => e.Score)
+                .Select(e => e.Route is not null && e.HttpMethod is not null ? $"{e.HttpMethod} {e.Route}" : e.Title)
+                .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t)) ?? "<TypeName>";
+        sb.AppendLine($"→ drill in:  --focus \"<entry>\"   (e.g. --focus \"{example}\")");
     }
 
     internal static string GroupLabelForKind(EntryPointKind kind) => GroupLabel(kind);
