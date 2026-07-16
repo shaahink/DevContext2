@@ -1,0 +1,52 @@
+name: Eval
+
+# CI companion to ci.yml: runs the full local gate battery (eval/gates.ps1) against the
+# reproducible eval-repo set. Too slow/networked for PR CI — manual + weekly instead.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1' # Mondays 03:00 UTC
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gates:
+    name: Gate battery + eval suite
+    runs-on: windows-latest
+    timeout-minutes: 120 # eval analyzes real repos (eShop, CommunityToolkit, …) — generous on purpose
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true # eval-repos/{TodoApi,VerticalSlice,eShop} fixture pins
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The non-submodule pinned repos from eval/README.md (source of truth for SHAs).
+      # Absent repos make Category=Eval tests skip, so cloning is what gives this run teeth.
+      - name: Clone pinned eval repos
+        shell: pwsh
+        run: |
+          $pins = [ordered]@{
+            'AutoMapper'            = @{ url = 'https://github.com/AutoMapper/AutoMapper.git';          sha = 'b57c206dc7291821e42bdf816a5637a5c1d8cb54' }
+            'FluentValidation'      = @{ url = 'https://github.com/FluentValidation/FluentValidation.git'; sha = '943979089b55664ceb8390547ea1eb84ee99252a' }
+            'Polly'                 = @{ url = 'https://github.com/App-vNext/Polly.git';                sha = '7a1d10f47e2ec667ceada49deb6bdd9a765753bd' }
+            'CommunityToolkit.Mvvm' = @{ url = 'https://github.com/CommunityToolkit/dotnet.git';        sha = 'b135626dd54d33b8f05f2ff31591592c004aa848' }
+            'MediatR'               = @{ url = 'https://github.com/jbogard/MediatR.git';                sha = '1fd25f5beb40aafd6859d9225a37d0c4f5062cfa' }
+          }
+          foreach ($name in $pins.Keys) {
+            $dir = "eval-repos/$name"
+            Write-Host "Cloning $name @ $($pins[$name].sha)"
+            git init -q $dir
+            git -C $dir fetch -q --depth 1 origin $pins[$name].sha
+            git -C $dir checkout -q FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw "clone failed: $name" }
+          }
+
+      # -SkipMcpQa: step 2b drives a machine-local dogfood repo — impossible on a hosted runner.
+      - name: Run gate battery (eval/gates.ps1)
+        run: powershell -File eval/gates.ps1 -SkipMcpQa

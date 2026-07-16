@@ -6,6 +6,12 @@
     Exits with 0 on PASS, non-zero on FAIL.
 #>
 
+param(
+    # The MCP QA drive (step 2b) targets a machine-local dogfood repo (eval/mcp-qa/run.js) that
+    # can't exist on a hosted runner — CI (.github/workflows/eval.yml) passes this. Local runs don't.
+    [switch]$SkipMcpQa
+)
+
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
@@ -75,15 +81,19 @@ Write-Pass "Fast tests passed"
 
 # Step 2b: MCP QA gate (serial — see note above).
 Write-Step "Step 2b: MCP QA gate (serial)"
-$mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Write-Host $mcpResult
-    Write-Fail "MCP QA gate failed" -Step 2
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 2b - MCP QA)" -ForegroundColor Red
-    exit 2
+if ($SkipMcpQa) {
+    Write-Host "  SKIP  -SkipMcpQa (dogfood repo is machine-local; not a pass)" -ForegroundColor Yellow
+} else {
+    $mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host $mcpResult
+        Write-Fail "MCP QA gate failed" -Step 2
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 2b - MCP QA)" -ForegroundColor Red
+        exit 2
+    }
+    Write-Pass "MCP QA gate passed"
 }
-Write-Pass "MCP QA gate passed"
 
 # Step 3: Eval tests
 Write-Step "Step 3: Eval expectation tests"
