@@ -21,7 +21,7 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
 
     public GraphQuery Query => _query ??= new GraphQuery(Snapshot.Graph!, Snapshot.Entries, Snapshot.Map);
 
-    // T3.4 — the config-key scan reads + regex-matches every node-bearing file (10.5s on shamshir), so
+    // T3.4 — the config-key scan reads + syntax-parses every node-bearing file (10.5s on shamshir), so
     // it is computed once per session and reused. config() filters this list in-memory (≤500ms warm).
     private IReadOnlyList<ConfigBindingInfo>? _configBindings;
     public IReadOnlyList<ConfigBindingInfo> ConfigBindings() => _configBindings ??= ConfigScanner.Scan(Snapshot.Graph!);

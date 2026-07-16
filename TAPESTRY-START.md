@@ -7,16 +7,16 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T2 DELIVERED to develop @ 94a29db** — whole feat/tapestry-t2 stack (8/8) merged --no-ff + pushed after a
-tip re-verification (GATE: PASS — build 0w/0e · fast · MCP QA · eval 58P/6S/0F 7m26s · CLI matrix; log
-eval-results/2026-07-15/tapestry-t2/gates-deliver.txt). **NOW ON feat/tapestry-t3 (off develop).**
-NOTE: `develop` is checked out in the sibling worktree `C:/Code/DevContext2-ui` (has WIP src-tauri/Cargo.toml) — advance develop
-THERE via `git -C /c/Code/DevContext2-ui`, never `git checkout develop` in the main worktree (it will fail). T2 touched no App/Cargo files.
-stage: **T3 (MCP v3) IN PROGRESS.** Delivering all 8: T3.1 unified addressing → T3.2 entrypoints summary → T3.5 repo-rel + start-here
-noise → T3.6 self-describing → T3.3 trace budget (proto change) → T3.4 config latency → T3.7 CLI parity → T3.8 report hygiene.
-next: **T3.1** — shared MCP resolver (extract the `usages` exact-title/ambiguity logic); add `query` synonym to node/neighbors/impact/
-tests_for/read_source (+ trace/flow/get_context); nodeId stays precise; error envelope ≤80 tok. Read proposal-tapestry.md §T3 + addendum T3.7/T3.8.
-gate: (T3 not yet started) — baseline is the T2 delivery GATE: PASS above. Plan/notes in scratchpad t3-plan.md.
+last: 2026-07-16 **T3 (MCP v3) — 8/8 CHECKPOINTS + delivery gate GREEN on feat/tapestry-t3** (off develop @ 94a29db). Order landed:
+T3.1+T3.2+T3.6 (dbc217e) → T3.5 (f8e76ca) → T3.7 (afeb0f3) → T3.4 (bd66486) → T3.3 (31c64b2) → T3.8 (9bdce29) → CLI json fix (165f834).
+**Delivery drive: loom-guards caught the last blocker — T3.4's extracted ConfigScanner carried a `System.Text.RegularExpressions`
+import into Core/Graph (banned, L2.3 regex funeral). REFORMED to a Roslyn syntax walk (ParseText+DescendantNodes): loom-guards PASS,
+dogfood config parity (4 keys, McpQa 12/12), faster cold (shamshir all-.cs upper bound 3.9s vs old 10.5s). Fresh GATE: PASS.**
+NOTE: `develop` is checked out in the sibling worktree `C:/Code/DevContext2-ui` (WIP src-tauri/Cargo.toml) — advance develop THERE
+via `git -C /c/Code/DevContext2-ui`, never `git checkout develop` in main (it fails). T3 touched no App SOURCE (only generated pb.ts).
+stage: **T3 delivery gate GREEN (GATE: PASS + loom-guards PASS).** Merging feat/tapestry-t3 → develop --no-ff (via ui worktree) + push.
+next: **T4 (Context generation v2)** off develop — T4.1 pack identity header + repo-relative file:line (rides T2.2/T3.5); read proposal-tapestry.md §T4 + addendum T4.6.
+gate: gates-t3-delivery.txt = GATE: PASS (build/fast/McpQa 12/12/eval 58P·6S·0F/CLI matrix + Step 4b). Per-checkpoint evidence under eval-results/2026-07-16/tapestry-t3/.
 
 ---
 
