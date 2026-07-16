@@ -202,7 +202,7 @@ async function main() {
     await page.evaluate(() => document.querySelector("a[href='/context']")?.click());
     await sleep(2200);
     await shot(page, "09-context-initial");
-    const presetBtn = page.locator("button", { hasText: /changing this endpoint/i }).first();
+    const presetBtn = page.locator("button", { hasText: /changing this entry/i }).first();
     if (await presetBtn.count()) {
       await presetBtn.click(); await sleep(800);
       // preset opens an entry picker; select the first entry to seed cards
@@ -226,7 +226,7 @@ async function main() {
       return true;
     }, value);
     const seedPreset = async () => {
-      const btn = page.locator("button", { hasText: /changing this endpoint/i }).first();
+      const btn = page.locator("button", { hasText: /changing this entry/i }).first();
       if (!(await btn.count())) return false;
       await btn.click(); await sleep(600);
       const entry = page.locator("app-scope-picker button", { hasText: /\/|GET|POST|PUT|DELETE/ }).first();

@@ -21,6 +21,45 @@ export interface ContextCardSeed {
   readonly estimatedLines: number;
 }
 
+/** T5.4 — "I'm changing this entry" seeds cards matched to the entry KIND: a hub method
+ * wants its orchestrator spine + consumer wiring, a worker wants its loop + the config it
+ * reads — not an endpoint-shaped validator card. Anchors exist since 202c593 (hub/worker
+ * member anchors). Exported for the spec. */
+export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
+  const entryIds = [entry.nodeId];
+  const label = entry.route || entry.title;
+  const kindLabel = KIND_LABELS[entry.kind] ?? entry.kind;
+
+  switch (entry.kind) {
+    case 'SignalRHub':
+      return [
+        { type: 'flow', title: `Hub method flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Hub method + orchestrator bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'di_wiring', title: `Consumers and wiring: ${label}`, entryIds, estimatedLines: 12 },
+        { type: 'contracts', title: `Messages (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+    case 'HostedService':
+    case 'ScheduledJob':
+    case 'MessageConsumer':
+      return [
+        { type: 'flow', title: `Worker flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Worker bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'config', title: `Config read by ${label}`, entryIds, estimatedLines: 10 },
+        { type: 'contracts', title: `Messages (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+    default:
+      return [
+        { type: 'flow', title: `Flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Member bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'contracts', title: `Contracts (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Validators for ${label}`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+  }
+}
+
 @Component({
   selector: 'app-scope-picker',
   imports: [Icon],
@@ -71,11 +110,11 @@ export interface ContextCardSeed {
         type="button"
         class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         [disabled]="totalEntryCount() === 0"
-        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Seeds 5 context cards for the endpoint you pick'"
+        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Seeds context cards matched to the endpoint, hub method, or worker you pick'"
         (click)="showPresetPicker.set(!showPresetPicker())"
       >
         <app-icon name="edit" [size]="14" />
-        I&rsquo;m changing this endpoint
+        I&rsquo;m changing this entry
       </button>
     </div>
 
@@ -255,16 +294,7 @@ export class ScopePicker {
   }
 
   protected applyPreset(entry: EntryVm): void {
-    const entryIds = [entry.nodeId];
-    const kindLabel = KIND_LABELS[entry.kind] ?? entry.kind;
-    const cards: ContextCardSeed[] = [
-      { type: 'flow', title: `Flow: ${entry.route || entry.title}`, entryIds, estimatedLines: 15 },
-      { type: 'bodies', title: `Member bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
-      { type: 'contracts', title: `Contracts (${kindLabel})`, entryIds, estimatedLines: 10 },
-      { type: 'tests', title: `Validators for ${entry.route || entry.title}`, entryIds, estimatedLines: 10 },
-      { type: 'tests', title: `Tests for ${entry.route || entry.title}`, entryIds, estimatedLines: 15 },
-    ];
-    this.cardsChange.emit(cards);
+    this.cardsChange.emit(presetSeedsFor(entry));
     this.showPresetPicker.set(false);
   }
 
