@@ -7,7 +7,7 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T5.1 + T5.6 VERIFIED on feat/tapestry-t5** (off tapestry-t4 @ bcae33d; T5.1 = 89c2797). T5.1: omitted[] end-to-end — ROOT CAUSE
+last: 2026-07-16 **T5.1 + T5.6 VERIFIED on feat/tapestry-t5** (off tapestry-t4 @ bcae33d; T5.1 = 89c2797, T5.6 = cc05b46, pushed). T5.1: omitted[] end-to-end — ROOT CAUSE
 server-side: BuildMulti DISCARDED BuildSections' omission reasons, pack omitted[] was ALWAYS empty (single-card Build() reported fine); now propagated
 (focus-attributed >1 entry, deduped, cap 12) + BudgetPanel renders; card error strip + Retry (old catch mutated cards in place — zoneless never
 re-rendered); save .txt/.md. T5.6 (audit C1): schedulePack (350ms debounce, seq-guarded) on add/remove/reorder/retry/budget/intent — ALWAYS the whole
@@ -15,7 +15,7 @@ card set (pack was latest-batch-only!); ONE buildContext path, legacy client fal
 plain strips syntax keeps content; save `${repo}-context-${date}.{md|txt}`; preset disabled @0 entries; "Add N to context" primary; config/tests specs
 server-side now. Drive gate **8/8 PASS** (was 4 expected-red): E omitted@1k · F error+retry · G copy@4k≠copy@1k w/ matching Budget headers · H
 plain≠markdown. Tauri smoke alive 20s (L6 rule). 37 vitest; gates-t5.1.txt GATE: PASS (eval 58P/6S/0F); T5.6 dotnet-delta ZERO (app-only, recorded).
-stage: **T5 2/6 (T5.1, T5.6) — NOT merged, NOT pushed pending user review.** Evidence eval-results/2026-07-16/tapestry-t5/.
+stage: **T5 2/6 (T5.1, T5.6) — pushed, NOT merged pending user review.** Evidence eval-results/2026-07-16/tapestry-t5/.
 next: T5.2 verification panel (R6 UI over T4.5 verify_context RPC) → T5.3 per-card copy + JSON export + file:line chips → T5.5 card content honesty
 → T5.4 worker/hub presets. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
 gotcha: ng-serve watcher WEDGES after a mid-edit compile error (stale vite-error-overlay blocks clicks, watcher stops) — restart ng serve, don't trust HMR.
@@ -84,12 +84,12 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T5 — Context Studio v2
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T5.1 | R1 omitted list · R4 error state · R5 save extension | VERIFIED | (T5.1 commit) | tapestry-t5/T5.1-EVIDENCE.md · **root cause: BuildMulti DISCARDED BuildSections' omission reasons — pack omitted[] was always empty**; now propagated (focus-attributed, deduped, cap 12) + `Multi_pack_propagates_section_omission_reasons` · R4 error strip + Retry (old catch mutated cards in place — no signal fire) · R5 .txt/.md · 4 vitest specs · ui-audit-drive E/F armed, **6/6 PASS (first all-green drive)** · gates-t5.1.txt GATE: PASS (eval 58P/6S/0F) |
+| T5.1 | R1 omitted list · R4 error state · R5 save extension | VERIFIED | 89c2797 | tapestry-t5/T5.1-EVIDENCE.md · **root cause: BuildMulti DISCARDED BuildSections' omission reasons — pack omitted[] was always empty**; now propagated (focus-attributed, deduped, cap 12) + `Multi_pack_propagates_section_omission_reasons` · R4 error strip + Retry (old catch mutated cards in place — no signal fire) · R5 .txt/.md · 4 vitest specs · ui-audit-drive E/F armed, **6/6 PASS (first all-green drive)** · gates-t5.1.txt GATE: PASS (eval 58P/6S/0F) |
 | T5.2 | Verification panel (R6 UI) | TODO | | |
 | T5.3 | R7 per-card copy · R8 JSON export · file:line provenance chips | TODO | | |
 | T5.4 | Worker/hub presets | TODO | | |
 | T5.5 | Card content honesty: real previews (no title echo) · per-card provenance · one unit · scope-error tooltips | TODO | | |
-| T5.6 | Studio recompute-on-change: budget/format re-pack · plain≠markdown · save name · preset/Add UX (audit C1) | VERIFIED | (T5.6 commit) | tapestry-t5/T5.6-EVIDENCE.md · schedulePack (350ms debounce, seq-guarded) on add/remove/reorder/retry/budget/intent, ALWAYS the whole card set (pack was latest-batch-only before) · ONE buildContext path — legacy client fallback DELETED, exports = server pack or disabled (exportReady/"Packing…"), failure clears pack · plain strips syntax keeps content · save `${repo}-context-${date}.{md\|txt}` · preset disabled @0 + "Add N to context" primary · config/tests specs now server-side (T4.3) · 10 vitest specs (37P) · drive **8/8 PASS**: G copy@4k(10749ch/"Budget: 4000")≠copy@1k(7158ch/"Budget: 1000"), H plain≠markdown · Tauri smoke alive (L6 rule) · dotnet delta zero vs gates-t5.1.txt |
+| T5.6 | Studio recompute-on-change: budget/format re-pack · plain≠markdown · save name · preset/Add UX (audit C1) | VERIFIED | cc05b46 | tapestry-t5/T5.6-EVIDENCE.md · schedulePack (350ms debounce, seq-guarded) on add/remove/reorder/retry/budget/intent, ALWAYS the whole card set (pack was latest-batch-only before) · ONE buildContext path — legacy client fallback DELETED, exports = server pack or disabled (exportReady/"Packing…"), failure clears pack · plain strips syntax keeps content · save `${repo}-context-${date}.{md\|txt}` · preset disabled @0 + "Add N to context" primary · config/tests specs now server-side (T4.3) · 10 vitest specs (37P) · drive **8/8 PASS**: G copy@4k(10749ch/"Budget: 4000")≠copy@1k(7158ch/"Budget: 1000"), H plain≠markdown · Tauri smoke alive (L6 rule) · dotnet delta zero vs gates-t5.1.txt |
 
 ### T6 — Workbench & pages revamp
 | # | Checkpoint | Status | Commit | Evidence |
