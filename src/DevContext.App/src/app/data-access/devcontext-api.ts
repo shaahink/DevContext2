@@ -19,6 +19,7 @@ import type {
   SearchResponse,
   StatsResponse,
   TraceResponse,
+  VerifyContextResponse,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
@@ -141,6 +142,11 @@ export class DevContextApi {
       budgetTokens: options?.budgetTokens ?? 8000,
       intent: options?.intent ?? 'trace',
     });
+  }
+
+  /** T5.2 (audit R6) — per-section staleness of a focus's pack vs the disk (T4.5 RPC). */
+  verifyContext(handle: string, focus: string, budgetTokens?: number): Promise<VerifyContextResponse> {
+    return this.client.verifyContext({ handle, focus, budgetTokens });
   }
 
   readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {

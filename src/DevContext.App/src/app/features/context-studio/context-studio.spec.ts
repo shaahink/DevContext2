@@ -2,13 +2,14 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
-import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { ContextPackResponse, VerifyContextResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
 import type { ContextCard } from './composition-view';
 import { ContextStudio } from './context-studio';
 import type { ContextCardSeed, OutputFormat } from './scope-picker';
+import type { PackVerification } from './verification-panel';
 
 /** The protected surface the specs drive — kept in sync with ContextStudio by the cast site. */
 interface StudioTestSurface {
@@ -18,10 +19,13 @@ interface StudioTestSurface {
   packPending(): boolean;
   exportReady(): boolean;
   packDebounceMs: number;
+  packVerification(): PackVerification | null;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
   onBudgetChange(value: number): void;
   onRemove(id: string): void;
   onRetry(): void;
+  onVerifyRefresh(): void;
+  onReanalyze(): void;
   saveFileName(format: OutputFormat): string;
   buildContext(format: OutputFormat): string | null;
 }
@@ -56,6 +60,25 @@ function flowSeed(title = 'Flow: POST /checkout'): ContextCardSeed {
   return { type: 'flow', title, entryIds: ['node-1'], estimatedLines: 15 };
 }
 
+function verifyResponse(overrides: Partial<{
+  found: boolean;
+  anyStale: boolean;
+  analyzedGitHead: string;
+  currentGitHead: string;
+  sections: { key: string; stale: boolean; filesChecked: number; changed: { file: string; status: string; lineDelta: number }[] }[];
+}> = {}): VerifyContextResponse {
+  return {
+    found: overrides.found ?? true,
+    focus: 'POST /checkout',
+    anyStale: overrides.anyStale ?? false,
+    analyzedGitHead: overrides.analyzedGitHead ?? 'abc1234',
+    currentGitHead: overrides.currentGitHead ?? 'abc1234',
+    sections: overrides.sections ?? [
+      { key: 'trace', stale: false, filesChecked: 3, changed: [] },
+    ],
+  } as unknown as VerifyContextResponse;
+}
+
 /** One macrotask hop — enough for the 0ms-debounce timer plus the RPC microtasks. */
 async function flush(): Promise<void> {
   await new Promise((r) => setTimeout(r, 5));
@@ -64,18 +87,23 @@ async function flush(): Promise<void> {
 
 describe('ContextStudio', () => {
   let getContextPack: Mock;
+  let verifyContext: Mock;
+  let reAnalyze: Mock;
 
   beforeEach(() => {
     getContextPack = vi.fn();
+    verifyContext = vi.fn().mockResolvedValue(verifyResponse());
+    reAnalyze = vi.fn();
     TestBed.configureTestingModule({
       providers: [
-        { provide: DevContextApi, useValue: { getContextPack } },
+        { provide: DevContextApi, useValue: { getContextPack, verifyContext } },
         {
           provide: SessionStore,
           useValue: {
             handle: signal('h1'),
             entryGroups: signal([]),
             summary: signal({ label: 'eshop-microservices' }),
+            reAnalyze,
           },
         },
         { provide: TrailStore, useValue: { steps: signal([]) } },
@@ -254,6 +282,70 @@ describe('ContextStudio', () => {
     expect(studio.serverPack()).toBeNull();
     expect(studio.packOmitted()).toEqual([]);
     expect(getContextPack).toHaveBeenCalledTimes(1); // no RPC for an empty set
+  });
+
+  it('verifies the pack after every successful re-pack, unprompted (T5.2 R6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(verifyContext).toHaveBeenCalledWith('h1', 'node-1', 4000);
+    const v = studio.packVerification();
+    expect(v).not.toBeNull();
+    expect(v!.anyStale).toBe(false);
+    expect(v!.sections).toEqual([{ key: 'trace', stale: false, filesChecked: 3, changed: [] }]);
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="verification-panel"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="verification-fresh"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="verification-stale"]')).toBeNull();
+  });
+
+  it('merges verification across focuses; stale renders the warning + Re-analyze (T5.2 R6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    verifyContext.mockImplementation((_h: string, focus: string) =>
+      Promise.resolve(focus === 'node-2'
+        ? verifyResponse({
+            anyStale: true,
+            currentGitHead: 'def5678',
+            sections: [{ key: 'trace', stale: true, filesChecked: 2, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] }],
+          })
+        : verifyResponse()));
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([
+      flowSeed(),
+      { type: 'flow', title: 'Flow: GET /orders', entryIds: ['node-2'], estimatedLines: 15 },
+    ]);
+    await flush();
+    fixture.detectChanges();
+
+    const v = studio.packVerification();
+    expect(v!.anyStale).toBe(true);
+    expect(v!.sections).toEqual([
+      { key: 'trace', stale: true, filesChecked: 5, changed: [{ file: 'src/App/Handler.cs', status: 'modified', lineDelta: 4 }] },
+    ]);
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="verification-stale"]')).not.toBeNull();
+    expect(el.textContent).toContain('Handler.cs');
+
+    (el.querySelector('[data-testid="verification-reanalyze"]') as HTMLButtonElement).click();
+    expect(reAnalyze).toHaveBeenCalledTimes(1);
+  });
+
+  it('a failed verification is advisory — panel disappears, Studio unaffected (T5.2)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    verifyContext.mockRejectedValue(new Error('no fingerprints'));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+
+    expect(studio.packVerification()).toBeNull();
+    expect(studio.exportReady()).toBe(true); // exports unaffected
+    expect(studio.cards()[0].error).toBeNull();
   });
 
   it('saves as ${repo}-context-${date} with the format extension (T5.1 R5 + T5.6)', () => {

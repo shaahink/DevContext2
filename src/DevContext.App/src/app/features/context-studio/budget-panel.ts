@@ -76,6 +76,9 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         }
       </div>
 
+      <!-- T5.2 — the verification ledger is projected here by the studio. -->
+      <ng-content />
+
       @if (omitted().length > 0) {
         <div class="mt-3 border-t border-line pt-2" data-testid="omitted-list">
           <h3 class="mb-1 flex items-center gap-1 text-2xs font-semibold uppercase tracking-wider text-warn">

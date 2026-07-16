@@ -18,6 +18,7 @@
 //   F. failed pack RPC shows error + retry works (audit R4, owner T5.1)
 //   G. budget change re-packs: copy@4k != copy@1k, header matches slider (audit C1, owner T5.6)
 //   H. plain format copy != markdown copy        (audit C1, owner T5.6)
+//   I. verification ledger: fresh -> edit cited file -> stale -> restore -> fresh (audit R6, owner T5.2)
 //
 // Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
@@ -91,7 +92,8 @@ async function main() {
   // Shared drive state captured for the assertions.
   const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null,
     omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null,
-    copy4k: null, copy1k: null, copyPlain: null };
+    copy4k: null, copy1k: null, copyPlain: null,
+    verifFreshBefore: null, verifStaleAfterEdit: null, verifFreshAfterRestore: null };
 
   try {
     // ── boot + analyze dogfood ──
@@ -291,6 +293,53 @@ async function main() {
       state.copyPlain = await copyText("plain@1k");
     } else note("H: plain format button NOT found");
 
+    // ── I. verification ledger: fresh → edit a cited file → stale → restore → fresh (T5.2, audit R6) ──
+    // Deterministic focus: add the checkout flow via the omnibox, then drift its handler on disk.
+    const handlerFile = path.join(DOGFOOD, "Services", "Basket", "Basket.API", "Basket", "CheckoutBasket", "CheckoutBasketHandler.cs");
+    if (fs.existsSync(handlerFile)) {
+      const search = page.locator("app-scope-picker input").first();
+      if (await search.count()) {
+        await search.fill("checkout"); await sleep(600);
+        const hit = page.locator("app-scope-picker button", { hasText: /checkout/i }).first();
+        if (await hit.count()) { await hit.click({ force: true }); await sleep(3000); }
+        await search.press("Escape").catch(() => {});
+      }
+      const verifState = () => page.evaluate(() => ({
+        panel: !!document.querySelector("[data-testid='verification-panel']"),
+        fresh: !!document.querySelector("[data-testid='verification-fresh']"),
+        stale: !!document.querySelector("[data-testid='verification-stale']"),
+      }));
+      const refreshVerify = async () => {
+        const b = page.locator("[data-testid='verification-refresh']");
+        if (await b.count()) { await b.click(); await sleep(2500); return true; }
+        return false;
+      };
+      await sleep(1500); // auto-verify rides the re-pack
+      let v = await verifState();
+      state.verifFreshBefore = v.panel && v.fresh && !v.stale;
+      note("verification before edit: " + JSON.stringify(v));
+      await shot(page, "16-verification-fresh");
+
+      const original = fs.readFileSync(handlerFile, "utf8");
+      try {
+        fs.writeFileSync(handlerFile, original + "\n// drift probe (ui-audit-drive I)\n", "utf8");
+        if (await refreshVerify()) {
+          v = await verifState();
+          state.verifStaleAfterEdit = v.panel && v.stale;
+          note("verification after edit: " + JSON.stringify(v));
+          await shot(page, "17-verification-stale");
+        }
+      } finally {
+        fs.writeFileSync(handlerFile, original, "utf8");
+      }
+      if (await refreshVerify()) {
+        v = await verifState();
+        state.verifFreshAfterRestore = v.panel && v.fresh && !v.stale;
+        note("verification after restore: " + JSON.stringify(v));
+        await shot(page, "18-verification-restored");
+      }
+    } else note("I: CheckoutBasketHandler.cs not found under dogfood — skipped");
+
   } catch (e) {
     note("DRIVE ERROR: " + e.message);
   } finally {
@@ -324,6 +373,11 @@ async function main() {
         run: () => ({
           pass: !!state.copyPlain && !!state.copy1k && state.copyPlain !== state.copy1k && !/^# /m.test(state.copyPlain),
           detail: `plain=${state.copyPlain?.length ?? "null"}ch differ=${state.copyPlain !== state.copy1k} noHeadings=${state.copyPlain ? !/^# /m.test(state.copyPlain) : "n/a"}`,
+        }) },
+      { id: "I-verification-stale-cycle", desc: "verification ledger: fresh -> stale on disk edit -> fresh on restore", audit: "R6", owner: "T5.2",
+        run: () => ({
+          pass: state.verifFreshBefore === true && state.verifStaleAfterEdit === true && state.verifFreshAfterRestore === true,
+          detail: `fresh=${state.verifFreshBefore} staleAfterEdit=${state.verifStaleAfterEdit} freshAfterRestore=${state.verifFreshAfterRestore}`,
         }) },
     );
     for (const a of assertions) {
