@@ -144,15 +144,17 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
       <button
         type="button"
         class="flex flex-1 items-center justify-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-ink hover:bg-accent/90 disabled:opacity-30 transition-colors"
-        [disabled]="cards().length === 0"
+        data-testid="copy-context"
+        [disabled]="cards().length === 0 || !exportReady()"
         (click)="onCopy()"
       >
-        {{ copyLabel() }}
+        {{ packPending() ? 'Packing…' : copyLabel() }}
       </button>
       <button
         type="button"
-        class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover transition-colors"
-        [disabled]="cards().length === 0"
+        class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover disabled:opacity-30 transition-colors"
+        data-testid="save-context"
+        [disabled]="cards().length === 0 || !exportReady()"
         (click)="onSave()"
       >
         Save
@@ -166,6 +168,10 @@ export class BudgetPanel {
   readonly cards = input<readonly ContextCard[]>([]);
   /** T5.1 (audit R1) — the server's omitted[] lines; silent truncation is a trust bug. */
   readonly omitted = input<readonly string[]>([]);
+  /** T5.6 (audit C1) — re-pack in flight: Copy shows "Packing…" so the wait is visible. */
+  readonly packPending = input(false);
+  /** T5.6 (audit C1) — false while the pack is stale/absent; Copy/Save disabled, never stale bytes. */
+  readonly exportReady = input(true);
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();

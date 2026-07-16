@@ -26,7 +26,7 @@
       "owner": "L6.2",
       "expectedRedUntil": "L6",
       "pass": true,
-      "detail": "code length=874"
+      "detail": "code length=695"
     },
     {
       "id": "D-context-preset-cards",
@@ -43,7 +43,7 @@
       "audit": "R1",
       "owner": "T5.1",
       "pass": true,
-      "detail": "visible=true text=Omitted (3) entities: empty — omittedconfig: empty — omittedtests: empty — omitt"
+      "detail": "visible=true text=Omitted (8) tests (Validators for /products): no content for its entries — omitt"
     },
     {
       "id": "F-pack-error-retry",
@@ -52,6 +52,22 @@
       "owner": "T5.1",
       "pass": true,
       "detail": "errorShown=true clearedAfterRetry=true"
+    },
+    {
+      "id": "G-repack-on-budget",
+      "desc": "budget change re-packs: copy@4k != copy@1k, headers match slider",
+      "audit": "C1",
+      "owner": "T5.6",
+      "pass": true,
+      "detail": "4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true"
+    },
+    {
+      "id": "H-plain-not-markdown",
+      "desc": "plain copy differs from markdown copy (bytes)",
+      "audit": "C1",
+      "owner": "T5.6",
+      "pass": true,
+      "detail": "plain=6891ch differ=true noHeadings=true"
     }
   ],
   "reds": [],

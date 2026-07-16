@@ -14,34 +14,51 @@ import type { ContextCardSeed, OutputFormat } from './scope-picker';
 interface StudioTestSurface {
   cards(): readonly ContextCard[];
   packOmitted(): readonly string[];
+  serverPack(): string | null;
+  packPending(): boolean;
+  exportReady(): boolean;
+  packDebounceMs: number;
   onCardsChange(seeds: readonly ContextCardSeed[]): void;
+  onBudgetChange(value: number): void;
+  onRemove(id: string): void;
   onRetry(): void;
   saveFileName(format: OutputFormat): string;
-  budgetTokens: { set(v: number): void };
+  buildContext(format: OutputFormat): string | null;
+}
+
+interface PackCardOverride {
+  type: string;
+  title: string;
+  tokens: number;
+  sections?: { key: string; tokens: number }[];
 }
 
 function packResponse(overrides: Partial<{
   omitted: string[];
   assembledMarkdown: string;
-  cards: { type: string; title: string; tokens: number; sections: { key: string; tokens: number }[] }[];
-}> = {}): unknown {
+  cards: PackCardOverride[];
+}> = {}): ContextPackResponse {
+  // The server echoes the REQUEST card titles back on pack items (correlation key).
+  const cards = (overrides.cards ?? [
+    { type: 'flow', title: 'Flow: POST /checkout', tokens: 120 },
+  ]).map((c) => ({ sections: [{ key: 'trace', tokens: c.tokens }], ...c }));
   return {
-    cards: overrides.cards ?? [
-      { type: 'flow', title: 'entry → handler → data', tokens: 120, sections: [{ key: 'trace', tokens: 120 }] },
-    ],
-    assembledMarkdown: overrides.assembledMarkdown ?? '# repo — Context Pack\n\n_Intent: trace · Budget: 4000 tokens_\n\ncontent',
-    totalTokens: 120,
+    cards,
+    assembledMarkdown: overrides.assembledMarkdown ??
+      '# repo — Context Pack\n\n_Intent: trace · Budget: 4000 tokens_\n\n```csharp\nvar x = 1;\n```\n\ncontent',
+    totalTokens: cards.reduce((n, c) => n + c.tokens, 0),
     allocatedTokens: 4000,
     omitted: overrides.omitted ?? [],
-  };
+  } as unknown as ContextPackResponse;
 }
 
-function flowSeed(): ContextCardSeed {
-  return { type: 'flow', title: 'Flow: POST /checkout', entryIds: ['node-1'], estimatedLines: 15 };
+function flowSeed(title = 'Flow: POST /checkout'): ContextCardSeed {
+  return { type: 'flow', title, entryIds: ['node-1'], estimatedLines: 15 };
 }
 
+/** One macrotask hop — enough for the 0ms-debounce timer plus the RPC microtasks. */
 async function flush(): Promise<void> {
-  await Promise.resolve();
+  await new Promise((r) => setTimeout(r, 5));
   await Promise.resolve();
 }
 
@@ -70,12 +87,13 @@ describe('ContextStudio', () => {
     const fixture = TestBed.createComponent(ContextStudio);
     fixture.detectChanges();
     const studio = fixture.componentInstance as unknown as StudioTestSurface;
+    studio.packDebounceMs = 0;
     return { fixture, studio };
   }
 
   it('renders the server omitted[] list in the budget panel (T5.1 R1)', async () => {
     getContextPack.mockResolvedValue(
-      packResponse({ omitted: ['signatures: omitted (1450 tokens, budget exhausted)'] }) as ContextPackResponse,
+      packResponse({ omitted: ['signatures: omitted (1450 tokens, budget exhausted)'] }),
     );
     const { fixture, studio } = createStudio();
 
@@ -109,12 +127,13 @@ describe('ContextStudio', () => {
 
   it('retry clears the error and reloads content from the server (T5.1 R4)', async () => {
     getContextPack.mockRejectedValueOnce(new Error('boom'));
-    getContextPack.mockResolvedValue(packResponse() as ContextPackResponse);
+    getContextPack.mockResolvedValue(packResponse());
     const { fixture, studio } = createStudio();
 
     studio.onCardsChange([flowSeed()]);
     await flush();
     expect(studio.cards()[0].error).toBe('boom');
+    expect(studio.exportReady()).toBe(false);
 
     studio.onRetry();
     await flush();
@@ -123,14 +142,124 @@ describe('ContextStudio', () => {
     const card = studio.cards()[0];
     expect(card.error).toBeNull();
     expect(card.loading).toBe(false);
-    expect(card.content).toBe('entry → handler → data');
     expect(card.serverTokens).toBe(120);
+    expect(studio.exportReady()).toBe(true);
     expect(getContextPack).toHaveBeenCalledTimes(2);
   });
 
-  it('saves plain format as .txt, markdown as .md (T5.1 R5)', () => {
+  it('re-packs the WHOLE card set when the budget changes, at the new budget (T5.6 C1)', async () => {
+    getContextPack.mockResolvedValueOnce(packResponse({ assembledMarkdown: '# pack @4k\n\ncontent' }));
+    getContextPack.mockResolvedValueOnce(packResponse({ assembledMarkdown: '# pack @1k\n\nless content' }));
     const { studio } = createStudio();
-    expect(studio.saveFileName('markdown')).toBe('devcontext-context.md');
-    expect(studio.saveFileName('plain')).toBe('devcontext-context.txt');
+
+    studio.onCardsChange([flowSeed(), { type: 'tests', title: 'Tests', entryIds: ['node-1'], estimatedLines: 15 }]);
+    await flush();
+    expect(studio.serverPack()).toBe('# pack @4k\n\ncontent');
+
+    studio.onBudgetChange(1000);
+    expect(studio.packPending()).toBe(true);
+    expect(studio.exportReady()).toBe(false);
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    const [, specs, options] = getContextPack.mock.calls[1] as [string, { type: string }[], { budgetTokens: number }];
+    expect(specs.map((s) => s.type)).toEqual(['flow', 'tests']); // whole set incl. tests (T4.3 real)
+    expect(options.budgetTokens).toBe(1000);
+    expect(studio.serverPack()).toBe('# pack @1k\n\nless content');
+    expect(studio.exportReady()).toBe(true);
+  });
+
+  it('a later add re-packs everything — the export is never a stale batch (T5.6 C1)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed('Flow: A')]);
+    await flush();
+    studio.onCardsChange([flowSeed('Flow: B')]);
+    await flush();
+
+    expect(getContextPack).toHaveBeenCalledTimes(2);
+    const [, specs] = getContextPack.mock.calls[1] as [string, { title: string }[]];
+    expect(specs.map((s) => s.title)).toEqual(['Flow: A', 'Flow: B']);
+  });
+
+  it('cards sharing a type correlate by title, not clobbered (T5.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse({
+      cards: [
+        { type: 'tests', title: 'Validators for /checkout', tokens: 50 },
+        { type: 'tests', title: 'Tests for /checkout', tokens: 90 },
+      ],
+    }));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([
+      { type: 'tests', title: 'Validators for /checkout', entryIds: ['node-1'], estimatedLines: 10 },
+      { type: 'tests', title: 'Tests for /checkout', entryIds: ['node-1'], estimatedLines: 15 },
+    ]);
+    await flush();
+
+    expect(studio.cards()[0].serverTokens).toBe(50);
+    expect(studio.cards()[1].serverTokens).toBe(90);
+  });
+
+  it('exports serve exactly the server pack; plain strips syntax, loses nothing (T5.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { studio } = createStudio();
+
+    expect(studio.buildContext('markdown')).toBeNull(); // no pack yet → Copy/Save disabled
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+
+    const markdown = studio.buildContext('markdown');
+    const plain = studio.buildContext('plain');
+    expect(markdown).toBe('# repo — Context Pack\n\n_Intent: trace · Budget: 4000 tokens_\n\n```csharp\nvar x = 1;\n```\n\ncontent');
+    expect(plain).not.toBe(markdown);
+    expect(plain).toContain('Intent: trace · Budget: 4000 tokens'); // meta kept, underscores gone
+    expect(plain).toContain('var x = 1;'); // fence markers gone, code kept
+    expect(plain).not.toContain('# repo');
+    expect(plain).not.toContain('```');
+  });
+
+  it('a failed re-pack clears the pack — no stale export survives (T5.6 C1)', async () => {
+    getContextPack.mockResolvedValueOnce(packResponse());
+    getContextPack.mockRejectedValueOnce(new Error('gone'));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.serverPack()).not.toBeNull();
+
+    studio.onBudgetChange(1000);
+    await flush();
+
+    expect(studio.serverPack()).toBeNull();
+    expect(studio.buildContext('markdown')).toBeNull();
+    expect(studio.exportReady()).toBe(false);
+    expect(studio.cards()[0].error).toBe('gone');
+  });
+
+  it('removing the last card clears the pack and omitted list (T5.6)', async () => {
+    getContextPack.mockResolvedValue(packResponse({ omitted: ['x: omitted'] }));
+    const { studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    expect(studio.serverPack()).not.toBeNull();
+
+    studio.onRemove(studio.cards()[0].id);
+    await flush();
+
+    expect(studio.cards()).toHaveLength(0);
+    expect(studio.serverPack()).toBeNull();
+    expect(studio.packOmitted()).toEqual([]);
+    expect(getContextPack).toHaveBeenCalledTimes(1); // no RPC for an empty set
+  });
+
+  it('saves as ${repo}-context-${date} with the format extension (T5.1 R5 + T5.6)', () => {
+    const { studio } = createStudio();
+    const date = new Date().toISOString().slice(0, 10);
+    expect(studio.saveFileName('markdown')).toBe(`eshop-microservices-context-${date}.md`);
+    expect(studio.saveFileName('plain')).toBe(`eshop-microservices-context-${date}.txt`);
   });
 });

@@ -14,10 +14,12 @@ green-wash. Run with `--gate` (armed in L6) to enforce.
 |---|-----------|--------|-------|-------|--------|
 | A-tabstrip-height | tab strip height >= 30px | PASS | U1 | L6.1 | stripH=32px (want >=30) |
 | B-new-preserves-tabs | titlebar New preserves other tabs | PASS | U2 | L6.1 | before=["eshop-microservic…✕","TodoApp.sln✕"] after=["eshop-microservic…✕","TodoApp.sln✕","New tab✕"] lost=[] added=true |
-| C-code-pane-nonempty | code pane non-empty on entry selection | PASS | U3 | L6.2 | code length=874 |
+| C-code-pane-nonempty | code pane non-empty on entry selection | PASS | U3 | L6.2 | code length=695 |
 | D-context-preset-cards | context studio preset seeds >= 1 card | PASS | U6 | L6.4 | cards=5 |
-| E-omitted-list-rendered | tiny-budget pack renders the omitted[] list | PASS | R1 | T5.1 | visible=true text=Omitted (3) entities: empty — omittedconfig: empty — omittedtests: empty — omitt |
+| E-omitted-list-rendered | tiny-budget pack renders the omitted[] list | PASS | R1 | T5.1 | visible=true text=Omitted (8) tests (Validators for /products): no content for its entries — omitt |
 | F-pack-error-retry | failed pack RPC shows card error; retry recovers | PASS | R4 | T5.1 | errorShown=true clearedAfterRetry=true |
+| G-repack-on-budget | budget change re-packs: copy@4k != copy@1k, headers match slider | PASS | C1 | T5.6 | 4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true |
+| H-plain-not-markdown | plain copy differs from markdown copy (bytes) | PASS | C1 | T5.6 | plain=6891ch differ=true noHeadings=true |
 
 ## Red items enumerated (owner stage)
 

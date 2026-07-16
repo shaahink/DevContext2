@@ -68,9 +68,10 @@ export interface ContextCardSeed {
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
+        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        [disabled]="totalEntryCount() === 0"
+        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Seeds 5 context cards for the endpoint you pick'"
         (click)="showPresetPicker.set(!showPresetPicker())"
-        title="I'm changing this endpoint — seeds 5 context cards"
       >
         <app-icon name="edit" [size]="14" />
         I&rsquo;m changing this endpoint
@@ -152,11 +153,16 @@ export interface ContextCardSeed {
       </span>
       <button
         type="button"
-        class="ml-auto rounded px-2 py-0.5 text-xs font-medium text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
+        class="ml-auto rounded px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-30"
+        [class.bg-accent]="selectedEntries().size > 0"
+        [class.text-accent-ink]="selectedEntries().size > 0"
+        [class.hover:bg-accent/90]="selectedEntries().size > 0"
+        [class.text-accent]="selectedEntries().size === 0"
         [disabled]="selectedEntries().size === 0"
+        data-testid="add-to-context"
         (click)="addSelected()"
       >
-        Add to context
+        Add{{ selectedEntries().size > 0 ? ' ' + selectedEntries().size : '' }} to context
       </button>
     </div>
   `,

@@ -16,6 +16,8 @@
 //   D. context studio preset seeds >= 1 card    (audit U6, owner L6.4)
 //   E. tiny-budget pack renders omitted[] list  (audit R1, owner T5.1)
 //   F. failed pack RPC shows error + retry works (audit R4, owner T5.1)
+//   G. budget change re-packs: copy@4k != copy@1k, header matches slider (audit C1, owner T5.6)
+//   H. plain format copy != markdown copy        (audit C1, owner T5.6)
 //
 // Output: eval-results/<date>/ui/  (screenshots + ui-gate.json + ui-gate.md)
 
@@ -78,13 +80,18 @@ async function waitAnalyzed(page, maxSec) {
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({ channel: "chrome", headless: true });
-  const ctx = await browser.newContext({ viewport: { width: 1600, height: 950 }, colorScheme: "dark" });
+  const ctx = await browser.newContext({
+    viewport: { width: 1600, height: 950 },
+    colorScheme: "dark",
+    permissions: ["clipboard-read", "clipboard-write"], // G/H read what Copy produced
+  });
   const page = await ctx.newPage();
   page.on("console", (m) => { if (m.type() === "error") note("console.error: " + m.text().slice(0, 200)); });
 
   // Shared drive state captured for the assertions.
   const state = { stripH: null, tabsBeforeNew: null, tabsAfterNew: null, codeContent: null, presetCards: null,
-    omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null };
+    omittedVisible: null, omittedText: null, errorShown: null, errorClearedAfterRetry: null,
+    copy4k: null, copy1k: null, copyPlain: null };
 
   try {
     // ── boot + analyze dogfood ──
@@ -255,6 +262,35 @@ async function main() {
       } else note("F: retry button NOT found");
     } else { note("F: preset re-seed failed"); await page.unroute("**/GetContextPack"); }
 
+    // ── G. budget change re-packs; copies differ; header matches slider (T5.6, audit C1) ──
+    // The audit's captured lie: slider 4k→1k, Copy still served the frozen 4k pack.
+    const copyText = async (label) => {
+      const btn = page.locator("[data-testid='copy-context']");
+      for (let i = 0; i < 20; i++) { // wait out the debounce + RPC (button disabled while stale)
+        if ((await btn.count()) && (await btn.isEnabled())) break;
+        await sleep(500);
+      }
+      if (!(await btn.count()) || !(await btn.isEnabled())) { note(`G: copy button never enabled (${label})`); return null; }
+      await btn.click(); await sleep(400);
+      const text = await page.evaluate(() => navigator.clipboard.readText());
+      note(`copy ${label}: ${text ? text.length + " chars" : "EMPTY"}`);
+      return text || null;
+    };
+    if (await setSlider(4000)) {
+      state.copy4k = await copyText("@4k");
+      await shot(page, "14-context-copy-4k");
+      await setSlider(1000);
+      state.copy1k = await copyText("@1k");
+      await shot(page, "15-context-copy-1k");
+    } else note("G: budget slider NOT found");
+
+    // ── H. plain format copy differs from markdown (T5.6, audit C1) ──
+    const plainBtn = page.locator("app-budget-panel button", { hasText: /^plain$/ }).first();
+    if (await plainBtn.count()) {
+      await plainBtn.click(); await sleep(300);
+      state.copyPlain = await copyText("plain@1k");
+    } else note("H: plain format button NOT found");
+
   } catch (e) {
     note("DRIVE ERROR: " + e.message);
   } finally {
@@ -278,6 +314,17 @@ async function main() {
         run: () => ({ pass: state.omittedVisible === true, detail: `visible=${state.omittedVisible} text=${String(state.omittedText).slice(0, 80)}` }) },
       { id: "F-pack-error-retry", desc: "failed pack RPC shows card error; retry recovers", audit: "R4", owner: "T5.1",
         run: () => ({ pass: state.errorShown === true && state.errorClearedAfterRetry === true, detail: `errorShown=${state.errorShown} clearedAfterRetry=${state.errorClearedAfterRetry}` }) },
+      { id: "G-repack-on-budget", desc: "budget change re-packs: copy@4k != copy@1k, headers match slider", audit: "C1", owner: "T5.6",
+        run: () => {
+          const ok = !!state.copy4k && !!state.copy1k && state.copy4k !== state.copy1k
+            && state.copy4k.includes("Budget: 4000") && state.copy1k.includes("Budget: 1000");
+          return { pass: ok, detail: `4k=${state.copy4k?.length ?? "null"}ch(hdr4k=${state.copy4k?.includes("Budget: 4000")}) 1k=${state.copy1k?.length ?? "null"}ch(hdr1k=${state.copy1k?.includes("Budget: 1000")}) differ=${state.copy4k !== state.copy1k}` };
+        } },
+      { id: "H-plain-not-markdown", desc: "plain copy differs from markdown copy (bytes)", audit: "C1", owner: "T5.6",
+        run: () => ({
+          pass: !!state.copyPlain && !!state.copy1k && state.copyPlain !== state.copy1k && !/^# /m.test(state.copyPlain),
+          detail: `plain=${state.copyPlain?.length ?? "null"}ch differ=${state.copyPlain !== state.copy1k} noHeadings=${state.copyPlain ? !/^# /m.test(state.copyPlain) : "n/a"}`,
+        }) },
     );
     for (const a of assertions) {
       let r; try { r = a.run(); } catch (e) { r = { pass: false, detail: "assert error: " + e.message }; }
