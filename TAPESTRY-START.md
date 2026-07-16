@@ -76,7 +76,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | T4.1 | Pack identity header + repo-relative file:line locations | VERIFIED | 0d47247 | tapestry-t4/T4.1-EVIDENCE.md · pack-dogfood-checkout.json (`# eshop-microservices — POST /basket/checkout` + `analyzed … · HEAD 7e43d80`; every located node repo-rel `file:line`, no trailing colon, no abs paths) · ContextPackBuilderTests (5) · root causes: snapshot.Explanation never populated (empty `# ` title) + `int?` LineNumber rendering `path:` |
-| T4.2 | Budget utilization ≥85% (spine-first body expansion, +N-lines markers) | TODO | | |
+| T4.2 | Budget utilization ≥85% (spine-first body expansion, +N-lines markers) | VERIFIED | (T4.2 commit) | tapestry-t4/T4.2-EVIDENCE.md · dogfood 88.8% (was 35%), shamshir 99.4% @ 4k budget, bodies dominant (2172/2368 tok) · BuildBodiesToFill BFS full-body expansion + `… (+N lines)` markers + omitted[] counts · depth scales with budget (4→6 @ ≥3k) · skeleton/signatures capped (shamshir sigs 2475→1000 + `+33 more members`) · Bodies_expand test |
 | T4.3 | config + tests sections server-side (R9) | TODO | | |
 | T4.4 | Per-section provenance + tier mix (R10) | TODO | | |
 | T4.5 | VerifyContextPack staleness API (R6 engine half) + MCP verify_context | TODO | | |

@@ -546,8 +546,9 @@ public sealed class TraceBuilder
     /// <summary>Parses a type's SourceBody and returns the source text of the direct member (method,
     /// ctor, or property) whose name matches — or null when nothing matches (e.g. an inherited/
     /// framework method the type doesn't declare itself). Ctor name is the type's own short name,
-    /// matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s caller-method key.</summary>
-    private static string? FindMemberDeclarationText(string typeSourceBody, string memberName)
+    /// matching <see cref="DevContext.Core.Extractors.Specific.CallGraphExtractor"/>'s caller-method key.
+    /// Internal: ContextPackBuilder uses the same lookup to expand salient snippets to full bodies (T4.2).</summary>
+    internal static string? FindMemberDeclarationText(string typeSourceBody, string memberName)
     {
         SyntaxNode root;
         try

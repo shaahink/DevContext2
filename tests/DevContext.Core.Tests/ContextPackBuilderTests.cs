@@ -216,6 +216,44 @@ public sealed class ContextPackBuilderTests
     }
 
     [Fact]
+    public void Bodies_expand_to_full_text_and_mark_truncation_when_cut()
+    {
+        // T4.2 — the audit's 612/4000 under-fill: bodies fill the remaining budget spine-first.
+        // Generous budget → the FULL member body ships (lines beyond the 3-line salient snippet);
+        // tight budget → the snippet ships with a visible `… (+N lines)` marker, never a silent cut.
+        var g = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /orders");
+        var callerId = NodeId.ForMember("App.OrdersController", "Post");
+        var calleeId = NodeId.ForMember("App.OrderService", "CreateOrder");
+        var serviceTypeId = NodeId.ForType("App.OrderService");
+
+        var longBody = "public class OrderService\n{\n    public void CreateOrder(Order o)\n    {\n"
+            + string.Join("\n", Enumerable.Range(1, 40).Select(i => $"        var step{i} = DoTheThing{i}(o);"))
+            + "\n    }\n}";
+
+        g.AddNode(new GraphNode(entryId, "POST /orders", NodeKind.EntryPoint));
+        g.AddNode(new GraphNode(callerId, "OrdersController.Post", NodeKind.Member));
+        g.AddNode(new GraphNode(serviceTypeId, "OrderService", NodeKind.Type) { SourceBody = longBody });
+        g.AddNode(new GraphNode(calleeId, "OrderService.CreateOrder", NodeKind.Member));
+        g.AddEdge(new GraphEdge(entryId, callerId, EdgeKind.Calls));
+        g.AddEdge(new GraphEdge(callerId, calleeId, EdgeKind.Calls));
+
+        var graph = g.Build();
+        var entries = ImmutableArray.Create(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "POST /orders", entryId));
+        var builder = new ContextPackBuilder(new GraphQuery(graph, entries), MakeSnapshot(graph, entries));
+
+        var generous = builder.Build("POST /orders", budgetTokens: 8000);
+        Assert.Contains("var step10 = DoTheThing10(o);", generous.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("… (+", generous.Content, StringComparison.Ordinal);
+
+        var tight = builder.Build("POST /orders", budgetTokens: 300);
+        Assert.DoesNotContain("var step10 = DoTheThing10(o);", tight.Content, StringComparison.Ordinal);
+        Assert.Contains("… (+", tight.Content, StringComparison.Ordinal);
+        Assert.True(tight.TotalTokens <= 300, $"pack overflows its budget: {tight.TotalTokens}");
+    }
+
+    [Fact]
     public void Multi_pack_header_names_repo_and_fills_archetype()
     {
         var (query, snapshot) = Arrange(

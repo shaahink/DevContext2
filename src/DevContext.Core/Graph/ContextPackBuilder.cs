@@ -64,24 +64,36 @@ public sealed class ContextPackBuilder
             BuildTraceSkeletonRecursive(sb, child, indent + 1);
     }
 
-    private string BuildCalleeSignatures(Trace trace)
+    /// <summary>T4.2 — signatures stay structural: spine-first (BFS) up to a token cap so a deep
+    /// trace can't starve the bodies section (shamshir at depth 6 grew this to 2.5k of a 4k pack).
+    /// The cut is named — the reader knows how many members the list left out.</summary>
+    private string BuildCalleeSignatures(Trace trace, int tokenBudget)
     {
         var sb = new StringBuilder();
         var seen = new HashSet<NodeId>();
-        CollectSignatures(trace.Root, sb, seen);
-        return sb.ToString();
-    }
-
-    private void CollectSignatures(TraceStep step, StringBuilder sb, HashSet<NodeId> seen)
-    {
-        if (seen.Add(step.Node.Id))
+        var used = 0;
+        var omittedCount = 0;
+        foreach (var step in WalkStepsBreadthFirst(trace.Root))
         {
-            sb.AppendLine($"- `{step.Node.Kind}:{step.Node.Id.Key}` — {step.Node.Title}");
+            if (!seen.Add(step.Node.Id)) continue;
+
+            var entry = new StringBuilder();
+            entry.AppendLine($"- `{step.Node.Kind}:{step.Node.Id.Key}` — {step.Node.Title}");
             if (step.Node.FilePath is { } fp)
-                sb.AppendLine($"  Location: {Location(fp, step.Node.LineNumber)}");
+                entry.AppendLine($"  Location: {Location(fp, step.Node.LineNumber)}");
+
+            var tokens = EstimateTokens(entry.ToString());
+            if (used + tokens > tokenBudget)
+            {
+                omittedCount++;
+                continue;
+            }
+            sb.Append(entry);
+            used += tokens;
         }
-        foreach (var child in step.Children)
-            CollectSignatures(child, sb, seen);
+        if (omittedCount > 0)
+            sb.AppendLine($"- … (+{omittedCount} more members — raise budgetTokens for the full list)");
+        return sb.ToString();
     }
 
     /// <summary>T3.5 — pack locations are repo-relative, never absolute machine paths (they waste
@@ -100,24 +112,103 @@ public sealed class ContextPackBuilder
     private string Location(string filePath, int? line)
         => line is { } ln && ln > 0 ? $"{RelPath(filePath)}:{ln}" : RelPath(filePath);
 
-    private string BuildSalientBodies(Trace trace)
+    /// <summary>T4.2 — bodies are where the tokens go. Fills up to <paramref name="tokenBudget"/>
+    /// spine-first (breadth-first, closest to the entry first): each step gets its FULL declaration
+    /// text when that fits (capped per body so one god-class can't eat the pack), else its salient
+    /// snippet with a visible `… (+N lines)` truncation marker, else it is counted omitted.</summary>
+    private (string Text, int OmittedBodies) BuildBodiesToFill(Trace trace, int tokenBudget)
     {
         var sb = new StringBuilder();
-        foreach (var step in WalkSteps(trace.Root))
+        var seen = new HashSet<NodeId>();
+        var remaining = tokenBudget;
+        var perBodyCap = Math.Max(150, tokenBudget * 2 / 5);
+        var omitted = 0;
+
+        foreach (var step in WalkStepsBreadthFirst(trace.Root))
         {
-            if (step.Salient.Length > 0)
+            var node = step.Node;
+            if (!seen.Add(node.Id)) continue;
+
+            var full = FullBodyText(node);
+            var salient = step.Salient;
+            if (full is null && salient.IsDefaultOrEmpty) continue;
+
+            var heading = new StringBuilder($"### {node.Title}");
+            if (node.FilePath is { } fp)
+                heading.Append($" — {Location(fp, node.LineNumber)}");
+
+            if (full is not null)
             {
-                sb.Append($"### {step.Node.Title}");
-                if (step.Node.FilePath is { } fp)
-                    sb.Append($" — {Location(fp, step.Node.LineNumber)}");
-                sb.AppendLine();
-                sb.AppendLine("```csharp");
-                foreach (var line in step.Salient)
-                    sb.AppendLine(line);
-                sb.AppendLine("```");
+                var fullBlock = $"{heading}\n```csharp\n{full.TrimEnd()}\n```\n";
+                var fullTokens = EstimateTokens(fullBlock);
+                if (fullTokens <= Math.Min(remaining, perBodyCap))
+                {
+                    sb.Append(fullBlock);
+                    remaining -= fullTokens;
+                    continue;
+                }
             }
+
+            if (salient.Length > 0)
+            {
+                var moreLines = full is null ? 0 : Math.Max(0, CountBodyLines(full) - salient.Length);
+                var marker = moreLines > 0 ? $"\n… (+{moreLines} lines)" : "";
+                var snippetBlock = $"{heading}\n```csharp\n{string.Join("\n", salient)}{marker}\n```\n";
+                var snippetTokens = EstimateTokens(snippetBlock);
+                if (snippetTokens <= remaining)
+                {
+                    sb.Append(snippetBlock);
+                    remaining -= snippetTokens;
+                    continue;
+                }
+            }
+
+            omitted++;
         }
-        return sb.ToString();
+
+        return (sb.ToString(), omitted);
+    }
+
+    /// <summary>The fullest body text available for a node: its own SourceBody, else its declaration
+    /// text found in the parent type's body — the same lookup the trace's salient snippet uses.</summary>
+    private string? FullBodyText(GraphNode node)
+    {
+        if (node.SourceBody is { Length: > 0 } own) return own;
+        if (node.Kind != NodeKind.Member) return null;
+
+        var key = node.Id.Key;
+        var lastDot = key.LastIndexOf('.');
+        if (lastDot <= 0) return null;
+        var owner = _query.Graph.Node(new NodeId(NodeKind.Type, key[..lastDot]));
+        if (owner?.SourceBody is not { Length: > 0 } typeBody) return null;
+        return TraceBuilder.FindMemberDeclarationText(typeBody, key[(lastDot + 1)..]);
+    }
+
+    /// <summary>Body lines the reader would actually see — blank and lone-brace lines don't count,
+    /// matching how the salient snippet counts its lines (so `+N lines` is honest).</summary>
+    private static int CountBodyLines(string text)
+    {
+        var n = 0;
+        foreach (var raw in text.Replace("\r\n", "\n").Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || line is "{" or "}") continue;
+            n++;
+        }
+        return n;
+    }
+
+    private static IEnumerable<TraceStep> WalkStepsBreadthFirst(TraceStep root)
+    {
+        var queue = new Queue<TraceStep>();
+        queue.Enqueue(root);
+        while (queue.Count > 0)
+        {
+            var step = queue.Dequeue();
+            yield return step;
+            foreach (var child in step.Children)
+                queue.Enqueue(child);
+        }
     }
 
     /// <summary>T4.6 — the contracts a change must honour: interfaces, DTOs, and message contracts
@@ -382,6 +473,11 @@ public sealed class ContextPackBuilder
     {
         var sections = new List<SectionAllocation>();
         var omitted = new List<string>();
+        var totalBudget = budgetTokens;
+        // T4.2 — structural caps: the trace skeleton and the signature list are orientation,
+        // not payload; capping them is what leaves the budget for bodies.
+        var skeletonCap = Math.Max(300, totalBudget * 3 / 20);
+        var signaturesCap = Math.Max(400, totalBudget / 4);
         var mode = intent?.ToLowerInvariant() switch
         {
             "explain" => "explain",
@@ -393,54 +489,67 @@ public sealed class ContextPackBuilder
         var identity = BuildIdentitySection(focus);
         tokensAddSection(sections, omitted, budgetTokens, "identity", identity, ref budgetTokens);
 
-        var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
+        // T4.2 — the spine scales with the budget: a bigger budget buys a DEEPER walk (more
+        // members to sign and embody), never more prose. Depth 4 starved the fill — dogfood's
+        // checkout spine is 46 steps at depth 6 but ~12 at depth 4.
+        var depth = mode == "review" || budgetTokens >= 3000 ? 6 : 4;
+        var fanOut = budgetTokens >= 6000 ? 16 : 12;
+        var trace = _query.Trace(focus, depth, fanOut);
         if (trace is null)
             return ([.. sections], [.. omitted]);
 
         // T4.6 — every section goes through tokensAddSection, which drops empty content and
         // records it in omitted[] (no more "Entities — 0 tok" shipping in a pack).
+        // T4.2 — bodies always come LAST and fill whatever budget the structural sections left
+        // (the audit's 612/4000 under-fill): sections stay structural, bodies are where tokens go.
         var entities = trace.TouchedEntities.IsDefaultOrEmpty
             ? ""
             : "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
+        // Shape the skeleton only when it actually exceeds its cap — ShapeToBudget estimates
+        // trace cost WITH salient text, so shaping an already-fitting skeleton over-cuts it.
+        var skeletonFull = BuildTraceSkeleton(trace);
+        var skeleton = EstimateTokens(skeletonFull) <= skeletonCap
+            ? skeletonFull
+            : BuildTraceSkeleton(TraceBuilder.ShapeToBudget(trace, skeletonCap));
+        var signatures = BuildCalleeSignatures(trace, signaturesCap);
 
         if (mode == "explain")
         {
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens);
         }
         else if (mode == "review")
         {
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-            tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
         }
         else
         {
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
-
-            if (!tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens))
-                return ([.. sections], [.. omitted]);
-
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
         }
+
+        var (bodies, omittedBodies) = BuildBodiesToFill(trace, budgetTokens);
+        tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens);
+        if (omittedBodies > 0)
+            omitted.Add($"bodies: {omittedBodies} member bodies omitted (budget) — raise budgetTokens or read_source the member");
 
         return ([.. sections], [.. omitted]);
     }
