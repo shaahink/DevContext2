@@ -17,6 +17,10 @@ projects, every public doc claim is source-verified, and remaining gaps are trac
 | G3 | Reference docs | Bring `docs/dev/CODE-MAP.md`, `docs/product/AGENT-REFERENCE.md`, `cli-reference.md`, `configuration.md`, `desktop-ui.md` up to T2–T4 state (verify counts, paths, flags vs source). | done | `e3b8782` |
 | G4 | Repo audit | CHANGELOG catch-up, root/tracked-file clutter audit (`analysis-exports/`, `eval-results/` 432 tracked files, root phase trackers), desktop-packaging gap, screenshot freshness. Deliverable: audit section below + safe fixes applied. | done | `094faaf` |
 | G5 | Fixture submodules | Reconstruct missing `.gitmodules` for `eval-repos/*` gitlinks (fresh clones had a red truth gate); `submodules: true` in CI; `Category=McpQa` excluded from CI filters (machine-local dogfood dep). | done | `2ad227d` |
+| G6 | Eval workflow | `eval.yml` (weekly + manual): submodule pins + clones the 5 non-submodule pinned repos from `eval/README.md`, runs `eval/gates.ps1 -SkipMcpQa` (new opt-in switch; step 2b needs the machine-local dogfood repo). 120-min timeout. | done | `09b1e98` |
+| G7 | Tracker archive | Closed-phase root trackers (`L3-/LOOM-/MERIDIAN-START.md`, `conductor-*.md`, `plan.json`) → `docs/dev/archive/` (INDEX updated); live pointers fixed (AGENTS.md, dev-pipeline skill). | done | `179c414` |
+| G8 | Desktop sidecar | `pnpm publish:server` → `src-tauri/resources/server`, bundled via `bundle.resources`; Rust falls back env var → bundled DLL, `CREATE_NO_WINDOW` on spawn; desktop job restored in `release.yml` (installers attach to releases); README flips to install-from-Releases. Verified: local build → both installers; release exe spawned bundled server, `/health` 200, graceful close kills child. | done | `22768be` |
+| G9 | Screenshots | All 12 re-captured at T4 state vs live app (dogfood eShop). 3 retaken past the script: Context Studio/Export needed real cards (script never clicked "Add to context"), start shot needed a fresh browser context. | done | `8018ddd` |
 
 ## Audit findings (2026-07-16, verified against `bcae33d`)
 
@@ -42,12 +46,12 @@ projects, every public doc claim is source-verified, and remaining gaps are trac
   two sessions share the machine (observed in this worktree: 508/512 pass, only McpQa red while the
   Tapestry agent was mid-session). It remains a serial step in `eval/gates.ps1` locally.
 
-### Desktop packaging gap (open — blocks "download the desktop app")
-A packaged Tauri build only works when `DEVCONTEXT_SERVER_DLL` points at a published
-`DevContext.Server` (the Rust shell spawns `dotnet <dll>`, `src-tauri/src/lib.rs:64`). Nothing bundles
-the server into the Tauri installer yet, and the spawn requires a .NET runtime on the user's machine.
-Until a sidecar/publish story lands, the desktop app is **build-from-source** — README says so now.
-Work needed: publish Server → Tauri resource + set env in Rust, or ship self-contained sidecar exe.
+### Desktop packaging gap — CLOSED in G8
+`pnpm publish:server` publishes a framework-dependent `DevContext.Server` into
+`src-tauri/resources/server` (runs in `beforeBuildCommand`); `bundle.resources` ships it; the Rust
+shell resolves env override → bundled DLL (`lib.rs`, `BaseDirectory::Resource`, exists-guarded so
+dev keeps the separate-server flow). Users still need the .NET 10 runtime (`dotnet` spawn) — README
+says so. Remaining nicety: the installer version is `tauri.conf.json`'s `0.1.0`, not the release tag.
 
 ### Stale claims fixed in G2/G3
 - README: "download `DevContext.Desktop.exe`" (WPF, deleted), "23 tools" (24 since T4.5
@@ -72,37 +76,31 @@ Work needed: publish Server → Tauri resource + set env in Rust, or ship self-c
   `conductor-*.md`) — closed-phase files at root. Moving them breaks active agents' pointers
   (TAPESTRY-START.md is ACTIVE — never move). Recommend archiving closed ones to
   `docs/dev/archive/` in a quiet window, updating `AGENTS.md` pointers in the same commit.
-- Screenshots (`docs/screenshots/*.png`, 12) — captured pre-T4; Context Studio and MCP page have
-  since changed. Re-capture via `capture-readme.mts` next time services are up (needs live app).
+- Screenshots — refreshed to T4 state in G9. Capture-script debt for next time: it selects scope
+  rows but never clicks "Add to context" (empty Context Studio), and the final home shot inherits
+  the last route (needs a fresh browser context). `start-dev-bg.ps1`'s Start-Job nesting also didn't
+  launch `ng serve` from the agent harness — detached `cmd /c` launches worked.
 - CHANGELOG — caught up in G4 with a `[Unreleased]` section summarizing post-v1.0.0 phases.
 
-## Next session — wrap-up list (resume here, in this worktree)
+## Remaining (delivery complete — these wait on external events)
 
-Work in `C:/Code/DevContext2-github-ready` on `feat/github-ready` (pushed; 6 commits `dd276a6..3ecd883`).
-Ordered by value; each item is independent:
+G1–G9 delivered and pushed. What's left is not this-worktree work:
 
-1. **Eval workflow (CI companion)** — new `.github/workflows/eval.yml`, `workflow_dispatch` + weekly
-   `schedule`, windows-latest, `submodules: true`, running `powershell -File eval/gates.ps1`. It
-   clones real repos from `eval-repos.json` (network fine in Actions); check total runtime and add
-   a generous `timeout-minutes`. Keeps PR CI fast while eval still runs unattended.
-2. **Desktop sidecar packaging (the big one)** — `dotnet publish` DevContext.Server, bundle it as a
-   Tauri resource, set `DEVCONTEXT_SERVER_DLL` from the Rust shell (`src-tauri/src/lib.rs:64` — env
-   var already honored; today nothing sets it in packaged builds). Then restore a desktop job in
-   `release.yml` and flip README's "build from source" to a download link. Verify with a local
-   `pnpm tauri build` + install.
-3. **Screenshot refresh** — 12 shots predate T4 (Context Studio/MCP changed):
-   `powershell -File src/DevContext.App/scripts/start-dev-bg.ps1`, then
-   `node --experimental-strip-types src/DevContext.App/scripts/capture-readme.mts --no-spawn`, then `-Kill`.
-4. **Root tracker archive (quiet window only)** — move closed `L3-/LOOM-/MERIDIAN-START.md`,
-   `conductor-*.md`, `plan.json` to `docs/dev/archive/`; update every pointer (AGENTS.md §"Where the
-   work is tracked", README) in the same commit. **Never move `TAPESTRY-START.md`** (active).
-   Check `git worktree list` first — don't archive under another agent.
-5. **PR** `feat/github-ready` → `develop` once `feat/tapestry-t4` merges (this branch is based on the
-   t4 head — rebase if T4 changed during review). Never merge unasked.
-6. **Coordinate with the engine strand** — empty-fixture-dir→skip in `TruthExpectationTests`
+1. **PR** `feat/github-ready` → `develop` once `feat/tapestry-t4` merges (this branch is based on the
+   t4 head — rebase if T4 changed during review; as of 2026-07-16 develop is still at the T3 merge).
+   Never merge unasked.
+2. **First `eval.yml` run** — trigger via `workflow_dispatch` after merge; confirm actual runtime
+   fits the 120-min timeout and the 5 pinned clones resolve on the runner.
+3. **Coordinate with the engine strand** — empty-fixture-dir→skip in `TruthExpectationTests`
    (Tapestry owns the file); owner decisions on `eval-results/` (432 files) + `analysis-exports/`.
+4. **Niceties, not blockers** — installer version from the release tag (today `0.1.0` from
+   tauri.conf.json); capture-script fixes noted in the screenshots hygiene entry above.
 
 ## Session log
 
 - 2026-07-16 — worktree created off `bcae33d`; baseline `dotnet build DevContext.slnx` green (exit 0);
   full audit of CI, release, README, docs tree done; delivery in progress chunk by chunk (see table).
+- 2026-07-16 (wrap-up) — G6–G9 delivered: eval.yml, tracker archive, desktop sidecar (verified: local
+  build produced NSIS+MSI installers; release exe spawned the bundled server, `/health` 200, graceful
+  close cleaned up the child), 12 screenshots refreshed against the live app. CHANGELOG + README
+  updated. Strand delivery complete; remaining items are external (see §Remaining).
