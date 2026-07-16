@@ -58,6 +58,24 @@ function commonDottedPrefix(names: readonly string[]): string {
   return first.slice(0, common).join('.');
 }
 
+/** Repo-relative display path (T6.8, audit B13): absolute machine paths in the Details
+ * rail / Call Stack / Table RESOLUTION are longer, non-portable, and token-expensive.
+ * The absolute path stays available on [title] / the copy affordance. `repoRoot` is the
+ * analyzed tab's path; a solution-FILE path is reduced to its directory first. */
+export function repoRelativePath(filePath: string, repoRoot: string | null | undefined): string {
+  if (!filePath || !repoRoot) return filePath;
+  let root = repoRoot.replace(/[\\/]+$/, '');
+  if (/\.slnx?$/i.test(root)) {
+    const cut = Math.max(root.lastIndexOf('/'), root.lastIndexOf('\\'));
+    if (cut > 0) root = root.slice(0, cut);
+  }
+  const norm = (p: string) => p.replace(/[\\/]+/g, '/').toLowerCase();
+  const nFile = norm(filePath);
+  const nRoot = norm(root) + '/';
+  if (!nFile.startsWith(nRoot)) return filePath;
+  return filePath.slice(root.length).replace(/^[\\/]+/, '');
+}
+
 /** "3d ago" / "2mo ago" — coarse relative time for repo cards (GitHub picker, recents). */
 export function timeAgo(dateStr: string | null): string {
   if (!dateStr) return '';

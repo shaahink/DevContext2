@@ -48,7 +48,10 @@ public sealed class LibraryArchetypeSource : IInsightSource
                 }
             }
 
-            var hubs = internalRefs.OrderByDescending(kv => kv.Value).Take(5)
+            // ≥3-refs floor (T6.3 rider): "heavily-referenced" with "(1 refs)" is a
+            // contradiction the shamshir audit rendered verbatim.
+            var hubs = internalRefs.Where(kv => kv.Value >= 3)
+                .OrderByDescending(kv => kv.Value).Take(5)
                 .Select(kv => $"{kv.Key} ({kv.Value} refs)")
                 .ToList();
             if (hubs.Count > 0)
@@ -67,6 +70,15 @@ public sealed class LibraryArchetypeSource : IInsightSource
         var diRegs = model.Detections.OfType<DiRegistrationDetection>().ToList();
         var multiImpl = diRegs
             .Where(d => !string.IsNullOrWhiteSpace(d.ServiceType) && d.ServiceType != "?")
+            // Registration-METHOD names leak in as service types from some DI shapes —
+            // "AddDbContext (10 impls)" headlined shamshir's extension seats (T6.3). An
+            // extension seat is an abstraction: I-prefixed or generic, never an Add*/Use* verb.
+            .Where(d =>
+            {
+                var name = TypeShortName(d.ServiceType);
+                return !(name.StartsWith("Add", StringComparison.Ordinal) || name.StartsWith("Use", StringComparison.Ordinal))
+                    || name.Contains('<');
+            })
             .GroupBy(d => d.ServiceType, StringComparer.Ordinal)
             .Select(g => (Type: g.Key, Count: g.Select(d => d.ImplementationType).Distinct(StringComparer.Ordinal).Count()))
             .Where(g => g.Count >= 2)

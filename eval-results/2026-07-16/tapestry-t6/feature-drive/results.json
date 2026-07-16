@@ -1,0 +1,97 @@
+{
+ "results": [
+  {
+   "step": "T6.7 hero-canvas",
+   "pass": true,
+   "detail": "cytoscape canvas inside service-map-hero: true"
+  },
+  {
+   "step": "T6.7 no-joined-tfms",
+   "pass": true,
+   "detail": ";-joined TFM string in home DOM: false"
+  },
+  {
+   "step": "T6.9 trace-hero-deep",
+   "pass": true,
+   "detail": "tile=\"Trace PUT /api/catalog/items/{id:int}\" focus=PUT /api/catalog/items/{id:int} depth>=3: true"
+  },
+  {
+   "step": "T6.8 no-abs-paths-explore",
+   "pass": true,
+   "detail": "C:\\ path fragments in explore DOM: 0"
+  },
+  {
+   "step": "T6.11 download-button",
+   "pass": true,
+   "detail": "download button present: true"
+  },
+  {
+   "step": "T6.11 full-names",
+   "pass": true,
+   "detail": "services=24 bare-API rows=0"
+  },
+  {
+   "step": "T6.11 event-rows",
+   "pass": true,
+   "detail": "event wiring rows=15 (want >=8)"
+  },
+  {
+   "step": "T6.11 cross-service-labels",
+   "pass": true,
+   "detail": "cross-service label present: true"
+  },
+  {
+   "step": "T6.3 tier-words",
+   "pass": true,
+   "detail": "pctConf=false tierWords=true"
+  },
+  {
+   "step": "T6.3 archetype-copy",
+   "pass": true,
+   "detail": "desktop/library/CLI copy on a web repo: false"
+  },
+  {
+   "step": "T6.4 live-server-url",
+   "pass": true,
+   "detail": "live URL + health target rendered: true"
+  },
+  {
+   "step": "T6.10 feed-default-agents",
+   "pass": true,
+   "detail": "filter chip: \"agents only\""
+  },
+  {
+   "step": "T6.10 use-prefills",
+   "pass": true,
+   "detail": "handle len=32 runEnabled=true"
+  },
+  {
+   "step": "T6.10 try-a-tool-succeeds",
+   "pass": true,
+   "detail": "no not_found error: true"
+  },
+  {
+   "step": "T6.9 reattach-no-reanalyze",
+   "pass": true,
+   "detail": "ready=true analyzeRpcs before=1 after=1"
+  },
+  {
+   "step": "T6.9 tiles-on-revisit",
+   "pass": true,
+   "detail": "START HERE present after reload: true"
+  }
+ ],
+ "rpcCounts": {
+  "Ping": 12,
+  "Analyze": 1,
+  "GetMap": 6,
+  "ListEntryPoints": 6,
+  "GetGraphFacets": 6,
+  "GetTrace": 601,
+  "GetStats": 7,
+  "GetNode": 198,
+  "ListSessions": 6,
+  "StartMcp": 1,
+  "ObserveToolCalls": 1
+ }
+}

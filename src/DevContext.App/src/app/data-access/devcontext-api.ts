@@ -10,6 +10,7 @@ import type {
   GraphFacetsResponse,
   ImpactResponse,
   InterestingPointsResponse,
+  ListSessionsResponse,
   MapResponse,
   NeighborsResponse,
   NodeResponse,
@@ -121,6 +122,11 @@ export class DevContextApi {
 
   closeSession(handle: string): Promise<CloseResponse> {
     return this.client.closeSession({ handle });
+  }
+
+  /** T6.9 — live server sessions (repo path + handle + graph counts), for boot reattach. */
+  listSessions(): Promise<ListSessionsResponse> {
+    return this.client.listSessions({});
   }
 
   getImpact(handle: string, nodeId: string, maxDepth?: number): Promise<ImpactResponse> {

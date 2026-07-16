@@ -4,6 +4,7 @@ import { ThemeService } from '../../core/theme/theme.service';
 import { ConnectionStore } from '../../state/connection.store';
 import { PrefsStore } from '../../state/prefs.store';
 import { isTauri } from '../../core/tauri-env';
+import { serverBaseUrl } from '../../core/config';
 import { StorageService, type StorageSummary } from '../../core/storage.service';
 import { formatBytes } from '../../core/format';
 
@@ -175,8 +176,11 @@ type SettingsTab = 'appearance' | 'analysis' | 'storage' | 'server' | 'about';
               </div>
             </div>
             <div>
-              <p class="text-2xs text-ink-muted uppercase">Port</p>
-              <p class="text-xs font-mono text-ink mt-1">5179 (http://127.0.0.1:5179)</p>
+              <p class="text-2xs text-ink-muted uppercase">Server URL</p>
+              <!-- The LIVE connection target (audit B12): this page previously printed the
+                   5179 constant while the app was verifiably talking to an injected URL. -->
+              <p class="text-xs font-mono text-ink mt-1">{{ liveServerUrl }}</p>
+              <p class="text-2xs text-ink-subtle mt-0.5">Health target: {{ liveServerUrl }}/health</p>
             </div>
           </section>
         }
@@ -206,6 +210,8 @@ export class SettingsView {
   readonly conn = inject(ConnectionStore);
   readonly prefs = inject(PrefsStore);
   private readonly storage = inject(StorageService);
+  /** The URL the gRPC client is actually built with — one source (core/config). */
+  protected readonly liveServerUrl = serverBaseUrl();
 
   protected readonly tabs: { key: SettingsTab; label: string }[] = [
     { key: 'appearance', label: 'Appearance' },

@@ -38,6 +38,10 @@ export interface EventWire {
   /** null = orphan event: emitted but no consumer entry matched (still worth showing). */
   readonly consumerFocus: string | null;
   readonly consumerTitle: string | null;
+  /** True only for the legacy client-side name-match join (facet-less sessions) — the
+   * server's T2.6 projection rows are the real graph join, not an approximation. */
+  readonly approx: boolean;
+  readonly crossService: boolean;
 }
 
 export interface HubStat {
@@ -106,9 +110,10 @@ export class AtlasStore {
   readonly indexed = computed(() => this.active().indexed);
   readonly total = computed(() => this.active().total);
   readonly running = computed(() => this.status() === 'indexing' || this.status() === 'paused');
-  /** Statusbar segment text, e.g. "atlas 42/94". Empty when idle/done. */
+  /** Statusbar segment text. Empty when idle/done. T6.8 (audit B6): the old "atlas 42/94"
+   * read as a mysterious SCORE that "changed between pages" — it's indexing progress; say so. */
   readonly progressLabel = computed(() =>
-    this.running() ? `atlas ${this.indexed()}/${this.total()}` : '',
+    this.running() ? `indexing flows ${this.indexed()}/${this.total()}` : '',
   );
 
   readonly flows = computed(() => Object.values(this.active().flows));
@@ -150,9 +155,30 @@ export class AtlasStore {
     this.hubs().map((h) => ({ ...h, degree: this.degreeCache().get(h.nodeId) ?? null })),
   );
 
-  /** §3.3 — heuristic publisher→event→consumer join. Rows with consumerFocus === null
-   * are orphan events. Heuristic name-match → present as [approx] in the UI. */
+  /** §3.3 — the event board's rows. T6.11: prefer the server's ONE T2.6 join (the
+   * EventWiring facet — publisher→event→consumer from real Raises/Consumes edges); the
+   * heuristic name-match join survives only for facet-less sessions and stays marked
+   * [approx]. */
   readonly eventWiring = computed<readonly EventWire[]>(() => {
+    const facet = this.workspace.activeTab()?.session.graphFacets?.eventWiring;
+    if (facet && facet.wires.length > 0) {
+      const wires: EventWire[] = [];
+      for (const w of facet.wires) {
+        const pub = w.publishers[0];
+        if (!pub) continue; // consumer-only rows have no board anchor
+        if (w.consumers.length === 0) {
+          wires.push({ event: w.eventName, publisherFocus: pub.nodeId, publisherTitle: pub.title,
+            consumerFocus: null, consumerTitle: null, approx: false, crossService: w.isCrossService });
+        } else {
+          for (const c of w.consumers) {
+            wires.push({ event: w.eventName, publisherFocus: pub.nodeId, publisherTitle: pub.title,
+              consumerFocus: c.nodeId, consumerTitle: c.title, approx: false, crossService: w.isCrossService });
+          }
+        }
+      }
+      return wires;
+    }
+
     const groups = this.workspace.activeTab()?.session.entryGroups ?? [];
     const consumers = groups
       .filter((g) => CONSUMER_KINDS.has(g.kind))
@@ -172,6 +198,8 @@ export class AtlasStore {
           publisherTitle: flow.title,
           consumerFocus: match?.focus ?? null,
           consumerTitle: match?.title ?? null,
+          approx: true,
+          crossService: false,
         });
       }
     }

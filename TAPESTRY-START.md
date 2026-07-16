@@ -7,18 +7,17 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T5 COMPLETE — 6/6 on feat/tapestry-t5** (off tapestry-t4 @ bcae33d): T5.1 89c2797 → T5.6 cc05b46 → T5.2 fea8973(+fix) → T5.3 e1f3c3b →
-T5.5 98d7fa1 → T5.4 4150e46. Studio trust arc done: omitted[] end-to-end (BuildMulti DISCARDED the reasons — always-empty omitted[]), error+Retry, whole-set
-re-pack on every change (pack was latest-batch-only; ONE buildContext path, client fallback DELETED), verification ledger (auto-verify per re-pack, Refresh/
-Re-analyze), per-card copy + json format + own-source file:line chips (proto SectionAllocation.content=6 — sections were counts about text the client never
-got), real previews (title echo dead), kind-aware presets (hub/worker). **Two live-drive catches: Build() never ResolveFocus'd → VerifyContext(nodeId) = 0
-files checked = eternal "fresh" (fixed at Build, T3.1 addressing); GrpcService kind glyph was danger-red = fake error badge (finding 50).** Drive gate
-**9/9 PASS** incl. I-verification-stale-cycle (fresh→disk edit→stale→restore→fresh). 45 vitest · Tauri smoke · gates-t5.1.txt GATE: PASS + stage battery
-gates-t5-stage.txt (verify GATE: PASS before merge) + loom-guards after it.
-next: **T6 (Workbench & pages revamp)** — T6.0 shamshir pole of the UI audit first, then T6.1+. Known T6 seeds: icon REGISTRY blank names (eye/eye-off/
-grip-vertical/edit/history/box), chip→code-pane nav (T6.8). develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
-gotchas: ng-watcher wedges on mid-edit errors (restart ng); NUL bytes from edit text break correlation invisibly (`grep` says binary — `cat -A`); dogfood has
-PRE-EXISTING local mods since 2025-12: YarpApiGateway/Program.cs EMPTY + CreateOrderHandler tweak — baselines include them, do NOT restore.
+last: 2026-07-16 **T6 COMPLETE — 12/12 on feat/tapestry-t6** (off tapestry-t5): T6.0 7bb4c8f → T6.1 2e5da08 → T6.7+T6.8 296fb39 → T6.5+T6.6 6a73546 →
+final batch T6.2/T6.3/T6.4/T6.9/T6.10/T6.11 (one commit: canvas glyphs+dashed-approx edges; archetype-GATED insight sources + tier-first rank + tier words +
+InsightHonestyTests; live server URL; deck wired-deep sort + trace-hero tile + boot reattach tryAdopt; ToolCallEvent.origin ui/agent + feed filter + use-button;
+EventWiringFacet = T2.6 join over gRPC + one-pager download). Stage gate `t6-feature-drive.mts` **16/16 PASS** (eval-results/2026-07-16/tapestry-t6/).
+**Wrap-up catches: eShop checkout-titled entries are ALL 1-hop client commands ([RelayCommand] CheckoutViewModel = 2 nodes) — trace tile now picks deep
+checkout else deepest request-shaped flow; CLI crashed on `--focus "[RelayCommand] X"` (Spectre markup unescaped, AnalyzeCommand — fixed); innerText is
+CSS-uppercased (assert case-insensitive); "Entry focus — click a node" is the inspector's NORMAL hint, count nested app-trace-node for depth.**
+next: **T7 (bench + perf honesty)** — T7.1 bench+truth files (CompositionApp/gRPC/aspire-samples), T7.2 perf baseline + edge-explosion, T7.3 waterfall,
+T7.4 RPC budget ≤15/nav. Branch feat/tapestry-t7 stacked off t6. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
+gotchas: start-dev-bg.ps1 web job can die silently (launch ng serve directly via bash bg + watch web.out.log); ng-watcher wedges on mid-edit errors; dogfood
+has PRE-EXISTING local mods since 2025-12 (YarpApiGateway/Program.cs EMPTY) — baselines include them, do NOT restore.
 
 ---
 
@@ -94,18 +93,18 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T6 — Workbench & pages revamp
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T6.0 | Full 7-page UI audit vs dogfood AND shamshir (eShop pole DONE 2026-07-15; shamshir pole remains) | IN PROGRESS | c3bcb9a | eval-results/2026-07-15/feature-design-audit.md |
-| T6.1 | Home/Atlas honest on monolith+workers repos | TODO | | |
-| T6.2 | Canvas revamp: entry-kind glyphs, tier-styled edges, archetype lens defaults | TODO | | |
-| T6.3 | Insights honesty: noise thresholds + archetype-aware copy (no "Desktop apps" on web repos) | TODO | | |
-| T6.4 | MCP page multi-session truth · Settings storage truth | TODO | | |
-| T6.5 | Keyboard reality: wire h/e/a/i/m/c/s nav (or drop affordance) · route-restore `/` bug · drive-gate kbd battery | TODO | | |
-| T6.6 | Theme parity: shell follows light mode · 3 vibes × 3 modes screenshot matrix in the gate | TODO | | |
-| T6.7 | Hero graphs draw edges (service-map-hero reuses Service-lens canvas; MAP header chips) (audit B1) | TODO | | |
-| T6.8 | Names/paths/metrics: no last-segment names · repo-relative paths · metric tooltips (audit A8/A14/B5/B6) | TODO | | |
-| T6.9 | First-run & session: deck sort · Trace-checkout target · persistent tiles · session reattach (audit B2–B4) | TODO | | |
-| T6.10 | MCP page ergonomics: full handle + use-button · feed origin filter (audit B9) | TODO | | |
-| T6.11 | One-pager fidelity: rides T2.6+T6.8 · file download · eShop golden (audit C3) | TODO | | |
+| T6.0 | Full 7-page UI audit vs dogfood AND shamshir (both poles done) | VERIFIED | 7bb4c8f | eval-results/2026-07-15/feature-design-audit.md · tapestry-t6/ui-pages-audit.md + shamshir-shots/ (16/16 drive) |
+| T6.1 | Home/Atlas honest on monolith+workers repos (.claude worktree exclusion, hub-radar noise filter) | VERIFIED | 2e5da08 | tapestry-t6/T6-EVIDENCE.md |
+| T6.2 | Canvas revamp: entry-kind glyphs on trace roots · approx hops dashed / verified solid (trace+neighbors) | VERIFIED | (T6 batch) | graph-canvas KIND_GLYPHS + `edge[?approx]` · feature-drive/02-trace-hero.png |
+| T6.3 | Insights honesty: Desktop/Library/Gateway sources archetype-gated · tier-first ranking · tier words (%. → tooltip) · writes-only validation · VM-View self-suppress · hubs ≥3-refs floor | VERIFIED | (T6 batch) | InsightHonestyTests (5) · drive tier-words + archetype-copy PASS · 04-insights-eshop.png |
+| T6.4 | Settings→Server shows live serverBaseUrl() + health target (audit B12) | VERIFIED | (T6 batch) | drive live-server-url PASS · 05-settings-server.png |
+| T6.5 | Keyboard reality: single-key nav wired · route-restore `/` guard · kbd drive battery | VERIFIED | 6a73546 | keyboard-observations.json · drive battery |
+| T6.6 | Theme parity: shell follows light mode · vibe×mode screenshot matrix | VERIFIED | 6a73546 | theme drive battery (committed with T6.5) |
+| T6.7 | Hero graphs draw edges (service-map-hero reuses canvas; MAP header chips) (audit B1) | VERIFIED | 296fb39 | drive hero-canvas + no-joined-tfms PASS · 01-home-hero-eshop.png |
+| T6.8 | Names/paths: display names (296fb39) · repo-relative entry provenance · deck middle-ellipsis keeps route tails | VERIFIED | (T6 batch) | drive no-abs-paths-explore = 0 |
+| T6.9 | First-run & session: deck wired-and-deep first · trace tile = deep checkout else deepest request-shaped flow (eShop checkout entries are ALL 1-hop client commands) · tiles persist · boot reattach (tryAdopt, no re-analyze) | VERIFIED | (T6 batch) | drive trace-hero-deep (≥3 hops) + reattach-no-reanalyze (Analyze 1→1) + tiles-on-revisit |
+| T6.10 | MCP ergonomics: ToolCallEvent.origin (grpc-web=ui / native=agent) · feed defaults agents-only · full-handle copy + use-prefill · try-a-tool green | VERIFIED | (T6 batch) | drive T6.10 ×3 PASS · 06-mcp-page.png |
+| T6.11 | One-pager fidelity: EventWiringFacet (T2.6 join server-side) · board+one-pager render it · cross-service labels · file download | VERIFIED | (T6 batch) | drive T6.11 ×4 PASS (24 services, 15 event rows) · eshop-onepager.md |
 
 ### T7 — Bench + perf honesty
 | # | Checkpoint | Status | Commit | Evidence |

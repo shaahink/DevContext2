@@ -913,7 +913,7 @@ public sealed class DiscoveryPipeline
     private static ImmutableArray<Insight> ComputeInsights(DiscoveryModel model, CodeGraph graph,
         ImmutableArray<EntryPoint> entries, MapModel map)
     {
-        var sources = new IInsightSource[]
+        var sources = new List<IInsightSource>
         {
             new EntryMixSource(),
             new AnonymousEndpointsSource(),
@@ -925,19 +925,27 @@ public sealed class DiscoveryPipeline
             new BusiestAggregateSource(),
             new TopologyChokepointSource(),
             new MultiImplSource(),
-            // L4.2 — per-archetype composition
+            // L4.2 archetype composition — Web/Messaging self-gate on their own signals and
+            // their copy is signal-true anywhere; the rest speak their archetype's language
+            // ("the desktop app's connective tissue", "the library's 'heart'"), so they only
+            // run when the Map SAYS the repo is that archetype (T6.3, audit finding 44 —
+            // shamshir, a trading engine, rendered both quotes above).
             new WebArchetypeSource(),
-            new LibraryArchetypeSource(),
             new MessagingArchetypeSource(),
-            new DesktopArchetypeSource(),
+            // Cli self-gates hard (CLI entries must exist AND dominate 3:1) — safe anywhere.
             new CliArchetypeSource(),
-            new GatewayArchetypeSource(),
             // M2.2 — wiring-grounded insights
             new EventFlowSource(),
             new SpofSource(),
             new UnvalidatedEndpointsSource(),
             new ConfigDefaultsSource(),
         };
+        switch (map.Archetype)
+        {
+            case Archetype.Library: sources.Add(new LibraryArchetypeSource()); break;
+            case Archetype.Desktop: sources.Add(new DesktopArchetypeSource()); break;
+            case Archetype.Gateway: sources.Add(new GatewayArchetypeSource()); break;
+        }
 
         var all = new List<Insight>();
         foreach (var source in sources)
@@ -946,8 +954,12 @@ public sealed class DiscoveryPipeline
             catch { }
         }
 
+        // Rank severity-first, then confidence TIER (T6.3: the eShop audit saw a "12% conf"
+        // Warning ranked #1) — tier thresholds mirror MapRenderer.AppendStyle (0.8/0.5).
+        static int Tier(double c) => c >= 0.8 ? 2 : c >= 0.5 ? 1 : 0;
         var ranked = all
             .OrderByDescending(i => i.Severity)
+            .ThenByDescending(i => Tier(i.Confidence))
             .ThenBy(i => i.Id)
             .ToList();
 

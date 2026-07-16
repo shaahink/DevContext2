@@ -77,6 +77,14 @@ function truncateLabel(label: string): string {
   return label.length > 40 ? label.slice(0, 38) + '…' : label;
 }
 
+/** Entry-kind glyphs for trace roots (T6.2) — terminal-style text tags, mirroring
+ * KIND_LABELS' vocabulary in canvas-sized form. */
+const KIND_GLYPHS: Record<string, string> = {
+  HttpEndpoint: 'HTTP', SignalRHub: 'HUB', HostedService: 'WORKER', MessageConsumer: 'BUS',
+  DomainEventHandler: 'EVENT', GrpcService: 'RPC', CliCommand: 'CLI', UiEntry: 'UI',
+  FunctionEntry: 'FN', GrainMethod: 'GRAIN', PublicApi: 'API',
+};
+
 function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.ElementDefinition[] {
   const els: cytoscape.ElementDefinition[] = [];
   let counter = 0;
@@ -84,11 +92,12 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
   const walk = (node: TraceNodeVm, parentElId: string | null, depth: number): void => {
     if (depth > maxDepth) return;
     const elId = `n${counter++}`;
+    const glyph = depth === 0 ? KIND_GLYPHS[node.kind] : undefined;
     els.push({
       data: {
         id: elId,
         nodeId: node.id,
-        label: truncateLabel(node.title),
+        label: (glyph ? `[${glyph}] ` : '') + truncateLabel(node.title),
         fullLabel: node.title,
         seam: node.seam,
         truncated: node.truncated,
@@ -97,7 +106,10 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
       classes: depth === 0 ? 'entry' : '',
     } as cytoscape.ElementDefinition);
     if (parentElId !== null) {
-      els.push({ data: { id: `${parentElId}->${elId}`, source: parentElId, target: elId, seam: node.seam } });
+      // Resolution tier drawn into the picture (T6.2): a semantic (Roslyn-verified) hop is a
+      // solid line, an approximate one dashed — honesty visible without opening the inspector.
+      els.push({ data: { id: `${parentElId}->${elId}`, source: parentElId, target: elId, seam: node.seam,
+        approx: node.resolution !== 'Semantic' } });
     }
     for (const child of node.children) walk(child, elId, depth + 1);
   };
@@ -146,7 +158,8 @@ function buildNeighborsElements(
       seen.add(e.to);
       els.push({ data: { id: e.to, nodeId: e.to, label: truncateLabel(otherTitle), fullLabel: otherTitle, seam: e.kind, truncated: false, depth: 1 } });
     }
-    els.push({ data: { id: `edge${counter++}`, source: centerId, target: e.to, seam: e.kind } });
+    els.push({ data: { id: `edge${counter++}`, source: centerId, target: e.to, seam: e.kind,
+      approx: e.resolution !== 'Semantic' } });
   }
   return els;
 }
@@ -446,6 +459,11 @@ export class GraphCanvas {
             'curve-style': 'bezier',
             label: '',
           },
+        },
+        {
+          // T6.2 — approximate (non-Roslyn-verified) hops are dashed; verified stay solid.
+          selector: 'edge[?approx]',
+          style: { 'line-style': 'dashed', 'line-dash-pattern': [5, 3] },
         },
         {
           selector: 'edge.highlighted',

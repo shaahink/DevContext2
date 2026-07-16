@@ -700,6 +700,10 @@ message ToolCallEvent {
   int64 elapsed_ms = 6;
   int64 timestamp_utc_ms = 7;
   string session_repo = 8;
+  // T6.10 — who made the call: "ui" (the desktop app's own gRPC-web traffic) or "agent"
+  // (native gRPC, i.e. the MCP sidecar). One page load logged 163 UI calls / ~99k tok —
+  // agent traffic drowns without this tag; the live feed default-filters to agents.
+  string origin = 9;
 }
 
 // ---------------------------------------------------------------------------
@@ -792,6 +796,30 @@ message GraphFacetsResponse {
   FlowListFacet flow_list = 2;
   EntryTableFacet entry_table = 3;
   LayerBandFacet layer_band = 4;
+  // T6.11 — the ONE event join (T2.6 EventWiringProjection), so the Atlas board and
+  // one-pager render the server's truth instead of a client-side name-match heuristic.
+  EventWiringFacet event_wiring = 5;
+}
+
+message EventWiringFacet {
+  repeated EventWireRow wires = 1;
+  int32 integration_count = 2;
+  int32 cross_service_count = 3;
+}
+
+message EventWireRow {
+  string event_name = 1;
+  bool is_integration = 2;
+  bool is_cross_service = 3;
+  bool is_orphan = 4;
+  repeated EventParticipantRow publishers = 5;
+  repeated EventParticipantRow consumers = 6;
+}
+
+message EventParticipantRow {
+  string node_id = 1;
+  string title = 2;
+  optional string service = 3;
 }
 
 message ServiceMapFacet {

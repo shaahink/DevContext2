@@ -154,6 +154,21 @@ export class WorkbenchPage implements OnDestroy {
     if (isStageAltitude(urlView)) this.stageAltitude.set(urlView);
     const urlLens = params.get('lens');
     if (isLensId(urlLens)) this.stageLens.set(urlLens);
+    else if (urlView === 'system') {
+      // T6.2 — lens default per archetype, only when landing straight in the System view
+      // (hero/atlas clicks) with no explicit lens: microservices read best grouped by
+      // service, layered monoliths by layer, vertical slices by feature. The flow lens
+      // stays the default everywhere else — the first-contact trace is the flagship.
+      const defaultLens = effect(() => {
+        const map = this.session.mapResponse();
+        if (!map) return;
+        defaultLens.destroy();
+        if (this.stageLens() !== 'flow') return; // user already picked one
+        if (/microservice/i.test(map.archetype)) this.stageLens.set('service');
+        else if (/NLayer|Onion|CleanArchitecture/i.test(map.style)) this.stageLens.set('layer');
+        else if (/VerticalSlices/i.test(map.style)) this.stageLens.set('feature');
+      });
+    }
     const urlKind = params.get('kind');
     if (urlKind) this.deckKind.set(urlKind);
     const urlQuery = params.get('q');

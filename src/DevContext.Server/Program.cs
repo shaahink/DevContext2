@@ -19,6 +19,8 @@ builder.Services.AddSingleton<IAnalysisSessionManager, AnalysisSessionManager>()
 builder.Services.AddSingleton<McpObservabilityService>();
 
 builder.Services.AddGrpc();
+// T6.10 — RecordToolCall reads the request content-type to tag UI vs agent origin.
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options => options.AddPolicy("web", policy => policy
     .SetIsOriginAllowed(_ => true)

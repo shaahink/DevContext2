@@ -19,7 +19,10 @@ public sealed class UnvalidatedEndpointsSource : IInsightSource
 
         var validators = FindValidators(model);
 
-        var httpEntries = entries.Where(e => e.Kind == EntryPointKind.HttpEndpoint).ToList();
+        // Writes only (T6.3, audit A11): the copy says "every write endpoint needs a
+        // validator" — counting GETs inflated eShop to "43/56" with read endpoints.
+        var httpEntries = entries.Where(e => e.Kind == EntryPointKind.HttpEndpoint
+            && e.HttpMethod is "POST" or "PUT" or "PATCH" or "DELETE").ToList();
         if (httpEntries.Count == 0) yield break;
 
         var unvalidated = new List<(string Label, EntryPoint Entry)>();
@@ -44,7 +47,7 @@ public sealed class UnvalidatedEndpointsSource : IInsightSource
             .Cast<TypedAction?>().ToImmutableArray();
 
         yield return Insight.Create(Id, Category, severity,
-            $"Missing validation: {unvalidated.Count}/{httpEntries.Count} endpoints have no FluentValidation validator",
+            $"Missing validation: {unvalidated.Count}/{httpEntries.Count} write endpoints have no FluentValidation validator",
             evidence,
             confidence: 0.65,
             confidenceBasis: "Validator detection from AbstractValidator<T> subclasses; target resolution from graph dispatch edges",

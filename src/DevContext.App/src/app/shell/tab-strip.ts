@@ -78,6 +78,8 @@ export class TabStrip {
   protected readonly maxTabs = WorkspaceStore.MAX_TABS;
   private readonly router = inject(Router);
   private readonly session = inject(SessionStore);
+  /** Tabs with a boot adopt/analyze decision in flight (guards the lazy-boot effect). */
+  private readonly bootPending = new Set<string>();
 
   constructor() {
     const sub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
@@ -99,11 +101,20 @@ export class TabStrip {
 
     // The one reactive rule behind "first activation analyzes lazily": whenever the active tab is
     // idle with a remembered path but no handle yet (a restored tab, or one just switched into),
-    // kick off its analysis automatically.
+    // ADOPT the server's live session for that repo if one exists (T6.9, audit B4 — the server
+    // survives client restarts; re-analyzing cost a full engine run + ~100 GetTrace per boot),
+    // else kick off analysis.
     effect(() => {
       const tab = this.workspace.activeTab();
       if (tab && tab.session.status === 'idle' && tab.path && !tab.session.handle) {
-        void this.session.analyze({ path: tab.path });
+        if (this.bootPending.has(tab.id)) return; // adopt in flight — don't double-start
+        this.bootPending.add(tab.id);
+        const path = tab.path;
+        void this.session.tryAdopt(path)
+          .then((adopted) => {
+            if (!adopted) void this.session.analyze({ path });
+          })
+          .finally(() => this.bootPending.delete(tab.id));
       }
     });
   }

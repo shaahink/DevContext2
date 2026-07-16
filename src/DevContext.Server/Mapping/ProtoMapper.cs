@@ -451,7 +451,8 @@ internal static class ProtoMapper
         ServiceMapResult serviceMap,
         FlowListResult flowList,
         EntryTableResult entryTable,
-        LayerBandResult layerBand)
+        LayerBandResult layerBand,
+        ImmutableArray<EventWire> eventWiring = default)
     {
         var resp = new Proto.GraphFacetsResponse();
 
@@ -536,6 +537,34 @@ internal static class ProtoMapper
             if (nb.Layer is { } l2) band.Layer = l2;
             if (nb.Feature is { } f2) band.Feature = f2;
             resp.LayerBand.NodeBands.Add(band);
+        }
+
+        // EventWiring facet (T6.11) — the ONE T2.6 join, verbatim; the Atlas board and
+        // one-pager stop re-deriving publisher→event→consumer client-side.
+        resp.EventWiring = new Proto.EventWiringFacet();
+        if (!eventWiring.IsDefaultOrEmpty)
+        {
+            static Proto.EventParticipantRow ToRow(EventParticipant p)
+            {
+                var row = new Proto.EventParticipantRow { NodeId = p.Node.ToString(), Title = p.Title };
+                if (p.Service is { } svc) row.Service = svc;
+                return row;
+            }
+            foreach (var w in eventWiring)
+            {
+                var wire = new Proto.EventWireRow
+                {
+                    EventName = w.EventName,
+                    IsIntegration = w.IsIntegration,
+                    IsCrossService = w.IsCrossService,
+                    IsOrphan = w.IsOrphan,
+                };
+                foreach (var p in w.Publishers) wire.Publishers.Add(ToRow(p));
+                foreach (var c in w.Consumers) wire.Consumers.Add(ToRow(c));
+                resp.EventWiring.Wires.Add(wire);
+            }
+            resp.EventWiring.IntegrationCount = eventWiring.Count(w => w.IsIntegration);
+            resp.EventWiring.CrossServiceCount = eventWiring.Count(w => w.IsCrossService);
         }
 
         return resp;

@@ -5,6 +5,8 @@ import type {
   TraceNode,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
+import { repoRelativePath } from '../core/format';
+
 export type AnalysisStatus = 'idle' | 'cloning' | 'analyzing' | 'ready' | 'error';
 
 export interface EntryVm {
@@ -131,7 +133,7 @@ const ENTRY_KIND_ORDER = [
   'PublicApi',
 ];
 
-export function toEntryVm(e: EntryPoint): EntryVm {
+export function toEntryVm(e: EntryPoint, repoRoot?: string): EntryVm {
   const focus = e.httpMethod && e.route ? `${e.httpMethod} ${e.route}` : e.title;
   return {
     kind: e.kind,
@@ -140,7 +142,7 @@ export function toEntryVm(e: EntryPoint): EntryVm {
     httpMethod: e.httpMethod,
     route: e.route,
     target: e.target,
-    provenance: e.provenance,
+    provenance: e.provenance ? relativizeProvenance(e.provenance, repoRoot) : e.provenance,
     project: e.project,
     groupPath: e.groupPath,
     score: e.score,
@@ -151,7 +153,17 @@ export function toEntryVm(e: EntryPoint): EntryVm {
   };
 }
 
-export function groupEntries(entries: readonly EntryPoint[]): EntryGroupVm[] {
+/** T6.8 (audit B13) — entry provenance arrives as `absolute\path\file.cs:line`; the deck,
+ * table RESOLUTION column, and exports all display it, so relativize once at VM build. */
+function relativizeProvenance(provenance: string, repoRoot?: string): string {
+  if (!repoRoot) return provenance;
+  const idx = provenance.lastIndexOf(':');
+  const path = idx > 1 ? provenance.slice(0, idx) : provenance;
+  const line = idx > 1 ? provenance.slice(idx) : '';
+  return repoRelativePath(path, repoRoot) + line;
+}
+
+export function groupEntries(entries: readonly EntryPoint[], repoRoot?: string): EntryGroupVm[] {
   const byKind = new Map<string, EntryVm[]>();
   for (const e of entries) {
     let list = byKind.get(e.kind);
@@ -159,7 +171,7 @@ export function groupEntries(entries: readonly EntryPoint[]): EntryGroupVm[] {
       list = [];
       byKind.set(e.kind, list);
     }
-    list.push(toEntryVm(e));
+    list.push(toEntryVm(e, repoRoot));
   }
   return [...byKind.keys()]
     .sort((a, b) => orderIndex(a) - orderIndex(b))

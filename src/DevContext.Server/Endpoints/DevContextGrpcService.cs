@@ -17,6 +17,7 @@ namespace DevContext.Server.Endpoints;
 public sealed class DevContextGrpcService(
     IAnalysisSessionManager sessions,
     McpObservabilityService mcpObs,
+    IHttpContextAccessor httpContext,
     ILogger<DevContextGrpcService> logger)
     : Proto.DevContextService.DevContextServiceBase
 {
@@ -291,7 +292,7 @@ public sealed class DevContextGrpcService(
             var entryTable = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
             var layerBand = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
 
-            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand);
+            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand, graph.EventWiring);
         });
 
     // Gap 1 — read_source RPC: Returns raw source code for the Inspector Code tab.
@@ -545,6 +546,11 @@ public sealed class DevContextGrpcService(
     // M3.3 — emit tool-call events on every session access
     private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
     {
+        // T6.10 — the desktop app calls over gRPC-web (content-type "application/grpc-web*"),
+        // the MCP sidecar over native gRPC ("application/grpc"): that one header separates the
+        // app's own render chatter from real agent traffic in the live feed.
+        var contentType = httpContext.HttpContext?.Request.ContentType ?? "";
+        var origin = contentType.Contains("grpc-web", StringComparison.OrdinalIgnoreCase) ? "ui" : "agent";
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,
@@ -554,6 +560,7 @@ public sealed class DevContextGrpcService(
             EstTokens = bytes / 4, // rough estimate: ~4 chars per token
             ElapsedMs = elapsedMs,
             TimestampUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Origin = origin,
         });
     }
 
