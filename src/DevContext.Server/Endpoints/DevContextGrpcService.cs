@@ -404,7 +404,7 @@ public sealed class DevContextGrpcService(
 
             foreach (var (cid, title, filePath, lineNumber, project, distance) in callers)
             {
-                if (!IsLikelyTestMethod(title, filePath, project)) continue;
+                if (!TestHeuristics.IsLikelyTestMethod(title, filePath, project, session.Snapshot.RootPath)) continue;
 
                 resp.Tests.Add(new Proto.TestRef
                 {
@@ -626,35 +626,6 @@ public sealed class DevContextGrpcService(
         ArgumentException => new RpcException(new Status(StatusCode.InvalidArgument, ex.Message)),
         _ => new RpcException(new Status(StatusCode.Internal, ex.Message)),
     };
-
-    // M4.9 — heuristic test method detection by name, path, and project
-    private static bool IsLikelyTestMethod(string title, string? filePath, string? project)
-    {
-        if (string.IsNullOrEmpty(title)) return false;
-
-        var lower = title.ToLowerInvariant();
-
-        if (lower.EndsWith("_test") || lower.EndsWith("_should") || lower.EndsWith("_when")
-            || title.StartsWith("Test") || title.StartsWith("Should")
-            || title.Contains("_Tests_") || title.Contains(".Tests."))
-            return true;
-
-        if (filePath is not null)
-        {
-            var fp = filePath.Replace('\\', '/').ToLowerInvariant();
-            if (fp.Contains("/test/") || fp.Contains("/tests/")) return true;
-        }
-
-        if (project is not null)
-        {
-            var p = project.ToLowerInvariant();
-            if (p.EndsWith("tests") || p.EndsWith("test") || p.EndsWith("specs")
-                || p.Contains(".tests.") || p.Contains(".test."))
-                return true;
-        }
-
-        return false;
-    }
 
     private static StatusCode AnalysisCodeToGrpc(string code) => code switch
     {

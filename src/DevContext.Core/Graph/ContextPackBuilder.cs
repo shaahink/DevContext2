@@ -271,6 +271,77 @@ public sealed class ContextPackBuilder
         return null;
     }
 
+    /// <summary>T4.3 (R9) — the config keys the traced spine actually reads, each with the
+    /// file:line of the binding site. Scans only the spine's own files (a handful), so this is
+    /// cheap at pack time; the session-wide scan cache (T3.4) is a server concern, not ours.</summary>
+    private string BuildConfigSection(Trace trace)
+    {
+        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var step in WalkSteps(trace.Root))
+            if (step.Node.FilePath is { } fp)
+                files.Add(fp);
+        if (files.Count == 0) return "";
+
+        var bindings = ConfigScanner.Scan(_query.Graph, files);
+        if (bindings.Count == 0) return "";
+
+        var sb = new StringBuilder();
+        foreach (var group in bindings
+            .GroupBy(b => b.Key, StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.Ordinal))
+        {
+            var first = group.OrderBy(b => b.FilePath, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(b => b.LineNumber).First();
+            sb.Append($"- `{group.Key}` ({first.PatternType}) — {Location(first.FilePath, first.LineNumber)}");
+            var more = group.Count() - 1;
+            if (more > 0) sb.Append($" (+{more} more sites)");
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>T4.3 (R9) — tests whose call closure reaches a spine member, by the same
+    /// heuristic the tests_for tool uses (one source: <see cref="TestHeuristics"/>). Best-effort:
+    /// an empty section means no test REACHED the spine by these signals, never "untested".</summary>
+    private string BuildTestsSection(Trace trace)
+    {
+        const int maxProbes = 10;
+        const int maxRows = 12;
+        var sb = new StringBuilder();
+        var seenTests = new HashSet<NodeId>();
+        var probed = 0;
+        var capped = false;
+
+        foreach (var step in WalkStepsBreadthFirst(trace.Root))
+        {
+            if (capped) break;
+            var node = step.Node;
+            if (node.Kind is not (NodeKind.Member or NodeKind.Type)) continue;
+            if (++probed > maxProbes) break;
+
+            foreach (var (callerId, title, filePath, lineNumber, project, distance) in _query.FindCallers(node.Id, maxDepth: 6))
+            {
+                if (!TestHeuristics.IsLikelyTestMethod(title, filePath, project, _snapshot.RootPath)) continue;
+                if (!seenTests.Add(callerId)) continue;
+
+                sb.Append($"- `{title}` — reaches `{node.Title}` (distance {distance})");
+                if (filePath is not null)
+                    sb.Append($" — {Location(filePath, lineNumber)}");
+                sb.AppendLine();
+
+                if (seenTests.Count >= maxRows)
+                {
+                    sb.AppendLine($"- … (list capped at {maxRows} — tests_for(nodeId) for the rest)");
+                    capped = true;
+                    break;
+                }
+            }
+        }
+
+        if (sb.Length == 0) return "";
+        return "_best-effort: name/path/project heuristic — no rows ≠ untested_\n" + sb;
+    }
+
     private string BuildDiRegistrations(Trace? trace)
     {
         var types = new HashSet<NodeId>();
@@ -331,10 +402,10 @@ public sealed class ContextPackBuilder
         ["signatures"] = ["signatures"],
         ["bodies"]     = ["bodies"],
         ["di_wiring"]  = ["di_wiring"],
-        ["config"]     = [],   // config is not traced — handled separately
+        ["config"]     = ["config"],      // T4.3 (R9) — real: spine config keys, no longer a client stub
         ["entities"]   = ["entities"],
         ["contracts"]  = ["contracts"],   // T4.6 — own section, no longer a signatures alias
-        ["tests"]      = [],   // tests — handled separately
+        ["tests"]      = ["tests"],       // T4.3 (R9) — real: tests reaching the spine
         ["identity"]   = ["identity"],
     };
 
@@ -517,6 +588,8 @@ public sealed class ContextPackBuilder
         {
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "signatures", signatures, ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "trace", skeleton, ref budgetTokens);
@@ -532,6 +605,8 @@ public sealed class ContextPackBuilder
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
         }
         else
         {
@@ -544,6 +619,8 @@ public sealed class ContextPackBuilder
             tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
             tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "config", BuildConfigSection(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "tests", BuildTestsSection(trace), ref budgetTokens);
         }
 
         var (bodies, omittedBodies) = BuildBodiesToFill(trace, budgetTokens);

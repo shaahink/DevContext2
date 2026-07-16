@@ -45,6 +45,8 @@ public sealed class ContextPackAssemblyTests
                 new ContextCardSpec("signatures", "Member signatures", entryIds),
                 new ContextCardSpec("contracts", "Contracts and interfaces", entryIds),
                 new ContextCardSpec("entities", "Entities", entryIds),
+                new ContextCardSpec("config", "Configuration", entryIds),
+                new ContextCardSpec("tests", "Tests", entryIds),
             ],
             totalBudget: 8000);
 
@@ -66,6 +68,13 @@ public sealed class ContextPackAssemblyTests
         // T4.6 — no empty sections/cards rendered; no HTML comment markers in the human copy.
         Assert.DoesNotContain(", 0 tok_", md, StringComparison.Ordinal);
         Assert.DoesNotContain("<!--", md, StringComparison.Ordinal);
+
+        // T4.3 — config/tests are real server sections now (no client-stub "not traced" path).
+        // CompositionApp reads no config and ships no tests, so both cards must be dropped
+        // honestly: named in omitted[], never rendered empty.
+        Assert.DoesNotContain(pack.Cards, c => c.Type is "config" or "tests");
+        Assert.Contains(pack.Omitted, o => o.StartsWith("config", StringComparison.Ordinal));
+        Assert.Contains(pack.Omitted, o => o.StartsWith("tests", StringComparison.Ordinal));
     }
 
     private static string RepoPath(string relativePath)

@@ -57,14 +57,14 @@ public sealed class ContextPackBuilderTests
 
     private static AnalysisSnapshot MakeSnapshot(
         CodeGraph graph, ImmutableArray<EntryPoint> entries,
-        DateTimeOffset? analyzedAt = null, string? gitHead = null) => new()
+        DateTimeOffset? analyzedAt = null, string? gitHead = null, string rootPath = @"C:\repo") => new()
     {
         Model = new DiscoveryModel(),
         Analysis = new SharedAnalysisContext(),
         Scenario = ScenarioRegistry.BuiltIn["overview"],
         Options = new ExtractionOptions(),
         Report = DefaultReport,
-        RootPath = @"C:\repo",
+        RootPath = rootPath,
         Graph = graph,
         Entries = entries,
         AnalyzedAtUtc = analyzedAt,
@@ -251,6 +251,78 @@ public sealed class ContextPackBuilderTests
         Assert.DoesNotContain("var step10 = DoTheThing10(o);", tight.Content, StringComparison.Ordinal);
         Assert.Contains("… (+", tight.Content, StringComparison.Ordinal);
         Assert.True(tight.TotalTokens <= 300, $"pack overflows its budget: {tight.TotalTokens}");
+    }
+
+    [Fact]
+    public void Config_section_lists_spine_keys_with_binding_sites()
+    {
+        // T4.3 (R9) — the config card was a dead client stub. The section scans the spine's own
+        // files for literal key reads and cites each binding site repo-relative.
+        var dir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "dc-t43-" + Guid.NewGuid().ToString("N"))).FullName;
+        try
+        {
+            var svcPath = Path.Combine(dir, "OrderService.cs");
+            File.WriteAllText(svcPath,
+                "public class OrderService\n{\n    public OrderService(IConfiguration config)\n    {\n"
+                + "        var cs = config.GetConnectionString(\"Database\");\n"
+                + "        var retries = config[\"Orders:MaxRetries\"];\n    }\n}");
+
+            var g = new CodeGraphBuilder();
+            var entryId = NodeId.ForEntry("POST /orders");
+            var svcId = NodeId.ForType("App.OrderService");
+            g.AddNode(new GraphNode(entryId, "POST /orders", NodeKind.EntryPoint));
+            g.AddNode(new GraphNode(svcId, "OrderService", NodeKind.Type) { FilePath = svcPath });
+            g.AddEdge(new GraphEdge(entryId, svcId, EdgeKind.Calls));
+
+            var graph = g.Build();
+            var entries = ImmutableArray.Create(
+                new EntryPoint(EntryPointKind.HttpEndpoint, "POST /orders", entryId));
+            var builder = new ContextPackBuilder(
+                new GraphQuery(graph, entries), MakeSnapshot(graph, entries, rootPath: dir));
+
+            var pack = builder.Build("POST /orders");
+
+            var config = pack.Sections.Single(s => s.Section == "config").Content;
+            Assert.Contains("`Database` (GetConnectionString) — OrderService.cs:5", config, StringComparison.Ordinal);
+            Assert.Contains("`Orders:MaxRetries` (Indexer) — OrderService.cs:6", config, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Tests_section_lists_reaching_tests_and_says_best_effort()
+    {
+        // T4.3 (R9) — the tests card was a dead client stub. The section lists test methods whose
+        // call closure reaches a spine member, and says it is a heuristic (0 rows ≠ untested).
+        var g = new CodeGraphBuilder();
+        var entryId = NodeId.ForEntry("POST /orders");
+        var calleeId = NodeId.ForMember("App.OrderService", "CreateOrder");
+        var testId = NodeId.ForMember("App.Tests.OrderServiceTests", "CreateOrder_saves_the_order");
+
+        g.AddNode(new GraphNode(entryId, "POST /orders", NodeKind.EntryPoint));
+        g.AddNode(new GraphNode(calleeId, "OrderService.CreateOrder", NodeKind.Member));
+        g.AddNode(new GraphNode(testId, "OrderServiceTests.CreateOrder_saves_the_order", NodeKind.Member)
+        {
+            FilePath = @"C:\repo\tests\App.Tests\OrderServiceTests.cs",
+            LineNumber = 34,
+        });
+        g.AddEdge(new GraphEdge(entryId, calleeId, EdgeKind.Calls));
+        g.AddEdge(new GraphEdge(testId, calleeId, EdgeKind.Calls));
+
+        var graph = g.Build();
+        var entries = ImmutableArray.Create(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "POST /orders", entryId));
+        var builder = new ContextPackBuilder(new GraphQuery(graph, entries), MakeSnapshot(graph, entries));
+
+        var pack = builder.Build("POST /orders");
+
+        var tests = pack.Sections.Single(s => s.Section == "tests").Content;
+        Assert.Contains("`OrderServiceTests.CreateOrder_saves_the_order` — reaches `OrderService.CreateOrder` (distance 1)", tests, StringComparison.Ordinal);
+        Assert.Contains("tests/App.Tests/OrderServiceTests.cs:34", tests, StringComparison.Ordinal);
+        Assert.Contains("best-effort", tests, StringComparison.Ordinal);
     }
 
     [Fact]
