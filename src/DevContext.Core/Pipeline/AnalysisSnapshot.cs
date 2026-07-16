@@ -20,6 +20,11 @@ public sealed record AnalysisSnapshot
     public string Explanation { get; init; } = "";
     public ImmutableArray<string> Warnings { get; init; } = [];
 
+    /// <summary>T4.1 — when the analysis ran (UTC). Stamped by the pipeline; null on hand-built snapshots.</summary>
+    public DateTimeOffset? AnalyzedAtUtc { get; init; }
+    /// <summary>T4.1 — git HEAD sha of the analyzed repo at analyze time. Null when not a git checkout.</summary>
+    public string? GitHead { get; init; }
+
     /// <summary>Connected code graph assembled at analyze-time (PLAN-10). Null on dry-run.</summary>
     public CodeGraph? Graph { get; init; }
     /// <summary>Orientation map derived from the graph (PLAN-10). Null on dry-run.</summary>

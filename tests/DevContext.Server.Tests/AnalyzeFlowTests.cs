@@ -237,6 +237,8 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
         Assert.NotEmpty(pack.Cards);
         Assert.True(pack.Cards.Count >= 1);
         Assert.NotEmpty(pack.AssembledMarkdown);
-        Assert.Contains("DevContext — Context Pack", pack.AssembledMarkdown, StringComparison.Ordinal);
+        // T4.1 — the header names the analyzed repo, not the tool; archetype is filled from the Map.
+        Assert.Contains("— Context Pack", pack.AssembledMarkdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("_Archetype: _", pack.AssembledMarkdown, StringComparison.Ordinal);
     }
 }

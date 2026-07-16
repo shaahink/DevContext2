@@ -7,16 +7,19 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T3 (MCP v3) — 8/8 CHECKPOINTS + delivery gate GREEN on feat/tapestry-t3** (off develop @ 94a29db). Order landed:
-T3.1+T3.2+T3.6 (dbc217e) → T3.5 (f8e76ca) → T3.7 (afeb0f3) → T3.4 (bd66486) → T3.3 (31c64b2) → T3.8 (9bdce29) → CLI json fix (165f834).
-**Delivery drive: loom-guards caught the last blocker — T3.4's extracted ConfigScanner carried a `System.Text.RegularExpressions`
-import into Core/Graph (banned, L2.3 regex funeral). REFORMED to a Roslyn syntax walk (ParseText+DescendantNodes): loom-guards PASS,
-dogfood config parity (4 keys, McpQa 12/12), faster cold (shamshir all-.cs upper bound 3.9s vs old 10.5s). Fresh GATE: PASS.**
-NOTE: `develop` is checked out in the sibling worktree `C:/Code/DevContext2-ui` (WIP src-tauri/Cargo.toml) — advance develop THERE
-via `git -C /c/Code/DevContext2-ui`, never `git checkout develop` in main (it fails). T3 touched no App SOURCE (only generated pb.ts).
-stage: **T3 delivery gate GREEN (GATE: PASS + loom-guards PASS).** Merging feat/tapestry-t3 → develop --no-ff (via ui worktree) + push.
-next: **T4 (Context generation v2)** off develop — T4.1 pack identity header + repo-relative file:line (rides T2.2/T3.5); read proposal-tapestry.md §T4 + addendum T4.6.
-gate: gates-t3-delivery.txt = GATE: PASS (build/fast/McpQa 12/12/eval 58P·6S·0F/CLI matrix + Step 4b). Per-checkpoint evidence under eval-results/2026-07-16/tapestry-t3/.
+last: 2026-07-16 **T4 OPENED — T4.1 + T4.6 VERIFIED on feat/tapestry-t4** (off develop @ 0eca05f, one commit — same-session pair per addendum).
+T4.1: pack identity header (`# {repo} — {focus}` + `analyzed {utc} · HEAD {sha7}`; repo = solution name, falls back to root folder) +
+repo-rel `file:line` on every located node (no trailing colon; salient-body headings carry `— file:line`). ROOT CAUSES: snapshot.Explanation
+is NEVER populated by the pipeline (the audit's empty `# ` title AND `_Archetype: _` — pack no longer reads it; archetype from Map),
+no AnalyzedAtUtc/GitHead on the snapshot (added; GitHeadReader extracted from SnapshotCacheService's private ComputeGitHead), and
+`int?` LineNumber interpolated blind (dangling `path:`). T4.6: BuildContracts (role-tag messages + interfaces + DTOs; entities excluded)
+replaces the contracts→["signatures"] alias; empty sections/cards dropped AND recorded in omitted[]; `<!-- context card -->` out of the copy.
+Engine-only — the app sends the same card types; the client-side fallback builder in context-studio.ts stays stale until T5.6.
+stage: **T4 2/6 (T4.1, T4.6).** Evidence eval-results/2026-07-16/tapestry-t4/ (pack-dogfood-checkout.json = live MCP get_context capture).
+next: **T4.2 budget utilization** (Q7's 612/4000 under-fill → spine-first body expansion to ~85%, `… (+N lines)` markers), then T4.3 config+tests
+sections server-side (R9) → T4.4 per-section provenance+tier mix → T4.5 VerifyContextPack+MCP verify_context. develop still lives in the
+C:/Code/DevContext2-ui worktree — advance it there via `git -C`, never `git checkout develop` in main.
+gate: gates-t4.txt = GATE: PASS (build/fast/McpQa serial/eval/CLI matrix + 4b) + loom-guards PASS (truth 0 failures).
 
 ---
 
@@ -72,12 +75,12 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T4 — Context generation v2
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T4.1 | Pack identity header + repo-relative file:line locations | TODO | | |
+| T4.1 | Pack identity header + repo-relative file:line locations | VERIFIED | (T4.1 commit) | tapestry-t4/T4.1-EVIDENCE.md · pack-dogfood-checkout.json (`# eshop-microservices — POST /basket/checkout` + `analyzed … · HEAD 7e43d80`; every located node repo-rel `file:line`, no trailing colon, no abs paths) · ContextPackBuilderTests (5) · root causes: snapshot.Explanation never populated (empty `# ` title) + `int?` LineNumber rendering `path:` |
 | T4.2 | Budget utilization ≥85% (spine-first body expansion, +N-lines markers) | TODO | | |
 | T4.3 | config + tests sections server-side (R9) | TODO | | |
 | T4.4 | Per-section provenance + tier mix (R10) | TODO | | |
 | T4.5 | VerifyContextPack staleness API (R6 engine half) + MCP verify_context | TODO | | |
-| T4.6 | Pack assembly correctness: contracts≠signatures · empty sections omitted · archetype header (audit C2) | TODO | | |
+| T4.6 | Pack assembly correctness: contracts≠signatures · empty sections omitted · archetype header (audit C2) | VERIFIED | (T4.6 commit) | tapestry-t4/T4.6-EVIDENCE.md · BuildContracts (role-tag messages + interfaces + DTOs, entities excluded) — dogfood contracts=174tok distinct from signatures=445 · empty sections/cards dropped + recorded in omitted[] · `<!-- context card -->` out of AssembledMarkdown · ContextPackAssemblyTests (CompositionApp full-pipeline gate: contracts≠signatures, archetype filled, no `, 0 tok_`, no `<!--`) |
 
 ### T5 — Context Studio v2
 | # | Checkpoint | Status | Commit | Evidence |

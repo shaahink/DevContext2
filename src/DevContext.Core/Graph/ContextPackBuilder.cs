@@ -7,10 +7,10 @@ namespace DevContext.Core.Graph;
 
 /// <summary>
 /// L5.4 — Assembles a budget-priced context pack for an agent from a trace focus.
-/// One implementation, used by MCP (get_context), CLI (devcontext context), and
-/// desktop export drawer (From Trail preset). Ranks content by graph distance and
-/// centrality, cuts to budget with per-section attribution, and reports what was
-/// omitted so the agent knows what it didn't get.
+/// One implementation behind both consumers: MCP get_context (server GetContext RPC)
+/// and the desktop Context Studio (GetContextPack RPC). Ranks content by graph
+/// distance and centrality, cuts to budget with per-section attribution, and reports
+/// what was omitted so the agent knows what it didn't get.
 /// </summary>
 public sealed class ContextPackBuilder
 {
@@ -78,7 +78,7 @@ public sealed class ContextPackBuilder
         {
             sb.AppendLine($"- `{step.Node.Kind}:{step.Node.Id.Key}` — {step.Node.Title}");
             if (step.Node.FilePath is { } fp)
-                sb.AppendLine($"  Location: {RelPath(fp)}:{step.Node.LineNumber}");
+                sb.AppendLine($"  Location: {Location(fp, step.Node.LineNumber)}");
         }
         foreach (var child in step.Children)
             CollectSignatures(child, sb, seen);
@@ -95,14 +95,22 @@ public sealed class ContextPackBuilder
         return abs.StartsWith(rooted, StringComparison.OrdinalIgnoreCase) ? abs[rooted.Length..] : abs;
     }
 
-    private static string BuildSalientBodies(Trace trace)
+    /// <summary>T4.1 — one location format everywhere: repo-relative `file:line`; the `:line`
+    /// suffix only when a declaration line is known (never a trailing colon).</summary>
+    private string Location(string filePath, int? line)
+        => line is { } ln && ln > 0 ? $"{RelPath(filePath)}:{ln}" : RelPath(filePath);
+
+    private string BuildSalientBodies(Trace trace)
     {
         var sb = new StringBuilder();
         foreach (var step in WalkSteps(trace.Root))
         {
             if (step.Salient.Length > 0)
             {
-                sb.AppendLine($"### {step.Node.Title}");
+                sb.Append($"### {step.Node.Title}");
+                if (step.Node.FilePath is { } fp)
+                    sb.Append($" — {Location(fp, step.Node.LineNumber)}");
+                sb.AppendLine();
                 sb.AppendLine("```csharp");
                 foreach (var line in step.Salient)
                     sb.AppendLine(line);
@@ -110,6 +118,66 @@ public sealed class ContextPackBuilder
             }
         }
         return sb.ToString();
+    }
+
+    /// <summary>T4.6 — the contracts a change must honour: interfaces, DTOs, and message contracts
+    /// (commands/queries/events) on the traced spine. Audit C2: the contracts card was a verbatim
+    /// duplicate of signatures — this section selects only contract-shaped types, with the
+    /// declaration line as the payload. Entities are excluded (they have their own section).</summary>
+    private string BuildContracts(Trace trace)
+    {
+        var sb = new StringBuilder();
+        var seen = new HashSet<NodeId>();
+        foreach (var step in WalkSteps(trace.Root))
+        {
+            var node = step.Node;
+            if (node.Kind != NodeKind.Type || !seen.Add(node.Id)) continue;
+            if (ContractRole(node) is not { } role) continue;
+
+            sb.Append($"- `{node.Title}` ({role})");
+            if (node.FilePath is { } fp)
+                sb.Append($" — {Location(fp, node.LineNumber)}");
+            sb.AppendLine();
+            if (DeclarationLine(node.SourceBody) is { } decl)
+                sb.AppendLine($"  `{decl}`");
+        }
+        return sb.ToString();
+    }
+
+    private static string? ContractRole(GraphNode node)
+    {
+        if (node.Tags.Contains(RoleTags.Entity) || node.Tags.Contains(RoleTags.Aggregate)) return null;
+        if (node.Tags.Contains(RoleTags.Command)) return "command";
+        if (node.Tags.Contains(RoleTags.Query)) return "query";
+        if (node.Tags.Contains(RoleTags.Notification)) return "notification";
+        if (node.Tags.Contains(RoleTags.IntegrationEvent)) return "integration event";
+        if (node.Tags.Contains(RoleTags.DomainEvent)) return "domain event";
+
+        var decl = DeclarationLine(node.SourceBody);
+        if (decl is null) return null;
+        if (decl.Contains("interface ", StringComparison.Ordinal)) return "interface";
+        if (decl.Contains("record ", StringComparison.Ordinal)
+            || node.Title.EndsWith("Dto", StringComparison.Ordinal)
+            || node.Title.EndsWith("Request", StringComparison.Ordinal)
+            || node.Title.EndsWith("Response", StringComparison.Ordinal))
+            return "dto";
+        return null;
+    }
+
+    /// <summary>The first line of the type's own declaration (skipping attributes), cut at the
+    /// opening brace — the one-line shape of the contract.</summary>
+    private static string? DeclarationLine(string? sourceBody)
+    {
+        if (string.IsNullOrWhiteSpace(sourceBody)) return null;
+        foreach (var raw in sourceBody.Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith('[') || line.StartsWith("//", StringComparison.Ordinal)) continue;
+            var brace = line.IndexOf('{');
+            if (brace >= 0) line = line[..brace].TrimEnd();
+            return line.Length > 0 ? line : null;
+        }
+        return null;
     }
 
     private string BuildDiRegistrations(Trace? trace)
@@ -174,7 +242,7 @@ public sealed class ContextPackBuilder
         ["di_wiring"]  = ["di_wiring"],
         ["config"]     = [],   // config is not traced — handled separately
         ["entities"]   = ["entities"],
-        ["contracts"]  = ["signatures"],
+        ["contracts"]  = ["contracts"],   // T4.6 — own section, no longer a signatures alias
         ["tests"]      = [],   // tests — handled separately
         ["identity"]   = ["identity"],
     };
@@ -222,11 +290,16 @@ public sealed class ContextPackBuilder
         // Build per-card items — each card aggregates sections from ALL its entries
         var cardItems = ImmutableArray.CreateBuilder<ContextCardPack>();
         var allTokens = 0;
+        var omitted = new List<string>();
 
         foreach (var card in cards)
         {
             var wanted = CardTypeSections.GetValueOrDefault(card.Type, []);
-            if (wanted.Count == 0) continue; // tests/config not traced
+            if (wanted.Count == 0)
+            {
+                omitted.Add($"{card.Type}: client-only type, no server section");
+                continue;
+            }
 
             var pickedBySection = new Dictionary<string, SectionAllocation>(StringComparer.OrdinalIgnoreCase);
             foreach (var eid in card.EntryIds)
@@ -252,20 +325,35 @@ public sealed class ContextPackBuilder
             }
 
             var picked = pickedBySection.Values.OrderBy(x => x.Section).ToImmutableArray();
+            // T4.6 — a card with no content is dropped from the pack and named in omitted[],
+            // never rendered as an empty "0 tok" heading.
+            if (picked.Length == 0)
+            {
+                omitted.Add($"{card.Type} ({card.Title}): no content for its entries — omitted");
+                continue;
+            }
+
             var cardTokens = picked.Sum(s => s.Tokens);
             allTokens += cardTokens;
 
             cardItems.Add(new ContextCardPack(card.Type, card.Title, picked, cardTokens));
         }
 
-        // Assemble full markdown pack
+        // Assemble full markdown pack. T4.1: header names the repo + when/what was analyzed;
+        // the archetype comes from the Map (snapshot.Explanation is never populated — audit C2's
+        // `_Archetype: _`).
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("# DevContext — Context Pack");
+        sb.AppendLine($"# {RepoName()} — Context Pack");
         sb.AppendLine();
-        sb.AppendLine($"_Archetype: {_snapshot.Explanation}_");
+        if (IdentityLine() is { Length: > 0 } identity)
+            sb.AppendLine($"_{identity}_");
+        var archetype = _query.Map()?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
+        sb.AppendLine($"_Archetype: {archetype}_");
         sb.AppendLine($"_Intent: {intent ?? "trace"} · Budget: {totalBudget} tokens_");
         sb.AppendLine();
 
+        // T4.6 — no HTML comment markers in the human copy (card boundaries live in the
+        // structured Cards[]; machine markers belong to the JSON export, T5.3).
         foreach (var cp in cardItems)
         {
             sb.AppendLine($"## {cp.Title}");
@@ -276,19 +364,10 @@ public sealed class ContextPackBuilder
                 sb.AppendLine(sa.Content);
 
             sb.AppendLine();
-            sb.AppendLine($"<!-- context card: {cp.Type} -->");
-            sb.AppendLine();
         }
 
         sb.AppendLine("---");
         sb.AppendLine($"_Generated by DevContext Context Studio — {DateTime.UtcNow:O}_");
-
-        var omitted = new List<string>();
-        foreach (var card in cards)
-        {
-            if (CardTypeSections.GetValueOrDefault(card.Type, []).Count == 0)
-                omitted.Add($"{card.Type}: client-only type, no server section");
-        }
 
         return new MultiContextPack(
             cardItems.ToImmutable(),
@@ -311,80 +390,56 @@ public sealed class ContextPackBuilder
         };
 
         // Build identity
-        var identity = BuildIdentitySection();
+        var identity = BuildIdentitySection(focus);
         tokensAddSection(sections, omitted, budgetTokens, "identity", identity, ref budgetTokens);
 
         var trace = _query.Trace(focus, depth: mode == "review" ? 6 : 4);
         if (trace is null)
             return ([.. sections], [.. omitted]);
 
+        // T4.6 — every section goes through tokensAddSection, which drops empty content and
+        // records it in omitted[] (no more "Entities — 0 tok" shipping in a pack).
+        var entities = trace.TouchedEntities.IsDefaultOrEmpty
+            ? ""
+            : "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
+
         if (mode == "explain")
         {
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                tokensAddSection(sections, omitted, budgetTokens, "di_wiring", regs, ref budgetTokens);
-
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            }
-
-            var sigs = BuildCalleeSignatures(trace);
-            tokensAddSection(sections, omitted, budgetTokens, "signatures", sigs, ref budgetTokens);
-
-            var bodies = BuildSalientBodies(trace);
-            tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens);
-
-            var traceText = BuildTraceSkeleton(trace);
-            tokensAddSection(sections, omitted, budgetTokens, "trace", traceText, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens);
         }
         else if (mode == "review")
         {
-            var traceText = BuildTraceSkeleton(trace);
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", traceText, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            var sigs = BuildCalleeSignatures(trace);
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", sigs, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            var bodies = BuildSalientBodies(trace);
-            tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens);
-
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                tokensAddSection(sections, omitted, budgetTokens, "di_wiring", regs, ref budgetTokens);
-
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            }
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
         }
         else
         {
-            var traceText = BuildTraceSkeleton(trace);
-            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", traceText, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "trace", BuildTraceSkeleton(trace), ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            var sigs = BuildCalleeSignatures(trace);
-            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", sigs, ref budgetTokens))
+            if (!tokensAddSection(sections, omitted, budgetTokens, "signatures", BuildCalleeSignatures(trace), ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            var bodies = BuildSalientBodies(trace);
-            if (!tokensAddSection(sections, omitted, budgetTokens, "bodies", bodies, ref budgetTokens))
+            tokensAddSection(sections, omitted, budgetTokens, "contracts", BuildContracts(trace), ref budgetTokens);
+
+            if (!tokensAddSection(sections, omitted, budgetTokens, "bodies", BuildSalientBodies(trace), ref budgetTokens))
                 return ([.. sections], [.. omitted]);
 
-            var regs = BuildDiRegistrations(trace);
-            if (regs.Length > 0)
-                tokensAddSection(sections, omitted, budgetTokens, "di_wiring", regs, ref budgetTokens);
-
-            if (!trace.TouchedEntities.IsDefaultOrEmpty)
-            {
-                var entities = "## Touched entities\n" + string.Join("\n", trace.TouchedEntities.Select(e => $"- `{e}`")) + "\n";
-                tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
-            }
+            tokensAddSection(sections, omitted, budgetTokens, "di_wiring", BuildDiRegistrations(trace), ref budgetTokens);
+            tokensAddSection(sections, omitted, budgetTokens, "entities", entities, ref budgetTokens);
         }
 
         return ([.. sections], [.. omitted]);
@@ -394,6 +449,14 @@ public sealed class ContextPackBuilder
         List<SectionAllocation> sections, List<string> omitted,
         int totalBudget, string sectionName, string text, ref int remainingBudget)
     {
+        // T4.6 — an empty section never ships (audit C2's "Entities — 0 tok"); it is recorded
+        // in omitted[] so the reader knows the pack looked and found nothing.
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            omitted.Add($"{sectionName}: empty — omitted");
+            return true;
+        }
+
         var tokens = EstimateTokens(text);
         if (tokens > remainingBudget)
         {
@@ -414,12 +477,39 @@ public sealed class ContextPackBuilder
         return true;
     }
 
-    private string BuildIdentitySection()
+    /// <summary>T4.1 — repo display name: the solution name when there is one (an analysis root
+    /// like `…/repo/src` would otherwise title the pack "src"), else the root folder. The audit's
+    /// `# ` empty title came from snapshot.Explanation, which the pipeline never populates —
+    /// don't read it here.</summary>
+    private string RepoName()
+    {
+        if (_snapshot.Model.Solution?.Name is { Length: > 0 } solution) return solution;
+        var root = (_snapshot.RootPath ?? "").Replace('\\', '/').TrimEnd('/');
+        var slash = root.LastIndexOf('/');
+        var name = slash >= 0 ? root[(slash + 1)..] : root;
+        return name.Length > 0 ? name : "repository";
+    }
+
+    /// <summary>T4.1 — the pack identity line: when the analysis ran + which commit it saw.
+    /// Only claims what the snapshot actually knows (no HEAD chunk outside a git checkout).</summary>
+    private string IdentityLine()
+    {
+        var parts = new List<string>();
+        if (_snapshot.AnalyzedAtUtc is { } at)
+            parts.Add($"analyzed {at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)} UTC");
+        if (_snapshot.GitHead is { Length: >= 7 } head)
+            parts.Add($"HEAD {head[..7]}");
+        return string.Join(" · ", parts);
+    }
+
+    private string BuildIdentitySection(string focus)
     {
         var map = _query.Map();
         var archetype = map?.Archetype.ToString().ToLowerInvariant() ?? "unknown";
         var sb = new System.Text.StringBuilder();
-        sb.Append("# ").AppendLine(_snapshot.Explanation);
+        sb.Append("# ").Append(RepoName()).Append(" — ").AppendLine(focus);
+        if (IdentityLine() is { Length: > 0 } identity)
+            sb.AppendLine(identity);
         sb.Append("Archetype: ").Append(archetype);
         sb.Append(" | ").Append(_snapshot.Entries.Length).Append(" entries");
         sb.Append(" | ").Append(_snapshot.Graph?.NodeCount ?? 0).AppendLine(" nodes");

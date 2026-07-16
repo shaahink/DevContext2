@@ -2496,3 +2496,24 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 - Pre-existing reds (unchanged, staged): dntsite target-* (T1.3), yarp archetype-gateway (T1.2).
 
 **Next:** user review/merge of `feat/wrapup-2026-07-15`; then Tapestry T0.1 (orphan-proof gates).
+
+## 2026-07-16 — Tapestry T4 opener: T4.1 pack identity + T4.6 assembly correctness (feat/tapestry-t4)
+
+*(T0–T3 sessions tracked in TAPESTRY-START.md handoff/checkpoints, not logged here.)*
+
+- **T4.1** — pack identity header (`# {repo} — {focus}` + `analyzed {utc} · HEAD {sha7}`) and
+  repo-relative `file:line` on every located node (no trailing colon on unstamped lines, salient
+  bodies carry `— file:line`). Root causes: `snapshot.Explanation` never populated by the pipeline
+  (the audit's empty `# ` title / `_Archetype: _`), no analyzed-at/HEAD on the snapshot, `int?`
+  LineNumber interpolated blind. `AnalysisSnapshot` gains `AnalyzedAtUtc`+`GitHead`
+  (`GitHeadReader` extracted from `SnapshotCacheService`); Studio archetype now from the Map.
+- **T4.6** — `BuildContracts`: contracts card selects message contracts (role tags) + interfaces +
+  DTOs from the traced spine (was a verbatim `["signatures"]` alias); empty sections/cards dropped
+  AND recorded in `omitted[]` (no more "Entities — 0 tok"); `<!-- context card -->` markers out of
+  the human copy. Engine-only: app sends the same card types, server now fulfills them honestly.
+- **Verified:** ContextPackBuilderTests (8) + ContextPackAssemblyTests (CompositionApp full-pipeline
+  gate) + AnalyzeFlowTests header update; dogfood MCP get_context captured
+  (eval-results/2026-07-16/tapestry-t4/pack-dogfood-checkout.json — contracts=174tok distinct,
+  `entities: empty — omitted`); loom-guards PASS; full gates battery in tapestry-t4/gates-t4.txt.
+
+**Next:** T4.2 budget utilization (≥85%, spine-first body expansion, `… (+N lines)` markers).

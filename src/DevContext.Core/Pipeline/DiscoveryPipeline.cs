@@ -289,6 +289,8 @@ public sealed class DiscoveryPipeline
             Scenario = context.ActiveScenario,
             Options = context.Options,
             RootPath = context.RootPath,
+            AnalyzedAtUtc = DateTimeOffset.UtcNow,
+            GitHead = GitHeadReader.Read(context.RootPath),
             Graph = codeGraph,
             Map = mapModel,
             Entries = entryPoints,

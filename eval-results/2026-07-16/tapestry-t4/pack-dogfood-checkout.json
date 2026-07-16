@@ -1,0 +1,35 @@
+{
+  "focus": "POST /basket/checkout",
+  "budgetTokens": 4000,
+  "totalTokens": 1588,
+  "sections": [
+    {
+      "key": "identity",
+      "tokens": 163
+    },
+    {
+      "key": "trace",
+      "tokens": 210
+    },
+    {
+      "key": "signatures",
+      "tokens": 445
+    },
+    {
+      "key": "contracts",
+      "tokens": 174
+    },
+    {
+      "key": "bodies",
+      "tokens": 557
+    },
+    {
+      "key": "di_wiring",
+      "tokens": 39
+    }
+  ],
+  "omitted": [
+    "entities: empty — omitted"
+  ],
+  "content": "# eshop-microservices — POST /basket/checkout\r\nanalyzed 2026-07-16 13:04 UTC · HEAD 7e43d80\r\nArchetype: app | 34 entries | 439 nodes\r\nServices: YarpApiGateway (Gateway), Shopping.Web (Web App), Basket.API (Web API), Catalog.API (Web API), Discount.Grpc (gRPC Service), Ordering.API (Web API)\r\nBehaviors: LoggingBehavior, ValidationBehavior\r\nCross-service: Shopping.Web → YarpApiGateway (http-via-gateway) | YarpApiGateway → Ordering.API (http-via-gateway) | YarpApiGateway → Catalog.API (http-via-gateway) | YarpApiGateway → Basket.API (http-via-gateway) | Basket.API → Discount.Grpc (grpc) | Basket.API → Ordering.Application (bus-publish→consume)\r\n\nFocus: POST /basket/checkout (HttpEndpoint)\r\n- [Entry] POST /basket/checkout\r\n  - [Call] <lambda> POST /basket/checkout\r\n    - [Send] CheckoutBasketCommand\r\n      - [Handle] CheckoutBasketCommandHandler\r\n        - [Raise] BasketCheckoutEvent (truncated, 1 omitted)\r\n        - [Call] IBasketRepository [approx] (truncated, 3 omitted)\r\n        - [Call] CheckoutBasketCommand [approx] (truncated, 3 omitted)\r\n        - [Call] BasketRepository.DeleteBasket\r\n        - [Call] BasketCheckoutDto.Adapt\r\n        - [Call] BasketRepository.GetBasket\r\n        - [CrossService] Discount.Grpc\r\n        - [CrossService] Ordering.Application\r\n      - [CrossService] Discount.Grpc\r\n      - [CrossService] Ordering.Application\r\n    - [Call] CheckoutBasketRequest [approx]\r\n      - [CrossService] Discount.Grpc\r\n      - [CrossService] Ordering.Application\r\n\n- `EntryPoint:POST /basket/checkout` — POST /basket/checkout\r\n  Location: Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketEndpoints.cs:10\r\n- `Member:Basket.API.Basket.CheckoutBasket.CheckoutBasketRequest.<lambda> POST /basket/checkout` — <lambda> POST /basket/checkout\r\n  Location: Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketEndpoints.cs:10\r\n- `Type:Basket.API.Basket.CheckoutBasket.CheckoutBasketCommand` — CheckoutBasketCommand\r\n  Location: Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:7\r\n- `Type:Basket.API.Basket.CheckoutBasket.CheckoutBasketCommandHandler` — CheckoutBasketCommandHandler\r\n  Location: Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:21\r\n- `Type:BuildingBlocks.Messaging.Events.BasketCheckoutEvent` — BasketCheckoutEvent\r\n  Location: BuildingBlocks/BuildingBlocks.Messaging/Events/BasketCheckoutEvent.cs:2\r\n- `Type:Basket.API.Data.IBasketRepository` — IBasketRepository\r\n  Location: Services/Basket/Basket.API/Data/IBasketRepository.cs:3\r\n- `Member:Basket.API.Data.BasketRepository.DeleteBasket` — BasketRepository.DeleteBasket\r\n  Location: Services/Basket/Basket.API/Data/BasketRepository.cs\r\n- `Member:Basket.API.Dtos.BasketCheckoutDto.Adapt` — BasketCheckoutDto.Adapt\r\n  Location: Services/Basket/Basket.API/Dtos/BasketCheckoutDto.cs\r\n- `Member:Basket.API.Data.BasketRepository.GetBasket` — BasketRepository.GetBasket\r\n  Location: Services/Basket/Basket.API/Data/BasketRepository.cs\r\n- `Service:Discount.Grpc` — Discount.Grpc\r\n- `Service:Ordering.Application` — Ordering.Application\r\n- `Type:Basket.API.Basket.CheckoutBasket.CheckoutBasketRequest` — CheckoutBasketRequest\r\n  Location: Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketEndpoints.cs:3\r\n\n- `CheckoutBasketCommand` (command) — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:7\r\n  `public record CheckoutBasketCommand(BasketCheckoutDto BasketCheckoutDto)`\r\n- `BasketCheckoutEvent` (integration event) — BuildingBlocks/BuildingBlocks.Messaging/Events/BasketCheckoutEvent.cs:2\r\n  `public record BasketCheckoutEvent : IntegrationEvent`\r\n- `IBasketRepository` (interface) — Services/Basket/Basket.API/Data/IBasketRepository.cs:3\r\n  `public interface IBasketRepository`\r\n- `CheckoutBasketRequest` (dto) — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketEndpoints.cs:3\r\n  `public record CheckoutBasketRequest(BasketCheckoutDto BasketCheckoutDto);`\r\n\n### CheckoutBasketCommand — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:7\r\n```csharp\r\npublic record CheckoutBasketCommand(BasketCheckoutDto BasketCheckoutDto)\r\n: ICommand<CheckoutBasketResult>;\r\n```\r\n### CheckoutBasketCommandHandler — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:21\r\n```csharp\r\npublic class CheckoutBasketCommandHandler\r\n(IBasketRepository repository, IPublishEndpoint publishEndpoint)\r\n: ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>\r\n```\r\n### BasketCheckoutEvent — BuildingBlocks/BuildingBlocks.Messaging/Events/BasketCheckoutEvent.cs:2\r\n```csharp\r\npublic record BasketCheckoutEvent : IntegrationEvent\r\npublic string UserName { get; set; } = default!;\r\npublic Guid CustomerId { get; set; } = default!;\r\n```\r\n### IBasketRepository — Services/Basket/Basket.API/Data/IBasketRepository.cs:3\r\n```csharp\r\npublic interface IBasketRepository\r\nTask<ShoppingCart> GetBasket(string userName, CancellationToken cancellationToken = default);\r\nTask<ShoppingCart> StoreBasket(ShoppingCart basket, CancellationToken cancellationToken = default);\r\n```\r\n### CheckoutBasketCommand — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs:7\r\n```csharp\r\npublic record CheckoutBasketCommand(BasketCheckoutDto BasketCheckoutDto)\r\n: ICommand<CheckoutBasketResult>;\r\n```\r\n### BasketRepository.DeleteBasket — Services/Basket/Basket.API/Data/BasketRepository.cs\r\n```csharp\r\npublic async Task<bool> DeleteBasket(string userName, CancellationToken cancellationToken = default)\r\nsession.Delete<ShoppingCart>(userName);\r\nawait session.SaveChangesAsync(cancellationToken);\r\n```\r\n### BasketRepository.GetBasket — Services/Basket/Basket.API/Data/BasketRepository.cs\r\n```csharp\r\npublic async Task<ShoppingCart> GetBasket(string userName, CancellationToken cancellationToken = default)\r\nvar basket = await session.LoadAsync<ShoppingCart>(userName, cancellationToken);\r\nreturn basket is null ? throw new BasketNotFoundException(userName) : basket;\r\n```\r\n### CheckoutBasketRequest — Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketEndpoints.cs:3\r\n```csharp\r\npublic record CheckoutBasketRequest(BasketCheckoutDto BasketCheckoutDto);\r\n```\r\n\n- `IntegrationEvent` → BuildingBlocks.Messaging.Events.BasketCheckoutEvent (Syntactic)\r\n- `IBasketRepository` → Basket.API.Data.BasketRepository (Join)\r\n"
+}
