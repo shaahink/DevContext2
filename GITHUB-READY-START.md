@@ -13,9 +13,9 @@ projects, every public doc claim is source-verified, and remaining gaps are trac
 | # | Chunk | Scope | Status | Commit |
 |---|-------|-------|--------|--------|
 | G1 | CI/CD | `ci.yml`: enable push/PR triggers, mirror the gate battery (Debug build, fast tests, loom-guards + truth, CLI `--strict` smoke), add App job (`pnpm check`). `release.yml`: drop the deleted `DevContext.Desktop` job, CLI → NuGet via MinVer, release notes. | done | `dd276a6` |
-| G2 | Public docs | README overhaul (multi-surface presentation, honest desktop install story, 24 MCP tools, current agent pointers, de-brittled counts). NEW `docs/product/mcp-reference.md` (all 24 tools, setup snippets). CONTRIBUTING count fix. | done | — |
-| G3 | Reference docs | Bring `docs/dev/CODE-MAP.md`, `docs/product/AGENT-REFERENCE.md`, `cli-reference.md`, `configuration.md`, `desktop-ui.md` up to T2–T4 state (verify counts, paths, flags vs source). | done | — |
-| G4 | Repo audit | CHANGELOG catch-up, root/tracked-file clutter audit (`analysis-exports/`, `eval-results/` 432 tracked files, root phase trackers), desktop-packaging gap, screenshot freshness. Deliverable: audit section below + safe fixes applied. | pending | — |
+| G2 | Public docs | README overhaul (multi-surface presentation, honest desktop install story, 24 MCP tools, current agent pointers, de-brittled counts). NEW `docs/product/mcp-reference.md` (all 24 tools, setup snippets). CONTRIBUTING count fix. | done | `3910202` |
+| G3 | Reference docs | Bring `docs/dev/CODE-MAP.md`, `docs/product/AGENT-REFERENCE.md`, `cli-reference.md`, `configuration.md`, `desktop-ui.md` up to T2–T4 state (verify counts, paths, flags vs source). | done | `e3b8782` |
+| G4 | Repo audit | CHANGELOG catch-up, root/tracked-file clutter audit (`analysis-exports/`, `eval-results/` 432 tracked files, root phase trackers), desktop-packaging gap, screenshot freshness. Deliverable: audit section below + safe fixes applied. | done | — |
 
 ## Audit findings (2026-07-16, verified against `bcae33d`)
 
@@ -39,6 +39,13 @@ Work needed: publish Server → Tauri resource + set env in Rust, or ship self-c
   `verify_context`), agent pointers to Loom-era docs, hardcoded test counts (518/27) that rot.
 - CONTRIBUTING: "~23 tools" → 24.
 - MCP had **no public reference doc** — `docs/product/mcp-reference.md` now documents all 24 tools.
+
+### Repo hygiene — fixed in G4
+- `.gitignore` had 7 lines of UTF-16 text embedded in the UTF-8 file (a PS 5.1 append artifact) —
+  the `_eval-dntsite/` / `devcontext-*.md` eval-artifact patterns were unreadable to git and matched
+  nothing. Rewritten clean.
+- CHANGELOG was frozen at v1.0.0 (2026-06-11) — added an `[Unreleased]` section summarizing
+  Lighthouse, Loom, Meridian, the desktop redo, Tapestry T0–T4, and this strand.
 
 ### Repo hygiene (open items, deliberate non-actions)
 - `eval-results/` — 432 tracked files of internal eval evidence. It's the project's evidence-artifact
