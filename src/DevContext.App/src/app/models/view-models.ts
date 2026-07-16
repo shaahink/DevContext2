@@ -109,7 +109,9 @@ export const KIND_COLORS: Record<string, string> = {
   ScheduledJob: 'var(--vibe-accent)',
   DomainEventHandler: 'var(--vibe-accent-dim)',
   PublicApi: 'var(--vibe-info)',
-  GrpcService: 'var(--vibe-danger)',
+  // T5.5 (audit finding 50) — danger is reserved for ERROR states: the red gRPC kind glyph
+  // on DiscountProtoService read as an error badge to the auditor. Nothing was wrong.
+  GrpcService: 'var(--vibe-accent-dim)',
   SignalRHub: 'var(--vibe-warn)',
   FunctionEntry: 'var(--vibe-success)',
   GrainMethod: 'var(--vibe-accent)',

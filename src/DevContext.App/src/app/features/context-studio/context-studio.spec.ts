@@ -336,6 +336,20 @@ describe('ContextStudio', () => {
     expect(studio.saveFileName('json')).toBe(`eshop-microservices-context-${date}.json`);
   });
 
+  it('previews render the sections\' real content, never a title echo (T5.5)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    expect(studio.cards()[0].content).toBe('entry -> handler -> data (Flow: POST /checkout)');
+    const pre = (fixture.nativeElement as HTMLElement).querySelector('app-composition-view pre');
+    expect(pre?.textContent).toContain('entry -> handler -> data');
+    expect(pre?.textContent?.trim()).not.toBe('Flow: POST /checkout'); // the audit's echo
+  });
+
   it('verifies the pack after every successful re-pack, unprompted (T5.2 R6)', async () => {
     getContextPack.mockResolvedValue(packResponse());
     const { fixture, studio } = createStudio();

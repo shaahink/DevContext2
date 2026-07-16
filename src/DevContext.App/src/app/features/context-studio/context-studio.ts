@@ -284,9 +284,12 @@ export class ContextStudio {
             verified: s.verified,
             approx: s.approx,
           }));
+          // T5.5 (audit finding 40) — the preview is the sections' REAL text, never a
+          // title echo ("Flow: /ProductList" told the reader nothing about the content).
+          const preview = sections.map((s) => s.content).join('\n').trim();
           return {
             ...c,
-            content: ci.title,
+            content: preview.length > 0 ? preview : null,
             loading: false,
             error: null,
             serverTokens: ci.tokens > 0 ? ci.tokens : null,

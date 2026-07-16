@@ -99,7 +99,7 @@ export interface ContextCardSeed {
             class="flex w-full items-center gap-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
             (click)="applyPreset(entry); showPresetPicker.set(false)"
           >
-            <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" />
+            <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
             <span class="min-w-0 flex-1 truncate font-mono">{{ entry.route || entry.title }}</span>
             <span class="shrink-0 text-2xs text-ink-subtle">{{ entry.project }}</span>
           </button>
@@ -132,7 +132,9 @@ export interface ContextCardSeed {
                   <span class="w-8 shrink-0 text-2xs font-semibold" [class]="methodClass(entry.httpMethod)">{{ entry.httpMethod }}</span>
                 }
                 <span class="min-w-0 flex-1 truncate font-mono">{{ entry.route || entry.title }}</span>
-                <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" />
+                <!-- T5.5 (finding 50) — the kind glyph says WHAT it is on hover; color alone
+                     read as an error badge. -->
+                <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
               </button>
             }
           </div>
@@ -272,6 +274,11 @@ export class ScopePicker {
 
   protected kindColor(kind: string): string {
     return KIND_COLORS[kind] ?? 'var(--vibe-ink-subtle)';
+  }
+
+  /** T5.5 (finding 50) — tooltip names the entry kind so a colored glyph can't read as an error. */
+  protected kindTitle(kind: string): string {
+    return `${KIND_LABELS[kind] ?? kind} entry`;
   }
 
   protected methodClass(method: string): string {

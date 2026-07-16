@@ -42,15 +42,18 @@ const CARD_TYPE_LABELS: Record<ContextCardType, string> = {
   identity: 'Identity',
 };
 
+// T5.5 — danger is reserved for ERROR states (a red type badge reads as a failure), and
+// --vibe-accent-pink never existed in styles.css (di_wiring's badge silently rendered
+// with no color at all).
 const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
   flow: 'var(--vibe-info)',
   signatures: 'var(--vibe-accent)',
   bodies: 'var(--vibe-success)',
-  di_wiring: 'var(--vibe-accent-pink)',
+  di_wiring: 'var(--vibe-accent-dim)',
   config: 'var(--vibe-warn)',
   entities: 'var(--vibe-accent)',
   contracts: 'var(--vibe-info)',
-  tests: 'var(--vibe-danger)',
+  tests: 'var(--vibe-warn)',
   identity: 'var(--vibe-ink-muted)',
 };
 
@@ -84,7 +87,8 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
             } @else if (card.serverTokens !== null) {
               <span class="shrink-0 text-2xs tabular-nums" [class.text-success]="true" [title]="'Server-computed: ' + card.serverTokens + ' tokens'">{{ formatTokens(card.serverTokens) }}</span>
             } @else {
-              <span class="shrink-0 text-2xs tabular-nums text-ink-subtle" [title]="'Estimated: ' + formatTokens(card.estimatedLines * 2.5)">~{{ card.estimatedLines }}L</span>
+              <!-- T5.5 — one unit everywhere: estimates are shown in tokens, not line counts. -->
+              <span class="shrink-0 text-2xs tabular-nums text-ink-subtle" title="Estimated — server tokens pending">~{{ formatTokens(estTokens(card)) }}</span>
             }
             <button
               type="button"
@@ -215,6 +219,10 @@ export class CompositionView {
   protected formatTokens(tok: number): string {
     if (tok < 1000) return `${tok} tok`;
     return `${(tok / 1000).toFixed(1)}k tok`;
+  }
+
+  protected estTokens(card: ContextCard): number {
+    return Math.round(card.estimatedLines * 2.5);
   }
 
   /** T5.3 (audit §4.2) — the card's own source set: union of its sections' file:line
