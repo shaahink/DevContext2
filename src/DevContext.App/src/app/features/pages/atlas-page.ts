@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { SessionStore } from '../../state/session.store';
 import { AtlasStore } from '../../state/atlas.store';
 import { TraceStore } from '../../state/trace.store';
+import { humanizeTfms, projectDisplayName } from '../../core/format';
 import { ServiceMapHero } from '../shared/service-map-hero';
 import { FlowStepper } from '../shared/flow-stepper';
 import { ServiceCards } from '../shared/service-cards';
@@ -29,10 +30,29 @@ import { ServiceCards } from '../shared/service-cards';
           </button>
         </div>
 
-        <!-- M6.2: Identity paragraph -->
-        <div class="prose-zone text-sm text-ink leading-relaxed">
-          @if (mapMarkdown(); as md) {
-            {{ md.split('\n').slice(0, 15).join('\n') }}
+        <!-- T6.7: MAP header as structured chips (was the raw CLI markdown blob — a text
+             wall that duplicated the per-service list and shipped ;-joined TFM strings) -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line bg-surface px-4 py-3 text-xs">
+          @if (session.summary(); as s) {
+            <span class="font-semibold text-ink">{{ s.label }}</span>
+          }
+          @if (map()?.archetype; as a) {
+            <span class="chip">{{ a }}</span>
+          }
+          @if (map()?.style; as st) {
+            <span class="text-ink-muted" [title]="map()?.styleEvidence || ''">
+              {{ st }}
+              @if (confidenceTier(); as tier) {
+                <span class="text-ink-subtle" [title]="'Style detection confidence: ' + ((map()?.styleConfidence ?? 0) * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
+              }
+            </span>
+          }
+          @if (stackChips().length) {
+            <span class="flex flex-wrap items-center gap-1.5">
+              @for (item of stackChips(); track item) {
+                <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-2xs text-ink-muted">{{ item }}</span>
+              }
+            </span>
           }
         </div>
 
@@ -95,7 +115,7 @@ import { ServiceCards } from '../shared/service-cards';
               </table>
             </div>
           } @else {
-            <p class="py-4 text-center text-xs text-ink-subtle">No event wiring data — index flows from the Explore page.</p>
+            <p class="py-4 text-center text-xs text-ink-subtle">{{ eventWiringEmptyText() }}</p>
           }
         </div>
 
@@ -175,14 +195,43 @@ export class AtlasPage {
   private readonly trace = inject(TraceStore);
   private readonly router = inject(Router);
 
-  protected readonly mapMarkdown = this.session.mapMarkdown;
+  protected readonly map = this.session.mapResponse;
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
+
+  /** Words + thresholds mirror MapRenderer.AppendStyle (one definition, T6.8). */
+  protected readonly confidenceTier = computed(() => {
+    const c = this.map()?.styleConfidence ?? 0;
+    if (c <= 0) return null;
+    return c >= 0.8 ? 'high' : c >= 0.5 ? 'moderate' : 'low';
+  });
+
+  /** Stack chips with `;`-joined TFM lists humanized: "net10.0-android;net10.0-ios;…"
+   * reads "net10.0 + MAUI targets" (audit B1 gate: no raw joined TFM strings in the DOM). */
+  protected readonly stackChips = computed(() => {
+    const seen = new Set<string>();
+    const chips: string[] = [];
+    for (const item of this.map()?.stack ?? []) {
+      const label = humanizeTfms(item);
+      if (!seen.has(label)) { seen.add(label); chips.push(label); }
+    }
+    return chips;
+  });
   protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
   protected readonly pipelineBehaviors = computed(() => this.session.mapResponse()?.pipelineBehaviors ?? []);
   protected readonly packages = computed(() => this.session.mapResponse()?.packages ?? []);
   protected readonly eventWiring = this.atlas.eventWiring;
   protected readonly hubsWithDegree = this.atlas.hubsWithDegree;
   protected readonly atlasTopFlows = computed(() => this.atlas.topFlows().slice(0, 5));
+
+  /** Honest empty state (T6.0 S1.8): "index flows" was shown even AFTER indexing finished —
+   * on a monolith the truthful message is "there are no cross-service events", not an
+   * instruction that changes nothing. */
+  protected readonly eventWiringEmptyText = computed(() => {
+    const status = this.atlas.status();
+    if (status === 'indexing' || status === 'paused') return 'Indexing flows… event wiring appears as publishers are found.';
+    if (status === 'done') return 'No events detected — every indexed flow stays in-process.';
+    return 'No event wiring data — flows have not been indexed yet.';
+  });
 
   protected copied = signal(false);
 
@@ -217,13 +266,16 @@ export class AtlasPage {
     lines.push(`**Archetype:** ${this.session.mapResponse()?.archetype ?? 'unknown'} | **Projects:** ${this.topology().length} | **Entries:** ${s?.entries ?? 0}`);
     lines.push('');
 
-    // Service diagram (text representation)
+    // Service diagram (text representation). Display names strip only the common solution
+    // prefix (T6.8, audit A8) — the old last-segment cut exported "AppHost → API, API, API…".
     lines.push('## Services');
+    const allNames = this.topology().map((p) => p.name);
+    const dn = (name: string) => projectDisplayName(name, allNames);
     for (const p of this.topology()) {
       const style = this.serviceStyles().find((st) => st.projectName === p.name);
-      const deps = p.dependsOn.length > 0 ? ` → ${p.dependsOn.map((d) => d.split('.').pop()).join(', ')}` : '';
-      lines.push(`- **${p.name.split('.').pop() ?? p.name}**${style?.style ? ` (${style.style})` : ''}${deps}`);
-      if (style?.stack.length) lines.push(`  Stack: ${style.stack.join(', ')}`);
+      const deps = p.dependsOn.length > 0 ? ` → ${p.dependsOn.map(dn).join(', ')}` : '';
+      lines.push(`- **${dn(p.name)}**${style?.style ? ` (${style.style})` : ''}${deps}`);
+      if (style?.stack.length) lines.push(`  Stack: ${style.stack.map((t) => humanizeTfms(t)).join(', ')}`);
     }
     lines.push('');
 

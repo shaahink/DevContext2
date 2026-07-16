@@ -1,13 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 
 import { SessionStore } from '../../state/session.store';
 import { Badge } from '../../ui/badge/badge';
-import { formatCompact } from '../../core/format';
+import { formatCompact, humanizeTfms } from '../../core/format';
 
 @Component({
   selector: 'app-identity-strip',
-  imports: [Badge, DecimalPipe],
+  imports: [Badge],
   template: `
     <div class="space-y-5">
       @if (stale(); as msg) {
@@ -47,14 +46,14 @@ import { formatCompact } from '../../core/format';
         }
         @if (style(); as s) {
           <span class="text-xs text-ink-muted">{{ s }}
-            @if (styleConfidence() > 0) {
-              <span class="font-mono tabular-nums text-ink-subtle"> &middot; {{ (styleConfidence() * 100) | number:'1.0-0' }}%</span>
+            @if (confidenceTier(); as tier) {
+              <span class="text-ink-subtle" [title]="'Style detection confidence: ' + (styleConfidence() * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
             }
           </span>
         }
         @if (stack().length) {
           @for (item of stack(); track item) {
-            <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-2xs text-ink-muted">{{ item }}</span>
+            <span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-2xs text-ink-muted">{{ humanizeTfms(item) }}</span>
           }
         }
       </div>
@@ -95,8 +94,14 @@ export class IdentityStrip {
   protected readonly map = this.session.mapResponse;
   protected readonly ledger = this.session.confidenceLedger;
   protected showLedger = signal(false);
+  protected readonly humanizeTfms = humanizeTfms;
 
-  /** Human-readable identity sentence: "ASP.NET Core web API · 85 endpoints across 3 services · EF Core + RabbitMQ" */
+  /** "services" is microservice vocabulary — a monolith+workers repo has projects. One
+   * decision, shared by the sentence, the stat strip, and Home's tiles (T6.1). */
+  protected readonly projectNoun = computed(() =>
+    /microservice/i.test(this.map()?.archetype ?? '') ? 'services' : 'projects');
+
+  /** Human-readable identity sentence: "ASP.NET Core web API · 85 entries across 3 services · EF Core + RabbitMQ" */
   protected readonly identitySentence = computed(() => {
     const s = this.summary();
     const m = this.map();
@@ -104,8 +109,8 @@ export class IdentityStrip {
     const parts: string[] = [];
     if (s.label) parts.push(s.label);
     if (m?.archetype) parts.push(m.archetype.toLowerCase());
-    if (s.entries > 0) parts.push(`${s.entries} endpoints`);
-    if (s.projects > 1) parts.push(`${s.projects} services`);
+    if (s.entries > 0) parts.push(`${s.entries} entries`);
+    if (s.projects > 1) parts.push(`${s.projects} ${this.projectNoun()}`);
     if (s.nodes > 0) parts.push(`${formatCompact(s.nodes)} types`);
     if (s.elapsedMs > 0) {
       const sec = (Number(s.elapsedMs) / 1000).toFixed(1);
@@ -122,10 +127,10 @@ export class IdentityStrip {
     const wired = s.entriesWithTarget ?? 0;
     const total = s.entries ?? 0;
     const labels: [string, string, string][] = [
-      ['endpoints', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)'],
+      ['entries', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)'],
     ];
     if (s.projects > 0) {
-      labels.push(['services', String(s.projects), 'Projects in the solution']);
+      labels.push([this.projectNoun(), String(s.projects), 'Projects in the solution']);
     }
     if (s.nodes > 0) {
       labels.push(['types', formatCompact(s.nodes), 'Types discovered in the graph']);
@@ -147,6 +152,14 @@ export class IdentityStrip {
   protected readonly archetype = computed(() => this.map()?.archetype);
   protected readonly style = computed(() => this.map()?.style);
   protected readonly styleConfidence = computed(() => this.map()?.styleConfidence ?? 0);
+  /** Raw confidence percentages erode trust (audit A11/T6.3 rider) — render tier words,
+   * keep the exact number in the tooltip. Words + thresholds mirror the engine's
+   * MapRenderer.AppendStyle ("confidence high/moderate/low", 0.8/0.5) so both surfaces agree. */
+  protected readonly confidenceTier = computed(() => {
+    const c = this.styleConfidence();
+    if (c <= 0) return null;
+    return c >= 0.8 ? 'high' : c >= 0.5 ? 'moderate' : 'low';
+  });
   protected readonly stack = computed(() => this.map()?.stack ?? []);
 
   protected reanalyze() {

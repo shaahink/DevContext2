@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
+import { projectDisplayName } from '../../core/format';
 import { KIND_LABELS } from '../../models/view-models';
 import { StartHero } from '../home/start-hero';
 import { IdentityStrip } from '../home/identity-strip';
@@ -36,7 +37,7 @@ interface InsightRowVm {
 
           <!-- M6.1: Service map hero — deterministic layout -->
           <div>
-            <h2 class="section-h mb-3">How services connect</h2>
+            <h2 class="section-h mb-3">{{ heroHeading() }}</h2>
             <app-service-map-hero
               [topology]="topology()"
               [serviceStyles]="serviceStyles()"
@@ -63,7 +64,10 @@ interface InsightRowVm {
                     }
                     <span class="min-w-0 flex-1 truncate font-mono text-xs text-ink">{{ e.route || e.title }}</span>
                     @if (e.project) {
-                      <span class="chip shrink-0 text-2xs" [style.background]="svcColor(e.project)">{{ shortName(e.project) }}</span>
+                      <span class="chip shrink-0 flex items-center gap-1 text-2xs" [title]="e.project">
+                        <span class="inline-block h-2 w-2 rounded-sm" [style.background]="svcColor(e.project)"></span>
+                        {{ shortName(e.project) }}
+                      </span>
                     }
                     <span class="shrink-0 text-2xs text-ink-subtle">{{ KIND_LABELS[e.kind] ?? e.kind }}</span>
                   </a>
@@ -122,13 +126,21 @@ export class HomePage {
   protected readonly topology = computed(() => this.session.mapResponse()?.topology ?? []);
   protected readonly serviceStyles = computed(() => this.session.mapResponse()?.serviceStyles ?? []);
 
+  /** "How services connect" is microservice copy — on a monolith the hero shows the
+   * runnable surfaces (Web + workers + CLI), so say that (T6.1). */
+  protected readonly heroHeading = computed(() =>
+    /microservice/i.test(this.session.mapResponse()?.archetype ?? '') ? 'How services connect' : 'What runs');
+
   private readonly svcPalette = ['#8b93ff', '#6cb2eb', '#98c379', '#e5c07b', '#d19a66', '#c678dd', '#56b6c2', '#5ac8fa', '#d16d9e', '#99a0ac'];
   protected svcColor(name: string): string {
     const idx = this.topology().findIndex((p) => p.name === name);
     return this.svcPalette[idx % this.svcPalette.length] ?? this.svcPalette[0];
   }
+  /** Common-prefix strip only — never the last dot segment (T6.8, audit A8). The colored
+   * square replaced the old tinted chip background, whose ink was unreadable on light
+   * service colors (T6.0 S1.7). */
   protected shortName(name: string): string {
-    return name.split('.').pop() ?? name;
+    return projectDisplayName(name, this.topology().map((p) => p.name));
   }
 
   protected readonly topFlows = computed(() => {
