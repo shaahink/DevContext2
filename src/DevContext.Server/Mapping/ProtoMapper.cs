@@ -401,7 +401,7 @@ internal static class ProtoMapper
             {
                 var alloc = new Proto.SectionAllocation
                 {
-                    Key = sa.Section, Tokens = sa.Tokens,
+                    Key = sa.Section, Tokens = sa.Tokens, Content = sa.Content,
                     Verified = sa.Verified, Approx = sa.Approx,
                 };
                 alloc.SourceLocations.AddRange(sa.SourceLocations);

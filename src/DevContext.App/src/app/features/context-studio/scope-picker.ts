@@ -11,7 +11,8 @@ export interface ServiceGroup {
 
 export type ContextCardType = 'flow' | 'signatures' | 'bodies' | 'di_wiring' | 'config' | 'entities' | 'contracts' | 'tests' | 'identity';
 export type ContextIntent = 'trace' | 'explain' | 'review';
-export type OutputFormat = 'markdown' | 'plain';
+/** T5.3 (audit R8) — json is the structured export: cards/sections/provenance/verification. */
+export type OutputFormat = 'markdown' | 'plain' | 'json';
 
 export interface ContextCardSeed {
   readonly type: ContextCardType;

@@ -45,7 +45,17 @@ function packResponse(overrides: Partial<{
   // The server echoes the REQUEST card titles back on pack items (correlation key).
   const cards = (overrides.cards ?? [
     { type: 'flow', title: 'Flow: POST /checkout', tokens: 120 },
-  ]).map((c) => ({ sections: [{ key: 'trace', tokens: c.tokens }], ...c }));
+  ]).map((c) => ({
+    sections: [{
+      key: 'trace',
+      tokens: c.tokens,
+      content: `entry -> handler -> data (${c.title})`,
+      sourceLocations: ['src/App/Handler.cs:12', 'src/App/Endpoint.cs:8'],
+      verified: 2,
+      approx: 1,
+    }],
+    ...c,
+  }));
   return {
     cards,
     assembledMarkdown: overrides.assembledMarkdown ??
@@ -282,6 +292,48 @@ describe('ContextStudio', () => {
     expect(studio.serverPack()).toBeNull();
     expect(studio.packOmitted()).toEqual([]);
     expect(getContextPack).toHaveBeenCalledTimes(1); // no RPC for an empty set
+  });
+
+  it('cards carry their sections\' real content + provenance; json export is structured (T5.3 R7/R8)', async () => {
+    getContextPack.mockResolvedValue(packResponse());
+    const { fixture, studio } = createStudio();
+
+    studio.onCardsChange([flowSeed()]);
+    await flush();
+    fixture.detectChanges();
+
+    const card = studio.cards()[0];
+    expect(card.sections).toHaveLength(1);
+    expect(card.sections[0].content).toBe('entry -> handler -> data (Flow: POST /checkout)');
+    expect(card.sections[0].sourceLocations).toEqual(['src/App/Handler.cs:12', 'src/App/Endpoint.cs:8']);
+
+    // file:line chips = the card's OWN source set, full path on title, tail as text
+    const el: HTMLElement = fixture.nativeElement;
+    const chips = [...el.querySelectorAll('[data-testid="provenance-chip"]')];
+    expect(chips.map((c) => c.textContent?.trim())).toEqual(['Handler.cs:12', 'Endpoint.cs:8']);
+    expect(chips[0].getAttribute('title')).toContain('src/App/Handler.cs:12');
+
+    // per-card copy is enabled and copies the card's real content
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const copyBtn = el.querySelector('[data-testid="card-copy"]') as HTMLButtonElement;
+    expect(copyBtn.disabled).toBe(false);
+    copyBtn.click();
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const copied = writeText.mock.calls[0][0] as string;
+    expect(copied).toContain('## Flow: POST /checkout');
+    expect(copied).toContain('entry -> handler -> data');
+
+    // json export: structured pack with sections, provenance, omissions, verification, markdown
+    const json = JSON.parse(studio.buildContext('json')!) as {
+      repo: string; budgetTokens: number; cards: { type: string; sections: { content: string; sourceLocations: string[] }[] }[]; markdown: string;
+    };
+    expect(json.repo).toBe('eshop-microservices');
+    expect(json.budgetTokens).toBe(4000);
+    expect(json.cards[0].sections[0].sourceLocations).toContain('src/App/Handler.cs:12');
+    expect(json.markdown.length).toBeGreaterThan(0);
+    const date = new Date().toISOString().slice(0, 10);
+    expect(studio.saveFileName('json')).toBe(`eshop-microservices-context-${date}.json`);
   });
 
   it('verifies the pack after every successful re-pack, unprompted (T5.2 R6)', async () => {

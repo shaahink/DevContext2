@@ -215,6 +215,7 @@ export class ContextStudio {
       provenance: s.entryIds
         .map((id) => entryMap.get(id)?.provenance)
         .filter((p): p is string => !!p),
+      sections: [],
       error: null,
     }));
 
@@ -263,16 +264,26 @@ export class ContextStudio {
       // sequence, so two cards sharing a type no longer clobber each other.
       const queues = new Map<string, ContextPackResponse['cards']>();
       for (const ci of pack.cards) {
-        const key = `${ci.type} ${ci.title}`;
+        const key = `${ci.type} ${ci.title}`;
         const q = queues.get(key);
         if (q) q.push(ci);
         else queues.set(key, [ci]);
       }
       this.cards.update((prev) =>
         prev.map((c) => {
-          const ci = queues.get(`${c.type} ${c.title}`)?.shift();
+          const ci = queues.get(`${c.type} ${c.title}`)?.shift();
           // Not in the pack = dropped server-side (named in omitted[]); show it empty, not stale.
-          if (!ci) return { ...c, loading: false, error: null, content: null, serverTokens: null, sectionTokens: [] };
+          if (!ci) return { ...c, loading: false, error: null, content: null, serverTokens: null, sections: [] };
+          // T5.3/T5.5 — cards carry their sections' REAL content + provenance (T4.4 fields):
+          // per-card copy, JSON export, file:line chips, and honest previews all read these.
+          const sections = ci.sections.map((s) => ({
+            key: s.key,
+            tokens: s.tokens,
+            content: s.content,
+            sourceLocations: s.sourceLocations,
+            verified: s.verified,
+            approx: s.approx,
+          }));
           return {
             ...c,
             content: ci.title,
@@ -280,7 +291,7 @@ export class ContextStudio {
             error: null,
             serverTokens: ci.tokens > 0 ? ci.tokens : null,
             estimatedLines: ci.tokens > 0 ? Math.max(1, Math.round(ci.tokens / 2.5)) : c.estimatedLines,
-            sectionTokens: ci.sections.map((s) => ({ key: s.key, tokens: s.tokens })),
+            sections,
           };
         }),
       );
@@ -382,7 +393,10 @@ export class ContextStudio {
     const format = this.selectedFormat();
     const text = this.buildContext(format);
     if (text === null) return;
-    const blob = new Blob([text], { type: format === 'plain' ? 'text/plain' : 'text/markdown;charset=utf-8' });
+    const mime = format === 'plain' ? 'text/plain'
+      : format === 'json' ? 'application/json'
+      : 'text/markdown;charset=utf-8';
+    const blob = new Blob([text], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -391,18 +405,21 @@ export class ContextStudio {
     URL.revokeObjectURL(url);
   }
 
-  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt}`, never a hardcoded name. */
+  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt|json}`, never a hardcoded name. */
   protected saveFileName(format: OutputFormat): string {
     const label = this.session.summary()?.label ?? '';
     const repo = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'devcontext';
     const date = new Date().toISOString().slice(0, 10);
-    return `${repo}-context-${date}.${format === 'plain' ? 'txt' : 'md'}`;
+    const ext = format === 'plain' ? 'txt' : format === 'json' ? 'json' : 'md';
+    return `${repo}-context-${date}.${ext}`;
   }
 
   /** T5.6 (audit C1) — ONE build path: exports are exactly the current server pack, or nothing
    * (Copy/Save are disabled via exportReady). The legacy client-side assembly — old header,
    * `<!-- context card -->` markers, estimate footers — is gone. Plain strips markdown SYNTAX
-   * but keeps every line of content, so plain ≠ markdown while losing nothing. */
+   * but keeps every line of content, so plain ≠ markdown while losing nothing. T5.3 (R8):
+   * json is the STRUCTURED pack — cards with real section content, per-section provenance,
+   * omissions, the staleness ledger, and the assembled markdown, for programmatic consumers. */
   private buildContext(format: OutputFormat): string | null {
     const pack = this.serverPack();
     if (!pack) return null;
@@ -413,6 +430,24 @@ export class ContextStudio {
         .replace(/^```.*$/gm, '')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
+    }
+    if (format === 'json') {
+      return JSON.stringify({
+        repo: this.session.summary()?.label ?? null,
+        generatedAt: new Date().toISOString(),
+        budgetTokens: this.budgetTokens(),
+        intent: this.selectedIntent(),
+        omitted: this.packOmitted(),
+        verification: this.packVerification(),
+        cards: this.cards().map((c) => ({
+          type: c.type,
+          title: c.title,
+          entryIds: c.entryIds,
+          tokens: c.serverTokens,
+          sections: c.sections,
+        })),
+        markdown: pack,
+      }, null, 2);
     }
     return pack;
   }

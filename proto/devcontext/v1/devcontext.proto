@@ -604,6 +604,7 @@ message SectionAllocation {
   repeated string source_locations = 3;  // T4.4 — provenance chips (T5.3)
   int32 verified = 4;
   int32 approx = 5;
+  string content = 6;                    // T5.3 (R7) — the section's real text: per-card copy + honest previews
 }
 
 // ---------------------------------------------------------------------------

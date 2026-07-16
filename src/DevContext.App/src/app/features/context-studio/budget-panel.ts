@@ -190,7 +190,7 @@ export class BudgetPanel {
 
   readonly budgetStops = BUDGET_STOPS;
   readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
-  readonly formats: readonly OutputFormat[] = ['markdown', 'plain'];
+  readonly formats: readonly OutputFormat[] = ['markdown', 'plain', 'json'];
 
   readonly totalTokens = (): number =>
     this.cards().reduce((n, c) => n + this.cardTokens(c), 0);

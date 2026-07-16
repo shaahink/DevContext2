@@ -1,7 +1,18 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 
 import { Icon } from '../../ui/icon/icon';
+import { ToastService } from '../../ui/toast/toast';
 import type { ContextCardType } from './scope-picker';
+
+/** T5.3 — a card's server section with its real content and provenance (T4.4 fields). */
+export interface CardSection {
+  readonly key: string;
+  readonly tokens: number;
+  readonly content: string;
+  readonly sourceLocations: readonly string[];
+  readonly verified: number;
+  readonly approx: number;
+}
 
 export interface ContextCard {
   readonly id: string;
@@ -13,7 +24,7 @@ export interface ContextCard {
   loading: boolean;
   bodyEnabled: boolean;
   serverTokens: number | null;
-  sectionTokens: readonly { key: string; tokens: number }[];
+  sections: readonly CardSection[];
   provenance: readonly string[];
   /** T5.1 (audit R4) — RPC failure message; a failed card must say so, not just stop spinning. */
   error: string | null;
@@ -77,7 +88,17 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
             }
             <button
               type="button"
-              class="ml-1 shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
+              class="ml-1 shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors disabled:opacity-30"
+              title="Copy this card only"
+              data-testid="card-copy"
+              [disabled]="card.sections.length === 0"
+              (click)="onCopyCard(card)"
+            >
+              <app-icon name="copy" [size]="14" />
+            </button>
+            <button
+              type="button"
+              class="shrink-0 rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink transition-colors"
               [class.opacity-30]="!card.bodyEnabled"
               [title]="card.bodyEnabled ? 'Hide code bodies' : 'Show code bodies'"
               (click)="onToggleBody(card.id)"
@@ -107,14 +128,33 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
               </button>
             </div>
           }
-          @if (card.provenance.length > 0 || card.sectionTokens.length > 0) {
+          @if (cardLocations(card).length > 0 || card.provenance.length > 0 || card.sections.length > 0) {
             <div class="flex items-center gap-1 px-2 py-0.5 border-t border-line/50">
-              @for (pv of card.provenance; track pv) {
-                <span class="shrink-0 rounded bg-hover px-1 py-px text-2xs font-mono text-ink-muted" [title]="pv">{{ shortProvenance(pv) }}</span>
+              <!-- T5.3 (audit §4.2) — chips are the card's OWN file:line source set (T4.4
+                   provenance), not the entry's provenance echoed on every card; click copies
+                   the repo-relative file:line for the editor/agent. Entry provenance only
+                   fills in while the pack is still loading. -->
+              @if (cardLocations(card).length > 0) {
+                @for (loc of cardLocations(card).slice(0, 4); track loc) {
+                  <button
+                    type="button"
+                    class="shrink-0 rounded bg-hover px-1 py-px text-2xs font-mono text-ink-muted hover:text-ink transition-colors"
+                    data-testid="provenance-chip"
+                    [title]="loc + ' — click to copy'"
+                    (click)="onCopyLocation(loc)"
+                  >{{ shortLocation(loc) }}</button>
+                }
+                @if (cardLocations(card).length > 4) {
+                  <span class="shrink-0 text-2xs text-ink-subtle">+{{ cardLocations(card).length - 4 }}</span>
+                }
+              } @else {
+                @for (pv of card.provenance; track pv) {
+                  <span class="shrink-0 rounded bg-hover px-1 py-px text-2xs font-mono text-ink-muted" [title]="pv">{{ shortLocation(pv) }}</span>
+                }
               }
-              @if (card.sectionTokens.length > 0) {
+              @if (card.sections.length > 0) {
                 <span class="ml-auto shrink-0 text-2xs tabular-nums text-ink-subtle">
-                  @for (st of card.sectionTokens; track st.key; let last = $last) {
+                  @for (st of card.sections; track st.key; let last = $last) {
                     {{ st.key }}: {{ formatTokens(st.tokens) }}{{ last ? '' : ' · ' }}
                   }
                 </span>
@@ -145,6 +185,8 @@ const CARD_TYPE_COLORS: Record<ContextCardType, string> = {
   `,
 })
 export class CompositionView {
+  private readonly toast = inject(ToastService);
+
   readonly cards = input<readonly ContextCard[]>([]);
 
   readonly cardToggleBody = output<string>();
@@ -175,9 +217,35 @@ export class CompositionView {
     return `${(tok / 1000).toFixed(1)}k tok`;
   }
 
-  protected shortProvenance(provenance: string): string {
-    const lastSep = Math.max(provenance.lastIndexOf('/'), provenance.lastIndexOf('\\'));
-    return lastSep >= 0 ? provenance.slice(lastSep + 1) : provenance;
+  /** T5.3 (audit §4.2) — the card's own source set: union of its sections' file:line
+   * locations, in section order, deduped. */
+  protected cardLocations(card: ContextCard): readonly string[] {
+    const seen = new Set<string>();
+    for (const s of card.sections) {
+      for (const loc of s.sourceLocations) seen.add(loc);
+    }
+    return [...seen];
+  }
+
+  /** Filename:line tail for the chip; the full repo-relative path lives on [title]. */
+  protected shortLocation(location: string): string {
+    const lastSep = Math.max(location.lastIndexOf('/'), location.lastIndexOf('\\'));
+    return lastSep >= 0 ? location.slice(lastSep + 1) : location;
+  }
+
+  /** T5.3 (R7) — copy ONE card: its heading + the real section content, pack-shaped. */
+  protected onCopyCard(card: ContextCard): void {
+    if (card.sections.length === 0) return;
+    const text = `## ${card.title}\n_type: ${card.type}, ${card.serverTokens ?? 0} tok_\n\n`
+      + card.sections.map((s) => s.content).join('\n');
+    void navigator.clipboard.writeText(text);
+    this.toast.show('Card copied to clipboard', 'success');
+  }
+
+  /** T5.3 — chips click-through: copy the repo-relative file:line for the editor/agent. */
+  protected onCopyLocation(location: string): void {
+    void navigator.clipboard.writeText(location);
+    this.toast.show(`${location} copied`, 'success');
   }
 
   protected onToggleBody(id: string): void {
