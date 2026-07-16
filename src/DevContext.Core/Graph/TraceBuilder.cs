@@ -594,4 +594,62 @@ public sealed class TraceBuilder
         }
         return result.ToImmutable();
     }
+
+    // T3.3 — shape a built trace to ~budgetTokens by BREADTH-FIRST keep: expand the tree level by level
+    // (fair across branches, not depth-first-greedy) until the running token estimate would exceed the
+    // budget, then cut the rest — marking each parent that lost children Truncated with an Omitted count,
+    // so the cut is named per subtree (the compact renderer already prints "(N omitted)"). The entry root
+    // is always kept. budget <= 0 is a no-op (unlimited), preserving the default trace exactly.
+    public static Trace ShapeToBudget(Trace trace, int budgetTokens)
+    {
+        if (budgetTokens <= 0) return trace;
+
+        var keep = new HashSet<TraceStep>(ReferenceEqualityComparer.Instance) { trace.Root };
+        var queue = new Queue<TraceStep>();
+        queue.Enqueue(trace.Root);
+        var used = EstimateStepTokens(trace.Root);
+        while (queue.Count > 0)
+        {
+            var step = queue.Dequeue();
+            foreach (var child in step.Children)
+            {
+                var cost = EstimateStepTokens(child);
+                if (used + cost > budgetTokens) continue; // cut this child + its whole subtree
+                used += cost;
+                keep.Add(child);
+                queue.Enqueue(child);
+            }
+        }
+
+        return trace with { Root = RebuildWithinBudget(trace.Root, keep) };
+    }
+
+    private static TraceStep RebuildWithinBudget(TraceStep step, HashSet<TraceStep> keep)
+    {
+        var kept = ImmutableArray.CreateBuilder<TraceStep>();
+        var cut = 0;
+        foreach (var child in step.Children)
+        {
+            if (keep.Contains(child)) kept.Add(RebuildWithinBudget(child, keep));
+            else cut += 1 + CountDescendants(child);
+        }
+        if (cut == 0) return step with { Children = kept.ToImmutable() };
+        return step with { Children = kept.ToImmutable(), Truncated = true, Omitted = step.Omitted + cut };
+    }
+
+    private static int CountDescendants(TraceStep step)
+    {
+        var n = 0;
+        foreach (var child in step.Children) n += 1 + CountDescendants(child);
+        return n;
+    }
+
+    // Rough token estimate for one rendered step line: title + provenance + salient, /4.
+    private static int EstimateStepTokens(TraceStep step)
+    {
+        var chars = step.Node.Title.Length + 12; // seam glyph, kind label, punctuation
+        if (step.Provenance is { } p) chars += p.Length;
+        foreach (var s in step.Salient) chars += s.Length;
+        return Math.Max(1, chars / 4);
+    }
 }

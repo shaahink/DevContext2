@@ -458,6 +458,26 @@ const QA_QUESTIONS = [
     },
     tokenBudget: 2000,
   },
+  {
+    // T3.3 — trace token budget: a small budget shapes the tree and names the cut ("N omitted") with a
+    // deep-link hint, instead of dumping the full (13.6k-token on shamshir) spine.
+    id: "q11-trace-budget",
+    question: "Does trace respect a token budget with named omissions?",
+    run: async (client, handle, tracker) => {
+      const focus = "POST /basket/checkout";
+      const budgeted = await toolCall(client, "trace", { handle, focus, format: "compact", budgetTokens: 400 }, tracker);
+      const full = await toolCall(client, "trace", { handle, focus, format: "compact", budgetTokens: 0 }, tracker);
+      const budgetedSteps = (budgeted.text ?? "").split("\n").filter(Boolean).length;
+      const fullSteps = (full.text ?? "").split("\n").filter(Boolean).length;
+      const omittedNamed = (budgeted.omitted ?? 0) > 0 && typeof budgeted.hint === "string";
+      const bounded = budgetedSteps < fullSteps && (budgeted.tokens ?? 9999) <= 700;
+      return {
+        pass: budgeted.found === true && bounded && omittedNamed,
+        detail: `budget400: ${budgetedSteps} steps/${budgeted.tokens}tok omitted=${budgeted.omitted}; full: ${fullSteps} steps/${full.tokens}tok`,
+      };
+    },
+    tokenBudget: 3000,
+  },
 ];
 
 // ---- Checkout gate: "how does checkout create an order?" in <=3 calls, <=2k tokens ----

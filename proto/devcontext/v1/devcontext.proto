@@ -264,6 +264,7 @@ message TraceRequest {
   string focus = 2;
   optional int32 depth = 3;
   optional string detail = 4;
+  optional int32 budget_tokens = 5;  // T3.3 — shape the tree to ~this many tokens (0/absent = unlimited)
 }
 
 message TraceResponse {

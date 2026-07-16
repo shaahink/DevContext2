@@ -139,8 +139,9 @@ public sealed class DevContextGrpcService(
         {
             var depth = request.HasDepth ? request.Depth : 6;
             var detail = ParseDetail(request.HasDetail ? request.Detail : null);
+            var budgetTokens = request.HasBudgetTokens ? request.BudgetTokens : 0; // T3.3 — 0 = unlimited
 
-            var trace = session.Query.Trace(request.Focus, depth);
+            var trace = session.Query.Trace(request.Focus, depth, budgetTokens: budgetTokens);
             if (trace is null)
                 return new Proto.TraceResponse { Found = false };
 

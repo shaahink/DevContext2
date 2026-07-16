@@ -608,6 +608,24 @@ public sealed class DevContextTools
         return count;
     }
 
+    // T3.3 — total nodes the token budget cut across the tree (sum of per-subtree Omitted counts).
+    private static int OmittedNodes(TraceNode? node)
+    {
+        if (node is null) return 0;
+        var sum = node.Omitted;
+        foreach (var child in node.Children)
+            sum += OmittedNodes(child);
+        return sum;
+    }
+
+    // T3.3 — when the budget cut nodes, teach the agent how to get the rest without re-tracing.
+    private static string? BudgetHint(TraceNode? node, int budgetTokens)
+    {
+        var omitted = OmittedNodes(node);
+        if (omitted == 0) return null;
+        return $"{omitted} node(s) omitted to fit ~{budgetTokens} tok. Raise budgetTokens (or 0 for full), or read_source(nodeId)/flow(focus) into a truncated subtree.";
+    }
+
     /// <summary>Archetype-aware starting points for exploring the codebase. Example: interesting_points("abc123")</summary>
     [McpServerTool]
     public async Task<string> InterestingPoints(string? handle = null)
@@ -635,9 +653,9 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = call spine from ONE entry (deep); use flow() for a compact summary. format: default|compact. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
+    /// <summary>Trace execution flow. Address the entry/symbol with 'focus' OR 'query' (both accepted). trace = call spine from ONE entry (deep); use flow() for a compact summary. format: default|compact. budgetTokens (default 4000) caps the tree — cut subtrees are named ("N omitted"); set 0 for the full tree. Example: trace("abc123", "POST /api/orders", 6, "compact")</summary>
     [McpServerTool]
-    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default", string? query = null)
+    public async Task<string> Trace(string? handle = null, string? focus = null, int depth = 6, string format = "default", string? query = null, int budgetTokens = 4000)
     {
         focus ??= query; // T3.1 — accept `query` as a synonym for `focus`
         if (string.IsNullOrWhiteSpace(focus))
@@ -653,6 +671,7 @@ public sealed class DevContextTools
                 Handle = handle,
                 Focus = focus,
                 Depth = depth,
+                BudgetTokens = budgetTokens, // T3.3 — server shapes the tree to this budget
             });
             if (!resp.Found)
             {
@@ -680,7 +699,7 @@ public sealed class DevContextTools
 
                 var compact = sb.ToString();
                 var tokens = (compact.Length + 3) / 4;
-                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, text = compact }, JsonOpts);
+                return JsonSerializer.Serialize(new { found = true, format = "compact", tokens, budgetTokens, omitted = OmittedNodes(resp.Root), hint = BudgetHint(resp.Root, budgetTokens), text = compact }, JsonOpts);
             }
 
             return JsonSerializer.Serialize(new
@@ -692,6 +711,9 @@ public sealed class DevContextTools
                     title = resp.Root.Title,
                     kind = resp.Root.Kind,
                 } : null,
+                budgetTokens,
+                omitted = OmittedNodes(resp.Root),
+                hint = BudgetHint(resp.Root, budgetTokens),
                 root = resp.Root is not null ? SerializeTraceNode(resp.Root) : null,
                 touchedEntities = resp.TouchedEntities.ToArray(),
                 emittedEvents = resp.EmittedEvents.ToArray(),

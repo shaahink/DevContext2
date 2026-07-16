@@ -65,11 +65,14 @@ public sealed class GraphQuery
 
     /// <summary>trace(entry, depth, ...) — resolve a focus to an entry and walk it. Null when the focus
     /// matches no entry/node. Same resolution + traversal the CLI/Desktop use.</summary>
-    public Trace? Trace(string focus, int depth = 6, int maxFanOut = 12)
+    public Trace? Trace(string focus, int depth = 6, int maxFanOut = 12, int budgetTokens = 0)
     {
         var entry = EntryPointResolver.Resolve(_entries, _graph, focus);
         if (entry is null) return null;
-        return new TraceBuilder(_graph).Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
+        var trace = new TraceBuilder(_graph).Build(entry, new TraceOptions { MaxDepth = depth, MaxFanOut = maxFanOut });
+        // T3.3 — an optional token budget shapes the tree post-build (query layer, not graph assembly —
+        // the kernel invariant is preserved). 0 = unlimited, so the default trace is unchanged.
+        return budgetTokens > 0 ? TraceBuilder.ShapeToBudget(trace, budgetTokens) : trace;
     }
 
     /// <summary>node(id) — the detail card for a node, or null when it doesn't exist.</summary>
