@@ -112,7 +112,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T7 — Bench + perf honesty
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T7.0 | Harness wall-speed rider: gates.ps1 -Scope full/engine/app + engine-stamp eval cache + 2-host eval split + pnpm check as Step 5 · launcher rewrite (pid files, tree-kill, idempotent, no handle-inheritance hang) · .gitignore de-mojibake (UTF-16 tail made TestResults/.dev-logs rules dead) · overlap-the-battery rule written (skill+docs) | IN PROGRESS | | tapestry-t7/gates-t7.0-full.txt (before: 25 min serial, eval 12m29s; app scope 1m29s) |
+| T7.0 | Harness wall-speed rider: gates.ps1 -Scope full/engine/app + engine-stamp eval cache + 2-host eval split + pnpm check as Step 5 · launcher rewrite (pid files, tree-kill, idempotent, no handle-inheritance hang) · .gitignore de-mojibake (UTF-16 tail made TestResults/.dev-logs rules dead) · overlap-the-battery rule written (skill+docs+AGENTS) | VERIFIED | 1654a49 | gates-t7.0-full-run2.txt **GATE: PASS in 13m23s** (was ~25 min serial; eval 12m29s→8m03s split; -Scope app 1m29s; stamp-cached full ≈5½ min) · run-1 catch: PS 5.1 .ExitCode reads $null w/o cached .Handle — green hosts scored FAIL (fixed, pinned in skill gotchas) |
 | T7.1 | Bench + truth files extended (CompositionApp, gRPC service, aspire-samples) | TODO | | |
 | T7.2 | Perf baseline + edge-explosion check (devcontext-bench) | TODO | | |
 | T7.3 | Stage waterfall ≥95% wall-time accounted | TODO | | |
