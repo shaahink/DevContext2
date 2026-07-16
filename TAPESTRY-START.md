@@ -7,19 +7,18 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T4 OPENED — T4.1 + T4.6 VERIFIED on feat/tapestry-t4** (off develop @ 0eca05f, one commit — same-session pair per addendum).
-T4.1: pack identity header (`# {repo} — {focus}` + `analyzed {utc} · HEAD {sha7}`; repo = solution name, falls back to root folder) +
-repo-rel `file:line` on every located node (no trailing colon; salient-body headings carry `— file:line`). ROOT CAUSES: snapshot.Explanation
-is NEVER populated by the pipeline (the audit's empty `# ` title AND `_Archetype: _` — pack no longer reads it; archetype from Map),
-no AnalyzedAtUtc/GitHead on the snapshot (added; GitHeadReader extracted from SnapshotCacheService's private ComputeGitHead), and
-`int?` LineNumber interpolated blind (dangling `path:`). T4.6: BuildContracts (role-tag messages + interfaces + DTOs; entities excluded)
-replaces the contracts→["signatures"] alias; empty sections/cards dropped AND recorded in omitted[]; `<!-- context card -->` out of the copy.
-Engine-only — the app sends the same card types; the client-side fallback builder in context-studio.ts stays stale until T5.6.
-stage: **T4 2/6 (T4.1, T4.6).** Evidence eval-results/2026-07-16/tapestry-t4/ (pack-dogfood-checkout.json = live MCP get_context capture).
-next: **T4.2 budget utilization** (Q7's 612/4000 under-fill → spine-first body expansion to ~85%, `… (+N lines)` markers), then T4.3 config+tests
-sections server-side (R9) → T4.4 per-section provenance+tier mix → T4.5 VerifyContextPack+MCP verify_context. develop still lives in the
-C:/Code/DevContext2-ui worktree — advance it there via `git -C`, never `git checkout develop` in main.
-gate: gates-t4.txt = GATE: PASS (build/fast/McpQa serial/eval/CLI matrix + 4b) + loom-guards PASS (truth 0 failures).
+last: 2026-07-16 **T4 (Context generation v2) — 6/6 CHECKPOINTS VERIFIED on feat/tapestry-t4** (off develop @ 0eca05f, pushed). Order:
+T4.1+T4.6 (0d47247) → T4.2 (8099bd6) → T4.3 (9f60263) → T4.4 (d15d0aa) → T4.5 (a010229). Packs now: identity header (`# {repo} — {focus}`
++ analyzed/HEAD; snapshot.Explanation was NEVER populated — root cause of `# `/`_Archetype: _`), repo-rel file:line everywhere, spine-first
+body fill (dogfood 35%→90.5%, shamshir 99.4% @4k; structural caps + `… (+N lines)`/`+N more members` markers), real contracts/config/tests
+sections (contracts≠signatures; tests_for heuristic ROOT-RELATIVE now — pre-existing /tests/-absolute-path bug fixed, was latent in MCP
+tests_for), per-section `_provenance: N sites · V verified · A approx_` + structured fields, and verify_context (24th MCP tool): snapshot
+FileFingerprints vs disk per section, live dogfood drift cycle fresh→edit→restore = false→true→false. Proto: VerifyContext RPC + provenance
+fields, one regen, pnpm check 27P. Per-checkpoint evidence eval-results/2026-07-16/tapestry-t4/ (T4.*-EVIDENCE.md + live MCP captures).
+stage: **T4 COMPLETE (6/6), NOT merged — user review pending.** Stage-end battery gates-t4-stage.txt; drift row added (graph byte-identical).
+next: **T5 (Context Studio v2)** off this branch's outcome — T5.1 quick wins (R1 omitted[] rendered, R4 error state, R5 save ext) + T5.6
+recompute-on-change (the token-export trust bug; one buildContext path for Copy/Save). develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
+gate: gates-t4-stage.txt (running at handoff-write; verify GATE: PASS before merge) + loom-guards re-run after it — both must be green.
 
 ---
 
@@ -137,6 +136,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | shamshir | 2026-07-15 T1 | 2882 | 3375 | 135 = HTTP 128 · Background 5 · SignalR 2 | **NLayer (0.6)** | **T1.4–T1.9 pole.** Style MinimalApi→**NLayer** (T1.5 dropped the false OpenAPI minimal-apis signal); per-service 2→4 runnables (AppHost/Host-Worker/ResearchCli-CLI/Web); module map **"Api (128)"→8 feature areas** (runs 22 · data-manager 15 · system 8 · strategies 8 · research 8 · …). +32 nodes/+26 edges vs T0.3 (2850/3349) = live-repo source drift <1.2%, entries unchanged; NO count regression. |
 | eShop | 2026-07-15 T2.6 | 1089 | 837 | 109 | Microservices (0.91) | **T2.6 pole.** UNCHANGED vs T2.5 (1089/837/109). The one `EventWiringProjection` replaces the legacy `AddBusServiceLinks` join and emits the identical bus ServiceLink set (5 links, 8 cross-service integration events collapsing to 5 distinct service pairs), so graph structure is byte-neutral. New: `graph.EventWiring` (20 events, 13 integration, 8 cross-service, 0 orphan) surfaced in `EVENT WIRING` map section + JSON `$.eventWiring`. `gateway.downstream-wiring` unchanged (4 targets). Setting Project on consumer/handler nodes + richer ServiceLink provenance did not move counts. |
 | eShop | 2026-07-15 T2.5 | 1089 | 837 | 109 | Microservices (0.91) | **T2.5 pole.** vs T1 (1092/833): nodes **−3** (orphan duplicate member nodes merged — the global-namespace member-id fix unifies the seam origin with the entry's handler node), edges **+4** (new/connected `Sends` — property-accessed `services.Mediator.Send` on OrdersApi's draft/cancel/ship/create endpoints; "Sends only rise"), entries 109 unchanged. eShop /draft trace 2 nodes → deep (entry→send CreateOrderDraftCommand [verified]→handler→data Order). Dogfood MCP-QA checkout unchanged (no regression); eval 58P/6S/0F. |
+| dogfood | 2026-07-16 T4 | 439 | 339 | 34 | Microservices (App) | **T4 stage end.** Identical to T1.1 baseline — T4 is pack-layer + snapshot-metadata only (identity header, body fill, contracts/config/tests sections, provenance, fingerprints); graph structure untouched by design. Checkout pack: 35%→90.5% budget use @4k. shamshir pack 99.4% (live MCP captures in tapestry-t4/). |
 
 ## Quick commands
 

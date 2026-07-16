@@ -30,6 +30,6 @@
 - [x] Session lifecycle: create, list, close
 
 ## Tool coverage
-Available tools (23): analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages
+Available tools (24): analyze, close_session, config, entrypoints, find, flow, get_context, impact, insights, interesting_points, list_sessions, map, neighbors, node, overview, read_source, resolve, stats, status, tests_for, top_flows, trace, usages, verify_context
 
 M4 tools covered: 9/9 (overview, resolve, trace, impact, read_source, find, config, get_context, tests_for)
