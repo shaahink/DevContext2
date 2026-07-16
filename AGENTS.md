@@ -110,7 +110,6 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 ## Where the work is tracked
 
 - **`TAPESTRY-START.md` — the ACTIVE phase tracker** (plan: `docs/dev/briefs/proposal-tapestry.md`). Start here.
-- `conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts scoping, TfmScore, Flow hardening, audit sweep).
 - `docs/dev/HANDOVER-*.md` — per-phase close-outs (Loom, Meridian, Lighthouse, Fable, Desktop, Library-support). Read the newest for current architecture + known gaps.
-- `LOOM-START.md` / `MERIDIAN-START.md` — CLOSED phase trackers (historical checkpoint tables + handoff blocks).
+- `docs/dev/archive/` — CLOSED phase trackers (`LOOM-START.md`, `MERIDIAN-START.md`, `L3-START.md`, `conductor-*.md`; historical checkpoint tables + handoff blocks). See its `INDEX.md`.
 - `docs/dev/go-to-program/PROGRESS-LOG.md` — append one line after every session.

@@ -14,7 +14,7 @@ Integration branch is **`develop`**. Full reference: `docs/dev/DEVELOPER-PIPELIN
 ## Start-of-session ritual
 
 1. Read the handoff: `AGENTS.md`, the newest `docs/dev/HANDOVER-*.md`, and the relevant tracker
-   (`LOOM-START.md` / `conductor-DEBT.md`).
+   (the active `*-START.md` at repo root; closed-phase trackers live in `docs/dev/archive/`).
 2. **Isolate if another agent is active** — give yourself a worktree + branch off `develop`:
    ```powershell
    git worktree list                                                   # who is where
