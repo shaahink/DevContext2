@@ -2,7 +2,7 @@
   "repos": [
     {
       "name": "DntSite",
-      "localPath": "C:/Users/shahi/AppData/Local/DevContext/repos/VahidN-DntSite-default",
+      "localPath": "eval-repos/DntSite",
       "description": "Persian community/blog platform — Blazor SSR + API Controllers + SQLite + DNTScheduler",
       "entryPoints": ["FeedController", "UploadFileController"],
       "expectedSignals": ["controllers", "efcore", "minimal-apis"],
@@ -203,6 +203,34 @@
       "description": "MassTransit getting-started sample app — message publishing/consuming, RabbitMQ transport, sagas",
       "expectedArchetype": "App",
       "expectedSignals": ["masstransit"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "CompositionApp",
+      "localPath": "tests/fixtures/CompositionApp",
+      "description": "T0.2 fixture — Aspire AppHost + extension-method startup composition, factory-lambda hosted services, shared-framework SignalR, composed controller routes (shamshir shape)",
+      "expectedArchetype": "App",
+      "expectedSignals": ["aspire", "controllers"],
+      "expectedArchitecture": "ControllerBased",
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "GrpcAggregator",
+      "localPath": "eval-repos/gRPC/examples/Aggregator",
+      "description": "Real gRPC service app (grpc-dotnet Aggregator example) — 3 MapGrpcService services (Greeter/Counter/Aggregator), 6 RPCs, server-to-server gRPC client forwarding, streaming",
+      "expectedArchetype": "App",
+      "expectedSignals": ["grpc"],
+      "profile": "focused",
+      "scenarios": ["overview"]
+    },
+    {
+      "name": "aspire-samples",
+      "url": "https://github.com/dotnet/aspire-samples.git",
+      "ref": "main",
+      "description": "dotnet/aspire-samples — polyglot multi-sample collection (13 per-sample .slnx, no unifying root solution): Aspire orchestration, Blazor, Functions, Orleans, JS/Python/Go sidecars",
+      "expectedSignals": ["aspire"],
       "profile": "focused",
       "scenarios": ["overview"]
     },

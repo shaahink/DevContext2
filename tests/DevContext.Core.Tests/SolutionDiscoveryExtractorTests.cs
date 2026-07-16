@@ -201,4 +201,69 @@ Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Core"", ""src\Core\Core.
         Assert.NotNull(model.Solution);
         Assert.Equal("MyProject", model.Solution.Name);
     }
+
+    [Fact]
+    public async Task ExtractAsync_IgnoresSolutionsUnderDotDirectories()
+    {
+        // T7.1: dotnet/aspire-samples ships .github/for.dependabot.only.sln — a tooling decoy
+        // that must never become the primary solution (it was winning on depth).
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\.github\for.dependabot.only.sln", "");
+        fs.AddFile(@"C:\repo\samples\shop\Shop.slnx", """
+            <Solution><Project Path="Shop/Shop.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\repo\samples\shop\Shop\Shop.csproj", "");
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = @"C:\repo",
+            Options = new ExtractionOptions(),
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = new FakeAnalysisCache(fs),
+            Analysis = new SharedAnalysisContext(),
+            Logger = new NullLogger<DiscoveryContext>(),
+        };
+
+        var model = new DiscoveryModel();
+        await new SolutionDiscoveryExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+
+        Assert.NotNull(model.Solution);
+        Assert.Equal("Shop", model.Solution.Name);
+    }
+
+    [Fact]
+    public async Task ExtractAsync_DeeperProductBeatsShallowerTestScaffolding()
+    {
+        // T7.1: depth is a score, not a hard cut — tests/SamplesTests.slnx (depth 1) must lose
+        // to real per-sample solutions at depth 2 (the dotnet/aspire-samples shape).
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\tests\SamplesTests.slnx", """
+            <Solution><Project Path="SamplesTests/SamplesTests.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\repo\tests\SamplesTests\SamplesTests.csproj", "");
+        fs.AddFile(@"C:\repo\samples\shop\Shop.slnx", """
+            <Solution><Project Path="Shop/Shop.csproj" /></Solution>
+            """);
+        fs.AddFile(@"C:\repo\samples\shop\Shop\Shop.csproj", "");
+
+        var ctx = new DiscoveryContext
+        {
+            RootPath = @"C:\repo",
+            Options = new ExtractionOptions(),
+            ActiveScenario = ScenarioRegistry.BuiltIn["overview"],
+            Observer = new NullDiscoveryObserver(),
+            FileSystem = fs,
+            Cache = new FakeAnalysisCache(fs),
+            Analysis = new SharedAnalysisContext(),
+            Logger = new NullLogger<DiscoveryContext>(),
+        };
+
+        var model = new DiscoveryModel();
+        await new SolutionDiscoveryExtractor().ExtractAsync(ctx, model, CancellationToken.None);
+
+        Assert.NotNull(model.Solution);
+        Assert.Equal("Shop", model.Solution.Name);
+    }
 }

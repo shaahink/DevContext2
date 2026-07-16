@@ -241,10 +241,11 @@ if ($Truth) {
     # Save raw output
     $testOutput | Out-File $truthLog -Encoding utf8
 
-    # Summarise
-    $passed = ($testOutput | Select-String -Pattern 'Passed:' | ForEach-Object { $_.Line }).Trim()
-    $failed = ($testOutput | Select-String -Pattern 'Failed:' | ForEach-Object { $_.Line }).Trim()
-    $skipped = ($testOutput | Select-String -Pattern 'Skipped:' | ForEach-Object { $_.Line }).Trim()
+    # Summarise. T7.1: a fully-green run has no 'Failed:' line — .Trim() on the resulting
+    # $null killed the script here (with $ErrorActionPreference=Stop) AFTER the gate passed.
+    $passed = (@($testOutput | Select-String -Pattern 'Passed:' | ForEach-Object { $_.Line }) -join ' ').Trim()
+    $failed = (@($testOutput | Select-String -Pattern 'Failed:' | ForEach-Object { $_.Line }) -join ' ').Trim()
+    $skipped = (@($testOutput | Select-String -Pattern 'Skipped:' | ForEach-Object { $_.Line }) -join ' ').Trim()
 
     Write-Host "  $passed" -ForegroundColor Green
     if ($failed) { Write-Host "  $failed" -ForegroundColor Red }
@@ -252,7 +253,7 @@ if ($Truth) {
 
     Write-Host "  Truth gate $($sw.Elapsed.TotalSeconds.ToString('F1'))s -> $truthLog" -ForegroundColor $(if ($testExit -eq 0) { 'Green' } else { 'Red' })
 
-    # Tapestry T0.3 / R-T8 — per-kind entry counts feed the baseline drift table. Parse each report's
+    # Tapestry T0.3 / R-T8 -- per-kind entry counts feed the baseline drift table. Parse each report's
     # ENTRY POINTS per-kind headers ("HTTP (56)", "Background (2)", "SignalR (1)", ...) and print a
     # per-repo breakdown so entries-by-kind can be recorded without re-reading raw output by hand.
     Write-Host "`n  Per-kind entry counts (this run's reports):" -ForegroundColor Cyan
@@ -269,13 +270,13 @@ if ($Truth) {
         }
         if ($counts.Count -gt 0) {
             $total = ($counts.Values | Measure-Object -Sum).Sum
-            $parts = ($counts.GetEnumerator() | ForEach-Object { "$($_.Value) $($_.Key)" }) -join ' · '
+            $parts = ($counts.GetEnumerator() | ForEach-Object { "$($_.Value) $($_.Key)" }) -join ' | '
             Write-Host ("    {0,-22} {1} entries = {2}" -f $repo.name, $total, $parts)
         }
     }
 
     if ($testExit -ne 0) {
-        Write-Error "Truth gate FAILED — one or more truth checks are red. Fix or record before proceeding."
+        Write-Error "Truth gate FAILED -- one or more truth checks are red. Fix or record before proceeding."
         exit 1
     }
 

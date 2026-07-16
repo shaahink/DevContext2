@@ -1,0 +1,7 @@
+You cannot call a method on a null-valued expression.
+At C:\code\DevContext2\scripts\bench.ps1:246 char:5
++     $failed = ($testOutput | Select-String -Pattern 'Failed:' | ForEa ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+ 

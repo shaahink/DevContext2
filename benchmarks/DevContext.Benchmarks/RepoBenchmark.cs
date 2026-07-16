@@ -42,6 +42,10 @@ public static class RepoBenchmark
             new("eShop.Ordering.API", Path.Combine(eval, "eShop", "src", "Ordering.API"), "POST /api/orders/", false),
             new("AutoMapper", Path.Combine(eval, "AutoMapper"), null, false),
             new("OrchardCore", Path.Combine(eval, "OrchardCore"), null, false),
+            // T7.1 — multi-surface poles: composed-startup fixture, real gRPC service app, polyglot sample collection.
+            new("CompositionApp", Path.Combine(root, "tests", "fixtures", "CompositionApp"), "POST /api/addons/packs", false),
+            new("GrpcAggregator", Path.Combine(eval, "gRPC", "examples", "Aggregator"), "AggregatorService", false),
+            new("AspireSamples", Path.Combine(eval, "aspire-samples"), null, false),
         };
 
         var only = args.Skip(1).Where(a => !a.StartsWith('-')).ToHashSet(StringComparer.OrdinalIgnoreCase);

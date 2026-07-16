@@ -1,0 +1,8 @@
+{
+  "repo": "eval-repos/aspire-samples",
+  "checks": [
+    { "id": "signal-aspire", "type": "signal-present", "value": "aspire", "status": "expected", "note": "T7.1: Aspire AppHost SDK projects throughout samples/ (aspire-shop, client-apps-integration, orleans-voting, ...)." },
+    { "id": "style-sample-collection", "type": "json-equals", "path": "$.architecture.style", "value": "SampleCollection", "status": "expected", "note": "T7.1: 13 independent per-sample .slnx files and no unifying root solution — a samples collection. Many AppHosts must NOT read as one Microservices system." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}

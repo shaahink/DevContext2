@@ -361,6 +361,109 @@ public sealed class TruthExpectationTests
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    // CompositionApp fixture (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth: entry kinds counted from the fixture SOURCE — 3 controller actions
+    /// (AddonsController: GetPack packs/{id} · CreatePack packs · GetTheme themes/{slug}),
+    /// 2 hosted workers (PriceWorker direct AddHostedService + BacktestWorker via the
+    /// factory lambda), 1 SignalR hub (PriceHub). The per-kind headers must carry those
+    /// exact counts — presence alone is already pinned by compositionapp.json (eval).
+    /// </summary>
+    [SkippableFact]
+    public async Task CompositionApp_per_kind_entry_counts_match_source()
+    {
+        var repoPath = RepoPath("tests/fixtures/CompositionApp");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.Contains("HTTP (3)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Background (2)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("SignalR (1)", result.Content, StringComparison.Ordinal);
+
+        _output.WriteLine("CompositionApp per-kind: HTTP 3 · Background 2 · SignalR 1 (from source)");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // GrpcAggregator — real gRPC service app (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth: grpc-dotnet's Aggregator example is a REAL gRPC service app —
+    /// Program.cs maps three services (Greeter, Counter, Aggregator) and the source
+    /// carries exactly 6 `public override` RPCs. The map must render a gRPC (6) kind
+    /// header and name all three service impls. AggregatorService additionally forwards
+    /// to Greeter/Counter over injected gRPC clients (server-to-server), which is why
+    /// this repo is the standing real-gRPC pole rather than a synthetic fixture.
+    /// </summary>
+    [SkippableFact]
+    public async Task GrpcAggregator_rpc_entries_match_source()
+    {
+        var repoPath = RepoPath("eval-repos/gRPC/examples/Aggregator");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.Contains("gRPC (6)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("AggregatorService", result.Content, StringComparison.Ordinal);
+        Assert.Contains("CounterService", result.Content, StringComparison.Ordinal);
+        Assert.Contains("GreeterService", result.Content, StringComparison.Ordinal);
+
+        _output.WriteLine("GrpcAggregator: 6 RPC entries across 3 services (from source)");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // aspire-samples (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth (green half): scaffolding solutions never define the repo. Before the
+    /// T7.1 fixes, dotnet/aspire-samples was titled after `.github/for.dependabot.only.sln`
+    /// (dot-directory decoy) and then `tests/SamplesTests.slnx` (shallow tooling solution
+    /// beating 13 deeper per-sample .slnx files). The JSON style verdict is now honestly
+    /// SampleCollection — pinned by eval/expectations/aspire-samples.json.
+    /// </summary>
+    [SkippableFact]
+    public async Task AspireSamples_solution_pick_ignores_scaffolding()
+    {
+        var repoPath = RepoPath("eval-repos/aspire-samples");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.DoesNotContain("for.dependabot.only", result.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SamplesTests", result.Content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// T7.1 truth (pending half): dotnet/aspire-samples is 13 independent per-sample .slnx
+    /// solutions with no unifying root solution — a samples collection. The MARKDOWN render
+    /// must say so. Today the style verdict is honest in JSON, but every entry's provenance
+    /// is under samples/ so NoiseFilter suppresses them all → 0 entries → the archetype
+    /// ladder lands Library ("0 public types") → the Library render hides the STYLE line
+    /// entirely. Fix = sample-collection render honesty: when style is SampleCollection the
+    /// samples ARE the product (entries, archetype, style line). Found by T7.1; the fix is
+    /// its own checkpoint (detect≠render class), not a bench-extension rider.
+    /// </summary>
+    [TruthPending("T8")]
+    public async Task AspireSamples_style_is_sample_collection_not_microservices()
+    {
+        var repoPath = RepoPath("eval-repos/aspire-samples");
+        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        var styleLine = result.Content.Split('\n')
+            .FirstOrDefault(l => l.Contains("STYLE") || l.Contains("Style:"));
+        _output.WriteLine($"aspire-samples style: {styleLine ?? "(not found)"}");
+
+        Assert.DoesNotContain("Microservices", styleLine ?? "", StringComparison.Ordinal);
+        Assert.Contains("SampleCollection", result.Content, StringComparison.Ordinal);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     // Pipeline helpers (following TraceQualityTests pattern)
     // ═══════════════════════════════════════════════════════════════════
 
