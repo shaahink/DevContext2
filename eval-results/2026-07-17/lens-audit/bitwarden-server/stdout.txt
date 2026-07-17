@@ -1,0 +1,124 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\bitwarden-server\map.md
+analyzed 4927 files ú 16300 nodes ú 24710 edges ú 669 entries ú 668/669 target 
+ú ~1965 tokens ú 207.3s stage2 x3.0 stage3 x2.4
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ WARN ³ Risk     ³ 87/662 endpoints anonymous,  ³ POST /{id:guid}/extend,     ³
+³      ³          ³ incl. 21 POST/PUT/DELETE     ³ POST /{id:guid}/revoke, GET ³
+³      ³          ³                              ³ /mine                       ³
+³ NOTE ³ Risk     ³ Auth surface: 544 protected, ³ 544 protected, POST         ³
+³      ³          ³ 87 unannotated of 662 API    ³ /push/send, PUT             ³
+³      ³          ³ endpoints                    ³ /push/delete-organization   ³
+³ NOTE ³ Risk     ³ Config without defaults: 3   ³ adminSettings:role,         ³
+³      ³          ³ consumed keys have no        ³ Logging:PathFormat,         ³
+³      ³          ³ appsettings default          ³ seederSettings              ³
+³ NOTE ³ Wiring   ³ Event wiring: 1 events (1    ³ ServiceBusMessage  Core    ³
+³      ³          ³ integration), 0              ³ (no consumer)               ³
+³      ³          ³ cross-service, 1 orphan      ³                             ³
+³ NOTE ³ Wiring   ³ Multi-implementation         ³ IAuthorizationHandler (16   ³
+³      ³          ³ interfaces:                  ³ impls), IPolicyUpdateEvent  ³
+³      ³          ³ IAuthorizationHandler (16    ³ (14 impls),                 ³
+³      ³          ³ impls) ú IPolicyUpdateEvent  ³ IPolicyRequirementFactory<I ³
+³      ³          ³ (14 impls) ú                 ³ PolicyRequirement> (10      ³
+³      ³          ³ IPolicyRequirementFactory<IP ³ impls)                      ³
+³      ³          ³ olicyRequirement> (10 impls) ³                             ³
+³ INFO ³ Coverage ³ Entry targets resolved       ³                             ³
+³      ³          ³ 668/669 (99%) - trace any    ³                             ³
+³      ³          ³ entry for its full path      ³                             ³
+³ INFO ³ Wiring   ³ DI: 470 Extension ú 351      ³                             ³
+³      ³          ³ Scoped ú 314 Singleton ú 76  ³                             ³
+³      ³          ³ Transient (1211 total)       ³                             ³
+³ INFO ³ Shape    ³ Entry surface: 662 HTTP ú 7  ³ 662 HTTP, 7 hosted          ³
+³      ³          ³ hosted                       ³                             ³
+³ INFO ³ Topology ³ Most depended-upon: Core (15 ³ Core (15 dependents), Core  ³
+³      ³          ³ dependents) ú Core (11       ³ (11 dependents), SharedWeb  ³
+³      ³          ³ dependents) ú SharedWeb (8   ³ (8 dependents)              ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Data     ³ Data map: 67 entities across ³ Infrastructure.EntityFramew ³
+³      ³          ³ 3 scopes                     ³ ork (64 entities), Core (1  ³
+³      ³          ³                              ³ entities), DatabaseContext  ³
+³      ³          ³                              ³ (1 entities)                ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                            Stage Timing                             
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³     Time ³ Bar                          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   1413ms ³                              ³
+³ GenericExtraction       ³  16062ms ³ ÛÛÛ                          ³
+³ SignalSealing           ³      1ms ³                              ³
+³ SpecificExtraction      ³  20627ms ³ ÛÛÛ                          ³
+³ SemanticLite            ³ 147052ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³  16010ms ³ ÛÛÛ                          ³
+³ Insights                ³   1840ms ³                              ³
+³ Compression             ³    865ms ³                              ³
+³ Snapshot                ³   3008ms ³                              ³
+³ Total                   ³ 207278ms ³                              ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                    ³    Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ ProgramCsFlowExtractor  ³ 16055ms ³   5441 ³  1310 ³ ran                     ³
+³ SyntaxStructureExtracto ³ 16017ms ³   5441 ³  1304 ³ ran                     ³
+³ r                       ³         ³        ³       ³                         ³
+³ DiRegistrationExtractor ³ 15989ms ³    174 ³  1211 ³ ran                     ³
+³ CallGraphExtractor      ³ 12447ms ³      0 ³     0 ³ ran                     ³
+³ SourceBodyExtractor     ³  8940ms ³      0 ³     0 ³ ran                     ³
+³ BodyFactsExtractor      ³  8866ms ³      0 ³     0 ³ ran                     ³
+³ EndpointExtractor       ³  8164ms ³      0 ³  1358 ³ ran                     ³
+³ EfCoreExtractor         ³  2901ms ³      0 ³  1341 ³ ran                     ³
+³ InMemoryEventBusExtract ³  2625ms ³      0 ³  1167 ³ ran                     ³
+³ or                      ³         ³        ³       ³                         ³
+³ ControllerActionExtract ³  2569ms ³      0 ³  1129 ³ ran                     ³
+³ or                      ³         ³        ³       ³                         ³
+³ SignalRHubExtractor     ³  2429ms ³      0 ³  1074 ³ ran                     ³
+³ IndirectWiringDetector  ³  1262ms ³      0 ³   340 ³ ran                     ³
+³ FileTreeExtractor       ³   744ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure        ³   343ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery       ³   297ms ³      0 ³     0 ³ ran                     ³
+³ BlazorEntryExtractor    ³    84ms ³      0 ³   123 ³ ran                     ³
+³ DependencyExtractor     ³    66ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier         ³    24ms ³      0 ³     0 ³ ran                     ³
+³ AspireExtractor         ³     9ms ³      0 ³    41 ³ ran                     ³
+³ AntiPatternDetector     ³     0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                         ³         ³        ³       ³ ShouldRun               ³
+³ AwsLambdaExtractor      ³     0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                         ³         ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor ³     0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                         ³         ³        ³       ³ needs azure-functions   ³
+³ CliCommandExtractor     ³     0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                         ³         ³        ³       ³ needs cli-commands      ³
+³ DesktopEntryExtractor   ³     0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                         ³         ³        ³       ³ needs desktop-ui        ³
+³ EventBusExtractor       ³     0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                         ³         ³        ³       ³ needs masstransit or    ³
+³                         ³         ³        ³       ³ nservicebus             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+            Graph Seams            
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam           ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls          ³ 22997 ³   9860 ³
+³ Raises         ³     6 ³      6 ³
+³ ReadsWrites    ³   817 ³    759 ³
+³ Resolves       ³   789 ³     65 ³
+³ EntityRelation ³   101 ³    101 ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+16300 nodes ú 24710 edges ú 668/669 entries  target
+cache 88% hit ú 4927 files ú 64 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³         Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ bitwarden-server.slnx ³
+³   Time   ³       208079ms        ³
+³  Tokens  ³  ~1965 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265  ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

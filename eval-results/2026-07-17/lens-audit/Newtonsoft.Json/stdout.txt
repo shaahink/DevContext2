@@ -1,0 +1,100 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\Newtonsoft.Json\map.md
+analyzed 945 files ú 1406 nodes ú 1259 edges ú 0 entries ú ~209 tokens ú 29.3s 
+stage2 x2.8 stage3 x1.7
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ INFO ³ Topology ³ Most depended-upon:          ³ Newtonsoft.Json (2          ³
+³      ³          ³ Newtonsoft.Json (2           ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs: StringAssert    ³ StringAssert (484),         ³
+³      ³          ³ (484) ú ExceptionAssert      ³ ExceptionAssert (250), List ³
+³      ³          ³ (250) ú List (136) ú         ³ (136)                       ³
+³      ³          ³ JTokenReader (64) ú          ³                             ³
+³      ³          ³ JsonConvert (50)             ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                            Stage Timing                             
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                           ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   144ms ³                               ³
+³ GenericExtraction       ³  2913ms ³ ÛÛÛ                           ³
+³ SignalSealing           ³     2ms ³                               ³
+³ SpecificExtraction      ³  2966ms ³ ÛÛÛÛ                          ³
+³ SemanticLite            ³ 21897ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³   685ms ³                               ³
+³ Insights                ³   107ms ³                               ³
+³ Compression             ³   228ms ³                               ³
+³ Snapshot                ³   211ms ³                               ³
+³ Total                   ³ 29310ms ³                               ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ SyntaxStructureExtractor ³ 2907ms ³   1470 ³     0 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 2676ms ³      0 ³     0 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 2657ms ³      0 ³     0 ³ ran                     ³
+³ SourceBodyExtractor      ³ 1875ms ³      0 ³     0 ³ ran                     ³
+³ BodyFactsExtractor       ³ 1274ms ³      0 ³     0 ³ ran                     ³
+³ InMemoryEventBusExtracto ³ 1061ms ³      0 ³     8 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ CallGraphExtractor       ³  383ms ³      0 ³     0 ³ ran                     ³
+³ IndirectWiringDetector   ³  319ms ³      0 ³     8 ³ ran                     ³
+³ FileTreeExtractor        ³   46ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³   37ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure         ³   33ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³   27ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   27ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ BlazorEntryExtractor     ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs blazor or         ³
+³                          ³        ³        ³       ³ controllers             ³
+³ CliCommandExtractor      ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs cli-commands      ³
+³ ControllerActionExtracto ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³ r                        ³        ³        ³       ³ needs controllers       ³
+³ DesktopEntryExtractor    ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs desktop-ui        ³
+³ EfCoreExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs efcore            ³
+³ EndpointExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs minimal-apis or   ³
+³                          ³        ³        ³       ³ fast-endpoints or       ³
+³                          ³        ³        ³       ³ controllers             ³
+³ EventBusExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs masstransit or    ³
+³                          ³        ³        ³       ³ nservicebus             ³
+³ GraphQlResolverExtractor ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs graphql           ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+         Graph Seams         
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam     ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls    ³  1250 ³     91 ³
+³ Resolves ³     9 ³      9 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+cache 82% hit ú 945 files ú 4 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ Newtonsoft.Json.slnx ³
+³   Time   ³       29841ms        ³
+³  Tokens  ³  ~209 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

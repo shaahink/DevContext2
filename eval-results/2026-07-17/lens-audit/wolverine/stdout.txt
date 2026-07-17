@@ -1,0 +1,127 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\wolverine\map.md
+analyzed 4053 files ú 9909 nodes ú 7644 edges ú 29 entries ú 27/29 target ú 
+~2880 tokens ú 56.1s stage2 x3.0 stage3 x3.6
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ WARN ³ Risk     ³ Missing validation: 13/14    ³ POST /test                 ³
+³      ³          ³ write endpoints have no      ³ TestMessagesHandler, POST   ³
+³      ³          ³ FluentValidation validator   ³ /invoke                    ³
+³      ³          ³                              ³ HttpTransportExtensions,    ³
+³      ³          ³                              ³ POST /batch/{queue}        ³
+³      ³          ³                              ³ HttpTransportExtensions     ³
+³ WARN ³ Risk     ³ 17/17 endpoints anonymous,   ³ POST /test, POST /invoke,   ³
+³      ³          ³ incl. 14 POST/PUT/DELETE     ³ POST /batch/{queue}         ³
+³ NOTE ³ Risk     ³ Config without defaults: 8   ³ asb_five, asb_four,         ³
+³      ³          ³ consumed keys have no        ³ asb_ns_one                  ³
+³      ³          ³ appsettings default          ³                             ³
+³ NOTE ³ Topology ³ Most depended-upon:          ³ Wolverine (27 dependents),  ³
+³      ³          ³ Wolverine (27 dependents) ú  ³ Wolverine.Marten (21        ³
+³      ³          ³ Wolverine.Marten (21         ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ Wolverine.Marten (17        ³
+³      ³          ³ Wolverine.Marten (17         ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ NOTE ³ Wiring   ³ Event wiring: 10 events (5   ³ BadMessage                 ³
+³      ³          ³ integration), 0              ³ StaticCodeGenDemonstrator   ³
+³      ³          ³ cross-service, 10 orphan     ³ (no consumer), Ping        ³
+³      ³          ³                              ³ DuplicateMessageSending (no ³
+³      ³          ³                              ³ consumer),                  ³
+³      ³          ³                              ³ ServiceBusMessage          ³
+³      ³          ³                              ³ Wolverine.AzureServiceBus   ³
+³      ³          ³                              ³ (no consumer)               ³
+³ NOTE ³ Wiring   ³ Multi-implementation         ³ IWolverineExtension (9      ³
+³      ³          ³ interfaces:                  ³ impls), IMissingHandler (5  ³
+³      ³          ³ IWolverineExtension (9       ³ impls), IDatabase (3 impls) ³
+³      ³          ³ impls) ú IMissingHandler (5  ³                             ³
+³      ³          ³ impls) ú IDatabase (3 impls) ³                             ³
+³ NOTE ³ Wiring   ³ Possible dead code: 5 public ³ SubscriberConfiguration,    ³
+³      ³          ³ types with zero inbound      ³ OrderHandler,               ³
+³      ³          ³ references                   ³ MetricsConstants            ³
+³ INFO ³ Coverage ³ Entry targets resolved 27/29 ³                             ³
+³      ³          ³ (93%) - trace any entry for  ³                             ³
+³      ³          ³ its full path                ³                             ³
+³ INFO ³ Shape    ³ Entry surface: 17 HTTP ú 7   ³ 17 HTTP, 7 hosted, 4        ³
+³      ³          ³ hosted ú 4 GrpcService ú 1   ³ GrpcService                 ³
+³      ³          ³ SignalRHub                   ³                             ³
+³ INFO ³ Data     ³ Data map: 33 entities across ³ SharedPersistenceModels (2  ³
+³      ³          ³ 3 scopes                     ³ entities), BackLogService   ³
+³      ³          ³                              ³ (2 entities), Order (1      ³
+³      ³          ³                              ³ entities)                   ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                       Stage Timing                       
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³  1429ms ³ Û                  ³
+³ GenericExtraction       ³  6153ms ³ ÛÛÛÛ               ³
+³ SignalSealing           ³     1ms ³                    ³
+³ SpecificExtraction      ³ 13356ms ³ ÛÛÛÛÛÛÛÛÛ          ³
+³ SemanticLite            ³ 26100ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³  5406ms ³ ÛÛÛ                ³
+³ Insights                ³   585ms ³                    ³
+³ Compression             ³   740ms ³                    ³
+³ Snapshot                ³  1325ms ³                    ³
+³ Total                   ³ 56109ms ³                    ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ EndpointExtractor        ³ 7151ms ³      0 ³   365 ³ ran                     ³
+³ CallGraphExtractor       ³ 6177ms ³      0 ³     0 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 6149ms ³   9086 ³  1898 ³ ran                     ³
+³ SyntaxStructureExtractor ³ 6125ms ³   9086 ³  1881 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 6081ms ³      0 ³  1818 ³ ran                     ³
+³ IndirectWiringDetector   ³ 3917ms ³      0 ³   308 ³ ran                     ³
+³ SignalRHubExtractor      ³ 3713ms ³      0 ³   304 ³ ran                     ³
+³ EfCoreExtractor          ³ 3638ms ³      0 ³   304 ³ ran                     ³
+³ MediatRExtractor         ³ 3628ms ³      0 ³   304 ³ ran                     ³
+³ InMemoryEventBusExtracto ³ 3624ms ³      0 ³   304 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ ControllerActionExtracto ³ 3617ms ³      0 ³   304 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ GrpcClientExtractor      ³ 2455ms ³      0 ³    71 ³ ran                     ³
+³ RazorPagesExtractor      ³ 2414ms ³      0 ³    30 ³ ran                     ³
+³ RefitInterfaceExtractor  ³ 2404ms ³      0 ³    27 ³ ran                     ³
+³ SourceBodyExtractor      ³ 2093ms ³      0 ³     0 ³ ran                     ³
+³ GrpcServiceExtractor     ³ 2053ms ³      0 ³   237 ³ ran                     ³
+³ BodyFactsExtractor       ³  987ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure         ³  873ms ³      0 ³     0 ³ ran                     ³
+³ FileTreeExtractor        ³  358ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³  250ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³  175ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   25ms ³      0 ³     0 ³ ran                     ³
+³ BlazorEntryExtractor     ³   18ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+            Graph Seams            
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam           ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls          ³  6882 ³   2320 ³
+³ Sends          ³    20 ³      0 ³
+³ Raises         ³   192 ³     20 ³
+³ ReadsWrites    ³   134 ³     89 ³
+³ Resolves       ³   412 ³    100 ³
+³ EntityRelation ³     4 ³      4 ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+9909 nodes ú 7644 edges ú 27/29 entries  target
+cache 90% hit ú 4053 files ú 215 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³    wolverine.slnx    ³
+³   Time   ³       56833ms        ³
+³  Tokens  ³ ~2880 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

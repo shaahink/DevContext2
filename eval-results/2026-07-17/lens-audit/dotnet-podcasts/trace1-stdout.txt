@@ -1,0 +1,15 @@
+Slicing from GET /listen-together - handler resolved after scan.
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\dotnet-podcasts\trace-lis
+tentogether.md
+analyzed 192 files ú 292 nodes ú 149 edges ú 23 entries ú 11/23 target ú depth 
+0 ú ~77 tokens ú 18.2s stage2 x3.0 stage3 x1.5
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³          Value          ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ NetPodcast.Services.sln ³
+³   Time   ³         19010ms         ³
+³  Tokens  ³    ~77 (budget 8000)    ³
+³ Version  ³  v1.0.5-preview.0.265   ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

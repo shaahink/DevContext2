@@ -1,0 +1,112 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\GitVersion\map.md
+analyzed 657 files ú 1217 nodes ú 965 edges ú 0 entries ú ~485 tokens ú 16.7s 
+stage2 x3.0 stage3 x2.0
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ NOTE ³ Topology ³ Most depended-upon:          ³ GitVersion.Core (16         ³
+³      ³          ³ GitVersion.Core (16          ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ GitVersion.Configuration (8 ³
+³      ³          ³ GitVersion.Configuration (8  ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ GitVersion.Output (7        ³
+³      ³          ³ GitVersion.Output (7         ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ NOTE ³ Wiring   ³ Multi-implementation         ³ IDeploymentModeCalculator   ³
+³      ³          ³ interfaces:                  ³ (3 impls), ILog (2 impls),  ³
+³      ³          ³ IDeploymentModeCalculator (3 ³ IEnvironment (2 impls)      ³
+³      ³          ³ impls) ú ILog (2 impls) ú    ³                             ³
+³      ³          ³ IEnvironment (2 impls)       ³                             ³
+³ INFO ³ Wiring   ³ DI: 122 Singleton ú 26       ³                             ³
+³      ³          ³ Extension (148 total)        ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs:                 ³ GitFlowConfigurationBuilder ³
+³      ³          ³ GitFlowConfigurationBuilder  ³ (252),                      ³
+³      ³          ³ (252) ú                      ³ GitHubFlowConfigurationBuil ³
+³      ³          ³ GitHubFlowConfigurationBuild ³ der (209), MainlineCommit   ³
+³      ³          ³ er (209) ú MainlineCommit    ³ (26)                        ³
+³      ³          ³ (26) ú ILog (24) ú           ³                             ³
+³      ³          ³ AssemblyInfoFileUpdater (21) ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                            Stage Timing                            
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   388ms ³                              ³
+³ GenericExtraction       ³  1511ms ³ ÛÛÛ                          ³
+³ SignalSealing           ³     2ms ³                              ³
+³ SpecificExtraction      ³  1551ms ³ ÛÛÛ                          ³
+³ SemanticLite            ³ 11818ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³   702ms ³ Û                            ³
+³ Insights                ³   139ms ³                              ³
+³ Compression             ³   133ms ³                              ³
+³ Snapshot                ³   263ms ³                              ³
+³ Total                   ³ 16729ms ³                              ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ SyntaxStructureExtractor ³ 1504ms ³    679 ³   148 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 1493ms ³      0 ³   148 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 1478ms ³      0 ³   148 ³ ran                     ³
+³ CliCommandExtractor      ³  882ms ³      0 ³   102 ³ ran                     ³
+³ SourceBodyExtractor      ³  658ms ³      0 ³     0 ³ ran                     ³
+³ InMemoryEventBusExtracto ³  613ms ³      0 ³   102 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ BodyFactsExtractor       ³  416ms ³      0 ³     0 ³ ran                     ³
+³ IndirectWiringDetector   ³  274ms ³      0 ³   102 ³ ran                     ³
+³ CallGraphExtractor       ³  235ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure         ³  183ms ³      0 ³     0 ³ ran                     ³
+³ FileTreeExtractor        ³  116ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³   64ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³   33ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   27ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ BlazorEntryExtractor     ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs blazor or         ³
+³                          ³        ³        ³       ³ controllers             ³
+³ ControllerActionExtracto ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³ r                        ³        ³        ³       ³ needs controllers       ³
+³ DesktopEntryExtractor    ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs desktop-ui        ³
+³ EfCoreExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs efcore            ³
+³ EndpointExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs minimal-apis or   ³
+³                          ³        ³        ³       ³ fast-endpoints or       ³
+³                          ³        ³        ³       ³ controllers             ³
+³ EventBusExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs masstransit or    ³
+³                          ³        ³        ³       ³ nservicebus             ³
+³ GraphQlResolverExtractor ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs graphql           ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+         Graph Seams         
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam     ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls    ³   877 ³    219 ³
+³ Resolves ³    88 ³     23 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+cache 83% hit ú 657 files ú 36 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³       CI.slnx        ³
+³   Time   ³       17358ms        ³
+³  Tokens  ³  ~485 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

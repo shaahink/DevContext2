@@ -1,0 +1,118 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\dotnet-podcasts\map.md
+analyzed 192 files ú 310 nodes ú 175 edges ú 23 entries ú 11/23 target ú ~1263 
+tokens ú 6.6s stage2 x3.0 stage3 x1.4
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ WARN ³ Risk     ³ 10/12 endpoints anonymous,   ³ GET /{id}, GET /, GET /     ³
+³      ³          ³ incl. 1 POST/PUT/DELETE      ³                             ³
+³ WARN ³ Risk     ³ Auth surface: 2 protected,   ³ 2 protected, DELETE /{id},  ³
+³      ³          ³ 10 unannotated of 12 API     ³ PUT /{id}                   ³
+³      ³          ³ endpoints                    ³                             ³
+³ NOTE ³ Risk     ³ Config without defaults: 2   ³ OrleansStorage,             ³
+³      ³          ³ consumed keys have no        ³ Storage:Images              ³
+³      ³          ³ appsettings default          ³                             ³
+³ NOTE ³ Wiring   ³ Multi-implementation         ³ IAudioInterop (2 impls)     ³
+³      ³          ³ interfaces: IAudioInterop (2 ³                             ³
+³      ³          ³ impls)                       ³                             ³
+³ NOTE ³ Wiring   ³ Possible dead code: 5 public ³ IPodcastUpdateHandler,      ³
+³      ³          ³ types with zero inbound      ³ Channel, ListenTogetherHub  ³
+³      ³          ³ references                   ³                             ³
+³ INFO ³ Coverage ³ Entry targets resolved 11/23 ³                             ³
+³      ³          ³ (47%) - trace any entry for  ³                             ³
+³      ³          ³ its full path                ³                             ³
+³ INFO ³ Wiring   ³ DI: 28 Extension ú 27 Scoped ³                             ³
+³      ³          ³ ú 22 Singleton ú 8 Transient ³                             ³
+³      ³          ³ (85 total)                   ³                             ³
+³ INFO ³ Shape    ³ Entry surface: 12 HTTP ú 10  ³ 12 HTTP, 10 UI, 1 hosted    ³
+³      ³          ³ UI ú 1 hosted                ³                             ³
+³ INFO ³ Topology ³ Most depended-upon:          ³ ListenTogether.Domain (3    ³
+³      ³          ³ ListenTogether.Domain (3     ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ Podcast.Infrastructure (3   ³
+³      ³          ³ Podcast.Infrastructure (3    ³ dependents), Podcast.Shared ³
+³      ³          ³ dependents) ú Podcast.Shared ³ (2 dependents)              ³
+³      ³          ³ (2 dependents)               ³                             ³
+³ INFO ³ Data     ³ Data map: 12 entities across ³ Podcast.Infrastructure (6   ³
+³      ³          ³ 5 scopes                     ³ entities),                  ³
+³      ³          ³                              ³ ListenTogether.Domain (2    ³
+³      ³          ³                              ³ entities), PodcastDbContext ³
+³      ³          ³                              ³ (1 entities)                ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                       Stage Timing                       
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³   Time ³ Bar                 ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³  234ms ³ Û                   ³
+³ GenericExtraction       ³  337ms ³ ÛÛ                  ³
+³ SignalSealing           ³    1ms ³                     ³
+³ SpecificExtraction      ³ 1980ms ³ ÛÛÛÛÛÛÛÛÛÛÛ         ³
+³ SemanticLite            ³ 3204ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³  314ms ³ Û                   ³
+³ Insights                ³  198ms ³ Û                   ³
+³ Compression             ³   41ms ³                     ³
+³ Snapshot                ³  107ms ³                     ³
+³ Total                   ³ 6640ms ³                     ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ CallGraphExtractor       ³ 1616ms ³      0 ³     0 ³ ran                     ³
+³ EndpointExtractor        ³  356ms ³      0 ³    88 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³  332ms ³    189 ³   103 ³ ran                     ³
+³ SyntaxStructureExtractor ³  332ms ³    189 ³   103 ³ ran                     ³
+³ DiRegistrationExtractor  ³  310ms ³      0 ³    92 ³ ran                     ³
+³ SourceBodyExtractor      ³  159ms ³      0 ³     0 ³ ran                     ³
+³ BlazorEntryExtractor     ³  127ms ³      0 ³    78 ³ ran                     ³
+³ BodyFactsExtractor       ³  117ms ³      0 ³     0 ³ ran                     ³
+³ FileTreeExtractor        ³   91ms ³      0 ³     0 ³ ran                     ³
+³ RazorPagesExtractor      ³   79ms ³      0 ³    47 ³ ran                     ³
+³ EfCoreExtractor          ³   70ms ³      0 ³    63 ³ ran                     ³
+³ IndirectWiringDetector   ³   67ms ³      0 ³    63 ³ ran                     ³
+³ ProjectStructure         ³   62ms ³      0 ³     0 ³ ran                     ³
+³ SignalRHubExtractor      ³   56ms ³      0 ³    51 ³ ran                     ³
+³ SolutionDiscovery        ³   56ms ³      0 ³     0 ³ ran                     ³
+³ MediatRExtractor         ³   50ms ³      0 ³    31 ³ ran                     ³
+³ DesktopEntryExtractor    ³   50ms ³      0 ³    34 ³ ran                     ³
+³ InMemoryEventBusExtracto ³   47ms ³      0 ³    31 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ DependencyExtractor      ³   30ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   20ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ CliCommandExtractor      ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs cli-commands      ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+            Graph Seams            
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam           ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls          ³   124 ³     92 ³
+³ Handles        ³    12 ³      0 ³
+³ ReadsWrites    ³     7 ³      6 ³
+³ Resolves       ³    24 ³      4 ³
+³ EntityRelation ³     8 ³      8 ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+310 nodes ú 175 edges ú 11/23 entries  target
+cache 86% hit ú 192 files ú 16 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³          Value          ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³ NetPodcast.Services.sln ³
+³   Time   ³         7312ms          ³
+³  Tokens  ³   ~1263 (budget 8000)   ³
+³ Version  ³  v1.0.5-preview.0.265   ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

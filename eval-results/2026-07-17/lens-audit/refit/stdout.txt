@@ -1,0 +1,101 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\refit\map.md
+analyzed 812 files ú 834 nodes ú 631 edges ú 0 entries ú ~1599 tokens ú 20.4s 
+stage2 x3.0 stage3 x2.0
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ INFO ³ Shape    ³ Public surface: 185          ³ 185 interfaces, 353 classes ³
+³      ³          ³ interfaces, 353 classes (560 ³                             ³
+³      ³          ³ total public types)          ³                             ³
+³ INFO ³ Wiring   ³ DI: 98 Extension ú 7         ³                             ³
+³      ³          ³ Singleton ú 4 Scoped ú 1     ³                             ³
+³      ³          ³ Transient (110 total)        ³                             ³
+³ INFO ³ Topology ³ Most depended-upon: Refit    ³ Refit (11 dependents),      ³
+³      ³          ³ (11 dependents) ú Refit (6   ³ Refit (6 dependents),       ³
+³      ³          ³ dependents) ú                ³ Refit.Reflection (6         ³
+³      ³          ³ Refit.Reflection (6          ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs: Reply (226) ú   ³ Reply (226), Fixture (38),  ³
+³      ³          ³ Fixture (38) ú Type (37) ú   ³ Type (37)                   ³
+³      ³          ³ GeneratedRequestRunner (24)  ³                             ³
+³      ³          ³ ú UniqueNameBuilder (18)     ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                          Stage Timing                          
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                      ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   585ms ³ Û                        ³
+³ GenericExtraction       ³  2002ms ³ ÛÛÛ                      ³
+³ SignalSealing           ³     2ms ³                          ³
+³ SpecificExtraction      ³  3831ms ³ ÛÛÛÛÛÛÛ                  ³
+³ SemanticLite            ³ 12458ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³   556ms ³ Û                        ³
+³ Insights                ³   112ms ³                          ³
+³ Compression             ³   200ms ³                          ³
+³ Snapshot                ³   215ms ³                          ³
+³ Total                   ³ 20374ms ³                          ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ EndpointExtractor        ³ 2608ms ³      0 ³   697 ³ ran                     ³
+³ SyntaxStructureExtractor ³ 1985ms ³    827 ³   110 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 1965ms ³    827 ³   110 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 1955ms ³      2 ³   110 ³ ran                     ³
+³ SourceBodyExtractor      ³ 1161ms ³      0 ³     0 ³ ran                     ³
+³ CallGraphExtractor       ³ 1108ms ³      0 ³     0 ³ ran                     ³
+³ BodyFactsExtractor       ³  780ms ³      0 ³     0 ³ ran                     ³
+³ RefitInterfaceExtractor  ³  569ms ³      0 ³   697 ³ ran                     ³
+³ ControllerActionExtracto ³  545ms ³      0 ³   662 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ ProjectStructure         ³  366ms ³      0 ³     0 ³ ran                     ³
+³ InMemoryEventBusExtracto ³  342ms ³      0 ³   124 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ IndirectWiringDetector   ³  243ms ³      0 ³    86 ³ ran                     ³
+³ BlazorEntryExtractor     ³  164ms ³      0 ³    36 ³ ran                     ³
+³ FileTreeExtractor        ³   99ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³   89ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³   32ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   25ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ CliCommandExtractor      ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs cli-commands      ³
+³ DesktopEntryExtractor    ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs desktop-ui        ³
+³ EfCoreExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs efcore            ³
+³ EventBusExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs masstransit or    ³
+³                          ³        ³        ³       ³ nservicebus             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+         Graph Seams         
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam     ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls    ³   587 ³     99 ³
+³ Resolves ³    44 ³      7 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+cache 87% hit ú 812 files ú 28 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³      Refit.slnx      ³
+³   Time   ³       20986ms        ³
+³  Tokens  ³ ~1599 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

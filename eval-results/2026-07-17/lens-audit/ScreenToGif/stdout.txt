@@ -1,0 +1,115 @@
+Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\ScreenToGif\map.md
+analyzed 648 files ú 807 nodes ú 209 edges ú 35 entries ú 35/35 target ú ~1071 
+tokens ú 18.8s stage2 x2.9 stage3 x2.0
+
+                                    Insights                                    
+ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Sev  ³ Category ³ Title                        ³ Evidence                    ³
+ÃÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ INFO ³ Wiring   ³ Command inventory: 4         ³ AdvancedRelayCommand,       ³
+³      ³          ³ ICommand implementations     ³ IExtendedCommand,           ³
+³      ³          ³                              ³ ObsoleteAdvancedRelayComman ³
+³      ³          ³                              ³ d                           ³
+³ INFO ³ Coverage ³ Entry targets resolved 35/35 ³                             ³
+³      ³          ³ (100%) - trace any entry for ³                             ³
+³      ³          ³ its full path                ³                             ³
+³ INFO ³ Shape    ³ Module map: 5 feature areas  ³ UserControls (12 entries),  ³
+³      ³          ³                              ³ Views/Settings (11          ³
+³      ³          ³                              ³ entries), Windows/Other (5  ³
+³      ³          ³                              ³ entries)                    ³
+³ INFO ³ Topology ³ Most depended-upon:          ³ ScreenToGif.Domain (3       ³
+³      ³          ³ ScreenToGif.Domain (3        ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ ScreenToGif.Native (2       ³
+³      ³          ³ ScreenToGif.Native (2        ³ dependents),                ³
+³      ³          ³ dependents) ú                ³ ScreenToGif.ViewModel (2    ³
+³      ³          ³ ScreenToGif.ViewModel (2     ³ dependents)                 ³
+³      ³          ³ dependents)                  ³                             ³
+³ INFO ³ Wiring   ³ Wiring hubs: ProjectInfo     ³ ProjectInfo (44),           ³
+³      ³          ³ (44) ú EditorViewModel (14)  ³ EditorViewModel (14),       ³
+³      ³          ³ ú ScreenRecorderViewModel    ³ ScreenRecorderViewModel     ³
+³      ³          ³ (12) ú Bitmap (10) ú Dialog  ³ (12)                        ³
+³      ³          ³ (8)                          ³                             ³
+ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                             Stage Timing                             
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Stage                   ³    Time ³ Bar                            ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ DiscoveryAndCacheWarmup ³   185ms ³                                ³
+³ GenericExtraction       ³  1246ms ³ ÛÛ                             ³
+³ SignalSealing           ³     2ms ³                                ³
+³ SpecificExtraction      ³  1745ms ³ ÛÛÛ                            ³
+³ SemanticLite            ³ 14328ms ³ ÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛÛ ³
+³ GraphAssembly           ³   505ms ³ Û                              ³
+³ Insights                ³   138ms ³                                ³
+³ Compression             ³   157ms ³                                ³
+³ Snapshot                ³   330ms ³                                ³
+³ Total                   ³ 18790ms ³                                ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                   Extractors                                   
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Name                     ³   Time ³ +Types ³ +Dets ³ Status                  ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ SyntaxStructureExtractor ³ 1242ms ³    633 ³     0 ³ ran                     ³
+³ SourceBodyExtractor      ³ 1217ms ³      0 ³     0 ³ ran                     ³
+³ DiRegistrationExtractor  ³ 1173ms ³      0 ³     0 ³ ran                     ³
+³ ProgramCsFlowExtractor   ³ 1165ms ³      0 ³     0 ³ ran                     ³
+³ CallGraphExtractor       ³  520ms ³      0 ³     0 ³ ran                     ³
+³ InMemoryEventBusExtracto ³  518ms ³      0 ³    43 ³ ran                     ³
+³ r                        ³        ³        ³       ³                         ³
+³ BodyFactsExtractor       ³  483ms ³      0 ³     0 ³ ran                     ³
+³ DesktopEntryExtractor    ³  479ms ³      0 ³    43 ³ ran                     ³
+³ IndirectWiringDetector   ³  191ms ³      0 ³    14 ³ ran                     ³
+³ FileTreeExtractor        ³   60ms ³      0 ³     0 ³ ran                     ³
+³ SolutionDiscovery        ³   57ms ³      0 ³     0 ³ ran                     ³
+³ ProjectStructure         ³   44ms ³      0 ³     0 ³ ran                     ³
+³ LayerClassifier          ³   26ms ³      0 ³     0 ³ ran                     ³
+³ DependencyExtractor      ³   26ms ³      0 ³     0 ³ ran                     ³
+³ AntiPatternDetector      ³    0ms ³      0 ³     0 ³ skipped: gated by       ³
+³                          ³        ³        ³       ³ ShouldRun               ³
+³ AspireExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aspire            ³
+³ AwsLambdaExtractor       ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs aws-lambda        ³
+³ AzureFunctionsExtractor  ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs azure-functions   ³
+³ BlazorEntryExtractor     ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs blazor or         ³
+³                          ³        ³        ³       ³ controllers             ³
+³ CliCommandExtractor      ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs cli-commands      ³
+³ ControllerActionExtracto ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³ r                        ³        ³        ³       ³ needs controllers       ³
+³ EfCoreExtractor          ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs efcore            ³
+³ EndpointExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs minimal-apis or   ³
+³                          ³        ³        ³       ³ fast-endpoints or       ³
+³                          ³        ³        ³       ³ controllers             ³
+³ EventBusExtractor        ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs masstransit or    ³
+³                          ³        ³        ³       ³ nservicebus             ³
+³ GraphQlResolverExtractor ³    0ms ³      0 ³     0 ³ skipped: signal gate:   ³
+³                          ³        ³        ³       ³ needs graphql           ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+         Graph Seams         
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄ¿
+³ Seam     ³ Edges ³ Approx ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄ´
+³ Calls    ³   197 ³    116 ³
+³ Resolves ³    12 ³     12 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÙ
+807 nodes ú 209 edges ú 35/35 entries  target
+cache 83% hit ú 648 files ú 7 projects
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³   GifRecorder.sln    ³
+³   Time   ³       19451ms        ³
+³  Tokens  ³ ~1071 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

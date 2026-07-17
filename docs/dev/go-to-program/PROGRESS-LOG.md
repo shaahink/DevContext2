@@ -2560,3 +2560,19 @@ feat/github-ready (G1–G9) → develop (gates.ps1 -SkipMcpQa grafted pre-merge 
 
 **Next:** first eval.yml workflow_dispatch run; named perf lever (persist/reuse merged
 compilation) as its own future checkpoint; conductor-DEBT.md register.
+
+## 2026-07-17 — Prism audit: unseen-octet lens round (branch audit/library-round)
+
+Blind-drove 8 never-seen repos (Newtonsoft.Json, refit, StackExchange.Redis, wolverine, GitVersion,
+dotnet-podcasts, ScreenToGif, bitwarden-server) through engine+CLI+MCP+desktop on develop 9ee401a.
+**Verdict: not-yet-the-lens — 4/8 FAIL on archetype≠reality** (library flips to App via transitive
+aux-exe refs / toys hosts / missing catalog SelfNamePatterns; CLI-tool repos render empty maps).
+Desktop has NO library mode (refit = "0 entries" dashboard) and canvases clip/don't fit. Detect
+gaps: in-framework SignalR (podcasts+bitwarden), MAUI (UseMaui unprobed), MapGroup prefixes,
+queue seams. Graph: type-node degrees 0 (MCP dead-ends), razor/XAML entries trace to self.
+Perf: 8–58s small/mid, bitwarden 209s + 152s per CLI trace (no session reuse). Evidence:
+eval-results/2026-07-17/lens-audit/AUDIT.md + maps/traces/MCP transcript/13 UI screenshots.
+**Plan proposed:** docs/dev/briefs/proposal-prism.md (P0 harness → P1 archetype honesty → P2 entry
+surfaces → P3 graph depth → P4 per-service style → P5 UI library mode+canvas → P6 MCP honesty →
+P7 compilation persistence → P8 cross-platform CI/delivery). Audit protocol encoded in
+devcontext-eval-audit skill + eval/mcp-qa/drive-generic.js.

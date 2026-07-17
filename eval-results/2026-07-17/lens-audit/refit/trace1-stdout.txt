@@ -1,0 +1,15 @@
+Slicing from RestService, call graph on.
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\refit\trace-restservice.m
+d
+analyzed 812 files ú 850 nodes ú 649 edges ú 0 entries ú depth 4 ú ~1302 tokens 
+ú 26.8s stage2 x3.0 stage3 x1.6
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³      Refit.slnx      ³
+³   Time   ³       27946ms        ³
+³  Tokens  ³ ~1302 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

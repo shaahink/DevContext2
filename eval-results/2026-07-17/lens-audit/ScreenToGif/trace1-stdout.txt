@@ -1,0 +1,15 @@
+Slicing from ExportPanel, call graph on.
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-audit\ScreenToGif\trace-exportp
+anel.md
+analyzed 648 files ú 913 nodes ú 345 edges ú 35 entries ú 35/35 target ú depth 
+1 ú ~102 tokens ú 26.5s stage2 x3.0 stage3 x1.2
+ÚÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³  Metric  ³        Value         ³
+ÃÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Solution ³   GifRecorder.sln    ³
+³   Time   ³       27101ms        ³
+³  Tokens  ³  ~102 (budget 8000)  ³
+³ Version  ³ v1.0.5-preview.0.265 ³
+ÀÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ

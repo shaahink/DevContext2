@@ -5,7 +5,30 @@ description: Audit DevContext's output quality against a real .NET repo. Use whe
 
 An eval-audit runs DevContext over a real repo, captures the Map + focused Traces, compares them to
 the recorded ground truth, and writes a structured findings report. Paths are relative to the repo
-root. Shell is **Windows PowerShell 5.1**. The worked example is `eval-results/DntSite/AUDIT.md`.
+root. Shell is **Windows PowerShell 5.1**. Worked examples: `eval-results/DntSite/AUDIT.md`
+(single-repo) and `eval-results/2026-07-17/lens-audit/AUDIT.md` (the unseen-octet round — the
+richer template for phase-level audits).
+
+## Unseen-repo round protocol (proven 2026-07-17)
+
+For "are we the lens yet"-class audits, seen fixtures only re-confirm yesterday's blind spots.
+Instead:
+
+1. **Pick unseen repos** — never in `eval-repos/`, the clone cache, or prior audits — spanning repo
+   SHAPES (classic library, source-gen library, client library, framework+samples, CLI tool,
+   multi-surface app, WPF/MAUI desktop, large multi-service app). Shallow-clone at HEAD into the
+   scratchpad; record SHAs.
+2. **Drive all four surfaces per repo in one session** — CLI map + traces, MCP transcript
+   (`eval/mcp-qa/drive-generic.js <repo> <out>` — 22-tool session with token counts), desktop UI
+   screenshots, then a ground-truth code read. The highest-value findings are CROSS-SURFACE DIFFS
+   (e.g. CLI renders a full library lens while the UI shows an empty entry dashboard).
+3. **Judge against "what would an honest lens say"**, not expectations files. Verify claims in the
+   output against the repo's code (a style evidence line naming MediatR ⇒ grep the csproj refs).
+4. **Automatic FAIL probes:** map token count ≪ repo size (a 945-file repo rendering ~209 tokens);
+   `STYLE Unknown` + 0 entries on any repo with a public surface; per-service tables listing
+   sample/test/build-infra projects; wall time vs recorded baseline.
+5. Time every analyze (stdout stats line carries wall seconds); one sequential timed batch first,
+   traces second (each CLI `--focus` re-analyzes — budget for it on big repos).
 
 ## Inputs / ground truth
 
@@ -78,3 +101,10 @@ green (`dotnet test DevContext.slnx --filter "Category!=Eval"` · build 0-warn).
 - The legacy `eval-results/<Repo>/*.md` may predate the graph Map/Trace renderer — it won't line-diff;
   compare on **facts** (counts, style, seams), not bytes.
 - `TraceQualityTests` asserts only a few substrings — manually verify deep/cross-project trace hops.
+- **UI drive legs (Playwright):** use `waitUntil: 'domcontentloaded'` — the MCP page holds a live
+  feed and never reaches `networkidle`. A second repo needs an explicit top-bar **New** click, or the
+  drive silently re-tours the previous session (screenshots look plausible but are the wrong repo).
+  Launch node drives from PowerShell, not bash — MSYS mangles `cmd /d /c` flags into drive paths.
+- **MCP drive:** spawn `src/DevContext.Mcp/bin/Debug/net10.0/devcontext-mcp.exe` over stdio JSON-RPC
+  (`eval/mcp-qa/drive-generic.js` is the generic driver); log per-call token estimates — budget
+  anomalies (a 6000-budget pack returning ~160 tokens) are findings, not noise.
