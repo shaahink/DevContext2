@@ -338,6 +338,181 @@ public sealed class EndpointExtractorTests
         Assert.Empty(result.Detections.OfType<GlobalAuthPolicyDetection>());
     }
 
+    // ── B3 (Prism D1.2c): MapGroup prefix composition across the extension-method boundary ──
+
+    [Fact]
+    public async Task CallerGroupPrefix_CrossesExtensionMethodBoundary_CrossFile()
+    {
+        // The podcasts shape: Program.cs owns the group + prefix, the routes live in another file's
+        // extension method on RouteGroupBuilder. Every route rendered bare `GET /` before D1.2c.
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var shows = app.MapGroup("/shows");
+            shows.MapShowsApi().WithApiVersionSet(versionSet).MapToApiVersion(1.0);
+            app.Run();
+            """);
+        fs.AddFile("ShowsApi.cs", """
+            public static class ShowsApi
+            {
+                public static RouteGroupBuilder MapShowsApi(this RouteGroupBuilder group)
+                {
+                    group.MapGet("/", GetAllShows).WithName("GetShows");
+                    group.MapGet("/{id}", GetShowById).WithName("GetShowsById");
+                    return group;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+        var endpoints = result.Detections.OfType<EndpointDetection>()
+            .Where(e => e.SourceFile.Contains("ShowsApi")).ToList();
+
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/shows/" && e.HttpMethod == "GET");
+        Assert.Contains(endpoints, e => e.RouteTemplate == "/shows/{id}" && e.HttpMethod == "GET");
+        Assert.All(endpoints, e => Assert.Equal("/shows", e.GroupPrefix));
+    }
+
+    [Fact]
+    public async Task CallerGroupPrefix_InlineMapGroupChain_CrossesBoundary()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            app.MapGroup("/feeds").MapFeedsApi();
+            app.Run();
+            """);
+        fs.AddFile("FeedsApi.cs", """
+            public static class FeedsApi
+            {
+                public static RouteGroupBuilder MapFeedsApi(this RouteGroupBuilder group)
+                {
+                    group.MapPost("/", CreateFeed);
+                    return group;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+        var endpoint = result.Detections.OfType<EndpointDetection>()
+            .Single(e => e.SourceFile.Contains("FeedsApi"));
+
+        Assert.Equal("/feeds/", endpoint.RouteTemplate);
+        Assert.Equal("POST", endpoint.HttpMethod);
+    }
+
+    [Fact]
+    public async Task CallerGroupPrefix_AmbiguousCallers_StaysBare()
+    {
+        // Two groups with different prefixes call the same extension — composing either would be a
+        // guess, so the routes keep their local (bare) template.
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var v1 = app.MapGroup("/v1");
+            var v2 = app.MapGroup("/v2");
+            v1.MapItemsApi();
+            v2.MapItemsApi();
+            app.Run();
+            """);
+        fs.AddFile("ItemsApi.cs", """
+            public static class ItemsApi
+            {
+                public static RouteGroupBuilder MapItemsApi(this RouteGroupBuilder group)
+                {
+                    group.MapGet("/items", GetItems);
+                    return group;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+        var endpoint = result.Detections.OfType<EndpointDetection>()
+            .Single(e => e.SourceFile.Contains("ItemsApi"));
+
+        Assert.Equal("/items", endpoint.RouteTemplate);
+        Assert.Null(endpoint.GroupPrefix);
+    }
+
+    [Fact]
+    public async Task CallerGroupPrefix_MixedPrefixedAndPlainCallers_StaysBare()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var admin = app.MapGroup("/admin");
+            admin.MapWidgets();
+            app.MapWidgets();
+            app.Run();
+            """);
+        fs.AddFile("Widgets.cs", """
+            public static class Widgets
+            {
+                public static IEndpointRouteBuilder MapWidgets(this IEndpointRouteBuilder builder)
+                {
+                    builder.MapGet("/widgets", GetWidgets);
+                    return builder;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+        var endpoint = result.Detections.OfType<EndpointDetection>()
+            .Single(e => e.SourceFile.Contains("Widgets"));
+
+        Assert.Equal("/widgets", endpoint.RouteTemplate);
+        Assert.Null(endpoint.GroupPrefix);
+    }
+
+    [Fact]
+    public async Task SeededPrefix_ComposesThroughNestedLocalGroup()
+    {
+        var fs = new FakeFileSystem();
+        fs.AddFile("Program.cs", """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var shows = app.MapGroup("/shows");
+            shows.MapShowsApi();
+            app.Run();
+            """);
+        fs.AddFile("ShowsApi.cs", """
+            public static class ShowsApi
+            {
+                public static RouteGroupBuilder MapShowsApi(this RouteGroupBuilder group)
+                {
+                    var admin = group.MapGroup("/admin");
+                    admin.MapDelete("/{id}", DeleteShow);
+                    return group;
+                }
+            }
+            """);
+
+        var result = await RunExtractorOnFilesAsync(fs);
+        var endpoint = result.Detections.OfType<EndpointDetection>()
+            .Single(e => e.SourceFile.Contains("ShowsApi"));
+
+        Assert.Equal("/shows/admin/{id}", endpoint.RouteTemplate);
+        Assert.Equal("DELETE", endpoint.HttpMethod);
+    }
+
+    [Fact]
+    public async Task NestedMapGroup_ComposesReceiverPrefix_WithinOneScope()
+    {
+        // `var v1 = api.MapGroup("/v1")` where `api` is itself a group: routes on v1 carry both.
+        var result = await RunExtractorOnSourceAsync(
+            "Program.cs",
+            """
+            var app = WebApplication.CreateBuilder(args).Build();
+            var api = app.MapGroup("/api");
+            var v1 = api.MapGroup("/v1");
+            v1.MapGet("/users", () => Results.Ok());
+            app.Run();
+            """);
+
+        var endpoint = result.Detections.OfType<EndpointDetection>().Single();
+        Assert.Equal("/api/v1/users", endpoint.RouteTemplate);
+        Assert.Equal("/api/v1", endpoint.GroupPrefix);
+    }
+
     private static async Task<DiscoveryModel> RunExtractorOnSourceAsync(string fileName, string source)
     {
         var fs = new FakeFileSystem();
