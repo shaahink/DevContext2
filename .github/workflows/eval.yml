@@ -26,6 +26,22 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # gates.ps1 step 5 (pnpm check) needs the app toolchain — run 3 died CommandNotFoundException.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: src/DevContext.App/package.json # no root package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/DevContext.App/pnpm-lock.yaml
+
+      - name: Install app dependencies
+        working-directory: src/DevContext.App
+        run: pnpm install --frozen-lockfile
+
       # The non-submodule pinned repos from eval/README.md (source of truth for SHAs).
       # Absent repos make Category=Eval tests skip, so cloning is what gives this run teeth.
       - name: Clone pinned eval repos
