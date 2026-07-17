@@ -64,4 +64,62 @@ public sealed class NoiseFilterTests
         Assert.False(f.IsProductionEntrySource(@"C:\src\aspnetcore\src\Servers\Kestrel\stress\Program.cs"));
         Assert.True(f.IsProductionEntrySource(@"C:\src\aspnetcore\src\Identity\Core\src\IdentityApiEndpointRouteBuilderExtensions.cs"));
     }
+
+    // ── T8 — samples-only repos: the samples ARE the product ────────────────────────────────────
+    // aspire-samples: every non-test project lives under samples/ → suppressing sample paths emptied
+    // the entry inventory and the repo rendered as an empty Library. When NOTHING exists outside
+    // sample paths, the sample rule is waived. A repo with any real production project (MediatR:
+    // src/MediatR + samples/MediatR.Examples) keeps full suppression — T1.9 behavior is unchanged.
+
+    private static ProjectInfo Proj(string name, string filePath) =>
+        new(name, filePath, "C#", [], [], []);
+
+    [Fact]
+    public void Samples_only_repo_keeps_its_sample_entry_sources()
+    {
+        var projects = ImmutableArray.Create(
+            Proj("AspireShop.AppHost", @"C:\repo\samples\AspireShop\AspireShop.AppHost\AspireShop.AppHost.csproj"),
+            Proj("AspireShop.BasketService", @"C:\repo\samples\AspireShop\AspireShop.BasketService\AspireShop.BasketService.csproj"));
+        var classifier = new ProjectClassifier(projects, @"C:\repo");
+
+        Assert.True(classifier.SamplesAreTheProduct);
+        var f = new NoiseFilter(classifier, @"C:\repo");
+        Assert.True(f.IsProductionEntrySource(@"C:\repo\samples\AspireShop\AspireShop.BasketService\BasketService.cs"));
+        // Tests below the root are still noise even in a samples-only repo.
+        Assert.False(f.IsProductionEntrySource(@"C:\repo\tests\SamplesTests\SomeTest.cs"));
+    }
+
+    [Fact]
+    public void Library_with_samples_still_suppresses_them()
+    {
+        var projects = ImmutableArray.Create(
+            Proj("MediatR", @"C:\repo\src\MediatR\MediatR.csproj"),
+            Proj("MediatR.Examples", @"C:\repo\samples\MediatR.Examples\MediatR.Examples.csproj"));
+        var classifier = new ProjectClassifier(projects, @"C:\repo");
+
+        Assert.False(classifier.SamplesAreTheProduct);
+        var f = new NoiseFilter(classifier, @"C:\repo");
+        Assert.False(f.IsProductionEntrySource(@"C:\repo\samples\MediatR.Examples\PingHandler.cs"));
+        Assert.True(f.IsProductionEntrySource(@"C:\repo\src\MediatR\Mediator.cs"));
+    }
+
+    [Fact]
+    public void Repo_cloned_under_a_samples_path_is_not_misread_as_samples_only()
+    {
+        // The ROOT itself lives under …\samples\ — root-relative matching must not count that segment.
+        var projects = ImmutableArray.Create(
+            Proj("MediatR", @"C:\dev\samples\MediatR\src\MediatR\MediatR.csproj"),
+            Proj("MediatR.Examples", @"C:\dev\samples\MediatR\samples\MediatR.Examples\MediatR.Examples.csproj"));
+        var classifier = new ProjectClassifier(projects, @"C:\dev\samples\MediatR");
+
+        Assert.False(classifier.SamplesAreTheProduct);
+    }
+
+    [Fact]
+    public void Samples_only_repo_counts_sample_projects_as_production()
+    {
+        var sample = Proj("OrleansVoting.Service", @"C:\repo\samples\OrleansVoting\OrleansVoting.Service\OrleansVoting.Service.csproj");
+        Assert.False(ProjectClassifier.IsProductionProject(sample));
+        Assert.True(ProjectClassifier.IsProductionProject(sample, samplesAreTheProduct: true));
+    }
 }

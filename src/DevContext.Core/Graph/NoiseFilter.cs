@@ -12,8 +12,10 @@ public sealed class ProjectClassifier
 
     private readonly HashSet<string> _testProjectDirs; // normalized directory prefixes of test projects
 
-    /// <summary>Classifies every project up front; production code under a test project's directory is excluded.</summary>
-    public ProjectClassifier(ImmutableArray<ProjectInfo> projects)
+    /// <summary>Classifies every project up front; production code under a test project's directory is excluded.
+    /// <paramref name="analysisRoot"/> (when known) makes the <see cref="SamplesAreTheProduct"/> computation
+    /// repo-relative, so a repo that itself lives under a <c>…/samples/…</c> path isn't misread as samples-only.</summary>
+    public ProjectClassifier(ImmutableArray<ProjectInfo> projects, string? analysisRoot = null)
     {
         _testProjectDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var p in projects)
@@ -23,6 +25,31 @@ public sealed class ProjectClassifier
             if (!string.IsNullOrEmpty(dir))
                 _testProjectDirs.Add(Normalize(dir));
         }
+
+        var root = string.IsNullOrEmpty(analysisRoot) ? null : Normalize(analysisRoot);
+        var candidates = projects.Where(p => !IsTestProject(p) && !IsBenchmarkProject(p)).ToList();
+        SamplesAreTheProduct = candidates.Count > 0
+            && candidates.All(p => IsSamplePath(BelowRoot(p.FilePath, root)));
+    }
+
+    /// <summary>T8 — true when every non-test, non-benchmark project lives under a sample path: the repo
+    /// is a sample COLLECTION (dotnet/aspire-samples) whose samples ARE the product. Sample-path
+    /// suppression (entry inventory, archetype ladder, service topology) must not apply to such a repo —
+    /// otherwise it renders as an empty Library ("0 public types", no STYLE line). A repo with any real
+    /// production project (MediatR: src/MediatR + samples/) keeps full suppression (T1.9 unchanged).</summary>
+    public bool SamplesAreTheProduct { get; }
+
+    /// <summary>Strips <paramref name="root"/> from <paramref name="filePath"/> so sample-path matching is
+    /// repo-relative when the analysis root is known; absolute matching otherwise.</summary>
+    private static string BelowRoot(string filePath, string? root)
+    {
+        if (root is null) return filePath;
+        var norm = Normalize(filePath);
+        if (norm.Length > root.Length
+            && norm.StartsWith(root, StringComparison.OrdinalIgnoreCase)
+            && norm[root.Length] == '/')
+            return norm[root.Length..];
+        return norm;
     }
 
     /// <summary>True when the file lives under a test project's directory.</summary>
@@ -102,7 +129,13 @@ public sealed class ProjectClassifier
     /// consumes only production projects so tests/samples/benchmarks stop rendering as service cards or
     /// out-ranking the real library (e.g. MediatR.Examples over MediatR).</summary>
     public static bool IsProductionProject(ProjectInfo p)
-        => !IsTestProject(p) && !IsBenchmarkProject(p) && !IsSamplePath(p.FilePath);
+        => IsProductionProject(p, samplesAreTheProduct: false);
+
+    /// <summary>T8 overload — when <paramref name="samplesAreTheProduct"/> (see
+    /// <see cref="SamplesAreTheProduct"/>), sample-path projects count as production: in a samples-only
+    /// repo they are the only product there is.</summary>
+    public static bool IsProductionProject(ProjectInfo p, bool samplesAreTheProduct)
+        => !IsTestProject(p) && !IsBenchmarkProject(p) && (samplesAreTheProduct || !IsSamplePath(p.FilePath));
 
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
 }
@@ -155,8 +188,10 @@ public sealed class NoiseFilter
         if (IsGeneratedPath(filePath)) return false;
         // Path-convention checks run on the portion below the analysis root (see ctor): a repo's own
         // internal test/sample/template dirs are excluded, but the repo's root path itself never is.
+        // T8: in a samples-only repo (ProjectClassifier.SamplesAreTheProduct) the sample rule is waived —
+        // suppressing samples there empties the entry inventory of a repo whose samples ARE the product.
         var below = RelativeToRoot(filePath);
-        return !ProjectClassifier.IsSamplePath(below)
+        return (_projects.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(below))
             && !ProjectClassifier.IsTestPath(below)
             && !IsNonRuntimeEntrySource(below);
     }

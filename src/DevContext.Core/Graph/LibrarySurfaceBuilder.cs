@@ -37,7 +37,8 @@ public static class LibrarySurfaceBuilder
         var publicTypes = model.Types.Values
             .Where(t => t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public)
             .Where(t => !classifier.IsInTestProject(t.FilePath))
-            .Where(t => !ProjectClassifier.IsSamplePath(t.FilePath))
+            // T8: samples-only repo — the sample types ARE the surface; never render "0 public types".
+            .Where(t => model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(t.FilePath))
             .Where(t => !ProjectClassifier.IsTestPath(t.FilePath))
             .Where(t => !IsUnder(nonLibraryDirs, t.FilePath))
             .Where(t => !IsVendoredNamespace(t.Namespace))

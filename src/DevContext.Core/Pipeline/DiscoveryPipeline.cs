@@ -254,7 +254,9 @@ public sealed class DiscoveryPipeline
         PopulateGatewayRoutes(model, context);
 
         var graphResolver = new SyntacticSymbolResolver();
-        var noiseFilter = new NoiseFilter(new ProjectClassifier(model.Projects), context.RootPath);
+        var projectClassifier = new ProjectClassifier(model.Projects, context.RootPath);
+        model.SamplesAreTheProduct = projectClassifier.SamplesAreTheProduct;
+        var noiseFilter = new NoiseFilter(projectClassifier, context.RootPath);
         var graphBodyFacts = semanticLiteResult?.UpgradedBodyFacts ?? context.Analysis.AllBodyFacts;
         var (codeGraph, entryPoints) = new GraphBuilder(graphResolver, noiseFilter).Build(model, scope,
             graphBodyFacts);

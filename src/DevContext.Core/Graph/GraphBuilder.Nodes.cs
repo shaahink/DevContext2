@@ -33,7 +33,7 @@ public sealed partial class GraphBuilder
 
     private static void AddServiceNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope)
     {
-        var runnable = ServiceBoundaryInference.RunnableProjects(scope);
+        var runnable = ServiceBoundaryInference.RunnableProjects(scope, model.SamplesAreTheProduct);
         foreach (var proj in runnable)
         {
             g.AddNode(new GraphNode(NodeId.ForService(proj.Name), proj.Name, NodeKind.Service)

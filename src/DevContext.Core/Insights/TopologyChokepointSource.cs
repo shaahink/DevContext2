@@ -28,8 +28,9 @@ public sealed class TopologyChokepointSource : IInsightSource
             foreach (var dep in proj.ProjectReferences)
             {
                 // The depended project (the answer) must be production — skip MediatR.Examples, benchmarks…
+                // (T8: in a samples-only repo, sample projects are legitimate answers.)
                 if (projByName.TryGetValue(ProjectName(dep), out var depProj)
-                    && !ProjectClassifier.IsProductionProject(depProj))
+                    && !ProjectClassifier.IsProductionProject(depProj, model.SamplesAreTheProduct))
                     continue;
                 if (!depCounts.ContainsKey(dep)) depCounts[dep] = 0;
                 depCounts[dep]++;

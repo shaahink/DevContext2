@@ -444,10 +444,10 @@ public sealed class TruthExpectationTests
     /// is under samples/ so NoiseFilter suppresses them all → 0 entries → the archetype
     /// ladder lands Library ("0 public types") → the Library render hides the STYLE line
     /// entirely. Fix = sample-collection render honesty: when style is SampleCollection the
-    /// samples ARE the product (entries, archetype, style line). Found by T7.1; the fix is
-    /// its own checkpoint (detect≠render class), not a bench-extension rider.
+    /// samples ARE the product (entries, archetype, style line). Found by T7.1; fixed by T8.2
+    /// (model.SamplesAreTheProduct — samples-only repos waive sample-path suppression).
     /// </summary>
-    [TruthPending("T8")]
+    [SkippableFact]
     public async Task AspireSamples_style_is_sample_collection_not_microservices()
     {
         var repoPath = RepoPath("eval-repos/aspire-samples");

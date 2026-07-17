@@ -57,20 +57,24 @@ public static class ArchetypeDetector
 
         // F1: Framework libraries (SignalR, gRPC, MassTransit, Orleans, etc.) are
         // libraries only when the signal is self-sourced (ProjectName/ProjectReference).
-        if (IsSelfSourcedFrameworkSignal(model))
+        // T8: waived for samples-only repos — a SAMPLE named after a framework (aspire-samples'
+        // Orleans voting sample) self-sources the signal without the repo being that framework.
+        if (!model.SamplesAreTheProduct && IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
 
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
-        // ignore their entries and projects so they don't flip the archetype to App.
+        // ignore their entries and projects so they don't flip the archetype to App. T8: unless the
+        // samples ARE the product (samples-only repo) — then their entries are the app evidence.
         if (!entries.IsDefaultOrEmpty && entries.Any(e =>
             AppEntryKinds.Contains(e.Kind)
-            && !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov))))
+            && (model.SamplesAreTheProduct
+                || !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov)))))
             return DetectAppSubtype(model, entries);
 
         var classifier = new ProjectClassifier(model.Projects);
         var nonTest = model.Projects
             .Where(p => !classifier.IsInTestProject(p.FilePath))
-            .Where(p => !ProjectClassifier.IsSamplePath(p.FilePath))
+            .Where(p => model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(p.FilePath))
             .ToList();
         if (nonTest.Count == 0)
             return Archetype.App;
@@ -83,7 +87,7 @@ public static class ArchetypeDetector
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var allExeAreAuxiliary = exe.All(e =>
-            ProjectClassifier.IsSamplePath(e.FilePath)
+            !model.SamplesAreTheProduct && ProjectClassifier.IsSamplePath(e.FilePath)
             || ProjectClassifier.IsTestPath(e.FilePath)
             || e.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true
                 && e.ProjectReferences.Any(r => libNames.Contains(Path.GetFileNameWithoutExtension(r))));
@@ -94,7 +98,7 @@ public static class ArchetypeDetector
         var hasPublicSurface = model.Types.Values.Any(t =>
             t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
             && !classifier.IsInTestProject(t.FilePath)
-            && !ProjectClassifier.IsSamplePath(t.FilePath));
+            && (model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(t.FilePath)));
 
         return packable || hasPublicSurface ? Archetype.Library : Archetype.App;
     }
@@ -121,7 +125,8 @@ public static class ArchetypeDetector
         // Worker: dominated by hosted-service/scheduled entries with NO HTTP/gRPC endpoints
         var appEntries = entries.Where(e =>
             AppEntryKinds.Contains(e.Kind)
-            && !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov)))
+            && (model.SamplesAreTheProduct
+                || !(e.Provenance is { } prov && ProjectClassifier.IsSamplePath(prov))))
             .ToList();
         var webEntryCount = appEntries.Count(e =>
             e.Kind is EntryPointKind.HttpEndpoint or EntryPointKind.GrpcService
