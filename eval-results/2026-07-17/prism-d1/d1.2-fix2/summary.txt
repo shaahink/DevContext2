@@ -1,0 +1,65 @@
+D1.2-fix2 — dogfood pole regression fixed + poles made first-class gate coverage (2026-07-17)
+=============================================================================================
+
+THE REGRESSION (shipped unseen at D1.1c, survived 4 checkpoints)
+---------------------------------------------------------------
+dogfood (run-aspnetcore-microservices) at D1.1c:
+  439/339/34 ~1799 tok, STYLE Microservices  ->  439/335/34 ~1536 tok, STYLE CleanArchitecture
+  ROUTES block (6 YARP routes) GONE; CROSS-SERVICE "http/via gateway (4)" GONE (== the 4 lost edges)
+
+Root cause: dogfood's gateway project YarpApiGateway (Sdk="Microsoft.NET.Sdk.Web") self-sourced the
+`gateway` signal purely by NAME (the Gateway descriptor's Packages list holds the stale id
+"Microsoft.ReverseProxy"; dogfood references today's "Yarp.ReverseProxy"). D1.1c added two guards to
+DependencyExtractor's self-name loop, and each kills the gateway signal independently:
+  1. name-boundary matching: "YarpApiGateway"[4]=='A', not '.', so it no longer matches "Yarp".
+  2. runnable-guard (skip IsRunnableService): a Web-SDK project is runnable.
+With the signal gone, PopulateGatewayRoutes early-returns, the style detector loses its
+"gateway + message bus" evidence, and the whole gateway story disappears.
+
+THE DESIGN CALL
+---------------
+The guards are RIGHT for framework libraries (a framework core is always a classlib; a consumer host
+named after a framework is an exe) and load-bearing for wolverine — but wolverine's descriptor role is
+AppEntry, so "scope the guards to FrameworkLibrary" would have broken D1.1c's win. The real outlier is
+Gateway: exactly ONE descriptor, and ArchetypeDetector already disambiguates it STRUCTURALLY and better
+— peer-service count >=2 => App (ArchetypeDetector.cs:40-43, which states outright "Self-source is NOT
+the discriminator ... only the peer count separates them"). The gateway branch runs BEFORE the
+framework-library branch, so restoring the signal cannot flip dogfood to Library.
+
+Fix: exempt SurfaceRole.Gateway from BOTH guards.
+  - runnable-guard: skipped for Gateway (a gateway host is runnable by nature).
+  - name matching: Gateway keeps PREFIX matching (concatenation "YarpApiGateway" IS the gateway naming
+    convention, not a consumer smell).
+Threaded the descriptor Role through ProjectNameSignalMap so the loop can see it.
+
+RESULT: dogfood byte-identical to the pre-D1.1c baseline — 439/339/34, ~1799 tok, STYLE Microservices
+(7 runnable web services with gateway + message bus), ROUTES back, http/via gateway (4) back.
+
+POLES ARE NOW FIRST-CLASS GATE COVERAGE (the deeper fix)
+-------------------------------------------------------
+The regression survived 4 green checkpoints because NO pole was in the eval cohort — 42/42 green said
+nothing about dogfood or shamshir. Fixed at the process level:
+  - eval/expectations/dogfood-microservices.json — machine-local path; pins archetype App, style
+    Microservices, gateway signal, YarpApiGateway per-service rung, ROUTES section, the bus edge.
+    (cross-service-gateway http edges = aspirational: they render in the CLI but not the in-process
+     harness — a real CLI-vs-harness graph-build divergence, named not muted, for D2 self-health.)
+  - eval/expectations/shamshir-pole.json — machine-local; pins archetype App, style NLayer, the Aspire
+    AppHost + Worker rungs. SEMANTICS ONLY, never counts (live repo — a count row would flake + get muted).
+  - eval/gates.ps1 — Step 3 now PRINTS every SKIPPED repo. On CI / a clean clone the poles skip; a
+    SILENT skip is how a gate lies about coverage. Doc block updated with the whole story.
+
+Absent (CI, clean clone): Path.Combine returns the absolute path unchanged, the repo dir doesn't exist,
+and the harness SKIPs the row (same graceful path as every machine-local expectation) — now visibly.
+
+VERIFICATION
+------------
+  full eval: 43 repos, 42 passed, 1 failed = ONLY dogfood/cross-service-gateway, which is now
+             aspirational (documented divergence). All D1.1c-regression rows (style/gateway/routes) PASS.
+             shamshir pole: 5/5. xunit: still Library (D1.2-fix holds). gitversion/wolverine octet: green.
+  poles direct: dogfood 7/7 expected + 1 aspirational; shamshir 5/5.
+  build 0w/0e; fast suite 555/558 (+4 gateway tests over d1.2ab's 551); loom-guards + truth PASS.
+
+NOT DONE (carried to the handoff): the two latent CsprojReader/CsprojSdkContains evidence bugs from the
+d1.2ab close-out remain (condition-blind IsPackable/TFM walks; CsprojSdkContains full-text-searches).
+Stale Gateway descriptor package id "Microsoft.ReverseProxy" -> "Yarp.ReverseProxy" also still open
+(harmless now that the name path works, but it is why the name was the sole source).

@@ -7,7 +7,7 @@ using DevContext.Core.Graph.EntrySurfaces;
 public sealed class DependencyExtractor : IDiscoveryExtractor
 {
     private static readonly FrozenDictionary<string, string> PackageSignalMap = BuildPackageSignalMap();
-    private static readonly FrozenDictionary<string, string> ProjectNameSignalMap = BuildProjectNameSignalMap();
+    private static readonly FrozenDictionary<string, (string Key, SurfaceRole Role)> ProjectNameSignalMap = BuildProjectNameSignalMap();
     private static readonly FrozenDictionary<string, string> SdkSignalMap = BuildSdkSignalMap();
 
     private static FrozenDictionary<string, string> BuildPackageSignalMap()
@@ -22,14 +22,14 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         return map.ToFrozenDictionary();
     }
 
-    private static FrozenDictionary<string, string> BuildProjectNameSignalMap()
+    private static FrozenDictionary<string, (string Key, SurfaceRole Role)> BuildProjectNameSignalMap()
     {
-        var map = new Dictionary<string, string>();
+        var map = new Dictionary<string, (string, SurfaceRole)>();
         foreach (var d in EntrySurfaceCatalog.All)
         {
             if (d.SignalKey.Length == 0) continue;
             foreach (var pattern in d.SelfNamePatterns)
-                map[pattern] = d.SignalKey;
+                map[pattern] = (d.SignalKey, d.Role);
         }
         return map.ToFrozenDictionary();
     }
@@ -92,13 +92,22 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         foreach (var projectInfo in model.Projects)
         {
             ct.ThrowIfCancellationRequested();
-            // A4 (Prism D1.1c): only NON-RUNNABLE projects self-source a framework signal. A framework's
-            // pattern-bearing core (Wolverine, MassTransit, Serilog) is always a classlib; a CONSUMER
-            // project named after a framework (HangfireServer, a "Wolverine" demo host) is typically the
-            // host exe — without this guard it flipped consumer apps toward Library.
-            if (Graph2.ServiceBoundaryInference.IsRunnableService(projectInfo)) continue;
-            if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName))
+            if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName, out var role))
             {
+                // A4 (Prism D1.1c): only NON-RUNNABLE projects self-source a framework signal. A
+                // framework's pattern-bearing core (Wolverine, MassTransit, Serilog) is always a
+                // classlib; a CONSUMER project named after a framework (HangfireServer, a "Wolverine"
+                // demo host) is typically the host exe — without this guard it flipped consumer apps
+                // toward Library.
+                // D1.2-fix2: EXCEPT Gateway. A gateway IS a runnable host by nature, so this guard
+                // could only ever delete the signal (dogfood's YarpApiGateway is a Web-SDK exe). The
+                // repo-is-the-gateway vs app-has-a-gateway call is already made STRUCTURALLY, and
+                // better, downstream: ArchetypeDetector counts genuine peer services. Applying a
+                // nominal guard on top just cost dogfood its Microservices style, its ROUTES block
+                // and 4 cross-service edges for 4 checkpoints.
+                if (role != SurfaceRole.Gateway
+                    && Graph2.ServiceBoundaryInference.IsRunnableService(projectInfo)) continue;
+
                 model.Architecture.Register(FeatureSignal.CreateDetected(
                     signalKey, confidence: 0.7f, via: "ProjectName", matchedName));
                 selfSourcedKeys.Add(signalKey);
@@ -218,26 +227,40 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
     }
 
+    /// <summary>Convenience overload for callers that don't care which role matched.</summary>
+    internal static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
+        => TryMatchSignalFromProjectName(projectName, out signalKey, out matchedKey, out _);
+
     /// <summary>A4 (Prism D1.1c): matches on a NAME BOUNDARY — the project name equals the pattern or
     /// continues with a '.' ("Wolverine", "Wolverine.Http" — the framework-repo convention). A plain
     /// prefix matched consumer concatenations too ("WolverineDemo", "SerilogHelpers", aspire-samples'
-    /// "OrleansVoting.AppHost") and mislabeled consumer repos as the framework itself.</summary>
-    internal static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
+    /// "OrleansVoting.AppHost") and mislabeled consumer repos as the framework itself.
+    /// <para>D1.2-fix2: Gateway keeps PREFIX matching. Concatenation is the naming convention for a
+    /// gateway host ("YarpApiGateway"), not a smell — the boundary rule is precisely wrong here, and
+    /// the peer-service count downstream is what actually separates YARP's own repo from an app that
+    /// merely runs a YARP gateway.</para></summary>
+    internal static bool TryMatchSignalFromProjectName(
+        string projectName, out string signalKey, out string matchedKey, out SurfaceRole role)
     {
-        foreach (var (pattern, key) in ProjectNameSignalMap)
+        foreach (var (pattern, entry) in ProjectNameSignalMap)
         {
-            if (projectName.Equals(pattern, StringComparison.OrdinalIgnoreCase)
-                || (projectName.Length > pattern.Length
-                    && projectName[pattern.Length] == '.'
-                    && projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase)))
+            var matched = entry.Role == SurfaceRole.Gateway
+                ? projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase)
+                : projectName.Equals(pattern, StringComparison.OrdinalIgnoreCase)
+                    || (projectName.Length > pattern.Length
+                        && projectName[pattern.Length] == '.'
+                        && projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase));
+            if (matched)
             {
-                signalKey = key;
+                signalKey = entry.Key;
                 matchedKey = pattern;
+                role = entry.Role;
                 return true;
             }
         }
         signalKey = null!;
         matchedKey = null!;
+        role = default;
         return false;
     }
 

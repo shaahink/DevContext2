@@ -1,0 +1,13 @@
+{
+  "repo": "C:/Users/shahi/source/repos/run-aspnetcore-microservices/src",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Pole (Prism D1.2-fix2): the dogfood IS the microservices app. Machine-local repo with PRE-EXISTING local mods — never restore them. Absent (CI, a clean clone) => the harness SKIPs this row, exactly like the McpQa drive." },
+    { "id": "style-microservices", "type": "json-equals", "path": "$.architecture.style", "value": "Microservices", "status": "expected", "note": "THE regression D1.1c shipped unseen: style read CleanArchitecture for 4 checkpoints because the gateway signal died. Drift table pins Microservices." },
+    { "id": "gateway-signal", "type": "signal-present", "value": "gateway", "status": "expected", "note": "YarpApiGateway self-sources `gateway` BY DESIGN (ArchetypeDetector.cs:40-43 — peer count, not self-source, separates an app-with-a-gateway from YARP's own repo). D1.1c's name-boundary rule + runnable-guard each killed it independently." },
+    { "id": "gateway-per-service", "type": "output-contains", "format": "markdown", "value": "YarpApiGateway: Gateway", "status": "expected", "note": "The gateway still names itself in the per-service rungs." },
+    { "id": "routes-section", "type": "output-contains", "format": "markdown", "value": "ROUTES", "status": "expected", "note": "The 6 YARP reverse-proxy routes render. The whole ROUTES block vanished at D1.1c." },
+    { "id": "cross-service-gateway", "type": "output-contains", "format": "markdown", "value": "http/via gateway", "status": "aspirational", "note": "The 4 http/via-gateway cross-service edges (the 339->335 edge drift) render in the CLI but NOT in the eval harness's in-process pipeline — a real CLI-vs-in-process graph-build divergence (ROUTES + gateway signal DO come through, so it is the downstream http-service-link resolution that differs, not the gateway detection). Left aspirational and NAMED rather than deleted: the regression itself is already guarded by style-microservices + gateway-signal + routes-section (the three things D1.1c actually broke). Chase the harness/CLI divergence in D2 (self-health)." },
+    { "id": "cross-service-bus", "type": "output-contains", "format": "markdown", "value": "BasketCheckoutEvent", "status": "expected", "note": "The MassTransit bus edge Basket.API -> Ordering.Application survives alongside the gateway rung." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+  ]
+}

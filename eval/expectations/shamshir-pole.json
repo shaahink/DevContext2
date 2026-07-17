@@ -1,0 +1,10 @@
+{
+  "repo": "C:/code/shamshir",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Second pole (Prism D1.2-fix2). Machine-local LIVE repo — absent (CI, a clean clone) => the harness SKIPs this row. Deliberately pins only SEMANTICS, never node/edge/entry counts: shamshir changes under us, and a count row here would flake and get muted, which is how the dogfood drift went unseen." },
+    { "id": "style-nlayer", "type": "json-equals", "path": "$.architecture.style", "value": "NLayer", "status": "expected", "note": "Drift table pins NLayer. This is the row that would have caught a style flip like the one D1.1c shipped on dogfood." },
+    { "id": "aspire-apphost", "type": "output-contains", "format": "markdown", "value": "TradingEngine.AppHost: Aspire AppHost", "status": "expected", "note": "The Aspire orchestrator names itself in the per-service rungs." },
+    { "id": "worker-host", "type": "output-contains", "format": "markdown", "value": "TradingEngine.Host: Worker Service", "status": "expected", "note": "Worker SDK => Worker Service rung (T1.4 implied-Exe SDK)." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 300000, "status": "expected" }
+  ]
+}

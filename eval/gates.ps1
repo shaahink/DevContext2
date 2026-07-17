@@ -25,6 +25,17 @@
 
     Step 3 runs the expectation theory SPLIT ACROSS TWO test hosts by default (~halves its
     wall time; repos are independent). -SerialEval restores the single-process form.
+
+    POLES ride in Step 3 (Prism D1.2-fix2, 2026-07-17). dogfood-microservices.json and
+    shamshir-pole.json are ordinary expectation files pointing at MACHINE-LOCAL absolute
+    paths, so the battery guards the poles instead of leaving them to a hand-checked prose
+    table. Why they exist: D1.1c silently flipped the dogfood's style Microservices ->
+    CleanArchitecture and deleted its ROUTES block + 4 cross-service edges, and it survived
+    FOUR checkpoints of green gates — because no pole was in the cohort, a 42/42 eval said
+    nothing about them. On a machine without those repos (CI, a clean clone) the harness
+    SKIPs the rows; Step 3 now PRINTS every skip, because a silent skip is how a gate lies
+    about what it covered. Poles pin SEMANTICS (style, signals, rendered sections), never
+    node/edge counts — a count row on a live repo flakes, and a flaky row gets muted.
 #>
 param(
     [switch]$SkipEval,
@@ -215,6 +226,18 @@ if ($SkipEval) {
             Write-Host ""
             Write-Host "Aspirational failures (non-blocking):" -ForegroundColor Yellow
             foreach ($line in $aspirationalLines) {
+                Write-Host "  $line" -ForegroundColor Yellow
+            }
+        }
+
+        # D1.2-fix2: a SKIPPED repo is a hole in the verdict, so say so out loud. The poles
+        # (dogfood, shamshir) are machine-local by nature — on CI they skip, and a gate that
+        # printed nothing would let "42/42 green" imply pole coverage it never had.
+        $skipLines = $evalResult | Select-String "^\s*SKIP " | ForEach-Object { $_.Line.Trim() }
+        if ($skipLines) {
+            Write-Host ""
+            Write-Host "Repos SKIPPED - not covered by this verdict:" -ForegroundColor Yellow
+            foreach ($line in $skipLines) {
                 Write-Host "  $line" -ForegroundColor Yellow
             }
         }

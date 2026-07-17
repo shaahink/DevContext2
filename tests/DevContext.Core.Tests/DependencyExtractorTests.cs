@@ -1,3 +1,5 @@
+using DevContext.Core.Graph.EntrySurfaces;
+
 namespace DevContext.Core.Tests;
 
 public sealed class DependencyExtractorTests
@@ -17,6 +19,52 @@ public sealed class DependencyExtractorTests
     {
         var matched = DependencyExtractor.TryMatchSignalFromProjectName(projectName, out _, out _);
         Assert.Equal(shouldMatch, matched);
+    }
+
+    // ── D1.2-fix2: Gateway is exempt from BOTH of D1.1c's guards ────────────────────
+
+    [Theory]
+    [InlineData("YarpApiGateway")]   // the dogfood's gateway — concatenated, and a Web-SDK exe
+    [InlineData("Yarp.ReverseProxy")] // YARP's own repo — dotted
+    [InlineData("ReverseProxyGateway")]
+    public void Gateway_self_sources_from_a_concatenated_name(string projectName)
+    {
+        // The boundary rule is precisely wrong for gateways: concatenation IS the naming convention
+        // for a gateway host. ArchetypeDetector separates YARP's own repo from an app that merely
+        // runs a gateway by PEER-SERVICE COUNT, not by the name (ArchetypeDetector.cs:40-43).
+        Assert.True(DependencyExtractor.TryMatchSignalFromProjectName(
+            projectName, out var key, out _, out var role));
+        Assert.Equal(ArchitectureSignals.Keys.Gateway, key);
+        Assert.Equal(SurfaceRole.Gateway, role);
+    }
+
+    [Fact]
+    public async Task Gateway_self_sources_even_though_the_gateway_host_is_runnable()
+    {
+        // dogfood shape: YarpApiGateway is Sdk="Microsoft.NET.Sdk.Web" => IsRunnableService. The
+        // runnable guard is right for framework cores (always classlibs) and could only ever DELETE
+        // the gateway signal — which cost dogfood its Microservices style for 4 checkpoints.
+        var fs = new FakeFileSystem();
+        var csproj = @"C:\repo\src\YarpApiGateway\YarpApiGateway.csproj";
+        fs.AddFile(csproj, """
+            <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>
+            """);
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [csproj];
+        ctx.Cache.RegisterPath(csproj);
+
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("YarpApiGateway", csproj, "C#", ["net10.0"], [], [], "Exe")],
+        };
+        await new DependencyExtractor().ExtractAsync(ctx, model, default);
+
+        var signal = model.Architecture.Get(ArchitectureSignals.Keys.Gateway);
+        Assert.NotNull(signal);
+        Assert.True(signal.Detected);
+        Assert.Equal("ProjectName", signal.DetectedVia);
     }
 
     [Fact]

@@ -12,18 +12,24 @@ docs commits) — the audit evidence rides into develop with the D1 merge.
 
 ## Handoff (running)
 
-last: 2026-07-17 **D1 session 2 running.** Ack: INBOX 2026-07-17 standing orders (unchanged).
-Session 1 died mid-D1.2 (~07:22) leaving D1.2a+D1.2b work UNCOMMITTED and both rows TODO; session 2
-picked the tree up, validated it, finished it, and committed. **D1.0 + D1.1 + D1.2a/D1.2b VERIFIED.**
-Session 1's D1.2a/b code was sound and its gates were green — but it never ran the eval, which is
-where the two gaps were: (1) D1.2b's "pages/shell as UiEntries" half was unproven and unprovable on
-podcasts (its MAUI csprojs are in no .sln → out of SolutionScope) — now proven by the new
-`eval/fixtures/MauiSurface`; (2) a **xunit ratchet was red** (`Library`→`App`), bisected to D1.1c
-and root-caused to false OutputType evidence — fixed (row D1.2-fix).
-next: **D1.2-fix2 FIRST** (dogfood pole regression from D1.1c — the primary pole renders the WRONG
-style today; row below has the full bisect + root cause + a proposed fix shape; it needs a design
-call because D1.1c's runnable guard and the gateway-self-source invariant genuinely conflict) →
-then D1.2c MapGroup prefixes → D1.2d queue seams → D1.2e branding → D1.2f target fidelity → D1.3 → D1.4.
+last: 2026-07-17 **D1 session 2 CLOSING — continue at D1.2c.** Ack: INBOX 2026-07-17 standing orders
+(unchanged). Session 1 died mid-D1.2 (~07:22) leaving D1.2a+D1.2b UNCOMMITTED; session 2 picked it
+up, validated + finished it, then found and fixed TWO unseen D1.1c regressions the cheap gates were
+blind to. **VERIFIED this session: D1.2a, D1.2b, D1.2-fix (xunit), D1.2-fix2 (dogfood + pole-guards).**
+Two commits: `d138f47` (D1.2ab + xunit) and the D1.2-fix2 commit below.
+  - **D1.2a/b**: in-framework SignalR (podcasts + bitwarden hubs, package-free) + MAUI signal/rung;
+    "pages/shell as UiEntries" proven by NEW `eval/fixtures/MauiSurface` (podcasts' own MAUI csprojs
+    are in no .sln → out of SolutionScope, a scoping fact not a gap).
+  - **D1.2-fix**: xunit `Library`→`App` ratchet, bisected to D1.1c, root = condition-blind
+    `ResolveOutputType` (took `<OutputType>Exe</>` from a `<When ...tests>` block for every classlib).
+  - **D1.2-fix2**: dogfood style `Microservices`→`CleanArchitecture` + ROUTES/gateway edges gone,
+    bisected to D1.1c, root = D1.1c's two self-name guards each killing the gateway signal. Fixed by
+    exempting `SurfaceRole.Gateway` (design rationale in the D1.2-fix2 row). **AND closed the gate
+    hole that hid both**: dogfood + shamshir are now eval expectation files, and `gates.ps1` Step 3
+    prints skipped repos so a missing pole can't masquerade as coverage.
+next: **D1.2c** MapGroup prefixes → D1.2d queue seams → D1.2e branding → D1.2f target fidelity → D1.3
+→ D1.4. **D1.2c is scoped** (below). Everything through D1.2b + both fixes is committed and green;
+this is a clean resume point.
 **D1.2c is scoped**: podcasts does `var shows = app.MapGroup("/shows"); shows.MapShowsApi();` in
 Program.cs while `ShowsApi.cs` does `group.MapGet("/", …)` on the RouteGroupBuilder parameter —
 `EndpointExtractor.ExtractGroupPrefixes` already resolves group vars, but only WITHIN one file /
@@ -114,7 +120,7 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 |---|-----------|--------|--------|----------|
 | D1.1a | A1 transitive aux-exe references (Newtonsoft TestConsole → Tests → lib) | VERIFIED | (D1.1a commit) | prism-d1/d1.1a/ — Newtonsoft.Json flips App→Library, dead 209-token map → 2355-token LIBRARY render (ENTRY API/ABSTRACTIONS/PUBLIC SURFACE), lens-audit PASS, wall 30.6s ≈ baseline; unit test (transitive chain through test project); 5 eval rows flipped expected, in-process green |
 | D1.1b | A2/A3 `toys`/build-tooling NoiseFilter rungs; holder csproj (`.github`/`docs`/`docker`) excluded everywhere; topology applies per-service filters (E2) | VERIFIED | (D1.1b commit) | prism-d1/d1.1b-2/ — SE.Redis flips App→Library (1955-token LIBRARY render, lens PASS, holders+toys+MinimalApi all gone); GitVersion loses all 8 Cake build rows (transitive closure artifacts/publish/release→common); 6 eval rows flipped expected + both green in-process; 32 unit tests incl. holder/Traversal/closure cases |
-| D1.1c | A4 catalog self-name audit — SelfNamePatterns wherever nuget id ≠ project names, wolverine first; runnable-service inference honors NoiseFilter unless SamplesAreTheProduct | VERIFIED | (D1.1c commit) | prism-d1/d1.1c/ — wolverine flips App→Library (6272-token LIBRARY, 1322 public types, 0 sample rows, lens PASS); 18 catalog descriptors gain SelfNamePatterns; matcher hardened: name-boundary (kills WolverineDemo/SerilogHelpers/OrleansVoting false matches) + non-runnable self-source guard; per-service honors sample filter w/ T8 waiver; 4 eval rows flipped + green; 8 new unit tests. **REGRESSED xunit (found + fixed at D1.2b, see below) — bisected to this commit: the runnable guard rests on `ProjectInfo.OutputType`, which was itself false evidence.** |
+| D1.1c | A4 catalog self-name audit — SelfNamePatterns wherever nuget id ≠ project names, wolverine first; runnable-service inference honors NoiseFilter unless SamplesAreTheProduct | VERIFIED | (D1.1c commit) | prism-d1/d1.1c/ — wolverine flips App→Library (6272-token LIBRARY, 1322 public types, 0 sample rows, lens PASS); 18 catalog descriptors gain SelfNamePatterns; matcher hardened: name-boundary (kills WolverineDemo/SerilogHelpers/OrleansVoting false matches) + non-runnable self-source guard; per-service honors sample filter w/ T8 waiver; 4 eval rows flipped + green; 8 new unit tests. **SHIPPED TWO UNSEEN REGRESSIONS, both bisected to this commit, both fixed later: (1) xunit App←Library — the runnable guard rested on `ProjectInfo.OutputType`, itself false evidence (D1.2-fix); (2) dogfood style Microservices→CleanArchitecture, ROUTES + gateway edges gone — the two new guards each killed the gateway self-source (D1.2-fix2). Both survived 4 green checkpoints because no pole/xunit-style regression was in the eval cohort — the lesson that drove the pole-guard work.** |
 | D1.1d | A3/B4 `Archetype.CliTool`: Exe + no web surfaces + PackAsTool/parser evidence → command-surface render; plain `Main()` becomes an entry | VERIFIED | (D1.1d commit) | prism-d1/d1.1d/ — GitVersion flips App→CliTool: CLI TOOL header + COMMAND SURFACE + `CLI (1)` Main entry (Program.cs:3 provenance), lens PASS 19.9s; IsToolPackaged (PackAsTool/ToolCommandName incl. conditional) + parser-package evidence; Main fallback in CliCommandExtractor (reformed in place); 4 unit tests (bitwarden-utility + Newtonsoft-aux negatives); 2 eval rows flipped (cli-entries type corrected), green |
 | D1.1e | A5 render backstop — no dead maps: 0 entries + public surface ⇒ library sections; + Main ⇒ console view; harness FAILs any <~400-token map on a >100-file repo | VERIFIED | (D1.1e commit) | ConsoleBackstop fixture (eval/fixtures) + console-backstop.json 5/5 green in-process — App+0-entries renders NOTE + ENTRY API/ABSTRACTIONS/PUBLIC SURFACE (MapBuilder backstop Surface, renderer sections reused); no-surface branch renders CONSOLE VIEW of production exes; harness probe live since D1.0c; Newtonsoft regression check byte-stable (2355 tokens) |
 
@@ -129,7 +135,7 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 | D1.2e | B6 honest branding — hand-rolled `IRequestHandler` ⇒ "CQRS (hand-rolled)" | TODO | | |
 | D1.2f | C6 entry target attribution fidelity (`GET / → ShowClient.CheckLink`; interface-as-target) | TODO | | |
 
-| D1.2-fix2 | **dogfood pole REGRESSION — `Microservices`→`CleanArchitecture`, ROUTES + gateway edges gone. NOT FIXED — do this FIRST** | **BLOCKED** (needs a design call) | — | Bisected the same way as D1.2-fix: clean at D1.0d/D1.1a/D1.1b (`439/339/34`, ~1799 tok), red from **D1.1c** on (`439/335/34`, ~1536 tok — the 4 lost edges ARE the gateway ones). Not mine: the committed tip 6ffe77b reproduces it exactly. Map diff at D1.1c: STYLE `Microservices (7 runnable web services with gateway + message bus)` → `CleanArchitecture (DDD folder layers…)`; the whole **ROUTES** block (6 YARP routes) gone; **CROSS-SERVICE `http/via gateway (4)`** gone. Cause: dogfood's gateway is project `YarpApiGateway` (`Sdk="Microsoft.NET.Sdk.Web"`), and the Gateway descriptor's only live evidence is `SelfNamePatterns: ["Yarp","ReverseProxy"]` — its `Packages` list holds the OLD id `Microsoft.ReverseProxy`, while dogfood references today's `Yarp.ReverseProxy`, so the NAME was the sole source. D1.1c's two guards each kill it independently: (1) name-boundary — `YarpApiGateway`[4] is `A`, not `.`; (2) runnable-guard — a Web-SDK project is runnable. **This directly contradicts a documented design invariant**: `ArchetypeDetector.cs:40-43` states "a microservices app naming a project `YarpApiGateway` self-sources the gateway signal exactly as YARP's own repo does; only the peer count separates them." **Why not fixed here:** the runnable guard is load-bearing for wolverine (D1.1c's DoD) yet a gateway host is runnable BY NATURE — the two rules are in real conflict, so this needs a design call, not a patch smuggled into a MAUI checkpoint. Likely shape: scope the runnable guard (and possibly the boundary rule) to `SurfaceRole.FrameworkLibrary` descriptors only — frameworks are classlibs; gateways/hosts are not — and refresh the Gateway descriptor's stale package id. Neither dogfood nor shamshir is in the eval cohort, which is why 42/42 green did NOT catch this; the drift table is the only guard and it is checked by hand. |
+| D1.2-fix2 | **dogfood pole regression (`Microservices`→`CleanArchitecture`, ROUTES + gateway edges gone) + poles made first-class gate coverage** | VERIFIED | d1.2fix2 commit | prism-d1/d1.2-fix2/ — bisected to **D1.1c** (clean `439/339/34`~1799 tok at D1.1b; red `439/335/34`~1536 tok from D1.1c; the 4 lost edges ARE the gateway ones). Cause: dogfood's gateway `YarpApiGateway` (`Sdk="Microsoft.NET.Sdk.Web"`) self-sourced `gateway` purely by NAME (Gateway descriptor's `Packages` holds the STALE id `Microsoft.ReverseProxy`; dogfood uses `Yarp.ReverseProxy`), and D1.1c's two guards each killed it — name-boundary (`YarpApiGateway`[4]=`A`≠`.`) and runnable-guard (Web-SDK is runnable). **Design call made:** the guards are right for framework libraries + load-bearing for wolverine (role=AppEntry, so "scope to FrameworkLibrary" was WRONG); the outlier is Gateway — 1 descriptor, already disambiguated STRUCTURALLY by peer-count in ArchetypeDetector (`cs:40-43`: "self-source is NOT the discriminator … only the peer count separates them"), gateway branch runs BEFORE the framework branch so restoring the signal can't flip to Library. **Fix:** exempt `SurfaceRole.Gateway` from BOTH guards (runnable-skip + keep prefix matching, since concatenation IS the gateway naming convention); threaded the descriptor Role through `ProjectNameSignalMap`. dogfood byte-identical to baseline again (439/339/34, Microservices, ROUTES + `http/via gateway (4)` back). **Deeper fix (the real gate hole): poles are now eval expectations** — `dogfood-microservices.json` + `shamshir-pole.json` (machine-local paths → SKIP on CI, now PRINTED by gates.ps1 Step 3; pin SEMANTICS only, never live-repo counts). 4 new gateway unit tests. Full eval 43 repos: only dogfood/cross-service-gateway fails and it's now aspirational (CLI-vs-in-process http-service-link divergence, named for D2 — style/gateway/routes all pass). |
 
 **Known latent, found while root-causing D1.2-fix — NOT fixed (deliberately out of D1.2b's blast
 radius; candidates for D2's self-health strand):**
@@ -144,6 +150,10 @@ radius; candidates for D2's self-health strand):**
   merely MENTIONS `Microsoft.NET.Sdk.Web`/`.Worker`/`Aspire.AppHost.Sdk` anywhere (a comment, an
   `<Import>`, a property value) reads as a runnable host. Not xunit's cause, but the same evidence-
   honesty class D1 exists to kill.
+- Gateway descriptor's `Packages` id is STALE: `Microsoft.ReverseProxy` should be `Yarp.ReverseProxy`
+  (the modern package). Harmless now that D1.2-fix2 made the NAME path work for dogfood, but it is why
+  the name was the sole gateway source — a package-referencing YARP gateway with a non-matching name
+  would still be missed. One-line descriptor fix; do it with the CsprojReader sweep above.
 
 ### D1.3 — Per-service style rungs (C4)
 | # | Checkpoint | Status | Commit | Evidence |
@@ -170,9 +180,9 @@ radius; candidates for D2's self-health strand):**
 
 | Repo | Nodes/Edges/Entries | Style | Note |
 |------|--------------------|-------|------|
-| dogfood (eshop-microservices) | 439 / 339 / 34 | Microservices (App) | PRE-EXISTING local mods — never restore. **DRIFTED at D1.1c → 439/335/34, style now CleanArchitecture (WRONG) — see D1.2-fix2. Do NOT re-pin this row to 335: 339/Microservices is the truth to restore.** |
+| dogfood (eshop-microservices) | 439 / 339 / 34 | Microservices (App) | PRE-EXISTING local mods — never restore. **RESTORED at D1.2-fix2** (was drifted 439/335/CleanArchitecture from D1.1c). Now guarded by `eval/expectations/dogfood-microservices.json`, not just this hand-checked row |
 | eShop | 1089 / 837 / 109 | Microservices 0.91 | unchanged since T2.5 |
-| shamshir | ~2882 / 3375 / 135 | NLayer 0.6 | live repo; <1.2% drift/session normal. Measured 2026-07-17 at D1.2b: 2955/3507/137 (+2.5%/+3.9%) — above the usual band, but shamshir is live and this was NOT bisected; check it alongside D1.2-fix2 rather than assuming live-repo churn |
+| shamshir | ~2882 / 3375 / 135 | NLayer 0.6 | live repo; <1.2% drift/session normal. Now guarded by `eval/expectations/shamshir-pole.json` (SEMANTICS only — archetype App + style NLayer + Aspire/Worker rungs — never counts, since it's live). The D1.2b count reading 2955/3507/137 was live-repo churn: the style + rungs the pole pins are all green at D1.2-fix2 |
 | TodoApi | 123 / 81 / 12 | MinimalApi | |
 | aspire-samples | 68 / 34 / 5 | SampleCollection | T8.2 fix |
 

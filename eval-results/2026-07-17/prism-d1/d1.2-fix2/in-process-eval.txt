@@ -1,0 +1,524 @@
+﻿Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.9)
+[xUnit.net 00:00:00.10]   Discovering: DevContext.Core.Tests
+[xUnit.net 00:00:00.23]   Discovered:  DevContext.Core.Tests
+[xUnit.net 00:00:00.27]   Starting:    DevContext.Core.Tests
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "aspire-samples", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\aspire-"···) [7 s]
+  Standard Output Messages:
+ Running analysis on aspire-samples (C:\code\DevContext2\eval-repos\aspire-samples)...
+   [pass] signal-aspire
+   [pass] style-sample-collection
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dotnet-podcasts", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dotnet-"···) [7 s]
+  Standard Output Messages:
+ Running analysis on dotnet-podcasts (C:\code\DevContext2\eval-repos\dotnet-podcasts)...
+   [pass] archetype-app
+   [pass] style-cleanarchitecture
+   [pass] hub-entry
+   [pass] maui-present
+   [aspir] grouped-route-shows — 'GET /shows' not found in output
+   [aspir] grouped-route-feeds — 'POST /feeds' not found in output
+   [aspir] no-bare-slash-routes — 'GET /  →' found at index 1526
+   [aspir] no-mediatr-branding — 'MediatR' found at index 167
+   [aspir] cqrs-hand-rolled — 'CQRS (hand-rolled' not found in output
+   [aspir] no-interface-target — '→ IFeedClient' found at index 2289
+   [aspir] no-misattributed-target — 'ShowClient.CheckLink' found at index 1535
+   [pass] analysis-time
+ 
+ ── 7 aspirational failure(s) ──
+   ASPIRATIONAL-FAIL dotnet-podcasts/grouped-route-shows: Prism B3: MapGroup('/shows') prefix must compose into routes (Program.cs:153-156). — 'GET /shows' not found in output
+   ASPIRATIONAL-FAIL dotnet-podcasts/grouped-route-feeds: Prism B3: MapGroup('/feeds') prefix composition. — 'POST /feeds' not found in output
+   ASPIRATIONAL-FAIL dotnet-podcasts/no-bare-slash-routes: Prism B3/DoD: zero bare-/ grouped routes (audit had 5 indistinguishable 'GET /' rows). — 'GET /  →' found at index 1526
+   ASPIRATIONAL-FAIL dotnet-podcasts/no-mediatr-branding: Prism B6: zero MediatR references in this repo — hand-rolled IRequestHandler must brand as 'CQRS (hand-rolled)', not 'MediatR (CQRS)'. — 'MediatR' found at index 167
+   ASPIRATIONAL-FAIL dotnet-podcasts/cqrs-hand-rolled: Prism B6: honest branding label. — 'CQRS (hand-rolled' not found in output
+   ASPIRATIONAL-FAIL dotnet-podcasts/no-interface-target: Prism C6: PUT /{id} attributed to an interface as target. — '→ IFeedClient' found at index 2289
+   ASPIRATIONAL-FAIL dotnet-podcasts/no-misattributed-target: Prism C6: GET / (ShowsApi.cs:13 = GetAllShows) misattributed to ShowClient.CheckLink. — 'ShowClient.CheckLink' found at index 1535
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "signalr", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\signalr"···) [27 s]
+  Standard Output Messages:
+ Running analysis on signalr (C:\code\DevContext2\eval-repos\SignalR\src\SignalR)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] signal-signalr
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "functions-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\functio"···) [286 ms]
+  Standard Output Messages:
+ Running analysis on functions-app (C:\code\DevContext2\eval-repos\functions-app)...
+   [pass] archetype-app
+   [pass] signal-functions
+   [pass] entry-kind-functions
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "fluentvalidation", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\fluentv"···) [5 s]
+  Standard Output Messages:
+ Running analysis on fluentvalidation (C:\code\DevContext2\eval-repos\FluentValidation)...
+   [pass] archetype-library
+   [pass] surface-header
+   [pass] public-surface
+   [pass] seat-type
+   [pass] di-front-door
+   [pass] di-detection
+   [pass] entry-api-section
+   [pass] abstractions-section
+   [pass] consumer-paths
+   [pass] rule-dsl-extension
+   [pass] no-test-package-bogus
+   [pass] no-benchmark-package
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "files", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\files.j"···) [1 ms]
+  Standard Output Messages:
+ SKIP files: repo not found at C:\code\DevContext2\analysis-repos\files. Clone with: git clone ... analysis-repos/files
+
+
+dotnet : [xUnit.net 00:00:51.58]     DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dogfood-microservices", 
+expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dogfood"···) [FAIL]
+At line:4 char:1
++ dotnet test tests\DevContext.Core.Tests\DevContext.Core.Tests.csproj  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...ood"···) [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:51.58]       Assert.Empty() Failure: Collection was not empty
+[xUnit.net 00:00:51.58]       Collection: ["cross-service-gateway: 'http/via gateway' not foun"···]
+[xUnit.net 00:00:51.58]       Stack Trace:
+[xUnit.net 00:00:51.58]         C:\code\DevContext2\tests\DevContext.Core.Tests\EvalExpectationTests.cs(103,0): at DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(String repoName, String expectationFile)
+[xUnit.net 00:00:51.58]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:51.58]       Output:
+[xUnit.net 00:00:51.58]         Running analysis on dogfood-microservices (C:\Users\shahi\source\repos\run-aspnetcore-microservices\src)...
+[xUnit.net 00:00:51.58]           [pass] archetype-app
+[xUnit.net 00:00:51.58]           [pass] style-microservices
+[xUnit.net 00:00:51.58]           [pass] gateway-signal
+[xUnit.net 00:00:51.58]           [pass] gateway-per-service
+[xUnit.net 00:00:51.58]           [pass] routes-section
+[xUnit.net 00:00:51.58]           [FAIL] cross-service-gateway — 'http/via gateway' not found in output
+[xUnit.net 00:00:51.58]           [pass] cross-service-bus
+[xUnit.net 00:00:51.58]           [pass] analysis-time
+  Failed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dogfood-microservices", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dogfood"···) [2 s]
+  Error Message:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["cross-service-gateway: 'http/via gateway' not foun"···]
+  Stack Trace:
+     at DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(String repoName, String expectationFile) in C:\code\DevContext2\tests\DevContext.Core.Tests\EvalExpectationTests.cs:line 103
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Running analysis on dogfood-microservices (C:\Users\shahi\source\repos\run-aspnetcore-microservices\src)...
+   [pass] archetype-app
+   [pass] style-microservices
+   [pass] gateway-signal
+   [pass] gateway-per-service
+   [pass] routes-section
+   [FAIL] cross-service-gateway — 'http/via gateway' not found in output
+   [pass] cross-service-bus
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "conventionalcontroller", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\convent"···) [540 ms]
+  Standard Output Messages:
+ Running analysis on conventionalcontroller (C:\code\DevContext2\tests\fixtures\ConventionalController)...
+   [pass] detection-endpoints
+   [pass] target-news
+   [pass] target-comments
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "grpcaggregator", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\grpcagg"···) [328 ms]
+  Standard Output Messages:
+ Running analysis on grpcaggregator (C:\code\DevContext2\eval-repos\gRPC\examples\Aggregator)...
+   [pass] signal-grpc
+   [pass] det-grpc-services
+   [pass] kind-grpc-6
+   [pass] entry-kind-grpc
+   [pass] svc-aggregator
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "servicesurfaces", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\service"···) [418 ms]
+  Standard Output Messages:
+ Running analysis on servicesurfaces (C:\code\DevContext2\eval\fixtures\ServiceSurfaces)...
+   [pass] signal-grpc
+   [pass] signal-functions
+   [pass] signal-graphql
+   [pass] det-grpc
+   [pass] det-function
+   [pass] det-graphql
+   [pass] target-grpc
+   [pass] target-function
+   [pass] target-graphql
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "maui-surface", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\maui-su"···) [248 ms]
+  Standard Output Messages:
+ Running analysis on maui-surface (C:\code\DevContext2\eval\fixtures\MauiSurface)...
+   [pass] archetype-app
+   [pass] maui-signal
+   [pass] ui-entries
+   [pass] shell-entry
+   [pass] page-entry
+   [pass] relaycommand-entry
+   [pass] per-service-maui
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "newtonsoft-json", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\newtons"···) [20 s]
+  Standard Output Messages:
+ Running analysis on newtonsoft-json (C:\code\DevContext2\eval-repos\Newtonsoft.Json)...
+   [pass] archetype-library
+   [pass] library-header
+   [pass] entry-api
+   [pass] public-surface
+   [pass] tfm-summarized
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "dntsite", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\dntsite"···) [4 m]
+  Standard Output Messages:
+ Running analysis on dntsite (C:\code\DevContext2\eval-repos\DntSite)...
+   [pass] detection-endpoints
+   [pass] target-feednews
+   [pass] target-feedcomments
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "cli-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\cli-app"···) [1 ms]
+  Standard Output Messages:
+ SKIP cli-app: repo not found at C:\code\DevContext2\eval-repos\cli-app. Clone with: git clone ... eval-repos/cli-app
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "bitwarden-server", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\bitward"···) [4 m 12 s]
+  Standard Output Messages:
+ Running analysis on bitwarden-server (C:\code\DevContext2\eval-repos\bitwarden-server)...
+   [pass] archetype-app
+   [pass] style-microservices
+   [pass] hub-entry
+   [aspir] per-service-api — 'Api: Web API' not found in output
+   [aspir] per-service-identity — 'Identity: Identity provider' not found in output
+   [aspir] per-service-hub-host — 'Notifications: SignalR host' not found in output
+   [pass] analysis-time
+ 
+ ── 3 aspirational failure(s) ──
+   ASPIRATIONAL-FAIL bitwarden-server/per-service-api: Prism C4/D1.3a: owns-endpoints => Web API rung + 'Api' suffix without the dot. Audit: 17/17 per-service Unknown. — 'Api: Web API' not found in output
+   ASPIRATIONAL-FAIL bitwarden-server/per-service-identity: Prism C4/D1.3a: IdentityServer/OpenIddict => Identity provider rung. — 'Identity: Identity provider' not found in output
+   ASPIRATIONAL-FAIL bitwarden-server/per-service-hub-host: Prism C4/D1.3a: owns-hubs => SignalR host rung. — 'Notifications: SignalR host' not found in output
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "wolverine", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\wolveri"···) [1 m 10 s]
+  Standard Output Messages:
+ Running analysis on wolverine (C:\code\DevContext2\eval-repos\wolverine)...
+   [pass] archetype-library
+   [pass] library-header
+   [pass] no-sample-style
+   [pass] no-sample-service-rows
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "xunit", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\xunit.j"···) [21 s]
+  Standard Output Messages:
+ Running analysis on xunit (C:\code\DevContext2\eval-repos\xUnit)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] entry-api
+   [pass] abstractions
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "desktop-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\desktop"···) [13 ms]
+  Standard Output Messages:
+ SKIP desktop-app: repo not found at C:\code\DevContext2\eval-repos\desktop-app. Clone with: git clone ... eval-repos/desktop-app
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "automapper", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\automap"···) [8 s]
+  Standard Output Messages:
+ Running analysis on automapper (C:\code\DevContext2\eval-repos\AutoMapper)...
+   [pass] arch-style
+   [pass] no-dynamic
+   [pass] endpoint-count
+   [pass] detection-di
+   [pass] types-named
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "screentogif", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\screent"···) [8 s]
+  Standard Output Messages:
+ Running analysis on screentogif (C:\code\DevContext2\eval-repos\ScreenToGif)...
+   [pass] archetype-desktop
+   [pass] desktop-header
+   [aspir] style-mvvm — 'Unknown' contains 'Mvvm': False
+   [pass] analysis-time
+ 
+ ── 1 aspirational failure(s) ──
+   ASPIRATIONAL-FAIL screentogif/style-mvvm: Prism C4/D1.3a: ViewModel+WPF => Desktop MVVM style rung (case-insensitive contains; exact enum value lands with D1.3a). Audit: Unknown. — 'Unknown' contains 'Mvvm': False
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "communitytoolkit", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\communi"···) [7 s]
+  Standard Output Messages:
+ Running analysis on communitytoolkit (C:\code\DevContext2\eval-repos\CommunityToolkit.Mvvm)...
+   [pass] archetype-library
+   [pass] surface-header
+   [pass] entry-api
+   [pass] abstractions
+   [pass] generators-section
+   [pass] public-surface
+   [pass] consumer-paths
+   [pass] annotate-observableproperty
+   [pass] annotate-relaycommand
+   [pass] source-generator
+   [pass] relay-generator
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "quartznet", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\quartzn"···) [16 s]
+  Standard Output Messages:
+ Running analysis on quartznet (C:\code\DevContext2\eval-repos\Quartz.NET)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] signal-quartz
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "compositionapp", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\composi"···) [347 ms]
+  Standard Output Messages:
+ Running analysis on compositionapp (C:\code\DevContext2\tests\fixtures\CompositionApp)...
+   [pass] arch-style-not-microservices
+   [pass] signal-aspire
+   [pass] entry-kind-background
+   [pass] entry-kind-signalr
+   [pass] route-composed-pack
+   [pass] route-composed-theme
+   [pass] worker-real-type
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "console-backstop", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\console"···) [192 ms]
+  Standard Output Messages:
+ Running analysis on console-backstop (C:\code\DevContext2\eval\fixtures\ConsoleBackstop)...
+   [pass] archetype-app
+   [pass] backstop-note
+   [pass] backstop-surface
+   [pass] backstop-type
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "todoapi", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\todoapi"···) [1 s]
+  Standard Output Messages:
+ Running analysis on todoapi (C:\code\DevContext2\eval-repos\TodoApi)...
+   [pass] arch-style
+   [pass] efcore-signal
+   [pass] minimal-signal
+   [pass] endpoint-count
+   [pass] no-dynamic
+   [pass] detection-endpoints
+   [pass] detection-ef
+   [pass] detection-di
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "orleans", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\orleans"···) [2 m 1 s]
+  Standard Output Messages:
+ Running analysis on orleans (C:\code\DevContext2\eval-repos\Orleans)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] signal-orleans
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "verticalslice", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\vertica"···) [5 s]
+  Standard Output Messages:
+ Running analysis on verticalslice (C:\code\DevContext2\eval-repos\VerticalSlice)...
+   [pass] arch-style
+   [pass] mediatr-signal
+   [pass] no-dynamic
+   [pass] endpoint-count
+   [pass] detection-endpoints
+   [pass] detection-mediatr
+   [pass] detection-ef
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "yarp", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\yarp.js"···) [16 s]
+  Standard Output Messages:
+ Running analysis on yarp (C:\code\DevContext2\eval-repos\YARP)...
+   [pass] archetype-gateway
+   [pass] signal-gateway
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "razorpages-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\razorpa"···) [302 ms]
+  Standard Output Messages:
+ Running analysis on razorpages-app (C:\code\DevContext2\eval-repos\razorpages-app)...
+   [pass] archetype-app
+   [pass] signal-razor-pages
+   [pass] entry-kind-razor-pages
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "catalog", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\catalog"···) [2 s]
+  Standard Output Messages:
+ Running analysis on catalog (C:\code\DevContext2\eval-repos\eShop\src\Catalog.API)...
+   [pass] arch-style-local
+   [pass] scope-stamp
+   [pass] no-ddd-aggregates
+   [pass] no-msbuild-vars
+   [pass] detection-endpoints
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "polly", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\polly.j"···) [22 s]
+  Standard Output Messages:
+ Running analysis on polly (C:\code\DevContext2\eval-repos\Polly)...
+   [pass] archetype-library
+   [pass] surface-header
+   [pass] entry-api
+   [pass] abstractions
+   [pass] public-surface
+   [pass] consumer-paths
+   [pass] v8-builder
+   [pass] di-front-door
+   [pass] di-detection
+   [pass] no-sample-package-refit
+   [pass] no-sample-package-restsharp
+   [pass] no-benchmark-types
+   [pass] no-test-type-leak
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "eshop", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\eshop.j"···) [10 s]
+  Standard Output Messages:
+ Running analysis on eshop (C:\code\DevContext2\eval-repos\eShop)...
+   [pass] arch-style
+   [pass] aspire-signal
+   [pass] efcore-signal
+   [pass] mediatr-signal
+   [pass] no-dynamic
+   [pass] endpoint-count
+   [pass] detection-endpoints
+   [pass] detection-ef
+   [pass] detection-mediatr
+   [pass] no-infra-openapi-entry
+   [pass] no-msbuild-vars
+   [pass] entry-kind-grpc
+   [pass] grpc-rpc-only
+   [pass] blazor-ui-not-http
+   [pass] integration-event-rows
+   [pass] cross-service-events
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "masstransit", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\masstra"···) [53 s]
+  Standard Output Messages:
+ Running analysis on masstransit (C:\code\DevContext2\eval-repos\MassTransit\src)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] signal-masstransit
+   [pass] bus-entries
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "stackexchange-redis", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\stackex"···) [22 s]
+  Standard Output Messages:
+ Running analysis on stackexchange-redis (C:\code\DevContext2\eval-repos\StackExchange.Redis)...
+   [pass] archetype-library
+   [pass] library-header
+   [pass] no-minimalapi-style
+   [pass] no-holder-projects
+   [pass] no-test-path-topology
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "refit", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\refit.j"···) [11 s]
+  Standard Output Messages:
+ Running analysis on refit (C:\code\DevContext2\eval-repos\refit)...
+   [pass] archetype-library
+   [pass] library-header
+   [pass] entry-api
+   [pass] abstractions
+   [pass] generators
+   [pass] public-surface
+   [pass] consumer-paths
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "gitversion", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\gitvers"···) [10 s]
+  Standard Output Messages:
+ Running analysis on gitversion (C:\code\DevContext2\eval-repos\GitVersion)...
+   [pass] archetype-clitool
+   [pass] cli-entries
+   [aspir] no-msbuild-expr-package — '@(PackageReference)' found at index 1467
+   [pass] no-build-tooling-rows
+   [pass] analysis-time
+ 
+ ── 1 aspirational failure(s) ──
+   ASPIRATIONAL-FAIL gitversion/no-msbuild-expr-package: Prism E1: PackageReference Update=/MSBuild-expression refs must be skipped, not ingested as a package named @(PackageReference). — '@(PackageReference)' found at index 1467
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "controllerapp", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\control"···) [637 ms]
+  Standard Output Messages:
+ Running analysis on controllerapp (C:\code\DevContext2\tests\fixtures\ControllerApp)...
+   [pass] detection-endpoints
+   [pass] target-get
+   [pass] target-post
+   [pass] target-delete
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "ocelot", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\ocelot."···) [< 1 ms]
+  Standard Output Messages:
+ SKIP ocelot: repo not found at C:\code\DevContext2\analysis-repos\ocelot. Clone with: git clone ... analysis-repos/ocelot
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "signalr-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\signalr"···) [212 ms]
+  Standard Output Messages:
+ Running analysis on signalr-app (C:\code\DevContext2\eval-repos\signalr-app)...
+   [pass] archetype-app
+   [pass] signal-signalr
+   [pass] entry-kind-signalr
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "company-functions", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\company"···) [393 ms]
+  Standard Output Messages:
+ Running analysis on company-functions (C:\code\DevContext2\eval-repos\company-functions)...
+   [pass] archetype-app-guard
+   [pass] no-functions-signal
+   [pass] has-http-entries
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "grpc", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\grpc.js"···) [17 s]
+  Standard Output Messages:
+ Running analysis on grpc (C:\code\DevContext2\eval-repos\gRPC)...
+   [pass] archetype-library
+   [pass] signal-grpc
+   [pass] library-surface
+   [pass] detection-count
+   [pass] analysis-time
+
+
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "azurefunctions", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\azurefu"···) [13 s]
+  Standard Output Messages:
+ Running analysis on azurefunctions (C:\code\DevContext2\eval-repos\Functions)...
+   [pass] archetype-library
+   [pass] library-surface
+   [pass] detection-count
+   [pass] analysis-time
+
+
+[xUnit.net 00:16:51.81]   Finished:    DevContext.Core.Tests
+  Passed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "blazor-app", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\blazor-"···) [< 1 ms]
+  Standard Output Messages:
+ SKIP blazor-app: repo not found at C:\code\DevContext2\eval-repos\blazor-app. Clone with: git clone ... eval-repos/blazor-app
+
+
+
+Total tests: 43
+     Passed: 42
+     Failed: 1
+ Total time: 16.8744 Minutes
+Test Run Failed.
