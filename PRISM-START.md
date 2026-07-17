@@ -50,8 +50,16 @@ floor-limited (~6 min/2 hosts) while shamshir+dntsite ride — row has the numbe
 RESURRECTED (row has the full mechanism): `SnapshotPersistence` serializable subset, polymorphic
 detections, awaited saves ×3 sites with surfaced errors, dirty-fingerprint version keys (a working
 cache keyed on bare HEAD would have served stale maps — closed before it ever shipped), litter-free
-probes, honest stamp + stats hit/miss. Live: dogfood 8.1s→2.5s, sha-identical, HIT. Next: the
-proposal's C1/C2/C3 train (graph depth + self-health + insight validity) — read proposal §2-D2.
+probes, honest stamp + stats hit/miss. Live: dogfood 8.1s→2.5s, sha-identical, HIT; McpQa 12/12
+rode the rehydrated snapshot (server load live-proven, meta touch during the gate run). Riders
+found while verifying, all closed in-commit: `--dry-run` must bypass the cache READ (a cached full
+map is not a preview); `DEVCONTEXT_CACHE_ROOT` env override + ServerTestFactory temp-root redirect
+(server tests were writing the USER cache, and AnalyzeFlowTests would have cache-HIT into failing
+its streamed-progress assert on any unchanged-tree re-run). Working-tree leftover: `lens-run/`
+(lens-audit scratch from D1 session 4) left untracked for the eval-results-clutter owner call.
+**D2 SESSION 1 CLOSED — continue at C1 (`.razor` `@code` into the call graph, proposal §2-D2;
+mind the T-era markup-as-C# perf trap: @code extraction only, never whole-file Razor parses).
+Then C2/C3/C5 → J1/J3 → I1/I2 → D3-budget, per the D2 spec.**
 
 # ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 

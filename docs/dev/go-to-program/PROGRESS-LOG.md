@@ -2600,3 +2600,21 @@ solutionName; additive proto solution_name; Library headline = product + hosts l
 pinned, octet rerun 8/8. Poles byte-identical throughout (two sanctioned documented eShop text
 deltas). Next: feat/prism-d2 opens with the pipeline-speed adjustment (D2.0 cohort tier knob,
 D2.0b J2 cache resurrection promoted from D3), then the C1/C2/C3 train (tracker section-speed).
+
+## 2026-07-17 - Prism D2 session 1: pipeline-speed pair VERIFIED (feat/prism-d2)
+
+**D2.0 tier knob (9b94393):** gates.ps1 -EvalTier quick = Step 3 minus the 5 heavy repos, poles
+ride, LOUD exclusion, stamp never written on quick green, self-labeled not-a-merge-gate; two
+detached GREEN runs. Run 1 exposed the alternating-alphabetical split stacking the whales
+(3m56 vs 8m28 halves) -> weight-hinted LPT-style split; honest floor recorded: ~6 min/2 hosts
+while shamshir+dntsite ride, the <5-min aspiration lands on J2 not more splitting.
+**D2.0b J2 cache resurrection (9c21eea, promoted from D3):** the I8 cache had never persisted a
+byte (unserializable snapshot -> swallowed throw behind a fire-and-forget; Exists() littered empty
+dirs). SnapshotPersistence defines the render-complete serializable subset; polymorphic $dtype
+detections; awaited saves x3 sites returning SnapshotSaveResult; dirty-fingerprint version keys
+(bare-HEAD keying would have served stale maps on dirty trees); --dry-run bypasses read,
+--no-cache bypasses write; DEVCONTEXT_CACHE_ROOT + ServerTestFactory temp-root (server tests
+were writing the user cache and would have flake-failed on cache hits). Proof: fresh-vs-rehydrated
+renders byte-identical (md+json) on a real fixture; dogfood live 8.1s->2.5s sha-identical HIT;
+McpQa 12/12 over the rehydrated snapshot; fast 574+15 green; loom-guards+truth PASS.
+Next: C1 (.razor @code into call graph) - session closed at the checkpoint boundary.
