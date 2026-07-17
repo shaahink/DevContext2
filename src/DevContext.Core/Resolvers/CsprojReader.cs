@@ -103,12 +103,17 @@ public static class CsprojReader
         => ParseTargetFrameworks(doc) is { Length: > 0 } tfms ? tfms
             : ResolveTargetFrameworksFromAncestors(csprojPath);
 
-    /// <summary>Parses target frameworks directly from a document (without ancestor fallback).</summary>
+    /// <summary>Parses target frameworks directly from a document (without ancestor fallback).
+    /// E5 (Prism D1.4b): a multi-targeting <c>&lt;TargetFrameworks&gt;</c> value is SPLIT on ';' so
+    /// consumers see real TFMs — Newtonsoft's "net46;net40;net35;net20" used to travel as one
+    /// unreadable token all the way to the STACK line.</summary>
     public static ImmutableArray<string> ParseTargetFrameworks(XDocument doc)
     {
         var tfm = doc.Descendants("TargetFramework").FirstOrDefault()?.Value
                ?? doc.Descendants("TargetFrameworks").FirstOrDefault()?.Value;
-        return tfm is { Length: > 0 } ? [tfm] : [];
+        return tfm is { Length: > 0 }
+            ? [.. tfm.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
+            : [];
     }
 
     private static ImmutableArray<string> ResolveTargetFrameworksFromAncestors(string csprojPath)
@@ -162,11 +167,14 @@ public static class CsprojReader
     {
         var cpmVersions = ResolveCpmVersions(csprojPath);
 
+        // E1 (Prism D1.4c): only `Include=` declares a dependency. An `Update=`-only element is an
+        // MSBuild metadata patch on an item declared elsewhere — GitVersion's
+        // `<PackageReference Update="@(PackageReference)">` ingested a "package" literally named
+        // `@(PackageReference)`. MSBuild expressions are never real package ids either way.
         return doc.Descendants("PackageReference")
             .Select(r =>
             {
-                var name = r.Attribute("Include")?.Value
-                        ?? r.Attribute("Update")?.Value ?? "";
+                var name = r.Attribute("Include")?.Value ?? "";
                 var version = r.Attribute("Version")?.Value
                            ?? r.Attribute("VersionOverride")?.Value
                            ?? "";
@@ -174,7 +182,9 @@ public static class CsprojReader
                     version = cpmVer;
                 return new PackageReferenceInfo(name, version);
             })
-            .Where(p => !string.IsNullOrEmpty(p.Name))
+            .Where(p => !string.IsNullOrEmpty(p.Name)
+                && !p.Name.Contains("@(", StringComparison.Ordinal)
+                && !p.Name.Contains("$(", StringComparison.Ordinal))
             .ToImmutableArray();
     }
 

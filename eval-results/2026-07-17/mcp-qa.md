@@ -1,14 +1,14 @@
 # MCP QA Results (M4 post-gate)
 
 **Repo:** `C:/Users/shahi/source/repos/run-aspnetcore-microservices/src`  
-**Baseline:** 439 nodes, 335 edges, 34 entries  
+**Baseline:** 439 nodes, 339 edges, 34 entries  
 **Date:** 2026-07-17
 
 ## Results
 
 | # | Pass | Calls | Tokens | Question | Detail |
 |---|------|-------|--------|----------|--------|
-| q1-overview | YES | 1 | 173 | What is this repo? (one-call repo brief) | overview 173 tok, archetype=true flows=true counts=true services=true |
+| q1-overview | YES | 1 | 224 | What is this repo? (one-call repo brief) | overview 224 tok, archetype=true flows=true counts=true services=true |
 | q2-checkout-flow | YES | 1 | 1467 | How does checkout work? | trace found: 46 steps, cross-service, 1467 tok |
 | q3-discount-callers | YES | 2 | 684 | Who calls the Discount service? | 10 Discount matches, usages=true |
 | q4-impact-of-handler | YES | 3 | 434 | What breaks if I change CheckoutBasketCommandHandler? | impact up=5 down=0 total=5 |
@@ -19,7 +19,7 @@
 | q9-entrypoints-summary | YES | 2 | 3173 | List entry points as a bounded summary (not a token wall)? | byKind=true, showing 15/34 (843tok), full→34 |
 | q10-self-describing | YES | 3 | 472 | Do best-effort tools explain their method (what 0 means)? | method note: tests_for=true, config=true |
 | q11-trace-budget | YES | 2 | 1790 | Does trace respect a token budget with named omissions? | budget400: 11 steps/323tok omitted=19; full: 46 steps/1467tok |
-| gate-checkout | YES | 2 | 1640 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 1640 tok, found=true, 46 steps, cross-service=true |
+| gate-checkout | YES | 2 | 1691 | Checkout gate: answer in <=3 calls, <=2k tokens | 2 calls, 1691 tok, found=true, 46 steps, cross-service=true |
 
 **Score:** 12/12  
 **Checkout gate (<=3c/2ktok):** PASS  

@@ -161,7 +161,9 @@ public sealed class ExtractorTests
         await extractor.ExtractAsync(ctx, model, default);
 
         var project = Assert.Single(model.Projects);
-        Assert.Contains("net8.0;net9.0", project.TargetFrameworks);
+        // E5 (Prism D1.4b): multi-targeting splits into real TFMs — the joined "net8.0;net9.0"
+        // token used to travel unsplit all the way to the STACK line.
+        Assert.Equal(["net8.0", "net9.0"], project.TargetFrameworks.ToArray());
     }
 
     [Fact]

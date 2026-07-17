@@ -5,6 +5,64 @@ public sealed class ArchitectureStyleDetectorTests
     private static ProjectInfo Project(string name) =>
         new(name, $"{name}.csproj", "C#", [], [], []);
 
+    // ── B6 (Prism D1.2e): hand-rolled mediator vs the MediatR library ──
+
+    private static TypeDiscovery Type(string name, TypeKind kind, params string[] interfaces) => new()
+    {
+        Id = $"App.{name}",
+        Name = name,
+        Namespace = "App",
+        FilePath = $"src/App/{name}.cs",
+        Kind = kind,
+        Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+        Layer = ArchitectureLayer.Unknown,
+        ImplementedInterfaces = [.. interfaces],
+    };
+
+    [Fact]
+    public void MediatR_package_signal_reads_Package()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Register(FeatureSignal.CreateDetected(ArchitectureSignals.Keys.MediatR, 1.0f));
+        model.Architecture.Seal();
+
+        Assert.Equal(MediatREvidenceKind.Package, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void HandRolled_when_repo_declares_its_own_IRequestHandler()
+    {
+        // The podcasts shape: no MediatR reference anywhere, the repo declares
+        // IRequestHandler<in TRequest, TResult> itself and implements it.
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+        model.Types["App.IRequestHandler"] = Type("IRequestHandler", TypeKind.Interface);
+        model.Types["App.GetShowsHandler"] = Type("GetShowsHandler", TypeKind.Class, "IRequestHandler<GetShows, List<Show>>");
+
+        Assert.Equal(MediatREvidenceKind.HandRolled, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void Handler_impls_without_local_declaration_read_Package()
+    {
+        // The scoped-sub-project shape (G7): handlers implement the interface, the package reference
+        // lives outside the closure — the interface is MediatR's own, not hand-rolled.
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+        model.Types["App.CreateOrderHandler"] = Type("CreateOrderHandler", TypeKind.Class, "IRequestHandler<CreateOrder, bool>");
+
+        Assert.Equal(MediatREvidenceKind.Package, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
+    [Fact]
+    public void No_handler_evidence_reads_None()
+    {
+        var model = new DiscoveryModel();
+        model.Architecture.Seal();
+
+        Assert.Equal(MediatREvidenceKind.None, ArchitectureStyleDetector.GetMediatREvidence(model));
+    }
+
     [Fact]
     public void ControllerBased_when_controllers_stronger_than_minimal_apis()
     {

@@ -180,9 +180,13 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                         }
                     }
 
+                    // E1 (Prism D1.4c): Update= stays as SIGNAL evidence (a version pin still proves the
+                    // package is in use), but an MSBuild expression is never a package id.
                     var packageRefs = doc.Descendants("PackageReference")
                         .Select(r => r.Attribute("Include")?.Value ?? r.Attribute("Update")?.Value ?? "")
-                        .Where(v => !string.IsNullOrEmpty(v));
+                        .Where(v => !string.IsNullOrEmpty(v)
+                            && !v.Contains("@(", StringComparison.Ordinal)
+                            && !v.Contains("$(", StringComparison.Ordinal));
 
                     foreach (var pkgName in packageRefs)
                     {

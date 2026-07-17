@@ -219,9 +219,11 @@ public sealed class DiscoveryPipeline
 
         if (context.ActiveScenario.Name is "deep-dive" && context.Options.Profile < ExtractionProfile.Debug)
         {
+            // E4 (Prism D1.4d): never recommend a flag the user can't see — `--profile` is hidden on
+            // analyze and absent on query, so naming it made an unactionable hint.
             model.AddDiagnostic(DiagnosticLevel.Info, "Pipeline",
-                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from call graph. " +
-                "Re-run with '--profile debug' to enable call graph.");
+                $"Scenario '{context.ActiveScenario.DisplayName}' benefits from the call graph, " +
+                "which the debug extraction profile enables.");
         }
 
         // ── GraphAssembly (PLAN-10 Part A) — JOIN detections + types into the connected CodeGraph + Map.
@@ -513,8 +515,10 @@ public sealed class DiscoveryPipeline
                     // so the user isn't left staring at a bare ENTRY line wondering what went wrong.
                     if (trace.Root.Children.Length == 0)
                     {
+                        // E4 (Prism D1.4d): the old text recommended `--profile debug`, a flag the trace
+                        // path doesn't take (and analyze hides) — a ghost hint the user can't act on.
                         traceCtx = NarrativeSections.WithExtraSection(traceCtx, "TraceHint",
-                            $"NOTE: no out-edges resolved for '{request.Entry}' — try `Type:Method`, or `--profile debug` to enable the call graph\n\n");
+                            $"NOTE: no out-edges resolved for '{request.Entry}' — try a more specific `Type:Method` focus\n\n");
                     }
 
                     return NarrativeSections.WithExtraSection(

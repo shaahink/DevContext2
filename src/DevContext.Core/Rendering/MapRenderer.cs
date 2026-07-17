@@ -111,14 +111,15 @@ public static class MapRenderer
         var signals = model.Architecture.All;
         var parts = new List<string>();
 
-        // Runtime
+        // Runtime. E5 (Prism D1.4b): a multi-targeting library's TFM matrix summarizes to the newest
+        // few + a count — Newtonsoft's raw `net20, net35, net40, …` ×9 dump was unreadable.
         var tfms = model.Projects
             .SelectMany(p => p.TargetFrameworks)
             .Where(f => !f.Contains("$(", StringComparison.Ordinal)) // drop unevaluated MSBuild vars (Low 16)
             .Distinct()
             .OrderBy(f => f)
             .ToList();
-        if (tfms.Count > 0) parts.Add(string.Join(", ", tfms));
+        if (tfms.Count > 0) parts.Add(SummarizeTfms(tfms));
 
         // Web framework
         if (signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected)
@@ -130,8 +131,13 @@ public static class MapRenderer
 
         // CQRS / Mediator — light from handler evidence too (not just the package signal), so a scoped
         // sub-project whose handlers are present reads consistently with the resolved STYLE (G7 residual).
-        if (ArchitectureStyleDetector.HasMediatREvidence(model))
-            parts.Add("MediatR (CQRS)");
+        // B6: a repo that declares its own IRequestHandler<,> hand-rolled the pattern — branding it
+        // "MediatR" is a name-only match (podcasts has zero MediatR references).
+        switch (ArchitectureStyleDetector.GetMediatREvidence(model))
+        {
+            case MediatREvidenceKind.Package: parts.Add("MediatR (CQRS)"); break;
+            case MediatREvidenceKind.HandRolled: parts.Add("CQRS (hand-rolled mediator)"); break;
+        }
 
         // Data
         if (signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var ef) && ef.Detected)
@@ -156,6 +162,40 @@ public static class MapRenderer
             sb.AppendLine("STACK  " + string.Join(" · ", parts));
             sb.AppendLine();
         }
+    }
+
+    /// <summary>E5: ≤3 distinct TFMs render verbatim (poles unchanged); a matrix shows the two most
+    /// modern + a count. Modernity ranks family first (net5+ core &gt; netcoreapp &gt; netstandard &gt;
+    /// classic net4x), then version — so "net6.0, netstandard2.0 +3 more TFMs", never a net20-first dump.</summary>
+    internal static string SummarizeTfms(IReadOnlyList<string> tfms)
+    {
+        if (tfms.Count <= 3) return string.Join(", ", tfms);
+
+        var ranked = tfms.OrderByDescending(TfmRank).ThenBy(t => t, StringComparer.Ordinal).ToList();
+        return $"{ranked[0]}, {ranked[1]} +{tfms.Count - 2} more TFMs";
+    }
+
+    private static double TfmRank(string tfm)
+    {
+        // Strip a platform suffix ("net8.0-android" → "net8.0") for scoring; the display keeps it.
+        var dash = tfm.IndexOf('-');
+        var core = dash > 0 ? tfm[..dash] : tfm;
+
+        static double Version(string s, string prefix)
+            => double.TryParse(s[prefix.Length..], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
+
+        if (core.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase))
+            return 1000 + Version(core, "netstandard");
+        if (core.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase))
+            return 2000 + Version(core, "netcoreapp");
+        if (core.StartsWith("net", StringComparison.OrdinalIgnoreCase))
+        {
+            var v = Version(core, "net");
+            // "net10.0"/"net6.0" (dotted) is modern .NET; "net48"/"net462" (no dot) is classic Framework.
+            return core.Contains('.') ? 3000 + v : v;
+        }
+        return 0;
     }
 
     private static void AppendStyle(StringBuilder sb, MapModel map)

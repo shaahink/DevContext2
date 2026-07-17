@@ -11,6 +11,10 @@ namespace DevContext.Core.Extractors.Generic;
 /// verdicts (Microservices, ModularMonolith) so the style stays local. Multi-sample/docs repos with
 /// no unifying solution are detected as <see cref="ArchitectureStyle.SampleCollection"/> (E4 fix).
 /// </summary>
+/// <summary>How MediatR-shaped CQRS evidence should be branded (B6): the real library, a repo's own
+/// hand-rolled mediator interfaces, or absent.</summary>
+public enum MediatREvidenceKind { None, Package, HandRolled }
+
 public sealed class ArchitectureStyleDetector
 {
     public static (ArchitectureStyle Style, float Confidence, string? Via) Detect(DiscoveryModel model)
@@ -41,7 +45,11 @@ public sealed class ArchitectureStyleDetector
         // package is referenced from Ordering.Domain). The handler *detections* come straight from the
         // code, so treat them as first-class evidence of MediatR — otherwise the style falls through to
         // MinimalApi even though Send→handler is clearly wired (assessment G7).
-        var hasMediatR = HasMediatREvidence(model);
+        var mediatREvidence = GetMediatREvidence(model);
+        var hasMediatR = mediatREvidence != MediatREvidenceKind.None;
+        // B6: the evidence strings must brand a hand-rolled mediator honestly — podcasts has zero
+        // MediatR references, only its own IRequestHandler<,> interface.
+        var mediatorBrand = mediatREvidence == MediatREvidenceKind.HandRolled ? "hand-rolled mediator" : "MediatR";
         var hasEfCore = signals.TryGetValue(ArchitectureSignals.Keys.EfCore, out var _);
         var hasAspire = signals.TryGetValue(ArchitectureSignals.Keys.Aspire, out var aspire) && aspire.Detected;
         var hasMinimalApis = signals.TryGetValue(ArchitectureSignals.Keys.MinimalApis, out var ma) && ma.Detected;
@@ -159,7 +167,7 @@ public sealed class ArchitectureStyleDetector
                 if (aggregateCount >= 1) dddEvidence.Add($"{aggregateCount} aggregates");
                 if (notificationHandlerCount >= 1) dddEvidence.Add($"{notificationHandlerCount} domain-event handlers");
                 if (hasDomainCore) dddEvidence.Add("domain-core ref pattern (high fan-in, low fan-out)");
-                dddEvidence.Add($"MediatR with {totalHandlerCount} handlers");
+                dddEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
 
                 scores[ArchitectureStyle.CleanArchitecture] = (Math.Min(0.5f + dddLayers * 0.1f + aggregateCount * 0.05f, 0.95f),
                     string.Join("; ", dddEvidence));
@@ -170,7 +178,7 @@ public sealed class ArchitectureStyleDetector
         if (hasFastEndpoints)
         {
             var vEvidence = new List<string> { "FastEndpoints detected" };
-            if (hasMediatR) vEvidence.Add($"MediatR with {totalHandlerCount} handlers");
+            if (hasMediatR) vEvidence.Add($"{mediatorBrand} with {totalHandlerCount} handlers");
             scores[ArchitectureStyle.VerticalSlices] = (hasMediatR ? 0.85f : 0.7f,
                 string.Join("; ", vEvidence));
         }
@@ -309,13 +317,31 @@ public sealed class ArchitectureStyleDetector
     /// style verdict can't drift (assessment G7 + residual).
     /// </summary>
     public static bool HasMediatREvidence(DiscoveryModel model)
+        => GetMediatREvidence(model) != MediatREvidenceKind.None;
+
+    /// <summary>
+    /// B6 (Prism D1.2e): distinguishes the MediatR LIBRARY from a hand-rolled mediator so the brand is
+    /// honest. A repo that DECLARES the handler interface itself (podcasts'
+    /// `ListenTogether.Application.Interfaces.IRequestHandler&lt;,&gt;`) has no MediatR at all — calling
+    /// its style "MediatR (CQRS)" is a name-only match. Package signal (or handler implementations
+    /// without a local interface declaration — the scoped-sub-project case where the interface comes
+    /// from the real package outside the closure, G7) still reads as MediatR.
+    /// </summary>
+    public static MediatREvidenceKind GetMediatREvidence(DiscoveryModel model)
     {
         if (model.Architecture.All.TryGetValue(ArchitectureSignals.Keys.MediatR, out var mr) && mr.Detected)
-            return true;
-        return model.Types.Values.Any(t => t.ImplementedInterfaces.Any(i =>
+            return MediatREvidenceKind.Package;
+
+        var hasHandlerImpls = model.Types.Values.Any(t => t.ImplementedInterfaces.Any(i =>
             i.StartsWith("IRequestHandler", StringComparison.Ordinal)
             || i.StartsWith("IStreamRequestHandler", StringComparison.Ordinal)
             || i.StartsWith("INotificationHandler", StringComparison.Ordinal)));
+        if (!hasHandlerImpls) return MediatREvidenceKind.None;
+
+        var declaresOwnHandlerInterface = model.Types.Values.Any(t =>
+            t.Kind == TypeKind.Interface
+            && (t.Name == "IRequestHandler" || t.Name.StartsWith("IRequestHandler<", StringComparison.Ordinal)));
+        return declaresOwnHandlerInterface ? MediatREvidenceKind.HandRolled : MediatREvidenceKind.Package;
     }
 
     private static HashSet<string> DetectFolderRoles(DiscoveryModel model)
