@@ -22,7 +22,7 @@
       "type": "output-not-contains",
       "format": "markdown",
       "value": "@(PackageReference)",
-      "status": "aspirational",
+      "status": "expected",
       "note": "Prism E1: PackageReference Update=/MSBuild-expression refs must be skipped, not ingested as a package named @(PackageReference)."
     },
     {

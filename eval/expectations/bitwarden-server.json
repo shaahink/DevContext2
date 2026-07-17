@@ -30,24 +30,24 @@
       "type": "output-contains",
       "format": "markdown",
       "value": "Api: Web API",
-      "status": "aspirational",
-      "note": "Prism C4/D1.3a: owns-endpoints => Web API rung + 'Api' suffix without the dot. Audit: 17/17 per-service Unknown."
+      "status": "expected",
+      "note": "C4 FIXED (Prism D1.3a): 'Api' as whole name segment + endpoint-ownership rungs; bitwarden per-service 17/17 Unknown -> 1/16. Flipped 2026-07-17."
     },
     {
       "id": "per-service-identity",
       "type": "output-contains",
       "format": "markdown",
       "value": "Identity: Identity provider",
-      "status": "aspirational",
-      "note": "Prism C4/D1.3a: IdentityServer/OpenIddict => Identity provider rung."
+      "status": "expected",
+      "note": "C4 FIXED (Prism D1.3a): Duende reached via 1-hop transitive package from the identity-named host (bitwarden references it from Core). Flipped 2026-07-17."
     },
     {
       "id": "per-service-hub-host",
       "type": "output-contains",
       "format": "markdown",
       "value": "Notifications: SignalR host",
-      "status": "aspirational",
-      "note": "Prism C4/D1.3a: owns-hubs => SignalR host rung."
+      "status": "expected",
+      "note": "C4 FIXED (Prism D1.3a): owns-hubs rung with name-hinted hub-dominance (Notifications owns auxiliary send controllers too; the hub is its identity). Flipped 2026-07-17."
     },
     {
       "id": "analysis-time",

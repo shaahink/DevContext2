@@ -143,11 +143,15 @@ public sealed class MapBuilder
             .Where(p => scoped is null || scoped.Contains(p.Name))
             .ToList();
         var keptNames = kept.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // E3 (Prism D1.4a): duplicate short names render indistinguishably (`Messages` ×6,
+        // `AppHost` ×2) — a duplicated name gets a parent-directory qualifier, extended upward
+        // until the rows are distinct.
+        var displayNames = DisambiguateNames(kept);
         return
         [
             .. kept
-                .OrderBy(p => p.Name)
-                .Select(p => new ProjectNode(p.Name,
+                .OrderBy(p => displayNames[p])
+                .Select(p => new ProjectNode(displayNames[p],
                     [.. p.ProjectReferences
                         .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
                         .Where(r => r.Length > 0 && keptNames.Contains(r) && (scoped is null || scoped.Contains(r)))
@@ -157,6 +161,53 @@ public sealed class MapBuilder
                     Feature = perProjectFeature.GetValueOrDefault(p.Name),
                 })
         ];
+    }
+
+    /// <summary>E3: maps each kept project to its display name — the bare name when unique, else
+    /// `Name (dir)` where dir is the nearest ancestor directory segment that isn't just the project
+    /// name again, widened one segment at a time until the duplicate group is fully distinct.</summary>
+    private static Dictionary<ProjectInfo, string> DisambiguateNames(List<ProjectInfo> kept)
+    {
+        static string[] AncestorSegments(ProjectInfo p)
+        {
+            var segments = new List<string>();
+            var dir = Path.GetDirectoryName(p.FilePath);
+            while (!string.IsNullOrEmpty(dir))
+            {
+                var seg = Path.GetFileName(dir);
+                if (string.IsNullOrEmpty(seg)) break;
+                // src/Messages/Messages.csproj — the name-echo segment disambiguates nothing.
+                if (!seg.Equals(p.Name, StringComparison.OrdinalIgnoreCase)) segments.Add(seg);
+                dir = Path.GetDirectoryName(dir);
+            }
+            return [.. segments];
+        }
+
+        var result = new Dictionary<ProjectInfo, string>();
+        foreach (var group in kept.GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var members = group.ToList();
+            if (members.Count == 1)
+            {
+                result[members[0]] = members[0].Name;
+                continue;
+            }
+
+            var ancestors = members.ToDictionary(p => p, AncestorSegments);
+            for (var depth = 1; depth <= ancestors.Values.Max(a => a.Length); depth++)
+            {
+                string Qualified(ProjectInfo p) =>
+                    $"{p.Name} ({string.Join("/", ancestors[p].Take(depth).Reverse())})";
+                if (members.Select(Qualified).Distinct(StringComparer.OrdinalIgnoreCase).Count() == members.Count)
+                {
+                    foreach (var p in members) result[p] = Qualified(p);
+                    break;
+                }
+            }
+            // Pathologically identical paths: fall back to the bare name rather than looping forever.
+            foreach (var p in members) result.TryAdd(p, p.Name);
+        }
+        return result;
     }
 
     /// <summary>Groups NuGet package references (dedup by name, highest version) by category. Takes an

@@ -169,7 +169,7 @@ radius; candidates for D2's self-health strand):**
 ### D1.4 — Hygiene riders (E1, E3–E5)
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.4a | E3 duplicate-name disambiguation (`Messages` ×6, `AppHost` ×2) | TODO | | |
+| D1.4a | E3 duplicate-name disambiguation (`Messages` ×6, `AppHost` ×2) | DONE | (D1.4a commit) | prism-d1/d1.4a/ — `MapBuilder.DisambiguateNames`: a duplicated short name gets its nearest non-echo ancestor dir as qualifier, widened until distinct (`GitVersion.Configuration (src)` renders live; wolverine's `Messages` ×6 already dead via D1.1's sample filtering — the mechanism + unit test cover the general case). Unique names stay bare so no other repo's topology moves. VERIFIED pending close sweep |
 | D1.4b | E5 TFM summarization (no raw TFM matrices in STACK) | DONE | (D1.4bcd commit) | `ParseTargetFrameworks` SPLITS `;`-joined values into real TFMs (root cause: the whole matrix travelled as ONE token); STACK renders ≤3 verbatim (poles byte-safe) else 2 most-modern + `+N more TFMs` ranked family-then-version (podcasts: `net7.0, net7.0-android +2 more TFMs`). Multi-TFM extractor test re-pinned to split behavior. VERIFIED pending cohort sweep |
 | D1.4c | E1 skip `Update=`/MSBuild-expression package refs | DONE | (D1.4bcd commit) | `ParsePackageReferencesCpmAware` takes `Include=` ONLY (an `Update=`-only element is an MSBuild metadata patch, not a dependency — GitVersion's `@(PackageReference)` "package") + MSBuild-expression names (`@(`/`$(`) filtered; DependencyExtractor keeps Update as SIGNAL evidence but drops expressions. VERIFIED pending cohort sweep |
 | D1.4d | E4 remove the `--profile debug` ghost hint | DONE | (D1.4bcd commit) | Both hint sites rewritten (DiscoveryPipeline deep-dive diagnostic + empty-trace NOTE) — the flag is hidden on analyze and absent on query, so naming it was unactionable. No test/golden pinned the old text. VERIFIED pending cohort sweep |
@@ -187,7 +187,7 @@ radius; candidates for D2's self-health strand):**
 | Repo | Nodes/Edges/Entries | Style | Note |
 |------|--------------------|-------|------|
 | dogfood (eshop-microservices) | 439 / 339 / 34 | Microservices (App) | PRE-EXISTING local mods — never restore. **RESTORED at D1.2-fix2** (was drifted 439/335/CleanArchitecture from D1.1c). Now guarded by `eval/expectations/dogfood-microservices.json`, not just this hand-checked row |
-| eShop | 1089 / 837 / 109 | Microservices 0.91 | unchanged since T2.5 |
+| eShop | 1089 / 837 / 109 | Microservices 0.91 | counts/style/targets unchanged since T2.5. **Two SANCTIONED text deltas at D1.3a/D1.2f (documented, code-read verified):** (1) per-service `Identity.API: Identity provider [IdentityServer]` (was `Web API [EF Core]`) — it IS eShop's Duende host, the D1.3a rung is strictly truer; (2) event-wire participant ORDER shuffled (same sets — new AddHttpClient DirectBinding detections shifted edge insertion order). `GET /api/orders/cardtypes → IOrderQueries` byte-verified UNCHANGED (domain ports keep contract display) |
 | shamshir | ~2882 / 3375 / 135 | NLayer 0.6 | live repo; <1.2% drift/session normal. Now guarded by `eval/expectations/shamshir-pole.json` (SEMANTICS only — archetype App + style NLayer + Aspire/Worker rungs — never counts, since it's live). The D1.2b count reading 2955/3507/137 was live-repo churn: the style + rungs the pole pins are all green at D1.2-fix2 |
 | TodoApi | 123 / 81 / 12 | MinimalApi | |
 | aspire-samples | 68 / 34 / 5 | SampleCollection | T8.2 fix |

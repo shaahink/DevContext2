@@ -38,56 +38,56 @@
       "type": "output-contains",
       "format": "markdown",
       "value": "GET /shows",
-      "status": "aspirational",
-      "note": "Prism B3: MapGroup('/shows') prefix must compose into routes (Program.cs:153-156)."
+      "status": "expected",
+      "note": "B3 FIXED (Prism D1.2c): caller-prefix index composes MapGroup('/shows') across the extension-method boundary. Flipped 2026-07-17."
     },
     {
       "id": "grouped-route-feeds",
       "type": "output-contains",
       "format": "markdown",
       "value": "POST /feeds",
-      "status": "aspirational",
-      "note": "Prism B3: MapGroup('/feeds') prefix composition."
+      "status": "expected",
+      "note": "B3 FIXED (Prism D1.2c): MapGroup('/feeds') prefix composition. Flipped 2026-07-17."
     },
     {
       "id": "no-bare-slash-routes",
       "type": "output-not-contains",
       "format": "markdown",
       "value": "GET /  →",
-      "status": "aspirational",
-      "note": "Prism B3/DoD: zero bare-/ grouped routes (audit had 5 indistinguishable 'GET /' rows)."
+      "status": "expected",
+      "note": "B3/DoD FIXED (Prism D1.2c): zero bare-/ grouped routes (audit had 5 indistinguishable 'GET /' rows; the one remaining 'GET /' is ListenTogether.Hub's REAL root route and carries no target arrow). Flipped 2026-07-17."
     },
     {
       "id": "no-mediatr-branding",
       "type": "output-not-contains",
       "format": "markdown",
       "value": "MediatR",
-      "status": "aspirational",
-      "note": "Prism B6: zero MediatR references in this repo — hand-rolled IRequestHandler must brand as 'CQRS (hand-rolled)', not 'MediatR (CQRS)'."
+      "status": "expected",
+      "note": "B6 FIXED (Prism D1.2e): zero MediatR references in this repo — the repo declares IRequestHandler itself, branding reads 'CQRS (hand-rolled mediator)'. Flipped 2026-07-17."
     },
     {
       "id": "cqrs-hand-rolled",
       "type": "output-contains",
       "format": "markdown",
       "value": "CQRS (hand-rolled",
-      "status": "aspirational",
-      "note": "Prism B6: honest branding label."
+      "status": "expected",
+      "note": "B6 FIXED (Prism D1.2e): honest branding label. Flipped 2026-07-17."
     },
     {
       "id": "no-interface-target",
       "type": "output-not-contains",
       "format": "markdown",
       "value": "→ IFeedClient",
-      "status": "aspirational",
-      "note": "Prism C6: PUT /{id} attributed to an interface as target."
+      "status": "expected",
+      "note": "C6 FIXED (Prism D1.2f): AddHttpClient<IFeedClient, FeedClient> is a DirectBinding — PUT /feeds/{id} resolves to FeedClient.AddFeedAsync. Flipped 2026-07-17."
     },
     {
-      "id": "no-misattributed-target",
-      "type": "output-not-contains",
+      "id": "target-checklink-is-true",
+      "type": "output-contains",
       "format": "markdown",
-      "value": "ShowClient.CheckLink",
-      "status": "aspirational",
-      "note": "Prism C6: GET / (ShowsApi.cs:13 = GetAllShows) misattributed to ShowClient.CheckLink."
+      "value": "GET /shows/  → ShowClient.CheckLink",
+      "status": "expected",
+      "note": "VERDICT REVERSED at D1.2f (insight-validity: claim checked against code): GetAllShows GENUINELY calls showClient.CheckLink per show (ShowsApi.cs:37) — the attribution is TRUE. The audit's confusion was the 5-way bare 'GET /' route collision, fixed by D1.2c prefix composition; this row now pins the composed route + true target."
     },
     {
       "id": "analysis-time",

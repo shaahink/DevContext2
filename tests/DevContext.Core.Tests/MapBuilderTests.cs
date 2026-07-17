@@ -56,6 +56,29 @@ public sealed class MapBuilderTests
     }
 
     [Fact]
+    public void Build_topology_disambiguates_duplicate_project_names()
+    {
+        // E3 (Prism D1.4a): `Messages` ×N rendered as indistinguishable rows. Duplicates get the
+        // nearest non-echo ancestor directory as a qualifier; unique names stay bare.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Messages", @"C:\repo\src\OrderService\Messages\Messages.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Messages", @"C:\repo\src\BillingService\Messages\Messages.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Api", @"C:\repo\src\Api\Api.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+
+        var map = MapBuilder.Build(model, EmptyGraph, []);
+
+        var names = map.Topology.Select(n => n.Name).ToList();
+        Assert.Contains("Messages (OrderService)", names);
+        Assert.Contains("Messages (BillingService)", names);
+        Assert.Contains("Api", names);
+    }
+
+    [Fact]
     public void Build_aggregates_from_ef_detection()
     {
         var model = new DiscoveryModel();
