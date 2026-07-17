@@ -1,0 +1,10 @@
+{
+  "repo": "eval/fixtures/ConsoleBackstop",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "D1.1e fixture: a standalone console exe (no lib reference, no tool evidence) keeps the repo App — the backstop is about the RENDER, not the verdict." },
+    { "id": "backstop-note", "type": "output-contains", "format": "markdown", "value": "no entry points detected", "status": "expected", "note": "A5 (Prism D1.1e): the no-dead-maps backstop announces itself honestly." },
+    { "id": "backstop-surface", "type": "output-contains", "format": "markdown", "value": "PUBLIC SURFACE", "status": "expected", "note": "A5: zero entries + a public surface => the library sections render inside the App map." },
+    { "id": "backstop-type", "type": "output-contains", "format": "markdown", "value": "TextKit", "status": "expected", "note": "The fixture's public type is actually shown." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

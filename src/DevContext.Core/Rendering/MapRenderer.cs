@@ -35,6 +35,8 @@ public static class MapRenderer
         Add(sections, "Cross-service", sb => AppendServiceLinks(sb, ctx));
         Add(sections, "Event wiring", sb => AppendEventWiring(sb, ctx));
         Add(sections, "Entry points", sb => AppendEntryPoints(sb, ctx.Map, basePath));
+        // A5 (Prism D1.1e) — render backstop: an App map with zero entries is never a dead end.
+        Add(sections, "Backstop", sb => AppendNoEntriesBackstop(sb, ctx));
         Add(sections, "Cross-cutting", sb => AppendCrossCutting(sb, ctx.Map));
         Add(sections, "Packages", sb => AppendPackages(sb, ctx.Map));
         Add(sections, "Footer", sb => AppendFooter(sb, ctx));
@@ -69,6 +71,37 @@ public static class MapRenderer
         sb.AppendLine($"{label}  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
         if (ctx.Map.ScopeNote is { Length: > 0 } scope)
             sb.AppendLine($"SCOPE  {scope} — style/topology are local to this slice, not the whole system");
+        sb.AppendLine();
+    }
+
+    /// <summary>A5 (Prism D1.1e) — no dead maps. An App-archetype map with ZERO entries renders the
+    /// public surface when one exists (the MapBuilder backstop built <c>Map.Surface</c>), else an honest
+    /// console view naming the runnable executables. Before this, Newtonsoft rendered 209 tokens and
+    /// GitVersion 485 — confidently empty lenses on 600+-file repos.</summary>
+    private static void AppendNoEntriesBackstop(StringBuilder sb, MapRenderContext ctx)
+    {
+        if (ctx.Map.Archetype != Archetype.App || !ctx.Map.Entries.IsDefaultOrEmpty) return;
+
+        if (ctx.Map.Surface is { } surface && (surface.Groups.Length > 0 || surface.EntryApi.Length > 0))
+        {
+            sb.AppendLine("NOTE: no entry points detected — showing the public surface instead");
+            sb.AppendLine();
+            LibrarySurfaceRenderer.AppendEntryApi(sb, surface);
+            LibrarySurfaceRenderer.AppendAbstractions(sb, surface);
+            LibrarySurfaceRenderer.AppendSurface(sb, surface);
+            return;
+        }
+
+        var consoleExes = ctx.Snapshot.Model.Projects
+            .Where(p => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
+                && ProjectClassifier.IsProductionProject(p))
+            .OrderBy(p => p.Name)
+            .ToList();
+        if (consoleExes.Count == 0) return;
+        sb.AppendLine("CONSOLE VIEW");
+        foreach (var exe in consoleExes)
+            sb.AppendLine($"   {exe.Name}  ({exe.OutputType})");
+        sb.AppendLine("   NOTE: no entry points detected — trace from a type with --focus \"<TypeName>\"");
         sb.AppendLine();
     }
 

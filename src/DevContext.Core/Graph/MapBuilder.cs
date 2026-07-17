@@ -57,7 +57,7 @@ public sealed class MapBuilder
             Aggregates = BuildAggregates(model),
             PipelineBehaviors = BuildPipelineBehaviors(model),
             Archetype = archetype,
-            Surface = archetype == Archetype.Library ? LibrarySurfaceBuilder.Build(model) : null,
+            Surface = BuildSurface(model, archetype, entries),
             ArchetypeView = archetypeView,
             ScopeNote = BuildScopeNote(model, topology.Length),
             Routes = [.. model.GatewayRoutes],
@@ -77,6 +77,22 @@ public sealed class MapBuilder
         if (slnCount <= 0 || model.Projects.Length >= slnCount * 3 / 4 || analyzedProjectCount <= 0) return null;
         var slnName = model.Solution?.Name ?? "solution";
         return $"{analyzedProjectCount}-project closure of {slnCount}-project {slnName}";
+    }
+
+    /// <summary>A5 (Prism D1.1e) — the render backstop's data source. The Library archetype always gets
+    /// its surface; an App map with ZERO entries also builds one, so the renderer can show the public
+    /// surface instead of a dead 19-line map (audit: Newtonsoft 209 tokens, GitVersion 485). Returns
+    /// null when the built surface has no content (renderer then falls back to the console view).</summary>
+    private static LibrarySurface? BuildSurface(DiscoveryModel model, Archetype archetype, ImmutableArray<EntryPoint> entries)
+    {
+        if (archetype == Archetype.Library)
+            return LibrarySurfaceBuilder.Build(model);
+        if (archetype == Archetype.App && entries.IsDefaultOrEmpty)
+        {
+            var surface = LibrarySurfaceBuilder.Build(model);
+            return surface.Groups.Length > 0 || surface.EntryApi.Length > 0 ? surface : null;
+        }
+        return null;
     }
 
     private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model, CodeGraph graph)
