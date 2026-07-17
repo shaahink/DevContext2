@@ -23,11 +23,22 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
         "Walks syntax trees to detect message bus consumers and bus registrations");
     /// <summary>Runs for MassTransit/NServiceBus, or self-activates when any discovered type implements
     /// an integration-event handler interface (eShop's custom RabbitMQ IEventBus pattern, which carries
-    /// no MassTransit/NServiceBus signal) — so its Bus consumers reach the Map's Bus group (G3).</summary>
+    /// no MassTransit/NServiceBus signal) — so its Bus consumers reach the Map's Bus group (G3).
+    /// B5 (Prism D1.2d): also runs when a raw queue-transport package is referenced (Azure Storage
+    /// Queues / Azure Service Bus / RabbitMQ.Client) so queue seams become channel edges even in repos
+    /// with no bus framework at all (podcasts' FeedsApi → feed-queue → Ingestion.Worker).</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.MassTransit)
             || currentModel.Architecture.Has(ArchitectureSignals.Keys.NServiceBus)
-            || currentModel.Types.Values.Any(ImplementsIntegrationEventHandler);
+            || currentModel.Types.Values.Any(ImplementsIntegrationEventHandler)
+            || HasQueueTransportPackage(currentModel);
+
+    /// <summary>True when any project references a raw queue-transport client package.</summary>
+    private static bool HasQueueTransportPackage(DiscoveryModel model)
+        => model.Projects.Any(p => p.PackageReferences.Any(pr =>
+            pr.Name.Equals("Azure.Storage.Queues", StringComparison.OrdinalIgnoreCase)
+            || pr.Name.Equals("Azure.Messaging.ServiceBus", StringComparison.OrdinalIgnoreCase)
+            || pr.Name.Equals("RabbitMQ.Client", StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>True when a type implements <c>IIntegrationEventHandler&lt;T&gt;</c> (eShop / generic
     /// integration-event bus pattern).</summary>
@@ -98,6 +109,161 @@ public sealed class EventBusExtractor : IDiscoveryExtractor
         }
 
         await DetectBusRegistrationPatterns(context, model, busKind, Name, ct);
+        await DetectQueueSeams(context, model, ct);
+    }
+
+    // ── B5 (Prism D1.2d): raw queue transports as [approx] channel seams ─────────────────────────
+    //
+    // Storage-Queue/Service-Bus/RabbitMQ senders and their hosted consumers carry a repo's real
+    // cross-process path with NO bus framework to detect (podcasts: FeedsApi.CreateFeed →
+    // Azure Storage Queue "feed-queue" → Ingestion.Worker; the audit's event board said "No events
+    // detected"). Syntax-only: a send site publishes to a channel, a receive site consumes it, and
+    // the channel name joins them. A type with BOTH directions on one transport is a bus LIBRARY
+    // implementation (eShop's EventBusRabbitMQ), not an application seam — dropped whole, which is
+    // what keeps eShop byte-identical.
+
+    private sealed record QueueSite(string Transport, string ClassName, string File, string? Channel, int Line, bool IsSend);
+
+    private static readonly ImmutableArray<string> StorageQueueSendVerbs = ["SendMessageAsync", "SendMessagesAsync"];
+    private static readonly ImmutableArray<string> StorageQueueReceiveVerbs = ["ReceiveMessagesAsync", "ReceiveMessageAsync"];
+    private static readonly ImmutableArray<string> ServiceBusReceiveVerbs = ["StartProcessingAsync"];
+    private static readonly ImmutableArray<string> RabbitSendVerbs = ["BasicPublish", "BasicPublishAsync"];
+    private static readonly ImmutableArray<string> RabbitReceiveVerbs = ["BasicConsume", "BasicConsumeAsync"];
+
+    private static async ValueTask DetectQueueSeams(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
+    {
+        if (!HasQueueTransportPackage(model)) return;
+
+        var sites = new List<QueueSite>();
+        // Repo-wide `new QueueClient(conn, "name")` literals — when one distinct queue name exists,
+        // it labels storage-queue sites whose own call carries no literal (podcasts registers the
+        // client in DI; the send site never repeats the name).
+        var storageQueueNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var filePath in context.Analysis.AllSourceFiles)
+        {
+            ct.ThrowIfCancellationRequested();
+            SyntaxTree syntaxTree;
+            try
+            {
+                syntaxTree = await context.Cache.GetSyntaxTreeAsync(filePath, ct);
+            }
+            catch
+            {
+                continue; // already logged by the consumer scan
+            }
+
+            var root = await syntaxTree.GetRootAsync(ct).ConfigureAwait(false);
+            var fileText = root.ToString();
+            var hasStorageQueue = fileText.Contains("QueueClient", StringComparison.Ordinal)
+                && !fileText.Contains("ServiceBus", StringComparison.Ordinal);
+            var hasServiceBus = fileText.Contains("ServiceBusSender", StringComparison.Ordinal)
+                || fileText.Contains("ServiceBusProcessor", StringComparison.Ordinal)
+                || fileText.Contains("ServiceBusClient", StringComparison.Ordinal);
+            var hasRabbit = fileText.Contains("BasicPublish", StringComparison.Ordinal)
+                || fileText.Contains("BasicConsume", StringComparison.Ordinal);
+            if (!hasStorageQueue && !hasServiceBus && !hasRabbit) continue;
+
+            foreach (var creation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+            {
+                if (creation.Type.ToString() is not ("QueueClient")) continue;
+                var nameArg = creation.ArgumentList?.Arguments.Skip(1).FirstOrDefault();
+                if (nameArg?.Expression is LiteralExpressionSyntax lit)
+                    storageQueueNames.Add(lit.Token.ValueText);
+            }
+
+            foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+            {
+                var className = typeDecl.Identifier.ValueText;
+
+                foreach (var inv in typeDecl.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                {
+                    if (inv.Expression is not MemberAccessExpressionSyntax ma) continue;
+                    var verb = ma.Name.Identifier.ValueText;
+                    var line = inv.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+
+                    if (hasRabbit && RabbitSendVerbs.Contains(verb))
+                        sites.Add(new QueueSite("RabbitMQ", className, filePath, LiteralArg(inv, 1), line, IsSend: true));
+                    else if (hasRabbit && RabbitReceiveVerbs.Contains(verb))
+                        sites.Add(new QueueSite("RabbitMQ", className, filePath, LiteralArg(inv, 0), line, IsSend: false));
+                    else if (hasStorageQueue && StorageQueueSendVerbs.Contains(verb))
+                        sites.Add(new QueueSite("AzureStorageQueue", className, filePath, null, line, IsSend: true));
+                    else if (hasStorageQueue && StorageQueueReceiveVerbs.Contains(verb))
+                        sites.Add(new QueueSite("AzureStorageQueue", className, filePath, null, line, IsSend: false));
+                    else if (hasServiceBus && !hasStorageQueue && StorageQueueSendVerbs.Contains(verb))
+                        sites.Add(new QueueSite("AzureServiceBus", className, filePath, null, line, IsSend: true));
+                    else if (hasServiceBus && ServiceBusReceiveVerbs.Contains(verb))
+                        sites.Add(new QueueSite("AzureServiceBus", className, filePath, null, line, IsSend: false));
+                }
+
+                // `processor.ProcessMessageAsync += Handler` — the Service Bus consumer wiring shape.
+                if (hasServiceBus)
+                {
+                    foreach (var assign in typeDecl.DescendantNodes().OfType<AssignmentExpressionSyntax>())
+                    {
+                        if (assign.OperatorToken.ValueText == "+="
+                            && assign.Left is MemberAccessExpressionSyntax pm
+                            && pm.Name.Identifier.ValueText == "ProcessMessageAsync")
+                        {
+                            var line = assign.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                            sites.Add(new QueueSite("AzureServiceBus", className, filePath, null, line, IsSend: false));
+                        }
+                    }
+                }
+            }
+        }
+
+        EmitQueueSeams(model, sites, storageQueueNames);
+    }
+
+    /// <summary>Nth argument when it is a string literal, else null.</summary>
+    private static string? LiteralArg(InvocationExpressionSyntax inv, int index)
+        => inv.ArgumentList.Arguments.Count > index
+            && inv.ArgumentList.Arguments[index].Expression is LiteralExpressionSyntax lit
+            && lit.Token.Value is string s
+            ? s : null;
+
+    private static void EmitQueueSeams(DiscoveryModel model, List<QueueSite> sites, HashSet<string> storageQueueNames)
+    {
+        if (sites.Count == 0) return;
+
+        // A type doing BOTH directions on one transport is the bus implementation itself, not a seam.
+        var infraTypes = sites.GroupBy(s => (s.Transport, s.ClassName))
+            .Where(g => g.Any(s => s.IsSend) && g.Any(s => !s.IsSend))
+            .Select(g => g.Key)
+            .ToHashSet();
+        var seams = sites.Where(s => !infraTypes.Contains((s.Transport, s.ClassName))).ToList();
+
+        // One repo-wide storage-queue name labels the channel when the site itself carries none.
+        var storageChannel = storageQueueNames.Count == 1 ? storageQueueNames.First() : null;
+
+        foreach (var site in seams)
+        {
+            var channel = site.Channel
+                ?? (site.Transport == "AzureStorageQueue" ? storageChannel : null);
+            var channelKey = $"queue:{site.Transport}:{channel ?? "unresolved"}";
+
+            if (site.IsSend)
+            {
+                model.Detections.Add(new EventFlowDetection(channelKey, site.ClassName, "Publish", site.Transport)
+                {
+                    ExtractorName = "EventBusExtractor",
+                    SourceFile = site.File,
+                    LineNumber = site.Line,
+                    Confidence = 0.6f, // syntax-only channel join — renders [approx]
+                });
+            }
+            else
+            {
+                model.Detections.Add(new MessageConsumerDetection(channelKey, site.ClassName, site.Transport)
+                {
+                    ExtractorName = "EventBusExtractor",
+                    SourceFile = site.File,
+                    LineNumber = site.Line,
+                    Confidence = 0.6f,
+                });
+            }
+        }
     }
 
     private static string DetectBusKind(DiscoveryModel model)

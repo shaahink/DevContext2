@@ -1,3 +1,4 @@
+using DevContext.Core.Extractors.Specific;
 using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
 using DevContext.Core.Graph2.Seams;
@@ -546,11 +547,17 @@ public sealed partial class GraphBuilder
         {
             if (!scope.Contains(mc.SourceFile)) continue;
             if (!noise.IsProductionEntrySource(mc.SourceFile)) continue;
-            var eventId = NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
+            // B5 (Prism D1.2d): a queue CHANNEL is not a type — its display title doubles as the node
+            // key (never resolved as a type name) so the publisher half (below) lands on the same node
+            // and the event wiring joins them, and the wire renders "feed-queue [AzureStorageQueue]".
+            var isChannel = mc.MessageType.StartsWith("queue:", StringComparison.Ordinal);
+            var eventId = isChannel
+                ? NodeId.ForType(ChannelTitle(mc.MessageType))
+                : NodeId.ForType(names.Resolve(mc.MessageType, mc.SourceFile));
             var consumerType = names.Resolve(mc.ConsumerType, mc.SourceFile);
             var handlerId = NodeId.ForType(consumerType);
 
-            g.AddNode(new GraphNode(eventId, mc.MessageType, NodeKind.Type)
+            g.AddNode(new GraphNode(eventId, isChannel ? ChannelTitle(mc.MessageType) : mc.MessageType, NodeKind.Type)
             {
                 Tags = [RoleTags.IntegrationEvent, mc.BusKind],
                 Layer = "Contracts",
@@ -568,6 +575,47 @@ public sealed partial class GraphBuilder
                 Resolution = Resolution.Join,
             });
         }
+
+        // B5 (Prism D1.2d): queue-channel PUBLISHERS (EventBusExtractor queue seams). The Raises edge
+        // onto the shared channel node completes the wire — FeedsApi → [feed-queue] → Worker renders
+        // on the event board and as a cross-service bus link. Syntactic resolution → [approx].
+        foreach (var ef in model.Detections.OfType<EventFlowDetection>())
+        {
+            if (ef.Kind != "Publish" || !ef.EventType.StartsWith("queue:", StringComparison.Ordinal)) continue;
+            if (!scope.Contains(ef.SourceFile)) continue;
+            if (!noise.IsProductionEntrySource(ef.SourceFile)) continue;
+
+            var channelId = NodeId.ForType(ChannelTitle(ef.EventType));
+            var publisherId = NodeId.ForType(names.Resolve(ef.Target, ef.SourceFile));
+
+            g.AddNode(new GraphNode(channelId, ChannelTitle(ef.EventType), NodeKind.Type)
+            {
+                Tags = [RoleTags.IntegrationEvent, ef.BusKind],
+                Layer = "Contracts",
+            });
+            g.AddNode(new GraphNode(publisherId, ef.Target, NodeKind.Type)
+            {
+                FilePath = ef.SourceFile,
+                Project = scope.ProjectForFile(ef.SourceFile),
+            });
+            g.AddEdge(new GraphEdge(publisherId, channelId, EdgeKind.Raises)
+            {
+                Provenance = $"{ef.SourceFile}:{ef.LineNumber}",
+                Resolution = Resolution.Syntactic,
+                Confidence = ef.Confidence,
+            });
+        }
+    }
+
+    /// <summary>"queue:AzureStorageQueue:feed-queue" → "feed-queue [AzureStorageQueue]";
+    /// an unresolved channel shows the transport alone.</summary>
+    private static string ChannelTitle(string channelKey)
+    {
+        var parts = channelKey.Split(':');
+        if (parts.Length < 3) return channelKey;
+        var transport = parts[1];
+        var name = parts[2];
+        return name == "unresolved" ? $"{transport} queue" : $"{name} [{transport}]";
     }
 
 }
