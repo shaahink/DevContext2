@@ -20,10 +20,13 @@ recurring gotcha: orphaned DevContext.Server after test runs locks build DLLs �
 `start-dev-bg.ps1 -Kill` before builds.
 next: D1.1a transitive aux-exe refs → D1.1b noise rungs → D1.1c self-name audit → D1.1d CliTool
 → D1.1e render backstop → D1.2 → D1.3 → D1.4.
-gotchas (standing, carried from Tapestry): fast-suite load-flake **NAME CAPTURED at D1.0a**:
-`McpQaGateTests.McpQaHarness_Passes_Against_Dogfood` — spawned QA harness emits banner only (no
-"QA Score:") right after dotnet churn; green in isolation (`fast-tests-d1.0a*.txt`). Truth-gate
-test host can also crash under the same churn — quiet re-run cures both. PS 5.1 × UTF-8 em-dashes in detached
+gotchas (standing, carried from Tapestry): fast-suite "load-flake" **RESOLVED at D1.1a**: it is
+`McpQaGateTests.McpQaHarness_Passes_Against_Dogfood` losing its known shared-state race when run
+INSIDE the parallel suite — gates.ps1 Step 2 already excludes it (`Category!=Eval&Category!=
+CliSmoke&Category!=McpQa`) and runs it serially as Step 2b. Cheap-gate fast tests must use the
+battery's filter + a serial `Category=McpQa` run (this session does from D1.1a on). Truth-gate
+test host can still crash under heavy churn — quiet re-run cures. Orphaned DevContext.Server
+after test runs locks build DLLs — sweep with `start-dev-bg.ps1 -Kill`. PS 5.1 × UTF-8 em-dashes in detached
 scripts (keep battery scripts ASCII); dogfood PRE-EXISTING mods stand — never restore; never
 build/test in a worktree while its battery runs; rebuild the CLI after any Core edit;
 absolute CLI paths only.
@@ -90,12 +93,12 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 | D1.0a | Octet SHAs pinned in `eval/README.md` + stable clone home | VERIFIED | c19e42e | prism-d1/d1.0a-octet-home.txt — 8/8 SHAs match pins |
 | D1.0b | Aspirational expectation rows for intended verdicts (table above) | VERIFIED | d80be12 | prism-d1/d1.0b-octet-expectations-validation.txt — 8 new expectation files, in-process eval 8/8 green (expected rows pass today incl. bitwarden <480s; aspirational rows = the D1 contract) |
 | D1.0c | `eval/lens-audit.ps1 <repo\|octet>`: timed analyze → captures → MCP drive → FAIL probes (map-tokens ≪ repo size; Unknown+0-entries; sample rows in per-service; wall-time vs baseline) | VERIFIED | 6db193a | prism-d1/lens-run-smoke/ — podcasts PASS (wall 7.9s, MCP drive PASS incl. 23-entry inventory); GitVersion FAIL(2) = P2 archetype + P3 unknown-zero fire as designed (17.6s/484 tokens ≈ audit 18s/485) |
-| D1.0d | Bare-`catch` ban in `scripts/loom-guards.ps1` (Core; existing swallows grandfathered until D2) | VERIFIED | (D1.0d commit) | census 30 swallows (16 empty + 14 comment-only) / 11 files grandfathered as per-file MAX; negative test fired (+1 scratch bare catch → BANNED, exit 1); clean run PASS |
+| D1.0d | Bare-`catch` ban in `scripts/loom-guards.ps1` (Core; existing swallows grandfathered until D2) | VERIFIED | 6e66dc5 | census 30 swallows (16 empty + 14 comment-only) / 11 files grandfathered as per-file MAX; negative test fired (+1 scratch bare catch → BANNED, exit 1); clean run PASS |
 
 ### D1.1 — Archetype & render honesty (A1–A5, E2)
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.1a | A1 transitive aux-exe references (Newtonsoft TestConsole → Tests → lib) | TODO | | |
+| D1.1a | A1 transitive aux-exe references (Newtonsoft TestConsole → Tests → lib) | VERIFIED | (D1.1a commit) | prism-d1/d1.1a/ — Newtonsoft.Json flips App→Library, dead 209-token map → 2355-token LIBRARY render (ENTRY API/ABSTRACTIONS/PUBLIC SURFACE), lens-audit PASS, wall 30.6s ≈ baseline; unit test (transitive chain through test project); 5 eval rows flipped expected, in-process green |
 | D1.1b | A2/A3 `toys`/build-tooling NoiseFilter rungs; holder csproj (`.github`/`docs`/`docker`) excluded everywhere; topology applies per-service filters (E2) | TODO | | |
 | D1.1c | A4 catalog self-name audit — SelfNamePatterns wherever nuget id ≠ project names, wolverine first; runnable-service inference honors NoiseFilter unless SamplesAreTheProduct | TODO | | |
 | D1.1d | A3/B4 `Archetype.CliTool`: Exe + no web surfaces + PackAsTool/parser evidence → command-surface render; plain `Main()` becomes an entry | TODO | | |

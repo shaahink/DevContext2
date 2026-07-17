@@ -86,11 +86,34 @@ public static class ArchetypeDetector
             return Archetype.App; // pure executable(s)
 
         var libNames = nonExe.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // A1 (Prism D1.1a): the auxiliary-exe reference may be TRANSITIVE — Newtonsoft.Json.TestConsole
+        // references only Newtonsoft.Json.Tests, which references the library. Walk the in-solution
+        // project-reference graph (through test projects too) from the exe to any library project.
+        var projectsByName = model.Projects
+            .GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        bool ReferencesLibraryTransitively(ProjectInfo start)
+        {
+            var stack = new Stack<string>(start.ProjectReferences.Select(r => Path.GetFileNameWithoutExtension(r)));
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (stack.Count > 0)
+            {
+                var name = stack.Pop();
+                if (!seen.Add(name)) continue;
+                if (libNames.Contains(name)) return true;
+                if (projectsByName.TryGetValue(name, out var via))
+                    foreach (var r in via.ProjectReferences)
+                        stack.Push(Path.GetFileNameWithoutExtension(r));
+            }
+            return false;
+        }
+
         var allExeAreAuxiliary = exe.All(e =>
             !model.SamplesAreTheProduct && ProjectClassifier.IsSamplePath(e.FilePath)
             || ProjectClassifier.IsTestPath(e.FilePath)
             || e.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true
-                && e.ProjectReferences.Any(r => libNames.Contains(Path.GetFileNameWithoutExtension(r))));
+                && ReferencesLibraryTransitively(e));
         if (!allExeAreAuxiliary)
             return Archetype.App; // a standalone executable that isn't just a sample of the library
 

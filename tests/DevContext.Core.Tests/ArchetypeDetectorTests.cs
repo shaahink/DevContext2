@@ -124,6 +124,30 @@ public sealed class ArchetypeDetectorTests
     }
 
     [Fact]
+    public void Library_when_auxiliary_exe_references_the_library_transitively()
+    {
+        // A1 (Prism D1.1a) — the Newtonsoft.Json shape: TestConsole (Exe) references only
+        // Newtonsoft.Json.Tests, which references the library. The auxiliary walk must follow
+        // the in-solution reference chain (through the test project) instead of flipping to App.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Newtonsoft.Json", @"C:\repo\Src\Newtonsoft.Json\Newtonsoft.Json.csproj",
+                    "C#", ["net10.0"], [], [], IsPackable: true),
+                new ProjectInfo("Newtonsoft.Json.Tests", @"C:\repo\Src\Newtonsoft.Json.Tests\Newtonsoft.Json.Tests.csproj",
+                    "C#", ["net10.0"], [@"..\Newtonsoft.Json\Newtonsoft.Json.csproj"], []),
+                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:\repo\Src\Newtonsoft.Json.TestConsole\Newtonsoft.Json.TestConsole.csproj",
+                    "C#", ["net10.0"], [@"..\Newtonsoft.Json.Tests\Newtonsoft.Json.Tests.csproj"], [], OutputType: "Exe"),
+            ],
+        };
+        model.Types.TryAdd("Newtonsoft.Json.JsonConvert",
+            PublicType("Newtonsoft.Json.JsonConvert", @"C:\repo\Src\Newtonsoft.Json\JsonConvert.cs"));
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
+    }
+
+    [Fact]
     public void App_when_standalone_exe_does_not_reference_the_library()
     {
         var model = new DiscoveryModel
