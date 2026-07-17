@@ -1,0 +1,126 @@
+﻿Overview map (no focus).
+  from cache · 7e43d80 · analyzed 2026-07-17 21:49 · 829ms
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d2\j2-drive-2.md
+analyzed 146 files · 439 nodes · 339 edges · 34 entries · 33/34 →target · ~1802 
+tokens · 5.4s stage2 ×3.0 stage3 ×1.3
+
+Snapshot cache: HIT · 7e43d80
+                                    Insights                                    
+╭──────┬──────────┬──────────────────────────────┬─────────────────────────────╮
+│ Sev  │ Category │ Title                        │ Evidence                    │
+├──────┼──────────┼──────────────────────────────┼─────────────────────────────┤
+│ WARN │ Risk     │ 27/27 endpoints anonymous,   │ PUT /products, GET          │
+│      │          │ incl. 9 POST/PUT/DELETE      │ /products, GET              │
+│      │          │                              │ /products/{id}              │
+│ NOTE │ Wiring   │ Event wiring: 5 events (2    │ BasketCheckoutEvent:        │
+│      │          │ integration), 1              │ Basket.API →                │
+│      │          │ cross-service, 1 orphan      │ Ordering.Application,       │
+│      │          │                              │ OrderDto ←                  │
+│      │          │                              │ Ordering.Application (no    │
+│      │          │                              │ consumer), <registration> → │
+│      │          │                              │ BuildingBlocks.Messaging    │
+│ NOTE │ Wiring   │ Multi-implementation         │ ISaveChangesInterceptor (2  │
+│      │          │ interfaces:                  │ impls)                      │
+│      │          │ ISaveChangesInterceptor (2   │                             │
+│      │          │ impls)                       │                             │
+│ NOTE │ Wiring   │ Possible dead code: 5 public │ GetOrdersByCustomerResult,  │
+│      │          │ types with zero inbound      │ GetProductsResponse,        │
+│      │          │ references                   │ GetProductsEndpoint         │
+│ INFO │ Shape    │ Middleware pipeline: 2       │ LoggingBehavior,            │
+│      │          │ behaviours                   │ ValidationBehavior          │
+│ INFO │ Coverage │ Entry targets resolved 33/34 │                             │
+│      │          │ (97%) — trace any entry for  │                             │
+│      │          │ its full path                │                             │
+│ INFO │ Shape    │ Entry surface: 27 HTTP · 4   │ 27 HTTP, 4 GrpcService, 2   │
+│      │          │ GrpcService · 2              │ DomainEventHandler          │
+│      │          │ DomainEventHandler · 1 Bus   │                             │
+│ INFO │ Topology │ Most depended-upon:          │ BuildingBlocks (3           │
+│      │          │ BuildingBlocks (3            │ dependents),                │
+│      │          │ dependents) ·                │ BuildingBlocks.Messaging (2 │
+│      │          │ BuildingBlocks.Messaging (2  │ dependents),                │
+│      │          │ dependents) ·                │ Ordering.Application (2     │
+│      │          │ Ordering.Application (2      │ dependents)                 │
+│      │          │ dependents)                  │                             │
+│ INFO │ Data     │ Data map: 6 entities across  │ Ordering.Domain (3          │
+│      │          │ 4 scopes                     │ entities), Discount.Grpc (1 │
+│      │          │                              │ entities), Catalog.API (1   │
+│      │          │                              │ entities)                   │
+╰──────┴──────────┴──────────────────────────────┴─────────────────────────────╯
+                      Stage Timing                       
+╭─────────────────────────┬────────┬────────────────────╮
+│ Stage                   │   Time │ Bar                │
+├─────────────────────────┼────────┼────────────────────┤
+│ DiscoveryAndCacheWarmup │  227ms │ █                  │
+│ GenericExtraction       │  294ms │ ██                 │
+│ SignalSealing           │    2ms │                    │
+│ SpecificExtraction      │ 1564ms │ ███████████        │
+│ SemanticLite            │ 2485ms │ ██████████████████ │
+│ GraphAssembly           │  374ms │ ██                 │
+│ Insights                │   98ms │                    │
+│ Compression             │   23ms │                    │
+│ Snapshot                │   80ms │                    │
+│ Total                   │ 5405ms │                    │
+╰─────────────────────────┴────────┴────────────────────╯
+
+                                   Extractors                                   
+╭──────────────────────────┬────────┬────────┬───────┬─────────────────────────╮
+│ Name                     │   Time │ +Types │ +Dets │ Status                  │
+├──────────────────────────┼────────┼────────┼───────┼─────────────────────────┤
+│ CallGraphExtractor       │ 1366ms │      0 │     0 │ ran                     │
+│ SyntaxStructureExtractor │  285ms │    205 │    53 │ ran                     │
+│ ProgramCsFlowExtractor   │  283ms │      7 │    53 │ ran                     │
+│ DiRegistrationExtractor  │  269ms │      0 │    39 │ ran                     │
+│ EndpointExtractor        │  190ms │      0 │    81 │ ran                     │
+│ FileTreeExtractor        │  111ms │      0 │     0 │ ran                     │
+│ RazorPagesExtractor      │   75ms │      0 │    51 │ ran                     │
+│ EfCoreExtractor          │   73ms │      0 │    44 │ ran                     │
+│ SourceBodyExtractor      │   72ms │      0 │     0 │ ran                     │
+│ EventBusExtractor        │   72ms │      0 │    44 │ ran                     │
+│ BodyFactsExtractor       │   51ms │      0 │     0 │ ran                     │
+│ ProjectStructure         │   46ms │      0 │     0 │ ran                     │
+│ SolutionDiscovery        │   41ms │      0 │     0 │ ran                     │
+│ IndirectWiringDetector   │   36ms │      0 │    22 │ ran                     │
+│ InMemoryEventBusExtracto │   35ms │      0 │    22 │ ran                     │
+│ r                        │        │        │       │                         │
+│ RefitInterfaceExtractor  │   35ms │      0 │    22 │ ran                     │
+│ MediatRExtractor         │   32ms │      0 │    22 │ ran                     │
+│ GrpcClientExtractor      │   31ms │      0 │    19 │ ran                     │
+│ DependencyExtractor      │   30ms │      0 │     0 │ ran                     │
+│ GrpcServiceExtractor     │   28ms │      0 │    13 │ ran                     │
+│ LayerClassifier          │   13ms │      0 │     0 │ ran                     │
+│ AntiPatternDetector      │    0ms │      0 │     0 │ skipped: gated by       │
+│                          │        │        │       │ ShouldRun               │
+│ AspireExtractor          │    0ms │      0 │     0 │ skipped: signal gate:   │
+│                          │        │        │       │ needs aspire            │
+│ AwsLambdaExtractor       │    0ms │      0 │     0 │ skipped: signal gate:   │
+│                          │        │        │       │ needs aws-lambda        │
+│ AzureFunctionsExtractor  │    0ms │      0 │     0 │ skipped: signal gate:   │
+│                          │        │        │       │ needs azure-functions   │
+╰──────────────────────────┴────────┴────────┴───────┴─────────────────────────╯
+
+            Graph Seams            
+╭────────────────┬───────┬────────╮
+│ Seam           │ Edges │ Approx │
+├────────────────┼───────┼────────┤
+│ Calls          │   185 │     81 │
+│ Sends          │    33 │      0 │
+│ Handles        │    18 │      0 │
+│ Raises         │     4 │      0 │
+│ Consumes       │     5 │      0 │
+│ ReadsWrites    │    25 │     16 │
+│ Resolves       │    26 │      1 │
+│ WrappedBy      │    36 │      0 │
+│ EntityRelation │     1 │      1 │
+│ ServiceLink    │     6 │      3 │
+╰────────────────┴───────┴────────╯
+439 nodes · 339 edges · 33/34 entries → target
+cache 89% hit · 146 files · 11 projects
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ eshop-microservices.sln │
+│   Time   │          937ms          │
+│  Tokens  │   ~1802 (budget 8000)   │
+│ Version  │  v1.0.5-preview.0.295   │
+╰──────────┴─────────────────────────╯

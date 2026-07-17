@@ -185,9 +185,11 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
         var snapCache = new DevContext.Core.Analysis.SnapshotCacheService();
         var fromCache = false;
-        if (!settings.NoCache && snapCache.Exists(repoKey, versionKey))
+        // J2 — dry-run bypasses the cache read: a cached snapshot is a FULL analysis, and
+        // rendering it would answer a preview question with yesterday's real map.
+        if (!settings.NoCache && !settings.DryRun && snapCache.Exists(repoKey, versionKey))
         {
-            snapshot = await snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct);
+            snapshot = await snapCache.TryLoadAsync(repoKey, versionKey, ct);
             if (snapshot is not null)
             {
                 fromCache = true;
@@ -213,6 +215,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             Logger = _loggerFactory.CreateLogger("DevContext")
         };
 
+        DevContext.Core.Analysis.SnapshotSaveResult? saveResult = null;
         if (!fromCache)
         {
             await AnsiConsole.Status()
@@ -221,8 +224,11 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                     var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
                     snapshot = capturedSnapshot;
 
-                    // I8 — save snapshot to cache (write-behind after analysis)
-                    _ = snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
+                    // J2 — awaited save so the process can't exit mid-write; --no-cache bypasses
+                    // the write too so an experiment run can't poison the cache. Failures are
+                    // surfaced after the status block, never swallowed (and never fatal).
+                    if (!settings.NoCache && !capturedSnapshot.IsDryRun)
+                        saveResult = await snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
 
                     if (capturedSnapshot.IsDryRun)
                     {
@@ -233,13 +239,16 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
                     }
                 });
+            if (saveResult is { Success: false } && !settings.Quiet)
+                AnsiConsole.MarkupLine($"[yellow]snapshot cache save failed: {Markup.Escape(saveResult.Error ?? "unknown")}[/]");
         }
         else
         {
             // I8 — render from cached snapshot (no re-analysis needed)
             result = await Render(snapshot!, pipeline, settings, options, scenario, focusText, ct);
             var elapsed = sw.ElapsedMilliseconds;
-            var fromCacheStamp = $"  from cache · {versionKey[..Math.Min(7, versionKey.Length)]} · {elapsed}ms";
+            var analyzedAt = snapshot!.AnalyzedAtUtc is { } at ? $" · analyzed {at.ToLocalTime():yyyy-MM-dd HH:mm}" : "";
+            var fromCacheStamp = $"  from cache · {versionKey[..Math.Min(7, versionKey.Length)]}{analyzedAt} · {elapsed}ms";
             AnsiConsole.MarkupLine($"[dim]{fromCacheStamp}[/]");
         }
 
@@ -255,7 +264,21 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         if ((settings.Stats || settings.Metrics) && !settings.Quiet)
-            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default);
+        {
+            // J2 — honest hit/miss: say what the snapshot cache actually did this run.
+            var shortVer = versionKey[..Math.Min(7, versionKey.Length)];
+            var cacheLine = settings.NoCache
+                ? "bypassed (--no-cache)"
+                : fromCache
+                    ? $"HIT · {shortVer}"
+                    : saveResult switch
+                    {
+                        { Success: true } => $"miss · saved {shortVer}",
+                        { Success: false } => $"miss · save FAILED: {saveResult.Error}",
+                        _ => "miss · not saved",
+                    };
+            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default, cacheLine);
+        }
 
         if (!settings.Quiet)
             ShowSummary(sw, rootResult, options, result);
@@ -347,11 +370,15 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
     }
 
-    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default)
+    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default, string? snapshotCache = null)
     {
         if (report is null) return;
 
         AnsiConsole.WriteLine();
+
+        // J2 — snapshot cache honesty: hit/miss/save outcome for THIS run.
+        if (snapshotCache is not null)
+            AnsiConsole.MarkupLine($"[dim]Snapshot cache: {Markup.Escape(snapshotCache)}[/]");
 
         // Insights (per I3.3 — render first)
         if (insights is { IsDefaultOrEmpty: false })

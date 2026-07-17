@@ -32,7 +32,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                 var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
                 if (_snapCache.Exists(repoKey, versionKey))
                 {
-                    var cached = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct)
+                    var cached = await _snapCache.TryLoadAsync(repoKey, versionKey, ct)
                         .ConfigureAwait(false);
                     if (cached is not null)
                     {
@@ -66,7 +66,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath);
         if (_snapCache.Exists(repoKey2, versionKey2))
         {
-            var cached2 = await _snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey2, versionKey2, ct)
+            var cached2 = await _snapCache.TryLoadAsync(repoKey2, versionKey2, ct)
                 .ConfigureAwait(false);
             if (cached2 is not null)
             {
@@ -109,7 +109,12 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
 
         var snapshot = await host3.Pipeline.AnalyzeAsync(ctx, ct).ConfigureAwait(false);
 
-        _ = _snapCache.SaveAsync(repoKey2, versionKey2, snapshot, ct);
+        // J2 — awaited save (the fire-and-forget form could die with the request scope) with the
+        // failure surfaced in the server log instead of swallowed.
+        var saveResult = await _snapCache.SaveAsync(repoKey2, versionKey2, snapshot, ct).ConfigureAwait(false);
+        if (!saveResult.Success)
+            loggerFactory.CreateLogger<EngineRunner>().LogWarning(
+                "Snapshot cache save failed for {Root}: {Error}", rootResult2.EffectiveRootPath, saveResult.Error);
 
         sw.Stop();
 

@@ -1,0 +1,15 @@
+=== Fast tests (Category!=Eval&Category!=CliSmoke&Category!=McpQa) ===
+Passed!  - Failed:     0, Passed:   574, Skipped:     3, Total:   577, Duration: 4 s - DevContext.Core.Tests.dll (net10.0)
+Passed!  - Failed:     0, Passed:    15, Skipped:     0, Total:    15, Duration: 7 s - DevContext.Server.Tests.dll (net10.0)
+fast-tests-exit: 0
+=== McpQa (serial) ===
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 2 m 54 s - DevContext.Core.Tests.dll (net10.0)
+mcpqa-exit: 0
+=== loom-guards ===
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==
+loom-guards-exit: 0

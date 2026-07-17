@@ -42,6 +42,17 @@ table); octet relaunched on the fixed binaries came back **LENS-AUDIT: PASS 8/8*
 ScreenToGif `DesktopMvvm`, GitVersion `CliTool`. App check green over the regenerated proto
 bindings (lint + 49 vitest + build).
 
+last: 2026-07-17 **D2 session 1 (feat/prism-d2) — D2.0 + D2.0b both VERIFIED.** Ack: INBOX
+2026-07-17 standing orders (D1-scoped; no D2 entries — general discipline carried). D2.0: the
+uncommitted tier-knob code found at session open verified GREEN twice detached; run 1 exposed the
+unbalanced split → weight-hinted (`$slowFirst`) rebalance + the honest finding that "<5 min" is
+floor-limited (~6 min/2 hosts) while shamshir+dntsite ride — row has the numbers. D2.0b: J2 cache
+RESURRECTED (row has the full mechanism): `SnapshotPersistence` serializable subset, polymorphic
+detections, awaited saves ×3 sites with surfaced errors, dirty-fingerprint version keys (a working
+cache keyed on bare HEAD would have served stale maps — closed before it ever shipped), litter-free
+probes, honest stamp + stats hit/miss. Live: dogfood 8.1s→2.5s, sha-identical, HIT. Next: the
+proposal's C1/C2/C3 train (graph depth + self-health + insight validity) — read proposal §2-D2.
+
 # ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
@@ -222,6 +233,20 @@ radius; candidates for D2's self-health strand):**
   proof: **LENS-AUDIT: PASS (8 repos), `prism-d1/octet-dod-proof-2.txt`** — first run caught 2
   real MCP-surface FAILs, fixed as D1.5, rerun 8/8. (Full battery deferred to phase-end QA —
   operating model above.)
+
+## D2 — OPEN (feat/prism-d2, cut 2026-07-17 off 76f4029)
+
+Opens with the pipeline-speed adjustment (§⚡, owner directive), then the proposal's C1/C2/C3 train.
+
+### D2.0 — Cohort tier knob (harness)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D2.0 | `gates.ps1 -EvalTier quick`: Step 3 minus the 5 heavy repos (bitwarden-server, screentogif, wolverine, newtonsoft-json, stackexchange-redis), poles always ride, LOUD exclusion print, stamp NEVER written on quick green, verdict self-labels not-a-merge-gate (both split + `-SerialEval` paths) | VERIFIED | 9b94393 | TWO green runs, stamp deleted before + absent after both: `prism-d2/gates-d20-quick.txt` (exclusion print, `stamp NOT written` label, GATE: PASS) and `gates-d20-quick2.txt` (same, on the weight-balanced split). **Split rebalance rider:** run 1 exposed the alternating-alphabetical split stacking shamshir-pole+dntsite+dotnet-podcasts in one bucket (halves 3m56 vs **8m28**) — Step 3 now seeds a `$slowFirst` heaviest-first list (LPT-style round-robin, alternation starts at B since host A also carries the non-expectation eval classes) before the alternating fill. **Timing truth:** quick-tier SERIAL total ≈ 12.4 min, so ~6 min is the 2-HOST FLOOR while shamshir (pole, must ride) + dntsite ride — the §⚡ "<5 min" aspiration is not reachable by splitting alone; run 2's halves (10m53/7m41) were inflated by this session's own interactive load on the same box, not by the rebalance. The real lever is J2 (D2.0b) + reserving quick sweeps for checkpoints that need them |
+
+### D2.0b — J2 snapshot-cache resurrection (promoted from D3, §⚡)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D2.0b | J2: persisted serializable subset + awaited saves w/ surfaced errors + honest `from cache` stamp + hit/miss in stats + dirty-tree-safe version keys + litter-free probes | VERIFIED | (this) | prism-d2/j2-drive-*.{log,md} + 5 unit tests (`SnapshotCacheTests`) + cheap-gates-d20b.txt. **Root causes confirmed (all three from the scoping note):** the fire-and-forget `_ =` saves, the swallowed serialization failure (`AnalysisSnapshot` is NOT serializable: `SharedAnalysisContext` carries Roslyn syntax-node caches with parent-pointer cycles; `CodeGraph`/`CallGraph`/`ProjectDependencyGraph` are ctor-built classes; `Detection` is polymorphic), and the dir-littering `GetSnapshotPath`. **Mechanism:** `SnapshotPersistence` (Core/Analysis) defines `PersistedSnapshot` — the render-complete subset (Model flattened: bags→arrays, signals→list, per-type Tags as parallel map; Analysis subset: file lists + focus points + CallGraph/ProjectGraph/LayerMap as plain dicts; Graph as flat nodes+edges rebuilt through the `CodeGraph` ctor; Scenario/Report/Map/Entries/Insights/fingerprints as-is; NOT persisted by design: Options — every load site replaces it — and the syntax/body-facts caches). Detections round-trip via a reflection-registered `$dtype` discriminator (new detection types need no attribute; unknown discriminator = miss). Saves are AWAITED at all 3 sites (AnalyzeCommand, ReportCommand, EngineRunner), return `SnapshotSaveResult` — CLI prints a yellow warning, server logs; `--no-cache` now bypasses the WRITE too. Schema v2 (v1 never produced a file — no migration). **Dirty-tree honesty (found while fixing, not in the scoping note):** versionKey was bare `git rev-parse HEAD`, so a working cache would have served yesterday's map after any uncommitted edit; `ComputeKeys` now appends `-dirty-<16-hex>` = SHA-256 over `git status --porcelain -uall` paths + per-file mtime+length. **Proof:** analyze dogfood ×2 → `miss · saved 7e43d80` then `from cache · analyzed 21:49 · 829ms` + `Snapshot cache: HIT`, outputs sha256-IDENTICAL, wall 8.1s→2.5s; unit round-trip pins fresh-vs-rehydrated renders byte-identical in BOTH formats (markdown + json, run-local GeneratedAt normalized) on a real analyzed fixture |
 
 ## Baseline drift table (poles — must stay byte-identical through D1)
 

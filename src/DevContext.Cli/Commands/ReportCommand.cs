@@ -111,7 +111,7 @@ public sealed class ReportCommand : AsyncCommand<ReportSettings>
 
         if (!settings.NoCache && snapCache.Exists(repoKey, versionKey))
         {
-            snapshot = await snapCache.TryLoadAsync<AnalysisSnapshot>(repoKey, versionKey, ct);
+            snapshot = await snapCache.TryLoadAsync(repoKey, versionKey, ct);
             if (snapshot is not null)
             {
                 fromCache = true;
@@ -144,12 +144,16 @@ public sealed class ReportCommand : AsyncCommand<ReportSettings>
         // ── Analyze ──
         if (!fromCache)
         {
+            DevContext.Core.Analysis.SnapshotSaveResult? saveResult = null;
             await AnsiConsole.Status()
                 .StartAsync("Analyzing repo...", async _ =>
                 {
                     snapshot = await pipeline.AnalyzeAsync(ctx, ct);
-                    await snapCache.SaveAsync(repoKey, versionKey, snapshot, ct);
+                    if (!settings.NoCache)
+                        saveResult = await snapCache.SaveAsync(repoKey, versionKey, snapshot, ct);
                 });
+            if (saveResult is { Success: false })
+                AnsiConsole.MarkupLine($"[yellow]snapshot cache save failed: {Markup.Escape(saveResult.Error ?? "unknown")}[/]");
         }
 
         if (snapshot is null)
