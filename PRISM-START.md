@@ -29,6 +29,14 @@ Two commits: `d138f47` (D1.2ab + xunit) and the D1.2-fix2 commit below.
     prints skipped repos so a missing pole can't masquerade as coverage.
 next: **D1.2c** MapGroup prefixes → D1.2d queue seams → D1.2e branding → D1.2f target fidelity → D1.3
 → D1.4. Everything through D1.2b + both fixes is committed and green; this is a clean resume point.
+**⚠ MACHINE DISK FULL (2026-07-17 ~16:13): C: at 455 GB used / 0 free.** The per-piece validation is
+DONE and captured (fast suite 555/558; full 43-repo in-process eval green bar the one aspirational
+dogfood edge; dogfood 439/339/34 Microservices restored; shamshir pole green; loom-guards+truth PASS
+— all under `eval-results/2026-07-17/prism-d1/d1.2-fix2/`). What did NOT finish is the single unified
+`gates.ps1 -Scope engine` battery citation — it died mid-Step-3 because the disk hit 0 bytes (Steps
+0–2 passed; not a code failure). Free disk before next session and re-run `eval/gates.ps1 -Scope
+engine -SkipMcpQa` for the boundary citation. My session artifacts are <1 MB — the disk was already
+full before this session; do NOT delete eval-repos (the gitignored octet/cohort clones the eval needs).
 
 **D1.2c is scoped**: podcasts does `var shows = app.MapGroup("/shows"); shows.MapShowsApi();` in
 Program.cs while `ShowsApi.cs` does `group.MapGet("/", …)` on the RouteGroupBuilder parameter —
