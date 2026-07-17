@@ -2618,3 +2618,21 @@ were writing the user cache and would have flake-failed on cache hits). Proof: f
 renders byte-identical (md+json) on a real fixture; dogfood live 8.1s->2.5s sha-identical HIT;
 McpQa 12/12 over the rehydrated snapshot; fast 574+15 green; loom-guards+truth PASS.
 Next: C1 (.razor @code into call graph) - session closed at the checkpoint boundary.
+
+## 2026-07-17 - Prism D2 session 2: the graph-depth trio (C1+C2+C3)
+C1 (.razor @code -> call graph, e018072): RazorCodeVirtualizer extracts @code/@functions/@inject
+ONLY (markup never parsed - T-era invariant updated, not broken); component partial class in
+Blazor's true namespace (own @namespace > _Imports > RootNamespace+folders) so .razor.cs partials
+merge; _Imports @using ride in -> [verified] semantic edges; #line maps call sites to true razor
+lines. UiEntries link at lifecycle-member level. podcasts GET /discover -> PodcastService.GetShows
+(the audit's score-0 exemplar), trace reaches the service at DiscoverPage.razor:72; eShop /cart
+4 deep; dogfood byte-identical; DntSite perf A/B +~3%. Snapshot schema v3 rider. Quick-tier gate
+PASS incl. new BlazorSurface fixture.
+C2 (desktop member links, 76da490): RelayCommand -> exact member; Window/UserControl -> ctor +
+(object sender, ...EventArgs) members - signature IS the XAML wiring, no XAML parse. ScreenToGif
+ExportPanel: "traces to itself, 3 lines" -> depth 3+ (DoD met).
+C3 (GraphQuery rollup, c5798d4): Type-node queries roll members' cross-type edges into
+node/neighbors/usages/impact + resolver tiebreak, one locus for CLI/gRPC/MCP. podcasts
+PodcastService usages 0 -> 9 callers.
+Owner mid-session: delivery rate low -> cadence tightened (one targeted drive per checkpoint,
+sweeps at boundaries). Next: C5 (DI provenance ranking) -> J1/J3 -> I1/I2 -> D3-budget.

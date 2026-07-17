@@ -61,6 +61,20 @@ its streamed-progress assert on any unchanged-tree re-run). Working-tree leftove
 mind the T-era markup-as-C# perf trap: @code extraction only, never whole-file Razor parses).
 Then C2/C3/C5 → J1/J3 → I1/I2 → D3-budget, per the D2 spec.**
 
+last: 2026-07-17 **D2 session 2 — C1 + C2 + C3 all VERIFIED (rows above, commits e018072/76da490/c5798d4).**
+Ack: INBOX unchanged (D1-scoped standing orders; general discipline carried). Owner mid-session
+directive: **"rate of delivery has been low for this plan"** — cadence tightened from C2 on
+(implement → unit test → ONE targeted drive → commit; sweeps at boundaries only, per §⚡ rule 3 —
+C1 ran the one quick-tier gate: GATE: PASS 57+30 green incl. new blazor-surface fixture).
+The graph-depth trio is done: Blazor @code virtualized (markup never parsed, #line-honest,
+_Imports usings → [verified] edges), desktop entries member-linked, GraphQuery type rollups on
+every query surface. Riders: snapshot schema v2→v3 (engine change must not serve pre-C1 maps —
+bump discipline until J2 grows an engine-version key). Known-latent (noted in C1 row): http
+ServiceLink provenance-tied pair order flaps run-to-run (dogfood, pre-existing) — determinism
+rider for J1/J3. Session artifacts under `prism-d2/c1/` (incl. dntsite perf A/B 115.1→118.9s).
+**D2 SESSION 2 CLOSED — continue at C5 (DI provenance ranking: focus host first, `[×N hosts]`
+otherwise), then J1/J3 → I1/I2 → D3-budget per the D2 spec.**
+
 # ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
