@@ -28,18 +28,21 @@ Two commits: `d138f47` (D1.2ab + xunit) and the D1.2-fix2 commit below.
     hole that hid both**: dogfood + shamshir are now eval expectation files, and `gates.ps1` Step 3
     prints skipped repos so a missing pole can't masquerade as coverage.
 next: **D1.2c** MapGroup prefixes → D1.2d queue seams → D1.2e branding → D1.2f target fidelity → D1.3
-→ D1.4. **D1.2c is scoped** (below). Everything through D1.2b + both fixes is committed and green;
-this is a clean resume point.
+→ D1.4. Everything through D1.2b + both fixes is committed and green; this is a clean resume point.
+
 **D1.2c is scoped**: podcasts does `var shows = app.MapGroup("/shows"); shows.MapShowsApi();` in
 Program.cs while `ShowsApi.cs` does `group.MapGet("/", …)` on the RouteGroupBuilder parameter —
 `EndpointExtractor.ExtractGroupPrefixes` already resolves group vars, but only WITHIN one file /
 extension-method body, so the prefix never crosses the call boundary and every route renders bare
 `GET /`. The fix is composing the caller's prefix into the callee extension method.
-**LESSON (why the eval must run before a row is marked VERIFIED):** the cheap gates (build + fast
-tests + loom-guards) are blind to archetype regressions — the whole-cohort eval is the only thing
-that caught xunit, and D1.1c shipped 4 checkpoints ago with it red. Run
-`--filter "FullyQualifiedName~EvalExpectationTests&Category=Eval"` (~10 min, detached) at every
-checkpoint that touches archetype/signal/evidence, not just the repos you think you changed.
+
+**LESSON (why the eval + poles must run before a row is marked VERIFIED):** the cheap gates (build +
+fast tests + loom-guards) are BLIND to archetype/style regressions. The whole-cohort eval is the only
+thing that caught xunit; nothing at all caught the dogfood pole for 4 checkpoints until a manual pole
+re-check. Both are now closed: run `--filter "FullyQualifiedName~EvalExpectationTests&Category=Eval"`
+(~10 min, detached, 43 repos incl. the two poles) at every checkpoint that touches
+archetype/signal/evidence — not just the repos you think you changed — and read the SKIPPED-repos
+list gates.ps1 Step 3 now prints (a skipped pole = a hole in the verdict).
 gotchas (standing, carried from Tapestry): fast-suite "load-flake" **RESOLVED at D1.1a**: it is
 `McpQaGateTests.McpQaHarness_Passes_Against_Dogfood` losing its known shared-state race when run
 INSIDE the parallel suite — gates.ps1 Step 2 already excludes it (`Category!=Eval&Category!=
