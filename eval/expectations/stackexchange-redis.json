@@ -1,0 +1,11 @@
+{
+  "repo": "eval-repos/StackExchange.Redis",
+  "checks": [
+    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "aspirational", "note": "Prism A2: toys/ hosts are aux, not the product — client library must read Library. Audit 2026-07-17: read App." },
+    { "id": "library-header", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "aspirational", "note": "Prism A2/A5: library surface render." },
+    { "id": "no-minimalapi-style", "type": "output-not-contains", "format": "markdown", "value": "MinimalApi", "status": "aspirational", "note": "Prism A2: style MinimalApi came from toys/ hosts; for a Library the style is suppressed." },
+    { "id": "no-holder-projects", "type": "output-not-contains", "format": "markdown", "value": ".github", "status": "aspirational", "note": "Prism E2: .github/docs/docker holder csproj must not render as topology nodes." },
+    { "id": "no-test-path-topology", "type": "output-not-contains", "format": "markdown", "value": "RedisConfigs", "status": "aspirational", "note": "Prism E2: topology must apply the test-path filter (RedisConfigs lives under tests/)." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected", "note": "Audit 2026-07-17: 30s CLI wall." }
+  ]
+}

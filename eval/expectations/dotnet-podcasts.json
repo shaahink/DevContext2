@@ -1,0 +1,17 @@
+{
+  "repo": "eval-repos/dotnet-podcasts",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Audit 2026-07-17: correctly App. Ratchet." },
+    { "id": "style-cleanarchitecture", "type": "json-equals", "path": "$.architecture.style", "value": "CleanArchitecture", "status": "expected", "note": "Audit 2026-07-17: correct (DDD layers). Ratchet." },
+    { "id": "hub-entry", "type": "entry-kind-present", "value": "SignalRHubDetection", "format": "SignalR", "status": "aspirational", "note": "Prism B1: MapHub<ListenTogetherHub>('/listentogether') at ListenTogether.Hub/Program.cs:19 with NO package ref (SignalR is in the shared framework) — must fire package-free." },
+    { "id": "maui-present", "type": "output-contains", "format": "markdown", "value": "MAUI", "status": "aspirational", "note": "Prism B2: two MAUI apps (UseMaui property, SDK-provided) — need catalog descriptor + UseMaui/TFM probe; audit read them Unknown with 0 entries." },
+    { "id": "grouped-route-shows", "type": "output-contains", "format": "markdown", "value": "GET /shows", "status": "aspirational", "note": "Prism B3: MapGroup('/shows') prefix must compose into routes (Program.cs:153-156)." },
+    { "id": "grouped-route-feeds", "type": "output-contains", "format": "markdown", "value": "POST /feeds", "status": "aspirational", "note": "Prism B3: MapGroup('/feeds') prefix composition." },
+    { "id": "no-bare-slash-routes", "type": "output-not-contains", "format": "markdown", "value": "GET /  →", "status": "aspirational", "note": "Prism B3/DoD: zero bare-/ grouped routes (audit had 5 indistinguishable 'GET /' rows)." },
+    { "id": "no-mediatr-branding", "type": "output-not-contains", "format": "markdown", "value": "MediatR", "status": "aspirational", "note": "Prism B6: zero MediatR references in this repo — hand-rolled IRequestHandler must brand as 'CQRS (hand-rolled)', not 'MediatR (CQRS)'." },
+    { "id": "cqrs-hand-rolled", "type": "output-contains", "format": "markdown", "value": "CQRS (hand-rolled", "status": "aspirational", "note": "Prism B6: honest branding label." },
+    { "id": "no-interface-target", "type": "output-not-contains", "format": "markdown", "value": "→ IFeedClient", "status": "aspirational", "note": "Prism C6: PUT /{id} attributed to an interface as target." },
+    { "id": "no-misattributed-target", "type": "output-not-contains", "format": "markdown", "value": "ShowClient.CheckLink", "status": "aspirational", "note": "Prism C6: GET / (ShowsApi.cs:13 = GetAllShows) misattributed to ShowClient.CheckLink." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected", "note": "Audit 2026-07-17: 8s CLI wall." }
+  ]
+}

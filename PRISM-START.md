@@ -12,11 +12,14 @@ docs commits) — the audit evidence rides into develop with the D1 merge.
 
 ## Handoff (running)
 
-last: 2026-07-17 **D1 session 1 running.** Ack: INBOX 2026-07-17 standing orders (work order
-D1.0→D1.4, cheap gates per checkpoint, no full battery mid-delivery, octet run once at close).
-D1.0a VERIFIED — octet copied from scratchpad to `eval-repos/<name>`, 8/8 HEADs match pins,
-`eval/README.md` §Octet written (rows + re-clone recipe).
-next: D1.0b aspirational expectation rows → D1.0c lens-audit.ps1 → D1.0d bare-catch ban → D1.1.
+last: 2026-07-17 **D1 session 1 running.** Ack: INBOX 2026-07-17 standing orders. **D1.0 harness
+COMPLETE (a–d all VERIFIED)**: octet homed+pinned; 8 expectation files (expected rows green today,
+aspirational rows = the D1 flip contract); lens-audit.ps1 harness live (PASS+FAIL smoke proven);
+bare-catch ban armed (30 grandfathered, new ones fail the gate). Load-flake named (see gotchas);
+recurring gotcha: orphaned DevContext.Server after test runs locks build DLLs — sweep with
+`start-dev-bg.ps1 -Kill` before builds.
+next: D1.1a transitive aux-exe refs → D1.1b noise rungs → D1.1c self-name audit → D1.1d CliTool
+→ D1.1e render backstop → D1.2 → D1.3 → D1.4.
 gotchas (standing, carried from Tapestry): fast-suite load-flake **NAME CAPTURED at D1.0a**:
 `McpQaGateTests.McpQaHarness_Passes_Against_Dogfood` — spawned QA harness emits banner only (no
 "QA Score:") right after dotnet churn; green in isolation (`fast-tests-d1.0a*.txt`). Truth-gate
@@ -84,10 +87,10 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 ### D1.0 — Harness first (it gates everything)
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.0a | Octet SHAs pinned in `eval/README.md` + stable clone home | VERIFIED | (D1.0a commit) | prism-d1/d1.0a-octet-home.txt — 8/8 SHAs match pins |
-| D1.0b | Aspirational expectation rows for intended verdicts (table above) | TODO | | |
-| D1.0c | `eval/lens-audit.ps1 <repo\|octet>`: timed analyze → captures → MCP drive → FAIL probes (map-tokens ≪ repo size; Unknown+0-entries; sample rows in per-service; wall-time vs baseline) | TODO | | |
-| D1.0d | Bare-`catch` ban in `scripts/loom-guards.ps1` (Core; existing swallows grandfathered until D2) | TODO | | |
+| D1.0a | Octet SHAs pinned in `eval/README.md` + stable clone home | VERIFIED | c19e42e | prism-d1/d1.0a-octet-home.txt — 8/8 SHAs match pins |
+| D1.0b | Aspirational expectation rows for intended verdicts (table above) | VERIFIED | (D1.0b commit) | prism-d1/d1.0b-octet-expectations-validation.txt — 8 new expectation files, in-process eval 8/8 green (expected rows pass today incl. bitwarden <480s; aspirational rows = the D1 contract) |
+| D1.0c | `eval/lens-audit.ps1 <repo\|octet>`: timed analyze → captures → MCP drive → FAIL probes (map-tokens ≪ repo size; Unknown+0-entries; sample rows in per-service; wall-time vs baseline) | VERIFIED | (D1.0c commit) | prism-d1/lens-run-smoke/ — podcasts PASS (wall 7.9s, MCP drive PASS incl. 23-entry inventory); GitVersion FAIL(2) = P2 archetype + P3 unknown-zero fire as designed (17.6s/484 tokens ≈ audit 18s/485) |
+| D1.0d | Bare-`catch` ban in `scripts/loom-guards.ps1` (Core; existing swallows grandfathered until D2) | VERIFIED | (D1.0d commit) | census 30 swallows (16 empty + 14 comment-only) / 11 files grandfathered as per-file MAX; negative test fired (+1 scratch bare catch → BANNED, exit 1); clean run PASS |
 
 ### D1.1 — Archetype & render honesty (A1–A5, E2)
 | # | Checkpoint | Status | Commit | Evidence |
