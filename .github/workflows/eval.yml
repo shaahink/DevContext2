@@ -41,8 +41,9 @@ jobs:
           foreach ($name in $pins.Keys) {
             $dir = "eval-repos/$name"
             Write-Host "Cloning $name @ $($pins[$name].sha)"
+            # Fetch by URL — `git init` creates no `origin` remote (first-run failure 29547329892).
             git init -q $dir
-            git -C $dir fetch -q --depth 1 origin $pins[$name].sha
+            git -C $dir fetch -q --depth 1 $($pins[$name].url) $($pins[$name].sha)
             git -C $dir checkout -q FETCH_HEAD
             if ($LASTEXITCODE -ne 0) { throw "clone failed: $name" }
           }
