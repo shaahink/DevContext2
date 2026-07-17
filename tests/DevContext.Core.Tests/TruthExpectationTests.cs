@@ -39,7 +39,7 @@ public sealed class TruthExpectationTests
     /// BasketCheckoutEventHandler (Ordering consumer) → CreateOrder… depth ≥ 5.
     /// Today: depth-1, Sends edge mis-anchored on a DTO lambda. Fix: L2.4.
     /// </summary>
-    [Fact]
+    [SkippableFact] // plain [Fact] made Skip.IfNot FAIL (not skip) on dogfood-less machines — first CI run caught it
     public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
     {
         var repoPath = DogfoodPath();
