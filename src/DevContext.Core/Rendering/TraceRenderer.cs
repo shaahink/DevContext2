@@ -116,6 +116,11 @@ public static class TraceRenderer
         if (step.MultiImplCount > 1)
             sb.Append($" [×{step.MultiImplCount} impls]");
 
+        // C5 — N hosts register this binding and none of them is the focus host: the cited site is
+        // the deterministic first, not "the" registration.
+        if (step.DiHostCount > 1)
+            sb.Append($" [×{step.DiHostCount} hosts]");
+
         // T2.1 — the binding comes only from a test project (last-resort, not the production wiring).
         if (step.TestOnly)
             sb.Append(" [test-only registration]");

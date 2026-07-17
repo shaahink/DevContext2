@@ -450,6 +450,72 @@ public sealed class GraphBuilderTests
     }
 
     [Fact]
+    public void C5_multi_host_di_binding_cites_the_focus_hosts_own_registration()
+    {
+        // bitwarden: Api's trace resolved CurrentContext to bitwarden_license/src/Sso/Startup.cs:46 —
+        // an arbitrary (bag-order) pick among N hosts' registrations. All sites must ride the one edge
+        // deterministically; the trace cites the focus host's own site, or "[×N hosts]" when it has none.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Api", @"C:\repo\src\Api\Api.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Sso", @"C:\repo\bitwarden_license\src\Sso\Sso.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Notifications", @"C:\repo\src\Notifications\Notifications.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Core", @"C:\repo\src\Core\Core.csproj", "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("Core.ICurrentContext", new TypeDiscovery
+        {
+            Id = "Core.ICurrentContext", Name = "ICurrentContext", Namespace = "Core",
+            FilePath = @"C:\repo\src\Core\ICurrentContext.cs", Kind = TypeKind.Interface,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+        });
+        model.Types.TryAdd("Core.CurrentContext", new TypeDiscovery
+        {
+            Id = "Core.CurrentContext", Name = "CurrentContext", Namespace = "Core",
+            FilePath = @"C:\repo\src\Core\CurrentContext.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Infrastructure,
+            ImplementedInterfaces = ["ICurrentContext"],
+        });
+        // Same binding registered by TWO hosts. The Sso site sorts FIRST ordinally (bitwarden_license < src),
+        // reproducing the audit's wrong cite if determinism alone were the fix.
+        model.Detections.Add(new DiRegistrationDetection("ICurrentContext", "CurrentContext", "Scoped", [], DiRegistrationShape.DirectBinding)
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\bitwarden_license\src\Sso\Startup.cs", LineNumber = 46,
+        });
+        model.Detections.Add(new DiRegistrationDetection("ICurrentContext", "CurrentContext", "Scoped", [], DiRegistrationShape.DirectBinding)
+        {
+            ExtractorName = "test", SourceFile = @"C:\repo\src\Api\Startup.cs", LineNumber = 120,
+        });
+
+        var scope = SolutionScope.FromModel(model);
+        var (graph, _) = new GraphBuilder(
+                new SyntacticSymbolResolver(),
+                new NoiseFilter(new ProjectClassifier(model.Projects)))
+            .Build(model, scope);
+
+        var resolves = Assert.Single(graph.AllEdges, e => e.Kind == EdgeKind.Resolves);
+        Assert.Equal(2, resolves.RegistrationSites.Length);
+        Assert.Equal(@"C:\repo\bitwarden_license\src\Sso\Startup.cs:46", resolves.Provenance); // deterministic first
+        Assert.Equal(["Sso", "Api"], resolves.RegistrationProjects.ToArray());
+
+        // Focus host Api: its OWN registration is cited, no host-count annotation.
+        var apiTrace = new TraceBuilder(graph).Build(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /accounts", resolves.From) { Project = "Api" });
+        var apiStep = Assert.Single(apiTrace.Root.Children, s => s.Seam == SeamKind.Resolve);
+        Assert.Equal(@"C:\repo\src\Api\Startup.cs:120", apiStep.Provenance);
+        Assert.Equal(0, apiStep.DiHostCount);
+
+        // Focus host Notifications registers nothing: deterministic first + honest "[×2 hosts]".
+        var foreignTrace = new TraceBuilder(graph).Build(
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /hub", resolves.From) { Project = "Notifications" });
+        var foreignStep = Assert.Single(foreignTrace.Root.Children, s => s.Seam == SeamKind.Resolve);
+        Assert.Equal(@"C:\repo\bitwarden_license\src\Sso\Startup.cs:46", foreignStep.Provenance);
+        Assert.Equal(2, foreignStep.DiHostCount);
+    }
+
+    [Fact]
     public void B1_aggregate_nodes_tagged()
     {
         var model = new DiscoveryModel

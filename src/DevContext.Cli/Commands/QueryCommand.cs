@@ -280,6 +280,12 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         resolution = step.Resolution.ToString(),
         filePath = step.Node.FilePath,
         lineNumber = step.Node.LineNumber,
+        // C5 — the JSON surface carries the same honesty annotations the text render shows:
+        // the site that led here, multi-impl/multi-host counts, and the test-only flag.
+        provenance = step.Provenance,
+        multiImplCount = step.MultiImplCount > 1 ? step.MultiImplCount : (int?)null,
+        diHostCount = step.DiHostCount > 1 ? step.DiHostCount : (int?)null,
+        testOnly = step.TestOnly ? true : (bool?)null,
         truncated = step.Truncated,
         omitted = step.Omitted > 0 ? step.Omitted : (int?)null,
         children = step.Children.Select(SerializeStep).ToArray(),

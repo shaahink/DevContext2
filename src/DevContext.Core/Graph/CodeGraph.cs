@@ -162,6 +162,14 @@ public sealed record GraphEdge(
     /// <summary>When >1, how many DI implementations exist for this Resolves edge's service type
     /// (I1.6 multi-impl honesty). Zero otherwise.</summary>
     public int MultiImplCount { get; init; }
+    /// <summary>All "file:line" registration sites when this Resolves binding is registered from more
+    /// than one place (C5: N hosts each wiring the same service→impl). <see cref="Provenance"/> holds the
+    /// deterministic first; the trace prefers the focus host's own site at walk time. Empty for
+    /// single-site bindings and non-DI edges.</summary>
+    public ImmutableArray<string> RegistrationSites { get; init; } = [];
+    /// <summary>Owning project name per <see cref="RegistrationSites"/> entry (parallel array, "" when
+    /// unresolvable) — how the trace matches a site to its focus host exactly instead of by path guess.</summary>
+    public ImmutableArray<string> RegistrationProjects { get; init; } = [];
 }
 
 /// <summary>Immutable, queryable graph. Construct via <see cref="CodeGraphBuilder"/>.</summary>

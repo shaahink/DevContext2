@@ -17,8 +17,10 @@ public static class SnapshotSchema
     /// produced a valid file (the save always threw and was swallowed), so no migration exists.
     /// v3 (C1, Prism D2): razor @code virtualization changed analysis output for Blazor repos —
     /// a v2 snapshot of an UNCHANGED repo would render the pre-C1 map. Discipline until J2 grows an
-    /// engine-version key: bump this whenever a change alters persisted analysis semantics.</summary>
-    public const int Version = 3;
+    /// engine-version key: bump this whenever a change alters persisted analysis semantics.
+    /// v4 (C5, Prism D2): Resolves edges carry RegistrationSites — a v3 snapshot would trace with
+    /// pre-C5 arbitrary DI provenance.</summary>
+    public const int Version = 4;
 }
 
 /// <summary>Outcome of a snapshot save. The save is best-effort but NEVER silent (J2): a failure

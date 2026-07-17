@@ -32,6 +32,10 @@ public sealed record TraceStep(
     /// <summary>When >0, how many DI implementations exist for this Resolves step's service type
     /// (I1.6 multi-impl honesty).</summary>
     public int MultiImplCount { get; init; }
+    /// <summary>When >1, this Resolves step's service is registered by that many hosts and NONE of them
+    /// is the focus host — the cited provenance is the deterministic first, annotated "[×N hosts]" (C5).
+    /// Zero when single-site or when the focus host's own registration was found and cited.</summary>
+    public int DiHostCount { get; init; }
     /// <summary>This Resolves step's binding comes only from a test project — a last-resort wiring
     /// rendered "[test-only registration]" so it is not mistaken for the production binding (T2.1).</summary>
     public bool TestOnly { get; init; }
@@ -74,6 +78,7 @@ public sealed class TraceBuilder
     private readonly Dictionary<NodeId, List<NodeId>> _bridgeMembersByType;
     private NodeId? _entryRootNodeId;
     private EntryPointKind _entryKind;
+    private string? _entryProject;
 
     /// <summary>Creates a trace builder over a graph.</summary>
     public TraceBuilder(CodeGraph graph)
@@ -135,6 +140,8 @@ public sealed class TraceBuilder
         // Store entry context for PublicApi all-member bridge (W3).
         _entryRootNodeId = rootNode.Id;
         _entryKind = entry.Kind;
+        // C5: the focus host is the entry's owning project — the anchor for multi-host DI ranking.
+        _entryProject = entry.Project;
 
         var root = Walk(rootNode, SeamKind.Entry, entry.Provenance, Resolution.Join, 0, opts, follow, visited);
         var touched = new List<string>();
@@ -294,6 +301,26 @@ public sealed class TraceBuilder
         return null;
     }
 
+    /// <summary>C5: picks which registration site a multi-host Resolves edge cites. When the focus host
+    /// (the entry's owning project) has its own registration, cite that site plainly — it is THE wiring
+    /// for this trace. Otherwise cite the deterministic first and carry the host count so the render says
+    /// "[×N hosts]" instead of presenting one host's arbitrary site as the truth.</summary>
+    private (string? Provenance, int HostCount) RankDiProvenance(GraphEdge edge)
+    {
+        if (edge.RegistrationSites.Length <= 1) return (edge.Provenance, 0);
+        if (_entryProject is { Length: > 0 } host)
+        {
+            for (var i = 0; i < edge.RegistrationSites.Length; i++)
+            {
+                if (i < edge.RegistrationProjects.Length
+                    && string.Equals(edge.RegistrationProjects[i], host, StringComparison.Ordinal))
+                    return (edge.RegistrationSites[i], 0);
+            }
+        }
+        var hosts = edge.RegistrationProjects.Where(p => p.Length > 0).Distinct(StringComparer.Ordinal).Count();
+        return (edge.Provenance, Math.Max(hosts, 2));
+    }
+
     private TraceStep Walk(GraphNode node, SeamKind seam, string? provenance, Resolution resolution,
         int depth, TraceOptions opts, HashSet<EdgeKind> follow, HashSet<NodeId> visited,
         int multiImplCount = 0)
@@ -341,6 +368,10 @@ public sealed class TraceBuilder
             var child = _graph.Node(edge.To);
             if (child is null) continue;
 
+            // C5: multi-host DI bindings cite the focus host's own registration when it has one;
+            // otherwise the deterministic first, annotated with the host count.
+            var (edgeProvenance, diHostCount) = RankDiProvenance(edge);
+
             // The snippet shows what THIS step (the callee) actually is — its own signature + opening
             // body lines — not the caller's call site (E3). The old code took lines from the FROM
             // node's body around the provenance line, which (a) is the wrong node's code entirely, and
@@ -366,19 +397,26 @@ public sealed class TraceBuilder
             {
                 children.Add(new TraceStep(child, ToSeam(edge.Kind), depth + 1)
                 {
-                    Provenance = edge.Provenance,
+                    Provenance = edgeProvenance,
                     Resolution = edge.Resolution,
                     Salient = salient,
                     Pipeline = pipeline,
                     MultiImplCount = edge.MultiImplCount,
                     TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi),
+                    DiHostCount = diHostCount,
                 });
                 continue;
             }
 
-            children.Add(Walk(child, ToSeam(edge.Kind), edge.Provenance, edge.Resolution,
+            children.Add(Walk(child, ToSeam(edge.Kind), edgeProvenance, edge.Resolution,
                 depth + 1, opts, follow, visited, edge.MultiImplCount)
-                with { Salient = salient, Pipeline = pipeline, TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi) });
+                with
+                {
+                    Salient = salient,
+                    Pipeline = pipeline,
+                    TestOnly = edge.Tags.Contains(RoleTags.TestOnlyDi),
+                    DiHostCount = diHostCount,
+                });
         }
 
         return new TraceStep(node, seam, depth)
