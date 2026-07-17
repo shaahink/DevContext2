@@ -2585,3 +2585,18 @@ renders 9 words while the observer streams a full waterfall; Studio lacks live p
 canvases are semantic-free force soup. proposal-prism.md rewritten P0–P10: adds insight-validity
 harness (P0.3), silent-failure amnesty (P3.5-6), living waterfall + cache resurrection (P5),
 visual intelligence (P6), Studio/nav core loops (P7).
+
+## 2026-07-17 - Prism D1 DELIVERY CLOSED (feat/prism-d1, sessions 1-4)
+
+**Archetype honesty delivered: octet DoD proof LENS-AUDIT: PASS 8/8**
+(eval-results/2026-07-17/prism-d1/octet-dod-proof-2.txt). D1.1-D1.4 (sessions 1-3): library/CLI
+archetype flips ratcheted, MapGroup prefix composition (zero bare grouped routes), queue seams as
+[approx] channel edges, per-service style rungs (bitwarden 17/17 -> 1/16 Unknown, ScreenToGif
+DesktopMvvm), hand-rolled-CQRS branding, typed-client targets, hygiene riders; close cohort sweep
+44/44 GREEN x2. D1.5 (session 4): the first octet proof caught 2 REAL MCP-surface FAILs - the MCP
+map tool dropped MapResponse.markdown (a 1400-node library read as a ~60-token dead map over MCP)
+and overview headlined libraries by their test consoles. Fixed (map emits rendered markdown +
+solutionName; additive proto solution_name; Library headline = product + hosts line), Server test
+pinned, octet rerun 8/8. Poles byte-identical throughout (two sanctioned documented eShop text
+deltas). Next: feat/prism-d2 opens with the pipeline-speed adjustment (D2.0 cohort tier knob,
+D2.0b J2 cache resurrection promoted from D3), then the C1/C2/C3 train (tracker section-speed).

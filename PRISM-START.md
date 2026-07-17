@@ -36,9 +36,13 @@ D1.2c fixed; the podcasts expectation row now pins the composed route + true tar
 with **2 REAL FAILs** — Newtonsoft.Json + SE.Redis `mcp-drive: map is trivial (~60 tokens)`. Root
 cause was an MCP-surface fidelity gap, not a harness quirk: the MCP `map` tool dropped
 `MapResponse.markdown` (field 1!) and rendered only style+topology, so a 1400-node library read as
-a ~60-token dead map over MCP while the CLI rendered 2000+. Fixed as **D1.5** (see table), octet
-relaunched on the fixed binaries. If 8/8 green: tick the DoD list, write `D1 DELIVERY CLOSED`,
-cut `feat/prism-d2`. If a repo FAILs: it's a real D1 gap — fix on feat/prism-d1 first.
+a ~60-token dead map over MCP while the CLI rendered 2000+. Fixed as **D1.5 @ `4d0f837`** (see
+table); octet relaunched on the fixed binaries came back **LENS-AUDIT: PASS 8/8**
+(`prism-d1/octet-dod-proof-2.txt`) — bitwarden 205.5s (cap 522s), all archetypes intended,
+ScreenToGif `DesktopMvvm`, GitVersion `CliTool`. App check green over the regenerated proto
+bindings (lint + 49 vitest + build).
+
+# ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
 adjust it properly for the long plan"). Measured this session and ENCODED for D2:
@@ -205,13 +209,19 @@ radius; candidates for D2's self-health strand):**
 | D1.5a | MCP `map` returns the rendered map, not a topology stub | VERIFIED | (this) | Octet DoD proof FAILed Newtonsoft + SE.Redis on `mcp-drive: map is trivial (~60 tokens)`: the tool serialized style/archetype/topology and DROPPED `MapResponse.markdown` — the server renders the full map per request and it dies at the MCP boundary. Tool now emits `markdown` + `solutionName` alongside the structured fields. Live re-drive: Newtonsoft map ~60→**~2535 tok**, SE.Redis ~77→**~2136 tok**, both repos LENS-AUDIT PASS |
 | D1.5b | `overview` names the product, not its test console | VERIFIED | (this) | `Library: Newtonsoft.Json.TestConsole` / `Library: ConsoleTestBaseline` — the headline joined ServiceMap runnables (a library's are its test/sample hosts) onto the archetype. Additive proto `MapResponse.solution_name` (from `Model.Solution.Name`, same truth as the CLI's `LIBRARY` header); library headline now `Library: <product>` + demoted `hosts:` line; non-library headline unchanged. Server test pins `SolutionName == "ControllerApp"`; live: `Library: Newtonsoft.Json` / `hosts: Newtonsoft.Json.TestConsole`, `Library: StackExchange.Redis` / `hosts: ConsoleTestBaseline` |
 
-### D1 Definition of Done (from proposal §2)
-- Octet expectation rows for archetype/style/entries flip aspirational→expected.
-- Newtonsoft / SE.Redis / GitVersion / wolverine render real lenses.
-- podcasts hub + MAUI present; bitwarden per-service ≤2/17 Unknown; zero bare-`/` grouped routes.
-- MediatR-class repos + Tapestry poles byte-identical.
-- Per-commit cheap gates green throughout; `eval/lens-audit.ps1 octet` run at close as the DoD
-  proof. (Full battery deferred to phase-end QA — operating model above.)
+### D1 Definition of Done (from proposal §2) — ALL TICKED at close, session 4
+- ✅ Octet expectation rows for archetype/style/entries flip aspirational→expected (ratchets
+  flipped at D1.4a `373b1b5`; enforced by close sweep 44/44 ×2).
+- ✅ Newtonsoft / SE.Redis / GitVersion / wolverine render real lenses (octet-dod-proof-2.txt:
+  2355/1955/438/6293 map tokens, all archetypes intended).
+- ✅ podcasts hub + MAUI present; bitwarden per-service 1/16 Unknown (≤2/17 required); zero
+  bare-`/` grouped routes (D1.2c).
+- ✅ MediatR-class repos + Tapestry poles byte-identical (two sanctioned, documented eShop text
+  deltas — see Baseline drift table).
+- ✅ Per-commit cheap gates green throughout; `eval/lens-audit.ps1 octet` run at close as the DoD
+  proof: **LENS-AUDIT: PASS (8 repos), `prism-d1/octet-dod-proof-2.txt`** — first run caught 2
+  real MCP-surface FAILs, fixed as D1.5, rerun 8/8. (Full battery deferred to phase-end QA —
+  operating model above.)
 
 ## Baseline drift table (poles — must stay byte-identical through D1)
 
