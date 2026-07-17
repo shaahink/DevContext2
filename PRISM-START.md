@@ -12,10 +12,11 @@ docs commits) — the audit evidence rides into develop with the D1 merge.
 
 ## Handoff (running)
 
-last: 2026-07-17 **D1 session OPENED.** Tracker created; `feat/prism-d1` cut from `audit/library-round`
-tip `f28790d`; stale github-ready worktree pruned (fully merged, clean); octet SHAs recovered from the
-audit scratchpad and pinned below; QA-back baseline battery launched detached
-(`eval-results/2026-07-17/prism-d1/gates-d1-open-baseline.txt`).
+last: 2026-07-17 **D1 delivery session LAUNCHED (orchestrated).** Tracker created; `feat/prism-d1`
+cut from `audit/library-round` tip `f28790d`; github-ready worktree pruned; octet SHAs pinned below;
+baseline battery **GATE: PASS** on the D1 tip (`prism-d1/gates-d1-open-baseline.txt`, eval re-ran
+full 10m36s∥4m15s, fresh stamp written). Operating model revised (owner call): orchestrated visible
+sessions, QA deferred to phase end, stacked branch train, single merge.
 next: D1 work — harness first (D1.0), then archetype/render honesty (D1.1), entry surfaces (D1.2),
 per-service style rungs (D1.3), hygiene riders (D1.4).
 gotchas (standing, carried from Tapestry): fast-suite load-flake (1 fail right after dotnet churn,
@@ -24,15 +25,29 @@ scripts (keep battery scripts ASCII); dogfood PRE-EXISTING mods stand — never 
 build/test in a worktree while its battery runs; rebuild the CLI after any Core edit;
 absolute CLI paths only.
 
-## QA cadence (recap — authority is proposal §1)
+## Operating model (REVISED 2026-07-17 at D1 open — supersedes proposal §1 QA cadence, owner call)
 
-- **Session open (QA-back):** re-run octet harness + affected poles against the PREVIOUS delivery's
-  merge; fix regressions before new work. First 30–60 min, every session.
-- **Session close (QA-forward):** detached full battery + octet harness on the delivery tip; merge
-  to develop only on `GATE: PASS` + the delivery's DoD. develop stays green after every delivery.
+- **Orchestrated phase.** An orchestrator session spawns one visible Claude Code session per
+  delivery (models per proposal §1 table), watches via tracker/git/evidence (never transcripts),
+  and closes sessions when their delivery is done. **Channel discipline: the orchestrator writes
+  `PRISM-INBOX.md` ONLY; delivery sessions write this tracker + code.** Delivery sessions re-read
+  `PRISM-INBOX.md` at every checkpoint boundary and treat its entries as orchestrator instructions.
+- **QA deferred to phase end (owner call).** NO per-delivery full battery, NO octet re-runs, NO
+  QA-back between deliveries. Per-commit cheap gates REMAIN mandatory: `dotnet build` 0w/0e +
+  fast tests (`--filter "Category!=Eval"`) + `scripts/loom-guards.ps1`. One massive phase-end QA
+  (D5): full battery + octet harness + insight-validity + poles drift diff + clean-clone.
+  Exception: a delivery whose DoD *is* an octet claim (D1) runs `eval/lens-audit.ps1 octet` once
+  at its close as the DoD proof.
+- **Branch train, single merge.** `feat/prism-d1 → d2 → d3 → d4 → d5` stacked (each off the
+  previous tip, like Tapestry T4–T8). ONE merge to develop after phase-end QA passes, with owner
+  sign-off. develop is not touched mid-phase.
+- **When a session's context runs low:** finish the current checkpoint, update the handoff block
+  (`D<n> SESSION <k> CLOSED — continue at D<n>.<x>`), commit, stop. The orchestrator chains a
+  fresh session from tracker state. When a delivery's checkpoints are all VERIFIED: write
+  `D<n> DELIVERY CLOSED` in the handoff, commit, stop.
 - Evidence per delivery under `eval-results/<date>/prism-d<n>/`. Truth ratchets only tighten;
   Tapestry poles byte-identical unless a DoD says otherwise; **no new bare `catch` in Core**
-  (loom-guards ban lands in D1.0). Model-per-session table: proposal §1.
+  (loom-guards ban lands in D1.0).
 
 ## The octet (pinned)
 
@@ -112,7 +127,8 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 - Newtonsoft / SE.Redis / GitVersion / wolverine render real lenses.
 - podcasts hub + MAUI present; bitwarden per-service ≤2/17 Unknown; zero bare-`/` grouped routes.
 - MediatR-class repos + Tapestry poles byte-identical.
-- Full battery `GATE: PASS`.
+- Per-commit cheap gates green throughout; `eval/lens-audit.ps1 octet` run at close as the DoD
+  proof. (Full battery deferred to phase-end QA — operating model above.)
 
 ## Baseline drift table (poles — must stay byte-identical through D1)
 
