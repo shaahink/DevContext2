@@ -1,0 +1,15 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\lens-run-smoke\dotnet-podca
+sts\map.md
+analyzed 192 files · 310 nodes · 175 edges · 23 entries · 11/23 →target · ~1263 
+tokens · 5.2s stage2 ×3.0 stage3 ×1.4
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ NetPodcast.Services.sln │
+│   Time   │         5689ms          │
+│  Tokens  │   ~1263 (budget 8000)   │
+│ Version  │  v1.0.5-preview.0.271   │
+╰──────────┴─────────────────────────╯

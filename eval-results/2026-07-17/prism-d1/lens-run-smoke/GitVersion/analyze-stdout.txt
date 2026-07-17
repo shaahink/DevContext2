@@ -1,0 +1,15 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\prism-d1\lens-run-smoke\GitVersion\m
+ap.md
+analyzed 657 files · 1217 nodes · 965 edges · 0 entries · ~483 tokens · 16.2s 
+stage2 ×3.0 stage3 ×2.0
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   DevContext.slnx    │
+│   Time   │       16666ms        │
+│  Tokens  │  ~483 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.271 │
+╰──────────┴──────────────────────╯
