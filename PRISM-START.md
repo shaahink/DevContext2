@@ -261,6 +261,11 @@ Opens with the pipeline-speed adjustment (§⚡, owner directive), then the prop
 |---|-----------|--------|--------|----------|
 | C2 | Desktop UiEntries link at MEMBER level: RelayCommand → its exact command member; Window/UserControl → ctor + event-handler-shaped members (`(object sender, …EventArgs e)` — the signature IS the XAML wiring convention, no XAML parse); type-node link kept only as no-evidence fallback | VERIFIED | (this) | prism-d2/c1/stg-trace-exportpanel.txt — ScreenToGif `ExportPanel` was the audit's "traces to itself, 3 lines"; now `ENTRY → ctor + Panel_Loaded + TypeComboBox_SelectionChanged… → LoadPresets → GeneratePresets/PersistPresets` (depth 3+, DoD "≥ depth 2" met), wall 22.1s (stg-map.md). Desktop-affected in-proc evals green (desktop-app, communitytoolkit, compositionapp, maui-surface, eshop — 8/8); fast suite 587+15; loom-guards PASS. eShop ClientApp `[RelayCommand]` targets may deepen from owning-type to real collaborators — expected text delta class, hand-diffed at the next boundary sweep |
 
+### D2.C3 — Type-node degree rollups (audit C3, conductor-DEBT SymbolTable member indexing)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| C3 | `GraphQuery` member rollup: on a Type node, `node`/`neighbors`/`usages`/`impact` + the resolver's most-connected tiebreak include the members' CROSS-TYPE edges (intra-type helper wiring stays internal); EdgeRefs keep true member endpoints so the answer names WHICH member collaborates. One locus — CLI query, gRPC server, and MCP tools all route through GraphQuery | VERIFIED | (this) | Live: `query usages --focus PodcastService` on podcasts 0 → **9 callers** (DiscoverPage.OnInitializedAsync/FetchShows, CategoryPage, Landing.OnGet…) — the audit's exact "impact up = 0 while IS the target of GET /landing" exemplar; unit test pins ResolveNodeId→Type, InDegree>0, FindUsages non-empty, Impact-Up contains the caller; fast suite 587+15 green, loom-guards PASS. (DoD "MCP impact/usages/neighbors non-empty on connected types" — surface-level MCP drive rides the phase-end octet, same GraphQuery locus) |
+
 ### D2.0b — J2 snapshot-cache resurrection (promoted from D3, §⚡)
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|

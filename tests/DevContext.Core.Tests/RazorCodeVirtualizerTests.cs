@@ -283,5 +283,17 @@ public sealed class RazorCodeVirtualizerTests
         Assert.Contains("OnInitializedAsync", entry.HandlerNode!.Value.Key);
         Assert.Equal("PodcastService.GetShows", entry.Target);
         Assert.True(entry.Reach > 0, $"UI entry reach must be > 0, was {entry.Reach}");
+
+        // C3: type-node degree rollup — the SERVICE type must be reachable as a query target even
+        // though its edges hang off member nodes (the audit's "impact up = 0 on PodcastService").
+        var query = new GraphQuery(graph, entries);
+        var serviceId = query.ResolveNodeId("PodcastService");
+        Assert.NotNull(serviceId);
+        Assert.Equal(NodeKind.Type, serviceId!.Value.Kind);
+        var detail = query.Node(serviceId.Value)!;
+        Assert.True(detail.InDegree > 0, "connected type must not read in-degree 0");
+        Assert.NotEmpty(query.FindUsages(serviceId.Value));
+        var up = query.Impact(serviceId.Value, ImpactDirection.Up);
+        Assert.Contains(up, r => r.Title.Contains("OnInitializedAsync") || r.Title.Contains("/discover"));
     }
 }

@@ -37,6 +37,7 @@ public sealed class GraphQuery
     private readonly CodeGraph _graph;
     private readonly ImmutableArray<EntryPoint> _entries;
     private readonly MapModel? _map;
+    private readonly Lazy<Dictionary<NodeId, List<NodeId>>> _membersByType;
 
     /// <summary>Creates a query over the queryable parts of an analysis (from an AnalysisSnapshot).</summary>
     public GraphQuery(CodeGraph graph, ImmutableArray<EntryPoint> entries, MapModel? map = null)
@@ -44,6 +45,63 @@ public sealed class GraphQuery
         _graph = graph;
         _entries = entries.IsDefault ? [] : entries;
         _map = map;
+        _membersByType = new Lazy<Dictionary<NodeId, List<NodeId>>>(BuildMemberIndex);
+    }
+
+    /// <summary>C3 (Prism D2): Type → member NodeIds — the rollup index. Member↔Type degree lives
+    /// fragmented (member→member Calls hang off Member nodes while the Type node reads 0 in/0 out),
+    /// so every degree-shaped query on a connected type dead-ended (audit: PodcastService impact
+    /// up = 0 while it IS the target of GET /landing).</summary>
+    private Dictionary<NodeId, List<NodeId>> BuildMemberIndex()
+    {
+        var map = new Dictionary<NodeId, List<NodeId>>();
+        foreach (var n in _graph.Nodes)
+        {
+            if (n.Id.Kind != NodeKind.Member) continue;
+            var dot = n.Id.Key.LastIndexOf('.');
+            if (dot <= 0) continue;
+            var typeId = NodeId.ForType(n.Id.Key[..dot]);
+            if (!map.TryGetValue(typeId, out var list)) map[typeId] = list = [];
+            list.Add(n.Id);
+        }
+        return map;
+    }
+
+    /// <summary>"TypeFqn.Member" → "TypeFqn"; a Type/Entry key passes through.</summary>
+    private static string OwnerTypeKey(NodeId id)
+    {
+        if (id.Kind != NodeKind.Member) return id.Key;
+        var dot = id.Key.LastIndexOf('.');
+        return dot > 0 ? id.Key[..dot] : id.Key;
+    }
+
+    /// <summary>C3 — a node's edges in one direction, ROLLED UP for Type nodes: the type's own edges
+    /// plus its members' CROSS-TYPE edges (intra-type member→member wiring stays internal — a type's
+    /// neighbors are its collaborators, not its private helpers). De-duplicated by (From, To, Kind).
+    /// Non-Type nodes return their direct edges unchanged.</summary>
+    private ImmutableArray<GraphEdge> RolledEdges(NodeId id, EdgeDirection direction, EdgeKind? kind = null)
+    {
+        var direct = direction == EdgeDirection.Out ? _graph.OutEdges(id, kind) : _graph.InEdges(id, kind);
+        if (id.Kind != NodeKind.Type || !_membersByType.Value.TryGetValue(id, out var members))
+            return direct;
+
+        var b = ImmutableArray.CreateBuilder<GraphEdge>();
+        var seen = new HashSet<(NodeId, NodeId, EdgeKind)>();
+        foreach (var e in direct)
+        {
+            if (seen.Add((e.From, e.To, e.Kind))) b.Add(e);
+        }
+        foreach (var m in members)
+        {
+            var edges = direction == EdgeDirection.Out ? _graph.OutEdges(m, kind) : _graph.InEdges(m, kind);
+            foreach (var e in edges)
+            {
+                var other = direction == EdgeDirection.Out ? e.To : e.From;
+                if (string.Equals(OwnerTypeKey(other), id.Key, StringComparison.Ordinal)) continue;
+                if (seen.Add((e.From, e.To, e.Kind))) b.Add(e);
+            }
+        }
+        return b.ToImmutable();
     }
 
     /// <summary>The underlying graph (for callers that still need direct access during the transition).</summary>
@@ -80,15 +138,18 @@ public sealed class GraphQuery
     {
         var n = _graph.Node(id);
         if (n is null) return null;
+        // C3: Type-node degrees include the members' cross-type edges — a connected type never reads 0/0.
         return new NodeDetail(n.Id, n.Title, n.Kind, n.Tags, n.FilePath,
-            _graph.OutEdges(id).Length, _graph.InEdges(id).Length, n.LineNumber);
+            RolledEdges(id, EdgeDirection.Out).Length, RolledEdges(id, EdgeDirection.In).Length, n.LineNumber);
     }
 
     /// <summary>neighbors(id, direction) — the edges out of (callees) or into (callers) a node, as
-    /// navigation results. Optionally filtered by seam kind.</summary>
+    /// navigation results. Optionally filtered by seam kind. C3: on a Type node the members' cross-type
+    /// edges roll up, and each EdgeRef keeps the true member endpoints — the answer shows WHICH member
+    /// carries the collaboration.</summary>
     public ImmutableArray<EdgeRef> Neighbors(NodeId id, EdgeDirection direction, EdgeKind? kind = null)
     {
-        var edges = direction == EdgeDirection.Out ? _graph.OutEdges(id, kind) : _graph.InEdges(id, kind);
+        var edges = RolledEdges(id, direction, kind);
         var b = ImmutableArray.CreateBuilder<EdgeRef>(edges.Length);
         foreach (var e in edges)
         {
@@ -136,9 +197,11 @@ public sealed class GraphQuery
             if (n.Kind is not (NodeKind.Type or NodeKind.EntryPoint)) continue;
             if (!string.Equals(n.Title, s, StringComparison.OrdinalIgnoreCase)
                 && !n.Id.Key.EndsWith("." + s, StringComparison.OrdinalIgnoreCase)) continue;
+            // C3: rolled degree — the resolver must prefer the type that is actually connected
+            // (through its members), not whichever bare Type node happens to carry a stray edge.
             if (best is null
-                || _graph.OutEdges(n.Id).Length + _graph.InEdges(n.Id).Length
-                   > _graph.OutEdges(best.Id).Length + _graph.InEdges(best.Id).Length)
+                || RolledEdges(n.Id, EdgeDirection.Out).Length + RolledEdges(n.Id, EdgeDirection.In).Length
+                   > RolledEdges(best.Id, EdgeDirection.Out).Length + RolledEdges(best.Id, EdgeDirection.In).Length)
                 best = n;
         }
         return best?.Id;
@@ -393,16 +456,18 @@ public sealed class GraphQuery
                     title, kind, dist, current, filePath, lineNumber, service));
             }
 
+            // C3: rolled edges — impact seeded on (or passing through) a Type node expands through
+            // its members' cross-type edges instead of dead-ending on the bare type.
             if (direction == ImpactDirection.Up || direction == ImpactDirection.Both)
             {
-                foreach (var edge in _graph.InEdges(current))
+                foreach (var edge in RolledEdges(current, EdgeDirection.In))
                     if (!visited.Contains(edge.From))
                         queue.Enqueue((edge.From, dist + 1));
             }
 
             if (direction == ImpactDirection.Down || direction == ImpactDirection.Both)
             {
-                foreach (var edge in _graph.OutEdges(current))
+                foreach (var edge in RolledEdges(current, EdgeDirection.Out))
                     if (!visited.Contains(edge.To))
                         queue.Enqueue((edge.To, dist + 1));
             }
