@@ -1,0 +1,297 @@
+﻿Slicing from ExportPanel, call graph on.
+Analyzing project...
+
+TRACE  ExportPanel
+       ScreenToGif/UserControls/ExportPanel.xaml.cs:42
+       ScreenToGif
+▸ ENTRY  ExportPanel  (ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   (22 more branches omitted beyond fan-out)
+   ├─ call ExportPanel.ExportPanel  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      public ExportPanel()
+   │      InitializeComponent();
+   │      #region Initialize timers
+   │  └─ call ExportPanel.InitializeComponent  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:165) [approx]
+   ├─ call ExportPanel.Panel_Loaded  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void Panel_Loaded(object sender, RoutedEventArgs e)
+   │      PresetComboBox.Focus();
+   │      //If a default file type was not selected, it picks 'Gif' as default.
+   │  ├─ call ExportPanel.AdjustPresentation  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:959) [verified]
+   │  │      private void AdjustPresentation(ExportFormats type)
+   │  │      foreach (var item in EncoderComboBox.Items.OfType<GenericItem>())
+   │  │      item.IsEnabled = false;
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:960) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     ├─ call ExportPanel.GeneratePresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:341) [verified]
+   │     │      private IEnumerable<ExportPreset> GeneratePresets(ExportFormats 
+type, ICollection<ExportPreset> presets)
+   │     │      switch (type)
+   │     │      //Animated images.
+   │     │  └─ call ExportPanel.AddDistinct  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:402) [verified]
+   │     │         private void AddDistinct(ICollection<ExportPreset> current, 
+IEnumerable<IExportPreset> newList)
+   │     │         foreach (var preset in newList.Where(preset => 
+current.Where(w => w.Type == preset.Type).All(a => a.TitleKey != 
+preset.TitleKey)))
+   │     │         current.Add((ExportPreset)preset);
+   │     ├─ call LocalizationHelper.Get  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:348) [verified]
+   │     │      public static string Get(string key, bool removeNewLines = 
+false)
+   │     │      if (removeNewLines)
+   │     │      return (Application.Current.TryFindResource(key) as string ?? 
+"").Replace("\n", " ").Replace("\\n", " ").Replace("\r", " ").Replace("&#10;", "
+").Replace("&#x0d;", " ");
+   │     └─ call ExportPanel.PersistPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:355) [verified]
+   │            private static void PersistPresets(IEnumerable<ExportPreset> 
+typeList, ExportFormats type)
+   │            var list = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type != 
+type).ToList() ?? [];
+   │            list.AddRange(typeList);
+   ├─ call ExportPanel.TypeComboBox_SelectionChanged  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void TypeComboBox_SelectionChanged(object sender, 
+SelectionChangedEventArgs e)
+   │      if (!IsLoaded)
+   │      return;
+   │  ├─ call ExportPanel.AdjustPresentation  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:971) [verified]
+   │  │      private void AdjustPresentation(ExportFormats type)
+   │  │      foreach (var item in EncoderComboBox.Items.OfType<GenericItem>())
+   │  │      item.IsEnabled = false;
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:972) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     (stopped at depth 2; 3 branches omitted)
+   ├─ call ExportPanel.PresetComboBox_SelectionChanged  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void PresetComboBox_SelectionChanged(object sender, 
+SelectionChangedEventArgs e)
+   │      if (PresetComboBox.SelectedItem is not ExportPreset selected)
+   │      return;
+   │  ├─ call ExportPanel.SetPresetAsLastSelected  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:987) [verified]
+   │  │      private void SetPresetAsLastSelected(ExportPreset preset)
+   │  │      if (preset == null)
+   │  │      return;
+   │  │  └─ call ExportPanel.PersistPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:527) [verified]
+   │  │         private static void PersistPresets(IEnumerable<ExportPreset> 
+typeList, ExportFormats type)
+   │  │         var list = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type != 
+type).ToList() ?? [];
+   │  │         list.AddRange(typeList);
+   │  ├─ call ExportPanel.SyncPath  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:988) [verified]
+   │  │      private void SyncPath()
+   │  │      if (CurrentPreset == null || !UserSettings.All.SyncPathFolder)
+   │  │      return;
+   │  ├─ call ExportPanel.AdjustCodecs  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:999) [verified]
+   │  │      private void AdjustCodecs(ExportPreset preset)
+   │  │      if (preset is not VideoPreset videoPreset)
+   │  │      return;
+   │  ├─ call ExportPanel.AdjustAvifCodecs  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1000) [verified]
+   │  │      private void AdjustAvifCodecs(ExportPreset preset)
+   │  │      if (preset is not FfmpegAvifPreset avifPreset)
+   │  │      return;
+   │  ├─ call ExportPreset.ShallowCopy  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1003) [verified]
+   │  │      public ExportPreset ShallowCopy()
+   │  │      return (ExportPreset) MemberwiseClone();
+   │  │  └─ call ExportPreset.MemberwiseClone  
+(ScreenToGif.ViewModel/ExportPresets/ExportPreset.cs:415) [approx]
+   │  └─ call ExportPanel.LoadUploadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1013) [verified]
+   │         private void LoadUploadPresets(ExportPreset preset, UploadPreset 
+uploadPreset = null)
+   │         var type = (preset.Extension ?? preset.DefaultExtension) == ".zip" 
+? ExportFormats.Zip : preset.Type;
+   │         var list = 
+UserSettings.All.UploadPresets?.OfType<UploadPreset>().Where(w => 
+w.AllowedTypes.Count == 0 || w.AllowedTypes.Contains(type)).ToList() ?? new 
+List<UploadPreset>();
+   ├─ call ExportPanel.AddPreset_Click  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void AddPreset_Click(object sender, RoutedEventArgs e)
+   │      var add = new Preset
+   │      Current = PresetComboBox.SelectedItem as ExportPreset,
+   │  ├─ call Preset.ShowDialog  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1119) [verified]
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1125) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     (stopped at depth 2; 3 branches omitted)
+   ├─ call ExportPanel.SavePreset_Click  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void SavePreset_Click(object sender, RoutedEventArgs e)
+   │      if (CurrentPreset == null)
+   │      return;
+   │  └─ call UserSettings.OfType  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1133) [approx]
+   ├─ call ExportPanel.EditPreset_Click  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void EditPreset_Click(object sender, RoutedEventArgs e)
+   │      var edit = new Preset
+   │      Current = PresetComboBox.SelectedItem as ExportPreset
+   │  ├─ call Preset.ShowDialog  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1151) [verified]
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1157) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     (stopped at depth 2; 3 branches omitted)
+   ├─ call ExportPanel.RemovePreset_Click  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void RemovePreset_Click(object sender, RoutedEventArgs e)
+   │      //TODO: Let the user remove default presets (just not the main default
+for the type). Add a way to restore removed presets.
+   │      //Ask if the user really wants to remove the preset.
+   │  ├─ call Dialog.Ask  (ScreenToGif/UserControls/ExportPanel.xaml.cs:1165) 
+[verified]
+   │  │      public static bool Ask(string title, string instruction, string 
+observation, bool yesAsDefault = true, Icons icon = Icons.Question)
+   │  │      var dialog = new Dialog();
+   │  │      dialog.PrepareAsk(title, instruction, observation.Replace(@"\n", 
+Environment.NewLine).Replace(@"\r", ""), yesAsDefault, icon);
+   │  │  ├─ call Dialog.PrepareAsk  
+(ScreenToGif/Windows/Other/Dialog.xaml.cs:147) [verified]
+   │  │  │      private void PrepareAsk(string title, string instruction, string
+observation, bool yesAsDefault, Icons icon)
+   │  │  │      CancelButton.Visibility = Visibility.Collapsed;
+   │  │  │      OkButton.Visibility = Visibility.Collapsed;
+   │  │  │  └─ call Dialog.GetIcon  
+(ScreenToGif/Windows/Other/Dialog.xaml.cs:77) [verified]
+   │  │  │         private Brush GetIcon(Icons icon)
+   │  │  │         switch (icon)
+   │  │  │         case Icons.Error:
+   │  │  │     └─ call Dialog.FindResource  
+(ScreenToGif/Windows/Other/Dialog.xaml.cs:23) [approx]
+   │  │  └─ call Dialog.ShowDialog  
+(ScreenToGif/Windows/Other/Dialog.xaml.cs:148) [verified]
+   │  ├─ call LocalizationHelper.Get  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1165) [verified]
+   │  │      public static string Get(string key, bool removeNewLines = false)
+   │  │      if (removeNewLines)
+   │  │      return (Application.Current.TryFindResource(key) as string ?? 
+"").Replace("\n", " ").Replace("\\n", " ").Replace("\r", " ").Replace("&#10;", "
+").Replace("&#x0d;", " ");
+   │  ├─ call UserSettings.Remove  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1170) [approx]
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1171) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     (stopped at depth 2; 3 branches omitted)
+   ├─ call ExportPanel.ResetPreset_Click  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void ResetPreset_Click(object sender, RoutedEventArgs e)
+   │      //Ask if the user really wants to reset the preset to its default 
+settings.
+   │      if (PresetComboBox.SelectedItem is not ExportPreset preset || 
+!Dialog.Ask(LocalizationHelper.Get("S.SaveAs.Presets.Ask.Reset.Title"), 
+LocalizationHelper.Get("S.SaveAs.Presets.Ask.Reset.Instruction"),
+   │  ├─ call Dialog.Ask  (ScreenToGif/UserControls/ExportPanel.xaml.cs:1177) 
+[verified]
+   │  │      public static bool Ask(string title, string instruction, string 
+observation, bool yesAsDefault = true, Icons icon = Icons.Question)
+   │  │      var dialog = new Dialog();
+   │  │      dialog.PrepareAsk(title, instruction, observation.Replace(@"\n", 
+Environment.NewLine).Replace(@"\r", ""), yesAsDefault, icon);
+   │  │  (stopped at depth 2; 2 branches omitted)
+   │  ├─ call LocalizationHelper.Get  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1177) [verified]
+   │  │      public static string Get(string key, bool removeNewLines = false)
+   │  │      if (removeNewLines)
+   │  │      return (Application.Current.TryFindResource(key) as string ?? 
+"").Replace("\n", " ").Replace("\\n", " ").Replace("\r", " ").Replace("&#10;", "
+").Replace("&#x0d;", " ");
+   │  ├─ call ExportPanel.GeneratePresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1181) [verified]
+   │  │      private IEnumerable<ExportPreset> GeneratePresets(ExportFormats 
+type, ICollection<ExportPreset> presets)
+   │  │      switch (type)
+   │  │      //Animated images.
+   │  │  (stopped at depth 2; 1 branch omitted)
+   │  ├─ call UserSettings.Remove  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1186) [approx]
+   │  ├─ call UserSettings.Add  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1187) [approx]
+   │  └─ call ExportPanel.LoadPresets  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:1188) [verified]
+   │         private void LoadPresets(ExportFormats type, ExportPreset toLoad = 
+null, bool firstLoad = false)
+   │         //Get all presets of given type. It's possible that there's none 
+available.
+   │         var search = 
+UserSettings.All.ExportPresets?.OfType<ExportPreset>().Where(w => w.Type == 
+type) ?? new List<ExportPreset>();
+   │     (stopped at depth 2; 3 branches omitted)
+   ├─ call ExportPanel.EncoderComboBox_SelectionChanged  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void EncoderComboBox_SelectionChanged(object sender, 
+SelectionChangedEventArgs e)
+   │      if (!IsLoaded || EncoderGrid.Children.Cast<UIElement>().All(a => 
+a.Visibility == Visibility.Collapsed))
+   │      return;
+   ├─ call ExportPanel.QuantizerComboBox_SelectionChanged  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+   │      private void QuantizerComboBox_SelectionChanged(object sender, 
+SelectionChangedEventArgs e)
+   │      if (!IsLoaded)
+   │      return;
+   └─ call ExportPanel.EnableTransparencyCheckBox_CheckedChanged  
+(ScreenToGif/UserControls/ExportPanel.xaml.cs:42)
+          private void EnableTransparencyCheckBox_CheckedChanged(object sender, 
+RoutedEventArgs e)
+          if (!IsLoaded || CurrentPreset is not EmbeddedGifPreset preset)
+          return;
+
+analyzed 648 files · 1088 nodes · 523 edges · 35 entries · 35/35 →target · depth
+5 · ~3602 tokens · 18.4s stage2 ×2.8 stage3 ×1.2
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   GifRecorder.sln    │
+│   Time   │       20471ms        │
+│  Tokens  │ ~3602 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.300 │
+╰──────────┴──────────────────────╯
