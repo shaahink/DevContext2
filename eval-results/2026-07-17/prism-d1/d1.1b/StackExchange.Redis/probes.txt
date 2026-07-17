@@ -1,0 +1,2 @@
+﻿run: 2026-07-17 05:56:43
+StackExchange.Redis  wall=29s  tokens=1955  cs=561  archetype=Library/Library  style=MinimalApi  => PASS

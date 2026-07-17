@@ -1,0 +1,2 @@
+﻿GitVersion  wall=21.7s  tokens=459  cs=663  archetype=App/CliTool  style=Unknown  => FAIL (2)
+LENS-AUDIT: FAIL (2)

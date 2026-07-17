@@ -72,8 +72,12 @@ public static class ArchetypeDetector
             return DetectAppSubtype(model, entries);
 
         var classifier = new ProjectClassifier(model.Projects);
+        // D1.1b: holder csproj (NoTargets/Traversal SDKs) and build-tooling exes (Cake/Nuke/Bullseye)
+        // are not archetype evidence — SE.Redis's root Traversal Build.csproj is an "Exe" that
+        // references no library and blocked the Library verdict.
         var nonTest = model.Projects
             .Where(p => !classifier.IsInTestProject(p.FilePath))
+            .Where(p => !ProjectClassifier.IsHolderProject(p) && !classifier.IsBuildTooling(p))
             .Where(p => model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(p.FilePath))
             .ToList();
         if (nonTest.Count == 0)

@@ -37,6 +37,87 @@ public sealed class TopologyNoiseTests
     }
 
     [Fact]
+    public void ProjectClassifier_excludes_holders_build_tooling_and_toys()
+    {
+        // D1.1b (audit A2/A3/E2) — the StackExchange.Redis + GitVersion shapes:
+        // NoTargets/Traversal SDK holders, Cake/Nuke build exes, and toys/ aux hosts
+        // are never production, so they leave topology, per-service rows, and archetype evidence.
+        var holderHub = new ProjectInfo(".github", @"C:\repo\.github\.github.csproj",
+            "C#", ["net6.0"], [], [], Sdk: "Microsoft.Build.NoTargets/3.3.0");
+        var traversal = new ProjectInfo("Build", @"C:\repo\Build.csproj",
+            "C#", [], [], [], OutputType: "Exe", Sdk: "Microsoft.Build.Traversal/3.0.2");
+        var cakeBuild = new ProjectInfo("docker", @"C:\repo\build\docker\docker.csproj",
+            "C#", ["net10.0"], [], [Pkg("Cake.Http"), Pkg("Cake.Json")], OutputType: "Exe");
+        var nukeBuild = new ProjectInfo("build", @"C:\repo\build\build.csproj",
+            "C#", ["net10.0"], [], [Pkg("Nuke.Common")], OutputType: "Exe");
+        var toyHost = new ProjectInfo("KestrelRedisServer", @"C:\repo\toys\KestrelRedisServer\KestrelRedisServer.csproj",
+            "C#", ["net10.0"], [], [], OutputType: "Exe");
+
+        Assert.True(ProjectClassifier.IsHolderProject(holderHub));
+        Assert.True(ProjectClassifier.IsHolderProject(traversal));
+        Assert.True(ProjectClassifier.IsBuildToolingProject(cakeBuild));
+        Assert.True(ProjectClassifier.IsBuildToolingProject(nukeBuild));
+        Assert.True(ProjectClassifier.IsSamplePath(toyHost.FilePath));
+        Assert.False(ProjectClassifier.IsProductionProject(holderHub));
+        Assert.False(ProjectClassifier.IsProductionProject(traversal));
+        Assert.False(ProjectClassifier.IsProductionProject(cakeBuild));
+        Assert.False(ProjectClassifier.IsProductionProject(nukeBuild));
+        Assert.False(ProjectClassifier.IsProductionProject(toyHost));
+        // toys stay production in a samples-only repo (SamplesAreTheProduct waiver), holders never do.
+        Assert.True(ProjectClassifier.IsProductionProject(toyHost, samplesAreTheProduct: true));
+        Assert.False(ProjectClassifier.IsProductionProject(holderHub, samplesAreTheProduct: true));
+    }
+
+    [Fact]
+    public void BuildTooling_closes_over_project_references()
+    {
+        // GitVersion shape: artifacts/publish/release are Cake Frosting exes that reference only
+        // build/common — the project that holds the Cake packages. The closure must catch them.
+        var common = new ProjectInfo("common", @"C:\repo\build\common\common.csproj",
+            "C#", ["net10.0"], [], [Pkg("Cake.Coverlet")]);
+        var artifacts = new ProjectInfo("artifacts", @"C:\repo\build\artifacts\artifacts.csproj",
+            "C#", ["net10.0"], [@"..\common\common.csproj"], [], OutputType: "Exe");
+        var app = Prod("GitVersion.App");
+        var classifier = new ProjectClassifier([common, artifacts, app]);
+
+        Assert.True(classifier.IsBuildTooling(common));
+        Assert.True(classifier.IsBuildTooling(artifacts));   // via the reference, no direct marker
+        Assert.False(classifier.IsBuildTooling(app));
+        Assert.False(classifier.IsProduction(artifacts, samplesAreTheProduct: false));
+        Assert.True(classifier.IsProduction(app, samplesAreTheProduct: false));
+    }
+
+    [Fact]
+    public void Archetype_library_when_only_blockers_are_holders_and_build_tooling()
+    {
+        // SE.Redis shape: the lib + toys/ exes + a root Traversal Build.csproj "Exe". Before D1.1b the
+        // Traversal exe (no lib reference) blocked the Library verdict.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("StackExchange.Redis", @"C:\repo\src\StackExchange.Redis\StackExchange.Redis.csproj",
+                    "C#", ["net10.0"], [], [], IsPackable: true),
+                new ProjectInfo("Build", @"C:\repo\Build.csproj",
+                    "C#", [], [], [], OutputType: "Exe", Sdk: "Microsoft.Build.Traversal/3.0.2"),
+                new ProjectInfo("TestConsole", @"C:\repo\toys\TestConsole\TestConsole.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: "Exe"),
+            ],
+        };
+        model.Types.TryAdd("StackExchange.Redis.ConnectionMultiplexer",
+            PublicTypeAt("StackExchange.Redis.ConnectionMultiplexer", @"C:\repo\src\StackExchange.Redis\ConnectionMultiplexer.cs"));
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
+    }
+
+    private static TypeDiscovery PublicTypeAt(string id, string file) => new()
+    {
+        Id = id, Name = id, Namespace = "Lib", FilePath = file,
+        Kind = TypeKind.Class, Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
+        Layer = ArchitectureLayer.Application,
+    };
+
+    [Fact]
     public void MostDepended_names_the_library_not_its_samples()
     {
         // MediatR-shaped: the library, a sample that references it, and several consumers referencing BOTH.

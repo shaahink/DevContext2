@@ -419,6 +419,10 @@ public sealed class ArchitectureStyleDetector
         foreach (var proj in model.Projects)
         {
             if (!IsRunnableService(proj)) continue;
+            // D1.1b (E2/A3): holder csproj and build-tooling exes never get per-service rows —
+            // GitVersion's Cake build tree rendered as seven "Unknown" services.
+            if (Graph.ProjectClassifier.IsHolderProject(proj)
+                || projectClassifier.IsBuildTooling(proj)) continue;
             // T1.4 — the Aspire AppHost is a runnable orchestrator; surface it (before the infra skip that
             // otherwise hides ".apphost") so the constellation's conductor isn't dropped to "no services".
             if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase))

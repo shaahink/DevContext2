@@ -1,10 +1,44 @@
 {
   "repo": "eval-repos/GitVersion",
   "checks": [
-    { "id": "archetype-clitool", "type": "json-equals", "path": "$.archetype", "value": "CliTool", "status": "aspirational", "note": "Prism A3/B4: Exe + no web surfaces + PackAsTool/parser evidence => Archetype.CliTool (new value, lands D1.1d). Audit 2026-07-17: read App with 0 entries." },
-    { "id": "cli-entries", "type": "entry-kind-present", "value": "EndpointDetection", "format": "CLI", "status": "aspirational", "note": "Prism A3/B4: plain Main() must become an entry; CLI detection must not be package-gated on Spectre/System.CommandLine. Audit: 0 entries, empty map." },
-    { "id": "no-msbuild-expr-package", "type": "output-not-contains", "format": "markdown", "value": "@(PackageReference)", "status": "aspirational", "note": "Prism E1: PackageReference Update=/MSBuild-expression refs must be skipped, not ingested as a package named @(PackageReference)." },
-    { "id": "no-build-tooling-rows", "type": "output-not-contains", "format": "markdown", "value": "docker:", "status": "aspirational", "note": "Prism A3: Cake Frosting build projects (build/**/{artifacts,docker,docs,...}.csproj) must hit a build-tooling NoiseFilter rung, not render as per-service rows." },
-    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected", "note": "Audit 2026-07-17: 18s CLI wall." }
+    {
+      "id": "archetype-clitool",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "CliTool",
+      "status": "aspirational",
+      "note": "Prism A3/B4: Exe + no web surfaces + PackAsTool/parser evidence => Archetype.CliTool (new value, lands D1.1d). Audit 2026-07-17: read App with 0 entries."
+    },
+    {
+      "id": "cli-entries",
+      "type": "entry-kind-present",
+      "value": "EndpointDetection",
+      "format": "CLI",
+      "status": "aspirational",
+      "note": "Prism A3/B4: plain Main() must become an entry; CLI detection must not be package-gated on Spectre/System.CommandLine. Audit: 0 entries, empty map."
+    },
+    {
+      "id": "no-msbuild-expr-package",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "@(PackageReference)",
+      "status": "aspirational",
+      "note": "Prism E1: PackageReference Update=/MSBuild-expression refs must be skipped, not ingested as a package named @(PackageReference)."
+    },
+    {
+      "id": "no-build-tooling-rows",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "docker:",
+      "status": "expected",
+      "note": "A3 FIXED (Prism D1.1b): Cake/Nuke build-tooling rung, transitive over project refs (artifacts/publish/release -> common). Flipped 2026-07-17."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 120000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 18s CLI wall."
+    }
   ]
 }

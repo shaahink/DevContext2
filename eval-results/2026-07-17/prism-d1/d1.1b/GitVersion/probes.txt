@@ -1,0 +1,4 @@
+﻿run: 2026-07-17 05:57:49
+GitVersion  wall=21.7s  tokens=459  cs=663  archetype=App/CliTool  style=Unknown  => FAIL (2)
+FAIL archetype: got 'App', intended 'CliTool' (audit A1-A4)
+FAIL unknown-zero-entries: App map, style Unknown, no ENTRY POINTS section (audit A5/C4)

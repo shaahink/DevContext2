@@ -22,6 +22,12 @@ public static class CsprojReader
     public static string? ParseOutputType(XDocument doc)
         => doc.Descendants("OutputType").FirstOrDefault()?.Value?.Trim() is { Length: > 0 } v ? v : null;
 
+    /// <summary>The root <c>&lt;Project Sdk="..."&gt;</c> attribute (e.g. "Microsoft.NET.Sdk.Web",
+    /// "Microsoft.Build.NoTargets/3.3.0"), or null for old-style/attribute-less projects. A NoTargets or
+    /// Traversal SDK marks a HOLDER project — a csproj that builds no code (Prism D1.1b / audit E2).</summary>
+    public static string? ParseSdk(XDocument doc)
+        => doc.Root?.Attribute("Sdk")?.Value?.Trim() is { Length: > 0 } v ? v : null;
+
     /// <summary>True when the project opts into packaging (<c>&lt;IsPackable&gt;true&lt;/c&gt;</c> or
     /// <c>&lt;GeneratePackageOnBuild&gt;true&lt;/c&gt;</c>) — a strong "this is a library" signal.</summary>
     public static bool ParseIsPackable(XDocument doc)

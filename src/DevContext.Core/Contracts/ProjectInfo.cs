@@ -9,7 +9,8 @@ public sealed record ProjectInfo(
     ImmutableArray<string> ProjectReferences,
     ImmutableArray<PackageReferenceInfo> PackageReferences,
     string? OutputType = null,
-    bool IsPackable = false
+    bool IsPackable = false,
+    string? Sdk = null
 );
 
 /// <summary>Information about a NuGet package reference.</summary>

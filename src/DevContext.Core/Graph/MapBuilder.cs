@@ -114,18 +114,27 @@ public sealed class MapBuilder
 
         // ProjectReferences come through as raw ".../X.csproj" relative paths; reduce to project
         // names so the topology reads "A ── B" (and so the name-based scope filter actually matches —
-        // it previously dropped every dependency for solution-scoped repos). Test/benchmark projects
-        // are excluded, consistent with the graph's NoiseFilter.
+        // it previously dropped every dependency for solution-scoped repos).
+        // E2 (Prism D1.1b): the topology is production-only — the same filters as the service list.
+        // SE.Redis rendered .github/docs/docker holder csproj and tests/RedisConfigs as topology nodes
+        // (all NoTargets-SDK holders). NOTE: no raw IsTestPath filter here — our own fixture repos live
+        // under tests/fixtures/ and absolute-path matching would empty their topology; classification +
+        // the holder rule cover the audit cases. Dependency names are filtered to the kept set so
+        // excluded projects don't linger as edge text.
+        var kept = model.Projects
+            .Where(p => !classifier.IsInTestProject(p.FilePath))
+            .Where(p => classifier.IsProduction(p))
+            .Where(p => scoped is null || scoped.Contains(p.Name))
+            .ToList();
+        var keptNames = kept.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return
         [
-            .. model.Projects
-                .Where(p => !classifier.IsInTestProject(p.FilePath))
-                .Where(p => scoped is null || scoped.Contains(p.Name))
+            .. kept
                 .OrderBy(p => p.Name)
                 .Select(p => new ProjectNode(p.Name,
                     [.. p.ProjectReferences
                         .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
-                        .Where(r => r.Length > 0 && (scoped is null || scoped.Contains(r)))
+                        .Where(r => r.Length > 0 && keptNames.Contains(r) && (scoped is null || scoped.Contains(r)))
                         .OrderBy(r => r)])
                 {
                     Layer = perProjectLayer.GetValueOrDefault(p.Name),
