@@ -210,8 +210,11 @@ during long waits. Related drivers: `visual-gate.mts`, `audit-screenshots.mts`, 
 
 - **Branch:** feature branches off `develop`; PR into `develop`. `main` is always deployable.
   Multiple agents → multiple worktrees (`git worktree add -b <branch> C:/Code/DevContext2-<slug> develop`).
-- **Release:** MinVer with a `v` tag prefix drives the release workflow — Linux builds & tests the CLI
-  and `dotnet pack` → NuGet; Windows `dotnet publish` the desktop → `.zip` → GitHub Release.
+- **Release:** MinVer with a `v` tag prefix drives `.github/workflows/release.yml` — Windows builds,
+  tests (fast suite), and `dotnet pack`s the CLI → NuGet (when `NUGET_API_KEY` is set) + GitHub
+  Release with the `.nupkg`. The desktop installer bundles `DevContext.Server` as a Tauri
+  sidecar (github-ready G8; verified live install). Remaining nicety: the installer version is
+  `tauri.conf.json`'s `0.1.0`, not the release tag (tracked in `GITHUB-READY-START.md`).
   ```powershell
   git tag -a v1.2.3 -m "Release notes"; git push origin v1.2.3
   ```

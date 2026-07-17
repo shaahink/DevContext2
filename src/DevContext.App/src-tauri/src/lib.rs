@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use tauri::path::BaseDirectory;
 use tauri::webview::{Color, WebviewWindowBuilder};
 use tauri::{Emitter, Manager, RunEvent, Theme, WebviewUrl};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
@@ -57,11 +58,20 @@ pub fn run() {
                 shutting_down: AtomicBool::new(false),
             });
 
-            // Only own the server's lifecycle when DEVCONTEXT_SERVER_DLL points at the built
-            // assembly (packaged builds, or a dev override). In local dev (`pnpm dev`) the
-            // server is run separately via concurrently on the fixed port 5179, this stays
-            // unset, and the frontend's `config.ts` fallback to 127.0.0.1:5179 applies.
-            let server_url = std::env::var("DEVCONTEXT_SERVER_DLL").ok().map(|dll| {
+            // Own the server's lifecycle when we know where its assembly lives: an explicit
+            // DEVCONTEXT_SERVER_DLL (dev override) wins, else the sidecar publish bundled at
+            // resources/server (`pnpm publish:server` + bundle.resources in tauri.conf.json —
+            // packaged builds). In local dev (`pnpm dev`) neither exists: the server runs
+            // separately via concurrently on the fixed port 5179 and the frontend's
+            // `config.ts` fallback to 127.0.0.1:5179 applies.
+            let server_dll = std::env::var("DEVCONTEXT_SERVER_DLL").ok().or_else(|| {
+                app.path()
+                    .resolve("resources/server/DevContext.Server.dll", BaseDirectory::Resource)
+                    .ok()
+                    .filter(|dll| dll.exists())
+                    .map(|dll| dll.to_string_lossy().into_owned())
+            });
+            let server_url = server_dll.map(|dll| {
                 let port = pick_free_port();
                 let supervised = server_process.clone();
                 thread::spawn(move || supervise(dll, port, supervised));
@@ -172,13 +182,23 @@ fn supervise(dll: String, port: u16, state: Arc<ServerProcess>) {
 /// Spawns the DevContext .NET server as a managed child on the given port, with
 /// below-normal process priority so the UI stays responsive under Roslyn compilation.
 fn spawn_child(dll: &str, port: u16) -> Option<Child> {
-    match Command::new("dotnet")
+    let mut command = Command::new("dotnet");
+    command
         .arg(dll)
         .arg("--urls")
         .arg(format!("http://127.0.0.1:{port}"))
-        .stdin(Stdio::null())
-        .spawn()
+        .stdin(Stdio::null());
+
+    // The packaged app is a GUI-subsystem process, so a console child would otherwise get a
+    // fresh visible console window behind ours.
+    #[cfg(target_os = "windows")]
     {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    match command.spawn() {
         Ok(mut child) => {
             log::info!("Spawned DevContext server from {dll} on port {port}");
 

@@ -27,7 +27,7 @@ DevContext.Core       kernel — analysis pipeline, Graph2 identity spine, BodyF
 ├── DevContext.Cli        `devcontext` dotnet tool — the primary scriptable surface
 ├── DevContext.Contracts  proto → C# codegen (Grpc.Tools)
 ├── DevContext.Server     gRPC-Web backend wrapping Core (analyze-once, query-many)
-└── DevContext.Mcp        MCP server — ~24 tools mapping to the gRPC RPCs
+└── DevContext.Mcp        MCP server — 24 tools mapping to the gRPC RPCs (docs/product/mcp-reference.md)
 
 DevContext.App        Angular 22 (zoneless, signals) + Tauri 2 desktop shell; talks to Server over gRPC-Web
 ```
@@ -133,7 +133,8 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 - **`TAPESTRY-START.md` — the most recent phase tracker** (plan: `docs/dev/briefs/proposal-tapestry.md`;
   close-out: `docs/dev/HANDOVER-TAPESTRY.md`). T0–T8 complete 2026-07-17 — read the handover first,
   the tracker for checkpoint-level detail.
-- `conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts scoping, TfmScore, Flow hardening, audit sweep).
+- `docs/dev/archive/conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts
+  scoping, TfmScore, Flow hardening, audit sweep). Archived location, still-live register.
 - `docs/dev/HANDOVER-*.md` — per-phase close-outs (Loom, Meridian, Lighthouse, Fable, Desktop, Library-support). Read the newest for current architecture + known gaps.
-- `LOOM-START.md` / `MERIDIAN-START.md` — CLOSED phase trackers (historical checkpoint tables + handoff blocks).
+- `docs/dev/archive/` — CLOSED phase trackers (`LOOM-START.md`, `MERIDIAN-START.md`, `L3-START.md`, `conductor-*.md`; historical checkpoint tables + handoff blocks). See its `INDEX.md`.
 - `docs/dev/go-to-program/PROGRESS-LOG.md` — append one line after every session.

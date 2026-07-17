@@ -1,4 +1,4 @@
-﻿# DevContext — .NET codebase context for humans and LLMs
+# DevContext — .NET codebase context for humans and LLMs
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](global.json)
@@ -16,11 +16,17 @@
   <em>Home page after analyzing a 7-service eShop microservices solution — identity strip, service map, topology tiles, and onboarding</em>
 </p>
 
-| | CLI | Desktop |
-|---|-----|---------|
-| **Platform** | Linux, macOS, Windows | Windows 10+ (build 19041+) |
-| **Requires** | [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Nothing — self-contained `.exe` |
-| **Install** | `dotnet tool install -g DevContext.Cli` | [GitHub Releases](https://github.com/shaahink/DevContext2/releases) |
+## One engine, four surfaces
+
+Everything is powered by a single analysis engine (`DevContext.Core`): analyze a solution once, then
+query it from whichever surface fits your workflow.
+
+| Surface | What it's for | Get it |
+|---------|---------------|--------|
+| **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (Linux/macOS/Windows, needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)) |
+| **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
+| **MCP server** (24 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
+| **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
 
 ---
 
@@ -77,6 +83,9 @@ Assemble LLM-ready context packs with the **Context Studio** — a three-pane to
 - **Composition view** (center): ordered cards for flows, signatures, bodies, DI wiring, config, entities, contracts, tests — drag to reorder, toggle body on/off
 - **Budget panel** (right): token budget slider with per-card meter, intent selector (trace / explain / review), format (markdown / plain), Copy / Save with toast feedback
 
+Every pack opens with an identity header (repo, archetype, analyzed-at, git HEAD) and carries
+**per-section provenance** — which files each section came from and how it was resolved.
+
 <p align="center">
   <a href="docs/screenshots/08-context-studio.png"><img src="docs/screenshots/08-context-studio.png" alt="Context Studio" width="45%"></a>
   <a href="docs/screenshots/09-export.png"><img src="docs/screenshots/09-export.png" alt="Export" width="45%"></a>
@@ -86,7 +95,7 @@ Assemble LLM-ready context packs with the **Context Studio** — a three-pane to
 
 ### 🔌 MCP Integration
 
-DevContext ships a built-in **MCP server** exposing 23 tools for AI agent integration. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Use it to let any MCP-compatible agent query your codebase.
+DevContext ships a built-in **MCP server** exposing **24 tools** for AI agent integration — from `overview` and `trace` to budget-priced `get_context` packs and `verify_context` staleness checks. The desktop UI provides a full MCP management page — status card, configuration snippets, sessions table, live log feed, and a "Try a tool" sandbox. Setup + full tool catalog: [docs/product/mcp-reference.md](docs/product/mcp-reference.md).
 
 <p align="center">
   <a href="docs/screenshots/10-mcp.png"><img src="docs/screenshots/10-mcp.png" alt="MCP" width="85%"></a>
@@ -134,7 +143,8 @@ Depth limit (default 6), fan-out cap (12), framework boundary detection, revisit
 
 ## Quickstart
 
-**CLI:**
+### CLI
+
 ```bash
 dotnet tool install -g DevContext.Cli
 devcontext analyze .                              # Map (architecture overview)
@@ -145,46 +155,93 @@ devcontext analyze . --stats                       # Timing, funnel, cache
 devcontext analyze . --format json --strict        # JSON with validation
 ```
 
-**Desktop:** Download from [Releases](https://github.com/shaahink/DevContext2/releases), unzip, run `DevContext.Desktop.exe`. Tabs: Home, Atlas, Explore, Table, Insights, Context Studio, MCP, Settings.
+Full flag reference: [docs/product/cli-reference.md](docs/product/cli-reference.md) · configuration: [docs/product/configuration.md](docs/product/configuration.md)
 
-<p align="center">
-  <a href="docs/screenshots/11-settings.png"><img src="docs/screenshots/11-settings.png" alt="Settings" width="85%"></a>
-  <br>
-  <em>Settings — appearance, analysis defaults, storage, server, about</em>
-</p>
+### Desktop app
+
+**Install (Windows):** download the installer (`DevContext_*_x64-setup.exe`) from [Releases](https://github.com/shaahink/DevContext2/releases) — it bundles the analysis server as a sidecar (installers attach to releases starting with the next tag). The app spawns the server via `dotnet`, so the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0) must be installed.
+
+**Or build from source** — requires the .NET 10 SDK, Node 22 + [pnpm](https://pnpm.io), and (for the native window) the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/) on Windows:
+
+```bash
+dotnet build DevContext.slnx
+cd src/DevContext.App
+pnpm install
+pnpm dev:web        # browser mode at http://localhost:4200 (server auto-started)
+pnpm dev            # or: native Tauri window
+pnpm tauri build    # or: build the installer yourself (bundles the server sidecar)
+```
+
+UI guide: [docs/product/desktop-ui.md](docs/product/desktop-ui.md)
+
+### MCP (AI agents)
+
+```bash
+dotnet build DevContext.slnx
+```
+
+then register the built server with your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "devcontext": {
+      "command": "C:/path/to/DevContext2/src/DevContext.Mcp/bin/Debug/net10.0/devcontext-mcp.exe"
+    }
+  }
+}
+```
+
+The MCP server auto-spawns the gRPC backend. All 24 tools, session model, and per-client snippets: [docs/product/mcp-reference.md](docs/product/mcp-reference.md)
+
+---
+
+## Documentation
+
+| Doc | What's in it |
+|-----|--------------|
+| [docs/product/cli-reference.md](docs/product/cli-reference.md) | Every `devcontext analyze` flag, verified against source |
+| [docs/product/configuration.md](docs/product/configuration.md) | `devcontext.json` schema and precedence |
+| [docs/product/mcp-reference.md](docs/product/mcp-reference.md) | MCP setup + all 24 tools |
+| [docs/product/desktop-ui.md](docs/product/desktop-ui.md) | Desktop app tour, page by page |
+| [docs/product/TRACE-ENGINE-DESIGN.md](docs/product/TRACE-ENGINE-DESIGN.md) | Trace engine internals: edges, priorities, caps |
+| [docs/product/DETECTION-GUIDE.md](docs/product/DETECTION-GUIDE.md) | What each detector finds and its provenance |
+| [docs/product/examples/](docs/product/examples/) | Real Map/Trace output on eShop, DntSite, and more |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Build, test, gate battery, conventions |
 
 ---
 
 ## AI Agent Context
 
-Designed for coding agents (Copilot, Cursor, Cline, etc.):
+Designed for coding agents (Claude Code, Copilot, Cursor, Cline, etc.):
 
 | File | For |
 |------|-----|
-| `AGENTS.md` | Cold-start, gate battery, architecture, resume protocol |
-| `LOOM-START.md` | Phase tracker, current state, checkpoint table |
-| `docs/dev/HANDOVER-LOOM.md` | **Read this first** — architecture, benchmarks, known gaps |
-| `docs/dev/briefs/loom-graph-design.md` | Graph model, laws (R1/R2), pipeline design |
-| `proto/devcontext/v1/devcontext.proto` | gRPC contract — single source of truth |
+| `AGENTS.md` | **Read this first** — cold-start order, architecture, gate battery, worktree discipline |
+| `docs/dev/DEVELOPER-PIPELINE.md` | The full developer pipeline: build, test, run, bench, eval |
+| `docs/product/AGENT-REFERENCE.md` | Engine internals: ANALYZE→RENDER pipeline, Graph2, contracts |
+| `docs/dev/CODE-MAP.md` | Source-verified module map — "where do I change X?" |
+| `proto/devcontext/v1/devcontext.proto` | gRPC contract — single source of truth for server ⇄ app ⇄ MCP |
 
 ### Architecture
 
 ```
-DevContext.Core (kernel)  —  Graph2: SymbolTable, BodyFacts, SemanticLitePopulator
-├── DevContext.Cli         —  dotnet tool
-├── DevContext.Server      —  gRPC-Web backend
-├── DevContext.Mcp         —  MCP server (23 tools)
-DevContext.App (Angular 22) — Tauri desktop, zoneless, signals
+DevContext.Core (kernel)   —  analysis pipeline, Graph2 identity spine, BodyFacts, renderers
+├── DevContext.Cli          —  `devcontext` dotnet tool
+├── DevContext.Contracts    —  proto → C# gRPC codegen
+├── DevContext.Server       —  gRPC-Web backend (analyze once, query many)
+├── DevContext.Mcp          —  MCP server (24 tools, stdio → gRPC proxy)
+DevContext.App (Angular 22) —  Tauri 2 desktop, zoneless, signals — talks gRPC-Web to Server
 ```
 
-### Gate battery
+### Gate battery (green before every commit)
 
 ```powershell
-dotnet build DevContext.slnx                              # 0w 0e
-dotnet test DevContext.slnx --filter "Category!=Eval"     # 518 tests
-dotnet test DevContext.slnx --filter "Category=Truth"     # 9 pass / 2 skip
-cd src/DevContext.App; pnpm check                          # lint + 27/27 + build
-powershell -File scripts/loom-guards.ps1                   # 0 banned
+dotnet build DevContext.slnx                              # 0 warnings / 0 errors
+dotnet test DevContext.slnx --filter "Category!=Eval"     # fast unit + integration
+dotnet test DevContext.slnx --filter "Category=Truth"     # truth gates
+powershell -File scripts/loom-guards.ps1                  # banned patterns + truth gate
+cd src/DevContext.App; pnpm check                          # app: lint + test + build
 ```
 
 ---

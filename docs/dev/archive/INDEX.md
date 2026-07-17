@@ -53,3 +53,17 @@ reference. They are not user-facing documentation.
 - `OUTPUT-QUALITY-ASSESSMENT.md` — Pre-v2 output quality audit
 - `probe-kit.md` — Roslyn semantic probe kit
 - `probe-results.md` — Probe results
+
+### Closed phase trackers (archived 2026-07-16 from repo root)
+
+Moved from the repo root once their phases closed; only the ACTIVE `*-START.md` tracker stays at
+root. Paths inside these files are as they were when the phases ran.
+
+| File | What it was |
+|------|-------------|
+| `L3-START.md` | Loom stage-3 session tracker |
+| `LOOM-START.md` | Loom phase tracker (checkpoint tables + handoff blocks) |
+| `MERIDIAN-START.md` | Meridian phase tracker |
+| `conductor-CLEANUP.md` | Conductor cleanup plan (Loom era) |
+| `conductor-DEBT.md` | Conductor-discovered debt items (all resolved, see `docs/qa-reports/QA-FINAL-LOOM.md`) |
+| `plan.json` | Conductor machine-readable plan for the Loom gap-close phases |

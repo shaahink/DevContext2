@@ -1,28 +1,67 @@
 name: CI
 
 on:
-  # push:                          # disabled — uncomment to re-enable
-  #   branches: [develop, main]
-  # pull_request:
-  #   branches: [develop, main]
-  workflow_dispatch:                # manual trigger only
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  # Mirrors the local gate battery (AGENTS.md): Debug build with warnings-as-errors,
+  # fast test suite, loom-guards (banned patterns + Category=Truth gate), CLI --strict smoke.
+  # eval/gates.ps1 is deliberately NOT here — it clones real repos and stays a local/nightly gate.
+  engine:
+    name: Engine — build, tests, guards
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true # eval-repos/* fixtures — truth gates fail on empty fixture dirs
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build
-        run: dotnet build DevContext.slnx --configuration Release
+      - name: Build (warnings are errors)
+        run: dotnet build DevContext.slnx
 
-      - name: Test (fast suite)
-        run: dotnet test DevContext.slnx --configuration Release --filter "Category!=CliSmoke&Category!=Eval&Category!=Network"
+      # McpQa is excluded: eval/mcp-qa/run.js targets a machine-local dogfood repo (run.js:14)
+      # and a live server port — impossible in CI. It runs serially in eval/gates.ps1 locally.
+      - name: Test — fast suite
+        run: dotnet test DevContext.slnx --no-build --filter "Category!=Eval&Category!=Network&Category!=McpQa"
 
-      - name: Verify strict mode
-        run: dotnet run --project src/DevContext.Cli --configuration Release -- analyze tests/fixtures/MinimalApiProject --strict
+      - name: Loom guards + truth gate
+        run: powershell -File scripts/loom-guards.ps1
+
+      - name: CLI --strict smoke
+        run: dotnet run --project src/DevContext.Cli --no-build -- analyze tests/fixtures/MinimalApiProject --strict
+
+  app:
+    name: App — lint, test, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/DevContext.App
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version comes from packageManager in package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/DevContext.App/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check (lint + test + build)
+        run: pnpm check

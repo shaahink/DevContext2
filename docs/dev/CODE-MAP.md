@@ -15,7 +15,7 @@ tool does) and `docs/dev/briefs/loom-graph-design.md` (why the graph model is sh
 | `DevContext.Cli` | `devcontext` dotnet tool; Spectre.Console commands; composition root | `Commands/`, `Services/ServiceRegistration.cs`, `Settings/AnalyzeSettings.cs` |
 | `DevContext.Contracts` | proto → C# gRPC codegen (`Grpc.Tools`) | generated from the proto at build |
 | `DevContext.Server` | gRPC-Web backend; session store; proto mapping | `Endpoints/DevContextGrpcService.cs`, `Sessions/`, `Mapping/ProtoMapper.cs` |
-| `DevContext.Mcp` | MCP server — ~23 tools over the gRPC RPCs | `DevContextTools.cs` |
+| `DevContext.Mcp` | MCP server — 24 tools over the gRPC RPCs | `DevContextTools.cs` |
 | `DevContext.App` | Angular 22 (zoneless, signals) + Tauri 2 desktop | see `src/DevContext.App/AGENTS.md` |
 
 Tests: `tests/DevContext.Core.Tests`, `tests/DevContext.Server.Tests`. Bench: `benchmarks/DevContext.Benchmarks`.
@@ -79,8 +79,10 @@ derived inverse adjacency for O(degree) `neighbors`/`find_usages`.
 - **`Flow`** (precomputed, spine-only, one per entry) lives on the graph (`CodeGraph.Flows`), consumed by
   projections/MCP/UI.
 
-## 4. Graph assembly — `Graph/GraphBuilder.cs` (2461 LOC)
+## 4. Graph assembly — `Graph/GraphBuilder.*.cs` (partial class, ~2.5k LOC)
 
+`GraphBuilder` is a partial class split by pass family: `GraphBuilder.cs` (orchestration, 103 LOC) +
+`.Nodes` (573) + `.Entries` (506) + `.Seams` (797) + `.ServiceLinks` (343) + `.Flows` (216).
 `Build()` runs passes in a deliberate order (see the P1/P2/P3 comments in-file):
 
 1. `AddTypeNodes` + `AddServiceNodes` — seed declarations + runnable-service nodes.
@@ -115,13 +117,16 @@ The post-Loom "regex funeral": structured facts + a resolver replace body-scan r
   `Worker`, `OrleansGrain`, `Desktop`, `CliCommand`, `DomainEventHandler`, `MessageConsumer`. Add a new
   entry surface here without touching `GraphBuilder`.
 
-## 6. Query layer — `Graph/GraphQuery.cs` (608 LOC)
+## 6. Query layer — `Graph/GraphQuery.cs` (640 LOC)
 
 The read API over a frozen graph (what the server/MCP/renderers call):
 `EntryPoints`, `Map`, `Stats`, `Trace(focus, depth, maxFanOut)`, `Node`, `Neighbors`, `FindUsages`,
 `ResolveNodeId`, `GetInterestingPoints`, `Impact` / `ImpactFromFiles` / `BlastRadius`, `Search`, `Find`.
-The trace itself is built by `Graph/TraceBuilder.cs` (550 LOC); context packs by
-`Graph/ContextPackBuilder.cs`; the library/public-surface view by `Graph/LibrarySurfaceBuilder.cs`.
+The trace itself is built by `Graph/TraceBuilder.cs` (656 LOC); context packs by
+`Graph/ContextPackBuilder.cs` (908 LOC — T4: identity header, spine-first budget fill, real
+contracts/config/tests sections, per-section provenance); pack staleness by
+`Graph/ContextPackVerifier.cs` against analyze-time `Analysis/FileFingerprint.cs` hashes (T4.5);
+the library/public-surface view by `Graph/LibrarySurfaceBuilder.cs`.
 
 ## 7. Rendering — `src/DevContext.Core/Rendering/` (12 files, ~3.5k LOC)
 
@@ -132,13 +137,14 @@ The trace itself is built by `Graph/TraceBuilder.cs` (550 LOC); context packs by
 
 ## 8. Server, MCP, CLI
 
-- **Server** (`DevContext.Server`): `Endpoints/DevContextGrpcService.cs` — 23 gRPC handlers (`Analyze` and
+- **Server** (`DevContext.Server`): `Endpoints/DevContextGrpcService.cs` — 24 gRPC handlers (`Analyze` and
   `ObserveToolCalls` stream; the rest are unary). Sessions in `Sessions/` (`AnalysisSessionManager`,
   `AnalysisSession`, `EngineRunner`, `EngineHostCache` — analyze-once, keep the snapshot, serve queries).
   `Mapping/ProtoMapper.cs` converts engine models ⇄ proto.
-- **MCP** (`DevContext.Mcp/DevContextTools.cs`): tools `Analyze, Overview, Resolve, Status, ListSessions,
+- **MCP** (`DevContext.Mcp/DevContextTools.cs`): 24 tools — `Analyze, Overview, Resolve, Status, ListSessions,
   CloseSession, Stats, Entrypoints, Map, TopFlows, Flow, InterestingPoints, Trace, Node, Neighbors, Usages,
-  Find, Impact, Config, TestsFor, Insights, GetContext, ReadSource` (server name `devcontext`).
+  Find, Impact, Config, TestsFor, Insights, GetContext, VerifyContext, ReadSource` (server name `devcontext`;
+  public catalog: `docs/product/mcp-reference.md`).
 - **CLI** (`DevContext.Cli`): `Commands/` = `Analyze, Init, Query, Report, Scenarios, Version`; options in
   `Settings/AnalyzeSettings.cs`; composition root `Services/ServiceRegistration.cs` (`AddDevContextServices`);
   config `Services/DevContextConfig.cs`.
@@ -165,5 +171,6 @@ workflow + value model: `docs/product/DETECTION-GUIDE.md`. Biggest: `CallGraphEx
 
 ## Hot spots (size / refactor candidates)
 
-`GraphBuilder.cs` (2461) · `MarkdownRenderer.cs` (1162) · `DiscoveryPipeline.cs` (958) ·
-`SemanticLitePopulator.cs` (798) · `CallGraphExtractor.cs` (699). See `docs/dev/NOTABLE-FINDINGS.md`.
+`MarkdownRenderer.cs` (1162) · `DiscoveryPipeline.cs` (967) · `ContextPackBuilder.cs` (908) ·
+`SemanticLitePopulator.cs` (798) · `GraphBuilder.Seams.cs` (797) · `CallGraphExtractor.cs` (700).
+See `docs/dev/NOTABLE-FINDINGS.md`.

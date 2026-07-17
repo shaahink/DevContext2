@@ -32,7 +32,7 @@ src/
   DevContext.Cli/        # `devcontext` dotnet tool — primary scriptable surface
   DevContext.Contracts/  # proto → C# gRPC codegen
   DevContext.Server/     # gRPC-Web backend
-  DevContext.Mcp/        # MCP server (~23 tools)
+  DevContext.Mcp/        # MCP server (24 tools — see docs/product/mcp-reference.md)
   DevContext.App/        # Angular 22 (zoneless, signals) + Tauri 2 desktop
 tests/
   DevContext.Core.Tests/    # unit + golden + eval + truth tests

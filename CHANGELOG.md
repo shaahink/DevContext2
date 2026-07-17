@@ -2,6 +2,38 @@
 
 All notable changes to DevContext are documented here.
 
+## [Unreleased]
+
+Everything since v1.0.0, by track (close-outs live in `docs/dev/HANDOVER-*.md`):
+
+- **Lighthouse — repo intelligence (L0–L7)** — truth-gate test battery over real-world eval repos;
+  ratcheted expectations that lock detection quality per repo.
+- **Loom — the graph identity spine** — new `Graph2` layer: `SymbolTable` with a monotone
+  resolution-tier ladder (never first-match on ambiguity), structured `BodyFacts` replacing all
+  body-scan regexes ("the regex funeral", enforced by `scripts/loom-guards.ps1`), seam detectors,
+  and a semantic-lite tier that upgrades edges to Roslyn-verified resolution.
+- **Meridian — wiring truth & agent surface (M0–M9)** — the MCP server (`devcontext-mcp`,
+  stdio → gRPC proxy), the Overview/one-page repo brief, cross-service `ServiceLink` wiring
+  (bus / gRPC / HTTP), and honesty rules for DI resolution.
+- **Desktop redo** — the WPF desktop (`DevContext.Desktop`) was retired and deleted (2026-07-15),
+  replaced by an Angular 22 (zoneless, signals) + Tauri 2 app (`DevContext.App`) over a gRPC-Web
+  server: Home, Explore workbench (Service/Layer/Feature/Flow lenses + table lens), Atlas,
+  Insights, MCP management page, Context Studio, Settings.
+- **Tapestry (in progress, T0–T4 landed)** — T0 gate hardening + eval fixtures; T1 universal entry
+  coverage (entry-surface catalog: HTTP, gRPC, SignalR, GraphQL, Azure Functions, Orleans, workers,
+  consumers; gateway archetype; per-service style); T2 graph quality (production-first DI edges,
+  member line stamping, type-focus trace shaping, unified event wiring); T3 MCP v3 (ambiguity-honest
+  addressing, budgeted envelopes); T4 context generation v2 (pack identity header, spine-first
+  budget fill, real contracts/config/tests sections, per-section provenance, and `verify_context` —
+  the 24th MCP tool — for staleness checks against analyze-time file fingerprints).
+- **GitHub readiness** — CI re-enabled mirroring the local gate battery (engine + app jobs); release
+  workflow fixed (CLI → NuGet; the dead WPF job removed); README restructured around the four
+  surfaces; new `docs/product/mcp-reference.md`; reference docs re-verified against source.
+  Desktop installer: `DevContext.Server` is published and bundled into the Tauri app as a sidecar
+  (spawned via `dotnet`, .NET 10 runtime required) and `v*` tags now attach Windows installers to
+  the GitHub Release alongside the CLI package. New weekly/manual `eval.yml` workflow runs the full
+  gate battery (`eval/gates.ps1 -SkipMcpQa`) against the pinned eval-repo set.
+
 ## v1.0.0 (2026-06-11)
 
 Initial public release.
