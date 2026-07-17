@@ -5,8 +5,10 @@
 > engine/CLI/MCP/desktop) and `EXPERIENCE-ADDENDUM.md` (experience + engine health: findings I–N —
 > insight validity, silent-failure census, the dead I8 snapshot cache, loading/diagram/Studio UX).
 > Evidence: maps, traces, 22-tool MCP transcript, 16 UI screenshots, code-read ground truth, all in
-> that directory. Branch scheme: `feat/prism-p<stage>` off `develop`. Tracker: `PRISM-START.md` at P0.
-> Pre-release: feature redesign/new features are in scope; waterfalls can be as detailed as needed.
+> that directory. **Organized as 5 big deliveries (one session each) with a standing QA+fix
+> cadence** — not checkpoint-a-day stages. Branch scheme: `feat/prism-d<delivery>` off `develop`,
+> merged per delivery after its QA passes. Tracker: `PRISM-START.md` at D1 open.
+> Pre-release: feature redesign/new features in scope; waterfalls as detailed as needed.
 
 ## 0. What Prism is
 
@@ -17,181 +19,214 @@ classes:
    an aux console (Newtonsoft.Json), a client library with toy hosts (StackExchange.Redis), a
    framework whose nuget id differs from its project names (wolverine), a CLI tool (GitVersion) —
    gets a confidently wrong or empty lens. The desktop has **no library mode at all**.
-2. **A product that is true but not alive** (experience + self-health): graph canvases are
-   force-directed soup that clip a 13-node graph; analysis is a dead 9-word text list while the
-   pipeline streams rich per-extractor progress nobody renders; the Context Studio assembles packs
-   blind with no live output; entries navigation is a table dump; the `graph.orphans` insight
-   accuses live code of being dead (3/5 false on podcasts) because low graph coverage is reported
-   as repo fact; the engine swallows its own failures (17 bare `catch{}`, 12 in
-   SemanticLitePopulator alone) and the I8 snapshot cache **has never persisted a single snapshot**
-   (every cache dir 0 bytes; fire-and-forget save + swallowed exceptions) — so every question
+2. **A product that is true but not alive** (experience + self-health): canvases are force-directed
+   soup that clip a 13-node graph; analysis is a dead 9-word list while the pipeline streams rich
+   per-extractor progress nobody renders; the Context Studio assembles packs blind; entries
+   navigation is a table dump; the `graph.orphans` insight accuses live code (3/5 false on
+   podcasts) because low coverage is reported as repo fact; the engine swallows its own failures
+   (17 bare `catch{}`, 12 in SemanticLitePopulator) and the I8 snapshot cache **has never persisted
+   a snapshot** (all cache dirs 0 bytes; fire-and-forget save + swallowed throw) — every question
    re-pays full analysis and nothing ever told us.
 
 Prism's one sentence: **any .NET repo gets the lens that matches what it IS, on every surface — and
 the lens is alive: visually intelligent, honest about its own coverage and health, instant on the
 second question, and engaging while it works.**
 
-Product outcomes:
-1. **Shape-true archetypes** — the famous libraries render as libraries; frameworks as frameworks;
-   CLI tools as CLI tools; "App with 0 entries" becomes impossible (render backstop).
-2. **Entry surfaces that match 2026 .NET** — in-framework SignalR, MAUI, MapGroup prefixes, queue
-   seams, Main-anchored consoles.
-3. **An engine that cannot fail silently** — no bare swallows, failure counters in the waterfall,
-   insights gated by their own coverage, and a snapshot cache that provably works and says so.
-4. **A desktop worth demoing** — deterministic layered diagrams with kind/transport semantics (what
-   an LLM would draw), a living analysis waterfall, a Studio with live pack preview, an entry
-   browser instead of a table, a real library workbench.
-5. **Instant second question** — snapshot cache resurrected (CLI + server + UI truthful about it),
-   then the merged-compilation lever underneath.
-6. **Delivery that matches the README** — engine CI on Linux/macOS or the claim narrows.
-
 Non-goals: no LLM in core; no Graph2 rewrite; no new app pages (reshape the existing five).
 
-## 1. Rules of engagement
+## 1. Delivery model & QA cadence (the rules)
 
-Tapestry's rules carry forward (AGENTS.md T-rules, gate battery, truth ratchets, detached boundary
-batteries). Additions:
-- Every detection/render change re-runs the **unseen octet** via the P0 harness and diffs against
-  the round-1 captures.
-- **No new bare `catch` lands in Core** from P3 onward (guard in loom-guards).
-- Any stage touching the UI ships a **screenshot gate** (visual-gate.mts pattern) for its pages.
+- **Big deliveries, not micro-stages.** Each delivery D1–D5 is one focused mega-session in ONE part
+  of the codebase (engine / engine / engine+server / app / server+infra), sized like a Tapestry
+  stage-train day. All checkpoints inside a delivery land together on `feat/prism-d<n>`.
+- **QA is a standing cadence, not a phase.**
+  - *Session open (QA-back):* re-run the octet harness + affected poles against the PREVIOUS
+    delivery's merge; fix regressions before new work. First 30–60 min, every session.
+  - *Session close (QA-forward):* detached full gate battery + octet harness on the delivery tip;
+    delivery merges to develop only on `GATE: PASS` + its own Definition-of-Done below. develop
+    stays green after every delivery.
+  - *QA artifacts:* every delivery ships fresh captures under `eval-results/<date>/prism-d<n>/`
+    (maps/traces/screenshots/MCP transcript as relevant) — same evidence discipline as the audit.
+- **Quality floor (nothing dropped):** every audit finding A–N maps to exactly one delivery
+  (traceability table §3). Truth ratchets only tighten; Tapestry poles stay byte-identical unless a
+  delivery's DoD says otherwise; screenshot gates guard every UI change; **no new bare `catch` in
+  Core** (loom-guards ban lands in D1 with the octet harness).
+- Tapestry rules carry forward otherwise (AGENTS.md T-rules, detached batteries, absolute paths,
+  UPDATE_GOLDENS with review).
+- **Model per session** (capability-matched, QA-back runs on the session's model):
 
-## 2. Stage map
+  | Session | Model | Why |
+  |---|---|---|
+  | D1 | **Fable 5** | Highest-judgment engine work: archetype semantics ripple across 40+ fixtures; T8.2 showed how delicate this locus is. Wrong calls here are quiet and expensive. |
+  | D2 | **Opus 4.8** (Fable if available) | Deep Roslyn work but well-specified; the razor/XAML call-graph design and insight-gating rules are the judgment spots — escalate those designs to Fable if they stall. |
+  | D3 | **Fable 5** | Cache fix + waterfall are mechanical, but the merged-compilation persistence (invalidation correctness, Roslyn state serialization) is the phase's riskiest engineering — staff for the tail, not the average. |
+  | D4 | **Sonnet 5** (Opus 4.8 for the canvas-system design pass) | High-volume Angular/component work against a detailed spec with screenshot gates — Sonnet's sweet spot. The one taste-critical piece (layered canvas system, M) benefits from an Opus first pass or review. |
+  | D5 | **Sonnet 5** | CI yaml, per-RID publish, small MCP fixes, scripted QA re-runs — mechanical against explicit DoDs. |
 
-### P0 — Harness: the octet + insight validity become permanent gates (small, first)
-- **P0.1** Pin the octet SHAs in `eval/README.md`; add aspirational expectation rows for intended
-  verdicts (Newtonsoft=Library, SE.Redis=Library, wolverine=Framework-library, GitVersion=CliTool,
-  podcasts hub+MAUI present, ScreenToGif=Desktop w/ style, bitwarden per-service styles) — the
-  P-phase ratchet: each fixing stage flips its rows to `expected`.
-- **P0.2** `eval/lens-audit.ps1 <repo|octet>`: clone-at-pin → timed analyze → map/json capture →
-  MCP drive (`eval/mcp-qa/drive-generic.js`) → optional UI screenshot leg → one report dir.
-  Encodes the round's protocol (unseen-first, cross-surface, FAIL probes: map-tokens ≪ repo size,
-  Unknown+0-entries, sample rows in per-service, wall-time vs baseline).
-- **P0.3** **Insight-validity harness**: for each octet repo, every emitted insight's evidence rows
-  get a machine check where possible (orphan types: grep-level usage scan; auth counts: attribute
-  scan) and a recorded manual verdict otherwise. Insights join the truth-ratchet discipline (I2).
+## 2. The five deliveries
 
-### P1 — Archetype & render honesty (the lens claim itself)
-- **P1.1** Library robustness: transitive aux-exe references (A1); `toys`/build-tooling NoiseFilter
-  rungs (A2/A3); holder csproj excluded everywhere (E2); topology applies the same filters as
-  per-service (E2).
-- **P1.2** Catalog self-name audit (nuget id ≠ project names: Wolverine → `Wolverine`, sweep all
-  descriptors) (A4); runnable-service inference honors NoiseFilter unless SamplesAreTheProduct (A4).
-- **P1.3** `Archetype.CliTool`: Exe + no web surfaces + (PackAsTool || command-parser evidence) →
-  command-surface render; plain `Main()` becomes an entry (A3, B4).
-- **P1.4** Render backstop — no dead maps: App w/ 0 entries + public surface ⇒ library sections;
-  w/ Main ⇒ console view. Harness FAIL: map <~400 tokens on >100-file repo (A5).
-- **P1.5** Hygiene: duplicate-name disambiguation (E3), TFM summarization (E5), `Update=`/MSBuild
-  expression package refs (E1), stale `--profile debug` hint (E4).
-- Gate: Newtonsoft/SE.Redis/GitVersion/wolverine rows flip to expected; Tapestry poles byte-identical.
+### D1 — "The repo is what it is": archetype truth + entry surfaces + style rungs (engine)
+*One session. Everything that decides WHAT a repo is and WHAT enters it. Findings A1–A5, B1–B6,
+C4, C6, E1–E5.*
 
-### P2 — Entry surfaces 2026
-- **P2.1** In-framework SignalR: `MapHub<T>`/`: Hub` evidence without package (B1 — podcasts +
-  bitwarden; shamshir's fix was package-gated).
-- **P2.2** MAUI: catalog descriptor + `UseMaui`/TFM probe; pages/shell as UiEntries; per-service
-  rung property-probed (B2).
-- **P2.3** MapGroup prefix composition into routes (B3) — fixes map, flows, Studio picker, MCP
-  addressing at one locus.
-- **P2.4** Queue seams: Storage-Queue/ASB/RabbitMQ senders + hosted consumers as `[approx]` channel
-  edges (B5).
-- **P2.5** Honest branding: hand-rolled `IRequestHandler` ⇒ "CQRS (hand-rolled)" (B6); entry target
-  attribution fidelity (C6).
-- Gate: podcasts hub+MAUI expected; bitwarden events >1; zero bare-`/` grouped routes on the octet.
+**Harness first (it gates everything):** pin the octet SHAs in `eval/README.md`; aspirational
+expectation rows for intended verdicts (Newtonsoft=Library, SE.Redis=Library,
+wolverine=Framework-library, GitVersion=CliTool, podcasts hub+MAUI, ScreenToGif=Desktop-styled,
+bitwarden per-service styles); `eval/lens-audit.ps1 <repo|octet>` (timed analyze → captures → MCP
+drive → FAIL probes: map-tokens ≪ repo size, Unknown+0-entries, sample rows in per-service,
+wall-time vs baseline); bare-`catch` ban in loom-guards.
 
-### P3 — Graph depth & engine self-health (same locus, one stage)
-- **P3.1** Razor `@code` into the call graph (C1); **P3.2** XAML code-behind/command wiring (C2).
-- **P3.3** Type-node degree rollups so `neighbors`/`usages`/`impact` never dead-end on connected
-  types (C3; closes conductor-DEBT SymbolTable member indexing).
-- **P3.4** DI provenance ranking: focus host's registration first, `[×N hosts]` otherwise (C5).
-- **P3.5** **Silent-failure amnesty ends**: every bare `catch{}` in Core becomes catch-log-count
-  (a `PipelineDiagnostics` channel: extractor × failure count × sample exception); loom-guards bans
-  new bare catches; SemanticLitePopulator's 12 swallows first (J1).
-- **P3.6** Failure/skip/partial counters join the stage waterfall + stats (CLI, MCP `stats`, UI
-  Stats page) — coverage becomes a visible number per extractor (J3).
-- Gate: podcasts UiEntry traces reach services; ScreenToGif trace ≥ depth 2; impact(type) > 0;
-  swallow count in Core = 0; stats show per-extractor failure columns.
+**Archetype & render honesty:** transitive aux-exe references (A1); `toys`/build-tooling NoiseFilter
+rungs (A2/A3); holder csproj excluded everywhere; topology applies per-service's filters (E2);
+catalog self-name audit — every descriptor whose nuget id ≠ project names gets SelfNamePatterns,
+wolverine first (A4); runnable-service inference honors NoiseFilter unless SamplesAreTheProduct
+(A4); `Archetype.CliTool` (Exe + no web surfaces + PackAsTool/parser evidence → command-surface
+render; plain `Main()` becomes an entry) (A3/B4); **render backstop — no dead maps** (0 entries +
+public surface ⇒ library sections; + Main ⇒ console view; harness FAILs any <~400-token map on a
+>100-file repo) (A5).
 
-### P4 — Claims truth: per-service style + insights
-- **P4.1** Style evidence rungs: owns-endpoints ⇒ Web API/MVC; owns-hubs ⇒ SignalR host;
-  IdentityServer/OpenIddict ⇒ Identity provider; ViewModel+WPF ⇒ Desktop MVVM (C4).
-- **P4.2** Name-rung fixes (`Api` w/o dot; in-framework Razor-Pages probe) (C4).
-- **P4.3** **Insight coverage-gating**: dead-code claims require edge-coverage floor + exclude
-  entity-mapper-indexed and DTO-constructed types; every insight carries its coverage basis in the
-  evidence line ("within the 53% of edges verified") (I1). Re-verify octet insights via P0.3.
-- Gate: bitwarden ≤2/17 Unknown; ScreenToGif styled; podcasts orphans list contains zero provably
-  live types.
+**Entry surfaces 2026:** in-framework SignalR via `MapHub<T>`/`: Hub` evidence, package-free (B1);
+MAUI descriptor + `UseMaui`/TFM probe, pages/shell as UiEntries (B2); MapGroup prefix composition
+into routes (B3 — fixes map, flows, Studio picker, MCP addressing at one locus); queue seams
+(Storage-Queue/ASB/RabbitMQ senders + hosted consumers as `[approx]` channel edges) (B5); honest
+branding — hand-rolled `IRequestHandler` ⇒ "CQRS (hand-rolled)" (B6); entry target attribution
+fidelity (C6).
 
-### P5 — Living analysis & the resurrected cache
-- **P5.1** **Snapshot cache resurrection**: awaited save with error surfacing (no fire-and-forget),
-  load verified end-to-end CLI + server, `from cache · <sha> · <ms>` stamp honest, cache
-  hit/miss/size in stats; UI Freshness card states snapshot age/HEAD/location and offers
-  re-analyze (J2, L2). Target: second CLI question on bitwarden <15s without P8's compiler work.
-- **P5.2** **The analysis waterfall becomes the show**: the existing observer stream renders as a
-  live, detailed waterfall — per-stage bars with elapsed, current extractor, discoveries streaming
-  in as they land ("125 projects · 3 gRPC services · 662 endpoints…"), skip reasons, failure
-  counters (P3.6), honest big-repo expectations. As big and detailed as the data allows (K1, L7).
-- **P5.3** Post-analyze, the waterfall persists as a Stats-page timeline (K2 surfacing).
-- Gate: screenshot gate on the loading experience; cache round-trip truth test in the battery.
+**Per-service style rungs (same detection locus):** owns-endpoints ⇒ Web API/MVC; owns-hubs ⇒
+SignalR host; IdentityServer/OpenIddict ⇒ Identity provider; ViewModel+WPF ⇒ Desktop MVVM; `Api`
+without dot; in-framework Razor-Pages probe (C4).
 
-### P6 — Visual intelligence (the diagrams an LLM would draw)
-- **P6.1** One canvas system: deterministic layered layout (ELK/dagre-class), fit-and-center that
-  never clips, stable across pages (F2, L6 — replaces three inconsistent force soups).
-- **P6.2** Semantic rendering: kind glyphs on nodes (HTTP/Bus/UI/Worker/gRPC/store), transport-
-  labeled edges (HTTP/queue/gRPC/event), DDD-layer lanes where the evidence exists, stores/external
-  systems visually distinct (F3, M — the engine already knows all of this; layout just ignores it).
-- **P6.3** Progressive disclosure: C4-ish level-1 (services + transports) by default; expand a
-  service into its entries/flows on demand; hero graph and Atlas share this.
-- **P6.4** **Atlas becomes a real one-pager**: layered architecture view, per-service cards with
-  style + entry mix, event/queue board, data stores, export that matches (L3).
-- Gate: screenshot gates on podcasts + refit + eShop + bitwarden; a reviewer can answer "how does
-  this system work" from the Atlas alone.
+**Hygiene riders:** duplicate-name disambiguation (E3); TFM summarization (E5); skip
+`Update=`/MSBuild-expression package refs (E1); remove the `--profile debug` ghost hint (E4).
 
-### P7 — Studio & navigation: the core loops
-- **P7.1** **Live pack preview**: the rendered context pack (markdown, token meter, per-section
-  provenance) updates live as scope/budget/intent change; Copy copies exactly what's shown (L4).
-- **P7.2** Preset semantics: "I'm changing this entry" et al. get explicit names + one-line effect
-  descriptions ("seeds: entry spine + tests + config for a modify task"), and their scope delta is
-  visible in the preview (L4).
-- **P7.3** **Entry browser replaces the table dump**: ranked, grouped (service → kind → route),
-  filter-as-you-type, kind chips, auth badges — the Shift+E table remains as the power view only
-  (L5). Requires P2.3 route disambiguation.
-- **P7.4** Session naming unified (sln name everywhere) (F4); MCP feed origin fix (F5).
-- Gate: a scripted Studio drive builds a pack for a podcasts endpoint entirely from the preview;
-  entry browser screenshot gate.
+**DoD:** octet expectation rows for archetype/style/entries flip aspirational→expected;
+Newtonsoft/SE.Redis/GitVersion/wolverine render real lenses; podcasts hub+MAUI present; bitwarden
+per-service ≤2/17 Unknown; zero bare-`/` grouped routes; MediatR-class repos + Tapestry poles
+byte-identical; full battery GATE: PASS.
 
-### P8 — MCP & pack honesty
-- **P8.1** get_context degenerate-focus honesty: low fill ⇒ say why + suggest connected focuses;
-  UiEntry packs pull page members once P3.1 lands (G1).
-- **P8.2** CLI trace budget enforced or relabeled — no silent 3× breaches (D3).
-- Gate: octet MCP drive: zero empty navigations on connected nodes, zero silent budget breaches.
+### D2 — "The graph doesn't lie": depth + self-health + insight validity (engine)
+*One session. Everything that decides what the graph KNOWS and what we CLAIM from it. Findings
+C1–C3, C5, I1–I2, J1, J3, G1-dependency, D3.*
 
-### P9 — The compiler lever (perf floor under everything)
-- **P9.1** Persist/reuse the merged compilation (T7.2 lever: DntSite 81s of 95s; bitwarden 207s) —
-  on-disk, keyed by source/package hash, invalidation truth-tested.
-- **P9.2** With P5.1 + P9.1: cold bitwarden ~3.5min once, warm <15s, focus-question <10s (D1/D2).
-- Gate: bench verdicts unchanged; warm-run targets hit on the octet's big pole.
+**Depth:** `.razor` `@code` blocks into the call graph (C1); XAML code-behind/command wiring (C2);
+type-node degree rollups — `neighbors`/`usages`/`impact` never dead-end on connected types (C3;
+closes conductor-DEBT SymbolTable member indexing); DI provenance ranking (focus host first,
+`[×N hosts]` otherwise) (C5).
 
-### P10 — Cross-platform delivery
-- **P10.1** Engine CI legs on ubuntu + macos (build + fast suite + CLI strict smoke) or the claim
-  narrows in README/PACKAGING (H1); **P10.2** path/casing fixes it shakes out (H2).
-- **P10.3** Desktop bundle decision: per-RID sidecar + Tauri mac/linux targets, or documented
-  Windows-only (H2); installer version from tag (H3).
-- Gate: green cross-OS CI on develop; release dry-run inventory matches the decision.
+**Self-health (silent-failure amnesty):** every bare `catch{}` in Core becomes catch-log-count via
+a `PipelineDiagnostics` channel (extractor × failure count × sample exception),
+SemanticLitePopulator's 12 first (J1); failure/skip/partial counters join the stage waterfall +
+stats on all surfaces (J3).
 
-## 3. Debts folded in / still open
-- conductor-DEBT: SymbolTable member indexing → P3.3; BodyFacts scoping, TfmScore, Flow hardening
-  remain open.
+**Insight validity:** coverage-gating — dead-code claims require an edge-coverage floor, exclude
+entity-mapper-indexed and DTO-constructed types, and every insight carries its coverage basis in
+its evidence line (I1); insight-validity harness — machine-checkable claims get checks, the rest
+recorded manual verdicts, wired into `lens-audit.ps1` (I2). CLI trace budget enforced or relabeled —
+no silent 3× breaches (D3).
+
+**DoD:** podcasts UiEntry traces reach services; ScreenToGif traces ≥ depth 2; MCP
+impact/usages/neighbors non-empty on connected types; Core bare-swallow count = 0; stats show
+per-extractor failure columns; podcasts orphans list contains zero provably-live types; full
+battery + octet GATE: PASS.
+
+### D3 — "Instant and alive": cache resurrection + living waterfall + the compiler lever (engine+server+UI-lite)
+*One session; the compiler lever is the flagged risky tail — it may spill into the D4 QA-back
+without blocking D4. Findings J2, K1–K2, L2, L7, D1–D2, and github-ready's perf-lever thread.*
+
+**Cache resurrection (do first — highest leverage-to-effort in the whole plan):** awaited save with
+surfaced errors (kill the fire-and-forget at `AnalyzeCommand.cs:225` and the swallow at
+`SnapshotCacheService.cs:205`); load verified end-to-end CLI + server; honest
+`from cache · <sha> · <ms>` stamp; hit/miss/size in stats; cache round-trip truth test in the
+battery; UI Freshness card states snapshot age/HEAD/location + re-analyze affordance (J2, L2).
+Target before any compiler work: second CLI question on bitwarden <15s.
+
+**Living waterfall:** the existing observer stream renders as a live, detailed waterfall —
+per-stage bars with elapsed, current extractor, discoveries streaming in ("125 projects · 3 gRPC
+services · 662 endpoints…"), skip reasons, D2's failure counters, honest big-repo expectations
+(K1, L7 — as big as the data allows); post-analyze it persists as a Stats-page timeline (K2).
+
+**Compiler lever (risky tail):** persist/reuse the merged compilation (T7.2: DntSite 81s of 95s;
+bitwarden 207s), on-disk, keyed by source/package hash, invalidation truth-tested. With the cache:
+cold bitwarden ~3.5min once, warm <15s, focus <10s (D1/D2).
+
+**DoD:** cache round-trip green in battery; warm-run targets hit on the octet's big pole (or
+compiler-lever remainder explicitly carried to D4 QA-back with cache targets still met); loading
+screenshot gate; bench verdicts unchanged; full battery GATE: PASS.
+
+### D4 — "A desktop worth demoing": visual intelligence + library workbench + Studio/nav loops (app)
+*One session, pure `src/DevContext.App` (+ small server additions for the library surface RPC).
+Findings F1–F6, L1, L3–L6, M, plus the UI half of D1's library archetype.*
+
+**Visual intelligence:** ONE canvas system — deterministic layered layout (ELK/dagre-class),
+fit-and-center that never clips, stable across pages (F2/L6); semantic rendering — kind glyphs,
+transport-labeled edges (HTTP/queue/gRPC/event), DDD-layer lanes, stores/externals visually
+distinct (F3/M — the engine already knows all of it); progressive disclosure — C4-ish level 1
+(services + transports) default, expand per service (M); **Atlas becomes a real one-pager** —
+layered architecture view, per-service cards (style + entry mix), event/queue board, data stores,
+matching export (L3).
+
+**Library workbench:** archetype Library routes Explore to a public-surface browser (ENTRY API /
+ABSTRACTIONS / GENERATORS / PUBLIC SURFACE / CONSUMER PATHS as the rail); home cards swap
+entry-metrics for surface-metrics; style chip suppressed exactly as the CLI does (F1).
+
+**Studio & navigation:** **live pack preview** — the rendered pack (markdown, token meter,
+per-section provenance) updates as scope/budget/intent change; Copy copies what's shown (L4);
+preset semantics — explicit names + one-line effect, scope delta visible in preview (L4); **entry
+browser replaces the table dump** — ranked, grouped service→kind→route, filter-as-you-type, kind
+chips, auth badges; Shift+E table demoted to power view (L5, needs D1's B3); session naming
+unified (F4); MCP feed origin fix — app RPCs never labeled `agent` (F5).
+
+**DoD:** refit UI session shows the full library surface; scripted Studio drive builds a podcasts
+pack entirely from the preview; screenshot gates on loading/home/Explore/Atlas for podcasts +
+refit + eShop + bitwarden; a reviewer can answer "how does this system work" from Atlas alone;
+`pnpm check` + app battery green.
+
+### D5 — "Honest to agents, shipped everywhere": MCP polish + cross-platform + final hardening (server+infra)
+*One session: the smallest delivery + the phase's final QA. Findings G1, H1–H3.*
+
+**MCP honesty:** get_context degenerate-focus — low fill says why + suggests connected focuses;
+UiEntry packs pull page members (lands free after D2's C1) (G1).
+
+**Cross-platform delivery:** engine CI legs on ubuntu + macos (build + fast suite + CLI strict
+smoke) or the README/PACKAGING claim narrows explicitly (H1); path/casing fixes it shakes out
+(H2); desktop bundle decision — per-RID sidecar + Tauri mac/linux targets, or documented
+Windows-only (H2); installer version from the release tag (H3).
+
+**Final hardening (phase QA):** full octet + insight-validity + poles re-run; clean-clone battery;
+cross-OS CI green on develop; HANDOVER-PRISM.md; tracker closed.
+
+**DoD:** octet MCP drive has zero empty navigations / silent breaches; green cross-OS CI on
+develop; release dry-run artifact inventory matches the bundle decision; phase handover written.
+
+## 3. Traceability (nothing dropped)
+
+| Audit finding | Delivery |
+|---|---|
+| A1–A5 archetype/render · B1–B6 surfaces · C4 style · C6 targets · E1–E5 hygiene | **D1** |
+| C1–C3 depth · C5 DI provenance · I1–I2 insights · J1/J3 self-health · D3 trace budget | **D2** |
+| J2 dead cache · K1/K2 unused riches · L2/L7 cache-UI/loading · D1/D2 perf · compiler lever | **D3** |
+| F1–F6 UI · L1/L3–L6 experience · M diagram intelligence | **D4** |
+| G1 MCP pack honesty · H1–H3 cross-platform · phase QA | **D5** |
+
+Sequencing rationale: D1→D2 are both Core and D2's insight gating needs D1's honest graphs; D3's
+waterfall shows D2's failure counters; D4's entry browser needs D1's route prefixes and its
+library workbench needs D1's archetype; D5's pack fix needs D2's razor depth. QA-back at every
+session open catches cross-delivery regressions within one session of their landing.
+
+## 4. Debts folded in / still open
+- conductor-DEBT: SymbolTable member indexing → D2; BodyFacts scoping, TfmScore, Flow hardening
+  remain open (unchanged).
 - eval-results/ volume + analysis-exports/ — owner call, parked.
-- Fast-suite load-flake — name still uncaptured; watch P-phase batteries.
-- GrpcAggregator style rung — subsumed by P4.1.
+- Fast-suite load-flake — name still uncaptured; watch the D-session batteries.
+- GrpcAggregator style rung — subsumed by D1's style rungs.
 
-## 4. Audit-process improvements (encoded in P0.2/P0.3, learned this round)
+## 5. Audit-process improvements (encoded in D1's harness, learned this round)
 - Unseen-first, rotate the octet; cross-surface drives per repo; judge against "what would an
-  honest lens say", not expectation files; FAIL probes (map-tokens ≪ repo size, etc.).
-- **Verify a sample of insights against code every round** — insights are claims, not decoration.
-- **Audit the engine's own health, not just its output**: swallow census, dead-feature check
-  (does the cache dir contain bytes?), collected-vs-surfaced inventory.
-- Experience is a first-class audit dimension: loading, diagrams, core loops (Studio), navigation —
-  graded against "would this demo well / does this engage a dev", with screenshots as evidence.
-- Playwright: `domcontentloaded` (MCP page never idles); explicit New-session per repo; launch node
-  drives from PowerShell (MSYS mangles `cmd /d /c`).
+  honest lens say"; FAIL probes (map-tokens ≪ repo size, Unknown+0-entries, sample-noise rows).
+- Verify a sample of insights against code every round — insights are claims, not decoration.
+- Audit the engine's own health, not just its output: swallow census, dead-feature checks (does
+  the cache dir contain bytes?), collected-vs-surfaced inventory.
+- Experience is a first-class dimension: loading, diagrams, core loops, navigation — graded
+  against "would this demo well", screenshots as evidence.
+- Playwright: `domcontentloaded` (MCP page never idles); explicit New-session per repo; launch
+  node drives from PowerShell (MSYS mangles `cmd /d /c`).
