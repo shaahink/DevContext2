@@ -1,23 +1,22 @@
-# Tapestry — Phase Tracker (resume here)
+# Tapestry — Phase Tracker (CLOSED 2026-07-17)
 
-**Read order for a fresh session:** this file → `docs/dev/briefs/proposal-tapestry.md` (the plan —
-read your stage's section AND §1 rules) → the evidence files your stage cites →
-`docs/dev/CODE-MAP.md` (where things live) → `docs/dev/DEVELOPER-PIPELINE.md` (build/gate).
-Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
+**This phase is COMPLETE.** Read `docs/dev/HANDOVER-TAPESTRY.md` first (phase map, architecture
+deltas, perf truth, gaps); this file keeps the checkpoint tables + drift table for reference.
+Plan: `docs/dev/briefs/proposal-tapestry.md`.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
-## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-17 **T7 COMPLETE — T7.0–T7.4 on feat/tapestry-t7** (T7.0 91533db): T7.1 bench+truth (3 new poles CompositionApp/GrpcAggregator/aspire-samples;
-25/25 verdict refresh; 2 engine fixes — dot-dir sln decoy `.github/for.dependabot.only.sln` + picker scores all candidates; aspire markdown render pinned
-TruthPending(T8)) → T7.3 waterfall (4 new PipelineStage rows; shamshir 99.7% accounted, SemanticLite=21.2s WAS the invisible half; fingerprints inside the
-clock) → T7.2 perf (PERF-2026-07-17-0036 vs Jun-20: big-repo wall = SemanticLite, DntSite 81.1s of 94.7s; bind itself 84s→3.2s; OrchardCore edges
-1708→11904 = coverage, bind flat; named lever: persist/reuse merged compilation) → T7.4 RPC budget (GetFlowIndex RPC + Core FlowIndexBuilder + session memo;
-AtlasStore = ONE call; drive M: fresh load **8 RPCs** was ~150+, navs 0–1; fixed client boundary-seam name bug). Evidence: eval-results/2026-07-16/tapestry-t7/.
-next: **T8 close-out** (clean-clone battery + HANDOVER-TAPESTRY + AGENTS/memory) — plus the T8-pinned finding: sample-collection RENDER honesty
-(aspire-samples: samples/ noise-suppression ⇒ 0 entries ⇒ Library "0 public types" ⇒ no STYLE line). Stage battery gates-t7-stage.txt — check GATE: PASS
-before merge. Standing: first `.github/workflows/eval.yml` run when github-ready merges. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
-gotchas: fast suite has a load-flake (1 test fails ONCE right after other dotnet churn, green quiet, name uncaptured — watch battery logs); bench.ps1 is
-ASCII now (PS 5.1 read em-dash tail 0x94 as cp1252 curly-quote INSIDE a string ⇒ parse fail when detached); dogfood PRE-EXISTING mods stand — never restore.
+## Handoff (final — phase closed)
+last: 2026-07-17 **T0–T8 COMPLETE.** T8: T8.2 sample-collection render honesty (`SamplesAreTheProduct` — aspire-samples 58/31/0 dishonest-Library →
+68n/34e/5e `STYLE SampleCollection`; truth test un-pended GREEN; MediatR-class untouched) · T8.3 FixtureExists truth guard (empty gitlink dirs SKIP not
+FAIL, 15 sites — closes the github-ready G5 handoff) · gates.ps1 `-SkipMcpQa` graft · HANDOVER-TAPESTRY.md + AGENTS root/App T-rules + memory.
+**Merged:** feat/tapestry-t8 (T4–T8 train) → develop `e1ab299`, then feat/github-ready (G1–G9) → develop `0b285f2` (conflicts: gates.ps1/.gitignore
+ours-with-graft; AGENTS/PROGRESS-LOG unions; DEVELOPER-PIPELINE sidecar claim un-staled). Tip battery GATE: PASS (tapestry-t8/gates-t8-tip.txt);
+clean-clone battery on the merged tip = gates-t8-cleanclone.txt (run 1 died to a machine-wide MSBuild MSB4166 node-reuse collision — infra, not product;
+run 2 with MSBUILDDISABLENODEREUSE=1). Live cold-agent QA 91% PASS (mcp-cold-qa.md); McpQa 12/12 (mcp-qa.md).
+next: **phase review** (user) · first `eval.yml` workflow_dispatch run · named perf lever = persist/reuse merged compilation (own checkpoint, see
+HANDOVER §5) · debt register `docs/dev/archive/conductor-DEBT.md`.
+gotchas (standing): fast-suite load-flake (1 fail right after dotnet churn, green quiet, name uncaptured); PS 5.1 × UTF-8 em-dashes in detached scripts
+(keep battery scripts ASCII); dogfood PRE-EXISTING mods stand — never restore; never build/test in a worktree while its battery runs.
 
 ---
 
@@ -118,7 +117,7 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T8 — Close-out
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T8.1 | Clean-clone full battery + HANDOVER-TAPESTRY.md + AGENTS/memory updates | IN PROGRESS | | tapestry-t8/gates-t8-tip.txt (tip battery) · gates-t8-cleanclone.txt (post-merge clean clone) · docs/dev/HANDOVER-TAPESTRY.md |
+| T8.1 | Clean-clone full battery + HANDOVER-TAPESTRY.md + AGENTS/memory updates | VERIFIED | (merge e1ab299) | tip battery GATE: PASS tapestry-t8/gates-t8-tip.txt · clean clone of MERGED develop (submodules resolved from GitHub — G5 works end-to-end) gates-t8-cleanclone.txt · HANDOVER-TAPESTRY.md · AGENTS root+App · memory updated |
 | T8.2 | Sample-collection render honesty (T7.1 finding 3): samples-only repos ARE the product | VERIFIED | e3a0690e | aspire-samples `LIBRARY (0 public types)`→`MAP`+`STYLE SampleCollection`+per-service+5 entries (68n/34e/5e was 58/31/0) · `AspireSamples_style_…` un-pended GREEN · +6 pins (NoiseFilterTests/ArchetypeDetectorTests) · MediatR-class repos byte-identical (T1.9 pins green) |
 | T8.3 | Empty-fixture-dir→skip in truth gate (github-ready G5 handoff item) | VERIFIED | (T8.3 commit) | `FixtureExists` = exists AND non-empty, all 15 sites — fresh-clone gitlink dirs (empty) now SKIP not FAIL |
 

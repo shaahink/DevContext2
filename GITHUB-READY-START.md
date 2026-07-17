@@ -82,17 +82,18 @@ says so. Remaining nicety: the installer version is `tauri.conf.json`'s `0.1.0`,
   launch `ng serve` from the agent harness — detached `cmd /c` launches worked.
 - CHANGELOG — caught up in G4 with a `[Unreleased]` section summarizing post-v1.0.0 phases.
 
-## Remaining (delivery complete — these wait on external events)
+## Remaining (updated 2026-07-17 — strand MERGED)
 
-G1–G9 delivered and pushed. What's left is not this-worktree work:
-
-1. **PR** `feat/github-ready` → `develop` once `feat/tapestry-t4` merges (this branch is based on the
-   t4 head — rebase if T4 changed during review; as of 2026-07-16 develop is still at the T3 merge).
-   Never merge unasked.
-2. **First `eval.yml` run** — trigger via `workflow_dispatch` after merge; confirm actual runtime
-   fits the 120-min timeout and the 5 pinned clones resolve on the runner.
-3. **Coordinate with the engine strand** — empty-fixture-dir→skip in `TruthExpectationTests`
-   (Tapestry owns the file); owner decisions on `eval-results/` (432 files) + `analysis-exports/`.
+1. ~~PR `feat/github-ready` → `develop`~~ — **DONE**: merged directly (user-authorized) as
+   `0b285f2`, immediately after the Tapestry T4–T8 train (`e1ab299`). Conflict resolutions:
+   gates.ps1 kept the T7.0 rewrite with `-SkipMcpQa` grafted (semantic union); `.gitignore` the
+   t8 superset; AGENTS.md/PROGRESS-LOG.md unions; DEVELOPER-PIPELINE's pre-G8 "no desktop
+   artifact yet" claim un-staled.
+2. **First `eval.yml` run** — workflow_dispatch triggered post-merge; confirm actual runtime fits
+   the 120-min timeout and the 5 pinned clones resolve on the runner.
+3. ~~Engine strand: empty-fixture-dir→skip~~ — **DONE** by Tapestry T8.3 (`FixtureExists` in
+   `TruthExpectationTests`, all 15 sites). Still open: owner decisions on `eval-results/`
+   (432 tracked files) + `analysis-exports/`.
 4. **Niceties, not blockers** — installer version from the release tag (today `0.1.0` from
    tauri.conf.json); capture-script fixes noted in the screenshots hygiene entry above.
 

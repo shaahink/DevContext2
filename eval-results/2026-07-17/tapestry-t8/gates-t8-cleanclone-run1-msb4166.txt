@@ -1,0 +1,15 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 2 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+Test run for C:\code\DevContext2-t8clean\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0) Test run for C:\code\DevContext2-t8clean\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0) A total of 1 test files matched the specified pattern. A total of 1 test files matched the specified pattern. No test matches the given testcase filter `Category=McpQa` in C:\code\DevContext2-t8clean\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll  MSBUILD : error MSB4166: Child node "4" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\shahi\AppData\Local\Temp\MSBuildTemphkga40pj.mpz\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory. MSBUILD : error MSB4166: Child node "7" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\shahi\AppData\Local\Temp\MSBuildTemphkga40pj.mpz\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory. MSBUILD : error MSB4166: Child node "5" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\shahi\AppData\Local\Temp\MSBuildTemphkga40pj.mpz\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory. MSBUILD : error MSB4166: Child node "6" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\shahi\AppData\Local\Temp\MSBuildTemphkga40pj.mpz\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory.
+  FAIL  MCP QA gate failed
+
+GATE: FAIL (step 2b - MCP QA)
