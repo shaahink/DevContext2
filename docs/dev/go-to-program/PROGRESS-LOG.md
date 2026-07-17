@@ -2528,3 +2528,21 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 
 **Next:** user review/merge of feat/tapestry-t4 → develop; then T5 (Context Studio v2): T5.1
 quick wins + T5.6 recompute-on-change (the token-export trust bug).
+
+## 2026-07-17 — Tapestry T8 close-out + phase merge: T0–T8 COMPLETE (feat/tapestry-t8 → develop)
+
+**T8.2 sample-collection render honesty** (the T7.1-pinned finding): `SamplesAreTheProduct`
+computed once (root-relative) in ProjectClassifier, stamped on the model, honored by NoiseFilter
+entries / ArchetypeDetector ladder (5 points incl. the Orleans-named-sample framework
+short-circuit) / RunnableProjects / chokepoint insight / library surface. aspire-samples:
+`LIBRARY (0 public types)` no-STYLE → `MAP` + `STYLE SampleCollection` + per-service + 5 entries
+(68n/34e/5 was 58/31/0). Truth test un-pended GREEN; +6 unit pins; MediatR-class repos untouched.
+**T8.3** FixtureExists guard (github-ready G5 handoff): empty gitlink dirs SKIP not FAIL — all
+15 truth sites. **T8.1** full battery on the t8 tip + clean-clone battery on the merged develop
+tip; HANDOVER-TAPESTRY.md (phase map, architecture deltas, perf truth, gaps); AGENTS.md root+App
+T-rules; tracker closed. **Merges:** feat/tapestry-t8 (T4–T8 train) → develop, then
+feat/github-ready (G1–G9) → develop (gates.ps1 -SkipMcpQa grafted pre-merge for a clean union;
+.gitignore t8-superset; DEVELOPER-PIPELINE sidecar claim un-staled post-G8).
+
+**Next:** first eval.yml workflow_dispatch run; named perf lever (persist/reuse merged
+compilation) as its own future checkpoint; conductor-DEBT.md register.
