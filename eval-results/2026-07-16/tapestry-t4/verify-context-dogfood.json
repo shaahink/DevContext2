@@ -1,0 +1,164 @@
+{
+  "fresh": {
+    "focus": "POST /basket/checkout",
+    "anyStale": false,
+    "headMoved": false,
+    "analyzedGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "currentGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "sections": [
+      {
+        "key": "identity",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "trace",
+        "stale": false,
+        "filesChecked": 8,
+        "changed": []
+      },
+      {
+        "key": "signatures",
+        "stale": false,
+        "filesChecked": 8,
+        "changed": []
+      },
+      {
+        "key": "contracts",
+        "stale": false,
+        "filesChecked": 5,
+        "changed": []
+      },
+      {
+        "key": "di_wiring",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "bodies",
+        "stale": false,
+        "filesChecked": 7,
+        "changed": []
+      }
+    ],
+    "method": "analyze-time sha256 + line-count vs disk now; 'unknown' = no analyze-time fingerprint for the file; re-run analyze to refresh"
+  },
+  "stale": {
+    "focus": "POST /basket/checkout",
+    "anyStale": true,
+    "headMoved": false,
+    "analyzedGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "currentGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "sections": [
+      {
+        "key": "identity",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "trace",
+        "stale": true,
+        "filesChecked": 8,
+        "changed": [
+          {
+            "file": "Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs",
+            "status": "modified",
+            "lineDelta": 2
+          }
+        ]
+      },
+      {
+        "key": "signatures",
+        "stale": true,
+        "filesChecked": 8,
+        "changed": [
+          {
+            "file": "Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs",
+            "status": "modified",
+            "lineDelta": 2
+          }
+        ]
+      },
+      {
+        "key": "contracts",
+        "stale": true,
+        "filesChecked": 5,
+        "changed": [
+          {
+            "file": "Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs",
+            "status": "modified",
+            "lineDelta": 2
+          }
+        ]
+      },
+      {
+        "key": "di_wiring",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "bodies",
+        "stale": true,
+        "filesChecked": 7,
+        "changed": [
+          {
+            "file": "Services/Basket/Basket.API/Basket/CheckoutBasket/CheckoutBasketHandler.cs",
+            "status": "modified",
+            "lineDelta": 2
+          }
+        ]
+      }
+    ],
+    "method": "analyze-time sha256 + line-count vs disk now; 'unknown' = no analyze-time fingerprint for the file; re-run analyze to refresh"
+  },
+  "restored": {
+    "focus": "POST /basket/checkout",
+    "anyStale": false,
+    "headMoved": false,
+    "analyzedGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "currentGitHead": "7e43d808f50f59fb9ba595469143b0c0ae981961",
+    "sections": [
+      {
+        "key": "identity",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "trace",
+        "stale": false,
+        "filesChecked": 8,
+        "changed": []
+      },
+      {
+        "key": "signatures",
+        "stale": false,
+        "filesChecked": 8,
+        "changed": []
+      },
+      {
+        "key": "contracts",
+        "stale": false,
+        "filesChecked": 5,
+        "changed": []
+      },
+      {
+        "key": "di_wiring",
+        "stale": false,
+        "filesChecked": 0,
+        "changed": []
+      },
+      {
+        "key": "bodies",
+        "stale": false,
+        "filesChecked": 7,
+        "changed": []
+      }
+    ],
+    "method": "analyze-time sha256 + line-count vs disk now; 'unknown' = no analyze-time fingerprint for the file; re-run analyze to refresh"
+  }
+}

@@ -80,8 +80,10 @@ interface InsightGroup {
                       <div class="flex items-center gap-2">
                         <span class="text-xs font-semibold text-ink">{{ insight.title }}</span>
                         <span class="rounded px-1.5 py-px text-2xs" [class]="severityLabelClass(insight.severity)">{{ insight.severity }}</span>
-                        @if (insight.confidence > 0) {
-                          <span class="text-2xs tabular-nums text-ink-subtle" [title]="insight.confidenceBasis ?? ''">{{ (insight.confidence * 100).toFixed(0) }}% conf</span>
+                        @if (confidenceTier(insight.confidence); as tier) {
+                          <span class="text-2xs text-ink-subtle"
+                            [title]="(insight.confidenceBasis ? insight.confidenceBasis + ' — ' : '') + 'confidence ' + (insight.confidence * 100).toFixed(0) + '%'"
+                          >{{ tier }} confidence</span>
                         }
                       </div>
                       @if (insight.whyItMatters) {
@@ -196,6 +198,14 @@ export class InsightsView {
 
   severityLabelClass(severity: string): string {
     return SEVERITY_LABEL_CLASS[severity] ?? SEVERITY_LABEL_CLASS['info'];
+  }
+
+  /** Tier words instead of raw percentages (T6.3, audit A11 — "12% conf" as a headline
+   * chip erodes trust). Thresholds mirror the engine's ranking tiers (0.8/0.5); the exact
+   * number stays in the tooltip. */
+  confidenceTier(confidence: number): string | null {
+    if (confidence <= 0) return null;
+    return confidence >= 0.8 ? 'high' : confidence >= 0.5 ? 'moderate' : 'low';
   }
 
   actionLabel(action: string): string {

@@ -1,0 +1,6 @@
+{
+ "single-e": "http://localhost:4200/context",
+ "g-then-a": "http://localhost:4200/atlas",
+ "help-open": "1",
+ "omnibox-open": "true"
+}

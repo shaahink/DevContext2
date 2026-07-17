@@ -9,6 +9,8 @@ import { ToastService } from '../../ui/toast/toast';
 import { Skeleton } from '../../ui/skeleton/skeleton';
 import { isTauri } from '../../core/tauri-env';
 import { copyToClipboard } from '../../core/clipboard';
+import { repoRelativePath } from '../../core/format';
+import { WorkspaceStore } from '../../state/workspace.store';
 import { highlightCSharp } from '../../core/code-highlight';
 import type { TraceNodeVm } from '../../models/view-models';
 import type { Insight } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
@@ -57,9 +59,10 @@ function isAlphanumeric(c: string): boolean {
           <p class="break-all font-mono text-xs text-ink">{{ node.title }}</p>
           <p class="text-2xs text-ink-muted">{{ node.kind }}</p>
           @if (node.filePath) {
-            <p class="flex items-start gap-1.5 break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath">
-              <span class="min-w-0 flex-1">{{ node.filePath }}</span>
+            <p class="flex items-start gap-1.5 break-all font-mono text-2xs text-ink-subtle" [title]="node.filePath + ' — click copy for the absolute path'">
+              <span class="min-w-0 flex-1">{{ relPath(node.filePath) }}</span>
               @if (node.lineNumber) {<span class="shrink-0 tabular-nums">:{{ node.lineNumber }}</span>}
+              <button type="button" class="shrink-0 text-ink-subtle hover:text-ink hover:underline" (click)="copyFilePath(node.filePath)" title="Copy absolute path">copy</button>
               @if (isTauriEnv) {
                 <button type="button" class="shrink-0 text-ink-subtle hover:text-ink hover:underline" (click)="revealInExplorer(node.filePath)" title="Reveal in Explorer">reveal</button>
               }
@@ -112,7 +115,7 @@ function isAlphanumeric(c: string): boolean {
         @if (node.filePath) {
           <div class="space-y-1.5 border-b border-line px-2 py-2">
             <p class="break-all font-mono text-xs text-accent" [title]="node.filePath">
-              {{ node.filePath }}
+              {{ relPath(node.filePath) }}
               @if (node.lineNumber) {<span class="tabular-nums text-ink-subtle">:{{ node.lineNumber }}</span>}
             </p>
             <div class="flex flex-wrap gap-1">
@@ -206,7 +209,7 @@ function isAlphanumeric(c: string): boolean {
             <span class="shrink-0 text-2xs text-ink-subtle">{{ step.depth === 0 ? '⌂' : step.depth > selectionDepth() ? '↳' : '·' }}</span>
             <span class="min-w-0 flex-1 truncate font-mono text-xs" [title]="step.title">{{ step.title }}</span>
             @if (step.provenance) {
-              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1">{{ step.provenance }}</span>
+              <span class="shrink-0 text-2xs text-ink-subtle tabular-nums ml-1" [title]="step.provenance">{{ relProvenance(step.provenance) }}</span>
             }
           </div>
         }
@@ -315,8 +318,22 @@ export class Inspector {
   private readonly atlas = inject(AtlasStore);
   private readonly api = inject(DevContextApi);
   private readonly toast = inject(ToastService);
+  private readonly workspace = inject(WorkspaceStore);
 
   protected readonly isTauriEnv = isTauri();
+
+  /** Repo-relative display (T6.8, audit B13); absolute stays on [title] + the copy button. */
+  protected relPath(filePath: string): string {
+    return repoRelativePath(filePath, this.workspace.activeTab()?.path);
+  }
+
+  /** Same, for `path:line` provenance strings (Call Stack rows). */
+  protected relProvenance(provenance: string): string {
+    const idx = provenance.lastIndexOf(':');
+    const path = idx > 1 ? provenance.slice(0, idx) : provenance;
+    const line = idx > 1 ? provenance.slice(idx) : '';
+    return repoRelativePath(path, this.workspace.activeTab()?.path) + line;
+  }
 
   /** §3.4 impact lens. Null (not 0) when no node is selected — `count` can legitimately
    * be 0, so this can't be an `@if` truthiness check on a bare number. */

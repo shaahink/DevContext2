@@ -1,0 +1,142 @@
+{
+ "01-home-empty": {
+  "Ping": 1
+ },
+ "02-analyze-shamshir": {
+  "Analyze": 1,
+  "Ping": 23,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 54
+ },
+ "04-explore": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 41
+ },
+ "05-atlas": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 48
+ },
+ "06-insights": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 37
+ },
+ "07-mcp": {
+  "Ping": 1,
+  "ListSessions": 1,
+  "StartMcp": 1,
+  "Analyze": 1,
+  "ObserveToolCalls": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 42
+ },
+ "08-context": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 50
+ },
+ "09-settings": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 44
+ },
+ "10-home-revisit": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 41
+ },
+ "11-explore-first-entry": {
+  "Ping": 2,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 101,
+  "GetStats": 1,
+  "GetNode": 40,
+  "GetNeighbors": 1
+ },
+ "12-explore-lenses": {
+  "Ping": 3
+ },
+ "13-atlas-onepager": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 45
+ },
+ "14-context-preset": {
+  "Ping": 1,
+  "Analyze": 1,
+  "GetMap": 1,
+  "ListEntryPoints": 1,
+  "GetGraphFacets": 1,
+  "GetTrace": 100,
+  "GetStats": 1,
+  "GetNode": 53
+ },
+ "15-keyboard": {
+  "Ping": 2,
+  "Analyze": 2,
+  "GetMap": 2,
+  "ListEntryPoints": 2,
+  "GetGraphFacets": 2,
+  "GetTrace": 200,
+  "GetStats": 2,
+  "GetNode": 64
+ },
+ "16-theme-light": {
+  "Ping": 3,
+  "Analyze": 3,
+  "GetMap": 3,
+  "ListEntryPoints": 3,
+  "GetGraphFacets": 3,
+  "GetTrace": 225,
+  "GetStats": 3,
+  "GetNode": 124
+ }
+}

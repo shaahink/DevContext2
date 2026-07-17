@@ -12,6 +12,8 @@ interface ToolCallEntry {
   bytes: number;
   estTokens: number;
   elapsedMs: number;
+  /** "ui" (the app's own gRPC-web traffic) or "agent" (MCP sidecar over native gRPC). */
+  origin: string;
 }
 
 interface SessionItem {
@@ -99,6 +101,10 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
       <!-- Config snippets -->
       <div>
         <h3 class="mb-2 text-2xs font-semibold uppercase tracking-wider text-ink-subtle">Host Config</h3>
+        <p class="mb-2 text-2xs text-ink-subtle">
+          Requires <code class="font-mono">devcontext-mcp</code> on PATH (ships with the desktop installer;
+          from source: <code class="font-mono">dotnet run --project src/DevContext.Mcp</code>).
+        </p>
         <div class="grid grid-cols-3 gap-3">
           @for (cfg of configSnippets; track cfg.host) {
             <div class="rounded border border-line bg-surface p-3">
@@ -133,16 +139,37 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
                   <th class="text-right p-2 font-medium">Age</th>
                   <th class="text-right p-2 font-medium">Calls</th>
                   <th class="text-right p-2 font-medium">Nodes</th>
+                  <th class="p-2"></th>
                 </tr>
               </thead>
               <tbody>
                 @for (s of sessions(); track s.handle) {
                   <tr class="border-b border-line/50 last:border-0 hover:bg-surface-raised">
                     <td class="p-2 truncate max-w-40" [title]="s.repo">{{ s.repo.split(/[\\/]/).pop() }}</td>
-                    <td class="p-2 font-mono text-ink-subtle">{{ s.handle.slice(0, 8) }}</td>
+                    <!-- T6.10 (audit B9/A15): the page used to SHOW a truncated handle its own
+                         TRY-A-TOOL then rejected. Full handle on hover, one-click copy, and a
+                         "use" button that prefills the tool form — zero typing. -->
+                    <td class="p-2 font-mono text-ink-subtle">
+                      <button
+                        type="button"
+                        class="hover:text-ink transition-colors"
+                        [title]="s.handle + ' — click to copy'"
+                        data-testid="session-handle-copy"
+                        (click)="copyHandle(s.handle)"
+                      >{{ copiedHandle() === s.handle ? 'Copied!' : s.handle.slice(0, 8) + '…' }}</button>
+                    </td>
                     <td class="p-2 text-right font-mono tabular-nums">{{ fmtAge(s.ageSeconds) }}</td>
                     <td class="p-2 text-right">{{ s.calls }}</td>
                     <td class="p-2 text-right">{{ s.nodes }}</td>
+                    <td class="p-2 text-right">
+                      <button
+                        type="button"
+                        class="rounded border border-line px-1.5 py-0.5 text-2xs text-ink-muted hover:border-accent hover:text-ink transition-colors"
+                        title="Prefill Try-a-Tool with this session"
+                        data-testid="session-use"
+                        (click)="useSession(s.handle)"
+                      >use</button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -151,28 +178,44 @@ const CONFIG_SNIPPETS: { host: string; snippet: string }[] = [
         }
       </div>
 
-      <!-- Live feed -->
+      <!-- Live feed — default-filtered to agent traffic (T6.10, audit B9: one page render
+           logged 163 UI-origin calls / ~99k tok; agent calls would drown). -->
       <div>
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-2xs font-semibold uppercase tracking-wider text-ink-subtle">
             Live Feed
-            @if (events().length > 0) {
-              <span class="ml-2 font-normal">({{ events().length }})</span>
+            @if (visibleEvents().length > 0) {
+              <span class="ml-2 font-normal">({{ visibleEvents().length }})</span>
             }
           </h3>
           <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="chip text-2xs"
+              [class.active]="!showUiCalls()"
+              data-testid="feed-origin-filter"
+              [title]="showUiCalls() ? 'Showing everything, including the app’s own gRPC traffic' : 'UI-origin calls hidden — showing agent traffic only'"
+              (click)="showUiCalls.set(!showUiCalls())"
+            >{{ showUiCalls() ? 'all origins' : 'agents only' }}</button>
             <span class="text-2xs text-ink-subtle tabular-nums">Total: {{ totalTokens() }} tok</span>
             <button class="text-2xs text-ink-subtle hover:text-ink" (click)="clearEvents()">Clear</button>
           </div>
         </div>
-        @if (events().length === 0) {
-          <p class="text-xs text-ink-subtle py-4 text-center">No tool calls yet. Start MCP and trigger a tool call.</p>
+        @if (visibleEvents().length === 0) {
+          <p class="text-xs text-ink-subtle py-4 text-center">
+            @if (events().length > 0 && !showUiCalls()) {
+              No agent calls yet — {{ events().length }} UI-origin calls hidden.
+            } @else {
+              No tool calls yet. Start MCP and trigger a tool call.
+            }
+          </p>
         } @else {
           <div class="rounded border border-line bg-surface overflow-hidden">
             <div class="max-h-64 overflow-y-auto">
-              @for (e of events(); track $index) {
+              @for (e of visibleEvents(); track $index) {
                 <div class="flex items-center gap-2 px-3 py-1.5 border-b border-line/30 last:border-0 text-2xs hover:bg-surface-raised">
                   <span class="font-mono tabular-nums text-ink-subtle shrink-0 w-12">{{ e.time }}</span>
+                  <span class="chip shrink-0 text-2xs" [class.text-accent]="e.origin === 'agent'">{{ e.origin }}</span>
                   <span class="font-medium shrink-0 w-20 truncate">{{ e.tool }}</span>
                   <span class="text-ink-subtle shrink-0 w-16 truncate">{{ e.repo.split(/[\\/]/).pop() }}</span>
                   <span class="font-mono tabular-nums text-ink-subtle">~{{ e.estTokens }}t</span>
@@ -242,10 +285,15 @@ export class McpPage implements OnInit, OnDestroy {
   protected readonly mcpRunning = signal(false);
   private mcpStateSynced = false;
   protected readonly copied = signal<string | null>(null);
+  protected readonly copiedHandle = signal<string | null>(null);
   protected readonly events: WritableSignal<ToolCallEntry[]> = signal([]);
   protected readonly totalTokens = signal(0);
   protected readonly sessions = signal<SessionItem[]>([]);
   protected readonly tryResult = signal<string | null>(null);
+  /** Default OFF: the feed exists to watch AGENTS; the app's own render chatter drowns it. */
+  protected readonly showUiCalls = signal(false);
+  protected readonly visibleEvents = computed(() =>
+    this.showUiCalls() ? this.events() : this.events().filter((e) => e.origin !== 'ui'));
 
   protected readonly configSnippets = CONFIG_SNIPPETS;
   protected readonly availableTools = ['stats', 'map', 'entrypoints', 'trace', 'node', 'search', 'impact', 'insights', 'get_context'];
@@ -306,6 +354,19 @@ export class McpPage implements OnInit, OnDestroy {
       this.copied.set(text.includes('Claude') ? 'Claude Code' : text.includes('Cursor') ? 'Cursor' : 'VS Code');
       setTimeout(() => this.copied.set(null), 2000);
     });
+  }
+
+  /** T6.10 — copy the FULL handle (the table shows a truncated one for width). */
+  protected copyHandle(handle: string) {
+    void navigator.clipboard.writeText(handle).then(() => {
+      this.copiedHandle.set(handle);
+      setTimeout(() => this.copiedHandle.set(null), 2000);
+    });
+  }
+
+  /** T6.10 — one click prefills TRY-A-TOOL with a live session: zero typing to a working call. */
+  protected useSession(handle: string) {
+    this.tryHandle = handle;
   }
 
   protected refreshSessions() {
@@ -381,6 +442,7 @@ export class McpPage implements OnInit, OnDestroy {
             bytes: Number(evt.bytes),
             estTokens: Number(evt.estTokens),
             elapsedMs: Number(evt.elapsedMs),
+            origin: evt.origin || 'agent',
           };
           this.events.update((arr) => [entry, ...arr].slice(0, 200));
           this.totalTokens.update((t) => t + entry.estTokens);

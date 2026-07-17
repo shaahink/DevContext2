@@ -50,13 +50,14 @@ public static class ServiceBoundaryInference
         }
     }
 
-    public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope)
+    public static ImmutableArray<ProjectInfo> RunnableProjects(SolutionScope scope, bool samplesAreTheProduct = false)
     {
         // T1.9 — the service topology is production only. eShop's FunctionalTests reference the ASP.NET
         // Core shared framework (WebApplicationFactory), so IsRunnableService would render 5 test projects
         // as service cards. Exclude test/benchmark/sample projects by classification, not path regex.
+        // T8: in a samples-only repo the sample hosts ARE the services (tests/benchmarks still excluded).
         return scope.Projects
-            .Where(p => ProjectClassifier.IsProductionProject(p) && IsRunnableService(p))
+            .Where(p => ProjectClassifier.IsProductionProject(p, samplesAreTheProduct) && IsRunnableService(p))
             .ToImmutableArray();
     }
 }

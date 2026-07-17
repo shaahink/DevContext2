@@ -1,6 +1,7 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import type { ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import { projectDisplayName } from '../../core/format';
 
 @Component({
   selector: 'app-service-cards',
@@ -10,7 +11,7 @@ import type { ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_
         @for (svc of services(); track svc.projectName) {
           <div class="service-card">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-mono text-xs font-semibold text-ink">{{ shortName(svc.projectName) }}</span>
+              <span class="font-mono text-xs font-semibold text-ink" [title]="svc.projectName">{{ displayName(svc.projectName) }}</span>
               @if (svc.style) {
                 <span class="chip text-2xs">{{ svc.style }}</span>
               }
@@ -43,7 +44,10 @@ import type { ServiceStyle } from '../../core/grpc/gen/devcontext/v1/devcontext_
 export class ServiceCards {
   readonly services = input.required<readonly ServiceStyle[]>();
 
-  protected shortName(name: string): string {
-    return name.split('.').pop() ?? name;
+  private readonly allNames = computed(() => this.services().map((s) => s.projectName));
+
+  /** Common-prefix strip only — never the last dot segment (T6.8, audit A8). */
+  protected displayName(name: string): string {
+    return projectDisplayName(name, this.allNames());
   }
 }

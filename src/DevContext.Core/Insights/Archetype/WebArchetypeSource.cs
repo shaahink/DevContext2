@@ -18,8 +18,11 @@ public sealed class WebArchetypeSource : IInsightSource
         if (httpEntries.Count == 0) yield break;
 
         // ── Auth surface ──
+        // Only when the repo HAS auth annotations to describe — with zero annotations this
+        // card and auth.anonymous stated the same fact twice (T6.3: shamshir rendered
+        // "130/130 endpoints anonymous" AND "Auth surface: 0 protected, 130 unannotated").
         var authEntries = httpEntries.Count(e => !e.AuthAttributes.IsDefaultOrEmpty);
-        if (authEntries > 0 || httpEntries.Count > 0)
+        if (authEntries > 0)
         {
             var protectedEntries = httpEntries.Where(e =>
                 !e.AuthAttributes.IsDefaultOrEmpty && e.AuthAttributes.Any(a => a.Contains("Authorize"))).ToList();

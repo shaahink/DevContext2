@@ -121,10 +121,11 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             return 1;
         }
 
-        // Print explanation and warnings
-        AnsiConsole.MarkupLine($"[dim]{resolvedIntent.Explanation}[/]");
+        // Print explanation and warnings. Escaped: a focus like "[RelayCommand] X.Y" would
+        // otherwise parse as a Spectre style tag and throw.
+        AnsiConsole.MarkupLine($"[dim]{Markup.Escape(resolvedIntent.Explanation)}[/]");
         foreach (var warning in resolvedIntent.Warnings)
-            AnsiConsole.MarkupLine($"[yellow]{warning}[/]");
+            AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(warning)}[/]");
 
         // --task deprecation
         if (!string.IsNullOrWhiteSpace(settings.Task))
@@ -151,7 +152,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 _ => OutputFormat.Markdown
             },
             ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
-                ?? [".git", "bin", "obj", ".vs", "node_modules", ".idea", "eval-repos", "analysis-repos"],
+                ?? ExtractionOptions.DefaultExcludePatterns,
             ExcludeExtractors = settings.Fast
                 ? resolvedIntent.Scenario.DisableExtractors
                     .AddRange((string[])["InMemoryEventBusExtractor", "AntiPatternDetector", "IndirectWiringDetector"])

@@ -2496,3 +2496,53 @@ no projection unit tests existed � added `GraphProjectionTests.cs` this sessio
 - Pre-existing reds (unchanged, staged): dntsite target-* (T1.3), yarp archetype-gateway (T1.2).
 
 **Next:** user review/merge of `feat/wrapup-2026-07-15`; then Tapestry T0.1 (orphan-proof gates).
+
+## 2026-07-16 — Tapestry T4 COMPLETE: context generation v2, 6/6 checkpoints (feat/tapestry-t4)
+
+*(T0–T3 sessions tracked in TAPESTRY-START.md handoff/checkpoints, not logged here.)*
+
+- **T4.1+T4.6 (0d47247)** — pack identity header (`# {repo} — {focus}` + `analyzed {utc} ·
+  HEAD {sha7}`); root causes: `snapshot.Explanation` never populated by the pipeline (the audit's
+  empty `# ` title / `_Archetype: _`), no analyzed-at/HEAD on the snapshot, `int?` LineNumber
+  interpolated blind (dangling `path:`). Repo-relative `file:line` everywhere. Contracts card is a
+  real selection (role-tag messages + interfaces + DTOs), not a signatures alias; empty
+  sections/cards dropped AND recorded in `omitted[]`; HTML markers out of the human copy.
+- **T4.2 (8099bd6)** — budget-filling packs: bodies fill the remainder spine-first (full member
+  text via the salient lookup, per-body cap, `… (+N lines)` markers, omitted counts); trace depth
+  scales with budget (4→6 @ ≥3k); skeleton/signatures capped so structure can't starve bodies.
+  Dogfood checkout 35% → **90.5%**; shamshir **99.4%** @ 4k.
+- **T4.3 (9f60263)** — real config/tests sections (were dead client stubs): spine-file
+  `ConfigScanner` subset + `FindCallers`×`TestHeuristics` rows with best-effort disclaimer.
+  **Pre-existing bug fixed:** the tests_for heuristic matched `/tests/` on ABSOLUTE paths — a repo
+  living under tests/ (fixtures, clones) made every member a "test"; now root-relative.
+- **T4.4 (d15d0aa)** — per-section `_provenance: N source sites · V verified · A approx_` footers
+  + structured SourceLocations/Verified/Approx on SectionAllocation (T5.3 chips).
+- **T4.5 (a010229)** — verify_context: analyze-time `FileFingerprints` (sha256+lines) on the
+  snapshot; `ContextPackVerifier` compares each section's cited files vs disk (modified/deleted/
+  unknown); VerifyContext RPC + provenance proto fields (one regen, pnpm check 27P); MCP
+  verify_context (24th tool). Live dogfood drift cycle: fresh=false → +2-line edit=true →
+  git-restore=false, per-section verdicts naming the file.
+- **Verified:** 16 pack tests (unit + CompositionApp assembly + verifier end-to-end on a temp
+  fixture copy); two stage-end batteries GATE: PASS (gates-t4.txt, gates-t4-stage.txt);
+  loom-guards PASS after every checkpoint; live MCP captures under eval-results/2026-07-16/tapestry-t4/.
+
+**Next:** user review/merge of feat/tapestry-t4 → develop; then T5 (Context Studio v2): T5.1
+quick wins + T5.6 recompute-on-change (the token-export trust bug).
+
+## 2026-07-17 — Tapestry T8 close-out + phase merge: T0–T8 COMPLETE (feat/tapestry-t8 → develop)
+
+**T8.2 sample-collection render honesty** (the T7.1-pinned finding): `SamplesAreTheProduct`
+computed once (root-relative) in ProjectClassifier, stamped on the model, honored by NoiseFilter
+entries / ArchetypeDetector ladder (5 points incl. the Orleans-named-sample framework
+short-circuit) / RunnableProjects / chokepoint insight / library surface. aspire-samples:
+`LIBRARY (0 public types)` no-STYLE → `MAP` + `STYLE SampleCollection` + per-service + 5 entries
+(68n/34e/5 was 58/31/0). Truth test un-pended GREEN; +6 unit pins; MediatR-class repos untouched.
+**T8.3** FixtureExists guard (github-ready G5 handoff): empty gitlink dirs SKIP not FAIL — all
+15 truth sites. **T8.1** full battery on the t8 tip + clean-clone battery on the merged develop
+tip; HANDOVER-TAPESTRY.md (phase map, architecture deltas, perf truth, gaps); AGENTS.md root+App
+T-rules; tracker closed. **Merges:** feat/tapestry-t8 (T4–T8 train) → develop, then
+feat/github-ready (G1–G9) → develop (gates.ps1 -SkipMcpQa grafted pre-merge for a clean union;
+.gitignore t8-superset; DEVELOPER-PIPELINE sidecar claim un-staled post-G8).
+
+**Next:** first eval.yml workflow_dispatch run; named perf lever (persist/reuse merged
+compilation) as its own future checkpoint; conductor-DEBT.md register.

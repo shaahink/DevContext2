@@ -4,7 +4,37 @@
 .DESCRIPTION
     Windows PowerShell 5.1 compatible. Run before finishing any session.
     Exits with 0 on PASS, non-zero on FAIL.
+
+    -SkipEval (T5 battery-cadence directive, 2026-07-16): skips Step 3 (the ~11-minute eval
+    expectation suite) for MID-STAGE dotnet checkpoints. The verdict line then reads
+    "GATE: PASS (FAST - eval skipped; not a merge gate)" so a fast run can never be cited
+    as the boundary gate. Stage close-out, pre-push, and pre-merge ALWAYS run the full form.
+
+    -Scope (T7.0 wall-speed rider, 2026-07-16) encodes the battery cadence in the script:
+      full   (default) every step INCLUDING the app check (pnpm check) — the only form
+             citable at a stage/push/merge boundary.
+      engine skips the app check; for engine-only mid-stage checkpoints.
+      app    build + app check only (engine suites skipped); for app-only checkpoints.
+    Non-full verdicts self-label "not a merge gate", same contract as -SkipEval.
+
+    Step 3 is ENGINE-STAMP CACHED (T7.0): before running, a SHA256 over engine sources,
+    Core tests, expectations, and fixtures is compared to eval/.eval-stamp.json (written on
+    the last green eval). Identical stamp = the previous verdict transfers - the step is
+    skipped and labeled "eval cached". App-only batteries pay ~0 for the eval suite without
+    losing full-gate citability. Delete eval/.eval-stamp.json to force a re-run.
+
+    Step 3 runs the expectation theory SPLIT ACROSS TWO test hosts by default (~halves its
+    wall time; repos are independent). -SerialEval restores the single-process form.
 #>
+param(
+    [switch]$SkipEval,
+    [ValidateSet('full', 'engine', 'app')]
+    [string]$Scope = 'full',
+    [switch]$SerialEval,
+    # The MCP QA drive (step 2b) targets a machine-local dogfood repo (eval/mcp-qa/run.js) that
+    # can't exist on a hosted runner — CI (.github/workflows/eval.yml) passes this. Local runs don't.
+    [switch]$SkipMcpQa
+)
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -61,6 +91,11 @@ Write-Pass "Build succeeded"
 # be independently selectable). Run inside the parallel unit suite it loses a shared-state race and
 # fails intermittently, yet passes reliably on its own — so it runs serially as Step 2b below. This
 # keeps the fast suite fast and deterministic (Tapestry T0.1: gates trusted cold).
+if ($Scope -eq 'app') {
+    Write-Step "Steps 2-4b: engine suites - SKIPPED (-Scope app)"
+    Write-Host "  fast tests / MCP QA / eval / CLI matrix skipped; the full battery must still run at the boundary" -ForegroundColor Yellow
+}
+if ($Scope -ne 'app') {
 Write-Step "Step 2: Fast unit tests"
 $filterArg = "Category!=Eval&Category!=CliSmoke&Category!=McpQa"
 $testResult = dotnet test $sln --filter $filterArg --no-build 2>&1
@@ -75,38 +110,126 @@ Write-Pass "Fast tests passed"
 
 # Step 2b: MCP QA gate (serial — see note above).
 Write-Step "Step 2b: MCP QA gate (serial)"
-$mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Write-Host $mcpResult
-    Write-Fail "MCP QA gate failed" -Step 2
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 2b - MCP QA)" -ForegroundColor Red
-    exit 2
+if ($SkipMcpQa) {
+    Write-Host "  SKIP  -SkipMcpQa (dogfood repo is machine-local; not a pass)" -ForegroundColor Yellow
+} else {
+    $mcpResult = dotnet test $sln --filter "Category=McpQa" --no-build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host $mcpResult
+        Write-Fail "MCP QA gate failed" -Step 2
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 2b - MCP QA)" -ForegroundColor Red
+        exit 2
+    }
+    Write-Pass "MCP QA gate passed"
 }
-Write-Pass "MCP QA gate passed"
 
-# Step 3: Eval tests
-Write-Step "Step 3: Eval expectation tests"
-$evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
-$evalExit = $LASTEXITCODE
-Write-Host $evalResult
+# Step 3: Eval tests.
+# T7.0 engine stamp: a content hash over everything that can change an eval verdict. If it
+# matches the stamp written by the last GREEN eval run, that verdict transfers and the step
+# is skipped — an app-only battery stays a citable full gate at ~zero eval cost.
+function Get-EngineStamp {
+    $stampPaths = @('src\DevContext.Core', 'src\DevContext.Cli', 'tests\DevContext.Core.Tests',
+                    'eval\expectations', 'eval\fixtures', 'tests\fixtures')
+    $exts = @('.cs', '.csproj', '.json', '.razor', '.props', '.proto', '.slnx', '.cshtml')
+    $sb = New-Object System.Text.StringBuilder
+    foreach ($p in $stampPaths) {
+        $dir = Join-Path $repoRoot $p
+        if (-not (Test-Path $dir)) { continue }
+        Get-ChildItem $dir -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $exts -contains $_.Extension } | Sort-Object FullName | ForEach-Object {
+                [void]$sb.AppendLine($_.FullName.Substring($repoRoot.Length) + ':' + (Get-FileHash $_.FullName -Algorithm SHA256).Hash)
+            }
+    }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($sb.ToString())
+    $stream = New-Object System.IO.MemoryStream(,$bytes)
+    (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+}
+$stampFile = Join-Path $repoRoot "eval\.eval-stamp.json"
 
-$aspirationalLines = $evalResult | Select-String "ASPIRATIONAL-FAIL" | ForEach-Object { $_.Line }
-if ($aspirationalLines) {
-    Write-Host ""
-    Write-Host "Aspirational failures (non-blocking):" -ForegroundColor Yellow
-    foreach ($line in $aspirationalLines) {
-        Write-Host "  $line" -ForegroundColor Yellow
+if ($SkipEval) {
+    Write-Step "Step 3: Eval expectation tests - SKIPPED (-SkipEval; mid-stage fast run)"
+    Write-Host "  the full battery must still run at the stage/push/merge boundary" -ForegroundColor Yellow
+} else {
+    Write-Step "Step 3: Eval expectation tests"
+    $engineStamp = Get-EngineStamp
+    $lastGreen = $null
+    if (Test-Path $stampFile) {
+        try { $lastGreen = Get-Content $stampFile -Raw | ConvertFrom-Json } catch { $lastGreen = $null }
+    }
+    if ($lastGreen -and $lastGreen.stamp -eq $engineStamp) {
+        Write-Pass "Eval cached - engine inputs unchanged since last green ($($lastGreen.date)); verdict transfers"
+    } else {
+        # T7.0: the expectation theory runs its repos split across two test hosts (repos are
+        # independent in-process analyzes; names that are substrings of other names share a
+        # bucket so no repo ever runs in both). Other Category=Eval classes ride bucket A.
+        $evalExit = 0
+        $evalResult = @()
+        if ($SerialEval) {
+            $evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
+            $evalExit = $LASTEXITCODE
+            Write-Host $evalResult
+        } else {
+            $names = Get-ChildItem (Join-Path $repoRoot 'eval\expectations\*.json') -ErrorAction SilentlyContinue |
+                Where-Object { $_.BaseName -notmatch '-output$' } | ForEach-Object { $_.BaseName } | Sort-Object
+            $bucketA = New-Object System.Collections.Generic.List[string]
+            $bucketB = New-Object System.Collections.Generic.List[string]
+            $i = 0
+            foreach ($n in $names) {
+                $sub = $null
+                foreach ($seen in ($bucketA + $bucketB)) {
+                    if ($n.Contains($seen) -or $seen.Contains($n)) { $sub = $seen; break }
+                }
+                if ($sub -and $bucketA.Contains($sub)) { $bucketA.Add($n) }
+                elseif ($sub) { $bucketB.Add($n) }
+                elseif ($i++ % 2 -eq 0) { $bucketA.Add($n) }
+                else { $bucketB.Add($n) }
+            }
+            if ($bucketB.Count -eq 0) {
+                # Degenerate split (tiny expectation set) — fall back to one host.
+                $evalResult = dotnet test $sln --filter "Category=Eval" --no-build 2>&1
+                $evalExit = $LASTEXITCODE
+                Write-Host $evalResult
+            } else {
+            $filterA = "Category=Eval&(" + ((($bucketA | ForEach-Object { "DisplayName~$_" }) + 'FullyQualifiedName!~EvalExpectationTests') -join '|') + ")"
+            $filterB = "Category=Eval&(" + (($bucketB | ForEach-Object { "DisplayName~$_" }) -join '|') + ")"
+            Write-Host "  split: A=$($bucketA.Count)+other eval classes, B=$($bucketB.Count) repos, two test hosts" -ForegroundColor Gray
+            $logA = Join-Path $env:TEMP 'gates-eval-A.log'; $logB = Join-Path $env:TEMP 'gates-eval-B.log'
+            $errA = Join-Path $env:TEMP 'gates-eval-A.err'; $errB = Join-Path $env:TEMP 'gates-eval-B.err'
+            $procA = Start-Process dotnet -ArgumentList @('test', $sln, '--filter', $filterA, '--no-build', '--results-directory', (Join-Path $env:TEMP 'gates-eval-A')) -NoNewWindow -PassThru -RedirectStandardOutput $logA -RedirectStandardError $errA
+            $procB = Start-Process dotnet -ArgumentList @('test', $sln, '--filter', $filterB, '--no-build', '--results-directory', (Join-Path $env:TEMP 'gates-eval-B')) -NoNewWindow -PassThru -RedirectStandardOutput $logB -RedirectStandardError $errB
+            # PS 5.1: cache .Handle NOW or .ExitCode reads $null after exit (and $null -ne 0
+            # is $true — a green run would be scored as a failure; bitten 2026-07-16).
+            $null = $procA.Handle; $null = $procB.Handle
+            $procA.WaitForExit(); $procB.WaitForExit()
+            $evalResult = @(Get-Content $logA -ErrorAction SilentlyContinue) + @(Get-Content $logB -ErrorAction SilentlyContinue)
+            Write-Host ($evalResult -join "`n")
+            Write-Host "  host exit codes: A=$($procA.ExitCode) B=$($procB.ExitCode)" -ForegroundColor Gray
+            if ($null -eq $procA.ExitCode -or $procA.ExitCode -ne 0) { $evalExit = 1 }
+            elseif ($null -eq $procB.ExitCode -or $procB.ExitCode -ne 0) { $evalExit = 1 }
+            }
+        }
+
+        $aspirationalLines = $evalResult | Select-String "ASPIRATIONAL-FAIL" | ForEach-Object { $_.Line }
+        if ($aspirationalLines) {
+            Write-Host ""
+            Write-Host "Aspirational failures (non-blocking):" -ForegroundColor Yellow
+            foreach ($line in $aspirationalLines) {
+                Write-Host "  $line" -ForegroundColor Yellow
+            }
+        }
+
+        if ($evalExit -ne 0) {
+            Write-Fail "Eval tests failed" -Step 3
+            Write-Host ""
+            Write-Host "GATE: FAIL (step 3 - eval)" -ForegroundColor Red
+            exit 3
+        }
+        @{ stamp = $engineStamp; date = (Get-Date -Format 'yyyy-MM-dd HH:mm') } | ConvertTo-Json |
+            Out-File $stampFile -Encoding utf8
+        Write-Pass "Eval tests passed (stamp written)"
     }
 }
-
-if ($evalExit -ne 0) {
-    Write-Fail "Eval tests failed" -Step 3
-    Write-Host ""
-    Write-Host "GATE: FAIL (step 3 - eval)" -ForegroundColor Red
-    exit 3
-}
-Write-Pass "Eval tests passed"
 
 # Step 4: CLI strict-mode matrix
 Write-Step "Step 4: CLI --strict matrix"
@@ -204,8 +327,41 @@ if ($queryFailed -gt 0) {
     exit 4
 }
 Write-Pass "CLI query ops: entrypoints/stats/trace return graph JSON"
+} # end engine suites ($Scope -ne 'app')
 
-# Final
+# Step 5: App check (T7.0) — pnpm check (lint + vitest + build) folds the desktop app into
+# the battery; before this the full gate never covered the app at all.
+if ($Scope -eq 'engine') {
+    Write-Step "Step 5: App check - SKIPPED (-Scope engine)"
+} else {
+    Write-Step "Step 5: App check (pnpm check)"
+    Push-Location (Join-Path $repoRoot "src\DevContext.App")
+    try {
+        # PS 5.1: native stderr under 2>&1 + EAP=Stop can throw mid-stream — relax around the call.
+        $oldEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        $appResult = & pnpm check 2>&1
+        $appExit = $LASTEXITCODE
+        $ErrorActionPreference = $oldEap
+    } finally { Pop-Location }
+    if ($appExit -ne 0) {
+        Write-Host ($appResult | Select-Object -Last 40)
+        Write-Fail "pnpm check failed" -Step 5
+        Write-Host ""
+        Write-Host "GATE: FAIL (step 5 - app check)" -ForegroundColor Red
+        exit 5
+    }
+    Write-Pass "pnpm check passed"
+}
+
+# Final — non-full runs label themselves so they can never be cited as the boundary gate.
 Write-Host ""
-Write-Host "GATE: PASS" -ForegroundColor Green
+if ($Scope -eq 'app') {
+    Write-Host "GATE: PASS (APP scope - engine suites skipped; not a merge gate)" -ForegroundColor Yellow
+} elseif ($Scope -eq 'engine') {
+    Write-Host "GATE: PASS (ENGINE scope - app check skipped; not a merge gate)" -ForegroundColor Yellow
+} elseif ($SkipEval) {
+    Write-Host "GATE: PASS (FAST - eval skipped; not a merge gate)" -ForegroundColor Yellow
+} else {
+    Write-Host "GATE: PASS" -ForegroundColor Green
+}
 exit 0

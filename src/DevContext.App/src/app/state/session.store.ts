@@ -1,6 +1,8 @@
 import { computed, inject, Injectable } from '@angular/core';
+import { create } from '@bufbuild/protobuf';
 
 import { ActivityService } from '../core/activity/activity.service';
+import { AnalysisSummarySchema } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi, type AnalyzeSpec } from '../data-access/devcontext-api';
 import { type AnalysisStatus, groupEntries } from '../models/view-models';
 import { AtlasStore } from './atlas.store';
@@ -115,7 +117,7 @@ export class SessionStore {
         this.api.getMap(outcome.handle),
         this.api.listEntryPoints(outcome.handle),
       ]);
-      const entryGroups = groupEntries(entries.entryPoints);
+      const entryGroups = groupEntries(entries.entryPoints, spec.path);
       this.workspace.updateSession(tabId, (s) => ({
         ...s,
         mapResponse: map,
@@ -152,6 +154,68 @@ export class SessionStore {
         return;
       }
       this.fail(tabId, describeError(err));
+    }
+  }
+
+  /** T6.9 (audit B4) — adopt the server's live session for a repo instead of re-analyzing.
+   * The server keeps sessions across client restarts (the MCP page lists them); before this,
+   * every new browser context re-ran the full analyze (+~100 GetTrace of flow re-indexing,
+   * measured in the T6.0 drive). Returns false when no live session matches — caller falls
+   * back to analyze(). */
+  async tryAdopt(path: string): Promise<boolean> {
+    const tabId = this.workspace.activeId();
+    if (!tabId || !path) return false;
+    try {
+      const live = await this.api.listSessions();
+      const norm = (p: string) => p.replace(/[\\/]+/g, '/').replace(/\/+$/, '').toLowerCase();
+      const match = live.sessions.find((s) => norm(s.repo) === norm(path) && s.nodes > 0);
+      if (!match) return false;
+
+      const handle = match.handle;
+      const [map, entries] = await Promise.all([
+        this.api.getMap(handle),
+        this.api.listEntryPoints(handle),
+      ]);
+      const entryGroups = groupEntries(entries.entryPoints, path);
+      const flat = entryGroups.flatMap((g) => g.entries);
+      const summary = create(AnalysisSummarySchema, {
+        label: path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? path,
+        projects: map.projectCount,
+        nodes: match.nodes,
+        edges: match.edges,
+        entries: match.entries,
+        entriesWithTarget: flat.filter((e) => !!e.target).length,
+        elapsedMs: 0n,
+        archetype: map.archetype,
+        isLibrary: map.isLibrary,
+      });
+
+      this.workspace.updateSession(tabId, (s) => ({
+        ...s,
+        handle,
+        summary,
+        mapResponse: map,
+        mapMarkdown: map.markdown,
+        entryGroups,
+        status: 'ready',
+        error: null,
+      }));
+      this.workspace.setPathLabel(tabId, path, summary.label);
+
+      this.api
+        .getGraphFacets(handle)
+        .then((facets) => this.workspace.updateSession(tabId, (s) => ({ ...s, graphFacets: facets })))
+        .catch(() => { /* additive */ });
+      this.atlas.start(tabId, handle, flat);
+      this.workspace.updateSession(tabId, (s) => ({ ...s, statsLoading: true }));
+      this.api
+        .getStats(handle)
+        .then((stats) => this.workspace.updateSession(tabId, (s) => ({ ...s, stats, statsLoading: false })))
+        .catch((err) =>
+          this.workspace.updateSession(tabId, (s) => ({ ...s, statsError: describeError(err), statsLoading: false })));
+      return true;
+    } catch {
+      return false; // server unreachable or listing failed — analyze() is the fallback
     }
   }
 

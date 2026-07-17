@@ -15,7 +15,9 @@ public sealed class CoverageHonestySource : IInsightSource
         var total = entries.Length;
         var ratio = total > 0 ? withTarget * 100 / total : 0;
 
+        // Surface-neutral phrasing (T6.3): "use --focus" is a CLI flag — this line also
+        // renders inside the desktop Insights page and MCP, where no such flag exists.
         yield return Insight.Create(Id, Category, Severity.Info,
-            $"Entry targets resolved {withTarget}/{total} ({ratio}%) — use --focus for deeper traces");
+            $"Entry targets resolved {withTarget}/{total} ({ratio}%) — trace any entry for its full path");
     }
 }

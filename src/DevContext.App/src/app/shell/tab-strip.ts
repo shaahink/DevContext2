@@ -5,6 +5,12 @@ import { filter } from 'rxjs/operators';
 import { SessionStore } from '../state/session.store';
 import { type TabState, WorkspaceStore } from '../state/workspace.store';
 
+/** Boot-restore targets: pages that represent WORK in progress. Settings/MCP are
+ * destinations you visit deliberately, not places to wake up in (finding 49). */
+function isRestorableRoute(route: string): boolean {
+  return /^\/(explore|atlas|insights|context)([/?#]|$)/.test(route);
+}
+
 /**
  * The 32px multi-tab strip (I10) — sits under the header, to the right of the icon rail. Up to
  * WorkspaceStore.MAX_TABS independent repo sessions; switching rewrites the URL to that tab's last
@@ -72,6 +78,8 @@ export class TabStrip {
   protected readonly maxTabs = WorkspaceStore.MAX_TABS;
   private readonly router = inject(Router);
   private readonly session = inject(SessionStore);
+  /** Tabs with a boot adopt/analyze decision in flight (guards the lazy-boot effect). */
+  private readonly bootPending = new Set<string>();
 
   constructor() {
     const sub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
@@ -83,18 +91,30 @@ export class TabStrip {
     // On boot, restored tabs land on screen idle (I10.4 — never auto-analyze all of them). If the
     // one that was active when the app last closed carries a path, jump straight to its remembered
     // route and lazily re-analyze it (below) — the OTHER restored tabs stay untouched until clicked.
+    // T6.5 (audit finding 49): restore only WORK routes. Restoring /settings (or /mcp) made every
+    // fresh load of `/` render Settings — reproduced live in the T6.0 shamshir drive, where it also
+    // corrupted two probe results. Home is the honest landing for non-work remembered routes.
     const initialActive = this.workspace.activeTab();
-    if (initialActive?.path && this.router.url === '/') {
-      void this.router.navigateByUrl(initialActive.route || '/', { replaceUrl: true });
+    if (initialActive?.path && this.router.url === '/' && isRestorableRoute(initialActive.route)) {
+      void this.router.navigateByUrl(initialActive.route, { replaceUrl: true });
     }
 
     // The one reactive rule behind "first activation analyzes lazily": whenever the active tab is
     // idle with a remembered path but no handle yet (a restored tab, or one just switched into),
-    // kick off its analysis automatically.
+    // ADOPT the server's live session for that repo if one exists (T6.9, audit B4 — the server
+    // survives client restarts; re-analyzing cost a full engine run + ~100 GetTrace per boot),
+    // else kick off analysis.
     effect(() => {
       const tab = this.workspace.activeTab();
       if (tab && tab.session.status === 'idle' && tab.path && !tab.session.handle) {
-        void this.session.analyze({ path: tab.path });
+        if (this.bootPending.has(tab.id)) return; // adopt in flight — don't double-start
+        this.bootPending.add(tab.id);
+        const path = tab.path;
+        void this.session.tryAdopt(path)
+          .then((adopted) => {
+            if (!adopted) void this.session.analyze({ path });
+          })
+          .finally(() => this.bootPending.delete(tab.id));
       }
     });
   }

@@ -1,0 +1,72 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 1 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+  split: A=16+other eval classes, B=14 repos, two test hosts
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.36]     DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [SKIP]
+No test matches the given testcase filter `Category=Eval&(DisplayName~automapper|DisplayName~blazor-app|DisplayName~cli-app|DisplayName~company-functions|DisplayName~controllerapp|DisplayName~desktop-app|DisplayName~eshop|DisplayName~fluentvalidation|DisplayName~grpc|DisplayName~ocelot|DisplayName~...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Desktop_archetype_produces_entries [1 ms]
+[xUnit.net 00:00:46.23]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+[xUnit.net 00:00:46.25]     DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [SKIP]
+[xUnit.net 00:00:46.25]     DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Blazor_archetype_is_not_microservices [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.CleanArchitecture_baseline_presence_ok [1 ms]
+[xUnit.net 00:00:51.21]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+[xUnit.net 00:00:51.22]     DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.Worker_archetype_produces_graph [1 ms]
+
+Passed!  - Failed:     0, Passed:    44, Skipped:     6, Total:    50, Duration: 2 m 41 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~azurefunctions|DisplayName~catalog|DisplayName~communitytoolkit|DisplayName~compositionapp|DisplayName~conventionalcontroller|DisplayName~dntsite|DisplayName~files|DisplayName~functions-app|DisplayName~masstransit|DisplayName~orl...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:00:08.66]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+
+Passed!  - Failed:     0, Passed:    19, Skipped:     1, Total:    20, Duration: 8 m 3 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=0 B=0
+  PASS  Eval tests passed (stamp written)
+
+--- Step 4: CLI --strict matrix ---
+  Running: analyze . --strict...
+    exit 0 (clean)
+  Running: analyze --format json --strict...
+    exit 0 (clean)
+  Running: analyze --format html --strict...
+    exit 2 (self-check failures)
+  Running: analyze --dry-run...
+    exit 0 (clean)
+  Running: analyze --max-tokens 2000 --strict...
+    exit 0 (clean)
+  PASS  CLI matrix: all commands ran successfully
+
+--- Step 4b: CLI query ops (T3.7) ---
+    entrypoints: 2 entries across 1 kind(s)
+    stats: 16 nodes, 2 entries, per-kind counts present
+    trace (no focus): required-focus guard fired (exit 1)
+    trace('POST /orders'): found, root=POST /orders
+  PASS  CLI query ops: entrypoints/stats/trace return graph JSON
+
+--- Step 5: App check (pnpm check) ---
+  PASS  pnpm check passed
+
+GATE: PASS

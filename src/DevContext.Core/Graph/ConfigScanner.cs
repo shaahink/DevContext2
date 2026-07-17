@@ -37,13 +37,14 @@ public static class ConfigScanner
     };
 
     /// <summary>Full unfiltered scan over every file that owns a graph node. Callers filter by key
-    /// in-memory afterward — this is the expensive part worth caching.</summary>
-    public static IReadOnlyList<ConfigBindingInfo> Scan(CodeGraph graph)
+    /// in-memory afterward — this is the expensive part worth caching. Pass <paramref name="onlyFiles"/>
+    /// to scan a file subset instead (T4.3: the pack's config section scans just the spine's files).</summary>
+    public static IReadOnlyList<ConfigBindingInfo> Scan(CodeGraph graph, ISet<string>? onlyFiles = null)
     {
         var result = new List<ConfigBindingInfo>();
 
         var filesByPath = graph.Nodes
-            .Where(n => n.FilePath is not null)
+            .Where(n => n.FilePath is not null && (onlyFiles is null || onlyFiles.Contains(n.FilePath!)))
             .GroupBy(n => n.FilePath!, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 

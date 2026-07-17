@@ -81,7 +81,7 @@ interface KindStat {
             </span>
           }
           <div class="min-w-0 flex-1 truncate">
-            <span class="font-mono text-xs text-ink" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ entry.route || entry.title }}</span>
+            <span class="font-mono text-xs text-ink" [title]="entry.route ? entry.route + ' — ' + entry.title : entry.title">{{ middleEllipsis(entry.route || entry.title) }}</span>
             @if (entry.target) {
               <span class="ml-1 text-2xs text-ink-subtle">{{ entry.target }}</span>
             }
@@ -156,7 +156,7 @@ export class EntryDeck {
     const kind = this.activeKind();
     const project = this.projectFilter();
     const query = this.filterText().trim().toLowerCase();
-    return this.groups()
+    const rows = this.groups()
       .filter((g) => kind === null || g.kind === kind)
       .flatMap((g) => g.entries)
       .filter((e) => project === null || e.project === project)
@@ -166,6 +166,17 @@ export class EntryDeck {
           e.title.toLowerCase().includes(query) ||
           (e.route ?? '').toLowerCase().includes(query),
       );
+    // Default order: wired-and-deep first (T6.9, audit B2 — the deck used to open on an
+    // unwired Blazor `GET /` with a one-node trace while the engine's best demos sat two
+    // scrolls away). Unwired entries sink; within a band, flow score ranks; original
+    // order breaks ties so equal rows stay stable.
+    return rows
+      .map((e, i) => ({ e, i }))
+      .sort((a, b) =>
+        (Number(!!b.e.target) - Number(!!a.e.target))
+        || ((b.e.score ?? 0) - (a.e.score ?? 0))
+        || (a.i - b.i))
+      .map((x) => x.e);
   });
 
   private readonly selectedIndex = computed(() =>
@@ -234,6 +245,14 @@ export class EntryDeck {
 
   protected kindIcon(kind: string): string {
     return KIND_ICONS[kind] ?? 'dot';
+  }
+
+  /** T6.8 (audit B5): CSS end-truncation collapsed 15 sibling routes into identical
+   * "GET /api/c…" rows — the DISTINGUISHING part of a route is its tail. Middle-ellipsis
+   * keeps both ends; the full route stays on [title]. */
+  protected middleEllipsis(text: string): string {
+    if (text.length <= 48) return text;
+    return text.slice(0, 20) + '…' + text.slice(-26);
   }
 
   /** M7.3: Per-kind color from the M7.0 registry — CSS variable reference. */

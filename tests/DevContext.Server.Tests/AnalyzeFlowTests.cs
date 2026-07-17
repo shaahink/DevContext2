@@ -173,6 +173,43 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
     private static string FixturePath(string name) => Path.GetFullPath(Path.Combine(
         AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tests", "fixtures", name));
 
+    // T7.4 (audit B11) — the whole flow atlas in ONE call: one stat row per entry, keyed
+    // exactly like the app keys its entry rows ("VERB route" or title), memoized per session.
+    [Fact]
+    public async Task GetFlowIndex_returns_one_stat_per_entry_in_one_call()
+    {
+        var client = CreateClient();
+        var handle = await AnalyzeControllerApp(client);
+
+        var entries = await client.ListEntryPointsAsync(new SessionRequest { Handle = handle });
+        Assert.NotEmpty(entries.EntryPoints);
+
+        var index = await client.GetFlowIndexAsync(new FlowIndexRequest { Handle = handle });
+
+        Assert.NotEmpty(index.Flows);
+        // No duplicate stat keys, and every row joins an entry row the app renders.
+        var focuses = index.Flows.Select(f => f.Focus).ToList();
+        Assert.Equal(focuses.Count, focuses.Distinct(StringComparer.Ordinal).Count());
+        var entryKeys = entries.EntryPoints
+            .Select(e => e.HasHttpMethod && e.HasRoute ? $"{e.HttpMethod} {e.Route}" : e.Title)
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.All(index.Flows, f => Assert.Contains(f.Focus, entryKeys));
+
+        // Found flows carry real stats (nodes + a score consistent with the formula).
+        var found = index.Flows.Where(f => f.Found).ToList();
+        Assert.NotEmpty(found);
+        Assert.All(found, f =>
+        {
+            Assert.True(f.NodeCount >= 1, $"{f.Focus}: nodeCount={f.NodeCount}");
+            Assert.Equal(f.NodeCount * (1.0 + f.BoundaryCrossings), f.Score, 3);
+            Assert.Equal(f.NodeIds.Count, f.HubIds.Count + f.DataTouches);
+        });
+
+        // Second call returns the same memoized index (same rows, same order).
+        var again = await client.GetFlowIndexAsync(new FlowIndexRequest { Handle = handle });
+        Assert.Equal(index.Flows.Select(f => f.Focus), again.Flows.Select(f => f.Focus));
+    }
+
     [Fact]
     public async Task GetContextPack_with_flow_card_returns_content()
     {
@@ -237,6 +274,8 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
         Assert.NotEmpty(pack.Cards);
         Assert.True(pack.Cards.Count >= 1);
         Assert.NotEmpty(pack.AssembledMarkdown);
-        Assert.Contains("DevContext — Context Pack", pack.AssembledMarkdown, StringComparison.Ordinal);
+        // T4.1 — the header names the analyzed repo, not the tool; archetype is filled from the Map.
+        Assert.Contains("— Context Pack", pack.AssembledMarkdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("_Archetype: _", pack.AssembledMarkdown, StringComparison.Ordinal);
     }
 }

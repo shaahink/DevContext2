@@ -76,6 +76,23 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
         }
       </div>
 
+      <!-- T5.2 — the verification ledger is projected here by the studio. -->
+      <ng-content />
+
+      @if (omitted().length > 0) {
+        <div class="mt-3 border-t border-line pt-2" data-testid="omitted-list">
+          <h3 class="mb-1 flex items-center gap-1 text-2xs font-semibold uppercase tracking-wider text-warn">
+            <app-icon name="alert-triangle" [size]="12" />
+            Omitted ({{ omitted().length }})
+          </h3>
+          <ul class="space-y-0.5">
+            @for (line of omitted(); track line) {
+              <li class="text-2xs leading-snug text-ink-subtle" [title]="line">{{ line }}</li>
+            }
+          </ul>
+        </div>
+      }
+
       <div class="mt-3 border-t border-line pt-2">
         <h3 class="mb-1 text-2xs font-semibold uppercase tracking-wider text-ink-muted">Intent</h3>
         <div class="flex gap-1 mb-2">
@@ -130,15 +147,17 @@ const BUDGET_STOPS = [1000, 2000, 4000, 8000, 12000, 16000];
       <button
         type="button"
         class="flex flex-1 items-center justify-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-ink hover:bg-accent/90 disabled:opacity-30 transition-colors"
-        [disabled]="cards().length === 0"
+        data-testid="copy-context"
+        [disabled]="cards().length === 0 || !exportReady()"
         (click)="onCopy()"
       >
-        {{ copyLabel() }}
+        {{ packPending() ? 'Packing…' : copyLabel() }}
       </button>
       <button
         type="button"
-        class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover transition-colors"
-        [disabled]="cards().length === 0"
+        class="flex items-center justify-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink hover:bg-hover disabled:opacity-30 transition-colors"
+        data-testid="save-context"
+        [disabled]="cards().length === 0 || !exportReady()"
         (click)="onSave()"
       >
         Save
@@ -150,6 +169,12 @@ export class BudgetPanel {
   private readonly toast = inject(ToastService);
 
   readonly cards = input<readonly ContextCard[]>([]);
+  /** T5.1 (audit R1) — the server's omitted[] lines; silent truncation is a trust bug. */
+  readonly omitted = input<readonly string[]>([]);
+  /** T5.6 (audit C1) — re-pack in flight: Copy shows "Packing…" so the wait is visible. */
+  readonly packPending = input(false);
+  /** T5.6 (audit C1) — false while the pack is stale/absent; Copy/Save disabled, never stale bytes. */
+  readonly exportReady = input(true);
 
   readonly copyRequest = output<void>();
   readonly saveRequest = output<void>();
@@ -165,7 +190,7 @@ export class BudgetPanel {
 
   readonly budgetStops = BUDGET_STOPS;
   readonly intents: readonly ContextIntent[] = ['trace', 'explain', 'review'];
-  readonly formats: readonly OutputFormat[] = ['markdown', 'plain'];
+  readonly formats: readonly OutputFormat[] = ['markdown', 'plain', 'json'];
 
   readonly totalTokens = (): number =>
     this.cards().reduce((n, c) => n + this.cardTokens(c), 0);

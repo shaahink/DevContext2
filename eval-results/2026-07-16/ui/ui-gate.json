@@ -1,0 +1,115 @@
+{
+  "date": "2026-07-16",
+  "results": [
+    {
+      "id": "A-tabstrip-height",
+      "desc": "tab strip height >= 30px",
+      "audit": "U1",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "stripH=32px (want >=30)"
+    },
+    {
+      "id": "B-new-preserves-tabs",
+      "desc": "titlebar New preserves other tabs",
+      "audit": "U2",
+      "owner": "L6.1",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "before=[\"eshop-microservic…✕\",\"TodoApp.sln✕\"] after=[\"eshop-microservic…✕\",\"TodoApp.sln✕\",\"New tab✕\"] lost=[] added=true"
+    },
+    {
+      "id": "C-code-pane-nonempty",
+      "desc": "code pane non-empty on entry selection",
+      "audit": "U3",
+      "owner": "L6.2",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "code length=562"
+    },
+    {
+      "id": "D-context-preset-cards",
+      "desc": "context studio preset seeds >= 1 card",
+      "audit": "U6",
+      "owner": "L6.4",
+      "expectedRedUntil": "L6",
+      "pass": true,
+      "detail": "cards=5"
+    },
+    {
+      "id": "E-omitted-list-rendered",
+      "desc": "tiny-budget pack renders the omitted[] list",
+      "audit": "R1",
+      "owner": "T5.1",
+      "pass": true,
+      "detail": "visible=true text=Omitted (8) tests (Validators for /products): no content for its entries — omitt"
+    },
+    {
+      "id": "F-pack-error-retry",
+      "desc": "failed pack RPC shows card error; retry recovers",
+      "audit": "R4",
+      "owner": "T5.1",
+      "pass": true,
+      "detail": "errorShown=true clearedAfterRetry=true"
+    },
+    {
+      "id": "G-repack-on-budget",
+      "desc": "budget change re-packs: copy@4k != copy@1k, headers match slider",
+      "audit": "C1",
+      "owner": "T5.6",
+      "pass": true,
+      "detail": "4k=10749ch(hdr4k=true) 1k=7158ch(hdr1k=true) differ=true"
+    },
+    {
+      "id": "H-plain-not-markdown",
+      "desc": "plain copy differs from markdown copy (bytes)",
+      "audit": "C1",
+      "owner": "T5.6",
+      "pass": true,
+      "detail": "plain=6891ch differ=true noHeadings=true"
+    },
+    {
+      "id": "I-verification-stale-cycle",
+      "desc": "verification ledger: fresh -> stale on disk edit -> fresh on restore",
+      "audit": "R6",
+      "owner": "T5.2",
+      "pass": true,
+      "detail": "fresh=true staleAfterEdit=true freshAfterRestore=true"
+    },
+    {
+      "id": "J-keyboard-battery",
+      "desc": "single-key + g-prefix nav, ? help, Ctrl+K omnibox all work",
+      "audit": "37",
+      "owner": "T6.5",
+      "pass": true,
+      "detail": "{\"singleE\":\"/explore\",\"singleA\":\"/atlas\",\"gThenH\":\"/\",\"helpOpen\":true,\"omniboxOpen\":true}"
+    },
+    {
+      "id": "K-route-restore-home",
+      "desc": "fresh boot of / renders Home even after a /settings visit",
+      "audit": "49",
+      "owner": "T6.5",
+      "pass": true,
+      "detail": "restoreHome=true"
+    },
+    {
+      "id": "L-theme-matrix",
+      "desc": "every declared vibe x theme paints the shell surfaces in that mode",
+      "audit": "38-39",
+      "owner": "T6.6",
+      "pass": true,
+      "detail": "modern/dark:ok modern/light:ok terminal/dark:ok hacker/dark:ok"
+    },
+    {
+      "id": "M-rpc-budget",
+      "desc": "page-render RPC budget: fresh load <20 UI calls, each SPA nav <=15",
+      "audit": "B11",
+      "owner": "T7.4",
+      "pass": true,
+      "detail": "fresh=8{\"Ping\":2,\"ListSessions\":1,\"GetMap\":1,\"ListEntryPoints\":1,\"GetGraphFacets\":1,\"GetFlowIndex\":1,\"GetStats\":1} atlas=1 explore=0 home=1"
+    }
+  ],
+  "reds": [],
+  "unexpectedFails": []
+}

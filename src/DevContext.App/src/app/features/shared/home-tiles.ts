@@ -32,7 +32,7 @@ import type { ProjectNode } from '../../core/grpc/gen/devcontext/v1/devcontext_p
           }
         </div>
         <p class="mt-1.5 text-2xs text-ink-subtle">
-          {{ totalEntries() }} entries across {{ serviceCount() }} services
+          {{ totalEntries() }} entries across {{ serviceCount() }} {{ projectNoun() }}
         </p>
       </div>
 
@@ -142,6 +142,9 @@ export class HomeTiles {
 
   protected readonly totalEntries = computed(() => this.session.entryGroups().reduce((n, g) => n + g.entries.length, 0));
   protected readonly serviceCount = computed(() => this.topology().length);
+  /** Same archetype-aware noun as the identity strip (T6.1) — a monolith has projects. */
+  protected readonly projectNoun = computed(() =>
+    /microservice/i.test(this.session.mapResponse()?.archetype ?? '') ? 'services' : 'projects');
   protected readonly wiredCount = computed(() => this.summary()?.entriesWithTarget ?? 0);
   protected readonly unwiredCount = computed(() => (this.summary()?.entries ?? 0) - (this.summary()?.entriesWithTarget ?? 0));
   protected readonly wired = computed(() => {

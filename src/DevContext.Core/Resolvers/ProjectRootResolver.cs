@@ -61,7 +61,19 @@ public sealed class ProjectRootResolver
         current = fullPath;
         for (int i = 0; i < 3; i++)
         {
-            var dirs = fs.EnumerateDirectories(current, "*", SearchOption.TopDirectoryOnly).ToList();
+            // T7.1 — never walk down into dot-directories (.github, .vs, .config) or build output:
+            // a tooling solution there (e.g. aspire-samples' .github/for.dependabot.only.sln) must
+            // not define the root.
+            var dirs = fs.EnumerateDirectories(current, "*", SearchOption.TopDirectoryOnly)
+                .Where(d =>
+                {
+                    var name = Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                    return !name.StartsWith('.')
+                        && !name.Equals("bin", StringComparison.OrdinalIgnoreCase)
+                        && !name.Equals("obj", StringComparison.OrdinalIgnoreCase)
+                        && !name.Equals("node_modules", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
             foreach (var dir in dirs)
             {
                 var nestedSlns = await FindSolutionsAsync(fs, dir, ct);

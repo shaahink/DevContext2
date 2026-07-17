@@ -67,6 +67,11 @@ service DevContextService {
   // GetContext calls. Copy/Save = exactly the server's assembled markdown pack. Closes Trap A.
   rpc GetContextPack(ContextPackRequest) returns (ContextPackResponse);
 
+  // T4.5 (audit R6) — staleness verification: compares the snapshot's analyze-time file
+  // fingerprints against disk per pack section (hash + line-count delta, v1 by design).
+  // Powers the MCP verify_context tool and the Studio verification panel (T5.2).
+  rpc VerifyContext(VerifyContextRequest) returns (VerifyContextResponse);
+
   // Read raw source code for a graph node — full member span or a context window around
   // the node's line. Powers the Inspector Code tab with syntax-highlighted raw source.
   rpc ReadSource(ReadSourceRequest) returns (ReadSourceResponse);
@@ -75,6 +80,12 @@ service DevContextService {
   // bands in one call (Meridian P1). Powers the UI lens so every node's layer/feature
   // surfaces without individual Node RPCs.
   rpc GetGraphFacets(GraphFacetsRequest) returns (GraphFacetsResponse);
+
+  // T7.4 (audit B11) — the whole flow atlas in ONE call: per-entry flow stats + hub degrees,
+  // computed server-side over the immutable snapshot and memoized per session. Replaces the
+  // client's ~100 background GetTrace calls (re-fired on every app boot/reattach) plus the
+  // top-hub GetNode fan-out.
+  rpc GetFlowIndex(FlowIndexRequest) returns (FlowIndexResponse);
 
   // M3.1 — list all active sessions (MCP page session list).
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
@@ -553,9 +564,12 @@ message ContextResponse {
 }
 
 message ContextSection {
-  string key = 1;       // "identity" | "trace" | "signatures" | "bodies" | "di_wiring" | "entities"
+  string key = 1;       // "identity" | "trace" | "signatures" | "contracts" | "bodies" | "di_wiring" | "entities" | "config" | "tests"
   int32 tokens = 2;
   string content = 3;
+  repeated string source_locations = 4;  // T4.4 — repo-relative file:line set the section derived from (capped)
+  int32 verified = 5;                    // T4.4 — items resolved semantically / by join
+  int32 approx = 6;                      // T4.4 — items resolved by syntax/string heuristics
 }
 
 // ---------------------------------------------------------------------------
@@ -593,6 +607,42 @@ message ContextCardItem {
 message SectionAllocation {
   string key = 1;
   int32 tokens = 2;
+  repeated string source_locations = 3;  // T4.4 — provenance chips (T5.3)
+  int32 verified = 4;
+  int32 approx = 5;
+  string content = 6;                    // T5.3 (R7) — the section's real text: per-card copy + honest previews
+}
+
+// ---------------------------------------------------------------------------
+// T4.5 — Context staleness verification (audit R6, engine half)
+// ---------------------------------------------------------------------------
+
+message VerifyContextRequest {
+  string handle = 1;
+  string focus = 2;
+  optional int32 budget_tokens = 3;  // section shaping mirrors get_context (default 8000)
+}
+
+message VerifyContextResponse {
+  bool found = 1;                    // focus resolved to an entry
+  string focus = 2;
+  bool any_stale = 3;
+  string analyzed_git_head = 4;      // HEAD at analyze time ("" outside git)
+  string current_git_head = 5;       // HEAD now — a cheap whole-repo drift signal
+  repeated SectionVerification sections = 6;
+}
+
+message SectionVerification {
+  string key = 1;
+  bool stale = 2;                    // any cited file modified or deleted since analyze
+  int32 files_checked = 3;
+  repeated FileDelta changed = 4;
+}
+
+message FileDelta {
+  string file = 1;                   // repo-relative
+  string status = 2;                 // "modified" | "deleted" | "unknown" (no analyze-time fingerprint)
+  int32 line_delta = 3;              // lines now − lines at analyze (0 for unknown)
 }
 
 // ---------------------------------------------------------------------------
@@ -656,6 +706,10 @@ message ToolCallEvent {
   int64 elapsed_ms = 6;
   int64 timestamp_utc_ms = 7;
   string session_repo = 8;
+  // T6.10 — who made the call: "ui" (the desktop app's own gRPC-web traffic) or "agent"
+  // (native gRPC, i.e. the MCP sidecar). One page load logged 163 UI calls / ~99k tok —
+  // agent traffic drowns without this tag; the live feed default-filters to agents.
+  string origin = 9;
 }
 
 // ---------------------------------------------------------------------------
@@ -748,6 +802,68 @@ message GraphFacetsResponse {
   FlowListFacet flow_list = 2;
   EntryTableFacet entry_table = 3;
   LayerBandFacet layer_band = 4;
+  // T6.11 — the ONE event join (T2.6 EventWiringProjection), so the Atlas board and
+  // one-pager render the server's truth instead of a client-side name-match heuristic.
+  EventWiringFacet event_wiring = 5;
+}
+
+message EventWiringFacet {
+  repeated EventWireRow wires = 1;
+  int32 integration_count = 2;
+  int32 cross_service_count = 3;
+}
+
+message EventWireRow {
+  string event_name = 1;
+  bool is_integration = 2;
+  bool is_cross_service = 3;
+  bool is_orphan = 4;
+  repeated EventParticipantRow publishers = 5;
+  repeated EventParticipantRow consumers = 6;
+}
+
+message EventParticipantRow {
+  string node_id = 1;
+  string title = 2;
+  optional string service = 3;
+}
+
+// ---------------------------------------------------------------------------
+// T7.4 — Flow index (server-side atlas: per-entry flow stats + hub degrees)
+// ---------------------------------------------------------------------------
+
+message FlowIndexRequest {
+  string handle = 1;
+}
+
+message FlowIndexResponse {
+  repeated FlowStatRow flows = 1;
+  // Degrees for the same top hubs the client radar shows (nodes on >1 flow, top 10 by
+  // flow count) so no per-hub GetNode calls are needed.
+  repeated HubDegreeRow hub_degrees = 2;
+}
+
+message FlowStatRow {
+  string focus = 1;                      // the entry focus string (trace seed / stat key)
+  string title = 2;
+  string kind = 3;
+  bool found = 4;                        // false = the focus did not resolve to a trace
+  int32 node_count = 5;
+  int32 max_depth = 6;
+  int32 boundary_crossings = 7;          // Send/Handle/Consume/Raise/CrossService seam hops
+  int32 data_touches = 8;                // Data seam hops
+  int32 verified_pct = 9;                // % of nodes with Semantic resolution
+  repeated string touched_entities = 10;
+  repeated string emitted_events = 11;
+  repeated string node_ids = 12;         // every node on the flow (impact lens)
+  repeated string hub_ids = 13;          // node_ids minus data-seam nodes (hub radar)
+  double score = 14;                     // node_count * (1 + boundary_crossings)
+}
+
+message HubDegreeRow {
+  string node_id = 1;
+  int32 in_degree = 2;
+  int32 out_degree = 3;
 }
 
 message ServiceMapFacet {

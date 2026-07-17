@@ -34,7 +34,11 @@ public sealed class GraphOrphansSource : IInsightSource
                 && graph.InEdges(n.Id).Length == 0
                 && !entryIds.Contains(n.Id)
                 && !diTypes.Contains(n.Id.Key)
-                && !conventionDiTypes.Contains(n.Id.Key))
+                && !conventionDiTypes.Contains(n.Id.Key)
+                // DI/startup extension classes are invoked via extension-method syntax the call
+                // graph doesn't attribute to the class (T6.3 rider: "Extensions" classes were
+                // classic dead-code false positives on eShop and MediatR).
+                && !n.Title.EndsWith("Extensions", StringComparison.Ordinal))
             .Take(5)
             .Select(n => n.Title)
             .ToList();
@@ -92,6 +96,9 @@ public sealed class GraphOrphansSource : IInsightSource
             || iface.StartsWith("IConsumer<", StringComparison.OrdinalIgnoreCase)
             || iface.StartsWith("IEventHandler<", StringComparison.OrdinalIgnoreCase)
             || iface.StartsWith("ICommandHandler<", StringComparison.OrdinalIgnoreCase)
-            || iface.StartsWith("IQueryHandler<", StringComparison.OrdinalIgnoreCase);
+            || iface.StartsWith("IQueryHandler<", StringComparison.OrdinalIgnoreCase)
+            // EF applies these by assembly scan — zero inbound references is their normal state
+            // (T6.3 rider: OrderItemEntityTypeConfiguration headlined eShop's dead-code card).
+            || iface.StartsWith("IEntityTypeConfiguration<", StringComparison.OrdinalIgnoreCase);
     }
 }

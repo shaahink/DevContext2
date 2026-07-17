@@ -341,36 +341,27 @@ Set-Location C:/Code/DevContext2-ui/src/DevContext.App; pnpm check
 
 ---
 
-## L8 delivery — Loom close-out (overwrite this block each session, no history)
+## Tapestry delivery — phase close-out (overwrite this block each session, no history)
 
-status: L8.1 DONE — Loom phase closed. Branch `feat/loom-l7`.
-delivered: HANDOVER-LOOM.md, AGENTS.md rituals, truth test fixes (7P/4S), LOOM-START.md tracker updated.
-last: gate battery green (build 0w/0e, test 414P/3S Core + 64P Desktop + 12P Server, pnpm 27/27).
-next: conductor-DEBT.md resolution or next phase planning.
-evidence: eval-results/2026-07-08/gate-battery-l8-s40.txt, truth-battery-l8-s40.txt, docs/dev/HANDOVER-LOOM.md.
+status: Tapestry T0–T8 COMPLETE (2026-07-17). Close-out: `docs/dev/HANDOVER-TAPESTRY.md`;
+checkpoint detail: `TAPESTRY-START.md` (T5 Studio 6/6, T6 Workbench 12/12, T7.4 RPC budget).
 
+### App invariants Tapestry encoded (keep these true)
 
-M8.3 detail:
-  - Server-side token meter: card.serverTokens stored from ContextResponse.totalTokens after getContext RPC
-  - Budget→RPC wiring: budget slider value (BudgetPanel.budget model) flows to getContext budgetTokens param
-  - Per-section token breakdown: card.sectionTokens = [{key, tokens}, ...] from ContextResponse sections
-  - Exact vs heuristic distinction: server tokens shown without ~ prefix, heuristic estimatedLines with ~ prefix
-  - BudgetPanel.budget: signal→model for two-way binding with parent via [(budget)]
-
-M8.4 detail:
-  - Provenance chips: file:line per-card (extracted from EntryVm.provenance of seeded entries)
-  - Composition footer shows total tokens not lines (uses serverTokens when available)
-  - Per-card token badge: green text for server-confirmed (formatTokens), muted ~ for heuristic estimate
-  - Toast feedback on copy/save already wired from M8.2
-
-M8.1–M8.2 detail (delivered prior session):
-  - 9 card types: flow | signatures | bodies | di_wiring | config | entities | contracts | tests | identity
-  - getContext RPC wired: cards load real content from server, fall back to placeholder on error
-  - Preset "I'm changing this endpoint": flow + bodies + contracts + validators + tests
-  - Omnibox: dropdown search across all entries by title/route/target, kind-colored badges
-  - Drag-drop: grip handle → native HTML5 drag events, reorder via cardReorder output
-  - Global body toggle: "All bodies shown/hidden" button in budget panel, model-based two-way binding
-  - Trail seeds: "From current trail" button seeds flow cards from TrailStore steps
-  - Format selector: markdown/plain produces real different output (strips markdown in plain mode)
-  - Intent ordering: trace/explain/review reorders cards via INTENT_CARD_ORDER mapping + effect()
-  - ExportDrawer retired (file deleted), Inspector LLM section removed, Ctrl+E→/context redirect
+- **One `buildContext` path** — the Studio is a thin client over the server pack. The legacy
+  client-side fallback is DELETED (T5.6); exports are server-pack-or-disabled ("Packing…"),
+  never client-recomposed. Recompute-on-change: `schedulePack` (350ms debounce, seq-guarded)
+  always re-packs the WHOLE card set.
+- **Card content is server truth** — previews are real section text (never title echo), token
+  counts are one unit (~N tok), provenance chips are the card's OWN sourceLocations (T5.3/T5.5).
+- **RPC budget ≤15/navigation** (T7.4) — `AtlasStore` hydrates from ONE `GetFlowIndex` call
+  (server-side flow index + session memo). Fresh page load = 8 RPCs, navs 0–1. Never
+  reintroduce worker-queue `getNode` fan-outs in stores.
+- **Verification panel** (T5.2) — auto-verify after every re-pack, merged across focuses,
+  advisory-on-failure. `VerifyContext` needs Build()-resolved focuses; identity-only verify
+  (0 files) is the "eternally fresh" bug — pinned by test.
+- **MCP feed defaults agents-only** — `ToolCallEvent.origin` separates grpc-web (ui) from
+  native (agent) (T6.10).
+- **Keyboard + theme are drive-gated** (T6.5/T6.6) — single-key nav and vibe×mode matrix have
+  drive batteries; don't land chrome changes without re-running them.
+- **Tauri smoke once per app-touching session** (L6 rule, still standing).

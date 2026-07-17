@@ -77,6 +77,14 @@ function truncateLabel(label: string): string {
   return label.length > 40 ? label.slice(0, 38) + '…' : label;
 }
 
+/** Entry-kind glyphs for trace roots (T6.2) — terminal-style text tags, mirroring
+ * KIND_LABELS' vocabulary in canvas-sized form. */
+const KIND_GLYPHS: Record<string, string> = {
+  HttpEndpoint: 'HTTP', SignalRHub: 'HUB', HostedService: 'WORKER', MessageConsumer: 'BUS',
+  DomainEventHandler: 'EVENT', GrpcService: 'RPC', CliCommand: 'CLI', UiEntry: 'UI',
+  FunctionEntry: 'FN', GrainMethod: 'GRAIN', PublicApi: 'API',
+};
+
 function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.ElementDefinition[] {
   const els: cytoscape.ElementDefinition[] = [];
   let counter = 0;
@@ -84,11 +92,12 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
   const walk = (node: TraceNodeVm, parentElId: string | null, depth: number): void => {
     if (depth > maxDepth) return;
     const elId = `n${counter++}`;
+    const glyph = depth === 0 ? KIND_GLYPHS[node.kind] : undefined;
     els.push({
       data: {
         id: elId,
         nodeId: node.id,
-        label: truncateLabel(node.title),
+        label: (glyph ? `[${glyph}] ` : '') + truncateLabel(node.title),
         fullLabel: node.title,
         seam: node.seam,
         truncated: node.truncated,
@@ -97,7 +106,10 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
       classes: depth === 0 ? 'entry' : '',
     } as cytoscape.ElementDefinition);
     if (parentElId !== null) {
-      els.push({ data: { id: `${parentElId}->${elId}`, source: parentElId, target: elId, seam: node.seam } });
+      // Resolution tier drawn into the picture (T6.2): a semantic (Roslyn-verified) hop is a
+      // solid line, an approximate one dashed — honesty visible without opening the inspector.
+      els.push({ data: { id: `${parentElId}->${elId}`, source: parentElId, target: elId, seam: node.seam,
+        approx: node.resolution !== 'Semantic' } });
     }
     for (const child of node.children) walk(child, elId, depth + 1);
   };
@@ -146,7 +158,8 @@ function buildNeighborsElements(
       seen.add(e.to);
       els.push({ data: { id: e.to, nodeId: e.to, label: truncateLabel(otherTitle), fullLabel: otherTitle, seam: e.kind, truncated: false, depth: 1 } });
     }
-    els.push({ data: { id: `edge${counter++}`, source: centerId, target: e.to, seam: e.kind } });
+    els.push({ data: { id: `edge${counter++}`, source: centerId, target: e.to, seam: e.kind,
+      approx: e.resolution !== 'Semantic' } });
   }
   return els;
 }
@@ -193,11 +206,13 @@ function nodeSizeForDegree(degree: number): number {
       <div #cy class="h-full w-full"></div>
 
       <!-- Legend popover -->
-      <button
-        class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-2xs"
-        (click)="legendOpen.set(!legendOpen())"
-        title="Legend"
-      >Legend</button>
+      @if (!compact()) {
+        <button
+          class="pointer-events-auto absolute bottom-3 left-3 z-10 chip text-2xs"
+          (click)="legendOpen.set(!legendOpen())"
+          title="Legend"
+        >Legend</button>
+      }
       @if (legendOpen()) {
         <div class="pointer-events-none absolute bottom-9 left-3 z-10 rounded border border-line bg-surface/95 px-3 py-2 text-2xs backdrop-blur shadow-overlay">
           <div class="mb-1 font-semibold uppercase text-ink-subtle">Legend</div>
@@ -212,14 +227,16 @@ function nodeSizeForDegree(degree: number): number {
         </div>
       }
 
-      <div class="pointer-events-auto absolute right-2 top-2 z-10 flex items-center gap-1 rounded border border-line bg-surface/90 px-1.5 py-1 backdrop-blur text-2xs">
-        <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="zoomIn()" title="Zoom in">+</button>
-        <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="zoomOut()" title="Zoom out">−</button>
-        <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="fitGraph()" title="Fit">⊡</button>
-      </div>
+      @if (!compact()) {
+        <div class="pointer-events-auto absolute right-2 top-2 z-10 flex items-center gap-1 rounded border border-line bg-surface/90 px-1.5 py-1 backdrop-blur text-2xs">
+          <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="zoomIn()" title="Zoom in">+</button>
+          <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="zoomOut()" title="Zoom out">−</button>
+          <button class="rounded p-1 text-ink-muted hover:bg-surface-2 hover:text-ink" (click)="fitGraph()" title="Fit">⊡</button>
+        </div>
+      }
 
       <!-- Minimap: zen mode only, and only once the graph is big enough to need one -->
-      @if (zenMode() && nodeCount() > minimapThreshold) {
+      @if (!compact() && zenMode() && nodeCount() > minimapThreshold) {
         <canvas
           #minimap
           width="160" height="110"
@@ -230,12 +247,20 @@ function nodeSizeForDegree(degree: number): number {
       }
     </div>
   `,
-  host: { class: 'block h-[500px] w-full relative border border-line bg-surface overflow-hidden' },
+  host: {
+    class: 'block w-full relative border border-line bg-surface overflow-hidden',
+    '[style.height.px]': 'compact() ? 280 : 500',
+    '[class.rounded-lg]': 'compact()',
+  },
 })
 export class GraphCanvas {
   readonly data = input.required<GraphCanvasData>();
   /** Minimap only renders in zen mode (Stage passes its zenMode signal through). */
   readonly zenMode = input(false);
+  /** T6.7 — hero embedding: shorter, no legend/zoom controls/minimap, no user pan/zoom
+   * (the page scrolls past it), taps still emitted. The Service lens proves this renderer
+   * works; `service-map-hero` reuses it instead of a hand-rolled card stack. */
+  readonly compact = input(false);
   /** Node ID to highlight (accent ring + pulse). Cleared on null/empty. */
   readonly highlightedNodeId = input<string | null>(null);
   /** M7.2/M9: Lens ID for layer/feature-based coloring on topology nodes. */
@@ -360,6 +385,9 @@ export class GraphCanvas {
       container: host,
       elements: els,
       wheelSensitivity: 0.3,
+      userZoomingEnabled: !this.compact(),
+      userPanningEnabled: !this.compact(),
+      autoungrabify: this.compact(),
       style: [
         {
           selector: 'node',
@@ -431,6 +459,11 @@ export class GraphCanvas {
             'curve-style': 'bezier',
             label: '',
           },
+        },
+        {
+          // T6.2 — approximate (non-Roslyn-verified) hops are dashed; verified stay solid.
+          selector: 'edge[?approx]',
+          style: { 'line-style': 'dashed', 'line-dash-pattern': [5, 3] },
         },
         {
           selector: 'edge.highlighted',

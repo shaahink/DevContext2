@@ -11,13 +11,53 @@ export interface ServiceGroup {
 
 export type ContextCardType = 'flow' | 'signatures' | 'bodies' | 'di_wiring' | 'config' | 'entities' | 'contracts' | 'tests' | 'identity';
 export type ContextIntent = 'trace' | 'explain' | 'review';
-export type OutputFormat = 'markdown' | 'plain';
+/** T5.3 (audit R8) — json is the structured export: cards/sections/provenance/verification. */
+export type OutputFormat = 'markdown' | 'plain' | 'json';
 
 export interface ContextCardSeed {
   readonly type: ContextCardType;
   readonly title: string;
   readonly entryIds: string[];
   readonly estimatedLines: number;
+}
+
+/** T5.4 — "I'm changing this entry" seeds cards matched to the entry KIND: a hub method
+ * wants its orchestrator spine + consumer wiring, a worker wants its loop + the config it
+ * reads — not an endpoint-shaped validator card. Anchors exist since 202c593 (hub/worker
+ * member anchors). Exported for the spec. */
+export function presetSeedsFor(entry: EntryVm): ContextCardSeed[] {
+  const entryIds = [entry.nodeId];
+  const label = entry.route || entry.title;
+  const kindLabel = KIND_LABELS[entry.kind] ?? entry.kind;
+
+  switch (entry.kind) {
+    case 'SignalRHub':
+      return [
+        { type: 'flow', title: `Hub method flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Hub method + orchestrator bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'di_wiring', title: `Consumers and wiring: ${label}`, entryIds, estimatedLines: 12 },
+        { type: 'contracts', title: `Messages (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+    case 'HostedService':
+    case 'ScheduledJob':
+    case 'MessageConsumer':
+      return [
+        { type: 'flow', title: `Worker flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Worker bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'config', title: `Config read by ${label}`, entryIds, estimatedLines: 10 },
+        { type: 'contracts', title: `Messages (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+    default:
+      return [
+        { type: 'flow', title: `Flow: ${label}`, entryIds, estimatedLines: 15 },
+        { type: 'bodies', title: `Member bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
+        { type: 'contracts', title: `Contracts (${kindLabel})`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Validators for ${label}`, entryIds, estimatedLines: 10 },
+        { type: 'tests', title: `Tests for ${label}`, entryIds, estimatedLines: 15 },
+      ];
+  }
 }
 
 @Component({
@@ -68,12 +108,13 @@ export interface ContextCardSeed {
     <div class="flex items-center gap-1 border-b border-line px-2 py-1">
       <button
         type="button"
-        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
+        class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs text-accent hover:bg-accent/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        [disabled]="totalEntryCount() === 0"
+        [title]="totalEntryCount() === 0 ? 'Analyze a repo first — no entries to seed from' : 'Seeds context cards matched to the endpoint, hub method, or worker you pick'"
         (click)="showPresetPicker.set(!showPresetPicker())"
-        title="I'm changing this endpoint — seeds 5 context cards"
       >
         <app-icon name="edit" [size]="14" />
-        I&rsquo;m changing this endpoint
+        I&rsquo;m changing this entry
       </button>
     </div>
 
@@ -97,7 +138,7 @@ export interface ContextCardSeed {
             class="flex w-full items-center gap-2 px-2 py-1 text-left text-xs hover:bg-hover transition-colors"
             (click)="applyPreset(entry); showPresetPicker.set(false)"
           >
-            <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" />
+            <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
             <span class="min-w-0 flex-1 truncate font-mono">{{ entry.route || entry.title }}</span>
             <span class="shrink-0 text-2xs text-ink-subtle">{{ entry.project }}</span>
           </button>
@@ -130,7 +171,9 @@ export interface ContextCardSeed {
                   <span class="w-8 shrink-0 text-2xs font-semibold" [class]="methodClass(entry.httpMethod)">{{ entry.httpMethod }}</span>
                 }
                 <span class="min-w-0 flex-1 truncate font-mono">{{ entry.route || entry.title }}</span>
-                <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" />
+                <!-- T5.5 (finding 50) — the kind glyph says WHAT it is on hover; color alone
+                     read as an error badge. -->
+                <app-icon [name]="kindIcon(entry.kind)" [size]="14" class="shrink-0" [style.color]="kindColor(entry.kind)" [title]="kindTitle(entry.kind)" />
               </button>
             }
           </div>
@@ -152,11 +195,16 @@ export interface ContextCardSeed {
       </span>
       <button
         type="button"
-        class="ml-auto rounded px-2 py-0.5 text-xs font-medium text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
+        class="ml-auto rounded px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-30"
+        [class.bg-accent]="selectedEntries().size > 0"
+        [class.text-accent-ink]="selectedEntries().size > 0"
+        [class.hover:bg-accent/90]="selectedEntries().size > 0"
+        [class.text-accent]="selectedEntries().size === 0"
         [disabled]="selectedEntries().size === 0"
+        data-testid="add-to-context"
         (click)="addSelected()"
       >
-        Add to context
+        Add{{ selectedEntries().size > 0 ? ' ' + selectedEntries().size : '' }} to context
       </button>
     </div>
   `,
@@ -246,16 +294,7 @@ export class ScopePicker {
   }
 
   protected applyPreset(entry: EntryVm): void {
-    const entryIds = [entry.nodeId];
-    const kindLabel = KIND_LABELS[entry.kind] ?? entry.kind;
-    const cards: ContextCardSeed[] = [
-      { type: 'flow', title: `Flow: ${entry.route || entry.title}`, entryIds, estimatedLines: 15 },
-      { type: 'bodies', title: `Member bodies: ${entry.target || entry.title}`, entryIds, estimatedLines: 30 },
-      { type: 'contracts', title: `Contracts (${kindLabel})`, entryIds, estimatedLines: 10 },
-      { type: 'tests', title: `Validators for ${entry.route || entry.title}`, entryIds, estimatedLines: 10 },
-      { type: 'tests', title: `Tests for ${entry.route || entry.title}`, entryIds, estimatedLines: 15 },
-    ];
-    this.cardsChange.emit(cards);
+    this.cardsChange.emit(presetSeedsFor(entry));
     this.showPresetPicker.set(false);
   }
 
@@ -265,6 +304,11 @@ export class ScopePicker {
 
   protected kindColor(kind: string): string {
     return KIND_COLORS[kind] ?? 'var(--vibe-ink-subtle)';
+  }
+
+  /** T5.5 (finding 50) — tooltip names the entry kind so a colored glyph can't read as an error. */
+  protected kindTitle(kind: string): string {
+    return `${KIND_LABELS[kind] ?? kind} entry`;
   }
 
   protected methodClass(method: string): string {

@@ -342,8 +342,42 @@ internal static class ProtoMapper
             TotalTokens = pack.TotalTokens,
         };
         foreach (var s in pack.Sections)
-            resp.Sections.Add(new Proto.ContextSection { Key = s.Section, Tokens = s.Tokens, Content = s.Content });
+        {
+            var section = new Proto.ContextSection
+            {
+                Key = s.Section, Tokens = s.Tokens, Content = s.Content,
+                Verified = s.Verified, Approx = s.Approx,
+            };
+            section.SourceLocations.AddRange(s.SourceLocations);
+            resp.Sections.Add(section);
+        }
         resp.Omitted.AddRange(pack.Omitted);
+        return resp;
+    }
+
+    /// <summary>T4.5 — per-section staleness verdicts + the cheap whole-repo HEAD drift signal.</summary>
+    public static Proto.VerifyContextResponse ToVerifyContextResponse(
+        string focus, bool found, string? analyzedHead, string? currentHead,
+        System.Collections.Immutable.ImmutableArray<SectionVerification> sections)
+    {
+        var resp = new Proto.VerifyContextResponse
+        {
+            Found = found,
+            Focus = focus,
+            AnalyzedGitHead = analyzedHead ?? "",
+            CurrentGitHead = currentHead ?? "",
+            AnyStale = sections.Any(s => s.Stale),
+        };
+        foreach (var s in sections)
+        {
+            var sv = new Proto.SectionVerification
+            {
+                Key = s.Section, Stale = s.Stale, FilesChecked = s.FilesChecked,
+            };
+            foreach (var d in s.Changed)
+                sv.Changed.Add(new Proto.FileDelta { File = d.File, Status = d.Status, LineDelta = d.LineDelta });
+            resp.Sections.Add(sv);
+        }
         return resp;
     }
 
@@ -364,7 +398,15 @@ internal static class ProtoMapper
                 Tokens = card.TotalTokens,
             };
             foreach (var sa in card.Sections)
-                item.Sections.Add(new Proto.SectionAllocation { Key = sa.Section, Tokens = sa.Tokens });
+            {
+                var alloc = new Proto.SectionAllocation
+                {
+                    Key = sa.Section, Tokens = sa.Tokens, Content = sa.Content,
+                    Verified = sa.Verified, Approx = sa.Approx,
+                };
+                alloc.SourceLocations.AddRange(sa.SourceLocations);
+                item.Sections.Add(alloc);
+            }
             resp.Cards.Add(item);
         }
         resp.Omitted.AddRange(pack.Omitted);
@@ -405,11 +447,47 @@ internal static class ProtoMapper
         return resp;
     }
 
+    // T7.4 — the server-side flow atlas (per-entry flow stats + top-hub degrees) in one response.
+    public static Proto.FlowIndexResponse ToFlowIndexResponse(FlowIndexResult index)
+    {
+        var resp = new Proto.FlowIndexResponse();
+        foreach (var f in index.Flows)
+        {
+            var row = new Proto.FlowStatRow
+            {
+                Focus = f.Focus,
+                Title = f.Title,
+                Kind = f.Kind,
+                Found = f.Found,
+                NodeCount = f.NodeCount,
+                MaxDepth = f.MaxDepth,
+                BoundaryCrossings = f.BoundaryCrossings,
+                DataTouches = f.DataTouches,
+                VerifiedPct = f.VerifiedPct,
+                Score = f.Score,
+            };
+            row.TouchedEntities.AddRange(f.TouchedEntities);
+            row.EmittedEvents.AddRange(f.EmittedEvents);
+            row.NodeIds.AddRange(f.NodeIds);
+            row.HubIds.AddRange(f.HubIds);
+            resp.Flows.Add(row);
+        }
+        foreach (var h in index.HubDegrees)
+            resp.HubDegrees.Add(new Proto.HubDegreeRow
+            {
+                NodeId = h.NodeId,
+                InDegree = h.InDegree,
+                OutDegree = h.OutDegree,
+            });
+        return resp;
+    }
+
     public static Proto.GraphFacetsResponse ToGraphFacetsResponse(
         ServiceMapResult serviceMap,
         FlowListResult flowList,
         EntryTableResult entryTable,
-        LayerBandResult layerBand)
+        LayerBandResult layerBand,
+        ImmutableArray<EventWire> eventWiring = default)
     {
         var resp = new Proto.GraphFacetsResponse();
 
@@ -494,6 +572,34 @@ internal static class ProtoMapper
             if (nb.Layer is { } l2) band.Layer = l2;
             if (nb.Feature is { } f2) band.Feature = f2;
             resp.LayerBand.NodeBands.Add(band);
+        }
+
+        // EventWiring facet (T6.11) — the ONE T2.6 join, verbatim; the Atlas board and
+        // one-pager stop re-deriving publisher→event→consumer client-side.
+        resp.EventWiring = new Proto.EventWiringFacet();
+        if (!eventWiring.IsDefaultOrEmpty)
+        {
+            static Proto.EventParticipantRow ToRow(EventParticipant p)
+            {
+                var row = new Proto.EventParticipantRow { NodeId = p.Node.ToString(), Title = p.Title };
+                if (p.Service is { } svc) row.Service = svc;
+                return row;
+            }
+            foreach (var w in eventWiring)
+            {
+                var wire = new Proto.EventWireRow
+                {
+                    EventName = w.EventName,
+                    IsIntegration = w.IsIntegration,
+                    IsCrossService = w.IsCrossService,
+                    IsOrphan = w.IsOrphan,
+                };
+                foreach (var p in w.Publishers) wire.Publishers.Add(ToRow(p));
+                foreach (var c in w.Consumers) wire.Consumers.Add(ToRow(c));
+                resp.EventWiring.Wires.Add(wire);
+            }
+            resp.EventWiring.IntegrationCount = eventWiring.Count(w => w.IsIntegration);
+            resp.EventWiring.CrossServiceCount = eventWiring.Count(w => w.IsCrossService);
         }
 
         return resp;

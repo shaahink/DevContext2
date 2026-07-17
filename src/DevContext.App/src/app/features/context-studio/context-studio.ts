@@ -1,5 +1,6 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
+import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { type EntryVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
@@ -7,6 +8,7 @@ import { TrailStore } from '../../state/trail.store';
 import { BudgetPanel } from './budget-panel';
 import { type ContextCard, CompositionView } from './composition-view';
 import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
+import { type PackVerification, type SectionVerificationVm, VerificationPanel } from './verification-panel';
 
 const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
   trace: ['flow', 'signatures', 'bodies', 'di_wiring', 'config', 'entities', 'contracts', 'tests', 'identity'],
@@ -14,9 +16,12 @@ const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
   review: ['flow', 'bodies', 'signatures', 'di_wiring', 'entities', 'contracts', 'tests', 'config', 'identity'],
 };
 
+/** T5.6 — debounce between a pack-relevant change and the re-pack RPC. */
+export const REPACK_DEBOUNCE_MS = 350;
+
 @Component({
   selector: 'app-context-studio',
-  imports: [ScopePicker, CompositionView, BudgetPanel],
+  imports: [ScopePicker, CompositionView, BudgetPanel, VerificationPanel],
   template: `
     <div class="flex h-full min-h-0">
       <app-scope-picker
@@ -33,19 +38,32 @@ const INTENT_CARD_ORDER: Record<ContextIntent, readonly string[]> = {
         (cardToggleBody)="onToggleBody($event)"
         (cardRemove)="onRemove($event)"
         (cardReorder)="onReorder($event)"
+        (cardRetry)="onRetry()"
       />
 
       <app-budget-panel
         class="w-48 shrink-0 border-l border-line bg-surface"
         [cards]="cards()"
-        [(budget)]="budgetTokens"
-        [(selectedIntent)]="selectedIntent"
+        [omitted]="packOmitted()"
+        [packPending]="packPending()"
+        [exportReady]="exportReady()"
+        [budget]="budgetTokens()"
+        (budgetChange)="onBudgetChange($event)"
+        [selectedIntent]="selectedIntent()"
+        (selectedIntentChange)="onIntentChange($event)"
         [(selectedFormat)]="selectedFormat"
         [(showAllBodies)]="showAllBodies"
         (copyRequest)="onCopy()"
         (saveRequest)="onSave()"
         (globalBodiesChange)="onGlobalBodiesChange()"
-      />
+      >
+        <app-verification-panel
+          [verification]="packVerification()"
+          [verifying]="verifying()"
+          (refreshRequest)="onVerifyRefresh()"
+          (reanalyzeRequest)="onReanalyze()"
+        />
+      </app-budget-panel>
     </div>
   `,
   host: { class: 'h-full min-h-0' },
@@ -61,16 +79,17 @@ export class ContextStudio {
   protected readonly showAllBodies = signal(true);
   protected readonly budgetTokens = signal(4000);
 
-  private lastIntent: ContextIntent = 'trace';
+  /** T5.6 (audit C1) — a budget change must re-pack, not silently serve the old bytes. */
+  protected onBudgetChange(value: number): void {
+    this.budgetTokens.set(value);
+    this.schedulePack();
+  }
 
-  constructor() {
-    effect(() => {
-      const intent = this.selectedIntent();
-      if (this.lastIntent !== intent && this.cards().length > 0) {
-        this.sortByIntent(intent);
-      }
-      this.lastIntent = intent;
-    });
+  /** T5.6 — intent reorders the cards AND re-packs (the server honors card order + intent). */
+  protected onIntentChange(intent: ContextIntent): void {
+    this.selectedIntent.set(intent);
+    this.sortByIntent(intent);
+    this.schedulePack();
   }
 
   private sortByIntent(intent: ContextIntent): void {
@@ -85,7 +104,91 @@ export class ContextStudio {
     this.cards().reduce((n, c) => n + (c.serverTokens ?? Math.round(c.estimatedLines * 2.5)), 0),
   );
 
-  protected serverPackMarkdown: string | null = null;
+  /** T5.6 — THE pack. Exports serve exactly this or nothing; there is no client-side rebuild. */
+  protected readonly serverPack = signal<string | null>(null);
+
+  /** T5.1 (audit R1) — what the server cut, rendered in the budget panel. */
+  protected readonly packOmitted = signal<readonly string[]>([]);
+
+  /** T5.6 — true from a pack-relevant change until the re-pack lands; gates Copy/Save. */
+  protected readonly packPending = signal(false);
+
+  protected readonly exportReady = computed(() =>
+    !this.packPending() && this.serverPack() !== null && this.cards().length > 0);
+
+  /** Overridable in specs (0 = flush on the next macrotask). */
+  protected packDebounceMs = REPACK_DEBOUNCE_MS;
+  private packTimer: ReturnType<typeof setTimeout> | null = null;
+  private packSeq = 0;
+
+  /** T5.2 (audit R6) — the staleness ledger for the current pack; null until verified. */
+  protected readonly packVerification = signal<PackVerification | null>(null);
+  protected readonly verifying = signal(false);
+  private verifySeq = 0;
+
+  /** T5.2 — verify every unique focus the cards reference and merge per section. */
+  private async verifyPack(): Promise<void> {
+    const handle = this.session.handle();
+    const focuses = [...new Set(this.cards().flatMap((c) => c.entryIds))];
+    if (!handle || focuses.length === 0) {
+      this.packVerification.set(null);
+      return;
+    }
+    const seq = ++this.verifySeq;
+    this.verifying.set(true);
+    try {
+      const results = await Promise.all(
+        focuses.map((f) => this.api.verifyContext(handle, f, this.budgetTokens())),
+      );
+      if (seq !== this.verifySeq) return;
+      const found = results.filter((r) => r.found);
+      if (found.length === 0) {
+        this.packVerification.set(null);
+        return;
+      }
+      const byKey = new Map<string, { stale: boolean; filesChecked: number; changed: Map<string, SectionVerificationVm['changed'][number]> }>();
+      for (const r of found) {
+        for (const s of r.sections) {
+          let agg = byKey.get(s.key);
+          if (!agg) {
+            agg = { stale: false, filesChecked: 0, changed: new Map() };
+            byKey.set(s.key, agg);
+          }
+          agg.stale ||= s.stale;
+          agg.filesChecked += s.filesChecked;
+          for (const d of s.changed) {
+            agg.changed.set(d.file, { file: d.file, status: d.status, lineDelta: d.lineDelta });
+          }
+        }
+      }
+      this.packVerification.set({
+        anyStale: found.some((r) => r.anyStale),
+        analyzedGitHead: found[0].analyzedGitHead,
+        currentGitHead: found[0].currentGitHead,
+        checkedAt: Date.now(),
+        sections: [...byKey.entries()].map(([key, a]) => ({
+          key,
+          stale: a.stale,
+          filesChecked: a.filesChecked,
+          changed: [...a.changed.values()],
+        })),
+      });
+    } catch {
+      // Verification is advisory — a failed check must never block the Studio; the panel
+      // simply disappears rather than claiming fresh OR stale without evidence.
+      if (seq === this.verifySeq) this.packVerification.set(null);
+    } finally {
+      if (seq === this.verifySeq) this.verifying.set(false);
+    }
+  }
+
+  protected onVerifyRefresh(): void {
+    void this.verifyPack();
+  }
+
+  protected onReanalyze(): void {
+    this.session.reAnalyze();
+  }
 
   protected onCardsChange(seeds: readonly ContextCardSeed[]): void {
     const handle = this.session.handle();
@@ -112,54 +215,113 @@ export class ContextStudio {
       provenance: s.entryIds
         .map((id) => entryMap.get(id)?.provenance)
         .filter((p): p is string => !!p),
+      sections: [],
+      error: null,
     }));
 
     this.cards.update((prev) => [...prev, ...newCards]);
 
-    void this.loadAllCards(newCards, handle);
+    this.schedulePack();
   }
 
-  private async loadAllCards(newCards: ContextCard[], handle: string): Promise<void> {
-    // L4.4 — Single GetContextPack call replaces N individual GetContext calls (closes Trap A).
-    const cardSpecs = newCards
-      .filter((c) => c.type !== 'config' && c.type !== 'tests')
-      .map((c) => ({ type: c.type, title: c.title, entryIds: [...c.entryIds] }));
-
-    if (cardSpecs.length === 0) {
-      for (const c of newCards) c.loading = false;
+  /** T5.6 (audit C1) — ONE re-pack path for every pack-relevant change (add/remove/reorder/
+   * retry/budget/intent). Debounced; always sends the WHOLE card set, so the export can never
+   * be a stale earlier batch (the pre-T5.6 pack held only the most recent add). config/tests
+   * go to the server too — real sections since T4.3, the client stub filter is gone. */
+  private schedulePack(immediate = false): void {
+    if (this.packTimer !== null) clearTimeout(this.packTimer);
+    this.packTimer = null;
+    const handle = this.session.handle();
+    if (!handle) return;
+    if (this.cards().length === 0) {
+      this.serverPack.set(null);
+      this.packOmitted.set([]);
+      this.packVerification.set(null);
+      this.packPending.set(false);
       return;
     }
+    this.packPending.set(true);
+    this.packTimer = setTimeout(() => {
+      this.packTimer = null;
+      void this.repack(handle);
+    }, immediate ? 0 : this.packDebounceMs);
+  }
 
+  private async repack(handle: string): Promise<void> {
+    const seq = ++this.packSeq;
+    const specs = this.cards().map((c) => ({ type: c.type, title: c.title, entryIds: [...c.entryIds] }));
     try {
-      const pack = await this.api.getContextPack(handle, cardSpecs, {
+      const pack = await this.api.getContextPack(handle, specs, {
         budgetTokens: this.budgetTokens(),
         intent: this.selectedIntent(),
       });
+      if (seq !== this.packSeq) return; // superseded by a newer re-pack
 
-      this.serverPackMarkdown = pack.assembledMarkdown || null;
+      this.serverPack.set(pack.assembledMarkdown || null);
+      this.packOmitted.set(pack.omitted);
 
-      const cardByType = new Map<string, typeof pack.cards[0]>();
+      // Correlate by (type, title) in order — duplicate specs consume response items in
+      // sequence, so two cards sharing a type no longer clobber each other.
+      const queues = new Map<string, ContextPackResponse['cards']>();
       for (const ci of pack.cards) {
-        cardByType.set(ci.type, ci);
+        const key = `${ci.type} ${ci.title}`;
+        const q = queues.get(key);
+        if (q) q.push(ci);
+        else queues.set(key, [ci]);
       }
-
       this.cards.update((prev) =>
         prev.map((c) => {
-          const ci = cardByType.get(c.type);
-          if (!ci) return { ...c, loading: false };
+          const ci = queues.get(`${c.type} ${c.title}`)?.shift();
+          // Not in the pack = dropped server-side (named in omitted[]); show it empty, not stale.
+          if (!ci) return { ...c, loading: false, error: null, content: null, serverTokens: null, sections: [] };
+          // T5.3/T5.5 — cards carry their sections' REAL content + provenance (T4.4 fields):
+          // per-card copy, JSON export, file:line chips, and honest previews all read these.
+          const sections = ci.sections.map((s) => ({
+            key: s.key,
+            tokens: s.tokens,
+            content: s.content,
+            sourceLocations: s.sourceLocations,
+            verified: s.verified,
+            approx: s.approx,
+          }));
+          // T5.5 (audit finding 40) — the preview is the sections' REAL text, never a
+          // title echo ("Flow: /ProductList" told the reader nothing about the content).
+          const preview = sections.map((s) => s.content).join('\n').trim();
           return {
             ...c,
-            content: ci.title,
+            content: preview.length > 0 ? preview : null,
             loading: false,
+            error: null,
             serverTokens: ci.tokens > 0 ? ci.tokens : null,
             estimatedLines: ci.tokens > 0 ? Math.max(1, Math.round(ci.tokens / 2.5)) : c.estimatedLines,
-            sectionTokens: ci.sections.map((s) => ({ key: s.key, tokens: s.tokens })),
+            sections,
           };
         }),
       );
-    } catch {
-      for (const c of newCards) c.loading = false;
+
+      // T5.2 (audit R6) — every fresh pack gets a fresh staleness ledger, unprompted.
+      void this.verifyPack();
+    } catch (e) {
+      if (seq !== this.packSeq) return;
+      // T5.1 (audit R4) — a failed RPC must SAY so on the cards, not just stop the spinners.
+      // T5.6 — and the stale pack must not survive as an exportable lie.
+      const message = e instanceof Error ? e.message : 'Context pack request failed';
+      this.serverPack.set(null);
+      this.packOmitted.set([]);
+      this.packVerification.set(null);
+      this.cards.update((prev) => prev.map((c) => ({ ...c, loading: false, error: message })));
+    } finally {
+      if (seq === this.packSeq) this.packPending.set(false);
     }
+  }
+
+  /** T5.1 (audit R4) — retry re-packs the whole set immediately. */
+  protected onRetry(): void {
+    if (!this.cards().some((c) => c.error !== null)) return;
+    this.cards.update((prev) =>
+      prev.map((c) => (c.error !== null ? { ...c, loading: true, error: null } : c)),
+    );
+    this.schedulePack(true);
   }
 
   protected onToggleBody(id: string): void {
@@ -177,6 +339,7 @@ export class ContextStudio {
 
   protected onRemove(id: string): void {
     this.cards.update((prev) => prev.filter((c) => c.id !== id));
+    this.schedulePack();
   }
 
   protected onTrailSeed(): void {
@@ -219,81 +382,76 @@ export class ContextStudio {
       arr.splice(event.toIndex, 0, item);
       return arr;
     });
+    // T5.6 — the server assembles in card order, so a reorder re-packs too.
+    this.schedulePack();
   }
 
   protected onCopy(): void {
     const text = this.buildContext(this.selectedFormat());
+    if (text === null) return;
     void navigator.clipboard.writeText(text);
   }
 
   protected onSave(): void {
-    const text = this.buildContext(this.selectedFormat());
-    const blob = new Blob([text], { type: this.selectedFormat() === 'plain' ? 'text/plain' : 'text/markdown;charset=utf-8' });
+    const format = this.selectedFormat();
+    const text = this.buildContext(format);
+    if (text === null) return;
+    const mime = format === 'plain' ? 'text/plain'
+      : format === 'json' ? 'application/json'
+      : 'text/markdown;charset=utf-8';
+    const blob = new Blob([text], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'devcontext-context.md';
+    a.download = this.saveFileName(format);
     a.click();
     URL.revokeObjectURL(url);
   }
 
-  private buildContext(format: OutputFormat): string {
-    // L4.4 — Copy/Save = exactly the server-assembled pack when available (closes Trap A).
-    if (this.serverPackMarkdown && this.serverPackMarkdown.length > 0) {
-      if (format === 'plain') {
-        return this.serverPackMarkdown
-          .replace(/^#.*$/gm, '')
-          .replace(/^_.*_$/gm, '')
-          .replace(/^<!--.*-->$/gm, '')
-          .replace(/^\n{3,}/gm, '\n\n')
-          .trim();
-      }
-      return this.serverPackMarkdown;
-    }
+  /** T5.1 (audit R5) + T5.6 — `${repo}-context-${date}.{md|txt|json}`, never a hardcoded name. */
+  protected saveFileName(format: OutputFormat): string {
+    const label = this.session.summary()?.label ?? '';
+    const repo = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'devcontext';
+    const date = new Date().toISOString().slice(0, 10);
+    const ext = format === 'plain' ? 'txt' : format === 'json' ? 'json' : 'md';
+    return `${repo}-context-${date}.${ext}`;
+  }
 
-    // Fallback: client-side assembly for pre-L4.4 sessions or error cases.
-    const cards = this.cards();
-    if (cards.length === 0) return '';
-
+  /** T5.6 (audit C1) — ONE build path: exports are exactly the current server pack, or nothing
+   * (Copy/Save are disabled via exportReady). The legacy client-side assembly — old header,
+   * `<!-- context card -->` markers, estimate footers — is gone. Plain strips markdown SYNTAX
+   * but keeps every line of content, so plain ≠ markdown while losing nothing. T5.3 (R8):
+   * json is the STRUCTURED pack — cards with real section content, per-section provenance,
+   * omissions, the staleness ledger, and the assembled markdown, for programmatic consumers. */
+  private buildContext(format: OutputFormat): string | null {
+    const pack = this.serverPack();
+    if (!pack) return null;
     if (format === 'plain') {
-      const lines: string[] = [];
-      for (const card of cards) {
-        const tok = card.serverTokens ?? Math.round(card.estimatedLines * 2.5);
-        lines.push(`${card.title} [${card.type}]`);
-        if (!card.bodyEnabled) lines.push('(code bodies omitted)');
-        if (card.content !== null) {
-          lines.push(card.content);
-        } else {
-          lines.push(`(No content — ~${tok} tok)`);
-        }
-        lines.push('');
-      }
-      lines.push('---');
-      lines.push(`Generated by DevContext Context Studio — ${new Date().toISOString()}`);
-      return lines.join('\n');
+      return pack
+        .replace(/^#{1,6} /gm, '')
+        .replace(/^_([^_].*)_$/gm, '$1')
+        .replace(/^```.*$/gm, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
     }
-
-    const lines: string[] = ['# DevContext — Context Pack', ''];
-    for (const card of cards) {
-      const tok = card.serverTokens ?? Math.round(card.estimatedLines * 2.5);
-      const prefix = card.serverTokens !== null ? '' : '~';
-      lines.push(`## ${card.title}`);
-      lines.push(`_type: ${card.type}, ${card.entryIds.length} source(s), ${prefix}${tok} tok_`);
-      if (!card.bodyEnabled) {
-        lines.push('_(code bodies omitted)_');
-      }
-      lines.push('');
-      if (card.content !== null) {
-        lines.push(card.content);
-      } else {
-        lines.push(`_Loading content…_`);
-      }
-      lines.push('');
-      lines.push(`<!-- context card: ${card.type} -->`);
-      lines.push('');
+    if (format === 'json') {
+      return JSON.stringify({
+        repo: this.session.summary()?.label ?? null,
+        generatedAt: new Date().toISOString(),
+        budgetTokens: this.budgetTokens(),
+        intent: this.selectedIntent(),
+        omitted: this.packOmitted(),
+        verification: this.packVerification(),
+        cards: this.cards().map((c) => ({
+          type: c.type,
+          title: c.title,
+          entryIds: c.entryIds,
+          tokens: c.serverTokens,
+          sections: c.sections,
+        })),
+        markdown: pack,
+      }, null, 2);
     }
-    lines.push('---');
-    lines.push(`_Generated by DevContext Context Studio — ${new Date().toISOString()}_`);
-    return lines.join('\n');
+    return pack;
   }
 }

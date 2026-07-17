@@ -42,6 +42,10 @@ const VIEW_SHORTCUTS: Record<string, string> = {
   s: '/settings',
 };
 
+/** Routes whose rail items carry `requiresSession: true` — single-key nav respects the
+ * same gate the rail's disabled state shows. */
+const SESSION_ROUTES = new Set(['/explore', '/atlas', '/insights', '/context']);
+
 /** Full §8.4 keyboard map (GAP-T2) — every row here corresponds to a real, currently
  * wired handler: `omnibox.ts` (Ctrl+K/P), `tab-strip.ts` (Ctrl+T/W/1-6/Tab), this file
  * (g-prefix nav, ?, Escape-for-help), `workbench-page.ts`'s `onGlobalKey`/`onEscape`
@@ -63,7 +67,7 @@ const SHORTCUT_HELP = [
   { keys: 'Shift+E', desc: 'Open the entry table lens' },
   { keys: 'v t / v g / v s / v n', desc: 'Stage: tree · graph · system · node' },
   { keys: 'p', desc: 'Pin the current selection to the trail' },
-  { keys: 'g h/e/a/i/m/c/s', desc: 'Go to Home / Explore / Atlas / Insights / MCP / Context / Settings' },
+  { keys: 'h/e/a/i/m/c/s (or g-prefixed)', desc: 'Go to Home / Explore / Atlas / Insights / MCP / Context / Settings' },
   { keys: '?', desc: 'Show this help' },
   { keys: 'Escape', desc: 'Esc-ladder: cancel trace → close overlay → unpin peek → deselect node → clear focus → clear filter' },
 ];
@@ -127,6 +131,7 @@ const SHORTCUT_HELP = [
 })
 export class WorkspaceShell implements OnDestroy {
   private readonly router = inject(Router);
+  private readonly session = inject(SessionStore);
   protected readonly helpItems = SHORTCUT_HELP;
   protected readonly helpOpen = signal(false);
 
@@ -139,7 +144,7 @@ export class WorkspaceShell implements OnDestroy {
     inject(WebviewShortcutsService).start();
     inject(SingleInstanceService).start();
 
-    const session = inject(SessionStore);
+    const session = this.session;
     const atlas = inject(AtlasStore);
     const ticker = inject(TickerService);
 
@@ -228,6 +233,21 @@ export class WorkspaceShell implements OnDestroy {
       }
       this.gPending.set(false);
       if (this.gTimer) clearTimeout(this.gTimer);
+      return;
+    }
+
+    // T6.5 (audit finding 37): the activity rail declares single-key shortcuts
+    // (RailItem.shortKey) that never navigated — only the g-prefix worked. Wire them.
+    // Runs AFTER the g-prefix branch so `g e` and plain `e` both land on /explore, and
+    // only when no overlay wants the key (inputs are already excluded above; page-local
+    // keys — j/k/p/v//, Enter — don't overlap this set). Session-requiring routes stay
+    // dead until a repo is analyzed, matching the rail's disabled state.
+    if (!this.helpOpen()) {
+      const route = VIEW_SHORTCUTS[e.key];
+      if (route && (this.session.ready() || !SESSION_ROUTES.has(route))) {
+        e.preventDefault();
+        void this.router.navigateByUrl(route);
+      }
     }
   }
 

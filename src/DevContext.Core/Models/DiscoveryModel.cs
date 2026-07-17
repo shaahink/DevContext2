@@ -24,6 +24,11 @@ public sealed class DiscoveryModel
     public ImmutableArray<PerServiceStyle> PerServiceStyles { get; internal set; } = [];
     /// <summary>The detected codebase archetype ("App" or "Library"), set at graph-assembly time.</summary>
     public string? Archetype { get; internal set; }
+    /// <summary>T8 — true when every non-test/non-benchmark project lives under a sample path (a sample
+    /// COLLECTION like dotnet/aspire-samples): the samples ARE the product, so sample-path suppression
+    /// (entries, archetype, topology, library surface) must not apply. Computed root-relatively by the
+    /// pipeline at graph-assembly time (<see cref="ProjectClassifier.SamplesAreTheProduct"/>).</summary>
+    public bool SamplesAreTheProduct { get; internal set; }
     /// <summary>All discovered types, keyed by fully qualified name.</summary>
     public ConcurrentDictionary<string, TypeDiscovery> Types { get; } = new();
     /// <summary>All extracted detections (endpoints, handlers, entities, etc.).</summary>

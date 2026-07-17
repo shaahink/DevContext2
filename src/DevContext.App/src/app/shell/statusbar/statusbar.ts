@@ -36,7 +36,7 @@ import { Ticker } from '../../ui/ticker/ticker';
             <span class="font-medium text-ink">{{ summaryLabel() }}</span>
             @if (atlas.running()) {
               <span class="text-ink-subtle">&middot;</span>
-              <span>{{ atlas.progressLabel() }}</span>
+              <span title="Background flow indexing — entries traced so far / total queued. Not a score.">{{ atlas.progressLabel() }}</span>
             }
           } @else if (session.status() === 'error') {
             <span class="text-danger">Analysis failed</span>

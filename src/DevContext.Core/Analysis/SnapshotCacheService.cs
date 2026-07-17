@@ -50,7 +50,7 @@ public sealed class SnapshotCacheService
     {
         var normalized = Path.GetFullPath(rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var repoKey = HashString(normalized);
-        var versionKey = ComputeGitHead(normalized) ?? $"manifest-{HashManifest(normalized)}";
+        var versionKey = GitHeadReader.Read(normalized) ?? $"manifest-{HashManifest(normalized)}";
         return (repoKey, versionKey);
     }
 
@@ -160,24 +160,6 @@ public sealed class SnapshotCacheService
     }
 
     public string CacheRoot => _cacheRoot;
-
-    private static string? ComputeGitHead(string rootPath)
-    {
-        try
-        {
-            var psi = new System.Diagnostics.ProcessStartInfo("git", "rev-parse HEAD")
-            {
-                WorkingDirectory = rootPath, RedirectStandardOutput = true,
-                RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true,
-            };
-            using var proc = System.Diagnostics.Process.Start(psi);
-            if (proc is null) return null;
-            var output = proc.StandardOutput.ReadToEnd().Trim();
-            proc.WaitForExit(5000);
-            return proc.ExitCode == 0 && output.Length > 0 ? output : null;
-        }
-        catch { return null; }
-    }
 
     private static string HashManifest(string dir)
     {

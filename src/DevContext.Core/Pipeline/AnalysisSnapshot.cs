@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 
+using DevContext.Core.Analysis;
 using DevContext.Core.Graph;
 using DevContext.Core.Insights;
 
@@ -19,6 +20,15 @@ public sealed record AnalysisSnapshot
     public string? DryRunContent { get; init; }
     public string Explanation { get; init; } = "";
     public ImmutableArray<string> Warnings { get; init; } = [];
+
+    /// <summary>T4.1 — when the analysis ran (UTC). Stamped by the pipeline; null on hand-built snapshots.</summary>
+    public DateTimeOffset? AnalyzedAtUtc { get; init; }
+    /// <summary>T4.1 — git HEAD sha of the analyzed repo at analyze time. Null when not a git checkout.</summary>
+    public string? GitHead { get; init; }
+    /// <summary>T4.5 — analyze-time fingerprints of every node-bearing source file (absolute path →
+    /// sha256 + line count). verify_context compares these against disk to flag stale pack sections.</summary>
+    public ImmutableDictionary<string, FileFingerprint> FileFingerprints { get; init; }
+        = ImmutableDictionary<string, FileFingerprint>.Empty;
 
     /// <summary>Connected code graph assembled at analyze-time (PLAN-10). Null on dry-run.</summary>
     public CodeGraph? Graph { get; init; }

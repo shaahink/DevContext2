@@ -7,9 +7,11 @@ import type {
   ContextPackResponse,
   ContextResponse,
   EntryPointsResponse,
+  FlowIndexResponse,
   GraphFacetsResponse,
   ImpactResponse,
   InterestingPointsResponse,
+  ListSessionsResponse,
   MapResponse,
   NeighborsResponse,
   NodeResponse,
@@ -19,6 +21,7 @@ import type {
   SearchResponse,
   StatsResponse,
   TraceResponse,
+  VerifyContextResponse,
 } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { ReadSourceMode } from '../core/grpc/gen/devcontext/v1/devcontext_pb';
 
@@ -82,6 +85,12 @@ export class DevContextApi {
     return this.client.getGraphFacets({ handle, maxFlows });
   }
 
+  /** T7.4 — the whole flow atlas (per-entry stats + hub degrees) in ONE call, memoized
+   * server-side per session. Replaces the client-side ~100-getTrace background indexer. */
+  getFlowIndex(handle: string, signal?: AbortSignal): Promise<FlowIndexResponse> {
+    return this.client.getFlowIndex({ handle }, { signal });
+  }
+
   listEntryPoints(handle: string): Promise<EntryPointsResponse> {
     return this.client.listEntryPoints({ handle });
   }
@@ -122,6 +131,11 @@ export class DevContextApi {
     return this.client.closeSession({ handle });
   }
 
+  /** T6.9 — live server sessions (repo path + handle + graph counts), for boot reattach. */
+  listSessions(): Promise<ListSessionsResponse> {
+    return this.client.listSessions({});
+  }
+
   getImpact(handle: string, nodeId: string, maxDepth?: number): Promise<ImpactResponse> {
     return this.client.getImpact({ handle, nodeId, maxDepth: maxDepth ?? 0 });
   }
@@ -141,6 +155,11 @@ export class DevContextApi {
       budgetTokens: options?.budgetTokens ?? 8000,
       intent: options?.intent ?? 'trace',
     });
+  }
+
+  /** T5.2 (audit R6) — per-section staleness of a focus's pack vs the disk (T4.5 RPC). */
+  verifyContext(handle: string, focus: string, budgetTokens?: number): Promise<VerifyContextResponse> {
+    return this.client.verifyContext({ handle, focus, budgetTokens });
   }
 
   readSource(handle: string, nodeId: string, options?: { mode?: ReadSourceMode; windowLines?: number }): Promise<ReadSourceResponse> {

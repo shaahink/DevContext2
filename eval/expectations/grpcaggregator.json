@@ -1,0 +1,11 @@
+{
+  "repo": "eval-repos/gRPC/examples/Aggregator",
+  "checks": [
+    { "id": "signal-grpc", "type": "signal-present", "value": "grpc", "status": "expected", "note": "T7.1: real gRPC service app (grpc-dotnet Aggregator example) — Grpc.AspNetCore referenced by Server, Grpc.Net.Client by Client." },
+    { "id": "det-grpc-services", "type": "detection-count", "detectionType": "GrpcServiceDetection", "min": 1, "max": 3, "status": "expected", "note": "T7.1: GrpcServiceDetection is one per service impl CLASS (3 in source: AggregatorService/CounterService/GreeterService); the JSON detections array may truncate, so pin presence with the class-count ceiling. The per-RPC truth is the kind-grpc-6 check below." },
+    { "id": "kind-grpc-6", "type": "output-contains", "format": "markdown", "value": "gRPC (6)", "status": "expected", "note": "T7.1: 6 public override RPCs read from source — AggregatorService (AccumulateCount, SayHellos) + CounterService (IncrementCount, AccumulateCount) + GreeterService (SayHello, SayHellos) — render as 6 gRPC entries." },
+    { "id": "entry-kind-grpc", "type": "entry-kind-present", "value": "GrpcServiceDetection", "format": "gRPC", "status": "expected", "note": "T7.1: RPC entries render under a gRPC kind header (not HTTP, not PublicApi)." },
+    { "id": "svc-aggregator", "type": "output-contains", "format": "markdown", "value": "AggregatorService", "status": "expected", "note": "T7.1: the aggregating service (forwards to Greeter + Counter via injected gRPC clients — the server-to-server seam) is named in the map." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 30000, "status": "expected" }
+  ]
+}

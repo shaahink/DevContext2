@@ -22,6 +22,12 @@ public sealed class TruthExpectationTests
         _output = output;
     }
 
+    /// <summary>A fixture is present only when its directory exists AND has content: a fresh clone
+    /// materializes gitlink (submodule) paths as EMPTY directories, so a bare Directory.Exists check
+    /// made un-inited fixtures FAIL the truth gate instead of skipping (github-ready G5 handoff).</summary>
+    private static bool FixtureExists(string repoPath)
+        => Directory.Exists(repoPath) && Directory.EnumerateFileSystemEntries(repoPath).Any();
+
     // ═══════════════════════════════════════════════════════════════════
     // Dogfood (eshop-microservices)
     // ═══════════════════════════════════════════════════════════════════
@@ -37,7 +43,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /basket/checkout");
 
@@ -76,7 +82,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_service_names_are_full_and_runnables_only()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -107,7 +113,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_baseline_presence_ok()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -145,7 +151,7 @@ public sealed class TruthExpectationTests
     public async Task RazorPages_no_fabricated_cross_sample_edges()
     {
         var repoPath = RepoPath("eval-repos/RazorPages");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /Students");
 
@@ -192,7 +198,7 @@ public sealed class TruthExpectationTests
     public async Task Blazor_archetype_is_not_microservices()
     {
         var repoPath = RepoPath("eval-repos/Blazor");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         var json = result.JsonContent;
@@ -216,7 +222,7 @@ public sealed class TruthExpectationTests
     public async Task CleanArchitecture_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/CleanArchitecture");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -239,7 +245,7 @@ public sealed class TruthExpectationTests
     public async Task TodoApi_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/TodoApi");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /todos/");
         Assert.Contains("TRACE", trace, StringComparison.Ordinal);
@@ -257,7 +263,7 @@ public sealed class TruthExpectationTests
     public async Task DntSite_baseline_presence_ok()
     {
         var repoPath = DntSitePath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -285,7 +291,7 @@ public sealed class TruthExpectationTests
     public async Task Library_archetype_has_public_surface()
     {
         var repoPath = RepoPath("eval-repos/FluentValidation");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -316,7 +322,7 @@ public sealed class TruthExpectationTests
     public async Task Desktop_archetype_produces_entries()
     {
         var repoPath = RepoPath("eval-repos/PowerToys");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -345,7 +351,7 @@ public sealed class TruthExpectationTests
     public async Task Worker_archetype_produces_graph()
     {
         var repoPath = RepoPath("eval-repos/AzureFunctions");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -358,6 +364,109 @@ public sealed class TruthExpectationTests
         Assert.True(typesCount >= 30, $"typesSummary.found={typesCount} < 30 (baseline ~50 types)");
 
         _output.WriteLine($"Worker (AzureFunctions): {typesCount} types found");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CompositionApp fixture (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth: entry kinds counted from the fixture SOURCE — 3 controller actions
+    /// (AddonsController: GetPack packs/{id} · CreatePack packs · GetTheme themes/{slug}),
+    /// 2 hosted workers (PriceWorker direct AddHostedService + BacktestWorker via the
+    /// factory lambda), 1 SignalR hub (PriceHub). The per-kind headers must carry those
+    /// exact counts — presence alone is already pinned by compositionapp.json (eval).
+    /// </summary>
+    [SkippableFact]
+    public async Task CompositionApp_per_kind_entry_counts_match_source()
+    {
+        var repoPath = RepoPath("tests/fixtures/CompositionApp");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.Contains("HTTP (3)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("Background (2)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("SignalR (1)", result.Content, StringComparison.Ordinal);
+
+        _output.WriteLine("CompositionApp per-kind: HTTP 3 · Background 2 · SignalR 1 (from source)");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // GrpcAggregator — real gRPC service app (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth: grpc-dotnet's Aggregator example is a REAL gRPC service app —
+    /// Program.cs maps three services (Greeter, Counter, Aggregator) and the source
+    /// carries exactly 6 `public override` RPCs. The map must render a gRPC (6) kind
+    /// header and name all three service impls. AggregatorService additionally forwards
+    /// to Greeter/Counter over injected gRPC clients (server-to-server), which is why
+    /// this repo is the standing real-gRPC pole rather than a synthetic fixture.
+    /// </summary>
+    [SkippableFact]
+    public async Task GrpcAggregator_rpc_entries_match_source()
+    {
+        var repoPath = RepoPath("eval-repos/gRPC/examples/Aggregator");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.Contains("gRPC (6)", result.Content, StringComparison.Ordinal);
+        Assert.Contains("AggregatorService", result.Content, StringComparison.Ordinal);
+        Assert.Contains("CounterService", result.Content, StringComparison.Ordinal);
+        Assert.Contains("GreeterService", result.Content, StringComparison.Ordinal);
+
+        _output.WriteLine("GrpcAggregator: 6 RPC entries across 3 services (from source)");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // aspire-samples (T7.1)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// T7.1 truth (green half): scaffolding solutions never define the repo. Before the
+    /// T7.1 fixes, dotnet/aspire-samples was titled after `.github/for.dependabot.only.sln`
+    /// (dot-directory decoy) and then `tests/SamplesTests.slnx` (shallow tooling solution
+    /// beating 13 deeper per-sample .slnx files). The JSON style verdict is now honestly
+    /// SampleCollection — pinned by eval/expectations/aspire-samples.json.
+    /// </summary>
+    [SkippableFact]
+    public async Task AspireSamples_solution_pick_ignores_scaffolding()
+    {
+        var repoPath = RepoPath("eval-repos/aspire-samples");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        Assert.DoesNotContain("for.dependabot.only", result.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("SamplesTests", result.Content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// T7.1 truth (pending half): dotnet/aspire-samples is 13 independent per-sample .slnx
+    /// solutions with no unifying root solution — a samples collection. The MARKDOWN render
+    /// must say so. Today the style verdict is honest in JSON, but every entry's provenance
+    /// is under samples/ so NoiseFilter suppresses them all → 0 entries → the archetype
+    /// ladder lands Library ("0 public types") → the Library render hides the STYLE line
+    /// entirely. Fix = sample-collection render honesty: when style is SampleCollection the
+    /// samples ARE the product (entries, archetype, style line). Found by T7.1; fixed by T8.2
+    /// (model.SamplesAreTheProduct — samples-only repos waive sample-path suppression).
+    /// </summary>
+    [SkippableFact]
+    public async Task AspireSamples_style_is_sample_collection_not_microservices()
+    {
+        var repoPath = RepoPath("eval-repos/aspire-samples");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
+
+        var result = await RunOverviewAsync(repoPath);
+
+        var styleLine = result.Content.Split('\n')
+            .FirstOrDefault(l => l.Contains("STYLE") || l.Contains("Style:"));
+        _output.WriteLine($"aspire-samples style: {styleLine ?? "(not found)"}");
+
+        Assert.DoesNotContain("Microservices", styleLine ?? "", StringComparison.Ordinal);
+        Assert.Contains("SampleCollection", result.Content, StringComparison.Ordinal);
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -1,0 +1,110 @@
+Building DevContext CLI...
+
+===== [1/25] DntSite =====
+  Running devcontext report C:\code\DevContext2\eval-repos\DntSite ...
+  Done in 142s -> C:\code\DevContext2\eval-results\2026-07-16\DntSite-report.md (Stats ok, TopFlows ok)
+
+===== [2/25] TodoApi =====
+  Running devcontext report C:\code\DevContext2\eval-repos\TodoApi ...
+  Done in 6.7s -> C:\code\DevContext2\eval-results\2026-07-16\TodoApi-report.md (Stats ok, TopFlows ok)
+
+===== [3/25] CleanArchitecture =====
+  Running devcontext report C:\code\DevContext2\eval-repos\CleanArchitecture ...
+  Done in 12.5s -> C:\code\DevContext2\eval-results\2026-07-16\CleanArchitecture-report.md (Stats ok, TopFlows ok)
+
+===== [4/25] eShop =====
+  Running devcontext report C:\code\DevContext2\eval-repos\eShop ...
+  Done in 26.5s -> C:\code\DevContext2\eval-results\2026-07-16\eShop-report.md (Stats ok, TopFlows ok)
+
+===== [5/25] FluentValidation =====
+  Running devcontext report C:\code\DevContext2\eval-repos\FluentValidation ...
+  Done in 12.9s -> C:\code\DevContext2\eval-results\2026-07-16\FluentValidation-report.md (Stats ok, TopFlows ok)
+
+===== [6/25] Polly =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Polly ...
+  Done in 23.7s -> C:\code\DevContext2\eval-results\2026-07-16\Polly-report.md (Stats ok, TopFlows ok)
+
+===== [7/25] CommunityToolkit.Mvvm =====
+  Running devcontext report C:\code\DevContext2\eval-repos\CommunityToolkit.Mvvm ...
+  Done in 16.3s -> C:\code\DevContext2\eval-results\2026-07-16\CommunityToolkit.Mvvm-report.md (Stats ok, TopFlows ok)
+
+===== [8/25] MediatR =====
+  Running devcontext report C:\code\DevContext2\eval-repos\MediatR ...
+  Done in 8.9s -> C:\code\DevContext2\eval-results\2026-07-16\MediatR-report.md (Stats ok, TopFlows ok)
+
+===== [9/25] gRPC =====
+  Running devcontext report C:\code\DevContext2\eval-repos\gRPC ...
+  Done in 26.3s -> C:\code\DevContext2\eval-results\2026-07-16\gRPC-report.md (Stats ok, TopFlows ok)
+
+===== [10/25] MassTransit =====
+  Running devcontext report C:\code\DevContext2\eval-repos\MassTransit ...
+  Done in 71.8s -> C:\code\DevContext2\eval-results\2026-07-16\MassTransit-report.md (Stats ok, TopFlows ok)
+
+===== [11/25] Ocelot =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Ocelot ...
+  Done in 25.2s -> C:\code\DevContext2\eval-results\2026-07-16\Ocelot-report.md (Stats ok, TopFlows ok)
+
+===== [12/25] AzureFunctions =====
+  Running devcontext report C:\code\DevContext2\eval-repos\AzureFunctions ...
+  Done in 18.4s -> C:\code\DevContext2\eval-results\2026-07-16\AzureFunctions-report.md (Stats ok, TopFlows ok)
+
+===== [13/25] RazorPages =====
+  Cloning https://github.com/dotnet/AspNetCore.Docs.git...
+  Running devcontext report C:\code\DevContext2\eval-repos\RazorPages ...
+  Done in 90.2s -> C:\code\DevContext2\eval-results\2026-07-16\RazorPages-report.md (Stats ok, TopFlows ok)
+
+===== [14/25] CLI =====
+  Running devcontext report C:\code\DevContext2\eval-repos\CLI ...
+  Done in 8s -> C:\code\DevContext2\eval-results\2026-07-16\CLI-report.md (Stats ok, TopFlows ok)
+
+===== [15/25] Blazor =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Blazor ...
+  Done in 14.8s -> C:\code\DevContext2\eval-results\2026-07-16\Blazor-report.md (Stats ok, TopFlows ok)
+
+===== [16/25] Desktop =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Desktop ...
+  Done in 9.1s -> C:\code\DevContext2\eval-results\2026-07-16\Desktop-report.md (Stats ok, TopFlows ok)
+
+===== [17/25] PowerToys =====
+  Cloning https://github.com/microsoft/PowerToys.git...
+  Running devcontext report C:\code\DevContext2\eval-repos\PowerToys ...
+  Done in 61.5s -> C:\code\DevContext2\eval-results\2026-07-16\PowerToys-report.md (Stats ok, TopFlows ok)
+
+===== [18/25] Serilog =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Serilog ...
+  Done in 9.1s -> C:\code\DevContext2\eval-results\2026-07-16\Serilog-report.md (Stats ok, TopFlows ok)
+
+===== [19/25] Spectre.Console =====
+  Running devcontext report C:\code\DevContext2\eval-repos\Spectre.Console ...
+  Done in 15.9s -> C:\code\DevContext2\eval-results\2026-07-16\Spectre.Console-report.md (Stats ok, TopFlows ok)
+
+===== [20/25] MassTransit-Sample =====
+  Running devcontext report C:\code\DevContext2\eval-repos\MassTransit-Sample ...
+  Done in 3.7s -> C:\code\DevContext2\eval-results\2026-07-16\MassTransit-Sample-report.md (Stats ok, TopFlows ok)
+
+===== [21/25] CompositionApp =====
+  Running devcontext report C:\code\DevContext2\tests\fixtures\CompositionApp ...
+  Done in 3.8s -> C:\code\DevContext2\eval-results\2026-07-16\CompositionApp-report.md (Stats ok, TopFlows ok)
+
+===== [22/25] GrpcAggregator =====
+  Running devcontext report C:\code\DevContext2\eval-repos\gRPC\examples\Aggregator ...
+  Done in 4.4s -> C:\code\DevContext2\eval-results\2026-07-16\GrpcAggregator-report.md (Stats ok, TopFlows ok)
+
+===== [23/25] aspire-samples =====
+  Running devcontext report C:\code\DevContext2\eval-repos\aspire-samples ...
+  Done in 7.1s -> C:\code\DevContext2\eval-results\2026-07-16\aspire-samples-report.md (Stats ok, TopFlows ok)
+
+===== [24/25] eshop-microservices =====
+  Running devcontext report C:/Users/shahi/source/repos/run-aspnetcore-microservices/src ...
+  Done in 7.3s -> C:\code\DevContext2\eval-results\2026-07-16\eshop-microservices-report.md (Stats ok, TopFlows ok)
+
+===== [25/25] DevContext =====
+  Running devcontext report C:\code\DevContext2\. ...
+  Done in 47s -> C:\code\DevContext2\eval-results\2026-07-16\DevContext-report.md (Stats ok, TopFlows ok)
+
+===== Reports saved to C:\code\DevContext2\eval-results\2026-07-16 =====
+
+===== Diff: TodoApi -> VerticalSlice =====
+(No diff report generated -- all identical.)
+
+===== Running truth gate (dotnet test --filter Category=Truth) =====

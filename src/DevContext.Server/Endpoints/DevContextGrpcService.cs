@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Channels;
 
+using DevContext.Core.Analysis;
 using DevContext.Core.Graph;
 using DevContext.Server.Mapping;
 using DevContext.Server.Services;
@@ -16,6 +17,7 @@ namespace DevContext.Server.Endpoints;
 public sealed class DevContextGrpcService(
     IAnalysisSessionManager sessions,
     McpObservabilityService mcpObs,
+    IHttpContextAccessor httpContext,
     ILogger<DevContextGrpcService> logger)
     : Proto.DevContextService.DevContextServiceBase
 {
@@ -263,6 +265,27 @@ public sealed class DevContextGrpcService(
             return ProtoMapper.ToContextPackResponse(pack);
         });
 
+    // T4.5 (audit R6) — staleness verification: rebuild the focus's sections (cheap — the graph
+    // is immutable since analyze, so the file sets are stable) and compare each section's
+    // analyze-time file fingerprints against disk now.
+    public override Task<Proto.VerifyContextResponse> VerifyContext(Proto.VerifyContextRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session =>
+        {
+            var builder = new ContextPackBuilder(session.Query, session.Snapshot);
+            var budget = request.HasBudgetTokens ? request.BudgetTokens : 8000;
+            var pack = builder.Build(request.Focus, budget);
+
+            var sections = new ContextPackVerifier(session.Snapshot).Verify(pack.Sections);
+            var currentHead = GitHeadReader.Read(session.Snapshot.RootPath);
+            return ProtoMapper.ToVerifyContextResponse(
+                request.Focus, pack.Found, session.Snapshot.GitHead, currentHead, sections);
+        });
+
+    // T7.4 (audit B11) — the whole flow atlas in one call, memoized on the session: the app's
+    // per-boot ~100 GetTrace + ~10 GetNode storm becomes 1 RPC (page-render budget ≤15/nav).
+    public override Task<Proto.FlowIndexResponse> GetFlowIndex(Proto.FlowIndexRequest request, ServerCallContext context)
+        => WrapT(request.Handle, session => ProtoMapper.ToFlowIndexResponse(session.FlowIndex()));
+
     public override Task<Proto.GraphFacetsResponse> GetGraphFacets(Proto.GraphFacetsRequest request, ServerCallContext context)
         => WrapT(request.Handle, session =>
         {
@@ -274,7 +297,7 @@ public sealed class DevContextGrpcService(
             var entryTable = new EntryTableProjection().Project(graph, ProjectionOptions.Default);
             var layerBand = new LayerBandProjection().Project(graph, ProjectionOptions.Default);
 
-            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand);
+            return ProtoMapper.ToGraphFacetsResponse(serviceMap, flowList, entryTable, layerBand, graph.EventWiring);
         });
 
     // Gap 1 — read_source RPC: Returns raw source code for the Inspector Code tab.
@@ -404,7 +427,7 @@ public sealed class DevContextGrpcService(
 
             foreach (var (cid, title, filePath, lineNumber, project, distance) in callers)
             {
-                if (!IsLikelyTestMethod(title, filePath, project)) continue;
+                if (!TestHeuristics.IsLikelyTestMethod(title, filePath, project, session.Snapshot.RootPath)) continue;
 
                 resp.Tests.Add(new Proto.TestRef
                 {
@@ -528,6 +551,11 @@ public sealed class DevContextGrpcService(
     // M3.3 — emit tool-call events on every session access
     private void RecordToolCall(string tool, string handle, string repo, int bytes, long elapsedMs)
     {
+        // T6.10 — the desktop app calls over gRPC-web (content-type "application/grpc-web*"),
+        // the MCP sidecar over native gRPC ("application/grpc"): that one header separates the
+        // app's own render chatter from real agent traffic in the live feed.
+        var contentType = httpContext.HttpContext?.Request.ContentType ?? "";
+        var origin = contentType.Contains("grpc-web", StringComparison.OrdinalIgnoreCase) ? "ui" : "agent";
         mcpObs.Notify(new Proto.ToolCallEvent
         {
             SessionHandle = handle,
@@ -537,6 +565,7 @@ public sealed class DevContextGrpcService(
             EstTokens = bytes / 4, // rough estimate: ~4 chars per token
             ElapsedMs = elapsedMs,
             TimestampUtcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Origin = origin,
         });
     }
 
@@ -626,35 +655,6 @@ public sealed class DevContextGrpcService(
         ArgumentException => new RpcException(new Status(StatusCode.InvalidArgument, ex.Message)),
         _ => new RpcException(new Status(StatusCode.Internal, ex.Message)),
     };
-
-    // M4.9 — heuristic test method detection by name, path, and project
-    private static bool IsLikelyTestMethod(string title, string? filePath, string? project)
-    {
-        if (string.IsNullOrEmpty(title)) return false;
-
-        var lower = title.ToLowerInvariant();
-
-        if (lower.EndsWith("_test") || lower.EndsWith("_should") || lower.EndsWith("_when")
-            || title.StartsWith("Test") || title.StartsWith("Should")
-            || title.Contains("_Tests_") || title.Contains(".Tests."))
-            return true;
-
-        if (filePath is not null)
-        {
-            var fp = filePath.Replace('\\', '/').ToLowerInvariant();
-            if (fp.Contains("/test/") || fp.Contains("/tests/")) return true;
-        }
-
-        if (project is not null)
-        {
-            var p = project.ToLowerInvariant();
-            if (p.EndsWith("tests") || p.EndsWith("test") || p.EndsWith("specs")
-                || p.Contains(".tests.") || p.Contains(".test."))
-                return true;
-        }
-
-        return false;
-    }
 
     private static StatusCode AnalysisCodeToGrpc(string code) => code switch
     {

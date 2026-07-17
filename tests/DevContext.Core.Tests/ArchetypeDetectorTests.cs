@@ -49,6 +49,61 @@ public sealed class ArchetypeDetectorTests
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
     }
 
+    // ── T8 — samples-only repos: the samples ARE the product ────────────────────────────────
+    // aspire-samples shape: every non-test project under samples/, an Orleans-named SAMPLE
+    // self-sourcing the framework signal, and every entry's provenance under samples/. Without
+    // the SamplesAreTheProduct waiver this landed Library ("0 public types", no STYLE line).
+
+    [Fact]
+    public void Samples_only_repo_is_an_app_not_a_framework_library()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("OrleansVoting.AppHost", @"C:\repo\samples\OrleansVoting\OrleansVoting.AppHost\OrleansVoting.AppHost.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: "Exe"),
+                new ProjectInfo("MetricsApp", @"C:\repo\samples\Metrics\MetricsApp\MetricsApp.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: "Exe"),
+            ],
+            SamplesAreTheProduct = true,
+        };
+        // A sample project named *Orleans* self-sources the framework signal — the repo is NOT Orleans.
+        model.Architecture.Register(FeatureSignal.CreateDetected(
+            ArchitectureSignals.Keys.Orleans, 0.7f, via: "ProjectName", "OrleansVoting.AppHost"));
+        ImmutableArray<EntryPoint> entries =
+        [
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /weather", NodeId.ForEntry("GET /weather"))
+                { Provenance = @"samples/Metrics/MetricsApp/ClientApi.cs:12" },
+        ];
+
+        Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, entries));
+    }
+
+    [Fact]
+    public void Library_with_sample_entries_stays_a_library_when_samples_are_not_the_product()
+    {
+        // The pre-T8 rule is unchanged for real libraries: sample entries don't flip the archetype.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("MediatR", @"C:\repo\src\MediatR\MediatR.csproj",
+                    "C#", ["net10.0"], [], [], IsPackable: true),
+                new ProjectInfo("MediatR.Examples", @"C:\repo\samples\MediatR.Examples\MediatR.Examples.csproj",
+                    "C#", ["net10.0"], [@"..\..\src\MediatR\MediatR.csproj"], [], OutputType: "Exe"),
+            ],
+        };
+        model.Types.TryAdd("MediatR.Mediator", PublicType("MediatR.Mediator", @"C:\repo\src\MediatR\Mediator.cs"));
+        ImmutableArray<EntryPoint> entries =
+        [
+            new EntryPoint(EntryPointKind.HttpEndpoint, "GET /demo", NodeId.ForEntry("GET /demo"))
+                { Provenance = @"C:\repo\samples\MediatR.Examples\Demo.cs:8" },
+        ];
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, entries));
+    }
+
     [Fact]
     public void Library_when_auxiliary_exe_samples_reference_the_library()
     {

@@ -75,24 +75,26 @@ public sealed class DesktopArchetypeSource : IInsightSource
             || t.Name.EndsWith("Page", StringComparison.OrdinalIgnoreCase)
             || t.Name.EndsWith("Window", StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (vmTypes.Count > 0 || viewTypes.Count > 0)
+        // Self-suppress unless BOTH sides exist AND at least one call edge binds them (T6.3
+        // rider): "0 VMs + 6 Views (0 call edges)" fired on trading engines, Polly, and
+        // Hangfire — naming coincidences, not an MVVM layer.
+        if (vmTypes.Count > 0 && viewTypes.Count > 0)
         {
-            var evidence = new List<string>();
-            if (vmTypes.Count > 0) evidence.Add($"{vmTypes.Count} ViewModels");
-            if (viewTypes.Count > 0) evidence.Add($"{viewTypes.Count} Views");
+            var evidence = new List<string> { $"{vmTypes.Count} ViewModels", $"{viewTypes.Count} Views" };
 
-            var total = vmTypes.Count + viewTypes.Count;
             var boundCount = model.CallEdges.Count(ce =>
                 vmTypes.Any(vm => ce.CallerType.EndsWith(vm.Name, StringComparison.Ordinal))
                 && viewTypes.Any(v => ce.CalleeType.EndsWith(v.Name, StringComparison.Ordinal)));
 
-            yield return Insight.Create("desktop.vm-view-wiring", InsightCategory.Wiring,
-                boundCount > 0 ? Severity.Info : Severity.Notable,
-                $"ViewModel-View: {vmTypes.Count} VMs + {viewTypes.Count} Views ({boundCount} call edges)",
-                evidence,
-                confidence: 0.5,
-                confidenceBasis: "Naming-convention detection — some VMs/Views may not follow naming patterns",
-                whyItMatters: "VM-View wiring is the desktop app's connective tissue — understanding it helps navigate the UI layer.");
+            if (boundCount > 0)
+            {
+                yield return Insight.Create("desktop.vm-view-wiring", InsightCategory.Wiring, Severity.Info,
+                    $"ViewModel-View: {vmTypes.Count} VMs + {viewTypes.Count} Views ({boundCount} call edges)",
+                    evidence,
+                    confidence: 0.5,
+                    confidenceBasis: "Naming-convention detection — some VMs/Views may not follow naming patterns",
+                    whyItMatters: "VM-View wiring is the desktop app's connective tissue — understanding it helps navigate the UI layer.");
+            }
         }
 
         // ── Command inventory ──

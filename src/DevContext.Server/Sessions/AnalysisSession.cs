@@ -26,6 +26,11 @@ public sealed class AnalysisSession(string handle, EngineResult engine) : IAsync
     private IReadOnlyList<ConfigBindingInfo>? _configBindings;
     public IReadOnlyList<ConfigBindingInfo> ConfigBindings() => _configBindings ??= ConfigScanner.Scan(Snapshot.Graph!);
 
+    // T7.4 (audit B11) — the flow atlas (≤100 shallow traces + hub degrees) computed once per
+    // session; the app used to re-derive it with ~100 GetTrace + ~10 GetNode RPCs on every boot.
+    private FlowIndexResult? _flowIndex;
+    public FlowIndexResult FlowIndex() => _flowIndex ??= FlowIndexBuilder.Build(Query, Snapshot.Entries);
+
     public async Task<string> RenderMapMarkdownAsync(CancellationToken ct)
     {
         var rendered = await Engine.Pipeline
