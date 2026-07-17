@@ -35,6 +35,8 @@ powershell -File eval/gates.ps1                # FULL (default): build → fast 
 powershell -File eval/gates.ps1 -Scope engine  # engine-only mid-stage checkpoint (skips pnpm check)
 powershell -File eval/gates.ps1 -Scope app     # app-only checkpoint: build + pnpm check (~90s)
 powershell -File eval/gates.ps1 -SkipEval      # engine fast form (eval skipped, labeled)
+powershell -File eval/gates.ps1 -EvalTier quick # D2.0 mid-delivery sweep: Step 3 minus the 5 heavy
+                                               #   repos (<5 min split); poles ride; stamp NOT written
 powershell -File scripts/loom-guards.ps1       # banned-pattern check + truth gate — run at every commit
 ```
 

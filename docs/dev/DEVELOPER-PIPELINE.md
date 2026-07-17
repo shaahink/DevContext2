@@ -113,8 +113,12 @@ pnpm check                                                # lint + test + build
   `--max-tokens 2000 --strict`) → `pnpm check`. Prints `GATE: PASS` / `GATE: FAIL (step N)`.
   **Scopes (T7.0):** `-Scope full` (default; the only boundary-citable form) · `-Scope engine`
   (skips the app check) · `-Scope app` (build + app check, ~90s) · `-SkipEval` (mid-stage fast
-  form). Non-full verdicts self-label "not a merge gate". The eval step runs split across two
-  test hosts (`-SerialEval` to disable) and is engine-stamp cached: a green run writes
+  form) · `-EvalTier quick` (Prism D2.0: Step 3 excludes the five heavy repos — bitwarden-server,
+  screentogif, wolverine, newtonsoft-json, stackexchange-redis — for a <5-min mid-delivery sweep;
+  poles always ride; never writes the eval stamp). Non-full verdicts self-label "not a merge
+  gate". The eval step runs split across two
+  test hosts — weight-balanced: known-slow repos are spread across the hosts first, then the rest
+  alternate (`-SerialEval` to disable) — and is engine-stamp cached: a green run writes
   `eval/.eval-stamp.json`; while the hash of Core/CLI sources + Core tests + expectations +
   fixtures is unchanged, Step 3 skips and the previous verdict transfers. At a boundary, launch
   the full battery DETACHED (`Start-Process` + redirect to a log, poll for `GATE:`) and keep
