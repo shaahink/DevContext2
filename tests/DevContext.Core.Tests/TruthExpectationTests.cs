@@ -22,6 +22,12 @@ public sealed class TruthExpectationTests
         _output = output;
     }
 
+    /// <summary>A fixture is present only when its directory exists AND has content: a fresh clone
+    /// materializes gitlink (submodule) paths as EMPTY directories, so a bare Directory.Exists check
+    /// made un-inited fixtures FAIL the truth gate instead of skipping (github-ready G5 handoff).</summary>
+    private static bool FixtureExists(string repoPath)
+        => Directory.Exists(repoPath) && Directory.EnumerateFileSystemEntries(repoPath).Any();
+
     // ═══════════════════════════════════════════════════════════════════
     // Dogfood (eshop-microservices)
     // ═══════════════════════════════════════════════════════════════════
@@ -37,7 +43,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_checkout_flow_traces_cross_service_depth_ge_5()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /basket/checkout");
 
@@ -76,7 +82,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_service_names_are_full_and_runnables_only()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -107,7 +113,7 @@ public sealed class TruthExpectationTests
     public async Task Dogfood_baseline_presence_ok()
     {
         var repoPath = DogfoodPath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -145,7 +151,7 @@ public sealed class TruthExpectationTests
     public async Task RazorPages_no_fabricated_cross_sample_edges()
     {
         var repoPath = RepoPath("eval-repos/RazorPages");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /Students");
 
@@ -192,7 +198,7 @@ public sealed class TruthExpectationTests
     public async Task Blazor_archetype_is_not_microservices()
     {
         var repoPath = RepoPath("eval-repos/Blazor");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         var json = result.JsonContent;
@@ -216,7 +222,7 @@ public sealed class TruthExpectationTests
     public async Task CleanArchitecture_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/CleanArchitecture");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -239,7 +245,7 @@ public sealed class TruthExpectationTests
     public async Task TodoApi_baseline_presence_ok()
     {
         var repoPath = RepoPath("eval-repos/TodoApi");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var trace = await RunTraceAsync(repoPath, "POST /todos/");
         Assert.Contains("TRACE", trace, StringComparison.Ordinal);
@@ -257,7 +263,7 @@ public sealed class TruthExpectationTests
     public async Task DntSite_baseline_presence_ok()
     {
         var repoPath = DntSitePath();
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -285,7 +291,7 @@ public sealed class TruthExpectationTests
     public async Task Library_archetype_has_public_surface()
     {
         var repoPath = RepoPath("eval-repos/FluentValidation");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -316,7 +322,7 @@ public sealed class TruthExpectationTests
     public async Task Desktop_archetype_produces_entries()
     {
         var repoPath = RepoPath("eval-repos/PowerToys");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -345,7 +351,7 @@ public sealed class TruthExpectationTests
     public async Task Worker_archetype_produces_graph()
     {
         var repoPath = RepoPath("eval-repos/AzureFunctions");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
         Assert.NotEmpty(result.Content);
@@ -375,7 +381,7 @@ public sealed class TruthExpectationTests
     public async Task CompositionApp_per_kind_entry_counts_match_source()
     {
         var repoPath = RepoPath("tests/fixtures/CompositionApp");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -402,7 +408,7 @@ public sealed class TruthExpectationTests
     public async Task GrpcAggregator_rpc_entries_match_source()
     {
         var repoPath = RepoPath("eval-repos/gRPC/examples/Aggregator");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -429,7 +435,7 @@ public sealed class TruthExpectationTests
     public async Task AspireSamples_solution_pick_ignores_scaffolding()
     {
         var repoPath = RepoPath("eval-repos/aspire-samples");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 
@@ -451,7 +457,7 @@ public sealed class TruthExpectationTests
     public async Task AspireSamples_style_is_sample_collection_not_microservices()
     {
         var repoPath = RepoPath("eval-repos/aspire-samples");
-        Skip.IfNot(Directory.Exists(repoPath), $"fixture absent (not a pass): {repoPath}");
+        Skip.IfNot(FixtureExists(repoPath), $"fixture absent (not a pass): {repoPath}");
 
         var result = await RunOverviewAsync(repoPath);
 

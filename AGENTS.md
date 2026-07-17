@@ -15,7 +15,8 @@ server, and an Angular 22 / Tauri desktop app. One engine (`DevContext.Core`) po
    Its companion `docs/dev/CODE-MAP.md` is the source-verified module map + "where do I change X?" index.
 4. `src/DevContext.App/AGENTS.md` — desktop app conventions (Angular layering, run commands, gRPC codegen).
 5. `docs/dev/briefs/loom-graph-design.md` — graph-model design authority (**mandatory before touching graph code**).
-6. `docs/dev/HANDOVER-LOOM.md` — most recent engine close-out: architecture, benchmarks, known gaps.
+6. `docs/dev/HANDOVER-TAPESTRY.md` — most recent close-out: post-Tapestry architecture deltas, perf
+   truth, known gaps. Its predecessor `HANDOVER-LOOM.md` still holds the Graph2 architecture detail.
 7. `proto/devcontext/v1/devcontext.proto` — the gRPC contract; single source of truth for server ⇄ app ⇄ MCP.
 
 ## Architecture
@@ -67,6 +68,22 @@ unrebuilt CLI runs stale engine code.
   tests that pin internal string mechanics may be deleted when their subject dies.
 - Commit before starting work; push after finishing. **Never merge unasked.**
 
+### Tapestry invariants (T-rules — full text in `docs/dev/briefs/proposal-tapestry.md` §1)
+
+- **Detection lands with render + serve + eval in the same checkpoint** (R-T1). The phase's
+  recurring defect class was detect≠render — a signal the JSON knows but the map hides. If you
+  teach the engine a new fact, prove a surface shows it and a gate pins it.
+- **One battery at a time** (R-T5); full battery at boundaries only, launched DETACHED —
+  don't run `dotnet build/test` in a worktree while its battery runs (locked-DLL collisions).
+- **Truth files change only in dedicated commits citing target-repo sources** (R-T7).
+- **Drift table row at every stage end** (R-T8) — `TAPESTRY-START.md` §Baseline drift table.
+- New AppEntry surfaces go through the **Entry Surface Catalog** (one descriptor + one builder),
+  never ad-hoc detection. Kind is single-sourced from `CodeGraph.Entries`.
+- Event wiring has **one join** (`EventWiringProjection`); pack sections and Studio content are
+  built **server-side** (the app is a thin client — one `buildContext` path, no client fallbacks).
+- Page loads respect the **RPC budget** (≤15/navigation; `GetFlowIndex` + session memo — no
+  per-node fan-outs in stores).
+
 ## Branch & merge discipline
 
 - Integration branch is `develop`; feature branches branch from and PR into `develop`.
@@ -113,7 +130,9 @@ powershell -File src/DevContext.App/scripts/start-dev-bg.ps1 -Kill
 
 ## Where the work is tracked
 
-- **`TAPESTRY-START.md` — the ACTIVE phase tracker** (plan: `docs/dev/briefs/proposal-tapestry.md`). Start here.
+- **`TAPESTRY-START.md` — the most recent phase tracker** (plan: `docs/dev/briefs/proposal-tapestry.md`;
+  close-out: `docs/dev/HANDOVER-TAPESTRY.md`). T0–T8 complete 2026-07-17 — read the handover first,
+  the tracker for checkpoint-level detail.
 - `conductor-DEBT.md` — open engine debt items (SymbolTable member indexing, BodyFacts scoping, TfmScore, Flow hardening, audit sweep).
 - `docs/dev/HANDOVER-*.md` — per-phase close-outs (Loom, Meridian, Lighthouse, Fable, Desktop, Library-support). Read the newest for current architecture + known gaps.
 - `LOOM-START.md` / `MERIDIAN-START.md` — CLOSED phase trackers (historical checkpoint tables + handoff blocks).

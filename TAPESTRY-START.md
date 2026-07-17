@@ -118,7 +118,9 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 ### T8 — Close-out
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| T8.1 | Clean-clone full battery + HANDOVER-TAPESTRY.md + AGENTS/memory updates | TODO | | |
+| T8.1 | Clean-clone full battery + HANDOVER-TAPESTRY.md + AGENTS/memory updates | IN PROGRESS | | tapestry-t8/gates-t8-tip.txt (tip battery) · gates-t8-cleanclone.txt (post-merge clean clone) · docs/dev/HANDOVER-TAPESTRY.md |
+| T8.2 | Sample-collection render honesty (T7.1 finding 3): samples-only repos ARE the product | VERIFIED | e3a0690e | aspire-samples `LIBRARY (0 public types)`→`MAP`+`STYLE SampleCollection`+per-service+5 entries (68n/34e/5e was 58/31/0) · `AspireSamples_style_…` un-pended GREEN · +6 pins (NoiseFilterTests/ArchetypeDetectorTests) · MediatR-class repos byte-identical (T1.9 pins green) |
+| T8.3 | Empty-fixture-dir→skip in truth gate (github-ready G5 handoff item) | VERIFIED | (T8.3 commit) | `FixtureExists` = exists AND non-empty, all 15 sites — fresh-clone gitlink dirs (empty) now SKIP not FAIL |
 
 ---
 
@@ -138,6 +140,8 @@ A checkpoint without a fresh artifact is not DONE (write BLOCKED with what's mis
 | eShop | 2026-07-15 T2.5 | 1089 | 837 | 109 | Microservices (0.91) | **T2.5 pole.** vs T1 (1092/833): nodes **−3** (orphan duplicate member nodes merged — the global-namespace member-id fix unifies the seam origin with the entry's handler node), edges **+4** (new/connected `Sends` — property-accessed `services.Mediator.Send` on OrdersApi's draft/cancel/ship/create endpoints; "Sends only rise"), entries 109 unchanged. eShop /draft trace 2 nodes → deep (entry→send CreateOrderDraftCommand [verified]→handler→data Order). Dogfood MCP-QA checkout unchanged (no regression); eval 58P/6S/0F. |
 | dogfood | 2026-07-16 T4 | 439 | 339 | 34 | Microservices (App) | **T4 stage end.** Identical to T1.1 baseline — T4 is pack-layer + snapshot-metadata only (identity header, body fill, contracts/config/tests sections, provenance, fingerprints); graph structure untouched by design. Checkout pack: 35%→90.5% budget use @4k. shamshir pack 99.4% (live MCP captures in tapestry-t4/). |
 | dogfood | 2026-07-16 T5 | 439 | 339 | 34 | Microservices (App) | **T5 stage end.** Identical to T4 — T5 is Studio/pack-serving layer only (omitted[] propagation, section content on the wire, Build() focus resolution); graph structure untouched by design. Fresh McpQa M4 baseline in the stage battery (gates-t5-stage.txt GATE: PASS, eval 58P/6S/0F). Note: dogfood working copy carries PRE-EXISTING local mods since 2025-12-12 (YarpApiGateway/Program.cs empty + CreateOrderHandler tweak) — every baseline row in this table includes them; do not restore. |
+| aspire-samples | 2026-07-17 T8 | 68 | 34 | 5 | SampleCollection (moderate) | **T8.2 pole.** Was 58/31/0 rendering as `LIBRARY Metrics (0 public types)` with NO style line. `SamplesAreTheProduct` waives sample suppression for samples-ONLY repos: `MAP` header + `STYLE SampleCollection` + per-service rows + HTTP/UI entries w/ repo-relative provenance. Truth-pinned (`AspireSamples_style_…`). Repos with real production projects (MediatR/Ocelot/gRPC) untouched by construction. |
+| dogfood | 2026-07-17 T8 | 439 | 339 | 34 | Microservices (App) | **T8 stage end.** Byte-identical to T4/T5 baseline (today's McpQa artifact `eval-results/2026-07-17/mcp-qa.md` confirms 439/339/34) — T8.2 only changes samples-only repos; dogfood has src-rooted services so the flag is false. | |
 
 ## Battery cadence (2026-07-16 — user directive; refines §1 "green before every commit")
 
