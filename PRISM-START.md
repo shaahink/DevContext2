@@ -12,15 +12,15 @@ docs commits) — the audit evidence rides into develop with the D1 merge.
 
 ## Handoff (running)
 
-last: 2026-07-17 **D1 delivery session LAUNCHED (orchestrated).** Tracker created; `feat/prism-d1`
-cut from `audit/library-round` tip `f28790d`; github-ready worktree pruned; octet SHAs pinned below;
-baseline battery **GATE: PASS** on the D1 tip (`prism-d1/gates-d1-open-baseline.txt`, eval re-ran
-full 10m36s∥4m15s, fresh stamp written). Operating model revised (owner call): orchestrated visible
-sessions, QA deferred to phase end, stacked branch train, single merge.
-next: D1 work — harness first (D1.0), then archetype/render honesty (D1.1), entry surfaces (D1.2),
-per-service style rungs (D1.3), hygiene riders (D1.4).
-gotchas (standing, carried from Tapestry): fast-suite load-flake (1 fail right after dotnet churn,
-green when quiet, name uncaptured — watch battery logs); PS 5.1 × UTF-8 em-dashes in detached
+last: 2026-07-17 **D1 session 1 running.** Ack: INBOX 2026-07-17 standing orders (work order
+D1.0→D1.4, cheap gates per checkpoint, no full battery mid-delivery, octet run once at close).
+D1.0a VERIFIED — octet copied from scratchpad to `eval-repos/<name>`, 8/8 HEADs match pins,
+`eval/README.md` §Octet written (rows + re-clone recipe).
+next: D1.0b aspirational expectation rows → D1.0c lens-audit.ps1 → D1.0d bare-catch ban → D1.1.
+gotchas (standing, carried from Tapestry): fast-suite load-flake **NAME CAPTURED at D1.0a**:
+`McpQaGateTests.McpQaHarness_Passes_Against_Dogfood` — spawned QA harness emits banner only (no
+"QA Score:") right after dotnet churn; green in isolation (`fast-tests-d1.0a*.txt`). Truth-gate
+test host can also crash under the same churn — quiet re-run cures both. PS 5.1 × UTF-8 em-dashes in detached
 scripts (keep battery scripts ASCII); dogfood PRE-EXISTING mods stand — never restore; never
 build/test in a worktree while its battery runs; rebuild the CLI after any Core edit;
 absolute CLI paths only.
@@ -51,10 +51,9 @@ absolute CLI paths only.
 
 ## The octet (pinned)
 
-Audit clones live at
-`C:\Users\shahi\AppData\Local\Temp\claude\C--code-DevContext2\21fab51e-9c82-4278-8271-a302683a111a\scratchpad\repos\`
-(session temp — MAY VANISH; re-clone at these SHAs if gone). D1.0 gives them a stable home +
-pins these rows in `eval/README.md`.
+Stable home since D1.0a: `eval-repos/<name>` (gitignored, alongside the expectation cohort),
+copied from the audit scratchpad clones, HEADs verified against the pins below
+(`prism-d1/d1.0a-octet-home.txt`). Rows + re-clone recipe pinned in `eval/README.md` §Octet.
 
 | Repo | Pinned SHA | Origin | Intended verdict (aspirational until D1) |
 |------|-----------|--------|------------------------------------------|
@@ -85,7 +84,7 @@ Status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED. Evidence under
 ### D1.0 — Harness first (it gates everything)
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
-| D1.0a | Octet SHAs pinned in `eval/README.md` + stable clone home | TODO | | |
+| D1.0a | Octet SHAs pinned in `eval/README.md` + stable clone home | VERIFIED | (D1.0a commit) | prism-d1/d1.0a-octet-home.txt — 8/8 SHAs match pins |
 | D1.0b | Aspirational expectation rows for intended verdicts (table above) | TODO | | |
 | D1.0c | `eval/lens-audit.ps1 <repo\|octet>`: timed analyze → captures → MCP drive → FAIL probes (map-tokens ≪ repo size; Unknown+0-entries; sample rows in per-service; wall-time vs baseline) | TODO | | |
 | D1.0d | Bare-`catch` ban in `scripts/loom-guards.ps1` (Core; existing swallows grandfathered until D2) | TODO | | |
