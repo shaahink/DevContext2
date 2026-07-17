@@ -45,6 +45,11 @@ public static class RoleTags
     /// <summary>Edge tag on a Resolves edge whose ONLY DI registration is in a test project — a
     /// last-resort wiring the reader should not mistake for the production binding (T2.1).</summary>
     public const string TestOnlyDi = "test-only-di";
+    /// <summary>C6 (Prism D1.2f): edge tag on a Resolves edge born from a typed-HttpClient
+    /// registration (<c>AddHttpClient&lt;IFeedClient, FeedClient&gt;</c>). There the interface is
+    /// pure plumbing — entry targets name the implementation, never the bare interface. Domain
+    /// ports (AddScoped bindings) keep their interface-as-contract display.</summary>
+    public const string HttpClientBinding = "http-client-binding";
 }
 
 /// <summary>Sub-kind tags for <see cref="EdgeKind.ServiceLink"/> edges. Each tag describes the transport

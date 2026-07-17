@@ -86,12 +86,15 @@ public sealed partial class GraphBuilder
 
             // I1.6 — tag Resolves edges with multi-impl count for render annotation
             var multiCount = implCounts.TryGetValue(svcShort, out var c) && c > 1 ? c : 0;
+            var edgeTags = ImmutableArray.CreateBuilder<string>();
+            if (!isProdRegistration) edgeTags.Add(RoleTags.TestOnlyDi); // T2.1: last-resort test binding
+            if (di.Lifetime == "HttpClient") edgeTags.Add(RoleTags.HttpClientBinding); // C6 (D1.2f)
             g.AddEdge(new GraphEdge(svcNodeId, implNodeId, EdgeKind.Resolves)
             {
                 Provenance = $"{di.SourceFile}:{di.LineNumber}",
                 Resolution = Resolution.Join,
                 MultiImplCount = multiCount,
-                Tags = isProdRegistration ? [] : [RoleTags.TestOnlyDi], // T2.1: last-resort test binding
+                Tags = edgeTags.ToImmutable(),
             });
         }
 

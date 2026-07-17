@@ -138,6 +138,26 @@ public sealed class DiRegistrationExtractor : IDiscoveryExtractor
                     LineNumber = lineNumber,
                 });
             }
+            // C6 (Prism D1.2f): AddHttpClient<TInterface, TImpl> is a real interface→impl binding —
+            // podcasts' IFeedClient/FeedClient. Without this it fell into the generic Add* branch and
+            // the graph only knew the pair through the weaker single-implementor fallback.
+            else if (methodName == "AddHttpClient"
+                && memberAccess.Name is GenericNameSyntax httpGeneric
+                && httpGeneric.TypeArgumentList.Arguments.Count == 2)
+            {
+                var typeArgs = httpGeneric.TypeArgumentList.Arguments;
+                detections.Add(new DiRegistrationDetection(
+                    ServiceType: typeArgs[0].ToString(),
+                    ImplementationType: typeArgs[1].ToString(),
+                    Lifetime: "HttpClient",
+                    ExtensionsUsed: ["AddHttpClient"],
+                    Shape: DiRegistrationShape.DirectBinding)
+                {
+                    ExtractorName = Name,
+                    SourceFile = filePath,
+                    LineNumber = lineNumber,
+                });
+            }
             else if (methodName.StartsWith("Add") && methodName.Length > 3)
             {
                 var args = invocation.ArgumentList.Arguments;
