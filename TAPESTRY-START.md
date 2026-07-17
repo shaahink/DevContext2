@@ -7,20 +7,17 @@ Branch scheme: `feat/tapestry-t<stage>` off `develop`. Never merge unasked.
 Dogfood: `C:\Users\shahi\source\repos\run-aspnetcore-microservices\src` · second pole: `C:\code\shamshir`.
 
 ## Handoff (overwrite this block, ≤12 lines, no history)
-last: 2026-07-16 **T6 COMPLETE — 12/12 on feat/tapestry-t6** (off tapestry-t5): T6.0 7bb4c8f → T6.1 2e5da08 → T6.7+T6.8 296fb39 → T6.5+T6.6 6a73546 →
-final batch T6.2/T6.3/T6.4/T6.9/T6.10/T6.11 (one commit: canvas glyphs+dashed-approx edges; archetype-GATED insight sources + tier-first rank + tier words +
-InsightHonestyTests; live server URL; deck wired-deep sort + trace-hero tile + boot reattach tryAdopt; ToolCallEvent.origin ui/agent + feed filter + use-button;
-EventWiringFacet = T2.6 join over gRPC + one-pager download). Stage gate `t6-feature-drive.mts` **16/16 PASS** (eval-results/2026-07-16/tapestry-t6/).
-**Wrap-up catches: eShop checkout-titled entries are ALL 1-hop client commands ([RelayCommand] CheckoutViewModel = 2 nodes) — trace tile now picks deep
-checkout else deepest request-shaped flow; CLI crashed on `--focus "[RelayCommand] X"` (Spectre markup unescaped, AnalyzeCommand — fixed); innerText is
-CSS-uppercased (assert case-insensitive); "Entry focus — click a node" is the inspector's NORMAL hint, count nested app-trace-node for depth.**
-next: **T7** on feat/tapestry-t7 (stacked off t6, which is pushed): T7.0 harness wall-speed (gates -Scope + eval stamp/split + launcher rewrite +
-.gitignore fix) lands first — verify gates-t7.0-full.txt says GATE: PASS, then T7.1 bench+truth files, T7.2 perf baseline + edge-explosion, T7.3
-waterfall, T7.4 RPC budget ≤15/nav. Standing: trigger the first `.github/workflows/eval.yml` run when the github-ready strand merges (cloud battery
-replaces local pre-merge full runs). develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
-gotchas: battery cadence is now IN the script (gates -Scope app ≈ 90s; full detached + poll for GATE:, keep working meanwhile — only push/merge waits);
-launcher is idempotent w/ pid files (old Start-Job form is gone); ng-watcher wedges on mid-edit errors; dogfood has PRE-EXISTING local mods since
-2025-12 (YarpApiGateway/Program.cs EMPTY) — baselines include them, do NOT restore.
+last: 2026-07-17 **T7 COMPLETE — T7.0–T7.4 on feat/tapestry-t7** (T7.0 91533db): T7.1 bench+truth (3 new poles CompositionApp/GrpcAggregator/aspire-samples;
+25/25 verdict refresh; 2 engine fixes — dot-dir sln decoy `.github/for.dependabot.only.sln` + picker scores all candidates; aspire markdown render pinned
+TruthPending(T8)) → T7.3 waterfall (4 new PipelineStage rows; shamshir 99.7% accounted, SemanticLite=21.2s WAS the invisible half; fingerprints inside the
+clock) → T7.2 perf (PERF-2026-07-17-0036 vs Jun-20: big-repo wall = SemanticLite, DntSite 81.1s of 94.7s; bind itself 84s→3.2s; OrchardCore edges
+1708→11904 = coverage, bind flat; named lever: persist/reuse merged compilation) → T7.4 RPC budget (GetFlowIndex RPC + Core FlowIndexBuilder + session memo;
+AtlasStore = ONE call; drive M: fresh load **8 RPCs** was ~150+, navs 0–1; fixed client boundary-seam name bug). Evidence: eval-results/2026-07-16/tapestry-t7/.
+next: **T8 close-out** (clean-clone battery + HANDOVER-TAPESTRY + AGENTS/memory) — plus the T8-pinned finding: sample-collection RENDER honesty
+(aspire-samples: samples/ noise-suppression ⇒ 0 entries ⇒ Library "0 public types" ⇒ no STYLE line). Stage battery gates-t7-stage.txt — check GATE: PASS
+before merge. Standing: first `.github/workflows/eval.yml` run when github-ready merges. develop lives in C:/Code/DevContext2-ui worktree (`git -C`).
+gotchas: fast suite has a load-flake (1 test fails ONCE right after other dotnet churn, green quiet, name uncaptured — watch battery logs); bench.ps1 is
+ASCII now (PS 5.1 read em-dash tail 0x94 as cp1252 curly-quote INSIDE a string ⇒ parse fail when detached); dogfood PRE-EXISTING mods stand — never restore.
 
 ---
 
