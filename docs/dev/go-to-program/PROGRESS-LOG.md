@@ -2576,3 +2576,12 @@ eval-results/2026-07-17/lens-audit/AUDIT.md + maps/traces/MCP transcript/13 UI s
 surfaces → P3 graph depth → P4 per-service style → P5 UI library mode+canvas → P6 MCP honesty →
 P7 compilation persistence → P8 cross-platform CI/delivery). Audit protocol encoded in
 devcontext-eval-audit skill + eval/mcp-qa/drive-generic.js.
+
+**Round 2 (experience + engine health, same session):** EXPERIENCE-ADDENDUM.md — insights can be
+FALSE (podcasts orphans 3/5 live code; coverage gaps reported as repo fact); 17 bare catch{} in
+src (12 in SemanticLitePopulator); **I8 snapshot cache never persisted one snapshot** (all cache
+dirs 0 bytes; fire-and-forget save + swallowed throw) — the "why is there no cache" answer; loading
+renders 9 words while the observer streams a full waterfall; Studio lacks live pack preview;
+canvases are semantic-free force soup. proposal-prism.md rewritten P0–P10: adds insight-validity
+harness (P0.3), silent-failure amnesty (P3.5-6), living waterfall + cache resurrection (P5),
+visual intelligence (P6), Studio/nav core loops (P7).
