@@ -89,8 +89,12 @@ says so. Remaining nicety: the installer version is `tauri.conf.json`'s `0.1.0`,
    gates.ps1 kept the T7.0 rewrite with `-SkipMcpQa` grafted (semantic union); `.gitignore` the
    t8 superset; AGENTS.md/PROGRESS-LOG.md unions; DEVELOPER-PIPELINE's pre-G8 "no desktop
    artifact yet" claim un-staled.
-2. **First `eval.yml` run** — workflow_dispatch triggered post-merge; confirm actual runtime fits
-   the 120-min timeout and the 5 pinned clones resolve on the runner.
+2. ~~First `eval.yml` run~~ — **DONE 2026-07-17**: green in **6m03s** (run 29547946883) after
+   three first-run fixes it existed to surface: clone loop fetched from a nonexistent `origin`
+   remote (fetch by URL now); the dogfood truth test was the only plain-`[Fact]` truth test so
+   `Skip.IfNot` FAILED on a dogfood-less machine (`[SkippableFact]` now); the runner had no
+   pnpm for gates step 5 (app toolchain setup added). CI (`ci.yml`) green on the same tip —
+   first green CI on develop (pnpm action now reads the APP's package.json).
 3. ~~Engine strand: empty-fixture-dir→skip~~ — **DONE** by Tapestry T8.3 (`FixtureExists` in
    `TruthExpectationTests`, all 15 sites). Still open: owner decisions on `eval-results/`
    (432 tracked files) + `analysis-exports/`.
