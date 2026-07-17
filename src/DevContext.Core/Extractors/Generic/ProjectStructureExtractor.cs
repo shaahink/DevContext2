@@ -41,7 +41,8 @@ public sealed class ProjectStructureExtractor : IDiscoveryExtractor
                     tfms, refs, packages,
                     CsprojReader.ResolveOutputType(doc, csprojPath),
                     CsprojReader.ResolveIsPackable(doc, csprojPath),
-                    CsprojReader.ParseSdk(doc)));
+                    CsprojReader.ParseSdk(doc),
+                    CsprojReader.ParseIsToolPackaged(doc)));
             }
             catch (Exception ex)
             {

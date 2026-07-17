@@ -6,10 +6,11 @@ using DevContext.Core.Graph.EntrySurfaces;
 /// What kind of codebase this is — independent of architecture <c>Style</c>. An <see cref="App"/> has
 /// application entry points (HTTP/bus/hosted/scheduled); a <see cref="Library"/> is a packable component
 /// with a public API and no entry points (e.g. AutoMapper); <see cref="Worker"/> is a background-service
-/// app with no web endpoints; <see cref="Blazor"/> is a Blazor WASM/Server app with component pages.
-/// The archetype decides which renderer runs. (L7.2 — Worker + Blazor added.)
+/// app with no web endpoints; <see cref="Blazor"/> is a Blazor WASM/Server app with component pages;
+/// <see cref="CliTool"/> is a command-line tool (console exes with PackAsTool/parser evidence, no web
+/// surface — GitVersion). The archetype decides which renderer runs. (L7.2 Worker + Blazor; D1.1d CliTool.)
 /// </summary>
-public enum Archetype { App, Library, Gateway, Desktop, Worker, Blazor }
+public enum Archetype { App, Library, Gateway, Desktop, Worker, Blazor, CliTool }
 
 /// <summary>Decides <see cref="Archetype"/> from the entry inventory + project shape.</summary>
 public static class ArchetypeDetector
@@ -61,6 +62,35 @@ public static class ArchetypeDetector
         // Orleans voting sample) self-sources the signal without the repo being that framework.
         if (!model.SamplesAreTheProduct && IsSelfSourcedFrameworkSignal(model))
             return Archetype.Library;
+
+        // A3/B4 (Prism D1.1d): CliTool — the product is a command-line tool. Fires when production
+        // code has console executables with explicit TOOL evidence (PackAsTool/ToolCommandName in the
+        // csproj, or a CLI-parser package) and NO web/desktop surface anywhere (a microservices repo
+        // shipping a migrator utility stays App; a desktop app stays Desktop). Checked before the
+        // entries rung so parser-based command entries route here, not to the generic App map.
+        {
+            var cliClassifier = new ProjectClassifier(model.Projects);
+            var prodConsoleExes = model.Projects
+                .Where(p => p.OutputType?.Contains("Exe", StringComparison.OrdinalIgnoreCase) == true
+                    && p.OutputType?.Contains("WinExe", StringComparison.OrdinalIgnoreCase) != true)
+                .Where(p => !cliClassifier.IsInTestProject(p.FilePath)
+                    && cliClassifier.IsProduction(p, model.SamplesAreTheProduct)
+                    && !(p.FilePath is { } fp && IsWebSdkProject(fp)))
+                .ToList();
+            var hasWebOrDesktopSurface =
+                model.Architecture.Has(ArchitectureSignals.Keys.Controllers)
+                || model.Architecture.Has(ArchitectureSignals.Keys.MinimalApis)
+                || model.Architecture.Has(ArchitectureSignals.Keys.FastEndpoints)
+                || model.Architecture.Has(ArchitectureSignals.Keys.RazorPages)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Blazor)
+                || model.Architecture.Has(ArchitectureSignals.Keys.DesktopUi)
+                || model.Architecture.Has(ArchitectureSignals.Keys.SignalR)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Grpc);
+            if (prodConsoleExes.Count > 0
+                && !hasWebOrDesktopSurface
+                && prodConsoleExes.Any(IsCliToolCandidate))
+                return Archetype.CliTool;
+        }
 
         // A library's sample/snippet apps (e.g. a Minimal-API demo of the library) are not the library —
         // ignore their entries and projects so they don't flip the archetype to App. T8: unless the
@@ -166,6 +196,19 @@ public static class ArchetypeDetector
 
         return Archetype.App;
     }
+
+    // D1.1d: CLI argument-parser frameworks — referencing one from a console exe is tool evidence.
+    private static readonly string[] CliParserPackages =
+        ["Spectre.Console.Cli", "System.CommandLine", "McMaster.Extensions.CommandLineUtils",
+         "CommandLineParser", "Cocona", "ConsoleAppFramework"];
+
+    /// <summary>D1.1d — true when the project carries explicit CLI-tool evidence: it packs as a dotnet
+    /// tool (<c>PackAsTool</c>/<c>ToolCommandName</c>) or references a CLI argument-parser framework.
+    /// Shared by the archetype rung and the plain-Main entry fallback (CliCommandExtractor).</summary>
+    public static bool IsCliToolCandidate(ProjectInfo p)
+        => p.IsToolPackaged
+            || p.PackageReferences.Any(pr =>
+                CliParserPackages.Any(m => pr.Name.StartsWith(m, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>T1.2 — true when the project is a genuinely runnable host: an executable (OutputType Exe)
     /// or a Web SDK project (Microsoft.NET.Sdk.Web). Deliberately does NOT treat "references an AspNetCore

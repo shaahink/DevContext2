@@ -1,10 +1,43 @@
 {
   "repo": "eval-repos/cli-app",
   "checks": [
-    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "CLI tool must be detected as App archetype." },
-    { "id": "map-header", "type": "output-contains", "format": "markdown", "value": "MAP", "status": "expected", "note": "CLI apps must render a Map header." },
-    { "id": "entry-kind-cli", "type": "entry-kind-present", "value": "EndpointDetection", "format": "CLI", "status": "expected", "note": "CLI commands must render as CLI entries." },
-    { "id": "detection-count", "type": "detection-count", "detectionType": "DiRegistrationDetection", "min": 0, "max": 500, "status": "expected" },
-    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 120000, "status": "expected" }
+    {
+      "id": "archetype-clitool",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "CliTool",
+      "status": "expected",
+      "note": "D1.1d: CLI tools are Archetype.CliTool now (was App before the archetype existed). NOTE: repo dir eval-repos/cli-app absent on this machine — test SKIPs; row kept truthful for when it lands."
+    },
+    {
+      "id": "map-header",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "CLI TOOL",
+      "status": "expected",
+      "note": "D1.1d: CliTool renders the CLI TOOL header + COMMAND SURFACE, not the generic MAP."
+    },
+    {
+      "id": "entry-kind-cli",
+      "type": "entry-kind-present",
+      "value": "EndpointDetection",
+      "format": "CLI",
+      "status": "expected",
+      "note": "CLI commands must render as CLI entries."
+    },
+    {
+      "id": "detection-count",
+      "type": "detection-count",
+      "detectionType": "DiRegistrationDetection",
+      "min": 0,
+      "max": 500,
+      "status": "expected"
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 120000,
+      "status": "expected"
+    }
   ]
 }

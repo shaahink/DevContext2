@@ -37,6 +37,82 @@ public sealed class ArchetypeDetectorTests
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
     }
 
+    // ── D1.1d — CliTool archetype (audit A3/B4, the GitVersion shape) ────────────────
+
+    [Fact]
+    public void CliTool_when_console_exe_has_tool_packaging_and_no_web_surface()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("GitVersion.App", @"C:\repo\src\GitVersion.App\GitVersion.App.csproj",
+                    "C#", ["net10.0"], [@"..\GitVersion.Core\GitVersion.Core.csproj"], [],
+                    OutputType: "Exe", IsToolPackaged: true),
+                new ProjectInfo("GitVersion.Core", @"C:\repo\src\GitVersion.Core\GitVersion.Core.csproj",
+                    "C#", ["net10.0"], [], []),
+            ],
+        };
+        model.Types.TryAdd("GitVersion.Core.Calculator",
+            PublicType("GitVersion.Core.Calculator", @"C:\repo\src\GitVersion.Core\Calculator.cs"));
+
+        Assert.Equal(Archetype.CliTool, ArchetypeDetector.Detect(model, []));
+    }
+
+    [Fact]
+    public void CliTool_when_console_exe_references_a_cli_parser()
+    {
+        var model = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Tool", @"C:\repo\Tool\Tool.csproj", "C#", ["net10.0"], [],
+                [new PackageReferenceInfo("Spectre.Console.Cli", "0.49.1")], OutputType: "Exe")],
+        };
+
+        Assert.Equal(Archetype.CliTool, ArchetypeDetector.Detect(model, []));
+    }
+
+    [Fact]
+    public void App_not_CliTool_when_web_surface_exists_beside_a_tool_exe()
+    {
+        // bitwarden shape: a migrator utility packaged as a tool inside a web system stays App.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Api", @"C:\repo\src\Api\Api.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe"),
+                new ProjectInfo("MsSqlMigratorUtility", @"C:\repo\util\MsSqlMigratorUtility\MsSqlMigratorUtility.csproj",
+                    "C#", ["net10.0"], [], [], OutputType: "Exe", IsToolPackaged: true),
+            ],
+        };
+        model.Architecture.Register(FeatureSignal.CreateDetected(
+            ArchitectureSignals.Keys.Controllers, 1.0f, via: "PackageReference", "Microsoft.AspNetCore.Mvc"));
+        ImmutableArray<EntryPoint> entries =
+            [new EntryPoint(EntryPointKind.HttpEndpoint, "GET /x", NodeId.ForEntry("GET /x"))];
+
+        Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, entries));
+    }
+
+    [Fact]
+    public void Library_not_CliTool_when_aux_console_has_no_tool_evidence()
+    {
+        // Newtonsoft shape: an aux TestConsole without PackAsTool/parser evidence must not
+        // drag the library into CliTool.
+        var model = new DiscoveryModel
+        {
+            Projects =
+            [
+                new ProjectInfo("Newtonsoft.Json", @"C:\repo\Src\Newtonsoft.Json\Newtonsoft.Json.csproj",
+                    "C#", ["net10.0"], [], [], IsPackable: true),
+                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:\repo\Src\Newtonsoft.Json.TestConsole\Newtonsoft.Json.TestConsole.csproj",
+                    "C#", ["net10.0"], [@"..\Newtonsoft.Json\Newtonsoft.Json.csproj"], [], OutputType: "Exe"),
+            ],
+        };
+        model.Types.TryAdd("Newtonsoft.Json.JsonConvert",
+            PublicType("Newtonsoft.Json.JsonConvert", @"C:\repo\Src\Newtonsoft.Json\JsonConvert.cs"));
+
+        Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
+    }
+
     [Fact]
     public void App_when_executable_even_without_entries()
     {

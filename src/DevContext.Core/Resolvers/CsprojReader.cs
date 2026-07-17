@@ -28,6 +28,13 @@ public static class CsprojReader
     public static string? ParseSdk(XDocument doc)
         => doc.Root?.Attribute("Sdk")?.Value?.Trim() is { Length: > 0 } v ? v : null;
 
+    /// <summary>D1.1d — true when the project declares dotnet-tool packaging anywhere in the csproj
+    /// (<c>&lt;PackAsTool&gt;</c> or <c>&lt;ToolCommandName&gt;</c>, including inside conditional
+    /// PropertyGroups — GitVersion.App sets both under a CI-only condition). Element PRESENCE is the
+    /// evidence: a repo that ships a dotnet tool is a CLI tool regardless of the local build config.</summary>
+    public static bool ParseIsToolPackaged(XDocument doc)
+        => doc.Descendants("PackAsTool").Any() || doc.Descendants("ToolCommandName").Any();
+
     /// <summary>True when the project opts into packaging (<c>&lt;IsPackable&gt;true&lt;/c&gt;</c> or
     /// <c>&lt;GeneratePackageOnBuild&gt;true&lt;/c&gt;</c>) — a strong "this is a library" signal.</summary>
     public static bool ParseIsPackable(XDocument doc)

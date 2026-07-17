@@ -42,7 +42,7 @@ public sealed class MapBuilder
         var archetype = ArchetypeDetector.Detect(model, entries);
         var topology = BuildTopology(model, graph);
         var archetypeView = archetype is Archetype.Desktop or Archetype.Worker
-            or Archetype.Blazor or Archetype.Library
+            or Archetype.Blazor or Archetype.Library or Archetype.CliTool
             ? new ArchetypeProjection().Project(graph,
                 new ProjectionOptions { Archetype = archetype })
             : null;

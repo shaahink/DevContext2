@@ -6,16 +6,16 @@
       "type": "json-equals",
       "path": "$.archetype",
       "value": "CliTool",
-      "status": "aspirational",
-      "note": "Prism A3/B4: Exe + no web surfaces + PackAsTool/parser evidence => Archetype.CliTool (new value, lands D1.1d). Audit 2026-07-17: read App with 0 entries."
+      "status": "expected",
+      "note": "A3/B4 FIXED (Prism D1.1d): Archetype.CliTool — console exes with PackAsTool/ToolCommandName evidence, no web surface. Flipped 2026-07-17."
     },
     {
       "id": "cli-entries",
       "type": "entry-kind-present",
-      "value": "EndpointDetection",
+      "value": "CliCommandDetection",
       "format": "CLI",
-      "status": "aspirational",
-      "note": "Prism A3/B4: plain Main() must become an entry; CLI detection must not be package-gated on Spectre/System.CommandLine. Audit: 0 entries, empty map."
+      "status": "expected",
+      "note": "B4 FIXED (Prism D1.1d): plain Main() fallback entry (GitVersion.App Program.cs) renders under CLI; detection type corrected from EndpointDetection (authoring error in D1.0b)."
     },
     {
       "id": "no-msbuild-expr-package",

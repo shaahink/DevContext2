@@ -63,6 +63,7 @@ public static class MapRenderer
             Archetype.Worker  => "WORKER",
             Archetype.Blazor  => "BLAZOR APP",
             Archetype.Library => "LIBRARY",
+            Archetype.CliTool => "CLI TOOL",
             _ => "MAP",
         };
         sb.AppendLine($"{label}  {sln}     ({projCount} project{(projCount != 1 ? "s" : "")})");
