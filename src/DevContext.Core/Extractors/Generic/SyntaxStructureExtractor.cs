@@ -147,6 +147,26 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 break;
             }
         }
+
+        // C1 (Prism D2): Blazor components become real types via their @code virtual trees — the
+        // component class, its @inject properties, and its @code methods, in the component's true
+        // namespace so a .razor.cs code-behind partial MERGES rather than duplicating. Markup is
+        // never parsed (RazorCodeVirtualizer extracts the @code block text only). Committed after
+        // the .cs loop in AllContentFiles order — deterministic, and the code-behind (a .cs file)
+        // wins the TryAdd so merge semantics match any other partial type. No signal registration:
+        // blazor/controller signals have their own detectors.
+        await foreach (var (razorPath, tree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
+        {
+            var root = await tree.GetRootAsync(ct).ConfigureAwait(false);
+            foreach (var typeDecl in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+            {
+                var typeDiscovery = CreateTypeDiscovery(typeDecl, razorPath);
+                if (typeDiscovery is null) continue;
+                if (!model.Types.TryAdd(typeDiscovery.Id, typeDiscovery)
+                    && model.Types.TryGetValue(typeDiscovery.Id, out var existing))
+                    MergePartialType(existing, typeDiscovery);
+            }
+        }
     }
 
     private static TypeDiscovery? CreateTypeDiscovery(TypeDeclarationSyntax typeDecl, string filePath)

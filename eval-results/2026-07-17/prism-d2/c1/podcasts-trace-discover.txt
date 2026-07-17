@@ -1,0 +1,28 @@
+﻿Slicing from GET /discover — handler resolved after scan.
+  from cache · 5ee8be2 · analyzed 2026-07-17 23:09 · 1078ms
+
+TRACE  GET /discover
+       src/Web/Pages/Pages/DiscoverPage.razor:1
+       Podcast.Pages
+▸ ENTRY  GET /discover  (src/Web/Pages/Pages/DiscoverPage.razor:1)
+   └─ call DiscoverPage.OnInitializedAsync  
+(src/Web/Pages/Pages/DiscoverPage.razor:1)
+      └─ call GetShows  (src/Web/Pages/Pages/DiscoverPage.razor:72) [verified]
+             public Task<Show[]?> GetShows(int limit, string? term = null) =>
+             
+_httpClient.GetFromJsonAsync<Show[]>($"shows?limit={limit}&term={term}");
+         └─ data Show  (src/Web/Shared/PodcastService.cs:18) [approx]
+                public record Show(
+                Guid Id,
+                string Title,
+
+analyzed 192 files · 403 nodes · 246 edges · 24 entries · 22/24 →target · depth 
+3 · ~165 tokens · 7.7s stage2 ×2.2 stage3 ×1.6
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ NetPodcast.Services.sln │
+│   Time   │         1102ms          │
+│  Tokens  │   ~165 (budget 8000)    │
+│ Version  │  v1.0.5-preview.0.299   │
+╰──────────┴─────────────────────────╯

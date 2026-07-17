@@ -1,0 +1,18 @@
+@page "/discover"
+@inject ShowService ShowService
+
+<h1>Discover</h1>
+
+@if (shows is null)
+{
+    <p>Loading…</p>
+}
+
+@code {
+    private string[]? shows;
+
+    protected override async Task OnInitializedAsync()
+    {
+        shows = await ShowService.GetShows(10);
+    }
+}

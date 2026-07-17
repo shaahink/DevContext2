@@ -1,0 +1,127 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-17T22:33:30.9498423+00:00",
+  "archetype": "App",
+  "architectureStyle": "ControllerBased",
+  "styleConfidence": 0.55,
+  "projectCount": 3,
+  "projectNames": [
+    "DntSite.Tests",
+    "DntSite.Web",
+    "DntSite.Web.Common.BlazorSsr"
+  ],
+  "typeCount": 1373,
+  "entryCount": 94,
+  "topologyProjectCount": 2,
+  "graphNodeCount": 3387,
+  "graphEdgeCount": 4364,
+  "signals": [
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "62/70 endpoints anonymous, incl. 3 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "GET /users/EmailToImage/{id:int?}",
+        "GET /File/EmailToImage",
+        "GET /File/CourseImages",
+        "GET /File/CourseFiles",
+        "GET /File/NewsThumb"
+      ]
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 8 protected, 62 unannotated of 70 API endpoints",
+      "detail": "",
+      "evidence": [
+        "8 protected",
+        "POST /api/UploadFile/MessagesFilesUpload",
+        "POST /api/UploadFile/CommonFilesUpload",
+        "62 no auth annotation"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 93/94 (98%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 35 Extension \u00B7 9 Singleton \u00B7 3 Scoped \u00B7 1 Bulk (48 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 70 HTTP \u00B7 24 scheduled",
+      "detail": "",
+      "evidence": [
+        "70 HTTP",
+        "24 scheduled"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: DntSite.Web.Common.BlazorSsr (1 dependents) \u00B7 DntSite.Web (1 dependents)",
+      "detail": "",
+      "evidence": [
+        "DntSite.Web.Common.BlazorSsr (1 dependents)",
+        "DntSite.Web (1 dependents)"
+      ]
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 9 entities across 2 scopes",
+      "detail": "",
+      "evidence": [
+        "DntSite.Web (8 entities)",
+        "ApplicationDbContext (1 entities)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: DbSet (466) \u00B7 ApplicationState (298) \u00B7 IUnitOfWork (250) \u00B7 IEmailsFactoryService (93) \u00B7 IFullTextSearchService (89)",
+      "detail": "",
+      "evidence": [
+        "DbSet (466)",
+        "ApplicationState (298)",
+        "IUnitOfWork (250)",
+        "IEmailsFactoryService (93)",
+        "IFullTextSearchService (89)"
+      ]
+    }
+  ]
+}

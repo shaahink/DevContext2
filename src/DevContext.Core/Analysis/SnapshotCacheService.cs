@@ -14,8 +14,11 @@ namespace DevContext.Core.Analysis;
 public static class SnapshotSchema
 {
     /// <summary>v2 (J2, Prism D2.0b): payload is <see cref="PersistedSnapshot"/> — v1 never
-    /// produced a valid file (the save always threw and was swallowed), so no migration exists.</summary>
-    public const int Version = 2;
+    /// produced a valid file (the save always threw and was swallowed), so no migration exists.
+    /// v3 (C1, Prism D2): razor @code virtualization changed analysis output for Blazor repos —
+    /// a v2 snapshot of an UNCHANGED repo would render the pre-C1 map. Discipline until J2 grows an
+    /// engine-version key: bump this whenever a change alters persisted analysis semantics.</summary>
+    public const int Version = 3;
 }
 
 /// <summary>Outcome of a snapshot save. The save is best-effort but NEVER silent (J2): a failure

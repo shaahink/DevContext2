@@ -1,0 +1,49 @@
+﻿Slicing from GET /cart — handler resolved after scan.
+  from cache · 9b4f943 · analyzed 2026-07-17 23:12 · 1184ms
+
+TRACE  GET /cart
+       src/WebApp/Components/Pages/Cart/CartPage.razor:1
+       WebApp
+▸ ENTRY  GET /cart  (src/WebApp/Components/Pages/Cart/CartPage.razor:1)
+   └─ call CartPage.OnInitializedAsync  
+(src/WebApp/Components/Pages/Cart/CartPage.razor:1)
+      └─ call BasketState.GetBasketItemsAsync  
+(src/WebApp/Components/Pages/Cart/CartPage.razor:96) [verified]
+             public async Task<IReadOnlyCollection<BasketItem>> 
+GetBasketItemsAsync()
+             => (await GetUserAsync()).Identity?.IsAuthenticated == true
+             ? await FetchBasketItemsAsync()
+         ├─ call FetchBasketItemsAsync  (src/WebApp/Services/BasketState.cs:23) 
+[verified]
+         │      private Task<IReadOnlyCollection<BasketItem>> 
+FetchBasketItemsAsync()
+         │      return _cachedBasket ??= FetchCoreAsync();
+         │      async Task<IReadOnlyCollection<BasketItem>> FetchCoreAsync()
+         │  ├─ call BasketService  (src/WebApp/Services/BasketState.cs:123) 
+[approx]
+         │  │      public class BasketService(GrpcBasketClient basketClient)
+         │  │      public async Task<IReadOnlyCollection<BasketQuantity>> 
+GetBasketAsync()
+         │  │      var result = await basketClient.GetBasketAsync(new ());
+         │  ├─ call CatalogService.GetCatalogItems  
+(src/WebApp/Services/BasketState.cs:132) [approx]
+         │  ├─ call BasketService.GetBasketAsync  
+(src/WebApp/Services/BasketState.cs:123) [verified]
+         │  └─ call BasketState.FetchCoreAsync  
+(src/WebApp/Services/BasketState.cs:119) [verified]
+         └─ call BasketState.GetUserAsync  
+(src/WebApp/Services/BasketState.cs:22) [verified]
+                private async Task<ClaimsPrincipal> GetUserAsync()
+                => (await 
+authenticationStateProvider.GetAuthenticationStateAsync()).User;
+
+analyzed 527 files · 1139 nodes · 870 edges · 109 entries · 107/109 →target · 
+depth 4 · ~446 tokens · 17.8s stage2 ×2.5 stage3 ×1.6
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │      eShop.slnx      │
+│   Time   │        1218ms        │
+│  Tokens  │  ~446 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.299 │
+╰──────────┴──────────────────────╯

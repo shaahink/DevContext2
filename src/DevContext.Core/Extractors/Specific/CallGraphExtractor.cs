@@ -117,6 +117,17 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
             try { trees.Add((filePath, await context.Cache.GetSyntaxTreeAsync(filePath, ct))); }
             catch { model.AddDiagnostic(DiagnosticLevel.Warning, Name, $"Failed to parse {filePath}"); }
         }
+
+        // C1 (Prism D2): Blazor components join the graph through their @code VIRTUAL trees (the
+        // markup is never parsed — RazorCodeVirtualizer extracts the block text only). Keyed by the
+        // .razor path so the entry-seed set (BlazorEntryExtractor detections) finds them in
+        // treeByPath, and #line directives keep call-site provenance on the true razor lines.
+        var razorTreeCount = 0;
+        await foreach (var (razorPath, razorTree) in Utilities.RazorCodeVirtualizer.EnumerateVirtualTreesAsync(context, ct))
+        {
+            trees.Add((razorPath, razorTree));
+            razorTreeCount++;
+        }
         swParse.Stop();
 
         // Build a best-effort semantic compilation. Source types always bind; external package types
@@ -183,7 +194,9 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                             diMap, interfaceImplMap, fqnMap, fqnCollisions);
                         if (resolution == Graph.Resolution.Semantic) Interlocked.Increment(ref semanticEdges);
 
-                        var lineNumber = invocation.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+                        // Mapped span honors the razor virtual trees' #line directives (identical to
+                        // the unmapped span for ordinary .cs files, which carry no #line).
+                        var lineNumber = invocation.GetLocation().GetMappedLineSpan().StartLinePosition.Line + 1;
                         allEdges.Add(new CallEdge(
                             callerType, callerMethod, calleeType, calleeMethod, $"{filePath}:{lineNumber}")
                         {
@@ -326,10 +339,11 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
 
         swBfs.Stop();
         var resolver = compilation is not null ? $"semantic ({semanticEdges} verified)" : "syntactic";
+        var razorNote = razorTreeCount > 0 ? $", {razorTreeCount} razor @code" : "";
         model.AddDiagnostic(DiagnosticLevel.Info, Name,
             $"Built call graph: {includedEdges.Count} edges at depth ≤ {maxDepth}; resolver: {resolver}; "
             + $"phases: parse {swParse.ElapsedMilliseconds}ms · compile {swCompile.ElapsedMilliseconds}ms · "
-            + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files)");
+            + $"bind {swBind.ElapsedMilliseconds}ms · bfs {swBfs.ElapsedMilliseconds}ms ({trees.Count} files{razorNote})");
     }
 
     /// <summary>Files the focus points to — the seed for focus-scoped binding (perf P1). Type/Method

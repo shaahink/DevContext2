@@ -1,0 +1,30 @@
+diff --git a/eval-results/2026-07-17/prism-d1/d1.2b-2/eshop-drift-check.md b/eval-results/2026-07-17/prism-d2/c1/eshop-map.md
+index 9c2cb9c..618a19e 100644
+--- a/eval-results/2026-07-17/prism-d1/d1.2b-2/eshop-drift-check.md
++++ b/eval-results/2026-07-17/prism-d2/c1/eshop-map.md
+@@ -1,6 +1,6 @@
+ MAP  eShop     (19 projects)
+ 
+-STACK  net10.0, net10.0-android;net10.0-ios;net10.0-maccatalyst, net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0 · Minimal APIs · Controllers · MediatR (CQRS) · EF Core · FluentValidation · DDD aggregates
++STACK  net10.0, net10.0-android +2 more TFMs · Minimal APIs · Controllers · MediatR (CQRS) · EF Core · FluentValidation · DDD aggregates
+ 
+ STYLE  Microservices  (confidence high)
+        evidence: Aspire orchestration of 11 runnable services
+@@ -11,7 +11,7 @@ STYLE  Microservices  (confidence high)
+          ClientApp: MAUI App [.NET MAUI]
+          eShop.AppHost: Aspire AppHost [Aspire]
+          HybridApp: MAUI App [.NET MAUI]
+-         Identity.API: Web API [EF Core]
++         Identity.API: Identity provider [IdentityServer]
+          Ordering.API: Web API [EF Core, FluentValidation]
+          OrderProcessor: Worker Service [Worker]
+          PaymentProcessor: Worker Service [Worker]
+@@ -59,7 +59,7 @@ EVENT WIRING  (13 integration events, 8 cross-service)
+   ProductPriceChangedIntegrationEvent: Catalog.API → Webhooks.API
+   GracePeriodConfirmedIntegrationEvent: (external) · Ordering.API
+   OrderStatusChangedToAwaitingValidationIntegrationEvent: (external) · WebApp, Catalog.API
+-  OrderStatusChangedToPaidIntegrationEvent: (external) · Catalog.API, Webhooks.API, WebApp
++  OrderStatusChangedToPaidIntegrationEvent: (external) · Webhooks.API, WebApp, Catalog.API
+   OrderStatusChangedToShippedIntegrationEvent: (external) · WebApp, Webhooks.API
+   OrderStatusChangedToStockConfirmedIntegrationEvent: (external) · PaymentProcessor, WebApp
+ 
