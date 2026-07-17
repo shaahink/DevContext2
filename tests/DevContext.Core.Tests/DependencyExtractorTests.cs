@@ -2,6 +2,57 @@ namespace DevContext.Core.Tests;
 
 public sealed class DependencyExtractorTests
 {
+    // ── A4 (Prism D1.1c): self-name boundary matching + runnable guard ──────────────
+
+    [Theory]
+    [InlineData("Wolverine", true)]           // the framework core project
+    [InlineData("Wolverine.Http", true)]      // dotted framework satellite
+    [InlineData("WolverineDemo", false)]      // consumer concatenation must NOT match
+    [InlineData("OrleansVoting.AppHost", false)] // aspire-samples' sample must NOT match
+    [InlineData("SerilogHelpers", false)]     // consumer helper lib must NOT match
+    [InlineData("Serilog.Sinks.Console", true)]
+    public void SelfName_matching_requires_a_name_boundary(string projectName, bool shouldMatch)
+    {
+        var matched = DependencyExtractor.TryMatchSignalFromProjectName(projectName, out _, out _);
+        Assert.Equal(shouldMatch, matched);
+    }
+
+    [Fact]
+    public async Task Framework_repo_self_sources_from_classlib_but_not_from_runnable_host()
+    {
+        // wolverine shape: the classlib core self-sources the signal (nuget id WolverineFx never
+        // appears in its own repo); a consumer repo whose HOST is named "Wolverine" does not.
+        var fs = new FakeFileSystem();
+        fs.AddFile(@"C:\repo\src\Wolverine\Wolverine.csproj", """
+            <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>
+            """);
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:\repo");
+        var (ctx, _) = builder.BuildWithRecording();
+        ctx.Analysis.AllSourceFiles = [];
+        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\Wolverine\Wolverine.csproj"];
+        ctx.Cache.RegisterPath(@"C:\repo\src\Wolverine\Wolverine.csproj");
+
+        var classlibModel = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Wolverine", @"C:\repo\src\Wolverine\Wolverine.csproj",
+                "C#", ["net10.0"], [], [])],
+        };
+        await new DependencyExtractor().ExtractAsync(ctx, classlibModel, default);
+        var signal = classlibModel.Architecture.Get(ArchitectureSignals.Keys.Wolverine);
+        Assert.NotNull(signal);
+        Assert.True(signal.Detected);
+        Assert.Equal("ProjectName", signal.DetectedVia);
+
+        var hostModel = new DiscoveryModel
+        {
+            Projects = [new ProjectInfo("Wolverine", @"C:\repo\src\Wolverine\Wolverine.csproj",
+                "C#", ["net10.0"], [], [], OutputType: "Exe")],
+        };
+        await new DependencyExtractor().ExtractAsync(ctx, hostModel, default);
+        var hostSignal = hostModel.Architecture.Get(ArchitectureSignals.Keys.Wolverine);
+        Assert.True(hostSignal is null || hostSignal.DetectedVia != "ProjectName");
+    }
+
     [Fact]
     public async Task DependencyExtractor_DetectsSignalFromPackageRefs()
     {

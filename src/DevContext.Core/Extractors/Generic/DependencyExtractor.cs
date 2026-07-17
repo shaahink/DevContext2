@@ -92,6 +92,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         foreach (var projectInfo in model.Projects)
         {
             ct.ThrowIfCancellationRequested();
+            // A4 (Prism D1.1c): only NON-RUNNABLE projects self-source a framework signal. A framework's
+            // pattern-bearing core (Wolverine, MassTransit, Serilog) is always a classlib; a CONSUMER
+            // project named after a framework (HangfireServer, a "Wolverine" demo host) is typically the
+            // host exe — without this guard it flipped consumer apps toward Library.
+            if (Graph2.ServiceBoundaryInference.IsRunnableService(projectInfo)) continue;
             if (TryMatchSignalFromProjectName(projectInfo.Name, out var signalKey, out var matchedName))
             {
                 model.Architecture.Register(FeatureSignal.CreateDetected(
@@ -198,11 +203,18 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
         context.Analysis.ProjectGraph = new ProjectDependencyGraph(adjacency);
     }
 
-    private static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
+    /// <summary>A4 (Prism D1.1c): matches on a NAME BOUNDARY — the project name equals the pattern or
+    /// continues with a '.' ("Wolverine", "Wolverine.Http" — the framework-repo convention). A plain
+    /// prefix matched consumer concatenations too ("WolverineDemo", "SerilogHelpers", aspire-samples'
+    /// "OrleansVoting.AppHost") and mislabeled consumer repos as the framework itself.</summary>
+    internal static bool TryMatchSignalFromProjectName(string projectName, out string signalKey, out string matchedKey)
     {
         foreach (var (pattern, key) in ProjectNameSignalMap)
         {
-            if (projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase))
+            if (projectName.Equals(pattern, StringComparison.OrdinalIgnoreCase)
+                || (projectName.Length > pattern.Length
+                    && projectName[pattern.Length] == '.'
+                    && projectName.StartsWith(pattern, StringComparison.OrdinalIgnoreCase)))
             {
                 signalKey = key;
                 matchedKey = pattern;

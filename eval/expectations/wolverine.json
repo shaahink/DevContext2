@@ -1,10 +1,44 @@
 {
   "repo": "eval-repos/wolverine",
   "checks": [
-    { "id": "archetype-library", "type": "json-equals", "path": "$.archetype", "value": "Library", "status": "aspirational", "note": "Prism A4: framework-library — nuget id WolverineFx != project names Wolverine.*; descriptor needs SelfNamePatterns so the self-source Library rule fires. Audit 2026-07-17: read App." },
-    { "id": "library-header", "type": "output-contains", "format": "markdown", "value": "LIBRARY", "status": "aspirational", "note": "Prism A4/A5: the framework surface, not a samples map." },
-    { "id": "no-sample-style", "type": "output-not-contains", "format": "markdown", "value": "CleanArchitecture", "status": "aspirational", "note": "Prism A4: CleanArchitecture style was inferred from samples/; library render suppresses style." },
-    { "id": "no-sample-service-rows", "type": "output-not-contains", "format": "markdown", "value": "ChaosSender", "status": "aspirational", "note": "Prism A4: runnable-service inference must honor NoiseFilter/IsSamplePath — the ~80-row samples/test-hosts table (ChaosSender, CommandBus, ...) must vanish." },
-    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 240000, "status": "expected", "note": "Audit 2026-07-17: 58s CLI wall on 215 csproj / 4053 files." }
+    {
+      "id": "archetype-library",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "Library",
+      "status": "expected",
+      "note": "A4 FIXED (Prism D1.1c): SelfNamePatterns [\"Wolverine\"] + name-boundary matching + non-runnable self-source guard. Flipped 2026-07-17."
+    },
+    {
+      "id": "library-header",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "LIBRARY",
+      "status": "expected",
+      "note": "A4/A5 FIXED (Prism D1.1c): 6272-token LIBRARY render, 1322 public types."
+    },
+    {
+      "id": "no-sample-style",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "CleanArchitecture",
+      "status": "expected",
+      "note": "A4 FIXED (Prism D1.1c): style line suppressed on library render."
+    },
+    {
+      "id": "no-sample-service-rows",
+      "type": "output-not-contains",
+      "format": "markdown",
+      "value": "ChaosSender",
+      "status": "expected",
+      "note": "A4 FIXED (Prism D1.1c): per-service inference honors the sample filter (SamplesAreTheProduct waiver preserved)."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 240000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 58s CLI wall on 215 csproj / 4053 files."
+    }
   ]
 }

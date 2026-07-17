@@ -423,6 +423,10 @@ public sealed class ArchitectureStyleDetector
             // GitVersion's Cake build tree rendered as seven "Unknown" services.
             if (Graph.ProjectClassifier.IsHolderProject(proj)
                 || projectClassifier.IsBuildTooling(proj)) continue;
+            // A4 (Prism D1.1c): runnable-service inference honors the sample filter — wolverine's
+            // per-service table was ~80 rows of samples/ and test hosts. SamplesAreTheProduct repos
+            // (aspire-samples) keep their sample hosts: they ARE the services there (T8).
+            if (!model.SamplesAreTheProduct && Graph.ProjectClassifier.IsSamplePath(proj.FilePath)) continue;
             // T1.4 — the Aspire AppHost is a runnable orchestrator; surface it (before the infra skip that
             // otherwise hides ".apphost") so the constellation's conductor isn't dropped to "no services".
             if (proj.Name.EndsWith(".AppHost", StringComparison.OrdinalIgnoreCase))
