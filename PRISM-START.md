@@ -32,12 +32,13 @@ is TRUE (ShowsApi.cs:37 calls it per show) — the confusion was the 5-way bare-
 D1.2c fixed; the podcasts expectation row now pins the composed route + true target.
 
 **D1 SESSION 3 CLOSED — D1 is CODE-COMPLETE, all checkpoint rows VERIFIED (close sweep 44/44 GREEN
-15m42s, `prism-d1/cohort-sweep-close.txt`). Next session: VERIFY THE OCTET DoD PROOF, then close D1
-and open D2.** `eval/lens-audit.ps1 octet` was launched DETACHED at session close — its results will
-be sitting at `eval-results/2026-07-17/prism-d1/octet-dod-proof.txt` (+ per-repo dirs). Read it
-FIRST: 8/8 PASS expected (GitVersion's old P2/P3 probes should now pass; podcasts/bitwarden drive
-incl. MCP). If green: tick the DoD list below, write `D1 DELIVERY CLOSED`, commit, cut
-`feat/prism-d2` off the tip. If a repo FAILs: it's a real D1 gap — fix on feat/prism-d1 first.
+15m42s, `prism-d1/cohort-sweep-close.txt`).** Session 4: the detached octet DoD proof came back
+with **2 REAL FAILs** — Newtonsoft.Json + SE.Redis `mcp-drive: map is trivial (~60 tokens)`. Root
+cause was an MCP-surface fidelity gap, not a harness quirk: the MCP `map` tool dropped
+`MapResponse.markdown` (field 1!) and rendered only style+topology, so a 1400-node library read as
+a ~60-token dead map over MCP while the CLI rendered 2000+. Fixed as **D1.5** (see table), octet
+relaunched on the fixed binaries. If 8/8 green: tick the DoD list, write `D1 DELIVERY CLOSED`,
+cut `feat/prism-d2`. If a repo FAILs: it's a real D1 gap — fix on feat/prism-d1 first.
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
 adjust it properly for the long plan"). Measured this session and ENCODED for D2:
@@ -197,6 +198,12 @@ radius; candidates for D2's self-health strand):**
 | D1.4b | E5 TFM summarization (no raw TFM matrices in STACK) | VERIFIED | 7330dff | `ParseTargetFrameworks` SPLITS `;`-joined values into real TFMs (root cause: the whole matrix travelled as ONE token); STACK renders ≤3 verbatim (poles byte-safe) else 2 most-modern + `+N more TFMs` ranked family-then-version (podcasts: `net7.0, net7.0-android +2 more TFMs`). Multi-TFM extractor test re-pinned to split behavior. CLOSE-SWEEP 44/44 GREEN (cohort-sweep-close.txt) |
 | D1.4c | E1 skip `Update=`/MSBuild-expression package refs | VERIFIED | 7330dff | `ParsePackageReferencesCpmAware` takes `Include=` ONLY (an `Update=`-only element is an MSBuild metadata patch, not a dependency — GitVersion's `@(PackageReference)` "package") + MSBuild-expression names (`@(`/`$(`) filtered; DependencyExtractor keeps Update as SIGNAL evidence but drops expressions. CLOSE-SWEEP 44/44 GREEN (cohort-sweep-close.txt) |
 | D1.4d | E4 remove the `--profile debug` ghost hint | VERIFIED | 7330dff | Both hint sites rewritten (DiscoveryPipeline deep-dive diagnostic + empty-trace NOTE) — the flag is hidden on analyze and absent on query, so naming it was unactionable. No test/golden pinned the old text. CLOSE-SWEEP 44/44 GREEN (cohort-sweep-close.txt) |
+
+### D1.5 — MCP lens parity (octet DoD FAILs, audit A5/G)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D1.5a | MCP `map` returns the rendered map, not a topology stub | VERIFIED | (this) | Octet DoD proof FAILed Newtonsoft + SE.Redis on `mcp-drive: map is trivial (~60 tokens)`: the tool serialized style/archetype/topology and DROPPED `MapResponse.markdown` — the server renders the full map per request and it dies at the MCP boundary. Tool now emits `markdown` + `solutionName` alongside the structured fields. Live re-drive: Newtonsoft map ~60→**~2535 tok**, SE.Redis ~77→**~2136 tok**, both repos LENS-AUDIT PASS |
+| D1.5b | `overview` names the product, not its test console | VERIFIED | (this) | `Library: Newtonsoft.Json.TestConsole` / `Library: ConsoleTestBaseline` — the headline joined ServiceMap runnables (a library's are its test/sample hosts) onto the archetype. Additive proto `MapResponse.solution_name` (from `Model.Solution.Name`, same truth as the CLI's `LIBRARY` header); library headline now `Library: <product>` + demoted `hosts:` line; non-library headline unchanged. Server test pins `SolutionName == "ControllerApp"`; live: `Library: Newtonsoft.Json` / `hosts: Newtonsoft.Json.TestConsole`, `Library: StackExchange.Redis` / `hosts: ConsoleTestBaseline` |
 
 ### D1 Definition of Done (from proposal §2)
 - Octet expectation rows for archetype/style/entries flip aspirational→expected.

@@ -133,7 +133,7 @@ public sealed class DevContextGrpcService(
         => WrapAsyncT(request.Handle, async session =>
         {
             var markdown = await session.RenderMapMarkdownAsync(context.CancellationToken).ConfigureAwait(false);
-            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown);
+            return ProtoMapper.ToMapResponse(session.Snapshot.Map, markdown, session.Snapshot.Model.Solution?.Name);
         });
 
     public override Task<Proto.TraceResponse> GetTrace(Proto.TraceRequest request, ServerCallContext context)

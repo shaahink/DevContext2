@@ -50,7 +50,7 @@ internal static class ProtoMapper
         return p;
     }
 
-    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown)
+    public static Proto.MapResponse ToMapResponse(MapModel? map, string markdown, string? solutionName = null)
     {
         var resp = new Proto.MapResponse
         {
@@ -61,6 +61,7 @@ internal static class ProtoMapper
             IsLibrary = map?.Archetype == Archetype.Library,
             Archetype = map?.Archetype.ToString() ?? "App",
         };
+        if (solutionName is { Length: > 0 }) resp.SolutionName = solutionName;
 
         if (map is null) return resp;
 

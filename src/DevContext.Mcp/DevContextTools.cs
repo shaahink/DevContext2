@@ -198,16 +198,27 @@ public sealed class DevContextTools
 
         var sb = new StringBuilder();
 
-        sb.Append(map.Archetype);
         var services = facets.ServiceMap?.Services ?? new();
-        if (services.Count > 0)
+        // DisplayName carries the FULL runnable name (Basket.API) — no client-side truncation,
+        // and libraries are already excluded (Service nodes only).
+        var svcLabels = services.Select(s => s.Kind is { Length: > 0 } && s.Kind != "Service"
+            ? $"{s.DisplayName} ({s.Kind})"
+            : s.DisplayName).ToArray();
+        if (map.IsLibrary)
         {
-            // DisplayName carries the FULL runnable name (Basket.API) — no client-side truncation,
-            // and libraries are already excluded (Service nodes only).
-            var svcLabels = services.Select(s => s.Kind is { Length: > 0 } && s.Kind != "Service"
-                ? $"{s.DisplayName} ({s.Kind})"
-                : s.DisplayName);
-            sb.Append(": ").AppendJoin(", ", svcLabels);
+            // D1.5b — a library's runnable "services" are its test/sample consoles; headlining them
+            // ("Library: Newtonsoft.Json.TestConsole") misstates the product identity.
+            sb.Append("Library");
+            if (map.HasSolutionName) sb.Append(": ").Append(map.SolutionName);
+            sb.AppendLine();
+            if (svcLabels.Length > 0)
+                sb.Append("  hosts: ").AppendJoin(", ", svcLabels).AppendLine();
+        }
+        else
+        {
+            sb.Append(map.Archetype);
+            if (svcLabels.Length > 0)
+                sb.Append(": ").AppendJoin(", ", svcLabels);
             sb.AppendLine();
         }
         sb.Append("  ").Append(stats.Graph?.Nodes ?? 0).Append(" nodes · ");
@@ -485,21 +496,25 @@ public sealed class DevContextTools
         }, JsonOpts);
     }
 
-    /// <summary>Architecture map: style, archetype, topology, project dependencies. Example: map("abc123")</summary>
+    /// <summary>The full architecture map (rendered markdown: entries/surface, seams, topology) + structured style/archetype/topology. Example: map("abc123")</summary>
     [McpServerTool]
     public async Task<string> Map(string? handle = null)
     {
         try { handle = ResolveHandle(handle); }
         catch (RpcException ex) { return FromRpc(ex, "map", "analyze(path) then map()"); }
         var resp = await _client.GetMapAsync(new SessionRequest { Handle = handle });
+        // D1.5a — the rendered map IS the product; meta alone made a 1400-node library read as
+        // a ~60-token dead map over MCP while the CLI rendered 2000+ (octet DoD, audit A5/G).
         return JsonSerializer.Serialize(new
         {
             meta = $"style={resp.Style} archetype={resp.Archetype} projects={resp.ProjectCount}",
+            solutionName = resp.HasSolutionName ? resp.SolutionName : null,
             archetype = resp.Archetype,
             style = resp.Style,
             styleConfidence = resp.StyleConfidence,
             projectCount = resp.ProjectCount,
             topology = resp.Topology.Select(t => new { name = t.Name, dependsOn = t.DependsOn.ToArray() }).ToArray(),
+            markdown = resp.Markdown,
         }, JsonOpts);
     }
 

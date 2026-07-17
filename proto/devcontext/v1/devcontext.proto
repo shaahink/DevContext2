@@ -206,6 +206,9 @@ message MapResponse {
   repeated ServiceStyle service_styles = 15;
   // L7.2 — archetype-specific entry-point view (desktop/worker/library/blazor)
   optional ArchetypeView archetype_view = 16;
+  // D1.5 — the analyzed solution's name (e.g. "Newtonsoft.Json"): the product identity,
+  // distinct from runnable hosts (a library's ServiceMap holds its test consoles).
+  optional string solution_name = 17;
 }
 
 message ProjectNode {

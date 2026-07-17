@@ -130,6 +130,9 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
         Assert.NotEmpty(map.Markdown);
         Assert.True(map.ProjectCount > 0);
         Assert.NotEmpty(map.Topology);
+        // D1.5b — the product identity travels with the map, distinct from runnable hosts.
+        Assert.True(map.HasSolutionName);
+        Assert.Equal("ControllerApp", map.SolutionName);
     }
 
     [Fact]
