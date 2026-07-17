@@ -1,0 +1,13 @@
+{
+  "repo": "eval/fixtures/MauiSurface",
+  "checks": [
+    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "B2 (Prism D1.2b): a MAUI exe is a UI surface — the maui signal must carry the App verdict on its own (no web/desktop-ui signal fires here)." },
+    { "id": "maui-signal", "type": "signal-present", "value": "maui", "status": "expected", "note": "B2: fires from UseMaui + the mobile TFM triple with ZERO Microsoft.Maui package references — the podcasts shape that package matching missed." },
+    { "id": "ui-entries", "type": "entry-kind-present", "value": "DesktopEntryDetection", "format": "UI", "status": "expected", "note": "B2/D1.2b contract: pages and shell are DETECTED and RENDERED under a UI header. This fixture is the proof — podcasts' own MAUI csprojs sit outside every solution, so its pages stay out of scan scope (SolutionScope, by design)." },
+    { "id": "shell-entry", "type": "output-contains", "format": "markdown", "value": "AppShell", "status": "expected", "note": "B2: the Shell navigation root renders as a UI entry." },
+    { "id": "page-entry", "type": "output-contains", "format": "markdown", "value": "DiscoverPage", "status": "expected", "note": "B2: ContentPage subclasses render as UI entries." },
+    { "id": "relaycommand-entry", "type": "output-contains", "format": "markdown", "value": "[RelayCommand] DiscoverViewModel.OpenShow", "status": "expected", "note": "B2: the MVVM command surface rides in with the MAUI gate." },
+    { "id": "per-service-maui", "type": "output-contains", "format": "markdown", "value": "MauiSurface: MAUI App", "status": "expected", "note": "C4 rung: the per-service line names the framework instead of Unknown." },
+    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 60000, "status": "expected" }
+  ]
+}

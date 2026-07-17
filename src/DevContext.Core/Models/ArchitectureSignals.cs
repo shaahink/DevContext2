@@ -65,5 +65,6 @@ public sealed class ArchitectureSignals
         public const string AzureServiceBus = "azure-servicebus";
         public const string AwsLambda = "aws-lambda";
         public const string CliCommands = "cli-commands";
+        public const string Maui = "maui";
     }
 }

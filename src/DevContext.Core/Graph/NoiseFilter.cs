@@ -213,6 +213,18 @@ public sealed class ProjectClassifier
     private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
 }
 
+/// <summary>B2 (Prism D1.2b) — shared MAUI evidence probes. <c>UseMaui</c> is csproj-level (probed by
+/// DependencyExtractor where the XDocument is loaded); the mobile TFM triple is visible on
+/// <see cref="ProjectInfo.TargetFrameworks"/> and shared by the per-service style rung.</summary>
+public static class MauiEvidence
+{
+    /// <summary>True when any TFM targets android/ios/maccatalyst — the MAUI mobile triple.</summary>
+    public static bool HasMauiTfm(ProjectInfo p) => p.TargetFrameworks.Any(t =>
+        t.Contains("-android", StringComparison.OrdinalIgnoreCase)
+        || t.Contains("-ios", StringComparison.OrdinalIgnoreCase)
+        || t.Contains("-maccatalyst", StringComparison.OrdinalIgnoreCase));
+}
+
 /// <summary>
 /// Deterministic, weight-free filter deciding whether a type is a first-class graph node. The ONLY
 /// survivor of the old PathProximity/CallReachability/PatternRelevance trio — and it FILTERS (binary),

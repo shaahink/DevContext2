@@ -1,12 +1,60 @@
 {
   "repo": "eval-repos/bitwarden-server",
   "checks": [
-    { "id": "archetype-app", "type": "json-equals", "path": "$.archetype", "value": "App", "status": "expected", "note": "Audit 2026-07-17: correctly App. Ratchet." },
-    { "id": "style-microservices", "type": "json-equals", "path": "$.architecture.style", "value": "Microservices", "status": "expected", "note": "Audit 2026-07-17: Microservices high via Aspire evidence (10 runnable services). Ratchet." },
-    { "id": "hub-entry", "type": "entry-kind-present", "value": "SignalRHubDetection", "format": "SignalR", "status": "aspirational", "note": "Prism B1: NotificationsHub — in-framework SignalR, no package ref; must fire package-free." },
-    { "id": "per-service-api", "type": "output-contains", "format": "markdown", "value": "Api: Web API", "status": "aspirational", "note": "Prism C4/D1.3a: owns-endpoints => Web API rung + 'Api' suffix without the dot. Audit: 17/17 per-service Unknown." },
-    { "id": "per-service-identity", "type": "output-contains", "format": "markdown", "value": "Identity: Identity provider", "status": "aspirational", "note": "Prism C4/D1.3a: IdentityServer/OpenIddict => Identity provider rung." },
-    { "id": "per-service-hub-host", "type": "output-contains", "format": "markdown", "value": "Notifications: SignalR host", "status": "aspirational", "note": "Prism C4/D1.3a: owns-hubs => SignalR host rung." },
-    { "id": "analysis-time", "type": "max-elapsed-ms", "value": 480000, "status": "expected", "note": "Audit 2026-07-17: 209s CLI wall at 4927 cs files (the SemanticLite wall — D3 territory, not D1)." }
+    {
+      "id": "archetype-app",
+      "type": "json-equals",
+      "path": "$.archetype",
+      "value": "App",
+      "status": "expected",
+      "note": "Audit 2026-07-17: correctly App. Ratchet."
+    },
+    {
+      "id": "style-microservices",
+      "type": "json-equals",
+      "path": "$.architecture.style",
+      "value": "Microservices",
+      "status": "expected",
+      "note": "Audit 2026-07-17: Microservices high via Aspire evidence (10 runnable services). Ratchet."
+    },
+    {
+      "id": "hub-entry",
+      "type": "entry-kind-present",
+      "value": "SignalRHubDetection",
+      "format": "SignalR",
+      "status": "expected",
+      "note": "B1 FIXED (Prism D1.2a): NotificationsHub + AnonymousNotificationsHub use the qualified Hub base; matcher now catches them package-free. Flipped 2026-07-17."
+    },
+    {
+      "id": "per-service-api",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "Api: Web API",
+      "status": "aspirational",
+      "note": "Prism C4/D1.3a: owns-endpoints => Web API rung + 'Api' suffix without the dot. Audit: 17/17 per-service Unknown."
+    },
+    {
+      "id": "per-service-identity",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "Identity: Identity provider",
+      "status": "aspirational",
+      "note": "Prism C4/D1.3a: IdentityServer/OpenIddict => Identity provider rung."
+    },
+    {
+      "id": "per-service-hub-host",
+      "type": "output-contains",
+      "format": "markdown",
+      "value": "Notifications: SignalR host",
+      "status": "aspirational",
+      "note": "Prism C4/D1.3a: owns-hubs => SignalR host rung."
+    },
+    {
+      "id": "analysis-time",
+      "type": "max-elapsed-ms",
+      "value": 480000,
+      "status": "expected",
+      "note": "Audit 2026-07-17: 209s CLI wall at 4927 cs files (the SemanticLite wall — D3 territory, not D1)."
+    }
   ]
 }

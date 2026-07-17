@@ -123,6 +123,18 @@ public static class EntrySurfaceCatalog
             SdkHints:   ["Microsoft.NET.Sdk.WindowsDesktop"],
             SelfNamePatterns: []),
 
+        // B2 (Prism D1.2b): MAUI. The signal fires from <UseMaui>true</UseMaui> or the mobile TFM
+        // triple (DependencyExtractor probes the csproj — UseMaui is SDK-provided on .NET 7+, so
+        // package matching alone left podcasts' two MAUI apps invisible). Pages/Shell render as
+        // UiEntries via DesktopEntryExtractor.
+        new(SignalKey: ArchitectureSignals.Keys.Maui,
+            Kind:       EntryPointKind.UiEntry,
+            RenderLabel:"UI",
+            Role:       SurfaceRole.AppEntry,
+            Packages:   ["Microsoft.Maui.Controls", "Microsoft.Maui"],
+            SdkHints:   [],
+            SelfNamePatterns: ["Microsoft.Maui"]),
+
         // ── Razor Pages — detected via PageModel base types, not packages ──
 
         new(SignalKey: ArchitectureSignals.Keys.RazorPages,

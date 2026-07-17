@@ -46,17 +46,44 @@ public static class CsprojReader
 
     /// <summary>Resolves OutputType by walking the <c>Directory.Build.props</c> ancestor chain from
     /// the csproj's directory. The csproj's own value (in <paramref name="doc"/>) takes precedence;
-    /// ancestor values fill in when the csproj doesn't set it. Nearest ancestor wins among imports.</summary>
+    /// ancestor values fill in when the csproj doesn't set it. Nearest ancestor wins among imports.
+    /// <para>A CONDITIONED ancestor value is not evidence for this project (Prism D1.2b): a shared
+    /// props file sets properties for a SUBSET of its projects, and we cannot evaluate MSBuild
+    /// conditions. xunit's src/Directory.Build.props sets OutputType=Exe inside a
+    /// <c>&lt;When Condition="...EndsWith('.tests')"&gt;</c>; taking it unconditionally made every
+    /// xunit CLASSLIB read as an exe, which erased the self-sourced framework signal (the exe is
+    /// "runnable") and flipped the repo Library -> App with a console-view render. The csproj's OWN
+    /// conditioned value is still honoured — it at least applies to that project.</para></summary>
     public static string? ResolveOutputType(XDocument doc, string csprojPath)
     {
         var direct = ParseOutputType(doc);
         if (direct is not null) return direct;
         foreach (var ancestor in WalkAncestorProps(csprojPath, "Directory.Build.props"))
         {
-            var v = ParseOutputType(ancestor);
+            var v = ParseUnconditionedOutputType(ancestor);
             if (v is not null) return v;
         }
         return null;
+    }
+
+    /// <summary>The first <c>&lt;OutputType&gt;</c> that no enclosing element makes conditional.</summary>
+    private static string? ParseUnconditionedOutputType(XDocument doc)
+        => doc.Descendants("OutputType")
+            .Where(e => !IsConditioned(e))
+            .Select(e => e.Value.Trim())
+            .FirstOrDefault(v => v.Length > 0);
+
+    /// <summary>True when the element or any ancestor carries a non-empty <c>Condition</c> attribute
+    /// (<c>&lt;When&gt;</c>, a conditioned <c>&lt;PropertyGroup&gt;</c>, or the property itself), or it
+    /// sits in an <c>&lt;Otherwise&gt;</c> branch — all of which make the value apply to only some projects.</summary>
+    private static bool IsConditioned(XElement e)
+    {
+        for (var n = e; n is not null; n = n.Parent)
+        {
+            if (n.Attribute("Condition")?.Value.Trim() is { Length: > 0 }) return true;
+            if (n.Name.LocalName is "Otherwise") return true;
+        }
+        return false;
     }
 
     /// <summary>Resolves <c>IsPackable</c> from the ancestor chain. The csproj's own value wins;

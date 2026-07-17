@@ -18,13 +18,15 @@ public sealed class DesktopEntryExtractor : IDiscoveryExtractor
     public ExecutionStage Stage => ExecutionStage.Stage3Specific;
     /// <summary>Describes the signals and model fields this extractor uses.</summary>
     public ExtractorCapabilities Capabilities => new(
-        [ArchitectureSignals.Keys.DesktopUi],
+        [ArchitectureSignals.Keys.DesktopUi, ArchitectureSignals.Keys.Maui],
         ["desktop-entry-detections"],
         ["model.Detections"],
-        "Scans syntax trees for Window/Page/UserControl subclasses, App.OnLaunched/OnStartup, and [RelayCommand] handlers");
-    /// <summary>Only runs when the desktop-ui signal has been detected.</summary>
+        "Scans syntax trees for Window/Page/UserControl/ContentPage/Shell subclasses, App.OnLaunched/OnStartup, and [RelayCommand] handlers");
+    /// <summary>Runs for desktop-ui OR MAUI apps (B2, Prism D1.2b) — the ContentPage/Shell cases
+    /// below were unreachable for package-free MAUI projects that never fire desktop-ui.</summary>
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
-        => currentModel.Architecture.Has(ArchitectureSignals.Keys.DesktopUi);
+        => currentModel.Architecture.Has(ArchitectureSignals.Keys.DesktopUi)
+            || currentModel.Architecture.Has(ArchitectureSignals.Keys.Maui);
 
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {

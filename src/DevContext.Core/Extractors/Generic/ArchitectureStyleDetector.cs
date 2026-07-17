@@ -446,7 +446,10 @@ public sealed class ArchitectureStyleDetector
             var hasYarp = pkgs.Any(p => p.Name.Contains("Yarp", StringComparison.OrdinalIgnoreCase));
             var hasRefit = pkgs.Any(p => p.Name.Contains("Refit", StringComparison.OrdinalIgnoreCase));
             var hasRazorPages = pkgs.Any(p => p.Name.Contains("Microsoft.AspNetCore.Mvc.RazorPages", StringComparison.OrdinalIgnoreCase));
-            var hasMaui = pkgs.Any(p => p.Name.Contains("Microsoft.Maui", StringComparison.OrdinalIgnoreCase));
+            // B2 (Prism D1.2b): UseMaui is SDK-provided — the mobile TFM triple identifies a MAUI app
+            // even with zero Microsoft.Maui package references (podcasts' two MAUI apps read Unknown).
+            var hasMaui = pkgs.Any(p => p.Name.Contains("Microsoft.Maui", StringComparison.OrdinalIgnoreCase))
+                || Graph.MauiEvidence.HasMauiTfm(proj);
             var hasCliParser = pkgs.Any(p => p.Name.Contains("Spectre.Console.Cli", StringComparison.OrdinalIgnoreCase)
                 || p.Name.Contains("System.CommandLine", StringComparison.OrdinalIgnoreCase));
             var isWorkerSdk = proj.FilePath is { } wp && IsWorkerSdkProject(wp);

@@ -84,6 +84,7 @@ public static class ArchetypeDetector
                 || model.Architecture.Has(ArchitectureSignals.Keys.RazorPages)
                 || model.Architecture.Has(ArchitectureSignals.Keys.Blazor)
                 || model.Architecture.Has(ArchitectureSignals.Keys.DesktopUi)
+                || model.Architecture.Has(ArchitectureSignals.Keys.Maui)
                 || model.Architecture.Has(ArchitectureSignals.Keys.SignalR)
                 || model.Architecture.Has(ArchitectureSignals.Keys.Grpc);
             if (prodConsoleExes.Count > 0

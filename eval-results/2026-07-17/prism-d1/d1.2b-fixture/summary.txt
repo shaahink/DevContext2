@@ -1,0 +1,72 @@
+D1.2a + D1.2b close-out (session 2, 2026-07-17)
+================================================
+
+D1.2b "pages/shell as UiEntries" — proven by fixture, not by podcasts
+--------------------------------------------------------------------
+eval/fixtures/MauiSurface (new) — podcasts' Mobile shape verbatim: Razor SDK, mobile TFM triple,
+<UseMaui>true</UseMaui>, OutputType Exe, and ZERO Microsoft.Maui package references.
+
+  MauiSurface/map.md renders:
+     UI (4)
+        [RelayCommand] DiscoverViewModel.OpenShow  -> DiscoverViewModel
+        AppShell                                   -> AppShell        (Shell)
+        DiscoverPage                               -> DiscoverPage    (ContentPage)
+        PlayerPage                                 -> PlayerPage      (ContentPage)
+     per service: MauiSurface: MAUI App [.NET MAUI]
+  out.json: archetype=App, signals=maui(0.9), entryCount=4
+
+  Note desktop-ui does NOT fire here — so `maui` alone carries the App verdict AND opens the
+  DesktopEntryExtractor gate. The fixture is what makes D1.2b's ShouldRun widening load-bearing;
+  podcasts alone would not have proven it (desktop-ui fires there anyway).
+
+  WHY A FIXTURE: dotnet-podcasts' two MAUI csprojs are in NO solution (NetPodcast.sln,
+  NetPodcast.Services.sln, Podcast.Web.sln all exclude src/Mobile + src/MobileBlazor). Their
+  sources are scanned (192/192 files) and DesktopEntryExtractor DOES detect the ContentPages, but
+  DesktopEntryPointBuilder.cs:15 drops them on `scope.Contains(de.SourceFile)` — SolutionScope is
+  bounded to the resolved solution's 13 projects by design (design-doc R1: never union independent
+  solutions). That is a scoping fact, not a detection gap. podcasts proves "MAUI present"
+  (STACK TFMs + per-service "MAUI App" x2); the fixture proves the entries.
+
+in-process eval (whole cohort, after the fix below)
+---------------------------------------------------
+  in-process-eval-fixed.txt: Total tests: 42, Passed: 42, Failed: 0  (226 checks, 0 [FAIL])
+  incl. maui-surface 8/8, dotnet-podcasts (hub-entry + maui-present now expected), bitwarden,
+  xunit, gitversion.
+  (in-process-eval.txt = the run BEFORE the fix: 41/42, xunit red. Kept as the evidence that the
+   whole-cohort sweep is what caught it.)
+
+xunit regression found + fixed (D1.2-fix) — see PRISM-START.md for the full chain
+---------------------------------------------------------------------------------
+  Library -> App + console-view render, on a ratchet green since long before Prism.
+  Bisect (worktree at each D1.1 commit, analyzing eval-repos/xunit):
+     6e66dc5 D1.0d  Library   signals=testing
+     5635cb1 D1.1a  Library   signals=testing
+     1047369 D1.1b  Library   signals=testing
+     8a11703 D1.1c  App       signals=(none)   <-- broke here
+     7a33091 D1.1d  App       signals=(none)
+     6ffe77b D1.1e  App       signals=(none)
+  Root cause was FALSE EVIDENCE, not the guard: CsprojReader.ResolveOutputType's ancestor walk took
+  any <OutputType> descendant of Directory.Build.props and ignored its condition. xunit's
+  src/Directory.Build.props sets OutputType=Exe inside <Choose><When ...EndsWith('.tests')> => every
+  xunit CLASSLIB read as an exe => D1.1c's runnable-guard skipped them all => the self-sourced
+  'testing' signal died => nonExe.Count==0 => "pure executable(s)" => App.
+  Fixed: a CONDITIONED ancestor value is not evidence for this project (we cannot evaluate MSBuild
+  conditions). The csproj's OWN conditioned value is still honoured — eShop's ClientApp needs it.
+  After: xunit = Library / signals=testing / 981 tokens — byte-identical to the D1.0d baseline.
+  Blast radius audited: only 2 repos in the whole cohort have a CONDITIONED OutputType in shared
+  props — xunit (fixed) and GitVersion (green: GitVersion.App sets its own <OutputType>Exe</>).
+  No pole has OutputType in Directory.Build.props at all.
+
+poles
+-----
+  eShop     109 entries (43 HTTP + 13 Bus + 1 Background + 7 Domain + 42 UI + 3 gRPC) — matches pin
+  TodoApi / aspire-samples / eShop — green in the eval cohort
+  dogfood   439/335/34 — DRIFTED vs the 439/339/34 pin, and NOT by this session: the committed tip
+            6ffe77b reproduces 335 exactly. Bisected to D1.1c. Style now reads CleanArchitecture
+            instead of Microservices; ROUTES + the 4 http/via-gateway edges are gone.
+            => logged as D1.2-fix2 (BLOCKED, needs a design call). NOT fixed here.
+  shamshir  2955/3507/137 vs ~2882/3375/135 — above the usual live-repo band, not bisected.
+
+gates
+-----
+  build 0w/0e; fast suite 551/554 green (+3 new tests); McpQa serial 2/2; loom-guards + truth PASS.

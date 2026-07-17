@@ -18,6 +18,21 @@ public sealed class SignalRHubExtractor : IDiscoveryExtractor
     public bool ShouldRun(DiscoveryContext context, DiscoveryModel currentModel)
         => currentModel.Architecture.Has(ArchitectureSignals.Keys.SignalR);
 
+    /// <summary>B1 (Prism D1.2a): matches SignalR hub base names AS WRITTEN — bare ("Hub", "Hub&lt;T&gt;")
+    /// or namespace-qualified ("Microsoft.AspNetCore.SignalR.Hub[&lt;T&gt;]", the form BOTH dotnet-podcasts'
+    /// ListenTogetherHub and bitwarden's NotificationsHub use; the audit's in-framework hubs were missed
+    /// on exactly this). A qualified base is trusted only when the qualifier ends with "SignalR" — an
+    /// arbitrary Foo.Hub type is not SignalR.</summary>
+    internal static bool IsHubBaseName(string name)
+    {
+        if (name == "Hub" || name.StartsWith("Hub<", StringComparison.Ordinal)) return true;
+        var idx = name.LastIndexOf(".Hub", StringComparison.Ordinal);
+        if (idx < 0) return false;
+        var after = idx + 4;
+        if (after != name.Length && name[after] != '<') return false;
+        return name.AsSpan(0, idx).EndsWith("SignalR", StringComparison.Ordinal);
+    }
+
     public async ValueTask ExtractAsync(DiscoveryContext context, DiscoveryModel model, CancellationToken ct)
     {
         foreach (var filePath in context.Analysis.AllSourceFiles)
@@ -38,13 +53,11 @@ public sealed class SignalRHubExtractor : IDiscoveryExtractor
                 var baseList = classDecl.BaseList;
                 if (baseList is null) continue;
 
-                // Check for Hub or Hub<T> base
+                // Check for a Hub base — bare or SignalR-qualified (B1, Prism D1.2a).
                 var isHub = false;
                 foreach (var bt in baseList.Types)
                 {
-                    var name = bt.Type.ToString();
-                    if (name.StartsWith("Hub", StringComparison.Ordinal)
-                        && (name.Length == 3 || name[3] == '<'))
+                    if (IsHubBaseName(bt.Type.ToString()))
                     {
                         isHub = true;
                         break;

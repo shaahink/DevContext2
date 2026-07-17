@@ -156,6 +156,21 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                             ArchitectureSignals.Keys.DesktopUi, confidence: 0.9f, via: "ProjectSdk", outputType ?? "WinExe"));
                     }
 
+                    // B2 (Prism D1.2b): MAUI — <UseMaui>true</UseMaui> is SDK-provided (.NET 7+), no
+                    // package reference exists to match; the mobile TFM triple is corroborating evidence.
+                    if (!selfSourcedKeys.Contains(ArchitectureSignals.Keys.Maui)
+                        && !IsSuppressedPath(csprojPath))
+                    {
+                        var usesMaui = doc.Descendants("UseMaui")
+                            .Any(e => string.Equals(e.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase));
+                        if (usesMaui || Graph.MauiEvidence.HasMauiTfm(projectInfo))
+                        {
+                            model.Architecture.Register(FeatureSignal.CreateDetected(
+                                ArchitectureSignals.Keys.Maui, confidence: 0.9f, via: "ProjectProperty",
+                                usesMaui ? "UseMaui=true" : "mobile TFMs"));
+                        }
+                    }
+
                     var packageRefs = doc.Descendants("PackageReference")
                         .Select(r => r.Attribute("Include")?.Value ?? r.Attribute("Update")?.Value ?? "")
                         .Where(v => !string.IsNullOrEmpty(v));

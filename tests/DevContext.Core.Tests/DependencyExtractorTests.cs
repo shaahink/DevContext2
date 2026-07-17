@@ -11,6 +11,8 @@ public sealed class DependencyExtractorTests
     [InlineData("OrleansVoting.AppHost", false)] // aspire-samples' sample must NOT match
     [InlineData("SerilogHelpers", false)]     // consumer helper lib must NOT match
     [InlineData("Serilog.Sinks.Console", true)]
+    [InlineData("xunit.v3.assert", true)]     // xunit's own classlib self-sources 'testing'
+    [InlineData("xunit.v3.core", true)]
     public void SelfName_matching_requires_a_name_boundary(string projectName, bool shouldMatch)
     {
         var matched = DependencyExtractor.TryMatchSignalFromProjectName(projectName, out _, out _);

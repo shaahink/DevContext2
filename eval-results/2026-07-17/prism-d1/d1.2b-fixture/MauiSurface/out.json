@@ -1,0 +1,33 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-17T12:33:12.4698092+00:00",
+  "archetype": "App",
+  "architectureStyle": "Unknown",
+  "styleConfidence": 0,
+  "projectCount": 1,
+  "projectNames": [
+    "MauiSurface"
+  ],
+  "typeCount": 4,
+  "entryCount": 4,
+  "topologyProjectCount": 1,
+  "graphNodeCount": 17,
+  "graphEdgeCount": 8,
+  "signals": [
+    {
+      "key": "maui",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 4/4 (100%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    }
+  ]
+}

@@ -44,6 +44,10 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
         var selfSourcesSignalR = model.Projects.Any(p =>
             signalRSelfPatterns.Any(pat => p.Name.Contains(pat, StringComparison.OrdinalIgnoreCase)));
 
+        // B1 (Prism D1.2a): MapHub<T> is signalr evidence too — package-free apps map their hubs in
+        // Program.cs/Startup.cs even when the Hub subclass lives in a project outside the scan scope.
+        var fileMapsHub = new bool[files.Count];
+
         var opts = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = Environment.ProcessorCount };
         await Parallel.ForEachAsync(Enumerable.Range(0, files.Count), opts, async (i, innerCt) =>
         {
@@ -78,6 +82,11 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
                 if (typeDiscovery != null) list.Add(typeDiscovery);
             }
             perFile[i] = list;
+
+            fileMapsHub[i] = nodes.Invocations.Any(inv =>
+                inv.Expression.DescendantNodesAndSelf()
+                    .OfType<GenericNameSyntax>()
+                    .Any(g => g.Identifier.ValueText == "MapHub"));
         });
 
         // Phase 2: commit in source-file order (identical ordering to the prior serial loop).
@@ -114,13 +123,28 @@ public sealed class SyntaxStructureExtractor : IDiscoveryExtractor
 
                 // SignalR: detect Hub base type. Built-in SignalR ships in the ASP.NET Core
                 // shared framework — modern apps carry no SignalR package reference at all.
-                if (!selfSourcesSignalR && typeDiscovery.BaseTypes.Any(b =>
-                    b is "Hub" || b.StartsWith("Hub<", StringComparison.Ordinal)))
+                // B1 (Prism D1.2a): also match the namespace-qualified base as written
+                // (": Microsoft.AspNetCore.SignalR.Hub" — dotnet-podcasts AND bitwarden).
+                if (!selfSourcesSignalR && typeDiscovery.BaseTypes.Any(
+                    Specific.SignalRHubExtractor.IsHubBaseName))
                 {
                     model.Architecture.Register(FeatureSignal.CreateDetected(
                         ArchitectureSignals.Keys.SignalR, 0.9f, "SyntaxPattern",
                         $"Class {typeDiscovery.Name} derives from Hub"));
                 }
+            }
+        }
+
+        // B1 (Prism D1.2a): MapHub<T> route mapping fires the signal package-free.
+        if (!selfSourcesSignalR)
+        {
+            for (var i = 0; i < files.Count; i++)
+            {
+                if (!fileMapsHub[i]) continue;
+                model.Architecture.Register(FeatureSignal.CreateDetected(
+                    ArchitectureSignals.Keys.SignalR, 0.9f, "SyntaxPattern",
+                    $"MapHub<T> mapped in {Path.GetFileName(files[i])}"));
+                break;
             }
         }
     }
