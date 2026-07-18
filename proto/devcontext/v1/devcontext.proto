@@ -232,6 +232,14 @@ message ServiceStyle {
 message LibrarySurface {
   repeated SurfaceGroup groups = 1;
   repeated string extension_points = 2;
+  // D4.4 — the full capability-grouped surface, structured (previously these sections
+  // existed only inside MapResponse.markdown). Mirrors Core's LibrarySurface record.
+  repeated SurfaceEntry entry_api = 3;
+  repeated SurfaceAbstraction abstractions = 4;
+  repeated SurfaceGroup internals = 5;       // *.Internal namespaces, demoted out of groups
+  repeated string consumer_paths = 6;
+  repeated SurfaceGenerator generators = 7;
+  repeated PackageGroup packages = 8;        // runtime-only (test/benchmark/sample deps excluded)
 }
 
 message SurfaceGroup {
@@ -243,6 +251,29 @@ message SurfaceType {
   string name = 1;
   string kind = 2;
   repeated string members = 3;
+  optional string doc = 4;                   // D4.4 — XML-doc <summary> one-liner
+}
+
+// D4.4 — a ranked ENTRY API front door: kind ∈ annotate|register|build|derive|implement|extend.
+message SurfaceEntry {
+  string title = 1;
+  string kind = 2;
+  optional string doc = 3;
+  optional string location = 4;              // short file name, e.g. "GetAttribute.cs"
+}
+
+// D4.4 — an ABSTRACTIONS seat consumers implement/derive, with its in-repo implementor count.
+message SurfaceAbstraction {
+  string name = 1;
+  string kind = 2;                           // "interface" | "class"
+  int32 implementor_count = 3;
+}
+
+// D4.4 — Roslyn tooling the library ships: kind ∈ generator|analyzer|code-fixer.
+message SurfaceGenerator {
+  string name = 1;
+  string kind = 2;
+  optional string doc = 3;
 }
 
 // L7.2 — archetype-shaped entry-point view for Desktop, Worker, Blazor, and Library.

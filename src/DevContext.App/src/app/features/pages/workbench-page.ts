@@ -10,6 +10,7 @@ import { TrailStore, type TrailStep } from '../../state/trail.store';
 import { type EntryVm } from '../../models/view-models';
 import { TrailBar } from '../../shell/trail-bar';
 import { EntryDeck } from '../explorer/entry-deck';
+import { LibraryWorkbench } from '../library/library-workbench';
 import { type LensId } from '../explorer/lens-switcher';
 import { Stage, type FlowMode, type StageAltitude } from '../explorer/stage';
 import { Inspector } from '../inspector/inspector';
@@ -42,7 +43,7 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
  */
 @Component({
   selector: 'app-workbench-page',
-  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens],
+  imports: [EntryDeck, Stage, Inspector, TrailBar, RouterLink, TableLens, LibraryWorkbench],
   host: {
     class: 'flex h-full min-h-0 flex-col',
     '(window:keydown)': 'onGlobalKey($event)',
@@ -50,7 +51,11 @@ const VALID_ALTITUDES: readonly StageAltitude[] = ['system', 'flow', 'node'];
   template: `
     <app-trail-bar (restore)="onRestore($event)" />
 
-    @if (session.ready()) {
+    @if (session.ready() && isLibrary()) {
+      <!-- D4.4 (F1): archetype Library routes Explore to the public-surface browser —
+           a library has surface, not entry-point flows. -->
+      <app-library-workbench class="min-h-0 flex-1" />
+    } @else if (session.ready()) {
       <div class="flex min-h-0 flex-1">
         @if (dockLevel() < 3) {
           <app-entry-deck
@@ -127,6 +132,8 @@ export class WorkbenchPage implements OnDestroy {
   protected readonly deckKind = signal<string | null>(null);
   protected readonly deckFilterText = signal('');
   protected readonly tableOpen = signal(false);
+  /** D4.4 (F1) — Library archetype swaps the whole explore surface for the workbench. */
+  protected readonly isLibrary = computed(() => this.session.mapResponse()?.isLibrary ?? false);
 
   private pendingTrace: ReturnType<typeof setTimeout> | null = null;
   /** Last dock level > 0, so Ctrl+Shift+L toggles 0 ↔ last instead of cycling. */

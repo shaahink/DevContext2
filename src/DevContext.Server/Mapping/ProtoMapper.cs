@@ -88,6 +88,32 @@ internal static class ProtoMapper
             foreach (var g in surface.Groups)
                 resp.Surface.Groups.Add(MapSurfaceGroup(g));
             resp.Surface.ExtensionPoints.AddRange(surface.ExtensionPoints);
+            // D4.4 — the full capability-grouped surface (was dropped: markdown-only).
+            foreach (var e in surface.EntryApi)
+            {
+                var pe = new Proto.SurfaceEntry { Title = e.Title, Kind = e.Kind };
+                if (e.Doc is { Length: > 0 } d) pe.Doc = d;
+                if (e.Location is { Length: > 0 } loc) pe.Location = loc;
+                resp.Surface.EntryApi.Add(pe);
+            }
+            foreach (var a in surface.Abstractions)
+                resp.Surface.Abstractions.Add(new Proto.SurfaceAbstraction
+                {
+                    Name = a.Name,
+                    Kind = a.Kind.ToString().ToLowerInvariant(),
+                    ImplementorCount = a.ImplementorCount,
+                });
+            foreach (var g in surface.Internals)
+                resp.Surface.Internals.Add(MapSurfaceGroup(g));
+            resp.Surface.ConsumerPaths.AddRange(surface.ConsumerPaths);
+            foreach (var gen in surface.Generators)
+            {
+                var pg2 = new Proto.SurfaceGenerator { Name = gen.Name, Kind = gen.Kind };
+                if (gen.Doc is { Length: > 0 } d) pg2.Doc = d;
+                resp.Surface.Generators.Add(pg2);
+            }
+            foreach (var pkg in surface.Packages)
+                resp.Surface.Packages.Add(new Proto.PackageGroup { Label = pkg.Label, Packages = { pkg.Packages } });
         }
 
         // M1.9 / D5 — per-service styles
@@ -648,6 +674,7 @@ internal static class ProtoMapper
         {
             var st = new Proto.SurfaceType { Name = t.Name, Kind = t.Kind.ToString() };
             st.Members.AddRange(t.Members);
+            if (t.Doc is { Length: > 0 } d) st.Doc = d;
             sg.Types_.Add(st);
         }
         return sg;

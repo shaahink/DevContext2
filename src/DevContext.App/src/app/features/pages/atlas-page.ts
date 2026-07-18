@@ -51,13 +51,16 @@ import { KIND_LABELS } from '../../models/view-models';
           @if (map()?.archetype; as a) {
             <span class="chip">{{ a }}</span>
           }
-          @if (map()?.style; as st) {
-            <span class="text-ink-muted" [title]="map()?.styleEvidence || ''">
-              {{ st }}
-              @if (confidenceTier(); as tier) {
-                <span class="text-ink-subtle" [title]="'Style detection confidence: ' + ((map()?.styleConfidence ?? 0) * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
-              }
-            </span>
+          <!-- D4.4 (F1): style suppressed for libraries, exactly as the CLI's Library renderer. -->
+          @if (!map()?.isLibrary) {
+            @if (map()?.style; as st) {
+              <span class="text-ink-muted" [title]="map()?.styleEvidence || ''">
+                {{ st }}
+                @if (confidenceTier(); as tier) {
+                  <span class="text-ink-subtle" [title]="'Style detection confidence: ' + ((map()?.styleConfidence ?? 0) * 100).toFixed(0) + '%'"> &middot; {{ tier }}</span>
+                }
+              </span>
+            }
           }
           @if (stackChips().length) {
             <span class="flex flex-wrap items-center gap-1.5">

@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { SessionStore } from '../../state/session.store';
 import { Badge } from '../../ui/badge/badge';
 import { formatCompact, humanizeTfms } from '../../core/format';
+import { namespaceCount, publicTypeCount } from '../library/library-surface.vm';
 
 @Component({
   selector: 'app-identity-strip',
@@ -109,7 +110,10 @@ export class IdentityStrip {
     const parts: string[] = [];
     if (s.label) parts.push(s.label);
     if (m?.archetype) parts.push(m.archetype.toLowerCase());
-    if (s.entries > 0) parts.push(`${s.entries} entries`);
+    // D4.4 (F1) — a library's headline metric is its public surface, not entry counts
+    // (the CLI overview reads "LIBRARY Refit (88 public types)").
+    if (this.isLibrary() && this.surfaceTypes() > 0) parts.push(`${this.surfaceTypes()} public types`);
+    else if (s.entries > 0) parts.push(`${s.entries} entries`);
     if (s.projects > 1) parts.push(`${s.projects} ${this.projectNoun()}`);
     if (s.nodes > 0) parts.push(`${formatCompact(s.nodes)} types`);
     if (s.elapsedMs > 0) {
@@ -126,16 +130,20 @@ export class IdentityStrip {
     if (!s) return [];
     const wired = s.entriesWithTarget ?? 0;
     const total = s.entries ?? 0;
-    const labels: [string, string, string][] = [
-      ['entries', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)'],
-    ];
+    // D4.4 (F1) — library home cards carry surface metrics, not entry metrics.
+    const labels: [string, string, string][] = this.isLibrary()
+      ? [
+          ['public types', String(this.surfaceTypes()), 'Public types on the library surface'],
+          ['namespaces', String(this.surfaceNamespaces()), 'Namespaces on the public surface'],
+        ]
+      : [['entries', String(s.entries), 'Total entry points (HTTP, consumers, handlers, workers)']];
     if (s.projects > 0) {
       labels.push([this.projectNoun(), String(s.projects), 'Projects in the solution']);
     }
     if (s.nodes > 0) {
       labels.push(['types', formatCompact(s.nodes), 'Types discovered in the graph']);
     }
-    if (total > 0) {
+    if (total > 0 && !this.isLibrary()) {
       labels.push(['wired', `${wired}/${total}`, `${wired} of ${total} entries have resolved targets`]);
     }
     if (l) {
@@ -150,7 +158,16 @@ export class IdentityStrip {
   });
 
   protected readonly archetype = computed(() => this.map()?.archetype);
-  protected readonly style = computed(() => this.map()?.style);
+  /** D4.4 (F1) — suppress the style chip for libraries exactly as the CLI does: the
+   * Library renderer never emits a STYLE line (a 55%-confidence "ControllerBased" on
+   * refit was audit finding F1's bogus chip). Undefined collapses chip + tier + tooltip. */
+  protected readonly style = computed(() => {
+    const m = this.map();
+    return m?.isLibrary ? undefined : m?.style;
+  });
+  protected readonly isLibrary = computed(() => this.map()?.isLibrary ?? false);
+  protected readonly surfaceTypes = computed(() => publicTypeCount(this.map()?.surface));
+  protected readonly surfaceNamespaces = computed(() => namespaceCount(this.map()?.surface));
   protected readonly styleConfidence = computed(() => this.map()?.styleConfidence ?? 0);
   /** Raw confidence percentages erode trust (audit A11/T6.3 rider) — render tier words,
    * keep the exact number in the tooltip. Words + thresholds mirror the engine's
