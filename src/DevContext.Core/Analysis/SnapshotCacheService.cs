@@ -23,6 +23,14 @@ public static class SnapshotSchema
     /// v5 (I1 fix at D2 close): orphans insight coverage-gated + library-exempt — a v4 snapshot can
     /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).</summary>
     public const int Version = 5;
+
+    /// <summary>D5.3 (the J2 engine-version key) — the engine build that produced a snapshot.
+    /// Deterministic compilation makes the Core MVID a content hash over sources + references, so
+    /// ANY Core change (extractor, renderer, insight) rejects persisted snapshots automatically on
+    /// load — retiring the "bump <see cref="Version"/> on every semantics change" discipline.
+    /// <see cref="Version"/> stays for deliberate structural breaks (its doc history names why).</summary>
+    public static string EngineVersion { get; } =
+        typeof(SnapshotSchema).Assembly.ManifestModule.ModuleVersionId.ToString("N");
 }
 
 /// <summary>Outcome of a snapshot save. The save is best-effort but NEVER silent (J2): a failure
@@ -139,6 +147,7 @@ public sealed class SnapshotCacheService
             var envelope = new SnapshotEnvelope
             {
                 SchemaVersion = SnapshotSchema.Version,
+                EngineVersion = SnapshotSchema.EngineVersion,
                 Payload = SnapshotPersistence.FromSnapshot(snapshot),
             };
             await using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
@@ -168,6 +177,10 @@ public sealed class SnapshotCacheService
             var envelope = await JsonSerializer.DeserializeAsync<SnapshotEnvelope>(gz, JsonOptions, ct);
             if (envelope is null) return null;
             if (envelope.SchemaVersion != SnapshotSchema.Version) return null;
+            // D5.3 — a snapshot from a DIFFERENT engine build is a miss: the current engine may
+            // render/claim differently than the one that produced it (pre-D5.3 files carry no
+            // engine version and are rejected the same way — null never equals the live MVID).
+            if (envelope.EngineVersion != SnapshotSchema.EngineVersion) return null;
             if (envelope.Payload is null) return null;
             var snapshot = SnapshotPersistence.ToSnapshot(envelope.Payload);
             TouchMeta(repoKey);
@@ -184,6 +197,7 @@ public sealed class SnapshotCacheService
     private sealed record SnapshotEnvelope
     {
         public int SchemaVersion { get; init; }
+        public string? EngineVersion { get; init; }
         public PersistedSnapshot? Payload { get; init; }
     }
 

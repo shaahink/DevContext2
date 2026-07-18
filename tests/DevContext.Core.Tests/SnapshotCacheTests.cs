@@ -109,6 +109,44 @@ public sealed class SnapshotCacheTests : IDisposable
     }
 
     [Fact]
+    public async Task Foreign_engine_snapshot_is_a_miss()
+    {
+        var (snapshot, _) = await AnalyzedFixtureAsync();
+        var svc = new SnapshotCacheService(_cacheRoot);
+        Assert.True((await svc.SaveAsync("repo1", "v1", snapshot, CancellationToken.None)).Success);
+        Assert.NotNull(await svc.TryLoadAsync("repo1", "v1", CancellationToken.None));
+
+        // Rewrite the envelope as another engine build would have written it (different MVID),
+        // and as a pre-D5.3 build did (no field at all): both must load as a MISS, not a hit —
+        // a snapshot from a different engine may render/claim differently than this build would.
+        var path = svc.GetSnapshotPath("repo1", "v1");
+        var json = ReadAllGzip(path);
+        Assert.Contains(SnapshotSchema.EngineVersion, json);
+
+        WriteAllGzip(path, json.Replace(SnapshotSchema.EngineVersion, new string('0', 32)));
+        Assert.Null(await svc.TryLoadAsync("repo1", "v1", CancellationToken.None));
+
+        WriteAllGzip(path, json.Replace($"\"EngineVersion\":\"{SnapshotSchema.EngineVersion}\",", ""));
+        Assert.Null(await svc.TryLoadAsync("repo1", "v1", CancellationToken.None));
+    }
+
+    private static string ReadAllGzip(string path)
+    {
+        using var fs = File.OpenRead(path);
+        using var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress);
+        using var reader = new StreamReader(gz);
+        return reader.ReadToEnd();
+    }
+
+    private static void WriteAllGzip(string path, string content)
+    {
+        using var fs = File.Create(path);
+        using var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionLevel.Fastest);
+        using var writer = new StreamWriter(gz);
+        writer.Write(content);
+    }
+
+    [Fact]
     public void Exists_probe_creates_no_directories()
     {
         var svc = new SnapshotCacheService(_cacheRoot);
