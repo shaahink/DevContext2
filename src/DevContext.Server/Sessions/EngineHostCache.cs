@@ -26,6 +26,21 @@ public sealed class EngineHostCache : IAsyncDisposable
         });
     }
 
+    /// <summary>Number of live hosts (introspection; tests pin the release behavior on it).</summary>
+    public int Count => _hosts.Count;
+
+    /// <summary>D5.3 laden-server — removes and disposes the host for a root. The session manager
+    /// calls this when the LAST session on that root goes away: a host pins every parsed
+    /// SyntaxTree/text/XDocument of its repo (<see cref="PersistentAnalysisCache"/>), so an
+    /// unevicted host cache grew without bound across distinct analyzed roots — the
+    /// "unresponsive after ~36 analyses" class, which only a server restart cured. A released
+    /// root re-opens warm via the snapshot cache instead of RAM.</summary>
+    public async ValueTask ReleaseAsync(string rootPath)
+    {
+        if (_hosts.TryRemove(rootPath, out var host))
+            await host.DisposeAsync().ConfigureAwait(false);
+    }
+
     public async ValueTask DisposeAsync()
     {
         foreach (var host in _hosts.Values)
