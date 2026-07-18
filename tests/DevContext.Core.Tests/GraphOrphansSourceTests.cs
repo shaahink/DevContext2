@@ -129,6 +129,49 @@ public sealed class GraphOrphansSourceTests
     }
 
     [Fact]
+    public void Library_archetype_makes_no_dead_code_claim_at_all()
+    {
+        // wolverine P7 catch: a library's public types are consumed EXTERNALLY — zero inbound graph
+        // references is their normal state, not evidence of death.
+        var (g, entries) = BuildBaseGraph();
+        g.SetEntries(entries);
+        var graph = g.Build();
+        var model = ModelWithImplementor();
+        model.Archetype = "Library";
+
+        Assert.Empty(new GraphOrphansSource().Compute(model, graph, entries, AnalysisWithDtoCreation()));
+    }
+
+    [Fact]
+    public void Type_live_only_as_a_generic_argument_of_a_base_type_is_not_accused()
+    {
+        // ValidationOutcome : List<WolverineValidationResult> — the element type never appears as a
+        // bare base/interface name, only inside the generic argument list.
+        var (g, entries) = BuildBaseGraph();
+        g.AddNode(new GraphNode(new NodeId(NodeKind.Type, "App.WolverineValidationResult"),
+            "WolverineValidationResult", NodeKind.Type));
+        g.SetEntries(entries);
+        var graph = g.Build();
+
+        var model = ModelWithImplementor();
+        model.Types.TryAdd("App.ValidationOutcome", new TypeDiscovery
+        {
+            Id = "App.ValidationOutcome", Name = "ValidationOutcome", Namespace = "App",
+            FilePath = @"C:\repo\src\App\ValidationOutcome.cs", Kind = TypeKind.Class,
+            Accessibility = Microsoft.CodeAnalysis.Accessibility.Public, Layer = ArchitectureLayer.Domain,
+            BaseTypes = ["List<WolverineValidationResult>"],
+        });
+
+        var insight = new GraphOrphansSource()
+            .Compute(model, graph, entries, AnalysisWithDtoCreation())
+            .SingleOrDefault();
+
+        Assert.NotNull(insight);
+        Assert.DoesNotContain("WolverineValidationResult", insight.Evidence);
+        Assert.Contains("DeadHelper", insight.Evidence); // the genuine orphan is still claimed
+    }
+
+    [Fact]
     public void Fallback_overload_without_analysis_makes_no_claim()
     {
         var (g, entries) = BuildBaseGraph();

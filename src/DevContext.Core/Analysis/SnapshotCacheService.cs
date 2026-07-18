@@ -19,8 +19,10 @@ public static class SnapshotSchema
     /// a v2 snapshot of an UNCHANGED repo would render the pre-C1 map. Discipline until J2 grows an
     /// engine-version key: bump this whenever a change alters persisted analysis semantics.
     /// v4 (C5+J1, Prism D2): Resolves edges carry RegistrationSites (a v3 snapshot would trace with
-    /// pre-C5 arbitrary DI provenance) and the model carries ExtractionFailures (J1 health rows).</summary>
-    public const int Version = 4;
+    /// pre-C5 arbitrary DI provenance) and the model carries ExtractionFailures (J1 health rows).
+    /// v5 (I1 fix at D2 close): orphans insight coverage-gated + library-exempt — a v4 snapshot can
+    /// serve a persisted dead-code claim the fixed engine would never make (wolverine P7 catch).</summary>
+    public const int Version = 5;
 }
 
 /// <summary>Outcome of a snapshot save. The save is best-effort but NEVER silent (J2): a failure

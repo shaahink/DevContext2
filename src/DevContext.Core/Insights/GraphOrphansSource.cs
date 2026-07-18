@@ -28,6 +28,12 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
     {
         if (graph.NodeCount < 10) yield break;
 
+        // I1 (P7 catch, D2 close): a Library's public types are its PRODUCT — external consumers are
+        // invisible to the graph by construction, so "zero inbound references" can never support a
+        // dead-code claim on a library (wolverine's WolverineValidationResult was accused while being
+        // the element type of a public API collection).
+        if (string.Equals(model.Archetype, "Library", StringComparison.Ordinal)) yield break;
+
         var handlesCount = graph.AllEdges.Count(e => e.Kind == EdgeKind.Handles);
         var sendsCount = graph.AllEdges.Count(e => e.Kind == EdgeKind.Sends);
         if (handlesCount < 5 && sendsCount < 10) yield break;
@@ -68,15 +74,18 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
         // I1 exclusion: an interface/base implemented or extended by ANY type is a live contract
         // (the audit's "IRequest dead" while 5 request classes implement it — implements-edges were
         // ignored by the in-degree test).
+        // Every identifier in the type reference counts, INCLUDING generic arguments — a type that
+        // is only the element of a base `List<T>` is live (the wolverine P7 catch). Over-inclusion
+        // is the right error direction: an exclusion too wide keeps a live type unaccused.
         var implemented = new HashSet<string>(StringComparer.Ordinal);
         foreach (var type in model.Types.Values)
         {
             if (!type.ImplementedInterfaces.IsDefaultOrEmpty)
                 foreach (var iface in type.ImplementedInterfaces)
-                    implemented.Add(StripGenerics(iface));
+                    AddTypeRefIdentifiers(implemented, iface);
             if (!type.BaseTypes.IsDefaultOrEmpty)
                 foreach (var bt in type.BaseTypes)
-                    implemented.Add(StripGenerics(bt));
+                    AddTypeRefIdentifiers(implemented, bt);
         }
 
         var orphans = graph.Nodes
@@ -117,6 +126,23 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
     {
         var lt = name.IndexOf('<');
         return lt > 0 ? name[..lt] : name;
+    }
+
+    /// <summary>Adds every identifier in a type reference — outer name AND generic arguments
+    /// (`List&lt;WolverineValidationResult&gt;` contributes both).</summary>
+    private static void AddTypeRefIdentifiers(HashSet<string> into, string typeRef)
+    {
+        var start = -1;
+        for (var i = 0; i <= typeRef.Length; i++)
+        {
+            var isIdent = i < typeRef.Length && (char.IsLetterOrDigit(typeRef[i]) || typeRef[i] == '_');
+            if (isIdent) { if (start < 0) start = i; }
+            else if (start >= 0)
+            {
+                into.Add(typeRef[start..i]);
+                start = -1;
+            }
+        }
     }
 
     private static HashSet<string> FindConventionDiTypes(DiscoveryModel model)
