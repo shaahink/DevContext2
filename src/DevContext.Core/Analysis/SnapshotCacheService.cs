@@ -77,6 +77,14 @@ public sealed class SnapshotCacheService
     }
 
     public static (string RepoKey, string VersionKey) ComputeKeys(string rootPath)
+        => ComputeKeys(rootPath, null);
+
+    /// <summary>D3.1 — the version key carries the analysis FLAVOR when it deviates from the
+    /// default full-fidelity run: a <c>--fast</c>/<c>--lite</c>/<c>--no-roslyn</c>/custom-excludes
+    /// analysis extracts genuinely less, and saving it under the default key would let a later full
+    /// run HIT a degraded snapshot. Default-flavor runs keep the unsuffixed key, so CLI analyze,
+    /// CLI query, and the server all share one slot per (repo, tree).</summary>
+    public static (string RepoKey, string VersionKey) ComputeKeys(string rootPath, ExtractionOptions? options)
     {
         var normalized = Path.GetFullPath(rootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var repoKey = HashString(normalized);
@@ -94,7 +102,24 @@ public sealed class SnapshotCacheService
             var dirty = GitHeadReader.ReadDirtyFingerprint(normalized);
             versionKey = dirty is null ? head : $"{head}-dirty-{dirty}";
         }
+        if (options is not null && ComputeFlavorSuffix(options) is { } flavor)
+            versionKey = $"{versionKey}-opt-{flavor}";
         return (repoKey, versionKey);
+    }
+
+    /// <summary>Null for the default full-fidelity flavor (the shared slot); otherwise a short hash
+    /// over every option that changes what extraction PRODUCES. Render-only options (format, budget,
+    /// profile with full graph on, provenance, focus) deliberately don't key — the persisted snapshot
+    /// is render-complete and load sites re-render per request.</summary>
+    private static string? ComputeFlavorSuffix(ExtractionOptions o)
+    {
+        var defaultFlavor = o is { AllowRoslyn: true, BuildFullGraph: true, Fast: false, ExcludeExtractors.Length: 0 }
+            && o.ExcludePatterns.SequenceEqual(ExtractionOptions.DefaultExcludePatterns);
+        if (defaultFlavor) return null;
+        var canonical = $"roslyn:{o.AllowRoslyn}|graph:{o.BuildFullGraph}|fast:{o.Fast}"
+            + $"|excl:{string.Join(",", o.ExcludeExtractors.Sort(StringComparer.Ordinal))}"
+            + $"|pat:{string.Join(",", o.ExcludePatterns.Sort(StringComparer.Ordinal))}";
+        return HashString(canonical)[..12];
     }
 
     /// <summary>Pure path computation — creates nothing. (The pre-J2 form did CreateDirectory here,

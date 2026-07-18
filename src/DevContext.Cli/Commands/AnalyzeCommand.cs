@@ -181,8 +181,9 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         inner.Add(collector);
         var observer = new CompositeDiscoveryObserver([.. inner]);
 
-        // I8 — snapshot cache check
-        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+        // I8 — snapshot cache check. D3.1: keys carry the analysis flavor, so a --fast/--lite/
+        // --no-roslyn run caches in its own slot and can never be served to a full-fidelity run.
+        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options);
         var snapCache = new DevContext.Core.Analysis.SnapshotCacheService();
         var fromCache = false;
         // J2 — dry-run bypasses the cache read: a cached snapshot is a FULL analysis, and

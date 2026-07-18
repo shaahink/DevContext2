@@ -108,6 +108,23 @@ archetypes intended, P7 quiet octet-wide). Honesty note: the full-tier sweep ran
 commit; the fix's blast radius (one insight source + schema constant, nothing expectation-pinned)
 is covered by fast suite + truth gate + the 8/8 octet — formal re-sweep rides phase-end QA.
 
+## D3 — OPEN (feat/prism-d3, cut 2026-07-18 off 4355417)
+
+**Scope carve (owner directive, 2026-07-18 session 1): D4 may run IN PARALLEL in another
+session+worktree.** To keep the surfaces disjoint: D3 keeps ENGINE+CLI+SERVER only; D3's "UI-lite"
+items (L2 Freshness card, L7 loading-waterfall UI, K2 Stats-page timeline UI) are HANDED TO THE D4
+SESSION (they are `src/DevContext.App` work and D4 owns those pages). D3 plans NO proto change
+(`StatsResponse.stages`/`total_wall_ms` already exist), so the proto→TS-regen collision surface is
+zero. D4 mechanics: cut `feat/prism-d4` off the CLOSED D2 tip (4355417) in a worktree; rebase onto
+the d3 tip when D3 closes; D4's one proto-touching item (library-surface RPC) lands AFTER that
+rebase. Don't run full gate batteries in both sessions at once (build-DLL locks + orphaned-server
+gotcha); `eval-repos/` is machine-local — the D4 worktree reaches it by absolute path.
+
+### D3.1 — query ops ride the snapshot cache (J2 remainder; the "parked smell" made load-bearing)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D3.1 | `query` CLI ops load/save the J2 snapshot cache instead of re-paying full analysis per question. **Flavor-keyed poison-proofing (new, found while wiring):** the version key now carries the analysis FLAVOR when it deviates from the default full-fidelity run (`-opt-<12hex>` over AllowRoslyn/BuildFullGraph/Fast/ExcludeExtractors/ExcludePatterns) — closes the pre-existing D2.0b hole where a `--fast`/`--lite`/`--no-roslyn` save could be HIT by a full run; default flavor keys UNSUFFIXED so CLI analyze, CLI query, and the server share one slot per (repo, tree). Query options aligned to default-analyze flavor (config excludes, EntryPaths, ScopedProjectDirs — query previously diverged from analyze on all three). Honesty: stamp is CONSOLE-ONLY stderr (gates/lens scripts run PS 5.1 EAP=Stop where redirected native stderr throws — stdout stays pure JSON); machine surface = `query stats` JSON `snapshotCache` field. `--no-cache` added to query; **lens-audit P7 passes it** so insight-validity keeps recomputing independently instead of validating the snapshot it audits (the freshness thread the D2 close flagged) | VERIFIED | (this) | prism-d3/d31/ — podcasts miss·saved 8s → HIT 1s; **bitwarden second question 4.2s (DoD target <15s ✓)**, third op (usages CipherService, 43 callers) 4.0s; cross-surface BOTH directions: query saved 3e79593 → `analyze` re-drive `from cache · 3e79593 · 3491ms`; fresh-vs-rehydrated stats JSON byte-identical modulo the honest snapshotCache field; 7/7 SnapshotCacheTests (2 new flavor-key tests: default flavor unsuffixed + matches optionless overload; fast/lite/no-roslyn/excl each distinct; suffix order-insensitive); fast suite 599+15 green |
+
 # ✅ D2 DELIVERY CLOSED (2026-07-18, session 4)
 
 ### D2 Definition of Done (proposal §2-D2) — ALL TICKED at close

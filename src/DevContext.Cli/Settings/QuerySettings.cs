@@ -33,4 +33,8 @@ public sealed class QuerySettings : CommandSettings
     [Description("gRPC server to attach to (host:port)")]
     [CommandOption("--attach")]
     public string? Attach { get; set; }
+
+    [Description("Skip the snapshot cache: always re-analyze, and don't write the result")]
+    [CommandOption("--no-cache")]
+    public bool NoCache { get; set; }
 }

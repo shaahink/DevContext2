@@ -29,7 +29,10 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                 var rootResult = await ProjectRootResolver.ResolveAsync(registryEntry.Path, _fs, ct)
                     .ConfigureAwait(false);
 
-                var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath);
+                // D3.1 — keys carry the analysis flavor (a NoRoslyn run lives in its own slot).
+                var resolvedIntent0 = ResolveIntent(spec);
+                var options0 = BuildOptions(rootResult, resolvedIntent0, spec);
+                var (repoKey, versionKey) = SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options0);
                 if (_snapCache.Exists(repoKey, versionKey))
                 {
                     var cached = await _snapCache.TryLoadAsync(repoKey, versionKey, ct)
@@ -39,8 +42,8 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
                         var (stale, staleMessage) = await ProbeStalenessAsync(registryEntry.Path, ct)
                             .ConfigureAwait(false);
 
-                        var resolvedIntent = ResolveIntent(spec);
-                        var options = BuildOptions(rootResult, resolvedIntent, spec);
+                        var resolvedIntent = resolvedIntent0;
+                        var options = options0;
 
                         var host = hostCache.GetOrCreate(rootResult.EffectiveRootPath);
                         var rehydrated = cached with { Options = options, RootPath = rootResult.EffectiveRootPath };
@@ -63,7 +66,7 @@ public sealed class EngineRunner(ILoggerFactory loggerFactory, EngineHostCache h
         var resolvedIntent2 = ResolveIntent(spec);
         var options2 = BuildOptions(rootResult2, resolvedIntent2, spec);
 
-        var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath);
+        var (repoKey2, versionKey2) = SnapshotCacheService.ComputeKeys(rootResult2.EffectiveRootPath, options2);
         if (_snapCache.Exists(repoKey2, versionKey2))
         {
             var cached2 = await _snapCache.TryLoadAsync(repoKey2, versionKey2, ct)

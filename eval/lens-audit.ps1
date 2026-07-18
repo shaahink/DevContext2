@@ -156,7 +156,9 @@ foreach ($Repo in $Selected) {
     # (constructed, implemented/extended, or EF-indexed in the repo source). A hit = the insight
     # accused live code. All insights are RECORDED per repo (insights-recorded.json) so the
     # non-machine-checkable ones can carry manual verdicts.
-    $StatsJson = & $CliExe query stats --path $RepoPath 2>$null
+    # --no-cache (D3.1): P7's claims-check must recompute insights independently, not validate the
+    # very snapshot the analyze leg just cached.
+    $StatsJson = & $CliExe query stats --path $RepoPath --no-cache 2>$null
     if ($LASTEXITCODE -eq 0 -and $StatsJson) {
         try {
             $Stats = ($StatsJson -join "`n") | ConvertFrom-Json

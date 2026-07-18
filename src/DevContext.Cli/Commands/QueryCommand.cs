@@ -47,12 +47,19 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         var path = settings.Path ?? ".";
         var rootResult = await ProjectRootResolver.ResolveAsync(path, _fs, ct);
 
+        // D3.1 — query options mirror the DEFAULT analyze flavor exactly (config excludes, entry
+        // paths, full graph), so query and analyze share one snapshot-cache slot per (repo, tree):
+        // the second question after any analyze is a cache load, not a 150s re-analysis.
+        var config = DevContextConfig.Load(DevContextConfig.DefaultPath);
         var options = new ExtractionOptions
         {
+            EntryPaths = rootResult.EntryCandidates,
             Profile = ExtractionProfile.Focused,
             AllowRoslyn = true,
             BuildFullGraph = true,
             OutputFormat = OutputFormat.Json,
+            ExcludePatterns = config?.ExcludePatterns?.ToImmutableArray()
+                ?? ExtractionOptions.DefaultExcludePatterns,
         };
 
         var scenario = ScenarioRegistry.BuiltIn["overview"];
@@ -62,6 +69,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
+            ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = scenario,
             Observer = new NullDiscoveryObserver(),
@@ -71,7 +79,48 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             Logger = _loggerFactory.CreateLogger("DevContext"),
         };
 
-        var snapshot = await _pipeline.AnalyzeAsync(ctx, ct);
+        // D3.1 — query ops ride the snapshot cache (stdout stays pure JSON; the honesty stamp goes
+        // to stderr). The insight-validity harness (P7) passes --no-cache so its claims-check stays
+        // an independent recompute rather than validating the very snapshot it audits.
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options);
+        var snapCache = new DevContext.Core.Analysis.SnapshotCacheService();
+        AnalysisSnapshot? snapshot = null;
+        var fromCache = false;
+        if (!settings.NoCache && snapCache.Exists(repoKey, versionKey))
+        {
+            snapshot = await snapCache.TryLoadAsync(repoKey, versionKey, ct);
+            if (snapshot is not null)
+            {
+                fromCache = true;
+                snapshot = snapshot with { Options = options, RootPath = rootResult.EffectiveRootPath };
+            }
+        }
+
+        DevContext.Core.Analysis.SnapshotSaveResult? saveResult = null;
+        if (snapshot is null)
+        {
+            snapshot = await _pipeline.AnalyzeAsync(ctx, ct);
+            if (!settings.NoCache && !snapshot.IsDryRun)
+                saveResult = await snapCache.SaveAsync(repoKey, versionKey, snapshot, ct);
+        }
+
+        // Honesty stamp — CONSOLE ONLY. Redirected stderr stays byte-silent: the gate/eval scripts
+        // run PS 5.1 with EAP=Stop, where any redirected native stderr line becomes an ErrorRecord.
+        // Machine consumers get the same truth via the stats op's snapshotCache field.
+        var shortVer = versionKey[..Math.Min(7, versionKey.Length)];
+        var cacheStatus = settings.NoCache
+            ? "bypassed (--no-cache)"
+            : fromCache
+                ? $"HIT · {shortVer}"
+                : saveResult switch
+                {
+                    { Success: true } => $"miss · saved {shortVer}",
+                    { Success: false } => $"miss · save FAILED: {saveResult.Error}",
+                    _ => "miss · not saved",
+                };
+        if (!Console.IsErrorRedirected)
+            Console.Error.WriteLine($"snapshot cache: {cacheStatus} · {sw.ElapsedMilliseconds}ms");
 
         if (snapshot.IsDryRun)
         {
@@ -101,7 +150,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
-                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights),
+                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus),
                 "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
                 _ => null
             };
@@ -234,7 +283,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
 
     // T3.7 — stats: graph counts + per-kind entry counts + seam breakdown (verified/approx).
     private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph,
-        DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights)
+        DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights,
+        string snapshotCache)
     {
         var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
         var entries = query.EntryPoints();
@@ -243,6 +293,9 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             .ToDictionary(g => g.Key, g => g.Count());
         return new
         {
+            // D3.1 — what the snapshot cache did for THIS invocation (CLI-local; the honesty stamp
+            // is console-only so redirected stderr stays clean).
+            snapshotCache,
             nodeCount = graph.NodeCount,
             edgeCount = graph.EdgeCount,
             entryCount = entries.Length,

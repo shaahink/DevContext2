@@ -173,6 +173,55 @@ public sealed class SnapshotCacheTests : IDisposable
         Assert.NotEqual(dirtyKey, dirtyKey2);
     }
 
+    [Fact]
+    public void Default_flavor_key_is_unsuffixed_and_matches_the_optionless_overload()
+    {
+        // D3.1 — CLI analyze, CLI query, and the server must share ONE slot per (repo, tree):
+        // the default full-fidelity flavor keys exactly like the pre-D3 optionless form.
+        Directory.CreateDirectory(_cacheRoot);
+        var (_, bare) = SnapshotCacheService.ComputeKeys(_cacheRoot);
+        var (_, withDefaults) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions
+        {
+            Profile = ExtractionProfile.Debug,          // render-affecting only — must not key
+            OutputFormat = OutputFormat.Json,           // ditto
+            MaxOutputTokens = 123,                      // ditto
+            EntryPaths = ["whatever"],                  // resolver-derived, not flavor
+        });
+        Assert.Equal(bare, withDefaults);
+        Assert.DoesNotContain("-opt-", bare);
+    }
+
+    [Fact]
+    public void Degraded_flavors_get_their_own_version_keys()
+    {
+        // A --fast/--lite/--no-roslyn run extracts less; letting a full run HIT its snapshot
+        // would serve a silently degraded map (the poison hole the flavor key closes).
+        Directory.CreateDirectory(_cacheRoot);
+        var (_, full) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions());
+        var (_, fast) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions { Fast = true });
+        var (_, lite) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions { BuildFullGraph = false });
+        var (_, noRoslyn) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions { AllowRoslyn = false });
+        var (_, excl) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions
+        {
+            ExcludeExtractors = ["AntiPatternDetector"],
+        });
+
+        Assert.All(new[] { fast, lite, noRoslyn, excl }, k => Assert.Contains("-opt-", k));
+        Assert.Equal(4, new[] { fast, lite, noRoslyn, excl }.Distinct().Count());
+        Assert.All(new[] { fast, lite, noRoslyn, excl }, k => Assert.NotEqual(full, k));
+
+        // The suffix is order-insensitive over the exclusion set (a canonical flavor, not a shuffle).
+        var (_, exclA) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions
+        {
+            ExcludeExtractors = ["B", "A"],
+        });
+        var (_, exclB) = SnapshotCacheService.ComputeKeys(_cacheRoot, new ExtractionOptions
+        {
+            ExcludeExtractors = ["A", "B"],
+        });
+        Assert.Equal(exclA, exclB);
+    }
+
     private static bool TryGit(string workDir, string args)
     {
         try
