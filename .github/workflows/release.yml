@@ -2,13 +2,22 @@ name: Release
 
 # Tagging v* publishes:
 #   - CLI: MinVer derives the version from the tag; NuGet push (when NUGET_API_KEY is set)
-#   - Desktop: Tauri installer with DevContext.Server bundled as a sidecar
-#     (pnpm publish:server via beforeBuildCommand; users need the .NET 10 runtime)
+#   - Desktop — WINDOWS-ONLY by decision (Prism D5.4 / H2): Tauri NSIS+MSI installers with
+#     DevContext.Server bundled as a sidecar (pnpm publish:server via beforeBuildCommand; users
+#     need the .NET 10 runtime). No mac/linux bundles are built: there is no hardware to verify
+#     them on — README §Platform support makes the same claim, and tauri.conf.json pins
+#     bundle.targets to nsis+msi. Installer version derives from the tag (H3), not the conf
+#     default.
 #   - a GitHub Release with the .nupkg + installers attached
+#
+# workflow_dispatch = release DRY-RUN: builds and uploads the full artifact inventory
+# (nupkg + Windows installers) so it can be inspected, but skips the NuGet push and the
+# GitHub Release — nothing is published from a dispatch.
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 jobs:
   cli:
@@ -34,7 +43,7 @@ jobs:
         run: dotnet pack src/DevContext.Cli --configuration Release --no-build -o nupkg
 
       - name: Push to NuGet
-        if: env.NUGET_API_KEY != ''
+        if: github.ref_type == 'tag' && env.NUGET_API_KEY != ''
         run: dotnet nuget push nupkg/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
@@ -46,7 +55,7 @@ jobs:
           path: nupkg/*.nupkg
 
   desktop:
-    name: Desktop — Tauri installer
+    name: Desktop — Tauri installer (Windows-only)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +78,15 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: src/DevContext.App
 
+      # H3 — the installers must carry the release tag's version, not the conf default.
+      # A dispatch dry-run has no tag; 0.0.0 marks its artifacts as unpublishable.
+      - name: Version installers from the release tag (H3)
+        shell: pwsh
+        working-directory: src/DevContext.App
+        run: |
+          $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'v0.0.0' }
+          node scripts/set-tauri-version.mjs $tag
+
       # beforeBuildCommand (tauri.conf.json) publishes DevContext.Server into
       # src-tauri/resources/server and builds the Angular frontend before bundling.
       - name: Build installer
@@ -86,6 +104,7 @@ jobs:
   release:
     name: GitHub Release
     needs: [cli, desktop]
+    if: github.ref_type == 'tag' # a workflow_dispatch dry-run uploads artifacts but never releases
     runs-on: ubuntu-latest
     permissions:
       contents: write
