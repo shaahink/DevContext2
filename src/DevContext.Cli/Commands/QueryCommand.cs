@@ -66,13 +66,19 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
         var cache = new AnalysisCache(_fs);
         var analysis = new SharedAnalysisContext();
 
+        // K2 (D3.3) — a real report collector, not the null observer: the pipeline builds the stage
+        // timeline from it, so query-originated snapshots persist the same analyze waterfall that
+        // analyze-originated ones do (and the stats op below can always serve it).
+        var collector = new RunReportCollector();
+        collector.SetBudget(options.MaxOutputTokens);
+
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
             ScopedProjectDirs = rootResult.ScopeProjectDirs,
             Options = options,
             ActiveScenario = scenario,
-            Observer = new NullDiscoveryObserver(),
+            Observer = new CompositeDiscoveryObserver([collector]),
             FileSystem = _fs,
             Cache = cache,
             Analysis = analysis,
@@ -150,7 +156,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
-                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus),
+                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights, cacheStatus, snapshot.Report),
                 "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
                 _ => null
             };
@@ -284,7 +290,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
     // T3.7 — stats: graph counts + per-kind entry counts + seam breakdown (verified/approx).
     private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph,
         DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights,
-        string snapshotCache)
+        string snapshotCache, DevContext.Core.Models.RunReport? report)
     {
         var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
         var entries = query.EntryPoints();
@@ -304,6 +310,15 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             deepSpineRatio,
             entriesByKind = byKind,
             seams = seams.Select(s => new { kind = s.Seam, total = s.Count, verified = s.Count - s.Approx, approx = s.Approx }).ToArray(),
+            // K2 (D3.3) — the analyze-time waterfall rides the stats surface: stage timeline of the
+            // run that PRODUCED this snapshot (persisted, so a cache HIT serves the original run's
+            // timings). Empty on pre-D3.3 snapshots — honest, that run recorded no stages.
+            totalWallMs = (long)(report?.TotalWall.TotalMilliseconds ?? 0),
+            stages = (report?.Stages ?? []).Select(s => new
+            {
+                stage = s.Stage,
+                ms = (long)s.Elapsed.TotalMilliseconds,
+            }).ToArray(),
             // J1/J3 — per-component swallowed-failure counters (empty = clean run)
             extractionFailures = model.ExtractionFailures
                 .Select(f => new { source = f.Source, category = f.Category, count = f.Count, sample = f.SampleException })

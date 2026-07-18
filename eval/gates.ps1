@@ -358,10 +358,11 @@ if ($ep -and $ep.count -gt 0 -and $ep.byKind -and ($ep.byKind.PSObject.Propertie
 
 $stJson = & dotnet run --no-build --project $cliProject -- query stats --path $testDir --format json 2>&1 | Out-String
 try { $st = $stJson | ConvertFrom-Json } catch { $st = $null }
-if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind) {
-    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, per-kind counts present" -ForegroundColor Green
+# K2 (Prism D3.3): stats must carry the analyze-time stage timeline (fresh fixture => never empty).
+if ($st -and $st.nodeCount -gt 0 -and $st.entriesByKind -and $st.stages.Count -gt 0) {
+    Write-Host "    stats: $($st.nodeCount) nodes, $($st.entryCount) entries, $($st.stages.Count) waterfall stages" -ForegroundColor Green
 } else {
-    Write-Host "    stats: expected node counts + entriesByKind" -ForegroundColor Red; $queryFailed++
+    Write-Host "    stats: expected node counts + entriesByKind + non-empty stages timeline" -ForegroundColor Red; $queryFailed++
 }
 
 # trace must honor --focus (the render fallback ignored it): no focus => exit 1 guard; real focus => found.
