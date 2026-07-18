@@ -2636,3 +2636,21 @@ node/neighbors/usages/impact + resolver tiebreak, one locus for CLI/gRPC/MCP. po
 PodcastService usages 0 -> 9 callers.
 Owner mid-session: delivery rate low -> cadence tightened (one targeted drive per checkpoint,
 sweeps at boundaries). Next: C5 (DI provenance ranking) -> J1/J3 -> I1/I2 -> D3-budget.
+
+## 2026-07-18 - Prism D3 session 2: the compiler lever, profiled (D3.4) + D3 close
+D3.4 (fd8b135): the proposal's mechanism (persist the merged compilation on-disk) was falsified
+by instrument before engineering - new permanent timing split inside SemanticLitePopulator.Populate
+shows DntSite's 81.8s SemanticLite = fw 51ms / nuget 2ms / trees 2ms / create 1ms / BIND 79.7s.
+CSharpCompilation.Create is lazy; there is nothing to persist (the refs ARE the on-disk form).
+Delivered the measured lever: (1) bind parallelized BY TREE (per-task GetSemanticModel, results at
+original indices - order cannot drift) 79.7->46.7s; (2) arg-bind demand honesty - 390,625 of the
+binds were argument types, but every ResolveArgTarget site reads ONLY Args[0] of a
+dispatch/publish/raise verb; the gate is the runtime UNION of the three detectors' own verb
+catalogs (drift-impossible) 46.7->26.4s, DntSite arg binds 390625->0 (no dispatch calls there;
+bitwarden's honest demand: 6). Output proven byte-identical: DntSite map, bitwarden map (vs the
+session-1 d31 baseline; run-1 diff was the known [bus] provenance-site flap, proven run-to-run on
+one binary), dogfood pole incl. the E1 keep-side BasketCheckoutEvent seam, eShop deep trace
+(pre-vs-post worktree diff). Bench: DntSite Map 125.5->34.5s, Trace 179.4->30.2s, OrchardCore
+42.2->30.8s, edges/entries identical every row. Cold bitwarden 151.5->98.3s (target ~3.5min).
++3 unit tests; fast 606+15; McpQa serial 2/2; loom-guards PASS. D3 close battery: full-tier gate
+detached (result in tracker).

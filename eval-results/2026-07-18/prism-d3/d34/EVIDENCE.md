@@ -54,3 +54,22 @@ Files: dntsite-tier-timing-{pre,parallel,gated}.txt
 - SemanticLitePopulatorTests: +3 (demand-verbs union pins the detector catalogs; dispatch arg
   binds Semantic while out-of-demand arg stays untouched; parallel pass is order-preserving and
   repeatable). Fast suite 606+3skip +15 green; McpQa serial 2/2; loom-guards PASS.
+
+## Bench (D3 close criterion: verdicts unchanged) — PERF-2026-07-18-1346.md vs PERF-2026-07-17-0036.md
+
+Walls: DntSite Map 125.5s→34.5s · DntSite Trace 179.4s→30.2s · OrchardCore 42.2s→30.8s ·
+AutoMapper 5.4s→2.1s · eShop.Ordering 1.0s→0.5s. Log: bench-run.txt (first launch was killed by
+the harness 10-min cap mid-DntSite; relaunched detached — the numbers are from the quiet detached run).
+
+Verdicts: edges/entries IDENTICAL on every row (DntSite 4364 & 2610 edges, 94 entries;
+OrchardCore 11045/11904/286; eShop.Ordering 305/331/19 + 304/330/19; AutoMapper 2061/679).
+Node deltas vs the 07-17 baseline (DntSite +79 both modes, TodoApi 123→131, AspireSamples 58→87)
+carry D2-C1's razor-@code virtual trees, which landed AFTER that baseline was taken — the
+breakdown rows now print "N razor @code" on exactly those repos, and this session's PRE-D3.4
+instrumented DntSite run already showed 3387 nodes (equal to the bench row).
+
+Deep-trace guardrail: eShop `POST /api/orders/` focus driven on the pre-D3.4 binary (throwaway
+worktree at 0eae719) and the post-D3.4 binary: **byte-identical** (eshop-trace-pre/post). The
+trace currently stops at `send IdentifiedCommand [verified]` and does not render the
+IntegrationEventLogEF hop — PRE-EXISTING at the D3 tip (the bench-skill exemplar describes an
+older render shape); noted as a D5 phase-QA observation, not a D3.4 effect.

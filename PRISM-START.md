@@ -128,7 +128,49 @@ cold bitwarden ~3.5min once → focus <10s; T7.2 numbers: DntSite 81s of 95s is 
 bitwarden 207s). It may spill to D4 QA-back per the proposal without blocking D4 — cache targets
 are already met. Then D3 close: bench verdicts unchanged + full battery.**
 
-## D3 — OPEN (feat/prism-d3, cut 2026-07-18 off 4355417)
+last: 2026-07-18 **D3 session 2 — D3.4 VERIFIED @ fd8b135 (row below); D3 CLOSE ran.** Ack: INBOX
+unchanged (D1-era standing orders; general discipline carried). **The proposal's compiler-lever
+mechanism was FALSIFIED by measurement before any engineering** (the honest-instrument path: the
+new permanent fw/nuget/trees/create/bind timing split inside Populate): building the merged
+compilation costs 55ms, not 81s — T7.2 conflated the SemanticLite stage with its dominant substep,
+the SERIAL demand-set bind (79.7s), of which 390,625 binds were argument types nothing consumes
+(every ResolveArgTarget site reads ONLY Args[0] of a dispatch/publish/raise verb). Delivered the
+measured lever instead: parallel per-tree bind (the CallGraphExtractor P2 isolation pattern) +
+arg-bind demand gate built as the runtime UNION of the three seam detectors' own verb catalogs
+(drift-impossible). 79.7→46.7→26.4s on DntSite. NO persistence/cache surface was added — there is
+nothing at this locus worth persisting (the fw/NuGet refs ARE the on-disk form, 55ms to load), so
+no invalidation surface exists and no snapshot bump is needed (output byte-identical, proven).
+Bench (close criterion): DntSite Map 125.5→34.5s, Trace 179.4→30.2s, OrchardCore 42.2→30.8s;
+edges/entries identical every row; node deltas = D2-C1 razor trees postdating the 07-17 baseline
+(pre-D3.4 run this session already showed 3387). eShop deep-trace guardrail byte-identical pre/post
+(throwaway worktree at 0eae719) — the trace stopping short of IntegrationEventLogEF is
+PRE-EXISTING, carried to D5 phase QA. Cold bitwarden 151.5→98.3s (proposal target ~3.5min, ×2
+headroom); warm 4.2s rides D3.1. Session gotcha ×2: orphaned DevContext.Server from test runs
+locked build DLLs — `start-dev-bg.ps1 -Kill` cured both times.
+**Close battery: full-tier gate GATE: PASS unqualified** (`prism-d3/gates-d3-close-full.txt`) —
+build 0w/0e, fast tests, MCP QA serial, eval BOTH hosts green **5m02+9m05 (vs D2-close 5m54+11m53
+— the cohort itself got faster, D3.4 visible in the gate)**, stamp WRITTEN, CLI matrix + query
+ops, pnpm check. Bench file: `benchmarks/results/PERF-2026-07-18-1346.md`.
+
+# ✅ D3 DELIVERY CLOSED (2026-07-18, session 2)
+
+### D3 Definition of Done (proposal §2-D3) — state at close
+- ✅ cache round-trip green in battery (D3.1 SnapshotCacheTests 7/7 + gates stats probe; again in the close gate)
+- ✅ warm-run target on the octet's big pole (bitwarden second question 4.2s < 15s; cold 98.3s < 3.5min)
+- ✅ bench verdicts unchanged (PERF-2026-07-18-1346 vs 07-17 baseline: edges/entries identical every row)
+- ✅ full battery GATE: PASS (stamp written) — `prism-d3/gates-d3-close-full.txt`
+- ➡ loading screenshot gate → D4 per the scope carve (L2/L7/K2 UI are `src/DevContext.App` work, D4 owns those pages)
+- Compiler-lever remainder: NONE carried — the proposal's on-disk persistence mechanism was
+  measured at 55ms of value and closed as falsified (D3.4 row); the real lever (bind cost) landed.
+
+**D4 note: D3 is closed — rebase `feat/prism-d4` onto the d3 tip per the carve; D3 touched NO
+proto. Continue at D4 (app) / D5 (MCP polish + cross-platform + phase QA) per the delivery table.
+Known-latent carried forward: http ServiceLink pair-order flap (C1 row) + [bus] queue-seam
+provenance-site flap (D3.4 found it on bitwarden, same detection-order class) → determinism
+thread; eShop deep-trace render stops at the send seam (pre-existing, D5 phase-QA observation);
+J2 engine-version cache key still pending (bump discipline stands).**
+
+## D3 — CLOSED 2026-07-18 session 2 (feat/prism-d3, cut 2026-07-18 off 4355417)
 
 **Scope carve (owner directive, 2026-07-18 session 1): D4 may run IN PARALLEL in another
 session+worktree.** To keep the surfaces disjoint: D3 keeps ENGINE+CLI+SERVER only; D3's "UI-lite"
