@@ -108,6 +108,26 @@ archetypes intended, P7 quiet octet-wide). Honesty note: the full-tier sweep ran
 commit; the fix's blast radius (one insight source + schema constant, nothing expectation-pinned)
 is covered by fast suite + truth gate + the 8/8 octet — formal re-sweep rides phase-end QA.
 
+last: 2026-07-18 **D3 session 1 (feat/prism-d3) — D3.1 + D3.2(K1) + D3.3(K2) all VERIFIED (rows
+below, commits e629798/3be1996/2581561).** Ack: INBOX unchanged (D1-era standing orders; general
+discipline carried). Owner mid-session directive: **D4 may run in parallel (another session +
+worktree)** — scope carve encoded below; D3 stayed engine+CLI+server and touched NO proto, so the
+D4 collision surface is zero this window. Batch cadence honored: implement → unit test → ONE
+targeted drive → commit per checkpoint; **ONE batch gate for the session**
+(`gates.ps1 -Scope engine -EvalTier quick`, detached): **GATE: PASS** — build 0w/0e, fast tests,
+MCP QA serial, quick-tier eval green both hosts (57+30, stamp NOT written by design), CLI matrix +
+query ops incl. the NEW in-battery K2 probe (`9 waterfall stages`)
+(`prism-d3/gates-batch-d31-d33.txt`; `analyze --strict` exit 2 = the pre-existing allowed state,
+not chased). D3 DoD state after session 1: "cache round-trip green in battery" ✓ (SnapshotCacheTests
+7/7 + gates stats probe), "warm-run target on the octet's big pole" ✓ **bitwarden second question
+4.2s (<15s)**, "loading screenshot gate" → D4 per the carve, "bench verdicts unchanged" + full-tier
+close battery = pending at D3 close.
+**D3 SESSION 1 CLOSED — continue at the COMPILER LEVER (proposal §2-D3 risky tail: persist/reuse
+the merged compilation on-disk, keyed by source/package hash, invalidation truth-tested; targets
+cold bitwarden ~3.5min once → focus <10s; T7.2 numbers: DntSite 81s of 95s is compilation,
+bitwarden 207s). It may spill to D4 QA-back per the proposal without blocking D4 — cache targets
+are already met. Then D3 close: bench verdicts unchanged + full battery.**
+
 ## D3 — OPEN (feat/prism-d3, cut 2026-07-18 off 4355417)
 
 **Scope carve (owner directive, 2026-07-18 session 1): D4 may run IN PARALLEL in another
