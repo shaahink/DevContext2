@@ -369,16 +369,19 @@ export class GraphCanvas {
   private readonly levelOverride = signal<'services' | 'projects' | null>(null);
   private readonly expandedServices = signal<ReadonlySet<string>>(new Set());
 
+  /** Level 1 exists to summarize a MULTI-service system — a single-service facet (e.g. a
+   * library whose ServiceMap holds its test console, refit) renders one lonely box, so
+   * both the default and the toggle require ≥2 services. */
   protected readonly effectiveLevel = computed<'services' | 'projects'>(() => {
     const override = this.levelOverride();
     if (override) return override;
     const d = this.data();
-    return d.mode === 'topology' && (d.services?.length ?? 0) > 0 ? 'services' : 'projects';
+    return d.mode === 'topology' && (d.services?.length ?? 0) >= 2 ? 'services' : 'projects';
   });
 
   protected readonly levelChipsVisible = computed(() => {
     const d = this.data();
-    return d.mode === 'topology' && (d.services?.length ?? 0) > 0;
+    return d.mode === 'topology' && (d.services?.length ?? 0) >= 2;
   });
 
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('cy');
