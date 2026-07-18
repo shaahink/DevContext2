@@ -170,6 +170,56 @@ provenance-site flap (D3.4 found it on bitwarden, same detection-order class) �
 thread; eShop deep-trace render stops at the send seam (pre-existing, D5 phase-QA observation);
 J2 engine-version cache key still pending (bump discipline stands).**
 
+last: 2026-07-18 **D4 STAGED (post-close housekeeping, same session as D3 close).** No D4 session
+ever opened during the parallel window, so the carve's worktree/rebase mechanics are moot:
+`feat/prism-d4` is cut directly off the d3 branch tip (D3 close 3d0ec7f + the staging commit) and
+checked out in this directory. The D4 section above has the ready-to-execute checkpoint table
+(D4.0 harness → D4.7 close), simplified mechanics (app scope battery, stamp transfers, proto item
+unblocked), and the DoD verbatim. **Next session continues in the established fashion: open →
+re-read INBOX → D4.0.**
+
+## D4 — STAGED, READY TO OPEN (feat/prism-d4, cut off the d3 branch tip: D3 close 3d0ec7f + this staging commit)
+
+**Prepared 2026-07-18 at D3 close. NEXT SESSION: `git checkout feat/prism-d4` (already cut, this
+prep rides at its base), read this section + proposal §2-D4 + PRISM-INBOX.md, start at D4.0 and
+work the table top to bottom. Spec: proposal §2-D4 (F1–F6, L1, L3–L6, M + D1's library-UI half +
+D3's carved UI-lite items). Model staffing (proposal §1): Sonnet 5, with an Opus 4.8 (or better)
+design pass for the canvas system — the one taste-critical piece.**
+
+Mechanics (the D3-era carve, simplified now that D3 is CLOSED — no rebase dance left):
+- Branch `feat/prism-d4` is cut off `3d0ec7f` (d3 tip, this prep included). Pure
+  `src/DevContext.App` work + small server additions; **the one proto item (library-surface RPC,
+  D4.4) may now land at any point** — D3 closed having touched NO proto. After any proto change:
+  rebuild `DevContext.Contracts` AND `pnpm gen:proto`, wire server+app in lockstep.
+- Battery cadence: `gates.ps1 -Scope app` (~90s) per checkpoint; engine untouched ⇒ the eval
+  stamp (written green at D3 close) transfers; FULL gate only at delivery close. Run the app via
+  `start-dev-bg.ps1` (never foreground pnpm). Screenshot tooling exists — build on
+  `src/DevContext.App/scripts/` (`audit-screenshots.mts`, `lens-audit-drive.mts`,
+  `grpcweb-smoke.mts`, playwright ^1.61.1 already a dep), don't invent a new harness.
+- Evidence: `eval-results/<date>/prism-d4/`. Per-checkpoint cadence as encoded at D2 session 2:
+  implement → unit/vitest → ONE targeted drive (screenshot or scripted RPC drive) → commit
+  (docs+tracker in the same commit) → re-read PRISM-INBOX.md.
+- Repos for drives: podcasts + refit + eShop + bitwarden (the DoD four) — all in `eval-repos/`.
+
+### D4 checkpoint table (work order top to bottom; status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D4.0 | **Harness first:** screenshot gate script — repeatable captures of loading/home/Explore/Atlas for podcasts/refit/eShop/bitwarden (the DoD proof instrument), built on the existing playwright scripts; baseline set committed so later checkpoints diff against it | TODO | | |
+| D4.1 | **Canvas system (F2/L6):** ONE deterministic layered layout (ELK/dagre-class), fit-and-center that never clips, stable across pages. **Design pass on the stronger model per §1 before implementation** | TODO | | |
+| D4.2 | **Semantic rendering + progressive disclosure (F3/M):** kind glyphs, transport-labeled edges (HTTP/queue/gRPC/event), DDD-layer lanes, stores/externals distinct; C4-ish level 1 (services+transports) default, expand per service — the engine already knows all of it | TODO | | |
+| D4.3 | **Atlas one-pager (L3):** layered architecture view, per-service cards (style + entry mix), event/queue board, data stores, matching export | TODO | | |
+| D4.4 | **Library workbench (F1) + library-surface RPC (the proto item):** archetype Library routes Explore to a public-surface browser (ENTRY API / ABSTRACTIONS / GENERATORS / PUBLIC SURFACE / CONSUMER PATHS rail); home cards swap entry-metrics for surface-metrics; style chip suppressed exactly as the CLI does | TODO | | |
+| D4.5 | **Studio & nav (L4/L5/F4/F5):** live pack preview (markdown + token meter + per-section provenance, recompute-on-change, Copy copies what's shown); preset names + one-line effect + visible scope delta; entry browser replaces the table dump (ranked, grouped service→kind→route, filter-as-you-type, kind chips, auth badges; Shift+E demoted to power view — needs D1's B3 composed routes, LANDED); session naming unified; MCP feed origin fix (app RPCs never labeled `agent`) | TODO | | |
+| D4.6 | **The carved D3 UI-lite items:** L2 Freshness card (snapshot age/HEAD/location + re-analyze affordance — `query stats snapshotCache` field feeds it, D3.1), L7 loading waterfall UI (server streams the stages — StreamingProgressObserver), K2 Stats-page timeline (`StatsResponse.stages`/`total_wall_ms` flow on fresh AND rehydrated sessions since D3.3 — server needs NOTHING) | TODO | | |
+| D4.7 | **Close:** DoD screenshot battery over the four repos + scripted Studio drive builds a podcasts pack from the preview + refit UI session shows the full library surface + `pnpm check` + FULL gate | TODO | | |
+
+### D4 Definition of Done (proposal §2-D4, verbatim)
+- refit UI session shows the full library surface
+- scripted Studio drive builds a podcasts pack entirely from the preview
+- screenshot gates on loading/home/Explore/Atlas for podcasts + refit + eShop + bitwarden
+- a reviewer can answer "how does this system work" from Atlas alone
+- `pnpm check` + app battery green
+
 ## D3 — CLOSED 2026-07-18 session 2 (feat/prism-d3, cut 2026-07-18 off 4355417)
 
 **Scope carve (owner directive, 2026-07-18 session 1): D4 may run IN PARALLEL in another
@@ -309,10 +359,10 @@ copied from the audit scratchpad clones, HEADs verified against the pins below
 
 | Delivery | Theme | Findings | Status |
 |----------|-------|----------|--------|
-| **D1** | Archetype truth + entry surfaces + style rungs (engine) | A1–A5, B1–B6, C4, C6, E1–E5 | **IN PROGRESS** (opened 2026-07-17) |
-| D2 | Graph depth + self-health + insight validity (engine) | C1–C3, C5, I1–I2, J1, J3, G1-dep, D3 | TODO |
-| D3 | Cache resurrection + living waterfall + compiler lever | J2, K1–K2, L2, L7, D1–D2, perf lever | TODO |
-| D4 | Visual intelligence + library workbench + Studio/nav (app) | F1–F6, L1, L3–L6, M | TODO |
+| **D1** | Archetype truth + entry surfaces + style rungs (engine) | A1–A5, B1–B6, C4, C6, E1–E5 | **CLOSED** 2026-07-17 (octet 8/8) |
+| **D2** | Graph depth + self-health + insight validity (engine) | C1–C3, C5, I1–I2, J1, J3, G1-dep, D3 | **CLOSED** 2026-07-18 (DoD 7/7, octet 8/8) |
+| **D3** | Cache resurrection + living waterfall + compiler lever | J2, K1–K2, L2, L7, D1–D2, perf lever | **CLOSED** 2026-07-18 (gate PASS, bench verdicts unchanged; L2/L7/K2-UI carved to D4) |
+| **D4** | Visual intelligence + library workbench + Studio/nav (app) | F1–F6, L1, L3–L6, M (+ carved L2/L7/K2-UI) | **STAGED** (table above; branch cut off d3 tip) |
 | D5 | MCP polish + cross-platform + final hardening | G1, H1–H3, phase QA | TODO |
 
 ## D1 checkpoint table
