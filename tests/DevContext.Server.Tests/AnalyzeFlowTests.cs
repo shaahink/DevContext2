@@ -26,6 +26,7 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
         // 1) Analyze (server-streaming): collect progress, capture the handle.
         var stages = new List<string>();
         string? handle = null;
+        string? label = null;
         string? error = null;
         using (var call = client.Analyze(new AnalyzeRequest { Path = FixturePath("ControllerApp") }))
         {
@@ -34,7 +35,10 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
                 switch (evt.EventCase)
                 {
                     case AnalyzeEvent.EventOneofCase.Progress: stages.Add(evt.Progress.Stage); break;
-                    case AnalyzeEvent.EventOneofCase.Result: handle = evt.Result.Handle; break;
+                    case AnalyzeEvent.EventOneofCase.Result:
+                        handle = evt.Result.Handle;
+                        label = evt.Result.Summary?.Label;
+                        break;
                     case AnalyzeEvent.EventOneofCase.Error: error = evt.Error.Message; break;
                     default: break;
                 }
@@ -44,6 +48,9 @@ public sealed class AnalyzeFlowTests(ServerTestFactory factory)
         Assert.Null(error);
         Assert.False(string.IsNullOrEmpty(handle));
         Assert.NotEmpty(stages); // progress actually streamed
+        // F4 (D4.5) — the session label is the scored solution name (same identity as
+        // MapResponse.solution_name), not the resolver's file name ("ControllerApp.sln").
+        Assert.Equal("ControllerApp", label);
 
         // 2) Map renders from the snapshot.
         var map = await client.GetMapAsync(new SessionRequest { Handle = handle });

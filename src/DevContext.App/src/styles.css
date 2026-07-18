@@ -711,6 +711,15 @@ body {
   }
 }
 
+/* ---- Studio live pack preview (D4.5 L4) — [innerHTML] content, so global ---- */
+.pack-preview .pv-h {
+  color: var(--vibe-ink);
+  font-weight: 600;
+}
+.pack-preview .pv-meta {
+  color: var(--vibe-ink-subtle);
+}
+
 /* ---- PrismJS syntax highlighting (M7.1) ---- */
 .code-block .token.comment,
 .code-block .token.block-comment,

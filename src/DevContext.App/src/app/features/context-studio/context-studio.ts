@@ -1,12 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import type { ContextPackResponse } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import { DevContextApi } from '../../data-access/devcontext-api';
 import { type EntryVm } from '../../models/view-models';
 import { SessionStore } from '../../state/session.store';
 import { TrailStore } from '../../state/trail.store';
+import { Icon } from '../../ui/icon/icon';
 import { BudgetPanel } from './budget-panel';
 import { type ContextCard, CompositionView } from './composition-view';
+import { packPreviewHtml } from './pack-preview';
 import { type ContextCardSeed, ScopePicker, type ContextIntent, type OutputFormat } from './scope-picker';
 import { type PackVerification, type SectionVerificationVm, VerificationPanel } from './verification-panel';
 
@@ -21,7 +24,7 @@ export const REPACK_DEBOUNCE_MS = 350;
 
 @Component({
   selector: 'app-context-studio',
-  imports: [ScopePicker, CompositionView, BudgetPanel, VerificationPanel],
+  imports: [ScopePicker, CompositionView, BudgetPanel, VerificationPanel, Icon],
   template: `
     <div class="flex h-full min-h-0">
       <app-scope-picker
@@ -32,14 +35,48 @@ export const REPACK_DEBOUNCE_MS = 350;
         (omniboxCard)="onCardsChange([$event])"
       />
 
-      <app-composition-view
-        class="min-w-0 flex-1 bg-base"
-        [cards]="cards()"
-        (cardToggleBody)="onToggleBody($event)"
-        (cardRemove)="onRemove($event)"
-        (cardReorder)="onReorder($event)"
-        (cardRetry)="onRetry()"
-      />
+      <div class="flex min-w-0 flex-1 flex-col bg-base">
+        <app-composition-view
+          class="min-h-0 flex-1"
+          [cards]="cards()"
+          (cardToggleBody)="onToggleBody($event)"
+          (cardRemove)="onRemove($event)"
+          (cardReorder)="onReorder($event)"
+          (cardRetry)="onRetry()"
+        />
+
+        <!-- D4.5 (L4): the LIVE pack preview — renders exactly what Copy/Save serve,
+             recomputed by the same debounced repack every scope/budget/intent change
+             already triggers. The core loop: see the context an agent would get, live. -->
+        <section class="flex min-h-0 flex-col border-t border-line" [class.flex-1]="previewOpen()">
+          <button
+            type="button"
+            class="flex shrink-0 items-center gap-2 px-3 py-1.5 text-2xs font-semibold uppercase tracking-wider text-ink-subtle hover:text-ink transition-colors"
+            (click)="previewOpen.set(!previewOpen())"
+          >
+            <app-icon name="chevron-right" [size]="10" class="transition-transform" [class.rotate-90]="previewOpen()" />
+            Live preview
+            <span class="normal-case font-normal tracking-normal">— exactly what Copy copies</span>
+            @if (packTotals(); as t) {
+              <span class="ml-auto font-normal normal-case tracking-normal tabular-nums" [class.text-warn]="t.total > budgetTokens()">
+                {{ t.total }} tok · allocated {{ t.allocated }} · budget {{ budgetTokens() }}
+              </span>
+            }
+            @if (packPending()) {
+              <span class="font-normal normal-case tracking-normal text-accent" [class.ml-auto]="!packTotals()">packing…</span>
+            }
+          </button>
+          @if (previewOpen()) {
+            <div class="code-block pack-preview min-h-0 flex-1 overflow-auto border-t border-line bg-surface px-3 py-2 transition-opacity" [class.opacity-50]="packPending()">
+              @if (previewHtml(); as html) {
+                <pre class="whitespace-pre-wrap font-mono text-2xs leading-relaxed text-ink-muted"><code [innerHTML]="html"></code></pre>
+              } @else {
+                <p class="py-4 text-center text-xs text-ink-subtle">Add cards from the scope picker — the assembled pack renders here as you shape it.</p>
+              }
+            </div>
+          }
+        </section>
+      </div>
 
       <app-budget-panel
         class="w-48 shrink-0 border-l border-line bg-surface"
@@ -106,6 +143,23 @@ export class ContextStudio {
 
   /** T5.6 — THE pack. Exports serve exactly this or nothing; there is no client-side rebuild. */
   protected readonly serverPack = signal<string | null>(null);
+
+  /** D4.5 (L4) — the server's own token accounting (was returned and dropped pre-D4.5). */
+  protected readonly packTotals = signal<{ total: number; allocated: number } | null>(null);
+
+  /** D4.5 (L4) — the live preview is open by default: the Studio's promised core loop. */
+  protected readonly previewOpen = signal(true);
+
+  /** D4.5 (L4) — the EXACT export string for the selected format. Copy/Save read THIS,
+   * so "Copy copies what's shown" holds byte-for-byte (json's generatedAt included). */
+  protected readonly previewText = computed(() => this.buildContext(this.selectedFormat()));
+
+  private readonly sanitizer = inject(DomSanitizer);
+  protected readonly previewHtml = computed(() => {
+    const text = this.previewText();
+    if (text === null) return null;
+    return this.sanitizer.bypassSecurityTrustHtml(packPreviewHtml(text, this.selectedFormat()));
+  });
 
   /** T5.1 (audit R1) — what the server cut, rendered in the budget panel. */
   protected readonly packOmitted = signal<readonly string[]>([]);
@@ -236,6 +290,7 @@ export class ContextStudio {
     if (this.cards().length === 0) {
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.packTotals.set(null);
       this.packVerification.set(null);
       this.packPending.set(false);
       return;
@@ -257,8 +312,16 @@ export class ContextStudio {
       });
       if (seq !== this.packSeq) return; // superseded by a newer re-pack
 
-      this.serverPack.set(pack.assembledMarkdown || null);
+      // D4.5 (L4) — normalize the server's CRLF to LF at ingestion: ONE canonical byte
+      // form for preview/Copy/Save. (A stray \r inside a preview span parses into an
+      // extra newline — the HTML parser normalizes \r to \n but can't merge a CRLF pair
+      // split across a tag boundary; the probe caught headings double-spacing.)
+      this.serverPack.set(pack.assembledMarkdown ? pack.assembledMarkdown.replace(/\r\n/g, '\n') : null);
       this.packOmitted.set(pack.omitted);
+      // D4.5 (L4) — surface the server's token truth in the preview header.
+      this.packTotals.set(pack.assembledMarkdown
+        ? { total: pack.totalTokens, allocated: pack.allocatedTokens }
+        : null);
 
       // Correlate by (type, title) in order — duplicate specs consume response items in
       // sequence, so two cards sharing a type no longer clobber each other.
@@ -308,6 +371,7 @@ export class ContextStudio {
       const message = e instanceof Error ? e.message : 'Context pack request failed';
       this.serverPack.set(null);
       this.packOmitted.set([]);
+      this.packTotals.set(null);
       this.packVerification.set(null);
       this.cards.update((prev) => prev.map((c) => ({ ...c, loading: false, error: message })));
     } finally {
@@ -386,15 +450,16 @@ export class ContextStudio {
     this.schedulePack();
   }
 
+  /** D4.5 (L4) — Copy serves the preview's exact string (one computed, one truth). */
   protected onCopy(): void {
-    const text = this.buildContext(this.selectedFormat());
+    const text = this.previewText();
     if (text === null) return;
     void navigator.clipboard.writeText(text);
   }
 
   protected onSave(): void {
     const format = this.selectedFormat();
-    const text = this.buildContext(format);
+    const text = this.previewText();
     if (text === null) return;
     const mime = format === 'plain' ? 'text/plain'
       : format === 'json' ? 'application/json'

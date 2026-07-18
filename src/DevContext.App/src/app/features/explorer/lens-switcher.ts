@@ -42,13 +42,14 @@ const LENSES: readonly LensDef[] = [
       </button>
     }
     <span class="mx-1 h-4 w-px bg-line"></span>
+    <!-- D4.5 (L5): opens the grouped entry browser (raw table = Shift+E power view). -->
     <button
       type="button"
       class="chip shrink-0 inline-flex items-center gap-1"
-      title="Open entry table (Shift+E)"
+      title="Browse all entries — grouped by service (raw table: Shift+E)"
       (click)="tableRequested.emit()"
     >
-      <span class="text-2xs opacity-60">&#9776;</span> Table
+      <span class="text-2xs opacity-60">&#9776;</span> Entries
     </button>
   `,
   host: { class: 'contents' },

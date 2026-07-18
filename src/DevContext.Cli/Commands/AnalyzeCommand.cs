@@ -322,7 +322,7 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
 
         if (!settings.Quiet)
-            ShowSummary(sw, rootResult, options, result);
+            ShowSummary(sw, rootResult, options, result, snapshot?.Model.Solution?.Name);
 
         // Clean up clone if auto-clean
         if (gitClonePath is not null)
@@ -572,9 +572,15 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         AnsiConsole.MarkupLine($"[dim]{chips}[/]");
     }
 
-    private static void ShowSummary(Stopwatch sw, ProjectRootResult root, ExtractionOptions options, RenderedContext result)
+    private static void ShowSummary(Stopwatch sw, ProjectRootResult root, ExtractionOptions options, RenderedContext result, string? solutionName)
     {
-        var label = Path.GetFileName(root.SolutionFilePath ?? root.RootPath);
+        // F4 (Prism D4.5) — the ANALYZED product's identity: the scored, target-scoped solution
+        // name. ProjectRootResolver's SolutionFilePath walks up to 5 parent levels unscored, so
+        // an `analyze <repo>` run from inside another solution's tree printed the ENCLOSING
+        // solution here (refit read "DevContext.slnx").
+        var label = solutionName is { Length: > 0 }
+            ? solutionName
+            : Path.GetFileName(root.SolutionFilePath ?? root.RootPath);
 
         var summary = new Table()
             .Border(TableBorder.Rounded)

@@ -179,7 +179,11 @@ export class SessionStore {
       const entryGroups = groupEntries(entries.entryPoints, path);
       const flat = entryGroups.flatMap((g) => g.entries);
       const summary = create(AnalysisSummarySchema, {
-        label: path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? path,
+        // F4 (D4.5) — adopt converges on the same identity as fresh analyze: the scored
+        // solution name (MapResponse.solution_name), directory basename only as fallback.
+        // Pre-D4.5 adopt used the basename while analyze used engine.Label — the audit's
+        // "home says Refit.slnx, tab says refit" split.
+        label: map.solutionName || (path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? path),
         projects: map.projectCount,
         nodes: match.nodes,
         edges: match.edges,

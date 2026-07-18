@@ -116,10 +116,12 @@ interface KindStat {
       }
     </div>
 
+    <!-- D4.5 (L5): the footer affordance opens the grouped entry BROWSER; the raw
+         table is the Shift+E power view (handled by the workbench's global key). -->
     <div class="flex items-center justify-between border-t border-line px-2 py-0.5 text-2xs text-ink-subtle">
       <span><span class="kbd">j</span> <span class="kbd">k</span> scrub</span>
       <button type="button" class="hover:text-ink" (click)="openAudit.emit()">
-        <span class="kbd">Shift+E</span> table
+        Browse all entries
       </button>
     </div>
   `,
@@ -220,12 +222,8 @@ export class EntryDeck {
         if (current) this.selectionChange.emit(current);
         break;
       }
-      case 'E':
-        if (event.shiftKey) {
-          event.preventDefault();
-          this.openAudit.emit();
-        }
-        break;
+      // Shift+E (the raw-table power view) is owned by the workbench's window-level
+      // handler since D4.5 — a deck-level duplicate opened both surfaces at once.
     }
   }
 
