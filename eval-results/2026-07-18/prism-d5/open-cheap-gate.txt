@@ -1,0 +1,21 @@
+C:\Program Files\dotnet\sdk\10.0.301\Microsoft.Common.CurrentVersion.targets(5096,5): error MSB3021: Unable to copy file "C:\code\DevContext2\src\DevContext.Cli\bin\Debug\net10.0\DevContext.Cli.dll" to "bin\Debug\net10.0\DevContext.Cli.dll". The process cannot access the file 'C:\code\DevContext2\src\DevContext.Server\bin\Debug\net10.0\DevContext.Cli.dll' because it is being used by another process. [C:\code\DevContext2\src\DevContext.Server\DevContext.Server.csproj]
+    30 Warning(s)
+    6 Error(s)
+
+Time Elapsed 00:00:52.13
+=== FAST TESTS ===
+[xUnit.net 00:00:04.76]     DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.MinimalApiProject_ArchitectureScenario_ProducesJson [1 ms]
+[xUnit.net 00:00:05.05]     DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [SKIP]
+  Skipped DevContext.Core.Tests.GoldenExtractionTests.CleanArchProject_ArchitectureScenario_ProducesJson [1 ms]
+
+Passed!  - Failed:     0, Passed:   606, Skipped:     3, Total:   609, Duration: 5 s - DevContext.Core.Tests.dll (net10.0)
+
+Passed!  - Failed:     0, Passed:    23, Skipped:     0, Total:    23, Duration: 8 s - DevContext.Server.Tests.dll (net10.0)
+=== LOOM GUARDS ===
+== loom-guards -- L2.3 ban check ==
+  Advisory: 13 NodeId.ForType( (fixed by L3) + 0 fqns[0] (fixed by L3)
+== truth gate -- dotnet test Category=Truth ==
+  PASSED: 0 truth failures (skips are the pending ratchet)
+
+== PASSED: no banned patterns ==

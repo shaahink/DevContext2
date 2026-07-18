@@ -238,6 +238,13 @@ continuous run: the proto item in full lockstep, two audit suspicions turned int
 mounted nowhere), and the three carved D3 UI-lite items on existing data. The d44/d45/d46
 probe scripts are now permanent instruments alongside the screenshot gate.
 
+last: 2026-07-18 **D5 session 1 OPEN (feat/prism-d5, cut off the d4 tip e02f52e).** Ack: INBOX
+unchanged (D1-era standing orders; general discipline carried; re-read at every checkpoint
+boundary). Scope per the delivery table + proposal §2-D5: G1 MCP get_context honesty →
+H1–H3 cross-platform → riders (J2 engine-version key, determinism flaps, laden-server look) →
+FULL phase QA (battery + octet + P7 + poles + clean-clone) → HANDOVER-PRISM.md + tracker close +
+merge prep. Checkpoint table below (## D5 section).
+
 # ✅ D4 DELIVERY CLOSED (2026-07-18, session 2)
 
 ### D4 Definition of Done (proposal §2-D4) — state at close
@@ -257,6 +264,35 @@ app-facing proto field (D4.6 carve — candidate D5 rider if MCP polish touches 
 laden-dev-server unresponsiveness after ~36 analyses (restart cures; server-side session-cap
 or recycle worth a D5 look). Branch train: merge feat/prism-d4 → develop rides the phase-end
 single merge per the operating model.**
+
+## D5 — OPEN (feat/prism-d5, cut 2026-07-18 off e02f52e, the d4 tip)
+
+**Spec: proposal §2-D5 (G1, H1–H3, phase QA) + the known-latent list in the D4-close block.
+Model staffing (proposal §1): Sonnet 5 — this session runs on Fable (Mythos-class), above spec.**
+
+Mechanics:
+- Branch train: `feat/prism-d5` is the LAST branch — after phase QA passes, ONE merge of the
+  train to develop **with owner sign-off** (operating model). Never merge unasked.
+- Battery cadence: per-checkpoint cheap gates (build 0w/0e + fast tests + loom-guards); the
+  phase-end FULL battery IS the D5.5 checkpoint. CI legs (D5.2) run remotely — overlap, don't idle.
+- Evidence: `eval-results/2026-07-18/prism-d5/`. Per-checkpoint cadence as encoded at D2 session 2:
+  implement → unit test → ONE targeted drive → commit (docs+tracker same commit) → re-read INBOX.
+
+### D5 checkpoint table (work order top to bottom; status ∈ TODO · IN PROGRESS · DONE · BLOCKED · VERIFIED)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| D5.1 | **G1 get_context honesty (MCP):** low fill (<85% of budget) says WHY (content-exhausted vs budget-cut) + suggests connected focuses; UiEntry packs pull page members (post-C1, verify by drive). Harness: `lens-drive.js` grows navigation probes — get_context on the top-scored entry (fill ≥85% OR fillNote present = the DoD "zero silent breaches" instrument; "No context could be built" = empty-navigation FAIL) + neighbors out-else-in on the first interesting_points central node (zero empty navigations; libraries SKIP get_context honestly). Built: `fillNote` (budget-cut → "raise budgetTokens"; content-exhausted → "everything reachable is already in the pack") + `suggestedFocuses` (top flows depth≥2 via GetGraphFacets, excluding the under-filling focus; empty on flow-less repos — note stands alone). MCP-layer only, NO proto change (Studio shows fill visually since D4.5). mcp-reference.md updated same commit | VERIFIED | (this) | prism-d5/d51/ — **THE audit exemplar re-driven:** podcasts `GET /listen-together` 166/6000 silent → 239/6000 + `fill 3%… everything reachable… smaller budget fits` + 4 suggestions incl. `ListenTogetherHub` + `PUT /feeds/{id}` (its subgraph IS small: the page's own OnInitialized member now rides the pack, 2 verified sites); UiEntry members proven on `GET /discover` (472 tok: OnInitializedAsync→GetShows→PodcastService, bodies section); probe branches live: podcasts PASS (top entry `PUT /feeds/{id}` ~3958 tok), GitVersion PASS (fill 2% + fillNote, no-flows → no suggestions), Newtonsoft PASS (0 entries → SKIP + `JsonConvert` neighbors non-empty). McpQa serial 2/2 (2m47s, live through the new path); build 0w/0e; fast 606+23 + loom-guards at session open |
+| D5.2 | **H1/H2 engine cross-OS CI:** ci.yml engine job → matrix (windows/ubuntu/macos: build + fast suite + CLI strict smoke; loom-guards stays windows), dispatched on this branch via `gh workflow run`; path/casing fixes it shakes out; README §Platform support updated to the new truth | TODO | | |
+| D5.3 | **Riders (engine):** J2 engine-version cache key (Core MVID rides the snapshot version key — deterministic builds make it a content hash; retires the schema-bump discipline), determinism thread (http ServiceLink pair-order + [bus] queue-seam provenance-site flaps — stable ordering at the anchor-pick locus), laden-dev-server look (session cap/recycle after ~36 analyses) | TODO | | |
+| D5.4 | **H2/H3 delivery decision:** desktop bundle = documented Windows-only (no mac/linux hardware to verify Tauri bundles — README already honest per H4); release.yml narrows its claim explicitly; installer version derives from the release tag (tauri.conf patch step); release dry-run artifact inventory matches the decision | TODO | | |
+| D5.5 | **PHASE QA (the massive one):** FULL gate battery + octet lens-audit (P6 extended + P7 insight-validity) + poles drift check + clean-clone battery + mcp-qa; known-latent observations recorded (eShop deep-trace seam) | TODO | | |
+| D5.6 | **Close:** HANDOVER-PRISM.md + tracker close + PROGRESS-LOG append + push; merge prep (single branch-train merge to develop PENDING OWNER SIGN-OFF; cross-OS CI green on the branch, develop CI rides the merge) | TODO | | |
+
+### D5 Definition of Done (proposal §2-D5, verbatim)
+- octet MCP drive has zero empty navigations / silent breaches
+- green cross-OS CI on develop
+- release dry-run artifact inventory matches the bundle decision
+- phase handover written
 
 ## D4 — CLOSED (feat/prism-d4, cut off the d3 branch tip: D3 close 3d0ec7f + staging commit)
 
@@ -442,8 +478,8 @@ copied from the audit scratchpad clones, HEADs verified against the pins below
 | **D1** | Archetype truth + entry surfaces + style rungs (engine) | A1–A5, B1–B6, C4, C6, E1–E5 | **CLOSED** 2026-07-17 (octet 8/8) |
 | **D2** | Graph depth + self-health + insight validity (engine) | C1–C3, C5, I1–I2, J1, J3, G1-dep, D3 | **CLOSED** 2026-07-18 (DoD 7/7, octet 8/8) |
 | **D3** | Cache resurrection + living waterfall + compiler lever | J2, K1–K2, L2, L7, D1–D2, perf lever | **CLOSED** 2026-07-18 (gate PASS, bench verdicts unchanged; L2/L7/K2-UI carved to D4) |
-| **D4** | Visual intelligence + library workbench + Studio/nav (app) | F1–F6, L1, L3–L6, M (+ carved L2/L7/K2-UI) | **STAGED** (table above; branch cut off d3 tip) |
-| D5 | MCP polish + cross-platform + final hardening | G1, H1–H3, phase QA | TODO |
+| **D4** | Visual intelligence + library workbench + Studio/nav (app) | F1–F6, L1, L3–L6, M (+ carved L2/L7/K2-UI) | **CLOSED** 2026-07-18 (DoD 5/5, full gate PASS) |
+| **D5** | MCP polish + cross-platform + final hardening | G1, H1–H3, phase QA | **OPEN** (table above; feat/prism-d5 off e02f52e) |
 
 ## D1 checkpoint table
 

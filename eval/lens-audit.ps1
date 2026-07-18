@@ -5,7 +5,8 @@
 #   P3 unknown+0entries  App-rendered map with style Unknown and no ENTRY POINTS       [audit A5/C4]
 #   P4 sample-rows       per-service rows that are samples/demos/toys                  [audit A4]
 #   P5 wall-time         first analyze wall > 2.5x the audit baseline                  [audit D2]
-#   P6 mcp-drive         generic MCP smoke (analyze/overview/map/entrypoints all OK)   [audit G]
+#   P6 mcp-drive         generic MCP smoke + navigation probes (get_context fill      [audit G]
+#                        honesty, neighbors on a central node non-empty — D5.1/G1)
 # Usage:
 #   powershell -File eval/lens-audit.ps1 octet                # all 8, the D1 DoD proof form
 #   powershell -File eval/lens-audit.ps1 dotnet-podcasts      # one repo

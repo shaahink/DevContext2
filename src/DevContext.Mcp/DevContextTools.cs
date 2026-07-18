@@ -80,6 +80,33 @@ public sealed class DevContextTools
         catch { return Array.Empty<object>(); }
     }
 
+    // D5.1 (G1) — better-connected focus candidates for a low-fill pack: the repo's top flows
+    // (score/depth = connectedness), excluding the focus that under-filled. Empty on repos with
+    // no ranked flows (libraries) — the fill note then stands alone.
+    private async Task<object[]> SuggestConnectedAsync(string handle, string exclude, int take = 4)
+    {
+        try
+        {
+            var resp = await _client.GetGraphFacetsAsync(new GraphFacetsRequest { Handle = handle, MaxFlows = 12 });
+            var flows = resp.FlowList?.Flows;
+            if (flows is null) return [];
+            return flows
+                .Where(f => f.Depth >= 2)
+                .Select(f => new
+                {
+                    Focus = f.HasHttpMethod && f.HasRoute ? $"{f.HttpMethod} {f.Route}" : f.Title,
+                    f.Kind,
+                    f.Score,
+                    f.Depth,
+                })
+                .Where(x => !string.Equals(x.Focus, exclude, StringComparison.OrdinalIgnoreCase))
+                .Take(take)
+                .Select(x => (object)new { focus = x.Focus, kind = x.Kind, score = x.Score, depth = x.Depth })
+                .ToArray();
+        }
+        catch { return Array.Empty<object>(); }
+    }
+
     // Search by the most-selective token so an exact-substring miss still yields candidates
     // (e.g. "how does checkout work" → "checkout").
     private static string FirstWord(string s)
@@ -1314,11 +1341,39 @@ public sealed class DevContextTools
                     suggestions.Length > 0 ? suggestions : null);
             }
 
+            // D5.1 (G1) — the T4.2 ≥85%-fill promise must never fail SILENTLY. A low-fill pack
+            // says WHY: budget-cut (raise budgetTokens) vs content-exhausted (the focus's
+            // connected subgraph is small — everything reachable is already in the pack), and a
+            // content-exhausted under-fill suggests better-connected focuses so the agent has a
+            // next move instead of a near-empty pack.
+            string? fillNote = null;
+            object[]? suggestedFocuses = null;
+            var fillPct = budgetTokens > 0 ? (int)(resp.TotalTokens * 100L / budgetTokens) : 100;
+            if (fillPct < 85)
+            {
+                var budgetCut = resp.Omitted.Any(o =>
+                    o.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+                    o.Contains("trimmed", StringComparison.OrdinalIgnoreCase));
+                if (budgetCut)
+                {
+                    fillNote = $"fill {fillPct}%: sections were cut to fit the budget — raise budgetTokens for the rest (see omitted).";
+                }
+                else
+                {
+                    fillNote = $"fill {fillPct}%: the pack already contains everything reachable from this focus — its connected subgraph is small (not an error; a smaller budget fits it).";
+                    suggestedFocuses = await SuggestConnectedAsync(handle, focus);
+                    if (suggestedFocuses.Length > 0)
+                        fillNote += " Better-connected focuses in suggestedFocuses.";
+                }
+            }
+
             return JsonSerializer.Serialize(new
             {
                 focus,
                 budgetTokens,
                 totalTokens = resp.TotalTokens,
+                fillNote,
+                suggestedFocuses = suggestedFocuses is { Length: > 0 } ? suggestedFocuses : null,
                 sections = resp.Sections.Select(s => new { key = s.Key, tokens = s.Tokens }).ToArray(),
                 omitted = resp.Omitted.ToArray(),
                 content = string.Join("\n", resp.Sections.Select(s => s.Content)),

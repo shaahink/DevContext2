@@ -1,0 +1,134 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-17T17:40:29.5596894+00:00",
+  "archetype": "CliTool",
+  "architectureStyle": "Unknown",
+  "styleConfidence": 0,
+  "projectCount": 36,
+  "projectNames": [
+    "app",
+    "artifacts",
+    "build",
+    "common",
+    "config",
+    "docker",
+    "docs",
+    "GitVersion.App",
+    "GitVersion.App.Tests",
+    "GitVersion.BuildAgents",
+    "GitVersion.BuildAgents.Tests",
+    "GitVersion.Calculation",
+    "GitVersion.Cli",
+    "GitVersion.Cli.Generator",
+    "GitVersion.Cli.Generator.Tests",
+    "GitVersion.Common",
+    "GitVersion.Common.Command",
+    "GitVersion.Configuration",
+    "GitVersion.Configuration",
+    "GitVersion.Configuration.Tests",
+    "GitVersion.Core",
+    "GitVersion.Core",
+    "GitVersion.Core.Libgit2Sharp",
+    "GitVersion.Core.Tester",
+    "GitVersion.Core.Tests",
+    "GitVersion.LibGit2Sharp",
+    "GitVersion.MsBuild",
+    "GitVersion.MsBuild.Tests",
+    "GitVersion.Normalization",
+    "GitVersion.Output",
+    "GitVersion.Output",
+    "GitVersion.Output.Tests",
+    "GitVersion.Schema",
+    "GitVersion.Testing",
+    "publish",
+    "release"
+  ],
+  "typeCount": 679,
+  "entryCount": 1,
+  "topologyProjectCount": 11,
+  "graphNodeCount": 1212,
+  "graphEdgeCount": 965,
+  "signals": [
+    {
+      "key": "cli-commands",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "polly",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "serilog",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Notable",
+      "title": "Most depended-upon: GitVersion.Core (16 dependents) \u00B7 GitVersion.Configuration (8 dependents) \u00B7 GitVersion.Output (7 dependents)",
+      "detail": "",
+      "evidence": [
+        "GitVersion.Core (16 dependents)",
+        "GitVersion.Configuration (8 dependents)",
+        "GitVersion.Output (7 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) \u00B7 ILog (2 impls) \u00B7 IEnvironment (2 impls)",
+      "detail": "",
+      "evidence": [
+        "IDeploymentModeCalculator (3 impls)",
+        "ILog (2 impls)",
+        "IEnvironment (2 impls)"
+      ]
+    },
+    {
+      "id": "cli.command-tree",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Command tree: 1 CLI commands, 1 top-level groups",
+      "detail": "",
+      "evidence": [
+        "GitVersion.App (1 commands)"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 0/1 (0%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 122 Singleton \u00B7 26 Extension (148 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: GitFlowConfigurationBuilder (252) \u00B7 GitHubFlowConfigurationBuilder (209) \u00B7 MainlineCommit (26) \u00B7 ILog (24) \u00B7 AssemblyInfoFileUpdater (21)",
+      "detail": "",
+      "evidence": [
+        "GitFlowConfigurationBuilder (252)",
+        "GitHubFlowConfigurationBuilder (209)",
+        "MainlineCommit (26)",
+        "ILog (24)",
+        "AssemblyInfoFileUpdater (21)"
+      ]
+    }
+  ]
+}

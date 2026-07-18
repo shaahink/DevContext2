@@ -1,0 +1,9 @@
+﻿Newtonsoft.Json  wall=34s  tokens=2355  cs=945  archetype=Library/Library  style=Unknown  => PASS
+refit  wall=19s  tokens=1600  cs=812  archetype=Library/Library  style=ControllerBased  => PASS
+StackExchange.Redis  wall=25.4s  tokens=1955  cs=561  archetype=Library/Library  style=MinimalApi  => PASS
+wolverine  wall=65.5s  tokens=6293  cs=4053  archetype=Library/Library  style=CleanArchitecture  => PASS
+GitVersion  wall=23.2s  tokens=438  cs=663  archetype=CliTool/CliTool  style=Unknown  => PASS
+dotnet-podcasts  wall=9.2s  tokens=1405  cs=192  archetype=App/App  style=CleanArchitecture  => PASS
+ScreenToGif  wall=24.1s  tokens=1088  cs=648  archetype=Desktop/Desktop  style=DesktopMvvm  => PASS
+bitwarden-server  wall=205.5s  tokens=2429  cs=4927  archetype=App/App  style=Microservices  => PASS
+LENS-AUDIT: PASS

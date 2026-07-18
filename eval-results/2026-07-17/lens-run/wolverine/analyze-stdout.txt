@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-17\lens-run\wolverine\map.md
+analyzed 4053 files · 11864 nodes · 10000 edges · 51 entries · 49/51 target · 
+~6292 tokens · 64.4s stage2 x3.0 stage3 x3.5
+┌──────────┬──────────────────────┐
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │    wolverine.slnx    │
+│   Time   │       64808ms        │
+│  Tokens  │ ~6292 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.293 │
+└──────────┴──────────────────────┘

@@ -1,0 +1,2 @@
+﻿run: 2026-07-17 18:40:54
+dotnet-podcasts  wall=9.2s  tokens=1405  cs=192  archetype=App/App  style=CleanArchitecture  => PASS
