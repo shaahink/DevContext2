@@ -23,7 +23,7 @@ query it from whichever surface fits your workflow.
 
 | Surface | What it's for | Get it |
 |---------|---------------|--------|
-| **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); Windows is the CI-verified platform — see [Platform support](#platform-support)) |
+| **CLI** (`devcontext`) | Scriptable Map/Trace in your terminal; JSON output for pipelines | `dotnet tool install -g DevContext.Cli` (needs [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0); CI-verified on Windows, Linux, and macOS — see [Platform support](#platform-support)) |
 | **Desktop app** | Interactive exploration: graph, table lens, insights, Context Studio | Windows installer from [Releases](https://github.com/shaahink/DevContext2/releases) (needs the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)), or build from source — see [Quickstart](#quickstart) |
 | **MCP server** (24 tools) | Let AI agents (Claude Code, Cursor, VS Code, …) query your codebase | Build + register — see [docs/product/mcp-reference.md](docs/product/mcp-reference.md) |
 | **gRPC server** | Analyze-once, query-many backend that powers the app and MCP | Started automatically by the app/MCP; standalone via `dotnet run --project src/DevContext.Server` |
@@ -200,14 +200,13 @@ Honest state, matching what CI actually verifies (not what the stack could do):
 
 | Surface | Windows | Linux / macOS |
 |---------|---------|----------------|
-| CLI · engine · MCP · gRPC server (.NET 10) | ✅ CI-verified ([`ci.yml`](.github/workflows/ci.yml) engine job: build, tests, guards, CLI smoke) | ⚠️ Expected to run — all-managed .NET, no native deps — but **not CI-verified yet** |
+| CLI · engine · MCP · gRPC server (.NET 10) | ✅ CI-verified ([`ci.yml`](.github/workflows/ci.yml) engine matrix: build, tests, guards, CLI smoke) | ✅ CI-verified — the same engine job runs on ubuntu-latest and macos-latest (loom-guards stays on the Windows leg) |
 | Web app (Angular) | ✅ | ✅ lint/test/build run on Linux CI (`ci.yml` app job) |
 | Desktop installer (Tauri 2) | ✅ NSIS + MSI built by [`release.yml`](.github/workflows/release.yml) | ❌ Not built today (Tauri supports both; unscheduled) |
 
 The developer harness (gate battery `eval/gates.ps1`, `scripts/loom-guards.ps1`) is Windows
 PowerShell 5.1 — contributor workflows assume a Windows dev box even though the product CLI
-itself is portable .NET. A Linux engine CI job is the natural next step; it needs the
-Windows-path assumptions in a handful of unit-test fixtures untangled first.
+itself is portable .NET and CI-verified on all three OSes.
 
 ---
 
