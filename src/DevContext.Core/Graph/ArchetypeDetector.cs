@@ -153,7 +153,7 @@ public static class ArchetypeDetector
             return Archetype.App; // a standalone executable that isn't just a sample of the library
 
         var packable = nonExe.Any(p => p.IsPackable);
-        var hasPublicSurface = model.Types.Values.Any(t =>
+        var hasPublicSurface = model.OrderedTypes.Any(t =>
             t.Accessibility == Microsoft.CodeAnalysis.Accessibility.Public
             && !classifier.IsInTestProject(t.FilePath)
             && (model.SamplesAreTheProduct || !ProjectClassifier.IsSamplePath(t.FilePath)));

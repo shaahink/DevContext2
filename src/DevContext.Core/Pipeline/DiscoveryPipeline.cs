@@ -116,6 +116,11 @@ public sealed class DiscoveryPipeline
 
         await RunStageAsync(ExecutionStage.Stage3Specific, PipelineStage.SpecificExtraction, true, context, model, ct);
 
+        // D5.3 determinism — parallel Stage-2/3 extractors appended to Detections/CallEdges in
+        // arrival order, which varies run-to-run; seal the canonical order HERE so no first-match
+        // anchor pick below (per-service styles, graph assembly, insights) ever sees it.
+        model.SealDeterministicOrder();
+
         // T1.4 — per-service style rollup runs AFTER Stage 3 so it can read the specific detections
         // (Blazor @page routes, gRPC RPCs, message consumers) that distinguish a Blazor storefront from a
         // gateway and a background worker from a web host. The overall style (ApplyArchitectureStyle) stays

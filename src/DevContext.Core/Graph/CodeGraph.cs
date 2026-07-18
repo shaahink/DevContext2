@@ -187,28 +187,35 @@ public sealed class CodeGraph
         _nodes = nodes.ToFrozenDictionary();
         _outEdges = outEdges.ToFrozenDictionary();
 
+        // D5.3 determinism — FrozenDictionary enumeration order is hash-layout-dependent (randomized
+        // per process), so every order-exposing surface captures the CALLER's enumeration order here:
+        // the builder's Dictionaries enumerate in insertion order, which is deterministic once the
+        // model is sealed. Nodes/AllEdges (and the derived in-edge lists below) must never enumerate
+        // the frozen dictionaries directly.
+        Nodes = [.. nodes.Values];
+        AllEdges = [.. outEdges.Values.SelectMany(e => e)];
+
         // Inverse adjacency (Phase 5 req 3): derived from out-edges so neighbors(id, in) and
         // find_usages(id) are O(degree), not a full-graph scan. Kept DERIVED — rebuilt here on
         // construct, never serialized — so the graph stays serialization-clean (Phase 9 disk index
         // remains additive).
         var inverse = new Dictionary<NodeId, List<GraphEdge>>();
-        foreach (var edges in _outEdges.Values)
-            foreach (var e in edges)
-            {
-                if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
-                list.Add(e);
-            }
+        foreach (var e in AllEdges)
+        {
+            if (!inverse.TryGetValue(e.To, out var list)) inverse[e.To] = list = [];
+            list.Add(e);
+        }
         _inEdges = inverse.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());
     }
 
-    /// <summary>All nodes.</summary>
-    public IReadOnlyCollection<GraphNode> Nodes => _nodes.Values;
+    /// <summary>All nodes, in builder insertion order (deterministic — never frozen-dictionary order).</summary>
+    public ImmutableArray<GraphNode> Nodes { get; }
     /// <summary>Total node count.</summary>
     public int NodeCount => _nodes.Count;
     /// <summary>Total edge count.</summary>
-    public int EdgeCount => _outEdges.Values.Sum(e => e.Length);
-    /// <summary>All edges in the graph (from every node's outgoing adjacency). Lazy, one-allocation.</summary>
-    public IEnumerable<GraphEdge> AllEdges => _outEdges.Values.SelectMany(e => e);
+    public int EdgeCount => AllEdges.Length;
+    /// <summary>All edges in the graph, in builder insertion order (deterministic).</summary>
+    public ImmutableArray<GraphEdge> AllEdges { get; }
     /// <summary>L3.4 — True when the graph required hub-scoping because normal call-edge binding produced
     /// too few edges (entries &lt; 5 or edge/node ratio &lt; 0.1). Reported honestly in Stats.</summary>
     public bool IsSparseGraph { get; init; }

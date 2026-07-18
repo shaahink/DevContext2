@@ -15,7 +15,7 @@ public sealed partial class GraphBuilder
     /// <summary>WORKED EXAMPLE — every in-scope production type becomes a TypeNode (noise filtered structurally).</summary>
     private void AddTypeNodes(CodeGraphBuilder g, DiscoveryModel model, SolutionScope scope, ArchitectureArchetype archetype)
     {
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!_noise.IsProductionCode(type) || !scope.Contains(type.FilePath)) continue;
             var feature = DeriveFeature(type, model);
@@ -105,7 +105,7 @@ public sealed partial class GraphBuilder
         // M1.1 transitive: scan model types for classes whose BaseTypes transitively
         // implement handler interfaces but weren't picked up by the syntax-level extractor.
         var handlerByShortName = new Dictionary<string, List<TypeDiscovery>>(StringComparer.Ordinal);
-        foreach (var t in model.Types.Values)
+        foreach (var t in model.OrderedTypes)
         {
             var sn = StripGenerics(t.Name);
             if (!handlerByShortName.TryGetValue(sn, out var list))
@@ -117,7 +117,7 @@ public sealed partial class GraphBuilder
         foreach (var h in model.Detections.OfType<MediatRHandlerDetection>())
             knownHandlerTypes.Add(names.Resolve(h.HandlerType, h.SourceFile));
 
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (type.Kind != Models.TypeKind.Class) continue;
             if (!scope.Contains(type.FilePath)) continue;
@@ -164,7 +164,7 @@ public sealed partial class GraphBuilder
             FilePath = sourceFile,
             Tags = [RoleTags.Handler],
             Layer = "Application",
-            SourceBody = model.Types.Values
+            SourceBody = model.OrderedTypes
                 .FirstOrDefault(t => t.Id == names.Resolve(handlerShortName, sourceFile))
                 ?.SourceBody,
         });
@@ -318,7 +318,7 @@ public sealed partial class GraphBuilder
                 FilePath = file,
                 Tags = [RoleTags.Service, RoleTags.Pipeline],
                 Layer = "Infrastructure",
-                SourceBody = model.Types.Values
+                SourceBody = model.OrderedTypes
                     .FirstOrDefault(t => t.Id == behaviorFqn)?.SourceBody,
             });
 
@@ -379,7 +379,7 @@ public sealed partial class GraphBuilder
         // Iteration 6 deferred: when a base entity is detected but its subtypes aren't (because they were
         // registered via reflection — DntSite's RegisterAllDerivedEntities from BaseEntity), create
         // entity-tagged nodes for every in-scope production type whose base resolves to a known entity.
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath) || type.IsHardExcluded) continue;
             if (type.BaseTypes.IsDefaultOrEmpty) continue;
@@ -420,7 +420,7 @@ public sealed partial class GraphBuilder
             entityShortNames.Add(node.Title);
         }
 
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath)) continue;
             if (!entityShortNames.Contains(type.Name)) continue;

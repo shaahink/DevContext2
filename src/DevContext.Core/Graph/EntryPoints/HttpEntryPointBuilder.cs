@@ -126,7 +126,7 @@ public sealed class HttpEntryPointBuilder : IEntryPointBuilder
 
             if (!linked)
             {
-                var ownerType = model.Types.Values.FirstOrDefault(t =>
+                var ownerType = model.OrderedTypes.FirstOrDefault(t =>
                     string.Equals(t.FilePath, ep.SourceFile, StringComparison.OrdinalIgnoreCase));
 
                 if (isLambdaHandler && !string.IsNullOrEmpty(ep.HandlerBody))

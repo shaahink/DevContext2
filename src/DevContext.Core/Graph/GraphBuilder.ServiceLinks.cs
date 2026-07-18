@@ -305,7 +305,7 @@ public sealed partial class GraphBuilder
     {
         var integrationTypes = new HashSet<string>(StringComparer.Ordinal);
         var domainTypes = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var t in model.Types.Values)
+        foreach (var t in model.OrderedTypes)
         {
             foreach (var bt in t.BaseTypes)
             {
@@ -320,7 +320,7 @@ public sealed partial class GraphBuilder
                     domainTypes.Add(t.Name);
             }
         }
-        foreach (var t in model.Types.Values)
+        foreach (var t in model.OrderedTypes)
         {
             if (t.Name.Contains("DomainEvent", StringComparison.Ordinal))
                 domainTypes.Add(t.Name);
@@ -334,7 +334,7 @@ public sealed partial class GraphBuilder
     {
         return new SeamContext
         {
-            Symbols = new SymbolTable(model.Types.Values, scope.ProjectForFile, bodyFacts),
+            Symbols = new SymbolTable(model.OrderedTypes, scope.ProjectForFile, bodyFacts),
             KnownEntities = knownEntities.ToImmutableHashSet(StringComparer.Ordinal),
             IntegrationEventTypes = integrationEventTypes.ToImmutableHashSet(StringComparer.Ordinal),
             DomainEventTypes = domainEventTypes.ToImmutableHashSet(StringComparer.Ordinal),

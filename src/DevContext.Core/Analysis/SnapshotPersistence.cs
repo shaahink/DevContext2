@@ -202,8 +202,9 @@ public static class SnapshotPersistence
                 for (var i = tags.Length - 1; i >= 0; i--) t.Tags.Add(tags[i]);
             m.Types[t.Id] = t;
         }
-        for (var i = p.Detections.Length - 1; i >= 0; i--) m.Detections.Add(p.Detections[i]);
-        for (var i = p.CallEdges.Length - 1; i >= 0; i--) m.CallEdges.Add(p.CallEdges[i]);
+        // SealableBag preserves insertion order (D5.3), so re-add in the persisted (sealed) order.
+        foreach (var d in p.Detections) m.Detections.Add(d);
+        foreach (var ce in p.CallEdges) m.CallEdges.Add(ce);
         m.PrunedTypeIds.UnionWith(p.PrunedTypeIds);
         m.PruningNotes.AddRange(p.PruningNotes);
         foreach (var kv in p.Provenance)

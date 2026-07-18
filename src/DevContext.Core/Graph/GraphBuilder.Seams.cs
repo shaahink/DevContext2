@@ -20,7 +20,7 @@ public sealed partial class GraphBuilder
         // Pre-compute single-implementor map for fallback when no DI registration
         var singleImplMap = new Dictionary<string, string>(StringComparer.Ordinal);
         var implCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var type in model.Types.Values)
+        foreach (var type in model.OrderedTypes)
         {
             if (!scope.Contains(type.FilePath) || !_noise.IsProductionCode(type)) continue;
             foreach (var iface in type.ImplementedInterfaces)
@@ -336,7 +336,7 @@ public sealed partial class GraphBuilder
         if (allBodyFacts is null || allBodyFacts.Count == 0)
         {
             var facts = new List<BodyFacts>();
-            foreach (var type in model.Types.Values)
+            foreach (var type in model.OrderedTypes)
             {
                 if (type.SourceBody is not { Length: > 0 } sb) continue;
                 try

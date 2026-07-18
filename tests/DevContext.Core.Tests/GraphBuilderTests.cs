@@ -253,7 +253,12 @@ public sealed class GraphBuilderTests
         Assert.Equal(2, catalogItems.Count);                              // never merged
         Assert.Equal(2, catalogItems.Select(e => e.Node).Distinct().Count()); // distinct node ids → no dup-key
         Assert.Equal(2, catalogItems.Select(e => e.Title).Distinct().Count()); // distinct titles
-        Assert.Contains(catalogItems, e => e.Title.Contains("GetAllItemsV1", StringComparison.Ordinal));
+        // D5.3 — detections are canonically ordered (file, then line), so the FIRST endpoint in
+        // source order (line 21, GetAllItemsV1) keeps the bare route title and the collision
+        // (line 26) carries the [action] suffix — deterministically, not by bag arrival order.
+        Assert.Contains(catalogItems, e => e.Title.Contains("[GetAllItems]", StringComparison.Ordinal));
+        Assert.Equal("GET /api/catalog/items",
+            catalogItems.Single(e => e.Provenance!.EndsWith(":21", StringComparison.Ordinal)).Title);
     }
 
     [Fact]
