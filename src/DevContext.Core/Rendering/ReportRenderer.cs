@@ -153,7 +153,7 @@ public static class ReportRenderer
         sb.AppendLine($"| With target | {withTarget}/{entries.Length} |");
 
         if (entries.Length > 0)
-            sb.AppendLine($"| Deep spine (>=2) | {entriesWithDeepSpine}/{entries.Length} ({deepSpineRatio:P0}) |");
+            sb.AppendLine($"| Deep spine (>=2) | {entriesWithDeepSpine}/{entries.Length} ({(int)Math.Round(deepSpineRatio * 100)}%) |");
 
         var totalEdges = seams.Length > 0 ? seams.Sum(s => s.Count) : graph.EdgeCount;
         var approx = seams.Length > 0 ? seams.Sum(s => s.Approx) : 0;

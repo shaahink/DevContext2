@@ -16,7 +16,7 @@ public sealed class ArchetypeDetectorTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Api", @"C:\repo\Api\Api.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe")],
+            Projects = [new ProjectInfo("Api", @"C:/repo/Api/Api.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe")],
         };
         ImmutableArray<EntryPoint> entries =
             [new EntryPoint(EntryPointKind.HttpEndpoint, "GET /x", NodeId.ForEntry("GET /x"))];
@@ -29,10 +29,10 @@ public sealed class ArchetypeDetectorTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("AutoMapper", @"C:\repo\src\AutoMapper\AutoMapper.csproj",
+            Projects = [new ProjectInfo("AutoMapper", @"C:/repo/src/AutoMapper/AutoMapper.csproj",
                 "C#", ["net10.0"], [], [], OutputType: "Library", IsPackable: true)],
         };
-        model.Types.TryAdd("Lib.Mapper", PublicType("Lib.Mapper", @"C:\repo\src\AutoMapper\Mapper.cs"));
+        model.Types.TryAdd("Lib.Mapper", PublicType("Lib.Mapper", @"C:/repo/src/AutoMapper/Mapper.cs"));
 
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
     }
@@ -46,15 +46,15 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("GitVersion.App", @"C:\repo\src\GitVersion.App\GitVersion.App.csproj",
-                    "C#", ["net10.0"], [@"..\GitVersion.Core\GitVersion.Core.csproj"], [],
+                new ProjectInfo("GitVersion.App", @"C:/repo/src/GitVersion.App/GitVersion.App.csproj",
+                    "C#", ["net10.0"], [@"../GitVersion.Core/GitVersion.Core.csproj"], [],
                     OutputType: "Exe", IsToolPackaged: true),
-                new ProjectInfo("GitVersion.Core", @"C:\repo\src\GitVersion.Core\GitVersion.Core.csproj",
+                new ProjectInfo("GitVersion.Core", @"C:/repo/src/GitVersion.Core/GitVersion.Core.csproj",
                     "C#", ["net10.0"], [], []),
             ],
         };
         model.Types.TryAdd("GitVersion.Core.Calculator",
-            PublicType("GitVersion.Core.Calculator", @"C:\repo\src\GitVersion.Core\Calculator.cs"));
+            PublicType("GitVersion.Core.Calculator", @"C:/repo/src/GitVersion.Core/Calculator.cs"));
 
         Assert.Equal(Archetype.CliTool, ArchetypeDetector.Detect(model, []));
     }
@@ -64,7 +64,7 @@ public sealed class ArchetypeDetectorTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Tool", @"C:\repo\Tool\Tool.csproj", "C#", ["net10.0"], [],
+            Projects = [new ProjectInfo("Tool", @"C:/repo/Tool/Tool.csproj", "C#", ["net10.0"], [],
                 [new PackageReferenceInfo("Spectre.Console.Cli", "0.49.1")], OutputType: "Exe")],
         };
 
@@ -79,8 +79,8 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("Api", @"C:\repo\src\Api\Api.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe"),
-                new ProjectInfo("MsSqlMigratorUtility", @"C:\repo\util\MsSqlMigratorUtility\MsSqlMigratorUtility.csproj",
+                new ProjectInfo("Api", @"C:/repo/src/Api/Api.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe"),
+                new ProjectInfo("MsSqlMigratorUtility", @"C:/repo/util/MsSqlMigratorUtility/MsSqlMigratorUtility.csproj",
                     "C#", ["net10.0"], [], [], OutputType: "Exe", IsToolPackaged: true),
             ],
         };
@@ -101,14 +101,14 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("Newtonsoft.Json", @"C:\repo\Src\Newtonsoft.Json\Newtonsoft.Json.csproj",
+                new ProjectInfo("Newtonsoft.Json", @"C:/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj",
                     "C#", ["net10.0"], [], [], IsPackable: true),
-                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:\repo\Src\Newtonsoft.Json.TestConsole\Newtonsoft.Json.TestConsole.csproj",
-                    "C#", ["net10.0"], [@"..\Newtonsoft.Json\Newtonsoft.Json.csproj"], [], OutputType: "Exe"),
+                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:/repo/Src/Newtonsoft.Json.TestConsole/Newtonsoft.Json.TestConsole.csproj",
+                    "C#", ["net10.0"], [@"../Newtonsoft.Json/Newtonsoft.Json.csproj"], [], OutputType: "Exe"),
             ],
         };
         model.Types.TryAdd("Newtonsoft.Json.JsonConvert",
-            PublicType("Newtonsoft.Json.JsonConvert", @"C:\repo\Src\Newtonsoft.Json\JsonConvert.cs"));
+            PublicType("Newtonsoft.Json.JsonConvert", @"C:/repo/Src/Newtonsoft.Json/JsonConvert.cs"));
 
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
     }
@@ -118,9 +118,9 @@ public sealed class ArchetypeDetectorTests
     {
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Tool", @"C:\repo\Tool\Tool.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe")],
+            Projects = [new ProjectInfo("Tool", @"C:/repo/Tool/Tool.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe")],
         };
-        model.Types.TryAdd("Tool.Program", PublicType("Tool.Program", @"C:\repo\Tool\Program.cs"));
+        model.Types.TryAdd("Tool.Program", PublicType("Tool.Program", @"C:/repo/Tool/Program.cs"));
 
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
     }
@@ -137,9 +137,9 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("OrleansVoting.AppHost", @"C:\repo\samples\OrleansVoting\OrleansVoting.AppHost\OrleansVoting.AppHost.csproj",
+                new ProjectInfo("OrleansVoting.AppHost", @"C:/repo/samples/OrleansVoting/OrleansVoting.AppHost/OrleansVoting.AppHost.csproj",
                     "C#", ["net10.0"], [], [], OutputType: "Exe"),
-                new ProjectInfo("MetricsApp", @"C:\repo\samples\Metrics\MetricsApp\MetricsApp.csproj",
+                new ProjectInfo("MetricsApp", @"C:/repo/samples/Metrics/MetricsApp/MetricsApp.csproj",
                     "C#", ["net10.0"], [], [], OutputType: "Exe"),
             ],
             SamplesAreTheProduct = true,
@@ -164,17 +164,17 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("MediatR", @"C:\repo\src\MediatR\MediatR.csproj",
+                new ProjectInfo("MediatR", @"C:/repo/src/MediatR/MediatR.csproj",
                     "C#", ["net10.0"], [], [], IsPackable: true),
-                new ProjectInfo("MediatR.Examples", @"C:\repo\samples\MediatR.Examples\MediatR.Examples.csproj",
-                    "C#", ["net10.0"], [@"..\..\src\MediatR\MediatR.csproj"], [], OutputType: "Exe"),
+                new ProjectInfo("MediatR.Examples", @"C:/repo/samples/MediatR.Examples/MediatR.Examples.csproj",
+                    "C#", ["net10.0"], [@"../../src/MediatR/MediatR.csproj"], [], OutputType: "Exe"),
             ],
         };
-        model.Types.TryAdd("MediatR.Mediator", PublicType("MediatR.Mediator", @"C:\repo\src\MediatR\Mediator.cs"));
+        model.Types.TryAdd("MediatR.Mediator", PublicType("MediatR.Mediator", @"C:/repo/src/MediatR/Mediator.cs"));
         ImmutableArray<EntryPoint> entries =
         [
             new EntryPoint(EntryPointKind.HttpEndpoint, "GET /demo", NodeId.ForEntry("GET /demo"))
-                { Provenance = @"C:\repo\samples\MediatR.Examples\Demo.cs:8" },
+                { Provenance = @"C:/repo/samples/MediatR.Examples/Demo.cs:8" },
         ];
 
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, entries));
@@ -187,14 +187,14 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("AutoMapper", @"C:\repo\src\AutoMapper\AutoMapper.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("Benchmark", @"C:\repo\bench\Benchmark.csproj", "C#", ["net10.0"],
-                    [@"..\src\AutoMapper\AutoMapper.csproj"], [], OutputType: "Exe"),
-                new ProjectInfo("TestApp", @"C:\repo\sample\TestApp.csproj", "C#", ["net10.0"],
-                    [@"..\src\AutoMapper\AutoMapper.csproj"], [], OutputType: "Exe"),
+                new ProjectInfo("AutoMapper", @"C:/repo/src/AutoMapper/AutoMapper.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Benchmark", @"C:/repo/bench/Benchmark.csproj", "C#", ["net10.0"],
+                    [@"../src/AutoMapper/AutoMapper.csproj"], [], OutputType: "Exe"),
+                new ProjectInfo("TestApp", @"C:/repo/sample/TestApp.csproj", "C#", ["net10.0"],
+                    [@"../src/AutoMapper/AutoMapper.csproj"], [], OutputType: "Exe"),
             ],
         };
-        model.Types.TryAdd("AutoMapper.Mapper", PublicType("AutoMapper.Mapper", @"C:\repo\src\AutoMapper\Mapper.cs"));
+        model.Types.TryAdd("AutoMapper.Mapper", PublicType("AutoMapper.Mapper", @"C:/repo/src/AutoMapper/Mapper.cs"));
 
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
     }
@@ -209,16 +209,16 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("Newtonsoft.Json", @"C:\repo\Src\Newtonsoft.Json\Newtonsoft.Json.csproj",
+                new ProjectInfo("Newtonsoft.Json", @"C:/repo/Src/Newtonsoft.Json/Newtonsoft.Json.csproj",
                     "C#", ["net10.0"], [], [], IsPackable: true),
-                new ProjectInfo("Newtonsoft.Json.Tests", @"C:\repo\Src\Newtonsoft.Json.Tests\Newtonsoft.Json.Tests.csproj",
-                    "C#", ["net10.0"], [@"..\Newtonsoft.Json\Newtonsoft.Json.csproj"], []),
-                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:\repo\Src\Newtonsoft.Json.TestConsole\Newtonsoft.Json.TestConsole.csproj",
-                    "C#", ["net10.0"], [@"..\Newtonsoft.Json.Tests\Newtonsoft.Json.Tests.csproj"], [], OutputType: "Exe"),
+                new ProjectInfo("Newtonsoft.Json.Tests", @"C:/repo/Src/Newtonsoft.Json.Tests/Newtonsoft.Json.Tests.csproj",
+                    "C#", ["net10.0"], [@"../Newtonsoft.Json/Newtonsoft.Json.csproj"], []),
+                new ProjectInfo("Newtonsoft.Json.TestConsole", @"C:/repo/Src/Newtonsoft.Json.TestConsole/Newtonsoft.Json.TestConsole.csproj",
+                    "C#", ["net10.0"], [@"../Newtonsoft.Json.Tests/Newtonsoft.Json.Tests.csproj"], [], OutputType: "Exe"),
             ],
         };
         model.Types.TryAdd("Newtonsoft.Json.JsonConvert",
-            PublicType("Newtonsoft.Json.JsonConvert", @"C:\repo\Src\Newtonsoft.Json\JsonConvert.cs"));
+            PublicType("Newtonsoft.Json.JsonConvert", @"C:/repo/Src/Newtonsoft.Json/JsonConvert.cs"));
 
         Assert.Equal(Archetype.Library, ArchetypeDetector.Detect(model, []));
     }
@@ -230,11 +230,11 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("Core", @"C:\repo\src\Core\Core.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("Worker", @"C:\repo\src\Worker\Worker.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe"),
+                new ProjectInfo("Core", @"C:/repo/src/Core/Core.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Worker", @"C:/repo/src/Worker/Worker.csproj", "C#", ["net10.0"], [], [], OutputType: "Exe"),
             ],
         };
-        model.Types.TryAdd("Core.Thing", PublicType("Core.Thing", @"C:\repo\src\Core\Thing.cs"));
+        model.Types.TryAdd("Core.Thing", PublicType("Core.Thing", @"C:/repo/src/Core/Thing.cs"));
 
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
     }
@@ -248,12 +248,12 @@ public sealed class ArchetypeDetectorTests
         {
             Projects =
             [
-                new ProjectInfo("Files.Core", @"C:\repo\src\Files.Core\Files.Core.csproj", "C#", ["net10.0"], [], []),
-                new ProjectInfo("Files.App", @"C:\repo\src\Files.App\Files.App.csproj", "C#", ["net10.0"],
-                    [@"..\src\Files.Core\Files.Core.csproj"], [], OutputType: "WinExe"),
+                new ProjectInfo("Files.Core", @"C:/repo/src/Files.Core/Files.Core.csproj", "C#", ["net10.0"], [], []),
+                new ProjectInfo("Files.App", @"C:/repo/src/Files.App/Files.App.csproj", "C#", ["net10.0"],
+                    [@"../src/Files.Core/Files.Core.csproj"], [], OutputType: "WinExe"),
             ],
         };
-        model.Types.TryAdd("Files.Core.Service", PublicType("Files.Core.Service", @"C:\repo\src\Files.Core\Service.cs"));
+        model.Types.TryAdd("Files.Core.Service", PublicType("Files.Core.Service", @"C:/repo/src/Files.Core/Service.cs"));
 
         Assert.Equal(Archetype.App, ArchetypeDetector.Detect(model, []));
     }
@@ -264,7 +264,7 @@ public sealed class ArchetypeDetectorTests
         // W5: UiEntry kind entries make the archetype App, just like HTTP/Message entries do.
         var model = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Desktop", @"C:\repo\Desktop\Desktop.csproj", "C#", ["net10.0"], [], [], OutputType: "WinExe")],
+            Projects = [new ProjectInfo("Desktop", @"C:/repo/Desktop/Desktop.csproj", "C#", ["net10.0"], [], [], OutputType: "WinExe")],
         };
         ImmutableArray<EntryPoint> entries =
             [new EntryPoint(EntryPointKind.UiEntry, "MainWindow", NodeId.ForEntry("ui:MainWindow"))];

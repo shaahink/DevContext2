@@ -7,7 +7,10 @@ namespace DevContext.Core.Resolvers;
 /// <c>.sln</c> format and the newer XML <c>.slnx</c> format. One parser so the discovery extractor,
 /// the Roslyn workspace provider, and anything else read solutions the same way (no `.slnx` blind
 /// spots, where four of the eval repos — eShop, AutoMapper, OrchardCore, VerticalSlice — live).
-/// Paths are returned exactly as written in the file (relative to the solution directory).
+/// Paths are relative to the solution directory, separator-normalized to '/' (H1): the .sln format
+/// always writes '\', which off-Windows System.IO.Path treats as a name character, not a separator
+/// — un-normalized, every downstream Path.GetFileName*/GetDirectoryName over these silently
+/// misbehaves on Linux/macOS (e.g. the Map topology scope filter dropped every project).
 /// </summary>
 public static class SolutionFileParser
 {
@@ -39,7 +42,7 @@ public static class SolutionFileParser
 
             var path = parts[1].Trim().Trim('"');
             if (path.Length > 0 && path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                projects.Add(path);
+                projects.Add(path.Replace('\\', '/'));
         }
         return [.. projects];
     }
@@ -56,7 +59,7 @@ public static class SolutionFileParser
             {
                 var path = el.Attribute("Path")?.Value;
                 if (!string.IsNullOrEmpty(path) && path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                    projects.Add(path);
+                    projects.Add(path.Replace('\\', '/'));
             }
         }
         catch (System.Xml.XmlException ex)

@@ -58,6 +58,6 @@ public sealed class FakeFileSystemTests
     {
         var fs = new FakeFileSystem();
         var rel = fs.GetRelativePath(@"src\Api", @"src\Api\Controllers\Test.cs");
-        Assert.Equal(@"Controllers\Test.cs", rel);
+        Assert.Equal("Controllers/Test.cs", rel);
     }
 }

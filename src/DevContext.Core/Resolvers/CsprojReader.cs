@@ -11,10 +11,13 @@ namespace DevContext.Core.Resolvers;
 /// </summary>
 public static class CsprojReader
 {
-    /// <summary>The raw <c>&lt;ProjectReference Include="..."&gt;</c> paths (relative to the csproj dir).</summary>
+    /// <summary>The <c>&lt;ProjectReference Include="..."&gt;</c> paths (relative to the csproj dir),
+    /// separator-normalized to '/' (H1): csproj files conventionally write '\', which off-Windows
+    /// System.IO.Path reads as a name character — un-normalized, every downstream
+    /// GetFileNameWithoutExtension-style name derivation silently breaks on Linux/macOS.</summary>
     public static ImmutableArray<string> ParseProjectReferences(XDocument doc)
         => doc.Descendants("ProjectReference")
-            .Select(r => r.Attribute("Include")?.Value ?? "")
+            .Select(r => (r.Attribute("Include")?.Value ?? "").Replace('\\', '/'))
             .Where(v => !string.IsNullOrEmpty(v))
             .ToImmutableArray();
 

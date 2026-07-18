@@ -110,7 +110,7 @@ public sealed class RendererTests
             Id = "MyApp.Models.Product",
             Name = "Product",
             Namespace = "MyApp.Models",
-            FilePath = @"C:\repo\src\MyApp\Models\Product.cs",
+            FilePath = @"C:/repo/src/MyApp/Models/Product.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Domain,
@@ -120,7 +120,7 @@ public sealed class RendererTests
             Id = "MyApp.Services.ProductService",
             Name = "ProductService",
             Namespace = "MyApp.Services",
-            FilePath = @"C:\repo\src\MyApp\Services\ProductService.cs",
+            FilePath = @"C:/repo/src/MyApp/Services/ProductService.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Application,
@@ -146,7 +146,7 @@ public sealed class RendererTests
             "GET", "/api/products", "<Program>", "<lambda>", [], [])
         {
             ExtractorName = "EndpointExtractor",
-            SourceFile = @"C:\repo\src\MyApp\Program.cs",
+            SourceFile = @"C:/repo/src/MyApp/Program.cs",
             LineNumber = 5,
         });
 
@@ -207,7 +207,7 @@ public sealed class RendererTests
             Id = "Lib.Services.MyService",
             Name = "MyService",
             Namespace = "Lib.Services",
-            FilePath = @"C:\repo\src\Lib\Services\MyService.cs",
+            FilePath = @"C:/repo/src/Lib/Services/MyService.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Public,
             Layer = ArchitectureLayer.Unknown,
@@ -217,7 +217,7 @@ public sealed class RendererTests
             Id = "Lib.Services.InternalHelper",
             Name = "InternalHelper",
             Namespace = "Lib.Services",
-            FilePath = @"C:\repo\src\Lib\Services\InternalHelper.cs",
+            FilePath = @"C:/repo/src/Lib/Services/InternalHelper.cs",
             Kind = TypeKind.Class,
             Accessibility = Microsoft.CodeAnalysis.Accessibility.Internal,
             Layer = ArchitectureLayer.Unknown,
@@ -282,7 +282,7 @@ public sealed class RendererTests
         model.Detections.Add(new EndpointDetection("GET", "/api/products", "<Program>", "<lambda>", [], [])
         {
             ExtractorName = "EndpointExtractor",
-            SourceFile = @"C:\repo\src\MyApp\Program.cs",
+            SourceFile = @"C:/repo/src/MyApp/Program.cs",
             LineNumber = 5,
         });
 
@@ -301,7 +301,7 @@ public sealed class RendererTests
         model.Detections.Add(new EndpointDetection("GET", "/api/products", "ProductsHandler", "HandleAsync", [], [], "/api")
         {
             ExtractorName = "EndpointExtractor",
-            SourceFile = @"C:\repo\src\MyApp\Endpoints.cs",
+            SourceFile = @"C:/repo/src/MyApp/Endpoints.cs",
             LineNumber = 10,
         });
 
@@ -323,7 +323,7 @@ public sealed class RendererTests
             "<lambda>", [], [])
         {
             ExtractorName = "EndpointExtractor",
-            SourceFile = @"C:\repo\src\MyApp\Program.cs",
+            SourceFile = @"C:/repo/src/MyApp/Program.cs",
             LineNumber = 5,
         });
 
@@ -342,13 +342,13 @@ public sealed class RendererTests
         model.Detections.Add(new EfEntityDetection("Order", "OrderingContext", true, ["Id"])
         {
             ExtractorName = "EfCoreExtractor",
-            SourceFile = @"C:\repo\src\Ordering\OrderingContext.cs",
+            SourceFile = @"C:/repo/src/Ordering/OrderingContext.cs",
             LineNumber = 10,
         });
         model.Detections.Add(new EfEntityDetection("OrderItem", "OrderingContext", false, ["Id", "OrderId"])
         {
             ExtractorName = "EfCoreExtractor",
-            SourceFile = @"C:\repo\src\Ordering\OrderingContext.cs",
+            SourceFile = @"C:/repo/src/Ordering/OrderingContext.cs",
             LineNumber = 15,
         });
 
@@ -370,7 +370,7 @@ public sealed class RendererTests
         model.Detections.Add(new MessageConsumerDetection("OrderPlacedEvent", "OrderPlacedConsumer", "MassTransit")
         {
             ExtractorName = "EventBusExtractor",
-            SourceFile = @"C:\repo\src\Consumers\OrderPlacedConsumer.cs",
+            SourceFile = @"C:/repo/src/Consumers/OrderPlacedConsumer.cs",
             LineNumber = 5,
         });
 
@@ -391,13 +391,13 @@ public sealed class RendererTests
         model.Detections.Add(new EndpointDetection("GET", "/api/test", "TestHandler", "Handle", [], [])
         {
             ExtractorName = "EndpointExtractor",
-            SourceFile = @"C:\repo\src\Program.cs",
+            SourceFile = @"C:/repo/src/Program.cs",
             LineNumber = 1,
         });
         model.Detections.Add(new EfEntityDetection("Product", "AppDbContext", false, [])
         {
             ExtractorName = "EfCoreExtractor",
-            SourceFile = @"C:\repo\src\AppDbContext.cs",
+            SourceFile = @"C:/repo/src/AppDbContext.cs",
             LineNumber = 1,
         });
 
@@ -415,11 +415,11 @@ public sealed class RendererTests
     {
         var model = new DiscoveryModel();
         model.Detections.Add(new AntiPatternDetection("FireAndForget", "desc1", "high", "t1")
-        { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 1 });
+        { ExtractorName = "a", SourceFile = @"/src/Worker.cs", LineNumber = 1 });
         model.Detections.Add(new AntiPatternDetection("FireAndForget", "desc2", "high", "t2")
-        { ExtractorName = "a", SourceFile = @"\src\Worker.cs", LineNumber = 2 });
+        { ExtractorName = "a", SourceFile = @"/src/Worker.cs", LineNumber = 2 });
         model.Detections.Add(new AntiPatternDetection("ServiceLocator", "desc3", "high", "t3")
-        { ExtractorName = "a", SourceFile = @"\tests\TestFile.cs", LineNumber = 1 });
+        { ExtractorName = "a", SourceFile = @"/tests/TestFile.cs", LineNumber = 1 });
 
         var renderer = new MarkdownRenderer();
         var options = new RenderOptions(false, false, 8000);

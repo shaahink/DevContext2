@@ -101,7 +101,7 @@ public sealed class RazorCodeVirtualizerTests
             }
             """;
         var source = RazorCodeVirtualizer.BuildVirtualSource(
-            @"C:\repo\src\Web\Pages\DiscoverPage.razor", razor, "Podcast.Pages.Pages");
+            @"C:/repo/src/Web/Pages/DiscoverPage.razor", razor, "Podcast.Pages.Pages");
         Assert.NotNull(source);
         Assert.Contains("namespace Podcast.Pages.Pages;", source);
         Assert.Contains("public partial class DiscoverPage : Microsoft.AspNetCore.Components.ComponentBase", source);
@@ -128,7 +128,7 @@ public sealed class RazorCodeVirtualizerTests
                 }
             }
             """;
-        var path = @"C:\repo\src\Web\Pages\DiscoverPage.razor";
+        var path = @"C:/repo/src/Web/Pages/DiscoverPage.razor";
         var source = RazorCodeVirtualizer.BuildVirtualSource(path, razor, "Podcast.Pages.Pages");
         var tree = CSharpSyntaxTree.ParseText(source!, path: path);
         var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
@@ -148,7 +148,7 @@ public sealed class RazorCodeVirtualizerTests
             }
             """;
         var source = RazorCodeVirtualizer.BuildVirtualSource(
-            @"C:\repo\src\Web\Shared\MainLayout.razor", razor, "Web.Shared",
+            @"C:/repo/src/Web/Shared/MainLayout.razor", razor, "Web.Shared",
             inheritedUsings: ["Podcast.Pages.Data"]);
         Assert.Contains("class MainLayout : LayoutComponentBase", source);
         Assert.Contains("using Podcast.Pages.Data;", source);
@@ -159,14 +159,14 @@ public sealed class RazorCodeVirtualizerTests
     public void BuildVirtualSource_markup_only_component_returns_null()
     {
         Assert.Null(RazorCodeVirtualizer.BuildVirtualSource(
-            @"C:\repo\src\Web\App.razor", "<Router AppAssembly=\"@typeof(App).Assembly\" />", "Web"));
+            @"C:/repo/src/Web/App.razor", "<Router AppAssembly=\"@typeof(App).Assembly\" />", "Web"));
     }
 
     [Fact]
     public void BuildVirtualSource_inject_only_component_still_produces_the_type()
     {
         var source = RazorCodeVirtualizer.BuildVirtualSource(
-            @"C:\repo\src\Web\Widget.razor", "@inject IClock Clock\n<p>@Clock.Now</p>", "Web");
+            @"C:/repo/src/Web/Widget.razor", "@inject IClock Clock\n<p>@Clock.Now</p>", "Web");
         Assert.NotNull(source);
         Assert.Contains("public IClock Clock { get; set; }", source);
     }
@@ -176,13 +176,13 @@ public sealed class RazorCodeVirtualizerTests
     private static (DiscoveryContext Ctx, DiscoveryModel Model) BuildBlazorRepo()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\Podcast.Pages\Podcast.Pages.csproj",
+        fs.AddFile(@"C:/repo/src/Podcast.Pages/Podcast.Pages.csproj",
             "<Project Sdk=\"Microsoft.NET.Sdk.Razor\"></Project>");
-        fs.AddFile(@"C:\repo\src\Podcast.Pages\_Imports.razor", """
+        fs.AddFile(@"C:/repo/src/Podcast.Pages/_Imports.razor", """
             @using Microsoft.AspNetCore.Components
             @using Podcast.Pages.Data
             """);
-        fs.AddFile(@"C:\repo\src\Podcast.Pages\Pages\DiscoverPage.razor", """
+        fs.AddFile(@"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor", """
             @page "/discover"
             @inject PodcastService PodcastService
             <h1>Discover</h1>
@@ -193,7 +193,7 @@ public sealed class RazorCodeVirtualizerTests
                 }
             }
             """);
-        fs.AddFile(@"C:\repo\src\Podcast.Pages\Data\PodcastService.cs", """
+        fs.AddFile(@"C:/repo/src/Podcast.Pages/Data/PodcastService.cs", """
             namespace Podcast.Pages.Data;
 
             public sealed class PodcastService
@@ -204,12 +204,12 @@ public sealed class RazorCodeVirtualizerTests
 
         var (ctx, _) = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo")
+            .WithRootPath(@"C:/repo")
             .BuildWithRecording();
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Podcast.Pages\Data\PodcastService.cs"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/Podcast.Pages/Data/PodcastService.cs"];
         ctx.Analysis.AllContentFiles =
-            [@"C:\repo\src\Podcast.Pages\_Imports.razor", @"C:\repo\src\Podcast.Pages\Pages\DiscoverPage.razor"];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\Podcast.Pages\Podcast.Pages.csproj"];
+            [@"C:/repo/src/Podcast.Pages/_Imports.razor", @"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor"];
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/Podcast.Pages/Podcast.Pages.csproj"];
         ctx.Analysis.FocusPoints = [];
         return (ctx, new DiscoveryModel());
     }
@@ -222,7 +222,7 @@ public sealed class RazorCodeVirtualizerTests
 
         // Namespace = csproj name + folder path (Blazor's default), so a .razor.cs partial would merge.
         Assert.True(model.Types.TryGetValue("Podcast.Pages.Pages.DiscoverPage", out var component));
-        Assert.Equal(@"C:\repo\src\Podcast.Pages\Pages\DiscoverPage.razor", component!.FilePath);
+        Assert.Equal(@"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor", component!.FilePath);
         Assert.Contains(component.Methods, m => m.Name == "OnInitializedAsync");
         Assert.Contains(component.Properties, p => p.Name == "PodcastService");
     }
@@ -238,7 +238,7 @@ public sealed class RazorCodeVirtualizerTests
             "GET", "/discover", "DiscoverPage", "<component>", [], [])
         {
             ExtractorName = "BlazorEntryExtractor",
-            SourceFile = @"C:\repo\src\Podcast.Pages\Pages\DiscoverPage.razor",
+            SourceFile = @"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor",
             LineNumber = 1,
         });
 
@@ -258,14 +258,14 @@ public sealed class RazorCodeVirtualizerTests
         var (ctx, model) = BuildBlazorRepo();
         model.Projects =
         [
-            new ProjectInfo("Podcast.Pages", @"C:\repo\src\Podcast.Pages\Podcast.Pages.csproj", "C#", ["net10.0"], [], []),
+            new ProjectInfo("Podcast.Pages", @"C:/repo/src/Podcast.Pages/Podcast.Pages.csproj", "C#", ["net10.0"], [], []),
         ];
         await new SyntaxStructureExtractor().ExtractAsync(ctx, model, default);
         model.Detections.Add(new EndpointDetection(
             "GET", "/discover", "DiscoverPage", "<component>", [], [])
         {
             ExtractorName = "BlazorEntryExtractor",
-            SourceFile = @"C:\repo\src\Podcast.Pages\Pages\DiscoverPage.razor",
+            SourceFile = @"C:/repo/src/Podcast.Pages/Pages/DiscoverPage.razor",
             LineNumber = 1,
         });
         await new CallGraphExtractor().ExtractAsync(ctx, model, default);

@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>
@@ -24,9 +26,9 @@ public sealed class SolutionScope
         _projectDirs =
         [
             .. projects
-                .Select(p => Path.GetDirectoryName(p.FilePath))
+                .Select(p => PathText.DirOf(p.FilePath))
                 .Where(d => !string.IsNullOrEmpty(d))
-                .Select(d => Normalize(d!))
+                .Select(d => d!)
                 .Distinct(),
         ];
     }
@@ -54,10 +56,11 @@ public sealed class SolutionScope
             // ProjectPaths are written relative to the solution directory (SolutionFileParser); project
             // FilePaths are absolute (Roslyn). Resolve the relative paths against the solution dir before
             // comparing — otherwise relative-vs-absolute never matches and the scope silently falls back
-            // to "all discovered projects" (assessment G1, Phase 0).
-            var slnDir = Path.GetDirectoryName(sln.FilePath) ?? "";
+            // to "all discovered projects" (assessment G1, Phase 0). All algebra is PathText (string-pure):
+            // System.IO.Path over the solution's '\'-separated flavor breaks off-Windows (H1).
+            var slnDir = PathText.DirOf(sln.FilePath) ?? "";
             var inSln = sln.ProjectPaths
-                .Select(rel => Normalize(ToAbsolute(slnDir, rel)))
+                .Select(rel => PathText.Join(slnDir, rel))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var scoped = model.Projects
                 .Where(p => inSln.Contains(Normalize(p.FilePath)))
@@ -67,11 +70,6 @@ public sealed class SolutionScope
         }
         return new SolutionScope(model.Projects, model.Solution?.Name);
     }
-
-    private static string ToAbsolute(string baseDir, string path)
-        => Path.IsPathRooted(path) || baseDir.Length == 0
-            ? path
-            : Path.GetFullPath(Path.Combine(baseDir, path));
 
     /// <summary>
     /// Returns the project name that contains the given file path, or null when no project matches.
@@ -90,11 +88,11 @@ public sealed class SolutionScope
         if (bestDir is null) return null;
         foreach (var p in Projects)
         {
-            var pd = Normalize(Path.GetDirectoryName(p.FilePath)!);
-            if (pd == bestDir) return p.Name;
+            if (string.Equals(PathText.DirOf(p.FilePath), bestDir, StringComparison.OrdinalIgnoreCase))
+                return p.Name;
         }
         return null;
     }
 
-    private static string Normalize(string path) => path.Replace('\\', '/').TrimEnd('/');
+    private static string Normalize(string path) => PathText.Normalize(path);
 }

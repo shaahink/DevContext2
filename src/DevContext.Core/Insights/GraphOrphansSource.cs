@@ -117,7 +117,7 @@ public sealed class GraphOrphansSource : IAnalysisAwareInsightSource
             $"Possible dead code: {orphans.Count} public types with zero inbound references",
             orphans,
             confidence: 0.4,
-            confidenceBasis: $"coverage basis: {verifiedRatio:P0} of {calls.Count} Calls edges verified, "
+            confidenceBasis: $"coverage basis: {(int)Math.Round(verifiedRatio * 100)}% of {calls.Count} Calls edges verified, "
                 + $"{wired}/{entries.Length} entries wired; body-constructed, implemented, and "
                 + "entity-indexed types excluded");
     }

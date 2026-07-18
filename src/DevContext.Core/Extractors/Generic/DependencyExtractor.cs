@@ -200,10 +200,11 @@ public sealed class DependencyExtractor : IDiscoveryExtractor
                         }
                     }
 
-                    // Also check ProjectReference elements for signal-bearing projects
-                    var projectRefs = doc.Descendants("ProjectReference")
-                        .Select(r => r.Attribute("Include")?.Value ?? "")
-                        .Where(v => !string.IsNullOrEmpty(v))
+                    // Also check ProjectReference elements for signal-bearing projects — via
+                    // CsprojReader so the '\'-written Include paths are '/'-normalized before the
+                    // name is taken (H1: a raw GetFileNameWithoutExtension read the whole
+                    // "..\X\X.csproj" as the name off-Windows and matched no signal).
+                    var projectRefs = Resolvers.CsprojReader.ParseProjectReferences(doc)
                         .Select(v => Path.GetFileNameWithoutExtension(v))
                         .Where(v => !string.IsNullOrEmpty(v));
 

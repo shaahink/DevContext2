@@ -393,7 +393,10 @@ public static class RazorCodeVirtualizer
         {
             if (fileDir.Length <= baseDir.Length) return baseNs;
             var sb = new StringBuilder(baseNs);
-            foreach (var segment in fileDir[baseDir.Length..].Split('\\', '/', StringSplitOptions.RemoveEmptyEntries))
+            // NOT Split('\\', '/', options) — that binds Split(char, int count, options) with '/'
+            // as count=47, so '/' never splits (H1: Linux fileDirs are '/'-separated; Windows masked
+            // it because GetDirectoryName hands back '\'-separated dirs).
+            foreach (var segment in fileDir[baseDir.Length..].Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries))
                 sb.Append('.').Append(SanitizeSegment(segment));
             return sb.ToString();
         }

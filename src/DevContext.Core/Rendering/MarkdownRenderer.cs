@@ -190,8 +190,10 @@ public sealed class MarkdownRenderer : IContextRenderer
 
     private static void AppendArchitecture(StringBuilder sb, DiscoveryModel model)
     {
+        // NOT :P0 — percent formatting is culture-dependent ("85%" en-US, "85 %" invariant/most
+        // locales); rendered context must be byte-identical on every host (H1).
         var style = model.DetectedStyle != ArchitectureStyle.Unknown
-            ? $"{model.DetectedStyle} ({model.StyleConfidence:P0} confidence)"
+            ? $"{model.DetectedStyle} ({(int)Math.Round(model.StyleConfidence * 100)}% confidence)"
             : "Not detected";
 
         sb.AppendLine($"**Architecture**: {style}");

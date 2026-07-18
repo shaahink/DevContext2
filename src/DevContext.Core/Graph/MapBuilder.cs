@@ -1,3 +1,5 @@
+using DevContext.Core.Utilities;
+
 namespace DevContext.Core.Graph;
 
 /// <summary>The orientation artifact: architecture, topology, packages, entry inventory, cross-cutting — no code.</summary>
@@ -98,8 +100,11 @@ public sealed class MapBuilder
     private static ImmutableArray<ProjectNode> BuildTopology(DiscoveryModel model, CodeGraph graph)
     {
         var classifier = new ProjectClassifier(model.Projects);
+        // PathText first (H1): solution-relative paths can arrive '\'-separated, which off-Windows
+        // GetFileNameWithoutExtension reads as one big file name — the scope filter then matches
+        // nothing and the topology renders empty.
         var scoped = model.Solution is { ProjectPaths.Length: > 0 } sln
-            ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(p)).ToHashSet(StringComparer.OrdinalIgnoreCase)
+            ? sln.ProjectPaths.Select(p => Path.GetFileNameWithoutExtension(PathText.Normalize(p))).ToHashSet(StringComparer.OrdinalIgnoreCase)
             : null;
 
         var layerCounts = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
@@ -153,7 +158,7 @@ public sealed class MapBuilder
                 .OrderBy(p => displayNames[p])
                 .Select(p => new ProjectNode(displayNames[p],
                     [.. p.ProjectReferences
-                        .Select(r => Path.GetFileNameWithoutExtension(r) ?? "")
+                        .Select(r => Path.GetFileNameWithoutExtension(PathText.Normalize(r)) ?? "")
                         .Where(r => r.Length > 0 && keptNames.Contains(r) && (scoped is null || scoped.Contains(r)))
                         .OrderBy(r => r)])
                 {
@@ -171,14 +176,14 @@ public sealed class MapBuilder
         static string[] AncestorSegments(ProjectInfo p)
         {
             var segments = new List<string>();
-            var dir = Path.GetDirectoryName(p.FilePath);
+            var dir = PathText.DirOf(p.FilePath);
             while (!string.IsNullOrEmpty(dir))
             {
-                var seg = Path.GetFileName(dir);
+                var seg = PathText.NameOf(dir);
                 if (string.IsNullOrEmpty(seg)) break;
                 // src/Messages/Messages.csproj — the name-echo segment disambiguates nothing.
                 if (!seg.Equals(p.Name, StringComparison.OrdinalIgnoreCase)) segments.Add(seg);
-                dir = Path.GetDirectoryName(dir);
+                dir = PathText.DirOf(dir);
             }
             return [.. segments];
         }

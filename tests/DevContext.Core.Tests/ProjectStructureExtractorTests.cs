@@ -6,7 +6,7 @@ public sealed class ProjectStructureExtractorTests
     public async Task ExtractAsync_ParsesCsproj()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"src\Web\Web.csproj", @"
+        fs.AddFile(@"src/Web/Web.csproj", @"
 <Project Sdk=""Microsoft.NET.Sdk.Web"">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,12 +16,12 @@ public sealed class ProjectStructureExtractorTests
     <PackageReference Include=""Microsoft.EntityFrameworkCore"" Version=""9.0.0"" />
   </ItemGroup>
 </Project>");
-        fs.AddFile(@"src\Web\Program.cs", "");
+        fs.AddFile(@"src/Web/Program.cs", "");
 
         var cache = new FakeAnalysisCache(fs);
         var analysis = new SharedAnalysisContext
         {
-            AllProjectFiles = [@"src\Web\Web.csproj"]
+            AllProjectFiles = [@"src/Web/Web.csproj"]
         };
 
         var ctx = new DiscoveryContext

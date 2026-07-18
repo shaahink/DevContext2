@@ -45,11 +45,11 @@ public sealed class DependencyExtractorTests
         // runnable guard is right for framework cores (always classlibs) and could only ever DELETE
         // the gateway signal — which cost dogfood its Microservices style for 4 checkpoints.
         var fs = new FakeFileSystem();
-        var csproj = @"C:\repo\src\YarpApiGateway\YarpApiGateway.csproj";
+        var csproj = @"C:/repo/src/YarpApiGateway/YarpApiGateway.csproj";
         fs.AddFile(csproj, """
             <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>
             """);
-        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:\repo");
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
         ctx.Analysis.AllSourceFiles = [];
         ctx.Analysis.AllProjectFiles = [csproj];
@@ -73,18 +73,18 @@ public sealed class DependencyExtractorTests
         // wolverine shape: the classlib core self-sources the signal (nuget id WolverineFx never
         // appears in its own repo); a consumer repo whose HOST is named "Wolverine" does not.
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\Wolverine\Wolverine.csproj", """
+        fs.AddFile(@"C:/repo/src/Wolverine/Wolverine.csproj", """
             <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>
             """);
-        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:\repo");
+        var builder = new DiscoveryContextBuilder().WithFileSystem(fs).WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\Wolverine\Wolverine.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\Wolverine\Wolverine.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/Wolverine/Wolverine.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/Wolverine/Wolverine.csproj");
 
         var classlibModel = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Wolverine", @"C:\repo\src\Wolverine\Wolverine.csproj",
+            Projects = [new ProjectInfo("Wolverine", @"C:/repo/src/Wolverine/Wolverine.csproj",
                 "C#", ["net10.0"], [], [])],
         };
         await new DependencyExtractor().ExtractAsync(ctx, classlibModel, default);
@@ -95,7 +95,7 @@ public sealed class DependencyExtractorTests
 
         var hostModel = new DiscoveryModel
         {
-            Projects = [new ProjectInfo("Wolverine", @"C:\repo\src\Wolverine\Wolverine.csproj",
+            Projects = [new ProjectInfo("Wolverine", @"C:/repo/src/Wolverine/Wolverine.csproj",
                 "C#", ["net10.0"], [], [], OutputType: "Exe")],
         };
         await new DependencyExtractor().ExtractAsync(ctx, hostModel, default);
@@ -107,7 +107,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsSignalFromPackageRefs()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <PackageReference Include="MediatR" Version="12.0.0" />
@@ -118,20 +118,20 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
 
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
                 new ProjectInfo(
                     "MyApp",
-                    @"C:\repo\src\MyApp\MyApp.csproj",
+                    @"C:/repo/src/MyApp/MyApp.csproj",
                     "C#",
                     ["net10.0"],
                     [],
@@ -161,7 +161,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsCommonLibrarySignals()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <PackageReference Include="Serilog" Version="4.0.0" />
@@ -178,17 +178,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                new ProjectInfo("MyApp", @"C:/repo/src/MyApp/MyApp.csproj", "C#", ["net10.0"], [],
                     [
                         new PackageReferenceInfo("Serilog", "4.0.0"),
                         new PackageReferenceInfo("AutoMapper", "13.0.0"),
@@ -220,7 +220,7 @@ public sealed class DependencyExtractorTests
     {
         // NLog is tracked as a signal but may not appear in common web projects
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <PackageReference Include="NLog" Version="5.0.0" />
@@ -230,17 +230,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                new ProjectInfo("MyApp", @"C:/repo/src/MyApp/MyApp.csproj", "C#", ["net10.0"], [],
                     [new PackageReferenceInfo("NLog", "5.0.0")])
             ],
         };
@@ -255,7 +255,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsSignalFromProjectReference()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp.Tests/MyApp.Tests.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <ProjectReference Include="..\AutoMapper\AutoMapper.csproj" />
@@ -265,17 +265,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp.Tests/MyApp.Tests.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp.Tests/MyApp.Tests.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp.Tests", @"C:\repo\src\MyApp.Tests\MyApp.Tests.csproj", "C#", ["net10.0"], [],
+                new ProjectInfo("MyApp.Tests", @"C:/repo/src/MyApp.Tests/MyApp.Tests.csproj", "C#", ["net10.0"], [],
                     [])
             ],
         };
@@ -291,7 +291,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsFastEndpointsPackage()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <PackageReference Include="FastEndpoints" Version="5.0.0" />
@@ -301,17 +301,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [],
+                new ProjectInfo("MyApp", @"C:/repo/src/MyApp/MyApp.csproj", "C#", ["net10.0"], [],
                     [new PackageReferenceInfo("FastEndpoints", "5.0.0")])
             ],
         };
@@ -326,7 +326,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsCpmPackageReference()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
               <ItemGroup>
                 <PackageReference Include="MediatR" />
@@ -336,17 +336,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [], [])
+                new ProjectInfo("MyApp", @"C:/repo/src/MyApp/MyApp.csproj", "C#", ["net10.0"], [], [])
             ],
         };
 
@@ -358,7 +358,7 @@ public sealed class DependencyExtractorTests
     public async Task DependencyExtractor_DetectsSignalFromWebSdk()
     {
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\MyApp\MyApp.csproj", """
+        fs.AddFile(@"C:/repo/src/MyApp/MyApp.csproj", """
             <Project Sdk="Microsoft.NET.Sdk.Web">
               <PropertyGroup>
                 <TargetFramework>net10.0</TargetFramework>
@@ -368,17 +368,17 @@ public sealed class DependencyExtractorTests
 
         var builder = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo");
+            .WithRootPath(@"C:/repo");
         var (ctx, _) = builder.BuildWithRecording();
 
         ctx.Analysis.AllSourceFiles = [];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\MyApp\MyApp.csproj"];
-        ctx.Cache.RegisterPath(@"C:\repo\src\MyApp\MyApp.csproj");
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/MyApp/MyApp.csproj"];
+        ctx.Cache.RegisterPath(@"C:/repo/src/MyApp/MyApp.csproj");
 
         var model = new DiscoveryModel
         {
             Projects = [
-                new ProjectInfo("MyApp", @"C:\repo\src\MyApp\MyApp.csproj", "C#", ["net10.0"], [], [])
+                new ProjectInfo("MyApp", @"C:/repo/src/MyApp/MyApp.csproj", "C#", ["net10.0"], [], [])
             ],
         };
 

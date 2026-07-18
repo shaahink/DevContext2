@@ -216,15 +216,15 @@ public sealed class BodyFactExtractorTests
             }
             """;
         var fs = new FakeFileSystem();
-        fs.AddFile(@"C:\repo\src\Basket.API\CheckoutBasketEndpoints.cs", endpointSource);
+        fs.AddFile(@"C:/repo/src/Basket.API/CheckoutBasketEndpoints.cs", endpointSource);
 
         var ctx = new DiscoveryContextBuilder()
             .WithFileSystem(fs)
-            .WithRootPath(@"C:\repo")
+            .WithRootPath(@"C:/repo")
             .WithOptions(new ExtractionOptions { BuildFullGraph = true })
             .Build();
-        ctx.Analysis.AllSourceFiles = [@"C:\repo\src\Basket.API\CheckoutBasketEndpoints.cs"];
-        ctx.Analysis.AllProjectFiles = [@"C:\repo\src\Basket.API\Basket.API.csproj"];
+        ctx.Analysis.AllSourceFiles = [@"C:/repo/src/Basket.API/CheckoutBasketEndpoints.cs"];
+        ctx.Analysis.AllProjectFiles = [@"C:/repo/src/Basket.API/Basket.API.csproj"];
 
         var model = new DiscoveryModel();
         var extractor = new BodyFactsExtractor();
