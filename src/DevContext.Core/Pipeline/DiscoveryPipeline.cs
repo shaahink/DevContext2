@@ -290,7 +290,7 @@ public sealed class DiscoveryPipeline
         // I3 — compute insights post-graph (pure, cheap, no scoring)
         context.Observer.OnStageStarted(PipelineStage.Insights);
         var insightsSw = Stopwatch.StartNew();
-        var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel);
+        var insights = ComputeInsights(model, codeGraph, entryPoints, mapModel, context.Analysis);
         context.Observer.OnStageCompleted(PipelineStage.Insights, insightsSw.Elapsed);
 
         await RunCompressionAsync(context, model, ct);
@@ -949,7 +949,7 @@ public sealed class DiscoveryPipeline
     /// <summary>I3 — runs all registered insight sources after GraphAssembly and stores the
     /// ranked, capped result. Pure post-graph computation; no scoring or scoring system.</summary>
     private static ImmutableArray<Insight> ComputeInsights(DiscoveryModel model, CodeGraph graph,
-        ImmutableArray<EntryPoint> entries, MapModel map)
+        ImmutableArray<EntryPoint> entries, MapModel map, SharedAnalysisContext analysis)
     {
         var sources = new List<IInsightSource>
         {
@@ -988,7 +988,14 @@ public sealed class DiscoveryPipeline
         var all = new List<Insight>();
         foreach (var source in sources)
         {
-            try { all.AddRange(source.Compute(model, graph, entries)); }
+            try
+            {
+                // I1 — analysis-aware sources get the extraction-layer facts (body creations,
+                // coverage) their claims must be gated on.
+                all.AddRange(source is IAnalysisAwareInsightSource aware
+                    ? aware.Compute(model, graph, entries, analysis)
+                    : source.Compute(model, graph, entries));
+            }
             catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", $"insight-{source.GetType().Name}", ex); }
         }
 

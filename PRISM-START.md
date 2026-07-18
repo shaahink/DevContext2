@@ -75,6 +75,24 @@ rider for J1/J3. Session artifacts under `prism-d2/c1/` (incl. dntsite perf A/B 
 **D2 SESSION 2 CLOSED — continue at C5 (DI provenance ranking: focus host first, `[×N hosts]`
 otherwise), then J1/J3 → I1/I2 → D3-budget per the D2 spec.**
 
+last: 2026-07-18 **D2 session 3 — C5 + J1/J3 + I1/I2 all VERIFIED (rows below, commits
+32d5f1d/…).** Ack: INBOX unchanged (D1-scoped standing orders; general discipline carried). Owner
+cadence directive honored: implement → unit test → ONE targeted drive → commit per checkpoint;
+**ONE batch gate for the whole session** (`gates.ps1 -Scope engine -EvalTier quick`, detached,
+overlapped with I1/I2 work): **GATE: PASS** — build 0w/0e, fast tests, MCP QA 12/12, eval quick
+split green (stamp not written), CLI matrix + query ops
+(`prism-d2/gates-batch-c5-j1j3.txt`); I1/I2 landed after the gate's build, covered by its own 31/31
+unit-test run + podcasts drive + app lint/49-vitest (proto regen diligence). Four D2 DoD lines now
+ticked: bitwarden DI provenance (C5 row), **Core bare-swallow count = 0** (J1), **stats show
+per-extractor failure columns** (J3), **podcasts orphans zero provably-live types** (I1 — cards=0,
+floor-honest). Known-latent carried: NameResolver short-name collision picks a test-fixture FQN for
+impl TYPE node identity (C5 row); http ServiceLink pair-order flap (C1 row) still open for the
+determinism thread. Gate noted `analyze --format html --strict` exit 2 (self-check failures) as a
+pre-existing allowed state — not chased.
+**D2 SESSION 3 CLOSED — continue at D3-budget (CLI trace budget enforced or relabeled, no silent
+3× breaches — the last open D2 checkpoint), then D2 close: full-cohort sweep + remaining DoD
+(MCP surface drive rides the octet).**
+
 # ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
@@ -289,6 +307,11 @@ Opens with the pipeline-speed adjustment (§⚡, owner directive), then the prop
 | # | Checkpoint | Status | Commit | Evidence |
 |---|-----------|--------|--------|----------|
 | J1+J3 | `PipelineDiagnostics` channel (AsyncLocal per-run scope opened by AnalyzeAsync; `Swallowed(source, category, ex)` counts + keeps first sample; no-op outside scope = zero behavior change at every site). ALL 30 grandfathered bare catches converted (SemanticLitePopulator's 9 + 5 body-carrying blind ones incl. both `semanticModel = null` sites; DiscoveryPipeline/CallGraph/GraphBuilder/Insights/Resolvers/ConfigDefaults/GitClone/SnapshotCache) — **loom-guards allowance table now EMPTY, PASS: Core bare-swallow count = 0 (DoD line ✓)**. J3 surfaces: analyze `--stats` extractor table gains Fails column + `Swallowed Failures` table (source×category×count×sample); `query stats` JSON `extractionFailures`; proto `StatsResponse.extraction_failures` (additive field 11) → gRPC + MCP stats + app TS regenerated (buf); persisted in the v4 snapshot | VERIFIED | (this) | prism-d2/j1/ — 4 unit tests (count/aggregate/sample-first/parallel-sum/scope-clear); **live truth: dogfood (439/339/34, ~1802 tok), GitVersion, shamshir poles all analyze GENUINELY CLEAN (0 swallows)** — the audit's "sparse graph = our silent failures compounding" hypothesis is now falsifiable and, on these repos, falsified; forced-failure proof: malformed .slnx renders `SolutionFileParser · slnx-parse · 1 · XmlException` end-to-end (scratchpad drive). Bitwarden note: its pre-J1 v4 snapshot deserializes empty failures (fields rode the same v4 bump in-session — no external exposure) |
+
+### D2.I1+I2 — insight validity: coverage-gated claims + validity harness (audit I1/I2)
+| # | Checkpoint | Status | Commit | Evidence |
+|---|-----------|--------|--------|----------|
+| I1+I2 | GraphOrphansSource is coverage-gated (I1): dead-code claims require ≥30 Calls edges, ≥50% verified, ≥50% wired entries (below the floor "zero inbound references" = "zero edges we captured" → NO claim); body-CONSTRUCTED types (CreationOp/LocalDeclOp facts — the audit's `new EpisodeDto(e)` in a LINQ projection), IMPLEMENTED/extended contracts (`IRequest` ×5 impls), and ENTITY-indexed types (`FeedCategory`) are excluded; the claim carries its coverage basis in the evidence line. Plumbing: `IAnalysisAwareInsightSource` (opt-in overload receiving SharedAnalysisContext; fallback overload makes NO ungated claim). I2: `query stats` JSON now carries insights (+confidenceBasis); lens-audit.ps1 gains **P7 insight-validity** — every `graph.orphans` evidence type is greped for liveness (constructed/implemented/DbSet) = machine-checked claims; all insights RECORDED per repo (`insights-recorded.json`) for manual verdicts on the rest | VERIFIED | (this) | prism-d2/i1/ — **podcasts (the audit's 3/5-FALSE exemplar): orphans cards = 0** — floor caught it honestly (88/193 = 45.6% verified Calls < 50%; wiring 22/24 = 92% post-C1/C3, verified ratio is the binding constraint) → DoD "podcasts orphans list contains zero provably-live types" ✓. 3 unit tests: live-types excluded + basis present; sub-floor silence; ungated fallback silent. P7 rides the phase-end octet run |
 
 ### D2.0b — J2 snapshot-cache resurrection (promoted from D3, §⚡)
 | # | Checkpoint | Status | Commit | Evidence |

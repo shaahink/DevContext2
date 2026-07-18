@@ -151,6 +151,41 @@ foreach ($Repo in $Selected) {
             $Probes += "FAIL mcp-drive: lens-drive.js exited $LASTEXITCODE (see mcp-transcript.txt)"
         }
     }
+    # -- P7 insight validity (I2, Prism D2) --
+    # Machine-checkable claims get checks: every graph.orphans evidence type is greped for liveness
+    # (constructed, implemented/extended, or EF-indexed in the repo source). A hit = the insight
+    # accused live code. All insights are RECORDED per repo (insights-recorded.json) so the
+    # non-machine-checkable ones can carry manual verdicts.
+    $StatsJson = & $CliExe query stats --path $RepoPath 2>$null
+    if ($LASTEXITCODE -eq 0 -and $StatsJson) {
+        try {
+            $Stats = ($StatsJson -join "`n") | ConvertFrom-Json
+            if ($null -ne $Stats.insights) {
+                $Stats.insights | ConvertTo-Json -Depth 6 |
+                    Out-File (Join-Path $Out "insights-recorded.json") -Encoding utf8
+                $Orphans = @($Stats.insights | Where-Object { $_.id -eq "graph.orphans" })
+                foreach ($Card in $Orphans) {
+                    $Types = @($Card.evidence | Where-Object { $_ -match '^[A-Za-z_][A-Za-z0-9_]*$' })
+                    if ($Types.Count -eq 0) { continue }
+                    $Alt = ($Types -join "|")
+                    $LivePattern = "new\s+($Alt)\s*[({]|:\s*[^{;]*\b($Alt)\b|DbSet<($Alt)>"
+                    $Hits = Get-ChildItem -Path $RepoPath -Recurse -Filter *.cs -File -ErrorAction SilentlyContinue |
+                        Where-Object { $_.FullName -notmatch '\\\.git\\' } |
+                        Select-String -Pattern $LivePattern -List
+                    $LiveTypes = @()
+                    foreach ($T in $Types) {
+                        $TPattern = "new\s+$T\s*[({]|:\s*[^{;]*\b$T\b|DbSet<$T>"
+                        if ($Hits | Where-Object { $_.Line -match $TPattern } | Select-Object -First 1) {
+                            $LiveTypes += $T
+                        }
+                    }
+                    if ($LiveTypes.Count -gt 0) {
+                        $Probes += "FAIL orphans-validity: provably-live types in dead-code claim: $($LiveTypes -join ', ') (audit I1/I2)"
+                    }
+                }
+            }
+        } catch { $Probes += "FAIL insight-validity-probe: $($_.Exception.Message)" }
+    }
 
     $FailCount = @($Probes | Where-Object { $_ -like "FAIL*" }).Count
     $TotalFails += $FailCount

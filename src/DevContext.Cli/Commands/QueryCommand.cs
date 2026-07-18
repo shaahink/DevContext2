@@ -101,7 +101,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
-                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model),
+                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model, snapshot.Insights),
                 "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
                 _ => null
             };
@@ -234,7 +234,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
 
     // T3.7 — stats: graph counts + per-kind entry counts + seam breakdown (verified/approx).
     private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph,
-        DevContext.Core.Models.DiscoveryModel model)
+        DevContext.Core.Models.DiscoveryModel model, ImmutableArray<DevContext.Core.Insights.Insight> insights)
     {
         var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
         var entries = query.EntryPoints();
@@ -255,6 +255,17 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             extractionFailures = model.ExtractionFailures
                 .Select(f => new { source = f.Source, category = f.Category, count = f.Count, sample = f.SampleException })
                 .ToArray(),
+            // I2 — insights ride the stats surface so the validity harness can machine-check claims
+            insights = insights.Select(i => new
+            {
+                id = i.Id,
+                category = i.Category.ToString(),
+                severity = i.Severity.ToString(),
+                title = i.Title,
+                evidence = i.Evidence.ToArray(),
+                confidence = i.Confidence,
+                confidenceBasis = i.ConfidenceBasis,
+            }).ToArray(),
         };
     }
 
