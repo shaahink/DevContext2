@@ -65,7 +65,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - uses: pnpm/action-setup@v4 # version comes from packageManager in package.json
+      - uses: pnpm/action-setup@v4 # version comes from packageManager in the APP's package.json
+        with:
+          package_json_file: src/DevContext.App/package.json # no root package.json — the action defaults to repo root and finds nothing
 
       - name: Setup Node
         uses: actions/setup-node@v4
