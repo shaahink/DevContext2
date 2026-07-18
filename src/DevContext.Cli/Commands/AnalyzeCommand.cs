@@ -176,11 +176,6 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         var collector = new RunReportCollector();
         collector.SetBudget(options.MaxOutputTokens);
 
-        var spectreObserver = new SpectreDiscoveryObserver();
-        var inner = new List<IDiscoveryObserver> { spectreObserver };
-        inner.Add(collector);
-        var observer = new CompositeDiscoveryObserver([.. inner]);
-
         // I8 — snapshot cache check. D3.1: keys carry the analysis flavor, so a --fast/--lite/
         // --no-roslyn run caches in its own slot and can never be served to a full-fidelity run.
         var (repoKey, versionKey) = DevContext.Core.Analysis.SnapshotCacheService.ComputeKeys(rootResult.EffectiveRootPath, options);
@@ -203,6 +198,20 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
             return 3;
         }
 
+        // K1 (Prism D3.2) — interactive analyzes get the LIVE waterfall (per-stage rows, running
+        // extractors, discoveries ticker) instead of a blind spinner. Non-interactive runs keep the
+        // plain line stream byte-stable for harnesses. DEVCONTEXT_WATERFALL=on|off overrides the
+        // TTY probe (on = capturable fallback rendering for drives; off = plain lines on a TTY).
+        var useWaterfall = Environment.GetEnvironmentVariable("DEVCONTEXT_WATERFALL") switch
+        {
+            "on" => true,
+            "off" => false,
+            _ => AnsiConsole.Profile.Capabilities.Interactive,
+        };
+        var waterfall = useWaterfall && !fromCache ? new WaterfallDiscoveryObserver() : null;
+        var observer = new CompositeDiscoveryObserver(
+            waterfall is not null ? [waterfall, collector] : [new SpectreDiscoveryObserver(), collector]);
+
         var ctx = new DiscoveryContext
         {
             RootPath = rootResult.EffectiveRootPath,
@@ -219,27 +228,57 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         DevContext.Core.Analysis.SnapshotSaveResult? saveResult = null;
         if (!fromCache)
         {
-            await AnsiConsole.Status()
-                .StartAsync("Analyzing project...", async statusCtx =>
+            // Shared by both display paths. J2 — awaited save so the process can't exit mid-write;
+            // --no-cache bypasses the write too so an experiment run can't poison the cache.
+            // Failures are surfaced after the display closes, never swallowed (and never fatal).
+            async Task AnalyzeSaveRender()
+            {
+                var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
+                snapshot = capturedSnapshot;
+
+                if (!settings.NoCache && !capturedSnapshot.IsDryRun)
+                    saveResult = await snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
+
+                if (capturedSnapshot.IsDryRun)
                 {
-                    var capturedSnapshot = await pipeline.AnalyzeAsync(ctx, ct);
-                    snapshot = capturedSnapshot;
+                    result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
+                }
+                else
+                {
+                    result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
+                }
+            }
 
-                    // J2 — awaited save so the process can't exit mid-write; --no-cache bypasses
-                    // the write too so an experiment run can't poison the cache. Failures are
-                    // surfaced after the status block, never swallowed (and never fatal).
-                    if (!settings.NoCache && !capturedSnapshot.IsDryRun)
-                        saveResult = await snapCache.SaveAsync(repoKey, versionKey, capturedSnapshot, ct);
+            if (waterfall is not null)
+            {
+                // K1 — honest big-repo expectation up front (L7's CLI half): this run is uncached.
+                if (!settings.Quiet)
+                    AnsiConsole.MarkupLine(settings.NoCache
+                        ? "[dim]cache bypassed (--no-cache) — full analysis[/]"
+                        : "[dim]no cached snapshot for this tree — a first analysis can take minutes on a large repo; the result is snapshotted for instant re-runs[/]");
+                await AnsiConsole.Progress()
+                    .AutoClear(false)
+                    .HideCompleted(false)
+                    .Columns(
+                        new SpinnerColumn { CompletedText = "[green]✓[/]" },
+                        new TaskDescriptionColumn { Alignment = Justify.Left },
+                        new ElapsedTimeColumn())
+                    .StartAsync(async pctx =>
+                    {
+                        waterfall.Attach(pctx);
+                        await AnalyzeSaveRender();
+                    });
+                // Diagnostics were buffered during the live display (writing through it corrupts).
+                if (!settings.Quiet)
+                    foreach (var d in waterfall.BufferedDiagnostics)
+                        AnsiConsole.MarkupLine($"[dim][[{d.Level}]] {Markup.Escape(d.Source)}: {Markup.Escape(d.Message)}[/]");
+            }
+            else
+            {
+                await AnsiConsole.Status()
+                    .StartAsync("Analyzing project...", async statusCtx => await AnalyzeSaveRender());
+            }
 
-                    if (capturedSnapshot.IsDryRun)
-                    {
-                        result = new RenderedContext(capturedSnapshot.DryRunContent!, 0, [], TimeSpan.Zero, "2.0");
-                    }
-                    else
-                    {
-                        result = await Render(capturedSnapshot, pipeline, settings, options, scenario, focusText, ct);
-                    }
-                });
             if (saveResult is { Success: false } && !settings.Quiet)
                 AnsiConsole.MarkupLine($"[yellow]snapshot cache save failed: {Markup.Escape(saveResult.Error ?? "unknown")}[/]");
         }
