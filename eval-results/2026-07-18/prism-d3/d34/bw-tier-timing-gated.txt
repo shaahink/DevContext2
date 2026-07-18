@@ -1,0 +1,1 @@
+  SemanticLitePopulator: tier routing — A (syntax): 64 project(s), B (semantic-lite): 0 project(s); compilation=True trees=4926 refs=0; timing populate=35579ms (fw=60 nuget=4 trees=36 create=2 bind=35475) upgrade-edges=496ms; upgraded 12514 var-decl + 17579 receiver + 309 creation + 62014 generic-arg + 6 arg-type + 175 call-edge(s) to Semantic tier

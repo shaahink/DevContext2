@@ -15,7 +15,9 @@ public sealed class MediatRDispatchDetector : ISeamDetector
     {
         "IMediator", "ISender", "IPublisher", "Mediator", "Sender",
     };
-    private static readonly HashSet<string> Verbs = new(StringComparer.Ordinal)
+    // Internal: SemanticLitePopulator unions the detectors' verb sets into its arg-bind demand gate,
+    // so a verb added here is automatically part of the semantic bind demand.
+    internal static readonly HashSet<string> Verbs = new(StringComparer.Ordinal)
     {
         "Send", "SendAsync", "Publish", "PublishAsync",
     };
