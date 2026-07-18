@@ -1,0 +1,2 @@
+﻿run: 2026-07-18 02:11:17
+Newtonsoft.Json  wall=27.3s  tokens=2355  cs=945  archetype=Library/Library  style=Unknown  => PASS

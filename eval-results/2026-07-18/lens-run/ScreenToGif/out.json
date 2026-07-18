@@ -1,0 +1,92 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-18T01:14:54.1632261+00:00",
+  "archetype": "Desktop",
+  "architectureStyle": "DesktopMvvm",
+  "styleConfidence": 0.7,
+  "projectCount": 7,
+  "projectNames": [
+    "ScreenToGif",
+    "ScreenToGif.Domain",
+    "ScreenToGif.Native",
+    "ScreenToGif.Test",
+    "ScreenToGif.Util",
+    "ScreenToGif.ViewModel",
+    "Translator"
+  ],
+  "typeCount": 633,
+  "entryCount": 35,
+  "topologyProjectCount": 6,
+  "graphNodeCount": 1009,
+  "graphEdgeCount": 387,
+  "signals": [
+    {
+      "key": "desktop-ui",
+      "confidence": 0.9,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "desktop.command-inventory",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Command inventory: 4 ICommand implementations",
+      "detail": "",
+      "evidence": [
+        "AdvancedRelayCommand",
+        "IExtendedCommand",
+        "ObsoleteAdvancedRelayCommand",
+        "RelayCommand"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 35/35 (100%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "desktop.module-map",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Module map: 5 feature areas",
+      "detail": "",
+      "evidence": [
+        "UserControls (12 entries)",
+        "Views/Settings (11 entries)",
+        "Windows/Other (5 entries)",
+        "Controls (4 entries)",
+        "Translator (3 entries)"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: ScreenToGif.Domain (3 dependents) \u00B7 ScreenToGif.Native (2 dependents) \u00B7 ScreenToGif.ViewModel (2 dependents)",
+      "detail": "",
+      "evidence": [
+        "ScreenToGif.Domain (3 dependents)",
+        "ScreenToGif.Native (2 dependents)",
+        "ScreenToGif.ViewModel (2 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: ProjectInfo (44) \u00B7 EditorViewModel (14) \u00B7 ScreenRecorderViewModel (12) \u00B7 Bitmap (10) \u00B7 Dialog (8)",
+      "detail": "",
+      "evidence": [
+        "ProjectInfo (44)",
+        "EditorViewModel (14)",
+        "ScreenRecorderViewModel (12)",
+        "Bitmap (10)",
+        "Dialog (8)"
+      ]
+    }
+  ]
+}

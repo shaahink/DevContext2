@@ -1,0 +1,38 @@
+﻿[
+    {
+        "id":  "lib.public-surface",
+        "category":  "Shape",
+        "severity":  "Info",
+        "title":  "Public surface: 36 interfaces, 1261 classes (1315 total public types)",
+        "evidence":  [
+                         "36 interfaces",
+                         "1261 classes"
+                     ],
+        "confidence":  0.9,
+        "confidenceBasis":  "Public accessibility is compiler-level — highly reliable"
+    },
+    {
+        "id":  "topology.chokepoint",
+        "category":  "Topology",
+        "severity":  "Info",
+        "title":  "Most depended-upon: Newtonsoft.Json (2 dependents)",
+        "evidence":  [
+                         "Newtonsoft.Json (2 dependents)"
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "wiring.hubs",
+        "category":  "Wiring",
+        "severity":  "Info",
+        "title":  "Wiring hubs: StringAssert (484) · ExceptionAssert (250) · List (136) · JTokenReader (64) · JsonConvert (50)",
+        "evidence":  [
+                         "StringAssert (484)",
+                         "ExceptionAssert (250)",
+                         "List (136)",
+                         "JTokenReader (64)",
+                         "JsonConvert (50)"
+                     ],
+        "confidence":  0.5
+    }
+]

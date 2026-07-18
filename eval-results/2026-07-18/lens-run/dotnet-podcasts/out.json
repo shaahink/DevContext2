@@ -1,0 +1,207 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-18T01:14:30.4433842+00:00",
+  "archetype": "App",
+  "architectureStyle": "CleanArchitecture",
+  "styleConfidence": 0.9,
+  "projectCount": 16,
+  "projectNames": [
+    "ListenTogether.Application",
+    "ListenTogether.Domain",
+    "ListenTogether.Hub",
+    "ListenTogether.Infrastructure",
+    "Microsoft.NetConf2021.Maui",
+    "NetPodsMauiBlazor",
+    "Podcast.API",
+    "Podcast.Client",
+    "Podcast.Components",
+    "Podcast.Infrastructure",
+    "Podcast.Ingestion.Worker",
+    "Podcast.Pages",
+    "Podcast.Server",
+    "Podcast.Shared",
+    "Podcast.Updater.Worker",
+    "SharedMauiLib"
+  ],
+  "typeCount": 230,
+  "entryCount": 24,
+  "topologyProjectCount": 13,
+  "graphNodeCount": 403,
+  "graphEdgeCount": 246,
+  "signals": [
+    {
+      "key": "blazor",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "desktop-ui",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "efcore",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "maui",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "razor-pages",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "signalr",
+      "confidence": 1,
+      "detected": true
+    },
+    {
+      "key": "swagger",
+      "confidence": 1,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "auth.anonymous",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "10/12 endpoints anonymous, incl. 1 POST/PUT/DELETE",
+      "detail": "",
+      "evidence": [
+        "GET /shows/{id}",
+        "GET /shows/",
+        "GET /feeds/",
+        "POST /feeds/",
+        "GET /episodes/{id}"
+      ]
+    },
+    {
+      "id": "web.auth-surface",
+      "category": "Risk",
+      "severity": "Warning",
+      "title": "Auth surface: 2 protected, 10 unannotated of 12 API endpoints",
+      "detail": "",
+      "evidence": [
+        "2 protected",
+        "DELETE /feeds/{id}",
+        "PUT /feeds/{id}",
+        "10 no auth annotation"
+      ]
+    },
+    {
+      "id": "config.missing-defaults",
+      "category": "Risk",
+      "severity": "Notable",
+      "title": "Config without defaults: 2 consumed keys have no appsettings default",
+      "detail": "",
+      "evidence": [
+        "OrleansStorage",
+        "Storage:Images"
+      ]
+    },
+    {
+      "id": "wiring.event-flow",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Event wiring: 1 events (1 integration), 1 cross-service, 0 orphan",
+      "detail": "",
+      "evidence": [
+        "feed-queue [AzureStorageQueue]: Podcast.API \u2192 Podcast.Ingestion.Worker"
+      ]
+    },
+    {
+      "id": "wiring.multi-impl",
+      "category": "Wiring",
+      "severity": "Notable",
+      "title": "Multi-implementation interfaces: IAudioInterop (2 impls)",
+      "detail": "",
+      "evidence": [
+        "IAudioInterop (2 impls)"
+      ]
+    },
+    {
+      "id": "coverage.honesty",
+      "category": "Coverage",
+      "severity": "Info",
+      "title": "Entry targets resolved 22/24 (91%) \u2014 trace any entry for its full path",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 27 Scoped \u00B7 25 Extension \u00B7 22 Singleton \u00B7 8 Transient \u00B7 3 HttpClient (85 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "shape.entry-mix",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Entry surface: 12 HTTP \u00B7 10 UI \u00B7 1 hosted \u00B7 1 SignalRHub",
+      "detail": "",
+      "evidence": [
+        "12 HTTP",
+        "10 UI",
+        "1 hosted",
+        "1 SignalRHub"
+      ]
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: ListenTogether.Domain (3 dependents) \u00B7 Podcast.Infrastructure (3 dependents) \u00B7 Podcast.Shared (2 dependents)",
+      "detail": "",
+      "evidence": [
+        "ListenTogether.Domain (3 dependents)",
+        "Podcast.Infrastructure (3 dependents)",
+        "Podcast.Shared (2 dependents)"
+      ]
+    },
+    {
+      "id": "web.data-map",
+      "category": "Data",
+      "severity": "Info",
+      "title": "Data map: 12 entities across 5 scopes",
+      "detail": "",
+      "evidence": [
+        "Podcast.Infrastructure (6 entities)",
+        "ListenTogether.Domain (2 entities)",
+        "ListenTogetherDbContext (1 entities)",
+        "PodcastDbContext (1 entities)",
+        "Podcast.Shared (1 entities)"
+      ]
+    }
+  ],
+  "eventWiring": {
+    "total": 1,
+    "integration": 1,
+    "crossService": 1,
+    "orphan": 0,
+    "events": [
+      {
+        "event": "feed-queue [AzureStorageQueue]",
+        "integration": true,
+        "crossService": true,
+        "publishers": [
+          "Podcast.API"
+        ],
+        "consumers": [
+          "Podcast.Ingestion.Worker"
+        ]
+      }
+    ]
+  }
+}

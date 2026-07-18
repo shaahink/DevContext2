@@ -1,0 +1,71 @@
+﻿[
+    {
+        "id":  "topology.chokepoint",
+        "category":  "Topology",
+        "severity":  "Notable",
+        "title":  "Most depended-upon: GitVersion.Core (16 dependents) · GitVersion.Configuration (8 dependents) · GitVersion.Output (7 dependents)",
+        "evidence":  [
+                         "GitVersion.Core (16 dependents)",
+                         "GitVersion.Configuration (8 dependents)",
+                         "GitVersion.Output (7 dependents)"
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "wiring.multi-impl",
+        "category":  "Wiring",
+        "severity":  "Notable",
+        "title":  "Multi-implementation interfaces: IDeploymentModeCalculator (3 impls) · ILog (2 impls) · IEnvironment (2 impls)",
+        "evidence":  [
+                         "IDeploymentModeCalculator (3 impls)",
+                         "ILog (2 impls)",
+                         "IEnvironment (2 impls)"
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "cli.command-tree",
+        "category":  "Shape",
+        "severity":  "Info",
+        "title":  "Command tree: 1 CLI commands, 1 top-level groups",
+        "evidence":  [
+                         "GitVersion.App (1 commands)"
+                     ],
+        "confidence":  0.8,
+        "confidenceBasis":  "CLI command detection requires framework base types (Spectre/System.CommandLine) — reliable once gated"
+    },
+    {
+        "id":  "coverage.honesty",
+        "category":  "Coverage",
+        "severity":  "Info",
+        "title":  "Entry targets resolved 0/1 (0%) — trace any entry for its full path",
+        "evidence":  [
+
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "di.lifetimes",
+        "category":  "Wiring",
+        "severity":  "Info",
+        "title":  "DI: 122 Singleton · 26 Extension (148 total)",
+        "evidence":  [
+
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "wiring.hubs",
+        "category":  "Wiring",
+        "severity":  "Info",
+        "title":  "Wiring hubs: EmptyRepositoryFixture (602) · GitFlowConfigurationBuilder (252) · GitHubFlowConfigurationBuilder (209) · MainlineCommit (26) · ILog (24)",
+        "evidence":  [
+                         "EmptyRepositoryFixture (602)",
+                         "GitFlowConfigurationBuilder (252)",
+                         "GitHubFlowConfigurationBuilder (209)",
+                         "MainlineCommit (26)",
+                         "ILog (24)"
+                     ],
+        "confidence":  0.5
+    }
+]

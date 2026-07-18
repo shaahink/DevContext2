@@ -1,0 +1,67 @@
+﻿[
+    {
+        "id":  "desktop.command-inventory",
+        "category":  "Wiring",
+        "severity":  "Info",
+        "title":  "Command inventory: 4 ICommand implementations",
+        "evidence":  [
+                         "AdvancedRelayCommand",
+                         "IExtendedCommand",
+                         "ObsoleteAdvancedRelayCommand",
+                         "RelayCommand"
+                     ],
+        "confidence":  0.8,
+        "confidenceBasis":  "ICommand interface detection + naming convention — reliable"
+    },
+    {
+        "id":  "coverage.honesty",
+        "category":  "Coverage",
+        "severity":  "Info",
+        "title":  "Entry targets resolved 35/35 (100%) — trace any entry for its full path",
+        "evidence":  [
+
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "desktop.module-map",
+        "category":  "Shape",
+        "severity":  "Info",
+        "title":  "Module map: 5 feature areas",
+        "evidence":  [
+                         "UserControls (12 entries)",
+                         "Views/Settings (11 entries)",
+                         "Windows/Other (5 entries)",
+                         "Controls (4 entries)",
+                         "Translator (3 entries)"
+                     ],
+        "confidence":  0.6,
+        "confidenceBasis":  "GroupPath is namespace-derived — consider D9 feature classification for better grouping"
+    },
+    {
+        "id":  "topology.chokepoint",
+        "category":  "Topology",
+        "severity":  "Info",
+        "title":  "Most depended-upon: ScreenToGif.Domain (3 dependents) · ScreenToGif.Native (2 dependents) · ScreenToGif.ViewModel (2 dependents)",
+        "evidence":  [
+                         "ScreenToGif.Domain (3 dependents)",
+                         "ScreenToGif.Native (2 dependents)",
+                         "ScreenToGif.ViewModel (2 dependents)"
+                     ],
+        "confidence":  0.5
+    },
+    {
+        "id":  "wiring.hubs",
+        "category":  "Wiring",
+        "severity":  "Info",
+        "title":  "Wiring hubs: ProjectInfo (44) · EditorViewModel (14) · ScreenRecorderViewModel (12) · Bitmap (10) · Dialog (8)",
+        "evidence":  [
+                         "ProjectInfo (44)",
+                         "EditorViewModel (14)",
+                         "ScreenRecorderViewModel (12)",
+                         "Bitmap (10)",
+                         "Dialog (8)"
+                     ],
+        "confidence":  0.5
+    }
+]

@@ -1,0 +1,106 @@
+{
+  "schema": "devcontext/v1",
+  "generatedAt": "2026-07-18T01:11:36.3952506+00:00",
+  "archetype": "Library",
+  "architectureStyle": "ControllerBased",
+  "styleConfidence": 0.55,
+  "projectCount": 28,
+  "projectNames": [
+    "BlazorWasmIssue2065",
+    "ConsoleSampleUsingLocalApi",
+    "InterfaceStubGenerator.Roslyn48",
+    "InterfaceStubGenerator.Roslyn50",
+    "LibraryWithSDKandRefitService",
+    "Meow",
+    "Meow.Common",
+    "Refit",
+    "Refit.Analyzers.Roslyn48",
+    "Refit.Analyzers.Roslyn50",
+    "Refit.Analyzers.Tests",
+    "Refit.Benchmarks",
+    "Refit.CodeFixes.Roslyn48",
+    "Refit.CodeFixes.Roslyn50",
+    "Refit.CodeFixes.Tests",
+    "Refit.GeneratedCode.TestModels",
+    "Refit.GeneratorTests",
+    "Refit.HttpClientFactory",
+    "Refit.MockInterop.Tests",
+    "Refit.NativeAotSmoke",
+    "Refit.Newtonsoft.Json",
+    "Refit.Newtonsoft.Json.Tests",
+    "Refit.Reflection",
+    "Refit.Testing",
+    "Refit.Testing.Tests",
+    "Refit.Tests",
+    "Refit.Xml",
+    "RestApiForTest"
+  ],
+  "typeCount": 829,
+  "topologyProjectCount": 14,
+  "graphNodeCount": 840,
+  "graphEdgeCount": 633,
+  "signals": [
+    {
+      "key": "controllers",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "minimal-apis",
+      "confidence": 0.9,
+      "detected": true
+    },
+    {
+      "key": "refit",
+      "confidence": 0.7,
+      "detected": true
+    }
+  ],
+  "insights": [
+    {
+      "id": "lib.public-surface",
+      "category": "Shape",
+      "severity": "Info",
+      "title": "Public surface: 185 interfaces, 355 classes (562 total public types)",
+      "detail": "",
+      "evidence": [
+        "185 interfaces",
+        "355 classes"
+      ]
+    },
+    {
+      "id": "di.lifetimes",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "DI: 98 Extension \u00B7 7 Singleton \u00B7 4 Scoped \u00B7 1 Transient (110 total)",
+      "detail": "",
+      "evidence": []
+    },
+    {
+      "id": "topology.chokepoint",
+      "category": "Topology",
+      "severity": "Info",
+      "title": "Most depended-upon: Refit (11 dependents) \u00B7 Refit (6 dependents) \u00B7 Refit.Reflection (6 dependents)",
+      "detail": "",
+      "evidence": [
+        "Refit (11 dependents)",
+        "Refit (6 dependents)",
+        "Refit.Reflection (6 dependents)"
+      ]
+    },
+    {
+      "id": "wiring.hubs",
+      "category": "Wiring",
+      "severity": "Info",
+      "title": "Wiring hubs: Reply (226) \u00B7 Fixture (38) \u00B7 Type (37) \u00B7 GeneratedRequestRunner (24) \u00B7 UniqueNameBuilder (18)",
+      "detail": "",
+      "evidence": [
+        "Reply (226)",
+        "Fixture (38)",
+        "Type (37)",
+        "GeneratedRequestRunner (24)",
+        "UniqueNameBuilder (18)"
+      ]
+    }
+  ]
+}

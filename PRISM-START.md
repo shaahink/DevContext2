@@ -93,6 +93,39 @@ pre-existing allowed state — not chased.
 3× breaches — the last open D2 checkpoint), then D2 close: full-cohort sweep + remaining DoD
 (MCP surface drive rides the octet).**
 
+last: 2026-07-18 **D2 session 4 — D3-budget VERIFIED @ 911f734 (row below), then D2 CLOSE ran.**
+Ack: INBOX unchanged. Close battery: full-tier engine gate **GATE: PASS, stamp written** (84 eval
+green both hosts, poles rode, 3 pre-existing truth-ratchet skips — `prism-d2/gates-d2-close-full.txt`)
+→ octet DoD proof run 1 came back **7/8 with P7's FIRST REAL CATCH**: wolverine (Library) orphans
+claim named `WolverineValidationResult`, provably live as the element type of a public `List<T>`
+base — the I2 harness caught an I1 escape the day it shipped. Fixed as **I1-fix @ 4397e69**:
+libraries make NO dead-code claims (external consumers invisible to the graph) + type-ref identifier
+harvest includes generic arguments; snapshot v4→v5 (a v4 snapshot can serve a persisted claim the
+fixed engine would never make — the stale-claim risk was live-observed on the wolverine cache HIT).
+5/5 orphans unit tests; wolverine leg fresh-PASS at v5 (56.1s); **octet relaunched on the fixed
+binary: LENS-AUDIT: PASS 8/8** (`prism-d2/octet-dod-proof-2.txt`, bitwarden 151.5s fresh, all
+archetypes intended, P7 quiet octet-wide). Honesty note: the full-tier sweep ran at the pre-fix
+commit; the fix's blast radius (one insight source + schema constant, nothing expectation-pinned)
+is covered by fast suite + truth gate + the 8/8 octet — formal re-sweep rides phase-end QA.
+
+# ✅ D2 DELIVERY CLOSED (2026-07-18, session 4)
+
+### D2 Definition of Done (proposal §2-D2) — ALL TICKED at close
+- ✅ podcasts UiEntry traces reach services (C1: `GET /discover → PodcastService.GetShows`, razor-line provenance)
+- ✅ ScreenToGif traces ≥ depth 2 (C2: ExportPanel depth 3+)
+- ✅ MCP impact/usages/neighbors non-empty on connected types (C3 GraphQuery locus; octet P6 MCP drives 8/8)
+- ✅ Core bare-swallow count = 0 (J1: loom-guards allowance table EMPTY, PASS)
+- ✅ stats show per-extractor failure columns (J3: analyze Fails column + query stats + gRPC/MCP proto field)
+- ✅ podcasts orphans list contains zero provably-live types (I1: cards=0 floor-honest; P7 enforces octet-wide since I1-fix)
+- ✅ Close battery: full-tier gate GATE: PASS (stamp written) + octet LENS-AUDIT: PASS 8/8 on the
+  final binary (full phase battery = phase-end QA per operating model)
+
+**Continue at D3 (delivery): cache resurrection remainder + living waterfall + compiler lever —
+J2 landed early (D2.0b), so D3 opens on K1/K2 (analyze-time waterfall show), L2/L7, D1/D2 perf
+lever (persist/reuse merged compilation), per proposal §2-D3. Note for D3: `query` CLI ops still
+bypass the snapshot cache (parked smell, natural D3 item — P7's recompute honesty currently
+DEPENDS on it, so wiring query ops to the cache must keep insights fresh or bump-disciplined).**
+
 # ✅ D1 DELIVERY CLOSED (2026-07-17, session 4)
 
 ## ⚡ Pipeline-speed adjustment (owner directive at session-3 close: "testing/pipeline is slow —
