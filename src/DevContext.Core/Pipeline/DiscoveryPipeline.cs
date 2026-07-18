@@ -479,6 +479,13 @@ public sealed class DiscoveryPipeline
         };
     }
 
+    private static int CountTraceSteps(Graph.TraceStep step)
+    {
+        var n = 1;
+        foreach (var child in step.Children) n += CountTraceSteps(child);
+        return n;
+    }
+
     /// <summary>Renders from a snapshot according to the request lens. Cheap and repeatable.</summary>
     public async Task<RenderedContext> RenderAsync(AnalysisSnapshot snapshot, RenderRequest request, CancellationToken ct = default)
     {
@@ -501,11 +508,30 @@ public sealed class DiscoveryPipeline
 
             if (!string.IsNullOrEmpty(request.Entry))
             {
-                var trace = query.Trace(request.Entry, request.Depth ?? 6, 12);
-                if (trace is not null)
+                // D3 (Prism D2): the trace path now honors the token budget the stats line has always
+                // CLAIMED (`Tokens ~24774 (budget 8000)` on bitwarden's CipherService was a silent 3×
+                // breach). ShapeToBudget cuts breadth-first with per-subtree "(N omitted)" honesty;
+                // the unshaped walk remains reachable by raising --max-tokens.
+                var unshaped = query.Trace(request.Entry, request.Depth ?? 6, 12);
+                // The shaper only estimates the tree itself; the rendered document adds TOUCHES/EMITS,
+                // hints, and the diagnostics tail (~1.2k tokens measured on the bitwarden exemplar) —
+                // reserve for them or the total still overshoots the budget it just enforced.
+                var traceBudget = Math.Max(1000, request.MaxTokens - 1200);
+                var trace = unshaped is not null && request.MaxTokens > 0
+                    ? Graph.TraceBuilder.ShapeToBudget(unshaped, traceBudget)
+                    : unshaped;
+                if (trace is not null && unshaped is not null)
                 {
                     var traceCtx = NarrativeSections.ToRenderedContext(
                         TraceRenderer.RenderSections(trace, request.Detail, snapshot.RootPath));
+
+                    var cut = CountTraceSteps(unshaped.Root) - CountTraceSteps(trace.Root);
+                    if (cut > 0)
+                    {
+                        traceCtx = NarrativeSections.WithExtraSection(traceCtx, "TraceBudget",
+                            $"NOTE: trace shaped to the ~{request.MaxTokens}-token budget — {cut} deeper "
+                            + "step(s) omitted (marked \"(N omitted)\" in place; raise --max-tokens to widen)\n\n");
+                    }
 
                     // Keep the architecture/Map sections visible alongside the trace when requested (the
                     // desktop), so drilling a call stack from any node doesn't hide the orientation view.
