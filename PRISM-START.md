@@ -178,7 +178,25 @@ checked out in this directory. The D4 section above has the ready-to-execute che
 unblocked), and the DoD verbatim. **Next session continues in the established fashion: open →
 re-read INBOX → D4.0.**
 
-## D4 — STAGED, READY TO OPEN (feat/prism-d4, cut off the d3 branch tip: D3 close 3d0ec7f + this staging commit)
+last: 2026-07-18 **D4 session 1 (feat/prism-d4) — D4.0 + D4.1 + D4.2 + D4.3 all VERIFIED (rows
+below, commits 18bf000/1946b85/6d6f552/9a6ded8).** Ack: INBOX unchanged (D1-era standing orders;
+general discipline carried; re-read at every checkpoint boundary). Cadence honored: implement →
+unit/vitest → ONE targeted drive (screenshot gate ± probe script) → commit per checkpoint; app
+battery (`gates.ps1 -Scope app`) GREEN at every checkpoint; engine untouched all session (eval
+stamp transfers). The gate harness (D4.0) is the delivery's instrument: every checkpoint re-ran
+it and diffed against the committed baseline — it caught TWO real bugs on arrival day (refit
+session mislabeled `DevContext.slnx`, F4 → D4.5; refit level-1 one-lonely-box default → fixed
+in-checkpoint at D4.3). Canvas design pass (proposal §1 "stronger model") ran in-session — this
+session runs on Fable (Mythos-class); decisions + falsifiable diagnosis in
+`eval-results/2026-07-18/prism-d4/d41/DESIGN.md`. Suite 56→61 vitest; elkjs in, dagre/fcose out.
+**Known-carried into D4.5: the F4 naming bug (refit home titled `DevContext.slnx · 14 projects ·
+842 types` while explore/atlas say `refit`; server-CWD leakage smell — D4.0 row). Owner eyeball
+invited: canvas tap-to-expand (spec-pinned, not machine-drivable through the cytoscape canvas).**
+**D4 SESSION 1 CLOSED — continue at D4.4 (library workbench F1 + library-surface RPC, THE proto
+item: rebuild DevContext.Contracts AND `pnpm gen:proto`, wire server+app in lockstep), then
+D4.5 → D4.6 → D4.7 close per the table.**
+
+## D4 — IN PROGRESS (feat/prism-d4, cut off the d3 branch tip: D3 close 3d0ec7f + staging commit)
 
 **Prepared 2026-07-18 at D3 close. NEXT SESSION: `git checkout feat/prism-d4` (already cut, this
 prep rides at its base), read this section + proposal §2-D4 + PRISM-INBOX.md, start at D4.0 and
