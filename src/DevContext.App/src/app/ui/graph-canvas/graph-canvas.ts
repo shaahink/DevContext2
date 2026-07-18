@@ -1,11 +1,12 @@
-import { Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import cytoscape from 'cytoscape';
 
-import type { ProjectNode } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
+import type { ProjectNode, ServiceCard, TransportLink } from '../../core/grpc/gen/devcontext/v1/devcontext_pb';
 import type { EdgeVm, TraceNodeVm } from '../../models/view-models';
 import type { LensId } from '../../features/explorer/lens-switcher';
 import { ThemeService } from '../../core/theme/theme.service';
-import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT } from './graph-layout';
+import { layoutGraph, nodeWidthForLabel, NODE_HEIGHT, type LayoutNodeIn } from './graph-layout';
+import { classifyTransport, serviceLabel, type TransportClass } from './semantics';
 
 /** Minimap only earns its screen space in zen mode, and only once a graph is
  * big enough that the viewport can't already see everything at a glance. */
@@ -46,12 +47,23 @@ function hashString(str: string): number {
  * D4.1: cytoscape is the RENDERER only — geometry comes from the deterministic ELK
  * layered layout in graph-layout.ts (positions applied as a preset). Labels live INSIDE
  * fixed-width boxes the layout engine knows about, so labels cannot overlap or clip by
- * construction; a ResizeObserver re-fits on container resize (the baseline's clipped
- * heroes were a stale fit from a since-resized container).
+ * construction; a ResizeObserver re-fits on container resize.
+ *
+ * D4.2 (F3/M): topology mode carries the ServiceMap facet. When services exist the
+ * canvas defaults to C4-ish LEVEL 1 — service boxes (kind glyph + [db] store mark) wired
+ * by transport-labeled edges (HTTP/queue/gRPC/event; unknown endpoints render as dashed
+ * externals) — and a tap EXPANDS a service in place into a compound holding its project
+ * + direct dependencies. The all-projects view groups into DDD-layer lanes (compound per
+ * layer) when the engine put ≥2 layers on the topology. A chip toggles the two levels.
  */
 export type GraphCanvasData =
   | { readonly mode: 'trace'; readonly root: TraceNodeVm; readonly maxDepth: number }
-  | { readonly mode: 'topology'; readonly projects: readonly ProjectNode[] }
+  | {
+      readonly mode: 'topology';
+      readonly projects: readonly ProjectNode[];
+      readonly services?: readonly ServiceCard[];
+      readonly transports?: readonly TransportLink[];
+    }
   | { readonly mode: 'neighbors'; readonly centerId: string; readonly centerTitle: string; readonly edges: readonly EdgeVm[] };
 
 interface SeamColors {
@@ -116,20 +128,90 @@ function buildTraceElements(root: TraceNodeVm, maxDepth: number): cytoscape.Elem
   return els;
 }
 
-/** System altitude: one node per project, edges from `dependsOn` (proposal §2 — "available
- * the moment analysis completes, before any trace"). Dangling deps (no matching project,
- * e.g. an external package) are dropped rather than crashing cytoscape on a missing target. */
+/** All-projects altitude: one node per project, edges from `dependsOn`. D4.2: when the
+ * engine layered ≥2 of the projects, each layer becomes a labeled compound LANE and the
+ * layout orders lanes by dependency flow (Api → Application → Domain reads left-to-right). */
 function buildTopologyElements(projects: readonly ProjectNode[]): cytoscape.ElementDefinition[] {
   const els: cytoscape.ElementDefinition[] = [];
   const names = new Set(projects.map((p) => p.name));
+  const layers = new Set(projects.map((p) => p.layer).filter((l): l is string => !!l));
+  const lanesActive = layers.size >= 2;
+  if (lanesActive) {
+    for (const layer of [...layers].sort()) {
+      els.push({ data: { id: `lane:${layer}`, nodeId: '', label: layer, fullLabel: layer, seam: '', lane: true }, classes: 'lane' });
+    }
+  }
   for (const p of projects) {
-    els.push({ data: { id: p.name, nodeId: p.name, label: truncateLabel(p.name), fullLabel: p.name, seam: '', truncated: false, depth: 0, layer: p.layer ?? '', feature: p.feature ?? '' } });
+    const parent = lanesActive && p.layer ? `lane:${p.layer}` : undefined;
+    els.push({ data: { id: p.name, nodeId: p.name, label: truncateLabel(p.name), fullLabel: p.name, seam: '', truncated: false, depth: 0, layer: p.layer ?? '', feature: p.feature ?? '', parent } });
   }
   for (const p of projects) {
     for (const dep of p.dependsOn) {
       if (!names.has(dep)) continue;
       els.push({ data: { id: `${p.name}->${dep}`, source: p.name, target: dep, seam: '' } });
     }
+  }
+  return els;
+}
+
+/** C4-ish level 1 (D4.2/M): service boxes + transport-labeled edges — what the system IS,
+ * not what the csproj graph happens to reference. Endpoints resolve service → project →
+ * dashed external (never dropped: a transport into the unknown is a finding, not noise).
+ * An expanded service becomes a compound holding its project + direct dependencies. */
+function buildServiceLevelElements(
+  projects: readonly ProjectNode[],
+  services: readonly ServiceCard[],
+  transports: readonly TransportLink[],
+  expanded: ReadonlySet<string>,
+): cytoscape.ElementDefinition[] {
+  const els: cytoscape.ElementDefinition[] = [];
+  const projByName = new Map(projects.map((p) => [p.name, p]));
+  const placed = new Set<string>();
+
+  for (const s of services) {
+    const name = s.displayName;
+    if (placed.has(name)) continue;
+    placed.add(name);
+    const proj = projByName.get(name);
+    const expandable = !!proj && proj.dependsOn.length > 0;
+    const isExpanded = expandable && expanded.has(name);
+    els.push({
+      data: {
+        id: name, nodeId: name, label: serviceLabel(name, s.kind, s.stack, truncateLabel), fullLabel: name,
+        seam: '', truncated: false, depth: 0, layer: s.layer ?? '', feature: s.feature ?? '', svc: true, expandable,
+      },
+      classes: 'svc',
+    });
+    if (isExpanded && proj) {
+      const selfId = `${name}::self`;
+      els.push({ data: { id: selfId, nodeId: name, label: truncateLabel(name), fullLabel: name, seam: '', depth: 1, layer: proj.layer ?? '', feature: '', parent: name } });
+      for (const dep of proj.dependsOn) {
+        const depProj = projByName.get(dep);
+        if (!depProj) continue;
+        const depId = `${name}::${dep}`;
+        els.push({ data: { id: depId, nodeId: dep, label: truncateLabel(dep), fullLabel: dep, seam: '', depth: 1, layer: depProj.layer ?? '', feature: '', parent: name } });
+        els.push({ data: { id: `${selfId}->${depId}`, source: selfId, target: depId, seam: '' } });
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  let i = 0;
+  for (const t of transports) {
+    const key = `${t.fromService}|${t.toService}|${t.transport}`;
+    if (seen.has(key) || t.fromService === t.toService) continue;
+    seen.add(key);
+    for (const ep of [t.fromService, t.toService]) {
+      if (placed.has(ep)) continue;
+      placed.add(ep);
+      const proj = projByName.get(ep);
+      els.push({
+        data: { id: ep, nodeId: ep, label: truncateLabel(ep), fullLabel: ep, seam: '', truncated: false, depth: 0, layer: proj?.layer ?? '', feature: '' },
+        classes: proj ? '' : 'external',
+      });
+    }
+    const vis = classifyTransport(t.transport);
+    els.push({ data: { id: `t${i++}:${key}`, source: t.fromService, target: t.toService, seam: '', tlabel: vis.label, tclass: vis.cls } });
   }
   return els;
 }
@@ -166,17 +248,6 @@ function buildNeighborsElements(
   return els;
 }
 
-function buildElements(data: GraphCanvasData): cytoscape.ElementDefinition[] {
-  switch (data.mode) {
-    case 'trace':
-      return buildTraceElements(data.root, data.maxDepth);
-    case 'topology':
-      return buildTopologyElements(data.projects);
-    case 'neighbors':
-      return buildNeighborsElements(data.centerId, data.centerTitle, data.edges);
-  }
-}
-
 /** Degree centrality (in+out edge count) per node, written back onto each node's data.
  * D4.1: degree no longer sizes nodes (box width belongs to the label so the layout knows
  * the true footprint) — it drives border emphasis instead, so hubs still pop. */
@@ -205,6 +276,28 @@ function borderWidthForDegree(degree: number): number {
   template: `
     <div class="relative h-full w-full">
       <div #cy class="h-full w-full"></div>
+
+      <!-- D4.2: C4 level toggle — only when the ServiceMap facet gave us a services level -->
+      @if (levelChipsVisible()) {
+        <div class="pointer-events-auto absolute left-3 top-2 z-10 flex items-center gap-0.5 rounded border border-line bg-surface/90 p-0.5 text-2xs backdrop-blur">
+          <button
+            class="rounded px-1.5 py-0.5 transition-colors"
+            [class.bg-surface-2]="effectiveLevel() === 'services'"
+            [class.text-ink]="effectiveLevel() === 'services'"
+            [class.text-ink-subtle]="effectiveLevel() !== 'services'"
+            (click)="setLevel('services')"
+            title="C4 level 1 — services + transports; tap a service to expand it"
+          >Services</button>
+          <button
+            class="rounded px-1.5 py-0.5 transition-colors"
+            [class.bg-surface-2]="effectiveLevel() === 'projects'"
+            [class.text-ink]="effectiveLevel() === 'projects'"
+            [class.text-ink-subtle]="effectiveLevel() !== 'projects'"
+            (click)="setLevel('projects')"
+            title="Every project, grouped into layer lanes when the engine layered them"
+          >All projects</button>
+        </div>
+      }
 
       <!-- Legend popover -->
       @if (!compact()) {
@@ -272,6 +365,22 @@ export class GraphCanvas {
   protected readonly nodeCount = signal(0);
   protected readonly minimapThreshold = MINIMAP_NODE_THRESHOLD;
 
+  /** D4.2 disclosure state. Level override is per-canvas; null = "services when available". */
+  private readonly levelOverride = signal<'services' | 'projects' | null>(null);
+  private readonly expandedServices = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly effectiveLevel = computed<'services' | 'projects'>(() => {
+    const override = this.levelOverride();
+    if (override) return override;
+    const d = this.data();
+    return d.mode === 'topology' && (d.services?.length ?? 0) > 0 ? 'services' : 'projects';
+  });
+
+  protected readonly levelChipsVisible = computed(() => {
+    const d = this.data();
+    return d.mode === 'topology' && (d.services?.length ?? 0) > 0;
+  });
+
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('cy');
   private readonly minimapCanvas = viewChild<ElementRef<HTMLCanvasElement>>('minimap');
   private readonly theme = inject(ThemeService);
@@ -280,10 +389,16 @@ export class GraphCanvas {
   private renderSeq = 0;
   private resizeObserver: ResizeObserver | null = null;
   private refitScheduled = false;
+  /** Topology identity of the last render — a new repo resets disclosure state. */
+  private lastProjectsRef: readonly ProjectNode[] | null = null;
 
   private seamColors: SeamColors = {
     Entry: '#4493f8', Send: '#a371f7', Handle: '#3fb950', Raise: '#d29922',
     Consume: '#d29922', Data: '#39c5cf', Resolve: '#6b7480', Pipeline: '#a371f7', Call: '#8b949e',
+  };
+
+  private transportColors: Record<TransportClass, string> = {
+    HTTP: '#4493f8', queue: '#d29922', gRPC: '#a371f7', event: '#ffa657', other: '#8b949e',
   };
 
   readonly legendItems = signal<{ label: string; color: string }[]>([]);
@@ -300,18 +415,20 @@ export class GraphCanvas {
         Entry: p.accent, Send: '#a371f7', Handle: p.success, Raise: p.warn,
         Consume: p.warn, Data: '#39c5cf', Resolve: p.inkSubtle, Pipeline: '#a371f7', Call: p.inkMuted,
       };
+      this.transportColors = { HTTP: '#4493f8', queue: p.warn, gRPC: '#a371f7', event: '#ffa657', other: p.inkMuted };
       this.updateLegend();
     }, { allowSignalWrites: true });
 
-    effect(() => void this.rebuild());
+    effect(() => void this.rebuild(), { allowSignalWrites: true });
 
     effect(() => {
       void this.lensId();
+      void this.effectiveLevel();
       this.updateLegend();
       if (this.cy && this.data() && this.data()?.mode === 'topology') {
         this.cy.style().update();
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Node highlight (M7.1): accent ring on the node matching highlightedNodeId.
     effect(() => {
@@ -337,7 +454,23 @@ export class GraphCanvas {
     });
   }
 
+  protected setLevel(level: 'services' | 'projects'): void {
+    this.levelOverride.set(level);
+  }
+
   private updateLegend(): void {
+    const d = this.data();
+    if (d?.mode === 'topology' && this.effectiveLevel() === 'services') {
+      const p = this.theme.palette();
+      this.legendItems.set([
+        { label: 'HTTP', color: this.transportColors.HTTP },
+        { label: 'queue', color: this.transportColors.queue },
+        { label: 'gRPC', color: this.transportColors.gRPC },
+        { label: 'event', color: this.transportColors.event },
+        { label: 'external', color: p.inkSubtle },
+      ]);
+      return;
+    }
     const lid = this.lensId();
     if (lid === 'layer') {
       const items: { label: string; color: string }[] = [];
@@ -359,6 +492,13 @@ export class GraphCanvas {
   private rebuild(): void {
     const host = this.container()?.nativeElement;
     const data = this.data();
+    // Disclosure state belongs to ONE repo's topology — reset when the projects identity flips.
+    const projectsRef = data?.mode === 'topology' ? data.projects : null;
+    if (projectsRef !== this.lastProjectsRef) {
+      this.lastProjectsRef = projectsRef;
+      if (this.expandedServices().size > 0) this.expandedServices.set(new Set());
+      if (this.levelOverride() !== null) this.levelOverride.set(null);
+    }
     if (!host || !data) {
       this.cy?.destroy();
       this.cy = null;
@@ -367,15 +507,46 @@ export class GraphCanvas {
     void this.render(host, data);
   }
 
+  private buildForData(data: GraphCanvasData): cytoscape.ElementDefinition[] {
+    switch (data.mode) {
+      case 'trace':
+        return buildTraceElements(data.root, data.maxDepth);
+      case 'topology':
+        return this.effectiveLevel() === 'services' && (data.services?.length ?? 0) > 0
+          ? buildServiceLevelElements(data.projects, data.services ?? [], data.transports ?? [], this.expandedServices())
+          : buildTopologyElements(data.projects);
+      case 'neighbors':
+        return buildNeighborsElements(data.centerId, data.centerTitle, data.edges);
+    }
+  }
+
   private async render(host: HTMLElement, data: GraphCanvasData): Promise<void> {
     const seq = ++this.renderSeq;
-    const els = buildElements(data);
+    const els = this.buildForData(data);
     annotateDegree(els);
 
     // Deterministic geometry first (pure, DOM-free), then hand cytoscape a preset.
+    // Compound membership (data.parent) becomes one level of ELK hierarchy.
     const nodeDefs = els.filter((el) => (el.data as { source?: string }).source === undefined);
+    const childrenByParent = new Map<string, cytoscape.ElementDefinition[]>();
+    const topLevel: cytoscape.ElementDefinition[] = [];
+    for (const el of nodeDefs) {
+      const parent = (el.data as { parent?: string }).parent;
+      if (parent) {
+        const list = childrenByParent.get(parent) ?? [];
+        list.push(el);
+        childrenByParent.set(parent, list);
+      } else {
+        topLevel.push(el);
+      }
+    }
+    const toLayoutNode = (el: cytoscape.ElementDefinition): LayoutNodeIn => {
+      const d = el.data as { id: string; label: string };
+      const kids = childrenByParent.get(d.id);
+      return { id: d.id, label: d.label, children: kids?.map(toLayoutNode) };
+    };
     const geometry = await layoutGraph(
-      nodeDefs.map((el) => ({ id: (el.data as { id: string }).id, label: (el.data as { label: string }).label })),
+      topLevel.map(toLayoutNode),
       els
         .filter((el) => (el.data as { source?: string }).source !== undefined)
         .map((el) => {
@@ -387,7 +558,9 @@ export class GraphCanvas {
     if (seq !== this.renderSeq) return; // a newer render superseded this one
 
     for (const el of nodeDefs) {
-      const g = geometry.get((el.data as { id: string }).id);
+      const id = (el.data as { id: string }).id;
+      if (childrenByParent.has(id)) continue; // compound parents: cytoscape derives their box from children
+      const g = geometry.get(id);
       if (!g) continue;
       el.position = { x: g.x, y: g.y };
       (el.data as { w?: number; h?: number }).w = g.width;
@@ -399,6 +572,7 @@ export class GraphCanvas {
 
     const p = this.theme.palette();
     const colors = this.seamColors;
+    const transportColors = this.transportColors;
     this.nodeCount.set(nodeDefs.length);
     const lensColor = this.lensId();
 
@@ -412,6 +586,12 @@ export class GraphCanvas {
         if (f) return FEATURE_PALETTE[hashString(f) % FEATURE_PALETTE.length];
         return p.inkMuted;
       }
+      return colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted;
+    };
+
+    const transportColor = (ele: cytoscape.EdgeSingular): string => {
+      const cls = ele.data('tclass') as TransportClass | undefined;
+      if (cls) return transportColors[cls] ?? p.inkMuted;
       return colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted;
     };
 
@@ -442,11 +622,44 @@ export class GraphCanvas {
           },
         },
         {
+          // Compound boxes (expanded service / DDD lane): translucent panel, label above the
+          // border inside the vertical headroom ELK reserved for it (COMPOUND_LABEL_PAD).
+          selector: 'node:parent',
+          style: {
+            'background-color': p.surface,
+            'background-opacity': 0.4,
+            'border-width': 1,
+            'border-color': (ele: cytoscape.NodeSingular) => {
+              const l = ele.data('layer') as string | undefined;
+              if ((ele.data('lane') as boolean) && ele.data('label')) {
+                return LAYER_COLORS[ele.data('label') as string] ?? p.inkSubtle;
+              }
+              return l ? (LAYER_COLORS[l] ?? p.inkSubtle) : p.inkSubtle;
+            },
+            'text-valign': 'top',
+            'text-halign': 'center',
+            'font-size': 9,
+            'font-weight': 'bold',
+            color: p.inkMuted,
+            padding: '10px',
+          } as unknown as cytoscape.Css.Node,
+        },
+        {
           selector: 'node.entry',
           style: {
             'border-width': 2.5,
             'border-color': p.accent,
             'font-weight': 'bold',
+          },
+        },
+        {
+          // D4.2: transport endpoints outside the analyzed solution — visible, honest, dashed.
+          selector: 'node.external',
+          style: {
+            'border-style': 'dashed',
+            'border-color': p.inkSubtle,
+            'background-opacity': 0.5,
+            color: p.inkMuted,
           },
         },
         {
@@ -474,14 +687,28 @@ export class GraphCanvas {
           selector: 'edge',
           style: {
             width: 1.2,
-            'line-color': (ele: cytoscape.EdgeSingular) =>
-              colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted,
-            'target-arrow-color': (ele: cytoscape.EdgeSingular) =>
-              colors[ele.data('seam') as keyof SeamColors] ?? p.inkMuted,
+            'line-color': transportColor,
+            'target-arrow-color': transportColor,
             'target-arrow-shape': 'triangle',
             'arrow-scale': 0.7,
             'curve-style': 'bezier',
             label: '',
+          },
+        },
+        {
+          // D4.2: transport-labeled edges — the label rides the line (HTTP/queue/gRPC/event),
+          // backed by surface so it stays readable where edges cross.
+          selector: 'edge[tlabel]',
+          style: {
+            width: 1.6,
+            label: (ele: cytoscape.EdgeSingular) => ele.data('tlabel') as string,
+            'font-size': 8,
+            'font-family': 'Cascadia Code, JetBrains Mono, Consolas, monospace',
+            color: transportColor,
+            'text-background-color': p.surface,
+            'text-background-opacity': 0.9,
+            'text-background-padding': '2px',
+            'text-rotation': 'autorotate',
           },
         },
         {
@@ -508,7 +735,18 @@ export class GraphCanvas {
       layout: { name: 'preset', fit: false } as cytoscape.LayoutOptions,
     });
 
-    this.cy.on('tap', 'node', (e) => this.nodeSelected.emit(e.target.data('nodeId') as string));
+    this.cy.on('tap', 'node', (e) => {
+      const target = e.target as cytoscape.NodeSingular;
+      // D4.2 progressive disclosure: tapping a service at level 1 expands/collapses it in
+      // place. Selection still fires — hosts navigate on activate (dbltap), not select.
+      if ((target.data('svc') as boolean) && (target.data('expandable') as boolean) && this.effectiveLevel() === 'services') {
+        const next = new Set(this.expandedServices());
+        const id = target.id();
+        if (next.has(id)) next.delete(id); else next.add(id);
+        this.expandedServices.set(next);
+      }
+      this.nodeSelected.emit(target.data('nodeId') as string);
+    });
     this.cy.on('dbltap', 'node', (e) => this.nodeActivated.emit(e.target.data('nodeId') as string));
     this.cy.on('tap', (_evt) => {
       if (_evt.target === this.cy) this.nodeSelected.emit('');

@@ -21,7 +21,6 @@ import { GraphCanvas, type GraphCanvasData } from '../../ui/graph-canvas/graph-c
         [data]="canvasData()"
         [compact]="true"
         (nodeActivated)="openProject($event)"
-        (nodeSelected)="openProject($event)"
       />
       @if (hasBus(); as bus) {
         <div class="mt-1 flex justify-center border-t border-dashed border-line pt-1.5">
@@ -40,9 +39,14 @@ export class ServiceMapHero {
   readonly topology = input.required<readonly ProjectNode[]>();
   readonly serviceStyles = input.required<readonly ServiceStyle[]>();
 
+  /** D4.2: the ServiceMap facet rides along — the canvas defaults to C4 level 1
+   * (services + transport-labeled edges) when the facet has services, and single-tap
+   * expands a service in place; navigation moved to double-tap (nodeActivated). */
   protected readonly canvasData = computed<GraphCanvasData>(() => ({
     mode: 'topology',
     projects: this.topology(),
+    services: this.session.graphFacets()?.serviceMap?.services ?? [],
+    transports: this.session.graphFacets()?.serviceMap?.transports ?? [],
   }));
 
   protected openProject(name: string): void {

@@ -96,6 +96,38 @@ describe('graph-layout (D4.1 determinism + no-clip contract)', () => {
     expect((await layoutGraph([], [])).size).toBe(0);
   });
 
+  it('nested children (D4.2 compounds/lanes) flatten to absolute coords inside the parent span', async () => {
+    const nodes: LayoutNodeIn[] = [
+      { id: 'svc', label: 'Basket.API', children: [
+        { id: 'svc::self', label: 'Basket.API' },
+        { id: 'svc::dep', label: 'Basket.Domain' },
+      ] },
+      { id: 'other', label: 'Ordering.API' },
+    ];
+    const edges: LayoutEdgeIn[] = [
+      { id: 'i', source: 'svc::self', target: 'svc::dep' },
+      { id: 't', source: 'svc', target: 'other' },
+    ];
+    const geo = await layoutGraph(nodes, edges);
+    // Leaves + the compound parent all get geometry, children inside the parent's box.
+    const parent = geo.get('svc')!;
+    const self = geo.get('svc::self')!;
+    const dep = geo.get('svc::dep')!;
+    expect(parent).toBeDefined();
+    for (const child of [self, dep]) {
+      expect(child.x - child.width / 2).toBeGreaterThanOrEqual(parent.x - parent.width / 2);
+      expect(child.x + child.width / 2).toBeLessThanOrEqual(parent.x + parent.width / 2);
+      expect(child.y + child.height / 2).toBeLessThanOrEqual(parent.y + parent.height / 2);
+    }
+    // Children do not overlap each other (same invariant as flat nodes).
+    const overlapX = Math.abs(self.x - dep.x) < (self.width + dep.width) / 2;
+    const overlapY = Math.abs(self.y - dep.y) < (self.height + dep.height) / 2;
+    expect(overlapX && overlapY).toBe(false);
+    // Determinism holds through hierarchy.
+    const again = await layoutGraph(nodes, edges);
+    expect([...again.entries()]).toEqual([...geo.entries()]);
+  });
+
   it('node width tracks label length within clamps', () => {
     expect(nodeWidthForLabel('ab')).toBeGreaterThanOrEqual(56);
     expect(nodeWidthForLabel('a'.repeat(200))).toBeLessThanOrEqual(250);
