@@ -3,6 +3,7 @@ using System.Text.Json;
 using DevContext.Core.Contracts;
 using DevContext.Core.Graph;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -73,7 +74,7 @@ public static class SemanticLitePopulator
                 refs.Add(MetadataReference.CreateFromFile(path));
                 names.Add(Path.GetFileNameWithoutExtension(path));
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "metadata-ref", ex); }
         }
         return (refs.ToImmutable(), names);
     });
@@ -130,7 +131,7 @@ public static class SemanticLitePopulator
                 allTrees.Add(tree);
                 perProject[owner] = perProject.TryGetValue(owner, out var c) ? c + 1 : 1;
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "syntax-parse", ex); }
         }
 
         foreach (var (_, name) in projectDirs)
@@ -270,9 +271,10 @@ public static class SemanticLitePopulator
 
                 assetsProjects++;
             }
-            catch
+            catch (Exception ex)
             {
                 degradedProjects++;
+                PipelineDiagnostics.Swallowed("SemanticLitePopulator", "assets-json", ex);
             }
         }
 
@@ -283,7 +285,7 @@ public static class SemanticLitePopulator
         {
             if (fwNames.Contains(name)) continue;
             try { refs.Add(MetadataReference.CreateFromFile(path)); }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "metadata-ref", ex); }
         }
         return (refs.ToImmutable(), assetsProjects, degradedProjects);
     }
@@ -366,7 +368,7 @@ public static class SemanticLitePopulator
             if (!modelCache.TryGetValue(tree, out var semanticModel))
             {
                 try { semanticModel = compilation.GetSemanticModel(tree); }
-                catch { semanticModel = null; }
+                catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
                 modelCache[tree] = semanticModel;
             }
 
@@ -489,7 +491,7 @@ public static class SemanticLitePopulator
 
             return BindExpressionType(invocation.ArgumentList.Arguments[argIndex].Expression, model);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -518,7 +520,7 @@ public static class SemanticLitePopulator
             if (expr is null) return null;
             return NamedType(model.GetTypeInfo(expr).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -547,7 +549,7 @@ public static class SemanticLitePopulator
             var arg = name.TypeArgumentList.Arguments[argIndex];
             return NamedType(model.GetTypeInfo(arg).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -590,7 +592,7 @@ public static class SemanticLitePopulator
             if (!modelCache.TryGetValue(tree, out var semanticModel))
             {
                 try { semanticModel = compilation.GetSemanticModel(tree); }
-                catch { semanticModel = null; }
+                catch (Exception ex) { semanticModel = null; PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-model", ex); }
                 modelCache[tree] = semanticModel;
             }
 
@@ -620,7 +622,7 @@ public static class SemanticLitePopulator
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "edge-upgrade", ex); }
 
             upgraded.Add(edge);
         }
@@ -708,7 +710,7 @@ public static class SemanticLitePopulator
                 return BindExpressionType(init, model);
             }
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 
@@ -774,7 +776,7 @@ public static class SemanticLitePopulator
             if (receiver is null) return null;
             return NamedType(model.GetTypeInfo(receiver).Type);
         }
-        catch { }
+        catch (Exception ex) { PipelineDiagnostics.Swallowed("SemanticLitePopulator", "semantic-bind", ex); }
         return null;
     }
 

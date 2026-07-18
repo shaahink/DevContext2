@@ -423,6 +423,14 @@ public sealed class DevContextTools
                 .Where(i => i.Severity == "WARNING")
                 .Select(i => i.Title)
                 .ToArray(),
+            // J1/J3 — per-component swallowed-failure counters (empty = clean run)
+            extractionFailures = resp.ExtractionFailures.Select(f => new
+            {
+                source = f.Source,
+                category = f.Category,
+                count = f.Count,
+                sample = f.Sample,
+            }).ToArray(),
         }, JsonOpts);
         }
         catch (RpcException ex) { return FromRpc(ex, "stats", "stats(handle)"); }

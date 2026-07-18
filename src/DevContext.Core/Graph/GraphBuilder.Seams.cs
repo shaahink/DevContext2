@@ -2,6 +2,7 @@ using DevContext.Core.Graph.Seams;
 using DevContext.Core.Graph2;
 using DevContext.Core.Graph2.Seams;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -361,7 +362,7 @@ public sealed partial class GraphBuilder
                     var project = scope.ProjectForFile(type.FilePath) ?? "";
                     facts.AddRange(BodyFactExtractor.Extract(tree, type.FilePath, project));
                 }
-                catch { /* parse failure → skip */ }
+                catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "body-facts-parse", ex); } // parse failure → skip
             }
             allBodyFacts = facts;
         }
@@ -507,7 +508,7 @@ public sealed partial class GraphBuilder
                         });
                     }
                 }
-                catch { /* detector failure → skip its matches, continue with others */ }
+                catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "seam-detector", ex); } // skip its matches, continue with others
             }
         }
     }
@@ -680,11 +681,11 @@ public sealed partial class GraphBuilder
                                 });
                             }
                         }
-                        catch { /* detector failure → skip its matches for this lambda */ }
+                        catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "seam-detector", ex); } // skip its matches for this lambda
                     }
                 }
             }
-            catch { /* parse failure → skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("GraphBuilder", "lambda-parse", ex); } // parse failure → skip
         }
     }
 

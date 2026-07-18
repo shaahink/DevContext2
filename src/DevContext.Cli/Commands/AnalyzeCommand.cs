@@ -277,7 +277,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                         { Success: false } => $"miss · save FAILED: {saveResult.Error}",
                         _ => "miss · not saved",
                     };
-            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default, cacheLine);
+            ShowStats(snapshot?.Report, result.GraphSummary, snapshot?.Insights ?? default, cacheLine,
+                snapshot?.Model.ExtractionFailures);
         }
 
         if (!settings.Quiet)
@@ -370,7 +371,8 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
         }
     }
 
-    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default, string? snapshotCache = null)
+    private static void ShowStats(RunReport? report, GraphSummary? graph = null, ImmutableArray<Insight> insights = default, string? snapshotCache = null,
+        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? failures = null)
     {
         if (report is null) return;
 
@@ -436,16 +438,44 @@ public sealed class AnalyzeCommand : AsyncCommand<AnalyzeSettings>
                 .AddColumn(new TableColumn("+Dets").RightAligned())
                 .AddColumn("Status");
 
+            // J3 — swallowed-failure counts per extractor (source names match extractor names).
+            var failsBySource = (failures ?? [])
+                .GroupBy(f => f.Source, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.Count), StringComparer.Ordinal);
+            extractorTable.AddColumn(new TableColumn("Fails").RightAligned());
+
             foreach (var ex in report.Extractors.Take(25))
             {
                 var status = ex.Skipped
                     ? $"[dim]skipped: {ex.SkipReason ?? "?"}[/]"
                     : "[green]ran[/]";
                 var name = ex.Skipped ? $"[dim]{ex.Name}[/]" : ex.Name;
+                var fails = failsBySource.TryGetValue(ex.Name, out var fc) && fc > 0
+                    ? $"[red]{fc}[/]" : "[dim]0[/]";
                 extractorTable.AddRow(name, $"{ex.Elapsed.TotalMilliseconds:F0}ms",
-                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status);
+                    ex.TypesAdded.ToString(), ex.DetectionsAdded.ToString(), status, fails);
             }
             AnsiConsole.Write(extractorTable);
+        }
+
+        // J1/J3 — the silent-failure amnesty made every swallowed exception count; this table is
+        // where they surface at analyze time. Absent = a genuinely clean run.
+        if (failures is { Count: > 0 })
+        {
+            AnsiConsole.WriteLine();
+            var failTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("Swallowed Failures")
+                .AddColumn("Source")
+                .AddColumn("Category")
+                .AddColumn(new TableColumn("Count").RightAligned())
+                .AddColumn("Sample");
+            foreach (var f in failures.Take(15))
+                failTable.AddRow(f.Source, f.Category, f.Count.ToString(),
+                    $"[dim]{Markup.Escape(f.SampleException ?? "")}[/]");
+            if (failures.Count > 15)
+                failTable.AddRow($"[dim]… {failures.Count - 15} more[/]", "", "", "");
+            AnsiConsole.Write(failTable);
         }
 
         // Scorer funnel

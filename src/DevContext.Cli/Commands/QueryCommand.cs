@@ -101,7 +101,7 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
                 "neighbors" => NeighborsOp(query, settings.Focus ?? "", settings.Direction ?? "out"),
                 "usages" => UsagesOp(query, settings.Focus ?? ""),
                 "entrypoints" => EntrypointsOp(query),
-                "stats" => StatsOp(query, snapshot.Graph),
+                "stats" => StatsOp(query, snapshot.Graph, snapshot.Model),
                 "trace" => TraceOp(query, settings.Focus ?? "", settings.Depth ?? 6),
                 _ => null
             };
@@ -233,7 +233,8 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
     }
 
     // T3.7 — stats: graph counts + per-kind entry counts + seam breakdown (verified/approx).
-    private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph)
+    private static object StatsOp(DevContext.Core.Graph.GraphQuery query, DevContext.Core.Graph.CodeGraph graph,
+        DevContext.Core.Models.DiscoveryModel model)
     {
         var (seams, entriesWithTarget, entriesWithDeepSpine, deepSpineRatio) = query.Stats();
         var entries = query.EntryPoints();
@@ -250,6 +251,10 @@ public sealed class QueryCommand : AsyncCommand<QuerySettings>
             deepSpineRatio,
             entriesByKind = byKind,
             seams = seams.Select(s => new { kind = s.Seam, total = s.Count, verified = s.Count - s.Approx, approx = s.Approx }).ToArray(),
+            // J1/J3 — per-component swallowed-failure counters (empty = clean run)
+            extractionFailures = model.ExtractionFailures
+                .Select(f => new { source = f.Source, category = f.Category, count = f.Count, sample = f.SampleException })
+                .ToArray(),
         };
     }
 

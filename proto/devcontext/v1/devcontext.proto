@@ -381,6 +381,15 @@ message StatsResponse {
   int64 total_wall_ms = 8;
   repeated Insight insights = 9;
   ConfidenceLedger confidence_ledger = 10;
+  // J1/J3 (Prism D2) — per-component swallowed-failure counters. Empty = clean run.
+  repeated SwallowedFailureStat extraction_failures = 11;
+}
+
+message SwallowedFailureStat {
+  string source = 1;
+  string category = 2;
+  int32 count = 3;
+  string sample = 4;
 }
 
 message ConfidenceLedger {

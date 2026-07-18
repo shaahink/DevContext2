@@ -29,6 +29,11 @@ public enum PipelineStage
     Rendering
 }
 
+/// <summary>One aggregated silent-failure row (J1): a component swallowed <paramref name="Count"/>
+/// failures of one category during a run; <paramref name="SampleException"/> is the first seen
+/// ("TypeName: message", truncated). Surfaced by stats + the analyze waterfall (J3).</summary>
+public sealed record SwallowedFailure(string Source, string Category, int Count, string? SampleException);
+
 /// <summary>
 /// Defines the execution stage within the pipeline for an extractor.
 /// Stage 1 runs sequentially (file tree, solution, project structure — builds foundational data).

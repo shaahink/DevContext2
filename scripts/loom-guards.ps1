@@ -65,22 +65,11 @@ foreach ($f in $allSrcFiles) {
 # Rule 3: No `fqns[0]` in Graph2/ (SymbolTable uses Candidates, never picks)
 Check-Pattern -Pattern 'fqns[0]' -Label 'fqns[0] in Graph2/' -Path $graph2Dir
 
-# Rule 6 (Prism D1.0d): no NEW bare catch in Core. Matches `catch {}` / `catch (Ex) {}` with
-# an empty or comment-only body, across lines. Grandfathered per-file counts = the 2026-07-17
-# census (30 total); Prism D2 drives these to 0. Counts may only go DOWN.
-$bareCatchAllowance = @{
-    'Analysis\SnapshotCacheService.cs'            = 3
-    'Graph2\SemanticLitePopulator.cs'             = 9
-    'Insights\ConfigDefaultsSource.cs'            = 2
-    'Pipeline\DiscoveryPipeline.cs'               = 4
-    'Extractors\Generic\ProgramCsFlowExtractor.cs' = 1
-    'Extractors\Specific\CallGraphExtractor.cs'   = 2
-    'Graph\GraphBuilder.Seams.cs'                 = 4
-    'Insights\InsightsBuilder.cs'                 = 1
-    'Resolvers\ScopeResolver.cs'                  = 1
-    'Resolvers\SolutionFileParser.cs'             = 1
-    'Services\GitCloneService.cs'                 = 2
-}
+# Rule 6 (Prism D1.0d): no bare catch in Core — empty or comment-only body, across lines.
+# J1 (Prism D2) drove the grandfathered 2026-07-17 census (30) to ZERO: every former swallow now
+# reports through PipelineDiagnostics.Swallowed(source, category, ex). The allowance stays empty
+# forever — new swallows must count themselves the same way.
+$bareCatchAllowance = @{}
 $bareCatchPattern = [regex]::new(
     'catch(\s*\([^)]*\))?\s*\{\s*(?:(?://[^\r\n]*|/\*.*?\*/)\s*)*\}',
     [System.Text.RegularExpressions.RegexOptions]::Singleline)

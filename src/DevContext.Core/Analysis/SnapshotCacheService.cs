@@ -18,8 +18,8 @@ public static class SnapshotSchema
     /// v3 (C1, Prism D2): razor @code virtualization changed analysis output for Blazor repos —
     /// a v2 snapshot of an UNCHANGED repo would render the pre-C1 map. Discipline until J2 grows an
     /// engine-version key: bump this whenever a change alters persisted analysis semantics.
-    /// v4 (C5, Prism D2): Resolves edges carry RegistrationSites — a v3 snapshot would trace with
-    /// pre-C5 arbitrary DI provenance.</summary>
+    /// v4 (C5+J1, Prism D2): Resolves edges carry RegistrationSites (a v3 snapshot would trace with
+    /// pre-C5 arbitrary DI provenance) and the model carries ExtractionFailures (J1 health rows).</summary>
     public const int Version = 4;
 }
 
@@ -184,7 +184,7 @@ public sealed class SnapshotCacheService
                         lastUsed = meta.LastUsed;
                     }
                 }
-                catch { }
+                catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "meta-read", ex); }
             }
             foreach (var f in Directory.GetFiles(repoDir, "*.snap.json.gz"))
                 totalBytes += new FileInfo(f).Length;
@@ -248,7 +248,7 @@ public sealed class SnapshotCacheService
             var meta = JsonSerializer.Deserialize<CacheMeta>(File.ReadAllText(path));
             if (meta is not null) { meta.LastUsed = DateTime.UtcNow; File.WriteAllText(path, JsonSerializer.Serialize(meta)); }
         }
-        catch { }
+        catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "meta-touch", ex); }
     }
 
     private void EvictIfNeeded(string repoKey)
@@ -261,7 +261,7 @@ public sealed class SnapshotCacheService
             .ToList();
         if (snaps.Count > _maxVersionsPerRepo)
             foreach (var old in snaps.Skip(_maxVersionsPerRepo))
-                try { File.Delete(old.FullName); } catch { }
+                try { File.Delete(old.FullName); } catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("SnapshotCache", "evict", ex); }
 
         long totalSize = 0;
         foreach (var rdir in Directory.GetDirectories(_cacheRoot))

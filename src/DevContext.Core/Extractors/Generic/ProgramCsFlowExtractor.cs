@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using DevContext.Core.Pipeline;
+
 namespace DevContext.Core.Extractors.Generic;
 
 [ExtractorOrder(40)]
@@ -51,9 +53,10 @@ public sealed class ProgramCsFlowExtractor : IDiscoveryExtractor
                 if (StartupCompositionTokens.Any(t => text.Contains(t, StringComparison.Ordinal)))
                     programFiles.Add(f);
             }
-            catch
+            catch (Exception ex)
             {
                 // unreadable file — skip, the named-file paths above were not affected
+                PipelineDiagnostics.Swallowed("ProgramCsFlowExtractor", "file-read", ex);
             }
         }
 

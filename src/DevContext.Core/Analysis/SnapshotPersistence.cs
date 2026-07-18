@@ -62,6 +62,7 @@ public sealed record PersistedModel
     public DiagnosticEntry[] Diagnostics { get; init; } = [];
     public CompressionResult[] AppliedCompressions { get; init; } = [];
     public GatewayRoute[] GatewayRoutes { get; init; } = [];
+    public SwallowedFailure[] ExtractionFailures { get; init; } = [];
 }
 
 /// <summary>The render-consumed subset of <see cref="SharedAnalysisContext"/> (file lists, focus
@@ -175,6 +176,7 @@ public static class SnapshotPersistence
         Diagnostics = [.. m.Diagnostics],
         AppliedCompressions = [.. m.AppliedCompressions],
         GatewayRoutes = [.. m.GatewayRoutes],
+        ExtractionFailures = [.. m.ExtractionFailures],
     };
 
     private static DiscoveryModel ToModel(PersistedModel p)
@@ -209,6 +211,7 @@ public static class SnapshotPersistence
         for (var i = p.Diagnostics.Length - 1; i >= 0; i--) m.Diagnostics.Add(p.Diagnostics[i]);
         m.AppliedCompressions.AddRange(p.AppliedCompressions);
         m.GatewayRoutes.AddRange(p.GatewayRoutes);
+        m.ExtractionFailures.AddRange(p.ExtractionFailures);
         return m;
     }
 

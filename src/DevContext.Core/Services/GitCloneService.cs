@@ -85,9 +85,10 @@ public sealed class GitCloneService : IDisposable
                 return refs.Any() ? RepoStatus.Valid : RepoStatus.NotFound;
         }
         catch (OperationCanceledException) { throw; }
-        catch
+        catch (Exception ex)
         {
             // Fall through to git CLI
+            Pipeline.PipelineDiagnostics.Swallowed("GitCloneService", "remote-probe", ex);
         }
 
         // Fallback to git CLI
@@ -365,7 +366,7 @@ public sealed class GitCloneService : IDisposable
     public static void Cleanup(string localPath)
     {
         try { DeleteDirectoryRobust(localPath); }
-        catch { /* best effort */ }
+        catch (Exception ex) { Pipeline.PipelineDiagnostics.Swallowed("GitCloneService", "cleanup", ex); } // best effort
     }
 
     private static void DeleteDirectoryRobust(string path)

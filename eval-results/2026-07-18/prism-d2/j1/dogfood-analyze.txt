@@ -1,0 +1,14 @@
+﻿Overview map (no focus).
+Analyzing project...
+Output written to 
+C:\code\DevContext2\eval-results\2026-07-18\prism-d2\j1\dogfood-map.md
+analyzed 146 files · 439 nodes · 339 edges · 34 entries · 33/34 →target · ~1802 
+tokens · 4.2s stage2 ×3.0 stage3 ×1.4
+╭──────────┬─────────────────────────╮
+│  Metric  │          Value          │
+├──────────┼─────────────────────────┤
+│ Solution │ eshop-microservices.sln │
+│   Time   │         4259ms          │
+│  Tokens  │   ~1802 (budget 8000)   │
+│ Version  │  v1.0.5-preview.0.304   │
+╰──────────┴─────────────────────────╯

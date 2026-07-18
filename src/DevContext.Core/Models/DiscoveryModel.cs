@@ -43,6 +43,9 @@ public sealed class DiscoveryModel
     public ConcurrentDictionary<string, ConcurrentBag<InclusionReason>> Provenance { get; } = new();
     /// <summary>Diagnostic entries recorded during the pipeline run.</summary>
     public ConcurrentBag<DiagnosticEntry> Diagnostics { get; } = [];
+    /// <summary>Aggregated swallowed-failure counters (J1) — drained from PipelineDiagnostics at the
+    /// end of the run; the health data stats and the waterfall render (J3).</summary>
+    public List<SwallowedFailure> ExtractionFailures { get; } = [];
     /// <summary>Compression results recorded sequentially during the compression stage.</summary>
     public List<CompressionResult> AppliedCompressions { get; } = [];
 

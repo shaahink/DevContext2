@@ -459,7 +459,8 @@ public sealed class DevContextGrpcService(
                 entriesWithTarget,
                 (long)(snapshot.Report?.TotalWall.TotalMilliseconds ?? session.Engine.ElapsedMs),
                 snapshot.Insights,
-                snapshot.Entries);
+                snapshot.Entries,
+                snapshot.Model.ExtractionFailures);
         });
 
     public override Task<Proto.RenderResponse> Render(Proto.RenderRequest request, ServerCallContext context)

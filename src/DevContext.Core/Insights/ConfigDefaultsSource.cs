@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 
 using DevContext.Core.Graph;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 namespace DevContext.Core.Insights;
 
@@ -88,7 +89,7 @@ public sealed class ConfigDefaultsSource : IInsightSource
                     using var doc = JsonDocument.Parse(text);
                     CollectKeys(doc.RootElement, "", result, maxDepth: 5);
                 }
-                catch { }
+                catch (Exception ex) { PipelineDiagnostics.Swallowed("ConfigDefaultsSource", "config-json", ex); }
             }
         }
 
@@ -108,7 +109,7 @@ public sealed class ConfigDefaultsSource : IInsightSource
                         using var doc = JsonDocument.Parse(text);
                         CollectKeys(doc.RootElement, "", result, maxDepth: 5);
                     }
-                    catch { }
+                    catch (Exception ex) { PipelineDiagnostics.Swallowed("ConfigDefaultsSource", "config-json", ex); }
                 }
             }
         }

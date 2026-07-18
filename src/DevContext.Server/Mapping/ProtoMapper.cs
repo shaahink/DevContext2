@@ -199,9 +199,20 @@ internal static class ProtoMapper
         ImmutableArray<SeamStat> seams, int entriesWithTarget,
         long totalWallMs,
         ImmutableArray<Insight> insights,
-        ImmutableArray<DevContext.Core.Graph.EntryPoint> entries)
+        ImmutableArray<DevContext.Core.Graph.EntryPoint> entries,
+        IReadOnlyList<DevContext.Core.Models.SwallowedFailure>? extractionFailures = null)
     {
         var resp = new Proto.StatsResponse { TotalWallMs = totalWallMs };
+
+        // J1/J3 — swallowed-failure counters ride the stats surface
+        foreach (var f in extractionFailures ?? [])
+            resp.ExtractionFailures.Add(new Proto.SwallowedFailureStat
+            {
+                Source = f.Source,
+                Category = f.Category,
+                Count = f.Count,
+                Sample = f.SampleException ?? "",
+            });
 
         resp.Graph = new Proto.GraphStat
         {

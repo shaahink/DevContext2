@@ -32,9 +32,10 @@ public static class ScopeResolver
                     .ToList();
                 slnSet = slnProjects.Select(Normalize).ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
                 // Unreadable solution — fall back to unbounded closure from the anchor csproj.
+                Pipeline.PipelineDiagnostics.Swallowed("ScopeResolver", "sln-read", ex);
             }
         }
 

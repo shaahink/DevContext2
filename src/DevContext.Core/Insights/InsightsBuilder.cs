@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 
 using DevContext.Core.Graph;
 using DevContext.Core.Models;
+using DevContext.Core.Pipeline;
 
 namespace DevContext.Core.Insights;
 
@@ -41,9 +42,10 @@ public sealed class InsightsBuilder
                     all.Add(insight);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // An insight source must never crash the pipeline — skip silently
+                // An insight source must never crash the pipeline — skip, but counted (J1)
+                PipelineDiagnostics.Swallowed(nameof(InsightsBuilder), $"insight-{source.GetType().Name}", ex);
             }
         }
 

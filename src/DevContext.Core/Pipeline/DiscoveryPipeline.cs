@@ -98,6 +98,10 @@ public sealed class DiscoveryPipeline
             _logger.LogWarning("Strict mode: {Count} validation warning(s) found. Continuing with Debug profile.", _validationWarnings.Count);
 
         var model = new DiscoveryModel();
+        // J1 — one silent-failure scope per run: every counted swallow between here and the drain
+        // below lands in model.ExtractionFailures (AsyncLocal, so parallel stages + concurrent
+        // server analyses stay isolated).
+        using var diagScope = PipelineDiagnostics.BeginScope();
         context.Observer.OnPipelineStarted(context);
 
         var collector = (context.Observer as CompositeDiscoveryObserver)?.GetInner()
@@ -166,7 +170,7 @@ public sealed class DiscoveryPipeline
                         foreach (var path in fileToProject.Keys)
                         {
                             try { allTrees.Add(context.Cache.GetSyntaxTreeAsync(path, ct).AsTask().GetAwaiter().GetResult()); }
-                            catch { }
+                            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "syntax-parse", ex); }
                         }
 
                         var ceSw = Stopwatch.StartNew();
@@ -300,6 +304,9 @@ public sealed class DiscoveryPipeline
             codeGraph.Nodes.Where(n => n.FilePath is not null).Select(n => n.FilePath!));
         var gitHead = GitHeadReader.Read(context.RootPath);
         context.Observer.OnStageCompleted(PipelineStage.Snapshot, snapshotSw.Elapsed);
+
+        // J1 — drain the swallow counters into the model so stats/waterfall can render them (J3).
+        model.ExtractionFailures.AddRange(PipelineDiagnostics.Drain());
 
         context.Observer.OnPipelineCompleted(model);
 
@@ -846,7 +853,7 @@ public sealed class DiscoveryPipeline
                     model.GatewayRoutes.Add(new GatewayRoute(upstream, methods, downstream, hosts));
                 }
             }
-            catch { /* non-json or malformed — skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-config", ex); } // non-json or malformed — skip
         }
 
         // M1.8: YARP ReverseProxy config from appsettings*.json
@@ -919,7 +926,7 @@ public sealed class DiscoveryPipeline
                     model.GatewayRoutes.Add(new GatewayRoute(path, "", pathPattern, downstreamHost));
                 }
             }
-            catch { /* non-json or malformed — skip */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", "gateway-config", ex); } // non-json or malformed — skip
         }
 
         static string FormatMethods(System.Text.Json.JsonElement el)
@@ -982,7 +989,7 @@ public sealed class DiscoveryPipeline
         foreach (var source in sources)
         {
             try { all.AddRange(source.Compute(model, graph, entries)); }
-            catch { }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("DiscoveryPipeline", $"insight-{source.GetType().Name}", ex); }
         }
 
         // Rank severity-first, then confidence TIER (T6.3: the eShop audit saw a "12% conf"

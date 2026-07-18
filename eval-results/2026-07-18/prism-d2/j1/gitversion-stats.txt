@@ -1,0 +1,178 @@
+﻿Overview map (no focus).
+Analyzing project...
+
+CLI TOOL  GitVersion     (11 projects)
+
+STACK  net10.0, net9.0 +2 more TFMs
+
+STYLE  Unknown  (confidence low)
+       evidence: ArchitectureStyleDetector
+
+       per service:
+         GitVersion.Cli: CLI [CLI]
+         GitVersion.Core.Tester: Unknown
+         GitVersion.App: Unknown
+         GitVersion.Schema: Unknown
+
+COMMAND SURFACE
+   GitVersion.App [Infrastructure] (1)
+      GitVersion.App (Main)
+
+TOPOLOGY (depends-on)
+   GitVersion.BuildAgents ── GitVersion.Core
+   GitVersion.LibGit2Sharp ── GitVersion.Core
+   GitVersion.App ── GitVersion.BuildAgents, GitVersion.Configuration, 
+GitVersion.Core, GitVersion.LibGit2Sharp, GitVersion.Output
+   GitVersion.Configuration (new-cli)
+   GitVersion.Configuration (src) ── GitVersion.Core
+   GitVersion.Core (new-cli)
+   GitVersion.Core (src)
+   GitVersion.MsBuild ── GitVersion.BuildAgents, GitVersion.Configuration, 
+GitVersion.Core, GitVersion.Output
+   GitVersion.Output (new-cli)
+   GitVersion.Output (src) ── GitVersion.Core
+   GitVersion.Schema ── GitVersion.Configuration, GitVersion.Core, 
+GitVersion.Output
+
+ENTRY POINTS
+   CLI (1)
+      GitVersion.App (Main)  (src/GitVersion.App/Program.cs:3)
+
+PACKAGES
+   Logging:  Serilog.Extensions.Logging 10.0.0, Serilog.Sinks.Console 6.1.1, 
+Serilog.Sinks.File 7.0.0, Serilog.Sinks.Map 2.0.0
+   Testing:  Cake.Coverlet 6.0.1, NUnit 4.6.1, NUnit.Analyzers 4.14.0, 
+NUnit3TestAdapter 6.2.0, Shouldly 4.3.0, xunit.assert 2.9.3
+   Utilities:  Polly 8.7.0
+   Other:  Buildalyzer 8.0.0, Cake.Codecov 6.0.0, Cake.Frosting.Git 5.0.1, 
+Cake.Http 5.1.0, Cake.Json 7.0.1, Cake.Npx 1.7.0, Cake.Wyam 2.2.14, 
+JsonSchema.Net.Generation 7.3.10 … (38 total)
+
+→ drill in:  --focus "<entry>"   (e.g. --focus "GitVersion.App (Main)")
+
+analyzed 663 files · 1446 nodes · 1569 edges · 1 entries · ~437 tokens · 15.7s 
+stage2 ×3.0 stage3 ×1.9
+
+Snapshot cache: bypassed (--no-cache)
+                                    Insights                                    
+╭──────┬──────────┬──────────────────────────────┬─────────────────────────────╮
+│ Sev  │ Category │ Title                        │ Evidence                    │
+├──────┼──────────┼──────────────────────────────┼─────────────────────────────┤
+│ NOTE │ Topology │ Most depended-upon:          │ GitVersion.Core (16         │
+│      │          │ GitVersion.Core (16          │ dependents),                │
+│      │          │ dependents) ·                │ GitVersion.Configuration (8 │
+│      │          │ GitVersion.Configuration (8  │ dependents),                │
+│      │          │ dependents) ·                │ GitVersion.Output (7        │
+│      │          │ GitVersion.Output (7         │ dependents)                 │
+│      │          │ dependents)                  │                             │
+│ NOTE │ Wiring   │ Multi-implementation         │ IDeploymentModeCalculator   │
+│      │          │ interfaces:                  │ (3 impls), ILog (2 impls),  │
+│      │          │ IDeploymentModeCalculator (3 │ IEnvironment (2 impls)      │
+│      │          │ impls) · ILog (2 impls) ·    │                             │
+│      │          │ IEnvironment (2 impls)       │                             │
+│ INFO │ Shape    │ Command tree: 1 CLI          │ GitVersion.App (1 commands) │
+│      │          │ commands, 1 top-level groups │                             │
+│ INFO │ Coverage │ Entry targets resolved 0/1   │                             │
+│      │          │ (0%) — trace any entry for   │                             │
+│      │          │ its full path                │                             │
+│ INFO │ Wiring   │ DI: 122 Singleton · 26       │                             │
+│      │          │ Extension (148 total)        │                             │
+│ INFO │ Wiring   │ Wiring hubs:                 │ EmptyRepositoryFixture      │
+│      │          │ EmptyRepositoryFixture (602) │ (602),                      │
+│      │          │ ·                            │ GitFlowConfigurationBuilder │
+│      │          │ GitFlowConfigurationBuilder  │ (252),                      │
+│      │          │ (252) ·                      │ GitHubFlowConfigurationBuil │
+│      │          │ GitHubFlowConfigurationBuild │ der (209)                   │
+│      │          │ er (209) · MainlineCommit    │                             │
+│      │          │ (26) · ILog (24)             │                             │
+╰──────┴──────────┴──────────────────────────────┴─────────────────────────────╯
+                         Stage Timing                         
+╭─────────────────────────┬─────────┬────────────────────────╮
+│ Stage                   │    Time │ Bar                    │
+├─────────────────────────┼─────────┼────────────────────────┤
+│ DiscoveryAndCacheWarmup │   554ms │ █                      │
+│ GenericExtraction       │  2999ms │ ███████                │
+│ SignalSealing           │     1ms │                        │
+│ SpecificExtraction      │  1953ms │ ████                   │
+│ SemanticLite            │  8822ms │ ██████████████████████ │
+│ GraphAssembly           │   568ms │ █                      │
+│ Insights                │    81ms │                        │
+│ Compression             │    86ms │                        │
+│ Snapshot                │   112ms │                        │
+│ Total                   │ 15681ms │                        │
+╰─────────────────────────┴─────────┴────────────────────────╯
+
+                                   Extractors                                   
+╭──────────────────────┬────────┬────────┬───────┬─────────────────────┬───────╮
+│ Name                 │   Time │ +Types │ +Dets │ Status              │ Fails │
+├──────────────────────┼────────┼────────┼───────┼─────────────────────┼───────┤
+│ SyntaxStructureExtra │ 2996ms │    685 │   148 │ ran                 │     0 │
+│ ctor                 │        │        │       │                     │       │
+│ ProgramCsFlowExtract │ 2995ms │    685 │   148 │ ran                 │     0 │
+│ or                   │        │        │       │                     │       │
+│ DiRegistrationExtrac │ 2989ms │      0 │   148 │ ran                 │     0 │
+│ tor                  │        │        │       │                     │       │
+│ SourceBodyExtractor  │ 1102ms │      0 │     0 │ ran                 │     0 │
+│ CliCommandExtractor  │  846ms │      0 │   104 │ ran                 │     0 │
+│ BodyFactsExtractor   │  710ms │      0 │     0 │ ran                 │     0 │
+│ InMemoryEventBusExtr │  490ms │      0 │   102 │ ran                 │     0 │
+│ actor                │        │        │       │                     │       │
+│ CallGraphExtractor   │  413ms │      0 │     0 │ ran                 │     0 │
+│ ProjectStructure     │  412ms │      0 │     0 │ ran                 │     0 │
+│ IndirectWiringDetect │  169ms │      0 │   102 │ ran                 │     0 │
+│ or                   │        │        │       │                     │       │
+│ FileTreeExtractor    │   79ms │      0 │     0 │ ran                 │     0 │
+│ SolutionDiscovery    │   49ms │      0 │     0 │ ran                 │     0 │
+│ DependencyExtractor  │   26ms │      0 │     0 │ ran                 │     0 │
+│ LayerClassifier      │    8ms │      0 │     0 │ ran                 │     0 │
+│ AntiPatternDetector  │    0ms │      0 │     0 │ skipped: gated by   │     0 │
+│                      │        │        │       │ ShouldRun           │       │
+│ AspireExtractor      │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs aspire  │       │
+│ AwsLambdaExtractor   │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ aws-lambda          │       │
+│ AzureFunctionsExtrac │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ tor                  │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ azure-functions     │       │
+│ BlazorEntryExtractor │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs blazor  │       │
+│                      │        │        │       │ or controllers      │       │
+│ ControllerActionExtr │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ actor                │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ controllers         │       │
+│ DesktopEntryExtracto │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ r                    │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ desktop-ui or maui  │       │
+│ EfCoreExtractor      │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs efcore  │       │
+│ EndpointExtractor    │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ minimal-apis or     │       │
+│                      │        │        │       │ fast-endpoints or   │       │
+│                      │        │        │       │ controllers         │       │
+│ EventBusExtractor    │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│                      │        │        │       │ gate: needs         │       │
+│                      │        │        │       │ masstransit or      │       │
+│                      │        │        │       │ nservicebus         │       │
+│ GraphQlResolverExtra │    0ms │      0 │     0 │ skipped: signal     │     0 │
+│ ctor                 │        │        │       │ gate: needs graphql │       │
+╰──────────────────────┴────────┴────────┴───────┴─────────────────────┴───────╯
+
+         Graph Seams         
+╭──────────┬───────┬────────╮
+│ Seam     │ Edges │ Approx │
+├──────────┼───────┼────────┤
+│ Calls    │  1481 │    823 │
+│ Resolves │    88 │     23 │
+╰──────────┴───────┴────────╯
+1446 nodes · 1569 edges · 0/1 entries → target
+cache 83% hit · 663 files · 36 projects
+╭──────────┬──────────────────────╮
+│  Metric  │        Value         │
+├──────────┼──────────────────────┤
+│ Solution │   DevContext.slnx    │
+│   Time   │       15815ms        │
+│  Tokens  │  ~437 (budget 8000)  │
+│ Version  │ v1.0.5-preview.0.304 │
+╰──────────┴──────────────────────╯

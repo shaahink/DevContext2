@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using DevContext.Core.Pipeline;
+
 namespace DevContext.Core.Extractors.Specific;
 
 /// <summary>Walks syntax trees to build a BFS-depth-limited call graph for Debug and Full extraction profiles.</summary>
@@ -22,7 +24,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
         {
             if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) continue;
             try { refs.Add(MetadataReference.CreateFromFile(path)); }
-            catch { /* skip unreadable assembly */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("CallGraphExtractor", "metadata-ref", ex); } // skip unreadable assembly
         }
         return refs.ToImmutable();
     });
@@ -568,7 +570,7 @@ public sealed class CallGraphExtractor : IDiscoveryExtractor
                         return (mapped, ma.Name.Identifier.ValueText, Graph.Resolution.Semantic);
                 }
             }
-            catch { /* fall through to syntactic */ }
+            catch (Exception ex) { PipelineDiagnostics.Swallowed("CallGraphExtractor", "semantic-bind", ex); } // fall through to syntactic
         }
 
         var (type, syntacticMethod) = ResolveCallee(invocation, callerType, fieldMap, diMap, interfaceImplMap, fqnMap, fqnCollisions);

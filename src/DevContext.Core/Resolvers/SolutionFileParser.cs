@@ -59,9 +59,10 @@ public static class SolutionFileParser
                     projects.Add(path);
             }
         }
-        catch (System.Xml.XmlException)
+        catch (System.Xml.XmlException ex)
         {
             // Malformed solution XML — treat as no projects rather than failing the whole run.
+            Pipeline.PipelineDiagnostics.Swallowed("SolutionFileParser", "slnx-parse", ex);
         }
         return [.. projects];
     }
