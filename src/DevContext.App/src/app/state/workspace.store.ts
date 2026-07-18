@@ -20,6 +20,13 @@ export interface LogLine {
   readonly timestamp: number;
 }
 
+/** D4.6 (L2) — when the session's snapshot came to be: analyzed-at (server age for
+ * adopted sessions, client stamp for fresh runs) + the analyzed HEAD sha ('' outside git). */
+export interface SessionFreshness {
+  readonly analyzedAtMs: number;
+  readonly commitSha: string;
+}
+
 /** Everything SessionStore used to hold as its own private signals — now one tab's slice. */
 export interface TabSessionSlice {
   readonly status: AnalysisStatus;
@@ -35,6 +42,7 @@ export interface TabSessionSlice {
   readonly statsLoading: boolean;
   readonly progress: ProgressVm;
   readonly consoleLog: readonly LogLine[];
+  readonly freshness: SessionFreshness | null;
 }
 
 /** Everything TraceStore used to hold as its own private signals — now one tab's slice. */
@@ -83,6 +91,7 @@ export const DEFAULT_SESSION_SLICE: TabSessionSlice = {
   statsLoading: false,
   progress: { stage: '', percent: 0, message: '' },
   consoleLog: [],
+  freshness: null,
 };
 
 export const DEFAULT_TRACE_SLICE: TabTraceSlice = {

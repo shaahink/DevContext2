@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal, type OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { SessionStore } from '../../state/session.store';
@@ -120,20 +120,24 @@ import {
         </div>
       }
 
-      <!-- Tile 3: Freshness -->
+      <!-- Tile 3: Freshness (D4.6 L2 — snapshot age + HEAD + a REAL re-analyze button;
+           the old tile showed only duration and a non-interactive text chip) -->
       <div class="tile">
         <h3 class="tile-heading">Freshness</h3>
         @if (summary(); as s) {
-          @if (s.elapsedMs > 0) {
-            <p class="text-xs text-ink">
-              Analyzed in <span class="font-mono tabular-nums">{{ formatElapsed() }}</span>
-            </p>
-          }
+          <p class="text-xs text-ink">
+            Analyzed {{ age() }}@if (s.elapsedMs > 0) {<span class="text-ink-muted"> in <span class="font-mono tabular-nums">{{ formatElapsed() }}</span></span>}
+          </p>
           <p class="text-2xs text-ink-muted">
             {{ s.nodes }} types · {{ s.edges }} edges · {{ s.projects }} projects
+            @if (headSha(); as sha) {
+              · HEAD <span class="font-mono">{{ sha }}</span>
+            }
           </p>
           @if (s.stale) {
-            <span class="chip mt-1.5 text-warn text-2xs">HEAD moved — Re-analyze</span>
+            <button type="button" class="chip mt-1.5 text-warn text-2xs cursor-pointer hover:bg-warn/10" (click)="reanalyze()">
+              HEAD moved — Re-analyze
+            </button>
           } @else {
             <span class="chip mt-1.5 text-success text-2xs">Current</span>
           }
@@ -166,7 +170,7 @@ import {
     .text-danger { color: var(--vibe-danger); }
   `,
 })
-export class HomeTiles {
+export class HomeTiles implements OnDestroy {
   protected readonly session = inject(SessionStore);
   protected readonly summary = this.session.summary;
 
@@ -220,6 +224,34 @@ export class HomeTiles {
     if (!s) return '';
     return this.formatTime(Number(s.elapsedMs));
   });
+
+  /** D4.6 (L2) — snapshot age off the freshness slice; a 60s clock keeps it honest
+   * while the tab sits open. */
+  private readonly nowMs = signal(Date.now());
+  private readonly ageClock = setInterval(() => this.nowMs.set(Date.now()), 60_000);
+
+  ngOnDestroy(): void {
+    clearInterval(this.ageClock);
+  }
+
+  protected readonly age = computed(() => {
+    const f = this.session.freshness();
+    if (!f) return 'just now';
+    const sec = Math.max(0, Math.round((this.nowMs() - f.analyzedAtMs) / 1000));
+    if (sec < 90) return 'just now';
+    if (sec < 3600) return `${Math.round(sec / 60)}m ago`;
+    if (sec < 86_400) return `${Math.round(sec / 3600)}h ago`;
+    return `${Math.round(sec / 86_400)}d ago`;
+  });
+
+  protected readonly headSha = computed(() => {
+    const sha = this.session.freshness()?.commitSha ?? '';
+    return sha ? sha.slice(0, 7) : null;
+  });
+
+  protected reanalyze(): void {
+    void this.session.reAnalyze();
+  }
 
   protected formatTime(ms: number): string {
     const s = ms / 1000;
