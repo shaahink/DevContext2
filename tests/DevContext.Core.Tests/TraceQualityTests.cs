@@ -28,7 +28,7 @@ public sealed class TraceQualityTests
     public async Task Trace_bridges_indirection(string repoRel, string entry, string[] expected)
     {
         var repoPath = RepoPath(repoRel);
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // eval repo not cloned in this environment — skip silently
 
         var trace = await RunTraceAsync(repoPath, entry);
@@ -52,7 +52,7 @@ public sealed class TraceQualityTests
     public async Task Trace_can_keep_arch_sections_alongside_the_call_stack()
     {
         var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // eval repo not cloned in this environment — skip silently
 
         // Default: a focus produces a trace-only render (the CLI behaviour).
@@ -79,7 +79,7 @@ public sealed class TraceQualityTests
     public async Task Sibling_methods_produce_divergent_traces_no_fabricated_edges()
     {
         var repoPath = RepoPath("eval-repos/eShop/src/Catalog.API");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // eval repo not cloned in this environment — skip silently
 
         var create = await RunTraceAsync(repoPath, "CatalogApi:CreateItem");
@@ -109,7 +109,7 @@ public sealed class TraceQualityTests
     public async Task Orders_trace_keeps_the_real_spine_and_drops_sibling_edges()
     {
         var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // eval repo not cloned in this environment — skip silently
 
         var trace = await RunTraceAsync(repoPath, "POST /api/orders/");
@@ -144,7 +144,7 @@ public sealed class TraceQualityTests
     public async Task Controller_sibling_actions_produce_divergent_traces()
     {
         var repoPath = RepoPath("tests/fixtures/ControllerApp");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // fixture missing — skip silently
 
         // Routes compose the verb-attribute template since 2026-07-15 ([HttpGet("{id}")] →
@@ -184,7 +184,7 @@ public sealed class TraceQualityTests
     public async Task Orders_trace_is_complete_and_honest()
     {
         var repoPath = RepoPath("eval-repos/eShop/src/Ordering.API");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return; // eval repo not cloned in this environment — skip silently
 
         var trace = await RunTraceAsync(repoPath, "POST /api/orders/");
@@ -216,7 +216,7 @@ public sealed class TraceQualityTests
     public async Task Graph_seam_counts_on_reference_repo_do_not_regress()
     {
         var repoPath = RepoPath("eval-repos/eShop");
-        if (!Directory.Exists(repoPath))
+        if (!RepoAvailable(repoPath))
             return;
 
         var fs = new RealFileSystem();
@@ -309,6 +309,13 @@ public sealed class TraceQualityTests
         var rendered = await pipeline.RenderAsync(snapshot, request);
         return rendered.Content;
     }
+
+    /// <summary>Same contract as TruthExpectationTests.FixtureExists (T8.3): a fresh clone
+    /// materializes gitlink (submodule) paths as EMPTY directories, so a bare Directory.Exists
+    /// guard RAN these tests against an empty dir and failed the gate instead of skipping —
+    /// the D5.5 clean-clone battery caught the sites this class kept.</summary>
+    private static bool RepoAvailable(string repoPath)
+        => Directory.Exists(repoPath) && Directory.EnumerateFileSystemEntries(repoPath).Any();
 
     private static string RepoPath(string relativePath)
     {
