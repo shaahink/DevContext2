@@ -105,7 +105,18 @@ public sealed class DiscoveryModel
         });
         CallEdges.Seal(static (a, b) =>
         {
-            var c = string.CompareOrdinal(a.CallerType, b.CallerType);
+            // Source order is SEMANTIC for call edges: the entry "primary call" pick keeps the
+            // FIRST service callee of a member (GraphBuilder.Entries), so canonical order is the
+            // call site (file, then NUMERIC line — "x.cs:9" precedes "x.cs:27") — never
+            // callee-name order, which flipped the ControllerApp POST target to the
+            // alphabetically-first collaborator.
+            var (aFile, aLine) = SplitCallSite(a.CallSiteLocation);
+            var (bFile, bLine) = SplitCallSite(b.CallSiteLocation);
+            var c = string.CompareOrdinal(aFile, bFile);
+            if (c != 0) return c;
+            c = aLine.CompareTo(bLine);
+            if (c != 0) return c;
+            c = string.CompareOrdinal(a.CallerType, b.CallerType);
             if (c != 0) return c;
             c = string.CompareOrdinal(a.CallerMethod, b.CallerMethod);
             if (c != 0) return c;
@@ -113,10 +124,18 @@ public sealed class DiscoveryModel
             if (c != 0) return c;
             c = string.CompareOrdinal(a.CalleeMethod, b.CalleeMethod);
             if (c != 0) return c;
-            c = string.CompareOrdinal(a.CallSiteLocation ?? "", b.CallSiteLocation ?? "");
-            if (c != 0) return c;
             return ((int)a.Resolution).CompareTo((int)b.Resolution);
         });
+    }
+
+    /// <summary>Splits a "path:line" call site into its file and numeric line (the path's own
+    /// drive colon survives the last-colon split). Null/unparseable sites sort first as ("", 0).</summary>
+    private static (string File, int Line) SplitCallSite(string? site)
+    {
+        if (string.IsNullOrEmpty(site)) return ("", 0);
+        var idx = site.LastIndexOf(':');
+        if (idx <= 0 || idx == site.Length - 1) return (site, 0);
+        return int.TryParse(site.AsSpan(idx + 1), out var line) ? (site[..idx], line) : (site, 0);
     }
 }
 

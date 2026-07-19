@@ -82,6 +82,26 @@ public class DeterministicOrderTests
     }
 
     [Fact]
+    public void Call_edge_canonical_order_is_source_order_not_callee_name_order()
+    {
+        // The entry "primary call" pick keeps the FIRST service callee of a member — canonical
+        // order must preserve the member's call-site source order (the ControllerApp POST target
+        // flipped to the alphabetically-first collaborator when the sort led with callee type):
+        // CreateAsync at :30 stays ahead of RecordAsync at :31 although "AuditService" sorts
+        // first by name. Also pins NUMERIC line order: "x.cs:9" precedes "x.cs:27" (a string
+        // compare would not).
+        var model = new DiscoveryModel();
+        model.CallEdges.Add(new CallEdge("ProductsController", "Create", "AuditService", "RecordAsync", @"C:\src\c.cs:31"));
+        model.CallEdges.Add(new CallEdge("ProductsController", "Create", "ProductService", "CreateAsync", @"C:\src\c.cs:30"));
+        model.CallEdges.Add(new CallEdge("Other", "M", "Z", "N", @"C:\src\x.cs:27"));
+        model.CallEdges.Add(new CallEdge("Other", "M", "A", "N", @"C:\src\x.cs:9"));
+        model.SealDeterministicOrder();
+
+        Assert.Equal(["ProductService", "AuditService", "A", "Z"],
+            model.CallEdges.Select(e => e.CalleeType).ToArray());
+    }
+
+    [Fact]
     public void Clear_then_readd_preserves_new_insertion_order()
     {
         // The SemanticLite call-edge upgrade replaces the bag contents with an order-preserving
