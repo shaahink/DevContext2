@@ -1,0 +1,56 @@
+
+--- Step 0: Clear orphaned build-locking processes ---
+  PASS  Cleared 0 orphaned process(es)
+
+--- Step 1: Build solution ---
+  PASS  Build succeeded
+
+--- Step 2: Fast unit tests ---
+  PASS  Fast tests passed
+
+--- Step 2b: MCP QA gate (serial) ---
+  PASS  MCP QA gate passed
+
+--- Step 3: Eval expectation tests ---
+  split: A=21+other eval classes, B=24 repos, two test hosts
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~shamshir-pole|DisplayName~screentogif|DisplayName~newtonsoft-json|DisplayName~stackexchange-redis|DisplayName~dogfood-microservices|DisplayName~automapper|DisplayName~blazor-app|DisplayName~catalog|DisplayName~communitytoolkit|Di...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+
+[xUnit.net 00:03:57.93]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+  Failed DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(repoName: "controllerapp", expectationFile: "C:\\code\\DevContext2\\eval\\expectations\\control"AúAúAú) [415 ms]
+  Error Message:
+   Assert.Empty() Failure: Collection was not empty
+Collection: ["target-post: 'ProductService.CreateAsync' not foun"AúAúAú]
+  Stack Trace:
+     at DevContext.Core.Tests.EvalExpectationTests.EvalRepo_MatchesExpectations(String repoName, String expectationFile) in C:\code\DevContext2\tests\DevContext.Core.Tests\EvalExpectationTests.cs:line 103
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ Running analysis on controllerapp (C:\code\DevContext2\tests\fixtures\ControllerApp)...
+   [pass] detection-endpoints
+   [pass] target-get
+   [FAIL] target-post ƒ?" 'ProductService.CreateAsync' not found in output
+   [pass] target-delete
+
+
+[xUnit.net 00:06:21.02]     DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [SKIP]
+  Skipped DevContext.Core.Tests.TruthExpectationTests.RazorPages_no_fabricated_cross_sample_edges [1 ms]
+
+Failed!  - Failed:     1, Passed:    56, Skipped:     2, Total:    59, Duration: 7 m 10 s - DevContext.Core.Tests.dll (net10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Core.Tests\bin\Debug\net10.0\DevContext.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+Test run for C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+No test matches the given testcase filter `Category=Eval&(DisplayName~bitwarden-server|DisplayName~dntsite|DisplayName~wolverine|DisplayName~dotnet-podcasts|DisplayName~eshop|DisplayName~aspire-samples|DisplayName~azurefunctions|DisplayName~blazor-surface|DisplayName~cli-app|DisplayName~company-fun...` in C:\code\DevContext2\tests\DevContext.Server.Tests\bin\Debug\net10.0\DevContext.Server.Tests.dll
+[xUnit.net 00:00:01.07]     DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [SKIP]
+
+  Skipped DevContext.Core.Tests.TruthExpectationTests.DntSite_baseline_presence_ok [1 ms]
+
+Passed!  - Failed:     0, Passed:    27, Skipped:     1, Total:    28, Duration: 11 m 11 s - DevContext.Core.Tests.dll (net10.0)
+  host exit codes: A=1 B=0
+  FAIL  Eval tests failed
+
+GATE: FAIL (step 3 - eval)

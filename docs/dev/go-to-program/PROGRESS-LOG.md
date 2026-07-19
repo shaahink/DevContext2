@@ -2654,3 +2654,29 @@ one binary), dogfood pole incl. the E1 keep-side BasketCheckoutEvent seam, eShop
 42.2->30.8s, edges/entries identical every row. Cold bitwarden 151.5->98.3s (target ~3.5min).
 +3 unit tests; fast 606+15; McpQa serial 2/2; loom-guards PASS. D3 close battery: full-tier gate
 detached (result in tracker).
+
+## 2026-07-19 - Prism D5 session 2: riders + release decision + PHASE QA + close (D5.3-D5.6)
+D5.3 riders (995108b/b06de5b/208ed50): the determinism thread killed a 3-leg nondeterminism class
+at chokepoints - ConcurrentBag arrival order (SealableBag + one post-extraction seal),
+ConcurrentDictionary.Values per-process hash order (OrderedTypes view + ctor-sorted
+NameResolver/SymbolTable, retires the C5 collision-pick latent), FrozenDictionary layout order
+(CodeGraph captures builder insertion order). Call-edge canon = CALL SITE (file, numeric line)
+because source order is semantic for the primary-call pick - the D5.5 battery run-1 caught the
+callee-name-led first draft flipping ControllerApp's POST target. Proof: fresh A/B one binary,
+dogfood x3 + bitwarden x2 byte-identical; no schema bump (J2 MVID key rejects pre-fix snapshots).
+Laden-server: the session cap existed; the leak was EngineHostCache never evicting - one host per
+analyzed root pinning ALL parsed trees for the server's lifetime; hosts now released with their
+last session (bounded by the session cap), HostReleaseTests 2/2.
+D5.4 (7eb20c1/28273d3): Windows-only bundle decision ENCODED (tauri targets nsis+msi, release.yml
+claim); installer version from the release tag (set-tauri-version.mjs); workflow_dispatch = release
+dry-run. Dry-run 1 caught a REAL latent release bug (pnpm monorepo package_json_file - any real v*
+tag would have died); dry-run 2 green, inventory = exactly nsis 0.0.0 exe + msi + CLI nupkg,
+Release job skip proven.
+D5.5 PHASE QA: full battery GATE: PASS unqualified (stamp written) after the run-1 catch; octet
+LENS-AUDIT: PASS 8/8 (all archetypes intended, P6 MCP navigation probes green octet-wide = the DoD
+zero-silent-breaches proof, P7 quiet, bitwarden 173.2s vs 522s cap); clean-clone battery run-1
+caught TraceQualityTests' bare Directory.Exists running against empty gitlink dirs (the T8.3 class,
+sites T8.3 missed; RepoAvailable guard @ 24ce626) - run 2 GATE: PASS every step from a fresh clone.
+D5.6: HANDOVER-PRISM.md written, tracker closed, cross-OS CI re-dispatched at the tip.
+PRISM PHASE COMPLETE PENDING MERGE - branch train feat/prism-d1..d5 merges to develop as ONE merge
+on owner sign-off.
